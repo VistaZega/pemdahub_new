@@ -1,77 +1,53 @@
 <?php
 /**
- * Final: Update server ke commit terbaru dari GitHub
+ * Info Deploy & Instructions
  * Akses: https://perguruanpembda.com/git_pull_now.php?secret=pembda99
  */
 if (($_GET['secret'] ?? '') !== 'pembda99') { http_response_code(403); die('Forbidden'); }
 
-header('Content-Type: text/plain; charset=utf-8');
+header('Content-Type: text/html; charset=utf-8');
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Petunjuk Git Deploy Hostinger - PembdaHUB</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 30px; max-width: 800px; margin: 0 auto; line-height: 1.6; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); margin-bottom: 20px; }
+        h1 { color: #818cf8; font-size: 22px; margin-top: 0; }
+        h2 { color: #38bdf8; font-size: 16px; margin-top: 0; }
+        .step { background: #0f172a; border-left: 4px solid #6366f1; padding: 12px 16px; margin: 12px 0; border-radius: 0 8px 8px 0; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; margin-top: 10px; }
+        .btn-green { background: linear-gradient(135deg, #10b981, #059669); }
+        .code { background: #000; color: #f43f5e; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>ℹ️ Petunjuk Deploy Hostinger PembdaHUB</h1>
+        <p>Karena keterbatasan sistem Shared Hosting Hostinger, skrip PHP via browser <strong>tidak memiliki izin SSH</strong> untuk mengeksekusi <span class="code">git pull</span> secara langsung dari GitHub.</p>
+        
+        <h2>Langkah Wajib untuk Mengaktifkan Perubahan Kode Terbaru:</h2>
 
-$root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
+        <div class="step">
+            <strong>Langkah 1: Klik Deploy di hPanel Hostinger</strong><br>
+            1. Buka <a href="https://hpanel.hostinger.com" target="_blank" style="color:#60a5fa;">hPanel Hostinger</a>.<br>
+            2. Masuk ke menu <strong>Git</strong> (di bagian <i>Files</i> / <i>Advanced</i>).<br>
+            3. Pada repository <strong>main</strong>, klik tombol <strong>Deploy</strong> atau <strong>Pull Changes</strong>.
+        </div>
 
-echo "=== GIT PULL & UPDATE ===\n\n";
+        <div class="step">
+            <strong>Langkah 2: Jalankan Migrasi Database Baru</strong><br>
+            Setelah klik Deploy di Hostinger, klik tombol hijau di bawah untuk menjalankan migrasi database baru:<br>
+            <a href="https://perguruanpembda.com/run-migrations?secret=pembda99" class="btn btn-green">Jalankan Migrasi Database</a>
+        </div>
 
-// 1. Fetch latest
-echo "--- 1. Fetch ---\n";
-echo shell_exec("GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' git -C {$root} fetch origin 2>&1") . "\n";
-
-// 2. Show before
-echo "--- 2. Sebelum Update ---\n";
-echo "HEAD: " . trim(shell_exec("git -C {$root} rev-parse --short HEAD 2>&1")) . "\n";
-echo "origin/main: " . trim(shell_exec("git -C {$root} rev-parse --short origin/main 2>&1")) . "\n\n";
-
-// 3. Reset to latest
-echo "--- 3. Update ke origin/main ---\n";
-echo shell_exec("git -C {$root} reset --hard origin/main 2>&1") . "\n";
-
-// 4. Show after
-echo "--- 4. Sesudah Update ---\n";
-echo "HEAD: " . trim(shell_exec("git -C {$root} rev-parse --short HEAD 2>&1")) . "\n";
-echo shell_exec("git -C {$root} log --oneline -5 2>&1") . "\n";
-
-// 5. Clear cache & OPcache
-echo "--- 5. Clear Cache ---\n";
-if (function_exists('opcache_reset')) {
-    if (@opcache_reset()) {
-        echo "OPcache reset: OK\n";
-    } else {
-        echo "OPcache reset: FAILED\n";
-    }
-}
-$viewDir = "{$root}/storage/framework/views/";
-$cleared = 0;
-if (is_dir($viewDir)) {
-    $files = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($viewDir, RecursiveDirectoryIterator::SKIP_DOTS),
-        RecursiveIteratorIterator::CHILD_FIRST
-    );
-    foreach ($files as $fileinfo) {
-        if ($fileinfo->isFile() && $fileinfo->getExtension() === 'php') {
-            if (@unlink($fileinfo->getRealPath())) $cleared++;
-        }
-    }
-}
-echo "Views cleared: {$cleared}\n";
-foreach (['config.php','routes-v7.php','packages.php','services.php','events.php'] as $cf) {
-    $fp = "{$root}/bootstrap/cache/{$cf}";
-    if (file_exists($fp) && @unlink($fp)) echo "Deleted: bootstrap/cache/{$cf}\n";
-}
-
-// 6. Verify
-echo "\n--- 6. Verifikasi ---\n";
-$checks = [
-    ['app/Http/Controllers/Admin/ScheduleGridController.php', '$schools->first() ? $schools->first()->id : null', 'ScheduleGrid fix'],
-    ['app/Http/Controllers/Admin/TeachingAssignmentController.php', 'Prioritas: (1) teacher', 'TeachingAssignment fix'],
-    ['app/Http/Controllers/Admin/TimeSlotController.php', '$schools->first() ? $schools->first()->id : null', 'TimeSlot fix'],
-    ['resources/views/admin/assignments/positions/index.blade.php', 'destroy-single', 'Index view single delete button'],
-    ['app/Http/Controllers/Admin/PositionAssignmentController.php', '$schoolIdForClassrooms', 'PositionAssignmentController classrooms fix'],
-    ['app/Http/Controllers/Admin/PositionController.php', '$yearName', 'PositionController active year destroy check'],
-];
-foreach ($checks as [$file, $marker, $label]) {
-    $path = "{$root}/{$file}";
-    $ok = file_exists($path) && strpos(file_get_contents($path), $marker) !== false;
-    echo ($ok ? 'OK' : 'FAIL') . " - {$label}\n";
-}
-
-echo "\n=== SELESAI! hPanel Git Deploy seharusnya bisa digunakan sekarang ===\n";
-echo "Test: https://perguruanpembda.com/admin/dashboard\n";
+        <div class="step">
+            <strong>Langkah 3: Bersihkan Cache Server</strong><br>
+            Klik tombol pembersih cache untuk memperbarui tampilan Laravel:<br>
+            <a href="https://perguruanpembda.com/clear-cache.php?secret=pembda99" class="btn">Bersihkan Cache Laravel</a>
+        </div>
+    </div>
+</body>
+</html>
