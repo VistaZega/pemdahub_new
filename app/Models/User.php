@@ -18,6 +18,7 @@ class User extends Authenticatable
         'password',
         'role',
         'school_id',
+        'photo',
         'is_active',
         'last_login',
         'must_change_password',
@@ -467,6 +468,9 @@ class User extends Authenticatable
      */
     public function getAvatarUrlAttribute(): string
     {
+        if ($this->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->photo)) {
+            return asset('storage/' . $this->photo);
+        }
         if ($this->student && $this->student->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->student->photo)) {
             return asset('storage/' . $this->student->photo);
         }

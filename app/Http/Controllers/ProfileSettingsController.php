@@ -111,6 +111,8 @@ class ProfileSettingsController extends Controller
         $photoPath = null;
         if ($request->hasFile('photo')) {
             $photoPath = $request->file('photo')->store('photos', 'public');
+            $user->photo = $photoPath;
+            $user->save();
         }
 
         $updatedData = [
