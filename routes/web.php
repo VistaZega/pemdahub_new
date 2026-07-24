@@ -1183,6 +1183,16 @@ Route::get('/migrate-quiz-questions', function () {
         echo "\n<b>Migrasi Selesai!</b>\n";
         echo "Total data dikonversi/diperbarui: <b>{$migratedCount}</b>\n";
         echo "Total data dilewati (sudah sesuai format): <b>{$skippedCount}</b>\n";
+
+        echo "<h1>=== CLEARING VIEW & ROUTE CACHE ===</h1>\n";
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        echo "View cache cleared: " . \Illuminate\Support\Facades\Artisan::output();
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        echo "Route cache cleared: " . \Illuminate\Support\Facades\Artisan::output();
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+            echo "OPcache reset: SUCCESS\n";
+        }
     } catch (\Exception $e) {
         echo "<b style='color:#f00;'>ERROR: " . $e->getMessage() . "</b>\n";
     }
