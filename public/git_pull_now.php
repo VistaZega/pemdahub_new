@@ -8,12 +8,16 @@ if (($_GET['secret'] ?? '') !== 'pembda99') { http_response_code(403); die('Forb
 header('Content-Type: text/plain; charset=utf-8');
 
 $root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
+$repoUrl = 'https://github.com/YulianusZega/new_pembdahub.git';
 
 echo "=== GIT PULL, MIGRATE & UPDATE ===\n\n";
 
+// Set remote URL to public repo HTTPS
+shell_exec("git -C {$root} remote set-url origin {$repoUrl} 2>&1");
+
 // 1. Fetch latest
 echo "--- 1. Fetch ---\n";
-echo shell_exec("GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' git -C {$root} fetch origin 2>&1") . "\n";
+echo shell_exec("git -C {$root} fetch origin main 2>&1") . "\n";
 
 // 2. Show before
 echo "--- 2. Sebelum Update ---\n";
@@ -45,7 +49,7 @@ foreach (['config.php','routes-v7.php','packages.php','services.php','events.php
 }
 
 // 6. Run Database Migrations & Clear Laravel Cache via Artisan
-echo "\n--- 6. Run Database Migrations ---\n";
+echo "\n--- 6. Run Database Migrations & Clear View Cache ---\n";
 try {
     require_once "{$root}/vendor/autoload.php";
     $app = require_once "{$root}/bootstrap/app.php";

@@ -1,7 +1,6 @@
 <?php
 /**
- * Git Fix - Ubah remote ke HTTPS lalu fetch + reset
- * Upload ke public_html/pembdahub/public/
+ * Git Fix - Ubah remote ke HTTPS new_pembdahub.git lalu fetch + reset + migrate
  * Akses: https://perguruanpembda.com/git_fix.php?secret=pembda99
  */
 if (($_GET['secret'] ?? '') !== 'pembda99') { http_response_code(403); die('Access denied.'); }
@@ -11,11 +10,10 @@ echo "<style>body{font-family:monospace;background:#1a1a2e;color:#e0e0e0;padding
 echo "<h1>🔧 Git Fix: Remote HTTPS + Force Reset</h1>";
 
 $laravelRoot = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
-$httpsRemote = 'https://github.com/YulianusZega/pembdahub.git';
+$httpsRemote = 'https://github.com/YulianusZega/new_pembdahub.git';
 
 echo "<p class='info'>ℹ️ Laravel root: <b>$laravelRoot</b></p>";
 
-// Fungsi bantu jalankan command
 function runCmd(string $cmd, string $label): bool {
     echo "<h2>$label</h2>";
     $output = [];
@@ -31,75 +29,46 @@ function runCmd(string $cmd, string $label): bool {
 // 1. Cek remote URL saat ini
 runCmd("git -C $laravelRoot remote get-url origin", "1️⃣ Remote URL Saat Ini");
 
-// 2. Ubah remote ke HTTPS
-runCmd("git -C $laravelRoot remote set-url origin $httpsRemote", "2️⃣ Ubah Remote → HTTPS");
+// 2. Ubah remote ke HTTPS repo yang benar (new_pembdahub)
+runCmd("git -C $laravelRoot remote set-url origin $httpsRemote", "2️⃣ Ubah Remote → HTTPS (new_pembdahub)");
 
 // 3. Konfirmasi perubahan
 runCmd("git -C $laravelRoot remote get-url origin", "3️⃣ Konfirmasi Remote Baru");
 
 // 4. Git fetch via HTTPS
-$fetchOk = runCmd("git -C $laravelRoot fetch origin main --depth=1", "4️⃣ Git Fetch (HTTPS)");
-
-if (!$fetchOk) {
-    echo "<p class='warn'>⚠️ Fetch gagal. Mencoba tanpa --depth...</p>";
-    $fetchOk = runCmd("git -C $laravelRoot fetch origin main", "4️⃣ Git Fetch (retry)");
-}
+$fetchOk = runCmd("git -C $laravelRoot fetch origin main", "4️⃣ Git Fetch (HTTPS)");
 
 // 5. Reset hard ke origin/main
 if ($fetchOk) {
     runCmd("git -C $laravelRoot reset --hard origin/main", "5️⃣ Force Reset ke origin/main");
 } else {
     echo "<h2>5️⃣ Force Reset</h2>";
-    echo "<p class='err'>❌ Fetch gagal, reset tidak dijalankan. Lihat alternatif di bawah.</p>";
+    echo "<p class='err'>❌ Fetch gagal. Mencoba git pull direct...</p>";
+    runCmd("git -C $laravelRoot pull origin main --rebase", "5️⃣ Direct Pull");
 }
 
 // 6. Cek commit terbaru
 runCmd("git -C $laravelRoot log --oneline -5", "6️⃣ Git Log Terbaru");
 
-// 7. Verifikasi file-file kritis
-echo "<h2>7️⃣ Verifikasi File Kritis</h2>";
+// 7. Run Database Migration & Clear Cache
+echo "<h2>7️⃣ Run Migration & Clear Cache</h2><pre>";
+try {
+    require_once "$laravelRoot/vendor/autoload.php";
+    $app = require_once "$laravelRoot/bootstrap/app.php";
+    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
 
-$checks = [
-    ['path' => "$laravelRoot/app/Http/Controllers/Admin/TeachingAssignmentController.php",
-     'marker' => 'Prioritas: (1) teacher',
-     'label' => 'TeachingAssignmentController'],
-    ['path' => "$laravelRoot/resources/views/admin/assignments/teaching/create.blade.php",
-     'marker' => 'Informasi Pilihan Mata Pelajaran',
-     'label' => 'create.blade.php (info banner)'],
-    ['path' => "$laravelRoot/resources/views/admin/assignments/teaching/create.blade.php",
-     'marker' => 'Mapel tidak muncul',
-     'label' => 'create.blade.php (mapel hint)'],
-    ['path' => "$laravelRoot/database/seeders/TimeSlotsSeeder.php",
-     'marker' => 'getSlotsForSchool',
-     'label' => 'TimeSlotsSeeder (semua sekolah)'],
-];
+    $output = new \Symfony\Component\Console\Output\BufferedOutput();
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true], $output);
+    echo "<span class='ok'>✅ Migration Output:\n" . htmlspecialchars(trim($output->fetch())) . "</span>\n\n";
 
-foreach ($checks as $check) {
-    if (!file_exists($check['path'])) {
-        echo "<p class='err'>❌ FILE TIDAK DITEMUKAN: {$check['label']}</p>";
-        continue;
-    }
-    $content = file_get_contents($check['path']);
-    $ok = strpos($content, $check['marker']) !== false;
-    echo "<p class='" . ($ok ? 'ok' : 'err') . "'>" . ($ok ? '✅' : '❌') . " {$check['label']}: " . ($ok ? 'VERSI TERBARU ✓' : 'MASIH LAMA ✗') . "</p>";
+    $output2 = new \Symfony\Component\Console\Output\BufferedOutput();
+    \Illuminate\Support\Facades\Artisan::call('view:clear', [], $output2);
+    echo "<span class='ok'>✅ View Clear: " . htmlspecialchars(trim($output2->fetch())) . "</span>\n";
+} catch (\Exception $e) {
+    echo "<span class='err'>❌ Artisan Error: " . htmlspecialchars($e->getMessage()) . "</span>\n";
 }
+echo "</pre>";
 
-// 8. Clear cache
-echo "<h2>8️⃣ Bersihkan Cache</h2>";
-$viewCacheDir = "$laravelRoot/storage/framework/views/";
-if (is_dir($viewCacheDir)) {
-    $files = glob($viewCacheDir . '*.php');
-    $cleared = 0;
-    foreach ($files as $f) { if (@unlink($f)) $cleared++; }
-    echo "<p class='ok'>✅ $cleared view cache dihapus.</p>";
-}
-foreach (['config.php','routes-v7.php','packages.php','services.php'] as $cf) {
-    $fp = "$laravelRoot/bootstrap/cache/$cf";
-    if (file_exists($fp) && @unlink($fp)) echo "<p class='ok'>✅ Deleted: bootstrap/cache/$cf</p>";
-}
-
-echo "<hr>";
-echo "<p class='warn'><b>⚠️ HAPUS file git_fix.php setelah selesai!</b></p>";
-echo "<p><a href='https://perguruanpembda.com/clear-cache.php?secret=pembda99' style='color:#03dac6'>→ Jalankan clear-cache.php</a></p>";
-echo "<p><a href='https://perguruanpembda.com/admin/assignments/teaching/create?teacher_id=295' target='_blank' style='color:#03dac6'>→ Test halaman penugasan mengajar</a></p>";
+echo "<p class='ok'>🎉 Selesai! Git repository telah dipulihkan ke new_pembdahub.git!</p>";
 echo "</body></html>";
