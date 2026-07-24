@@ -203,84 +203,13 @@ class PublicKnowledgeController extends Controller
     }
 
     /**
-     * Download Official International-Standard Journal Template
+     * Download Official International-Standard Journal Template PDF
      */
     public function downloadTemplate()
     {
-        $content = "========================================================================================================\n"
-                 . " JURNAL EDUSAINS & TEKNOLOGI PEMBDA (JET-PEMBDA)\n"
-                 . " YAYASAN PERGURUAN PEMBDA NIAS (PEMBDA) | Dipublikasikan di PembdaHUB\n"
-                 . " ISSN (Online): 2988-7123 | Vol. 1, No. 1, Juli 2026 | https://perguruanpembda.com/knowledge\n"
-                 . "========================================================================================================\n\n"
-                 . "[JUDUL ARTIKEL JURNAL SINGKAT, JELAS, DAN INFORMATIF - MAKSIMAL 15 KATA]\n"
-                 . "[ENGLISH TITLE: CLEAR, CONCISE, AND INFORMATIVE ARTICLE TITLE - MAXIMUM 15 WORDS]\n\n"
-                 . "Nama Penulis Pertama 1*, Nama Penulis Kedua 2, Nama Penulis Ketiga 3\n"
-                 . "1,2,3 Unit Kerja / Mata Pelajaran / Program Studi, Yayasan Perguruan Pembda Nias, Indonesia\n"
-                 . "*Email Penulis Korespondensi: penulis.utama@perguruanpembda.com\n\n"
-                 . "--------------------------------------------------------------------------------------------------------\n"
-                 . "ABSTRAK (Bahasa Indonesia)\n"
-                 . "--------------------------------------------------------------------------------------------------------\n"
-                 . "Tuliskan abstrak berbahasa Indonesia di sini (150 - 250 kata). Abstrak harus merangkum secara utuh "
-                 . "isi artikel jurnal, mencakup: (1) Latar belakang ringkas & tujuan utama inovasi/penelitian, "
-                 . "(2) Metode atau pendekatan pembelajaran/pengembangan yang digunakan, (3) Temuan atau hasil utama "
-                 . "penerapan karya, serta (4) Kesimpulan dan dampak positifnya bagi Civitas Akademika Perguruan Pembda Nias. "
-                 . "Gunakan kalimat yang lugas, jelas, dan tanpa rujukan pustaka.\n\n"
-                 . "Kata Kunci: PembdaHUB; Perguruan Pembda Nias; Inovasi Pembelajaran; Mikrokontroler; Literasi Digital.\n\n"
-                 . "--------------------------------------------------------------------------------------------------------\n"
-                 . "ABSTRACT (English)\n"
-                 . "--------------------------------------------------------------------------------------------------------\n"
-                 . "Write the English abstract here (150 - 250 words). The abstract must provide a complete summary of "
-                 . "the article, including: (1) Background and primary objectives, (2) Methods or pedagogical approaches "
-                 . "applied, (3) Key findings and results, and (4) Main conclusion and significance for the academic "
-                 . "community of Yayasan Perguruan Pembda Nias. Use clear and concise language.\n\n"
-                 . "Keywords: PembdaHUB; Perguruan Pembda Nias; Educational Innovation; Microcontroller; Digital Literacy.\n\n"
-                 . "========================================================================================================\n"
-                 . "I. PENDAHULUAN (INTRODUCTION)\n"
-                 . "--------------------------------------------------------------------------------------------------------\n"
-                 . "Pendahuluan menguraikan latar belakang masalah, konteks pembelajaran di lingkungan Yayasan Perguruan "
-                 . "Pembda Nias, urgensi topik yang dibahas, serta kebaruan (novelty) atau gagasan inovatif yang ditawarkan. "
-                 . "Sebutkan studi/literatur terdahulu yang relevan dan akhiri bagian ini dengan tujuan penulisan karya.\n\n"
-                 . "II. METODE PENELITIAN & IMPLEMENTASI PEMBELAJARAN (METHODS & IMPLEMENTATION)\n"
-                 . "--------------------------------------------------------------------------------------------------------\n"
-                 . "Jelaskan metode, pendekatan, instrumen, subjek/siswa sasaran, serta prosedur pelaksanaan penelitian "
-                 . "atau implementasi modul pembelajaran secara terstruktur. Apabila menggunakan media digital PembdaHUB, "
-                 . "paparkan tahapan integrasi media tersebut dalam Kegiatan Belajar Mengajar (KBM).\n\n"
-                 . "III. HASIL DAN PEMBAHASAN (RESULTS AND DISCUSSION)\n"
-                 . "--------------------------------------------------------------------------------------------------------\n"
-                 . "Sajikan data hasil penerapan, analisis pencapaian siswa/civitas akademika, data statistik interaksi, "
-                 . "tabel hasil pengukuran, serta pembahasan mendalam. Bandingkan hasil karya Anda dengan teori atau "
-                 . "penelitian terdahulu untuk menunjukkan dampak keberhasilannya.\n\n"
-                 . "IV. KESIMPULAN DAN SARAN (CONCLUSION AND RECOMMENDATIONS)\n"
-                 . "--------------------------------------------------------------------------------------------------------\n"
-                 . "Kemukakan kesimpulan utama yang menjawab tujuan penelitian/karya tulis. Berikan saran praktis atau "
-                 . "rekomendasi tindak lanjut bagi guru, sekolah, dan pengembangan portal PembdaHUB ke depan.\n\n"
-                 . "UCAPAN TERIMA KASIH (ACKNOWLEDGMENT)\n"
-                 . "--------------------------------------------------------------------------------------------------------\n"
-                 . "Penulis mengucapkan terima kasih kepada Pengurus Yayasan Perguruan Pembda Nias, Kepala Sekolah, "
-                 . "rekan Guru Civitas Akademika, serta Pengembang PembdaHUB atas dukungan fasilitas dan sarana publikasi.\n\n"
-                 . "========================================================================================================\n"
-                 . "DAFTAR PUSTAKA / REFERENCES (Standar APA 7th Edition)\n"
-                 . "========================================================================================================\n"
-                 . "[REFERENSI LOKAL / NASIONAL - MINIMAL 5 PUSTAKA]\n"
-                 . "1. Zega, Y., & Hia, T. (2025). Inovasi Pembelajaran Digital Berbasis Mikrokontroler dan IoT pada Sekolah Menengah di Nias. Jurnal Pendidikan Teknologi & Vokasi Pembda, 4(1), 12-25.\n"
-                 . "2. Kemendikbudristek. (2024). Panduan Transformasi Digital dan Pembelajaran Interaktif di Satuan Pendidikan. Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi Republik Indonesia.\n"
-                 . "3. Harefa, D., & Lase, A. (2024). Penerapan Modul Digital PembdaHUB untuk Meningkatkan Literasi Sains dan Teknologi Siswa. Jurnal Ilmiah Pendidikan Indonesia, 10(2), 88-97.\n"
-                 . "4. Telaumbanua, K. (2023). Pengembangan Media Pembelajaran Interaktif Berbasis Web di Wilayah Kepulauan Nias. Jurnal Teknologi Pendidikan Nasional, 8(3), 145-156.\n"
-                 . "5. Yulianus, Z., & Tim PembdaHUB. (2026). Portal PembdaHUB: Integrasi LMS, CBT, dan Repositori Jurnal Civitas Akademika. Jurnal Sains & Aplikasi Pembda, 2(1), 1-15.\n\n"
-                 . "[REFERENSI INTERNASIONAL - MINIMAL 3 PUSTAKA]\n"
-                 . "6. UNESCO. (2024). Global Education Monitoring Report: Technology in Education – A Tool on Whose Terms? UNESCO Publishing, Paris.\n"
-                 . "7. Siemens, G., & Downes, S. (2023). Connectivism and Digital Pedagogy in Modern K-12 and Higher Education Environments. IEEE Transactions on Learning Technologies, 16(4), 410-422.\n"
-                 . "8. Mayer, R. E. (2022). The Cambridge Handbook of Multimedia Learning (3rd ed.). Cambridge University Press. https://doi.org/10.1017/9781108894333\n\n"
-                 . "========================================================================================================\n"
-                 . "* CATATAN PENTING FORUM JURNAL:\n"
-                 . "Penggunaan template ini sifatnya OPSIONAL (Bebas / Tidak Wajib).\n"
-                 . "Guru & Civitas Akademika Yayasan Perguruan Pembda Nias diperbolehkan mengunggah karya tulis mandiri\n"
-                 . "atau menggunakan format penulisan bebas sesuai kreatifitas pendidik.\n"
-                 . "========================================================================================================";
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.template_jurnal')
+            ->setPaper('a4', 'portrait');
 
-        return response($content, 200, [
-            'Content-Type' => 'text/plain; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="TEMPLATE_JURNAL_CIVITAS_AKADEMIKA_PEMBDA_NIAS.txt"',
-        ]);
+        return $pdf->download('TEMPLATE_JURNAL_CIVITAS_AKADEMIKA_PEMBDA_NIAS.pdf');
     }
 }
