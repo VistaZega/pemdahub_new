@@ -6,46 +6,48 @@
     <style>
         @page {
             size: A4 portrait;
-            margin-top: 2.2cm;
-            margin-bottom: 2.2cm;
-            margin-left: 2.8cm;
-            margin-right: 2.3cm;
+            margin-top: 2.0cm;
+            margin-bottom: 2.0cm;
+            margin-left: 2.7cm;
+            margin-right: 2.2cm;
         }
 
         body {
             font-family: 'Times New Roman', Times, serif;
             font-size: 10pt;
-            line-height: 1.35;
+            line-height: 1.32;
             color: #0f172a;
             margin: 0;
             padding: 0;
         }
 
-        /* Header Identitas Jurnal */
+        /* Header Identitas Jurnal (Diperbesar & Dibuat Lebih Megah) */
         .journal-header {
-            border-bottom: 2px solid #0f766e;
-            padding-bottom: 6px;
-            margin-bottom: 14px;
+            border-bottom: 2.5px solid #0f766e;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
             text-align: center;
         }
         .journal-title-top {
-            font-size: 11pt;
+            font-size: 15.5pt;
             font-weight: bold;
             color: #0f766e;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
             margin: 0;
+            line-height: 1.2;
         }
         .journal-subhead {
-            font-size: 9.5pt;
+            font-size: 11pt;
             font-weight: bold;
-            color: #334155;
-            margin: 2px 0 0 0;
+            color: #1e293b;
+            margin: 3px 0 0 0;
+            letter-spacing: 0.3px;
         }
         .journal-meta {
-            font-size: 8.5pt;
-            color: #64748b;
-            margin-top: 2px;
+            font-size: 9pt;
+            color: #475569;
+            margin-top: 3px;
             font-style: italic;
         }
 
@@ -54,8 +56,8 @@
             background-color: #f0fdf4;
             border: 1px solid #a7f3d0;
             border-left: 4px solid #059669;
-            padding: 8px 10px;
-            margin-bottom: 14px;
+            padding: 7px 10px;
+            margin-bottom: 12px;
             font-size: 8.5pt;
             color: #065f46;
             border-radius: 4px;
@@ -63,7 +65,7 @@
         .info-box-title {
             font-weight: bold;
             text-transform: uppercase;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
         /* Layout Specs Box */
@@ -71,7 +73,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 8.5pt;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
         .specs-table th, .specs-table td {
             border: 1px solid #cbd5e1;
@@ -86,11 +88,11 @@
 
         /* Article Header */
         .article-title-id {
-            font-size: 13pt;
+            font-size: 13.5pt;
             font-weight: bold;
             text-align: center;
             text-transform: uppercase;
-            margin: 10px 0 4px 0;
+            margin: 8px 0 3px 0;
             color: #0f172a;
             line-height: 1.25;
         }
@@ -99,7 +101,7 @@
             font-style: italic;
             text-align: center;
             color: #475569;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             line-height: 1.2;
         }
         .authors {
@@ -113,30 +115,30 @@
             text-align: center;
             font-size: 8.5pt;
             color: #475569;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         /* Abstrak Box */
         .abstract-container {
             background-color: #fafafa;
             border: 1px solid #cbd5e1;
-            padding: 10px;
-            margin-bottom: 14px;
+            padding: 9px;
+            margin-bottom: 12px;
             border-radius: 4px;
         }
         .abstract-title {
             font-size: 9pt;
             font-weight: bold;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             color: #0f172a;
         }
         .abstract-text {
             font-size: 8.5pt;
             text-align: justify;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             color: #334155;
             font-style: italic;
-            line-height: 1.3;
+            line-height: 1.28;
         }
         .keywords {
             font-size: 8.5pt;
@@ -152,17 +154,17 @@
             text-transform: uppercase;
             border-bottom: 1.5px solid #0f766e;
             padding-bottom: 2px;
-            margin-top: 14px;
-            margin-bottom: 6px;
+            margin-top: 12px;
+            margin-bottom: 5px;
         }
 
         p {
             text-align: justify;
             text-justify: inter-word;
             margin-top: 0;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
             text-indent: 0.6cm;
-            line-height: 1.35;
+            line-height: 1.32;
         }
 
         .no-indent {
@@ -170,14 +172,14 @@
         }
 
         .rule-list {
-            margin-top: 4px;
-            margin-bottom: 8px;
+            margin-top: 3px;
+            margin-bottom: 6px;
             padding-left: 18px;
-            font-size: 9pt;
-            line-height: 1.35;
+            font-size: 8.5pt;
+            line-height: 1.3;
         }
         .rule-list li {
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             text-align: justify;
         }
 
@@ -187,7 +189,7 @@
             text-align: justify;
             padding-left: 0.7cm;
             text-indent: -0.7cm;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             line-height: 1.25;
         }
 
@@ -196,11 +198,11 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 8.5pt;
-            margin: 8px 0 10px 0;
+            margin: 6px 0 8px 0;
         }
         .sample-table th, .sample-table td {
             border: 1px solid #cbd5e1;
-            padding: 4px 6px;
+            padding: 3px 5px;
             text-align: center;
         }
         .sample-table th {
@@ -210,9 +212,9 @@
 
         /* Footer */
         .footer-note {
-            margin-top: 18px;
+            margin-top: 14px;
             border-top: 1px solid #cbd5e1;
-            padding-top: 6px;
+            padding-top: 5px;
             font-size: 8pt;
             color: #64748b;
             text-align: center;
@@ -223,7 +225,7 @@
 
     {{-- ==================== HALAMAN 1 ==================== --}}
 
-    {{-- Official Journal Header --}}
+    {{-- Official Journal Header (Diperbesar sesuai permintaan) --}}
     <div class="journal-header">
         <div class="journal-title-top">JURNAL EDUSAINS & TEKNOLOGI PEMBDA (JET-PEMBDA)</div>
         <div class="journal-subhead">YAYASAN PERGURUAN PEMBDA NIAS (PEMBDA) | Dipublikasikan di PembdaHUB</div>
@@ -248,15 +250,15 @@
         </tr>
         <tr>
             <td><strong>Margin Halaman</strong></td>
-            <td>Atas: 2.2 cm | Bawah: 2.2 cm | Kiri: 2.8 cm | Kanan: 2.3 cm</td>
+            <td>Atas: 2.0 cm | Bawah: 2.0 cm | Kiri: 2.7 cm | Kanan: 2.2 cm</td>
         </tr>
         <tr>
             <td><strong>Jenis & Ukuran Font</strong></td>
-            <td>Times New Roman (Judul: 13pt Bold | Bab: 10.5pt Bold | Isi: 10pt Justify)</td>
+            <td>Times New Roman (Header Jurnal: 15.5pt Bold | Judul: 13.5pt Bold | Isi: 10pt Justify)</td>
         </tr>
         <tr>
             <td><strong>Spasi Paragraf</strong></td>
-            <td>Line Spacing: 1.35 | Indentasi Awal Paragraf: 0.6 cm | Text Align: Justify</td>
+            <td>Line Spacing: 1.32 | Indentasi Awal Paragraf: 0.6 cm | Text Align: Justify</td>
         </tr>
     </table>
 
@@ -287,7 +289,7 @@
             Kata Kunci: PembdaHUB; Perguruan Pembda Nias; Inovasi Pembelajaran; Mikrokontroler; Literasi Digital.
         </div>
 
-        <div class="abstract-title" style="margin-top: 8px;">ABSTRACT (English)</div>
+        <div class="abstract-title" style="margin-top: 6px;">ABSTRACT (English)</div>
         <div class="abstract-text">
             Write the English abstract here (150 - 250 words). The abstract must provide a complete summary of the article, including: (1) Background and primary objectives, (2) Methods or pedagogical approaches applied, (3) Key findings and results, and (4) Main conclusion and significance for the academic community of Yayasan Perguruan Pembda Nias. Use clear and concise language.
         </div>
@@ -320,7 +322,7 @@
     </p>
 
     {{-- Contoh Tabel --}}
-    <div style="font-size: 8.5pt; font-weight: bold; margin-top: 6px; text-align: center; color: #0f172a;">
+    <div style="font-size: 8.5pt; font-weight: bold; margin-top: 4px; text-align: center; color: #0f172a;">
         Tabel 1. Rekapitulasi Statistik Interaksi & Pencapaian Hasil Pembelajaran Siswa
     </div>
     <table class="sample-table">
@@ -364,7 +366,7 @@
 
     {{-- Bab V: Aturan Penulisan & Etika Publikasi --}}
     <div class="section-heading">V. ATURAN PENULISAN & ETIKA PUBLIKASI JURNAL (PUBLICATION ETHICS & RULES)</div>
-    <p class="no-indent" style="font-weight: bold; color: #0f766e; margin-bottom: 3px;">
+    <p class="no-indent" style="font-weight: bold; color: #0f766e; margin-bottom: 2px;">
         Setiap karya yang dipublikasikan di PembdaHUB wajib mematuhi ketentuan etika publikasi ilmiah berikut:
     </p>
     <ol class="rule-list">
@@ -384,7 +386,7 @@
     {{-- Daftar Pustaka --}}
     <div class="section-heading">DAFTAR PUSTAKA / REFERENCES (Standar APA 7th Edition)</div>
     
-    <div style="font-weight: bold; font-size: 8.5pt; margin-top: 4px; margin-bottom: 3px; color: #0f766e;">
+    <div style="font-weight: bold; font-size: 8.5pt; margin-top: 3px; margin-bottom: 2px; color: #0f766e;">
         [REFERENSI LOKAL / NASIONAL - MINIMAL 5 PUSTAKA]
     </div>
 
@@ -404,7 +406,7 @@
         5. Yulianus, Z., & Tim PembdaHUB. (2026). Portal PembdaHUB: Integrasi LMS, CBT, dan Repositori Jurnal Civitas Akademika. <em>Jurnal Sains & Aplikasi Pembda</em>, 2(1), 1–15.
     </div>
 
-    <div style="font-weight: bold; font-size: 8.5pt; margin-top: 6px; margin-bottom: 3px; color: #0f766e;">
+    <div style="font-weight: bold; font-size: 8.5pt; margin-top: 5px; margin-bottom: 2px; color: #0f766e;">
         [REFERENSI INTERNASIONAL - MINIMAL 3 PUSTAKA]
     </div>
 
