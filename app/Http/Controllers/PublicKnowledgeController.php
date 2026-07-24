@@ -201,4 +201,42 @@ class PublicKnowledgeController extends Controller
 
         return Storage::disk('public')->download($knowledge->file_path, $knowledge->title . '.' . pathinfo($knowledge->file_path, PATHINFO_EXTENSION));
     }
+
+    /**
+     * Download Official Journal Template
+     */
+    public function downloadTemplate()
+    {
+        $content = "=========================================================================\n"
+                 . " PERGURUAN PEMBDA - TEMPLATE RESMI JURNAL & PUBLIKASI CIVITAS AKADEMIKA\n"
+                 . "=========================================================================\n\n"
+                 . "[JUDUL JURNAL / ARTIKEL / KARYA TULIS ILMIAH]\n"
+                 . "Nama Penulis : [Nama Lengkap Penulis, Gelar]\n"
+                 . "Jabatan/Unit : Civitas Akademika Perguruan Pembda\n"
+                 . "Kontak/Email : [email@perguruanpembda.com]\n\n"
+                 . "ABSTRAK\n"
+                 . "-------------------------------------------------------------------------\n"
+                 . "Tuliskan ringkasan singkat abstrak karya tulis Anda di sini (150-250 kata). "
+                 . "Mencakup latar belakang, tujuan penulisan, metode/pendekatan, serta hasil atau kesimpulan utama.\n\n"
+                 . "Kata Kunci: Kata Kunci 1, Kata Kunci 2, Kata Kunci 3\n\n"
+                 . "1. PENDAHULUAN\n"
+                 . "-------------------------------------------------------------------------\n"
+                 . "Tuliskan latar belakang masalah, urgensi topik, referensi pendukung, dan tujuan karya tulis ini...\n\n"
+                 . "2. METODE & PEMBAHASAN URAIAN MATERI\n"
+                 . "-------------------------------------------------------------------------\n"
+                 . "Uraikan metode pembelajaran, konsep, analisis, atau materi inti yang dibahas secara sistematis...\n\n"
+                 . "3. HASIL DAN KESIMPULAN\n"
+                 . "-------------------------------------------------------------------------\n"
+                 . "Tuliskan kesimpulan akhir, rekomendasi, dan penutup...\n\n"
+                 . "DAFTAR PUSTAKA / REFERENSI\n"
+                 . "-------------------------------------------------------------------------\n"
+                 . "1. Nama Penulis. (Tahun). Judul Referensi. Penerbit/Jurnal.\n\n"
+                 . "* Catatan: Penggunaan template ini sifatnya OPSIONAL (Bebas / Tidak Wajib).\n"
+                 . "Guru & Civitas Akademika diperbolehkan mengunggah karya dengan format penulisan mandiri.";
+
+        return response($content, 200, [
+            'Content-Type' => 'text/plain; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="TEMPLATE_JURNAL_KARYA_TULIS_PEMBDA.txt"',
+        ]);
+    }
 }

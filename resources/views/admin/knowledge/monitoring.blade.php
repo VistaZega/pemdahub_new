@@ -6,23 +6,26 @@
 <div class="space-y-6">
 
     {{-- Hero Header Section --}}
-    <div class="relative overflow-hidden rounded-2xl p-8 shadow-xl bg-gradient-to-br from-teal-900 via-emerald-800 to-indigo-950 text-white">
-        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-400/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-
+    <div class="relative overflow-hidden rounded-2xl p-8 shadow-xl text-white" style="background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #1e1b4b 100%);">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="space-y-2">
-                <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 backdrop-blur-md rounded-full border border-emerald-400/30 text-emerald-200 text-xs font-semibold">
-                    <i class="fas fa-chart-line"></i> Dashboard Pantauan Pimpinan
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-emerald-200 text-xs font-bold uppercase tracking-wider">
+                    <i class="fas fa-chart-line text-amber-300"></i> Dashboard Pantauan Pimpinan & Yayasan
                 </div>
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Pantauan Pembda Knowledge & Media</h1>
-                <p class="text-emerald-100/80 text-sm max-w-2xl">
-                    Monitoring keaktifan guru dalam mempublikasikan modul pembelajaran, media edukasi, dan karya hobi digital beserta rekapitulasi Poin Kontributor & apresiasi karya.
+                <h1 class="text-2xl md:text-3xl font-black tracking-tight text-white">Pantauan Jurnal & Repositori Civitas Akademika</h1>
+                <p class="text-emerald-100 text-sm max-w-2xl leading-relaxed">
+                    Monitoring keaktifan Civitas Akademika Perguruan Pembda dalam mempublikasikan jurnal ilmiah, artikel edukasi, modul digital, serta rekapitulasi Poin Prestasi & apresiasi karya.
                 </p>
             </div>
 
-            <a href="{{ route('knowledge.index') }}" target="_blank" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2.5 rounded-xl backdrop-blur-md border border-white/20 transition-all text-xs">
-                <i class="fas fa-external-link-alt"></i> Buka Etalase Publik
-            </a>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('knowledge.download_template') }}" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-2.5 rounded-xl backdrop-blur-md border border-white/20 transition-all text-xs">
+                    <i class="fas fa-file-download text-amber-300"></i> Template Jurnal (Opsional)
+                </a>
+                <a href="{{ route('knowledge.index') }}" target="_blank" class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-4 py-2.5 rounded-xl transition-all text-xs shadow-md">
+                    <i class="fas fa-external-link-alt"></i> Etalase Publik
+                </a>
+            </div>
         </div>
     </div>
 

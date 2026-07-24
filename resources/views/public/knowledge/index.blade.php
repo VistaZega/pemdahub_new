@@ -97,25 +97,31 @@
 
         <div class="max-w-6xl mx-auto relative z-10 text-center space-y-6">
             <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-teal-500/10 border border-teal-500/30 rounded-full text-teal-300 text-xs font-bold uppercase tracking-wider">
-                <i class="fas fa-cube text-teal-400"></i> Repositori & Media Edukasi Pembda
+                <i class="fas fa-book-open text-teal-400"></i> Jurnal & Repositori Publikasi Civitas Akademika
             </div>
 
             <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-                Pembda <span class="bg-gradient-to-r from-teal-400 via-emerald-300 to-sky-400 bg-clip-text text-transparent">Knowledge & Media</span>
+                Jurnal & Publikasi <span class="bg-gradient-to-r from-teal-400 via-emerald-300 to-sky-400 bg-clip-text text-transparent">Perguruan Pembda</span>
             </h1>
 
-            <p class="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-                Jelajahi modul pembelajaran digital, tutorial mikrokontroler, podcast audio, video karya, hingga wawasan hobi karya para Guru Perguruan Pembda.
+            <p class="text-slate-300 max-w-3xl mx-auto text-sm sm:text-base leading-relaxed">
+                Etalase terbuka repositori karya tulis ilmiah, jurnal, modul digital, artikel edukasi, hingga karya media civitas akademika Perguruan Pembda. Bebas dibaca dan diunduh oleh siswa dan publik.
             </p>
 
-            {{-- Search Bar --}}
+            {{-- Template Download Callout & Search Bar --}}
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                <a href="{{ route('knowledge.download_template') }}" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-teal-300 text-xs font-bold rounded-xl border border-teal-500/30 shadow-lg transition-all flex items-center gap-2">
+                    <i class="fas fa-file-download text-teal-400"></i> Unduh Template Jurnal Resmi (Opsional)
+                </a>
+            </div>
+
             <form action="{{ route('knowledge.index') }}" method="GET" class="max-w-2xl mx-auto flex items-center gap-2 p-2 bg-slate-800/90 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl">
                 <div class="pl-3 text-slate-400">
                     <i class="fas fa-search text-lg"></i>
                 </div>
-                <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari materi, topik, atau kata kunci..." class="flex-1 bg-transparent border-0 px-2 text-white placeholder-slate-400 focus:outline-none focus:ring-0 text-sm sm:text-base">
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari judul jurnal, penulis, atau kata kunci..." class="flex-1 bg-transparent border-0 px-2 text-white placeholder-slate-400 focus:outline-none focus:ring-0 text-sm sm:text-base">
                 <button type="submit" class="px-5 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold rounded-xl shadow-lg transition-all text-sm">
-                    Cari
+                    Cari Jurnal
                 </button>
             </form>
         </div>

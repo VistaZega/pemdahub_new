@@ -1754,6 +1754,7 @@ Route::get('/download-sk-gaji-pdf', function () {
 // PEMBDA KNOWLEDGE & MEDIA (PUBLIC ROUTES)
 // ================================================================
 Route::get('/knowledge', [App\Http\Controllers\PublicKnowledgeController::class, 'index'])->name('knowledge.index');
+Route::get('/knowledge/template/download', [App\Http\Controllers\PublicKnowledgeController::class, 'downloadTemplate'])->name('knowledge.download_template');
 Route::get('/knowledge/{slug}', [App\Http\Controllers\PublicKnowledgeController::class, 'show'])->name('knowledge.show');
 Route::post('/knowledge/{knowledge}/like', [App\Http\Controllers\PublicKnowledgeController::class, 'toggleLike'])->name('knowledge.like');
 Route::post('/knowledge/{knowledge}/bookmark', [App\Http\Controllers\PublicKnowledgeController::class, 'toggleBookmark'])->name('knowledge.bookmark');

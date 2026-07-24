@@ -7,15 +7,29 @@
     {{-- Breadcrumb / Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <a href="{{ route('guru.knowledge.index') }}" class="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1.5 mb-1">
-                <i class="fas fa-arrow-left"></i> Kembali ke Ruang Karya
+            <a href="{{ route('guru.knowledge.index') }}" class="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center gap-1.5 mb-1">
+                <i class="fas fa-arrow-left"></i> Kembali ke Ruang Publikasi
             </a>
-            <h1 class="text-2xl font-extrabold text-slate-800">Unggah Materi / Karya Baru</h1>
+            <h1 class="text-2xl font-black text-slate-900">Publikasikan Karya & Jurnal Civitas Akademika</h1>
         </div>
+
+        <a href="{{ route('knowledge.download_template') }}" class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 shadow-sm transition-all flex items-center gap-1.5">
+            <i class="fas fa-download text-indigo-600"></i> Unduh Template Jurnal (Opsional)
+        </a>
+    </div>
+
+    {{-- Info Banner Template Opsional --}}
+    <div class="bg-gradient-to-r from-teal-50 to-indigo-50 p-4 rounded-2xl border border-teal-200 text-slate-800 space-y-1">
+        <h4 class="text-xs font-black uppercase text-teal-800 tracking-wider flex items-center gap-2">
+            <i class="fas fa-info-circle text-teal-600"></i> Informasi Format Penulisan & Template Jurnal
+        </h4>
+        <p class="text-xs text-slate-600 leading-relaxed">
+            Perguruan Pembda menyediakan <strong>Template Penulisan Resmi Jurnal & Karya Tulis</strong>. Penggunaan template ini sifatnya <strong>OPSIONAL (Bebas / Tidak Wajib)</strong>. Anda diperbolehkan mengunggah karya dengan format penulisan mandiri.
+        </p>
     </div>
 
     {{-- Form Card --}}
-    <div class="bg-white rounded-2xl p-6 md:p-8 border border-slate-100 shadow-sm">
+    <div class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm">
         <form action="{{ route('guru.knowledge.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
 

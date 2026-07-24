@@ -9,18 +9,22 @@
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="space-y-2">
                 <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-emerald-200 text-xs font-bold uppercase tracking-wider">
-                    <i class="fas fa-sparkles text-amber-300"></i> Ruang Karya & Knowledge Hub
+                    <i class="fas fa-book-open text-amber-300"></i> Ruang Publikasi & Jurnal Civitas Akademika
                 </div>
-                <h1 class="text-2xl md:text-3xl font-black tracking-tight text-white">Pembda Knowledge & Media</h1>
+                <h1 class="text-2xl md:text-3xl font-black tracking-tight text-white">Jurnal & Repositori Perguruan Pembda</h1>
                 <p class="text-emerald-100 text-sm max-w-xl leading-relaxed">
-                    Ruang penyimpanan & publikasi modul pembelajaran, tutorial, audio podcast, video, dan artikel karya Anda untuk siswa & pengunjung PembdaHUB.
+                    Wadah publikasi resmi jurnal ilmiah, artikel edukasi, modul digital, dan karya media Civitas Akademika Perguruan Pembda yang dapat diakses publik & siswa.
                 </p>
             </div>
 
-            <div class="flex items-center gap-3">
-                <a href="{{ route('guru.knowledge.create') }}" class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-5 py-3 rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <a href="{{ route('knowledge.download_template') }}" class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-3 rounded-xl border border-white/20 shadow-md transition-all text-xs">
+                    <i class="fas fa-file-download text-amber-300"></i>
+                    <span>Template Jurnal (Opsional)</span>
+                </a>
+                <a href="{{ route('guru.knowledge.create') }}" class="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-5 py-3 rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5 text-sm">
                     <i class="fas fa-plus-circle text-lg"></i>
-                    <span>Unggah Karya Baru</span>
+                    <span>Publikasikan Karya Baru</span>
                 </a>
             </div>
         </div>
