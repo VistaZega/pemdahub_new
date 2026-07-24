@@ -463,22 +463,27 @@ class User extends Authenticatable
     }
 
     /**
-     * Accessor: Get URL for user profile photo.
+     * Accessor: Get URL for user profile photo / avatar.
      */
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->student && $this->student->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->student->photo)) {
+            return asset('storage/' . $this->student->photo);
+        }
+        if ($this->teacher && $this->teacher->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->teacher->photo)) {
+            return asset('storage/' . $this->teacher->photo);
+        }
+        if ($this->employee && $this->employee->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->employee->photo)) {
+            return asset('storage/' . $this->employee->photo);
+        }
+        if ($this->alumniDirectory && $this->alumniDirectory->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->alumniDirectory->photo_path)) {
+            return asset('storage/' . $this->alumniDirectory->photo_path);
+        }
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=6366f1&color=ffffff&bold=true';
+    }
+
     public function getPhotoUrlAttribute(): string
     {
-        if ($this->student) {
-            return $this->student->photo_url;
-        }
-        if ($this->teacher) {
-            return $this->teacher->photo_url;
-        }
-        if ($this->employee) {
-            return $this->employee->photo_url;
-        }
-        if ($this->alumniDirectory) {
-            return $this->alumniDirectory->photo_url;
-        }
-        return asset('images/default-student.jpg');
+        return $this->avatar_url;
     }
 }

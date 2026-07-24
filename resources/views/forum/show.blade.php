@@ -121,8 +121,8 @@
         
         <!-- ORIGINAL POST (First Message) -->
         <div class="flex gap-4">
-            <img src="https://ui-avatars.com/api/?name={{ urlencode($thread->user->name) }}&size=48&background=random" 
-                 class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-slate-200 shadow-sm flex-shrink-0">
+            <img src="{{ $thread->user->avatar_url }}" 
+                 class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-slate-200 shadow-sm flex-shrink-0 object-cover">
             <div class="flex-1 min-w-0 space-y-2">
                 <!-- Meta -->
                 <div class="flex items-baseline gap-2 flex-wrap">
@@ -303,8 +303,8 @@
         <div id="replies" class="space-y-6">
             @foreach($thread->replies as $reply)
                 <div class="flex gap-4" id="reply-{{ $reply->id }}">
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode($reply->user->name) }}&size=48&background=random" 
-                         class="w-10 h-10 rounded-full border border-slate-200 shadow-sm flex-shrink-0">
+                    <img src="{{ $reply->user->avatar_url }}" 
+                         class="w-10 h-10 rounded-full border border-slate-200 shadow-sm flex-shrink-0 object-cover">
                     <div class="flex-1 min-w-0 space-y-1.5">
                         <div class="flex items-baseline gap-2 flex-wrap">
                             <span class="font-bold text-slate-800 text-sm">{{ $reply->user->name }}</span>

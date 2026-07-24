@@ -352,8 +352,8 @@
                             <!-- Author & Meta -->
                             <div class="flex justify-between items-start mb-3">
                                 <div class="flex items-center gap-3">
-                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($author->name) }}&size=40&background=random" 
-                                         class="w-10 h-10 rounded-full border-2 border-slate-100 shadow-sm">
+                                    <img src="{{ $author->avatar_url }}" 
+                                         class="w-10 h-10 rounded-full border-2 border-slate-100 shadow-sm object-cover">
                                     <div>
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-slate-800 text-sm">{{ $author->name }}</span>
@@ -520,8 +520,8 @@
             @endphp
             <div class="bg-gradient-to-br from-indigo-500 to-fuchsia-500 rounded-2xl p-4 shadow-md relative overflow-hidden">
                 <div class="flex items-center gap-3 mb-4">
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&size=48&background=random" 
-                         class="w-10 h-10 rounded-xl shadow-lg border-2 border-white/30">
+                    <img src="{{ $user->avatar_url }}" 
+                         class="w-10 h-10 rounded-xl shadow-lg border-2 border-white/30 object-cover">
                     <div class="min-w-0">
                         <div class="font-bold text-white truncate text-sm">{{ $user->name }}</div>
                         <div class="text-[10px] text-indigo-100 uppercase tracking-widest truncate">{{ $school }}</div>
@@ -549,7 +549,7 @@
                     @foreach($topStudents as $i => $s)
                         <div class="flex items-center gap-2.5">
                             <div class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">{{ $i+1 }}</div>
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($s->user->name) }}&size=30&background=random" class="w-6 h-6 rounded-full border border-slate-100">
+                            <img src="{{ $s->user->avatar_url }}" class="w-6 h-6 rounded-full border border-slate-100 object-cover">
                             <div class="min-w-0 flex-1">
                                 <div class="text-[11px] font-bold text-slate-700 truncate">{{ $s->user->name }}</div>
                             </div>
