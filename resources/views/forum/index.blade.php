@@ -360,12 +360,33 @@
                                             <span class="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded uppercase tracking-wider">{{ $author->role }}</span>
                                             <span class="text-xs text-slate-400">&bull; {{ $thread->created_at->diffForHumans() }}</span>
                                         </div>
-                                        <div class="flex items-center gap-2 mt-1">
+                                        <div class="flex items-center gap-2 mt-1 flex-wrap">
                                             <span class="text-[10px] px-2 py-0.5 rounded-md border font-semibold tracking-wider {{ $catColor }}">
                                                 {{ $catLabel }}
                                             </span>
+                                            @if($thread->category === 'tanya_jawab')
+                                                @if($thread->hasAcceptedReply())
+                                                    <span class="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-md font-bold flex items-center gap-1">
+                                                        <i class="ph-bold ph-check-circle"></i> Terjawab
+                                                    </span>
+                                                @else
+                                                    <span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded-md font-bold flex items-center gap-1">
+                                                        <i class="ph-bold ph-question"></i> Bantu Jawab
+                                                    </span>
+                                                @endif
+                                            @endif
+                                            @if($thread->category === 'gaming' && $thread->game_name)
+                                                <span class="text-[10px] px-2 py-0.5 bg-rose-100 text-rose-700 border border-rose-200 rounded-md font-bold flex items-center gap-1">
+                                                    <i class="ph-bold ph-game-controller"></i> {{ $thread->game_name }}
+                                                </span>
+                                            @endif
+                                            @if($thread->category === 'sharing' && $thread->file_category)
+                                                <span class="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-md font-bold flex items-center gap-1">
+                                                    <i class="ph-bold ph-folder-open"></i> {{ $thread->file_category }}
+                                                </span>
+                                            @endif
                                             @if($thread->is_pinned)
-                                                <span class="text-[10px] px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-md font-semibold flex items-center gap-1">
+                                                <span class="text-[10px] px-2 py-0.5 bg-amber-500/10 text-amber-600 border border-amber-500/30 rounded-md font-semibold flex items-center gap-1">
                                                     <i class="ph-bold ph-push-pin"></i> Tersemat
                                                 </span>
                                             @endif
@@ -386,6 +407,44 @@
                                 @if($thread->image_path)
                                     <div class="mt-3 rounded-xl overflow-hidden border border-slate-200 max-w-sm max-h-48">
                                         <img src="{{ asset('storage/' . $thread->image_path) }}" class="w-full h-full object-cover">
+                                    </div>
+                                @endif
+
+                                <!-- Bank File Direct Download Box -->
+                                @if($thread->category === 'sharing' && $thread->attachment_path)
+                                    <div class="mt-3 p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl max-w-md flex items-center justify-between gap-3 shadow-sm">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs flex-shrink-0 uppercase">
+                                                {{ strtoupper($thread->file_extension ?: 'FILE') }}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="text-xs font-bold text-slate-800 truncate">{{ $thread->attachment_name ?? 'Berkas Lampiran' }}</div>
+                                                <div class="text-[10px] text-emerald-600 font-semibold">{{ $thread->file_category ?: 'Dokumen Pembelajaran' }}</div>
+                                            </div>
+                                        </div>
+                                        <a href="{{ asset('storage/' . $thread->attachment_path) }}" download onclick="event.stopPropagation()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 flex-shrink-0 shadow-sm">
+                                            <i class="ph-bold ph-download-simple"></i> Unduh
+                                        </a>
+                                    </div>
+                                @endif
+
+                                <!-- Gaming Mabar Lobby Card -->
+                                @if($thread->category === 'gaming' && ($thread->game_name || $thread->game_room_code))
+                                    <div class="mt-3 p-3 bg-rose-50/80 border border-rose-200 rounded-xl max-w-md flex items-center justify-between gap-3 shadow-sm">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600 text-xl flex-shrink-0">
+                                                <i class="ph-bold ph-game-controller"></i>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="text-xs font-bold text-rose-900 truncate">{{ $thread->game_name ?: 'Lobi Mabar' }}</div>
+                                                <div class="text-[11px] font-bold text-slate-700 tracking-wider truncate">ID/Kode: <span class="text-rose-600 select-all">{{ $thread->game_room_code ?: 'Tanyakan di komentar' }}</span></div>
+                                            </div>
+                                        </div>
+                                        @if($thread->game_room_code)
+                                        <button onclick="event.preventDefault(); event.stopPropagation(); navigator.clipboard.writeText('{{ addslashes($thread->game_room_code) }}'); alert('Kode/ID Game berhasil disalin!');" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 flex-shrink-0 shadow-sm">
+                                            <i class="ph-bold ph-copy"></i> Salin ID
+                                        </button>
+                                        @endif
                                     </div>
                                 @endif
 

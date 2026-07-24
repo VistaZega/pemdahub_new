@@ -174,6 +174,17 @@ class ForumController extends Controller
                 }
             }
 
+            // Gaming data
+            if ($validated['category'] === 'gaming') {
+                $threadData['game_name'] = $request->input('game_name');
+                $threadData['game_room_code'] = $request->input('game_room_code');
+            }
+
+            // Sharing / Bank File category data
+            if ($validated['category'] === 'sharing') {
+                $threadData['file_category'] = $request->input('file_category');
+            }
+
             // Charity data
             if ($validated['category'] === 'charity') {
                 $threadData['charity_target_amount'] = $validated['charity_target_amount'] ?? null;
@@ -641,6 +652,21 @@ class ForumController extends Controller
                 $thread->update([
                     'reference_type' => null,
                     'reference_id' => null
+                ]);
+            }
+
+            // Gaming data
+            if ($validated['category'] === 'gaming') {
+                $thread->update([
+                    'game_name' => $request->input('game_name'),
+                    'game_room_code' => $request->input('game_room_code'),
+                ]);
+            }
+
+            // Sharing / Bank File category data
+            if ($validated['category'] === 'sharing') {
+                $thread->update([
+                    'file_category' => $request->input('file_category')
                 ]);
             }
 

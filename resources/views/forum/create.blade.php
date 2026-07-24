@@ -232,6 +232,64 @@
             </div>
         </div>
 
+        <!-- Gaming Mabar Panel -->
+        <div x-show="category === 'gaming'" style="display: none;"
+             x-transition:enter="transition ease-out duration-300"
+             class="bg-rose-50/70 border border-rose-200 rounded-2xl p-6 shadow-sm space-y-4 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1.5 h-full bg-rose-500"></div>
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-rose-600"><i class="ph-bold ph-game-controller text-xl"></i></div>
+                <div>
+                    <h4 class="forum-hdr text-sm font-bold text-slate-800">Detail Lobi Mabar</h4>
+                    <div class="text-xs text-rose-600 font-bold uppercase tracking-wider">Ajak kawan seangkatan mabar game pilihanmu</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nama Game</label>
+                    <select name="game_name" class="w-full px-4 py-3 bg-white border border-slate-200 focus:border-rose-500 rounded-xl text-sm font-bold text-slate-700 outline-none transition">
+                        <option value="Mobile Legends">🎮 Mobile Legends (MLBB)</option>
+                        <option value="Valorant">🎯 Valorant</option>
+                        <option value="PUBG Mobile">🔫 PUBG Mobile</option>
+                        <option value="Roblox">🧱 Roblox</option>
+                        <option value="Free Fire">🔥 Free Fire</option>
+                        <option value="Genshin Impact">⚔️ Genshin Impact</option>
+                        <option value="Minecraft">📦 Minecraft</option>
+                        <option value="Lainnya">🕹️ Game Lainnya</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Kode Room / Link Party / ID Game</label>
+                    <input type="text" name="game_room_code" class="w-full px-4 py-3 bg-white border border-slate-200 focus:border-rose-500 rounded-xl text-sm text-slate-800 outline-none" placeholder="Contoh: ID 12345678 / Discord Link / Kode Room">
+                </div>
+            </div>
+        </div>
+
+        <!-- Bank File Panel -->
+        <div x-show="category === 'sharing'" style="display: none;"
+             x-transition:enter="transition ease-out duration-300"
+             class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-6 shadow-sm space-y-4 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1.5 h-full bg-emerald-500"></div>
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600"><i class="ph-bold ph-folder-open text-xl"></i></div>
+                <div>
+                    <h4 class="forum-hdr text-sm font-bold text-slate-800">Kategori Dokumen / File</h4>
+                    <div class="text-xs text-emerald-600 font-bold uppercase tracking-wider">Bagikan berkas belajar untuk seluruh kawan</div>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Jenis Berkas</label>
+                <select name="file_category" class="w-full px-4 py-3 bg-white border border-slate-200 focus:border-emerald-500 rounded-xl text-sm font-bold text-slate-700 outline-none transition">
+                    <option value="Modul Ajar">📘 Modul Ajar & Catatan Pelajaran</option>
+                    <option value="Bank Soal">📝 Bank Soal & Pembahasan Ujian</option>
+                    <option value="Rangkuman Materi">🧠 Rangkuman & Mind Map Materi</option>
+                    <option value="Template / Presentasi">📊 Template PPT / Document</option>
+                    <option value="Software / Tools">💻 Application / Software Tool</option>
+                    <option value="Lainnya">📁 Berkas Lainnya</option>
+                </select>
+            </div>
+        </div>
+
         <!-- Attachments -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Image -->

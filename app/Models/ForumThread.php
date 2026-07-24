@@ -21,6 +21,9 @@ class ForumThread extends Model
         'reference_type',
         'reference_id',
         'status',
+        'game_name',
+        'game_room_code',
+        'file_category',
         'charity_target_amount',
         'charity_current_amount',
         'charity_target_volunteers',
@@ -148,5 +151,17 @@ class ForumThread extends Model
     public function getCategoryLabelAttribute(): string
     {
         return self::CATEGORIES[$this->category] ?? $this->category;
+    }
+
+    public function hasAcceptedReply(): bool
+    {
+        return $this->replies()->where('is_accepted', true)->exists();
+    }
+
+    public function getFileExtensionAttribute(): string
+    {
+        if (!$this->attachment_path && !$this->attachment_name) return '';
+        $filename = $this->attachment_name ?: $this->attachment_path;
+        return strtolower(pathinfo($filename, PATHINFO_EXTENSION));
     }
 }

@@ -156,6 +156,37 @@
                         </a>
                     @endif
                     
+                    @if($thread->category === 'gaming' && ($thread->game_name || $thread->game_room_code))
+                        <div class="mt-4 p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-rose-100 flex items-center justify-center text-rose-600 text-2xl flex-shrink-0">
+                                    <i class="ph-bold ph-game-controller"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Lobi Mabar {{ $thread->game_name }}</div>
+                                    <div class="text-sm font-bold text-slate-800">Kode / ID Room: <span class="text-rose-700 select-all">{{ $thread->game_room_code ?: 'Tidak ada kode' }}</span></div>
+                                </div>
+                            </div>
+                            @if($thread->game_room_code)
+                            <button onclick="navigator.clipboard.writeText('{{ addslashes($thread->game_room_code) }}'); alert('Kode Room / ID berhasil disalin!');" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5">
+                                <i class="ph-bold ph-copy"></i> Salin ID
+                            </button>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if($thread->category === 'sharing' && $thread->file_category)
+                        <div class="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 text-lg flex-shrink-0">
+                                <i class="ph-bold ph-folder-open"></i>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Kategori Berkas Belajar</div>
+                                <div class="text-xs font-bold text-slate-800">{{ $thread->file_category }}</div>
+                            </div>
+                        </div>
+                    @endif
+
                     @if($perfCard)
                         <div class="mt-4 p-4 rounded-xl bg-purple-50 border border-purple-200 flex items-start gap-4">
                             <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 flex-shrink-0">
