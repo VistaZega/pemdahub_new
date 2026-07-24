@@ -8,7 +8,7 @@
             size: A4 portrait;
             margin-top: 2.0cm;
             margin-bottom: 2.0cm;
-            margin-left: 2.7cm;
+            margin-left: 2.5cm;
             margin-right: 2.2cm;
         }
 
@@ -21,7 +21,7 @@
             padding: 0;
         }
 
-        /* Header Identitas Jurnal (Diperbesar & Dibuat Lebih Megah) */
+        /* Header Identitas Jurnal (Dibuat Tak Terputus / No Wrap) */
         .journal-header {
             border-bottom: 2.5px solid #0f766e;
             padding-bottom: 8px;
@@ -29,26 +29,29 @@
             text-align: center;
         }
         .journal-title-top {
-            font-size: 15.5pt;
+            font-size: 14.5pt;
             font-weight: bold;
             color: #0f766e;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.2px;
             margin: 0;
             line-height: 1.2;
+            white-space: nowrap;
         }
         .journal-subhead {
-            font-size: 11pt;
+            font-size: 10pt;
             font-weight: bold;
             color: #1e293b;
             margin: 3px 0 0 0;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
         }
         .journal-meta {
-            font-size: 9pt;
+            font-size: 8.5pt;
             color: #475569;
             margin-top: 3px;
             font-style: italic;
+            white-space: nowrap;
         }
 
         /* Info Box Template */
@@ -225,7 +228,7 @@
 
     {{-- ==================== HALAMAN 1 ==================== --}}
 
-    {{-- Official Journal Header (Diperbesar sesuai permintaan) --}}
+    {{-- Official Journal Header (Dibuat Tak Terputus / Single Line No Wrap) --}}
     <div class="journal-header">
         <div class="journal-title-top">JURNAL EDUSAINS & TEKNOLOGI PEMBDA (JET-PEMBDA)</div>
         <div class="journal-subhead">YAYASAN PERGURUAN PEMBDA NIAS (PEMBDA) | Dipublikasikan di PembdaHUB</div>
@@ -250,11 +253,11 @@
         </tr>
         <tr>
             <td><strong>Margin Halaman</strong></td>
-            <td>Atas: 2.0 cm | Bawah: 2.0 cm | Kiri: 2.7 cm | Kanan: 2.2 cm</td>
+            <td>Atas: 2.0 cm | Bawah: 2.0 cm | Kiri: 2.5 cm | Kanan: 2.2 cm</td>
         </tr>
         <tr>
             <td><strong>Jenis & Ukuran Font</strong></td>
-            <td>Times New Roman (Header Jurnal: 15.5pt Bold | Judul: 13.5pt Bold | Isi: 10pt Justify)</td>
+            <td>Times New Roman (Header Jurnal: 14.5pt Bold | Judul: 13.5pt Bold | Isi: 10pt Justify)</td>
         </tr>
         <tr>
             <td><strong>Spasi Paragraf</strong></td>
