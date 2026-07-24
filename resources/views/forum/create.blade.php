@@ -19,41 +19,38 @@
 </script>
 <style>
     .forum-hdr { font-family: 'Space Grotesk', sans-serif; }
-    /* Hide scrollbar for clean UI */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     
-    /* Bulletproof Dark Mode Colors */
-    .bg-forum-base { background-color: #0f0f14 !important; }
-    .bg-forum-panel { background-color: #12121a !important; }
-    .bg-forum-card { background-color: #16161f !important; }
-    .bg-forum-card-80 { background-color: rgba(22, 22, 31, 0.8) !important; }
-    .bg-forum-card-90 { background-color: rgba(22, 22, 31, 0.9) !important; }
-    .text-forum-title { color: #f8fafc !important; }
-    .text-forum-body { color: #94a3b8 !important; }
-    .text-forum-muted { color: #64748b !important; }
-    .border-forum { border-color: rgba(255, 255, 255, 0.05) !important; }
-    .border-forum-light { border-color: rgba(255, 255, 255, 0.1) !important; }
-    .bg-forum-light-5 { background-color: rgba(255, 255, 255, 0.05) !important; }
-    .bg-forum-light-10 { background-color: rgba(255, 255, 255, 0.1) !important; }
+    /* ── LIGHT THEME COLORS ── */
+    .bg-forum-base   { background-color: #f1f5f9 !important; }
+    .bg-forum-panel  { background-color: #ffffff !important; }
+    .bg-forum-card   { background-color: #ffffff !important; }
+    .text-forum-title { color: #1e293b !important; }
+    .text-forum-body  { color: #475569 !important; }
+    .text-forum-muted { color: #94a3b8 !important; }
+    .border-forum       { border-color: #e2e8f0 !important; }
+    .border-forum-light { border-color: #cbd5e1 !important; }
+    .bg-forum-light-5  { background-color: #f8fafc !important; }
+    .bg-forum-light-10 { background-color: #f1f5f9 !important; }
 </style>
 
 <!-- App Window Wrapper -->
-<div class="w-full bg-forum-base text-forum-title font-['Inter'] rounded-3xl shadow-2xl border border-forum-light mx-auto pt-4 pb-20 px-4 sm:px-6 relative" style="min-height: 85vh;" x-data="createPost()">
+<div class="w-full bg-forum-base text-forum-title font-['Inter'] rounded-3xl border border-forum mx-auto pt-4 pb-20 px-4 sm:px-6 relative shadow-sm" style="min-height: 85vh;" x-data="createPost()">
     
     <!-- Header -->
-    <div class="flex items-center gap-4 bg-forum-card/80 backdrop-blur-xl p-4 rounded-2xl border border-forum mb-6 sticky top-4 z-40 shadow-2xl shadow-black/20">
-        <a href="{{ route('forum.index') }}" class="w-10 h-10 rounded-xl bg-forum-light-5 hover:bg-forum-light-10 flex items-center justify-center text-slate-300 hover:text-white transition">
+    <div class="flex items-center gap-4 bg-white/95 backdrop-blur-xl p-4 rounded-2xl border border-slate-200 mb-6 sticky top-4 z-40 shadow-sm">
+        <a href="{{ route('forum.index') }}" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition">
             <i class="ph-bold ph-arrow-left text-xl"></i>
         </a>
         <div>
-            <h1 class="forum-hdr text-xl font-bold text-white">Buat Topik Baru</h1>
-            <div class="text-xs text-indigo-400 font-bold uppercase tracking-wider">Mulai Obrolan / Pamerkan Karya</div>
+            <h1 class="forum-hdr text-xl font-bold text-slate-800">Buat Topik Baru</h1>
+            <div class="text-xs text-indigo-600 font-bold uppercase tracking-wider">Mulai Obrolan / Pamerkan Karya</div>
         </div>
     </div>
 
     @if($errors->any())
-        <div class="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400">
+        <div class="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-600">
             <div class="font-bold mb-2 flex items-center gap-2"><i class="ph-bold ph-warning"></i> Ada kesalahan:</div>
             <ul class="list-disc list-inside text-sm">
                 @foreach($errors->all() as $error)
@@ -63,26 +60,24 @@
         </div>
     @endif
 
-    <form action="{{ route('forum.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+    <form action="{{ route('forum.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6 max-w-5xl mx-auto">
         @csrf
 
         <!-- Category Selection -->
-        <div class="bg-forum-card border border-forum rounded-2xl p-6 shadow-xl">
-            <label class="block text-sm font-bold text-slate-300 uppercase tracking-widest mb-4">Pilih Saluran <span class="text-rose-500">*</span></label>
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Pilih Saluran <span class="text-rose-500">*</span></label>
             <input type="hidden" name="category" :value="category">
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 @foreach(\App\Models\ForumThread::CATEGORIES as $key => $label)
                     @if($key === 'info' && !(auth()->user()->isSuperAdmin() || auth()->user()->isAdminSekolah() || auth()->user()->isGuru()))
                         @continue
                     @endif
                     @php
-                        // Extract emoji
                         preg_match('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}]/u', $label, $matches);
                         $emoji = $matches[0] ?? '💬';
                         $cleanLabel = trim(str_replace($emoji, '', $label));
                         
-                        // Pick color based on category
                         $color = match($key) {
                             'diskusi' => 'indigo', 'info' => 'amber', 'tanya_jawab' => 'cyan',
                             'sharing' => 'emerald', 'art_gallery' => 'pink', 'talent' => 'violet',
@@ -93,14 +88,14 @@
                     @endphp
                     
                     <button type="button" @click="category = '{{ $key }}'" 
-                            :class="category === '{{ $key }}' ? 'border-{{ $color }}-500 bg-{{ $color }}-500/10 ring-1 ring-{{ $color }}-500/50' : 'border-forum-light bg-forum-light-5 hover:bg-forum-light-10 hover:border-white/20'"
-                            class="flex items-center gap-4 p-4 rounded-xl border transition-all text-left group">
+                            :class="category === '{{ $key }}' ? 'border-{{ $color }}-500 bg-{{ $color }}-50/80 ring-2 ring-{{ $color }}-400/30' : 'border-slate-200 bg-slate-50/60 hover:bg-slate-100 hover:border-slate-300'"
+                            class="flex items-center gap-3.5 p-3.5 rounded-xl border transition-all text-left group">
                         <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 transition-colors"
-                             :class="category === '{{ $key }}' ? 'bg-{{ $color }}-500/20 text-{{ $color }}-400' : 'bg-forum-light-10 text-forum-body group-hover:text-slate-300'">
+                             :class="category === '{{ $key }}' ? 'bg-{{ $color }}-100 text-{{ $color }}-600' : 'bg-slate-200/60 text-slate-600 group-hover:text-slate-800'">
                             {{ $emoji }}
                         </div>
                         <div>
-                            <div class="font-bold text-sm text-slate-200" :class="category === '{{ $key }}' ? 'text-{{ $color }}-300' : ''">{{ $cleanLabel }}</div>
+                            <div class="font-bold text-sm text-slate-700" :class="category === '{{ $key }}' ? 'text-{{ $color }}-700' : ''">{{ $cleanLabel }}</div>
                         </div>
                     </button>
                 @endforeach
@@ -108,20 +103,20 @@
         </div>
 
         <!-- Main Content -->
-        <div class="bg-forum-card border border-forum rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
             <!-- Judul -->
             <div>
-                <label class="block text-xs font-bold text-forum-body uppercase tracking-widest mb-2">Judul Obrolan <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Judul Obrolan <span class="text-rose-500">*</span></label>
                 <input type="text" name="title" value="{{ old('title') }}" 
-                       class="w-full px-5 py-4 bg-black/40 border border-forum-light focus:border-indigo-500 rounded-xl text-white placeholder-slate-600 outline-none transition" 
+                       class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 rounded-xl text-slate-800 placeholder-slate-400 outline-none transition" 
                        placeholder="Contoh: Ada yang tau cara ngerjain soal matdis bab 3?" required>
             </div>
 
             <!-- Konten -->
             <div>
-                <label class="block text-xs font-bold text-forum-body uppercase tracking-widest mb-2">Pesan Utama <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Pesan Utama <span class="text-rose-500">*</span></label>
                 <textarea name="content" rows="6" 
-                          class="w-full px-5 py-4 bg-black/40 border border-forum-light focus:border-indigo-500 rounded-xl text-white placeholder-slate-600 outline-none transition resize-y" 
+                          class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 rounded-xl text-slate-800 placeholder-slate-400 outline-none transition resize-y" 
                           placeholder="Ceritain detailnya di sini..." required>{{ old('content') }}</textarea>
             </div>
         </div>
@@ -129,24 +124,24 @@
         <!-- Performance / Achievements -->
         <div x-show="['performance', 'art_gallery', 'talent', 'portfolio'].includes(category)" style="display: none;"
              x-transition:enter="transition ease-out duration-300"
-             class="bg-purple-500/5 border border-purple-500/20 rounded-2xl p-6 shadow-xl space-y-4 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
+             class="bg-purple-50/70 border border-purple-200 rounded-2xl p-6 shadow-sm space-y-4 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1.5 h-full bg-purple-500"></div>
             <div class="flex items-center gap-3 mb-2">
-                <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400"><i class="ph-bold ph-medal text-xl"></i></div>
+                <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600"><i class="ph-bold ph-medal text-xl"></i></div>
                 <div>
-                    <h4 class="forum-hdr text-sm font-bold text-white">Hubungkan Prestasi</h4>
-                    <div class="text-xs text-purple-400 font-bold uppercase tracking-wider">Buktikan karya/skor kamu valid</div>
+                    <h4 class="forum-hdr text-sm font-bold text-slate-800">Hubungkan Prestasi</h4>
+                    <div class="text-xs text-purple-600 font-bold uppercase tracking-wider">Buktikan karya/skor kamu valid</div>
                 </div>
             </div>
             
             <div class="flex flex-wrap items-center gap-4">
-                <label class="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-300">
-                    <input type="radio" name="reference_type" value="badge" x-model="perfType" class="w-4 h-4 rounded border-white/20 bg-black/40 checked:bg-purple-500 checked:border-purple-500 text-purple-500 focus:ring-purple-500/50">
+                <label class="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-700">
+                    <input type="radio" name="reference_type" value="badge" x-model="perfType" class="w-4 h-4 text-purple-600 focus:ring-purple-500">
                     <span>🎖️ Lencana Terkunci</span>
                 </label>
                 @if(auth()->user()->isSiswa())
-                <label class="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-300">
-                    <input type="radio" name="reference_type" value="grade" x-model="perfType" class="w-4 h-4 rounded border-white/20 bg-black/40 checked:bg-purple-500 checked:border-purple-500 text-purple-500 focus:ring-purple-500/50">
+                <label class="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-700">
+                    <input type="radio" name="reference_type" value="grade" x-model="perfType" class="w-4 h-4 text-purple-600 focus:ring-purple-500">
                     <span>💯 Nilai Ujian CBT</span>
                 </label>
                 @endif
@@ -154,7 +149,7 @@
 
             <!-- Selectors -->
             <div x-show="perfType === 'badge'" class="space-y-2">
-                <select name="reference_id" class="w-full px-5 py-3 bg-black/40 border border-forum-light focus:border-purple-500 rounded-xl text-sm font-bold text-slate-300 outline-none transition">
+                <select name="reference_id" class="w-full px-4 py-3 bg-white border border-slate-200 focus:border-purple-500 rounded-xl text-sm font-bold text-slate-700 outline-none transition">
                     <option value="">-- Pilih Lencana Terhebatmu --</option>
                     @foreach($badges as $badge)
                         <option value="{{ $badge->id }}">{{ $badge->name }} (Poin: {{ $badge->requirement_value }})</option>
@@ -164,7 +159,7 @@
 
             @if(auth()->user()->isSiswa())
             <div x-show="perfType === 'grade'" class="space-y-2" style="display: none;">
-                <select name="reference_id" class="w-full px-5 py-3 bg-black/40 border border-forum-light focus:border-purple-500 rounded-xl text-sm font-bold text-slate-300 outline-none transition">
+                <select name="reference_id" class="w-full px-4 py-3 bg-white border border-slate-200 focus:border-purple-500 rounded-xl text-sm font-bold text-slate-700 outline-none transition">
                     <option value="">-- Pilih Nilai CBT --</option>
                     @foreach($cbtResults as $result)
                         <option value="{{ $result->id }}">{{ $result->exam->exam_title }} - Nilai: {{ $result->final_score }}</option>
@@ -177,34 +172,34 @@
         <!-- Collab -->
         <div x-show="['project_idea', 'committee'].includes(category)" style="display: none;"
              x-transition:enter="transition ease-out duration-300"
-             class="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+             class="bg-blue-50/70 border border-blue-200 rounded-2xl p-6 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
             <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400"><i class="ph-bold ph-handshake text-xl"></i></div>
+                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600"><i class="ph-bold ph-handshake text-xl"></i></div>
                 <div>
-                    <h4 class="forum-hdr text-sm font-bold text-white">Rekrutmen Tim</h4>
-                    <div class="text-xs text-blue-400 font-bold uppercase tracking-wider">Cari rekan kolaborasi</div>
+                    <h4 class="forum-hdr text-sm font-bold text-slate-800">Rekrutmen Tim</h4>
+                    <div class="text-xs text-blue-600 font-bold uppercase tracking-wider">Cari rekan kolaborasi</div>
                 </div>
             </div>
             <label class="flex items-center gap-3 cursor-pointer group">
                 <div class="relative flex items-center">
                     <input type="checkbox" name="recruitment_enabled" value="1" checked class="peer sr-only">
-                    <div class="w-11 h-6 bg-forum-light-10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </div>
-                <span class="text-sm font-bold text-slate-300 group-hover:text-white transition">Buka pendaftaran anggota baru</span>
+                <span class="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition">Buka pendaftaran anggota baru</span>
             </label>
         </div>
 
         <!-- Charity -->
         <div x-show="category === 'charity'" style="display: none;"
              x-transition:enter="transition ease-out duration-300"
-             class="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 shadow-xl space-y-5 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+             class="bg-red-50/70 border border-red-200 rounded-2xl p-6 shadow-sm space-y-5 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1.5 h-full bg-red-500"></div>
             <div class="flex items-center gap-3 mb-2">
-                <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center text-red-400"><i class="ph-bold ph-heart text-xl"></i></div>
+                <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-600"><i class="ph-bold ph-heart text-xl"></i></div>
                 <div>
-                    <h4 class="forum-hdr text-sm font-bold text-white">Target Aksi Sosial</h4>
-                    <div class="text-xs text-red-400 font-bold uppercase tracking-wider">Tentukan tujuan muliamu</div>
+                    <h4 class="forum-hdr text-sm font-bold text-slate-800">Target Aksi Sosial</h4>
+                    <div class="text-xs text-red-600 font-bold uppercase tracking-wider">Tentukan tujuan muliamu</div>
                 </div>
             </div>
 
@@ -213,12 +208,12 @@
                     <label class="flex items-center gap-3 cursor-pointer group">
                         <div class="relative flex items-center">
                             <input type="checkbox" x-model="hasTargetDonation" class="peer sr-only">
-                            <div class="w-11 h-6 bg-forum-light-10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                         </div>
-                        <span class="text-sm font-bold text-slate-300 group-hover:text-white transition">Target Donasi (Uang)</span>
+                        <span class="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition">Target Donasi (Uang)</span>
                     </label>
                     <div x-show="hasTargetDonation" style="display:none;">
-                        <input type="number" name="charity_target_amount" class="w-full px-5 py-3 bg-black/40 border border-forum-light focus:border-red-500 rounded-xl text-sm text-white outline-none" placeholder="Target Rp...">
+                        <input type="number" name="charity_target_amount" class="w-full px-4 py-3 bg-white border border-slate-200 focus:border-red-500 rounded-xl text-sm text-slate-800 outline-none" placeholder="Target Rp...">
                     </div>
                 </div>
 
@@ -226,31 +221,31 @@
                     <label class="flex items-center gap-3 cursor-pointer group">
                         <div class="relative flex items-center">
                             <input type="checkbox" x-model="hasTargetVolunteers" class="peer sr-only">
-                            <div class="w-11 h-6 bg-forum-light-10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                         </div>
-                        <span class="text-sm font-bold text-slate-300 group-hover:text-white transition">Target Relawan (Orang)</span>
+                        <span class="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition">Target Relawan (Orang)</span>
                     </label>
                     <div x-show="hasTargetVolunteers" style="display:none;">
-                        <input type="number" name="charity_target_volunteers" class="w-full px-5 py-3 bg-black/40 border border-forum-light focus:border-red-500 rounded-xl text-sm text-white outline-none" placeholder="Jumlah orang...">
+                        <input type="number" name="charity_target_volunteers" class="w-full px-4 py-3 bg-white border border-slate-200 focus:border-red-500 rounded-xl text-sm text-slate-800 outline-none" placeholder="Jumlah orang...">
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Attachments -->
-        <div class="bg-forum-card border border-forum rounded-2xl p-6 shadow-xl grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Image -->
             <div class="space-y-3">
-                <label class="block text-xs font-bold text-forum-body uppercase tracking-widest mb-2"><i class="ph-bold ph-image text-indigo-400 mr-1"></i> Gambar Utama</label>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2"><i class="ph-bold ph-image text-indigo-500 mr-1"></i> Gambar Utama</label>
                 <input type="file" name="image" accept="image/*" @change="fileChosen" 
-                       class="w-full px-4 py-3 bg-black/40 border border-forum-light focus:border-indigo-500 rounded-xl text-sm text-forum-body file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-500/20 file:text-indigo-400 file:font-bold cursor-pointer transition">
-                <p class="text-[10px] text-forum-muted font-bold uppercase tracking-wider">Format JPG/PNG, Maks 5MB</p>
+                       class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl text-sm text-slate-600 file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-100 file:text-indigo-700 file:font-bold cursor-pointer transition">
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Format JPG/PNG, Maks 5MB</p>
                 
                 <template x-if="imageUrl">
-                    <div class="mt-3 relative inline-block rounded-xl overflow-hidden border border-forum-light">
+                    <div class="mt-3 relative inline-block rounded-xl overflow-hidden border border-slate-200 shadow-sm">
                         <img :src="imageUrl" class="h-32 w-auto object-cover">
                         <button type="button" @click="imageUrl = null; $event.target.closest('.space-y-3').querySelector('input[type=file]').value = ''" 
-                                class="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-rose-500 text-white rounded-full flex items-center justify-center backdrop-blur-md transition">
+                                class="absolute top-2 right-2 w-7 h-7 bg-slate-800/80 hover:bg-rose-600 text-white rounded-full flex items-center justify-center backdrop-blur-md transition shadow-md">
                             <i class="ph-bold ph-x text-xs"></i>
                         </button>
                     </div>
@@ -259,19 +254,19 @@
 
             <!-- File -->
             <div class="space-y-3">
-                <label class="block text-xs font-bold text-forum-body uppercase tracking-widest mb-2"><i class="ph-bold ph-file-arrow-up text-fuchsia-400 mr-1"></i> Lampiran File</label>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2"><i class="ph-bold ph-file-arrow-up text-fuchsia-500 mr-1"></i> Lampiran File</label>
                 <input type="file" name="attachment" 
-                       class="w-full px-4 py-3 bg-black/40 border border-forum-light focus:border-fuchsia-500 rounded-xl text-sm text-forum-body file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:bg-fuchsia-500/20 file:text-fuchsia-400 file:font-bold cursor-pointer transition">
-                <p class="text-[10px] text-forum-muted font-bold uppercase tracking-wider">PDF/ZIP/DOCS, Maks 10MB</p>
+                       class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-fuchsia-500 rounded-xl text-sm text-slate-600 file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:bg-fuchsia-100 file:text-fuchsia-700 file:font-bold cursor-pointer transition">
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">PDF/ZIP/DOCS, Maks 10MB</p>
             </div>
         </div>
 
         <!-- Submit -->
-        <div class="flex gap-4">
-            <a href="{{ route('forum.index') }}" class="px-6 py-4 rounded-xl bg-forum-light-5 hover:bg-forum-light-10 text-slate-300 font-bold transition flex items-center justify-center">
+        <div class="flex gap-4 pt-2">
+            <a href="{{ route('forum.index') }}" class="px-6 py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition flex items-center justify-center">
                 Batal
             </a>
-            <button type="submit" class="flex-1 py-4 bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-400 hover:to-fuchsia-400 text-white rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+            <button type="submit" class="flex-1 py-3.5 bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white rounded-xl font-bold text-base shadow-md shadow-indigo-200 hover:shadow-indigo-300 transition-all flex items-center justify-center gap-2">
                 <i class="ph-bold ph-rocket-launch"></i> Posting Sekarang
             </button>
         </div>
