@@ -519,7 +519,7 @@
         </div>
 
         <!-- SIDEBAR WIDGETS (Right) -->
-        <div class="hidden xl:flex flex-col w-72 flex-shrink-0 bg-white border-l border-slate-100 p-5 gap-5 max-h-[85vh] overflow-y-auto no-scrollbar">
+        <div class="hidden lg:flex flex-col w-72 flex-shrink-0 bg-white border-l border-slate-100 p-5 gap-5 max-h-[85vh] overflow-y-auto no-scrollbar">
             <!-- User Profile Card -->
             @php
                 $user = auth()->user();
