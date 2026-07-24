@@ -393,6 +393,21 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Quick Actions (Author / Admin) -->
+                                @if(auth()->id() === $thread->user_id || auth()->user()->isSuperAdmin() || auth()->user()->isAdminSekolah() || auth()->user()->isGuru())
+                                    <div class="flex items-center gap-1 flex-shrink-0" onclick="event.stopPropagation()">
+                                        <a href="{{ route('forum.edit', $thread) }}" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition" title="Edit Status">
+                                            <i class="ph-bold ph-pencil-simple text-lg"></i>
+                                        </a>
+                                        <form action="{{ route('forum.destroy', $thread) }}" method="POST" onsubmit="return confirm('Yakin hapus postingan ini?')" class="inline">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition" title="Hapus Status">
+                                                <i class="ph-bold ph-trash text-lg"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
                             </div>
 
                             <!-- Content -->
@@ -750,4 +765,10 @@ function pembdaColabs() {
     }
 }
 </script>
+<!-- Mobile Floating Action Button (Buat Status / Post) -->
+<a href="{{ route('forum.create') }}" 
+   class="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-tr from-indigo-500 to-fuchsia-500 text-white rounded-full flex items-center justify-center shadow-xl shadow-indigo-500/40 hover:scale-110 active:scale-95 transition-all"
+   title="Buat Status Baru">
+    <i class="ph-bold ph-plus text-2xl"></i>
+</a>
 @endsection

@@ -91,7 +91,7 @@
         </div>
         
         <div class="flex items-center gap-2 flex-shrink-0">
-            @if(auth()->id() === $thread->user_id || auth()->user()->isSuperAdmin() || auth()->user()->isGuru())
+            @if(auth()->id() === $thread->user_id || auth()->user()->isSuperAdmin() || auth()->user()->isAdminSekolah() || auth()->user()->isGuru())
                 <a href="{{ route('forum.edit', $thread) }}" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-amber-100 hover:text-amber-700 flex items-center justify-center text-slate-600 transition" title="Edit">
                     <i class="ph-bold ph-pencil-simple text-lg"></i>
                 </a>

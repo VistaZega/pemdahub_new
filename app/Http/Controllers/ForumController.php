@@ -552,7 +552,7 @@ class ForumController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isGuru()) {
+        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isAdminSekolah() && !$user->isGuru()) {
             abort(403, 'Unauthorized');
         }
 
@@ -577,7 +577,7 @@ class ForumController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isGuru()) {
+        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isAdminSekolah() && !$user->isGuru()) {
             abort(403, 'Unauthorized');
         }
 
@@ -696,7 +696,7 @@ class ForumController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isGuru()) {
+        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isAdminSekolah() && !$user->isGuru()) {
             abort(403, 'Unauthorized');
         }
 
