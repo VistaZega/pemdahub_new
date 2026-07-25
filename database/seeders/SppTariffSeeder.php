@@ -22,13 +22,44 @@ class SppTariffSeeder extends Seeder
             return;
         }
 
+        // Tarif SPP SMK dan SMA
         $cleanRatesSmkSma = [
             '10' => 210000,
             '11' => 215000,
             '12' => 220000,
         ];
 
-        // 2. Update Tarif SPP untuk SMK
+        // Tarif SPP SMP
+        $cleanRatesSmp = [
+            '7' => 185000,
+            '8' => 185000,
+            '9' => 195000,
+        ];
+
+        // 2. Update Tarif SPP untuk SMP
+        $smpSchools = School::where('type', 'SMP')
+            ->orWhere('name', 'like', '%SMP%')
+            ->get();
+
+        foreach ($smpSchools as $smp) {
+            SchoolContribution::updateOrCreate(
+                [
+                    'school_id' => $smp->id,
+                    'academic_year_id' => $academicYear->id,
+                ],
+                [
+                    'spp_rates' => $cleanRatesSmp,
+                    'notes' => 'Update SPP TP 2026/2027 (VII: Rp 185k, VIII: Rp 185k, IX: Rp 195k)',
+                ]
+            );
+
+            // Update Master PaymentType SPP
+            PaymentType::where('school_id', $smp->id)
+                ->where('type_code', 'SPP')
+                ->update(['amount' => 185000]);
+        }
+
+        // 3. Update Tarif SPP untuk SMK
         $smkSchools = School::where('type', 'SMK')
             ->orWhere('name', 'like', '%SMK%')
             ->get();
@@ -51,7 +82,7 @@ class SppTariffSeeder extends Seeder
                 ->update(['amount' => 210000]);
         }
 
-        // 3. Update Tarif SPP untuk SMA
+        // 4. Update Tarif SPP untuk SMA
         $smaSchools = School::where('type', 'SMA')
             ->orWhere('name', 'like', '%SMA%')
             ->get();
