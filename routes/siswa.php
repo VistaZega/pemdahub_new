@@ -59,6 +59,8 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
         Route::post('/materials/{material}/react', [App\Http\Controllers\Siswa\LmsController::class, 'reactMaterial'])->name('materials.react');
         Route::get('/materials/{material}/download', [App\Http\Controllers\Siswa\LmsController::class, 'downloadMaterial'])->name('materials.download');
         Route::get('/materials/{material}/view', [App\Http\Controllers\Siswa\LmsController::class, 'viewMaterial'])->name('materials.view');
+        Route::get('/materials/{material}/player', [App\Http\Controllers\Siswa\LmsController::class, 'playerMaterial'])->name('materials.player');
+        Route::post('/materials/{material}/notes', [App\Http\Controllers\Siswa\LmsController::class, 'saveNote'])->name('materials.notes');
 
         // Discussions
         Route::get('/{course}/discussions', [App\Http\Controllers\Siswa\LmsController::class, 'discussions'])->name('discussions.index');

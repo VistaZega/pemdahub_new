@@ -168,6 +168,7 @@ class LmsCourseController extends Controller
             'status' => 'draft',
             'is_published' => false,
             'is_active' => true,
+            'is_sequential' => $request->has('is_sequential'),
         ]);
 
         // Assign classrooms via lms_classes and auto-enroll students
@@ -318,6 +319,7 @@ class LmsCourseController extends Controller
             'description' => $request->description,
             'status' => $request->status,
             'is_published' => $request->status === 'active',
+            'is_sequential' => $request->has('is_sequential'),
             'code' => $request->code,
         ]);
 

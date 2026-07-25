@@ -25,11 +25,13 @@ class LmsMaterial extends Model
         'file_size',
         'order_number',
         'is_published',
+        'prerequisite_material_id',
     ];
 
     protected $casts = [
         'is_published' => 'boolean',
         'order_number' => 'integer',
+        'prerequisite_material_id' => 'integer',
     ];
 
     protected const CONTENT_TYPES = [
@@ -169,5 +171,15 @@ class LmsMaterial extends Model
             return false;
         }
         return preg_match('/\.(mp4|webm|ogg|avi|mov|mkv)$/i', $url) === 1;
+    }
+
+    public function prerequisite()
+    {
+        return $this->belongsTo(LmsMaterial::class, 'prerequisite_material_id');
+    }
+
+    public function notes()
+    {
+        return $this->hasMany(LmsMaterialNote::class, 'material_id');
     }
 }

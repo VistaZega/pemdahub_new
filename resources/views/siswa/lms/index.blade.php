@@ -97,6 +97,79 @@
 
 
     {{-- ═══════════════════════════════════════════════ --}}
+    {{-- UPCOMING DEADLINES WIDGET (TENGGAT WAKTU) --}}
+    {{-- ═══════════════════════════════════════════════ --}}
+    @if((isset($upcomingAssignments) && $upcomingAssignments->count() > 0) || (isset($upcomingQuizzes) && $upcomingQuizzes->count() > 0))
+    <div class="bg-white rounded-2xl p-6 shadow-md border-2 border-amber-200">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-sm">
+                    <i class="fas fa-bell text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Tenggat Waktu Minggu Ini</h3>
+                    <p class="text-xs font-semibold text-gray-500">Tugas & Kuis yang harus Anda selesaikan segera</p>
+                </div>
+            </div>
+            <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full border border-amber-300">
+                {{ ($upcomingAssignments->count() ?? 0) + ($upcomingQuizzes->count() ?? 0) }} Item Jatuh Tempo
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @foreach($upcomingAssignments as $asgn)
+            @php
+                $diffHours = \Carbon\Carbon::now()->diffInHours(\Carbon\Carbon::parse($asgn->deadline), false);
+                $diffDays = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($asgn->deadline), false);
+                $isUrgent = $diffHours <= 24;
+            @endphp
+            <div class="flex items-start justify-between p-4 rounded-xl {{ $isUrgent ? 'bg-red-50 border border-red-200' : 'bg-gray-50 border border-gray-200' }} hover:shadow-md transition">
+                <div class="flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-lg {{ $isUrgent ? 'bg-red-500' : 'bg-blue-600' }} text-white flex items-center justify-center flex-shrink-0 font-bold text-sm">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-600">{{ $asgn->course->subject->subject_name ?? 'Tugas' }}</span>
+                        <h4 class="font-bold text-gray-900 text-sm leading-snug line-clamp-1">{{ $asgn->title }}</h4>
+                        <p class="text-xs font-semibold text-gray-600 mt-0.5">
+                            <i class="far fa-clock mr-1"></i> Deadline: {{ \Carbon\Carbon::parse($asgn->deadline)->translatedFormat('d M Y, H:i') }}
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <span class="px-2.5 py-1 text-[10px] font-extrabold rounded-lg uppercase tracking-wider {{ $isUrgent ? 'bg-red-600 text-white' : 'bg-blue-100 text-blue-800 border border-blue-200' }}">
+                        {{ $diffHours <= 0 ? 'Hari Ini' : ($diffHours < 24 ? $diffHours.' Jam lagi' : $diffDays.' Hari lagi') }}
+                    </span>
+                </div>
+            </div>
+            @endforeach
+
+            @foreach($upcomingQuizzes as $qz)
+            <div class="flex items-start justify-between p-4 rounded-xl bg-purple-50 border border-purple-200 hover:shadow-md transition">
+                <div class="flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-purple-600 text-white flex items-center justify-center flex-shrink-0 font-bold text-sm">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-purple-700">{{ $qz->course->subject->subject_name ?? 'Kuis' }}</span>
+                        <h4 class="font-bold text-gray-900 text-sm leading-snug line-clamp-1">{{ $qz->title }}</h4>
+                        <p class="text-xs font-semibold text-gray-600 mt-0.5">
+                            <i class="fas fa-list-ol mr-1"></i> {{ $qz->questions_count ?? 0 }} Soal
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <span class="px-2.5 py-1 text-[10px] font-extrabold rounded-lg uppercase tracking-wider bg-purple-600 text-white">
+                        Kuis Aktif
+                    </span>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════════ --}}
     {{-- COURSE GRID --}}
     {{-- ═══════════════════════════════════════════════ --}}
     @if($courses->count() > 0)

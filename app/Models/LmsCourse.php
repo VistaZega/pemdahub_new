@@ -27,6 +27,7 @@ class LmsCourse extends Model
         'status',
         'is_published',
         'is_active',
+        'is_sequential',
         'color',
         'meeting_active',
         'meeting_started_at',
@@ -35,6 +36,7 @@ class LmsCourse extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'is_published' => 'boolean',
+        'is_sequential' => 'boolean',
         'meeting_active' => 'boolean',
         'meeting_started_at' => 'datetime',
     ];

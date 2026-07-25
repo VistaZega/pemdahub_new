@@ -73,6 +73,16 @@
                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500"
                           placeholder="Deskripsi singkat tentang course ini...">{{ old('description') }}</textarea>
             </div>
+
+            <div class="md:col-span-2 bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="is_sequential" value="1" {{ old('is_sequential') ? 'checked' : '' }} class="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500 mr-3">
+                    <div>
+                        <span class="text-sm font-bold text-gray-900"><i class="fas fa-lock text-indigo-600 mr-1"></i> Aktifkan Pembelajaran Berurutan (Sequential Learning)</span>
+                        <p class="text-xs text-gray-600 mt-0.5">Siswa harus menyelesaikan materi sebelumnya terlebih dahulu sebelum materi berikutnya terbuka 🔒.</p>
+                    </div>
+                </label>
+            </div>
         </div>
 
         <div class="mt-6 flex gap-3">

@@ -319,7 +319,20 @@
                 @endif
                 
                 @forelse($module->materials as $material)
-                @php $matProgress = $materialProgressMap[$material->id] ?? null; @endphp
+                @php 
+                    $matProgress = $materialProgressMap[$material->id] ?? null; 
+                    $isLocked = false;
+                    if (($course->is_sequential || $module->is_sequential || $material->prerequisite_material_id)) {
+                        if ($material->prerequisite_material_id && !in_array($material->prerequisite_material_id, $completedMaterialIds ?? [])) {
+                            $isLocked = true;
+                        } elseif ($loop->index > 0) {
+                            $prevMat = $module->materials[$loop->index - 1] ?? null;
+                            if ($prevMat && !in_array($prevMat->id, $completedMaterialIds ?? [])) {
+                                $isLocked = true;
+                            }
+                        }
+                    }
+                @endphp
                 <div x-data="{ 
                     expanded: false, 
                     started: false, 
@@ -339,42 +352,49 @@
                             }, 1000); 
                         } 
                     } 
-                }" class="rounded-xl border border-gray-50 hover:border-{{ $moduleColor }}-200 hover:bg-{{ $moduleColor }}-50/20 transition-all overflow-hidden group/mat">
-                    <div class="flex items-center justify-between p-3.5 cursor-pointer" @click="expanded = !expanded; if(expanded) startLearning(); trackMaterial({{ $material->id }})">
+                }" class="rounded-xl border border-gray-100 hover:border-{{ $moduleColor }}-200 hover:bg-{{ $moduleColor }}-50/20 transition-all overflow-hidden group/mat">
+                    <div class="flex items-center justify-between p-3.5 cursor-pointer" @click="if(!{{ $isLocked ? 'true' : 'false' }}){ expanded = !expanded; if(expanded) startLearning(); trackMaterial({{ $material->id }}); } else { alert('Materi ini masih terkunci. Selesaikan materi sebelumnya terlebih dahulu.'); }">
                         <div class="flex items-center gap-3">
-                            <span class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md flex-shrink-0 {{ $material->material_type === 'pdf' ? 'bg-red-500' : ($material->material_type === 'video' ? 'bg-blue-500' : ($material->material_type === 'image' ? 'bg-green-500' : ($material->material_type === 'link' ? 'bg-purple-500' : ($material->material_type === 'interactive' ? 'bg-indigo-600' : ($material->material_type === 'document' ? 'bg-orange-500' : 'bg-gray-500'))))) }}">
-                                <i class="fas text-xl {{ $material->material_type === 'pdf' ? 'fa-file-pdf' : ($material->material_type === 'video' ? 'fa-video' : ($material->material_type === 'image' ? 'fa-image' : ($material->material_type === 'link' ? 'fa-link' : ($material->material_type === 'interactive' ? 'fa-gamepad' : ($material->material_type === 'document' ? 'fa-file-alt' : 'fa-file'))))) }}"></i>
+                            <span class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md flex-shrink-0 {{ $isLocked ? 'bg-amber-500' : ($material->material_type === 'pdf' ? 'bg-red-500' : ($material->material_type === 'video' ? 'bg-blue-500' : ($material->material_type === 'image' ? 'bg-green-500' : ($material->material_type === 'link' ? 'bg-purple-500' : ($material->material_type === 'interactive' ? 'bg-indigo-600' : ($material->material_type === 'document' ? 'bg-orange-500' : 'bg-gray-500')))))) }}">
+                                <i class="fas text-xl {{ $isLocked ? 'fa-lock' : ($material->material_type === 'pdf' ? 'fa-file-pdf' : ($material->material_type === 'video' ? 'fa-video' : ($material->material_type === 'image' ? 'fa-image' : ($material->material_type === 'link' ? 'fa-link' : ($material->material_type === 'interactive' ? 'fa-gamepad' : ($material->material_type === 'document' ? 'fa-file-alt' : 'fa-file')))))) }}"></i>
                             </span>
                             <div>
                                 <p class="font-extrabold text-gray-900 group-hover/mat:text-{{ $moduleColor }}-700 transition-colors text-base"><span class="text-{{ $moduleColor }}-500 opacity-60 font-bold mr-1.5 text-sm">{{ $module->getCode() }}-{{ $loop->iteration }}</span>{{ preg_replace('/^\d+\.\d+\s*/', '', $material->title) }}</p>
-                                <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mt-0.5">{{ $material->getContentTypeLabel() }}</p>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">{{ $material->getContentTypeLabel() }}</span>
+                                    @if($isLocked)
+                                    <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-300">
+                                        <i class="fas fa-lock mr-1"></i> Terkunci
+                                    </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                         
                         <div class="flex items-center gap-2">
-                            @if($matProgress && $matProgress->status === 'completed')
-                            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                <i class="fas fa-check-circle text-xs"></i>
-                                <span class="text-[9px] font-bold">SELESAI</span>
+                            @if($isLocked)
+                            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 text-gray-500 text-xs font-bold border border-gray-200">
+                                <i class="fas fa-lock text-xs"></i>
+                                <span>Terkunci</span>
                             </div>
-                            @elseif($matProgress)
-                            <div class="w-10 bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                                <div class="h-full {{ $mColor['bg'] }} transition-all rounded-full" style="width: {{ $matProgress->progress_percent }}%"></div>
-                            </div>
+                            @else
+                                <a href="{{ route('siswa.lms.materials.player', $material->id) }}" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition shadow-sm flex items-center gap-1.5" onclick="event.stopPropagation()">
+                                    <i class="fas fa-book-open"></i> Focus Reader
+                                </a>
+                                @if($matProgress && $matProgress->status === 'completed')
+                                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                    <i class="fas fa-check-circle text-xs"></i>
+                                    <span class="text-[9px] font-bold">SELESAI</span>
+                                </div>
+                                @elseif($matProgress)
+                                <div class="w-10 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="h-full {{ $mColor['bg'] }} transition-all rounded-full" style="width: {{ $matProgress->progress_percent }}%"></div>
+                                </div>
+                                @endif
                             @endif
                             
                             <div class="flex items-center gap-1.5 opacity-0 group-hover/mat:opacity-100 transition-opacity">
                                 <i class="fas fa-chevron-down text-gray-300 text-xs transition-transform" :class="expanded ? 'rotate-180' : ''"></i>
-                                @if($material->file_url)
-                                <a href="{{ $material->file_url }}" target="_blank" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-200 transition-all shadow-sm" onclick="event.stopPropagation()">
-                                    <i class="fas fa-external-link-alt text-xs"></i>
-                                </a>
-                                @endif
-                                @if($material->file_path)
-                                <a href="{{ route('siswa.lms.materials.download', $material->id) }}" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-200 transition-all shadow-sm" onclick="event.stopPropagation()">
-                                    <i class="fas fa-download text-xs"></i>
-                                </a>
-                                @endif
                             </div>
                         </div>
                     </div>

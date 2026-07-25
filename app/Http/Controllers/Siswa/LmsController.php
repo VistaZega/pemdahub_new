@@ -52,7 +52,26 @@ class LmsController extends Controller
             $courseProgress[$course->id] = LmsMaterialProgress::getProgressForCourse($course->id, $student->id);
         }
 
-        return view('siswa.lms.index', compact('student', 'courses', 'courseProgress'));
+        // Calculate upcoming deadlines (Assignments & Quizzes in next 7 days)
+        $courseIds = $courses->pluck('id');
+        $now = \Carbon\Carbon::now();
+        $next7Days = \Carbon\Carbon::now()->addDays(7);
+
+        $upcomingAssignments = LmsAssignment::whereIn('course_id', $courseIds)
+            ->where('is_published', true)
+            ->whereBetween('deadline', [$now, $next7Days])
+            ->with(['course.subject'])
+            ->orderBy('deadline')
+            ->get();
+
+        $upcomingQuizzes = LmsQuiz::whereIn('course_id', $courseIds)
+            ->where('is_published', true)
+            ->whereBetween('created_at', [$now->subDays(7), $next7Days])
+            ->with(['course.subject'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('siswa.lms.index', compact('student', 'courses', 'courseProgress', 'upcomingAssignments', 'upcomingQuizzes'));
     }
 
     /**
@@ -101,6 +120,12 @@ class LmsController extends Controller
             ->get()
             ->keyBy('material_id');
 
+        // Completed material IDs for sequential lock checks
+        $completedMaterialIds = LmsMaterialProgress::where('student_id', $student->id)
+            ->where('status', 'completed')
+            ->pluck('material_id')
+            ->toArray();
+
         // Course overall progress
         $courseProgress = LmsMaterialProgress::getProgressForCourse($course->id, $student->id);
 
@@ -116,8 +141,122 @@ class LmsController extends Controller
         return view('siswa.lms.show', compact(
             'student', 'course', 'submissionMap', 'attemptMap', 'gameAttemptMap',
             'materialProgressMap', 'courseProgress', 'discussionCount',
-            'reactionsMap'
+            'reactionsMap', 'completedMaterialIds'
         ));
+    }
+
+    /**
+     * Focus Reader Material Player View
+     */
+    public function playerMaterial(LmsMaterial $material)
+    {
+        $student = $this->getStudent();
+        if (!$student) {
+            abort(403, 'Data siswa tidak ditemukan.');
+        }
+
+        $course = $material->course;
+        if (!$course || !$this->isEnrolled($student, $course)) {
+            abort(403, 'Anda tidak terdaftar di course ini.');
+        }
+
+        // Lock check
+        if ($this->isMaterialLocked($material, $student)) {
+            return redirect()->route('siswa.lms.show', $course->id)
+                ->with('error', 'Materi ini masih terkunci. Selesaikan materi sebelumnya terlebih dahulu.');
+        }
+
+        // Auto mark as in_progress if not set
+        LmsMaterialProgress::firstOrCreate(
+            ['student_id' => $student->id, 'material_id' => $material->id],
+            ['status' => 'in_progress', 'created_at' => now()]
+        );
+
+        $note = \App\Models\LmsMaterialNote::where('student_id', $student->id)
+            ->where('material_id', $material->id)
+            ->first();
+
+        // Load course modules and materials for sidebar navigation
+        $course->load([
+            'subject', 'teacher.user',
+            'modules' => fn($q) => $q->where('is_active', true)->orderBy('sequence')->with([
+                'materials' => fn($mq) => $mq->where('is_published', true)->orderBy('order_number')
+            ])
+        ]);
+
+        $completedMaterialIds = LmsMaterialProgress::where('student_id', $student->id)
+            ->where('status', 'completed')
+            ->pluck('material_id')
+            ->toArray();
+
+        return view('siswa.lms.material_player', compact('student', 'course', 'material', 'note', 'completedMaterialIds'));
+    }
+
+    /**
+     * AJAX Save Student Note for Material
+     */
+    public function saveNote(Request $request, LmsMaterial $material)
+    {
+        $student = $this->getStudent();
+        if (!$student) {
+            return response()->json(['success' => false, 'message' => 'Siswa tidak ditemukan.'], 403);
+        }
+
+        $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        $note = \App\Models\LmsMaterialNote::updateOrCreate(
+            ['student_id' => $student->id, 'material_id' => $material->id],
+            ['notes' => $request->input('notes')]
+        );
+
+        return response()->json(['success' => true, 'message' => 'Catatan berhasil disimpan.', 'data' => $note]);
+    }
+
+    /**
+     * Check if material is locked for sequential learning
+     */
+    private function isMaterialLocked(LmsMaterial $material, Student $student): bool
+    {
+        $course = $material->course;
+        $module = $material->module;
+
+        $isSequential = ($course && $course->is_sequential) || ($module && $module->is_sequential) || $material->prerequisite_material_id;
+        if (!$isSequential) {
+            return false;
+        }
+
+        // Check prerequisite material
+        if ($material->prerequisite_material_id) {
+            $prereqCompleted = LmsMaterialProgress::where('student_id', $student->id)
+                ->where('material_id', $material->prerequisite_material_id)
+                ->where('status', 'completed')
+                ->exists();
+            if (!$prereqCompleted) {
+                return true;
+            }
+        }
+
+        // Check previous material in course order
+        $previousMaterial = LmsMaterial::where('course_id', $material->course_id)
+            ->where('is_published', true)
+            ->where('id', '!=', $material->id)
+            ->where('order_number', '<', $material->order_number)
+            ->orderByDesc('order_number')
+            ->first();
+
+        if ($previousMaterial) {
+            $prevCompleted = LmsMaterialProgress::where('student_id', $student->id)
+                ->where('material_id', $previousMaterial->id)
+                ->where('status', 'completed')
+                ->exists();
+            if (!$prevCompleted) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

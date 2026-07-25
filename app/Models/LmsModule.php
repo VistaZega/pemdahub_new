@@ -20,11 +20,13 @@ class LmsModule extends Model
         'description',
         'sequence',
         'is_active',
+        'is_sequential',
         'color',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_sequential' => 'boolean',
         'sequence' => 'integer',
     ];
 
