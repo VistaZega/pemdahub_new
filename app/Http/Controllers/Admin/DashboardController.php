@@ -172,18 +172,29 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $schools = School::where('is_active', true)->schoolsOnly()->get();
+
         // SuperAdmin specific per school breakdown
         $studentsBySchool = $isSuperAdmin 
-            ? \App\Models\StudentClass::whereHas('student', fn($q) => $q->where('status', 'aktif'))
-                ->when($currentAcademicYear, fn($q) => $q->where('academic_year_id', $currentAcademicYear->id))
-                ->join('students', 'student_classes.student_id', '=', 'students.id')
-                ->select('students.school_id', DB::raw('COUNT(DISTINCT student_classes.student_id) as count'))
-                ->groupBy('students.school_id')
-                ->with('school')
-                ->get()
-            : collect();
+            ? $schools->map(function ($sch) use ($currentAcademicYear) {
+                $count = \App\Models\StudentClass::whereHas('student', function ($q) use ($sch) {
+                        $q->where('school_id', $sch->id)->where('status', 'aktif');
+                    })
+                    ->when($currentAcademicYear, function ($q) use ($currentAcademicYear) {
+                        $q->where('academic_year_id', $currentAcademicYear->id);
+                    })
+                    ->distinct('student_id')
+                    ->count('student_id');
 
-        $schools = School::where('is_active', true)->schoolsOnly()->get();
+                return [
+                    'school_id' => $sch->id,
+                    'school' => [
+                        'name' => $sch->name,
+                    ],
+                    'count' => $count,
+                ];
+            })
+            : collect();
 
         // Admin Sekolah specific progress
         $classDistribution = collect();
