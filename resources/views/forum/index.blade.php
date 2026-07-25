@@ -127,8 +127,8 @@
                         <i class="ph-bold ph-lightning text-white text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="forum-hdr text-xl font-bold text-slate-800 tracking-tight leading-tight">Pembda Space</h1>
-                        <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Community</span>
+                        <h1 class="forum-hdr text-xl font-bold text-slate-900 tracking-tight leading-tight">Pembda Space</h1>
+                        <span class="text-[10px] text-slate-900 font-bold uppercase tracking-widest">Community</span>
                     </div>
                 </div>
 
@@ -136,17 +136,17 @@
                     <!-- All Channels -->
                     <div class="space-y-1">
                         <a href="{{ route('forum.index', array_filter(['search' => $search])) }}" 
-                           class="flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 {{ !$category ? 'channel-active' : 'text-slate-500 channel-hover' }}">
+                           class="flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 {{ !$category ? 'channel-active' : 'text-slate-900 font-semibold channel-hover' }}">
                             <div class="flex items-center gap-3">
                                 <i class="ph-bold ph-compass text-lg {{ !$category ? 'text-indigo-500' : '' }}"></i>
-                                <span class="text-sm">Semua Saluran</span>
+                                <span class="text-sm font-bold">Semua Saluran</span>
                             </div>
                         </a>
                     </div>
 
                     @foreach($channelGroups as $groupName => $channels)
                     <div class="space-y-1.5" x-data="{ expanded: true }">
-                        <button @click="expanded = !expanded" class="w-full flex items-center justify-between px-2 py-1 text-xs font-bold text-slate-400 hover:text-slate-600 transition uppercase tracking-wider group">
+                        <button @click="expanded = !expanded" class="w-full flex items-center justify-between px-2 py-1 text-xs font-bold text-slate-900 hover:text-black transition uppercase tracking-wider group">
                             <span>{{ $groupName }}</span>
                             <i class="ph-bold ph-caret-down transition-transform duration-200" :class="expanded ? '' : '-rotate-90'"></i>
                         </button>
@@ -161,13 +161,13 @@
                                     $cleanLabel = trim(str_replace($emoji, '', $catLabel));
                                 @endphp
                                 <a href="{{ route('forum.index', array_filter(['category' => $catKey, 'search' => $search])) }}" 
-                                   class="flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 {{ $isActive ? 'channel-active border-l-2 border-indigo-500' : 'text-slate-500 channel-hover border-l-2 border-transparent' }}">
+                                   class="flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 {{ $isActive ? 'channel-active border-l-2 border-indigo-500 font-bold' : 'text-slate-900 font-medium channel-hover border-l-2 border-transparent' }}">
                                     <div class="flex items-center gap-3">
                                         <span>{{ $emoji }}</span>
                                         <span class="text-sm truncate">{{ $cleanLabel }}</span>
                                     </div>
                                     @if($count > 0)
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $isActive ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500' }}">{{ $count }}</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $isActive ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-900' }}">{{ $count }}</span>
                                     @endif
                                 </a>
                             @endforeach
@@ -177,8 +177,8 @@
                 </nav>
 
                 <!-- Stats footer -->
-                <div class="mt-auto pt-4 border-t border-slate-100 pb-2">
-                    <div class="flex justify-between items-center px-2 text-xs font-medium text-slate-400">
+                <div class="mt-auto pt-4 border-t border-slate-200 pb-2">
+                    <div class="flex justify-between items-center px-2 text-xs font-bold text-slate-900">
                         <div class="flex items-center gap-1.5" title="Online dalam 15 menit terakhir">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span>{{ $onlineCount }} Online</span>
@@ -356,37 +356,37 @@
                                          class="w-10 h-10 rounded-full border-2 border-slate-100 shadow-sm object-cover">
                                     <div>
                                         <div class="flex items-center gap-2">
-                                            <span class="font-bold text-slate-800 text-sm">{{ $author->name }}</span>
-                                            <span class="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded uppercase tracking-wider">{{ $author->role }}</span>
-                                            <span class="text-xs text-slate-400">&bull; {{ $thread->created_at->diffForHumans() }}</span>
+                                            <span class="font-bold text-slate-900 text-sm">{{ $author->name }}</span>
+                                            <span class="text-[10px] font-bold px-1.5 py-0.5 bg-slate-200 text-slate-900 rounded uppercase tracking-wider">{{ $author->role }}</span>
+                                            <span class="text-xs text-slate-900 font-medium">&bull; {{ $thread->created_at->diffForHumans() }}</span>
                                         </div>
                                         <div class="flex items-center gap-2 mt-1 flex-wrap">
-                                            <span class="text-[10px] px-2 py-0.5 rounded-md border font-semibold tracking-wider {{ $catColor }}">
+                                            <span class="text-[10px] px-2 py-0.5 rounded-md border font-bold tracking-wider {{ $catColor }}">
                                                 {{ $catLabel }}
                                             </span>
                                             @if($thread->category === 'tanya_jawab')
                                                 @if($thread->hasAcceptedReply())
-                                                    <span class="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-md font-bold flex items-center gap-1">
+                                                    <span class="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md font-bold flex items-center gap-1">
                                                         <i class="ph-bold ph-check-circle"></i> Terjawab
                                                     </span>
                                                 @else
-                                                    <span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded-md font-bold flex items-center gap-1">
+                                                    <span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 rounded-md font-bold flex items-center gap-1">
                                                         <i class="ph-bold ph-question"></i> Bantu Jawab
                                                     </span>
                                                 @endif
                                             @endif
                                             @if($thread->category === 'gaming' && $thread->game_name)
-                                                <span class="text-[10px] px-2 py-0.5 bg-rose-100 text-rose-700 border border-rose-200 rounded-md font-bold flex items-center gap-1">
+                                                <span class="text-[10px] px-2 py-0.5 bg-rose-100 text-rose-800 border border-rose-200 rounded-md font-bold flex items-center gap-1">
                                                     <i class="ph-bold ph-game-controller"></i> {{ $thread->game_name }}
                                                 </span>
                                             @endif
                                             @if($thread->category === 'sharing' && $thread->file_category)
-                                                <span class="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-md font-bold flex items-center gap-1">
+                                                <span class="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md font-bold flex items-center gap-1">
                                                     <i class="ph-bold ph-folder-open"></i> {{ $thread->file_category }}
                                                 </span>
                                             @endif
                                             @if($thread->is_pinned)
-                                                <span class="text-[10px] px-2 py-0.5 bg-amber-500/10 text-amber-600 border border-amber-500/30 rounded-md font-semibold flex items-center gap-1">
+                                                <span class="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-900 border border-amber-500/40 rounded-md font-bold flex items-center gap-1">
                                                     <i class="ph-bold ph-push-pin"></i> Tersemat
                                                 </span>
                                             @endif
@@ -397,12 +397,12 @@
                                 <!-- Quick Actions (Author / Admin) -->
                                 @if(auth()->id() === $thread->user_id || auth()->user()->isSuperAdmin() || auth()->user()->isAdminSekolah() || auth()->user()->isGuru())
                                     <div class="flex items-center gap-1 flex-shrink-0" onclick="event.stopPropagation()">
-                                        <a href="{{ route('forum.edit', $thread) }}" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition" title="Edit Status">
+                                        <a href="{{ route('forum.edit', $thread) }}" class="p-2 text-slate-700 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition" title="Edit Status">
                                             <i class="ph-bold ph-pencil-simple text-lg"></i>
                                         </a>
                                         <form action="{{ route('forum.destroy', $thread) }}" method="POST" onsubmit="return confirm('Yakin hapus postingan ini?')" class="inline">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition" title="Hapus Status">
+                                            <button type="submit" class="p-2 text-slate-700 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition" title="Hapus Status">
                                                 <i class="ph-bold ph-trash text-lg"></i>
                                             </button>
                                         </form>
@@ -412,10 +412,10 @@
 
                             <!-- Content -->
                             <div class="pl-13 space-y-3">
-                                <h3 class="forum-hdr text-lg md:text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors leading-snug">
+                                <h3 class="forum-hdr text-lg md:text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors leading-snug">
                                     {{ $thread->title }}
                                 </h3>
-                                <p class="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+                                <p class="text-sm text-slate-900 font-normal line-clamp-2 leading-relaxed">
                                     {{ Str::limit(strip_tags($thread->content), 200) }}
                                 </p>
 
@@ -427,14 +427,14 @@
 
                                 <!-- Bank File Direct Download Box -->
                                 @if($thread->category === 'sharing' && $thread->attachment_path)
-                                    <div class="mt-3 p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl max-w-md flex items-center justify-between gap-3 shadow-sm">
+                                    <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl max-w-md flex items-center justify-between gap-3 shadow-sm">
                                         <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs flex-shrink-0 uppercase">
+                                            <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-800 font-bold text-xs flex-shrink-0 uppercase">
                                                 {{ strtoupper($thread->file_extension ?: 'FILE') }}
                                             </div>
                                             <div class="min-w-0">
-                                                <div class="text-xs font-bold text-slate-800 truncate">{{ $thread->attachment_name ?? 'Berkas Lampiran' }}</div>
-                                                <div class="text-[10px] text-emerald-600 font-semibold">{{ $thread->file_category ?: 'Dokumen Pembelajaran' }}</div>
+                                                <div class="text-xs font-bold text-slate-900 truncate">{{ $thread->attachment_name ?? 'Berkas Lampiran' }}</div>
+                                                <div class="text-[10px] text-emerald-800 font-bold">{{ $thread->file_category ?: 'Dokumen Pembelajaran' }}</div>
                                             </div>
                                         </div>
                                         <a href="{{ asset('storage/' . $thread->attachment_path) }}" download onclick="event.stopPropagation()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 flex-shrink-0 shadow-sm">
@@ -445,14 +445,14 @@
 
                                 <!-- Gaming Mabar Lobby Card -->
                                 @if($thread->category === 'gaming' && ($thread->game_name || $thread->game_room_code))
-                                    <div class="mt-3 p-3 bg-rose-50/80 border border-rose-200 rounded-xl max-w-md flex items-center justify-between gap-3 shadow-sm">
+                                    <div class="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl max-w-md flex items-center justify-between gap-3 shadow-sm">
                                         <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600 text-xl flex-shrink-0">
+                                            <div class="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center text-rose-700 text-xl flex-shrink-0">
                                                 <i class="ph-bold ph-game-controller"></i>
                                             </div>
                                             <div class="min-w-0">
                                                 <div class="text-xs font-bold text-rose-900 truncate">{{ $thread->game_name ?: 'Lobi Mabar' }}</div>
-                                                <div class="text-[11px] font-bold text-slate-700 tracking-wider truncate">ID/Kode: <span class="text-rose-600 select-all">{{ $thread->game_room_code ?: 'Tanyakan di komentar' }}</span></div>
+                                                <div class="text-[11px] font-bold text-slate-900 tracking-wider truncate">ID/Kode: <span class="text-rose-700 select-all">{{ $thread->game_room_code ?: 'Tanyakan di komentar' }}</span></div>
                                             </div>
                                         </div>
                                         @if($thread->game_room_code)
@@ -465,10 +465,10 @@
 
                                 @if($thread->poll)
                                     <div class="mt-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl max-w-sm flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center"><i class="ph-bold ph-chart-bar text-indigo-500"></i></div>
+                                        <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center"><i class="ph-bold ph-chart-bar text-indigo-600"></i></div>
                                         <div>
-                                            <div class="text-xs text-indigo-500 font-semibold">Polling Interaktif</div>
-                                            <div class="text-sm text-slate-800 font-medium line-clamp-1">{{ $thread->poll->question }}</div>
+                                            <div class="text-xs text-indigo-700 font-bold">Polling Interaktif</div>
+                                            <div class="text-sm text-slate-900 font-bold line-clamp-1">{{ $thread->poll->question }}</div>
                                         </div>
                                     </div>
                                 @endif
@@ -476,19 +476,19 @@
                         </a>
 
                         <!-- Action Bar -->
-                        <div class="pl-13 mt-4 flex items-center flex-wrap gap-2 text-xs font-semibold text-slate-500">
+                        <div class="pl-13 mt-4 flex items-center flex-wrap gap-2 text-xs font-bold text-slate-900">
                             <!-- Upvote/Like -->
-                            <button onclick="toggleLike(this, '{{ route('forum.like', $thread) }}')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors {{ $isLiked ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-200 hover:bg-slate-50' }}">
+                            <button onclick="toggleLike(this, '{{ route('forum.like', $thread) }}')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors {{ $isLiked ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-300 hover:bg-slate-50 text-slate-900' }}">
                                 <i class="ph-bold ph-thumbs-up"></i> <span class="likes-count">{{ $thread->likes->count() }}</span>
                             </button>
                             
                             <!-- Replies count -->
-                            <a href="{{ route('forum.show', $thread) }}#replies" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
+                            <a href="{{ route('forum.show', $thread) }}#replies" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 transition-colors text-slate-900">
                                 <i class="ph-bold ph-chat-circle"></i> {{ $thread->replies->count() }}
                             </a>
 
                             <!-- Views -->
-                            <div class="flex items-center gap-1.5 px-3 py-1.5 text-slate-400">
+                            <div class="flex items-center gap-1.5 px-3 py-1.5 text-slate-900 font-bold">
                                 <i class="ph-bold ph-eye"></i> {{ $thread->views_count }}
                             </div>
 
@@ -555,20 +555,20 @@
             <!-- Leaderboard Widget -->
             <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="forum-hdr text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <h3 class="forum-hdr text-sm font-bold text-slate-900 flex items-center gap-2">
                         <i class="ph-bold ph-trophy text-amber-500"></i> Leaderboard
                     </h3>
-                    <a href="{{ route('reputation.leaderboard') }}" class="text-[10px] text-indigo-500 hover:text-indigo-700 uppercase tracking-wider font-bold">Semua</a>
+                    <a href="{{ route('reputation.leaderboard') }}" class="text-[10px] text-indigo-700 hover:text-indigo-900 uppercase tracking-wider font-bold">Semua</a>
                 </div>
                 <div class="space-y-3">
                     @foreach($topStudents as $i => $s)
                         <div class="flex items-center gap-2.5">
-                            <div class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">{{ $i+1 }}</div>
+                            <div class="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-900">{{ $i+1 }}</div>
                             <img src="{{ $s->user->avatar_url }}" class="w-6 h-6 rounded-full border border-slate-100 object-cover">
                             <div class="min-w-0 flex-1">
-                                <div class="text-[11px] font-bold text-slate-700 truncate">{{ $s->user->name }}</div>
+                                <div class="text-[11px] font-bold text-slate-900 truncate">{{ $s->user->name }}</div>
                             </div>
-                            <div class="text-[11px] font-bold text-indigo-500">{{ $s->total_points }}</div>
+                            <div class="text-[11px] font-bold text-indigo-700">{{ $s->total_points }}</div>
                         </div>
                     @endforeach
                 </div>
@@ -576,21 +576,21 @@
 
             <!-- Collab Widget -->
             <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-                <h3 class="forum-hdr text-sm font-bold text-slate-700 flex items-center gap-2 mb-4">
-                    <i class="ph-bold ph-handshake text-indigo-500"></i> Cari Tim
+                <h3 class="forum-hdr text-sm font-bold text-slate-900 flex items-center gap-2 mb-4">
+                    <i class="ph-bold ph-handshake text-indigo-600"></i> Cari Tim
                 </h3>
                 <div class="space-y-2.5">
                     @forelse($activeCollabs as $c)
-                        <a href="{{ route('forum.show', $c) }}" class="block p-3 bg-slate-50 hover:bg-indigo-50 rounded-xl border border-slate-100 hover:border-indigo-200 transition">
-                            <div class="text-[9px] text-indigo-500 font-bold uppercase mb-1">{{ $c->category_label }}</div>
-                            <div class="text-xs font-bold text-slate-700 line-clamp-2 mb-1.5">{{ $c->title }}</div>
-                            <div class="flex justify-between items-center text-[10px] text-slate-400">
+                        <a href="{{ route('forum.show', $c) }}" class="block p-3 bg-slate-50 hover:bg-indigo-50 rounded-xl border border-slate-200 hover:border-indigo-300 transition">
+                            <div class="text-[9px] text-indigo-700 font-bold uppercase mb-1">{{ $c->category_label }}</div>
+                            <div class="text-xs font-bold text-slate-900 line-clamp-2 mb-1.5">{{ $c->title }}</div>
+                            <div class="flex justify-between items-center text-[10px] text-slate-900 font-bold">
                                 <span class="truncate pr-2">{{ $c->user->name }}</span>
                                 <span class="flex-shrink-0">{{ $c->approvedMembers()->count() }} Tim</span>
                             </div>
                         </a>
                     @empty
-                        <div class="text-[11px] text-slate-400 italic text-center py-2">Belum ada kolaborasi aktif.</div>
+                        <div class="text-[11px] text-slate-900 font-bold italic text-center py-2">Belum ada kolaborasi aktif.</div>
                     @endforelse
                 </div>
             </div>

@@ -30,9 +30,9 @@
     .bg-forum-card   { background-color: #ffffff !important; }
     .bg-forum-card-80 { background-color: rgba(255,255,255,0.95) !important; }
     .bg-forum-card-90 { background-color: rgba(255,255,255,0.97) !important; }
-    .text-forum-title { color: #1e293b !important; }
-    .text-forum-body  { color: #475569 !important; }
-    .text-forum-muted { color: #94a3b8 !important; }
+    .text-forum-title { color: #000000 !important; }
+    .text-forum-body  { color: #0f172a !important; }
+    .text-forum-muted { color: #0f172a !important; }
     .border-forum       { border-color: #e2e8f0 !important; }
     .border-forum-light { border-color: #cbd5e1 !important; }
     .bg-forum-light-5  { background-color: #f8fafc !important; }

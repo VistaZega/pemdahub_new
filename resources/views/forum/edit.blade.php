@@ -66,7 +66,7 @@
 
         <!-- Category Selection -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Pilih Saluran <span class="text-rose-500">*</span></label>
+            <label class="block text-xs font-bold text-slate-900 uppercase tracking-widest mb-4">Pilih Saluran <span class="text-rose-600">*</span></label>
             <input type="hidden" name="category" :value="category">
             
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -89,14 +89,14 @@
                     @endphp
                     
                     <button type="button" @click="category = '{{ $key }}'" 
-                            :class="category === '{{ $key }}' ? 'border-{{ $color }}-500 bg-{{ $color }}-50/80 ring-2 ring-{{ $color }}-400/30' : 'border-slate-200 bg-slate-50/60 hover:bg-slate-100 hover:border-slate-300'"
+                            :class="category === '{{ $key }}' ? 'border-{{ $color }}-500 bg-{{ $color }}-50 ring-2 ring-{{ $color }}-400' : 'border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400'"
                             class="flex items-center gap-3.5 p-3.5 rounded-xl border transition-all text-left group">
                         <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 transition-colors"
-                             :class="category === '{{ $key }}' ? 'bg-{{ $color }}-100 text-{{ $color }}-600' : 'bg-slate-200/60 text-slate-600 group-hover:text-slate-800'">
+                             :class="category === '{{ $key }}' ? 'bg-{{ $color }}-100 text-{{ $color }}-700 font-bold' : 'bg-slate-200 text-slate-900 group-hover:text-black font-bold'">
                             {{ $emoji }}
                         </div>
                         <div>
-                            <div class="font-bold text-sm text-slate-700" :class="category === '{{ $key }}' ? 'text-{{ $color }}-700' : ''">{{ $cleanLabel }}</div>
+                            <div class="font-bold text-sm text-slate-900" :class="category === '{{ $key }}' ? 'text-{{ $color }}-800 font-bold' : ''">{{ $cleanLabel }}</div>
                         </div>
                     </button>
                 @endforeach
@@ -107,17 +107,17 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
             <!-- Judul -->
             <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Judul Obrolan <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-900 uppercase tracking-widest mb-2">Judul Obrolan <span class="text-rose-600">*</span></label>
                 <input type="text" name="title" value="{{ old('title', $thread->title) }}" 
-                       class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 rounded-xl text-slate-800 placeholder-slate-400 outline-none transition" 
+                       class="w-full px-4 py-3 bg-slate-50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-slate-900 placeholder-slate-900 font-medium outline-none transition" 
                        placeholder="Judul postingan..." required>
             </div>
 
             <!-- Konten -->
             <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Pesan Utama <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-900 uppercase tracking-widest mb-2">Pesan Utama <span class="text-rose-600">*</span></label>
                 <textarea name="content" rows="8" 
-                          class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 rounded-xl text-slate-800 placeholder-slate-400 outline-none transition resize-y" 
+                          class="w-full px-4 py-3 bg-slate-50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-slate-900 placeholder-slate-900 font-medium outline-none transition resize-y" 
                           placeholder="Isi konten..." required>{{ old('content', $thread->content) }}</textarea>
             </div>
         </div>
