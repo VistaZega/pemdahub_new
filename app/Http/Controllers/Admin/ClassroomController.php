@@ -124,7 +124,22 @@ class ClassroomController extends Controller
         
         // Filter by program_keahlian_id (for SMK)
         if ($request->filled('program_keahlian_id')) {
-            $query->where('program_keahlian_id', $request->input('program_keahlian_id'));
+            $programId = $request->input('program_keahlian_id');
+            $query->where(function($q) use ($programId) {
+                $q->where('program_keahlian_id', $programId)
+                  ->orWhere('is_combined', true)
+                  ->orWhere('class_type', 'gabungan');
+            });
+        }
+
+        // Filter by major_id (for SMA/SMP)
+        if ($request->filled('major_id')) {
+            $majorId = $request->input('major_id');
+            $query->where(function($q) use ($majorId) {
+                $q->where('major_id', $majorId)
+                  ->orWhere('is_combined', true)
+                  ->orWhere('class_type', 'gabungan');
+            });
         }
         
         // Filter by class_name
