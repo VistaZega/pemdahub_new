@@ -85,9 +85,14 @@ class DashboardController extends Controller
                 ->where('is_verified', true)
                 ->sum('amount_paid'),
 
-            'total_students' => Student::where('school_id', $schoolId)
-                ->where('status', 'aktif')
-                ->count(),
+            'total_students' => \App\Models\StudentClass::whereHas('student', function ($q) use ($schoolId) {
+                    $q->where('school_id', $schoolId)->where('status', 'aktif');
+                })
+                ->when($currentAcademicYear, function ($q) use ($currentAcademicYear) {
+                    $q->where('academic_year_id', $currentAcademicYear->id);
+                })
+                ->distinct('student_id')
+                ->count('student_id'),
 
             'payments_today' => Payment::whereHas('student', function ($q) use ($schoolId) {
                     $q->where('school_id', $schoolId);

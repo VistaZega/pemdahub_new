@@ -136,28 +136,51 @@ class DashboardController extends Controller
         }
 
 
-        // Distribution Data
-        $studentsByStatus = Student::select('status', DB::raw('COUNT(*) as count'))
+        // Distribution Data (Filtered for Active Students in Rombel for current Academic Year)
+        $studentsByStatus = Student::whereHas('studentClasses', function ($q) use ($currentAcademicYear) {
+                if ($currentAcademicYear) {
+                    $q->where('academic_year_id', $currentAcademicYear->id);
+                }
+            })
             ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+            ->select('status', DB::raw('COUNT(*) as count'))
             ->groupBy('status')
             ->get();
         
-        $studentsByYear = Student::select('entry_year', DB::raw('COUNT(*) as count'))
+        $studentsByYear = Student::whereHas('studentClasses', function ($q) use ($currentAcademicYear) {
+                if ($currentAcademicYear) {
+                    $q->where('academic_year_id', $currentAcademicYear->id);
+                }
+            })
+            ->where('status', 'aktif')
             ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
             ->where('entry_year', '>=', Carbon::now()->year - 4)
+            ->select('entry_year', DB::raw('COUNT(*) as count'))
             ->groupBy('entry_year')
             ->orderBy('entry_year')
             ->get();
 
-        $recentStudents = Student::with(['school', 'currentClassroom'])
+        $recentStudents = Student::whereHas('studentClasses', function ($q) use ($currentAcademicYear) {
+                if ($currentAcademicYear) {
+                    $q->where('academic_year_id', $currentAcademicYear->id);
+                }
+            })
+            ->where('status', 'aktif')
+            ->with(['school', 'currentClassroom'])
             ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
-        // SuperAdmin specific
+        // SuperAdmin specific per school breakdown
         $studentsBySchool = $isSuperAdmin 
-            ? Student::select('school_id', DB::raw('COUNT(*) as count'))->groupBy('school_id')->with('school')->get()
+            ? \App\Models\StudentClass::whereHas('student', fn($q) => $q->where('status', 'aktif'))
+                ->when($currentAcademicYear, fn($q) => $q->where('academic_year_id', $currentAcademicYear->id))
+                ->join('students', 'student_classes.student_id', '=', 'students.id')
+                ->select('students.school_id', DB::raw('COUNT(DISTINCT student_classes.student_id) as count'))
+                ->groupBy('students.school_id')
+                ->with('school')
+                ->get()
             : collect();
 
         $schools = School::where('is_active', true)->schoolsOnly()->get();

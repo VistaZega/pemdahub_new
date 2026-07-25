@@ -59,7 +59,7 @@
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                         </span>
-                        <p class="text-base text-gray-700 font-semibold">{{ number_format($activeStudents) }} Aktif Belajar</p>
+                        <p class="text-base text-gray-700 font-semibold">{{ number_format($activeStudents) }} Aktif Ber-Rombel (TP {{ $currentAcademicYear->year ?? '' }})</p>
                     </div>
                 </div>
                 <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30 group-hover:rotate-6 transition"><i class="fas fa-user-graduate text-2xl"></i></div>
