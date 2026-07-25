@@ -276,7 +276,6 @@
                                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-center font-semibold transition-all" 
                                        min="1" max="40" value="2" required>
                             </div>
-                            @if($isSMK ?? false)
                             <div class="md:col-span-2">
                                   <label class="block text-sm font-bold text-gray-700 mb-2">
                                       <i class="fas fa-cubes mr-1 text-orange-500"></i> Tipe Blok
@@ -284,14 +283,12 @@
                                   <select :name="'assignments[' + index + '][block_type]'" 
                                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm transition-all">
                                       <option value="none">Reguler (Semua Siswa)</option>
-                                      <option value="all">Sistem Blok - Kelompok A</option>
-                                      <option value="split">Sistem Blok - Kelompok B</option>
+                                      <option value="parallel">Paralel / Agama (Jadwal Bersamaan di Jam yang Sama)</option>
+                                      <option value="all">Sistem Blok SMK - Kelompok A</option>
+                                      <option value="split">Sistem Blok SMK - Kelompok B</option>
                                   </select>
                             </div>
                             <div class="md:col-span-2 text-center">
-                            @else
-                            <div class="md:col-span-4 text-center">
-                            @endif
                                 <label class="block text-sm font-bold text-gray-700 mb-2">
                                     <i class="fas fa-star mr-1 text-yellow-500"></i> Guru Utama
                                 </label>

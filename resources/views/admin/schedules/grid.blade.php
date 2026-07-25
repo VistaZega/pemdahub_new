@@ -452,6 +452,10 @@
                                                                 $blockBadge = $isNormal ? 'GROUP A' : 'GROUP B';
                                                                 $blockTitle = 'Siswa yang belajar (Ruang Praktek)';
                                                                 $blockColor = 'bg-orange-100 border-orange-300 text-orange-700';
+                                                            } elseif($bc->teachingAssignment->block_type == 'parallel') {
+                                                                $blockBadge = 'PARALEL';
+                                                                $blockTitle = 'Pelajaran Paralel / Agama (Multi Mapel Concurrent)';
+                                                                $blockColor = 'bg-purple-100 border-purple-300 text-purple-700';
                                                             }
                                                         }
                                                         
@@ -854,6 +858,7 @@ async function openScheduleModal(day, timeSlotId, classroomId, scheduleId) {
                                 ${assignment.group_code ? `<span class="text-[10px] bg-purple-600 text-white px-1.5 py-0.5 rounded font-bold ml-1 shadow-sm"><i class="fas fa-layer-group text-[9px]"></i> GAB</span>` : ''}
                                 ${assignment.block_type === 'all' ? `<span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded font-bold ml-1 shadow-sm"><i class="fas fa-users text-[9px]"></i> KEL. A</span>` : ''}
                                 ${assignment.block_type === 'split' ? `<span class="text-[10px] bg-orange-600 text-white px-1.5 py-0.5 rounded font-bold ml-1 shadow-sm"><i class="fas fa-columns text-[9px]"></i> KEL. B</span>` : ''}
+                                ${assignment.block_type === 'parallel' ? `<span class="text-[10px] bg-purple-600 text-white px-1.5 py-0.5 rounded font-bold ml-1 shadow-sm"><i class="fas fa-layer-group text-[9px]"></i> PARALEL</span>` : ''}
                                 ${completeBadge}
                             </div>
                             <div class="flex items-center gap-2 mt-1">

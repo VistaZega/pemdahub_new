@@ -241,6 +241,7 @@ class TeachingAssignmentController extends Controller
             'assignments.*.hours_per_week' => 'required|integer|min:1|max:40',
             'assignments.*.is_main_teacher' => 'nullable|boolean',
             'assignments.*.group_code' => 'nullable|string|max:50',
+            'assignments.*.block_type' => 'nullable|in:none,all,split,parallel',
         ]);
 
         $teacher = Teacher::findOrFail($validated['teacher_id']);
@@ -295,6 +296,7 @@ class TeachingAssignmentController extends Controller
                     'teaching_load_type' => 'wajib',
                     'is_main_teacher' => $data['is_main_teacher'] ?? false,
                     'group_code' => $data['group_code'] ?? null,
+                    'block_type' => $data['block_type'] ?? 'none',
                     'is_active' => true,
                 ]);
 
@@ -414,6 +416,7 @@ class TeachingAssignmentController extends Controller
             'is_main_teacher' => 'nullable|boolean',
             'is_active' => 'nullable|boolean',
             'group_code' => 'nullable|string|max:50',
+            'block_type' => 'nullable|in:none,all,split,parallel',
         ]);
 
         // Check for duplicates if subject/classroom changed
@@ -438,6 +441,7 @@ class TeachingAssignmentController extends Controller
             'is_main_teacher' => $validated['is_main_teacher'] ?? false,
             'is_active' => $validated['is_active'] ?? true,
             'group_code' => $validated['group_code'] ?? null,
+            'block_type' => $validated['block_type'] ?? 'none',
         ]);
 
         return back()->with('success', 'Penugasan mengajar berhasil diperbarui.');

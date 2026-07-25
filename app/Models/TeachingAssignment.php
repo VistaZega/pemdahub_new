@@ -42,8 +42,9 @@ class TeachingAssignment extends Model
 
     public const BLOCK_TYPES = [
         'none' => 'Reguler (Semua Siswa)',
-        'all' => 'Sistem Blok - Kelompok A',
-        'split' => 'Sistem Blok - Kelompok B',
+        'parallel' => 'Paralel / Agama (Multi Mapel Concurrent)',
+        'all' => 'Sistem Blok SMK - Kelompok A',
+        'split' => 'Sistem Blok SMK - Kelompok B',
     ];
 
     // Relationships

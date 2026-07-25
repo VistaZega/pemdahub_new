@@ -752,8 +752,17 @@ class ScheduleGridController extends Controller
                 if ($schedule->classroom_id == $classroomId) {
                     $existingBlockType = $schedule->teachingAssignment->block_type ?? 'none';
                     
+                    // If BOTH incoming and existing are parallel (e.g. Agama Islam & Agama Kristen & Agama Katolik), ALLOWED!
+                    if ($incomingBlockType === 'parallel' && $existingBlockType === 'parallel') {
+                        continue;
+                    }
+
                     if ($incomingBlockType === 'none' || $existingBlockType === 'none') {
                         return "Jadwal Reguler (Semua Siswa) tidak bisa berjalan bersamaan dengan jadwal lain di kelas ini ($slotName).";
+                    }
+
+                    if ($incomingBlockType === 'parallel' || $existingBlockType === 'parallel') {
+                        return "Jadwal Paralel/Agama tidak bisa berjalan bersamaan dengan jadwal Sistem Blok ($slotName).";
                     }
 
                     if ($incomingBlockType === 'all' && $existingBlockType === 'all') {
