@@ -96,7 +96,8 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-edit mr-1"></i> Nama Kelas</label>
-                    <input type="text" name="class_name" value="{{ old('class_name') }}" class="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
+                    <input type="text" name="class_name" id="class_name_input" value="{{ old('class_name') }}" placeholder="Contoh: Teknik Rekayasa X DPIB TE TKR" class="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
+                    <p class="text-xs text-indigo-600 mt-1 italic">* Untuk Kelas Gabungan, nama kelas diawali dengan <strong>Teknik Rekayasa</strong> (contoh: <em>Teknik Rekayasa X DPIB TE TKR</em>)</p>
                 </div>
             </div>
             <div id="major-container" style="display:none">
