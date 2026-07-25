@@ -71,7 +71,12 @@ class LmsController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return view('siswa.lms.index', compact('student', 'courses', 'courseProgress', 'upcomingAssignments', 'upcomingQuizzes'));
+        $leaderboard = \App\Models\Reputation::with('user')
+            ->orderByDesc('total_points')
+            ->limit(5)
+            ->get();
+
+        return view('siswa.lms.index', compact('student', 'courses', 'courseProgress', 'upcomingAssignments', 'upcomingQuizzes', 'leaderboard'));
     }
 
     /**

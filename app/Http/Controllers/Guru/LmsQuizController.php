@@ -39,8 +39,11 @@ class LmsQuizController extends Controller
         $teacher->load('school');
 
         $modules = $course->modules()->orderBy('sequence')->get();
+        $cbtQuestionBanks = \App\Models\CbtQuestionBank::where('school_id', $teacher->school_id)
+            ->where('is_active', true)
+            ->get();
 
-        return view('guru.lms.quiz-create', compact('teacher', 'course', 'modules'));
+        return view('guru.lms.quiz-create', compact('teacher', 'course', 'modules', 'cbtQuestionBanks'));
     }
 
     /**
@@ -55,6 +58,7 @@ class LmsQuizController extends Controller
 
         $quiz = $course->quizzes()->create([
             'module_id' => $request->module_id,
+            'question_package_id' => $request->question_package_id,
             'title' => $request->title,
             'description' => $request->description,
             'time_limit' => $request->time_limit,

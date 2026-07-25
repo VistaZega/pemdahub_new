@@ -552,6 +552,67 @@ class LmsCourseController extends Controller
     }
 
     /**
+     * Teacher Learning Analytics Dashboard
+     */
+    public function analytics(LmsCourse $course)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        $course->load([
+            'subject', 'lmsClasses.classroom',
+            'modules' => fn($q) => $q->where('is_active', true)->withCount('materials'),
+            'materials' => fn($q) => $q->where('is_published', true),
+            'assignments' => fn($q) => $q->where('is_published', true)->withCount('submissions'),
+            'quizzes' => fn($q) => $q->where('is_published', true)->withCount('attempts'),
+        ]);
+
+        // Get enrolled students
+        $enrollments = LmsEnrollment::whereIn('lms_class_id', $course->lmsClasses->pluck('id'))
+            ->with(['student.user'])
+            ->get();
+
+        $students = $enrollments->pluck('student')->filter();
+
+        // Calculate progress & stats per student
+        $studentStats = [];
+        $atRiskStudents = [];
+
+        foreach ($students as $student) {
+            $progress = LmsMaterialProgress::getProgressForCourse($course->id, $student->id);
+            $completedMaterials = LmsMaterialProgress::where('student_id', $student->id)
+                ->whereIn('material_id', $course->materials->pluck('id'))
+                ->where('status', 'completed')
+                ->count();
+
+            $submissionsCount = LmsSubmission::where('student_id', $student->id)
+                ->whereIn('assignment_id', $course->assignments->pluck('id'))
+                ->count();
+
+            $stat = [
+                'student' => $student,
+                'progress' => $progress,
+                'completed_materials' => $completedMaterials,
+                'submissions_count' => $submissionsCount,
+            ];
+
+            $studentStats[] = $stat;
+
+            if ($progress < 40 || ($course->assignments->count() > 0 && $submissionsCount === 0)) {
+                $atRiskStudents[] = $stat;
+            }
+        }
+
+        $avgCourseProgress = count($studentStats) > 0 ? round(collect($studentStats)->avg('progress')) : 0;
+
+        return view('guru.lms.analytics', compact(
+            'teacher', 'course', 'students', 'studentStats', 'atRiskStudents', 'avgCourseProgress'
+        ));
+    }
+
+    /**
      * Update material (title, description, file replacement)
      */
     public function updateMaterial(Request $request, LmsMaterial $material)

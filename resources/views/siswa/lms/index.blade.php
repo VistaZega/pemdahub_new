@@ -170,6 +170,58 @@
     @endif
 
     {{-- ═══════════════════════════════════════════════ --}}
+    {{-- GAMIFICATION LEADERBOARD WIDGET --}}
+    {{-- ═══════════════════════════════════════════════ --}}
+    @if(isset($leaderboard) && $leaderboard->count() > 0)
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 shadow-lg border border-indigo-900 text-white">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center font-black shadow-md">
+                    <i class="fas fa-trophy text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white">Papan Peringkat Pembelajar Teraktif</h3>
+                    <p class="text-xs text-indigo-200">Siswa dengan perolehan Poin EXP terbanyak minggu ini</p>
+                </div>
+            </div>
+            <span class="px-3 py-1 bg-amber-400/20 text-amber-300 text-xs font-bold rounded-full border border-amber-400/30">
+                Top 5 Siswa 🏆
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            @foreach($leaderboard as $lb)
+            @php
+                $rankColor = match($loop->iteration) {
+                    1 => 'from-amber-400 to-yellow-500 text-slate-950',
+                    2 => 'from-slate-300 to-slate-400 text-slate-950',
+                    3 => 'from-amber-600 to-amber-700 text-white',
+                    default => 'from-slate-800 to-slate-700 text-slate-200',
+                };
+                $rankBadge = match($loop->iteration) {
+                    1 => '🥇 #1',
+                    2 => '🥈 #2',
+                    3 => '🥉 #3',
+                    default => '#' . $loop->iteration,
+                };
+            @endphp
+            <div class="bg-slate-800/80 border border-slate-700 p-3.5 rounded-xl flex items-center gap-3 shadow-inner">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br {{ $rankColor }} flex items-center justify-center font-black text-xs shadow-sm flex-shrink-0">
+                    {{ $rankBadge }}
+                </div>
+                <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-white text-xs truncate">{{ $lb->user->name ?? 'Siswa' }}</h4>
+                    <p class="text-[10px] text-amber-300 font-extrabold flex items-center gap-1 mt-0.5">
+                        <i class="fas fa-star text-[9px]"></i> {{ number_format($lb->total_points) }} EXP
+                    </p>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════════ --}}
     {{-- COURSE GRID --}}
     {{-- ═══════════════════════════════════════════════ --}}
     @if($courses->count() > 0)

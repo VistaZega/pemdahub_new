@@ -99,6 +99,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::get('/create', [App\Http\Controllers\Guru\LmsCourseController::class, 'create'])->name('create');
         Route::post('/', [App\Http\Controllers\Guru\LmsCourseController::class, 'store'])->name('store');
         Route::get('/{course}', [App\Http\Controllers\Guru\LmsCourseController::class, 'show'])->name('show');
+        Route::get('/{course}/analytics', [App\Http\Controllers\Guru\LmsCourseController::class, 'analytics'])->name('analytics');
         Route::get('/{course}/edit', [App\Http\Controllers\Guru\LmsCourseController::class, 'edit'])->name('edit');
         Route::put('/{course}', [App\Http\Controllers\Guru\LmsCourseController::class, 'update'])->name('update');
         Route::delete('/{course}', [App\Http\Controllers\Guru\LmsCourseController::class, 'destroy'])->name('destroy');

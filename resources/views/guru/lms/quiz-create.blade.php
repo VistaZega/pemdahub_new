@@ -36,6 +36,23 @@
                 @error('module_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
             </div>
 
+            <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                <label class="block text-sm font-bold text-purple-900 mb-1">
+                    <i class="fas fa-database text-purple-600 mr-1"></i> Pilih Bank Soal CBT (Opsional)
+                </label>
+                <p class="text-xs text-purple-700 mb-2">Tautkan kuis ini dengan Bank Soal CBT untuk mengambil pertanyaan otomatis.</p>
+                <select name="question_package_id" class="w-full border border-purple-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                    <option value="">— Buat Soal Manual (Tanpa Bank Soal) —</option>
+                    @if(isset($cbtQuestionBanks))
+                        @foreach($cbtQuestionBanks as $qb)
+                        <option value="{{ $qb->id }}" {{ old('question_package_id') == $qb->id ? 'selected' : '' }}>
+                            📦 {{ $qb->bank_name }} ({{ $qb->total_questions ?? 0 }} Soal)
+                        </option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
                 <textarea name="description" rows="3"

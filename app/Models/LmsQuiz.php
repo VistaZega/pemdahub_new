@@ -15,6 +15,7 @@ class LmsQuiz extends Model
     protected $fillable = [
         'course_id',
         'module_id',
+        'question_package_id',
         'title',
         'description',
         'start_time',
@@ -38,6 +39,7 @@ class LmsQuiz extends Model
         'max_attempts' => 'integer',
         'shuffle_questions' => 'boolean',
         'show_result' => 'boolean',
+        'question_package_id' => 'integer',
     ];
 
     public function course()
@@ -48,6 +50,11 @@ class LmsQuiz extends Model
     public function module()
     {
         return $this->belongsTo(LmsModule::class, 'module_id');
+    }
+
+    public function cbtQuestionBank()
+    {
+        return $this->belongsTo(CbtQuestionBank::class, 'question_package_id');
     }
 
     public function questions()
