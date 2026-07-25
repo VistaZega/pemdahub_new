@@ -1,5 +1,7 @@
-const CACHE_NAME = 'pembdaspace-cache-v1';
+const CACHE_NAME = 'pembdahub-app-v2';
 const urlsToCache = [
+  '/',
+  '/login',
   '/manifest.json',
   '/images/icons/icon-192x192.png',
   '/images/icons/icon-512x512.png'
