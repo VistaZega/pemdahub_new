@@ -525,30 +525,31 @@
                 $user = auth()->user();
                 $rep = $user->reputation;
                 $pts = $rep->total_points ?? 0;
-                $school = $user->school->name ?? 'Pembda';
+                $school = $user->school->name ?? 'Yayasan Perguruan Pembda Nias';
                 
-                $next = 100; $rank = 'Perintis'; $color = 'text-indigo-400';
-                if ($pts >= 500) { $rank = 'Legenda 👑'; $next = 1000; $color = 'text-amber-500'; }
-                elseif ($pts >= 200) { $rank = 'Kontributor 💎'; $next = 500; $color = 'text-cyan-500'; }
-                elseif ($pts >= 100) { $rank = 'Warga Aktif 🚀'; $next = 200; $color = 'text-purple-500'; }
-                $pct = min(100, round(($pts / $next) * 100));
+                $next = 100; $rank = 'Perintis';
+                if ($pts >= 500) { $rank = 'Legenda 👑'; $next = 1000; }
+                elseif ($pts >= 200) { $rank = 'Kontributor 💎'; $next = 500; }
+                elseif ($pts >= 100) { $rank = 'Warga Aktif 🚀'; $next = 200; }
+                $pct = min(100, max(5, round(($pts / $next) * 100)));
             @endphp
-            <div class="bg-gradient-to-br from-indigo-500 to-fuchsia-500 rounded-2xl p-4 shadow-md relative overflow-hidden">
+            <div class="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 rounded-3xl p-5 shadow-lg shadow-purple-500/20 text-white relative overflow-hidden">
                 <div class="flex items-center gap-3 mb-4">
-                    <img src="{{ $user->avatar_url }}" 
-                         class="w-10 h-10 rounded-xl shadow-lg border-2 border-white/30 object-cover">
-                    <div class="min-w-0">
-                        <div class="font-bold text-white truncate text-sm">{{ $user->name }}</div>
-                        <div class="text-[10px] text-indigo-100 uppercase tracking-widest truncate">{{ $school }}</div>
+                    <div class="w-12 h-12 rounded-2xl bg-white/20 border-2 border-white/40 shadow-inner flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        <img src="{{ $user->avatar_url }}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="font-bold text-white truncate text-base tracking-tight">{{ $user->name }}</div>
+                        <div class="text-[10px] text-white font-bold uppercase tracking-wider truncate">{{ $school }}</div>
                     </div>
                 </div>
                 
-                <div class="flex justify-between items-end mb-2 text-xs font-bold">
-                    <span class="text-white">{{ $rank }}</span>
-                    <span class="text-indigo-100">{{ $pts }} / {{ $next }} Pts</span>
+                <div class="flex justify-between items-center mb-2 text-xs font-extrabold text-white">
+                    <span>{{ $rank }}</span>
+                    <span>{{ $pts }} / {{ $next }} Pts</span>
                 </div>
-                <div class="w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
-                    <div class="bg-white h-full rounded-full transition-all" style="width: {{ $pct }}%"></div>
+                <div class="w-full bg-white/30 h-2 rounded-full overflow-hidden p-0.5">
+                    <div class="bg-white h-full rounded-full transition-all duration-300" style="width: {{ $pct }}%"></div>
                 </div>
             </div>
 
