@@ -753,6 +753,15 @@
             </div>
             @endif
 
+            @if($sub && $sub->status === 'revision_requested')
+            <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 mb-4 text-amber-900 shadow-sm">
+                <div class="flex items-center gap-2 font-bold text-sm text-amber-800 mb-1">
+                    <i class="fas fa-exclamation-triangle text-amber-600 text-lg"></i> Permintaan Revisi Dari Guru
+                </div>
+                <p class="text-xs text-amber-800 font-medium leading-relaxed">{{ $sub->revision_notes ?: $sub->feedback ?: 'Guru meminta Anda untuk memperbaiki dan mengunggah ulang berkas jawaban tugas ini.' }}</p>
+            </div>
+            @endif
+
             @if($sub && ($sub->submission_text || $sub->file_path))
             <div class="border border-gray-100 bg-gray-50 rounded-xl p-4 mb-3">
                 <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2"><i class="fas fa-paperclip"></i> Jawaban / Tugas Anda</p>
@@ -769,7 +778,7 @@
 
             @php
                 $canSubmit = !$sub || $sub->status === 'draft';
-                $canRevise = $sub && $sub->status === 'graded' && $assignment->allow_resubmit && $assignment->canResubmit($sub->student_id ?? null);
+                $canRevise = $sub && ($sub->status === 'revision_requested' || ($sub->status === 'graded' && $assignment->allow_resubmit && $assignment->canResubmit($sub->student_id ?? null)));
             @endphp
 
             @if($canSubmit || $canRevise)

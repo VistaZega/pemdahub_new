@@ -160,23 +160,43 @@ class LmsAssignmentController extends Controller
     }
 
     /**
-     * Grade a submission
+     * Grade a submission or request revision
      */
     public function grade(Request $request, LmsSubmission $submission)
     {
         $teacher = $this->getTeacher();
         $course = $submission->assignment->course;
         if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
             abort(403);
         }
 
         $request->validate([
-            'score' => 'required|numeric|min:0|max:' . $submission->assignment->max_score,
+            'score' => 'nullable|numeric|min:0|max:' . $submission->assignment->max_score,
             'feedback' => 'nullable|string',
+            'action_type' => 'nullable|string',
         ]);
 
+        if ($request->action_type === 'request_revision') {
+            $submission->update([
+                'status' => 'revision_requested',
+                'feedback' => $request->feedback,
+                'revision_notes' => $request->feedback,
+                'teacher_notes' => $request->feedback,
+                'graded_at' => now(),
+                'graded_by' => Auth::id(),
+            ]);
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Permintaan revisi berhasil dikirim ke siswa.', 'submission' => $submission]);
+            }
+            return redirect()->back()->with('success', 'Permintaan revisi berhasil dikirim ke siswa.');
+        }
+
         $submission->update([
-            'score' => $request->score,
+            'score' => $request->score ?? 0,
             'feedback' => $request->feedback,
             'teacher_notes' => $request->feedback,
             'status' => 'graded',
@@ -190,6 +210,10 @@ class LmsAssignmentController extends Controller
             $gradeService->syncSubmissionToGrade($submission);
         } catch (\Exception $e) {
             \Log::warning('LMS submission sync failed: ' . $e->getMessage());
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Nilai berhasil disimpan.', 'submission' => $submission]);
         }
 
         return redirect()->route('guru.lms.assignments.show', $submission->assignment_id)

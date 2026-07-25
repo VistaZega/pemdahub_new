@@ -302,26 +302,42 @@
                             <div class="px-6 py-5">
                                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-                                    {{-- Left: Submission Content --}}
+                                    {{-- Left: Submission Content (In-Browser Viewer) --}}
                                     <div class="space-y-3">
                                         <h4 class="font-semibold text-gray-700 text-sm flex items-center gap-2">
                                             <i class="fas fa-file-alt text-emerald-500"></i>
-                                            Isi Submission
+                                            Pratinjau Jawaban Siswa (In-Browser Viewer)
                                         </h4>
 
                                         @if($sub->submission_text)
-                                        <div class="bg-white rounded-xl border border-emerald-200 p-4 text-sm text-gray-700 leading-relaxed max-h-40 overflow-y-auto shadow-inner">
+                                        <div class="bg-white rounded-xl border border-emerald-200 p-4 text-sm text-gray-800 leading-relaxed max-h-48 overflow-y-auto shadow-inner font-medium">
                                             {{ $sub->submission_text }}
                                         </div>
                                         @endif
 
                                         @if($sub->file_path)
-                                        <a href="{{ Storage::url($sub->file_path) }}" target="_blank"
-                                           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-emerald-200
-                                                  text-emerald-700 text-sm font-semibold hover:bg-emerald-50 transition shadow-sm">
-                                            <i class="fas fa-download"></i>
-                                            Download File Lampiran
-                                        </a>
+                                            @if($sub->isPdf())
+                                            <div class="w-full h-80 rounded-xl overflow-hidden border border-emerald-300 shadow-inner bg-slate-900">
+                                                <iframe src="{{ Storage::url($sub->file_path) }}" class="w-full h-full"></iframe>
+                                            </div>
+                                            @elseif($sub->isImage())
+                                            <div class="w-full max-h-80 rounded-xl overflow-hidden border border-emerald-300 bg-slate-900 flex items-center justify-center p-2">
+                                                <img src="{{ Storage::url($sub->file_path) }}" class="max-h-76 object-contain rounded-lg" alt="Jawaban Gambar">
+                                            </div>
+                                            @endif
+
+                                            <div class="flex items-center gap-2">
+                                                <a href="{{ Storage::url($sub->file_path) }}" target="_blank"
+                                                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-emerald-200
+                                                          text-emerald-700 text-sm font-semibold hover:bg-emerald-50 transition shadow-sm">
+                                                    <i class="fas fa-external-link-alt"></i> Buka Berkas Penuh
+                                                </a>
+                                                <a href="{{ Storage::url($sub->file_path) }}" download
+                                                   class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 border border-gray-300
+                                                          text-gray-700 text-xs font-semibold hover:bg-gray-200 transition">
+                                                    <i class="fas fa-download"></i> Unduh
+                                                </a>
+                                            </div>
                                         @endif
 
                                         @if(!$sub->submission_text && !$sub->file_path)
@@ -329,15 +345,16 @@
                                         @endif
                                     </div>
 
-                                    {{-- Right: Grading Form --}}
-                                    <div>
+                                    {{-- Right: Grading Form & Feedback Presets --}}
+                                    <div x-data="{ feedbackText: '{{ addslashes($sub->feedback ?? '') }}' }">
                                         <h4 class="font-semibold text-gray-700 text-sm flex items-center gap-2 mb-3">
                                             <i class="fas fa-star text-amber-500"></i>
-                                            Form Penilaian
+                                            Form Penilaian & Umpan Balik Cepat
                                         </h4>
                                         <form action="{{ route('guru.lms.submissions.grade', $sub->id) }}" method="POST"
                                               class="bg-white rounded-xl border border-emerald-200 p-4 shadow-sm space-y-4">
                                             @csrf
+                                            <input type="hidden" name="action_type" id="action_type_{{ $sub->id }}" value="grade">
 
                                             {{-- Score Input --}}
                                             <div x-data="{ score: {{ (float)($sub->score ?? 0) }}, max: {{ (float)($assignment->max_score ?? 100) }} }">
@@ -347,7 +364,7 @@
                                                 <div class="flex items-center gap-3">
                                                     <input type="number" name="score"
                                                            x-model="score"
-                                                           min="0" max="{{ $assignment->max_score ?? 100 }}" step="0.5" required
+                                                           min="0" max="{{ $assignment->max_score ?? 100 }}" step="0.5"
                                                            class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-bold text-center
                                                                   focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
                                                     <div class="flex-1">
@@ -359,23 +376,44 @@
                                                 </div>
                                             </div>
 
-                                            {{-- Feedback --}}
+                                            {{-- Feedback Presets Chips --}}
                                             <div>
                                                 <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
-                                                    Feedback / Catatan
+                                                    Preset Umpan Balik Cepat
                                                 </label>
-                                                <textarea name="feedback" rows="3"
+                                                <div class="flex flex-wrap gap-1.5 mb-2">
+                                                    <button type="button" @click="feedbackText = 'Sangat baik dan rapi! 🌟'" class="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-bold hover:bg-emerald-100 transition">
+                                                        🌟 Sangat Baik
+                                                    </button>
+                                                    <button type="button" @click="feedbackText = 'Tugas lengkap, tingkatkan kerapihan. 📝'" class="px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg text-xs font-bold hover:bg-blue-100 transition">
+                                                        📝 Lengkap
+                                                    </button>
+                                                    <button type="button" @click="feedbackText = 'Perlu perbaikan pada bagian jawaban akhir. ⚠️'" class="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold hover:bg-amber-100 transition">
+                                                        ⚠️ Perlu Perbaikan
+                                                    </button>
+                                                    <button type="button" @click="feedbackText = 'Mohon revisi dan unggah ulang berkas perbaikan. 🔄'" class="px-2.5 py-1 bg-red-50 text-red-800 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-100 transition">
+                                                        🔄 Mohon Revisi
+                                                    </button>
+                                                </div>
+
+                                                <textarea name="feedback" rows="3" x-model="feedbackText"
                                                           placeholder="Tulis feedback untuk siswa..."
-                                                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm
-                                                                 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition resize-none">{{ $sub->feedback }}</textarea>
+                                                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium text-gray-900
+                                                                 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition resize-none"></textarea>
                                             </div>
 
-                                            <button type="submit"
-                                                    class="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white py-2.5 rounded-xl
-                                                           text-sm font-bold shadow hover:shadow-md hover:-translate-y-0.5 transition-all active:translate-y-0">
-                                                <i class="fas fa-save mr-2"></i>
-                                                {{ $sub->score !== null ? 'Perbarui Nilai' : 'Simpan Nilai' }}
-                                            </button>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <button type="submit" onclick="document.getElementById('action_type_{{ $sub->id }}').value='grade'"
+                                                        class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-2.5 rounded-xl
+                                                               text-sm font-bold shadow hover:shadow-md transition-all">
+                                                    <i class="fas fa-check-circle mr-1"></i> Simpan Nilai
+                                                </button>
+                                                <button type="submit" onclick="document.getElementById('action_type_{{ $sub->id }}').value='request_revision'"
+                                                        class="bg-gradient-to-r from-amber-500 to-amber-600 text-white py-2.5 rounded-xl
+                                                               text-sm font-bold shadow hover:shadow-md transition-all">
+                                                    <i class="fas fa-sync-alt mr-1"></i> Minta Revisi
+                                                </button>
+                                            </div>
                                         </form>
                                     </div>
 
