@@ -97,7 +97,14 @@ class ProgressInputController extends Controller
                 ->count();
 
             $siswaBaru = max($countFromClass, $countFromStudent);
-            $totalSiswaAktif = Student::where('school_id', $school->id)->where('status', 'aktif')->count();
+            $totalSiswaAktif = StudentClass::whereHas('student', function ($q) use ($school) {
+                    $q->where('school_id', $school->id)->where('status', 'aktif');
+                })
+                ->when($currentYear, function ($q) use ($currentYear) {
+                    $q->where('academic_year_id', $currentYear->id);
+                })
+                ->distinct('student_id')
+                ->count('student_id');
             
             $targetRombels = Classroom::where('school_id', $school->id)
                 ->whereIn('grade_level', $targetGrades)
@@ -770,7 +777,14 @@ class ProgressInputController extends Controller
             if ($totalGuruUnit == 0) {
                 $totalGuruUnit = Employee::where('school_id', $school->id)->where('employee_type', 'guru')->count();
             }
-            $totalSiswaUnit = Student::where('school_id', $school->id)->where('status', 'aktif')->count();
+            $totalSiswaUnit = StudentClass::whereHas('student', function ($q) use ($school) {
+                    $q->where('school_id', $school->id)->where('status', 'aktif');
+                })
+                ->when($currentYear, function ($q) use ($currentYear) {
+                    $q->where('academic_year_id', $currentYear->id);
+                })
+                ->distinct('student_id')
+                ->count('student_id');
 
             $pctGuru = $totalGuruUnit > 0 ? round(($userGuru / $totalGuruUnit) * 100, 1) : 0;
             $pctSiswa = $totalSiswaUnit > 0 ? round(($userSiswa / $totalSiswaUnit) * 100, 1) : 0;

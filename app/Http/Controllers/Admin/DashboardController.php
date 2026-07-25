@@ -37,9 +37,21 @@ class DashboardController extends Controller
             $school = School::find($schoolId);
         }
 
-        // 📊 Basic Statistics
-        $totalStudents = Student::when($schoolId, fn($q) => $q->where('school_id', $schoolId))->count();
-        $activeStudents = Student::when($schoolId, fn($q) => $q->where('school_id', $schoolId))->where('status', 'aktif')->count();
+        // 📊 Basic Statistics: Siswa Aktif yang SUDAH DI-PLOT / MASUK KE ROMBEL pada TP Aktif
+        $activeStudentsInRombel = \App\Models\StudentClass::whereHas('student', function ($q) use ($schoolId) {
+                $q->where('status', 'aktif');
+                if ($schoolId) {
+                    $q->where('school_id', $schoolId);
+                }
+            })
+            ->when($currentAcademicYear, function ($q) use ($currentAcademicYear) {
+                $q->where('academic_year_id', $currentAcademicYear->id);
+            })
+            ->distinct('student_id')
+            ->count('student_id');
+
+        $totalStudents = $activeStudentsInRombel;
+        $activeStudents = $activeStudentsInRombel;
         $totalTeachers = Teacher::when($schoolId, fn($q) => $q->where('school_id', $schoolId))->count();
         $totalClassrooms = Classroom::when($schoolId, fn($q) => $q->where('school_id', $schoolId))
             ->when($currentAcademicYear, fn($q) => $q->where('academic_year_id', $currentAcademicYear->id))

@@ -46,7 +46,7 @@
                 <div>
                     <p class="text-sm text-gray-500 font-medium">Total Siswa</p>
                     <p class="text-3xl font-bold text-gray-800 mt-1">{{ number_format($stats['total_students']) }}</p>
-                    <p class="text-xs text-gray-400 mt-1">Siswa aktif semua sekolah</p>
+                    <p class="text-xs text-gray-400 mt-1">Siswa aktif ber-rombel (TP {{ $currentAcademicYear->year ?? '' }})</p>
                 </div>
                 <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white shadow-lg">
                     <i class="fas fa-user-graduate text-xl"></i>
