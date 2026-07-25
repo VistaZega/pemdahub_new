@@ -72,13 +72,16 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-tag mr-1"></i> Tipe Kelas</label>
-                    <select name="class_type" id="class_type" class="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
+                    <select name="class_type" id="class_type" class="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition" onchange="toggleGabunganInfo(this.value)">
                         <option value="reguler" {{ old('class_type', $classroom->class_type) == 'reguler' ? 'selected' : '' }}>Reguler</option>
                         <option value="industri" {{ old('class_type', $classroom->class_type) == 'industri' ? 'selected' : '' }}>Kelas Industri</option>
                         <option value="exclusive" {{ old('class_type', $classroom->class_type) == 'exclusive' ? 'selected' : '' }}>Kelas Exclusive</option>
                         <option value="khusus" {{ old('class_type', $classroom->class_type) == 'khusus' ? 'selected' : '' }}>Kelas Khusus</option>
                         <option value="gabungan" {{ old('class_type', $classroom->class_type) == 'gabungan' || $classroom->is_combined ? 'selected' : '' }}>Kelas Gabungan (Multi-Jurusan)</option>
                     </select>
+                    <div id="gabungan-info" class="mt-2 p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-700 font-medium" style="display: {{ old('class_type', $classroom->class_type) == 'gabungan' || $classroom->is_combined ? 'block' : 'none' }}">
+                        <i class="fas fa-info-circle text-indigo-500 mr-1"></i> <strong>Kelas Gabungan:</strong> Program / Konsentrasi Keahlian opsional (boleh dikosongkan). Seluruh Mata Pelajaran Kejuruan dari semua jurusan akan terbuka untuk kelas ini.
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-chart-bar mr-1"></i> Tingkat</label>
