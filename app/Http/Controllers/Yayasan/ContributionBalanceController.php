@@ -188,23 +188,17 @@ class ContributionBalanceController extends Controller
                 $sumPaidAnnual = (float) $billsQuery->sum('paid_amount');
                 $avgBillMonthly = (float) $billsQuery->avg('amount');
 
-                // Jika ada data tagihan di student_bills, tarik langsung total tagihan dari student_bills!
-                if ($sumBilledAnnual > 0) {
-                    $incomeTotal = ($periodMode === 'monthly') ? ($sumBilledAnnual / 12) : $sumBilledAnnual;
-                    $sppMonthly = round($avgBillMonthly);
-                    $sppSource = 'Tabel Tagihan Siswa (student_bills)';
+                // Tarif SPP resmi per tingkat (Prioritaskan Setting Tarif Yayasan -> Master PaymentType)
+                if (isset($savedSppRates[(string)$level]) && $savedSppRates[(string)$level] > 0) {
+                    $sppMonthly = (float)$savedSppRates[(string)$level];
+                    $sppSource = 'Setting Tarif Yayasan';
                 } else {
-                    // Fallback jika tagihan di student_bills belum di-generate
-                    if (isset($savedSppRates[(string)$level]) && $savedSppRates[(string)$level] > 0) {
-                        $sppMonthly = (float)$savedSppRates[(string)$level];
-                        $sppSource = 'Setting Yayasan';
-                    } else {
-                        $sppMonthly = $masterSppAmount;
-                        $sppSource = 'Master SPP (payment_types)';
-                    }
-                    $incomeMonthly = $studentCount * $sppMonthly;
-                    $incomeTotal = $incomeMonthly * $multiplier;
+                    $sppMonthly = $masterSppAmount;
+                    $sppSource = 'Master SPP (payment_types)';
                 }
+
+                $incomeMonthly = $studentCount * $sppMonthly;
+                $incomeTotal = $incomeMonthly * $multiplier;
 
                 $levelBreakdown[] = [
                     'level' => $level,
