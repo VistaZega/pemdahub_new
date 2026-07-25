@@ -18,10 +18,13 @@ class LmsDiscussionReply extends Model
         'parent_id',
         'content',
         'is_best_answer',
+        'is_teacher_verified',
+        'attachment_path',
     ];
 
     protected $casts = [
         'is_best_answer' => 'boolean',
+        'is_teacher_verified' => 'boolean',
     ];
 
     public function discussion()

@@ -130,6 +130,9 @@
                     <a href="{{ route('guru.lms.analytics', $course->id) }}" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all">
                         <i class="fas fa-chart-line text-xs"></i> Analitik
                     </a>
+                    <a href="{{ route('guru.lms.export-gradebook', $course->id) }}" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all">
+                        <i class="fas fa-file-excel text-xs"></i> Ekspor Excel
+                    </a>
                     <a href="{{ route('guru.lms.edit', $course->id) }}" class="w-9 h-9 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all shadow-sm" title="Edit Course">
                         <i class="fas fa-edit text-xs"></i>
                     </a>

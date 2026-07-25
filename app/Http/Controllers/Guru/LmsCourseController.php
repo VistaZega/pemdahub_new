@@ -613,6 +613,122 @@ class LmsCourseController extends Controller
     }
 
     /**
+     * Export LMS Gradebook to CSV/Excel
+     */
+    public function exportGradebook(LmsCourse $course)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        $course->load([
+            'subject', 'lmsClasses.classroom',
+            'assignments' => fn($q) => $q->where('is_published', true),
+            'quizzes' => fn($q) => $q->where('is_published', true),
+        ]);
+
+        $enrollments = LmsEnrollment::whereIn('lms_class_id', $course->lmsClasses->pluck('id'))
+            ->with(['student.user'])
+            ->get();
+
+        $students = $enrollments->pluck('student')->filter();
+
+        $filename = 'Rekap_Nilai_LMS_' . Str::slug($course->course_name ?? $course->name) . '_' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($students, $course) {
+            $file = fopen('php://output', 'w');
+
+            $headerRow = ['No', 'NISN', 'Nama Siswa'];
+            foreach ($course->assignments as $asgn) {
+                $headerRow[] = 'Tugas: ' . $asgn->title;
+            }
+            foreach ($course->quizzes as $qz) {
+                $headerRow[] = 'Kuis: ' . $qz->title;
+            }
+            $headerRow[] = 'Progres (%)';
+
+            fputcsv($file, $headerRow);
+
+            $no = 1;
+            foreach ($students as $student) {
+                $row = [
+                    $no++,
+                    $student->nisn ?? '-',
+                    $student->user->name ?? '-',
+                ];
+
+                foreach ($course->assignments as $asgn) {
+                    $sub = LmsSubmission::where('assignment_id', $asgn->id)
+                        ->where('student_id', $student->id)
+                        ->first();
+                    $row[] = $sub ? ($sub->score !== null ? $sub->score : 'Dikumpul') : '-';
+                }
+
+                foreach ($course->quizzes as $qz) {
+                    $att = LmsQuizAttempt::where('quiz_id', $qz->id)
+                        ->where('student_id', $student->id)
+                        ->orderByDesc('total_score')
+                        ->first();
+                    $row[] = $att ? $att->total_score : '-';
+                }
+
+                $row[] = LmsMaterialProgress::getProgressForCourse($course->id, $student->id) . '%';
+
+                fputcsv($file, $row);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Mark a discussion reply as Best Answer by Teacher
+     */
+    public function markBestReply(Request $request, LmsDiscussionReply $reply)
+    {
+        $teacher = $this->getTeacher();
+        $course = $reply->discussion->course;
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        // Unmark previous best replies in this discussion
+        LmsDiscussionReply::where('discussion_id', $reply->discussion_id)
+            ->update(['is_best_answer' => false]);
+
+        $reply->update([
+            'is_best_answer' => true,
+            'is_teacher_verified' => true,
+        ]);
+
+        $reply->discussion->update(['is_resolved' => true]);
+
+        // Award reputation EXP points to student (+15 EXP)
+        if ($reply->user_id) {
+            \App\Models\ReputationLog::log(
+                $reply->user_id,
+                15,
+                'lms_best_answer',
+                "Jawaban terbaik diverifikasi guru pada diskusi: " . Str::limit($reply->discussion->title, 30),
+                $reply
+            );
+        }
+
+        return redirect()->back()->with('success', 'Jawaban berhasil ditandai sebagai Jawaban Terbaik & Poin EXP diberikan ke siswa!');
+    }
+
+    /**
      * Update material (title, description, file replacement)
      */
     public function updateMaterial(Request $request, LmsMaterial $material)

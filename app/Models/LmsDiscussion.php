@@ -23,6 +23,7 @@ class LmsDiscussion extends Model
         'is_resolved',
         'replies_count',
         'last_reply_at',
+        'attachment_path',
     ];
 
     protected $casts = [

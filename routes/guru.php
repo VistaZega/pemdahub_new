@@ -100,6 +100,8 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::post('/', [App\Http\Controllers\Guru\LmsCourseController::class, 'store'])->name('store');
         Route::get('/{course}', [App\Http\Controllers\Guru\LmsCourseController::class, 'show'])->name('show');
         Route::get('/{course}/analytics', [App\Http\Controllers\Guru\LmsCourseController::class, 'analytics'])->name('analytics');
+        Route::get('/{course}/export-gradebook', [App\Http\Controllers\Guru\LmsCourseController::class, 'exportGradebook'])->name('export-gradebook');
+        Route::post('/replies/{reply}/best-answer', [App\Http\Controllers\Guru\LmsCourseController::class, 'markBestReply'])->name('replies.best-answer');
         Route::get('/{course}/edit', [App\Http\Controllers\Guru\LmsCourseController::class, 'edit'])->name('edit');
         Route::put('/{course}', [App\Http\Controllers\Guru\LmsCourseController::class, 'update'])->name('update');
         Route::delete('/{course}', [App\Http\Controllers\Guru\LmsCourseController::class, 'destroy'])->name('destroy');
