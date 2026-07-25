@@ -5,18 +5,18 @@
     <title>Rekap Progress Input Data TP. {{ $currentYear->year ?? '2026/2027' }}</title>
     <style>
         @page {
-            margin: 1cm 1.2cm 1cm 1.2cm;
+            margin: 0.8cm 1cm 1cm 1cm;
         }
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #1f2937;
             line-height: 1.35;
-            font-size: 10px;
+            font-size: 9.5px;
         }
         .header-container {
-            border-bottom: 3px solid #6d28d9;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            border-bottom: 2.5px solid #6d28d9;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
             width: 100%;
         }
         .header-table {
@@ -24,30 +24,58 @@
             border-collapse: collapse;
         }
         .logo-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             color: #4c1d95;
             margin: 0;
             text-transform: uppercase;
         }
         .logo-subtitle {
-            font-size: 11px;
+            font-size: 10.5px;
             color: #4b5563;
-            margin: 3px 0 0 0;
+            margin: 2px 0 0 0;
             font-weight: bold;
         }
         .header-meta {
             text-align: right;
-            font-size: 10px;
+            font-size: 9.5px;
             color: #4b5563;
         }
         .header-meta strong {
             color: #111827;
         }
+
+        /* Summary Box */
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+        }
+        .summary-cell {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 6px;
+            text-align: center;
+            width: 25%;
+        }
+        .summary-val {
+            font-size: 12px;
+            font-weight: bold;
+            color: #4c1d95;
+        }
+        .summary-lbl {
+            font-size: 8px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        /* Main Data Table */
         table.data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            table-layout: fixed;
         }
         table.data-table thead {
             display: table-header-group;
@@ -56,23 +84,30 @@
             page-break-inside: avoid;
         }
         table.data-table th {
-            background-color: #4c1d95;
+            background-color: #3b0764;
             color: #ffffff;
             font-weight: bold;
             text-align: left;
-            padding: 6px 8px;
-            border: 1px solid #3b0764;
-            font-size: 9.5px;
+            padding: 5px 8px;
+            border: 1px solid #2e1065;
+            font-size: 9px;
             text-transform: uppercase;
         }
         table.data-table td {
-            padding: 6px 8px;
-            border: 1px solid #d1d5db;
+            padding: 5px 8px;
+            border: 1px solid #cbd5e1;
             vertical-align: top;
-            font-size: 9.5px;
+            font-size: 9px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
-        .bg-group {
-            background-color: #f8fafc;
+
+        /* Group Header Row */
+        tr.item-group-header td {
+            background-color: #f1f5f9;
+            border-top: 2px solid #6d28d9;
+            border-bottom: 1px solid #cbd5e1;
+            padding: 6px 8px;
         }
         .item-number {
             display: inline-block;
@@ -80,26 +115,27 @@
             color: white;
             font-weight: bold;
             border-radius: 3px;
-            padding: 1px 5px;
+            padding: 1px 6px;
             font-size: 9px;
-            margin-right: 4px;
+            margin-right: 5px;
         }
         .item-title {
             font-weight: bold;
-            color: #111827;
-            font-size: 10.5px;
-            margin-bottom: 2px;
+            color: #1e1b4b;
+            font-size: 10px;
         }
         .item-desc {
-            color: #6b7280;
+            color: #64748b;
             font-size: 8.5px;
+            font-weight: normal;
         }
+
         .badge {
             display: inline-block;
             padding: 2px 6px;
             border-radius: 3px;
             font-weight: bold;
-            font-size: 9px;
+            font-size: 8.5px;
         }
         .badge-green {
             background-color: #d1fae5;
@@ -116,22 +152,22 @@
             color: #991b1b;
             border: 1px solid #fecaca;
         }
-        .unit-badge {
+        .unit-name {
             font-weight: bold;
-            color: #111827;
+            color: #0f172a;
         }
         .satuan-box {
             text-align: center;
             font-weight: bold;
-            color: #374151;
+            color: #475569;
         }
         .detail-box {
-            margin-top: 4px;
-            padding-top: 4px;
-            border-top: 1px dashed #e5e7eb;
+            margin-top: 3px;
+            padding-top: 3px;
+            border-top: 1px dashed #e2e8f0;
         }
         .detail-title {
-            font-size: 8px;
+            font-size: 7.5px;
             font-weight: bold;
             color: #6d28d9;
             text-transform: uppercase;
@@ -139,17 +175,38 @@
         }
         .detail-item {
             font-size: 8.5px;
-            color: #374151;
+            color: #334155;
+            margin-bottom: 1px;
+        }
+        .action-box {
+            margin-top: 3px;
+            padding-top: 3px;
+            border-top: 1px dashed #fca5a5;
+            background-color: #fff5f5;
+            padding: 3px 5px;
+            border-radius: 3px;
+        }
+        .action-title {
+            font-size: 7.5px;
+            font-weight: bold;
+            color: #dc2626;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .action-item {
+            font-size: 8px;
+            color: #991b1b;
+            font-weight: bold;
             margin-bottom: 1px;
         }
         .footer-signature {
             width: 100%;
-            margin-top: 20px;
+            margin-top: 15px;
             page-break-inside: avoid;
         }
         .signature-box {
             float: right;
-            width: 240px;
+            width: 220px;
             text-align: center;
         }
         .clear {
@@ -174,37 +231,68 @@
     </table>
 </div>
 
+@php
+    $totalItemsCount = count($items);
+    $totalSchoolDataCount = 0;
+    $greenTotal = 0;
+    $amberTotal = 0;
+    $redTotal = 0;
+
+    foreach($items as $it) {
+        foreach($it['schools_data'] as $sc) {
+            $totalSchoolDataCount++;
+            if($sc['status_color'] === 'green') $greenTotal++;
+            elseif($sc['status_color'] === 'amber') $amberTotal++;
+            else $redTotal++;
+        }
+    }
+    $readinessTotalPct = $totalSchoolDataCount > 0 ? round(($greenTotal / $totalSchoolDataCount) * 100, 1) : 0;
+@endphp
+
+<table class="summary-table">
+    <tr>
+        <td class="summary-cell">
+            <div class="summary-lbl">Unit Sekolah</div>
+            <div class="summary-val">{{ count($schools) }} Unit</div>
+        </td>
+        <td class="summary-cell">
+            <div class="summary-lbl">Indikator Dipantau</div>
+            <div class="summary-val">{{ $totalItemsCount }} Item</div>
+        </td>
+        <td class="summary-cell">
+            <div class="summary-lbl">Tingkat Kesiapan</div>
+            <div class="summary-val" style="color: #059669;">{{ $readinessTotalPct }}%</div>
+        </td>
+        <td class="summary-cell">
+            <div class="summary-lbl">Perlu Follow-up</div>
+            <div class="summary-val" style="color: #dc2626;">{{ $redTotal + $amberTotal }} Item</div>
+        </td>
+    </tr>
+</table>
+
 <table class="data-table">
     <thead>
         <tr>
-            <th style="width: 25%;">Indikator Item</th>
-            <th style="width: 15%;">Unit Sekolah</th>
-            <th style="width: 16%; text-align: center;">Perkembangan</th>
-            <th style="width: 9%; text-align: center;">Satuan</th>
-            <th style="width: 35%;">Rekomendasi & Rincian Detail Terinput</th>
+            <th style="width: 22%;">Unit Sekolah</th>
+            <th style="width: 18%; text-align: center;">Perkembangan</th>
+            <th style="width: 10%; text-align: center;">Satuan</th>
+            <th style="width: 50%;">Rekomendasi & Rincian Detail Data Terinput</th>
         </tr>
     </thead>
     <tbody>
         @foreach($items as $item)
-            @php
-                $schoolsCount = count($item['schools_data']);
-            @endphp
-            @foreach($item['schools_data'] as $idx => $s)
+            <tr class="item-group-header">
+                <td colspan="4">
+                    <span class="item-number">{{ $item['number'] }}</span>
+                    <span class="item-title">{{ $item['title'] }}</span>
+                    <span class="item-desc"> — {{ $item['description'] }}</span>
+                </td>
+            </tr>
+            @foreach($item['schools_data'] as $s)
                 <tr>
-                    @if($idx === 0)
-                        <td rowspan="{{ $schoolsCount }}" class="bg-group">
-                            <div class="item-title">
-                                <span class="item-number">{{ $item['number'] }}</span>
-                                {{ $item['title'] }}
-                            </div>
-                            <div class="item-desc">{{ $item['description'] }}</div>
-                        </td>
-                    @endif
-
-                    <td class="unit-badge">
+                    <td class="unit-name">
                         • {{ $s['school_name'] }}
                     </td>
-
                     <td style="text-align: center;">
                         @if($s['status_color'] === 'green')
                             <span class="badge badge-green">{{ $s['perkembangan'] }}</span>
@@ -214,13 +302,11 @@
                             <span class="badge badge-red">{{ $s['perkembangan'] }}</span>
                         @endif
                     </td>
-
                     <td class="satuan-box">
                         {{ $s['satuan'] }}
                     </td>
-
                     <td>
-                        <div style="font-weight: bold; color: #111827;">{{ $s['rekomendasi'] }}</div>
+                        <div style="font-weight: bold; color: #0f172a;">{{ $s['rekomendasi'] }}</div>
                         @if(!empty($s['details']))
                             <div class="detail-box">
                                 <div class="detail-title">Rincian Data Terinput:</div>
@@ -230,10 +316,10 @@
                             </div>
                         @endif
                         @if(!empty($s['action_items']))
-                            <div class="detail-box" style="border-top: 1px dashed #fca5a5; margin-top: 4px; padding-top: 4px;">
-                                <div class="detail-title" style="color: #dc2626;">Action Items Perlu Dilengkapi:</div>
+                            <div class="action-box">
+                                <div class="action-title">Action Items Perlu Dilengkapi:</div>
                                 @foreach($s['action_items'] as $act)
-                                    <div class="detail-item" style="color: #991b1b; font-weight: bold;">⚠️ {{ $act }}</div>
+                                    <div class="action-item">⚠️ {{ $act }}</div>
                                 @endforeach
                             </div>
                         @endif
@@ -247,7 +333,7 @@
 <div class="footer-signature">
     <div class="signature-box">
         <p style="margin: 0;">Gunungsitoli, {{ now()->translatedFormat('d F Y') }}</p>
-        <p style="margin: 4px 0 50px 0; font-weight: bold;">Ketua Yayasan PEMBDA,</p>
+        <p style="margin: 4px 0 45px 0; font-weight: bold;">Ketua Yayasan PEMBDA,</p>
         <p style="margin: 0; font-weight: bold; text-decoration: underline;">Yulianus Zega</p>
     </div>
     <div class="clear"></div>
@@ -255,3 +341,4 @@
 
 </body>
 </html>
+
