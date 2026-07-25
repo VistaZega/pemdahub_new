@@ -107,10 +107,13 @@
         <!-- Mobile Header & Toggle -->
         <div class="md:hidden flex items-center justify-between bg-white p-4 border-b border-slate-100">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center shadow-md">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-300 via-indigo-400 to-indigo-200 shadow-md shadow-indigo-200/50 flex items-center justify-center">
                     <i class="ph-bold ph-lightning text-white text-xl"></i>
                 </div>
-                <h1 class="forum-hdr text-xl font-bold text-slate-800 tracking-tight">Pembda Space</h1>
+                <div>
+                    <h1 class="forum-hdr text-xl font-bold text-slate-900 tracking-tight leading-none mb-1">Pembda Space</h1>
+                    <span class="text-[10px] text-slate-900 font-extrabold uppercase tracking-widest leading-none">COMMUNITY</span>
+                </div>
             </div>
             <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="p-2 bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition">
                 <i class="ph-bold ph-list text-2xl"></i>
@@ -122,13 +125,13 @@
             
             <div class="p-5 h-full flex flex-col gap-6 max-h-[85vh] overflow-y-auto no-scrollbar">
                 <!-- Logo (Desktop) -->
-                <div class="hidden md:flex items-center gap-3 px-2 mb-2">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                        <i class="ph-bold ph-lightning text-white text-xl"></i>
+                <div class="hidden md:flex items-center gap-3.5 px-2 mb-2">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-300 via-indigo-400 to-indigo-200 shadow-md shadow-indigo-200/50 flex items-center justify-center flex-shrink-0">
+                        <i class="ph-bold ph-lightning text-white text-2xl"></i>
                     </div>
                     <div>
-                        <h1 class="forum-hdr text-xl font-bold text-slate-900 tracking-tight leading-tight">Pembda Space</h1>
-                        <span class="text-[10px] text-slate-900 font-bold uppercase tracking-widest">Community</span>
+                        <h1 class="forum-hdr text-xl font-bold text-slate-900 tracking-tight leading-none mb-1">Pembda Space</h1>
+                        <span class="text-[10px] text-slate-900 font-extrabold uppercase tracking-widest leading-none">COMMUNITY</span>
                     </div>
                 </div>
 
@@ -209,8 +212,10 @@
                             <i class="ph-bold ph-x-circle"></i> Reset Filter
                         </a>
                     @endif
-                    <a href="{{ route('forum.create') }}" class="flex px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white rounded-xl text-sm font-bold shadow-md shadow-indigo-200 hover:shadow-indigo-300 transition-all items-center gap-2 whitespace-nowrap">
-                        <i class="ph-bold ph-plus"></i> Buat Post
+                    <a href="{{ route('forum.create') }}" 
+                       class="flex px-6 py-2.5 rounded-full text-white font-extrabold text-sm shadow-lg shadow-indigo-300/40 hover:shadow-xl hover:shadow-indigo-400/50 hover:scale-105 transition-all duration-200 items-center gap-2 whitespace-nowrap"
+                       style="background: linear-gradient(95deg, #6366f1 0%, #818cf8 55%, #e2e8f0 100%); color: #ffffff;">
+                        <i class="ph-bold ph-plus text-base"></i> Buat Post
                     </a>
                 </div>
             </div>
