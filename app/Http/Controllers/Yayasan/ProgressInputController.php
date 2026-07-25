@@ -14,6 +14,7 @@ use App\Models\TeachingAssignment;
 use App\Models\Schedule;
 use App\Models\EducationalCalendar;
 use App\Models\PaymentType;
+use App\Models\StudentBill;
 use App\Models\Classroom;
 use App\Models\Subject;
 use App\Models\User;
