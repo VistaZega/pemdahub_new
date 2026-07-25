@@ -107,12 +107,12 @@
         <!-- Mobile Header & Toggle -->
         <div class="md:hidden flex items-center justify-between bg-white p-4 border-b border-slate-100">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 shadow-md shadow-indigo-500/30 flex items-center justify-center">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 shadow-md shadow-indigo-500/30 flex items-center justify-center flex-shrink-0">
                     <i class="ph-bold ph-lightning text-white text-xl"></i>
                 </div>
-                <div>
-                    <h1 class="forum-hdr text-xl font-extrabold text-slate-900 tracking-tight leading-none mb-1">Pembda Space</h1>
-                    <span class="text-[10px] text-slate-900 font-black uppercase tracking-widest leading-none">COMMUNITY</span>
+                <div class="flex flex-col justify-center">
+                    <h1 class="forum-hdr text-xl font-bold text-slate-900 tracking-tight leading-tight m-0 p-0">Pembda Space</h1>
+                    <span class="text-[10px] text-slate-900 font-black uppercase tracking-widest leading-none -mt-0.5">COMMUNITY</span>
                 </div>
             </div>
             <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="p-2 bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition">
@@ -125,13 +125,13 @@
             
             <div class="p-5 h-full flex flex-col gap-6 max-h-[85vh] overflow-y-auto no-scrollbar">
                 <!-- Logo (Desktop) -->
-                <div class="hidden md:flex items-center gap-3.5 px-2 mb-2">
+                <div class="hidden md:flex items-center gap-3 px-2 mb-2">
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 shadow-md shadow-indigo-500/30 flex items-center justify-center flex-shrink-0">
                         <i class="ph-bold ph-lightning text-white text-2xl"></i>
                     </div>
-                    <div>
-                        <h1 class="forum-hdr text-xl font-extrabold text-slate-900 tracking-tight leading-none mb-1">Pembda Space</h1>
-                        <span class="text-[10px] text-slate-900 font-black uppercase tracking-widest leading-none">COMMUNITY</span>
+                    <div class="flex flex-col justify-center min-w-0">
+                        <h1 class="forum-hdr text-xl font-bold text-slate-900 tracking-tight leading-tight m-0 p-0">Pembda Space</h1>
+                        <span class="text-[10px] text-slate-900 font-black uppercase tracking-widest leading-none -mt-0.5">COMMUNITY</span>
                     </div>
                 </div>
 
