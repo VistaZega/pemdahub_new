@@ -5,18 +5,18 @@
     <title>Rekap Progress Input Data TP. {{ $currentYear->year ?? '2026/2027' }}</title>
     <style>
         @page {
-            margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+            margin: 1cm 1.2cm 1cm 1.2cm;
         }
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            color: #333;
-            line-height: 1.4;
-            font-size: 11px;
+            color: #1f2937;
+            line-height: 1.35;
+            font-size: 10px;
         }
         .header-container {
             border-bottom: 3px solid #6d28d9;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
             width: 100%;
         }
         .header-table {
@@ -24,29 +24,30 @@
             border-collapse: collapse;
         }
         .logo-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             color: #4c1d95;
             margin: 0;
             text-transform: uppercase;
         }
         .logo-subtitle {
-            font-size: 12px;
-            color: #555;
-            margin: 4px 0 0 0;
+            font-size: 11px;
+            color: #4b5563;
+            margin: 3px 0 0 0;
+            font-weight: bold;
         }
         .header-meta {
             text-align: right;
-            font-size: 11px;
-            color: #555;
+            font-size: 10px;
+            color: #4b5563;
         }
         .header-meta strong {
-            color: #111;
+            color: #111827;
         }
         table.data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         table.data-table thead {
             display: table-header-group;
@@ -59,16 +60,16 @@
             color: #ffffff;
             font-weight: bold;
             text-align: left;
-            padding: 8px 10px;
+            padding: 6px 8px;
             border: 1px solid #3b0764;
-            font-size: 11px;
+            font-size: 9.5px;
             text-transform: uppercase;
         }
         table.data-table td {
-            padding: 8px 10px;
+            padding: 6px 8px;
             border: 1px solid #d1d5db;
             vertical-align: top;
-            font-size: 10.5px;
+            font-size: 9.5px;
         }
         .bg-group {
             background-color: #f8fafc;
@@ -78,27 +79,27 @@
             background-color: #6d28d9;
             color: white;
             font-weight: bold;
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-size: 10px;
-            margin-right: 5px;
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-size: 9px;
+            margin-right: 4px;
         }
         .item-title {
             font-weight: bold;
             color: #111827;
-            font-size: 11.5px;
-            margin-bottom: 3px;
+            font-size: 10.5px;
+            margin-bottom: 2px;
         }
         .item-desc {
             color: #6b7280;
-            font-size: 9.5px;
+            font-size: 8.5px;
         }
         .badge {
             display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
+            padding: 2px 6px;
+            border-radius: 3px;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 9px;
         }
         .badge-green {
             background-color: #d1fae5;
@@ -117,21 +118,38 @@
         }
         .unit-badge {
             font-weight: bold;
-            color: #1f2937;
+            color: #111827;
         }
         .satuan-box {
             text-align: center;
             font-weight: bold;
-            color: #4b5563;
+            color: #374151;
+        }
+        .detail-box {
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .detail-title {
+            font-size: 8px;
+            font-weight: bold;
+            color: #6d28d9;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .detail-item {
+            font-size: 8.5px;
+            color: #374151;
+            margin-bottom: 1px;
         }
         .footer-signature {
             width: 100%;
-            margin-top: 30px;
+            margin-top: 20px;
             page-break-inside: avoid;
         }
         .signature-box {
             float: right;
-            width: 250px;
+            width: 240px;
             text-align: center;
         }
         .clear {
@@ -146,11 +164,11 @@
         <tr>
             <td style="width: 70%;">
                 <h1 class="logo-title">Yayasan Perguruan Pembangunan Daerah Nias</h1>
-                <p class="logo-subtitle">Rekapitulasi Progress Penginputan Data Master & Akademik Seluruh Unit Sekolah</p>
+                <p class="logo-subtitle">Laporan Progress Input Data & Kesiapan Akademik (12 Indikator Seluruh Unit)</p>
             </td>
             <td class="header-meta">
                 <p style="margin: 0;">Tahun Pelajaran: <strong>{{ $currentYear->year ?? '2026/2027' }}</strong></p>
-                <p style="margin: 4px 0 0 0;">Tanggal Eksport: <strong>{{ now()->translatedFormat('d F Y, H:i') }}</strong></p>
+                <p style="margin: 3px 0 0 0;">Tanggal Cetak: <strong>{{ now()->translatedFormat('d F Y, H:i') }}</strong></p>
             </td>
         </tr>
     </table>
@@ -159,11 +177,11 @@
 <table class="data-table">
     <thead>
         <tr>
-            <th style="width: 26%;">Item</th>
-            <th style="width: 16%;">Unit Sekolah</th>
-            <th style="width: 18%; text-align: center;">Perkembangan</th>
-            <th style="width: 10%; text-align: center;">Satuan</th>
-            <th style="width: 30%;">Rekomendasi</th>
+            <th style="width: 25%;">Indikator Item</th>
+            <th style="width: 15%;">Unit Sekolah</th>
+            <th style="width: 16%; text-align: center;">Perkembangan</th>
+            <th style="width: 9%; text-align: center;">Satuan</th>
+            <th style="width: 35%;">Rekomendasi & Rincian Detail Terinput</th>
         </tr>
     </thead>
     <tbody>
@@ -202,7 +220,23 @@
                     </td>
 
                     <td>
-                        {{ $s['rekomendasi'] }}
+                        <div style="font-weight: bold; color: #111827;">{{ $s['rekomendasi'] }}</div>
+                        @if(!empty($s['details']))
+                            <div class="detail-box">
+                                <div class="detail-title">Rincian Data Terinput:</div>
+                                @foreach($s['details'] as $dt)
+                                    <div class="detail-item">• {{ $dt }}</div>
+                                @endforeach
+                            </div>
+                        @endif
+                        @if(!empty($s['action_items']))
+                            <div class="detail-box" style="border-top: 1px dashed #fca5a5; margin-top: 4px; padding-top: 4px;">
+                                <div class="detail-title" style="color: #dc2626;">Action Items Perlu Dilengkapi:</div>
+                                @foreach($s['action_items'] as $act)
+                                    <div class="detail-item" style="color: #991b1b; font-weight: bold;">⚠️ {{ $act }}</div>
+                                @endforeach
+                            </div>
+                        @endif
                     </td>
                 </tr>
             @endforeach
@@ -213,7 +247,7 @@
 <div class="footer-signature">
     <div class="signature-box">
         <p style="margin: 0;">Gunungsitoli, {{ now()->translatedFormat('d F Y') }}</p>
-        <p style="margin: 4px 0 60px 0; font-weight: bold;">Ketua Yayasan PEMBDA,</p>
+        <p style="margin: 4px 0 50px 0; font-weight: bold;">Ketua Yayasan PEMBDA,</p>
         <p style="margin: 0; font-weight: bold; text-decoration: underline;">Yulianus Zega</p>
     </div>
     <div class="clear"></div>
