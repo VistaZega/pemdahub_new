@@ -1,12 +1,15 @@
 {
+  "id": "/forum",
   "name": "Pembda Space - Portal Komunitas PembdaHUB",
   "short_name": "Pembda Space",
   "description": "Aplikasi Portal & Forum Komunitas PembdaHUB Education System",
   "start_url": "/forum",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f8fafc",
   "theme_color": "#6366f1",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/images/icons/icon-192x192.png",

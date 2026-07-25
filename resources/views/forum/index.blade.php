@@ -232,6 +232,10 @@
                             <i class="ph-bold ph-x-circle"></i> Reset Filter
                         </a>
                     @endif
+                    <button onclick="triggerPwaInstall()" 
+                            class="flex px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md shadow-emerald-500/20 hover:scale-105 transition-all duration-200 items-center gap-2 whitespace-nowrap">
+                        <i class="ph-bold ph-cellphone-charging text-lg text-white"></i> <span class="text-white font-extrabold">Install APK</span>
+                    </button>
                     <a href="{{ route('forum.create') }}" 
                        class="flex px-6 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-extrabold text-sm shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-600/40 hover:scale-105 transition-all duration-200 items-center gap-2 whitespace-nowrap">
                         <i class="ph-bold ph-plus text-base text-white"></i> <span class="text-white font-extrabold">Buat Post</span>
@@ -790,6 +794,77 @@ function pembdaColabs() {
     }
 }
 </script>
+<!-- PWA Install Guide Modal -->
+<div id="pwaGuideModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+        <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-purple-50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold">
+                    <i class="ph-bold ph-cellphone-charging text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="forum-hdr text-base font-bold text-slate-900 leading-tight">Install Aplikasi Pembda Space</h3>
+                    <div class="text-xs text-indigo-700 font-bold">Panduan Pemasangan di HP</div>
+                </div>
+            </div>
+            <button onclick="document.getElementById('pwaGuideModal').style.display = 'none'" class="text-slate-400 hover:text-slate-700 p-1">
+                <i class="ph-bold ph-x text-xl"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-4 text-sm text-slate-800">
+            <div class="p-3 bg-indigo-50 border border-indigo-200 rounded-2xl flex items-start gap-3">
+                <i class="ph-bold ph-info text-indigo-600 text-xl flex-shrink-0 mt-0.5"></i>
+                <div class="text-xs text-indigo-900 font-medium">Aplikasi akan terpasang di Layar Utama HP Anda dalam bentuk Layar Penuh (Fullscreen) seperti WhatsApp.</div>
+            </div>
+            
+            <div class="space-y-3 pt-2">
+                <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Langkah Mudah di HP Android (Chrome):</h4>
+                <div class="flex items-start gap-3 text-xs">
+                    <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center flex-shrink-0">1</div>
+                    <div class="pt-0.5 font-semibold text-slate-800">Klik <strong>Titik Tiga (⋮)</strong> di pojok kanan atas browser Chrome HP Anda.</div>
+                </div>
+                <div class="flex items-start gap-3 text-xs">
+                    <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center flex-shrink-0">2</div>
+                    <div class="pt-0.5 font-semibold text-slate-800">Pilih menu <strong>"Instal aplikasi"</strong> ATAU <strong>"Tambahkan ke Layar Utama"</strong>.</div>
+                </div>
+                <div class="flex items-start gap-3 text-xs">
+                    <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center flex-shrink-0">3</div>
+                    <div class="pt-0.5 font-semibold text-slate-800">Klik <strong>"Instal" / "Tambah"</strong>. Ikon Pembda Space akan langsung muncul di HP Anda!</div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100">
+                <button onclick="document.getElementById('pwaGuideModal').style.display = 'none'" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition">
+                    Mengerti, Siap Pasang!
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let deferredPwaPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPwaPrompt = e;
+    console.log('PWA install prompt ready');
+});
+
+function triggerPwaInstall() {
+    if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        deferredPwaPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted PWA installation');
+            }
+            deferredPwaPrompt = null;
+        });
+    } else {
+        document.getElementById('pwaGuideModal').style.display = 'flex';
+    }
+}
+</script>
+
 <!-- Mobile Floating Action Button (Buat Status / Post) -->
 <a href="{{ route('forum.create') }}" 
    class="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-tr from-indigo-500 to-fuchsia-500 text-white rounded-full flex items-center justify-center shadow-xl shadow-indigo-500/40 hover:scale-110 active:scale-95 transition-all"
