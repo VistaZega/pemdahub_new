@@ -212,11 +212,11 @@ class ScheduleController extends Controller
             $schools = collect();
         }
         
-        // Filter subjects by school_id and major_id (if exists)
+        // Filter subjects by school_id and major_id (if exists and not combined)
         $subjectsQuery = Subject::where('school_id', $schoolId)
             ->where('is_active', 1);
         
-        if ($majorId) {
+        if ($majorId && !$schedule->classroom->isCombinedClass()) {
             $subjectsQuery->where(function($query) use ($majorId) {
                 $query->where('major_id', $majorId)
                       ->orWhereNull('major_id'); // Include general subjects
@@ -287,8 +287,8 @@ class ScheduleController extends Controller
         $subjectsQuery = Subject::where('school_id', $schoolId)
             ->where('is_active', 1);
         
-        // If classroom has major_id, filter subjects by major OR general subjects (major_id is null)
-        if ($majorId) {
+        // If classroom has major_id and is not combined, filter subjects by major OR general subjects (major_id is null)
+        if ($majorId && !$classroom->isCombinedClass()) {
             $subjectsQuery->where(function($query) use ($majorId) {
                 $query->where('major_id', $majorId)
                       ->orWhereNull('major_id'); // Include general subjects

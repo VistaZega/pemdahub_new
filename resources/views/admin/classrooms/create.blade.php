@@ -71,11 +71,12 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-tag mr-1"></i> Tipe Kelas</label>
-                    <select name="class_type" class="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
-                        <option value="reguler" selected>Reguler</option>
-                        <option value="industri">Kelas Industri</option>
-                        <option value="exclusive">Kelas Exclusive</option>
-                        <option value="khusus">Kelas Khusus</option>
+                    <select name="class_type" id="class_type" class="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
+                        <option value="reguler" {{ old('class_type') == 'reguler' ? 'selected' : '' }}>Reguler</option>
+                        <option value="industri" {{ old('class_type') == 'industri' ? 'selected' : '' }}>Kelas Industri</option>
+                        <option value="exclusive" {{ old('class_type') == 'exclusive' ? 'selected' : '' }}>Kelas Exclusive</option>
+                        <option value="khusus" {{ old('class_type') == 'khusus' ? 'selected' : '' }}>Kelas Khusus</option>
+                        <option value="gabungan" {{ old('class_type') == 'gabungan' ? 'selected' : '' }}>Kelas Gabungan (Multi-Jurusan)</option>
                     </select>
                 </div>
                 <div>

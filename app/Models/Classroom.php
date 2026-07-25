@@ -29,14 +29,24 @@ class Classroom extends Model
         'notes',
         'entry_time',
         'late_tolerance',
+        'is_combined',
         'is_active',
     ];
 
     protected $casts = [
         'grade_level' => 'integer',
         'capacity' => 'integer',
+        'is_combined' => 'boolean',
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Check if classroom is a combined / multi-major class
+     */
+    public function isCombinedClass(): bool
+    {
+        return (bool) ($this->is_combined || $this->class_type === 'gabungan');
+    }
 
     /**
      * Classroom belongs to a School

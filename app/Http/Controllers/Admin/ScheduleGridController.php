@@ -450,20 +450,22 @@ class ScheduleGridController extends Controller
             ->where('is_active', 1);
         
         // Filter: Get common subjects (no major/program) OR subjects matching classroom's major/program
-        $subjectsQuery->where(function($query) use ($classroom) {
-            // Common subjects (no major_id and no program_keahlian_id)
-            $query->whereNull('major_id')->whereNull('program_keahlian_id');
-            
-            // OR subjects for classroom's major (SMA/SMP)
-            if ($classroom->major_id) {
-                $query->orWhere('major_id', $classroom->major_id);
-            }
-            
-            // OR subjects for classroom's program keahlian (SMK)
-            if ($classroom->program_keahlian_id) {
-                $query->orWhere('program_keahlian_id', $classroom->program_keahlian_id);
-            }
-        });
+        if (!$classroom->isCombinedClass()) {
+            $subjectsQuery->where(function($query) use ($classroom) {
+                // Common subjects (no major_id and no program_keahlian_id)
+                $query->whereNull('major_id')->whereNull('program_keahlian_id');
+                
+                // OR subjects for classroom's major (SMA/SMP)
+                if ($classroom->major_id) {
+                    $query->orWhere('major_id', $classroom->major_id);
+                }
+                
+                // OR subjects for classroom's program keahlian (SMK)
+                if ($classroom->program_keahlian_id) {
+                    $query->orWhere('program_keahlian_id', $classroom->program_keahlian_id);
+                }
+            });
+        }
         
         $subjects = $subjectsQuery->orderBy('category')->orderBy('name')->get();
         

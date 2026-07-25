@@ -233,7 +233,7 @@ class ClassroomController extends Controller
             'major_id' => 'nullable|exists:majors,id',
             'program_keahlian_id' => 'nullable|exists:program_keahlians,id',
             'konsentrasi_keahlian_id' => 'nullable|exists:konsentrasi_keahlians,id',
-            'class_type' => 'required|string|in:reguler,industri,exclusive,khusus',
+            'class_type' => 'required|string|in:reguler,industri,exclusive,khusus,gabungan',
             'class_code' => 'required|string|max:20',
             'class_name' => 'required|string|max:100',
             'grade_level' => 'required|integer',
@@ -241,25 +241,28 @@ class ClassroomController extends Controller
             'notes' => 'nullable|string',
             'entry_time' => 'nullable|string|regex:/^[0-9]{2}:[0-9]{2}$/',
             'late_tolerance' => 'nullable|integer|min:0',
+            'is_combined' => 'nullable|boolean',
             'is_active' => 'nullable|boolean',
         ]);
 
-        // Set is_active default to true if not provided
+        // Set defaults
         $data['is_active'] = $request->has('is_active') ? (bool)$request->input('is_active') : true;
+        $isCombined = $request->has('is_combined') ? (bool)$request->input('is_combined') : ($data['class_type'] === 'gabungan');
+        $data['is_combined'] = $isCombined;
 
         $school = School::find($data['school_id']);
         if ($school) {
             $schoolType = strtoupper($school->type);
-            if ($schoolType === 'SMK') {
+            if ($schoolType === 'SMK' && !$isCombined) {
                 if (empty($data['program_keahlian_id'])) {
-                    return back()->withErrors(['program_keahlian_id' => 'Program Keahlian wajib diisi untuk SMK'])->withInput();
+                    return back()->withErrors(['program_keahlian_id' => 'Program Keahlian wajib diisi untuk SMK (kecuali Kelas Gabungan)'])->withInput();
                 }
                 if (empty($data['konsentrasi_keahlian_id'])) {
-                    return back()->withErrors(['konsentrasi_keahlian_id' => 'Konsentrasi Keahlian wajib diisi untuk SMK'])->withInput();
+                    return back()->withErrors(['konsentrasi_keahlian_id' => 'Konsentrasi Keahlian wajib diisi untuk SMK (kecuali Kelas Gabungan)'])->withInput();
                 }
-            } elseif ($schoolType === 'SMA') {
+            } elseif ($schoolType === 'SMA' && !$isCombined) {
                 if (in_array((int)$data['grade_level'], [11, 12]) && empty($data['major_id'])) {
-                    return back()->withErrors(['major_id' => 'Jurusan wajib diisi untuk SMA Kelas XI dan XII'])->withInput();
+                    return back()->withErrors(['major_id' => 'Jurusan wajib diisi untuk SMA Kelas XI dan XII (kecuali Kelas Gabungan)'])->withInput();
                 }
                 // Jika kelas X (10), set major_id ke null
                 if ((int)$data['grade_level'] === 10) {
@@ -308,7 +311,7 @@ class ClassroomController extends Controller
             'major_id' => 'nullable|exists:majors,id',
             'program_keahlian_id' => 'nullable|exists:program_keahlians,id',
             'konsentrasi_keahlian_id' => 'nullable|exists:konsentrasi_keahlians,id',
-            'class_type' => 'required|string|in:reguler,industri,exclusive,khusus',
+            'class_type' => 'required|string|in:reguler,industri,exclusive,khusus,gabungan',
             'class_code' => 'required|string|max:20',
             'class_name' => 'required|string|max:100',
             'grade_level' => 'required|integer',
@@ -316,25 +319,28 @@ class ClassroomController extends Controller
             'notes' => 'nullable|string',
             'entry_time' => 'nullable|string|regex:/^[0-9]{2}:[0-9]{2}$/',
             'late_tolerance' => 'nullable|integer|min:0',
+            'is_combined' => 'nullable|boolean',
             'is_active' => 'nullable|boolean',
         ]);
 
-        // Handle checkbox value
+        // Handle checkbox values
         $data['is_active'] = $request->has('is_active') ? (bool)$request->input('is_active') : false;
+        $isCombined = $request->has('is_combined') ? (bool)$request->input('is_combined') : ($data['class_type'] === 'gabungan');
+        $data['is_combined'] = $isCombined;
 
         $school = School::find($data['school_id']);
         if ($school) {
             $schoolType = strtoupper($school->type);
-            if ($schoolType === 'SMK') {
+            if ($schoolType === 'SMK' && !$isCombined) {
                 if (empty($data['program_keahlian_id'])) {
-                    return back()->withErrors(['program_keahlian_id' => 'Program Keahlian wajib diisi untuk SMK'])->withInput();
+                    return back()->withErrors(['program_keahlian_id' => 'Program Keahlian wajib diisi untuk SMK (kecuali Kelas Gabungan)'])->withInput();
                 }
                 if (empty($data['konsentrasi_keahlian_id'])) {
-                    return back()->withErrors(['konsentrasi_keahlian_id' => 'Konsentrasi Keahlian wajib diisi untuk SMK'])->withInput();
+                    return back()->withErrors(['konsentrasi_keahlian_id' => 'Konsentrasi Keahlian wajib diisi untuk SMK (kecuali Kelas Gabungan)'])->withInput();
                 }
-            } elseif ($schoolType === 'SMA') {
+            } elseif ($schoolType === 'SMA' && !$isCombined) {
                 if (in_array((int)$data['grade_level'], [11, 12]) && empty($data['major_id'])) {
-                    return back()->withErrors(['major_id' => 'Jurusan wajib diisi untuk SMA Kelas XI dan XII'])->withInput();
+                    return back()->withErrors(['major_id' => 'Jurusan wajib diisi untuk SMA Kelas XI dan XII (kecuali Kelas Gabungan)'])->withInput();
                 }
                 // Jika kelas X (10), set major_id ke null
                 if ((int)$data['grade_level'] === 10) {
