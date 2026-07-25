@@ -803,8 +803,8 @@ function pembdaColabs() {
                     <i class="ph-bold ph-cellphone-charging text-xl"></i>
                 </div>
                 <div>
-                    <h3 class="forum-hdr text-base font-bold text-slate-900 leading-tight">Install Aplikasi Pembda Space</h3>
-                    <div class="text-xs text-indigo-700 font-bold">Panduan Pemasangan di HP</div>
+                    <h3 class="forum-hdr text-base font-bold text-slate-900 leading-tight">Install Aplikasi <span class="text-slate-900">Pembda</span><span class="text-red-600 font-black">HUB</span></h3>
+                    <div class="text-xs text-indigo-700 font-bold">Aplikasi Mobile Resmi PembdaHUB</div>
                 </div>
             </div>
             <button onclick="document.getElementById('pwaGuideModal').style.display = 'none'" class="text-slate-400 hover:text-slate-700 p-1">
@@ -814,7 +814,7 @@ function pembdaColabs() {
         <div class="p-6 space-y-4 text-sm text-slate-800">
             <div class="p-3 bg-indigo-50 border border-indigo-200 rounded-2xl flex items-start gap-3">
                 <i class="ph-bold ph-info text-indigo-600 text-xl flex-shrink-0 mt-0.5"></i>
-                <div class="text-xs text-indigo-900 font-medium">Aplikasi akan terpasang di Layar Utama HP Anda dalam bentuk Layar Penuh (Fullscreen) seperti WhatsApp.</div>
+                <div class="text-xs text-indigo-900 font-medium">Aplikasi PembdaHUB Mobile akan terpasang di Layar Utama HP Anda dengan Logo Resmi Perguruan PEMBDA.</div>
             </div>
             
             <div class="space-y-3 pt-2">
@@ -829,7 +829,7 @@ function pembdaColabs() {
                 </div>
                 <div class="flex items-start gap-3 text-xs">
                     <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center flex-shrink-0">3</div>
-                    <div class="pt-0.5 font-semibold text-slate-800">Klik <strong>"Instal" / "Tambah"</strong>. Ikon Pembda Space akan langsung muncul di HP Anda!</div>
+                    <div class="pt-0.5 font-semibold text-slate-800">Klik <strong>"Instal" / "Tambah"</strong>. Ikon PembdaHUB Mobile akan langsung muncul di HP Anda!</div>
                 </div>
             </div>
 

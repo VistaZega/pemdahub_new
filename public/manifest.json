@@ -1,14 +1,14 @@
 {
-  "id": "/forum",
-  "name": "Pembda Space",
-  "short_name": "Pembda Space",
-  "description": "Aplikasi Forum Komunitas & Ruang Diskusi Pembda Space",
-  "start_url": "/forum",
+  "id": "/",
+  "name": "PembdaHUB - Mobile App System",
+  "short_name": "PembdaHUB",
+  "description": "Aplikasi Official Mobile System Yayasan Perguruan PEMBDA Nias",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f8fafc",
-  "theme_color": "#6366f1",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
   "prefer_related_applications": false,
   "icons": [
     {
