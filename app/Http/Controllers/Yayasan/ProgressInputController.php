@@ -570,27 +570,66 @@ class ProgressInputController extends Controller
             $feeValuedCount = $feeTypes->where('amount', '>', 0)->count();
             $sumAmount = $feeTypes->sum('amount');
 
-            $zeroValuedNames = $feeTypes->where('amount', '<=', 0)->pluck('name')->toArray();
+            $zeroValuedNames = $feeTypes->where('amount', '<=', 0)->pluck('type_name')->toArray();
+
+            // Cek penerbitan StudentBill pada Tahun Pelajaran yang sedang dipilih ($currentYear)
+            $billsQuery = StudentBill::whereHas('student', function ($q) use ($school) {
+                $q->where('school_id', $school->id);
+            });
+            if ($currentYear) {
+                $billsQuery->where('academic_year_id', $currentYear->id);
+            }
+            $billsCount = $billsQuery->count();
+            $billsTotal = $billsQuery->sum('amount');
+
+            $academicYearLabel = $currentYear ? "TP. {$currentYear->year}" : "TP Aktif";
 
             if ($feeCount == 0) {
-                $rekomendasi = "Belum ada master jenis tagihan siswa (SPP, DSP, Ujian). Segera buat jenis tagihan dan tentukan nominal pembayarannya.";
+                $rekomendasi = "Belum ada master jenis tagihan siswa (SPP, DSP, Ujian) pada unit ini. Segera buat jenis tagihan dan tentukan nominal pembayarannya.";
                 $statusColor = 'red';
             } elseif ($feeValuedCount < $feeCount) {
                 $sisa = $feeCount - $feeValuedCount;
                 $rekomendasi = "Terdapat {$feeCount} jenis tagihan, namun {$sisa} jenis belum diberi nominal (> Rp 0). Lengkapi besaran nominalnya.";
                 $statusColor = 'amber';
+            } elseif ($billsCount == 0) {
+                $rekomendasi = "Terdapat {$feeCount} jenis tagihan siswa yang bernominal, tetapi BELUM TERBIT tagihan ke siswa untuk {$academicYearLabel}. Terbitkan tagihan siswa.";
+                $statusColor = 'amber';
             } else {
-                $rekomendasi = "Terdapat {$feeCount} jenis tagihan siswa yang siap digunakan dan seluruhnya telah memiliki nilai nominal.";
+                $rekomendasi = "Terdapat {$feeCount} jenis tagihan siswa siap pakai dan {$billsCount} tagihan siswa telah diterbitkan pada {$academicYearLabel}.";
                 $statusColor = 'green';
             }
 
+            // Buat rincian jenis tagihan beserta nominalnya
+            $feeListText = [];
+            foreach ($feeTypes as $ft) {
+                $nom = $ft->amount > 0 ? "Rp " . number_format($ft->amount, 0, ',', '.') . ($ft->is_recurring ? '/bln' : '') : "Belum Bernominal";
+                $feeListText[] = "{$ft->type_name} ({$nom})";
+            }
+            $daftarTagihanStr = !empty($feeListText) ? implode(', ', $feeListText) : 'Belum Ada';
+
             $details = [
-                "Total Master Tagihan: {$feeCount} Jenis",
-                "Tagihan Memiliki Nominal: {$feeValuedCount} Jenis",
+                "Acuan Tahun Pelajaran: {$academicYearLabel}",
+                "Master Tagihan ({$feeCount} Jenis): {$daftarTagihanStr}",
                 "Total Setup Nominal: Rp " . number_format($sumAmount, 0, ',', '.'),
             ];
+
+            if ($billsCount > 0) {
+                $details[] = "Tagihan Terbit {$academicYearLabel}: {$billsCount} Tagihan Siswa (Total Rp " . number_format($billsTotal, 0, ',', '.') . ")";
+            } else {
+                $details[] = "Tagihan Terbit {$academicYearLabel}: Belum Diterbitkan ke Siswa";
+            }
+
             if (!empty($zeroValuedNames)) {
                 $details[] = "Belum Ber-Nominal: " . implode(', ', array_slice($zeroValuedNames, 0, 3));
+            }
+
+            $actionItems = [];
+            if ($feeCount == 0) {
+                $actionItems[] = "Buat Master Jenis Tagihan Pembayaran";
+            } elseif (!empty($zeroValuedNames)) {
+                $actionItems[] = "Input Nominal untuk: " . implode(', ', $zeroValuedNames);
+            } elseif ($billsCount == 0) {
+                $actionItems[] = "Terbitkan Tagihan Siswa untuk {$academicYearLabel}";
             }
 
             $item8Schools[] = [
@@ -601,7 +640,7 @@ class ProgressInputController extends Controller
                 'status_color' => $statusColor,
                 'raw_value' => $feeCount,
                 'details' => $details,
-                'action_items' => $zeroValuedNames,
+                'action_items' => $actionItems,
             ];
         }
         $items[] = [
