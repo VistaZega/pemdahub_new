@@ -159,6 +159,34 @@
 
         @push('scripts')
         <script>
+            function toggleGabunganInfo(val) {
+                const info = document.getElementById('gabungan-info');
+                const keahlianContainer = document.getElementById('keahlian-container');
+                const konsentrasiContainer = document.getElementById('konsentrasi-container');
+                const majorContainer = document.getElementById('major-container');
+                const programSelect = document.getElementById('program-keahlian-select');
+                const konsentrasiSelect = document.getElementById('konsentrasi-keahlian-select');
+                const majorSelect = document.getElementById('major-select');
+
+                if (val === 'gabungan') {
+                    if (info) info.style.display = 'block';
+                    if (keahlianContainer) keahlianContainer.style.display = 'none';
+                    if (konsentrasiContainer) konsentrasiContainer.style.display = 'none';
+                    if (majorContainer) majorContainer.style.display = 'none';
+                    if (programSelect) programSelect.value = '';
+                    if (konsentrasiSelect) konsentrasiSelect.value = '';
+                    if (majorSelect) majorSelect.value = '';
+                } else {
+                    if (info) info.style.display = 'none';
+                    const schoolSelect = document.querySelector('select[name="school_id"]');
+                    const schoolHidden = document.querySelector('input[name="school_id"][type="hidden"]');
+                    const currentSchool = schoolSelect ? schoolSelect.value : (schoolHidden ? schoolHidden.value : null);
+                    if (currentSchool && typeof loadKeahlianForSchool === 'function') {
+                        loadKeahlianForSchool(currentSchool);
+                    }
+                }
+            }
+
             async function loadKeahlianForSchool(schoolId, selectedProgramId = null, selectedKonsentrasiId = null, selectedMajorId = null, selectedGradeLevel = null) {
                 const keahlianContainer = document.getElementById('keahlian-container');
                 const konsentrasiContainer = document.getElementById('konsentrasi-container');
@@ -275,6 +303,11 @@
                         konsentrasiContainer.style.display = 'none';
                         programSelect.innerHTML = '<option value="">-- Pilih Program Keahlian --</option>';
                         konsentrasiSelect.innerHTML = '<option value="">-- Pilih Konsentrasi --</option>';
+                    }
+
+                    const classTypeSelect = document.getElementById('class_type');
+                    if (classTypeSelect && classTypeSelect.value === 'gabungan') {
+                        toggleGabunganInfo('gabungan');
                     }
                 } catch (e) {
                     console.error(e);
