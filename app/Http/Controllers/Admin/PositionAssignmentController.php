@@ -31,12 +31,24 @@ class PositionAssignmentController extends Controller
         $semester = 'full_year';
         
         // Base query - all active employees (guru and staff/pegawai)
-        $query = Employee::with(['school', 'employeePositions' => function ($q) use ($selectedYearId) {
-            $q->where('academic_year_id', $selectedYearId);
-            $q->whereNull('end_date'); // Only show active positions
-            $q->with('position');
-            $q->orderBy('is_primary', 'desc')->orderBy('start_date', 'desc')->orderBy('id', 'desc');
-        }]);
+        $query = Employee::query()
+            ->select('employees.*')
+            ->addSelect(['min_position_level' => function ($q) {
+                $q->selectRaw('COALESCE(MIN(positions.position_level), 999)')
+                    ->from('employee_positions')
+                    ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
+                    ->whereColumn('employee_positions.employee_id', 'employees.id')
+                    ->whereNull('employee_positions.end_date');
+            }])
+            ->with(['school', 'employeePositions' => function ($q) use ($selectedYearId) {
+                $q->where('academic_year_id', $selectedYearId);
+                $q->whereNull('end_date'); // Only show active positions
+                $q->with('position');
+                $q->orderBy('is_primary', 'desc')->orderBy('start_date', 'desc')->orderBy('id', 'desc');
+            }])
+            ->orderBy('min_position_level', 'asc')
+            ->orderBy('employee_code', 'asc')
+            ->orderBy('full_name', 'asc');
 
         // Filter by employee category if specified
         if ($request->filled('employee_type') && $request->employee_type !== 'all' && $request->employee_type !== '') {
