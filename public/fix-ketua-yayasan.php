@@ -17,7 +17,7 @@ use App\Models\School;
 
 header('Content-Type: text/html; charset=utf-8');
 echo "<body style='background:#111; color:#0f0; font-family:monospace; padding:20px;'>";
-echo "<h1>=== PENYATUAN DATA KETUA YAYASAN (PRODUCTION FIX) ===</h1>";
+echo "<h1>=== PENYATUAN DATA & AKSES LOGIN KETUA YAYASAN (PRODUCTION FIX) ===</h1>";
 
 try {
     DB::beginTransaction();
@@ -28,7 +28,28 @@ try {
         throw new Exception("Sekolah/Unit Yayasan tidak ditemukan.");
     }
 
-    // Primary employee (SMK-025 or matching Yulianus Zega with assignments)
+    // Find primary user with yulzega@gmail.com or username yulzega or Yulianus Zega
+    $primaryUser = User::where('email', 'yulzega@gmail.com')
+        ->orWhere('username', 'yulzega')
+        ->orWhere('name', 'LIKE', '%Yulianus Zega%')
+        ->first();
+
+    if (!$primaryUser) {
+        $primaryUser = new User();
+        $primaryUser->password = \Illuminate\Support\Facades\Hash::make('pembda2026');
+    }
+
+    $primaryUser->name = 'Yulianus Zega, S.Kom, M.Pd';
+    $primaryUser->email = 'yulzega@gmail.com';
+    $primaryUser->username = 'yulzega';
+    $primaryUser->role = 'superadmin';
+    $primaryUser->school_id = $yayasanSchool->id;
+    $primaryUser->is_active = true;
+    $primaryUser->save();
+
+    echo "Primary User Account Ready: ID {$primaryUser->id} | Email: {$primaryUser->email} | Username: {$primaryUser->username} | Active: YES<br>";
+
+    // Find primary employee (SMK-025 or matching Yulianus Zega)
     $empPrimary = Employee::where('full_name', 'LIKE', '%Yulianus Zega%')
         ->whereHas('teacher.teachingAssignments')
         ->first();
@@ -43,22 +64,8 @@ try {
 
     echo "Primary Employee Found: ID {$empPrimary->id} ({$empPrimary->full_name})<br>";
 
-    // Find primary user or create/use existing user
-    $primaryUser = $empPrimary->user;
-    if (!$primaryUser) {
-        $primaryUser = User::where('name', 'LIKE', '%Yulianus Zega%')
-            ->orWhere('username', 'LIKE', '%yul%')
-            ->first();
-    }
-
-    if ($primaryUser) {
-        $primaryUser->role = 'superadmin';
-        $primaryUser->name = 'Yulianus Zega, S.Kom, M.Pd';
-        $primaryUser->school_id = $yayasanSchool->id;
-        $primaryUser->save();
-        $empPrimary->user_id = $primaryUser->id;
-        echo "Primary User Set: ID {$primaryUser->id} ({$primaryUser->username})<br>";
-    }
+    // Link employee to primary user
+    $empPrimary->user_id = $primaryUser->id;
 
     // Find duplicates
     $duplicates = Employee::where('full_name', 'LIKE', '%Yulianus Zega%')
@@ -77,8 +84,8 @@ try {
             DB::table('payrolls')->where('employee_id', $dup->id)->update(['employee_id' => $empPrimary->id]);
         }
 
-        // Handle duplicate user account
-        if ($dup->user_id && $primaryUser && $dup->user_id != $primaryUser->id) {
+        // Handle duplicate user account (if any other user exists)
+        if ($dup->user_id && $dup->user_id != $primaryUser->id) {
             $dupUserId = $dup->user_id;
             echo "Re-assigning user references for User ID {$dupUserId} to Primary User ID {$primaryUser->id}...<br>";
             
@@ -97,6 +104,24 @@ try {
         $dup->delete();
     }
 
+    // Clean up any remaining extra users with same name/email that aren't primaryUser
+    $extraUsers = User::where(function($q) {
+        $q->where('email', 'yulianus@smk.pembdahub.com')
+          ->orWhere('username', 'yulianus');
+    })->where('id', '!=', $primaryUser->id)->get();
+
+    foreach ($extraUsers as $eu) {
+        echo "Cleaning up old extra user ID {$eu->id} ({$eu->username})...<br>";
+        DB::table('employee_attendances')->where('recorded_by', $eu->id)->update(['recorded_by' => $primaryUser->id]);
+        if (DB::getSchemaBuilder()->hasTable('activity_logs')) {
+            DB::table('activity_logs')->where('user_id', $eu->id)->update(['user_id' => $primaryUser->id]);
+        }
+        if (DB::getSchemaBuilder()->hasTable('login_histories')) {
+            DB::table('login_histories')->where('user_id', $eu->id)->update(['user_id' => $primaryUser->id]);
+        }
+        $eu->delete();
+    }
+
     $desiredCode = 'YYS-002';
 
     $empPrimary->full_name = 'Yulianus Zega, S.Kom, M.Pd';
@@ -111,15 +136,13 @@ try {
         $teacherPrimary->full_name = 'Yulianus Zega, S.Kom, M.Pd';
         $teacherPrimary->teacher_code = $desiredCode;
         $teacherPrimary->school_id = $yayasanSchool->id;
-        if ($primaryUser) {
-            $teacherPrimary->user_id = $primaryUser->id;
-        }
+        $teacherPrimary->user_id = $primaryUser->id;
         $teacherPrimary->save();
     }
 
     DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     DB::commit();
-    echo "<h2 style='color:#00ff88;'>SUCCESS! Data Ketua Yayasan telah disatukan secara aman di Production.</h2>";
+    echo "<h2 style='color:#00ff88;'>SUCCESS! Akun Login 'yulzega@gmail.com' / 'yulzega' dan Data Ketua Yayasan telah AKTIF & SINKRON 100%.</h2>";
 
 } catch (Exception $e) {
     DB::statement('SET FOREIGN_KEY_CHECKS=1;');
