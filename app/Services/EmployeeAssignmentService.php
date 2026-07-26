@@ -106,14 +106,24 @@ class EmployeeAssignmentService
         int $totalJamMengajar,
         string $employmentStatus,
         ?string $schoolLevel = null,
-        ?int $schoolId = null
+        ?int $schoolId = null,
+        ?Employee $employee = null
     ): array {
         $rules = $this->getJamHonorRules($schoolLevel, $schoolId);
 
-        // Determine jam_wajib and honor_per_jam based on employment status
+        // Determine jam_wajib and honor_per_jam based on employment status & employee type
         $statusLower = strtolower($employmentStatus);
-        $hasJamWajib = in_array($employmentStatus, self::JAM_WAJIB_ELIGIBLE);
-        $jamWajib = $hasJamWajib ? $rules['jam_wajib_tetap'] : $rules['jam_wajib_honor'];
+
+        // PTY / Non-Guru / Pegawai Yayasan (seperti Ketua Yayasan) tidak memiliki kewajiban jam wajib mengajar (jam_wajib = 0)
+        $isNonGuruStaff = $employee && (
+            $employee->employee_type !== 'guru' ||
+            $employee->isYayasanStaff() ||
+            $employee->positions()->where('position_name', 'LIKE', '%Ketua%')->exists()
+        );
+
+        $hasJamWajib = !$isNonGuruStaff && in_array($employmentStatus, self::JAM_WAJIB_ELIGIBLE);
+        $jamWajib = $hasJamWajib ? $rules['jam_wajib_tetap'] : 0;
+
         // Yayasan = honor tetap, honorer = honor honorer (termasuk gty/pty)
         $honorPerJam = in_array($statusLower, ['yayasan', 'pns', 'gty', 'pty'])
             ? $rules['honor_tetap']
@@ -268,7 +278,8 @@ class EmployeeAssignmentService
             $totalJamMengajar,
             $employee->employment_status ?? 'yayasan',
             $schoolLevel,
-            $employee->school_id
+            $employee->school_id,
+            $employee
         );
 
         // 4. Tunjangan (Keluarga, Anak, Beras)
