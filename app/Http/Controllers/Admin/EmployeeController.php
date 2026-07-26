@@ -43,6 +43,7 @@ class EmployeeController extends Controller
                     ->whereNull('employee_positions.end_date');
             }])
             ->orderBy('min_position_level', 'asc')
+            ->orderBy('employee_code', 'asc')
             ->orderBy('full_name', 'asc');
 
         // Admin sekolah: only their school

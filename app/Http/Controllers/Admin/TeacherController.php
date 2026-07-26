@@ -39,6 +39,7 @@ class TeacherController extends Controller
                     ->whereNull('employee_positions.end_date');
             }])
             ->orderBy('min_position_level', 'asc')
+            ->orderBy('teacher_code', 'asc')
             ->orderBy('full_name', 'asc');
 
         // Auto-filter by school_id for non-superadmin
