@@ -61,7 +61,7 @@ try {
     $empPrimary->full_name = 'Yulianus Zega, S.Kom, M.Pd';
     $empPrimary->school_id = $yayasanSchool->id;
     $empPrimary->employee_code = $desiredCode;
-    $empPrimary->employee_type = 'guru';
+    $empPrimary->employee_type = 'other'; // Set to 'other' so appears in both Data Pegawai and Data Guru
     $empPrimary->employment_status = 'yayasan';
 
     if ($empPrimary->user) {
