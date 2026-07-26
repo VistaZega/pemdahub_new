@@ -10,6 +10,7 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use App\Models\Employee;
 use App\Models\Teacher;
 use App\Models\User;
@@ -36,7 +37,6 @@ try {
 
     if (!$primaryUser) {
         $primaryUser = new User();
-        $primaryUser->password = \Illuminate\Support\Facades\Hash::make('pembda2026');
     }
 
     $primaryUser->name = 'Yulianus Zega, S.Kom, M.Pd';
@@ -45,6 +45,19 @@ try {
     $primaryUser->role = 'superadmin';
     $primaryUser->school_id = $yayasanSchool->id;
     $primaryUser->is_active = true;
+
+    // Password handling: update if ?password=... parameter is provided
+    if (isset($_GET['password']) && !empty($_GET['password'])) {
+        $newPwd = trim($_GET['password']);
+        $primaryUser->password = Hash::make($newPwd);
+        echo "<span style='color:#ff0;'>Password berhasil diperbarui/reset menjadi: '{$newPwd}'</span><br>";
+    } elseif (empty($primaryUser->password)) {
+        $primaryUser->password = Hash::make('pembda2026');
+        echo "<span style='color:#ff0;'>Password baru dibuat dengan default: 'pembda2026'</span><br>";
+    } else {
+        echo "Password lama tetap dipertahankan.<br>";
+    }
+
     $primaryUser->save();
 
     echo "Primary User Account Ready: ID {$primaryUser->id} | Email: {$primaryUser->email} | Username: {$primaryUser->username} | Active: YES<br>";
@@ -142,7 +155,7 @@ try {
 
     DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     DB::commit();
-    echo "<h2 style='color:#00ff88;'>SUCCESS! Akun Login 'yulzega@gmail.com' / 'yulzega' dan Data Ketua Yayasan telah AKTIF & SINKRON 100%.</h2>";
+    echo "<h2 style='color:#00ff88;'>SUCCESS! Akun Login 'yulzega@gmail.com' / 'yulzega' dan Data Ketua Yayasan telah SINKRON 100%.</h2>";
 
 } catch (Exception $e) {
     DB::statement('SET FOREIGN_KEY_CHECKS=1;');
