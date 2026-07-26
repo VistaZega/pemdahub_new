@@ -34,48 +34,39 @@ try {
         $activeYear = AcademicYear::latest('id')->first();
     }
 
-    echo "1. Menyesuaikan Position Level untuk Hirarki Jabatan Yayasan...<br>";
+    echo "1. Menyesuaikan Position Level untuk Hirarki Jabatan secara Akurat...<br>";
     // Explicit User requested hierarchy:
-    // Level 10: Ketua Yayasan
+    // Level 10: Ketua Yayasan / Pimpinan / Pengawas / Pembina
     // Level 20: Bendahara / Staff Keuangan
-    // Level 30: Staff TU / Umum / KTU / Operator
+    // Level 30: Staff TU / OP-YAYASAN / Operator / Umum / Staf Lainnya
     // Level 40: Security / Satpam
     // Level 50: Kebersihan / CS / Cleaning Service
 
-    // Apply levels specifically
-    Position::where('position_name', 'LIKE', '%Ketua%')->update(['position_level' => 10]);
-    
-    Position::where(function($q) {
-        $q->where('position_name', 'LIKE', '%Bendahara%')
-          ->orWhere('position_name', 'LIKE', '%Keuangan%');
-    })->where('position_name', 'NOT LIKE', '%Ketua%')->update(['position_level' => 20]);
-    
-    Position::where(function($q) {
-        $q->where('position_name', 'LIKE', '%Tata Usaha%')
-          ->orWhere('position_name', 'LIKE', '%KTU%')
-          ->orWhere('position_name', 'LIKE', '%Operator%')
-          ->orWhere('position_name', 'LIKE', '%Staff TU%')
-          ->orWhere('position_name', 'LIKE', '%Staf TU%');
-    })->where('position_name', 'NOT LIKE', '%Ketua%')->update(['position_level' => 30]);
-
-    Position::where(function($q) {
-        $q->where('position_name', 'LIKE', '%Satpam%')
-          ->orWhere('position_name', 'LIKE', '%Security%')
-          ->orWhere('position_name', 'LIKE', '%Penjaga%');
-    })->update(['position_level' => 40]);
-
-    Position::where(function($q) {
-        $q->where('position_name', 'LIKE', '%Cleaning%')
-          ->orWhere('position_name', 'LIKE', '%Kebersihan%')
-          ->orWhere('position_name', 'LIKE', '%CS%');
-    })->update(['position_level' => 50]);
+    $allPositions = Position::all();
+    foreach ($allPositions as $p) {
+        $name = $p->position_name;
+        $lvl = 30; // Default level for Staff / OP / TU
+        if (stripos($name, 'ketua') !== false || stripos($name, 'pembina') !== false || stripos($name, 'pengawas') !== false) {
+            $lvl = 10;
+        } elseif (stripos($name, 'bendahara') !== false || stripos($name, 'keuangan') !== false) {
+            $lvl = 20;
+        } elseif (stripos($name, 'satpam') !== false || stripos($name, 'security') !== false || stripos($name, 'penjaga') !== false) {
+            $lvl = 40;
+        } elseif (stripos($name, 'cleaning') !== false || stripos($name, 'kebersihan') !== false || stripos($name, 'cs') !== false) {
+            $lvl = 50;
+        } else {
+            $lvl = 30;
+        }
+        $p->position_level = $lvl;
+        $p->save();
+    }
 
     // Clean up duplicate position assignments for Employee ID 209 if any
     $empKetua = Employee::where('full_name', 'LIKE', '%Yulianus Zega%')->first();
     if ($empKetua) {
         $posKetua = Position::where('position_name', 'LIKE', '%Ketua Yayasan%')->first();
         if ($posKetua && $activeYear) {
-            // Remove any other positions for employee 209 to keep clean primary position
+            // Remove any lower staff positions assigned to Ketua Yayasan to keep clean primary position
             EmployeePosition::where('employee_id', $empKetua->id)
                 ->where('position_id', '!=', $posKetua->id)
                 ->delete();
@@ -164,7 +155,7 @@ try {
     echo "</table>";
 
     DB::commit();
-    echo "<h2 style='color:#00ff88;'>SUCCESS! Kode Pegawai Yayasan berhasil dirapikan berdasarkan hirarki urutan: 1. Ketua Yayasan (10), 2. Bendahara/Keuangan (20), 3. Staff TU/Umum (30), 4. Security (40), 5. Kebersihan/CS (50).</h2>";
+    echo "<h2 style='color:#00ff88;'>SUCCESS! Kode Pegawai Yayasan berhasil dirapikan berdasarkan hirarki urutan: 1. Ketua Yayasan (10), 2. Bendahara/Keuangan (20), 3. Staff TU/Umum/OP-YAYASAN (30), 4. Security (40), 5. Kebersihan/CS (50).</h2>";
 
 } catch (Exception $e) {
     DB::rollBack();
