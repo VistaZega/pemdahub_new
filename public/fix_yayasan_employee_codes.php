@@ -34,16 +34,52 @@ try {
         $activeYear = AcademicYear::latest('id')->first();
     }
 
-    echo "1. Menyesuaikan Position Level untuk Jabatan Yayasan...<br>";
-    // Ensure Yayasan positions have correct position_level
-    Position::whereIn('position_name', ['Ketua Yayasan', 'Bendahara Yayasan', 'Pengawas Yayasan', 'Pembina'])
-        ->update(['position_level' => 1]);
+    echo "1. Menyesuaikan Position Level untuk Hirarki Jabatan Yayasan...<br>";
+    // Explicit User requested hierarchy:
+    // Level 10: Ketua Yayasan
+    // Level 20: Bendahara / Staff Keuangan
+    // Level 30: Staff TU / Umum / KTU / Operator
+    // Level 40: Security / Satpam
+    // Level 50: Kebersihan / CS / Cleaning Service
 
-    // Ensure Employee ID 209 (Ketua Yayasan) has active position assignment in active academic year
+    // Apply levels specifically
+    Position::where('position_name', 'LIKE', '%Ketua%')->update(['position_level' => 10]);
+    
+    Position::where(function($q) {
+        $q->where('position_name', 'LIKE', '%Bendahara%')
+          ->orWhere('position_name', 'LIKE', '%Keuangan%');
+    })->where('position_name', 'NOT LIKE', '%Ketua%')->update(['position_level' => 20]);
+    
+    Position::where(function($q) {
+        $q->where('position_name', 'LIKE', '%Tata Usaha%')
+          ->orWhere('position_name', 'LIKE', '%KTU%')
+          ->orWhere('position_name', 'LIKE', '%Operator%')
+          ->orWhere('position_name', 'LIKE', '%Staff TU%')
+          ->orWhere('position_name', 'LIKE', '%Staf TU%');
+    })->where('position_name', 'NOT LIKE', '%Ketua%')->update(['position_level' => 30]);
+
+    Position::where(function($q) {
+        $q->where('position_name', 'LIKE', '%Satpam%')
+          ->orWhere('position_name', 'LIKE', '%Security%')
+          ->orWhere('position_name', 'LIKE', '%Penjaga%');
+    })->update(['position_level' => 40]);
+
+    Position::where(function($q) {
+        $q->where('position_name', 'LIKE', '%Cleaning%')
+          ->orWhere('position_name', 'LIKE', '%Kebersihan%')
+          ->orWhere('position_name', 'LIKE', '%CS%');
+    })->update(['position_level' => 50]);
+
+    // Clean up duplicate position assignments for Employee ID 209 if any
     $empKetua = Employee::where('full_name', 'LIKE', '%Yulianus Zega%')->first();
     if ($empKetua) {
-        $posKetua = Position::where('position_name', 'Ketua Yayasan')->first();
+        $posKetua = Position::where('position_name', 'LIKE', '%Ketua Yayasan%')->first();
         if ($posKetua && $activeYear) {
+            // Remove any other positions for employee 209 to keep clean primary position
+            EmployeePosition::where('employee_id', $empKetua->id)
+                ->where('position_id', '!=', $posKetua->id)
+                ->delete();
+
             EmployeePosition::updateOrCreate(
                 [
                     'employee_id' => $empKetua->id,
@@ -56,7 +92,7 @@ try {
                     'end_date' => null,
                 ]
             );
-            echo "   - Active EmployeePosition diset untuk Ketua Yayasan (AY ID: {$activeYear->id})<br>";
+            echo "   - Active EmployeePosition diset untuk Ketua Yayasan (Level 10, AY ID: {$activeYear->id})<br>";
         }
     }
 
@@ -65,7 +101,7 @@ try {
     // Fetch all Yayasan employees ordered by position level ASC, then name ASC
     $yayasanEmployees = Employee::with(['activePositions', 'teacher'])
         ->where('school_id', $yayasanSchool->id)
-        ->addSelect(['min_position_level' => function ($q) use ($activeYear) {
+        ->addSelect(['min_position_level' => function ($q) {
             $q->selectRaw('COALESCE(MIN(positions.position_level), 999)')
                 ->from('employee_positions')
                 ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
@@ -111,7 +147,7 @@ try {
             $emp->teacher->save();
         }
 
-        $posNames = $emp->activePositions->pluck('position_name')->implode(', ') ?: 'Tanpa Jabatan';
+        $posNames = $emp->activePositions->pluck('position_name')->unique()->implode(', ') ?: 'Tanpa Jabatan (Karyawan)';
         $level = $emp->min_position_level;
 
         echo "<tr>";
@@ -128,7 +164,7 @@ try {
     echo "</table>";
 
     DB::commit();
-    echo "<h2 style='color:#00ff88;'>SUCCESS! Kode Pegawai Yayasan berhasil dirapikan menjadi format PTY-001, PTY-002, dst. dan diurutkan berdasarkan hirarki jabatan.</h2>";
+    echo "<h2 style='color:#00ff88;'>SUCCESS! Kode Pegawai Yayasan berhasil dirapikan berdasarkan hirarki urutan: 1. Ketua Yayasan (10), 2. Bendahara/Keuangan (20), 3. Staff TU/Umum (30), 4. Security (40), 5. Kebersihan/CS (50).</h2>";
 
 } catch (Exception $e) {
     DB::rollBack();
