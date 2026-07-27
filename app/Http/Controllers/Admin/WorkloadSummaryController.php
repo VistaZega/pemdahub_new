@@ -114,7 +114,7 @@ class WorkloadSummaryController extends Controller
                 $q->whereHas('employee', fn($empQ) => $empQ->where('school_id', $schoolId))
                   ->orWhereHas('employee.activePositions', function ($posQ) use ($schoolId, $yearId) {
                       $posQ->where('positions.school_id', $schoolId)
-                           ->wherePivot('academic_year_id', $yearId);
+                           ->where('employee_positions.academic_year_id', $yearId);
                   })
                   ->orWhereHas('employee.teacher.teachingAssignments', function ($teachQ) use ($schoolId, $yearId) {
                       $teachQ->where('academic_year_id', $yearId)
