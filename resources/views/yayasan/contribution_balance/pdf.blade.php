@@ -204,11 +204,58 @@
         </div>
     @endforeach
 
+    <h4 style="margin: 15px 0 8px 0; color:#4c1d95; font-size:12px;">III. RINCIAN BELANJA OPERASIONAL PER KODE REKENING</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th width="12%">Kode Rekening</th>
+                <th width="35%">Nama Rekening Belanja Operasional</th>
+                <th width="18%">Kategori</th>
+                <th width="15%" class="text-right">Nominal / Bln</th>
+                <th width="20%" class="text-right">Subtotal ({{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }})</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php $hasOpsDetails = false; @endphp
+            @foreach($schoolData as $item)
+                @if(!empty($item['expense_details']) && count($item['expense_details']) > 0)
+                    @php $hasOpsDetails = true; @endphp
+                    <tr style="background-color: #f5f3ff; font-weight: bold;">
+                        <td colspan="5" style="color: #4c1d95; font-size: 10px;">
+                            UNIT / LEMBAGA: {{ strtoupper($item['school']->name) }} ({{ $item['school']->type }})
+                        </td>
+                    </tr>
+                    @foreach($item['expense_details'] as $accCode => $accAmount)
+                        @php
+                            $accInfo = $expenseAccounts[$accCode] ?? null;
+                            $accMonthly = (float) $accAmount;
+                            $accPeriod = $accMonthly * $multiplier;
+                        @endphp
+                        @if($accMonthly > 0)
+                            <tr>
+                                <td class="font-bold text-center" style="font-family: monospace;">{{ $accCode }}</td>
+                                <td>{{ $accInfo['name'] ?? 'Belanja Operasional' }}</td>
+                                <td>{{ $accInfo['category'] ?? '-' }}</td>
+                                <td class="text-right">Rp {{ number_format($accMonthly, 0, ',', '.') }}</td>
+                                <td class="text-right font-bold">Rp {{ number_format($accPeriod, 0, ',', '.') }}</td>
+                            </tr>
+                        @endif
+                    @endforeach
+                @endif
+            @endforeach
+            @if(!$hasOpsDetails)
+                <tr>
+                    <td colspan="5" class="text-center" style="color:#9ca3af; font-style:italic;">Belum ada rincian belanja operasional per kode rekening yang diinputkan.</td>
+                </tr>
+            @endif
+        </tbody>
+    </table>
+
     <table class="footer-sig">
         <tr>
             <td width="60%"></td>
             <td width="40%">
-                <p>Nias Selatan, {{ date('d F Y') }}</p>
+                <p>Gunungsitoli, {{ date('d F Y') }}</p>
                 <p><strong>Ketua Yayasan Perguruan Pembda</strong></p>
                 <br><br><br>
                 <p><u>___________________________</u></p>

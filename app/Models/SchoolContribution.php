@@ -13,12 +13,14 @@ class SchoolContribution extends Model
         'school_id',
         'academic_year_id',
         'authorized_expense',
+        'expense_details',
         'spp_rates',
         'notes',
     ];
 
     protected $casts = [
         'authorized_expense' => 'decimal:2',
+        'expense_details' => 'array',
         'spp_rates' => 'array',
     ];
 

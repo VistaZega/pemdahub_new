@@ -40,6 +40,93 @@ class ContributionBalanceController extends Controller
         return view('yayasan.contribution_balance.index', $data);
     }
 
+    public const OPERATIONAL_EXPENSE_ACCOUNTS = [
+        '5.1.01' => [
+            'code' => '5.1.01',
+            'name' => 'Belanja Jasa Internet & Telekomunikasi',
+            'icon' => 'fa-wifi',
+            'category' => 'Layanan Utama',
+        ],
+        '5.1.02' => [
+            'code' => '5.1.02',
+            'name' => 'Belanja Jasa Listrik (PLN)',
+            'icon' => 'fa-bolt',
+            'category' => 'Layanan Utama',
+        ],
+        '5.1.03' => [
+            'code' => '5.1.03',
+            'name' => 'Belanja Jasa Air (PDAM / Sumur)',
+            'icon' => 'fa-faucet-drip',
+            'category' => 'Layanan Utama',
+        ],
+        '5.1.04' => [
+            'code' => '5.1.04',
+            'name' => 'Belanja Subsidi & Beasiswa Siswa/Pegawai',
+            'icon' => 'fa-hand-holding-heart',
+            'category' => 'Subsidi & Bantuan',
+        ],
+        '5.1.05' => [
+            'code' => '5.1.05',
+            'name' => 'Belanja Pemeliharaan Sarpras & Perbaikan',
+            'icon' => 'fa-screwdriver-wrench',
+            'category' => 'Pemeliharaan',
+        ],
+        '5.1.06' => [
+            'code' => '5.1.06',
+            'name' => 'Belanja Kegiatan Sosial, Keagamaan & Duka',
+            'icon' => 'fa-ribbon',
+            'category' => 'Sosial & Humas',
+        ],
+        '5.1.07' => [
+            'code' => '5.1.07',
+            'name' => 'Belanja Konsumsi, Makan dan Minum Rapat/Tamu',
+            'icon' => 'fa-utensils',
+            'category' => 'Konsumsi',
+        ],
+        '5.1.08' => [
+            'code' => '5.1.08',
+            'name' => 'Belanja Kesehatan, Obat-Obatan & P3K',
+            'icon' => 'fa-notes-medical',
+            'category' => 'Kesehatan',
+        ],
+        '5.1.09' => [
+            'code' => '5.1.09',
+            'name' => 'Belanja Perjalanan Dinas & Transport',
+            'icon' => 'fa-car-side',
+            'category' => 'Operasional',
+        ],
+        '5.1.10' => [
+            'code' => '5.1.10',
+            'name' => 'Belanja Barang, ATK & Cetak Dokumen',
+            'icon' => 'fa-box-archive',
+            'category' => 'Barang & Jasa',
+        ],
+        '5.1.11' => [
+            'code' => '5.1.11',
+            'name' => 'Belanja Sewa Peralatan & Kebersihan',
+            'icon' => 'fa-broom',
+            'category' => 'Sarana & Umum',
+        ],
+        '5.1.12' => [
+            'code' => '5.1.12',
+            'name' => 'Belanja Promosi, Iklan & Brosur Publikasi',
+            'icon' => 'fa-bullhorn',
+            'category' => 'Sosial & Humas',
+        ],
+        '5.1.13' => [
+            'code' => '5.1.13',
+            'name' => 'Belanja Pajak, Perizinan & Administrasi Hukum',
+            'icon' => 'fa-scale-balanced',
+            'category' => 'Hukum & Legal',
+        ],
+        '5.1.14' => [
+            'code' => '5.1.14',
+            'name' => 'Belanja Operasional Lain-Lain',
+            'icon' => 'fa-ellipsis-h',
+            'category' => 'Lain-Lain',
+        ],
+    ];
+
     /**
      * Simpan / Update Belanja Otorisasi & Tarif SPP per Level
      */
@@ -49,6 +136,8 @@ class ContributionBalanceController extends Controller
             'school_id' => 'required|exists:schools,id',
             'academic_year_id' => 'required|exists:academic_years,id',
             'authorized_expense' => 'nullable|numeric|min:0',
+            'expense_details' => 'nullable|array',
+            'expense_details.*' => 'nullable|numeric|min:0',
             'spp_rates' => 'nullable|array',
             'spp_rates.*' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:500',
@@ -56,8 +145,8 @@ class ContributionBalanceController extends Controller
 
         $schoolId = $request->input('school_id');
         $academicYearId = $request->input('academic_year_id');
-        $authorizedExpense = (float) $request->input('authorized_expense', 0);
         $sppRates = $request->input('spp_rates', []);
+        $expenseDetails = $request->input('expense_details', []);
         $notes = $request->input('notes');
 
         // Clean & cast spp_rates to float
@@ -68,6 +157,23 @@ class ContributionBalanceController extends Controller
             }
         }
 
+        // Clean & cast expense_details to float and calculate sum
+        $cleanedExpenseDetails = [];
+        $calculatedExpenseSum = 0;
+        if (is_array($expenseDetails)) {
+            foreach ($expenseDetails as $code => $amount) {
+                $val = (float) $amount;
+                if ($val > 0) {
+                    $cleanedExpenseDetails[$code] = $val;
+                    $calculatedExpenseSum += $val;
+                }
+            }
+        }
+
+        $authorizedExpense = ($calculatedExpenseSum > 0) 
+            ? $calculatedExpenseSum 
+            : (float) $request->input('authorized_expense', 0);
+
         SchoolContribution::updateOrCreate(
             [
                 'school_id' => $schoolId,
@@ -75,12 +181,13 @@ class ContributionBalanceController extends Controller
             ],
             [
                 'authorized_expense' => $authorizedExpense,
+                'expense_details' => $cleanedExpenseDetails,
                 'spp_rates' => $cleanedSpp,
                 'notes' => $notes,
             ]
         );
 
-        return back()->with('success', 'Data Belanja Otorisasi & Tarif SPP unit sekolah berhasil diperbarui.');
+        return back()->with('success', 'Data Rincian Belanja Operasional & Tarif SPP unit berhasil diperbarui.');
     }
 
     /**
@@ -145,8 +252,9 @@ class ContributionBalanceController extends Controller
                 ->where('academic_year_id', $currentYear->id ?? 0)
                 ->first();
 
-            $savedSppRates = $contribution->spp_rates ?? [];
-            $authorizedExpenseMonthly = (float) ($contribution->authorized_expense ?? 0);
+            $savedExpenseDetails = $contribution->expense_details ?? [];
+            $expenseDetailsSum = array_sum($savedExpenseDetails);
+            $authorizedExpenseMonthly = $expenseDetailsSum > 0 ? $expenseDetailsSum : (float) ($contribution->authorized_expense ?? 0);
             $authorizedExpenseTotal = $authorizedExpenseMonthly * $multiplier;
 
             // Default SPP dari master payment_types
@@ -246,6 +354,7 @@ class ContributionBalanceController extends Controller
                 'school' => $school,
                 'contribution' => $contribution,
                 'levels' => $levelBreakdown,
+                'expense_details' => $savedExpenseDetails,
                 'total_students' => $totalStudentsInSchool,
                 'income_monthly' => $schoolTotalIncomeMonthly,
                 'income_total' => $schoolTotalIncome,
@@ -272,6 +381,7 @@ class ContributionBalanceController extends Controller
             'periodMode' => $periodMode,
             'multiplier' => $multiplier,
             'schoolData' => $schoolData,
+            'expenseAccounts' => self::OPERATIONAL_EXPENSE_ACCOUNTS,
             'grandTotalIncome' => $grandTotalIncome,
             'grandTotalGaji' => $grandTotalGaji,
             'grandTotalOtorisasi' => $grandTotalOtorisasi,
