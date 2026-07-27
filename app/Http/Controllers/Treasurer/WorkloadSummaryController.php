@@ -57,7 +57,7 @@ class WorkloadSummaryController extends Controller
                             WHEN positions.position_name LIKE 'Kapro%' OR positions.position_name LIKE 'Kaprog%' THEN 7
                             WHEN positions.position_name LIKE 'Koordinator%' THEN 8
                             WHEN positions.position_name LIKE 'Wali Kelas%' THEN 9
-                            ELSE 99 END), 999)")
+                            ELSE 999 END), 999)")
                             ->from('employee_positions')
                             ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
                             ->whereColumn('employee_positions.employee_id', 'employees.id')
@@ -135,7 +135,7 @@ class WorkloadSummaryController extends Controller
                         WHEN positions.position_name LIKE 'Kapro%' OR positions.position_name LIKE 'Kaprog%' THEN 7
                         WHEN positions.position_name LIKE 'Koordinator%' THEN 8
                         WHEN positions.position_name LIKE 'Wali Kelas%' THEN 9
-                        ELSE 99 END), 999)")
+                        ELSE 999 END), 999)")
                         ->from('employee_positions')
                         ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
                         ->whereColumn('employee_positions.employee_id', 'employees.id')
