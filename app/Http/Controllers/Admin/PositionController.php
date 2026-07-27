@@ -109,7 +109,7 @@ class PositionController extends Controller
         
         $validated = $request->validate([
             'position_name' => 'required|string|max:100',
-            'position_code' => 'required|string|max:50|unique:positions,position_code',
+            'position_code' => 'required|string|max:100|unique:positions,position_code',
             'position_category' => 'required|string|in:structural,functional,staff,support',
             'allowance_amount' => 'required|numeric|min:0',
             'school_id' => 'nullable|exists:schools,id',
@@ -166,7 +166,7 @@ class PositionController extends Controller
         
         $validated = $request->validate([
             'position_name' => 'required|string|max:100',
-            'position_code' => 'required|string|max:50|unique:positions,position_code,' . $position->id,
+            'position_code' => 'required|string|max:100|unique:positions,position_code,' . $position->id,
             'position_category' => 'required|string|in:structural,functional,staff,support',
             'allowance_amount' => 'required|numeric|min:0',
             'school_id' => 'nullable|exists:schools,id',
