@@ -239,7 +239,7 @@ class FoundationExpenseController extends Controller
             ?? Semester::where('academic_year_id', $currentYear->id ?? 0)->first()
             ?? Semester::first();
 
-        // 1. Sub-Rekening Belanja Pegawai Otomatis per Unit (5.1.00.01, 5.1.00.02, ...)
+        // 1. Sub-Rekening Rincian Komponen Belanja Pegawai (5.1.00.XX) per Unit
         $allSchools = School::where('is_active', true)
             ->orderByRaw("CASE WHEN type = 'yayasan' THEN 2 ELSE 1 END, name ASC")
             ->get();
@@ -247,32 +247,117 @@ class FoundationExpenseController extends Controller
         $salarySubAccounts = [];
         $totalGajiPerguruanMonthly = 0;
         $totalPegawaiCount = 0;
+        $subAccountIndex = 1;
 
-        foreach ($allSchools as $idx => $sch) {
+        foreach ($allSchools as $sch) {
             $employees = Employee::where('school_id', $sch->id)->where('is_active', true)->get();
             $empCount = $employees->count();
             $totalPegawaiCount += $empCount;
-            $sumSalary = 0;
+
+            $schGajiPokokSum = 0;
+            $schHonorMengajarSum = 0;
+            $schJamHonorSum = 0;
+            $schHonorRateAvg = 0;
+            $schTunjanganJabatanSum = 0;
+            $schTunjanganKeluargaSum = 0;
+
             if ($currentYear && $currentSemester) {
                 foreach ($employees as $emp) {
-                    $sal = $this->assignmentService->calculateFullSalary($emp, $currentYear, $currentSemester, $sch->type, $sch->id);
-                    $sumSalary += (float) ($sal['thp'] ?? 0);
+                    $salData = $this->assignmentService->calculateFullSalary(
+                        $emp,
+                        $currentYear,
+                        $currentSemester,
+                        $sch->type,
+                        $sch->id
+                    );
+
+                    $schGajiPokokSum += (float) ($salData['gaji_pokok'] ?? 0);
+                    
+                    $honorTotal = (float) ($salData['teaching_honor']['honor_total'] ?? 0);
+                    $jamHonor = (int) ($salData['teaching_honor']['jam_honor'] ?? ($salData['teaching_honor']['jam_mengajar'] ?? 0));
+                    $honorRate = (float) ($salData['teaching_honor']['honor_per_jam'] ?? 70000);
+
+                    $schHonorMengajarSum += $honorTotal;
+                    $schJamHonorSum += $jamHonor;
+                    if ($honorRate > 0) {
+                        $schHonorRateAvg = $honorRate;
+                    }
+
+                    $schTunjanganJabatanSum += (float) ($salData['tunjangan_jabatan'] ?? 0);
+
+                    $tKeluarga = (float) ($salData['tunjangan']['tunjangan_keluarga'] ?? 0);
+                    $tAnak = (float) ($salData['tunjangan']['tunjangan_anak'] ?? 0);
+                    $tBeras = (float) ($salData['tunjangan']['tunjangan_beras'] ?? 0);
+                    $schTunjanganKeluargaSum += ($tKeluarga + $tAnak + $tBeras);
                 }
             }
-            $totalGajiPerguruanMonthly += $sumSalary;
 
-            $subCode = '5.1.00.' . sprintf('%02d', $idx + 1);
-            $salarySubAccounts[$subCode] = [
-                'code' => $subCode,
-                'name' => 'Belanja Gaji & Tunjangan Pegawai ' . $sch->name,
-                'icon' => $sch->type === 'yayasan' ? 'fa-user-tie' : 'fa-users-gear',
-                'category' => 'Belanja Pegawai',
-                'volume' => $empCount,
-                'unit' => 'Orang/Bln',
-                'tariff' => $empCount > 0 ? ($sumSalary / $empCount) : 0,
-                'amount' => $sumSalary,
-                'is_automatic' => true,
-            ];
+            $unitTotalSalary = $schGajiPokokSum + $schHonorMengajarSum + $schTunjanganJabatanSum + $schTunjanganKeluargaSum;
+            $totalGajiPerguruanMonthly += $unitTotalSalary;
+
+            // Rincian Komponen 1: Belanja Jasa Pendidikan (Honor Jam Mengajar / Les)
+            if ($schHonorMengajarSum > 0 || $schJamHonorSum > 0) {
+                $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
+                $salarySubAccounts[$code] = [
+                    'code' => $code,
+                    'name' => 'Belanja Jasa Pendidikan (Honor Jam Mengajar/Les) ' . $sch->name,
+                    'icon' => 'fa-chalkboard-user',
+                    'category' => 'Belanja Pegawai',
+                    'volume' => $schJamHonorSum > 0 ? $schJamHonorSum : 1,
+                    'unit' => 'Les',
+                    'tariff' => $schHonorRateAvg > 0 ? $schHonorRateAvg : ($schJamHonorSum > 0 ? ($schHonorMengajarSum / $schJamHonorSum) : $schHonorMengajarSum),
+                    'amount' => $schHonorMengajarSum,
+                    'is_automatic' => true,
+                ];
+            }
+
+            // Rincian Komponen 2: Belanja Tunjangan Jabatan
+            if ($schTunjanganJabatanSum > 0) {
+                $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
+                $salarySubAccounts[$code] = [
+                    'code' => $code,
+                    'name' => 'Belanja Tunjangan Jabatan ' . $sch->name,
+                    'icon' => 'fa-award',
+                    'category' => 'Belanja Pegawai',
+                    'volume' => 1,
+                    'unit' => 'Paket',
+                    'tariff' => $schTunjanganJabatanSum,
+                    'amount' => $schTunjanganJabatanSum,
+                    'is_automatic' => true,
+                ];
+            }
+
+            // Rincian Komponen 3: Belanja Tunjangan Keluarga & Beras
+            if ($schTunjanganKeluargaSum > 0) {
+                $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
+                $salarySubAccounts[$code] = [
+                    'code' => $code,
+                    'name' => 'Belanja Tunjangan Keluarga, Anak & Beras ' . $sch->name,
+                    'icon' => 'fa-people-roof',
+                    'category' => 'Belanja Pegawai',
+                    'volume' => 1,
+                    'unit' => 'Paket',
+                    'tariff' => $schTunjanganKeluargaSum,
+                    'amount' => $schTunjanganKeluargaSum,
+                    'is_automatic' => true,
+                ];
+            }
+
+            // Rincian Komponen 4: Belanja Gaji Pokok & PTY/GTY
+            if ($schGajiPokokSum > 0 || ($schHonorMengajarSum == 0 && $schTunjanganJabatanSum == 0 && $schTunjanganKeluargaSum == 0)) {
+                $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
+                $salarySubAccounts[$code] = [
+                    'code' => $code,
+                    'name' => 'Belanja Gaji Pokok & PTY/GTY ' . $sch->name,
+                    'icon' => 'fa-user-tie',
+                    'category' => 'Belanja Pegawai',
+                    'volume' => $empCount,
+                    'unit' => 'Orang/Bln',
+                    'tariff' => $empCount > 0 ? ($schGajiPokokSum / $empCount) : 0,
+                    'amount' => $schGajiPokokSum,
+                    'is_automatic' => true,
+                ];
+            }
         }
 
         $totalGajiPerguruanPeriod = $totalGajiPerguruanMonthly * $multiplier;
@@ -288,7 +373,7 @@ class FoundationExpenseController extends Controller
         $parsedExpenseDetails = [];
         $totalOpsMonthly = 0;
 
-        // Masukkan Belanja Pegawai Sub-Rekening (5.1.00.01 dst)
+        // Masukkan Rincian Belanja Pegawai (5.1.00.01 dst)
         foreach ($salarySubAccounts as $subCode => $salItem) {
             $parsedExpenseDetails[$subCode] = $salItem;
         }
