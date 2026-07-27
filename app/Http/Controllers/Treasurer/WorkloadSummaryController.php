@@ -79,7 +79,7 @@ class WorkloadSummaryController extends Controller
                 ->get();
 
             foreach ($employees as $emp) {
-                $salary = $this->service->calculateFullSalary($emp, $year, $semester, $schoolLevel);
+                $salary = $this->service->calculateFullSalary($emp, $year, $semester, $schoolLevel, $schoolId);
                 $salaryData[$emp->id] = $salary;
                 $totalGaji += $salary['thp'];
             }
@@ -158,7 +158,7 @@ class WorkloadSummaryController extends Controller
 
         $salaryMap = [];
         foreach ($employees as $emp) {
-            $salaryMap[$emp->id] = $this->service->calculateFullSalary($emp, $year, $semester, $schoolLevel);
+            $salaryMap[$emp->id] = $this->service->calculateFullSalary($emp, $year, $semester, $schoolLevel, $schoolId);
         }
 
         $employees = $employees->sortBy([

@@ -221,30 +221,43 @@ class EmployeeAssignmentService
         Employee $employee,
         AcademicYear $year,
         Semester $semester,
-        ?string $schoolLevel = null
+        ?string $schoolLevel = null,
+        ?int $filterSchoolId = null
     ): array {
-        $formulas = $this->getFormulas($employee->school_id);
+        $effectiveSchoolId = $filterSchoolId ?? $employee->school_id;
+        $formulas = $this->getFormulas($effectiveSchoolId);
 
-        // 1. Gaji Pokok
-        $gajiPokok = in_array($employee->employment_status, self::NO_GAJI_POKOK)
-            ? 0
-            : (float) ($employee->basic_salary ?? 0);
+        // 1. Gaji Pokok (Hanya dibebankan di unit asal pegawai)
+        $gajiPokok = 0;
+        if (!$filterSchoolId || $filterSchoolId == $employee->school_id) {
+            $gajiPokok = in_array($employee->employment_status, self::NO_GAJI_POKOK)
+                ? 0
+                : (float) ($employee->basic_salary ?? 0);
+        }
 
-        // 2. Tunjangan Jabatan (sum of all active positions for the specified academic year)
-        $positions = $employee->activePositions()
-            ->wherePivot('academic_year_id', $year->id)
-            ->get();
-        
+        // 2. Tunjangan Jabatan (Hanya jabatan yang terdaftar di unit sekolah $filterSchoolId)
+        $positionsQuery = $employee->activePositions()
+            ->wherePivot('academic_year_id', $year->id);
+
+        if ($filterSchoolId) {
+            $positionsQuery->where(function($pQ) use ($filterSchoolId) {
+                $pQ->where('positions.school_id', $filterSchoolId)
+                   ->orWhereNull('positions.school_id');
+            });
+        }
+
+        $positions = $positionsQuery->get();
+
         $jabatanDetails = [];
         $tunjanganJabatan = 0;
-        
+
         foreach ($positions as $position) {
             // Use override allowance if set, otherwise use position default
             $amount = $position->pivot->position_allowance ?? 0;
             if ($amount <= 0) {
                 $amount = $position->allowance_amount ?? 0;
             }
-            
+
             $tunjanganJabatan += $amount;
             $jabatanDetails[] = [
                 'name' => $position->position_name,
@@ -257,23 +270,28 @@ class EmployeeAssignmentService
         $totalJamMengajar = 0;
         if ($teacherModel) {
             // Fetch all assignments for this teacher
-            $assignments = TeachingAssignment::where('teacher_id', $teacherModel->id)
+            $assignmentsQuery = TeachingAssignment::where('teacher_id', $teacherModel->id)
                 ->where('academic_year_id', $year->id)
-                ->where('is_active', true)
-                ->get();
-            
+                ->where('is_active', true);
+
+            if ($filterSchoolId) {
+                $assignmentsQuery->whereHas('classroom', function($cQ) use ($filterSchoolId) {
+                    $cQ->where('school_id', $filterSchoolId);
+                });
+            }
+
+            $assignments = $assignmentsQuery->get();
+
             // Sum non-grouped assignments
             $nonGroupedHours = $assignments->whereNull('group_code')->sum('hours_per_week');
-            
+
             // Sum grouped assignments (only once per group_code)
             $groupedHours = $assignments->whereNotNull('group_code')
                 ->groupBy('group_code')
                 ->map(function($group) {
-                    // Take the max hours in the group 
-                    // (should be identical across group members, but max is safest)
                     return $group->max('hours_per_week');
                 })->sum();
-                
+
             $totalJamMengajar = $nonGroupedHours + $groupedHours;
         }
 
@@ -281,7 +299,7 @@ class EmployeeAssignmentService
             $totalJamMengajar,
             $employee->employment_status ?? 'yayasan',
             $schoolLevel,
-            $employee->school_id,
+            $effectiveSchoolId,
             $employee
         );
 
@@ -289,18 +307,22 @@ class EmployeeAssignmentService
         // karena dibayarkan langsung oleh Bendahara unit sekolah masing-masing.
         $isYayasanUnit = $employee->isYayasanStaff() || ($employee->school?->type === 'yayasan');
         $honorMengajarSekolah = round($honorData['honor_total']);
-        $honorMengajarYayasan = $isYayasanUnit ? 0 : $honorMengajarSekolah;
+        $honorMengajarYayasan = ($isYayasanUnit && (!$filterSchoolId || $filterSchoolId == $employee->school_id)) ? 0 : $honorMengajarSekolah;
 
-        // 4. Tunjangan (Keluarga, Anak, Beras)
-        $tunjanganData = $this->calculateTunjangan($employee, $employee->school_id);
+        // 4. Tunjangan (Keluarga, Anak, Beras) (Hanya dibebankan di unit asal pegawai)
+        $tunjanganData = [
+            'tunjangan_keluarga' => 0,
+            'tunjangan_anak' => 0,
+            'tunjangan_beras' => 0,
+            'total_tunjangan' => 0,
+            'meta' => []
+        ];
+
+        if (!$filterSchoolId || $filterSchoolId == $employee->school_id) {
+            $tunjanganData = $this->calculateTunjangan($employee, $effectiveSchoolId);
+        }
 
         // 5. Potongan (Deductions)
-        // Hanya pegawai tetap/yayasan yang dipotong BPJS? (Tergantung kebijakan, tapi biasanya ya)
-        $isEligibleForDeduction = in_array($employee->employment_status, self::TUNJANGAN_ELIGIBLE);
-        
-        // Disable BPJS for now as per user request
-        $bpjsKesehatan = 0;
-        $bpjsKetenagakerjaan = 0;
         $totalPotongan = 0;
 
         // 6. Total
@@ -308,7 +330,7 @@ class EmployeeAssignmentService
             + $tunjanganData['tunjangan_keluarga']
             + $tunjanganData['tunjangan_anak']
             + $tunjanganData['tunjangan_beras'];
-            
+
         $thp = $grossPay - $totalPotongan;
 
         return [
@@ -333,7 +355,7 @@ class EmployeeAssignmentService
             'tunjangan_anak' => $tunjanganData['tunjangan_anak'],
             'tunjangan_beras' => $tunjanganData['tunjangan_beras'],
             'tunjangan_meta' => $tunjanganData['meta'],
-            
+
             'bpjs_kesehatan' => 0,
             'bpjs_ketenagakerjaan' => 0,
             'total_potongan' => 0,
