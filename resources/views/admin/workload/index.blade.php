@@ -137,12 +137,18 @@
         <div class="overflow-x-auto custom-scrollbar">
             <table class="w-full min-w-[1000px]">
                 <thead class="bg-gray-50 border-b border-gray-100">
+                    @php
+                        $selectedSchoolObj = isset($schools) && isset($schoolId) ? $schools->firstWhere('id', $schoolId) : null;
+                        $isYayasanFilter = $selectedSchoolObj && ($selectedSchoolObj->type === 'yayasan' || $selectedSchoolObj->isYayasan());
+                    @endphp
                     <tr class="bg-gradient-to-r from-gray-50/80 to-gray-100/50 border-b border-gray-100">
                         <th class="px-4 py-5 text-left text-xs font-bold text-gray-900 uppercase tracking-wider w-12">No</th>
                         <th class="px-5 py-5 text-left text-xs font-bold text-gray-900 uppercase tracking-wider min-w-[180px]">Pegawai</th>
                         <th class="px-4 py-5 text-right text-xs font-bold text-gray-900 uppercase tracking-wider">Gaji Pokok</th>
                         <th class="px-5 py-5 text-left text-xs font-bold text-gray-900 uppercase tracking-wider min-w-[150px]">Tunj. Jabatan</th>
+                        @if(!$isYayasanFilter)
                         <th class="px-4 py-5 text-right text-xs font-bold text-gray-900 uppercase tracking-wider">Honor</th>
+                        @endif
                         <th class="px-5 py-5 text-left text-xs font-bold text-gray-900 uppercase tracking-wider min-w-[150px]">Tunj. Yayasan</th>
                         <th class="px-5 py-5 text-right text-[10.5px] font-extrabold text-indigo-700 uppercase tracking-widest">THP</th>
                         <th class="px-4 py-5 text-center text-xs font-bold text-gray-900 uppercase tracking-wider w-40">Aksi</th>
@@ -152,6 +158,7 @@
                     @forelse($summaries as $index => $summary)
                     @php 
                         $employee = $summary->employee;
+                        $isYayasanEmp = $employee && ($employee->isYayasanStaff() || $employee->school?->type === 'yayasan');
                         $teachingHours = $summary->total_teaching_hours ?? 0;
                         $statusClasses = [
                             'yayasan' => 'bg-emerald-100 text-emerald-700',
@@ -210,6 +217,7 @@
                         </td>
 
                         {{-- Honor Mengajar --}}
+                        @if(!$isYayasanFilter && !$isYayasanEmp)
                         <td class="px-4 py-5 text-right align-bottom">
                             <div>
                                 <span class="text-sm font-bold text-gray-800">Rp&nbsp;{{ number_format($summary->total_teaching_allowance ?? 0, 0, ',', '.') }}</span>
@@ -227,6 +235,7 @@
                                 <p class="text-[9px] text-gray-400 group-hover:text-gray-600 font-medium transition-colors">Jam Tugas | Wajib | Lebih | Perhitungan</p>
                             </div>
                         </td>
+                        @endif
 
                         {{-- Tunjangan Yayasan --}}
                         <td class="px-5 py-5 align-bottom">

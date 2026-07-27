@@ -164,17 +164,30 @@
             </table>
         </div>
 
+        @php
+            $selectedSchool = $schools->firstWhere('id', $schoolId);
+            $isYayasanSchool = $selectedSchool && ($selectedSchool->type === 'yayasan' || $selectedSchool->isYayasan());
+        @endphp
         <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50 border-b border-gray-100">
-                    <tr class="text-gray-500 text-[11px] font-bold uppercase tracking-wider text-center">
-                        <th class="px-3 py-4 text-left w-12">No</th>
-                        <th class="px-4 py-4 text-left">Nama Pegawai / Status</th>
-                        <th class="px-3 py-4 text-right">Gaji Pokok</th>
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-100/70 border-b border-gray-200 text-gray-700 text-xs font-bold uppercase tracking-wider">
+                        <th class="px-3 py-4 text-left w-12" rowspan="2">No</th>
+                        <th class="px-4 py-4 text-left" rowspan="2">Nama Pegawai / Status</th>
+                        <th class="px-3 py-4 text-right" rowspan="2">Gaji Pokok</th>
                         <th class="px-4 py-4 text-left">Tunjangan Jabatan</th>
+                        @if(!$isYayasanSchool)
                         <th class="px-3 py-4 text-right">Honor Mengajar</th>
+                        @endif
                         <th class="px-5 py-4 text-left">Tunjangan Yayasan</th>
-                        <th class="px-4 py-4 text-right">THP</th>
+                        <th class="px-4 py-4 text-right" rowspan="2">THP</th>
+                    </tr>
+                    <tr class="text-gray-500 text-[11px] font-bold uppercase tracking-wider text-center">
+                        <th class="px-4 py-2 text-left">Rincian Jabatan</th>
+                        @if(!$isYayasanSchool)
+                        <th class="px-3 py-2 text-right">Rincian Jam & Tarif</th>
+                        @endif
+                        <th class="px-5 py-2 text-left">Rincian Tunjangan</th>
                     </tr>
                 </thead>
                 <tbody class="text-sm">
@@ -214,6 +227,7 @@
                                 @endif
                             </div>
                         </td>
+                        @if(!$isYayasanSchool)
                         <td class="px-3 pt-4 pb-1 align-top">
                             <div class="text-[10px] text-gray-500 font-medium">
                                 <div class="flex justify-between text-gray-600 mb-0.5">
@@ -226,6 +240,7 @@
                                 </div>
                             </div>
                         </td>
+                        @endif
                         <td class="px-5 pt-4 pb-1 align-top">
                             <div class="space-y-0.5">
                                 @php $totalYayasan = (($sal['tunjangan_keluarga'] ?? 0) + ($sal['tunjangan_anak'] ?? 0) + ($sal['tunjangan_beras'] ?? 0)); @endphp
@@ -263,6 +278,7 @@
                             <div class="text-[11px] text-gray-400 italic text-center pt-1">-</div>
                             @endif
                         </td>
+                        @if(!$isYayasanSchool)
                         <td class="px-3 pb-4 pt-1 align-bottom border-b border-gray-100">
                             @if(($sal['honor_mengajar'] ?? 0) > 0)
                             <div class="text-right border-t border-gray-200 pt-1 text-xs font-bold text-gray-900 italic">
@@ -272,6 +288,7 @@
                             <div class="text-[11px] text-gray-400 italic text-center pt-1">-</div>
                             @endif
                         </td>
+                        @endif
                         <td class="px-5 pb-4 pt-1 align-bottom border-b border-gray-100">
                             @if($totalYayasan > 0)
                             <div class="text-[11px] font-bold text-emerald-700 border-t border-emerald-100 pt-1 text-right">
@@ -283,13 +300,15 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="px-6 py-12 text-center text-gray-400 italic font-medium">Data gaji belum tersedia untuk unit ini.</td></tr>
+                    <tr><td colspan="{{ $isYayasanSchool ? 6 : 7 }}" class="px-6 py-12 text-center text-gray-400 italic font-medium">Data gaji belum tersedia untuk unit ini.</td></tr>
                     @endforelse
                 @if($employees->count() > 0)
                     <tr class="bg-gray-50 border-t-2 border-gray-100 font-bold text-[12px] uppercase">
                         <td colspan="3" class="px-6 py-4 text-right text-gray-500">TOTAL SELURUH UNIT</td>
                         <td class="px-4 py-4 text-right text-gray-900 tracking-tighter">Rp&nbsp;{{ number_format(collect($salaryData)->sum('tunjangan_jabatan'), 0, ',', '.') }}</td>
+                        @if(!$isYayasanSchool)
                         <td class="px-3 py-4 text-right text-gray-900 tracking-tighter">Rp&nbsp;{{ number_format(collect($salaryData)->sum('honor_mengajar'), 0, ',', '.') }}</td>
+                        @endif
                         <td class="px-5 py-4 text-right text-emerald-800 tracking-tighter">
                             Rp&nbsp;{{ number_format(collect($salaryData)->sum('tunjangan_keluarga') + collect($salaryData)->sum('tunjangan_anak') + collect($salaryData)->sum('tunjangan_beras'), 0, ',', '.') }}
                         </td>
