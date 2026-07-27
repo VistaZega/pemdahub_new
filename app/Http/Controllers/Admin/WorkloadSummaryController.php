@@ -132,26 +132,50 @@ class WorkloadSummaryController extends Controller
             ->orderBy('employee_name', 'asc')
             ->paginate(50)->withQueryString();
 
-        // LIVE MODE: Recalculate salary for current page results to ensure data is fresh
+        // LIVE MODE: Recalculate salary for current page results to ensure data is fresh and isolated per school
         if ($yearId && $semesterId) {
             $year = AcademicYear::find($yearId);
             $semester = Semester::find($semesterId);
             foreach ($summaries as $summary) {
                 if ($summary->employee) {
-                    $this->service->calculateWorkload($summary->employee, $year, $semester);
+                    $freshSalary = $this->service->calculateFullSalary(
+                        $summary->employee,
+                        $year,
+                        $semester,
+                        $summary->employee->school?->type ?? 'SMA',
+                        $schoolId
+                    );
+
+                    $summary->total_position_allowance = $freshSalary['tunjangan_jabatan'];
+                    $summary->basic_salary = $freshSalary['gaji_pokok'];
+                    $summary->family_allowance = $freshSalary['tunjangan_keluarga'];
+                    $summary->child_allowance = $freshSalary['tunjangan_anak'];
+                    $summary->rice_allowance = $freshSalary['tunjangan_beras'];
+                    $summary->total_teaching_allowance = $freshSalary['honor_mengajar'];
+                    $summary->total_allowance = $freshSalary['tunjangan_jabatan'] + $freshSalary['honor_mengajar'] + $freshSalary['tunjangan_keluarga'] + $freshSalary['tunjangan_anak'] + $freshSalary['tunjangan_beras'];
+                    $summary->total_compensation = $freshSalary['thp'];
                 }
             }
-            // Re-load summaries to get updated data from DB
-            $summaries = $query->paginate(50)->withQueryString();
         }
 
-        // Totals (use base query without joins for simplicity if possible, or be explicit)
+        // Totals
         $totalsQuery = EmployeeWorkloadSummary::where('academic_year_id', $yearId)
             ->where('semester_id', $semesterId)
             ->whereHas('employee');
-        
+
         if ($schoolId) {
-            $totalsQuery->whereHas('employee', fn($q) => $q->where('school_id', $schoolId));
+            $totalsQuery->where(function ($q) use ($schoolId, $yearId) {
+                $q->whereHas('employee', fn($empQ) => $empQ->where('school_id', $schoolId))
+                  ->orWhereHas('employee.activePositions', function ($posQ) use ($schoolId, $yearId) {
+                      $posQ->where('positions.school_id', $schoolId)
+                           ->where('employee_positions.academic_year_id', $yearId);
+                  })
+                  ->orWhereHas('employee.teacher.teachingAssignments', function ($teachQ) use ($schoolId, $yearId) {
+                      $teachQ->where('academic_year_id', $yearId)
+                             ->where('is_active', true)
+                             ->whereHas('classroom', fn($cQ) => $cQ->where('school_id', $schoolId));
+                  });
+            });
         }
 
         $totals = [
