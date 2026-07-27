@@ -221,7 +221,7 @@ class FoundationExpenseController extends Controller
     }
 
     /**
-     * Kalkulasi Data Rencana Belanja Pegawai & Belanja Operasional
+     * Kalkulasi Data Rencana Belanja Pegawai & Belanja Operasional Hierarkis
      */
     public function getFoundationExpenseData(Request $request): array
     {
@@ -241,11 +241,12 @@ class FoundationExpenseController extends Controller
             ?? Semester::where('academic_year_id', $currentYear->id ?? 0)->first()
             ?? Semester::first();
 
-        // 1. Sub-Rekening Rincian Komponen Belanja Pegawai (5.1.00.XX) per Unit
+        // 1. Hirarki Belanja Pegawai Otomatis per Unit Pendidikan & Yayasan
         $allSchools = School::where('is_active', true)
             ->orderByRaw("CASE WHEN type = 'yayasan' THEN 2 ELSE 1 END, name ASC")
             ->get();
 
+        $hierarchicalSalaryData = [];
         $salarySubAccounts = [];
         $totalGajiPerguruanMonthly = 0;
         $totalPegawaiCount = 0;
@@ -262,6 +263,8 @@ class FoundationExpenseController extends Controller
             $schHonorRateAvg = 0;
             $schTunjanganJabatanSum = 0;
             $schTunjanganKeluargaSum = 0;
+            $schBpjsSum = 0;
+            $empGtyPtyCount = 0;
 
             if ($currentYear && $currentSemester) {
                 foreach ($employees as $emp) {
@@ -291,34 +294,49 @@ class FoundationExpenseController extends Controller
                     $tAnak = (float) ($salData['tunjangan']['tunjangan_anak'] ?? 0);
                     $tBeras = (float) ($salData['tunjangan']['tunjangan_beras'] ?? 0);
                     $schTunjanganKeluargaSum += ($tKeluarga + $tAnak + $tBeras);
+
+                    // BPJS potongan
+                    $schBpjsSum += (float) ($salData['potongan_bpjs_kesehatan'] ?? 0);
+                    $schBpjsSum += (float) ($salData['potongan_bpjs_ketenagakerjaan'] ?? 0);
+
+                    // Hitung pegawai GTY/PTY
+                    $statusLower = strtolower($emp->employment_status ?? '');
+                    if (in_array($statusLower, ['yayasan', 'gty', 'pty'])) {
+                        $empGtyPtyCount++;
+                    }
                 }
             }
 
             $unitTotalSalary = $schGajiPokokSum + $schHonorMengajarSum + $schTunjanganJabatanSum + $schTunjanganKeluargaSum;
             $totalGajiPerguruanMonthly += $unitTotalSalary;
 
-            // Rincian Komponen 1: Belanja Jasa Pendidikan (Honor Jam Mengajar / Les)
-            if ($schHonorMengajarSum > 0 || $schJamHonorSum > 0) {
+            $schoolItems = [];
+
+            // Urutan sesuai permintaan pengguna:
+            // 1. Belanja Gaji Pokok & PTY/GTY
+            if ($schGajiPokokSum > 0) {
                 $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
-                $salarySubAccounts[$code] = [
+                $item = [
                     'code' => $code,
-                    'name' => 'Belanja Jasa Pendidikan (Honor Jam Mengajar/Les) ' . $sch->name,
-                    'icon' => 'fa-chalkboard-user',
+                    'name' => 'Belanja Gaji Pokok & Pegawai Tetap Yayasan (PTY/GTY)',
+                    'icon' => 'fa-money-bill-wave',
                     'category' => 'Belanja Pegawai',
-                    'volume' => $schJamHonorSum > 0 ? $schJamHonorSum : 1,
-                    'unit' => 'Les',
-                    'tariff' => $schHonorRateAvg > 0 ? $schHonorRateAvg : ($schJamHonorSum > 0 ? ($schHonorMengajarSum / $schJamHonorSum) : $schHonorMengajarSum),
-                    'amount' => $schHonorMengajarSum,
+                    'volume' => $empGtyPtyCount > 0 ? $empGtyPtyCount : $empCount,
+                    'unit' => 'Orang/Bln',
+                    'tariff' => ($empGtyPtyCount > 0 ? ($schGajiPokokSum / $empGtyPtyCount) : ($empCount > 0 ? ($schGajiPokokSum / $empCount) : 0)),
+                    'amount' => $schGajiPokokSum,
                     'is_automatic' => true,
                 ];
+                $schoolItems[] = $item;
+                $salarySubAccounts[$code] = $item;
             }
 
-            // Rincian Komponen 2: Belanja Tunjangan Jabatan
+            // 2. Belanja Tunjangan Jabatan
             if ($schTunjanganJabatanSum > 0) {
                 $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
-                $salarySubAccounts[$code] = [
+                $item = [
                     'code' => $code,
-                    'name' => 'Belanja Tunjangan Jabatan ' . $sch->name,
+                    'name' => 'Belanja Tunjangan Jabatan',
                     'icon' => 'fa-award',
                     'category' => 'Belanja Pegawai',
                     'volume' => 1,
@@ -327,14 +345,34 @@ class FoundationExpenseController extends Controller
                     'amount' => $schTunjanganJabatanSum,
                     'is_automatic' => true,
                 ];
+                $schoolItems[] = $item;
+                $salarySubAccounts[$code] = $item;
             }
 
-            // Rincian Komponen 3: Belanja Tunjangan Keluarga & Beras
+            // 3. Belanja Jasa Pendidikan (Honor Jam Mengajar / Les)
+            if ($schHonorMengajarSum > 0 || $schJamHonorSum > 0) {
+                $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
+                $item = [
+                    'code' => $code,
+                    'name' => 'Belanja Jasa Pendidikan (Honor Mengajar/Les)',
+                    'icon' => 'fa-chalkboard-user',
+                    'category' => 'Belanja Pegawai',
+                    'volume' => $schJamHonorSum > 0 ? $schJamHonorSum : 1,
+                    'unit' => 'Jam/Les',
+                    'tariff' => $schHonorRateAvg > 0 ? $schHonorRateAvg : ($schJamHonorSum > 0 ? ($schHonorMengajarSum / $schJamHonorSum) : $schHonorMengajarSum),
+                    'amount' => $schHonorMengajarSum,
+                    'is_automatic' => true,
+                ];
+                $schoolItems[] = $item;
+                $salarySubAccounts[$code] = $item;
+            }
+
+            // 4. Belanja Tunjangan Keluarga PTY/GTY
             if ($schTunjanganKeluargaSum > 0) {
                 $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
-                $salarySubAccounts[$code] = [
+                $item = [
                     'code' => $code,
-                    'name' => 'Belanja Tunjangan Keluarga, Anak & Beras ' . $sch->name,
+                    'name' => 'Belanja Tunjangan Keluarga, Anak & Beras PTY/GTY',
                     'icon' => 'fa-people-roof',
                     'category' => 'Belanja Pegawai',
                     'volume' => 1,
@@ -343,23 +381,37 @@ class FoundationExpenseController extends Controller
                     'amount' => $schTunjanganKeluargaSum,
                     'is_automatic' => true,
                 ];
+                $schoolItems[] = $item;
+                $salarySubAccounts[$code] = $item;
             }
 
-            // Rincian Komponen 4: Belanja Gaji Pokok & PTY/GTY
-            if ($schGajiPokokSum > 0 || ($schHonorMengajarSum == 0 && $schTunjanganJabatanSum == 0 && $schTunjanganKeluargaSum == 0)) {
+            // Fallback jika tidak ada komponen sama sekali
+            if (empty($schoolItems) && $empCount > 0) {
                 $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
-                $salarySubAccounts[$code] = [
+                $item = [
                     'code' => $code,
-                    'name' => 'Belanja Gaji Pokok & PTY/GTY ' . $sch->name,
+                    'name' => 'Belanja Gaji & Tunjangan Pegawai',
                     'icon' => 'fa-user-tie',
                     'category' => 'Belanja Pegawai',
                     'volume' => $empCount,
                     'unit' => 'Orang/Bln',
-                    'tariff' => $empCount > 0 ? ($schGajiPokokSum / $empCount) : 0,
-                    'amount' => $schGajiPokokSum,
+                    'tariff' => 0,
+                    'amount' => 0,
                     'is_automatic' => true,
                 ];
+                $schoolItems[] = $item;
+                $salarySubAccounts[$code] = $item;
             }
+
+            $hierarchicalSalaryData[] = [
+                'school' => $sch,
+                'school_name' => $sch->name,
+                'school_type' => $sch->type,
+                'employee_count' => $empCount,
+                'total_monthly' => $unitTotalSalary,
+                'total_period' => $unitTotalSalary * $multiplier,
+                'items' => $schoolItems,
+            ];
         }
 
         $totalGajiPerguruanPeriod = $totalGajiPerguruanMonthly * $multiplier;
@@ -429,6 +481,7 @@ class FoundationExpenseController extends Controller
             'totalPegawaiCount' => $totalPegawaiCount,
             'totalGajiPerguruanMonthly' => $totalGajiPerguruanMonthly,
             'totalGajiPerguruanPeriod' => $totalGajiPerguruanPeriod,
+            'hierarchicalSalaryData' => $hierarchicalSalaryData,
             'salarySubAccounts' => $salarySubAccounts,
             'parsedExpenseDetails' => $parsedExpenseDetails,
             'totalOpsMonthly' => $totalOpsMonthly,
