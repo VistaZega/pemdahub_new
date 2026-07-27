@@ -350,7 +350,7 @@
         @php
             $kepalaSekolahName = \App\Models\Employee::where('school_id', $contract->school_id)
                 ->whereHas('activePositions', function($q) use ($contract) {
-                    $q->wherePivot('academic_year_id', $contract->academic_year_id)
+                    $q->where('employee_positions.academic_year_id', $contract->academic_year_id)
                       ->where(function($sub) {
                           $sub->where('position_name', 'like', '%Kepala Sekolah%')
                               ->orWhere('position_code', 'KASEK');
