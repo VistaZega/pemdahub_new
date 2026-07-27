@@ -312,96 +312,70 @@ class FoundationExpenseController extends Controller
 
             $schoolItems = [];
 
-            // Urutan sesuai permintaan pengguna:
+            // Urutan sesuai permintaan pengguna — SELALU tampilkan 4 komponen per unit:
             // 1. Belanja Gaji Pokok & PTY/GTY
-            if ($schGajiPokokSum > 0) {
-                $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
-                $item = [
-                    'code' => $code,
-                    'name' => 'Belanja Gaji Pokok & Pegawai Tetap Yayasan (PTY/GTY)',
-                    'icon' => 'fa-money-bill-wave',
-                    'category' => 'Belanja Pegawai',
-                    'volume' => $empGtyPtyCount > 0 ? $empGtyPtyCount : $empCount,
-                    'unit' => 'Orang/Bln',
-                    'tariff' => ($empGtyPtyCount > 0 ? ($schGajiPokokSum / $empGtyPtyCount) : ($empCount > 0 ? ($schGajiPokokSum / $empCount) : 0)),
-                    'amount' => $schGajiPokokSum,
-                    'is_automatic' => true,
-                ];
-                $schoolItems[] = $item;
-                $salarySubAccounts[$code] = $item;
-            }
+            $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
+            $item = [
+                'code' => $code,
+                'name' => 'Belanja Gaji Pokok & Pegawai Tetap Yayasan (PTY/GTY)',
+                'icon' => 'fa-money-bill-wave',
+                'category' => 'Belanja Pegawai',
+                'volume' => $empGtyPtyCount > 0 ? $empGtyPtyCount : $empCount,
+                'unit' => 'Orang/Bln',
+                'tariff' => ($empGtyPtyCount > 0 ? ($empGtyPtyCount > 0 ? ($schGajiPokokSum / $empGtyPtyCount) : 0) : ($empCount > 0 ? ($schGajiPokokSum / $empCount) : 0)),
+                'amount' => $schGajiPokokSum,
+                'is_automatic' => true,
+            ];
+            $schoolItems[] = $item;
+            $salarySubAccounts[$code] = $item;
 
             // 2. Belanja Tunjangan Jabatan
-            if ($schTunjanganJabatanSum > 0) {
-                $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
-                $item = [
-                    'code' => $code,
-                    'name' => 'Belanja Tunjangan Jabatan',
-                    'icon' => 'fa-award',
-                    'category' => 'Belanja Pegawai',
-                    'volume' => 1,
-                    'unit' => 'Paket',
-                    'tariff' => $schTunjanganJabatanSum,
-                    'amount' => $schTunjanganJabatanSum,
-                    'is_automatic' => true,
-                ];
-                $schoolItems[] = $item;
-                $salarySubAccounts[$code] = $item;
-            }
+            $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
+            $item = [
+                'code' => $code,
+                'name' => 'Belanja Tunjangan Jabatan',
+                'icon' => 'fa-award',
+                'category' => 'Belanja Pegawai',
+                'volume' => 1,
+                'unit' => 'Paket',
+                'tariff' => $schTunjanganJabatanSum,
+                'amount' => $schTunjanganJabatanSum,
+                'is_automatic' => true,
+            ];
+            $schoolItems[] = $item;
+            $salarySubAccounts[$code] = $item;
 
             // 3. Belanja Jasa Pendidikan (Honor Jam Mengajar / Les)
-            if ($schHonorMengajarSum > 0 || $schJamHonorSum > 0) {
-                $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
-                $item = [
-                    'code' => $code,
-                    'name' => 'Belanja Jasa Pendidikan (Honor Mengajar/Les)',
-                    'icon' => 'fa-chalkboard-user',
-                    'category' => 'Belanja Pegawai',
-                    'volume' => $schJamHonorSum > 0 ? $schJamHonorSum : 1,
-                    'unit' => 'Jam/Les',
-                    'tariff' => $schHonorRateAvg > 0 ? $schHonorRateAvg : ($schJamHonorSum > 0 ? ($schHonorMengajarSum / $schJamHonorSum) : $schHonorMengajarSum),
-                    'amount' => $schHonorMengajarSum,
-                    'is_automatic' => true,
-                ];
-                $schoolItems[] = $item;
-                $salarySubAccounts[$code] = $item;
-            }
+            $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
+            $item = [
+                'code' => $code,
+                'name' => 'Belanja Jasa Pendidikan (Honor Mengajar/Les)',
+                'icon' => 'fa-chalkboard-user',
+                'category' => 'Belanja Pegawai',
+                'volume' => $schJamHonorSum > 0 ? $schJamHonorSum : ($empCount > 0 ? $empCount : 1),
+                'unit' => 'Jam/Les',
+                'tariff' => $schHonorRateAvg > 0 ? $schHonorRateAvg : ($schJamHonorSum > 0 ? ($schHonorMengajarSum / $schJamHonorSum) : 0),
+                'amount' => $schHonorMengajarSum,
+                'is_automatic' => true,
+            ];
+            $schoolItems[] = $item;
+            $salarySubAccounts[$code] = $item;
 
             // 4. Belanja Tunjangan Keluarga PTY/GTY
-            if ($schTunjanganKeluargaSum > 0) {
-                $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
-                $item = [
-                    'code' => $code,
-                    'name' => 'Belanja Tunjangan Keluarga, Anak & Beras PTY/GTY',
-                    'icon' => 'fa-people-roof',
-                    'category' => 'Belanja Pegawai',
-                    'volume' => 1,
-                    'unit' => 'Paket',
-                    'tariff' => $schTunjanganKeluargaSum,
-                    'amount' => $schTunjanganKeluargaSum,
-                    'is_automatic' => true,
-                ];
-                $schoolItems[] = $item;
-                $salarySubAccounts[$code] = $item;
-            }
-
-            // Fallback jika tidak ada komponen sama sekali
-            if (empty($schoolItems) && $empCount > 0) {
-                $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
-                $item = [
-                    'code' => $code,
-                    'name' => 'Belanja Gaji & Tunjangan Pegawai',
-                    'icon' => 'fa-user-tie',
-                    'category' => 'Belanja Pegawai',
-                    'volume' => $empCount,
-                    'unit' => 'Orang/Bln',
-                    'tariff' => 0,
-                    'amount' => 0,
-                    'is_automatic' => true,
-                ];
-                $schoolItems[] = $item;
-                $salarySubAccounts[$code] = $item;
-            }
+            $code = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
+            $item = [
+                'code' => $code,
+                'name' => 'Belanja Tunjangan Keluarga, Anak & Beras PTY/GTY',
+                'icon' => 'fa-people-roof',
+                'category' => 'Belanja Pegawai',
+                'volume' => 1,
+                'unit' => 'Paket',
+                'tariff' => $schTunjanganKeluargaSum,
+                'amount' => $schTunjanganKeluargaSum,
+                'is_automatic' => true,
+            ];
+            $schoolItems[] = $item;
+            $salarySubAccounts[$code] = $item;
 
             $hierarchicalSalaryData[] = [
                 'school' => $sch,
