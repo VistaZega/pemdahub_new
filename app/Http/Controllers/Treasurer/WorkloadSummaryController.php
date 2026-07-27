@@ -45,17 +45,37 @@ class WorkloadSummaryController extends Controller
                 }])
                 ->where('school_id', $schoolId)
                 ->where('is_active', true)
-                ->select('employees.*')
-                ->addSelect(['min_position_level' => function ($q) use ($yearId) {
-                    $q->selectRaw('COALESCE(MIN(positions.position_level), 999)')
-                        ->from('employee_positions')
-                        ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
-                        ->whereColumn('employee_positions.employee_id', 'employees.id')
-                        ->where('employee_positions.academic_year_id', $yearId)
-                        ->whereNull('employee_positions.end_date');
-                }])
-                ->orderBy('min_position_level', 'asc')
-                ->orderBy('full_name', 'asc')
+                ->addSelect([
+                    'position_name_rank' => function ($q) use ($yearId) {
+                        $q->selectRaw("COALESCE(MIN(CASE 
+                            WHEN positions.position_name LIKE 'Ketua Yayasan%' THEN 1
+                            WHEN positions.position_name LIKE 'Kepala Sekolah%' OR positions.position_name LIKE 'Kepsek%' THEN 2
+                            WHEN positions.position_name LIKE 'Wakil Kepala Sekolah%' OR positions.position_name LIKE 'Wakasek%' THEN 3
+                            WHEN positions.position_name LIKE 'Pembantu Kepala Sekolah%' OR positions.position_name LIKE 'PKS%' THEN 4
+                            WHEN positions.position_name LIKE 'Kepala Tata Usaha%' OR positions.position_name LIKE 'KTU%' THEN 5
+                            WHEN positions.position_name LIKE 'Bendahara%' THEN 6
+                            WHEN positions.position_name LIKE 'Kapro%' OR positions.position_name LIKE 'Kaprog%' THEN 7
+                            WHEN positions.position_name LIKE 'Koordinator%' THEN 8
+                            WHEN positions.position_name LIKE 'Wali Kelas%' THEN 9
+                            ELSE 99 END), 999)")
+                            ->from('employee_positions')
+                            ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
+                            ->whereColumn('employee_positions.employee_id', 'employees.id')
+                            ->where('employee_positions.academic_year_id', $yearId)
+                            ->whereNull('employee_positions.end_date');
+                    },
+                    'emp_status_rank' => function ($q) {
+                        $q->selectRaw("CASE 
+                            WHEN LOWER(employment_status) = 'pns' THEN 1 
+                            WHEN LOWER(employment_status) = 'gty' THEN 2 
+                            WHEN LOWER(employment_status) = 'yayasan' THEN 3
+                            WHEN LOWER(employment_status) = 'honorer' THEN 4 
+                            WHEN LOWER(employment_status) = 'kontrak' THEN 5 
+                            ELSE 6 END")
+                            ->from('employees as emp_inner')
+                            ->whereColumn('emp_inner.id', 'employees.id');
+                    }
+                ])
                 ->get();
 
             foreach ($employees as $emp) {
@@ -63,6 +83,15 @@ class WorkloadSummaryController extends Controller
                 $salaryData[$emp->id] = $salary;
                 $totalGaji += $salary['thp'];
             }
+
+            $employees = $employees->sortBy([
+                ['position_name_rank', 'asc'],
+                [fn($a, $b) => ($salaryData[$b->id]['thp'] ?? 0) <=> ($salaryData[$a->id]['thp'] ?? 0)],
+                [fn($a, $b) => ($salaryData[$b->id]['tunjangan_jabatan'] ?? 0) <=> ($salaryData[$a->id]['tunjangan_jabatan'] ?? 0)],
+                [fn($a, $b) => ($salaryData[$b->id]['total_tunjangan'] ?? 0) <=> ($salaryData[$a->id]['total_tunjangan'] ?? 0)],
+                ['emp_status_rank', 'asc'],
+                ['full_name', 'asc'],
+            ])->values();
         }
 
         return view('treasurer.workload.salary-report', compact(
@@ -94,17 +123,52 @@ class WorkloadSummaryController extends Controller
         $employees = Employee::where('school_id', $schoolId)
             ->where('is_active', true)
             ->select('employees.*')
-            ->addSelect(['min_position_level' => function ($q) use ($yearId) {
-                $q->selectRaw('COALESCE(MIN(positions.position_level), 999)')
-                    ->from('employee_positions')
-                    ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
-                    ->whereColumn('employee_positions.employee_id', 'employees.id')
-                    ->where('employee_positions.academic_year_id', $yearId)
-                    ->whereNull('employee_positions.end_date');
-            }])
-            ->orderBy('min_position_level', 'asc')
-            ->orderBy('full_name', 'asc')
+            ->addSelect([
+                'position_name_rank' => function ($q) use ($yearId) {
+                    $q->selectRaw("COALESCE(MIN(CASE 
+                        WHEN positions.position_name LIKE 'Ketua Yayasan%' THEN 1
+                        WHEN positions.position_name LIKE 'Kepala Sekolah%' OR positions.position_name LIKE 'Kepsek%' THEN 2
+                        WHEN positions.position_name LIKE 'Wakil Kepala Sekolah%' OR positions.position_name LIKE 'Wakasek%' THEN 3
+                        WHEN positions.position_name LIKE 'Pembantu Kepala Sekolah%' OR positions.position_name LIKE 'PKS%' THEN 4
+                        WHEN positions.position_name LIKE 'Kepala Tata Usaha%' OR positions.position_name LIKE 'KTU%' THEN 5
+                        WHEN positions.position_name LIKE 'Bendahara%' THEN 6
+                        WHEN positions.position_name LIKE 'Kapro%' OR positions.position_name LIKE 'Kaprog%' THEN 7
+                        WHEN positions.position_name LIKE 'Koordinator%' THEN 8
+                        WHEN positions.position_name LIKE 'Wali Kelas%' THEN 9
+                        ELSE 99 END), 999)")
+                        ->from('employee_positions')
+                        ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
+                        ->whereColumn('employee_positions.employee_id', 'employees.id')
+                        ->where('employee_positions.academic_year_id', $yearId)
+                        ->whereNull('employee_positions.end_date');
+                },
+                'emp_status_rank' => function ($q) {
+                    $q->selectRaw("CASE 
+                        WHEN LOWER(employment_status) = 'pns' THEN 1 
+                        WHEN LOWER(employment_status) = 'gty' THEN 2 
+                        WHEN LOWER(employment_status) = 'yayasan' THEN 3
+                        WHEN LOWER(employment_status) = 'honorer' THEN 4 
+                        WHEN LOWER(employment_status) = 'kontrak' THEN 5 
+                        ELSE 6 END")
+                        ->from('employees as emp_inner')
+                        ->whereColumn('emp_inner.id', 'employees.id');
+                }
+            ])
             ->get();
+
+        $salaryMap = [];
+        foreach ($employees as $emp) {
+            $salaryMap[$emp->id] = $this->service->calculateFullSalary($emp, $year, $semester, $schoolLevel);
+        }
+
+        $employees = $employees->sortBy([
+            ['position_name_rank', 'asc'],
+            [fn($a, $b) => ($salaryMap[$b->id]['thp'] ?? 0) <=> ($salaryMap[$a->id]['thp'] ?? 0)],
+            [fn($a, $b) => ($salaryMap[$b->id]['tunjangan_jabatan'] ?? 0) <=> ($salaryMap[$a->id]['tunjangan_jabatan'] ?? 0)],
+            [fn($a, $b) => ($salaryMap[$b->id]['total_tunjangan'] ?? 0) <=> ($salaryMap[$a->id]['total_tunjangan'] ?? 0)],
+            ['emp_status_rank', 'asc'],
+            ['full_name', 'asc'],
+        ])->values();
 
         $rawFilename = 'Laporan_Gaji_' . $school->name . '_' . $year->year . '_' . $semester->semester_name . '.csv';
         $filename = str_replace([' ', '/', '\\'], '_', $rawFilename);
