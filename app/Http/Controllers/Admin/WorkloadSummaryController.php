@@ -114,6 +114,9 @@ class WorkloadSummaryController extends Controller
         $summaries = $query->orderBy('emp_type_rank', 'asc')
             ->orderBy('min_position_level', 'asc')
             ->orderBy('position_name_rank', 'asc')
+            ->orderBy('total_position_allowance', 'desc')
+            ->orderBy('total_allowance', 'desc')
+            ->orderBy('total_compensation', 'desc')
             ->orderBy('emp_status_rank', 'asc')
             ->orderBy('employee_name', 'asc')
             ->paginate(50)->withQueryString();
