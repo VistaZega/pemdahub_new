@@ -79,7 +79,7 @@ class WorkloadSummaryController extends Controller
                         WHEN positions.position_name LIKE 'Pembantu Kepala Sekolah%' OR positions.position_name LIKE 'PKS%' THEN 4
                         WHEN positions.position_name LIKE 'Kepala Tata Usaha%' OR positions.position_name LIKE 'KTU%' THEN 5
                         WHEN positions.position_name LIKE 'Bendahara%' THEN 6
-                        WHEN positions.position_name LIKE 'Kapro%' THEN 7
+                        WHEN positions.position_name LIKE 'Kapro%' OR positions.position_name LIKE 'Kaprog%' THEN 7
                         WHEN positions.position_name LIKE 'Koordinator%' THEN 8
                         WHEN positions.position_name LIKE 'Wali Kelas%' THEN 9
                         ELSE 99 END), 999)")
@@ -114,11 +114,9 @@ class WorkloadSummaryController extends Controller
         }
 
         $summaries = $query->orderBy('position_name_rank', 'asc')
-            ->orderBy('total_position_allowance', 'desc')
             ->orderBy('total_compensation', 'desc')
+            ->orderBy('total_position_allowance', 'desc')
             ->orderBy('total_allowance', 'desc')
-            ->orderBy('emp_type_rank', 'asc')
-            ->orderBy('min_position_level', 'asc')
             ->orderBy('emp_status_rank', 'asc')
             ->orderBy('employee_name', 'asc')
             ->paginate(50)->withQueryString();
