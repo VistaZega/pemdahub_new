@@ -4,13 +4,23 @@ namespace App\Http\Controllers\Yayasan;
 
 use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
+use App\Models\Employee;
 use App\Models\School;
 use App\Models\SchoolContribution;
+use App\Models\Semester;
+use App\Services\EmployeeAssignmentService;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class FoundationExpenseController extends Controller
 {
+    protected EmployeeAssignmentService $assignmentService;
+
+    public function __construct(EmployeeAssignmentService $assignmentService)
+    {
+        $this->assignmentService = $assignmentService;
+    }
+
     /**
      * Master Kode Rekening Belanja Operasional Yayasan (RAPBY)
      */
@@ -102,54 +112,16 @@ class FoundationExpenseController extends Controller
     ];
 
     /**
-     * Tampilan Halaman Rencana Belanja Operasional Yayasan (Halaman 2)
+     * Tampilan Halaman Rencana Belanja Operasional & Pegawai (Halaman 2)
      */
     public function index(Request $request)
     {
-        $allYears = AcademicYear::orderBy('id', 'desc')->get();
-        $selectedYearId = $request->query('academic_year_id');
-
-        $currentYear = $selectedYearId
-            ? AcademicYear::find($selectedYearId)
-            : (AcademicYear::where('is_active', true)->first() ?? AcademicYear::first());
-
-        $periodMode = $request->query('period_mode', 'annual');
-        $multiplier = ($periodMode === 'monthly') ? 1 : 12;
-
-        $yayasanSchool = School::where('type', 'yayasan')->first()
-            ?? School::firstOrCreate(
-                ['type' => 'yayasan'],
-                ['name' => 'Yayasan Perguruan Pembda Nias', 'is_active' => true]
-            );
-
-        $contribution = SchoolContribution::where('school_id', $yayasanSchool->id)
-            ->where('academic_year_id', $currentYear->id ?? 0)
-            ->first();
-
-        $savedExpenseDetails = $contribution->expense_details ?? [];
-        $totalMonthly = array_sum($savedExpenseDetails);
-        if ($totalMonthly == 0 && $contribution) {
-            $totalMonthly = (float) ($contribution->authorized_expense ?? 0);
-        }
-
-        $totalPeriod = $totalMonthly * $multiplier;
-
-        return view('yayasan.operational_expenses.index', [
-            'currentYear' => $currentYear,
-            'allYears' => $allYears,
-            'periodMode' => $periodMode,
-            'multiplier' => $multiplier,
-            'yayasanSchool' => $yayasanSchool,
-            'contribution' => $contribution,
-            'savedExpenseDetails' => $savedExpenseDetails,
-            'totalMonthly' => $totalMonthly,
-            'totalPeriod' => $totalPeriod,
-            'expenseAccounts' => self::OPERATIONAL_EXPENSE_ACCOUNTS,
-        ]);
+        $data = $this->getFoundationExpenseData($request);
+        return view('yayasan.operational_expenses.index', $data);
     }
 
     /**
-     * Simpan / Update Rencana Belanja Operasional Yayasan
+     * Simpan / Update Rencana Belanja Operasional Non-Gaji
      */
     public function store(Request $request)
     {
@@ -199,11 +171,23 @@ class FoundationExpenseController extends Controller
     }
 
     /**
-     * Export PDF Rencana Belanja Operasional Yayasan
+     * Export PDF Rencana Belanja Operasional & Pegawai Yayasan
      */
     public function exportPdf(Request $request)
     {
+        $data = $this->getFoundationExpenseData($request);
+        $pdf = Pdf::loadView('yayasan.operational_expenses.pdf', $data);
+        return $pdf->download('Rencana_Belanja_Yayasan_' . ($data['currentYear']->year ?? 'TP') . '.pdf');
+    }
+
+    /**
+     * Kalkulasi Data Rencana Belanja Pegawai & Belanja Operasional
+     */
+    public function getFoundationExpenseData(Request $request): array
+    {
+        $allYears = AcademicYear::orderBy('id', 'desc')->get();
         $selectedYearId = $request->query('academic_year_id');
+
         $currentYear = $selectedYearId
             ? AcademicYear::find($selectedYearId)
             : (AcademicYear::where('is_active', true)->first() ?? AcademicYear::first());
@@ -211,25 +195,75 @@ class FoundationExpenseController extends Controller
         $periodMode = $request->query('period_mode', 'annual');
         $multiplier = ($periodMode === 'monthly') ? 1 : 12;
 
+        $currentSemester = Semester::where('academic_year_id', $currentYear->id ?? 0)
+            ->where('is_active', true)
+            ->first()
+            ?? Semester::where('academic_year_id', $currentYear->id ?? 0)->first()
+            ?? Semester::first();
+
+        // 1. Kalkulasi Belanja Pegawai Seluruh Unit Perguruan (Sekolah + Yayasan)
+        $allSchools = School::where('is_active', true)
+            ->orderByRaw("CASE WHEN type = 'yayasan' THEN 2 ELSE 1 END, name ASC")
+            ->get();
+
+        $salaryBreakdown = [];
+        $totalGajiPerguruanMonthly = 0;
+
+        foreach ($allSchools as $sch) {
+            $employees = Employee::where('school_id', $sch->id)->where('is_active', true)->get();
+            $sumSalary = 0;
+            if ($currentYear && $currentSemester) {
+                foreach ($employees as $emp) {
+                    $sal = $this->assignmentService->calculateFullSalary($emp, $currentYear, $currentSemester, $sch->type, $sch->id);
+                    $sumSalary += (float) ($sal['thp'] ?? 0);
+                }
+            }
+            $periodSalary = $sumSalary * $multiplier;
+            $salaryBreakdown[] = [
+                'school' => $sch,
+                'employee_count' => $employees->count(),
+                'salary_monthly' => $sumSalary,
+                'salary_period' => $periodSalary,
+            ];
+            $totalGajiPerguruanMonthly += $sumSalary;
+        }
+
+        $totalGajiPerguruanPeriod = $totalGajiPerguruanMonthly * $multiplier;
+
+        // 2. Kalkulasi Rencana Belanja Operasional Non-Gaji Terpusat Yayasan
         $yayasanSchool = School::where('type', 'yayasan')->first();
-        $contribution = SchoolContribution::where('school_id', $yayasanSchool->id ?? 0)
-            ->where('academic_year_id', $currentYear->id ?? 0)
-            ->first();
+        $contribution = $yayasanSchool
+            ? SchoolContribution::where('school_id', $yayasanSchool->id)->where('academic_year_id', $currentYear->id ?? 0)->first()
+            : null;
 
         $savedExpenseDetails = $contribution->expense_details ?? [];
-        $totalMonthly = array_sum($savedExpenseDetails);
-        $totalPeriod = $totalMonthly * $multiplier;
+        $totalOpsMonthly = array_sum($savedExpenseDetails);
+        if ($totalOpsMonthly == 0 && $contribution) {
+            $totalOpsMonthly = (float) ($contribution->authorized_expense ?? 0);
+        }
 
-        $pdf = Pdf::loadView('yayasan.operational_expenses.pdf', [
+        $totalOpsPeriod = $totalOpsMonthly * $multiplier;
+
+        // 3. Grand Total Rencana Belanja Perguruan (Pegawai + Operasional)
+        $grandTotalBelanjaMonthly = $totalGajiPerguruanMonthly + $totalOpsMonthly;
+        $grandTotalBelanjaPeriod = $grandTotalBelanjaMonthly * $multiplier;
+
+        return [
             'currentYear' => $currentYear,
+            'allYears' => $allYears,
             'periodMode' => $periodMode,
             'multiplier' => $multiplier,
+            'yayasanSchool' => $yayasanSchool,
+            'contribution' => $contribution,
+            'salaryBreakdown' => $salaryBreakdown,
+            'totalGajiPerguruanMonthly' => $totalGajiPerguruanMonthly,
+            'totalGajiPerguruanPeriod' => $totalGajiPerguruanPeriod,
             'savedExpenseDetails' => $savedExpenseDetails,
-            'totalMonthly' => $totalMonthly,
-            'totalPeriod' => $totalPeriod,
+            'totalOpsMonthly' => $totalOpsMonthly,
+            'totalOpsPeriod' => $totalOpsPeriod,
+            'grandTotalBelanjaMonthly' => $grandTotalBelanjaMonthly,
+            'grandTotalBelanjaPeriod' => $grandTotalBelanjaPeriod,
             'expenseAccounts' => self::OPERATIONAL_EXPENSE_ACCOUNTS,
-        ]);
-
-        return $pdf->download('Rencana_Belanja_Operasional_Yayasan_' . ($currentYear->year ?? 'TP') . '.pdf');
+        ];
     }
 }

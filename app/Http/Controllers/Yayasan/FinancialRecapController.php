@@ -26,7 +26,7 @@ class FinancialRecapController extends Controller
     }
 
     /**
-     * Tampilan Halaman Rekapitulasi Pendapatan & Belanja Yayasan (Halaman 3)
+     * Tampilan Halaman Rekapitulasi Keuangan Yayasan (Halaman 3)
      */
     public function index(Request $request)
     {
@@ -35,7 +35,7 @@ class FinancialRecapController extends Controller
     }
 
     /**
-     * Export PDF Rekapitulasi Pendapatan & Belanja Yayasan
+     * Export PDF Rekapitulasi Keuangan Yayasan
      */
     public function exportPdf(Request $request)
     {
@@ -65,12 +65,10 @@ class FinancialRecapController extends Controller
             ?? Semester::where('academic_year_id', $currentYear->id ?? 0)->first()
             ?? Semester::first();
 
-        // 1. Ambil Unit Sekolah
+        // 1. DITARIK DARI HALAMAN 1: Total Pendapatan SPP Seluruh Unit Sekolah
         $schools = School::schoolsOnly()->where('is_active', true)->orderBy('name')->get();
-
-        $schoolData = [];
+        $schoolSppData = [];
         $grandTotalIncome = 0;
-        $grandTotalGajiSekolah = 0;
 
         foreach ($schools as $school) {
             $contribution = SchoolContribution::where('school_id', $school->id)
@@ -84,7 +82,6 @@ class FinancialRecapController extends Controller
                 ->first();
 
             $masterSppAmount = (float) ($defaultSppType->amount ?? 0);
-
             $levels = $school->getGradeLevels();
             $schoolTotalIncome = 0;
             $totalStudentsInSchool = 0;
@@ -113,55 +110,33 @@ class FinancialRecapController extends Controller
                 $totalStudentsInSchool += $studentCount;
             }
 
-            // Gaji Pegawai Sekolah
-            $employees = Employee::where('school_id', $school->id)
-                ->where('is_active', true)
-                ->get();
-
-            $monthlySalarySum = 0;
-            if ($currentYear && $currentSemester) {
-                foreach ($employees as $employee) {
-                    $salary = $this->assignmentService->calculateFullSalary(
-                        $employee,
-                        $currentYear,
-                        $currentSemester,
-                        $school->type,
-                        $school->id
-                    );
-                    $monthlySalarySum += (float) ($salary['thp'] ?? 0);
-                }
-            }
-
-            $totalSalaryPeriod = $monthlySalarySum * $multiplier;
-
-            $schoolData[] = [
+            $schoolSppData[] = [
                 'school' => $school,
                 'total_students' => $totalStudentsInSchool,
                 'income_total' => $schoolTotalIncome,
-                'employee_count' => $employees->count(),
-                'salary_total' => $totalSalaryPeriod,
-                'surplus_kontribusi' => $schoolTotalIncome - $totalSalaryPeriod,
             ];
 
             $grandTotalIncome += $schoolTotalIncome;
-            $grandTotalGajiSekolah += $totalSalaryPeriod;
         }
 
-        // 2. Data Unit Yayasan (Gaji Staf Yayasan & Belanja Operasional Terpusat)
-        $yayasanSchool = School::where('type', 'yayasan')->first();
-        $yayasanEmployees = $yayasanSchool
-            ? Employee::where('school_id', $yayasanSchool->id)->where('is_active', true)->get()
-            : collect();
+        // 2. DITARIK DARI HALAMAN 2: Total Belanja Pegawai & Total Belanja Operasional
+        $allSchools = School::where('is_active', true)
+            ->orderByRaw("CASE WHEN type = 'yayasan' THEN 2 ELSE 1 END, name ASC")
+            ->get();
 
-        $monthlyYayasanSalary = 0;
-        if ($currentYear && $currentSemester && $yayasanSchool) {
-            foreach ($yayasanEmployees as $emp) {
-                $sal = $this->assignmentService->calculateFullSalary($emp, $currentYear, $currentSemester, 'yayasan', $yayasanSchool->id);
-                $monthlyYayasanSalary += (float) ($sal['thp'] ?? 0);
+        $totalGajiLembagaMonthly = 0;
+        foreach ($allSchools as $sch) {
+            $employees = Employee::where('school_id', $sch->id)->where('is_active', true)->get();
+            if ($currentYear && $currentSemester) {
+                foreach ($employees as $emp) {
+                    $sal = $this->assignmentService->calculateFullSalary($emp, $currentYear, $currentSemester, $sch->type, $sch->id);
+                    $totalGajiLembagaMonthly += (float) ($sal['thp'] ?? 0);
+                }
             }
         }
-        $totalYayasanSalary = $monthlyYayasanSalary * $multiplier;
+        $totalGajiLembagaPeriod = $totalGajiLembagaMonthly * $multiplier;
 
+        $yayasanSchool = School::where('type', 'yayasan')->first();
         $yayasanContribution = $yayasanSchool
             ? SchoolContribution::where('school_id', $yayasanSchool->id)->where('academic_year_id', $currentYear->id ?? 0)->first()
             : null;
@@ -171,30 +146,26 @@ class FinancialRecapController extends Controller
         if ($monthlyBelanjaOps == 0 && $yayasanContribution) {
             $monthlyBelanjaOps = (float) ($yayasanContribution->authorized_expense ?? 0);
         }
-        $totalBelanjaOpsYayasan = $monthlyBelanjaOps * $multiplier;
+        $totalBelanjaOpsPeriod = $monthlyBelanjaOps * $multiplier;
 
-        // 3. Grand Total Rekapitulasi Konsolidasi
-        $grandTotalGajiLembaga = $grandTotalGajiSekolah + $totalYayasanSalary;
-        $grandTotalPengeluaran = $grandTotalGajiLembaga + $totalBelanjaOpsYayasan;
-        $grandTotalSaldoAkhir = $grandTotalIncome - $grandTotalPengeluaran;
+        $grandTotalBelanjaPeriod = $totalGajiLembagaPeriod + $totalBelanjaOpsPeriod;
+
+        // 3. Saldo Bersih Akhir Perguruan (Pendapatan SPP H1 - Total Rencana Belanja H2)
+        $grandTotalSaldoAkhir = $grandTotalIncome - $grandTotalBelanjaPeriod;
 
         return [
             'currentYear' => $currentYear,
             'allYears' => $allYears,
             'periodMode' => $periodMode,
             'multiplier' => $multiplier,
-            'schoolData' => $schoolData,
-            'yayasanSchool' => $yayasanSchool,
-            'yayasanEmployeeCount' => $yayasanEmployees->count(),
-            'totalYayasanSalary' => $totalYayasanSalary,
-            'totalBelanjaOpsYayasan' => $totalBelanjaOpsYayasan,
+            'schoolSppData' => $schoolSppData,
+            'grandTotalIncome' => $grandTotalIncome,
+            'totalGajiLembagaPeriod' => $totalGajiLembagaPeriod,
+            'totalBelanjaOpsPeriod' => $totalBelanjaOpsPeriod,
+            'grandTotalBelanjaPeriod' => $grandTotalBelanjaPeriod,
+            'grandTotalSaldoAkhir' => $grandTotalSaldoAkhir,
             'savedExpenseDetails' => $savedDetails,
             'expenseAccounts' => FoundationExpenseController::OPERATIONAL_EXPENSE_ACCOUNTS,
-            'grandTotalIncome' => $grandTotalIncome,
-            'grandTotalGajiSekolah' => $grandTotalGajiSekolah,
-            'grandTotalGajiLembaga' => $grandTotalGajiLembaga,
-            'grandTotalPengeluaran' => $grandTotalPengeluaran,
-            'grandTotalSaldoAkhir' => $grandTotalSaldoAkhir,
         ];
     }
 }

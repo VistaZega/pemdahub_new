@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Saldo Kontribusi Unit Sekolah</title>
+    <title>Laporan Rencana Pendapatan SPP Unit Sekolah</title>
     <style>
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
@@ -68,14 +68,6 @@
         .text-right { text-align: right; }
         .text-center { text-align: center; }
         .font-bold { font-weight: bold; }
-        .badge-surplus {
-            color: #065f46;
-            font-weight: bold;
-        }
-        .badge-defisit {
-            color: #991b1b;
-            font-weight: bold;
-        }
         .footer-sig {
             margin-top: 30px;
             width: 100%;
@@ -90,7 +82,7 @@
 
     <div class="header">
         <h2>YAYASAN PERGURUAN PEMBDA</h2>
-        <h3>LAPORAN SALDO KONTRIBUSI UNIT SEKOLAH</h3>
+        <h3>LAPORAN RENCANA PENDAPATAN SPP UNIT SEKOLAH</h3>
         <p>Tahun Pelajaran: {{ $currentYear->year ?? '-' }} | Periode: {{ $periodMode === 'annual' ? 'Tahunan (12 Bulan)' : 'Bulanan (1 Bulan)' }}</p>
     </div>
 
@@ -103,17 +95,15 @@
         </tr>
     </table>
 
-    <h4 style="margin: 0 0 8px 0; color:#4c1d95; font-size:12px;">I. REKAPITULASI KONTRIBUSI SELURUH UNIT SEKOLAH</h4>
+    <h4 style="margin: 0 0 8px 0; color:#4c1d95; font-size:12px;">I. REKAPITULASI PENDAPATAN SPP SELURUH UNIT SEKOLAH</h4>
     <table class="table">
         <thead>
             <tr>
-                <th width="4%">No</th>
-                <th width="20%">Nama Unit Sekolah</th>
-                <th width="10%" class="text-center">Siswa</th>
-                <th width="16%" class="text-right">Pendapatan SPP</th>
-                <th width="16%" class="text-right">Gaji Guru & Pegawai</th>
-                <th width="16%" class="text-right">Belanja Otorisasi</th>
-                <th width="18%" class="text-right">Saldo Kontribusi</th>
+                <th width="5%" class="text-center">No</th>
+                <th width="35%">Nama Unit Sekolah</th>
+                <th width="20%" class="text-center">Jumlah Siswa</th>
+                <th width="20%" class="text-right">Pendapatan / Bln</th>
+                <th width="20%" class="text-right">Total Pendapatan SPP</th>
             </tr>
         </thead>
         <tbody>
@@ -122,142 +112,61 @@
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td class="font-bold">{{ $item['school']->name }}</td>
                     <td class="text-center">{{ $item['total_students'] }}</td>
-                    <td class="text-right">Rp {{ number_format($item['income_total'], 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item['salary_total'], 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item['authorized_expense_total'], 0, ',', '.') }}</td>
-                    <td class="text-right font-bold {{ $item['is_surplus'] ? 'badge-surplus' : 'badge-defisit' }}">
-                        {{ $item['is_surplus'] ? '+' : '' }}Rp {{ number_format($item['saldo'], 0, ',', '.') }}
-                    </td>
+                    <td class="text-right">Rp {{ number_format($item['income_monthly'], 0, ',', '.') }}</td>
+                    <td class="text-right font-bold" style="color: #065f46;">Rp {{ number_format($item['income_total'], 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>
         <tfoot>
             <tr style="background-color: #f3e8ff; font-weight: bold;">
-                <td colspan="3" class="text-right">GRAND TOTAL:</td>
-                <td class="text-right">Rp {{ number_format($grandTotalIncome, 0, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($grandTotalGaji, 0, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($grandTotalOtorisasi, 0, ',', '.') }}</td>
-                <td class="text-right {{ $grandTotalSaldo >= 0 ? 'badge-surplus' : 'badge-defisit' }}" style="font-size:11px;">
-                    {{ $grandTotalSaldo >= 0 ? '+' : '' }}Rp {{ number_format($grandTotalSaldo, 0, ',', '.') }}
-                </td>
+                <td colspan="3" class="text-right">GRAND TOTAL PENDAPATAN SPP:</td>
+                <td class="text-right">Rp {{ number_format(array_sum(array_column($schoolData, 'income_monthly')), 0, ',', '.') }}</td>
+                <td class="text-right" style="font-size: 11px; color:#4c1d95;">Rp {{ number_format($grandTotalIncome, 0, ',', '.') }}</td>
             </tr>
         </tfoot>
     </table>
 
-    <h4 style="margin: 15px 0 8px 0; color:#4c1d95; font-size:12px;">II. RINCIAN PENDAPATAN PER LEVEL & PENGELUARAN UNIT</h4>
+    <h4 style="margin: 15px 0 8px 0; color:#4c1d95; font-size:12px;">II. RINCIAN PENDAPATAN PER TINGKAT KELAS</h4>
     @foreach($schoolData as $item)
         <div style="margin-bottom: 12px; page-break-inside: avoid;">
             <strong style="font-size: 11px; color:#1e1b4b;">{{ $item['school']->name }} ({{ $item['school']->type }})</strong>
             <table class="table" style="margin-top:4px;">
                 <thead>
                     <tr>
-                        <th>Rincian Pendapatan Level</th>
-                        <th class="text-center">Siswa</th>
-                        <th class="text-right">SPP/Bln</th>
-                        <th class="text-right">Total Pendapatan</th>
-                        <th class="text-right">Pengeluaran & Otorisasi</th>
-                        <th class="text-right">Nominal</th>
+                        <th width="25%">Tingkat Kelas</th>
+                        <th width="15%" class="text-center">Jumlah Siswa</th>
+                        <th width="20%" class="text-right">Tarif SPP / Siswa</th>
+                        <th width="20%" class="text-right">Pendapatan / Bln</th>
+                        <th width="20%" class="text-right">Total Pendapatan ({{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }})</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if(count($item['levels']) > 0)
-                        @foreach($item['levels'] as $idx => $lvl)
-                            <tr>
-                                <td>Kelas {{ $lvl['level'] }}</td>
-                                <td class="text-center">{{ $lvl['student_count'] }}</td>
-                                <td class="text-right">Rp {{ number_format($lvl['spp_monthly'], 0, ',', '.') }}</td>
-                                <td class="text-right">Rp {{ number_format($lvl['income_total'], 0, ',', '.') }}</td>
-                                @if($idx == 0)
-                                    <td>Gaji Guru & Pegawai ({{ $item['employee_count'] }} org)</td>
-                                    <td class="text-right">Rp {{ number_format($item['salary_total'], 0, ',', '.') }}</td>
-                                @elseif($idx == 1 && $item['school']->type === 'yayasan')
-                                    <td>Belanja Ops Central Yayasan</td>
-                                    <td class="text-right">Rp {{ number_format($item['authorized_expense_total'], 0, ',', '.') }}</td>
-                                @else
-                                    <td>-</td>
-                                    <td class="text-right">-</td>
-                                @endif
-                            </tr>
-                        @endforeach
-                    @else
+                    @forelse($item['levels'] as $lvl)
                         <tr>
-                            <td colspan="4" class="text-center text-muted" style="color:#6b7280; font-style:italic;">Unit Yayasan (Tidak Ada SPP Siswa)</td>
-                            <td>Gaji Staf/Pengurus Yayasan ({{ $item['employee_count'] }} org)</td>
-                            <td class="text-right">Rp {{ number_format($item['salary_total'], 0, ',', '.') }}</td>
+                            <td>Kelas {{ $lvl['level'] }}</td>
+                            <td class="text-center">{{ $lvl['student_count'] }}</td>
+                            <td class="text-right">Rp {{ number_format($lvl['spp_monthly'], 0, ',', '.') }}</td>
+                            <td class="text-right">Rp {{ number_format($lvl['income_monthly'], 0, ',', '.') }}</td>
+                            <td class="text-right font-bold">Rp {{ number_format($lvl['income_total'], 0, ',', '.') }}</td>
                         </tr>
-                        @if($item['authorized_expense_total'] > 0)
+                    @empty
                         <tr>
-                            <td colspan="4"></td>
-                            <td>Belanja Ops Central Yayasan</td>
-                            <td class="text-right">Rp {{ number_format($item['authorized_expense_total'], 0, ',', '.') }}</td>
+                            <td colspan="5" class="text-center" style="color:#6b7280; font-style:italic;">Belum ada kelas terdaftar.</td>
                         </tr>
-                        @endif
-                    @endif
+                    @endforelse
                 </tbody>
                 <tfoot>
                     <tr style="background-color:#faf5ff; font-weight:bold;">
-                        <td colspan="3" class="text-right">Subtotal Pendapatan Unit:</td>
-                        <td class="text-right">Rp {{ number_format($item['income_total'], 0, ',', '.') }}</td>
-                        <td class="text-right">Total Pengeluaran Unit:</td>
-                        <td class="text-right">Rp {{ number_format($item['expense_total'], 0, ',', '.') }}</td>
-                    </tr>
-                    <tr style="background-color:#f3e8ff; font-weight:bold;">
-                        <td colspan="4" class="text-right">SALDO KONTRIBUSI AKHIR UNIT:</td>
-                        <td colspan="2" class="text-right {{ $item['is_surplus'] ? 'badge-surplus' : 'badge-defisit' }}">
-                            {{ $item['is_surplus'] ? 'SURPLUS (+): ' : 'DEFISIT (-): ' }} Rp {{ number_format(abs($item['saldo']), 0, ',', '.') }}
-                        </td>
+                        <td class="text-right">Subtotal:</td>
+                        <td class="text-center">{{ $item['total_students'] }}</td>
+                        <td class="text-right">-</td>
+                        <td class="text-right">Rp {{ number_format($item['income_monthly'], 0, ',', '.') }}</td>
+                        <td class="text-right" style="color:#065f46;">Rp {{ number_format($item['income_total'], 0, ',', '.') }}</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     @endforeach
-
-    <h4 style="margin: 15px 0 8px 0; color:#4c1d95; font-size:12px;">III. RINCIAN BELANJA OPERASIONAL PER KODE REKENING</h4>
-    <table class="table">
-        <thead>
-            <tr>
-                <th width="12%">Kode Rekening</th>
-                <th width="35%">Nama Rekening Belanja Operasional</th>
-                <th width="18%">Kategori</th>
-                <th width="15%" class="text-right">Nominal / Bln</th>
-                <th width="20%" class="text-right">Subtotal ({{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }})</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php $hasOpsDetails = false; @endphp
-            @foreach($schoolData as $item)
-                @if(!empty($item['expense_details']) && count($item['expense_details']) > 0)
-                    @php $hasOpsDetails = true; @endphp
-                    <tr style="background-color: #f5f3ff; font-weight: bold;">
-                        <td colspan="5" style="color: #4c1d95; font-size: 10px;">
-                            UNIT / LEMBAGA: {{ strtoupper($item['school']->name) }} ({{ $item['school']->type }})
-                        </td>
-                    </tr>
-                    @foreach($item['expense_details'] as $accCode => $accAmount)
-                        @php
-                            $accInfo = $expenseAccounts[$accCode] ?? null;
-                            $accMonthly = (float) $accAmount;
-                            $accPeriod = $accMonthly * $multiplier;
-                        @endphp
-                        @if($accMonthly > 0)
-                            <tr>
-                                <td class="font-bold text-center" style="font-family: monospace;">{{ $accCode }}</td>
-                                <td>{{ $accInfo['name'] ?? 'Belanja Operasional' }}</td>
-                                <td>{{ $accInfo['category'] ?? '-' }}</td>
-                                <td class="text-right">Rp {{ number_format($accMonthly, 0, ',', '.') }}</td>
-                                <td class="text-right font-bold">Rp {{ number_format($accPeriod, 0, ',', '.') }}</td>
-                            </tr>
-                        @endif
-                    @endforeach
-                @endif
-            @endforeach
-            @if(!$hasOpsDetails)
-                <tr>
-                    <td colspan="5" class="text-center" style="color:#9ca3af; font-style:italic;">Belum ada rincian belanja operasional per kode rekening yang diinputkan.</td>
-                </tr>
-            @endif
-        </tbody>
-    </table>
 
     <table class="footer-sig">
         <tr>

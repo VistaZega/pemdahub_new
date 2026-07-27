@@ -245,21 +245,11 @@ class ContributionBalanceController extends Controller
         $grandTotalSaldo = 0;
 
         foreach ($schools as $school) {
-            // Ambil record contribution jika ada
             $contribution = SchoolContribution::where('school_id', $school->id)
                 ->where('academic_year_id', $currentYear->id ?? 0)
                 ->first();
 
-            if ($school->type === 'yayasan') {
-                $savedExpenseDetails = $contribution->expense_details ?? [];
-                $expenseDetailsSum = array_sum($savedExpenseDetails);
-                $authorizedExpenseMonthly = $expenseDetailsSum > 0 ? $expenseDetailsSum : (float) ($contribution->authorized_expense ?? 0);
-                $authorizedExpenseTotal = $authorizedExpenseMonthly * $multiplier;
-            } else {
-                $savedExpenseDetails = [];
-                $authorizedExpenseMonthly = 0;
-                $authorizedExpenseTotal = 0;
-            }
+            $savedSppRates = $contribution->spp_rates ?? [];
 
             // Default SPP dari master payment_types
             $defaultSppType = PaymentType::where('school_id', $school->id)
@@ -290,19 +280,6 @@ class ContributionBalanceController extends Controller
 
                 $studentCount = count($studentIds);
 
-                // ════════════════ DITARIK LANGSUNG DARI TABEL STUDENT_BILLS ════════════════
-                $billsQuery = StudentBill::whereIn('student_id', $studentIds)
-                    ->whereHas('paymentType', function ($q) {
-                        $q->where('type_code', 'SPP');
-                    })
-                    ->when($currentYear, function ($q) use ($currentYear) {
-                        $q->where('academic_year_id', $currentYear->id);
-                    });
-
-                $sumBilledAnnual = (float) $billsQuery->sum('amount');
-                $sumPaidAnnual = (float) $billsQuery->sum('paid_amount');
-                $avgBillMonthly = (float) $billsQuery->avg('amount');
-
                 // Tarif SPP resmi per tingkat (Prioritaskan Setting Tarif Yayasan -> Master PaymentType)
                 if (isset($savedSppRates[(string)$level]) && $savedSppRates[(string)$level] > 0) {
                     $sppMonthly = (float)$savedSppRates[(string)$level];
@@ -321,62 +298,25 @@ class ContributionBalanceController extends Controller
                     'spp_monthly' => $sppMonthly,
                     'spp_period' => $sppMonthly * $multiplier,
                     'spp_source' => $sppSource,
-                    'income_monthly' => $sppMonthly * $studentCount,
+                    'income_monthly' => $incomeMonthly,
                     'income_total' => $incomeTotal,
-                    'paid_total' => ($periodMode === 'monthly') ? ($sumPaidAnnual / 12) : $sumPaidAnnual,
                 ];
 
                 $schoolTotalIncome += $incomeTotal;
-                $schoolTotalIncomeMonthly += ($sppMonthly * $studentCount);
+                $schoolTotalIncomeMonthly += $incomeMonthly;
                 $totalStudentsInSchool += $studentCount;
             }
-
-            // ════════════════ HITUNG GAJI GURU & PEGAWAI UNIT ════════════════
-            $employees = Employee::where('school_id', $school->id)
-                ->where('is_active', true)
-                ->get();
-
-            $monthlySalarySum = 0;
-            if ($currentYear && $currentSemester) {
-                foreach ($employees as $employee) {
-                    $salary = $this->assignmentService->calculateFullSalary(
-                        $employee,
-                        $currentYear,
-                        $currentSemester,
-                        $school->type,
-                        $school->id
-                    );
-                    $monthlySalarySum += (float) ($salary['thp'] ?? 0);
-                }
-            }
-
-            $totalSalaryPeriod = $monthlySalarySum * $multiplier;
-            $schoolTotalExpense = $totalSalaryPeriod + $authorizedExpenseTotal;
-            $saldo = $schoolTotalIncome - $schoolTotalExpense;
 
             $schoolData[] = [
                 'school' => $school,
                 'contribution' => $contribution,
                 'levels' => $levelBreakdown,
-                'expense_details' => $savedExpenseDetails,
                 'total_students' => $totalStudentsInSchool,
                 'income_monthly' => $schoolTotalIncomeMonthly,
                 'income_total' => $schoolTotalIncome,
-                'employee_count' => $employees->count(),
-                'salary_monthly' => $monthlySalarySum,
-                'salary_total' => $totalSalaryPeriod,
-                'authorized_expense_monthly' => $authorizedExpenseMonthly,
-                'authorized_expense_total' => $authorizedExpenseTotal,
-                'expense_total' => $schoolTotalExpense,
-                'saldo' => $saldo,
-                'is_surplus' => $saldo >= 0,
             ];
 
             $grandTotalIncome += $schoolTotalIncome;
-            $grandTotalGaji += $totalSalaryPeriod;
-            $grandTotalOtorisasi += $authorizedExpenseTotal;
-            $grandTotalExpense += $schoolTotalExpense;
-            $grandTotalSaldo += $saldo;
         }
 
         return [

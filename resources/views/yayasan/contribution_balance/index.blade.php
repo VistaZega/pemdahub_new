@@ -1,6 +1,6 @@
 @extends('layouts.yayasan')
 
-@section('title', 'Saldo Kontribusi Unit Sekolah')
+@section('title', 'Rencana Pendapatan SPP Unit Sekolah')
 
 @section('content')
 <div class="space-y-6">
@@ -29,11 +29,11 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div>
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-white/90 text-xs font-medium mb-2 backdrop-blur-md">
-                    <i class="fas fa-landmark"></i> Oversight Keuangan Yayasan
+                    <i class="fas fa-school"></i> Unit Pendidikan Yayasan
                 </div>
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Saldo Kontribusi Unit Sekolah</h1>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Rencana Pendapatan SPP Unit Sekolah</h1>
                 <p class="text-xs md:text-sm text-violet-100/90 mt-1 max-w-2xl">
-                    Perhitungan real-time kontribusi saldo (+/-) per unit sekolah (Pendapatan SPP - Pengeluaran Gaji & Belanja Otorisasi Yayasan).
+                    Perhitungan real-time potensi dan rencana pendapatan SPP siswa per unit sekolah berdasarkan tarif tingkat kelas.
                 </p>
             </div>
             
@@ -76,67 +76,48 @@
     </div>
 
     <!-- Summary Metrics Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card 1: Total Pendapatan -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <!-- Card 1: Total Pendapatan SPP -->
         <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Pendapatan (SPP)</span>
-                <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                    <i class="fas fa-wallet text-sm"></i>
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Pendapatan SPP (Seluruh Sekolah)</span>
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <i class="fas fa-wallet text-base"></i>
                 </div>
             </div>
             <div class="mt-3">
-                <h3 class="text-xl font-black text-gray-900">Rp {{ number_format($grandTotalIncome, 0, ',', '.') }}</h3>
-                <p class="text-[11px] text-gray-500 mt-0.5">Siswa × SPP ({{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }})</p>
+                <h3 class="text-2xl font-black text-emerald-900">Rp {{ number_format($grandTotalIncome, 0, ',', '.') }}</h3>
+                <p class="text-[11px] text-gray-500 mt-0.5">Pendapatan SPP Siswa ({{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }})</p>
             </div>
         </div>
 
-        <!-- Card 2: Total Gaji Unit -->
+        <!-- Card 2: Total Siswa -->
         <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Gaji Guru & Pegawai</span>
-                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
-                    <i class="fas fa-users-gear text-sm"></i>
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Siswa Terdaftar</span>
+                <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <i class="fas fa-user-graduate text-base"></i>
                 </div>
             </div>
             <div class="mt-3">
-                <h3 class="text-xl font-black text-gray-900">Rp {{ number_format($grandTotalGaji, 0, ',', '.') }}</h3>
-                <p class="text-[11px] text-gray-500 mt-0.5">Otomatis dari Sistem Payroll SDM</p>
-            </div>
-        </div>
-
-        <!-- Card 3: Belanja Otorisasi -->
-        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Belanja Otorisasi Yayasan</span>
-                <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
-                    <i class="fas fa-hand-holding-dollar text-sm"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <h3 class="text-xl font-black text-gray-900">Rp {{ number_format($grandTotalOtorisasi, 0, ',', '.') }}</h3>
-                <p class="text-[11px] text-gray-500 mt-0.5">Total Otorisasi yang diinput Yayasan</p>
-            </div>
-        </div>
-
-        <!-- Card 4: Saldo Kontribusi Akhir -->
-        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition relative overflow-hidden">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Saldo Kontribusi Akhir</span>
-                <div class="w-9 h-9 rounded-xl {{ $grandTotalSaldo >= 0 ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white' }} flex items-center justify-center shadow">
-                    <i class="fas {{ $grandTotalSaldo >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }} text-sm"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <h3 class="text-xl font-black {{ $grandTotalSaldo >= 0 ? 'text-emerald-600' : 'text-red-600' }}">
-                    Rp {{ number_format($grandTotalSaldo, 0, ',', '.') }}
+                <h3 class="text-2xl font-black text-blue-900">
+                    {{ array_sum(array_column($schoolData, 'total_students')) }} Siswa
                 </h3>
-                <div class="flex items-center gap-1.5 mt-1">
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $grandTotalSaldo >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800' }}">
-                        {{ $grandTotalSaldo >= 0 ? 'SURPLUS' : 'DEFISIT' }}
-                    </span>
-                    <span class="text-[11px] text-gray-500">Pendapatan - Pengeluaran</span>
+                <p class="text-[11px] text-gray-500 mt-0.5">Akumulasi Seluruh Unit Sekolah</p>
+            </div>
+        </div>
+
+        <!-- Card 3: Jumlah Unit Sekolah -->
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Jumlah Unit Sekolah</span>
+                <div class="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center">
+                    <i class="fas fa-school text-base"></i>
                 </div>
+            </div>
+            <div class="mt-3">
+                <h3 class="text-2xl font-black text-violet-900">{{ count($schoolData) }} Unit Sekolah</h3>
+                <p class="text-[11px] text-gray-500 mt-0.5">Unit Pendidikan Aktif Perguruan</p>
             </div>
         </div>
     </div>
@@ -145,7 +126,7 @@
     <div class="space-y-6">
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-extrabold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-building-columns text-violet-600"></i> Rincian Kontribusi per Unit Sekolah
+                <i class="fas fa-building-columns text-violet-600"></i> Rincian Pendapatan SPP per Unit Sekolah
             </h2>
             <span class="text-xs text-gray-500">TP {{ $currentYear->year ?? '-' }} ({{ $periodMode === 'annual' ? 'Mode 12 Bulan' : 'Mode 1 Bulan' }})</span>
         </div>
@@ -154,7 +135,6 @@
             @php
                 $s = $item['school'];
                 $c = $item['contribution'];
-                $isSurplus = $item['is_surplus'];
             @endphp
             <div class="bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md transition overflow-hidden">
                 <!-- Unit Header Bar -->
@@ -171,194 +151,85 @@
                                 </span>
                             </h3>
                             <p class="text-xs text-gray-500">
-                                Total Siswa: <strong class="text-gray-700">{{ $item['total_students'] }}</strong> orang | 
-                                Guru & Pegawai: <strong class="text-gray-700">{{ $item['employee_count'] }}</strong> orang
+                                Total Siswa: <strong class="text-gray-700">{{ $item['total_students'] }}</strong> orang
                             </p>
                         </div>
                     </div>
 
-                    <!-- Saldo Badge & Action -->
                     <div class="flex items-center gap-3">
                         <div class="text-right">
-                            <span class="text-[10px] text-gray-500 font-semibold uppercase block">Saldo Kontribusi Unit</span>
-                            <span class="text-base font-black {{ $isSurplus ? 'text-emerald-600' : 'text-red-600' }}">
-                                {{ $isSurplus ? '+' : '' }}Rp {{ number_format($item['saldo'], 0, ',', '.') }}
+                            <span class="text-[10px] text-gray-500 font-semibold uppercase block">Total Pendapatan Unit</span>
+                            <span class="text-base font-black text-emerald-700">
+                                Rp {{ number_format($item['income_total'], 0, ',', '.') }}
                             </span>
                         </div>
-                        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider {{ $isSurplus ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200' }}">
-                            {{ $isSurplus ? 'SURPLUS' : 'DEFISIT' }}
-                        </span>
 
                         <button type="button" 
-                                onclick="openEditModal({{ $s->id }}, '{{ addslashes($s->name) }}', {{ json_encode($item['levels']) }}, {{ $item['authorized_expense_monthly'] }}, '{{ addslashes($c->notes ?? '') }}', {{ json_encode($item['expense_details']) }}, {{ $s->type === 'yayasan' ? 'true' : 'false' }})"
+                                onclick="openEditModal({{ $s->id }}, '{{ addslashes($s->name) }}', {{ json_encode($item['levels']) }}, '{{ addslashes($c->notes ?? '') }}')"
                                 class="px-3.5 py-2 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 font-bold text-xs transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fas fa-edit text-xs"></i> {{ $s->type === 'yayasan' ? 'Edit Belanja Operasional Yayasan' : 'Edit Tarif SPP Unit' }}
+                            <i class="fas fa-edit text-xs"></i> Edit Tarif SPP Unit
                         </button>
                     </div>
                 </div>
 
                 <!-- Unit Content Grid -->
-                <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    
-                    <!-- LEFT COLUMN: PENDAPATAN (SISWA * SPP) -->
-                    <div class="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fas fa-circle-arrow-down text-emerald-500"></i> Pendapatan SPP (Siswa × SPP)
-                            </h4>
-                            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                                Total: Rp {{ number_format($item['income_total'], 0, ',', '.') }}
-                            </span>
-                        </div>
-
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs text-left">
-                                <thead class="bg-gray-100 text-gray-600 font-semibold uppercase">
-                                    <tr>
-                                        <th class="px-3 py-2 rounded-l-lg">Tingkat</th>
-                                        <th class="px-3 py-2 text-center">Jumlah Siswa</th>
-                                        <th class="px-3 py-2 text-right">SPP / Siswa (Bln)</th>
-                                        <th class="px-3 py-2 text-right rounded-r-lg">Subtotal ({{ $periodMode === 'annual' ? '12 Bln' : '1 Bln' }})</th>
+                <div class="p-6">
+                    <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-gray-100 text-gray-700 font-bold uppercase">
+                                <tr>
+                                    <th class="px-4 py-3">Tingkat Kelas</th>
+                                    <th class="px-4 py-3 text-center">Jumlah Siswa</th>
+                                    <th class="px-4 py-3 text-right">Tarif SPP / Siswa (Bln)</th>
+                                    <th class="px-4 py-3 text-right">Sumber Tarif</th>
+                                    <th class="px-4 py-3 text-right">Pendapatan Per Bulan</th>
+                                    <th class="px-4 py-3 text-right font-bold">Subtotal ({{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }})</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @forelse($item['levels'] as $lvl)
+                                    <tr class="hover:bg-violet-50/20 transition">
+                                        <td class="px-4 py-3 font-bold text-gray-900">Kelas {{ $lvl['level'] }}</td>
+                                        <td class="px-4 py-3 text-center font-semibold text-gray-700">{{ $lvl['student_count'] }} siswa</td>
+                                        <td class="px-4 py-3 text-right text-gray-700 font-semibold">Rp {{ number_format($lvl['spp_monthly'], 0, ',', '.') }}</td>
+                                        <td class="px-4 py-3 text-right">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600">
+                                                {{ $lvl['spp_source'] }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-right font-semibold text-gray-800">Rp {{ number_format($lvl['income_monthly'], 0, ',', '.') }}</td>
+                                        <td class="px-4 py-3 text-right font-bold text-emerald-700">Rp {{ number_format($lvl['income_total'], 0, ',', '.') }}</td>
                                     </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100">
-                                    @forelse($item['levels'] as $lvl)
-                                        <tr class="hover:bg-white transition">
-                                            <td class="px-3 py-2 font-bold text-gray-800">Kelas {{ $lvl['level'] }}</td>
-                                            <td class="px-3 py-2 text-center font-semibold text-gray-700">{{ $lvl['student_count'] }} siswa</td>
-                                            <td class="px-3 py-2 text-right text-gray-600">Rp {{ number_format($lvl['spp_monthly'], 0, ',', '.') }}</td>
-                                            <td class="px-3 py-2 text-right font-bold text-gray-900">Rp {{ number_format($lvl['income_total'], 0, ',', '.') }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4" class="px-3 py-3 text-center text-gray-400 italic">Unit Yayasan (Tidak Ada SPP Siswa)</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                                <tfoot class="border-t border-gray-200 font-bold bg-emerald-50/60">
+                                @empty
                                     <tr>
-                                        <td class="px-3 py-2 text-gray-800">TOTAL PENDAPATAN</td>
-                                        <td class="px-3 py-2 text-center text-emerald-800">{{ $item['total_students'] }} siswa</td>
-                                        <td class="px-3 py-2 text-right text-gray-500">-</td>
-                                        <td class="px-3 py-2 text-right text-emerald-700 text-sm">Rp {{ number_format($item['income_total'], 0, ',', '.') }}</td>
+                                        <td colspan="6" class="px-4 py-4 text-center text-gray-400 italic">Belum ada tingkat kelas/siswa terdaftar.</td>
                                     </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- RIGHT COLUMN: PENGELUARAN (GAJI + OTORISASI OPERASIONAL) -->
-                    <div class="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fas fa-circle-arrow-up text-red-500"></i> Pengeluaran Unit / Lembaga
-                            </h4>
-                            <span class="text-xs font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-md border border-red-100">
-                                Total: Rp {{ number_format($item['expense_total'], 0, ',', '.') }}
-                            </span>
-                        </div>
-
-                        <div class="space-y-3 text-xs">
-                            <!-- Item 1: Gaji Pegawai -->
-                            <div class="p-3 bg-white rounded-lg border border-gray-200/80 flex items-center justify-between">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                                        <i class="fas fa-user-tie text-xs"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="font-bold text-gray-800">Gaji Guru & Pegawai</h5>
-                                        <p class="text-[11px] text-gray-500">{{ $item['employee_count'] }} pegawai aktif (Payroll SDM)</p>
-                                    </div>
-                                </div>
-                                <div class="text-right font-bold text-gray-900 text-sm">
-                                    Rp {{ number_format($item['salary_total'], 0, ',', '.') }}
-                                    <span class="text-[10px] text-gray-400 font-normal block">(Rp {{ number_format($item['salary_monthly'], 0, ',', '.') }}/bln)</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Item 2: Belanja Operasional (HANYA UNTUK YAYASAN) -->
-                            @if($s->type === 'yayasan')
-                            <div class="p-3 bg-white rounded-lg border border-gray-200/80">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                                            <i class="fas fa-hand-holding-dollar text-xs"></i>
-                                        </div>
-                                        <div>
-                                            <h5 class="font-bold text-gray-800">Belanja Operasional Central Yayasan</h5>
-                                            <p class="text-[11px] text-gray-500">Internet, Listrik, Air, Pemeliharaan, ATK, Transport, dll</p>
-                                        </div>
-                                    </div>
-                                    <div class="text-right font-bold text-amber-700 text-sm">
-                                        Rp {{ number_format($item['authorized_expense_total'], 0, ',', '.') }}
-                                        <span class="text-[10px] text-amber-600/70 font-normal block">(Rp {{ number_format($item['authorized_expense_monthly'], 0, ',', '.') }}/bln)</span>
-                                    </div>
-                                </div>
-
-                                <!-- Sub-Breakdown per Kode Rekening -->
-                                @if(!empty($item['expense_details']) && count($item['expense_details']) > 0)
-                                    <div class="mt-2.5 pt-2.5 border-t border-gray-100 space-y-1">
-                                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Rincian Per Kode Rekening ({{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }}):</p>
-                                        @foreach($item['expense_details'] as $accCode => $accAmount)
-                                            @php
-                                                $accInfo = $expenseAccounts[$accCode] ?? null;
-                                                $accMonthly = (float) $accAmount;
-                                                $accPeriod = $accMonthly * $multiplier;
-                                            @endphp
-                                            @if($accMonthly > 0)
-                                                <div class="flex items-center justify-between text-[11px] bg-gray-50 px-2.5 py-1 rounded border border-gray-100">
-                                                    <span class="text-gray-700 font-medium truncate max-w-[240px]" title="{{ $accInfo['name'] ?? $accCode }}">
-                                                        <strong class="font-mono text-violet-700">{{ $accCode }}</strong> — {{ $accInfo['name'] ?? 'Belanja' }}
-                                                    </span>
-                                                    <span class="font-bold text-gray-800 tabular-nums">Rp {{ number_format($accPeriod, 0, ',', '.') }}</span>
-                                                </div>
-                                            @endif
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </div>
-                            @else
-                            <div class="p-2.5 bg-blue-50/50 rounded-lg border border-blue-100 text-[11px] text-blue-800 flex items-center gap-2">
-                                <i class="fas fa-info-circle text-blue-500"></i>
-                                <span>Seluruh Belanja Operasional (Internet, Listrik, Air, Sarpras, dll) ditanggung & dikelola terpusat oleh **Yayasan**.</span>
-                            </div>
-                            @endif
-
-                            <!-- Total Summary Box -->
-                            <div class="p-3 bg-red-50/60 rounded-lg border border-red-100 flex items-center justify-between font-bold">
-                                <span class="text-gray-800">TOTAL PENGELUARAN</span>
-                                <span class="text-red-700 text-sm">Rp {{ number_format($item['expense_total'], 0, ',', '.') }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Footer Summary Bar per Unit -->
-                <div class="bg-gray-100/60 px-6 py-3 border-t border-gray-200/60 flex items-center justify-between text-xs">
-                    <div class="text-gray-600">
-                        @if($s->type === 'yayasan')
-                            Rumus: <code class="bg-white px-2 py-0.5 rounded border border-gray-200 font-mono text-[11px]">Beban Ops Yayasan = Gaji Staf + Belanja Operasional Central (Rp {{ number_format($item['expense_total'], 0, ',', '.') }})</code>
-                        @else
-                            Rumus Kontribusi: <code class="bg-white px-2 py-0.5 rounded border border-gray-200 font-mono text-[11px]">Surplus Kontribusi Unit = Pendapatan SPP (Rp {{ number_format($item['income_total'], 0, ',', '.') }}) - Gaji Pegawai Unit (Rp {{ number_format($item['salary_total'], 0, ',', '.') }})</code>
-                        @endif
-                    </div>
-                    <div class="font-black text-sm {{ $isSurplus ? 'text-emerald-700' : 'text-red-700' }}">
-                        {{ $isSurplus ? 'SURPLUS KONTRIBUSI (+):' : 'BEBAN OPERASIONAL (-):' }} Rp {{ number_format(abs($item['saldo']), 0, ',', '.') }}
+                                @endforelse
+                            </tbody>
+                            <tfoot class="border-t border-gray-200 font-bold bg-emerald-50/60">
+                                <tr>
+                                    <td class="px-4 py-3 text-gray-900 uppercase">TOTAL PENDAPATAN {{ strtoupper($s->name) }}</td>
+                                    <td class="px-4 py-3 text-center text-emerald-800">{{ $item['total_students'] }} siswa</td>
+                                    <td colspan="2" class="px-4 py-3 text-right text-gray-500">-</td>
+                                    <td class="px-4 py-3 text-right text-emerald-800">Rp {{ number_format($item['income_monthly'], 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-right text-emerald-900 font-black text-sm">Rp {{ number_format($item['income_total'], 0, ',', '.') }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
             </div>
         @endforeach
     </div>
 
-    <!-- ════════════════ TABLE REKAPITULASI KONTRIBUSI SELURUH UNIT SEKOLAH ════════════════ -->
+    <!-- TABLE REKAPITULASI PENDAPATAN SPP SELURUH UNIT SEKOLAH -->
     <div class="bg-white rounded-2xl border border-gray-200/80 shadow-md overflow-hidden mt-8">
         <div class="p-6 bg-gradient-to-r from-gray-50 to-gray-100/60 border-b border-gray-200">
             <h2 class="text-lg font-extrabold text-gray-900 flex items-center gap-2">
-                <i class="fas fa-table-list text-violet-600"></i> Rekapitulasi Saldo Kontribusi Seluruh Unit Sekolah & Yayasan
+                <i class="fas fa-table-list text-violet-600"></i> Rekapitulasi Pendapatan SPP Seluruh Unit Sekolah
             </h2>
             <p class="text-xs text-gray-500 mt-1">
-                Matriks perbandingan pendapatan SPP sekolah, pengeluaran gaji pegawai, belanja operasional central yayasan, dan saldo bersih akhir.
+                Matriks perbandingan pendapatan SPP antar unit sekolah untuk periode {{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }}.
             </p>
         </div>
 
@@ -367,21 +238,14 @@
                 <thead class="bg-gray-100 text-gray-700 font-bold uppercase tracking-wider">
                     <tr>
                         <th class="px-4 py-3 text-center w-12">No</th>
-                        <th class="px-4 py-3">Nama Unit / Lembaga</th>
-                        <th class="px-4 py-3 text-center">Siswa</th>
-                        <th class="px-4 py-3 text-right">Total Pendapatan SPP</th>
-                        <th class="px-4 py-3 text-right">Total Gaji Pegawai</th>
-                        <th class="px-4 py-3 text-right">Belanja Ops Central (Yayasan)</th>
-                        <th class="px-4 py-3 text-right">Total Pengeluaran</th>
-                        <th class="px-4 py-3 text-right">Saldo Kontribusi</th>
-                        <th class="px-4 py-3 text-center">Status</th>
+                        <th class="px-4 py-3">Nama Unit Sekolah</th>
+                        <th class="px-4 py-3 text-center">Jumlah Siswa</th>
+                        <th class="px-4 py-3 text-right">Pendapatan SPP / Bulan</th>
+                        <th class="px-4 py-3 text-right">Total Pendapatan SPP ({{ $periodMode === 'annual' ? '12 Bln' : '1 Bln' }})</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @foreach($schoolData as $idx => $row)
-                        @php
-                            $surplusRow = $row['is_surplus'];
-                        @endphp
                         <tr class="hover:bg-violet-50/40 transition">
                             <td class="px-4 py-3.5 text-center font-bold text-gray-400">{{ $idx + 1 }}</td>
                             <td class="px-4 py-3.5 font-bold text-gray-900 flex items-center gap-2">
@@ -390,37 +254,17 @@
                                     {{ $row['school']->type }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3.5 text-center font-semibold text-gray-700">{{ $row['total_students'] }}</td>
-                            <td class="px-4 py-3.5 text-right font-bold text-emerald-700">Rp {{ number_format($row['income_total'], 0, ',', '.') }}</td>
-                            <td class="px-4 py-3.5 text-right font-bold text-blue-700">Rp {{ number_format($row['salary_total'], 0, ',', '.') }}</td>
-                            <td class="px-4 py-3.5 text-right font-bold text-amber-700">Rp {{ number_format($row['authorized_expense_total'], 0, ',', '.') }}</td>
-                            <td class="px-4 py-3.5 text-right font-bold text-red-700">Rp {{ number_format($row['expense_total'], 0, ',', '.') }}</td>
-                            <td class="px-4 py-3.5 text-right font-extrabold text-sm {{ $surplusRow ? 'text-emerald-600' : 'text-red-600' }}">
-                                {{ $surplusRow ? '+' : '' }}Rp {{ number_format($row['saldo'], 0, ',', '.') }}
-                            </td>
-                            <td class="px-4 py-3.5 text-center">
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider {{ $surplusRow ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800' }}">
-                                    {{ $surplusRow ? 'SURPLUS' : 'DEFISIT' }}
-                                </span>
-                            </td>
+                            <td class="px-4 py-3.5 text-center font-semibold text-gray-700">{{ $row['total_students'] }} siswa</td>
+                            <td class="px-4 py-3.5 text-right font-bold text-gray-800">Rp {{ number_format($row['income_monthly'], 0, ',', '.') }}</td>
+                            <td class="px-4 py-3.5 text-right font-extrabold text-sm text-emerald-700">Rp {{ number_format($row['income_total'], 0, ',', '.') }}</td>
                         </tr>
                     @endforeach
                 </tbody>
                 <tfoot class="bg-violet-900 text-white font-bold border-t-2 border-violet-900">
                     <tr>
-                        <td colspan="3" class="px-4 py-4 text-right uppercase tracking-wider font-extrabold">GRAND TOTAL REKAPITULASI:</td>
-                        <td class="px-4 py-4 text-right text-emerald-300 text-sm">Rp {{ number_format($grandTotalIncome, 0, ',', '.') }}</td>
-                        <td class="px-4 py-4 text-right text-blue-200 text-sm">Rp {{ number_format($grandTotalGaji, 0, ',', '.') }}</td>
-                        <td class="px-4 py-4 text-right text-amber-200 text-sm">Rp {{ number_format($grandTotalOtorisasi, 0, ',', '.') }}</td>
-                        <td class="px-4 py-4 text-right text-red-300 text-sm">Rp {{ number_format($grandTotalExpense, 0, ',', '.') }}</td>
-                        <td class="px-4 py-4 text-right text-base font-black {{ $grandTotalSaldo >= 0 ? 'text-emerald-300' : 'text-red-300' }}">
-                            {{ $grandTotalSaldo >= 0 ? '+' : '' }}Rp {{ number_format($grandTotalSaldo, 0, ',', '.') }}
-                        </td>
-                        <td class="px-4 py-4 text-center">
-                            <span class="px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider {{ $grandTotalSaldo >= 0 ? 'bg-emerald-500 text-white shadow-sm' : 'bg-red-500 text-white shadow-sm' }}">
-                                {{ $grandTotalSaldo >= 0 ? 'SURPLUS' : 'DEFISIT' }}
-                            </span>
-                        </td>
+                        <td colspan="3" class="px-4 py-4 text-right uppercase tracking-wider font-extrabold">GRAND TOTAL PENDAPATAN SPP PERGURUAN:</td>
+                        <td class="px-4 py-4 text-right text-emerald-300 text-sm">Rp {{ number_format(array_sum(array_column($schoolData, 'income_monthly')), 0, ',', '.') }}</td>
+                        <td class="px-4 py-4 text-right text-base font-black text-emerald-300">Rp {{ number_format($grandTotalIncome, 0, ',', '.') }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -429,83 +273,44 @@
 
 </div>
 
-
-<!-- Modal Input / Edit Belanja Otorisasi & SPP -->
+<!-- Modal Input / Edit Tarif SPP -->
 <div id="editModal" class="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl border border-gray-100 transform transition-all scale-95 opacity-0 modal-card max-h-[90vh] flex flex-col">
-        <div class="flex items-center justify-between pb-4 border-b border-gray-100 flex-shrink-0">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 transform transition-all scale-95 opacity-0 modal-card flex flex-col">
+        <div class="flex items-center justify-between pb-4 border-b border-gray-100">
             <div>
-                <h3 class="text-base font-bold text-gray-900" id="modalSchoolName">Edit Data</h3>
-                <p class="text-xs text-gray-500 mt-0.5" id="modalSubTitle">Pengaturan Keuangan Unit & Yayasan</p>
+                <h3 class="text-base font-bold text-gray-900" id="modalSchoolName">Edit Tarif SPP</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Penetapan Tarif SPP per Tingkat Kelas Unit Sekolah</p>
             </div>
             <button onclick="closeEditModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center">
                 <i class="fas fa-times text-xs"></i>
             </button>
         </div>
 
-        <form method="POST" action="{{ route('yayasan.contribution_balance.store') }}" class="mt-4 space-y-4 overflow-y-auto flex-1 pr-1">
+        <form method="POST" action="{{ route('yayasan.contribution_balance.store') }}" class="mt-4 space-y-4">
             @csrf
             <input type="hidden" name="school_id" id="modalSchoolId">
             <input type="hidden" name="academic_year_id" value="{{ $currentYear->id ?? '' }}">
 
-            <!-- RINCIAN KODE REKENING BELANJA OPERASIONAL (HANYA DITAMPILKAN UNTUK YAYASAN) -->
-            <div id="modalOpsSection" class="bg-violet-50/60 p-4 rounded-xl border border-violet-100">
-                <div class="flex items-center justify-between mb-3">
-                    <label class="block text-xs font-extrabold text-violet-900 uppercase tracking-wider">
-                        <i class="fas fa-list-check text-violet-600 mr-1"></i> Rincian Belanja Operasional Central per Kode Rekening (Per Bulan)
-                    </label>
-                    <span class="text-xs font-bold text-violet-700 bg-white px-2.5 py-1 rounded-lg border border-violet-200">
-                        Subtotal Otorisasi: <strong id="modalExpenseSum">Rp 0</strong>/bln
-                    </span>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-72 overflow-y-auto p-1 bg-white rounded-lg border border-gray-200">
-                    @foreach($expenseAccounts as $accCode => $acc)
-                        <div class="bg-gray-50 p-2.5 rounded-lg border border-gray-200/80 hover:border-violet-300 transition">
-                            <label class="block text-[11px] font-bold text-gray-800 mb-1 truncate" title="{{ $acc['name'] }}">
-                                <span class="font-mono text-violet-700 bg-violet-100 px-1.5 py-0.5 rounded text-[10px]">{{ $accCode }}</span> {{ $acc['name'] }}
-                            </label>
-                            <div class="relative">
-                                <span class="absolute left-2.5 top-1.5 text-[11px] font-bold text-gray-400">Rp</span>
-                                <input type="number" name="expense_details[{{ $accCode }}]" id="acc_input_{{ str_replace('.', '_', $accCode) }}" step="5000" min="0" 
-                                       oninput="calculateTotalExpenseModal()"
-                                       class="w-full text-xs font-bold pl-8 pr-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 text-gray-900 tabular-nums" 
-                                       placeholder="0">
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
-                <!-- Total Otorisasi Manual -->
-                <div class="mt-3 pt-3 border-t border-violet-200/80 flex items-center justify-between">
-                    <span class="text-xs text-gray-600">Total Belanja Operasional Central:</span>
-                    <input type="hidden" name="authorized_expense" id="modalAuthorizedExpense">
-                    <span class="text-sm font-extrabold text-violet-900" id="displayAuthorizedExpense">Rp 0 / bulan</span>
-                </div>
-            </div>
-
-            <!-- Tarif SPP per Level (HANYA DITAMPILKAN UNTUK UNIT SEKOLAH) -->
-            <div id="modalSppSection">
+            <div>
                 <label class="block text-xs font-bold text-gray-700 mb-2">Tarif SPP Siswa (Per Bulan)</label>
-                <div id="modalSppInputs" class="space-y-2.5">
+                <div id="modalSppInputs" class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
                     <!-- Dynamic inputs injected via Javascript -->
                 </div>
             </div>
 
-            <!-- Catatan -->
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Catatan / Keterangan (Opsional)</label>
                 <textarea name="notes" id="modalNotes" rows="2" 
                           class="w-full text-xs p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500" 
-                          placeholder="Catatan tambahan alokasi dana..."></textarea>
+                          placeholder="Catatan tambahan penetapan SPP..."></textarea>
             </div>
 
-            <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-2 flex-shrink-0">
+            <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
                 <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl">
                     Batal
                 </button>
                 <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 rounded-xl shadow-md transition flex items-center gap-1.5">
-                    <i class="fas fa-save"></i> Simpan Perubahan
+                    <i class="fas fa-save"></i> Simpan Tarif SPP
                 </button>
             </div>
         </form>
@@ -514,53 +319,11 @@
 
 @push('scripts')
 <script>
-    function calculateTotalExpenseModal() {
-        let total = 0;
-        const inputs = document.querySelectorAll('input[name^="expense_details"]');
-        inputs.forEach(function(input) {
-            const val = parseFloat(input.value) || 0;
-            total += val;
-        });
-        document.getElementById('modalAuthorizedExpense').value = total;
-        document.getElementById('modalExpenseSum').innerText = 'Rp ' + total.toLocaleString('id-ID');
-        document.getElementById('displayAuthorizedExpense').innerText = 'Rp ' + total.toLocaleString('id-ID') + ' / bulan';
-    }
-
-    function openEditModal(schoolId, schoolName, levels, authorizedExpenseMonthly, notes, expenseDetails, isYayasan) {
+    function openEditModal(schoolId, schoolName, levels, notes) {
         document.getElementById('modalSchoolId').value = schoolId;
+        document.getElementById('modalSchoolName').innerText = 'Edit Tarif SPP — ' + schoolName;
         document.getElementById('modalNotes').value = notes || '';
 
-        const opsSection = document.getElementById('modalOpsSection');
-        const sppSection = document.getElementById('modalSppSection');
-
-        if (isYayasan) {
-            document.getElementById('modalSchoolName').innerText = 'Edit Belanja Operasional Central — ' + schoolName;
-            document.getElementById('modalSubTitle').innerText = 'Kelola seluruh rincian belanja operasional non-gaji terpusat Yayasan';
-            opsSection.classList.remove('hidden');
-            sppSection.classList.add('hidden');
-        } else {
-            document.getElementById('modalSchoolName').innerText = 'Edit Tarif SPP Siswa — ' + schoolName;
-            document.getElementById('modalSubTitle').innerText = 'Kelola penetapan tarif SPP per tingkat kelas unit sekolah';
-            opsSection.classList.add('hidden');
-            sppSection.classList.remove('hidden');
-        }
-
-        document.getElementById('modalAuthorizedExpense').value = authorizedExpenseMonthly;
-
-        // Reset & Populate Kode Rekening inputs
-        const details = expenseDetails || {};
-        const inputs = document.querySelectorAll('input[name^="expense_details"]');
-        inputs.forEach(function(input) {
-            const match = input.name.match(/\[(.*?)\]/);
-            if (match && match[1]) {
-                const code = match[1];
-                input.value = details[code] ? details[code] : '';
-            }
-        });
-
-        calculateTotalExpenseModal();
-
-        // Populate SPP Inputs
         const sppContainer = document.getElementById('modalSppInputs');
         sppContainer.innerHTML = '';
 
@@ -579,7 +342,7 @@
                 sppContainer.appendChild(div);
             });
         } else {
-            sppContainer.innerHTML = '<p class="text-xs text-gray-400 italic p-2 bg-gray-50 rounded-lg">Unit ini tidak memungut SPP siswa.</p>';
+            sppContainer.innerHTML = '<p class="text-xs text-gray-400 italic p-2 bg-gray-50 rounded-lg">Belum ada kelas terdaftar pada unit ini.</p>';
         }
 
         const modal = document.getElementById('editModal');
