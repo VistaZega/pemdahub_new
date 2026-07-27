@@ -148,14 +148,21 @@ class EmployeeAssignmentService
      * - Tunjangan Anak: 5% × gaji pokok × min(jumlah_anak, 2) (if married, GTY/PTY only)
      * - Tunjangan Beras: Rp 50.000 × (1 + jumlah_anak) (if married, GTY/PTY only)
      */
-    public function calculateTunjangan(Employee $employee, ?int $schoolId = null): array
+    public function calculateTunjangan(Employee $employee, ?int $schoolId = null, float $tunjanganJabatan = 0): array
     {
         $formulas = $this->getFormulas($schoolId);
         $gajiPokok = (float) ($employee->basic_salary ?? 0);
         $status = $employee->employment_status;
 
-        // Only GTY and PTY receive tunjangan
-        if (!in_array($status, self::TUNJANGAN_ELIGIBLE)) {
+        // Check if employee is Ketua Yayasan
+        $isKetuaYayasan = $employee->positions()->where('position_name', 'LIKE', '%Ketua Yayasan%')->exists()
+            || ($employee->activePositions && $employee->activePositions->contains(fn($p) => str_contains($p->position_name, 'Ketua Yayasan')));
+
+        // Keistimewaan Ketua Yayasan: Pokok Gaji dasar perhitungan tunjangan diambil dari Tunjangan Jabatan Ketua Yayasan
+        $baseGaji = ($isKetuaYayasan && $tunjanganJabatan > 0) ? $tunjanganJabatan : $gajiPokok;
+
+        // Only GTY and PTY (or Ketua Yayasan) receive tunjangan
+        if (!in_array($status, self::TUNJANGAN_ELIGIBLE) && !$isKetuaYayasan) {
             return [
                 'tunjangan_keluarga' => 0,
                 'tunjangan_anak' => 0,
@@ -166,8 +173,9 @@ class EmployeeAssignmentService
                     'anak_persen' => $formulas['tunjangan_anak_persen'],
                     'beras_nominal' => $formulas['tunjangan_beras'],
                     'jumlah_anak' => 0,
-                    'gaji_pokok' => $gajiPokok,
-                    'is_married' => false
+                    'gaji_pokok' => $baseGaji,
+                    'is_married' => false,
+                    'is_ketua_yayasan' => $isKetuaYayasan
                 ]
             ];
         }
@@ -179,13 +187,13 @@ class EmployeeAssignmentService
         $tunjanganAnak = 0;
         $tunjanganBeras = 0;
 
-        if ($isMarried && $gajiPokok > 0) {
-            // Tunjangan Keluarga = persen × gaji_pokok
-            $tunjanganKeluarga = ($formulas['tunjangan_keluarga_persen'] / 100) * $gajiPokok;
+        if ($isMarried && $baseGaji > 0) {
+            // Tunjangan Keluarga = persen × baseGaji (Gaji Pokok / Tunjangan Jabatan Ketua Yayasan)
+            $tunjanganKeluarga = ($formulas['tunjangan_keluarga_persen'] / 100) * $baseGaji;
 
-            // Tunjangan Anak = persen × gaji_pokok × min(jumlah_anak, max)
+            // Tunjangan Anak = persen × baseGaji × min(jumlah_anak, max)
             if ($jumlahAnak > 0) {
-                $tunjanganAnak = ($formulas['tunjangan_anak_persen'] / 100) * $gajiPokok * $jumlahAnak;
+                $tunjanganAnak = ($formulas['tunjangan_anak_persen'] / 100) * $baseGaji * $jumlahAnak;
             }
 
             // Tunjangan Beras = fixed × (1 + jumlah_anak) -- 1 for spouse
@@ -204,8 +212,9 @@ class EmployeeAssignmentService
                 'anak_persen' => $formulas['tunjangan_anak_persen'],
                 'beras_nominal' => $formulas['tunjangan_beras'],
                 'jumlah_anak' => $jumlahAnak,
-                'gaji_pokok' => $gajiPokok,
-                'is_married' => $isMarried
+                'gaji_pokok' => $baseGaji,
+                'is_married' => $isMarried,
+                'is_ketua_yayasan' => $isKetuaYayasan
             ]
         ];
     }
@@ -283,7 +292,7 @@ class EmployeeAssignmentService
         );
 
         // 4. Tunjangan (Keluarga, Anak, Beras)
-        $tunjanganData = $this->calculateTunjangan($employee, $employee->school_id);
+        $tunjanganData = $this->calculateTunjangan($employee, $employee->school_id, $tunjanganJabatan);
 
         // 5. Potongan (Deductions)
         // Hanya pegawai tetap/yayasan yang dipotong BPJS? (Tergantung kebijakan, tapi biasanya ya)
