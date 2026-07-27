@@ -278,9 +278,11 @@ class FoundationExpenseController extends Controller
 
                     $schGajiPokokSum += (float) ($salData['gaji_pokok'] ?? 0);
                     
-                    $honorTotal = (float) ($salData['teaching_honor']['honor_total'] ?? 0);
-                    $jamHonor = (int) ($salData['teaching_honor']['jam_honor'] ?? ($salData['teaching_honor']['jam_mengajar'] ?? 0));
-                    $honorRate = (float) ($salData['teaching_honor']['honor_per_jam'] ?? 70000);
+                    // Honor mengajar: keys langsung di root level (BUKAN nested)
+                    $honorTotal = (float) ($salData['honor_mengajar'] ?? 0);
+                    $jamMengajar = (int) ($salData['jam_mengajar'] ?? 0);
+                    $jamHonor = (int) ($salData['jam_honor'] ?? 0);
+                    $honorRate = (float) ($salData['honor_per_jam'] ?? 0);
 
                     $schHonorMengajarSum += $honorTotal;
                     $schJamHonorSum += $jamHonor;
@@ -290,9 +292,10 @@ class FoundationExpenseController extends Controller
 
                     $schTunjanganJabatanSum += (float) ($salData['tunjangan_jabatan'] ?? 0);
 
-                    $tKeluarga = (float) ($salData['tunjangan']['tunjangan_keluarga'] ?? 0);
-                    $tAnak = (float) ($salData['tunjangan']['tunjangan_anak'] ?? 0);
-                    $tBeras = (float) ($salData['tunjangan']['tunjangan_beras'] ?? 0);
+                    // Tunjangan keluarga: keys langsung di root level (BUKAN nested)
+                    $tKeluarga = (float) ($salData['tunjangan_keluarga'] ?? 0);
+                    $tAnak = (float) ($salData['tunjangan_anak'] ?? 0);
+                    $tBeras = (float) ($salData['tunjangan_beras'] ?? 0);
                     $schTunjanganKeluargaSum += ($tKeluarga + $tAnak + $tBeras);
 
                     // BPJS potongan
