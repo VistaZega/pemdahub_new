@@ -45,6 +45,74 @@
         </div>
     @endif
 
+    <!-- Summary Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <!-- Card 1: Total Jam Penugasan (JP) Ter-update -->
+        <div class="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-purple-200 uppercase tracking-wider mb-1">Total Jam Penugasan (JP)</p>
+                    <h3 class="text-3xl font-extrabold text-white tabular-nums">{{ number_format($totalTeachingHoursAll ?? 0, 0, ',', '.') }} <span class="text-base font-medium text-purple-200">JP/minggu</span></h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white text-2xl shadow-inner">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+            <div class="mt-3 flex items-center text-xs text-purple-200">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-pulse"></span>
+                <span>Ter-update untuk periode & unit aktif</span>
+            </div>
+        </div>
+
+        <!-- Card 2: Total Penugasan Kelas -->
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Penugasan Kelas</p>
+                    <h3 class="text-3xl font-extrabold text-gray-900 tabular-nums">{{ number_format($totalAssignmentsCount ?? 0, 0, ',', '.') }} <span class="text-base font-medium text-gray-500">Penugasan</span></h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-xl">
+                    <i class="fas fa-book-open"></i>
+                </div>
+            </div>
+            <div class="mt-3 text-xs text-gray-400">
+                Item penugasan terdaftar
+            </div>
+        </div>
+
+        <!-- Card 3: Total Guru Terdaftar -->
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Guru Terdaftar</p>
+                    <h3 class="text-3xl font-extrabold text-gray-900 tabular-nums">{{ number_format($totalActiveTeachersCount ?? 0, 0, ',', '.') }} <span class="text-base font-medium text-gray-500">Guru</span></h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-xl">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+            </div>
+            <div class="mt-3 text-xs text-gray-400">
+                Aktif dalam sistem
+            </div>
+        </div>
+
+        <!-- Card 4: Rata-Rata Beban Jam -->
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Rata-Rata Beban Jam</p>
+                    <h3 class="text-3xl font-extrabold text-gray-900 tabular-nums">{{ ($totalActiveTeachersCount ?? 0) > 0 ? number_format(($totalTeachingHoursAll ?? 0) / $totalActiveTeachersCount, 1) : 0 }} <span class="text-base font-medium text-gray-500">JP/guru</span></h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 text-xl">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+            <div class="mt-3 text-xs text-gray-400">
+                Beban rata-rata mengajar
+            </div>
+        </div>
+    </div>
+
     <!-- Filter Card -->
     <div class="bg-white rounded-2xl shadow-lg mb-6 overflow-hidden border border-gray-100">
         <div class="p-6">

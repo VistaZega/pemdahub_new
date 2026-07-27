@@ -96,6 +96,25 @@ class TeachingAssignmentController extends Controller
             ->when($schoolIdForCount, fn($q) => $q->where('school_id', $schoolIdForCount))
             ->count();
 
+        // Summary stats for filtered scope
+        $statsQuery = TeachingAssignment::where('academic_year_id', $selectedYearId)
+            ->where('is_active', true);
+
+        if ($selectedSemesterId) {
+            $statsQuery->where('semester_id', $selectedSemesterId);
+        }
+
+        if ($schoolIdForCount) {
+            $statsQuery->whereHas('classroom', fn($cQ) => $cQ->where('school_id', $schoolIdForCount));
+        }
+
+        $totalTeachingHoursAll = (int) $statsQuery->sum('hours_per_week');
+        $totalAssignmentsCount = (int) $statsQuery->count();
+
+        $totalActiveTeachersCount = Teacher::where('is_active', 1)
+            ->when($schoolIdForCount, fn($q) => $q->where('school_id', $schoolIdForCount))
+            ->count();
+
         return view('admin.assignments.teaching.index', compact(
             'teachers',
             'schools',
@@ -103,7 +122,10 @@ class TeachingAssignmentController extends Controller
             'semesters',
             'selectedYearId',
             'selectedSemesterId',
-            'unlinkedScheduleCount'
+            'unlinkedScheduleCount',
+            'totalTeachingHoursAll',
+            'totalAssignmentsCount',
+            'totalActiveTeachersCount'
         ));
     }
 
