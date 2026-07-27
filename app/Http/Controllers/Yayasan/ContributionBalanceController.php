@@ -232,10 +232,8 @@ class ContributionBalanceController extends Controller
             ?? Semester::where('academic_year_id', $currentYear->id ?? 0)->first()
             ?? Semester::first();
 
-        // Ambil seluruh unit aktif (termasuk Unit Yayasan)
-        $schools = School::where('is_active', true)
-            ->orderByRaw("CASE WHEN type = 'yayasan' THEN 2 ELSE 1 END, name ASC")
-            ->get();
+        // Ambil unit sekolah aktif (hanya unit pendidikan/sekolah)
+        $schools = School::schoolsOnly()->where('is_active', true)->orderBy('name')->get();
 
         $multiplier = ($periodMode === 'monthly') ? 1 : 12;
 
