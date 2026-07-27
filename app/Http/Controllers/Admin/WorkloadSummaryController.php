@@ -110,7 +110,18 @@ class WorkloadSummaryController extends Controller
             ->where('employee_workload_summaries.semester_id', $semesterId);
 
         if ($schoolId) {
-            $query->whereHas('employee', fn($q) => $q->where('school_id', $schoolId));
+            $query->where(function ($q) use ($schoolId, $yearId) {
+                $q->whereHas('employee', fn($empQ) => $empQ->where('school_id', $schoolId))
+                  ->orWhereHas('employee.activePositions', function ($posQ) use ($schoolId, $yearId) {
+                      $posQ->where('positions.school_id', $schoolId)
+                           ->wherePivot('academic_year_id', $yearId);
+                  })
+                  ->orWhereHas('employee.teacher.teachingAssignments', function ($teachQ) use ($schoolId, $yearId) {
+                      $teachQ->where('academic_year_id', $yearId)
+                             ->where('is_active', true)
+                             ->whereHas('classroom', fn($cQ) => $cQ->where('school_id', $schoolId));
+                  });
+            });
         }
 
         $summaries = $query->orderBy('position_name_rank', 'asc')

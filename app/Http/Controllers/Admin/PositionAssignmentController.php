@@ -119,24 +119,23 @@ class PositionAssignmentController extends Controller
         // Get all active employees (teachers and staff) based on user role
         $employeeQuery = Employee::where('is_active', 1)->with('school');
         if (!$user->isSuperAdmin()) {
-            $employeeQuery->where('school_id', $user->school_id);
+            // Admin sekolah bisa memilih pegawai unitnya sendiri ATAU pegawai Yayasan (school_id = 4)
+            $employeeQuery->where(function($q) use ($user) {
+                $q->where('school_id', $user->school_id)
+                  ->orWhere('school_id', 4)
+                  ->orWhere('employment_status', 'yayasan');
+            });
         }
         $teachers = $employeeQuery->orderBy('employee_type', 'asc')->orderBy('full_name', 'asc')->get();
         
         // Get positions grouped by category
-        $positionsQuery = Position::where('is_active', 1);
+        $positionsQuery = Position::where('is_active', 1)->with('school');
 
         if (!$user->isSuperAdmin()) {
-            // Admin Sekolah strictly hanya bisa melihat jabatan unit sekolahnya
-            $positionsQuery->where('school_id', $user->school_id);
-        } else {
-            // Superadmin difilter berdasarkan sekolah karyawan yang dipilih (jika ada)
-            if ($selectedEmployee && $selectedEmployee->school_id) {
-                $positionsQuery->where(function($q) use ($selectedEmployee) {
-                    $q->where('school_id', $selectedEmployee->school_id)
-                      ->orWhereNull('school_id'); // Include global positions
-                });
-            }
+            $positionsQuery->where(function($q) use ($user) {
+                $q->where('school_id', $user->school_id)
+                  ->orWhereNull('school_id');
+            });
         }
 
         $positionsQuery->orderBy('position_category')
