@@ -160,30 +160,38 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($item['levels'] as $idx => $lvl)
+                    @if(count($item['levels']) > 0)
+                        @foreach($item['levels'] as $idx => $lvl)
+                            <tr>
+                                <td>Kelas {{ $lvl['level'] }}</td>
+                                <td class="text-center">{{ $lvl['student_count'] }}</td>
+                                <td class="text-right">Rp {{ number_format($lvl['spp_monthly'], 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($lvl['income_total'], 0, ',', '.') }}</td>
+                                @if($idx == 0)
+                                    <td>Gaji Guru & Pegawai ({{ $item['employee_count'] }} org)</td>
+                                    <td class="text-right">Rp {{ number_format($item['salary_total'], 0, ',', '.') }}</td>
+                                @elseif($idx == 1 && $item['school']->type === 'yayasan')
+                                    <td>Belanja Ops Central Yayasan</td>
+                                    <td class="text-right">Rp {{ number_format($item['authorized_expense_total'], 0, ',', '.') }}</td>
+                                @else
+                                    <td>-</td>
+                                    <td class="text-right">-</td>
+                                @endif
+                            </tr>
+                        @endforeach
+                    @else
                         <tr>
-                            <td>Kelas {{ $lvl['level'] }}</td>
-                            <td class="text-center">{{ $lvl['student_count'] }}</td>
-                            <td class="text-right">Rp {{ number_format($lvl['spp_monthly'], 0, ',', '.') }}</td>
-                            <td class="text-right">Rp {{ number_format($lvl['income_total'], 0, ',', '.') }}</td>
-                            @if($idx == 0)
-                                <td>Gaji Guru & Pegawai ({{ $item['employee_count'] }} org)</td>
-                                <td class="text-right">Rp {{ number_format($item['salary_total'], 0, ',', '.') }}</td>
-                            @elseif($idx == 1)
-                                <td>Belanja Otorisasi Yayasan</td>
-                                <td class="text-right">Rp {{ number_format($item['authorized_expense_total'], 0, ',', '.') }}</td>
-                            @else
-                                <td>-</td>
-                                <td class="text-right">-</td>
-                            @endif
+                            <td colspan="4" class="text-center text-muted" style="color:#6b7280; font-style:italic;">Unit Yayasan (Tidak Ada SPP Siswa)</td>
+                            <td>Gaji Staf/Pengurus Yayasan ({{ $item['employee_count'] }} org)</td>
+                            <td class="text-right">Rp {{ number_format($item['salary_total'], 0, ',', '.') }}</td>
                         </tr>
-                    @endforeach
-                    @if(count($item['levels']) < 2)
+                        @if($item['authorized_expense_total'] > 0)
                         <tr>
                             <td colspan="4"></td>
-                            <td>Belanja Otorisasi Yayasan</td>
+                            <td>Belanja Ops Central Yayasan</td>
                             <td class="text-right">Rp {{ number_format($item['authorized_expense_total'], 0, ',', '.') }}</td>
                         </tr>
+                        @endif
                     @endif
                 </tbody>
                 <tfoot>

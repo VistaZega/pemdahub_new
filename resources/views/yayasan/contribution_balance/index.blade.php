@@ -190,9 +190,9 @@
                         </span>
 
                         <button type="button" 
-                                onclick="openEditModal({{ $s->id }}, '{{ addslashes($s->name) }}', {{ json_encode($item['levels']) }}, {{ $item['authorized_expense_monthly'] }}, '{{ addslashes($c->notes ?? '') }}', {{ json_encode($item['expense_details']) }})"
+                                onclick="openEditModal({{ $s->id }}, '{{ addslashes($s->name) }}', {{ json_encode($item['levels']) }}, {{ $item['authorized_expense_monthly'] }}, '{{ addslashes($c->notes ?? '') }}', {{ json_encode($item['expense_details']) }}, {{ $s->type === 'yayasan' ? 'true' : 'false' }})"
                                 class="px-3.5 py-2 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 font-bold text-xs transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fas fa-edit text-xs"></i> Edit Belanja Operasional & SPP
+                            <i class="fas fa-edit text-xs"></i> {{ $s->type === 'yayasan' ? 'Edit Belanja Operasional Yayasan' : 'Edit Tarif SPP Unit' }}
                         </button>
                     </div>
                 </div>
@@ -231,7 +231,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="px-3 py-3 text-center text-gray-400 italic">Tidak ada tingkat kelas</td>
+                                            <td colspan="4" class="px-3 py-3 text-center text-gray-400 italic">Unit Yayasan (Tidak Ada SPP Siswa)</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -247,11 +247,11 @@
                         </div>
                     </div>
 
-                    <!-- RIGHT COLUMN: PENGELUARAN (GAJI + OTORISASI) -->
+                    <!-- RIGHT COLUMN: PENGELUARAN (GAJI + OTORISASI OPERASIONAL) -->
                     <div class="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
                         <div class="flex items-center justify-between mb-3">
                             <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fas fa-circle-arrow-up text-red-500"></i> Pengeluaran Unit Sekolah
+                                <i class="fas fa-circle-arrow-up text-red-500"></i> Pengeluaran Unit / Lembaga
                             </h4>
                             <span class="text-xs font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-md border border-red-100">
                                 Total: Rp {{ number_format($item['expense_total'], 0, ',', '.') }}
@@ -259,15 +259,15 @@
                         </div>
 
                         <div class="space-y-3 text-xs">
-                            <!-- Item 1: Gaji -->
+                            <!-- Item 1: Gaji Pegawai -->
                             <div class="p-3 bg-white rounded-lg border border-gray-200/80 flex items-center justify-between">
                                 <div class="flex items-center gap-2.5">
                                     <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
                                         <i class="fas fa-user-tie text-xs"></i>
                                     </div>
                                     <div>
-                                        <h5 class="font-bold text-gray-800">Gaji Guru & Pegawai Unit</h5>
-                                        <p class="text-[11px] text-gray-500">{{ $item['employee_count'] }} pegawai aktif (Otomatis dari Payroll SDM)</p>
+                                        <h5 class="font-bold text-gray-800">Gaji Guru & Pegawai</h5>
+                                        <p class="text-[11px] text-gray-500">{{ $item['employee_count'] }} pegawai aktif (Payroll SDM)</p>
                                     </div>
                                 </div>
                                 <div class="text-right font-bold text-gray-900 text-sm">
@@ -276,7 +276,8 @@
                                 </div>
                             </div>
                             
-                            <!-- Item 2: Belanja Otorisasi & Belanja Operasional -->
+                            <!-- Item 2: Belanja Operasional (HANYA UNTUK YAYASAN) -->
+                            @if($s->type === 'yayasan')
                             <div class="p-3 bg-white rounded-lg border border-gray-200/80">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-2.5">
@@ -284,8 +285,8 @@
                                             <i class="fas fa-hand-holding-dollar text-xs"></i>
                                         </div>
                                         <div>
-                                            <h5 class="font-bold text-gray-800">Belanja Otorisasi & Operasional</h5>
-                                            <p class="text-[11px] text-gray-500">Breakdown Kode Rekening Belanja</p>
+                                            <h5 class="font-bold text-gray-800">Belanja Operasional Central Yayasan</h5>
+                                            <p class="text-[11px] text-gray-500">Internet, Listrik, Air, Pemeliharaan, ATK, Transport, dll</p>
                                         </div>
                                     </div>
                                     <div class="text-right font-bold text-amber-700 text-sm">
@@ -316,10 +317,16 @@
                                     </div>
                                 @endif
                             </div>
+                            @else
+                            <div class="p-2.5 bg-blue-50/50 rounded-lg border border-blue-100 text-[11px] text-blue-800 flex items-center gap-2">
+                                <i class="fas fa-info-circle text-blue-500"></i>
+                                <span>Seluruh Belanja Operasional (Internet, Listrik, Air, Sarpras, dll) ditanggung & dikelola terpusat oleh **Yayasan**.</span>
+                            </div>
+                            @endif
 
                             <!-- Total Summary Box -->
                             <div class="p-3 bg-red-50/60 rounded-lg border border-red-100 flex items-center justify-between font-bold">
-                                <span class="text-gray-800">TOTAL PENGELUARAN UNIT</span>
+                                <span class="text-gray-800">TOTAL PENGELUARAN</span>
                                 <span class="text-red-700 text-sm">Rp {{ number_format($item['expense_total'], 0, ',', '.') }}</span>
                             </div>
                         </div>
@@ -330,10 +337,14 @@
                 <!-- Footer Summary Bar per Unit -->
                 <div class="bg-gray-100/60 px-6 py-3 border-t border-gray-200/60 flex items-center justify-between text-xs">
                     <div class="text-gray-600">
-                        Rumus: <code class="bg-white px-2 py-0.5 rounded border border-gray-200 font-mono text-[11px]">Saldo = Pendapatan (Rp {{ number_format($item['income_total'], 0, ',', '.') }}) - Pengeluaran (Rp {{ number_format($item['expense_total'], 0, ',', '.') }})</code>
+                        @if($s->type === 'yayasan')
+                            Rumus: <code class="bg-white px-2 py-0.5 rounded border border-gray-200 font-mono text-[11px]">Beban Ops Yayasan = Gaji Staf + Belanja Operasional Central (Rp {{ number_format($item['expense_total'], 0, ',', '.') }})</code>
+                        @else
+                            Rumus Kontribusi: <code class="bg-white px-2 py-0.5 rounded border border-gray-200 font-mono text-[11px]">Surplus Kontribusi Unit = Pendapatan SPP (Rp {{ number_format($item['income_total'], 0, ',', '.') }}) - Gaji Pegawai Unit (Rp {{ number_format($item['salary_total'], 0, ',', '.') }})</code>
+                        @endif
                     </div>
                     <div class="font-black text-sm {{ $isSurplus ? 'text-emerald-700' : 'text-red-700' }}">
-                        {{ $isSurplus ? 'SURPLUS (+):' : 'DEFISIT (-):' }} Rp {{ number_format(abs($item['saldo']), 0, ',', '.') }}
+                        {{ $isSurplus ? 'SURPLUS KONTRIBUSI (+):' : 'BEBAN OPERASIONAL (-):' }} Rp {{ number_format(abs($item['saldo']), 0, ',', '.') }}
                     </div>
                 </div>
             </div>
@@ -347,7 +358,7 @@
                 <i class="fas fa-table-list text-violet-600"></i> Rekapitulasi Saldo Kontribusi Seluruh Unit Sekolah & Yayasan
             </h2>
             <p class="text-xs text-gray-500 mt-1">
-                Matriks perbandingan pendapatan, pengeluaran gaji, belanja otorisasi, dan saldo akhir kontribusi per unit.
+                Matriks perbandingan pendapatan SPP sekolah, pengeluaran gaji pegawai, belanja operasional central yayasan, dan saldo bersih akhir.
             </p>
         </div>
 
@@ -359,8 +370,8 @@
                         <th class="px-4 py-3">Nama Unit / Lembaga</th>
                         <th class="px-4 py-3 text-center">Siswa</th>
                         <th class="px-4 py-3 text-right">Total Pendapatan SPP</th>
-                        <th class="px-4 py-3 text-right">Total Gaji Unit</th>
-                        <th class="px-4 py-3 text-right">Belanja Otorisasi</th>
+                        <th class="px-4 py-3 text-right">Total Gaji Pegawai</th>
+                        <th class="px-4 py-3 text-right">Belanja Ops Central (Yayasan)</th>
                         <th class="px-4 py-3 text-right">Total Pengeluaran</th>
                         <th class="px-4 py-3 text-right">Saldo Kontribusi</th>
                         <th class="px-4 py-3 text-center">Status</th>
@@ -397,7 +408,7 @@
                 </tbody>
                 <tfoot class="bg-violet-900 text-white font-bold border-t-2 border-violet-900">
                     <tr>
-                        <td colspan="3" class="px-4 py-4 text-right uppercase tracking-wider font-extrabold">GRAND TOTAL KONTRIBUSI:</td>
+                        <td colspan="3" class="px-4 py-4 text-right uppercase tracking-wider font-extrabold">GRAND TOTAL REKAPITULASI:</td>
                         <td class="px-4 py-4 text-right text-emerald-300 text-sm">Rp {{ number_format($grandTotalIncome, 0, ',', '.') }}</td>
                         <td class="px-4 py-4 text-right text-blue-200 text-sm">Rp {{ number_format($grandTotalGaji, 0, ',', '.') }}</td>
                         <td class="px-4 py-4 text-right text-amber-200 text-sm">Rp {{ number_format($grandTotalOtorisasi, 0, ',', '.') }}</td>
@@ -424,8 +435,8 @@
     <div class="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl border border-gray-100 transform transition-all scale-95 opacity-0 modal-card max-h-[90vh] flex flex-col">
         <div class="flex items-center justify-between pb-4 border-b border-gray-100 flex-shrink-0">
             <div>
-                <h3 class="text-base font-bold text-gray-900" id="modalSchoolName">Edit Otorisasi & SPP</h3>
-                <p class="text-xs text-gray-500 mt-0.5">Input Belanja Otorisasi per Kode Rekening & Tarif SPP</p>
+                <h3 class="text-base font-bold text-gray-900" id="modalSchoolName">Edit Data</h3>
+                <p class="text-xs text-gray-500 mt-0.5" id="modalSubTitle">Pengaturan Keuangan Unit & Yayasan</p>
             </div>
             <button onclick="closeEditModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center">
                 <i class="fas fa-times text-xs"></i>
@@ -437,11 +448,11 @@
             <input type="hidden" name="school_id" id="modalSchoolId">
             <input type="hidden" name="academic_year_id" value="{{ $currentYear->id ?? '' }}">
 
-            <!-- RINCIAN KODE REKENING BELANJA OPERASIONAL -->
-            <div class="bg-violet-50/60 p-4 rounded-xl border border-violet-100">
+            <!-- RINCIAN KODE REKENING BELANJA OPERASIONAL (HANYA DITAMPILKAN UNTUK YAYASAN) -->
+            <div id="modalOpsSection" class="bg-violet-50/60 p-4 rounded-xl border border-violet-100">
                 <div class="flex items-center justify-between mb-3">
                     <label class="block text-xs font-extrabold text-violet-900 uppercase tracking-wider">
-                        <i class="fas fa-list-check text-violet-600 mr-1"></i> Rincian Belanja Operasional per Kode Rekening (Per Bulan)
+                        <i class="fas fa-list-check text-violet-600 mr-1"></i> Rincian Belanja Operasional Central per Kode Rekening (Per Bulan)
                     </label>
                     <span class="text-xs font-bold text-violet-700 bg-white px-2.5 py-1 rounded-lg border border-violet-200">
                         Subtotal Otorisasi: <strong id="modalExpenseSum">Rp 0</strong>/bln
@@ -465,16 +476,16 @@
                     @endforeach
                 </div>
 
-                <!-- Fallback Total Otorisasi Manual -->
+                <!-- Total Otorisasi Manual -->
                 <div class="mt-3 pt-3 border-t border-violet-200/80 flex items-center justify-between">
-                    <span class="text-xs text-gray-600">Total Otorisasi (Otomatis dari Rincian):</span>
+                    <span class="text-xs text-gray-600">Total Belanja Operasional Central:</span>
                     <input type="hidden" name="authorized_expense" id="modalAuthorizedExpense">
                     <span class="text-sm font-extrabold text-violet-900" id="displayAuthorizedExpense">Rp 0 / bulan</span>
                 </div>
             </div>
 
-            <!-- Tarif SPP per Level -->
-            <div>
+            <!-- Tarif SPP per Level (HANYA DITAMPILKAN UNTUK UNIT SEKOLAH) -->
+            <div id="modalSppSection">
                 <label class="block text-xs font-bold text-gray-700 mb-2">Tarif SPP Siswa (Per Bulan)</label>
                 <div id="modalSppInputs" class="space-y-2.5">
                     <!-- Dynamic inputs injected via Javascript -->
@@ -486,7 +497,7 @@
                 <label class="block text-xs font-bold text-gray-700 mb-1">Catatan / Keterangan (Opsional)</label>
                 <textarea name="notes" id="modalNotes" rows="2" 
                           class="w-full text-xs p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500" 
-                          placeholder="Catatan tambahan alokasi belanja operasional..."></textarea>
+                          placeholder="Catatan tambahan alokasi dana..."></textarea>
             </div>
 
             <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-2 flex-shrink-0">
@@ -515,11 +526,26 @@
         document.getElementById('displayAuthorizedExpense').innerText = 'Rp ' + total.toLocaleString('id-ID') + ' / bulan';
     }
 
-    function openEditModal(schoolId, schoolName, levels, authorizedExpenseMonthly, notes, expenseDetails) {
+    function openEditModal(schoolId, schoolName, levels, authorizedExpenseMonthly, notes, expenseDetails, isYayasan) {
         document.getElementById('modalSchoolId').value = schoolId;
-        document.getElementById('modalSchoolName').innerText = 'Edit Belanja Operasional & SPP — ' + schoolName;
-        document.getElementById('modalAuthorizedExpense').value = authorizedExpenseMonthly;
         document.getElementById('modalNotes').value = notes || '';
+
+        const opsSection = document.getElementById('modalOpsSection');
+        const sppSection = document.getElementById('modalSppSection');
+
+        if (isYayasan) {
+            document.getElementById('modalSchoolName').innerText = 'Edit Belanja Operasional Central — ' + schoolName;
+            document.getElementById('modalSubTitle').innerText = 'Kelola seluruh rincian belanja operasional non-gaji terpusat Yayasan';
+            opsSection.classList.remove('hidden');
+            sppSection.classList.add('hidden');
+        } else {
+            document.getElementById('modalSchoolName').innerText = 'Edit Tarif SPP Siswa — ' + schoolName;
+            document.getElementById('modalSubTitle').innerText = 'Kelola penetapan tarif SPP per tingkat kelas unit sekolah';
+            opsSection.classList.add('hidden');
+            sppSection.classList.remove('hidden');
+        }
+
+        document.getElementById('modalAuthorizedExpense').value = authorizedExpenseMonthly;
 
         // Reset & Populate Kode Rekening inputs
         const details = expenseDetails || {};

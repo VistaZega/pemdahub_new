@@ -252,10 +252,16 @@ class ContributionBalanceController extends Controller
                 ->where('academic_year_id', $currentYear->id ?? 0)
                 ->first();
 
-            $savedExpenseDetails = $contribution->expense_details ?? [];
-            $expenseDetailsSum = array_sum($savedExpenseDetails);
-            $authorizedExpenseMonthly = $expenseDetailsSum > 0 ? $expenseDetailsSum : (float) ($contribution->authorized_expense ?? 0);
-            $authorizedExpenseTotal = $authorizedExpenseMonthly * $multiplier;
+            if ($school->type === 'yayasan') {
+                $savedExpenseDetails = $contribution->expense_details ?? [];
+                $expenseDetailsSum = array_sum($savedExpenseDetails);
+                $authorizedExpenseMonthly = $expenseDetailsSum > 0 ? $expenseDetailsSum : (float) ($contribution->authorized_expense ?? 0);
+                $authorizedExpenseTotal = $authorizedExpenseMonthly * $multiplier;
+            } else {
+                $savedExpenseDetails = [];
+                $authorizedExpenseMonthly = 0;
+                $authorizedExpenseTotal = 0;
+            }
 
             // Default SPP dari master payment_types
             $defaultSppType = PaymentType::where('school_id', $school->id)
