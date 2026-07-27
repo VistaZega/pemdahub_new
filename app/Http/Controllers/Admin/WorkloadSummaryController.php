@@ -73,13 +73,15 @@ class WorkloadSummaryController extends Controller
                 },
                 'position_name_rank' => function ($q) use ($yearId) {
                     $q->selectRaw("COALESCE(MIN(CASE 
-                        WHEN positions.position_name LIKE 'Wakil Kepala Sekolah%' OR positions.position_name LIKE 'Wakasek%' THEN 1
-                        WHEN positions.position_name LIKE 'Pembantu Kepala Sekolah%' OR positions.position_name LIKE 'PKS%' THEN 2
-                        WHEN positions.position_name LIKE 'Kapro%' THEN 3
-                        WHEN positions.position_name LIKE 'Koordinator%' THEN 4
-                        WHEN positions.position_name LIKE 'Wali Kelas%' THEN 5
-                        WHEN positions.position_name LIKE 'Kepala Tata Usaha%' OR positions.position_name LIKE 'KTU%' THEN 1
-                        WHEN positions.position_name LIKE 'Bendahara%' THEN 2
+                        WHEN positions.position_name LIKE 'Ketua Yayasan%' THEN 1
+                        WHEN positions.position_name LIKE 'Kepala Sekolah%' OR positions.position_name LIKE 'Kepsek%' THEN 2
+                        WHEN positions.position_name LIKE 'Wakil Kepala Sekolah%' OR positions.position_name LIKE 'Wakasek%' THEN 3
+                        WHEN positions.position_name LIKE 'Pembantu Kepala Sekolah%' OR positions.position_name LIKE 'PKS%' THEN 4
+                        WHEN positions.position_name LIKE 'Kepala Tata Usaha%' OR positions.position_name LIKE 'KTU%' THEN 5
+                        WHEN positions.position_name LIKE 'Bendahara%' THEN 6
+                        WHEN positions.position_name LIKE 'Kapro%' THEN 7
+                        WHEN positions.position_name LIKE 'Koordinator%' THEN 8
+                        WHEN positions.position_name LIKE 'Wali Kelas%' THEN 9
                         ELSE 99 END), 999)")
                         ->from('employee_positions')
                         ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
@@ -111,12 +113,12 @@ class WorkloadSummaryController extends Controller
             $query->whereHas('employee', fn($q) => $q->where('school_id', $schoolId));
         }
 
-        $summaries = $query->orderBy('emp_type_rank', 'asc')
-            ->orderBy('min_position_level', 'asc')
-            ->orderBy('position_name_rank', 'asc')
+        $summaries = $query->orderBy('position_name_rank', 'asc')
             ->orderBy('total_position_allowance', 'desc')
-            ->orderBy('total_allowance', 'desc')
             ->orderBy('total_compensation', 'desc')
+            ->orderBy('total_allowance', 'desc')
+            ->orderBy('emp_type_rank', 'asc')
+            ->orderBy('min_position_level', 'asc')
             ->orderBy('emp_status_rank', 'asc')
             ->orderBy('employee_name', 'asc')
             ->paginate(50)->withQueryString();
