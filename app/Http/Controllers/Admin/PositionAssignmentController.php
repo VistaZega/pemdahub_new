@@ -266,7 +266,7 @@ class PositionAssignmentController extends Controller
                 $posName = strtolower($position->position_name);
                 $posCode = strtolower($position->position_code ?? '');
                 
-                // Pengecualian: Kepsek, PKS, Wali Kelas, KTU, Bendahara
+                // Pengecualian: Kepsek, PKS, Wali Kelas, KTU, Bendahara, dan Jabatan Support
                 $isExempt = str_contains($posName, 'kepala sekolah') || 
                             str_contains($posName, 'wakil kepala sekolah') || 
                             str_contains($posName, 'pks ') || 
@@ -276,7 +276,8 @@ class PositionAssignmentController extends Controller
                             str_contains($posName, 'ktu') ||
                             $posCode == 'ktu' ||
                             str_contains($posName, 'bendahara') ||
-                            str_contains($posCode, 'bendahara');
+                            str_contains($posCode, 'bendahara') ||
+                            $position->position_category === 'support';
                             
                 if (!$isExempt) {
                     // Wajib punya Perjanjian Kinerja Jabatan (Tipe 4) untuk posisi ini yang di-ACC Yayasan
@@ -401,6 +402,24 @@ class PositionAssignmentController extends Controller
                 ->first();
         }
         
+        $approvedContractPositionIds = [];
+        $isSMK = false;
+        
+        if ($employee && $employee->school) {
+            $school = $employee->school;
+            if (strtoupper($school->type) === 'SMK' || str_contains(strtolower($school->name), 'smk') || str_contains(strtolower($school->name), 'kejuruan')) {
+                $isSMK = true;
+                if ($currentYear) {
+                    $approvedContractPositionIds = \App\Models\PerformanceContract::where('employee_id', $employee->id)
+                        ->where('academic_year_id', $currentYear->id)
+                        ->where('contract_type', \App\Models\PerformanceContract::TYPE_JABATAN)
+                        ->where('status', \App\Models\PerformanceContract::STATUS_APPROVED_BY_YAYASAN)
+                        ->pluck('position_id')
+                        ->toArray();
+                }
+            }
+        }
+        
         return view('admin.assignments.positions.edit', compact(
             'employee',
             'positions',
@@ -409,7 +428,9 @@ class PositionAssignmentController extends Controller
             'currentPositions',
             'currentAssignment',
             'classrooms',
-            'currentClassroom'
+            'currentClassroom',
+            'isSMK',
+            'approvedContractPositionIds'
         ));
     }
     
@@ -434,6 +455,48 @@ class PositionAssignmentController extends Controller
         if (!$user->isSuperAdmin() && $employee->school_id !== $user->school_id) {
             abort(403, 'Unauthorized');
         }
+
+        // --- SISTEM GEMBOK PERJANJIAN KINERJA JABATAN (Khusus SMK) ---
+        $school = \App\Models\School::find($employee->school_id);
+        if ($school && (strtoupper($school->type) === 'SMK' || str_contains(strtolower($school->name), 'smk') || str_contains(strtolower($school->name), 'kejuruan'))) {
+            foreach ($validated['positions'] as $posId) {
+                $position = \App\Models\Position::find($posId);
+                if (!$position) continue;
+                
+                $posName = strtolower($position->position_name);
+                $posCode = strtolower($position->position_code ?? '');
+                
+                // Pengecualian: Kepsek, PKS, Wali Kelas, KTU, Bendahara, dan Jabatan Support
+                $isExempt = str_contains($posName, 'kepala sekolah') || 
+                            str_contains($posName, 'wakil kepala sekolah') || 
+                            str_contains($posName, 'pks ') || 
+                            $posName == 'pks' ||
+                            str_contains($posName, 'wali kelas') ||
+                            str_contains($posName, 'kepala tata usaha') ||
+                            str_contains($posName, 'ktu') ||
+                            $posCode == 'ktu' ||
+                            str_contains($posName, 'bendahara') ||
+                            str_contains($posCode, 'bendahara') ||
+                            $position->position_category === 'support';
+                            
+                if (!$isExempt) {
+                    // Wajib punya Perjanjian Kinerja Jabatan (Tipe 4) untuk posisi ini yang di-ACC Yayasan
+                    $hasContract = \App\Models\PerformanceContract::where('employee_id', $employee->id)
+                        ->where('academic_year_id', $validated['academic_year_id'])
+                        ->where('contract_type', \App\Models\PerformanceContract::TYPE_JABATAN)
+                        ->where('position_id', $posId)
+                        ->where('status', \App\Models\PerformanceContract::STATUS_APPROVED_BY_YAYASAN)
+                        ->exists();
+
+                    if (!$hasContract) {
+                        return redirect()->back()
+                            ->withInput()
+                            ->with('error', 'Akses Ditolak! Jabatan ' . $position->position_name . ' mewajibkan Instrumen Perjanjian Kinerja (#4). Guru bersangkutan belum memiliki kontrak yang disetujui Yayasan.');
+                    }
+                }
+            }
+        }
+        // --- END GEMBOK ---
         
         DB::beginTransaction();
         try {

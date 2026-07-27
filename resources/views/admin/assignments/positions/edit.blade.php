@@ -104,6 +104,18 @@
             <div class="p-6">
                 <p class="text-gray-600 mb-4">Pilih satu atau lebih jabatan yang akan ditugaskan:</p>
                 
+                @if(isset($isSMK) && $isSMK)
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 rounded-r-xl shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-exclamation-triangle text-amber-500 text-xl mt-0.5"></i>
+                        <div class="text-sm text-amber-900">
+                            <h4 class="font-bold text-base mb-1">Syarat Penugasan Jabatan (Khusus SMK)</h4>
+                            <p>Penugasan jabatan <b>selain</b> Kepala Sekolah, Wakil Kepala Sekolah, PKS, Wali Kelas, KTU, Bendahara, dan Jabatan Support <b>WAJIB</b> memiliki Perjanjian Kinerja Jabatan yang telah disetujui Yayasan. Jabatan yang belum di-ACC akan otomatis digembok.</p>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 @foreach($positions as $category => $categoryPositions)
                     <div class="mb-6 last:mb-0">
                         <h6 class="text-lg font-bold text-purple-700 mb-3 flex items-center gap-2">
@@ -114,15 +126,38 @@
                         </h6>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             @foreach($categoryPositions as $position)
-                                <label class="flex items-start gap-3 p-4 border-2 border-gray-200 rounded-xl hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition-all">
-                                    <input class="position-checkbox mt-1 w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500" 
+                                @php
+                                    $posName = strtolower($position->position_name);
+                                    $posCode = strtolower($position->position_code ?? '');
+                                    $isExempt = str_contains($posName, 'kepala sekolah') || 
+                                                str_contains($posName, 'wakil kepala sekolah') || 
+                                                str_contains($posName, 'pks ') || 
+                                                $posName == 'pks' ||
+                                                str_contains($posName, 'wali kelas') ||
+                                                str_contains($posName, 'kepala tata usaha') ||
+                                                str_contains($posName, 'ktu') ||
+                                                $posCode == 'ktu' ||
+                                                str_contains($posName, 'bendahara') ||
+                                                str_contains($posCode, 'bendahara') ||
+                                                $position->position_category === 'support';
+                                    $hasApprovedContract = in_array($position->id, $approvedContractPositionIds ?? []);
+                                    $isDisabled = isset($isSMK) && $isSMK && !$isExempt && !$hasApprovedContract;
+                                @endphp
+                                <label class="flex items-start gap-3 p-4 border-2 {{ $isDisabled ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-75' : 'border-gray-200 hover:border-purple-400 hover:bg-purple-50 cursor-pointer group' }} rounded-xl transition-all">
+                                    <input class="position-checkbox mt-1 w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 {{ $isDisabled ? 'cursor-not-allowed' : '' }}" 
                                            type="checkbox" 
                                            name="positions[]" 
                                            value="{{ $position->id }}"
                                            id="position_{{ $position->id }}"
-                                           {{ in_array($position->id, old('positions', $currentPositions)) ? 'checked' : '' }}>
+                                           {{ in_array($position->id, old('positions', $currentPositions)) ? 'checked' : '' }}
+                                           {{ $isDisabled ? 'disabled' : '' }}>
                                     <div class="flex-1">
-                                        <span class="font-semibold text-gray-900 block">{{ $position->display_name }}</span>
+                                        <span class="font-semibold {{ $isDisabled ? 'text-gray-500' : 'text-gray-900 group-hover:text-purple-700' }} block">
+                                            {{ $position->display_name }}
+                                            @if($isDisabled)
+                                                <i class="fas fa-lock text-red-400 ml-1 text-xs" title="Belum ACC Yayasan"></i>
+                                            @endif
+                                        </span>
                                         @if(!auth()->user()->isAdminSekolah())
                                         <span class="text-sm text-green-600 font-medium">
                                             Tunjangan: Rp {{ number_format($position->allowance_amount, 0, ',', '.') }}

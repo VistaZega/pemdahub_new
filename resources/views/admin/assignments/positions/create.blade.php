@@ -122,7 +122,7 @@
                         <i class="fas fa-exclamation-triangle text-amber-500 text-xl mt-0.5"></i>
                         <div class="text-sm text-amber-900">
                             <h4 class="font-bold text-base mb-1">Syarat Penugasan Jabatan (Khusus SMK)</h4>
-                            <p>Penugasan jabatan <b>selain</b> Kepala Sekolah, Wakil Kepala Sekolah, PKS, Wali Kelas, KTU, dan Bendahara <b>WAJIB</b> memiliki Perjanjian Kinerja Jabatan yang telah disetujui Yayasan. Jabatan yang belum di-ACC akan otomatis digembok.</p>
+                            <p>Penugasan jabatan <b>selain</b> Kepala Sekolah, Wakil Kepala Sekolah, PKS, Wali Kelas, KTU, Bendahara, dan Jabatan Support <b>WAJIB</b> memiliki Perjanjian Kinerja Jabatan yang telah disetujui Yayasan. Jabatan yang belum di-ACC akan otomatis digembok.</p>
                         </div>
                     </div>
                 </div>
@@ -149,7 +149,8 @@
                                         str_contains($posName, 'ktu') ||
                                         $posCode == 'ktu' ||
                                         str_contains($posName, 'bendahara') ||
-                                        str_contains($posCode, 'bendahara');
+                                        str_contains($posCode, 'bendahara') ||
+                                        $position->position_category === 'support';
                             $hasApprovedContract = in_array($position->id, $approvedContractPositionIds ?? []);
                             $isDisabled = isset($isSMK) && $isSMK && !$isExempt && !$hasApprovedContract;
                         @endphp
