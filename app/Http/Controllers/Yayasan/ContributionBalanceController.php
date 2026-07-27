@@ -125,7 +125,10 @@ class ContributionBalanceController extends Controller
             ?? Semester::where('academic_year_id', $currentYear->id ?? 0)->first()
             ?? Semester::first();
 
-        $schools = School::schoolsOnly()->where('is_active', true)->orderBy('name')->get();
+        // Ambil seluruh unit aktif (termasuk Unit Yayasan)
+        $schools = School::where('is_active', true)
+            ->orderByRaw("CASE WHEN type = 'yayasan' THEN 2 ELSE 1 END, name ASC")
+            ->get();
 
         $multiplier = ($periodMode === 'monthly') ? 1 : 12;
 
@@ -228,7 +231,8 @@ class ContributionBalanceController extends Controller
                         $employee,
                         $currentYear,
                         $currentSemester,
-                        $school->type
+                        $school->type,
+                        $school->id
                     );
                     $monthlySalarySum += (float) ($salary['thp'] ?? 0);
                 }
