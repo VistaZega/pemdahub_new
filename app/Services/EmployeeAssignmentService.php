@@ -291,6 +291,12 @@ class EmployeeAssignmentService
             $employee
         );
 
+        // Khusus untuk Pegawai/Unit Yayasan: Honor mengajar di sekolah TIDAK dimasukkan dalam Slip Gaji Yayasan,
+        // karena dibayarkan langsung oleh Bendahara unit sekolah masing-masing.
+        $isYayasanUnit = $employee->isYayasanStaff() || ($employee->school?->type === 'yayasan');
+        $honorMengajarSekolah = round($honorData['honor_total']);
+        $honorMengajarYayasan = $isYayasanUnit ? 0 : $honorMengajarSekolah;
+
         // 4. Tunjangan (Keluarga, Anak, Beras)
         $tunjanganData = $this->calculateTunjangan($employee, $employee->school_id, $tunjanganJabatan);
 
@@ -304,7 +310,7 @@ class EmployeeAssignmentService
         $totalPotongan = 0;
 
         // 6. Total
-        $grossPay = $gajiPokok + $tunjanganJabatan + $honorData['honor_total']
+        $grossPay = $gajiPokok + $tunjanganJabatan + $honorMengajarYayasan
             + $tunjanganData['tunjangan_keluarga']
             + $tunjanganData['tunjangan_anak']
             + $tunjanganData['tunjangan_beras'];
@@ -325,7 +331,9 @@ class EmployeeAssignmentService
             'jam_wajib' => $honorData['jam_wajib'],
             'jam_honor' => $honorData['jam_honor'],
             'honor_per_jam' => $honorData['honor_per_jam'],
-            'honor_mengajar' => round($honorData['honor_total']),
+            'honor_mengajar' => $honorMengajarYayasan,
+            'honor_mengajar_sekolah' => $honorMengajarSekolah,
+            'is_honor_dibayar_sekolah' => $isYayasanUnit && $honorMengajarSekolah > 0,
 
             'tunjangan_keluarga' => $tunjanganData['tunjangan_keluarga'],
             'tunjangan_anak' => $tunjanganData['tunjangan_anak'],
