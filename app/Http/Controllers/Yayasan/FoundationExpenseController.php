@@ -125,6 +125,8 @@ class FoundationExpenseController extends Controller
         ],
     ];
 
+    public const OPERATIONAL_EXPENSE_ACCOUNTS = self::OPERATIONAL_ACCOUNTS;
+
     /**
      * Tampilan Halaman Rencana Belanja Operasional & Pegawai (Halaman 2)
      */

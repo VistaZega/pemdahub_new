@@ -165,7 +165,7 @@ class FinancialRecapController extends Controller
             'grandTotalBelanjaPeriod' => $grandTotalBelanjaPeriod,
             'grandTotalSaldoAkhir' => $grandTotalSaldoAkhir,
             'savedExpenseDetails' => $savedDetails,
-            'expenseAccounts' => FoundationExpenseController::OPERATIONAL_EXPENSE_ACCOUNTS,
+            'expenseAccounts' => FoundationExpenseController::OPERATIONAL_ACCOUNTS,
         ];
     }
 }
