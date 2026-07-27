@@ -55,6 +55,7 @@ class WorkloadSummaryController extends Controller
             'academicYear', 
             'semester'
         ])
+            ->whereHas('employee')
             ->select('employee_workload_summaries.*')
             ->addSelect([
                 'emp_type_rank' => function ($q) {
@@ -132,7 +133,8 @@ class WorkloadSummaryController extends Controller
 
         // Totals (use base query without joins for simplicity if possible, or be explicit)
         $totalsQuery = EmployeeWorkloadSummary::where('academic_year_id', $yearId)
-            ->where('semester_id', $semesterId);
+            ->where('semester_id', $semesterId)
+            ->whereHas('employee');
         
         if ($schoolId) {
             $totalsQuery->whereHas('employee', fn($q) => $q->where('school_id', $schoolId));

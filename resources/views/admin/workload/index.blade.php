@@ -158,6 +158,9 @@
                     @forelse($summaries as $index => $summary)
                     @php 
                         $employee = $summary->employee;
+                        if (!$employee) {
+                            continue;
+                        }
                         $isYayasanEmp = $employee && ($employee->isYayasanStaff() || $employee->school?->type === 'yayasan');
                         $teachingHours = $summary->total_teaching_hours ?? 0;
                         $statusClasses = [
@@ -195,7 +198,7 @@
                         {{-- Tunjangan Jabatan --}}
                         <td class="px-5 py-5 align-bottom">
                             <div class="space-y-1.5">
-                                @forelse($employee->activePositions as $pos)
+                                @forelse(($employee->activePositions ?? []) as $pos)
                                     @php 
                                         $posAmount = $pos->pivot->position_allowance > 0 
                                             ? $pos->pivot->position_allowance 
@@ -208,7 +211,7 @@
                                 @empty
                                     <span class="text-[11px] text-gray-300 italic">Tidak ada</span>
                                 @endforelse
-                                @if($employee->activePositions->count() > 0)
+                                @if(($employee->activePositions?->count() ?? 0) > 0)
                                 <div class="flex justify-end pt-1.5 mt-1 border-t border-gray-100">
                                     <span class="text-xs font-bold text-indigo-600 tabular-nums">Rp&nbsp;{{ number_format($summary->total_position_allowance ?? 0, 0, ',', '.') }}</span>
                                 </div>
@@ -226,7 +229,7 @@
                                         $teachingHours,
                                         $employee->employment_status ?? 'yayasan',
                                         $employee->school?->type ?? 'SMA',
-                                        $employee->school_id
+                                        $employee->school_id ?? null
                                     );
                                 @endphp
                                 <p class="text-[10px] text-gray-500 group-hover:text-gray-800 font-semibold mt-1 mb-1 transition-colors">
@@ -241,7 +244,7 @@
                         <td class="px-5 py-5 align-bottom">
                             @php 
                                 $totalYayasan = ($summary->family_allowance + $summary->child_allowance + $summary->rice_allowance); 
-                                $tunjMeta = app(\App\Services\EmployeeAssignmentService::class)->calculateTunjangan($employee, $employee->school_id);
+                                $tunjMeta = $employee ? app(\App\Services\EmployeeAssignmentService::class)->calculateTunjangan($employee, $employee->school_id) : ['meta' => ['keluarga_persen'=>0, 'gaji_pokok'=>0, 'anak_persen'=>0, 'jumlah_anak'=>0, 'beras_nominal'=>0]];
                                 $meta = $tunjMeta['meta'];
                             @endphp
                             @if($totalYayasan > 0)
