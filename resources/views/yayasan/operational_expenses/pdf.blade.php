@@ -99,31 +99,46 @@
         <thead>
             <tr>
                 <th width="5%" class="text-center">No</th>
-                <th width="12%">Kode Rek.</th>
-                <th width="33%">Nama Rekening Belanja</th>
+                <th width="15%">Kode Rek.</th>
+                <th width="32%">Nama & Rincian Rekening Belanja</th>
                 <th width="8%" class="text-center">Jumlah</th>
-                <th width="10%" class="text-center">Satuan</th>
+                <th width="8%" class="text-center">Satuan</th>
                 <th width="16%" class="text-right">Tarif Satuan</th>
                 <th width="16%" class="text-right">Total Anggaran ({{ $periodMode === 'annual' ? '12 Bln' : '1 Bln' }})</th>
             </tr>
         </thead>
         <tbody>
+            <!-- GRUP 5.1.00: BELANJA PEGAWAI PERGURUAN -->
+            <tr style="background-color: #1e3a8a; color: #ffffff; font-weight: bold;">
+                <td class="text-center">5.1.00</td>
+                <td colspan="5" style="text-transform: uppercase;">KELOMPOK REKENING: BELANJA PEGAWAI PERGURUAN (OTOMATIS PENUGASAN)</td>
+                <td class="text-right">Rp {{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</td>
+            </tr>
+
             @php $no = 1; @endphp
-            @foreach($expenseAccounts as $code => $acc)
+            @foreach($parsedExpenseDetails as $code => $detail)
                 @php
-                    $detail = $parsedExpenseDetails[$code] ?? [];
                     $vol = $detail['volume'] ?? 1;
                     $unit = $detail['unit'] ?? 'Paket';
                     $tariff = $detail['tariff'] ?? 0;
                     $amtMonthly = $detail['amount'] ?? 0;
                     $amtPeriod = $amtMonthly * $multiplier;
-                    $isAuto = $acc['is_automatic'] ?? false;
+                    $isAuto = $detail['is_automatic'] ?? false;
                 @endphp
+
+                @if($code === '5.1.01')
+                    <tr style="background-color: #78350f; color: #ffffff; font-weight: bold;">
+                        <td class="text-center">5.1.01+</td>
+                        <td colspan="5" style="text-transform: uppercase;">KELOMPOK REKENING: BELANJA OPERASIONAL NON-GAJI</td>
+                        <td class="text-right">Rp {{ number_format($totalOpsPeriod, 0, ',', '.') }}</td>
+                    </tr>
+                @endif
+
                 <tr style="{{ $isAuto ? 'background-color: #eff6ff;' : '' }}">
                     <td class="text-center">{{ $no++ }}</td>
                     <td class="font-bold text-center" style="font-family: monospace;">{{ $code }}</td>
                     <td class="font-bold">
-                        {{ $acc['name'] }}
+                        {{ $detail['name'] }}
                         @if($isAuto)
                             <span style="font-size: 8px; color: #1e40af;">(Otomatis Payroll)</span>
                         @endif

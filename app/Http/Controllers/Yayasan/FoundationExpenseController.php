@@ -22,23 +22,14 @@ class FoundationExpenseController extends Controller
     }
 
     /**
-     * Master Rekening Belanja Operasional & Pegawai Yayasan (RAPBY)
+     * Master Rekening Belanja Operasional Non-Gaji Yayasan (RAPBY)
      */
-    public const ALL_EXPENSE_ACCOUNTS = [
-        '5.1.00' => [
-            'code' => '5.1.00',
-            'name' => 'Belanja Pegawai Perguruan (Gaji Guru & Staf)',
-            'icon' => 'fa-users-gear',
-            'category' => 'Belanja Pegawai',
-            'is_automatic' => true,
-            'default_unit' => 'Bulan',
-        ],
+    public const OPERATIONAL_ACCOUNTS = [
         '5.1.01' => [
             'code' => '5.1.01',
             'name' => 'Belanja Jasa Internet & Telekomunikasi',
             'icon' => 'fa-wifi',
             'category' => 'Layanan Utama',
-            'is_automatic' => false,
             'default_unit' => 'Bulan',
         ],
         '5.1.02' => [
@@ -46,7 +37,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Jasa Listrik (PLN)',
             'icon' => 'fa-bolt',
             'category' => 'Layanan Utama',
-            'is_automatic' => false,
             'default_unit' => 'Bulan',
         ],
         '5.1.03' => [
@@ -54,7 +44,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Jasa Air (PDAM / Sumur)',
             'icon' => 'fa-faucet-drip',
             'category' => 'Layanan Utama',
-            'is_automatic' => false,
             'default_unit' => 'Bulan',
         ],
         '5.1.04' => [
@@ -62,7 +51,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Subsidi & Beasiswa Siswa/Pegawai',
             'icon' => 'fa-hand-holding-heart',
             'category' => 'Subsidi & Bantuan',
-            'is_automatic' => false,
             'default_unit' => 'Paket',
         ],
         '5.1.05' => [
@@ -70,7 +58,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Pemeliharaan Sarpras & Perbaikan',
             'icon' => 'fa-screwdriver-wrench',
             'category' => 'Pemeliharaan',
-            'is_automatic' => false,
             'default_unit' => 'Kegiatan',
         ],
         '5.1.06' => [
@@ -78,7 +65,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Kegiatan Sosial, Keagamaan & Duka',
             'icon' => 'fa-ribbon',
             'category' => 'Sosial & Humas',
-            'is_automatic' => false,
             'default_unit' => 'Kegiatan',
         ],
         '5.1.07' => [
@@ -86,7 +72,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Konsumsi, Makan dan Minum Rapat/Tamu',
             'icon' => 'fa-utensils',
             'category' => 'Konsumsi',
-            'is_automatic' => false,
             'default_unit' => 'Paket',
         ],
         '5.1.08' => [
@@ -94,7 +79,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Kesehatan, Obat-Obatan & P3K',
             'icon' => 'fa-notes-medical',
             'category' => 'Kesehatan',
-            'is_automatic' => false,
             'default_unit' => 'Paket',
         ],
         '5.1.09' => [
@@ -102,7 +86,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Perjalanan Dinas & Transport',
             'icon' => 'fa-car-side',
             'category' => 'Operasional',
-            'is_automatic' => false,
             'default_unit' => 'Perjalanan',
         ],
         '5.1.10' => [
@@ -110,7 +93,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Barang, ATK & Cetak Dokumen',
             'icon' => 'fa-box-archive',
             'category' => 'Barang & Jasa',
-            'is_automatic' => false,
             'default_unit' => 'Paket',
         ],
         '5.1.11' => [
@@ -118,7 +100,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Sewa Peralatan & Kebersihan',
             'icon' => 'fa-broom',
             'category' => 'Sarana & Umum',
-            'is_automatic' => false,
             'default_unit' => 'Bulan',
         ],
         '5.1.12' => [
@@ -126,7 +107,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Promosi, Iklan & Brosur Publikasi',
             'icon' => 'fa-bullhorn',
             'category' => 'Sosial & Humas',
-            'is_automatic' => false,
             'default_unit' => 'Kegiatan',
         ],
         '5.1.13' => [
@@ -134,7 +114,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Pajak, Perizinan & Administrasi Hukum',
             'icon' => 'fa-scale-balanced',
             'category' => 'Hukum & Legal',
-            'is_automatic' => false,
             'default_unit' => 'Tahun',
         ],
         '5.1.14' => [
@@ -142,7 +121,6 @@ class FoundationExpenseController extends Controller
             'name' => 'Belanja Operasional Lain-Lain',
             'icon' => 'fa-ellipsis-h',
             'category' => 'Lain-Lain',
-            'is_automatic' => false,
             'default_unit' => 'Paket',
         ],
     ];
@@ -182,8 +160,8 @@ class FoundationExpenseController extends Controller
 
         if (is_array($expenseDetailsRaw)) {
             foreach ($expenseDetailsRaw as $code => $itemData) {
-                // Abaikan 5.1.00 karena otomatis dari Penugasan/Payroll
-                if ($code === '5.1.00') {
+                // Abaikan sub-rekening Belanja Pegawai (5.1.00.*) karena otomatis dari Penugasan/Payroll
+                if (str_starts_with($code, '5.1.00')) {
                     continue;
                 }
 
@@ -203,7 +181,6 @@ class FoundationExpenseController extends Controller
                         $calculatedExpenseSum += $amount;
                     }
                 } elseif (is_numeric($itemData) && (float)$itemData > 0) {
-                    // Fallback untuk backward compatibility
                     $val = (float)$itemData;
                     $cleanedExpenseDetails[$code] = [
                         'volume' => 1,
@@ -262,28 +239,45 @@ class FoundationExpenseController extends Controller
             ?? Semester::where('academic_year_id', $currentYear->id ?? 0)->first()
             ?? Semester::first();
 
-        // 1. Kalkulasi Belanja Pegawai Otomatis dari SDM Payroll & Penugasan
+        // 1. Sub-Rekening Belanja Pegawai Otomatis per Unit (5.1.00.01, 5.1.00.02, ...)
         $allSchools = School::where('is_active', true)
             ->orderByRaw("CASE WHEN type = 'yayasan' THEN 2 ELSE 1 END, name ASC")
             ->get();
 
+        $salarySubAccounts = [];
         $totalGajiPerguruanMonthly = 0;
         $totalPegawaiCount = 0;
 
-        foreach ($allSchools as $sch) {
+        foreach ($allSchools as $idx => $sch) {
             $employees = Employee::where('school_id', $sch->id)->where('is_active', true)->get();
-            $totalPegawaiCount += $employees->count();
+            $empCount = $employees->count();
+            $totalPegawaiCount += $empCount;
+            $sumSalary = 0;
             if ($currentYear && $currentSemester) {
                 foreach ($employees as $emp) {
                     $sal = $this->assignmentService->calculateFullSalary($emp, $currentYear, $currentSemester, $sch->type, $sch->id);
-                    $totalGajiPerguruanMonthly += (float) ($sal['thp'] ?? 0);
+                    $sumSalary += (float) ($sal['thp'] ?? 0);
                 }
             }
+            $totalGajiPerguruanMonthly += $sumSalary;
+
+            $subCode = '5.1.00.' . sprintf('%02d', $idx + 1);
+            $salarySubAccounts[$subCode] = [
+                'code' => $subCode,
+                'name' => 'Belanja Gaji & Tunjangan Pegawai ' . $sch->name,
+                'icon' => $sch->type === 'yayasan' ? 'fa-user-tie' : 'fa-users-gear',
+                'category' => 'Belanja Pegawai',
+                'volume' => $empCount,
+                'unit' => 'Orang/Bln',
+                'tariff' => $empCount > 0 ? ($sumSalary / $empCount) : 0,
+                'amount' => $sumSalary,
+                'is_automatic' => true,
+            ];
         }
 
         $totalGajiPerguruanPeriod = $totalGajiPerguruanMonthly * $multiplier;
 
-        // 2. Ambil Record Rencana Belanja Operasional Non-Gaji (JSON)
+        // 2. Sub-Rekening Belanja Operasional Non-Gaji (5.1.01 s/d 5.1.14)
         $yayasanSchool = School::where('type', 'yayasan')->first();
         $contribution = $yayasanSchool
             ? SchoolContribution::where('school_id', $yayasanSchool->id)->where('academic_year_id', $currentYear->id ?? 0)->first()
@@ -291,49 +285,47 @@ class FoundationExpenseController extends Controller
 
         $rawSavedDetails = $contribution->expense_details ?? [];
 
-        // Normalisasi format rincian (Jumlah, Satuan, Tarif, Total)
         $parsedExpenseDetails = [];
         $totalOpsMonthly = 0;
 
-        foreach (self::ALL_EXPENSE_ACCOUNTS as $code => $acc) {
-            if ($code === '5.1.00') {
-                // Item 5.1.00 Otomatis dari Payroll
-                $parsedExpenseDetails[$code] = [
-                    'volume' => $totalPegawaiCount,
-                    'unit' => 'Orang/Bln',
-                    'tariff' => $totalPegawaiCount > 0 ? ($totalGajiPerguruanMonthly / $totalPegawaiCount) : 0,
-                    'amount' => $totalGajiPerguruanMonthly,
-                    'is_automatic' => true,
-                ];
+        // Masukkan Belanja Pegawai Sub-Rekening (5.1.00.01 dst)
+        foreach ($salarySubAccounts as $subCode => $salItem) {
+            $parsedExpenseDetails[$subCode] = $salItem;
+        }
+
+        // Masukkan Belanja Operasional (5.1.01 s/d 5.1.14)
+        foreach (self::OPERATIONAL_ACCOUNTS as $code => $acc) {
+            $savedItem = $rawSavedDetails[$code] ?? null;
+            if (is_array($savedItem)) {
+                $vol = (float) ($savedItem['volume'] ?? 1);
+                $unit = $savedItem['unit'] ?? ($acc['default_unit'] ?? 'Paket');
+                $tariff = (float) ($savedItem['tariff'] ?? 0);
+                $amt = (float) ($savedItem['amount'] ?? ($vol * $tariff));
+            } elseif (is_numeric($savedItem)) {
+                $vol = 1;
+                $unit = $acc['default_unit'] ?? 'Paket';
+                $tariff = (float) $savedItem;
+                $amt = (float) $savedItem;
             } else {
-                $savedItem = $rawSavedDetails[$code] ?? null;
-                if (is_array($savedItem)) {
-                    $vol = (float) ($savedItem['volume'] ?? 1);
-                    $unit = $savedItem['unit'] ?? ($acc['default_unit'] ?? 'Paket');
-                    $tariff = (float) ($savedItem['tariff'] ?? 0);
-                    $amt = (float) ($savedItem['amount'] ?? ($vol * $tariff));
-                } elseif (is_numeric($savedItem)) {
-                    $vol = 1;
-                    $unit = $acc['default_unit'] ?? 'Paket';
-                    $tariff = (float) $savedItem;
-                    $amt = (float) $savedItem;
-                } else {
-                    $vol = 1;
-                    $unit = $acc['default_unit'] ?? 'Paket';
-                    $tariff = 0;
-                    $amt = 0;
-                }
-
-                $parsedExpenseDetails[$code] = [
-                    'volume' => $vol,
-                    'unit' => $unit,
-                    'tariff' => $tariff,
-                    'amount' => $amt,
-                    'is_automatic' => false,
-                ];
-
-                $totalOpsMonthly += $amt;
+                $vol = 1;
+                $unit = $acc['default_unit'] ?? 'Paket';
+                $tariff = 0;
+                $amt = 0;
             }
+
+            $parsedExpenseDetails[$code] = [
+                'code' => $code,
+                'name' => $acc['name'],
+                'icon' => $acc['icon'],
+                'category' => $acc['category'],
+                'volume' => $vol,
+                'unit' => $unit,
+                'tariff' => $tariff,
+                'amount' => $amt,
+                'is_automatic' => false,
+            ];
+
+            $totalOpsMonthly += $amt;
         }
 
         $totalOpsPeriod = $totalOpsMonthly * $multiplier;
@@ -350,12 +342,12 @@ class FoundationExpenseController extends Controller
             'totalPegawaiCount' => $totalPegawaiCount,
             'totalGajiPerguruanMonthly' => $totalGajiPerguruanMonthly,
             'totalGajiPerguruanPeriod' => $totalGajiPerguruanPeriod,
+            'salarySubAccounts' => $salarySubAccounts,
             'parsedExpenseDetails' => $parsedExpenseDetails,
             'totalOpsMonthly' => $totalOpsMonthly,
             'totalOpsPeriod' => $totalOpsPeriod,
             'grandTotalBelanjaMonthly' => $grandTotalBelanjaMonthly,
             'grandTotalBelanjaPeriod' => $grandTotalBelanjaPeriod,
-            'expenseAccounts' => self::ALL_EXPENSE_ACCOUNTS,
         ];
     }
 }

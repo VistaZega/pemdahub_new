@@ -12,7 +12,7 @@
                 <i class="fas fa-list-check text-amber-400"></i> Rencana Belanja Yayasan & Perguruan (RAPBY)
             </h1>
             <p class="text-xs text-violet-200 mt-1">
-                Penyusunan rincian anggaran belanja pegawai (otomatis dari penugasan) dan belanja operasional terpusat (Jumlah, Satuan, Tarif).
+                Penyusunan rincian anggaran belanja pegawai per unit (otomatis dari penugasan) dan belanja operasional terpusat per kode rekening.
             </p>
         </div>
 
@@ -60,9 +60,9 @@
                 <i class="fas fa-users-gear"></i>
             </div>
             <div>
-                <span class="text-xs text-gray-500 font-medium block">5.1.00 Belanja Pegawai (Gaji)</span>
+                <span class="text-xs text-gray-500 font-medium block">5.1.00 Sub-Total Belanja Pegawai</span>
                 <span class="text-xl font-black text-blue-900">Rp {{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</span>
-                <span class="text-[10px] text-blue-700 font-semibold block">Otomatis {{ $totalPegawaiCount }} Pegawai</span>
+                <span class="text-[10px] text-blue-700 font-semibold block">Rincian {{ $totalPegawaiCount }} Pegawai ({{ count($salarySubAccounts) }} Unit)</span>
             </div>
         </div>
 
@@ -102,7 +102,7 @@
                     <h2 class="text-base font-extrabold flex items-center gap-2">
                         <i class="fas fa-table-list text-amber-400"></i> Rincian Anggaran Belanja Yayasan & Perguruan (RAPBY)
                     </h2>
-                    <p class="text-xs text-violet-200 mt-0.5">Lengkapi rincian Jumlah (Volume), Satuan, dan Tarif (Harga Satuan) untuk masing-masing rekening belanja.</p>
+                    <p class="text-xs text-violet-200 mt-0.5">Tabel rincian sub-rekening Belanja Pegawai (otomatis) dan Belanja Operasional Non-Gaji.</p>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -118,7 +118,7 @@
                         <tr>
                             <th class="px-3 py-3 text-center w-10">No</th>
                             <th class="px-3 py-3 w-28">Kode Rekening</th>
-                            <th class="px-4 py-3">Nama Rekening Belanja</th>
+                            <th class="px-4 py-3">Nama & Rincian Rekening Belanja</th>
                             <th class="px-3 py-3 w-28 text-center">Jumlah (Qty)</th>
                             <th class="px-3 py-3 w-28 text-center">Satuan</th>
                             <th class="px-4 py-3 text-right w-44">Tarif Satuan (Rp)</th>
@@ -127,27 +127,58 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
+
+                        <!-- HEADER GRUP 5.1.00: BELANJA PEGAWAI PERGURUAN -->
+                        <tr class="bg-blue-900 text-white font-extrabold">
+                            <td class="px-3 py-2 text-center text-blue-200">5.1.00</td>
+                            <td colspan="5" class="px-4 py-2 uppercase tracking-wider">
+                                <i class="fas fa-users-gear mr-1.5 text-blue-300"></i> KELOMPOK REKENING: BELANJA PEGAWAI PERGURUAN (OTOMATIS PENUGASAN)
+                            </td>
+                            <td class="px-4 py-2 text-right text-blue-200">
+                                Rp {{ number_format($totalGajiPerguruanMonthly, 0, ',', '.') }}
+                            </td>
+                            <td class="px-4 py-2 text-right text-blue-200 font-black">
+                                Rp {{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}
+                            </td>
+                        </tr>
+
                         @php $no = 1; @endphp
-                        @foreach($expenseAccounts as $code => $acc)
+                        @foreach($parsedExpenseDetails as $code => $detail)
                             @php
-                                $detail = $parsedExpenseDetails[$code] ?? [];
                                 $vol = $detail['volume'] ?? 1;
                                 $unit = $detail['unit'] ?? 'Paket';
                                 $tariff = $detail['tariff'] ?? 0;
                                 $amtMonthly = $detail['amount'] ?? 0;
                                 $amtPeriod = $amtMonthly * $multiplier;
-                                $isAuto = $acc['is_automatic'] ?? false;
+                                $isAuto = $detail['is_automatic'] ?? false;
                                 $safeCode = str_replace('.', '_', $code);
                             @endphp
+
+                            <!-- PEMISAH JIKA MASUK KELOMPOK OPERASIONAL NON-GAJI (5.1.01) -->
+                            @if($code === '5.1.01')
+                                <tr class="bg-amber-900 text-white font-extrabold">
+                                    <td class="px-3 py-2 text-center text-amber-200">5.1.01+</td>
+                                    <td colspan="5" class="px-4 py-2 uppercase tracking-wider">
+                                        <i class="fas fa-list-check mr-1.5 text-amber-300"></i> KELOMPOK REKENING: BELANJA OPERASIONAL NON-GAJI (DAPAT DI-EDIT)
+                                    </td>
+                                    <td class="px-4 py-2 text-right text-amber-200" id="groupOpsMonthly">
+                                        Rp {{ number_format($totalOpsMonthly, 0, ',', '.') }}
+                                    </td>
+                                    <td class="px-4 py-2 text-right text-amber-200 font-black" id="groupOpsPeriod">
+                                        Rp {{ number_format($totalOpsPeriod, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                            @endif
+
                             <tr class="hover:bg-violet-50/20 transition {{ $isAuto ? 'bg-blue-50/40' : '' }}">
                                 <td class="px-3 py-3 text-center font-bold text-gray-400">{{ $no++ }}</td>
-                                <td class="px-3 py-3 font-mono font-bold text-violet-700 bg-violet-50/50 rounded-lg text-center">
+                                <td class="px-3 py-3 font-mono font-bold {{ $isAuto ? 'text-blue-800 bg-blue-100/50' : 'text-violet-700 bg-violet-50/50' }} rounded-lg text-center">
                                     {{ $code }}
                                 </td>
                                 <td class="px-4 py-3 font-bold text-gray-900">
                                     <div class="flex items-center gap-2">
-                                        <i class="fas {{ $acc['icon'] }} {{ $isAuto ? 'text-blue-600' : 'text-gray-400' }} w-4"></i>
-                                        <span>{{ $acc['name'] }}</span>
+                                        <i class="fas {{ $detail['icon'] }} {{ $isAuto ? 'text-blue-600' : 'text-gray-400' }} w-4"></i>
+                                        <span>{{ $detail['name'] }}</span>
                                         @if($isAuto)
                                             <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
                                                 <i class="fas fa-lock text-[8px] mr-1"></i> Otomatis Penugasan
@@ -157,18 +188,15 @@
                                 </td>
 
                                 @if($isAuto)
-                                    <!-- 5.1.00 Otomatis dari Penugasan (Tidak Bisa Di-edit) -->
+                                    <!-- Sub-rekening Belanja Pegawai (Berasal dari Penugasan - Read Only) -->
                                     <td class="px-3 py-3 text-center font-bold text-blue-900">
                                         {{ $vol }}
-                                        <input type="hidden" name="expense_details[{{ $code }}][volume]" value="{{ $vol }}">
                                     </td>
                                     <td class="px-3 py-3 text-center font-bold text-blue-900">
                                         {{ $unit }}
-                                        <input type="hidden" name="expense_details[{{ $code }}][unit]" value="{{ $unit }}">
                                     </td>
                                     <td class="px-4 py-3 text-right font-bold text-blue-900">
                                         Rp {{ number_format($tariff, 0, ',', '.') }}
-                                        <input type="hidden" name="expense_details[{{ $code }}][tariff]" value="{{ $tariff }}">
                                     </td>
                                     <td class="px-4 py-3 text-right font-black text-blue-900">
                                         Rp {{ number_format($amtMonthly, 0, ',', '.') }}
@@ -218,7 +246,7 @@
                     <tfoot class="bg-violet-900 text-white font-bold border-t-2 border-violet-900">
                         <tr>
                             <td colspan="6" class="px-4 py-4 text-right uppercase tracking-wider font-extrabold text-xs">
-                                TOTAL RENCANA BELANJA YAYASAN (RAPBY):
+                                TOTAL RENCANA BELANJA YAYASAN & PERGURUAN (RAPBY):
                             </td>
                             <td class="px-4 py-4 text-right text-amber-300 text-sm font-black" id="footTotalMonthly">
                                 Rp {{ number_format($grandTotalBelanjaMonthly, 0, ',', '.') }}
@@ -284,6 +312,8 @@
         const grandMonthly = totalGajiMonthly + sumOpsMonthly;
         const grandPeriod = grandMonthly * multiplier;
 
+        document.getElementById('groupOpsMonthly').innerText = 'Rp ' + sumOpsMonthly.toLocaleString('id-ID');
+        document.getElementById('groupOpsPeriod').innerText = 'Rp ' + sumOpsPeriod.toLocaleString('id-ID');
         document.getElementById('cardOpsTotal').innerText = 'Rp ' + sumOpsPeriod.toLocaleString('id-ID');
         document.getElementById('cardGrandTotal').innerText = 'Rp ' + grandPeriod.toLocaleString('id-ID');
         document.getElementById('footTotalMonthly').innerText = 'Rp ' + grandMonthly.toLocaleString('id-ID');
