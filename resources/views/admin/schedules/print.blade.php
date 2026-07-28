@@ -104,8 +104,8 @@
                         <th class="p-1 border-r border-gray-400 text-center w-12">Hari</th>
                         <th class="p-1 border-r border-gray-400 text-center w-16">Waktu</th>
                         @foreach($classrooms as $classroom)
-                        <th class="p-1 border-r border-gray-400 text-center align-middle">
-                            <div class="font-black text-[9.5px] leading-tight text-white break-words max-h-7 overflow-hidden">
+                        <th class="p-0.5 border-r border-gray-400 text-center align-middle">
+                            <div class="font-black text-[8px] leading-tight text-white break-words max-h-10 overflow-hidden text-center uppercase tracking-tighter">
                                 {{ $classroom->class_code ?? $classroom->class_name }}
                             </div>
                         </th>
