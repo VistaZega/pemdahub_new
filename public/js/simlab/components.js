@@ -5,7 +5,7 @@
 
 window.SimLabComponents = {
     // ----------------------------------------------------
-    // 1. ARDUINO UNO (ATmega328P) - Enhanced Spacious Design (320x200)
+    // 1. ARDUINO UNO (ATmega328P) - Authentic Arduino R3 Pin Layout (320x200)
     // ----------------------------------------------------
     uno: {
         name: "Arduino Uno",
@@ -13,27 +13,28 @@ window.SimLabComponents = {
         height: 200,
         bg: "#008784",
         pins: [
-            // Top Digital Pins (D0 - D13 + GND + AREF + SDA + SCL)
-            { id: "SCL", label: "SCL", x: 295, y: 18, type: "digital" },
-            { id: "SDA", label: "SDA", x: 280, y: 18, type: "digital" },
-            { id: "AREF", label: "AREF", x: 265, y: 18, type: "analog" },
-            { id: "GND_TOP", label: "GND", x: 250, y: 18, type: "gnd" },
-            { id: "D13", label: "13", x: 235, y: 18, type: "digital", pwm: true },
-            { id: "D12", label: "12", x: 220, y: 18, type: "digital" },
-            { id: "D11", label: "~11", x: 205, y: 18, type: "digital", pwm: true },
-            { id: "D10", label: "~10", x: 190, y: 18, type: "digital", pwm: true },
-            { id: "D9", label: "~9", x: 175, y: 18, type: "digital", pwm: true },
-            { id: "D8", label: "8", x: 160, y: 18, type: "digital" },
-            { id: "D7", label: "7", x: 130, y: 18, type: "digital" },
-            { id: "D6", label: "~6", x: 115, y: 18, type: "digital", pwm: true },
-            { id: "D5", label: "~5", x: 100, y: 18, type: "digital", pwm: true },
-            { id: "D4", label: "4", x: 85, y: 18, type: "digital" },
-            { id: "D3", label: "~3", x: 70, y: 18, type: "digital", pwm: true },
-            { id: "D2", label: "2", x: 55, y: 18, type: "digital" },
-            { id: "TX", label: "1 (TX)", x: 40, y: 18, type: "serial" },
-            { id: "RX", label: "0 (RX)", x: 25, y: 18, type: "serial" },
+            // Top Digital Pins (Urutan Resmi Arduino R3 Kiri ke Kanan: SCL, SDA, AREF, GND, 13..8 | 7..2, TX, RX)
+            { id: "SCL", label: "SCL", x: 30, y: 18, type: "digital" },
+            { id: "SDA", label: "SDA", x: 45, y: 18, type: "digital" },
+            { id: "AREF", label: "AREF", x: 60, y: 18, type: "analog" },
+            { id: "GND_TOP", label: "GND", x: 75, y: 18, type: "gnd" },
+            { id: "D13", label: "13", x: 90, y: 18, type: "digital", pwm: true },
+            { id: "D12", label: "12", x: 105, y: 18, type: "digital" },
+            { id: "D11", label: "~11", x: 120, y: 18, type: "digital", pwm: true },
+            { id: "D10", label: "~10", x: 135, y: 18, type: "digital", pwm: true },
+            { id: "D9", label: "~9", x: 150, y: 18, type: "digital", pwm: true },
+            { id: "D8", label: "8", x: 165, y: 18, type: "digital" },
+            
+            { id: "D7", label: "7", x: 195, y: 18, type: "digital" },
+            { id: "D6", label: "~6", x: 210, y: 18, type: "digital", pwm: true },
+            { id: "D5", label: "~5", x: 225, y: 18, type: "digital", pwm: true },
+            { id: "D4", label: "4", x: 240, y: 18, type: "digital" },
+            { id: "D3", label: "~3", x: 255, y: 18, type: "digital", pwm: true },
+            { id: "D2", label: "2", x: 270, y: 18, type: "digital" },
+            { id: "TX", label: "1 (TX)", x: 285, y: 18, type: "serial" },
+            { id: "RX", label: "0 (RX)", x: 300, y: 18, type: "serial" },
 
-            // Bottom Power & Analog Pins
+            // Bottom Power & Analog Pins (Urutan Resmi Arduino R3 Kiri ke Kanan: RST, 3.3V, 5V, GND, GND, VIN | A0..A5)
             { id: "RESET", label: "RST", x: 60, y: 182, type: "power" },
             { id: "3V3", label: "3.3V", x: 75, y: 182, type: "power" },
             { id: "5V", label: "5V", x: 90, y: 182, type: "power" },
@@ -51,42 +52,43 @@ window.SimLabComponents = {
         svg: function(comp) {
             return `
             <rect width="320" height="200" rx="12" fill="#008784" stroke="#005d5b" stroke-width="3"/>
-            <rect x="20" y="80" width="140" height="32" rx="4" fill="#1e293b"/>
-            <text x="90" y="100" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">ATMEGA328P-PU</text>
+            <rect x="160" y="80" width="140" height="32" rx="4" fill="#1e293b"/>
+            <text x="230" y="100" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">ATMEGA328P-PU</text>
             <rect x="15" y="130" width="45" height="50" rx="4" fill="#475569"/>
             <text x="37" y="160" fill="#e2e8f0" font-size="9" text-anchor="middle">USB B</text>
             <circle cx="285" cy="155" r="16" fill="#0f172a"/>
             <text x="285" y="159" fill="#94a3b8" font-size="8" text-anchor="middle">POWER</text>
-            <text x="175" y="130" fill="#ffffff" font-size="16" font-family="sans-serif" font-weight="900" text-anchor="middle">ARDUINO UNO</text>
+            <text x="90" y="125" fill="#ffffff" font-size="16" font-family="sans-serif" font-weight="900" text-anchor="middle">ARDUINO UNO</text>
             
-            <circle id="led_uno_13_${comp.id}" cx="245" cy="55" r="4" fill="#451a03" stroke="#78350f" stroke-width="1"/>
-            <text x="255" y="58" fill="#cbd5e1" font-size="8">L (D13)</text>
-            <circle id="led_uno_on_${comp.id}" cx="245" cy="70" r="4" fill="#15803d" stroke="#22c55e" stroke-width="1"/>
-            <text x="255" y="73" fill="#cbd5e1" font-size="8">ON</text>
+            <circle id="led_uno_13_${comp.id}" cx="75" cy="55" r="4" fill="#451a03" stroke="#78350f" stroke-width="1"/>
+            <text x="85" y="58" fill="#cbd5e1" font-size="8">L (D13)</text>
+            <circle id="led_uno_on_${comp.id}" cx="75" cy="70" r="4" fill="#15803d" stroke="#22c55e" stroke-width="1"/>
+            <text x="85" y="73" fill="#cbd5e1" font-size="8">ON</text>
 
-            <!-- Top Header Silkscreen Labels: rotate(90) extends DOWNWARDS from Y=32 into green PCB body -->
+            <!-- Top Header Silkscreen Labels: rotate(90 32) (Mulai Y=32 berlanjut KE BAWAH masuk ke PCB hijau) -->
             <g fill="#ffffff" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="start">
-                <text x="295" y="32" transform="rotate(90 295 32)">SCL</text>
-                <text x="280" y="32" transform="rotate(90 280 32)">SDA</text>
-                <text x="265" y="32" transform="rotate(90 265 32)">AREF</text>
-                <text x="250" y="32" transform="rotate(90 250 32)">GND</text>
-                <text x="235" y="32" transform="rotate(90 235 32)">13</text>
-                <text x="220" y="32" transform="rotate(90 220 32)">12</text>
-                <text x="205" y="32" transform="rotate(90 205 32)">~11</text>
-                <text x="190" y="32" transform="rotate(90 190 32)">~10</text>
-                <text x="175" y="32" transform="rotate(90 175 32)">~9</text>
-                <text x="160" y="32" transform="rotate(90 160 32)">8</text>
-                <text x="130" y="32" transform="rotate(90 130 32)">7</text>
-                <text x="115" y="32" transform="rotate(90 115 32)">~6</text>
-                <text x="100" y="32" transform="rotate(90 100 32)">~5</text>
-                <text x="85" y="32" transform="rotate(90 85 32)">4</text>
-                <text x="70" y="32" transform="rotate(90 70 32)">~3</text>
-                <text x="55" y="32" transform="rotate(90 55 32)">2</text>
-                <text x="40" y="32" transform="rotate(90 40 32)">TX</text>
-                <text x="25" y="32" transform="rotate(90 25 32)">RX</text>
+                <text x="30" y="32" transform="rotate(90 30 32)">SCL</text>
+                <text x="45" y="32" transform="rotate(90 45 32)">SDA</text>
+                <text x="60" y="32" transform="rotate(90 60 32)">AREF</text>
+                <text x="75" y="32" transform="rotate(90 75 32)">GND</text>
+                <text x="90" y="32" transform="rotate(90 90 32)">13</text>
+                <text x="105" y="32" transform="rotate(90 105 32)">12</text>
+                <text x="120" y="32" transform="rotate(90 120 32)">~11</text>
+                <text x="135" y="32" transform="rotate(90 135 32)">~10</text>
+                <text x="150" y="32" transform="rotate(90 150 32)">~9</text>
+                <text x="165" y="32" transform="rotate(90 165 32)">8</text>
+                
+                <text x="195" y="32" transform="rotate(90 195 32)">7</text>
+                <text x="210" y="32" transform="rotate(90 210 32)">~6</text>
+                <text x="225" y="32" transform="rotate(90 225 32)">~5</text>
+                <text x="240" y="32" transform="rotate(90 240 32)">4</text>
+                <text x="255" y="32" transform="rotate(90 255 32)">~3</text>
+                <text x="270" y="32" transform="rotate(90 270 32)">2</text>
+                <text x="285" y="32" transform="rotate(90 285 32)">TX (1)</text>
+                <text x="300" y="32" transform="rotate(90 300 32)">RX (0)</text>
             </g>
 
-            <!-- Bottom Power/Analog Silkscreen Pin Labels: rotate(-90) extends UPWARDS from Y=168 into green PCB body -->
+            <!-- Bottom Power/Analog Silkscreen Pin Labels: rotate(-90 168) (Mulai Y=168 berlanjut KE ATAS masuk ke PCB hijau) -->
             <g fill="#ffffff" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="start">
                 <text x="60" y="168" transform="rotate(-90 60 168)">RST</text>
                 <text x="75" y="168" transform="rotate(-90 75 168)">3.3V</text>
@@ -94,6 +96,7 @@ window.SimLabComponents = {
                 <text x="105" y="168" transform="rotate(-90 105 168)">GND</text>
                 <text x="120" y="168" transform="rotate(-90 120 168)">GND</text>
                 <text x="135" y="168" transform="rotate(-90 135 168)">VIN</text>
+
                 <text x="175" y="168" transform="rotate(-90 175 168)">A0</text>
                 <text x="190" y="168" transform="rotate(-90 190 168)">A1</text>
                 <text x="205" y="168" transform="rotate(-90 205 168)">A2</text>
@@ -225,7 +228,7 @@ window.SimLabComponents = {
                 <text x="140" y="38">3V3</text><text x="140" y="53">GND</text><text x="140" y="68">D15</text>
                 <text x="140" y="78">D2</text><text x="140" y="93">D4</text><text x="140" y="113">RX2</text>
                 <text x="140" y="128">TX2</text><text x="140" y="143">D5</text><text x="140" y="158">D18</text>
-                <text x="140" y="173">D19</text><text x="140" y="188">D21</text><text x="140" y="203">D22</text>
+                <text x="140" y="168">D19</text><text x="140" y="188">D21</text><text x="140" y="203">D22</text>
                 <text x="140" y="218">D23</text>
             </g>
             `;

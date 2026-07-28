@@ -1,6 +1,6 @@
 /**
  * PembdaHUB SimLab - Circuit Workspace Manager
- * Menangani rendering komponen visual, label nomor pin, rotasi (0°-270°), perbesar/perkecil (mouse wheel/tombol), drag & drop, penyambungan kabel 90° Lurus / Bezier, serta import/export JSON.
+ * Menangani rendering komponen visual, label nomor pin resmi, rotasi (0°-360°), perbesar/perkecil (mouse wheel/tombol), drag & drop, penyambungan kabel 90° Wokwi (tarik sisi garis/waypoint), serta import/export JSON.
  */
 
 window.SimLabCircuit = {
@@ -112,6 +112,7 @@ window.SimLabCircuit = {
                     if (self.connectingPin) {
                         self.connectingPin = null;
                         document.getElementById('tempWire').classList.add('hidden');
+                        self.renderComponents();
                     }
                 }
             });
@@ -207,11 +208,12 @@ window.SimLabCircuit = {
                     ${def.svg(comp)}
             `;
 
-            // Render Pins as Interactive Circles (Silkscreen text is cleanly rendered inside SVG board definition)
+            // Render Pins as Interactive Circles with Active Selection Ring
             def.pins.forEach(pin => {
+                const isSelected = self.connectingPin && self.connectingPin.compId === comp.id && self.connectingPin.pinId === pin.id;
                 html += `
                 <g class="pin-hover cursor-pointer" onclick="SimLabCircuit.onPinClick('${comp.id}', '${pin.id}')">
-                    <circle cx="${pin.x}" cy="${pin.y}" r="6" fill="#10b981" stroke="#ffffff" stroke-width="1.5"/>
+                    <circle cx="${pin.x}" cy="${pin.y}" r="${isSelected ? 8 : 6}" fill="${isSelected ? '#f59e0b' : '#10b981'}" stroke="#ffffff" stroke-width="${isSelected ? 2.5 : 1.5}"/>
                     <circle cx="${pin.x}" cy="${pin.y}" r="2" fill="#000000"/>
                     <title>Pin ${pin.label} (${pin.type.toUpperCase()})</title>
                 </g>
@@ -298,23 +300,38 @@ window.SimLabCircuit = {
 
     onPinClick: function(compId, pinId) {
         if (!this.connectingPin) {
-            // Start wire connection
+            // Start wire connection from Pin A
             this.connectingPin = { compId: compId, pinId: pinId };
+            this.renderComponents();
         } else {
-            // Finish wire connection if target is different
+            // Finish wire connection to Pin B if target is different
             if (this.connectingPin.compId !== compId || this.connectingPin.pinId !== pinId) {
+                const pos1 = this.getPinPos(this.connectingPin.compId, this.connectingPin.pinId);
+                const pos2 = this.getPinPos(compId, pinId);
+
+                let defaultWaypoints = [];
+                if (pos1 && pos2) {
+                    const midX = pos1.x + (pos2.x - pos1.x) / 2;
+                    defaultWaypoints = [
+                        { x: midX, y: pos1.y },
+                        { x: midX, y: pos2.y }
+                    ];
+                }
+
                 const wire = {
                     id: 'wire_' + Math.random().toString(36).substr(2, 6),
                     fromComp: this.connectingPin.compId,
                     fromPin: this.connectingPin.pinId,
                     toComp: compId,
                     toPin: pinId,
-                    color: this.selectedWireColor
+                    color: this.selectedWireColor,
+                    waypoints: defaultWaypoints
                 };
                 this.wires.push(wire);
             }
             this.connectingPin = null;
             document.getElementById('tempWire').classList.add('hidden');
+            this.renderComponents();
             this.renderWires();
         }
     },
@@ -374,6 +391,7 @@ window.SimLabCircuit = {
         }
     },
 
+    // Render Wires + Wokwi Interactive Waypoint Drag Handles
     renderWires: function() {
         const group = document.getElementById('wiresGroup');
         group.innerHTML = '';
@@ -384,30 +402,117 @@ window.SimLabCircuit = {
             const pos1 = self.getPinPos(wire.fromComp, wire.fromPin);
             const pos2 = self.getPinPos(wire.toComp, wire.toPin);
 
-            if (pos1 && pos2) {
-                const d = self.calculateWirePath(pos1.x, pos1.y, pos2.x, pos2.y);
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', d);
-                path.setAttribute('stroke', wire.color || '#ef4444');
-                path.setAttribute('stroke-width', '4');
-                path.setAttribute('fill', 'none');
-                path.setAttribute('stroke-linecap', 'round');
-                path.setAttribute('stroke-linejoin', 'round');
-                path.style.cursor = 'pointer';
-                path.style.pointerEvents = 'stroke';
+            if (!pos1 || !pos2) return;
 
-                // Click to delete wire
-                path.addEventListener('click', function(e) {
+            // Auto initialize default 90-deg waypoints if empty
+            if (!wire.waypoints || wire.waypoints.length === 0) {
+                const midX = pos1.x + (pos2.x - pos1.x) / 2;
+                wire.waypoints = [
+                    { x: midX, y: pos1.y },
+                    { x: midX, y: pos2.y }
+                ];
+            }
+
+            // Build Path String
+            let pathD = `M ${pos1.x} ${pos1.y}`;
+            wire.waypoints.forEach(wp => {
+                pathD += ` L ${wp.x} ${wp.y}`;
+            });
+            pathD += ` L ${pos2.x} ${pos2.y}`;
+
+            // Render Wire Path
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', pathD);
+            path.setAttribute('stroke', wire.color || '#ef4444');
+            path.setAttribute('stroke-width', '5');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linejoin', 'round');
+            path.style.cursor = 'pointer';
+            path.style.pointerEvents = 'stroke';
+
+            // Double-click wire to add a new bend waypoint at click position
+            path.addEventListener('dblclick', function(e) {
+                e.stopPropagation();
+                const rect = document.getElementById('circuitSvg').getBoundingClientRect();
+                const clickX = (e.clientX - rect.left) / self.zoomLevel;
+                const clickY = (e.clientY - rect.top) / self.zoomLevel;
+                wire.waypoints.push({ x: clickX, y: clickY });
+                self.renderWires();
+            });
+
+            // Shift+Click or Click to delete wire
+            path.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (confirm('Hapus kabel sambungan ini?')) {
+                    self.wires = self.wires.filter(w => w.id !== wire.id);
+                    self.renderWires();
+                }
+            });
+
+            group.appendChild(path);
+
+            // Render Wokwi Interactive Waypoint Drag Handles (Lingkaran penarik sisi garis kabel)
+            wire.waypoints.forEach((wp, idx) => {
+                const handle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                handle.setAttribute('cx', wp.x);
+                handle.setAttribute('cy', wp.y);
+                handle.setAttribute('r', 5);
+                handle.setAttribute('fill', wire.color || '#ef4444');
+                handle.setAttribute('stroke', '#ffffff');
+                handle.setAttribute('stroke-width', '2');
+                handle.style.cursor = 'grab';
+                handle.style.pointerEvents = 'all';
+
+                // Drag Waypoint Handle (Tarik Sisi Garis Kabel Wokwi-style)
+                self.makeWaypointDraggable(handle, wire, idx);
+
+                // Double-click handle to remove this bend waypoint
+                handle.addEventListener('dblclick', function(e) {
                     e.stopPropagation();
-                    if (confirm('Hapus kabel ini?')) {
-                        self.wires = self.wires.filter(w => w.id !== wire.id);
+                    if (wire.waypoints.length > 1) {
+                        wire.waypoints.splice(idx, 1);
                         self.renderWires();
                     }
                 });
 
-                group.appendChild(path);
-            }
+                group.appendChild(handle);
+            });
         });
+    },
+
+    makeWaypointDraggable: function(el, wire, wpIndex) {
+        const self = this;
+        let startX = 0, startY = 0;
+
+        el.onmousedown = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            startX = e.clientX;
+            startY = e.clientY;
+
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onStop);
+        };
+
+        function onMove(e) {
+            e.preventDefault();
+            const dx = (e.clientX - startX) / self.zoomLevel;
+            const dy = (e.clientY - startY) / self.zoomLevel;
+            startX = e.clientX;
+            startY = e.clientY;
+
+            wire.waypoints[wpIndex].x += dx;
+            wire.waypoints[wpIndex].y += dy;
+
+            self.renderWires();
+        }
+
+        function onStop() {
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onStop);
+        }
     },
 
     exportJSON: function() {
