@@ -1,6 +1,6 @@
 /**
  * PembdaHUB SimLab - Circuit Workspace Manager
- * Menangani rendering komponen visual, label nomor pin, drag & drop, penyambungan kabel 90° Lurus / Bezier, serta import/export JSON.
+ * Menangani rendering komponen visual, label nomor pin, rotasi (0°-270°), perbesar/perkecil (mouse wheel/tombol), drag & drop, penyambungan kabel 90° Lurus / Bezier, serta import/export JSON.
  */
 
 window.SimLabCircuit = {
@@ -10,7 +10,7 @@ window.SimLabCircuit = {
     connectingPin: null,
     compCounter: 0,
     zoomLevel: 1.0,
-    wireStyleMode: "orthogonal", // "orthogonal" (lurus 90-derajat) atau "curved" (lengkung)
+    wireStyleMode: "orthogonal",
 
     init: function() {
         this.bindEvents();
@@ -67,13 +67,24 @@ window.SimLabCircuit = {
 
         // Zoom Buttons
         document.getElementById('btnZoomIn')?.addEventListener('click', function() {
-            self.zoomLevel = Math.min(2.0, self.zoomLevel + 0.15);
+            self.zoomLevel = Math.min(3.0, self.zoomLevel + 0.15);
             self.applyZoom();
         });
         document.getElementById('btnZoomOut')?.addEventListener('click', function() {
-            self.zoomLevel = Math.max(0.5, self.zoomLevel - 0.15);
+            self.zoomLevel = Math.max(0.4, self.zoomLevel - 0.15);
             self.applyZoom();
         });
+
+        // Mouse Wheel Canvas Zooming
+        const canvasContainer = document.getElementById('circuitCanvasContainer');
+        if (canvasContainer) {
+            canvasContainer.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                const delta = e.deltaY < 0 ? 0.08 : -0.08;
+                self.zoomLevel = Math.min(3.0, Math.max(0.4, self.zoomLevel + delta));
+                self.applyZoom();
+            }, { passive: false });
+        }
 
         // Canvas Mouse Movements for Wire Preview
         const svg = document.getElementById('circuitSvg');
@@ -95,14 +106,16 @@ window.SimLabCircuit = {
         });
 
         // Click outside cancels wire drawing
-        document.getElementById('circuitCanvasContainer').addEventListener('click', function(e) {
-            if (e.target.id === 'circuitCanvasContainer' || e.target.id === 'circuitSvg') {
-                if (self.connectingPin) {
-                    self.connectingPin = null;
-                    document.getElementById('tempWire').classList.add('hidden');
+        if (canvasContainer) {
+            canvasContainer.addEventListener('click', function(e) {
+                if (e.target.id === 'circuitCanvasContainer' || e.target.id === 'circuitSvg') {
+                    if (self.connectingPin) {
+                        self.connectingPin = null;
+                        document.getElementById('tempWire').classList.add('hidden');
+                    }
                 }
-            }
-        });
+            });
+        }
     },
 
     applyZoom: function() {
@@ -134,6 +147,8 @@ window.SimLabCircuit = {
             type: type,
             x: x,
             y: y,
+            scale: 1.0,
+            rotation: 0,
             state: savedState || {}
         };
 
@@ -164,21 +179,24 @@ window.SimLabCircuit = {
             if (!def) return;
 
             const scale = comp.scale || 1.0;
+            const rotation = comp.rotation || 0;
+
             const div = document.createElement('div');
             div.id = 'comp_' + comp.id;
-            div.className = 'absolute pointer-events-auto bg-gray-900/50 rounded-xl p-2 border border-gray-700/60 shadow-2xl group hover:border-emerald-500/90 transition-all';
+            div.className = 'absolute pointer-events-auto bg-gray-900/60 rounded-xl p-2 border border-gray-700/80 shadow-2xl group hover:border-emerald-500/90 transition-transform';
             div.style.left = comp.x + 'px';
             div.style.top = comp.y + 'px';
             div.style.width = (def.width + 16) + 'px';
-            div.style.transform = `scale(${scale})`;
-            div.style.transformOrigin = '0 0';
+            div.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
+            div.style.transformOrigin = 'center center';
             div.style.zIndex = '30';
 
-            // Top Header Bar of Component with Resize (+/-) Controls
+            // Top Header Bar of Component with Rotate (⟳) & Scale (+/-) Controls
             let html = `
-            <div class="flex items-center justify-between mb-1 handle cursor-move text-[10px] text-gray-400 border-b border-gray-800 pb-1">
+            <div class="flex items-center justify-between mb-1 handle cursor-move text-[10px] text-gray-400 border-b border-gray-800 pb-1 select-none">
                 <span class="font-bold text-gray-200">${def.name}</span>
                 <div class="flex items-center space-x-1">
+                    <button onclick="SimLabCircuit.rotateComponent('${comp.id}')" class="text-cyan-400 hover:text-cyan-300 font-black px-1.5 py-0.5 text-xs hover:bg-gray-800 rounded" title="Rotasi Komponen (90°)">⟳</button>
                     <button onclick="SimLabCircuit.scaleComponent('${comp.id}', 0.15)" class="text-emerald-400 hover:text-emerald-300 font-black px-1.5 py-0.5 text-xs hover:bg-gray-800 rounded" title="Perbesar Komponen (+)">+</button>
                     <button onclick="SimLabCircuit.scaleComponent('${comp.id}', -0.15)" class="text-amber-400 hover:text-amber-300 font-black px-1.5 py-0.5 text-xs hover:bg-gray-800 rounded" title="Perkecil Komponen (-)">-</button>
                     <button onclick="SimLabCircuit.removeComponent('${comp.id}')" class="text-red-400 hover:text-red-300 font-black px-1.5 py-0.5 text-xs hover:bg-gray-800 rounded" title="Hapus Komponen">✕</button>
@@ -218,10 +236,19 @@ window.SimLabCircuit = {
         });
     },
 
+    rotateComponent: function(id) {
+        const comp = this.components.find(c => c.id === id);
+        if (comp) {
+            comp.rotation = ((comp.rotation || 0) + 90) % 360;
+            this.renderComponents();
+            this.renderWires();
+        }
+    },
+
     scaleComponent: function(id, delta) {
         const comp = this.components.find(c => c.id === id);
         if (comp) {
-            comp.scale = Math.max(0.5, Math.min(2.5, (comp.scale || 1.0) + delta));
+            comp.scale = Math.max(0.5, Math.min(3.0, (comp.scale || 1.0) + delta));
             this.renderComponents();
             this.renderWires();
         }
@@ -301,9 +328,24 @@ window.SimLabCircuit = {
         if (!pin) return null;
 
         const scale = comp.scale || 1.0;
+        const rotation = comp.rotation || 0;
+
+        // Center of component box
+        const cx = (def.width + 16) / 2;
+        const cy = (def.height + 28) / 2;
+
+        // Pin pos relative to center
+        const px = (8 + pin.x) - cx;
+        const py = (28 + pin.y) - cy;
+
+        // 2D Rotation matrix transformation
+        const rad = rotation * Math.PI / 180;
+        const rx = px * Math.cos(rad) - py * Math.sin(rad);
+        const ry = px * Math.sin(rad) + py * Math.cos(rad);
+
         return {
-            x: comp.x + (8 + pin.x) * scale,
-            y: comp.y + (28 + pin.y) * scale
+            x: comp.x + (cx + rx) * scale,
+            y: comp.y + (cy + ry) * scale
         };
     },
 
@@ -352,7 +394,7 @@ window.SimLabCircuit = {
                 path.setAttribute('stroke-linecap', 'round');
                 path.setAttribute('stroke-linejoin', 'round');
                 path.style.cursor = 'pointer';
-                path.style.pointerEvents = 'stroke'; // Allow clicking wire overlaid on top of components!
+                path.style.pointerEvents = 'stroke';
 
                 // Click to delete wire
                 path.addEventListener('click', function(e) {

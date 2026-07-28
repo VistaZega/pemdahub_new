@@ -5,7 +5,7 @@
 
 window.SimLabComponents = {
     // ----------------------------------------------------
-    // 1. ARDUINO UNO (ATmega328P) - Enhanced Spacious Design
+    // 1. ARDUINO UNO (ATmega328P) - Enhanced Spacious Design (320x200)
     // ----------------------------------------------------
     uno: {
         name: "Arduino Uno",
@@ -64,42 +64,42 @@ window.SimLabComponents = {
             <circle id="led_uno_on_${comp.id}" cx="245" cy="70" r="4" fill="#15803d" stroke="#22c55e" stroke-width="1"/>
             <text x="255" y="73" fill="#cbd5e1" font-size="8">ON</text>
 
-            <!-- Top Header Silkscreen Labels (Rapi, Rotated -90° text-anchor="start" (Mulai y=30 ke bawah, 0 Overlap!)) -->
-            <g fill="#ffffff" font-size="9" font-family="monospace" font-weight="bold" text-anchor="start">
-                <text x="295" y="30" transform="rotate(-90 295 30)">SCL</text>
-                <text x="280" y="30" transform="rotate(-90 280 30)">SDA</text>
-                <text x="265" y="30" transform="rotate(-90 265 30)">AREF</text>
-                <text x="250" y="30" transform="rotate(-90 250 30)">GND</text>
-                <text x="235" y="30" transform="rotate(-90 235 30)">13</text>
-                <text x="220" y="30" transform="rotate(-90 220 30)">12</text>
-                <text x="205" y="30" transform="rotate(-90 205 30)">~11</text>
-                <text x="190" y="30" transform="rotate(-90 190 30)">~10</text>
-                <text x="175" y="30" transform="rotate(-90 175 30)">~9</text>
-                <text x="160" y="30" transform="rotate(-90 160 30)">8</text>
-                <text x="130" y="30" transform="rotate(-90 130 30)">7</text>
-                <text x="115" y="30" transform="rotate(-90 115 30)">~6</text>
-                <text x="100" y="30" transform="rotate(-90 100 30)">~5</text>
-                <text x="85" y="30" transform="rotate(-90 85 30)">4</text>
-                <text x="70" y="30" transform="rotate(-90 70 30)">~3</text>
-                <text x="55" y="30" transform="rotate(-90 55 30)">2</text>
-                <text x="40" y="30" transform="rotate(-90 40 30)">TX</text>
-                <text x="25" y="30" transform="rotate(-90 25 30)">RX</text>
+            <!-- Top Header Silkscreen Labels: rotate(90) extends DOWNWARDS from Y=32 into green PCB body -->
+            <g fill="#ffffff" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="start">
+                <text x="295" y="32" transform="rotate(90 295 32)">SCL</text>
+                <text x="280" y="32" transform="rotate(90 280 32)">SDA</text>
+                <text x="265" y="32" transform="rotate(90 265 32)">AREF</text>
+                <text x="250" y="32" transform="rotate(90 250 32)">GND</text>
+                <text x="235" y="32" transform="rotate(90 235 32)">13</text>
+                <text x="220" y="32" transform="rotate(90 220 32)">12</text>
+                <text x="205" y="32" transform="rotate(90 205 32)">~11</text>
+                <text x="190" y="32" transform="rotate(90 190 32)">~10</text>
+                <text x="175" y="32" transform="rotate(90 175 32)">~9</text>
+                <text x="160" y="32" transform="rotate(90 160 32)">8</text>
+                <text x="130" y="32" transform="rotate(90 130 32)">7</text>
+                <text x="115" y="32" transform="rotate(90 115 32)">~6</text>
+                <text x="100" y="32" transform="rotate(90 100 32)">~5</text>
+                <text x="85" y="32" transform="rotate(90 85 32)">4</text>
+                <text x="70" y="32" transform="rotate(90 70 32)">~3</text>
+                <text x="55" y="32" transform="rotate(90 55 32)">2</text>
+                <text x="40" y="32" transform="rotate(90 40 32)">TX</text>
+                <text x="25" y="32" transform="rotate(90 25 32)">RX</text>
             </g>
 
-            <!-- Bottom Power/Analog Silkscreen Pin Labels (Rotated -90° text-anchor="end" (Selesai y=170 ke atas)) -->
-            <g fill="#ffffff" font-size="9" font-family="monospace" font-weight="bold" text-anchor="end">
-                <text x="60" y="170" transform="rotate(-90 60 170)">RST</text>
-                <text x="75" y="170" transform="rotate(-90 75 170)">3.3V</text>
-                <text x="90" y="170" transform="rotate(-90 90 170)">5V</text>
-                <text x="105" y="170" transform="rotate(-90 105 170)">GND</text>
-                <text x="120" y="170" transform="rotate(-90 120 170)">GND</text>
-                <text x="135" y="170" transform="rotate(-90 135 170)">VIN</text>
-                <text x="175" y="170" transform="rotate(-90 175 170)">A0</text>
-                <text x="190" y="170" transform="rotate(-90 190 170)">A1</text>
-                <text x="205" y="170" transform="rotate(-90 205 170)">A2</text>
-                <text x="220" y="170" transform="rotate(-90 220 170)">A3</text>
-                <text x="235" y="170" transform="rotate(-90 235 170)">A4</text>
-                <text x="250" y="170" transform="rotate(-90 250 170)">A5</text>
+            <!-- Bottom Power/Analog Silkscreen Pin Labels: rotate(-90) extends UPWARDS from Y=168 into green PCB body -->
+            <g fill="#ffffff" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="start">
+                <text x="60" y="168" transform="rotate(-90 60 168)">RST</text>
+                <text x="75" y="168" transform="rotate(-90 75 168)">3.3V</text>
+                <text x="90" y="168" transform="rotate(-90 90 168)">5V</text>
+                <text x="105" y="168" transform="rotate(-90 105 168)">GND</text>
+                <text x="120" y="168" transform="rotate(-90 120 168)">GND</text>
+                <text x="135" y="168" transform="rotate(-90 135 168)">VIN</text>
+                <text x="175" y="168" transform="rotate(-90 175 168)">A0</text>
+                <text x="190" y="168" transform="rotate(-90 190 168)">A1</text>
+                <text x="205" y="168" transform="rotate(-90 205 168)">A2</text>
+                <text x="220" y="168" transform="rotate(-90 220 168)">A3</text>
+                <text x="235" y="168" transform="rotate(-90 235 168)">A4</text>
+                <text x="250" y="168" transform="rotate(-90 250 168)">A5</text>
             </g>
             `;
         }
@@ -223,7 +223,7 @@ window.SimLabComponents = {
             <!-- Right Header Silkscreen -->
             <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="end">
                 <text x="140" y="38">3V3</text><text x="140" y="53">GND</text><text x="140" y="68">D15</text>
-                <text x="140" y="83">D2</text><text x="140" y="98">D4</text><text x="140" y="113">RX2</text>
+                <text x="140" y="78">D2</text><text x="140" y="93">D4</text><text x="140" y="113">RX2</text>
                 <text x="140" y="128">TX2</text><text x="140" y="143">D5</text><text x="140" y="158">D18</text>
                 <text x="140" y="173">D19</text><text x="140" y="188">D21</text><text x="140" y="203">D22</text>
                 <text x="140" y="218">D23</text>
