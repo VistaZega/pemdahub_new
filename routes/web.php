@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\PublicDisplayController;
+use App\Http\Controllers\SimLabController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
@@ -14,6 +15,18 @@ Route::prefix('display')->name('display.')->group(function () {
     Route::get('/',          [PublicDisplayController::class, 'index'])->name('index');
     Route::get('/live-data', [PublicDisplayController::class, 'liveData'])->name('live-data');
 });
+
+// ============================================================
+//  PEMBDAHUB SIMLAB - Virtual Microcontroller & IoT Simulator
+// ============================================================
+Route::prefix('simlab')->name('simlab.')->group(function () {
+    Route::get('/', [SimLabController::class, 'index'])->name('index');
+    Route::get('/editor/{id?}', [SimLabController::class, 'editor'])->name('editor');
+    Route::post('/save', [SimLabController::class, 'store'])->name('save');
+    Route::get('/project/{id}', [SimLabController::class, 'show'])->name('show');
+    Route::post('/compile', [SimLabController::class, 'compile'])->name('compile');
+});
+
 
 Route::get('/delete-bills-2026-2027', function () {
     if (request('token') !== 'pembda2026delete') {

@@ -58,6 +58,12 @@
         <span>Knowledge & Media</span>
     </a>
 
+    <!-- PembdaHUB SimLab -->
+    <a href="{{ route('simlab.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('simlab.*') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-600 flex items-center justify-center text-white"><i class="fas fa-microchip text-[10px]"></i></div>
+        <span>SimLab (Simulator)</span>
+    </a>
+
     @if(\App\Models\Setting::getValue('siswa_access_cbt', true))
     <a href="{{ route('siswa.cbt.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.cbt.*') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-desktop text-[10px]"></i></div>

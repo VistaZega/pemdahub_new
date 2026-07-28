@@ -1445,8 +1445,8 @@
                             <i class="fas fa-gamepad text-purple-700 text-sm"></i> Pilih Simulator Interaktif 1-Klik (Rekomendasi):
                         </p>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            <button type="button" @click="file_url = 'https://wokwi.com/projects/new/arduino-uno'; if(!material_title) material_title = 'Simulasi Mikrokontroler Wokwi'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
-                                <i class="fas fa-microchip text-emerald-600"></i> Wokwi (TE/TAV)
+                            <button type="button" @click="file_url = '{{ route('simlab.index') }}'; if(!material_title) material_title = 'Simulasi Mikrokontroler PembdaHUB SimLab'" class="p-2.5 bg-emerald-300 border-2 border-black rounded-xl text-left hover:bg-emerald-400 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
+                                <i class="fas fa-microchip text-emerald-900 text-sm"></i> PembdaHUB SimLab (TE/TAV)
                             </button>
                             <button type="button" @click="file_url = 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html'; if(!material_title) material_title = 'Simulasi Rangkaian Listrik PhET'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
                                 <i class="fas fa-bolt text-sky-600"></i> PhET (IPA/TE)
