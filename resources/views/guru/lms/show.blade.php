@@ -1381,7 +1381,7 @@
 {{-- ═══════════════════════════════════════════════ --}}
 {{-- MATERIAL UPLOAD MODAL --}}
 {{-- ═══════════════════════════════════════════════ --}}
-<div x-data="{ open: false, type: 'document' }" @open-material-modal.window="open = true" x-show="open" class="fixed inset-0 z-50 overflow-y-auto" style="display: none">
+<div x-data="{ open: false, type: 'document', file_url: '', material_title: '' }" @open-material-modal.window="open = true" x-show="open" class="fixed inset-0 z-50 overflow-y-auto" style="display: none">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 transition-opacity" @click="open = false"></div>
 
@@ -1406,7 +1406,7 @@
 
                     <div>
                         <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Judul Materi <span class="text-red-600">*</span></label>
-                        <input type="text" name="title" required placeholder="Contoh: Pengantar Algoritma Pemrograman..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
+                        <input type="text" name="title" x-model="material_title" required placeholder="Contoh: Pengantar Algoritma Pemrograman..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -1418,7 +1418,7 @@
                                 <option value="video">Video</option>
                                 <option value="image">Gambar</option>
                                 <option value="link">Link Eksternal</option>
-                                <option value="interactive">Game / Interaktif (Embed)</option>
+                                <option value="interactive">Game / Simulator Interaktif (Embed)</option>
                             </select>
                         </div>
                         <div>
@@ -1439,16 +1439,37 @@
                         </ul>
                     </div>
 
-                    <div x-show="type === 'interactive'" class="bg-purple-100 border-2 border-black rounded-2xl p-4 text-xs text-black space-y-1.5" style="display: none">
-                        <p class="font-black uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fas fa-gamepad text-purple-600 text-sm"></i> Petunjuk Game / Interaktif (Embed):
+                    <!-- Simulator & Game 1-Click Quick Selector -->
+                    <div x-show="type === 'interactive'" class="bg-purple-100 border-2 border-black rounded-2xl p-4 text-xs text-black space-y-2.5" style="display: none">
+                        <p class="font-black uppercase tracking-wider flex items-center gap-1.5 text-xs">
+                            <i class="fas fa-gamepad text-purple-700 text-sm"></i> Pilih Simulator Interaktif 1-Klik (Rekomendasi):
                         </p>
-                        <p class="font-bold">Masukkan Link URL Game dari Quizizz, Wordwall, PhET, atau H5P ke kolom <strong>URL/Link</strong> di bawah ini.</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            <button type="button" @click="file_url = 'https://wokwi.com/projects/new/arduino-uno'; if(!material_title) material_title = 'Simulasi Mikrokontroler Wokwi'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
+                                <i class="fas fa-microchip text-emerald-600"></i> Wokwi (TE/TAV)
+                            </button>
+                            <button type="button" @click="file_url = 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html'; if(!material_title) material_title = 'Simulasi Rangkaian Listrik PhET'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
+                                <i class="fas fa-bolt text-sky-600"></i> PhET (IPA/TE)
+                            </button>
+                            <button type="button" @click="file_url = 'https://www.geogebra.org/classic'; if(!material_title) material_title = 'Simulasi Geometri GeoGebra'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
+                                <i class="fas fa-shapes text-indigo-600"></i> GeoGebra (MTK)
+                            </button>
+                            <button type="button" @click="file_url = 'https://molview.org'; if(!material_title) material_title = 'Simulasi Molekul Kimia 3D'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
+                                <i class="fas fa-atom text-rose-600"></i> MolView (Kimia)
+                            </button>
+                            <button type="button" @click="file_url = 'https://bellard.org/jslinux/'; if(!material_title) material_title = 'Simulasi Terminal Linux Server'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
+                                <i class="fas fa-terminal text-slate-800"></i> JS-Linux (TKJ)
+                            </button>
+                            <button type="button" @click="file_url = 'https://quizizz.com'; if(!material_title) material_title = 'Game Edukasi Quizizz'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
+                                <i class="fas fa-puzzle-piece text-purple-600"></i> Quizizz / Custom
+                            </button>
+                        </div>
+                        <p class="text-[11px] font-bold text-black italic mt-1">Atau tempelkan link URL simulator/game eksternal pilihan Anda pada kolom URL di bawah.</p>
                     </div>
 
                     <div>
                         <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">URL / Link Pembelajaran (Opsional)</label>
-                        <input type="url" name="file_url" placeholder="https://..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
+                        <input type="url" name="file_url" x-model="file_url" placeholder="https://..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                     </div>
 
                     <div>
