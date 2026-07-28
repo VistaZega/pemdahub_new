@@ -418,9 +418,10 @@ PembdaHUB SimLab Serial Console Connected
     </script>
 
     <!-- Load SimLab Component Libraries & Engines (Cache-Busted) -->
-    <script src="{{ asset('js/simlab/components.js') }}?v={{ filemtime(public_path('js/simlab/components.js')) }}"></script>
-    <script src="{{ asset('js/simlab/circuit.js') }}?v={{ filemtime(public_path('js/simlab/circuit.js')) }}"></script>
-    <script src="{{ asset('js/simlab/engine.js') }}?v={{ filemtime(public_path('js/simlab/engine.js')) }}"></script>
+    @php $jsVer = config('app.asset_version', time()); @endphp
+    <script src="{{ asset('js/simlab/components.js') }}?v={{ $jsVer }}"></script>
+    <script src="{{ asset('js/simlab/circuit.js') }}?v={{ $jsVer }}"></script>
+    <script src="{{ asset('js/simlab/engine.js') }}?v={{ $jsVer }}"></script>
 
 </body>
 </html>
