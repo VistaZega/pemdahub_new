@@ -113,8 +113,8 @@
                             @php
                                 $romanGrade = $romanGrades[$classroom->grade_level] ?? $classroom->grade_level;
                                 $rawName = $classroom->class_name ?: $classroom->class_code;
-                                $cleanName = preg_replace('/^\d+\s*[\-\:]?\s*/', '', $rawName);
-                                $displayClassName = $romanGrade . ' - ' . $cleanName;
+                                $cleanName = preg_replace('/^(?:(?:X|XI|XII|VII|VIII|IX|\d+)\s*[\-\:]?\s*)+/i', '', $rawName);
+                                $displayClassName = $romanGrade . ' - ' . ($cleanName ?: $rawName);
                             @endphp
                             <th class="p-0.5 border-r border-gray-400 text-center align-middle">
                                 <div class="font-black text-[8px] leading-tight text-white break-words max-h-10 overflow-hidden text-center uppercase tracking-tighter">
