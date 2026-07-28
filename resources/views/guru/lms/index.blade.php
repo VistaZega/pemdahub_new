@@ -30,8 +30,8 @@
                     <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-black" style="width: 56px !important; height: 56px !important; min-width: 56px !important; min-height: 56px !important; flex-shrink: 0 !important; margin-right: 16px !important; background-color: #059669 !important; color: #ffffff !important;">
                         <i class="fas fa-chalkboard-teacher text-2xl text-white"></i>
                     </div>
-                    <div style="flex: 1 !important; min-width: 0 !important;">
-                        <p class="text-black text-xs font-black uppercase tracking-[0.2em]" style="margin-bottom: 4px !important;">Learning Management System Guru</p>
+                    <div style="flex: 1 !important; min-width: 0 !important; padding-top: 2px !important;">
+                        <p class="text-black text-xs font-black uppercase tracking-[0.2em]" style="padding-top: 3px !important; margin-bottom: 3px !important;">Learning Management System Guru</p>
                         <h2 class="text-2xl md:text-3xl font-black text-black tracking-tight" style="margin: 0 !important; line-height: 1.25 !important;">Selamat Datang, {{ explode(' ', $teacher->user->name ?? 'Guru')[0] }}!</h2>
                     </div>
                 </div>
