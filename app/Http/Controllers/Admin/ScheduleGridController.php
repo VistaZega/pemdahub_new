@@ -658,16 +658,21 @@ class ScheduleGridController extends Controller
         $academicYear = AcademicYear::find($selectedYearId);
 
         // Fetch real Waka Kurikulum if assigned
-        $wakaKurikulum = \DB::table('employee_positions')
-            ->join('teachers', 'employee_positions.teacher_id', '=', 'teachers.id')
-            ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
-            ->where('employee_positions.school_id', $selectedSchoolId)
-            ->where(function($q) {
-                $q->where('positions.name', 'like', '%kurikulum%')
-                  ->orWhere('positions.code', 'like', '%kurikulum%');
-            })
-            ->select('teachers.full_name')
-            ->first();
+        $wakaKurikulum = null;
+        try {
+            $wakaKurikulum = \DB::table('employee_positions')
+                ->join('teachers', 'employee_positions.teacher_id', '=', 'teachers.id')
+                ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
+                ->where('teachers.school_id', $selectedSchoolId)
+                ->where(function($q) {
+                    $q->where('positions.name', 'like', '%kurikulum%')
+                      ->orWhere('positions.code', 'like', '%kurikulum%');
+                })
+                ->select('teachers.full_name')
+                ->first();
+        } catch (\Throwable $e) {
+            $wakaKurikulum = null;
+        }
 
         $classroomsQuery = Classroom::where('school_id', $selectedSchoolId)
             ->where('academic_year_id', $selectedYearId)
