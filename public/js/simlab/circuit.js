@@ -1,6 +1,7 @@
 /**
  * PembdaHUB SimLab - Circuit Workspace Manager
- * Menangani rendering komponen visual, label nomor pin resmi, rotasi (0°-360°), perbesar/perkecil (mouse wheel/tombol), drag & drop, penyambungan kabel 90° Wokwi (tarik sisi garis/waypoint), serta import/export JSON.
+ * Menangani rendering komponen visual, snap presisi ujung pin, rotasi (0°-360°), perbesar/perkecil,
+ * drag & drop, penarikan lengan tengah kabel 90° Wokwi, menu klik kanan warna & tipe kabel, serta indikator nomor pin di kedua ujung kabel.
  */
 
 window.SimLabCircuit = {
@@ -11,9 +12,11 @@ window.SimLabCircuit = {
     compCounter: 0,
     zoomLevel: 1.0,
     wireStyleMode: "orthogonal",
+    activeWireContext: null,
 
     init: function() {
         this.bindEvents();
+        this.initContextMenu();
         this.renderAll();
     },
 
@@ -105,17 +108,100 @@ window.SimLabCircuit = {
             }
         });
 
-        // Click outside cancels wire drawing
-        if (canvasContainer) {
-            canvasContainer.addEventListener('click', function(e) {
-                if (e.target.id === 'circuitCanvasContainer' || e.target.id === 'circuitSvg') {
-                    if (self.connectingPin) {
-                        self.connectingPin = null;
-                        document.getElementById('tempWire').classList.add('hidden');
-                        self.renderComponents();
-                    }
+        // Click outside cancels wire drawing and hides context menu
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('wireContextMenu');
+            if (menu && !menu.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+            if (e.target.id === 'circuitCanvasContainer' || e.target.id === 'circuitSvg') {
+                if (self.connectingPin) {
+                    self.connectingPin = null;
+                    document.getElementById('tempWire').classList.add('hidden');
+                    self.renderComponents();
                 }
-            });
+            }
+        });
+    },
+
+    initContextMenu: function() {
+        if (document.getElementById('wireContextMenu')) return;
+
+        const menu = document.createElement('div');
+        menu.id = 'wireContextMenu';
+        menu.className = 'fixed hidden z-50 bg-gray-900/95 border border-gray-700/90 rounded-xl shadow-2xl p-2.5 text-xs text-gray-200 backdrop-blur-md w-52 space-y-2 select-none';
+        menu.innerHTML = `
+            <div class="font-bold text-gray-400 border-b border-gray-800 pb-1 text-[11px] flex justify-between items-center">
+                <span>PENGATURAN KABEL</span>
+                <span id="ctxWirePinLabel" class="text-emerald-400 font-mono text-[10px]"></span>
+            </div>
+            <div>
+                <label class="text-[10px] text-gray-400 block mb-1">Pilih Warna Kabel:</label>
+                <div class="grid grid-cols-4 gap-1.5">
+                    <button onclick="SimLabCircuit.setContextMenuWireColor('#ef4444')" class="h-6 rounded bg-red-500 hover:scale-105 transition-all border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setContextMenuWireColor('#22c55e')" class="h-6 rounded bg-emerald-500 hover:scale-105 transition-all border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setContextMenuWireColor('#3b82f6')" class="h-6 rounded bg-blue-500 hover:scale-105 transition-all border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setContextMenuWireColor('#eab308')" class="h-6 rounded bg-yellow-500 hover:scale-105 transition-all border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setContextMenuWireColor('#f97316')" class="h-6 rounded bg-orange-500 hover:scale-105 transition-all border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setContextMenuWireColor('#a855f7')" class="h-6 rounded bg-purple-500 hover:scale-105 transition-all border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setContextMenuWireColor('#f8fafc')" class="h-6 rounded bg-slate-100 hover:scale-105 transition-all border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setContextMenuWireColor('#18181b')" class="h-6 rounded bg-zinc-900 hover:scale-105 transition-all border border-white/20"></button>
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] text-gray-400 block mb-1">Tipe Garis Kabel:</label>
+                <div class="grid grid-cols-3 gap-1 text-[10px]">
+                    <button onclick="SimLabCircuit.setContextMenuWireStyle('orthogonal')" class="px-1.5 py-1 bg-gray-800 hover:bg-gray-700 rounded text-center border border-gray-700">Lurus 90°</button>
+                    <button onclick="SimLabCircuit.setContextMenuWireStyle('curved')" class="px-1.5 py-1 bg-gray-800 hover:bg-gray-700 rounded text-center border border-gray-700">Lengkung</button>
+                    <button onclick="SimLabCircuit.setContextMenuWireStyle('dashed')" class="px-1.5 py-1 bg-gray-800 hover:bg-gray-700 rounded text-center border border-gray-700">Putus</button>
+                </div>
+            </div>
+            <button onclick="SimLabCircuit.deleteContextMenuWire()" class="w-full text-center py-1.5 bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white rounded font-bold transition-all border border-red-500/40">
+                ✕ Hapus Kabel Ini
+            </button>
+        `;
+        document.body.appendChild(menu);
+    },
+
+    showContextMenu: function(e, wire) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.activeWireContext = wire;
+
+        const menu = document.getElementById('wireContextMenu');
+        if (menu) {
+            menu.style.left = e.clientX + 'px';
+            menu.style.top = e.clientY + 'px';
+            menu.classList.remove('hidden');
+
+            const label = document.getElementById('ctxWirePinLabel');
+            if (label) {
+                label.textContent = `${wire.fromPin} ➔ ${wire.toPin}`;
+            }
+        }
+    },
+
+    setContextMenuWireColor: function(color) {
+        if (this.activeWireContext) {
+            this.activeWireContext.color = color;
+            this.renderWires();
+            document.getElementById('wireContextMenu')?.classList.add('hidden');
+        }
+    },
+
+    setContextMenuWireStyle: function(style) {
+        if (this.activeWireContext) {
+            this.activeWireContext.style = style;
+            this.renderWires();
+            document.getElementById('wireContextMenu')?.classList.add('hidden');
+        }
+    },
+
+    deleteContextMenuWire: function() {
+        if (this.activeWireContext) {
+            this.wires = this.wires.filter(w => w.id !== this.activeWireContext.id);
+            this.renderWires();
+            document.getElementById('wireContextMenu')?.classList.add('hidden');
         }
     },
 
@@ -325,6 +411,7 @@ window.SimLabCircuit = {
                     toComp: compId,
                     toPin: pinId,
                     color: this.selectedWireColor,
+                    style: 'orthogonal',
                     waypoints: defaultWaypoints
                 };
                 this.wires.push(wire);
@@ -336,6 +423,7 @@ window.SimLabCircuit = {
         }
     },
 
+    // 100% Exact Pin Center Coordinate Calculator (Presisi Ujung Kabel Ke Pin Center)
     getPinPos: function(compId, pinId) {
         const comp = this.components.find(c => c.id === compId);
         if (!comp) return null;
@@ -347,13 +435,17 @@ window.SimLabCircuit = {
         const scale = comp.scale || 1.0;
         const rotation = comp.rotation || 0;
 
-        // Center of component box
-        const cx = (def.width + 16) / 2;
-        const cy = (def.height + 28) / 2;
+        // Exact offset of SVG element inside component container (padding=8px, header height=33px)
+        const offsetX = 8;
+        const offsetY = 33;
 
-        // Pin pos relative to center
-        const px = (8 + pin.x) - cx;
-        const py = (28 + pin.y) - cy;
+        // Exact center of component box in local space
+        const cx = offsetX + (def.width / 2);
+        const cy = offsetY + (def.height / 2);
+
+        // Pin pos relative to box center
+        const px = offsetX + pin.x - cx;
+        const py = offsetY + pin.y - cy;
 
         // 2D Rotation matrix transformation
         const rad = rotation * Math.PI / 180;
@@ -391,7 +483,7 @@ window.SimLabCircuit = {
         }
     },
 
-    // Render Wires + Wokwi Interactive Waypoint Drag Handles
+    // Render Wires + Wokwi Middle Arm Segment Dragging + Right-Click Menu + Pin Label Badges
     renderWires: function() {
         const group = document.getElementById('wiresGroup');
         group.innerHTML = '';
@@ -413,12 +505,20 @@ window.SimLabCircuit = {
                 ];
             }
 
-            // Build Path String
+            const currentStyle = wire.style || self.wireStyleMode;
+
+            // Build Path Points Array: [pos1, wp1, wp2, ..., pos2]
+            const points = [pos1, ...wire.waypoints, pos2];
             let pathD = `M ${pos1.x} ${pos1.y}`;
-            wire.waypoints.forEach(wp => {
-                pathD += ` L ${wp.x} ${wp.y}`;
-            });
-            pathD += ` L ${pos2.x} ${pos2.y}`;
+
+            if (currentStyle === 'curved') {
+                pathD = self.calculateWirePath(pos1.x, pos1.y, pos2.x, pos2.y);
+            } else {
+                wire.waypoints.forEach(wp => {
+                    pathD += ` L ${wp.x} ${wp.y}`;
+                });
+                pathD += ` L ${pos2.x} ${pos2.y}`;
+            }
 
             // Render Wire Path
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -428,8 +528,16 @@ window.SimLabCircuit = {
             path.setAttribute('fill', 'none');
             path.setAttribute('stroke-linecap', 'round');
             path.setAttribute('stroke-linejoin', 'round');
+            if (currentStyle === 'dashed') {
+                path.setAttribute('stroke-dasharray', '8,6');
+            }
             path.style.cursor = 'pointer';
             path.style.pointerEvents = 'stroke';
+
+            // Right-Click Context Menu on Wire (Warna & Tipe Kabel)
+            path.addEventListener('contextmenu', function(e) {
+                self.showContextMenu(e, wire);
+            });
 
             // Double-click wire to add a new bend waypoint at click position
             path.addEventListener('dblclick', function(e) {
@@ -441,47 +549,95 @@ window.SimLabCircuit = {
                 self.renderWires();
             });
 
-            // Shift+Click or Click to delete wire
-            path.addEventListener('click', function(e) {
-                e.stopPropagation();
-                if (confirm('Hapus kabel sambungan ini?')) {
-                    self.wires = self.wires.filter(w => w.id !== wire.id);
-                    self.renderWires();
-                }
-            });
-
             group.appendChild(path);
 
-            // Render Wokwi Interactive Waypoint Drag Handles (Lingkaran penarik sisi garis kabel)
-            wire.waypoints.forEach((wp, idx) => {
-                const handle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                handle.setAttribute('cx', wp.x);
-                handle.setAttribute('cy', wp.y);
-                handle.setAttribute('r', 5);
-                handle.setAttribute('fill', wire.color || '#ef4444');
-                handle.setAttribute('stroke', '#ffffff');
-                handle.setAttribute('stroke-width', '2');
-                handle.style.cursor = 'grab';
-                handle.style.pointerEvents = 'all';
+            // 1. Render Middle Arm Segment Drag Handles (Penarik Tengah-Tengah Lengan Kabel Wokwi-style)
+            if (currentStyle !== 'curved') {
+                for (let i = 0; i < points.length - 1; i++) {
+                    const ptA = points[i];
+                    const ptB = points[i + 1];
+                    const midX = (ptA.x + ptB.x) / 2;
+                    const midY = (ptA.y + ptB.y) / 2;
+                    const isHorizontal = Math.abs(ptA.y - ptB.y) < 4;
 
-                // Drag Waypoint Handle (Tarik Sisi Garis Kabel Wokwi-style)
-                self.makeWaypointDraggable(handle, wire, idx);
-
-                // Double-click handle to remove this bend waypoint
-                handle.addEventListener('dblclick', function(e) {
-                    e.stopPropagation();
-                    if (wire.waypoints.length > 1) {
-                        wire.waypoints.splice(idx, 1);
-                        self.renderWires();
+                    const segHandle = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    if (isHorizontal) {
+                        segHandle.setAttribute('x', midX - 12);
+                        segHandle.setAttribute('y', midY - 4);
+                        segHandle.setAttribute('width', 24);
+                        segHandle.setAttribute('height', 8);
+                        segHandle.style.cursor = 'ns-resize';
+                    } else {
+                        segHandle.setAttribute('x', midX - 4);
+                        segHandle.setAttribute('y', midY - 12);
+                        segHandle.setAttribute('width', 8);
+                        segHandle.setAttribute('height', 24);
+                        segHandle.style.cursor = 'ew-resize';
                     }
-                });
 
-                group.appendChild(handle);
-            });
+                    segHandle.setAttribute('rx', 3);
+                    segHandle.setAttribute('fill', wire.color || '#ef4444');
+                    segHandle.setAttribute('stroke', '#ffffff');
+                    segHandle.setAttribute('stroke-width', '1.5');
+                    segHandle.style.pointerEvents = 'all';
+
+                    // Drag Cable Arm / Segment Middle
+                    self.makeSegmentDraggable(segHandle, wire, i, isHorizontal);
+
+                    segHandle.addEventListener('contextmenu', function(e) {
+                        self.showContextMenu(e, wire);
+                    });
+
+                    group.appendChild(segHandle);
+                }
+            }
+
+            // 2. Render Pin Indicator Badges at BOTH ends of the Wire (Keterangan Nomor Pin di Ujung Kabel)
+            const fromCompDef = window.SimLabComponents[self.components.find(c => c.id === wire.fromComp)?.type];
+            const toCompDef = window.SimLabComponents[self.components.find(c => c.id === wire.toComp)?.type];
+
+            const fromPinName = `${fromCompDef ? fromCompDef.name.split(' ')[0] : 'Comp'}:${wire.fromPin}`;
+            const toPinName = `${toCompDef ? toCompDef.name.split(' ')[0] : 'Comp'}:${wire.toPin}`;
+
+            self.renderPinBadge(group, pos1.x, pos1.y, fromPinName, wire.color);
+            self.renderPinBadge(group, pos2.x, pos2.y, toPinName, wire.color);
         });
     },
 
-    makeWaypointDraggable: function(el, wire, wpIndex) {
+    // Render Small Pin Indicator Badge Pill at Wire End
+    renderPinBadge: function(group, x, y, labelText, wireColor) {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.style.pointerEvents = 'none';
+
+        const textWidth = Math.max(36, labelText.length * 6 + 10);
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', x - textWidth / 2);
+        rect.setAttribute('y', y - 18);
+        rect.setAttribute('width', textWidth);
+        rect.setAttribute('height', 14);
+        rect.setAttribute('rx', 4);
+        rect.setAttribute('fill', '#0f172a');
+        rect.setAttribute('stroke', wireColor || '#10b981');
+        rect.setAttribute('stroke-width', '1');
+        rect.setAttribute('opacity', '0.9');
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x);
+        text.setAttribute('y', y - 8);
+        text.setAttribute('fill', '#ffffff');
+        text.setAttribute('font-size', '8');
+        text.setAttribute('font-family', 'monospace');
+        text.setAttribute('font-weight', 'bold');
+        text.setAttribute('text-anchor', 'middle');
+        text.textContent = labelText;
+
+        g.appendChild(rect);
+        g.appendChild(text);
+        group.appendChild(g);
+    },
+
+    // Drag Middle of Cable Arm / Segment
+    makeSegmentDraggable: function(el, wire, segIndex, isHorizontal) {
         const self = this;
         let startX = 0, startY = 0;
 
@@ -503,8 +659,23 @@ window.SimLabCircuit = {
             startX = e.clientX;
             startY = e.clientY;
 
-            wire.waypoints[wpIndex].x += dx;
-            wire.waypoints[wpIndex].y += dy;
+            if (isHorizontal) {
+                // Move horizontal segment up/down
+                if (segIndex > 0 && segIndex - 1 < wire.waypoints.length) {
+                    wire.waypoints[segIndex - 1].y += dy;
+                }
+                if (segIndex < wire.waypoints.length) {
+                    wire.waypoints[segIndex].y += dy;
+                }
+            } else {
+                // Move vertical segment left/right
+                if (segIndex > 0 && segIndex - 1 < wire.waypoints.length) {
+                    wire.waypoints[segIndex - 1].x += dx;
+                }
+                if (segIndex < wire.waypoints.length) {
+                    wire.waypoints[segIndex].x += dx;
+                }
+            }
 
             self.renderWires();
         }
