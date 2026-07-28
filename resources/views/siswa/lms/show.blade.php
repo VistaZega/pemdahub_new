@@ -103,72 +103,66 @@
     @endif
 
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- COURSE HERO BANNER --}}
+    {{-- COURSE HERO BANNER (100% SOLID UI UX PRO MAX) --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 rounded-2xl p-6 md:p-8 overflow-hidden shadow-lg border border-blue-200">
-        <div class="absolute -right-12 -top-12 w-64 h-64 bg-blue-200/20 rounded-full blur-2xl"></div>
-        <div class="absolute -left-8 -bottom-8 w-48 h-48 bg-indigo-200/15 rounded-full blur-xl"></div>
-        <div class="absolute right-6 bottom-4 opacity-[0.06]">
-            @if($scientist)
-            <svg class="w-36 h-36 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
-            @else
-            <i class="fas fa-graduation-cap text-blue-900" style="font-size: 7rem;"></i>
-            @endif
-        </div>
-
+    <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl border-2 border-black">
         <div class="relative z-10">
             {{-- Back --}}
-            <a href="{{ route('siswa.lms.index') }}" class="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all shadow-sm mb-5">
-                <i class="fas fa-arrow-left"></i> Kembali
+            <a href="{{ route('siswa.lms.index') }}" class="inline-flex items-center gap-2 bg-black text-white border-2 border-black px-4 py-2 rounded-xl text-xs font-black hover:bg-amber-400 hover:text-black transition-all shadow-md mb-5">
+                <i class="fas fa-arrow-left text-xs"></i> Kembali ke Daftar Ruang Belajar
             </a>
 
             {{-- Course Info --}}
             <div class="flex items-start gap-4 mb-5">
-                @if($scientist)
-                <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-md flex-shrink-0">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md flex-shrink-0 border-2 border-black" style="background-color: #1e3a8a !important; color: #ffffff !important;">
+                    @if($scientist)
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
+                    @else
+                        <i class="fas fa-graduation-cap text-2xl text-white"></i>
+                    @endif
                 </div>
-                @endif
                 <div>
-                    <h1 class="text-2xl md:text-2xl font-bold text-gray-900 tracking-tight leading-tight text-gray-900">{{ $course->course_name ?? $course->name }}</h1>
+                    <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight leading-tight">{{ $course->course_name ?? $course->name }}</h1>
                     <div class="flex flex-wrap items-center gap-3 mt-2">
-                        <span class="bg-blue-100 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold text-blue-800">{{ $course->subject->subject_name ?? '' }}</span>
-                        <span class="text-gray-600 text-xs flex items-center gap-1.5"><i class="fas fa-user-tie text-[10px] text-gray-400"></i> {{ $course->teacher->user->name ?? '-' }}</span>
+                        <span class="border-2 border-black px-3 py-1 rounded-xl text-xs font-black" style="background-color: #fbbf24 !important; color: #000000 !important;">{{ $course->subject->subject_name ?? '' }}</span>
+                        <span class="text-black text-xs font-black flex items-center gap-1.5"><i class="fas fa-user-tie text-black text-sm"></i> Pengajar: {{ $course->teacher->user->name ?? '-' }}</span>
                     </div>
                 </div>
             </div>
 
             {{-- Progress + Quick Stats --}}
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex flex-wrap items-center gap-4">
                 {{-- Progress Ring --}}
-                <div class="bg-white border border-blue-200 rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-sm">
-                    <div class="relative w-10 h-10">
-                        <svg class="w-10 h-10 progress-ring" viewBox="0 0 36 36">
-                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e2e8f0" stroke-width="3"/>
-                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="{{ $courseProgress }}, 100" stroke-linecap="round"/>
+                <div class="bg-blue-100 border-2 border-black rounded-2xl px-5 py-3 flex items-center gap-3 shadow-md">
+                    <div class="relative w-12 h-12">
+                        <svg class="w-12 h-12 progress-ring" viewBox="0 0 36 36">
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#000000" stroke-width="4"/>
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#2563eb" stroke-width="4" stroke-dasharray="{{ $courseProgress }}, 100" stroke-linecap="round"/>
                         </svg>
-                        <span class="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-blue-700">{{ number_format($courseProgress) }}%</span>
+                        <span class="absolute inset-0 flex items-center justify-center text-xs font-black text-black">{{ number_format($courseProgress) }}%</span>
                     </div>
                     <div>
-                        <div class="text-[9px] font-bold uppercase tracking-widest text-gray-500">Progress</div>
-                        <div class="text-sm font-bold text-gray-800">{{ $courseProgress >= 80 ? 'Hampir Selesai!' : ($courseProgress >= 40 ? 'Lanjutkan!' : ($courseProgress > 0 ? 'Baru Mulai' : 'Mulai Belajar')) }}</div>
+                        <div class="text-[10px] font-black uppercase tracking-widest text-black">Progress Belajar</div>
+                        <div class="text-sm font-black text-black">{{ $courseProgress >= 80 ? 'Hampir Selesai!' : ($courseProgress >= 40 ? 'Lanjutkan Belajar!' : ($courseProgress > 0 ? 'Baru Mulai' : 'Mulai Belajar')) }}</div>
                     </div>
                 </div>
 
-                <div class="bg-white border border-indigo-200 rounded-xl px-4 py-2 text-center min-w-[70px] shadow-sm">
-                    <div class="text-lg font-bold leading-none text-indigo-700">{{ $course->modules->count() }}</div>
-                    <div class="text-[9px] font-bold uppercase tracking-widest text-gray-500 mt-1">Modul</div>
+                <div class="bg-white border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md">
+                    <div class="text-xl font-black leading-none text-black">{{ $course->modules->count() }}</div>
+                    <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Modul Ajar</div>
                 </div>
+
                 @if($pendingAssignments > 0)
-                <div class="bg-amber-50 border border-amber-300 rounded-xl px-4 py-2 text-center min-w-[70px] shadow-sm">
-                    <div class="text-lg font-bold leading-none text-amber-700">{{ $pendingAssignments }}</div>
-                    <div class="text-[9px] font-bold uppercase tracking-widest text-amber-600 mt-1">Tugas Pending</div>
+                <div class="border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md" style="background-color: #fef08a !important;">
+                    <div class="text-xl font-black leading-none text-black">{{ $pendingAssignments }}</div>
+                    <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Tugas Pending</div>
                 </div>
                 @endif
+
                 @if($availableQuizzes > 0)
-                <div class="bg-purple-50 border border-purple-300 rounded-xl px-4 py-2 text-center min-w-[70px] shadow-sm">
-                    <div class="text-lg font-bold leading-none text-purple-700">{{ $availableQuizzes }}</div>
-                    <div class="text-[9px] font-bold uppercase tracking-widest text-purple-600 mt-1">Quiz Tersedia</div>
+                <div class="border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md" style="background-color: #e9d5ff !important;">
+                    <div class="text-xl font-black leading-none text-black">{{ $availableQuizzes }}</div>
+                    <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Quiz Tersedia</div>
                 </div>
                 @endif
             </div>
@@ -196,70 +190,69 @@
     {{-- ═══════════════════════════════════════════════ --}}
     {{-- TAB NAVIGATION --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-1.5 flex flex-wrap gap-1 sticky top-0 z-20">
-        <button @click="tab = 'modules'" :class="tab === 'modules' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200/50' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 min-w-[70px] px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
-            <i class="fas fa-book-open"></i> <span class="hidden sm:inline">Modul</span>
+    <div class="bg-white rounded-2xl shadow-md border-2 border-black p-1.5 flex flex-wrap gap-1.5 sticky top-0 z-20">
+        <button @click="tab = 'modules'" :class="tab === 'modules' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
+            <i class="fas fa-book-open text-sm"></i> <span class="hidden sm:inline">Modul</span>
         </button>
-        <button @click="tab = 'assignments'" :class="tab === 'assignments' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200/50' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 min-w-[70px] px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
-            <i class="fas fa-tasks"></i> <span class="hidden sm:inline">Tugas</span>
-            @if($pendingAssignments > 0)<span class="bg-amber-400 text-white rounded-full px-1.5 py-0.5 text-[9px] font-bold">{{ $pendingAssignments }}</span>@endif
+        <button @click="tab = 'assignments'" :class="tab === 'assignments' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
+            <i class="fas fa-tasks text-sm"></i> <span class="hidden sm:inline">Tugas</span>
+            @if($pendingAssignments > 0)<span class="rounded-full px-2 py-0.5 text-[10px] font-black border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">{{ $pendingAssignments }}</span>@endif
         </button>
-        <button @click="tab = 'quizzes'" :class="tab === 'quizzes' ? 'bg-purple-600 text-white shadow-lg shadow-purple-200/50' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 min-w-[70px] px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
-            <i class="fas fa-question-circle"></i> <span class="hidden sm:inline">Quiz</span>
-            @if($availableQuizzes > 0)<span class="bg-purple-400 text-white rounded-full px-1.5 py-0.5 text-[9px] font-bold">{{ $availableQuizzes }}</span>@endif
+        <button @click="tab = 'quizzes'" :class="tab === 'quizzes' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
+            <i class="fas fa-question-circle text-sm"></i> <span class="hidden sm:inline">Quiz</span>
+            @if($availableQuizzes > 0)<span class="rounded-full px-2 py-0.5 text-[10px] font-black border border-black" style="background-color: #c084fc !important; color: #000000 !important;">{{ $availableQuizzes }}</span>@endif
         </button>
-        <button @click="tab = 'announcements'" :class="tab === 'announcements' ? 'bg-amber-600 text-white shadow-lg shadow-amber-200/50' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 min-w-[70px] px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
-            <i class="fas fa-bullhorn"></i> <span class="hidden sm:inline">Info</span>
+        <button @click="tab = 'announcements'" :class="tab === 'announcements' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
+            <i class="fas fa-bullhorn text-sm"></i> <span class="hidden sm:inline">Info</span>
         </button>
-        <button @click="tab = 'discussions'" :class="tab === 'discussions' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-200/50' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 min-w-[70px] px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
-            <i class="fas fa-comments"></i> <span class="hidden sm:inline">Diskusi</span>
+        <button @click="tab = 'discussions'" :class="tab === 'discussions' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
+            <i class="fas fa-comments text-sm"></i> <span class="hidden sm:inline">Diskusi</span>
         </button>
     </div>
 
     {{-- ═══════════════════════════════════════════════ --}}
     {{-- TAB: MODULES / MATERIALS --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div x-show="tab === 'modules'" class="space-y-5 tab-content">
+    <div x-show="tab === 'modules'" class="space-y-6 tab-content">
         {{-- Panduan Penyelesaian Modul untuk Siswa --}}
-        <div class="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 rounded-2xl p-5 border border-indigo-100 text-indigo-900 shadow-md relative overflow-hidden">
-            <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white rounded-full opacity-50 blur-xl pointer-events-none"></div>
-            <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div class="space-y-2 flex-1">
-                    <div class="flex items-center gap-2">
-                        <span class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-sm"><i class="fas fa-info-circle"></i></span>
-                        <h4 class="font-extrabold text-base uppercase tracking-wider text-indigo-900">Panduan Penyelesaian Modul Pembelajaran</h4>
+        <div class="bg-white rounded-3xl p-6 border-2 border-black text-black shadow-lg relative overflow-hidden">
+            <div class="relative z-10 space-y-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-base font-black border-2 border-black shrink-0" style="background-color: #1e3a8a !important; color: #ffffff !important;">
+                        <i class="fas fa-info-circle text-white"></i>
+                    </span>
+                    <h4 class="font-black text-base uppercase tracking-wider text-black">Panduan Penyelesaian Modul Pembelajaran</h4>
+                </div>
+                <p class="text-xs font-bold text-black leading-relaxed">
+                    Untuk menyukseskan pembelajaran Anda dan memperoleh progress 100%, ikuti 4 langkah mudah berikut pada setiap modul:
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                    <div class="bg-slate-100 rounded-2xl p-4 border-2 border-black shadow-sm flex items-start gap-3">
+                        <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 border-2 border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">1</span>
+                        <div>
+                            <p class="text-xs font-black text-black uppercase">Pelajari Materi</p>
+                            <p class="text-[11px] text-black leading-snug mt-1 font-bold">Simak PDF, Video, atau Link sesuai waktu belajar minimal yang ditentukan.</p>
+                        </div>
                     </div>
-                    <p class="text-sm text-indigo-800/80 leading-relaxed font-medium">
-                        Untuk menyukseskan pembelajaran Anda dan memperoleh progress 100%, ikuti 4 langkah mudah berikut pada setiap modul:
-                    </p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3">
-                        <div class="bg-white rounded-xl p-3 border border-indigo-100 shadow-sm flex items-start gap-3">
-                            <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-extrabold text-sm flex-shrink-0">1</span>
-                            <div>
-                                <p class="text-xs font-extrabold text-gray-800">Pelajari Materi</p>
-                                <p class="text-[11px] text-gray-500 leading-tight mt-0.5">Buka dan simak PDF, Video, atau Link sesuai waktu belajar minimal yang ditentukan.</p>
-                            </div>
+                    <div class="bg-slate-100 rounded-2xl p-4 border-2 border-black shadow-sm flex items-start gap-3">
+                        <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 border-2 border-black" style="background-color: #93c5fd !important; color: #000000 !important;">2</span>
+                        <div>
+                            <p class="text-xs font-black text-black uppercase">Verifikasi Selesai</p>
+                            <p class="text-[11px] text-black leading-snug mt-1 font-bold">Centang kotak pernyataan verifikasi aktif, lalu klik tombol <b>Tandai Selesai</b>.</p>
                         </div>
-                        <div class="bg-white rounded-xl p-3 border border-indigo-100 shadow-sm flex items-start gap-3">
-                            <span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-extrabold text-sm flex-shrink-0">2</span>
-                            <div>
-                                <p class="text-xs font-extrabold text-gray-800">Verifikasi Selesai</p>
-                                <p class="text-[11px] text-gray-500 leading-tight mt-0.5">Centang kotak pernyataan verifikasi aktif, lalu klik tombol <b>Tandai Selesai</b>.</p>
-                            </div>
+                    </div>
+                    <div class="bg-slate-100 rounded-2xl p-4 border-2 border-black shadow-sm flex items-start gap-3">
+                        <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 border-2 border-black" style="background-color: #fcd34d !important; color: #000000 !important;">3</span>
+                        <div>
+                            <p class="text-xs font-black text-black uppercase">Mainkan Game</p>
+                            <p class="text-[11px] text-black leading-snug mt-1 font-bold">Uji daya ingat dan kumpulkan EXP / skor dengan memainkan mini game interaktif.</p>
                         </div>
-                        <div class="bg-white rounded-xl p-3 border border-indigo-100 shadow-sm flex items-start gap-3">
-                            <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-extrabold text-sm flex-shrink-0">3</span>
-                            <div>
-                                <p class="text-xs font-extrabold text-gray-800">Mainkan Game</p>
-                                <p class="text-[11px] text-gray-500 leading-tight mt-0.5">Uji daya ingat dan kumpulkan EXP / skor dengan memainkan game interaktif.</p>
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-xl p-3 border border-indigo-100 shadow-sm flex items-start gap-3">
-                            <span class="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-extrabold text-sm flex-shrink-0">4</span>
-                            <div>
-                                <p class="text-xs font-extrabold text-gray-800">Kuis & Tugas</p>
-                                <p class="text-[11px] text-gray-500 leading-tight mt-0.5">Selesaikan Kuis Evaluasi dan kirim Tugas pada tab menu di atas tepat waktu.</p>
-                            </div>
+                    </div>
+                    <div class="bg-slate-100 rounded-2xl p-4 border-2 border-black shadow-sm flex items-start gap-3">
+                        <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 border-2 border-black" style="background-color: #e9d5ff !important; color: #000000 !important;">4</span>
+                        <div>
+                            <p class="text-xs font-black text-black uppercase">Kuis & Tugas</p>
+                            <p class="text-[11px] text-black leading-snug mt-1 font-bold">Selesaikan Kuis Evaluasi dan kirim Tugas pada tab menu di atas tepat waktu.</p>
                         </div>
                     </div>
                 </div>
