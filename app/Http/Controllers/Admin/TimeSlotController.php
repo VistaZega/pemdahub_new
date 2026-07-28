@@ -140,10 +140,14 @@ class TimeSlotController extends Controller
         $end = \Carbon\Carbon::parse($validated['end_time']);
         $validated['duration_minutes'] = $end->diffInMinutes($start);
         
-        // Check for overlapping time slots (strict inequality to allow adjacent slots sharing a boundary)
+        // Check for overlapping time slots within the same shift
+        $shift = $validated['shift'] ?? 'pagi';
         $overlapSlot = TimeSlot::where('school_id', $validated['school_id'])
             ->where('academic_year_id', $validated['academic_year_id'])
             ->where('day_of_week', $validated['day_of_week'])
+            ->where(function($q) use ($shift) {
+                $q->where('shift', $shift)->orWhere('shift', 'all')->orWhereNull('shift');
+            })
             ->where('start_time', '<', $validated['end_time'])
             ->where('end_time', '>', $validated['start_time'])
             ->first();
@@ -228,11 +232,15 @@ class TimeSlotController extends Controller
         $end = \Carbon\Carbon::parse($validated['end_time']);
         $validated['duration_minutes'] = $end->diffInMinutes($start);
         
-        // Check for overlapping time slots (exclude current, strict inequality to allow adjacent slots sharing a boundary)
+        // Check for overlapping time slots within the same shift (exclude current)
+        $shift = $validated['shift'] ?? 'pagi';
         $overlapSlot = TimeSlot::where('school_id', $validated['school_id'])
             ->where('academic_year_id', $validated['academic_year_id'])
             ->where('day_of_week', $validated['day_of_week'])
             ->where('id', '!=', $timeSlot->id)
+            ->where(function($q) use ($shift) {
+                $q->where('shift', $shift)->orWhere('shift', 'all')->orWhereNull('shift');
+            })
             ->where('start_time', '<', $validated['end_time'])
             ->where('end_time', '>', $validated['start_time'])
             ->first();

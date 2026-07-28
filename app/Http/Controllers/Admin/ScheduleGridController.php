@@ -688,10 +688,15 @@ class ScheduleGridController extends Controller
         $schoolId = $timeSlot->school_id;
         $dayOfWeekEnglish = $this->mapDayToEnglish($dayOfWeek);
 
-        // Fetch ALL time slots for this school and day, ordered
+        $targetShift = $timeSlot->shift ?? 'pagi';
+
+        // Fetch time slots for this school, day, and matching shift, ordered
         $allDaySlots = TimeSlot::where('school_id', $schoolId)
             ->where('academic_year_id', $academicYearId)
             ->where('day_of_week', $dayOfWeekEnglish)
+            ->where(function($q) use ($targetShift) {
+                $q->where('shift', $targetShift)->orWhere('shift', 'all')->orWhereNull('shift');
+            })
             ->where('is_teaching_slot', true)
             ->orderBy('slot_order')
             ->get();
@@ -707,8 +712,13 @@ class ScheduleGridController extends Controller
         }
 
         if (count($targetSlotIds) < $durationSlots) {
-            return "Tidak cukup slot tersedia. Hanya ada " . count($targetSlotIds) . " slot (termasuk istirahat).";
+            return "Tidak cukup slot tersedia pada Shift ini. Hanya ada " . count($targetSlotIds) . " slot.";
         }
+
+        $lastTargetSlotId = end($targetSlotIds);
+        $lastTargetSlot = $allDaySlots->firstWhere('id', $lastTargetSlotId);
+        $targetStartTime = $timeSlot->start_time;
+        $targetEndTime = $lastTargetSlot ? $lastTargetSlot->end_time : $timeSlot->end_time;
 
         // 2. Fetch ALL schedules on this day for the classroom or teacher
         $query = Schedule::where('academic_year_id', $academicYearId)
@@ -732,33 +742,41 @@ class ScheduleGridController extends Controller
         foreach ($existingSchedules as $schedule) {
             if (!$schedule->timeSlot) continue;
             
+            $existingStartTime = $schedule->timeSlot->start_time;
+            $existingEndTime = $schedule->timeSlot->end_time;
+            
+            // Check real-time clock overlap
+            $hasClockOverlap = ($existingStartTime < $targetEndTime && $existingEndTime > $targetStartTime);
+            
+            // Check slot ID overlap (within same shift)
             $startOrder = $schedule->timeSlot->slot_order;
             $duration = $schedule->duration_slots;
-            
-            // Calculate covered slots for this existing schedule
             $coveredSlotIds = [];
-            foreach ($allDaySlots as $slot) {
-                if ($slot->slot_order >= $startOrder && count($coveredSlotIds) < $duration) {
-                    $coveredSlotIds[] = $slot->id;
+            if (($schedule->timeSlot->shift ?? 'pagi') === $targetShift) {
+                foreach ($allDaySlots as $slot) {
+                    if ($slot->slot_order >= $startOrder && count($coveredSlotIds) < $duration) {
+                        $coveredSlotIds[] = $slot->id;
+                    }
                 }
             }
-
-            // Check intersection with target slots
-            $overlap = array_intersect($targetSlotIds, $coveredSlotIds);
+            $hasSlotOverlap = !empty(array_intersect($targetSlotIds, $coveredSlotIds));
             
-            if (!empty($overlap)) {
-                $slotName = $allDaySlots->firstWhere('id', current($overlap))->slot_name ?? '';
+            $isOverlapping = $hasClockOverlap || $hasSlotOverlap;
 
-                // A. Check teacher conflict
+            if ($isOverlapping) {
+                $slotName = $schedule->timeSlot->slot_name ?? '';
+                $timeDisplay = substr($existingStartTime, 0, 5) . ' - ' . substr($existingEndTime, 0, 5);
+
+                // A. Check teacher conflict (across shifts)
                 if ($schedule->teacher_id == $teacherId) {
                     // Check group code exception (Gabungan antar kelas)
                     if ($groupCode && $schedule->group_code === $groupCode) {
                         // It's allowed to overlap for the same teacher if group code matches (Gabungan)
                     } else {
                         if ($schedule->classroom_id == $classroomId) {
-                            return "Guru ini sudah memiliki jadwal pada kelas yang sama di waktu yang bersinggungan ($slotName).";
+                            return "Guru ini sudah memiliki jadwal pada kelas yang sama di jam $timeDisplay ($slotName).";
                         }
-                        return "Guru {$schedule->teacher->full_name} sudah mengajar {$schedule->subject->subject_name} di kelas {$schedule->classroom->class_name} pada waktu yang bersinggungan ($slotName).";
+                        return "Guru {$schedule->teacher->full_name} sudah mengajar {$schedule->subject->subject_name} di kelas {$schedule->classroom->class_name} pada jam $timeDisplay ($slotName).";
                     }
                 }
                 
