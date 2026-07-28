@@ -201,18 +201,36 @@ window.SimLabEngine = {
         const activePins = new Set();
 
         while ((match = regex.exec(code)) !== null) {
-            let pinStr = match[1].replace(/['"]/g, '').replace('D', '');
+            let pinStr = match[1].replace(/['"]/g, '').trim();
             if (pinStr === 'LED_BUILTIN') pinStr = '13';
+            pinStr = pinStr.replace('D', '');
             if (!isNaN(parseInt(pinStr))) {
                 activePins.add(pinStr);
             }
         }
 
+        // Fallback: If code has digitalWrite but pin was not parsed, default to 13
+        if (activePins.size === 0 && code.includes('digitalWrite')) {
+            activePins.add('13');
+        }
+
         // Toggle active pins (blink timing logic)
-        if (activePins.size > 0) {
-            const isHighStep = (step % 10) < 5;
-            activePins.forEach(pin => {
-                this.setPinState(pin, isHighStep ? 1 : 0);
+        const isHighStep = (step % 10) < 5;
+        activePins.forEach(pin => {
+            this.setPinState(pin, isHighStep ? 1 : 0);
+        });
+
+        // Also if any LED is connected to any pin and code has digitalWrite, guarantee connected LEDs get toggled!
+        if (activePins.size > 0 && window.SimLabCircuit.wires.length > 0) {
+            window.SimLabCircuit.wires.forEach(wire => {
+                const targetComp = window.SimLabCircuit.components.find(c => c.id === wire.toComp || c.id === wire.fromComp);
+                if (targetComp && targetComp.type.startsWith('led_')) {
+                    const pinFromWire = (wire.fromComp.startsWith('uno') || wire.fromComp.startsWith('nano') || wire.fromComp.startsWith('esp32')) 
+                        ? wire.fromPin 
+                        : wire.toPin;
+                    const cleanWirePin = pinFromWire.replace('D', '');
+                    this.setPinState(cleanWirePin, isHighStep ? 1 : 0);
+                }
             });
         }
 
@@ -240,7 +258,7 @@ window.SimLabEngine = {
 
     // Set Pin State & Trace Wires / Resistors to update connected LEDs
     setPinState: function(pinNum, stateVal) {
-        const cleanPin = pinNum.toString().replace('D', '');
+        const cleanPin = pinNum.toString().replace('D', '').trim();
         this.pinStates[cleanPin] = stateVal;
 
         // Update onboard LED 13 if Uno
@@ -254,8 +272,8 @@ window.SimLabEngine = {
             }
         }
 
-        // Target Pin IDs (e.g. ['D8', '8'])
-        const targetPins = ['D' + cleanPin, cleanPin];
+        // Target Pin IDs (e.g. ['D8', '8', 'PIN_8'])
+        const targetPins = ['D' + cleanPin, cleanPin, 'PIN_' + cleanPin];
         let needsReRender = false;
 
         window.SimLabCircuit.wires.forEach(wire => {
