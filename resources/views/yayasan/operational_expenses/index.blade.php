@@ -27,7 +27,11 @@
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
     }
 
-    .num-col { font-variant-numeric: tabular-nums; }
+    /* MENCEGAH TEKS NOMINAL TERPISAH DENGAN Rp */
+    .num-col { 
+        font-variant-numeric: tabular-nums; 
+        white-space: nowrap !important;
+    }
 
     .stat-card-pro {
         position: relative;
@@ -157,7 +161,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-black font-black uppercase tracking-wider">5.1.00 — Belanja Pegawai</p>
-                    <p class="text-2xl font-black text-black mt-0.5 num-col">Rp {{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</p>
+                    <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</p>
                     <div class="flex items-center gap-2 mt-1.5">
                         <span class="pro-badge bg-blue-950 text-white border-2 border-black">
                             <i class="fas fa-building text-[10px]"></i> {{ count($hierarchicalSalaryData) }} Unit
@@ -177,7 +181,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-black font-black uppercase tracking-wider">5.1.01–14 — Belanja Operasional</p>
-                    <p class="text-2xl font-black text-black mt-0.5 num-col" id="cardOpsTotal">Rp {{ number_format($totalOpsPeriod, 0, ',', '.') }}</p>
+                    <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap" id="cardOpsTotal">Rp&nbsp;{{ number_format($totalOpsPeriod, 0, ',', '.') }}</p>
                     <span class="pro-badge bg-amber-400 text-black border-2 border-black mt-1.5">
                         <i class="fas fa-pen-to-square text-[10px]"></i> Dapat Diedit
                     </span>
@@ -192,7 +196,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-black font-black uppercase tracking-wider">Grand Total RAPBY</p>
-                    <p class="text-2xl font-black text-black mt-0.5 num-col" id="cardGrandTotal">Rp {{ number_format($grandTotalBelanjaPeriod, 0, ',', '.') }}</p>
+                    <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap" id="cardGrandTotal">Rp&nbsp;{{ number_format($grandTotalBelanjaPeriod, 0, ',', '.') }}</p>
                     <span class="pro-badge bg-purple-950 text-white border-2 border-black mt-1.5">
                         <i class="fas fa-layer-group text-[10px]"></i> Total Keseluruhan
                     </span>
@@ -233,9 +237,9 @@
                             <th class="px-4 py-4 text-xs uppercase font-black">Nama Rekening Belanja</th>
                             <th class="px-3 py-4 w-24 text-center text-xs uppercase font-black">Jumlah</th>
                             <th class="px-3 py-4 w-24 text-center text-xs uppercase font-black">Satuan</th>
-                            <th class="px-4 py-4 text-right w-44 text-xs uppercase font-black">Tarif Satuan (Rp)</th>
-                            <th class="px-4 py-4 text-right w-44 text-xs uppercase font-black">Total / Bulan</th>
-                            <th class="px-4 py-4 text-right w-48 text-xs uppercase font-black">Total Periode</th>
+                            <th class="px-4 py-4 text-right w-44 text-xs uppercase font-black whitespace-nowrap">Tarif Satuan (Rp)</th>
+                            <th class="px-4 py-4 text-right w-44 text-xs uppercase font-black whitespace-nowrap">Total / Bulan</th>
+                            <th class="px-4 py-4 text-right w-48 text-xs uppercase font-black whitespace-nowrap">Total Periode</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y-2 divide-slate-400 bg-white">
@@ -255,8 +259,8 @@
                                     </span>
                                 </div>
                             </td>
-                            <td class="px-4 py-3.5 text-right font-black text-amber-400 num-col text-xs">Rp {{ number_format($totalGajiPerguruanMonthly, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3.5 text-right font-black text-white text-sm num-col">Rp {{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</td>
+                            <td class="px-4 py-3.5 text-right font-black text-amber-400 num-col text-xs whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanMonthly, 0, ',', '.') }}</td>
+                            <td class="px-4 py-3.5 text-right font-black text-white text-sm num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</td>
                         </tr>
 
                         @foreach($hierarchicalSalaryData as $uIdx => $uData)
@@ -281,10 +285,10 @@
                                 </td>
                                 <td class="px-3 py-4 text-center font-black text-black num-col text-sm">{{ $item['volume'] }}</td>
                                 <td class="px-3 py-4 text-center font-black text-black">{{ $item['unit'] }}</td>
-                                <td class="px-4 py-4 text-right font-black text-black num-col">Rp {{ number_format($item['tariff'], 0, ',', '.') }}</td>
-                                <td class="px-4 py-4 text-right font-black text-black num-col">Rp {{ number_format($item['amount'], 0, ',', '.') }}</td>
-                                <td class="px-4 py-4 text-right font-black text-black text-xs num-col">
-                                    Rp {{ number_format($uData['total_period'], 0, ',', '.') }}
+                                <td class="px-4 py-4 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($item['tariff'], 0, ',', '.') }}</td>
+                                <td class="px-4 py-4 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($item['amount'], 0, ',', '.') }}</td>
+                                <td class="px-4 py-4 text-right font-black text-black text-xs num-col whitespace-nowrap">
+                                    Rp&nbsp;{{ number_format($uData['total_period'], 0, ',', '.') }}
                                 </td>
                             </tr>
                             @endif
@@ -295,8 +299,8 @@
                             <td colspan="6" class="px-4 py-4 text-right font-black text-black uppercase text-xs tracking-wider">
                                 <i class="fas fa-sigma mr-1.5 text-black text-sm"></i> Subtotal Belanja Pegawai (5.1.00):
                             </td>
-                            <td class="px-4 py-4 text-right font-black text-black text-xs num-col">Rp {{ number_format($totalGajiPerguruanMonthly, 0, ',', '.') }}</td>
-                            <td class="px-4 py-4 text-right font-black text-black text-sm num-col">Rp {{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right font-black text-black text-xs num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanMonthly, 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</td>
                         </tr>
 
                         {{-- KELOMPOK 5.1.01+: BELANJA OPERASIONAL --}}
@@ -314,8 +318,8 @@
                                     </span>
                                 </div>
                             </td>
-                            <td class="px-4 py-3.5 text-right font-black text-amber-400 num-col text-xs" id="groupOpsMonthly">Rp {{ number_format($totalOpsMonthly, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3.5 text-right font-black text-white text-sm num-col" id="groupOpsPeriod">Rp {{ number_format($totalOpsPeriod, 0, ',', '.') }}</td>
+                            <td class="px-4 py-3.5 text-right font-black text-amber-400 num-col text-xs whitespace-nowrap" id="groupOpsMonthly">Rp&nbsp;{{ number_format($totalOpsMonthly, 0, ',', '.') }}</td>
+                            <td class="px-4 py-3.5 text-right font-black text-white text-sm num-col whitespace-nowrap" id="groupOpsPeriod">Rp&nbsp;{{ number_format($totalOpsPeriod, 0, ',', '.') }}</td>
                         </tr>
 
                         @php $opsNo = 1; @endphp
@@ -355,14 +359,14 @@
                                     </td>
                                     <td class="px-3 py-4 text-right">
                                         <div class="relative">
-                                            <span class="absolute left-3 top-2.5 text-xs font-black text-black">Rp</span>
+                                            <span class="absolute left-3 top-2.5 text-xs font-black text-black whitespace-nowrap">Rp</span>
                                             <input type="number" name="expense_details[{{ $code }}][tariff]" value="{{ $tariff > 0 ? $tariff : '' }}"
                                                    step="5000" min="0" oninput="updateRowCalc('{{ $safeCode }}')" id="tariff_{{ $safeCode }}"
                                                    class="rapby-input-pro w-full text-xs font-black text-right pl-9 pr-3 py-2 rounded-xl bg-white num-col" placeholder="0">
                                         </div>
                                     </td>
-                                    <td class="px-4 py-4 text-right font-black text-black num-col text-xs" id="monthly_{{ $safeCode }}">Rp {{ number_format($amtMonthly, 0, ',', '.') }}</td>
-                                    <td class="px-4 py-4 text-right font-black text-black num-col text-xs" id="period_{{ $safeCode }}">Rp {{ number_format($amtPeriod, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-4 text-right font-black text-black num-col text-xs whitespace-nowrap" id="monthly_{{ $safeCode }}">Rp&nbsp;{{ number_format($amtMonthly, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-4 text-right font-black text-black num-col text-xs whitespace-nowrap" id="period_{{ $safeCode }}">Rp&nbsp;{{ number_format($amtPeriod, 0, ',', '.') }}</td>
                                 </tr>
                             @endif
                         @endforeach
@@ -372,8 +376,8 @@
                             <td colspan="6" class="px-4 py-4 text-right font-black text-black uppercase text-xs tracking-wider">
                                 <i class="fas fa-sigma mr-1.5 text-black text-sm"></i> Subtotal Belanja Operasional (5.1.01–14):
                             </td>
-                            <td class="px-4 py-4 text-right font-black text-black text-xs num-col" id="subtotalOpsMonthly">Rp {{ number_format($totalOpsMonthly, 0, ',', '.') }}</td>
-                            <td class="px-4 py-4 text-right font-black text-black text-sm num-col" id="subtotalOpsPeriod">Rp {{ number_format($totalOpsPeriod, 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right font-black text-black text-xs num-col whitespace-nowrap" id="subtotalOpsMonthly">Rp&nbsp;{{ number_format($totalOpsMonthly, 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap" id="subtotalOpsPeriod">Rp&nbsp;{{ number_format($totalOpsPeriod, 0, ',', '.') }}</td>
                         </tr>
                     </tbody>
                     <tfoot>
@@ -381,11 +385,11 @@
                             <td colspan="6" class="px-6 py-5 text-right uppercase tracking-widest font-black text-xs text-amber-400">
                                 Grand Total Rencana Belanja RAPBY:
                             </td>
-                            <td class="px-4 py-5 text-right num-col">
-                                <span class="text-amber-300 font-black text-sm" id="footTotalMonthly">Rp {{ number_format($grandTotalBelanjaMonthly, 0, ',', '.') }}</span>
+                            <td class="px-4 py-5 text-right num-col whitespace-nowrap">
+                                <span class="text-amber-300 font-black text-sm whitespace-nowrap" id="footTotalMonthly">Rp&nbsp;{{ number_format($grandTotalBelanjaMonthly, 0, ',', '.') }}</span>
                             </td>
-                            <td class="px-4 py-5 text-right num-col">
-                                <span class="text-emerald-400 font-black text-2xl" id="footTotalPeriod">Rp {{ number_format($grandTotalBelanjaPeriod, 0, ',', '.') }}</span>
+                            <td class="px-4 py-5 text-right num-col whitespace-nowrap">
+                                <span class="text-emerald-400 font-black text-2xl whitespace-nowrap" id="footTotalPeriod">Rp&nbsp;{{ number_format($grandTotalBelanjaPeriod, 0, ',', '.') }}</span>
                             </td>
                         </tr>
                     </tfoot>
@@ -419,7 +423,7 @@
         const tariff = parseFloat(document.getElementById('tariff_' + safeCode)?.value) || 0;
         const monthly = vol * tariff;
         const period = monthly * multiplier;
-        const fmt = (n) => 'Rp ' + n.toLocaleString('id-ID');
+        const fmt = (n) => 'Rp\u00A0' + n.toLocaleString('id-ID');
 
         document.getElementById('monthly_' + safeCode).innerText = fmt(monthly);
         document.getElementById('period_' + safeCode).innerText = fmt(period);
