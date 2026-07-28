@@ -1,7 +1,8 @@
 /**
  * PembdaHUB SimLab - Circuit Workspace Manager
- * Menangani rendering komponen visual, snap presisi ujung pin, rotasi (0°-360°), perbesar/perkecil,
- * drag & drop, penarikan lengan tengah kabel 90° Wokwi, menu klik kanan warna & tipe kabel, serta indikator nomor pin di kedua ujung kabel.
+ * Menangani rendering komponen visual, header min-width presisi (tombol ⟳, +, -, ✕ tidak meleset/keluar border),
+ * rotasi (0°-360°), perbesar/perkecil, drag & drop, penarikan lengan vertikal (kiri-kanan) & horizontal (atas-bawah) kabel 90° Wokwi,
+ * menu klik kanan warna & tipe kabel, serta indikator nomor pin di kedua ujung kabel.
  */
 
 window.SimLabCircuit = {
@@ -268,28 +269,31 @@ window.SimLabCircuit = {
             const scale = comp.scale || 1.0;
             const rotation = comp.rotation || 0;
 
+            // Ensure container width has at least 145px to comfortably fit Title + 4 Action Buttons inside border!
+            const headerWidth = Math.max(145, def.width + 16);
+
             const div = document.createElement('div');
             div.id = 'comp_' + comp.id;
             div.className = 'absolute pointer-events-auto bg-gray-900/60 rounded-xl p-2 border border-gray-700/80 shadow-2xl group hover:border-emerald-500/90 transition-transform';
             div.style.left = comp.x + 'px';
             div.style.top = comp.y + 'px';
-            div.style.width = (def.width + 16) + 'px';
+            div.style.width = headerWidth + 'px';
             div.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
             div.style.transformOrigin = 'center center';
             div.style.zIndex = '30';
 
-            // Top Header Bar of Component with Rotate (⟳) & Scale (+/-) Controls
+            // Top Header Bar of Component with Rotate (⟳), Scale (+/-), and Delete (✕) Buttons (Fully inside container!)
             let html = `
-            <div class="flex items-center justify-between mb-1 handle cursor-move text-[10px] text-gray-400 border-b border-gray-800 pb-1 select-none">
-                <span class="font-bold text-gray-200">${def.name}</span>
-                <div class="flex items-center space-x-1">
-                    <button onclick="SimLabCircuit.rotateComponent('${comp.id}')" class="text-cyan-400 hover:text-cyan-300 font-black px-1.5 py-0.5 text-xs hover:bg-gray-800 rounded" title="Rotasi Komponen (90°)">⟳</button>
-                    <button onclick="SimLabCircuit.scaleComponent('${comp.id}', 0.15)" class="text-emerald-400 hover:text-emerald-300 font-black px-1.5 py-0.5 text-xs hover:bg-gray-800 rounded" title="Perbesar Komponen (+)">+</button>
-                    <button onclick="SimLabCircuit.scaleComponent('${comp.id}', -0.15)" class="text-amber-400 hover:text-amber-300 font-black px-1.5 py-0.5 text-xs hover:bg-gray-800 rounded" title="Perkecil Komponen (-)">-</button>
-                    <button onclick="SimLabCircuit.removeComponent('${comp.id}')" class="text-red-400 hover:text-red-300 font-black px-1.5 py-0.5 text-xs hover:bg-gray-800 rounded" title="Hapus Komponen">✕</button>
+            <div class="flex items-center justify-between mb-1 handle cursor-move text-[10px] text-gray-400 border-b border-gray-800 pb-1 select-none w-full">
+                <span class="font-bold text-gray-200 truncate pr-1 text-[11px]">${def.name}</span>
+                <div class="flex items-center space-x-1 shrink-0">
+                    <button onclick="SimLabCircuit.rotateComponent('${comp.id}')" class="text-cyan-400 hover:text-cyan-300 font-black px-1 py-0.5 text-xs hover:bg-gray-800 rounded" title="Rotasi Komponen (90°)">⟳</button>
+                    <button onclick="SimLabCircuit.scaleComponent('${comp.id}', 0.15)" class="text-emerald-400 hover:text-emerald-300 font-black px-1 py-0.5 text-xs hover:bg-gray-800 rounded" title="Perbesar Komponen (+)">+</button>
+                    <button onclick="SimLabCircuit.scaleComponent('${comp.id}', -0.15)" class="text-amber-400 hover:text-amber-300 font-black px-1 py-0.5 text-xs hover:bg-gray-800 rounded" title="Perkecil Komponen (-)">-</button>
+                    <button onclick="SimLabCircuit.removeComponent('${comp.id}')" class="text-red-400 hover:text-red-300 font-black px-1 py-0.5 text-xs hover:bg-gray-800 rounded" title="Hapus Komponen">✕</button>
                 </div>
             </div>
-            <div class="relative" style="width: ${def.width}px; height: ${def.height}px;">
+            <div class="relative flex justify-center" style="width: ${def.width}px; height: ${def.height}px;">
                 <svg width="${def.width}" height="${def.height}" viewBox="0 0 ${def.width} ${def.height}">
                     ${def.svg(comp)}
             `;
@@ -397,11 +401,21 @@ window.SimLabCircuit = {
 
                 let defaultWaypoints = [];
                 if (pos1 && pos2) {
-                    const midX = pos1.x + (pos2.x - pos1.x) / 2;
-                    defaultWaypoints = [
-                        { x: midX, y: pos1.y },
-                        { x: midX, y: pos2.y }
-                    ];
+                    const dx = Math.abs(pos2.x - pos1.x);
+                    const dy = Math.abs(pos2.y - pos1.y);
+                    if (dx > dy) {
+                        const midX = pos1.x + (pos2.x - pos1.x) / 2;
+                        defaultWaypoints = [
+                            { x: midX, y: pos1.y },
+                            { x: midX, y: pos2.y }
+                        ];
+                    } else {
+                        const midY = pos1.y + (pos2.y - pos1.y) / 2;
+                        defaultWaypoints = [
+                            { x: pos1.x, y: midY },
+                            { x: pos2.x, y: midY }
+                        ];
+                    }
                 }
 
                 const wire = {
@@ -435,12 +449,15 @@ window.SimLabCircuit = {
         const scale = comp.scale || 1.0;
         const rotation = comp.rotation || 0;
 
-        // Exact offset of SVG element inside component container (padding=8px, header height=33px)
-        const offsetX = 8;
+        // Container width header offset
+        const headerWidth = Math.max(145, def.width + 16);
+        const svgMarginX = (headerWidth - def.width) / 2;
+
+        const offsetX = svgMarginX;
         const offsetY = 33;
 
-        // Exact center of component box in local space
-        const cx = offsetX + (def.width / 2);
+        // Center of component box
+        const cx = (headerWidth / 2);
         const cy = offsetY + (def.height / 2);
 
         // Pin pos relative to box center
@@ -497,12 +514,22 @@ window.SimLabCircuit = {
             if (!pos1 || !pos2) return;
 
             // Auto initialize default 90-deg waypoints if empty
-            if (!wire.waypoints || wire.waypoints.length === 0) {
-                const midX = pos1.x + (pos2.x - pos1.x) / 2;
-                wire.waypoints = [
-                    { x: midX, y: pos1.y },
-                    { x: midX, y: pos2.y }
-                ];
+            if (!wire.waypoints || wire.waypoints.length < 2) {
+                const dx = Math.abs(pos2.x - pos1.x);
+                const dy = Math.abs(pos2.y - pos1.y);
+                if (dx > dy) {
+                    const midX = pos1.x + (pos2.x - pos1.x) / 2;
+                    wire.waypoints = [
+                        { x: midX, y: pos1.y },
+                        { x: midX, y: pos2.y }
+                    ];
+                } else {
+                    const midY = pos1.y + (pos2.y - pos1.y) / 2;
+                    wire.waypoints = [
+                        { x: pos1.x, y: midY },
+                        { x: pos2.x, y: midY }
+                    ];
+                }
             }
 
             const currentStyle = wire.style || self.wireStyleMode;
@@ -551,7 +578,7 @@ window.SimLabCircuit = {
 
             group.appendChild(path);
 
-            // 1. Render Middle Arm Segment Drag Handles (Penarik Tengah-Tengah Lengan Kabel Wokwi-style)
+            // 1. Render Middle Arm Segment Drag Handles (Penarik Tengah-Tengah Lengan Vertikal & Horizontal Kabel Wokwi-style)
             if (currentStyle !== 'curved') {
                 for (let i = 0; i < points.length - 1; i++) {
                     const ptA = points[i];
@@ -562,16 +589,16 @@ window.SimLabCircuit = {
 
                     const segHandle = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                     if (isHorizontal) {
-                        segHandle.setAttribute('x', midX - 12);
+                        segHandle.setAttribute('x', midX - 14);
                         segHandle.setAttribute('y', midY - 4);
-                        segHandle.setAttribute('width', 24);
+                        segHandle.setAttribute('width', 28);
                         segHandle.setAttribute('height', 8);
                         segHandle.style.cursor = 'ns-resize';
                     } else {
                         segHandle.setAttribute('x', midX - 4);
-                        segHandle.setAttribute('y', midY - 12);
+                        segHandle.setAttribute('y', midY - 14);
                         segHandle.setAttribute('width', 8);
-                        segHandle.setAttribute('height', 24);
+                        segHandle.setAttribute('height', 28);
                         segHandle.style.cursor = 'ew-resize';
                     }
 
@@ -636,7 +663,7 @@ window.SimLabCircuit = {
         group.appendChild(g);
     },
 
-    // Drag Middle of Cable Arm / Segment
+    // Wokwi 90° Manhattan Arm Segment Dragging (Vertikal: Kiri/Kanan, Horizontal: Atas/Bawah)
     makeSegmentDraggable: function(el, wire, segIndex, isHorizontal) {
         const self = this;
         let startX = 0, startY = 0;
@@ -660,7 +687,7 @@ window.SimLabCircuit = {
             startY = e.clientY;
 
             if (isHorizontal) {
-                // Move horizontal segment up/down
+                // Horizontal Arm: move whole arm up/down (dy)
                 if (segIndex > 0 && segIndex - 1 < wire.waypoints.length) {
                     wire.waypoints[segIndex - 1].y += dy;
                 }
@@ -668,7 +695,7 @@ window.SimLabCircuit = {
                     wire.waypoints[segIndex].y += dy;
                 }
             } else {
-                // Move vertical segment left/right
+                // Vertical Arm: move whole arm left/right (dx)
                 if (segIndex > 0 && segIndex - 1 < wire.waypoints.length) {
                     wire.waypoints[segIndex - 1].x += dx;
                 }
