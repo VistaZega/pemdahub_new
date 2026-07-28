@@ -47,6 +47,17 @@
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                        required>
                 <p class="mt-1 text-sm text-gray-500">Nama yang akan ditampilkan di jadwal</p>
+            <!-- Shift KBM -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Shift KBM <span class="text-red-500">*</span>
+                </label>
+                <select name="shift" 
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500">
+                    <option value="pagi" {{ old('shift', $timeSlot->shift ?? 'pagi') == 'pagi' ? 'selected' : '' }}>Shift Pagi (Reguler)</option>
+                    <option value="siang" {{ old('shift', $timeSlot->shift ?? '') == 'siang' ? 'selected' : '' }}>Shift Siang (Eksekutif)</option>
+                    <option value="all" {{ old('shift', $timeSlot->shift ?? '') == 'all' ? 'selected' : '' }}>Semua Shift</option>
+                </select>
             </div>
 
             <!-- Slot Type -->

@@ -24,6 +24,7 @@ class Classroom extends Model
         'class_name',
         'class_type',
         'grade_level',
+        'shift',
         'homeroom_teacher_id',
         'capacity',
         'notes',

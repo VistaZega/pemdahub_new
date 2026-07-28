@@ -107,7 +107,10 @@ class ScheduleController extends Controller
             $classroomsQuery->where('school_id', $request->input('school_id'));
         }
         
-        $classrooms = $classroomsQuery->orderBy('class_name')->get();
+        $classrooms = $classroomsQuery->orderBy('grade_level', 'asc')
+            ->orderBy('shift', 'asc')
+            ->orderByRaw('LENGTH(class_name) ASC, class_name ASC')
+            ->get();
 
         // Group schedules by day and time
         $scheduleMatrix = $allSchedules->groupBy(function ($schedule) {
@@ -126,14 +129,20 @@ class ScheduleController extends Controller
         
         // Get classrooms based on user role
         if ($user->isSuperAdmin()) {
-            $classrooms = Classroom::with('school')->orderBy('class_name')->get();
+            $classrooms = Classroom::with('school')
+                ->orderBy('grade_level', 'asc')
+                ->orderBy('shift', 'asc')
+                ->orderByRaw('LENGTH(class_name) ASC, class_name ASC')
+                ->get();
             $subjects = collect(); // Empty for superadmin until school selected
             $teachers = collect(); // Empty for superadmin until school selected
             $schools = \App\Models\School::where('is_active', true)->schoolsOnly()->orderBy('name')->get();
         } else {
             $classrooms = Classroom::where('school_id', $user->school_id)
                 ->with('school')
-                ->orderBy('class_name')
+                ->orderBy('grade_level', 'asc')
+                ->orderBy('shift', 'asc')
+                ->orderByRaw('LENGTH(class_name) ASC, class_name ASC')
                 ->get();
             $subjects = Subject::where('school_id', $user->school_id)
                 ->where('is_active', 1)

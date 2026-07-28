@@ -13,6 +13,7 @@ class TimeSlot extends Model
         'academic_year_id',
         'day_of_week',
         'slot_name',
+        'shift',
         'slot_type',
         'slot_order',
         'start_time',

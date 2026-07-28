@@ -66,18 +66,31 @@ class ScheduleGridController extends Controller
             $classroomsQuery->where('grade_level', $selectedGradeLevel);
         }
 
-        $classrooms = $classroomsQuery->select('id', 'class_name', 'grade_level', 'school_id', 'academic_year_id')
-            ->orderBy('grade_level')
-            ->orderBy('class_name')
+        $selectedShift = $request->input('shift', 'all');
+        if ($selectedShift && $selectedShift !== 'all') {
+            $classroomsQuery->where('shift', $selectedShift);
+        }
+
+        $classrooms = $classroomsQuery->select('id', 'class_name', 'grade_level', 'shift', 'school_id', 'academic_year_id')
+            ->orderBy('grade_level', 'asc')
+            ->orderBy('shift', 'asc')
+            ->orderByRaw('LENGTH(class_name) ASC, class_name ASC')
             ->get();
         
         // Get time slots for selected school and academic year (optimized with caching)
-        $cacheKey = "timeslots_school_{$selectedSchoolId}_year_{$selectedYearId}";
-        $timeSlots = cache()->remember($cacheKey, 3600, function() use ($selectedSchoolId, $selectedYearId) {
-            return TimeSlot::where('school_id', $selectedSchoolId)
+        $cacheKey = "timeslots_school_{$selectedSchoolId}_year_{$selectedYearId}_shift_{$selectedShift}";
+        $timeSlots = cache()->remember($cacheKey, 3600, function() use ($selectedSchoolId, $selectedYearId, $selectedShift) {
+            $query = TimeSlot::where('school_id', $selectedSchoolId)
                 ->where('academic_year_id', $selectedYearId)
-                ->where('is_active', 1)
-                ->select('id', 'school_id', 'academic_year_id', 'day_of_week', 'slot_name', 'start_time', 'end_time', 'slot_order', 'is_teaching_slot')
+                ->where('is_active', 1);
+
+            if ($selectedShift && $selectedShift !== 'all') {
+                $query->where(function($q) use ($selectedShift) {
+                    $q->where('shift', $selectedShift)->orWhere('shift', 'all')->orWhereNull('shift');
+                });
+            }
+
+            return $query->select('id', 'school_id', 'academic_year_id', 'day_of_week', 'slot_name', 'shift', 'start_time', 'end_time', 'slot_order', 'is_teaching_slot')
                 ->orderBy('slot_order')
                 ->get();
         });
@@ -192,6 +205,7 @@ class ScheduleGridController extends Controller
             'semester',
             'availableGrades',
             'selectedGradeLevel',
+            'selectedShift',
             'currentRotation'
         ));
     }

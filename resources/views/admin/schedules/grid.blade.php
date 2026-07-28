@@ -274,6 +274,14 @@
                     @endforeach
                 </select>
             </div>
+            <div class="flex-1 min-w-[140px]">
+                <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Shift KBM</label>
+                <select name="shift" class="filter-select">
+                    <option value="all" {{ ($selectedShift ?? 'all') === 'all' ? 'selected' : '' }}>Semua Shift</option>
+                    <option value="pagi" {{ ($selectedShift ?? '') === 'pagi' ? 'selected' : '' }}>☀️ Shift Pagi (Reguler)</option>
+                    <option value="siang" {{ ($selectedShift ?? '') === 'siang' ? 'selected' : '' }}>🌙 Shift Siang (Eksekutif)</option>
+                </select>
+            </div>
             <div>
                 <button type="submit" class="toolbar-btn toolbar-btn-primary">
                     <i class="fas fa-sync-alt"></i> Tampilkan

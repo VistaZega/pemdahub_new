@@ -68,7 +68,7 @@
                     <input type="hidden" name="academic_year_id" value="{{ old('academic_year_id', $defaultAcademicYear->id ?? '') }}">
                 @endif
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-tag mr-1"></i> Tipe Kelas</label>
                     <select name="class_type" id="class_type" class="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition" onchange="toggleGabunganInfo(this.value)">
@@ -81,6 +81,14 @@
                     <div id="gabungan-info" class="mt-2 p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-700 font-medium" style="display: {{ old('class_type') == 'gabungan' ? 'block' : 'none' }}">
                         <i class="fas fa-info-circle text-indigo-500 mr-1"></i> <strong>Kelas Gabungan:</strong> Program / Konsentrasi Keahlian opsional (boleh dikosongkan). Seluruh Mata Pelajaran Kejuruan dari semua jurusan akan terbuka untuk kelas ini.
                     </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-clock mr-1"></i> Shift Belajar</label>
+                    <select name="shift" id="shift" class="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
+                        <option value="pagi" {{ old('shift', 'pagi') == 'pagi' ? 'selected' : '' }}>Shift Pagi (Reguler)</option>
+                        <option value="siang" {{ old('shift') == 'siang' ? 'selected' : '' }}>Shift Siang (Eksekutif)</option>
+                        <option value="all" {{ old('shift') == 'all' ? 'selected' : '' }}>Semua Shift</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-chart-bar mr-1"></i> Tingkat</label>

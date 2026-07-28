@@ -252,6 +252,7 @@ class ClassroomController extends Controller
             'class_code' => 'required|string|max:20',
             'class_name' => 'required|string|max:100',
             'grade_level' => 'required|integer',
+            'shift' => 'nullable|string|in:pagi,siang,all',
             'capacity' => 'nullable|integer',
             'notes' => 'nullable|string',
             'entry_time' => 'nullable|string|regex:/^[0-9]{2}:[0-9]{2}$/',
@@ -261,6 +262,7 @@ class ClassroomController extends Controller
         ]);
 
         // Set defaults
+        $data['shift'] = $request->input('shift', 'pagi');
         $data['is_active'] = $request->has('is_active') ? (bool)$request->input('is_active') : true;
         $isCombined = $request->has('is_combined') ? (bool)$request->input('is_combined') : ($data['class_type'] === 'gabungan');
         $data['is_combined'] = $isCombined;
@@ -330,6 +332,7 @@ class ClassroomController extends Controller
             'class_code' => 'required|string|max:20',
             'class_name' => 'required|string|max:100',
             'grade_level' => 'required|integer',
+            'shift' => 'nullable|string|in:pagi,siang,all',
             'capacity' => 'nullable|integer',
             'notes' => 'nullable|string',
             'entry_time' => 'nullable|string|regex:/^[0-9]{2}:[0-9]{2}$/',
@@ -339,6 +342,7 @@ class ClassroomController extends Controller
         ]);
 
         // Handle checkbox values
+        $data['shift'] = $request->input('shift', 'pagi');
         $data['is_active'] = $request->has('is_active') ? (bool)$request->input('is_active') : false;
         $isCombined = $request->has('is_combined') ? (bool)$request->input('is_combined') : ($data['class_type'] === 'gabungan');
         $data['is_combined'] = $isCombined;

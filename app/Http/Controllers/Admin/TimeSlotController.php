@@ -120,12 +120,15 @@ class TimeSlotController extends Controller
             'academic_year_id' => 'required|exists:academic_years,id',
             'day_of_week' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday',
             'slot_name' => 'required|string|max:50',
+            'shift' => 'nullable|in:pagi,siang,all',
             'slot_type' => 'required|in:lesson,break,ceremony',
             'slot_order' => 'required|integer|min:1',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'is_teaching_slot' => 'required|boolean',
         ]);
+        
+        $validated['shift'] = $request->input('shift', 'pagi');
         
         // Check authorization
         if (!$user->isSuperAdmin() && $validated['school_id'] != $user->school_id) {
@@ -209,6 +212,7 @@ class TimeSlotController extends Controller
             'academic_year_id' => 'required|exists:academic_years,id',
             'day_of_week' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday',
             'slot_name' => 'required|string|max:50',
+            'shift' => 'nullable|in:pagi,siang,all',
             'slot_type' => 'required|in:lesson,break,ceremony',
             'slot_order' => 'required|integer|min:1',
             'start_time' => 'required|date_format:H:i',
@@ -216,6 +220,8 @@ class TimeSlotController extends Controller
             'is_teaching_slot' => 'required|boolean',
             'is_active' => 'required|boolean',
         ]);
+        
+        $validated['shift'] = $request->input('shift', 'pagi');
         
         // Calculate duration
         $start = \Carbon\Carbon::parse($validated['start_time']);
