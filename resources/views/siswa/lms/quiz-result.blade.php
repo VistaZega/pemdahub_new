@@ -106,37 +106,25 @@
 @section('content')
 <div class="max-w-4xl mx-auto space-y-8" x-data="{ shown: true }">
 
-    {{-- ===== SCORE HERO SECTION ===== --}}
-    <div class="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden result-fadeIn">
-        {{-- Top gradient banner --}}
-        <div class="h-2 {{ $attempt->is_passed ? 'bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500' : 'bg-gradient-to-r from-rose-400 via-pink-400 to-rose-500' }}"></div>
+    {{-- ===== SCORE HERO SECTION (100% SOLID UI UX PRO MAX) ===== --}}
+    <div class="bg-white rounded-3xl shadow-xl border-2 border-black overflow-hidden result-fadeIn">
+        {{-- Top solid accent banner --}}
+        <div class="h-3 border-b-2 border-black" style="background-color: {{ $attempt->is_passed ? '#059669' : '#dc2626' }} !important;"></div>
 
         <div class="px-6 sm:px-10 py-10">
             {{-- Score Circle --}}
             <div class="flex flex-col items-center">
-                <div class="relative {{ $attempt->is_passed ? 'score-glow-pass' : 'score-glow-fail' }} rounded-full">
-                    <svg width="180" height="180" viewBox="0 0 120 120" class="transform -rotate-90">
-                        <defs>
-                            <linearGradient id="gradientPass" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#10b981"/>
-                                <stop offset="50%" stop-color="#34d399"/>
-                                <stop offset="100%" stop-color="#059669"/>
-                            </linearGradient>
-                            <linearGradient id="gradientFail" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#f43f5e"/>
-                                <stop offset="50%" stop-color="#fb7185"/>
-                                <stop offset="100%" stop-color="#e11d48"/>
-                            </linearGradient>
-                        </defs>
-                        <circle cx="60" cy="60" r="50" fill="none" stroke-width="8" class="progress-ring-circle-bg"/>
-                        <circle cx="60" cy="60" r="50" fill="none" stroke-width="8"
-                                class="score-ring {{ $attempt->is_passed ? 'progress-ring-circle-pass' : 'progress-ring-circle-fail' }}"
+                <div class="relative rounded-full p-2 border-4 border-black bg-white shadow-lg">
+                    <svg width="190" height="190" viewBox="0 0 120 120" class="transform -rotate-90">
+                        <circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" stroke-width="10"/>
+                        <circle cx="60" cy="60" r="50" fill="none" stroke-width="10"
+                                stroke="{{ $attempt->is_passed ? '#059669' : '#dc2626' }}"
                                 stroke-linecap="round"
                                 stroke-dasharray="314"
                                 stroke-dashoffset="{{ 314 - (314 * min($attempt->score, 100) / 100) }}"/>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <span class="text-4xl font-extrabold {{ $attempt->is_passed ? 'text-emerald-600' : 'text-rose-600' }}"
+                        <span class="text-4xl font-black text-black"
                               x-data="{ val: 0 }"
                               x-init="setTimeout(() => {
                                   let target = {{ number_format($attempt->score, 1) }};
@@ -147,19 +135,19 @@
                                   }, 30);
                               }, 500)"
                               x-text="val.toFixed(1) + '%'">0%</span>
-                        <span class="text-xs text-gray-400 mt-0.5">Skor Anda</span>
+                        <span class="text-xs font-black uppercase tracking-widest text-black mt-1">SKOR ANDA</span>
                     </div>
                 </div>
 
                 {{-- Pass/Fail Badge --}}
-                <div class="mt-5 badge-pop">
+                <div class="mt-6">
                     @if($attempt->is_passed)
-                    <div class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-lg shadow-lg shadow-emerald-200">
-                        <i class="fas fa-trophy"></i> LULUS
+                    <div class="inline-flex items-center gap-2 px-8 py-3 rounded-2xl text-white font-black text-lg shadow-md border-2 border-black uppercase tracking-wider" style="background-color: #059669 !important;">
+                        <i class="fas fa-trophy text-white text-xl"></i> DILATAN LULUS
                     </div>
                     @else
-                    <div class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white font-bold text-lg shadow-lg shadow-rose-200">
-                        <i class="fas fa-times-circle"></i> TIDAK LULUS
+                    <div class="inline-flex items-center gap-2 px-8 py-3 rounded-2xl text-white font-black text-lg shadow-md border-2 border-black uppercase tracking-wider" style="background-color: #dc2626 !important;">
+                        <i class="fas fa-times-circle text-white text-xl"></i> BELUM LULUS
                     </div>
                     @endif
                 </div>
@@ -173,51 +161,51 @@
                 $pendingAnswers = $attempt->answers ? $attempt->answers->whereNull('is_correct')->count() : 0;
             @endphp
             <div class="grid grid-cols-{{ $pendingAnswers > 0 ? '4' : '3' }} gap-4 mt-8">
-                <div class="stat-card bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-center">
-                    <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-100 mb-2">
-                        <i class="fas fa-check text-emerald-600"></i>
+                <div class="stat-card rounded-2xl p-4 text-center border-2 border-black shadow-md" style="background-color: #a7f3d0 !important;">
+                    <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-black text-emerald-400 mb-2 border border-black">
+                        <i class="fas fa-check text-emerald-400 text-lg"></i>
                     </div>
-                    <div class="text-2xl font-bold text-emerald-700">{{ $correctAnswers }}</div>
-                    <div class="text-xs text-emerald-600 font-medium mt-0.5">Benar</div>
+                    <div class="text-3xl font-black text-black leading-none">{{ $correctAnswers }}</div>
+                    <div class="text-xs text-black font-black uppercase tracking-wider mt-1">Jawaban Benar</div>
                 </div>
-                <div class="stat-card bg-rose-50 border border-rose-100 rounded-2xl p-4 text-center">
-                    <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-rose-100 mb-2">
-                        <i class="fas fa-times text-rose-600"></i>
+                <div class="stat-card rounded-2xl p-4 text-center border-2 border-black shadow-md" style="background-color: #fecdd3 !important;">
+                    <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-black text-rose-400 mb-2 border border-black">
+                        <i class="fas fa-times text-rose-400 text-lg"></i>
                     </div>
-                    <div class="text-2xl font-bold text-rose-700">{{ $wrongAnswers }}</div>
-                    <div class="text-xs text-rose-600 font-medium mt-0.5">Salah</div>
+                    <div class="text-3xl font-black text-black leading-none">{{ $wrongAnswers }}</div>
+                    <div class="text-xs text-black font-black uppercase tracking-wider mt-1">Jawaban Salah</div>
                 </div>
                 @if($pendingAnswers > 0)
-                <div class="stat-card bg-amber-50 border border-amber-100 rounded-2xl p-4 text-center">
-                    <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-amber-100 mb-2">
-                        <i class="fas fa-hourglass-half text-amber-600"></i>
+                <div class="stat-card rounded-2xl p-4 text-center border-2 border-black shadow-md" style="background-color: #fef08a !important;">
+                    <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-black text-amber-400 mb-2 border border-black">
+                        <i class="fas fa-hourglass-half text-amber-400 text-lg"></i>
                     </div>
-                    <div class="text-2xl font-bold text-amber-700">{{ $pendingAnswers }}</div>
-                    <div class="text-xs text-amber-600 font-medium mt-0.5">Menunggu Dinilai</div>
+                    <div class="text-3xl font-black text-black leading-none">{{ $pendingAnswers }}</div>
+                    <div class="text-xs text-black font-black uppercase tracking-wider mt-1">Menunggu Dinilai</div>
                 </div>
                 @endif
-                <div class="stat-card bg-blue-50 border border-blue-100 rounded-2xl p-4 text-center">
-                    <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-100 mb-2">
-                        <i class="fas fa-list-ol text-blue-600"></i>
+                <div class="stat-card rounded-2xl p-4 text-center border-2 border-black shadow-md" style="background-color: #e0f2fe !important;">
+                    <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-black text-blue-400 mb-2 border border-black">
+                        <i class="fas fa-list-ol text-blue-400 text-lg"></i>
                     </div>
-                    <div class="text-2xl font-bold text-blue-700">{{ $totalQuestions }}</div>
-                    <div class="text-xs text-blue-600 font-medium mt-0.5">Total Soal</div>
+                    <div class="text-3xl font-black text-black leading-none">{{ $totalQuestions }}</div>
+                    <div class="text-xs text-black font-black uppercase tracking-wider mt-1">Total Soal</div>
                 </div>
             </div>
 
             {{-- Info Row --}}
-            <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-6 text-sm">
-                <div class="flex items-center gap-2 text-gray-500 bg-gray-50 px-4 py-2 rounded-xl">
-                    <i class="fas fa-bullseye text-purple-500"></i>
-                    <span>Passing: <span class="font-semibold text-gray-700">{{ $quiz->passing_score }}%</span></span>
+            <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-6 text-sm font-black">
+                <div class="flex items-center gap-2 text-black bg-slate-100 border border-black px-4 py-2 rounded-xl shadow-sm">
+                    <i class="fas fa-bullseye text-black"></i>
+                    <span>Batas Lulus: <span class="font-black text-black">{{ $quiz->passing_score }}%</span></span>
                 </div>
-                <div class="flex items-center gap-2 text-gray-500 bg-gray-50 px-4 py-2 rounded-xl">
-                    <i class="fas fa-redo text-blue-500"></i>
-                    <span>Percobaan ke-<span class="font-semibold text-gray-700">{{ $attempt->id }}</span></span>
+                <div class="flex items-center gap-2 text-black bg-slate-100 border border-black px-4 py-2 rounded-xl shadow-sm">
+                    <i class="fas fa-redo text-black"></i>
+                    <span>Percobaan Ujian: <span class="font-black text-black">#{{ $attempt->id }}</span></span>
                 </div>
-                <div class="flex items-center gap-2 text-gray-500 bg-gray-50 px-4 py-2 rounded-xl">
-                    <i class="fas fa-calendar-check text-teal-500"></i>
-                    <span class="font-semibold text-gray-700">{{ $attempt->finished_at ? $attempt->finished_at->format('d M Y H:i') : '-' }}</span>
+                <div class="flex items-center gap-2 text-black bg-slate-100 border border-black px-4 py-2 rounded-xl shadow-sm">
+                    <i class="fas fa-calendar-check text-black"></i>
+                    <span class="font-black text-black">{{ $attempt->finished_at ? $attempt->finished_at->format('d M Y H:i') : '-' }}</span>
                 </div>
             </div>
 
@@ -226,13 +214,13 @@
                 $remaining = $quiz->getRemainingAttempts($student->id);
             @endphp
             @if($remaining === null || $remaining > 0)
-            <div class="mt-8 text-center result-fadeIn" style="animation-delay: 1.2s">
+            <div class="mt-8 text-center">
                 <a href="{{ route('siswa.lms.quizzes.start', $quiz->id) }}"
-                   class="inline-flex items-center gap-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-3.5 rounded-2xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-200 font-semibold hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0">
-                    <i class="fas fa-redo"></i>
-                    Coba Lagi
+                   class="inline-flex items-center gap-3 bg-black hover:bg-amber-400 hover:text-black text-white px-8 py-4 rounded-2xl transition-all shadow-md border-2 border-black font-black text-sm uppercase tracking-wider">
+                    <i class="fas fa-redo text-base"></i>
+                    Coba Ulang Ujian
                     @if($remaining !== null)
-                    <span class="text-xs bg-white/20 px-2.5 py-1 rounded-lg">{{ $remaining }}x tersisa</span>
+                    <span class="text-xs bg-amber-400 text-black px-2.5 py-1 rounded-lg border border-black">{{ $remaining }}x tersisa</span>
                     @endif
                 </a>
             </div>
@@ -242,62 +230,60 @@
 
     {{-- ===== ANSWER REVIEW SECTION ===== --}}
     @if($quiz->show_result && isset($attempt->answers))
-    <div class="space-y-5 result-fadeIn" style="animation-delay: 0.5s">
+    <div class="space-y-5">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center shadow-lg">
-                <i class="fas fa-clipboard-list text-white text-sm"></i>
+            <div class="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-md border-2 border-black">
+                <i class="fas fa-clipboard-list text-amber-400 text-lg"></i>
             </div>
             <div>
-                <h3 class="font-bold text-gray-800 text-lg">Review Jawaban</h3>
-                <p class="text-xs text-gray-400">Lihat detail jawaban Anda per soal</p>
+                <h3 class="font-black text-black text-xl">Review Jawaban Ujian</h3>
+                <p class="text-xs font-bold text-black">Lihat evaluasi detail jawaban Anda per nomor soal</p>
             </div>
         </div>
 
         @foreach($attempt->answers as $aIdx => $answer)
         @php
             $answerState = $answer->is_correct === true ? 'correct' : ($answer->is_correct === false ? 'wrong' : 'pending');
+            $bgColor = match($answerState) {
+                'correct' => '#f0fdf4',
+                'wrong' => '#fff1f2',
+                'pending' => '#fefce8'
+            };
         @endphp
-        <div class="review-card bg-white rounded-2xl shadow-sm border-2 overflow-hidden
-                    {{ $answerState === 'correct' ? 'border-emerald-200' : ($answerState === 'wrong' ? 'border-rose-200' : 'border-amber-200') }}"
+        <div class="review-card bg-white rounded-3xl shadow-md border-2 border-black overflow-hidden"
              style="animation-delay: {{ 0.7 + ($aIdx * 0.08) }}s">
 
             {{-- Card accent bar --}}
-            <div class="h-1 {{ $answerState === 'correct' ? 'bg-gradient-to-r from-emerald-400 to-teal-400' : ($answerState === 'wrong' ? 'bg-gradient-to-r from-rose-400 to-pink-400' : 'bg-gradient-to-r from-amber-400 to-yellow-400') }}"></div>
+            <div class="h-2 border-b-2 border-black" style="background-color: {{ $answerState === 'correct' ? '#059669' : ($answerState === 'wrong' ? '#dc2626' : '#d97706') }} !important;"></div>
 
-            <div class="p-5">
+            <div class="p-6">
                 <div class="flex items-start gap-4">
                     {{-- Status circle --}}
                     <div class="flex-shrink-0">
-                        <div class="w-11 h-11 rounded-full flex items-center justify-center shadow-md
-                                    {{ $answerState === 'correct'
-                                        ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-200'
-                                        : ($answerState === 'wrong'
-                                            ? 'bg-gradient-to-br from-rose-400 to-rose-600 shadow-rose-200'
-                                            : 'bg-gradient-to-br from-amber-400 to-amber-500 shadow-amber-200') }}">
-                            <i class="fas {{ $answerState === 'correct' ? 'fa-check' : ($answerState === 'wrong' ? 'fa-times' : 'fa-hourglass-half') }} text-white text-sm"></i>
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md border-2 border-black"
+                             style="background-color: {{ $answerState === 'correct' ? '#059669' : ($answerState === 'wrong' ? '#dc2626' : '#d97706') }} !important; color: #ffffff !important;">
+                            <i class="fas {{ $answerState === 'correct' ? 'fa-check' : ($answerState === 'wrong' ? 'fa-times' : 'fa-hourglass-half') }} text-white text-xl"></i>
                         </div>
                     </div>
 
                     {{-- Content --}}
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-3">
-                            <p class="font-medium text-gray-800 leading-relaxed">{{ $answer->question->question ?? 'Soal tidak tersedia' }}</p>
-                            <span class="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold
-                                        {{ $answerState === 'correct' ? 'bg-emerald-50 text-emerald-700' : ($answerState === 'wrong' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
-                                <i class="fas fa-star text-[9px]"></i>
-                                {{ $answer->score ?? 0 }}/{{ $answer->question->score ?? 0 }}
+                            <p class="font-black text-black text-base md:text-lg leading-relaxed">{{ $answer->question->question ?? 'Soal tidak tersedia' }}</p>
+                            <span class="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black border border-black shadow-sm" style="background-color: #fef08a !important; color: #000000 !important;">
+                                <i class="fas fa-star text-black text-[10px]"></i>
+                                {{ $answer->score ?? 0 }}/{{ $answer->question->score ?? 0 }} Poin
                             </span>
                         </div>
 
-                        <div class="mt-3 space-y-2">
+                        <div class="mt-4 space-y-2.5">
                             {{-- Student's answer --}}
-                            <div class="flex items-start gap-2 text-sm">
-                                <span class="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center mt-0.5
-                                            {{ $answerState === 'correct' ? 'bg-emerald-100 text-emerald-600' : ($answerState === 'wrong' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600') }}">
-                                    <i class="fas {{ $answerState === 'correct' ? 'fa-check' : ($answerState === 'wrong' ? 'fa-times' : 'fa-hourglass-half') }} text-[10px]"></i>
+                            <div class="p-3.5 rounded-2xl border-2 border-black flex items-start gap-3" style="background-color: {{ $bgColor }} !important;">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center mt-0.5 border border-black bg-black text-white">
+                                    <i class="fas {{ $answerState === 'correct' ? 'fa-check text-emerald-400' : ($answerState === 'wrong' ? 'fa-times text-rose-400' : 'fa-hourglass-half text-amber-400') }} text-xs"></i>
                                 </span>
                                 <div>
-                                    <span class="text-gray-500 text-xs">Jawaban Anda:</span>
+                                    <span class="text-black text-xs font-black uppercase tracking-wider">Jawaban Anda:</span>
                                     @php
                                         // Resolve display text for index-based answers
                                         $displayAnswer = $answer->answer ?? '-';
@@ -322,18 +308,18 @@
                                             }
                                         }
                                     @endphp
-                                    <p class="font-medium {{ $answerState === 'correct' ? 'text-emerald-700' : ($answerState === 'wrong' ? 'text-rose-700' : 'text-amber-700') }}">{{ $displayAnswer }}</p>
+                                    <p class="font-black text-black text-sm md:text-base mt-0.5">{{ $displayAnswer }}</p>
                                 </div>
                             </div>
 
                             {{-- Correct answer (if wrong) --}}
                             @if($answerState === 'wrong' && $answer->question)
-                            <div class="flex items-start gap-2 text-sm">
-                                <span class="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center bg-emerald-100 text-emerald-600 mt-0.5">
-                                    <i class="fas fa-check text-[10px]"></i>
+                            <div class="p-3.5 rounded-2xl border-2 border-black flex items-start gap-3" style="background-color: #d1fae5 !important;">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center bg-black text-emerald-400 mt-0.5 border border-black">
+                                    <i class="fas fa-check text-xs"></i>
                                 </span>
                                 <div>
-                                    <span class="text-gray-500 text-xs">Jawaban Benar:</span>
+                                    <span class="text-black text-xs font-black uppercase tracking-wider">Jawaban Yang Benar:</span>
                                     @php
                                         $correctDisplay = $answer->question->correct_answer;
                                         if ($answer->question->question_type === 'multiple_choice' && $answer->question->options) {
@@ -355,16 +341,16 @@
                                             }
                                         }
                                     @endphp
-                                    <p class="font-medium text-emerald-700">{{ $correctDisplay }}</p>
+                                    <p class="font-black text-black text-sm md:text-base mt-0.5">{{ $correctDisplay }}</p>
                                 </div>
                             </div>
                             @elseif($answerState === 'pending' && $answer->question)
-                            <div class="flex items-start gap-2 text-sm">
-                                <span class="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center bg-amber-100 text-amber-600 mt-0.5">
-                                    <i class="fas fa-clock text-[10px]"></i>
+                            <div class="p-3.5 rounded-2xl border-2 border-black flex items-start gap-3" style="background-color: #fef08a !important;">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center bg-black text-amber-400 mt-0.5 border border-black">
+                                    <i class="fas fa-clock text-xs"></i>
                                 </span>
                                 <div>
-                                    <span class="text-amber-600 text-xs font-medium">Menunggu penilaian dari guru</span>
+                                    <span class="text-black text-xs font-black uppercase tracking-wider">Menunggu Penilaian Esai Dari Guru</span>
                                 </div>
                             </div>
                             @endif
@@ -378,11 +364,11 @@
     @endif
 
     {{-- ===== BACK TO COURSE BUTTON ===== --}}
-    <div class="result-fadeIn" style="animation-delay: 1s">
+    <div class="pt-4">
         <a href="{{ route('siswa.lms.show', $course->id) }}?tab=quizzes"
-           class="inline-flex items-center gap-3 bg-white border-2 border-gray-200 text-gray-700 px-6 py-3.5 rounded-2xl hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 transition-all font-semibold group shadow-sm hover:shadow-md">
-            <i class="fas fa-arrow-left transition-transform group-hover:-translate-x-1"></i>
-            Kembali ke Course
+           class="inline-flex items-center gap-3 bg-black hover:bg-amber-400 hover:text-black text-white px-7 py-4 rounded-2xl transition-all font-black text-sm uppercase tracking-wider border-2 border-black shadow-md">
+            <i class="fas fa-arrow-left text-base"></i>
+            Kembali ke Ruang Belajar Kelas
         </a>
     </div>
 

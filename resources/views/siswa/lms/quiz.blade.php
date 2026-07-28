@@ -130,30 +130,30 @@
 @section('content')
 <div x-data="quizApp()" x-init="initQuiz()" class="relative">
 
-    {{-- ===== FLOATING TIMER BAR ===== --}}
+    {{-- ===== FLOATING TIMER BAR (UI UX PRO MAX SOLID STYLING) ===== --}}
     <div class="sticky top-0 z-50 -mx-4 sm:-mx-6 lg:-mx-8 mb-6">
-        <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-xl">
+        <div class="shadow-xl border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between py-3">
+                <div class="flex items-center justify-between py-3.5">
                     {{-- Left: Course & Quiz info --}}
-                    <div class="flex items-center gap-3 min-w-0 flex-1">
-                        <div class="hidden sm:flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 flex-shrink-0">
-                            <i class="fas fa-file-alt text-purple-400"></i>
+                    <div class="flex items-center gap-3.5 min-w-0 flex-1">
+                        <div class="hidden sm:flex items-center justify-center w-11 h-11 rounded-2xl flex-shrink-0 border-2 border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                            <i class="fas fa-file-alt text-xl text-black"></i>
                         </div>
                         <div class="min-w-0">
-                            <h1 class="text-white font-bold text-sm sm:text-base truncate">{{ $quiz->title }}</h1>
-                            <p class="text-slate-400 text-xs truncate">{{ $course->name }} · Percobaan #{{ $attempt->id }}</p>
+                            <h1 class="text-white font-black text-base sm:text-lg truncate tracking-wide">{{ $quiz->title }}</h1>
+                            <p class="text-amber-400 font-bold text-xs truncate">{{ $course->name }} · Percobaan Ujian #{{ $attempt->id }}</p>
                         </div>
                     </div>
 
                     {{-- Center: Progress --}}
-                    <div class="hidden md:flex items-center gap-2 px-4">
-                        <div class="text-xs text-slate-400">
-                            <span class="text-white font-semibold" x-text="answeredCount"></span>
-                            <span>dari {{ count($questions) }} dijawab</span>
+                    <div class="hidden md:flex items-center gap-3 px-4">
+                        <div class="text-xs text-white font-black uppercase tracking-wider">
+                            <span class="text-amber-300 font-black text-sm" x-text="answeredCount"></span>
+                            <span>/ {{ count($questions) }} Soal Terjawab</span>
                         </div>
-                        <div class="w-32 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full transition-all duration-500"
+                        <div class="w-36 h-3 bg-slate-800 border border-slate-600 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-500 border border-black" style="background-color: #fbbf24 !important;"
                                  :style="'width:' + (answeredCount / {{ count($questions) }} * 100) + '%'"></div>
                         </div>
                     </div>
@@ -162,10 +162,9 @@
                     @if($quiz->time_limit)
                     <div class="flex items-center gap-2 flex-shrink-0">
                         <div :class="timerClass"
-                             class="px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-500"
-                             :style="timerSeconds <= 120 ? '' : ''">
-                            <i class="fas fa-stopwatch text-white/80 text-sm"></i>
-                            <span id="timer" class="text-white font-mono font-bold text-lg tracking-wider"
+                             class="px-5 py-2.5 rounded-2xl flex items-center gap-2.5 transition-all duration-500 border-2 border-black shadow-md">
+                            <i class="fas fa-stopwatch text-white text-base"></i>
+                            <span id="timer" class="text-white font-mono font-black text-xl tracking-wider"
                                   :class="{ 'timer-gentle-pulse': timerSeconds <= 120 }"
                                   x-text="timerDisplay">{{ $quiz->time_limit }}:00</span>
                         </div>
@@ -176,11 +175,11 @@
         </div>
 
         {{-- Anti-Cheat Info Banner --}}
-        <div class="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-amber-500/10 border-b border-amber-200/30">
+        <div class="border-b-2 border-black shadow-md" style="background-color: #fef08a !important;">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-center gap-2 py-1.5 text-xs text-amber-700">
-                    <i class="fas fa-shield-alt text-amber-500"></i>
-                    <span>Aktivitas tab dipantau oleh sistem · Jangan berpindah tab selama ujian berlangsung</span>
+                <div class="flex items-center justify-center gap-2 py-2 text-xs text-black font-black uppercase tracking-wide">
+                    <i class="fas fa-shield-alt text-black text-sm"></i>
+                    <span>Sistem Pengawasan Ujian Aktif · Dilarang berpindah tab atau meminimalkan browser selama ujian!</span>
                 </div>
             </div>
         </div>
@@ -192,35 +191,35 @@
         {{-- Questions Column --}}
         <div class="flex-1 min-w-0">
             <form id="quizForm" action="{{ route('siswa.lms.quizzes.submit', $attempt->id) }}" method="POST"
-                  class="space-y-5" onsubmit="return confirm('Yakin ingin mengumpulkan jawaban? Anda tidak bisa mengubah jawaban setelah submit.')">
+                  class="space-y-6" onsubmit="return confirm('Yakin ingin mengumpulkan jawaban ujian ini? Anda tidak bisa mengubah jawaban setelah dikumpulkan.')">
                 @csrf
 
                 @foreach($questions as $i => $question)
                 @php $existingAnswer = $answerMap[$question->id] ?? null; @endphp
                 <div id="question-{{ $i }}"
-                     class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden quiz-fadeIn"
+                     class="bg-white rounded-3xl shadow-md border-2 border-black overflow-hidden quiz-fadeIn"
                      style="animation-delay: {{ $i * 0.06 }}s"
-                     :class="{ 'ring-2 ring-amber-400 border-amber-200': flagged.includes({{ $i }}) }">
+                     :class="{ 'ring-4 ring-amber-400 border-black': flagged.includes({{ $i }}) }">
 
                     {{-- Question Header --}}
-                    <div class="flex items-center justify-between px-5 pt-5 pb-3">
+                    <div class="flex items-center justify-between px-6 pt-6 pb-3 border-b-2 border-slate-100">
                         <div class="flex items-center gap-3">
-                            <span class="q-number-badge text-white w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-lg">
+                            <span class="w-11 h-11 rounded-2xl flex items-center justify-center text-white text-base font-black flex-shrink-0 shadow-md border-2 border-black" style="background-color: #1e3a8a !important;">
                                 {{ $i + 1 }}
                             </span>
                             <div class="flex items-center gap-2 flex-wrap">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">
-                                    <i class="fas fa-star text-[10px]"></i> {{ $question->score }} poin
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black border border-black" style="background-color: #fef08a !important; color: #000000 !important;">
+                                    <i class="fas fa-star text-black text-[10px]"></i> {{ $question->score }} Poin
                                 </span>
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-50 text-slate-600 border border-slate-100">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black border border-black" style="background-color: #e0f2fe !important; color: #000000 !important;">
                                     @if($question->question_type === 'multiple_choice')
-                                        <i class="fas fa-list-ul text-[10px]"></i> Pilihan Ganda
+                                        <i class="fas fa-list-ul text-black text-[10px]"></i> Pilihan Ganda
                                     @elseif($question->question_type === 'true_false')
-                                        <i class="fas fa-toggle-on text-[10px]"></i> Benar/Salah
+                                        <i class="fas fa-toggle-on text-black text-[10px]"></i> Benar/Salah
                                     @elseif($question->question_type === 'short_answer')
-                                        <i class="fas fa-pencil-alt text-[10px]"></i> Jawaban Singkat
+                                        <i class="fas fa-pencil-alt text-black text-[10px]"></i> Jawaban Singkat
                                     @elseif($question->question_type === 'essay')
-                                        <i class="fas fa-align-left text-[10px]"></i> Essay
+                                        <i class="fas fa-align-left text-black text-[10px]"></i> Essay
                                     @endif
                                 </span>
                             </div>
@@ -228,26 +227,26 @@
                         {{-- Flag button --}}
                         <button type="button"
                                 @click="toggleFlag({{ $i }})"
-                                :class="flagged.includes({{ $i }}) ? 'bg-amber-100 text-amber-600 border-amber-300' : 'bg-gray-50 text-gray-400 border-gray-200 hover:text-amber-500 hover:bg-amber-50'"
-                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200">
-                            <i class="fas fa-flag text-[11px]"></i>
-                            <span class="hidden sm:inline" x-text="flagged.includes({{ $i }}) ? 'Ditandai' : 'Tandai Ragu'"></span>
+                                :class="flagged.includes({{ $i }}) ? 'bg-amber-400 text-black border-2 border-black font-black' : 'bg-slate-100 text-black border-2 border-black hover:bg-amber-300 font-bold'"
+                                class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs transition-all shadow-sm">
+                            <i class="fas fa-flag text-xs"></i>
+                            <span class="hidden sm:inline" x-text="flagged.includes({{ $i }}) ? 'Ragu-ragu (Ditandai)' : 'Tandai Ragu'"></span>
                         </button>
                     </div>
 
                     {{-- Question Text --}}
-                    <div class="px-5 pb-4">
-                        <p class="text-gray-800 font-medium leading-relaxed">{{ $question->question }}</p>
+                    <div class="px-6 py-4">
+                        <p class="text-black font-black text-base md:text-lg leading-relaxed">{!! nl2br(e($question->question)) !!}</p>
                         
                         {{-- Media Display --}}
                         @if($question->image_path)
-                        <div class="mt-3 max-w-lg rounded-xl overflow-hidden shadow-sm border border-gray-200 bg-white">
-                            <img src="{{ asset('storage/' . $question->image_path) }}" class="w-full h-auto object-contain max-h-[350px]" alt="Gambar Pendukung">
+                        <div class="mt-4 max-w-xl rounded-2xl overflow-hidden shadow-md border-2 border-black bg-white">
+                            <img src="{{ asset('storage/' . $question->image_path) }}" class="w-full h-auto object-contain max-h-[380px]" alt="Gambar Soal">
                         </div>
                         @endif
                         
                         @if($question->video_url)
-                        <div class="mt-3 max-w-lg rounded-xl overflow-hidden shadow-sm border border-gray-200 bg-black">
+                        <div class="mt-4 max-w-xl rounded-2xl overflow-hidden shadow-md border-2 border-black bg-black">
                             @php
                                 $isYoutube = preg_match('/(youtube\.com|youtu\.be)/i', $question->video_url);
                                 $embedUrl = '';
@@ -265,7 +264,7 @@
                                     <iframe class="w-full h-full" src="{{ $embedUrl }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                                 </div>
                             @else
-                                <video class="w-full h-auto object-contain max-h-[350px]" controls preload="metadata">
+                                <video class="w-full h-auto object-contain max-h-[380px]" controls preload="metadata">
                                     <source src="{{ $question->video_url }}" type="video/mp4">
                                     Browser Anda tidak mendukung tag video.
                                 </video>
@@ -275,13 +274,13 @@
                     </div>
 
                     {{-- Answer Options --}}
-                    <div class="px-5 pb-5">
+                    <div class="px-6 pb-6">
                         @php
                             $options = $quiz->shuffle_questions ? $question->getShuffledOptions($attempt->id) : $question->options;
                         @endphp
 
                         @if($question->question_type === 'multiple_choice' && $options)
-                        <div class="space-y-2">
+                        <div class="space-y-2.5">
                             @foreach($options as $idx => $opt)
                             @php
                                 $alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
@@ -292,42 +291,42 @@
                                 $showLabel = $isAssoc || ($optLabel !== $optText);
                                 $isChecked = ($existingAnswer && (string)$existingAnswer->answer === (string)$optValue);
                             @endphp
-                            <label class="quiz-option flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200
-                                          {{ $isChecked ? 'selected border-purple-300 bg-purple-50/50' : 'border-transparent hover:border-purple-100' }}"
+                            <label class="quiz-option flex items-center gap-3.5 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 shadow-sm
+                                          {{ $isChecked ? 'selected border-black bg-purple-200 text-black font-black shadow-md' : 'border-slate-300 bg-white hover:bg-amber-100 hover:border-black text-black font-bold' }}"
                                    @click="markAnswered({{ $question->id }})">
                                 <input type="radio" name="answers[{{ $question->id }}]" value="{{ $optValue }}"
                                        {{ $isChecked ? 'checked' : '' }}
                                        @change="markAnswered({{ $question->id }})"
-                                       class="text-purple-600 focus:ring-purple-500">
+                                       class="w-5 h-5 text-black border-2 border-black focus:ring-black">
                                 @if($showLabel)
-                                <span class="flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 text-gray-600 text-xs font-bold flex-shrink-0">{{ $optLabel }}</span>
+                                <span class="flex items-center justify-center w-8 h-8 rounded-xl bg-black text-white text-xs font-black flex-shrink-0 border border-black">{{ $optLabel }}</span>
                                 @endif
-                                <span class="text-sm text-gray-700">{{ $optText }}</span>
+                                <span class="text-sm md:text-base text-black font-extrabold leading-snug">{{ $optText }}</span>
                             </label>
                             @endforeach
                         </div>
 
                         @elseif($question->question_type === 'true_false')
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="quiz-option flex items-center justify-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
-                                          {{ ($existingAnswer && $existingAnswer->answer === 'true') ? 'selected border-emerald-300 bg-emerald-50/50' : 'border-gray-200 hover:border-emerald-200' }}"
+                        <div class="grid grid-cols-2 gap-4">
+                            <label class="quiz-option flex items-center justify-center gap-3 p-4.5 rounded-2xl border-2 cursor-pointer transition-all duration-200 shadow-sm
+                                          {{ ($existingAnswer && $existingAnswer->answer === 'true') ? 'selected border-black bg-emerald-300 text-black font-black shadow-md' : 'border-slate-300 bg-white hover:bg-emerald-100 hover:border-black text-black font-bold' }}"
                                    @click="markAnswered({{ $question->id }})">
                                 <input type="radio" name="answers[{{ $question->id }}]" value="true"
                                        {{ ($existingAnswer && $existingAnswer->answer === 'true') ? 'checked' : '' }}
                                        @change="markAnswered({{ $question->id }})"
-                                       class="text-purple-600">
-                                <i class="fas fa-check-circle text-emerald-500"></i>
-                                <span class="text-sm font-medium">Benar</span>
+                                       class="w-5 h-5 text-black border-2 border-black focus:ring-black">
+                                <i class="fas fa-check-circle text-emerald-700 text-lg"></i>
+                                <span class="text-base font-black text-black">BENAR</span>
                             </label>
-                            <label class="quiz-option flex items-center justify-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
-                                          {{ ($existingAnswer && $existingAnswer->answer === 'false') ? 'selected border-rose-300 bg-rose-50/50' : 'border-gray-200 hover:border-rose-200' }}"
+                            <label class="quiz-option flex items-center justify-center gap-3 p-4.5 rounded-2xl border-2 cursor-pointer transition-all duration-200 shadow-sm
+                                          {{ ($existingAnswer && $existingAnswer->answer === 'false') ? 'selected border-black bg-rose-300 text-black font-black shadow-md' : 'border-slate-300 bg-white hover:bg-rose-100 hover:border-black text-black font-bold' }}"
                                    @click="markAnswered({{ $question->id }})">
                                 <input type="radio" name="answers[{{ $question->id }}]" value="false"
                                        {{ ($existingAnswer && $existingAnswer->answer === 'false') ? 'checked' : '' }}
                                        @change="markAnswered({{ $question->id }})"
-                                       class="text-purple-600">
-                                <i class="fas fa-times-circle text-rose-500"></i>
-                                <span class="text-sm font-medium">Salah</span>
+                                       class="w-5 h-5 text-black border-2 border-black focus:ring-black">
+                                <i class="fas fa-times-circle text-rose-700 text-lg"></i>
+                                <span class="text-base font-black text-black">SALAH</span>
                             </label>
                         </div>
 
@@ -336,16 +335,16 @@
                             <input type="text" name="answers[{{ $question->id }}]"
                                    value="{{ $existingAnswer->answer ?? '' }}"
                                    @input="markAnswered({{ $question->id }})"
-                                   class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all math-support"
-                                   placeholder="Ketik jawaban singkat di sini...">
+                                   class="w-full border-2 border-black rounded-2xl px-5 py-4 text-base font-black focus:ring-4 focus:ring-black/20 outline-none text-black bg-white math-support shadow-inner"
+                                   placeholder="Ketik jawaban singkat Anda di sini...">
                         </div>
 
                         @elseif($question->question_type === 'essay')
                         <div>
                             <textarea name="answers[{{ $question->id }}]" rows="5"
                                       @input="markAnswered({{ $question->id }})"
-                                      class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all resize-y math-support"
-                                      placeholder="Tulis jawaban essay Anda di sini...">{{ $existingAnswer->answer ?? '' }}</textarea>
+                                      class="w-full border-2 border-black rounded-2xl px-5 py-4 text-base font-bold focus:ring-4 focus:ring-black/20 outline-none text-black bg-white resize-y math-support shadow-inner"
+                                      placeholder="Tuliskan penjelasan jawaban essay Anda secara rinci di sini...">{{ $existingAnswer->answer ?? '' }}</textarea>
                         </div>
                         @endif
                     </div>
@@ -360,11 +359,11 @@
         {{-- ===== QUESTION NAVIGATOR — Desktop Sidebar ===== --}}
         <div class="hidden lg:block w-64 flex-shrink-0">
             <div class="sticky top-36 nav-slide">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="bg-gradient-to-r from-slate-800 to-slate-900 px-4 py-3">
+                <div class="bg-white rounded-3xl shadow-lg border-2 border-black overflow-hidden">
+                    <div class="px-4 py-3.5 border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-white text-sm font-semibold"><i class="fas fa-th mr-1.5"></i> Navigasi Soal</h3>
-                            <span class="text-xs text-slate-400"><span class="text-emerald-400 font-semibold" x-text="answeredCount"></span>/{{ count($questions) }}</span>
+                            <h3 class="text-white text-xs font-black uppercase tracking-wider"><i class="fas fa-th mr-1.5 text-amber-400"></i> Navigasi Soal</h3>
+                            <span class="text-xs text-amber-300 font-black"><span x-text="answeredCount"></span>/{{ count($questions) }}</span>
                         </div>
                     </div>
                     <div class="p-4 nav-panel max-h-[60vh] overflow-y-auto">
@@ -373,25 +372,25 @@
                             <button type="button"
                                     @click="scrollToQuestion({{ $i }})"
                                     :class="{
-                                        'bg-emerald-500 text-white shadow-emerald-200 shadow-md': answered.includes({{ $question->id }}) && !flagged.includes({{ $i }}),
-                                        'bg-amber-400 text-white shadow-amber-200 shadow-md': flagged.includes({{ $i }}),
-                                        'bg-gray-100 text-gray-500 hover:bg-gray-200': !answered.includes({{ $question->id }}) && !flagged.includes({{ $i }})
+                                        'bg-emerald-500 text-white border-2 border-black font-black shadow-md': answered.includes({{ $question->id }}) && !flagged.includes({{ $i }}),
+                                        'bg-amber-400 text-black border-2 border-black font-black shadow-md': flagged.includes({{ $i }}),
+                                        'bg-slate-100 text-black border-2 border-black font-black hover:bg-amber-300': !answered.includes({{ $question->id }}) && !flagged.includes({{ $i }})
                                     }"
-                                    class="w-full aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 hover:scale-110">
+                                    class="w-full aspect-square rounded-xl flex items-center justify-center text-xs transition-all duration-200 hover:scale-110">
                                 {{ $i + 1 }}
                             </button>
                             @endforeach
                         </div>
                         {{-- Legend --}}
-                        <div class="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
-                            <div class="flex items-center gap-2 text-xs text-gray-500">
-                                <span class="w-3 h-3 rounded bg-emerald-500 flex-shrink-0"></span> Dijawab
+                        <div class="mt-4 pt-3 border-t-2 border-slate-100 space-y-2">
+                            <div class="flex items-center gap-2 text-xs font-black text-black">
+                                <span class="w-3.5 h-3.5 rounded bg-emerald-500 border border-black flex-shrink-0"></span> Dijawab
                             </div>
-                            <div class="flex items-center gap-2 text-xs text-gray-500">
-                                <span class="w-3 h-3 rounded bg-amber-400 flex-shrink-0"></span> Ditandai Ragu
+                            <div class="flex items-center gap-2 text-xs font-black text-black">
+                                <span class="w-3.5 h-3.5 rounded bg-amber-400 border border-black flex-shrink-0"></span> Ragu-ragu
                             </div>
-                            <div class="flex items-center gap-2 text-xs text-gray-500">
-                                <span class="w-3 h-3 rounded bg-gray-200 flex-shrink-0"></span> Belum Dijawab
+                            <div class="flex items-center gap-2 text-xs font-black text-black">
+                                <span class="w-3.5 h-3.5 rounded bg-slate-100 border border-black flex-shrink-0"></span> Belum Dijawab
                             </div>
                         </div>
                     </div>
@@ -401,20 +400,20 @@
     </div>
 
     {{-- ===== QUESTION NAVIGATOR — Mobile Bottom Bar ===== --}}
-    <div class="lg:hidden fixed bottom-16 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg"
+    <div class="lg:hidden fixed bottom-16 left-0 right-0 z-40 bg-white border-t-2 border-black shadow-2xl"
          x-show="showMobileNav" x-transition
          @click.away="showMobileNav = false">
-        <div class="px-4 py-3 max-h-48 overflow-y-auto">
-            <div class="grid grid-cols-8 gap-2">
+        <div class="px-4 py-4 max-h-56 overflow-y-auto">
+            <div class="grid grid-cols-6 gap-2">
                 @foreach($questions as $i => $question)
                 <button type="button"
                         @click="scrollToQuestion({{ $i }}); showMobileNav = false"
                         :class="{
-                            'bg-emerald-500 text-white': answered.includes({{ $question->id }}) && !flagged.includes({{ $i }}),
-                            'bg-amber-400 text-white': flagged.includes({{ $i }}),
-                            'bg-gray-100 text-gray-500': !answered.includes({{ $question->id }}) && !flagged.includes({{ $i }})
+                            'bg-emerald-500 text-white border-2 border-black font-black': answered.includes({{ $question->id }}) && !flagged.includes({{ $i }}),
+                            'bg-amber-400 text-black border-2 border-black font-black': flagged.includes({{ $i }}),
+                            'bg-slate-100 text-black border-2 border-black font-black': !answered.includes({{ $question->id }}) && !flagged.includes({{ $i }})
                         }"
-                        class="aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all">
+                        class="aspect-square rounded-xl flex items-center justify-center text-xs transition-all">
                     {{ $i + 1 }}
                 </button>
                 @endforeach
@@ -423,22 +422,22 @@
     </div>
 
     {{-- ===== STICKY SUBMIT FOOTER ===== --}}
-    <div class="fixed bottom-0 left-0 right-0 z-50 glass-footer shadow-2xl">
+    <div class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-black shadow-2xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between py-3">
                 {{-- Left: Summary --}}
                 <div class="flex items-center gap-4">
                     {{-- Mobile navigator toggle --}}
                     <button type="button" @click="showMobileNav = !showMobileNav"
-                            class="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
-                        <i class="fas fa-th"></i>
+                            class="lg:hidden flex items-center justify-center w-11 h-11 rounded-2xl bg-black text-white hover:bg-amber-400 hover:text-black transition border-2 border-black">
+                        <i class="fas fa-th text-base"></i>
                     </button>
-                    <div class="text-sm text-gray-600">
-                        <span class="font-semibold text-gray-800" x-text="answeredCount"></span><span class="text-gray-400">/{{ count($questions) }}</span>
-                        <span class="text-gray-400 mx-1">soal dijawab</span>
+                    <div class="text-xs sm:text-sm text-black font-black">
+                        <span class="text-black font-black text-base" x-text="answeredCount"></span><span class="text-black">/{{ count($questions) }}</span>
+                        <span class="text-black ml-1">Soal Dijawab</span>
                         <template x-if="flagged.length > 0">
-                            <span class="text-amber-600 font-medium">
-                                · <span x-text="flagged.length"></span> ditandai
+                            <span class="text-black font-black ml-1">
+                                · <span x-text="flagged.length" class="bg-amber-300 px-2 py-0.5 rounded border border-black"></span> Ragu
                             </span>
                         </template>
                     </div>
@@ -447,9 +446,9 @@
                 {{-- Right: Submit --}}
                 <button type="button"
                         @click="submitQuiz()"
-                        class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2.5 rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-200 font-semibold text-sm hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0">
-                    <i class="fas fa-paper-plane"></i>
-                    <span class="hidden sm:inline">Kumpulkan Jawaban</span>
+                        class="inline-flex items-center gap-2 bg-black hover:bg-emerald-600 text-white font-black px-6 py-3 rounded-2xl border-2 border-black transition-all shadow-md text-xs sm:text-sm uppercase tracking-wider">
+                    <i class="fas fa-paper-plane text-sm"></i>
+                    <span class="hidden sm:inline">Kumpulkan Jawaban Ujian</span>
                     <span class="sm:hidden">Kirim</span>
                 </button>
             </div>
