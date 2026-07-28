@@ -123,9 +123,15 @@
                     <a href="{{ route('guru.lms.export-gradebook', $course->id) }}" class="px-3 py-2 text-white rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md border-2 border-black transition-all" style="background-color: #059669 !important;">
                         <i class="fas fa-file-excel text-xs text-white"></i> Ekspor Excel
                     </a>
-                    <a href="{{ route('guru.lms.edit', $course->id) }}" class="w-9 h-9 bg-white border-2 border-black rounded-xl flex items-center justify-center text-black hover:bg-amber-300 transition-all shadow-sm" title="Edit Course">
-                        <i class="fas fa-edit text-xs"></i>
+                    <a href="{{ route('guru.lms.edit', $course->id) }}" class="px-3 py-2 bg-amber-300 hover:bg-amber-400 text-black border-2 border-black rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all" title="Edit Course">
+                        <i class="fas fa-edit text-xs"></i> Edit
                     </a>
+                    <form action="{{ route('guru.lms.destroy', $course->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus course ini? Semua modul dan materi akan terhapus.');">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white border-2 border-black rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all" title="Hapus Course">
+                            <i class="fas fa-trash text-xs"></i> Hapus
+                        </button>
+                    </form>
                 </div>
             </div>
 

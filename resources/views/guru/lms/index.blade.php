@@ -145,12 +145,25 @@
                     </div>
                     @endif
                     
-                    {{-- CTA --}}
-                    <div class="mt-auto">
+                    {{-- CTA Actions (Kelola, Edit, Hapus) --}}
+                    <div class="mt-auto space-y-2">
                         <a href="{{ route('guru.lms.show', $course->id) }}"
                            class="flex items-center justify-center gap-2 w-full bg-black hover:bg-emerald-600 text-white px-4 py-3 rounded-2xl transition-all shadow-md text-xs font-black uppercase tracking-wider border-2 border-black">
-                            <i class="fas fa-arrow-right-to-bracket text-xs"></i> Kelola Ruang Ajar
+                            <i class="fas fa-arrow-right-to-bracket text-xs text-amber-400"></i> Kelola Ruang Ajar
                         </a>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="{{ route('guru.lms.edit', $course->id) }}"
+                               class="flex items-center justify-center gap-1.5 w-full bg-slate-100 hover:bg-amber-300 text-black px-3 py-2 rounded-xl transition-all text-xs font-black border border-black shadow-sm" title="Edit Course">
+                                <i class="fas fa-edit text-xs"></i> Edit
+                            </a>
+                            <form action="{{ route('guru.lms.destroy', $course->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus course \'{{ addslashes($course->name) }}\'? Semua modul dan materi di dalamnya akan terhapus.');">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="flex items-center justify-center gap-1.5 w-full bg-rose-100 hover:bg-rose-600 hover:text-white text-rose-800 px-3 py-2 rounded-xl transition-all text-xs font-black border border-black shadow-sm" title="Hapus Course">
+                                    <i class="fas fa-trash text-xs"></i> Hapus
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

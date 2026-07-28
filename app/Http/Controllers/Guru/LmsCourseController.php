@@ -151,6 +151,19 @@ class LmsCourseController extends Controller
 
         $validated = $request->validated();
 
+        // 🛡️ Anti-Duplicate / Anti-Double Submit Check (within last 15 seconds)
+        $recentDuplicate = LmsCourse::where('teacher_id', $teacher->id)
+            ->where('subject_id', $request->subject_id)
+            ->where('semester_id', $request->semester_id)
+            ->where('course_name', $request->name)
+            ->where('created_at', '>=', now()->subSeconds(15))
+            ->first();
+
+        if ($recentDuplicate) {
+            return redirect()->route('guru.lms.show', $recentDuplicate->id)
+                ->with('success', 'Course berhasil dibuat.');
+        }
+
         $code = 'LMS-' . strtoupper(Str::random(8));
 
         // Use first classroom_id for the direct classroom_id column
@@ -382,7 +395,14 @@ class LmsCourseController extends Controller
     {
         $teacher = $this->getTeacher();
         if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
-            abort(403);
+            abort(403, 'Anda tidak memiliki akses untuk menghapus course ini.');
+        }
+
+        // Clean up linked LMS classes & enrollments safely
+        $lmsClassIds = $course->lmsClasses()->pluck('id');
+        if ($lmsClassIds->isNotEmpty()) {
+            LmsEnrollment::whereIn('lms_class_id', $lmsClassIds)->delete();
+            $course->lmsClasses()->delete();
         }
 
         $course->delete();
