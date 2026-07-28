@@ -80,69 +80,64 @@
     isPinned: false
 }">
     {{-- Premium Hero Header --}}
-    <div class="hero-gradient rounded-2xl p-6 border border-emerald-100/50 fade-up">
+    <div class="rounded-3xl p-6 md:p-8 shadow-md border-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="flex items-center gap-4">
                 <a href="{{ route('guru.lms.show', $course->id) }}?tab=discussions"
-                   class="w-10 h-10 rounded-xl bg-white shadow-sm border border-emerald-100 flex items-center justify-center text-emerald-500 hover:text-emerald-700 hover:shadow-md transition-all duration-300 hover:-translate-x-0.5">
+                   class="w-10 h-10 rounded-2xl bg-white border-2 border-black flex items-center justify-center text-black hover:bg-amber-300 transition-all shadow-sm">
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 <div>
-                    <h2 class="text-2xl font-extrabold gradient-text">Forum Diskusi</h2>
-                    <p class="text-gray-500 text-sm mt-0.5">
-                        <i class="fas fa-book-open mr-1 text-emerald-400"></i>{{ $course->name }}
+                    <h2 class="text-2xl font-black text-white tracking-wide">Forum Diskusi Kelas</h2>
+                    <p class="text-amber-400 font-bold text-xs mt-0.5">
+                        <i class="fas fa-book-open mr-1 text-amber-400"></i>{{ $course->name }}
                     </p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <div class="stat-card bg-white/80 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-emerald-100/50 shadow-sm">
-                    <div class="text-xs text-gray-400 uppercase tracking-wider font-medium">Topik</div>
-                    <div class="text-lg font-bold text-gray-800">{{ $discussions->total() }}</div>
+                <div class="bg-slate-800 rounded-2xl px-4 py-2.5 border-2 border-slate-700 shadow-sm text-center">
+                    <div class="text-[9px] text-amber-300 uppercase tracking-widest font-black">Topik Diskusi</div>
+                    <div class="text-lg font-black text-white">{{ $discussions->total() }}</div>
                 </div>
-                <div class="stat-card bg-white/80 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-emerald-100/50 shadow-sm">
-                    <div class="text-xs text-gray-400 uppercase tracking-wider font-medium">Balasan</div>
-                    <div class="text-lg font-bold text-gray-800">{{ $discussions->sum('replies_count') }}</div>
+                <div class="bg-slate-800 rounded-2xl px-4 py-2.5 border-2 border-slate-700 shadow-sm text-center">
+                    <div class="text-[9px] text-amber-300 uppercase tracking-widest font-black">Total Balasan</div>
+                    <div class="text-lg font-black text-white">{{ $discussions->sum('replies_count') }}</div>
                 </div>
             </div>
         </div>
     </div>
 
     {{-- Create Topic Button + Form --}}
-    <div class="fade-up" style="animation-delay: 0.1s">
+    <div>
         <button @click="showForm = !showForm"
-                class="group inline-flex items-center gap-2.5 bg-gradient-to-r from-cyan-600 to-emerald-600 text-white px-5 py-2.5 rounded-xl hover:from-cyan-700 hover:to-emerald-700 transition-all duration-300 text-sm font-semibold shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:-translate-y-0.5">
-            <i class="fas fa-plus transition-transform duration-300" :class="showForm ? 'rotate-45' : ''"></i>
+                class="inline-flex items-center gap-2.5 bg-black hover:bg-amber-400 hover:text-black text-white border-2 border-black px-6 py-3 rounded-2xl transition-all duration-300 text-xs font-black uppercase tracking-wider shadow-md">
+            <i class="fas fa-plus text-amber-400 transition-transform duration-300" :class="showForm ? 'rotate-45' : ''"></i>
             <span x-text="showForm ? 'Tutup Form' : 'Buat Topik Baru'"></span>
         </button>
 
         <form x-show="showForm"
-              x-transition:enter="transition ease-out duration-300"
-              x-transition:enter-start="opacity-0 -translate-y-4"
-              x-transition:enter-end="opacity-100 translate-y-0"
-              x-transition:leave="transition ease-in duration-200"
-              x-transition:leave-start="opacity-100 translate-y-0"
-              x-transition:leave-end="opacity-0 -translate-y-4"
+              x-transition
               action="{{ route('guru.lms.discussions.store', $course->id) }}" method="POST"
-              class="bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-6 mt-4">
+              class="bg-white rounded-3xl shadow-md border-2 border-black p-6 mt-4">
             @csrf
             <div class="space-y-5">
                 {{-- Type Selector Pills --}}
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Tipe Topik</label>
+                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-3">Tipe Topik Diskusi</label>
                     <div class="flex flex-wrap gap-3">
                         <button type="button" @click="selectedType = 'discussion'"
-                                class="pill-btn inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border-2 transition-all"
-                                :class="selectedType === 'discussion' ? 'bg-cyan-500 text-white border-cyan-500 active shadow-lg shadow-cyan-500/30' : 'bg-white text-gray-600 border-gray-200 hover:border-cyan-300'">
+                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black border-2 border-black uppercase tracking-wider transition-all"
+                                :class="selectedType === 'discussion' ? 'bg-amber-300 text-black' : 'bg-white text-black hover:bg-slate-100'">
                             <i class="fas fa-comments text-xs"></i> Diskusi
                         </button>
                         <button type="button" @click="selectedType = 'question'"
-                                class="pill-btn inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border-2 transition-all"
-                                :class="selectedType === 'question' ? 'bg-amber-500 text-white border-amber-500 active shadow-lg shadow-amber-500/30' : 'bg-white text-gray-600 border-gray-200 hover:border-amber-300'">
+                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black border-2 border-black uppercase tracking-wider transition-all"
+                                :class="selectedType === 'question' ? 'bg-sky-300 text-black' : 'bg-white text-black hover:bg-slate-100'">
                             <i class="fas fa-question-circle text-xs"></i> Pertanyaan
                         </button>
                         <button type="button" @click="selectedType = 'announcement'"
-                                class="pill-btn inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border-2 transition-all"
-                                :class="selectedType === 'announcement' ? 'bg-rose-500 text-white border-rose-500 active shadow-lg shadow-rose-500/30' : 'bg-white text-gray-600 border-gray-200 hover:border-rose-300'">
+                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black border-2 border-black uppercase tracking-wider transition-all"
+                                :class="selectedType === 'announcement' ? 'bg-rose-300 text-black' : 'bg-white text-black hover:bg-slate-100'">
                             <i class="fas fa-bullhorn text-xs"></i> Pengumuman
                         </button>
                     </div>
@@ -151,22 +146,22 @@
 
                 {{-- Title Input --}}
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Judul Topik</label>
+                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">Judul Topik</label>
                     <input type="text" name="title" required placeholder="Tulis judul topik diskusi..."
-                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm input-modern focus:outline-none transition-all duration-300 placeholder-gray-300">
+                           class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                 </div>
 
                 {{-- Content Textarea --}}
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Isi Diskusi</label>
+                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">Isi Diskusi</label>
                     <textarea name="content" required rows="5"
-                              placeholder="Isi diskusi..."
+                              placeholder="Tulis detail pembahasan diskusi..."
                               @input="contentLength = $event.target.value.length"
                               :maxlength="maxLength"
-                              class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm input-modern focus:outline-none transition-all duration-300 resize-none placeholder-gray-300"></textarea>
+                              class="w-full border-2 border-black rounded-2xl p-4 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none resize-none"></textarea>
                     <div class="flex justify-end mt-1">
-                        <span class="text-xs" :class="contentLength > maxLength * 0.9 ? 'text-red-500' : 'text-gray-400'">
-                            <span x-text="contentLength"></span> / <span x-text="maxLength"></span>
+                        <span class="text-xs font-black text-black">
+                            <span x-text="contentLength"></span> / <span x-text="maxLength"></span> Karakter
                         </span>
                     </div>
                 </div>

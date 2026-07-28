@@ -27,37 +27,39 @@
     $droppedCount = $enrollments->where('status', 'dropped')->count();
 @endphp
 
-<div class="space-y-6 fade-in" x-data="{ searchQuery: '' }">
+<div class="space-y-6" x-data="{ searchQuery: '' }">
     {{-- Header --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-            <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                <a href="{{ route('guru.lms.index') }}" class="hover:text-emerald-600 transition-colors">LMS Dashboard</a>
-                <i class="fas fa-chevron-right text-[8px] text-gray-400"></i>
-                <a href="{{ route('guru.lms.show', $course->id) }}" class="hover:text-emerald-600 transition-colors">{{ $course->name }}</a>
-                <i class="fas fa-chevron-right text-[8px] text-gray-400"></i>
-                <span class="text-gray-700">Siswa Terdaftar</span>
+    <div class="rounded-3xl p-6 md:p-8 shadow-md border-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 text-xs font-black text-amber-400 mb-2 uppercase tracking-wider">
+                    <a href="{{ route('guru.lms.index') }}" class="hover:underline text-amber-400">LMS Guru</a>
+                    <i class="fas fa-chevron-right text-[10px] opacity-70"></i>
+                    <a href="{{ route('guru.lms.show', $course->id) }}" class="hover:underline text-amber-400">{{ $course->name }}</a>
+                    <i class="fas fa-chevron-right text-[10px] opacity-70"></i>
+                    <span class="text-white">Data Kelas & Siswa</span>
+                </div>
+                <h1 class="text-2xl font-black text-white tracking-wide">Data Kelas & Siswa Terdaftar</h1>
+                <p class="text-amber-300 font-bold text-xs mt-1">Mengelola siswa terdaftar yang mengikuti course {{ $course->name }}.</p>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Siswa Terdaftar</h1>
-            <p class="text-sm text-gray-500 mt-1">Mengelola siswa terdaftar yang mengikuti course {{ $course->name }}.</p>
-        </div>
-        <div>
-            <a href="{{ route('guru.lms.show', $course->id) }}" class="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all shadow-sm">
-                <i class="fas fa-arrow-left"></i> Kembali ke Course
-            </a>
+            <div>
+                <a href="{{ route('guru.lms.show', $course->id) }}" class="inline-flex items-center gap-2 bg-white text-black border-2 border-black px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-amber-300 transition-all shadow-sm">
+                    <i class="fas fa-arrow-left"></i> Kembali ke Course
+                </a>
+            </div>
         </div>
     </div>
 
     {{-- Alert Messages --}}
     @if(session('success'))
-    <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-        <i class="fas fa-check-circle text-emerald-500"></i> {{ session('success') }}
+    <div class="bg-emerald-200 border-2 border-black text-black px-5 py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-sm">
+        <i class="fas fa-check-circle text-black text-base"></i> {{ session('success') }}
     </div>
     @endif
 
     @if(session('error'))
-    <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-        <i class="fas fa-exclamation-circle text-rose-500"></i> {{ session('error') }}
+    <div class="bg-rose-200 border-2 border-black text-black px-5 py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-sm">
+        <i class="fas fa-exclamation-circle text-black text-base"></i> {{ session('error') }}
     </div>
     @endif
 
