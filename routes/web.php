@@ -946,7 +946,12 @@ Route::get('/run-migrations', function () {
         echo \Illuminate\Support\Facades\Artisan::output();
         echo "\nMonday Inspiration Seeder Exit Code: " . $miSeederExitCode . "\n\n";
 
-        echo "<h1>=== RUNNING SPP TARIFF SEEDER ===</h1>\n";
+        echo "<h1>=== RUNNING MIKROKONTROLER COURSE SEEDER ===</h1>\n";
+        $mikroSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'MikrokontrolerCourseSeeder', '--force' => true]);
+        echo \Illuminate\Support\Facades\Artisan::output();
+        echo "\nMikrokontroler Course Seeder Exit Code: " . $mikroSeederExitCode . "\n\n";
+
+        echo "<h1>=== SPP TARIFF SEEDER ===</h1>\n";
         $sppSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'SppTariffSeeder', '--force' => true]);
         echo \Illuminate\Support\Facades\Artisan::output();
         echo "\nSPP Tariff Seeder Exit Code: " . $sppSeederExitCode . "\n\n";
