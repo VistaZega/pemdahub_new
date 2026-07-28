@@ -68,6 +68,7 @@ class FinancialRecapController extends Controller
         $schools = School::schoolsOnly()->where('is_active', true)->orderBy('name')->get();
         $schoolSppData = [];
         $grandTotalIncome = 0;
+        $grandTotalIncomeMonthly = 0;
 
         foreach ($schools as $school) {
             $contribution = SchoolContribution::where('school_id', $school->id)
@@ -82,7 +83,7 @@ class FinancialRecapController extends Controller
 
             $masterSppAmount = (float) ($defaultSppType->amount ?? 0);
             $levels = $school->getGradeLevels();
-            $schoolTotalIncome = 0;
+            $schoolTotalIncomeMonthly = 0;
             $totalStudentsInSchool = 0;
 
             foreach ($levels as $level) {
@@ -104,22 +105,24 @@ class FinancialRecapController extends Controller
                     $sppMonthly = $masterSppAmount;
                 }
 
-                $incomeTotal = ($studentCount * $sppMonthly) * $multiplier;
-                $schoolTotalIncome += $incomeTotal;
+                $schoolTotalIncomeMonthly += ($studentCount * $sppMonthly);
                 $totalStudentsInSchool += $studentCount;
             }
+
+            $schoolTotalIncomePeriod = $schoolTotalIncomeMonthly * $multiplier;
 
             $schoolSppData[] = [
                 'school' => $school,
                 'total_students' => $totalStudentsInSchool,
-                'income_total' => $schoolTotalIncome,
+                'income_monthly' => $schoolTotalIncomeMonthly,
+                'income_total' => $schoolTotalIncomePeriod,
             ];
 
-            $grandTotalIncome += $schoolTotalIncome;
+            $grandTotalIncomeMonthly += $schoolTotalIncomeMonthly;
+            $grandTotalIncome += $schoolTotalIncomePeriod;
         }
 
         // 2. DITARIK DARI HALAMAN 2: Total Belanja Pegawai & Total Belanja Operasional
-        // Gunakan gross_pay agar konsisten 100% dengan Halaman 2 (RAPBY Belanja Pegawai)
         $allSchools = School::where('is_active', true)
             ->orderByRaw("CASE WHEN type = 'yayasan' THEN 2 ELSE 1 END, name ASC")
             ->get();
@@ -159,9 +162,11 @@ class FinancialRecapController extends Controller
         }
 
         $totalBelanjaOpsPeriod = $monthlyBelanjaOps * $multiplier;
+        $grandTotalBelanjaMonthly = $totalGajiLembagaMonthly + $monthlyBelanjaOps;
         $grandTotalBelanjaPeriod = $totalGajiLembagaPeriod + $totalBelanjaOpsPeriod;
 
-        // 3. Saldo Bersih Akhir Perguruan (Pendapatan SPP H1 - Total Rencana Belanja H2)
+        // 3. Saldo Bersih Akhir Perguruan
+        $grandTotalSaldoAkhirMonthly = $grandTotalIncomeMonthly - $grandTotalBelanjaMonthly;
         $grandTotalSaldoAkhir = $grandTotalIncome - $grandTotalBelanjaPeriod;
 
         return [
@@ -171,11 +176,14 @@ class FinancialRecapController extends Controller
             'multiplier' => $multiplier,
             'schoolSppData' => $schoolSppData,
             'grandTotalIncome' => $grandTotalIncome,
+            'grandTotalIncomeMonthly' => $grandTotalIncomeMonthly,
             'totalGajiLembagaPeriod' => $totalGajiLembagaPeriod,
             'totalGajiLembagaMonthly' => $totalGajiLembagaMonthly,
             'totalBelanjaOpsPeriod' => $totalBelanjaOpsPeriod,
             'totalBelanjaOpsMonthly' => $monthlyBelanjaOps,
+            'grandTotalBelanjaMonthly' => $grandTotalBelanjaMonthly,
             'grandTotalBelanjaPeriod' => $grandTotalBelanjaPeriod,
+            'grandTotalSaldoAkhirMonthly' => $grandTotalSaldoAkhirMonthly,
             'grandTotalSaldoAkhir' => $grandTotalSaldoAkhir,
             'savedExpenseDetails' => $savedDetails,
             'expenseAccounts' => FoundationExpenseController::OPERATIONAL_ACCOUNTS,

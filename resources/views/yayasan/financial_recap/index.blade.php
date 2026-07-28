@@ -69,7 +69,7 @@
 @section('content')
 <div class="ui-ux-promax space-y-6">
 
-    {{-- HERO HEADER (100% SOLID CONTRAST) --}}
+    {{-- HERO HEADER --}}
     <div class="recap-hero rounded-3xl p-6 md:p-8 text-white relative overflow-hidden">
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div class="space-y-2">
@@ -127,7 +127,7 @@
         </div>
     </div>
 
-    {{-- EXECUTIVE KPI CARDS (INLINE BULLETPROOF BACKGROUNDS & ICONS) --}}
+    {{-- EXECUTIVE KPI CARDS (TERMASUK NOMINAL 1 BULAN & IKON KEJELASAN TINGGI) --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         {{-- Card 1: Total Pendapatan SPP --}}
         <div class="stat-card-pro green recap-card-pro rounded-2xl p-5 shadow-md">
@@ -138,8 +138,11 @@
                 <div>
                     <p class="text-xs text-black font-black uppercase tracking-wider">1. Total Pendapatan SPP</p>
                     <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($grandTotalIncome, 0, ',', '.') }}</p>
+                    <p class="text-xs font-black text-black mt-0.5 num-col whitespace-nowrap">
+                        1 Bulan: <span class="text-emerald-950 font-black">Rp&nbsp;{{ number_format($grandTotalIncomeMonthly, 0, ',', '.') }}</span>
+                    </p>
                     <span class="pro-badge border-2 border-black mt-1.5" style="background-color: #059669 !important; color: #ffffff !important;">
-                        <i class="fas fa-school text-[10px] text-white"></i> Dari Halaman 1
+                        <i class="fas fa-school text-[10px] text-white"></i> Ditarik dari Halaman 1
                     </span>
                 </div>
             </div>
@@ -154,8 +157,11 @@
                 <div>
                     <p class="text-xs text-black font-black uppercase tracking-wider">2. Total Rencana Belanja</p>
                     <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($grandTotalBelanjaPeriod, 0, ',', '.') }}</p>
+                    <p class="text-xs font-black text-black mt-0.5 num-col whitespace-nowrap">
+                        1 Bulan: <span class="text-red-950 font-black">Rp&nbsp;{{ number_format($grandTotalBelanjaMonthly, 0, ',', '.') }}</span>
+                    </p>
                     <span class="pro-badge border-2 border-black mt-1.5" style="background-color: #dc2626 !important; color: #ffffff !important;">
-                        <i class="fas fa-receipt text-[10px] text-white"></i> Dari Halaman 2
+                        <i class="fas fa-receipt text-[10px] text-white"></i> Ditarik dari Halaman 2
                     </span>
                 </div>
             </div>
@@ -165,12 +171,15 @@
         <div class="stat-card-pro violet recap-card-pro rounded-2xl p-5 shadow-md border-2 border-black" style="background-color: {{ $grandTotalSaldoAkhir >= 0 ? '#dcfce7' : '#fee2e2' }} !important;">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-black border-2 border-black shrink-0" style="background-color: {{ $grandTotalSaldoAkhir >= 0 ? '#059669' : '#dc2626' }} !important; color: #ffffff !important;">
-                    <i class="fas {{ $grandTotalSaldoAkhir >= 0 ? 'fa-chart-line-up' : 'fa-chart-line-down' }} text-2xl text-white"></i>
+                    <i class="fas {{ $grandTotalSaldoAkhir >= 0 ? 'fa-chart-line' : 'fa-triangle-exclamation' }} text-2xl text-white"></i>
                 </div>
                 <div>
                     <p class="text-xs text-black font-black uppercase tracking-wider">3. Saldo Bersih Akhir</p>
                     <p class="text-2xl font-black mt-0.5 num-col whitespace-nowrap text-black">
                         {{ $grandTotalSaldoAkhir >= 0 ? '+' : '' }}Rp&nbsp;{{ number_format($grandTotalSaldoAkhir, 0, ',', '.') }}
+                    </p>
+                    <p class="text-xs font-black text-black mt-0.5 num-col whitespace-nowrap">
+                        1 Bulan: <span class="font-black" style="color: {{ $grandTotalSaldoAkhirMonthly >= 0 ? '#059669' : '#dc2626' }}">{{ $grandTotalSaldoAkhirMonthly >= 0 ? '+' : '' }}Rp&nbsp;{{ number_format($grandTotalSaldoAkhirMonthly, 0, ',', '.') }}</span>
                     </p>
                     <span class="pro-badge border-2 border-black mt-1.5" style="background-color: {{ $grandTotalSaldoAkhir >= 0 ? '#059669' : '#dc2626' }} !important; color: #ffffff !important;">
                         <i class="fas {{ $grandTotalSaldoAkhir >= 0 ? 'fa-check' : 'fa-exclamation-triangle' }} text-[10px] text-white"></i>
@@ -181,7 +190,7 @@
         </div>
     </div>
 
-    {{-- KONSOLIDASI FINANSIAL TABLE --}}
+    {{-- KONSOLIDASI FINANSIAL TABLE (KOLOM DITAMBAHKAN PERIODE 1 BULAN & DIBUANG SUMBER DATA) --}}
     <div class="recap-card-pro rounded-3xl shadow-2xl overflow-hidden border-2 border-black">
         {{-- Table Toolbar Header --}}
         <div class="recap-hero p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-black">
@@ -191,7 +200,7 @@
                 </div>
                 <div>
                     <h2 class="text-lg font-black text-white">Matriks Konsolidasi Pendapatan & Belanja Perguruan</h2>
-                    <p class="text-amber-400 text-xs font-black">Ringkasan Konsolidasi Periode {{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }} (TP {{ $currentYear->year ?? '-' }})</p>
+                    <p class="text-amber-400 text-xs font-black">Ringkasan Konsolidasi 1 Bulan & Periode Total (TP {{ $currentYear->year ?? '-' }})</p>
                 </div>
             </div>
             <span class="pro-badge border-2 border-black" style="background-color: {{ $grandTotalSaldoAkhir >= 0 ? '#059669' : '#dc2626' }} !important; color: #ffffff !important;">
@@ -206,8 +215,8 @@
                 <thead>
                     <tr class="bg-black text-white border-b-2 border-black">
                         <th class="px-4 py-4 text-xs uppercase font-black text-white">Komponen Konsolidasi Keuangan</th>
-                        <th class="px-4 py-4 text-center w-36 text-xs uppercase font-black text-white">Sumber Data</th>
-                        <th class="px-4 py-4 text-right w-64 text-xs uppercase font-black text-white whitespace-nowrap">Nominal Periode ({{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }})</th>
+                        <th class="px-4 py-4 text-right w-56 text-xs uppercase font-black text-white whitespace-nowrap">Nominal 1 Bulan (Rp)</th>
+                        <th class="px-4 py-4 text-right w-64 text-xs uppercase font-black text-white whitespace-nowrap">Nominal Total Periode ({{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }}) (Rp)</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y-2 divide-slate-400 bg-white">
@@ -219,9 +228,7 @@
                                 <span>1. TOTAL PENDAPATAN SPP SISWA (SELURUH UNIT SEKOLAH)</span>
                             </div>
                         </td>
-                        <td class="px-4 py-4 text-center font-black text-black">
-                            <span class="pro-badge border border-black" style="background-color: #000000 !important; color: #ffffff !important;">Halaman 1</span>
-                        </td>
+                        <td class="px-4 py-4 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($grandTotalIncomeMonthly, 0, ',', '.') }}</td>
                         <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap">Rp&nbsp;{{ number_format($grandTotalIncome, 0, ',', '.') }}</td>
                     </tr>
 
@@ -234,7 +241,7 @@
                                 <span>Rencana Pendapatan SPP {{ $schData['school']->name }} ({{ $schData['total_students'] }} Siswa)</span>
                             </div>
                         </td>
-                        <td class="px-4 py-3.5 text-center font-black text-black text-xs">Unit Sekolah</td>
+                        <td class="px-4 py-3.5 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($schData['income_monthly'], 0, ',', '.') }}</td>
                         <td class="px-4 py-3.5 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($schData['income_total'], 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
@@ -247,9 +254,7 @@
                                 <span>a. Belanja Pegawai Perguruan (Gaji Guru & Staf Sekolah + Yayasan)</span>
                             </div>
                         </td>
-                        <td class="px-4 py-4 text-center font-black text-black">
-                            <span class="pro-badge border border-black" style="background-color: #1e3a8a !important; color: #ffffff !important;">Halaman 2 (A)</span>
-                        </td>
+                        <td class="px-4 py-4 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiLembagaMonthly, 0, ',', '.') }}</td>
                         <td class="px-4 py-4 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiLembagaPeriod, 0, ',', '.') }}</td>
                     </tr>
 
@@ -261,9 +266,7 @@
                                 <span>b. Belanja Operasional Non-Gaji (Kode Rekening 5.1.01 – 5.1.14)</span>
                             </div>
                         </td>
-                        <td class="px-4 py-4 text-center font-black text-black">
-                            <span class="pro-badge border border-black" style="background-color: #d97706 !important; color: #ffffff !important;">Halaman 2 (B)</span>
-                        </td>
+                        <td class="px-4 py-4 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalBelanjaOpsMonthly, 0, ',', '.') }}</td>
                         <td class="px-4 py-4 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalBelanjaOpsPeriod, 0, ',', '.') }}</td>
                     </tr>
 
@@ -275,16 +278,19 @@
                                 <span>2. TOTAL RENCANA BELANJA PERGURUAN (a + b)</span>
                             </div>
                         </td>
-                        <td class="px-4 py-4 text-center font-black text-black">
-                            <span class="pro-badge border border-black" style="background-color: #000000 !important; color: #ffffff !important;">Halaman 2</span>
-                        </td>
+                        <td class="px-4 py-4 text-right font-black text-black num-col whitespace-nowrap">(Rp&nbsp;{{ number_format($grandTotalBelanjaMonthly, 0, ',', '.') }})</td>
                         <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap">(Rp&nbsp;{{ number_format($grandTotalBelanjaPeriod, 0, ',', '.') }})</td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr class="bg-black text-white font-black border-t-4 border-black text-sm">
-                        <td colspan="2" class="px-6 py-5 text-right uppercase tracking-widest font-black text-amber-400">
+                        <td class="px-6 py-5 text-right uppercase tracking-widest font-black text-amber-400">
                             SALDO BERSIH AKHIR PERGURUAN (1 - 2):
+                        </td>
+                        <td class="px-4 py-5 text-right num-col whitespace-nowrap">
+                            <span class="font-black text-lg whitespace-nowrap" style="color: {{ $grandTotalSaldoAkhirMonthly >= 0 ? '#34d399' : '#f87171' }} !important;">
+                                {{ $grandTotalSaldoAkhirMonthly >= 0 ? '+' : '' }}Rp&nbsp;{{ number_format($grandTotalSaldoAkhirMonthly, 0, ',', '.') }}
+                            </span>
                         </td>
                         <td class="px-4 py-5 text-right num-col whitespace-nowrap">
                             <span class="font-black text-2xl whitespace-nowrap" style="color: {{ $grandTotalSaldoAkhir >= 0 ? '#34d399' : '#f87171' }} !important;">
