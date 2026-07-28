@@ -1,29 +1,37 @@
 /**
- * PembdaHUB SimLab - Simulation & Compiler Engine Bridge
- * Menangani VM Interpreter C++ Arduino sejati (AST execution, delay(ms) presisi real-time, Live Code Update, digitalWrite, Serial, Servo, LCD).
+ * PembdaHUB SimLab - Arduino C++ Virtual Machine Interpreter Engine
+ * VERSION: 3.0.0 (2026-07-29)
+ *
+ * Mesin Eksekusi VM Sekuensial Sejati:
+ * - Kode C++ Arduino di-parse menjadi instruksi AST
+ * - Instruksi dieksekusi satu per satu secara berurutan (sequential)
+ * - delay(ms) menghentikan eksekusi VM selama ms milidetik REAL-TIME
+ * - Status countdown delay ditampilkan di Serial Monitor
  */
 
 window.SimLabEngine = {
+    VERSION: '3.0.0',
     isRunning: false,
     simTimer: null,
     editor: null,
     pinStates: {},
-    serialBuffer: "",
 
-    // Virtual Machine Interpreter State
-    vmLoopInstructions: [],
-    vmPC: 0,
-    vmWaitDelayUntil: 0,
-    vmMaxOpsPerTick: 100,
+    // Virtual Machine State
+    vm: {
+        instructions: [],  // Parsed AST instructions
+        pc: 0,             // Program Counter
+        delayUntil: 0,     // Timestamp when current delay() expires
+        loopCount: 0       // How many times loop() has completed
+    },
 
     init: function() {
+        console.log('[SimLab Engine] v' + this.VERSION + ' initialized');
         this.initEditor();
         this.bindEvents();
         this.loadInitialProject();
     },
 
     initEditor: function() {
-        const self = this;
         const textarea = document.getElementById('codeEditorArea');
         if (textarea && typeof CodeMirror !== 'undefined') {
             this.editor = CodeMirror.fromTextArea(textarea, {
@@ -35,21 +43,12 @@ window.SimLabEngine = {
                 matchBrackets: true,
                 autoCloseBrackets: true
             });
-
-            // Live Code Re-parsing when user edits code during running simulation
-            this.editor.on('change', function() {
-                if (self.isRunning) {
-                    const code = self.getCode();
-                    self.vmLoopInstructions = self.parseCodeToInstructions(code);
-                }
-            });
         }
     },
 
     bindEvents: function() {
         const self = this;
 
-        // Run/Stop Simulation Button
         document.getElementById('btnRunSim')?.addEventListener('click', function() {
             if (self.isRunning) {
                 self.stopSimulation();
@@ -58,17 +57,15 @@ window.SimLabEngine = {
             }
         });
 
-        // Compile Button
         document.getElementById('btnCompile')?.addEventListener('click', function() {
             self.compileCode();
         });
 
-        // Save Project Button
         document.getElementById('btnSaveProject')?.addEventListener('click', function() {
             self.saveProject();
         });
 
-        // Serial Monitor Controls
+        // Serial Monitor Tab Controls
         document.getElementById('tabBtnCode')?.addEventListener('click', function() {
             document.getElementById('codeTabContent').classList.remove('hidden');
             document.getElementById('serialTabContent').classList.add('hidden');
@@ -103,8 +100,8 @@ window.SimLabEngine = {
                 this.editor.setValue(proj.code_ino);
             }
             if (proj.circuit_json && window.SimLabCircuit) {
-                const circuit = typeof proj.circuit_json === 'string' 
-                    ? JSON.parse(proj.circuit_json) 
+                const circuit = typeof proj.circuit_json === 'string'
+                    ? JSON.parse(proj.circuit_json)
                     : proj.circuit_json;
                 window.SimLabCircuit.importJSON(circuit);
             }
@@ -157,65 +154,91 @@ window.SimLabEngine = {
         });
     },
 
-    // Dynamic C++ Arduino Code Parser to AST Instructions
-    parseCodeToInstructions: function(codeText) {
+    // ═══════════════════════════════════════════════════════════════
+    // C++ Arduino Code Parser → AST Instructions
+    // ═══════════════════════════════════════════════════════════════
+
+    extractFunctionBody: function(code, funcName) {
+        // Find function signature
+        const sigRegex = new RegExp('void\\s+' + funcName + '\\s*\\(\\s*\\)\\s*\\{');
+        const sigMatch = sigRegex.exec(code);
+        if (!sigMatch) return '';
+
+        // Count braces to find matching closing brace
+        let braceCount = 1;
+        let i = sigMatch.index + sigMatch[0].length;
+        const start = i;
+        while (i < code.length && braceCount > 0) {
+            if (code[i] === '{') braceCount++;
+            if (code[i] === '}') braceCount--;
+            i++;
+        }
+        return code.substring(start, i - 1);
+    },
+
+    parseBodyToInstructions: function(body) {
         const instructions = [];
 
-        // Extract loop() function body
-        let loopBody = codeText;
-        const loopMatch = codeText.match(/void\s+loop\s*\(\s*\)\s*\{([\s\S]*)\}/);
-        if (loopMatch) {
-            loopBody = loopMatch[1];
-        }
+        // Strip comments
+        body = body.replace(/\/\/.*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
 
-        // Clean comments
-        loopBody = loopBody.replace(/\/\/.*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+        // Split by semicolons
+        const statements = body.split(';');
 
-        // Split statements by semicolon
-        const lines = loopBody.split(';');
-        lines.forEach(line => {
-            const cleanLine = line.trim();
-            if (!cleanLine) return;
+        for (let s = 0; s < statements.length; s++) {
+            const line = statements[s].trim();
+            if (!line) continue;
 
             // 1. digitalWrite(pin, val)
-            const dwMatch = cleanLine.match(/digitalWrite\s*\(\s*([^,\s]+)\s*,\s*([^)\s]+)\s*\)/);
+            const dwMatch = line.match(/digitalWrite\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/);
             if (dwMatch) {
-                let pin = dwMatch[1].replace(/['"]/g, '').trim();
+                let pin = dwMatch[1].trim().replace(/['"]/g, '');
                 if (pin === 'LED_BUILTIN') pin = '13';
-                pin = pin.replace('D', '');
+                pin = pin.replace(/^D/, '');
 
                 const valStr = dwMatch[2].trim();
                 const val = (valStr === 'HIGH' || valStr === '1' || valStr === 'true') ? 1 : 0;
-                instructions.push({ op: 'digitalWrite', pin: pin, val: val });
-                return;
+                instructions.push({ op: 'digitalWrite', pin: pin, val: val, src: line.trim() });
+                continue;
             }
 
-            // 2. delay(ms)
-            const delayMatch = cleanLine.match(/delay\s*\(\s*([^)\s]+)\s*\)/);
+            // 2. delay(ms) — MUST parse the number correctly
+            const delayMatch = line.match(/delay\s*\(\s*(\d+)\s*\)/);
             if (delayMatch) {
-                const ms = parseInt(delayMatch[1]) || 0;
-                instructions.push({ op: 'delay', ms: ms });
-                return;
+                const ms = parseInt(delayMatch[1], 10);
+                instructions.push({ op: 'delay', ms: ms, src: line.trim() });
+                continue;
             }
 
             // 3. Serial.println("...")
-            const serialMatch = cleanLine.match(/Serial\.println\s*\(\s*"([^"]+)"\s*\)/);
+            const serialMatch = line.match(/Serial\.println\s*\(\s*"([^"]+)"\s*\)/);
             if (serialMatch) {
-                instructions.push({ op: 'serialPrintln', msg: serialMatch[1] });
-                return;
+                instructions.push({ op: 'serialPrintln', msg: serialMatch[1], src: line.trim() });
+                continue;
             }
 
-            // 4. servo.write(angle)
-            const servoMatch = cleanLine.match(/(\w+)\.write\s*\(\s*([^)\s]+)\s*\)/);
-            if (servoMatch && servoMatch[1] !== 'Serial') {
-                const angle = parseInt(servoMatch[2]) || 0;
-                instructions.push({ op: 'servoWrite', angle: angle });
-                return;
+            // 4. Serial.print("...")
+            const serialPrintMatch = line.match(/Serial\.print\s*\(\s*"([^"]+)"\s*\)/);
+            if (serialPrintMatch) {
+                instructions.push({ op: 'serialPrint', msg: serialPrintMatch[1], src: line.trim() });
+                continue;
             }
-        });
+
+            // 5. servo.write(angle)
+            const servoMatch = line.match(/(\w+)\.write\s*\(\s*(\d+)\s*\)/);
+            if (servoMatch && servoMatch[1] !== 'Serial') {
+                const angle = parseInt(servoMatch[2], 10) || 0;
+                instructions.push({ op: 'servoWrite', angle: angle, src: line.trim() });
+                continue;
+            }
+        }
 
         return instructions;
     },
+
+    // ═══════════════════════════════════════════════════════════════
+    // Simulation Start / Stop
+    // ═══════════════════════════════════════════════════════════════
 
     startSimulation: function() {
         const code = this.getCode();
@@ -224,108 +247,175 @@ window.SimLabEngine = {
             return;
         }
 
-        const self = this;
-        this.isRunning = true;
+        // Parse setup() and loop()
+        const setupBody = this.extractFunctionBody(code, 'setup');
+        const loopBody = this.extractFunctionBody(code, 'loop');
 
-        // Parse C++ Arduino code into VM AST Instructions
-        this.vmLoopInstructions = this.parseCodeToInstructions(code);
-        this.vmPC = 0;
-        this.vmWaitDelayUntil = 0;
+        const setupInstructions = this.parseBodyToInstructions(setupBody);
+        const loopInstructions = this.parseBodyToInstructions(loopBody);
+
+        if (loopInstructions.length === 0) {
+            alert('Tidak ditemukan instruksi di dalam fungsi loop().');
+            return;
+        }
+
+        // Initialize VM state
+        this.vm.instructions = loopInstructions;
+        this.vm.pc = 0;
+        this.vm.delayUntil = 0;
+        this.vm.loopCount = 0;
+        this.isRunning = true;
 
         // UI Updates
         document.getElementById('simText').textContent = 'Hentikan Simulasi';
         document.getElementById('simIcon').className = 'fas fa-square text-red-500';
         document.getElementById('btnRunSim').className = 'px-4 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-black transition-all flex items-center space-x-1.5 shadow-lg shadow-red-600/20';
-        
         document.getElementById('simStatusBadge').classList.remove('hidden');
         document.getElementById('statusIndicatorPin').className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
-        document.getElementById('statusText').textContent = 'RUNNING (16 MHz VM)';
+        document.getElementById('statusText').textContent = 'RUNNING (VM v' + this.VERSION + ')';
 
-        // Log parsed VM timings for transparency
-        const delays = this.vmLoopInstructions.filter(i => i.op === 'delay').map(i => i.ms + 'ms');
-        this.appendSerialLog(`\n[SIMULATOR STARTED - Loaded ${this.vmLoopInstructions.length} VM Instructions. Timings: ${delays.join(', ')}]\n`);
+        // Serial Monitor: Show VM Debug Info
+        this.appendSerialLog('\n══════════════════════════════════════\n');
+        this.appendSerialLog('[VM v' + this.VERSION + '] SIMULATOR STARTED\n');
+        this.appendSerialLog('[VM] Parsed ' + loopInstructions.length + ' loop() instructions:\n');
+        for (let i = 0; i < loopInstructions.length; i++) {
+            const instr = loopInstructions[i];
+            let desc = '';
+            if (instr.op === 'digitalWrite') desc = 'Pin ' + instr.pin + ' → ' + (instr.val ? 'HIGH' : 'LOW');
+            else if (instr.op === 'delay') desc = 'TUNGGU ' + instr.ms + ' ms (' + (instr.ms / 1000).toFixed(1) + ' detik)';
+            else if (instr.op === 'serialPrintln') desc = 'Serial: "' + instr.msg + '"';
+            else desc = instr.src;
+            this.appendSerialLog('  [' + i + '] ' + instr.op + ' → ' + desc + '\n');
+        }
+        this.appendSerialLog('══════════════════════════════════════\n');
 
-        // Check setup() for Serial.println initial output
-        const setupMatch = code.match(/void\s+setup\s*\(\s*\)\s*\{([\s\S]*)\}/);
-        if (setupMatch) {
-            const setupLog = setupMatch[1].match(/Serial\.println\s*\(\s*"([^"]+)"\s*\)/);
-            if (setupLog) {
-                this.appendSerialLog(setupLog[1] + "\n");
+        // Execute setup() instructions immediately (synchronous, no delays)
+        for (let i = 0; i < setupInstructions.length; i++) {
+            const instr = setupInstructions[i];
+            if (instr.op === 'serialPrintln') {
+                this.appendSerialLog(instr.msg + '\n');
+            } else if (instr.op === 'serialPrint') {
+                this.appendSerialLog(instr.msg);
+            } else if (instr.op === 'digitalWrite') {
+                this.setPinState(instr.pin, instr.val);
             }
         }
 
-        // Fast Virtual Machine Loop Timer (15ms Tick = 66 Hz Resolution)
+        // Start VM execution tick (every 20ms = 50Hz)
+        const self = this;
         this.simTimer = setInterval(function() {
-            self.vmExecutionTick();
-        }, 15);
+            self.vmTick();
+        }, 20);
     },
 
     stopSimulation: function() {
         this.isRunning = false;
-        if (this.simTimer) clearInterval(this.simTimer);
+        if (this.simTimer) {
+            clearInterval(this.simTimer);
+            this.simTimer = null;
+        }
 
-        // Turn off all active LEDs / Pins when simulation stops
+        // Turn off all LEDs
         Object.keys(this.pinStates).forEach(pin => {
             this.setPinState(pin, 0);
         });
+        this.pinStates = {};
 
         // UI Updates
         document.getElementById('simText').textContent = 'Jalankan Simulasi';
         document.getElementById('simIcon').className = 'fas fa-play';
         document.getElementById('btnRunSim').className = 'px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all flex items-center space-x-1.5 shadow-lg shadow-emerald-500/20';
-        
         document.getElementById('statusIndicatorPin').className = 'w-2 h-2 rounded-full bg-gray-500';
         document.getElementById('statusText').textContent = 'STOPPED';
 
-        this.appendSerialLog('\n[SIMULATOR STOPPED]\n');
+        this.appendSerialLog('\n[VM] SIMULATOR STOPPED after ' + this.vm.loopCount + ' loop iterations\n');
     },
 
-    // Authentic Sequential C++ Virtual Machine Execution Engine
-    vmExecutionTick: function() {
-        if (!this.isRunning || this.vmLoopInstructions.length === 0) return;
+    // ═══════════════════════════════════════════════════════════════
+    // VM Execution Tick — The Heart of the Simulator
+    // ═══════════════════════════════════════════════════════════════
+
+    vmTick: function() {
+        if (!this.isRunning) return;
+
+        const instructions = this.vm.instructions;
+        if (!instructions || instructions.length === 0) return;
 
         const now = Date.now();
 
-        // 1. Check if VM is currently in a delay(ms) pause
-        if (now < this.vmWaitDelayUntil) {
-            return; // Waiting for delay timer to expire
+        // Are we currently waiting for a delay() to expire?
+        if (this.vm.delayUntil > 0 && now < this.vm.delayUntil) {
+            // Still waiting — update status text with countdown
+            const remaining = Math.ceil((this.vm.delayUntil - now) / 1000);
+            const statusEl = document.getElementById('statusText');
+            if (statusEl) {
+                statusEl.textContent = 'DELAY: ' + remaining + 's tersisa';
+            }
+            return;
         }
 
-        let opsExecuted = 0;
+        // Delay has expired — clear it and continue execution
+        if (this.vm.delayUntil > 0) {
+            this.vm.delayUntil = 0;
+            document.getElementById('statusText').textContent = 'RUNNING (VM v' + this.VERSION + ')';
+        }
 
-        // 2. Sequential Instruction Execution Loop
-        while (opsExecuted < this.vmMaxOpsPerTick) {
-            if (this.vmPC >= this.vmLoopInstructions.length) {
-                this.vmPC = 0; // Loop restarts
+        // Execute up to a few non-delay instructions per tick
+        let safety = 0;
+        while (safety < 50) {
+            safety++;
+
+            // Wrap around = one complete loop() iteration
+            if (this.vm.pc >= instructions.length) {
+                this.vm.pc = 0;
+                this.vm.loopCount++;
             }
 
-            const instr = this.vmLoopInstructions[this.vmPC];
-            this.vmPC++;
-            opsExecuted++;
+            const instr = instructions[this.vm.pc];
+            this.vm.pc++;
 
             if (!instr) break;
 
-            if (instr.op === 'digitalWrite') {
-                this.setPinState(instr.pin, instr.val);
-            } else if (instr.op === 'delay') {
-                if (instr.ms > 0) {
-                    this.vmWaitDelayUntil = now + instr.ms;
-                    break; // Exit VM tick loop to let delay time pass
-                }
-            } else if (instr.op === 'serialPrintln') {
-                this.appendSerialLog(instr.msg + "\n");
-            } else if (instr.op === 'servoWrite') {
-                this.updateAllServos(instr.angle);
+            switch (instr.op) {
+                case 'digitalWrite':
+                    this.setPinState(instr.pin, instr.val);
+                    break;
+
+                case 'delay':
+                    if (instr.ms > 0) {
+                        // Set the absolute timestamp when this delay expires
+                        this.vm.delayUntil = Date.now() + instr.ms;
+                        // Immediately show delay info
+                        const sec = (instr.ms / 1000).toFixed(1);
+                        document.getElementById('statusText').textContent = 'DELAY: ' + sec + 's tersisa';
+                        return; // EXIT tick — wait for delay to expire in future ticks
+                    }
+                    break;
+
+                case 'serialPrintln':
+                    this.appendSerialLog(instr.msg + '\n');
+                    break;
+
+                case 'serialPrint':
+                    this.appendSerialLog(instr.msg);
+                    break;
+
+                case 'servoWrite':
+                    this.updateAllServos(instr.angle);
+                    break;
             }
         }
     },
 
-    // Set Pin State & Trace Wires / Resistors to update connected LEDs
+    // ═══════════════════════════════════════════════════════════════
+    // Pin State Manager & Wire/Resistor/LED Tracer
+    // ═══════════════════════════════════════════════════════════════
+
     setPinState: function(pinNum, stateVal) {
-        const cleanPin = pinNum.toString().replace('D', '').trim();
+        const cleanPin = pinNum.toString().replace(/^D/, '').trim();
         this.pinStates[cleanPin] = stateVal;
 
-        // Update onboard LED 13 if Uno
+        // Update Arduino Uno onboard LED 13
         if (cleanPin === '13') {
             const unoComp = window.SimLabCircuit.components.find(c => c.type === 'uno');
             if (unoComp) {
@@ -336,63 +426,63 @@ window.SimLabEngine = {
             }
         }
 
-        // Target Pin IDs (e.g. ['D8', '8', 'PIN_8'])
-        const targetPins = ['D' + cleanPin, cleanPin, 'PIN_' + cleanPin];
+        // Trace wires to find connected components
+        const targetPinIds = ['D' + cleanPin, cleanPin, 'PIN_' + cleanPin];
         let needsReRender = false;
 
         window.SimLabCircuit.wires.forEach(wire => {
             let connectedCompId = null;
             let connectedPinId = null;
 
-            if (targetPins.includes(wire.fromPin)) {
+            if (targetPinIds.includes(wire.fromPin)) {
                 connectedCompId = wire.toComp;
                 connectedPinId = wire.toPin;
-            } else if (targetPins.includes(wire.toPin)) {
+            } else if (targetPinIds.includes(wire.toPin)) {
                 connectedCompId = wire.fromComp;
                 connectedPinId = wire.fromPin;
             }
 
-            if (connectedCompId) {
-                const targetComp = window.SimLabCircuit.components.find(c => c.id === connectedCompId);
-                if (targetComp) {
-                    // Direct LED connection
-                    if (targetComp.type.startsWith('led_')) {
-                        targetComp.state = targetComp.state || {};
-                        if (targetComp.state.lit !== (stateVal === 1)) {
-                            targetComp.state.lit = (stateVal === 1);
-                            needsReRender = true;
-                        }
-                    } 
-                    // Resistor connection: trace to next wire!
-                    else if (targetComp.type === 'resistor') {
-                        const otherResPin = (connectedPinId === 'PIN_1') ? 'PIN_2' : 'PIN_1';
-                        window.SimLabCircuit.wires.forEach(wire2 => {
-                            let nextCompId = null;
-                            if (wire2.fromComp === targetComp.id && wire2.fromPin === otherResPin) {
-                                nextCompId = wire2.toComp;
-                            } else if (wire2.toComp === targetComp.id && wire2.toPin === otherResPin) {
-                                nextCompId = wire2.fromComp;
-                            }
-                            if (nextCompId) {
-                                const ledComp = window.SimLabCircuit.components.find(c => c.id === nextCompId);
-                                if (ledComp && ledComp.type.startsWith('led_')) {
-                                    ledComp.state = ledComp.state || {};
-                                    if (ledComp.state.lit !== (stateVal === 1)) {
-                                        ledComp.state.lit = (stateVal === 1);
-                                        needsReRender = true;
-                                    }
-                                }
-                            }
-                        });
+            if (!connectedCompId) return;
+
+            const targetComp = window.SimLabCircuit.components.find(c => c.id === connectedCompId);
+            if (!targetComp) return;
+
+            // Direct LED connection
+            if (targetComp.type.startsWith('led_')) {
+                targetComp.state = targetComp.state || {};
+                if (targetComp.state.lit !== (stateVal === 1)) {
+                    targetComp.state.lit = (stateVal === 1);
+                    needsReRender = true;
+                }
+            }
+            // Resistor → trace through to LED on the other side
+            else if (targetComp.type === 'resistor') {
+                const otherResPin = (connectedPinId === 'PIN_1') ? 'PIN_2' : 'PIN_1';
+                window.SimLabCircuit.wires.forEach(wire2 => {
+                    let nextCompId = null;
+                    if (wire2.fromComp === targetComp.id && wire2.fromPin === otherResPin) {
+                        nextCompId = wire2.toComp;
+                    } else if (wire2.toComp === targetComp.id && wire2.toPin === otherResPin) {
+                        nextCompId = wire2.fromComp;
                     }
-                    // Relay connection
-                    else if (targetComp.type === 'relay') {
-                        targetComp.state = targetComp.state || {};
-                        if (targetComp.state.active !== (stateVal === 1)) {
-                            targetComp.state.active = (stateVal === 1);
-                            needsReRender = true;
+                    if (nextCompId) {
+                        const ledComp = window.SimLabCircuit.components.find(c => c.id === nextCompId);
+                        if (ledComp && ledComp.type.startsWith('led_')) {
+                            ledComp.state = ledComp.state || {};
+                            if (ledComp.state.lit !== (stateVal === 1)) {
+                                ledComp.state.lit = (stateVal === 1);
+                                needsReRender = true;
+                            }
                         }
                     }
+                });
+            }
+            // Relay
+            else if (targetComp.type === 'relay') {
+                targetComp.state = targetComp.state || {};
+                if (targetComp.state.active !== (stateVal === 1)) {
+                    targetComp.state.active = (stateVal === 1);
+                    needsReRender = true;
                 }
             }
         });
@@ -437,7 +527,7 @@ window.SimLabEngine = {
     sendSerialInput: function() {
         const input = document.getElementById('serialInputText');
         if (input && input.value.trim()) {
-            this.appendSerialLog(">> " + input.value + "\n");
+            this.appendSerialLog('>> ' + input.value + '\n');
             input.value = '';
         }
     },
