@@ -364,48 +364,64 @@ window.SimLabComponents = {
     },
 
     // ----------------------------------------------------
-    // 10. RESISTOR (DEFAULT 300 OHM)
+    // 10. RESISTOR (DEFAULT 300 OHM - FLEKSIBEL)
     // ----------------------------------------------------
     resistor: {
-        name: "Resistor 300Ω",
-        width: 100,
+        name: "Resistor",
+        width: 110,
         height: 50,
         pins: [
             { id: "PIN_1", label: "Pin 1", x: 10, y: 25, type: "passive" },
-            { id: "PIN_2", label: "Pin 2", x: 90, y: 25, type: "passive" }
+            { id: "PIN_2", label: "Pin 2", x: 100, y: 25, type: "passive" }
         ],
         svg: function(comp) {
+            const val = comp.state?.ohms || 300;
             return `
             <line x1="10" y1="25" x2="30" y2="25" stroke="#94a3b8" stroke-width="3"/>
-            <rect x="30" y="15" width="40" height="20" rx="3" fill="#d97706" stroke="#b45309"/>
-            <!-- Color Bands for 300 ohm (Orange, Black, Brown, Gold) -->
-            <rect x="36" y="15" width="4" height="20" fill="#ea580c"/>
-            <rect x="44" y="15" width="4" height="20" fill="#000000"/>
-            <rect x="52" y="15" width="4" height="20" fill="#78350f"/>
-            <rect x="60" y="15" width="4" height="20" fill="#eab308"/>
-            <line x1="70" y1="25" x2="90" y2="25" stroke="#94a3b8" stroke-width="3"/>
-            <text x="50" y="46" fill="#fef3c7" font-size="9" font-weight="bold" text-anchor="middle">300Ω</text>
+            <rect x="30" y="15" width="50" height="20" rx="3" fill="#d97706" stroke="#b45309"/>
+            <!-- Color Bands -->
+            <rect x="38" y="15" width="4" height="20" fill="#ea580c"/>
+            <rect x="48" y="15" width="4" height="20" fill="#000000"/>
+            <rect x="58" y="15" width="4" height="20" fill="#78350f"/>
+            <rect x="68" y="15" width="4" height="20" fill="#eab308"/>
+            <line x1="80" y1="25" x2="100" y2="25" stroke="#94a3b8" stroke-width="3"/>
+            <text x="55" y="46" fill="#fef3c7" font-size="9" font-weight="bold" text-anchor="middle">${val}Ω</text>
+            `;
+        },
+        controls: function(comp) {
+            const current = comp.state?.ohms || 300;
+            return `
+            <div class="mt-2 p-1.5 bg-gray-900 rounded border border-gray-800 text-[11px]">
+                <label class="text-gray-400 block mb-1">Nilai Resistansi:</label>
+                <select onchange="SimLabEngine.updateCompState('${comp.id}', {ohms: parseInt(this.value)})" class="w-full bg-gray-950 text-amber-400 font-mono text-xs rounded border border-gray-700 p-1">
+                    <option value="100" ${current == 100 ? 'selected' : ''}>100 Ω</option>
+                    <option value="220" ${current == 220 ? 'selected' : ''}>220 Ω</option>
+                    <option value="300" ${current == 300 ? 'selected' : ''}>300 Ω (Default)</option>
+                    <option value="1000" ${current == 1000 ? 'selected' : ''}>1 kΩ (1000 Ω)</option>
+                    <option value="10000" ${current == 10000 ? 'selected' : ''}>10 kΩ (10000 Ω)</option>
+                </select>
+            </div>
             `;
         }
     },
 
     // ----------------------------------------------------
-    // 11. POWER SUPPLY 5V / 2.3V 2A
+    // 11. POWER SUPPLY 5V / 3.3V 2A
     // ----------------------------------------------------
     psu: {
         name: "Power Supply Unit",
         width: 140,
         height: 100,
         pins: [
-            { id: "VCC_5V", label: "+5V", x: 30, y: 85, type: "power" },
-            { id: "VCC_2V3", label: "+2.3V", x: 70, y: 85, type: "power" },
+            { id: "VCC_5V", label: "+5V (2A)", x: 30, y: 85, type: "power" },
+            { id: "VCC_3V3", label: "+3.3V (2A)", x: 70, y: 85, type: "power" },
             { id: "GND", label: "GND", x: 110, y: 85, type: "gnd" }
         ],
         svg: function(comp) {
             return `
             <rect width="140" height="100" rx="8" fill="#7f1d1d" stroke="#991b1b" stroke-width="2"/>
             <text x="70" y="30" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">POWER SUPPLY</text>
-            <text x="70" y="50" fill="#fca5a5" font-size="10" text-anchor="middle">5V / 2.3V (2A Max)</text>
+            <text x="70" y="50" fill="#fca5a5" font-size="10" font-weight="bold" text-anchor="middle">5V & 3.3V (2A Max)</text>
             `;
         }
     }
