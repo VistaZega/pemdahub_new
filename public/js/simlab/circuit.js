@@ -169,6 +169,7 @@ window.SimLabCircuit = {
             div.style.left = comp.x + 'px';
             div.style.top = comp.y + 'px';
             div.style.width = (def.width + 16) + 'px';
+            div.style.zIndex = '30';
 
             // Top Header Bar of Component
             let html = `
@@ -181,32 +182,12 @@ window.SimLabCircuit = {
                     ${def.svg(comp)}
             `;
 
-            // Render Pins + VISIBLE TEXT LABELS (Silkscreen Pin Numbers)
+            // Render Pins as Interactive Circles (Silkscreen text is cleanly rendered inside SVG board definition)
             def.pins.forEach(pin => {
-                let textX = pin.x;
-                let textY = pin.y;
-                let textAnchor = "middle";
-
-                // Smart positioning for Pin text labels
-                if (pin.y <= 25) {
-                    textY = pin.y + 16;
-                } else if (pin.y >= def.height - 25) {
-                    textY = pin.y - 9;
-                } else if (pin.x <= 35) {
-                    textX = pin.x + 12;
-                    textY = pin.y + 3;
-                    textAnchor = "start";
-                } else if (pin.x >= def.width - 35) {
-                    textX = pin.x - 12;
-                    textY = pin.y + 3;
-                    textAnchor = "end";
-                }
-
                 html += `
                 <g class="pin-hover cursor-pointer" onclick="SimLabCircuit.onPinClick('${comp.id}', '${pin.id}')">
                     <circle cx="${pin.x}" cy="${pin.y}" r="6" fill="#10b981" stroke="#ffffff" stroke-width="1.5"/>
                     <circle cx="${pin.x}" cy="${pin.y}" r="2" fill="#000000"/>
-                    <text x="${textX}" y="${textY}" fill="#ffffff" font-size="9.5" font-family="monospace" font-weight="900" text-anchor="${textAnchor}" pointer-events="none" style="text-shadow: 0 0 3px #000;">${pin.label}</text>
                     <title>Pin ${pin.label} (${pin.type.toUpperCase()})</title>
                 </g>
                 `;
@@ -238,11 +219,15 @@ window.SimLabCircuit = {
         handle.onmousedown = dragMouseDown;
 
         function dragMouseDown(e) {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
             e.preventDefault();
+            e.stopPropagation();
+
             pos3 = e.clientX;
             pos4 = e.clientY;
-            document.onmouseup = closeDragElement;
-            document.onmousemove = elementDrag;
+
+            window.addEventListener('mousemove', elementDrag);
+            window.addEventListener('mouseup', closeDragElement);
         }
 
         function elementDrag(e) {
@@ -263,8 +248,8 @@ window.SimLabCircuit = {
         }
 
         function closeDragElement() {
-            document.onmouseup = null;
-            document.onmousemove = null;
+            window.removeEventListener('mousemove', elementDrag);
+            window.removeEventListener('mouseup', closeDragElement);
         }
     },
 

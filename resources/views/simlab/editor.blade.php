@@ -307,16 +307,16 @@
 
             <!-- Canvas Viewport -->
             <div id="circuitCanvasContainer" class="w-full h-full canvas-grid overflow-auto relative cursor-crosshair">
-                <!-- HTML Layer for Draggable Components -->
-                <div id="componentsLayer" class="w-[3000px] h-[2000px] absolute top-0 left-0 pointer-events-auto z-10"></div>
-
-                <!-- SVG Layer for Wires (Rendered ON TOP of components layer z-20) -->
+                <!-- SVG Layer for Wires -->
                 <svg id="circuitSvg" class="w-[3000px] h-[2000px] absolute top-0 left-0 pointer-events-none z-20">
                     <!-- Dynamic Bezier/Orthogonal Wires rendered here -->
                     <g id="wiresGroup"></g>
                     <!-- Temporary wire drawing preview -->
                     <path id="tempWire" d="" stroke="#10b981" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6,6" class="hidden"></path>
                 </svg>
+
+                <!-- HTML Layer for Draggable Components -->
+                <div id="componentsLayer" class="w-[3000px] h-[2000px] absolute top-0 left-0 pointer-events-auto z-10"></div>
             </div>
 
             <!-- Canvas Bottom Helper Info -->

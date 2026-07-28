@@ -51,17 +51,56 @@ window.SimLabComponents = {
         svg: function(comp) {
             return `
             <rect width="260" height="180" rx="10" fill="#008784" stroke="#005d5b" stroke-width="3"/>
-            <rect x="15" y="60" width="120" height="30" rx="4" fill="#1e293b"/>
-            <text x="75" y="79" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">ATMEGA328P-PU</text>
-            <rect x="10" y="105" width="40" height="50" rx="4" fill="#475569"/>
-            <text x="30" y="135" fill="#e2e8f0" font-size="9" text-anchor="middle">USB B</text>
-            <circle x="235" y="140" r="14" fill="#0f172a"/>
-            <text x="235" y="144" fill="#94a3b8" font-size="9" text-anchor="middle">POWER</text>
-            <text x="130" y="110" fill="#ffffff" font-size="16" font-family="sans-serif" font-weight="900" text-anchor="middle">ARDUINO UNO</text>
-            <circle id="led_uno_13_${comp.id}" cx="199" cy="40" r="4" fill="#451a03" stroke="#78350f" stroke-width="1"/>
-            <text x="210" y="43" fill="#cbd5e1" font-size="9">L (D13)</text>
-            <circle id="led_uno_on_${comp.id}" cx="199" cy="55" r="4" fill="#15803d" stroke="#22c55e" stroke-width="1"/>
-            <text x="210" y="58" fill="#cbd5e1" font-size="9">ON</text>
+            <rect x="15" y="68" width="120" height="30" rx="4" fill="#1e293b"/>
+            <text x="75" y="87" fill="#94a3b8" font-size="10" font-family="monospace" text-anchor="middle" font-weight="bold">ATMEGA328P-PU</text>
+            <rect x="10" y="115" width="40" height="45" rx="4" fill="#475569"/>
+            <text x="30" y="142" fill="#e2e8f0" font-size="9" text-anchor="middle">USB B</text>
+            <circle cx="235" cy="140" r="14" fill="#0f172a"/>
+            <text x="235" y="144" fill="#94a3b8" font-size="8" text-anchor="middle">POWER</text>
+            <text x="130" y="118" fill="#ffffff" font-size="15" font-family="sans-serif" font-weight="900" text-anchor="middle">ARDUINO UNO</text>
+            
+            <circle id="led_uno_13_${comp.id}" cx="199" cy="48" r="4" fill="#451a03" stroke="#78350f" stroke-width="1"/>
+            <text x="210" y="51" fill="#cbd5e1" font-size="8">L (D13)</text>
+            <circle id="led_uno_on_${comp.id}" cx="199" cy="62" r="4" fill="#15803d" stroke="#22c55e" stroke-width="1"/>
+            <text x="210" y="65" fill="#cbd5e1" font-size="8">ON</text>
+
+            <!-- Top Header Silkscreen Pin Labels (Rapi, Tegak Vertical -90°, Bebas Overlap) -->
+            <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="end">
+                <text x="235" y="44" transform="rotate(-90 235 44)">SCL</text>
+                <text x="223" y="44" transform="rotate(-90 223 44)">SDA</text>
+                <text x="211" y="44" transform="rotate(-90 211 44)">AREF</text>
+                <text x="199" y="44" transform="rotate(-90 199 44)">GND</text>
+                <text x="187" y="44" transform="rotate(-90 187 44)">13</text>
+                <text x="175" y="44" transform="rotate(-90 175 44)">12</text>
+                <text x="163" y="44" transform="rotate(-90 163 44)">~11</text>
+                <text x="151" y="44" transform="rotate(-90 151 44)">~10</text>
+                <text x="139" y="44" transform="rotate(-90 139 44)">~9</text>
+                <text x="127" y="44" transform="rotate(-90 127 44)">8</text>
+                <text x="105" y="44" transform="rotate(-90 105 44)">7</text>
+                <text x="93" y="44" transform="rotate(-90 93 44)">~6</text>
+                <text x="81" y="44" transform="rotate(-90 81 44)">~5</text>
+                <text x="69" y="44" transform="rotate(-90 69 44)">4</text>
+                <text x="57" y="44" transform="rotate(-90 57 44)">~3</text>
+                <text x="45" y="44" transform="rotate(-90 45 44)">2</text>
+                <text x="33" y="44" transform="rotate(-90 33 44)">TX</text>
+                <text x="21" y="44" transform="rotate(-90 21 44)">RX</text>
+            </g>
+
+            <!-- Bottom Power/Analog Silkscreen Pin Labels (Vertical Rotated -90°) -->
+            <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="start">
+                <text x="57" y="146" transform="rotate(-90 57 146)">RST</text>
+                <text x="69" y="146" transform="rotate(-90 69 146)">3.3V</text>
+                <text x="81" y="146" transform="rotate(-90 81 146)">5V</text>
+                <text x="93" y="146" transform="rotate(-90 93 146)">GND</text>
+                <text x="105" y="146" transform="rotate(-90 105 146)">GND</text>
+                <text x="117" y="146" transform="rotate(-90 117 146)">VIN</text>
+                <text x="139" y="146" transform="rotate(-90 139 146)">A0</text>
+                <text x="151" y="146" transform="rotate(-90 151 146)">A1</text>
+                <text x="163" y="146" transform="rotate(-90 163 146)">A2</text>
+                <text x="175" y="146" transform="rotate(-90 175 146)">A3</text>
+                <text x="187" y="146" transform="rotate(-90 187 146)">A4</text>
+                <text x="199" y="146" transform="rotate(-90 199 146)">A5</text>
+            </g>
             `;
         }
     },
@@ -75,7 +114,6 @@ window.SimLabComponents = {
         height: 220,
         bg: "#0284c7",
         pins: [
-            // Left Side Pins
             { id: "D13", label: "D13", x: 15, y: 30, type: "digital" },
             { id: "3V3", label: "3V3", x: 15, y: 45, type: "power" },
             { id: "REF", label: "REF", x: 15, y: 60, type: "analog" },
@@ -89,7 +127,6 @@ window.SimLabComponents = {
             { id: "A7", label: "A7", x: 15, y: 180, type: "analog" },
             { id: "5V", label: "5V", x: 15, y: 195, type: "power" },
 
-            // Right Side Pins
             { id: "D12", label: "D12", x: 115, y: 30, type: "digital" },
             { id: "D11", label: "D11", x: 115, y: 45, type: "digital" },
             { id: "D10", label: "D10", x: 115, y: 60, type: "digital" },
@@ -111,6 +148,21 @@ window.SimLabComponents = {
             <rect x="40" y="80" width="50" height="50" rx="4" fill="#0f172a"/>
             <text x="65" y="108" fill="#38bdf8" font-size="9" font-family="monospace" text-anchor="middle">NANO328</text>
             <text x="65" y="160" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">NANO</text>
+            
+            <!-- Left Header Silkscreen -->
+            <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="start">
+                <text x="26" y="33">D13</text><text x="26" y="48">3V3</text><text x="26" y="63">REF</text>
+                <text x="26" y="78">A0</text><text x="26" y="93">A1</text><text x="26" y="108">A2</text>
+                <text x="26" y="123">A3</text><text x="26" y="138">A4</text><text x="26" y="153">A5</text>
+                <text x="26" y="168">A6</text><text x="26" y="183">A7</text><text x="26" y="198">5V</text>
+            </g>
+            <!-- Right Header Silkscreen -->
+            <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="end">
+                <text x="104" y="33">D12</text><text x="104" y="48">D11</text><text x="104" y="63">D10</text>
+                <text x="104" y="78">D9</text><text x="104" y="93">D8</text><text x="104" y="108">D7</text>
+                <text x="104" y="123">D6</text><text x="104" y="138">D5</text><text x="104" y="153">D4</text>
+                <text x="104" y="168">D3</text><text x="104" y="183">D2</text><text x="104" y="198">GND</text>
+            </g>
             `;
         }
     },
@@ -124,7 +176,6 @@ window.SimLabComponents = {
         height: 240,
         bg: "#18181b",
         pins: [
-            // Left Pins
             { id: "EN", label: "EN", x: 15, y: 30, type: "power" },
             { id: "VP", label: "VP", x: 15, y: 45, type: "analog" },
             { id: "VN", label: "VN", x: 15, y: 60, type: "analog" },
@@ -139,7 +190,6 @@ window.SimLabComponents = {
             { id: "D12", label: "D12", x: 15, y: 195, type: "digital" },
             { id: "GND_L", label: "GND", x: 15, y: 210, type: "gnd" },
 
-            // Right Pins
             { id: "3V3", label: "3V3", x: 135, y: 30, type: "power" },
             { id: "GND_R", label: "GND", x: 135, y: 45, type: "gnd" },
             { id: "D15", label: "D15", x: 135, y: 60, type: "digital" },
@@ -161,6 +211,23 @@ window.SimLabComponents = {
             <text x="75" y="55" fill="#18181b" font-size="12" font-weight="900" text-anchor="middle">ESP-WROOM-32</text>
             <text x="75" y="70" fill="#27272a" font-size="8" text-anchor="middle">Wi-Fi & Bluetooth</text>
             <text x="75" y="160" fill="#f43f5e" font-size="16" font-weight="bold" text-anchor="middle">ESP32</text>
+            
+            <!-- Left Header Silkscreen -->
+            <g fill="#ffffff" font-size="8" font-family="monospace" font-weight="bold" text-anchor="start">
+                <text x="26" y="33">EN</text><text x="26" y="48">VP</text><text x="26" y="63">VN</text>
+                <text x="26" y="78">D34</text><text x="26" y="93">D35</text><text x="26" y="108">D32</text>
+                <text x="26" y="123">D33</text><text x="26" y="138">D25</text><text x="26" y="153">D26</text>
+                <text x="26" y="168">D27</text><text x="26" y="183">D14</text><text x="26" y="198">D12</text>
+                <text x="26" y="213">GND</text>
+            </g>
+            <!-- Right Header Silkscreen -->
+            <g fill="#ffffff" font-size="8" font-family="monospace" font-weight="bold" text-anchor="end">
+                <text x="124" y="33">3V3</text><text x="124" y="48">GND</text><text x="124" y="63">D15</text>
+                <text x="124" y="78">D2</text><text x="124" y="93">D4</text><text x="124" y="108">RX2</text>
+                <text x="124" y="123">TX2</text><text x="124" y="138">D5</text><text x="124" y="153">D18</text>
+                <text x="124" y="168">D19</text><text x="124" y="183">D21</text><text x="124" y="198">D22</text>
+                <text x="124" y="213">D23</text>
+            </g>
             `;
         }
     },
@@ -188,6 +255,13 @@ window.SimLabComponents = {
             <circle cx="135" cy="40" r="20" fill="#0f172a"/>
             <text x="90" y="25" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">HC-SR04</text>
             <text x="90" y="55" fill="#38bdf8" font-size="12" font-weight="mono" text-anchor="middle">${dist} cm</text>
+            
+            <g fill="#ffffff" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="50" y="76">VCC</text>
+                <text x="75" y="76">TRIG</text>
+                <text x="100" y="76">ECHO</text>
+                <text x="125" y="76">GND</text>
+            </g>
             `;
         },
         controls: function(comp) {
@@ -224,6 +298,13 @@ window.SimLabComponents = {
             <text x="50" y="45" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">${temp}°C</text>
             <text x="50" y="65" fill="#93c5fd" font-size="11" font-weight="bold" text-anchor="middle">${hum}% RH</text>
             <text x="50" y="100" fill="#ffffff" font-size="10" font-weight="mono" text-anchor="middle">DHT11</text>
+            
+            <g fill="#ffffff" font-size="7.5" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="20" y="107">VCC</text>
+                <text x="45" y="107">DAT</text>
+                <text x="60" y="107">NC</text>
+                <text x="80" y="107">GND</text>
+            </g>
             `;
         },
         controls: function(comp) {
@@ -269,6 +350,12 @@ window.SimLabComponents = {
             </g>
             <text x="70" y="105" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">SERVO SG90</text>
             <text x="70" y="118" fill="#93c5fd" font-size="10" font-weight="mono" text-anchor="middle">${angle}°</text>
+            
+            <g fill="#ffffff" font-size="7.5" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="40" y="116">GND</text>
+                <text x="70" y="116">VCC</text>
+                <text x="100" y="116">PWM</text>
+            </g>
             `;
         }
     },
@@ -296,6 +383,13 @@ window.SimLabComponents = {
             <text x="45" y="45" fill="#a7f3d0" font-size="14" font-family="monospace" font-weight="bold">${line1.padEnd(16, ' ')}</text>
             <text x="45" y="67" fill="#a7f3d0" font-size="14" font-family="monospace" font-weight="bold">${line2.padEnd(16, ' ')}</text>
             <text x="100" y="105" fill="#ffffff" font-size="11" font-weight="bold">LCD 16x2 I2C</text>
+            
+            <g fill="#ffffff" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="220" y="97">GND</text>
+                <text x="235" y="97">VCC</text>
+                <text x="250" y="97">SDA</text>
+                <text x="265" y="97">SCL</text>
+            </g>
             `;
         }
     },
@@ -319,6 +413,12 @@ window.SimLabComponents = {
             <rect x="25" y="20" width="70" height="60" rx="4" fill="${active ? '#15803d' : '#0369a1'}"/>
             <text x="60" y="55" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">RELAY 5V</text>
             <circle cx="60" cy="30" r="5" fill="${active ? '#22c55e' : '#ef4444'}"/>
+            
+            <g fill="#ffffff" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="30" y="96">VCC</text>
+                <text x="60" y="96">GND</text>
+                <text x="90" y="96">IN</text>
+            </g>
             `;
         }
     },
@@ -341,6 +441,8 @@ window.SimLabComponents = {
             <circle cx="30" cy="35" r="20" fill="${lit ? '#ef4444' : '#7f1d1d'}" stroke="${lit ? '#fca5a5' : '#991b1b'}" stroke-width="2"/>
             ${lit ? '<circle cx="30" cy="35" r="25" fill="#ef4444" opacity="0.3"/>' : ''}
             <text x="30" y="70" fill="#fca5a5" font-size="10" font-weight="bold" text-anchor="middle">LED</text>
+            <text x="20" y="97" fill="#ffffff" font-size="7" font-weight="bold" text-anchor="middle">+</text>
+            <text x="40" y="97" fill="#ffffff" font-size="7" font-weight="bold" text-anchor="middle">-</text>
             `;
         }
     },
@@ -359,6 +461,8 @@ window.SimLabComponents = {
             <circle cx="30" cy="35" r="20" fill="${lit ? '#22c55e' : '#14532d'}" stroke="${lit ? '#86efac' : '#166534'}" stroke-width="2"/>
             ${lit ? '<circle cx="30" cy="35" r="25" fill="#22c55e" opacity="0.3"/>' : ''}
             <text x="30" y="70" fill="#86efac" font-size="10" font-weight="bold" text-anchor="middle">LED</text>
+            <text x="20" y="97" fill="#ffffff" font-size="7" font-weight="bold" text-anchor="middle">+</text>
+            <text x="40" y="97" fill="#ffffff" font-size="7" font-weight="bold" text-anchor="middle">-</text>
             `;
         }
     },
@@ -379,7 +483,6 @@ window.SimLabComponents = {
             return `
             <line x1="10" y1="25" x2="30" y2="25" stroke="#94a3b8" stroke-width="3"/>
             <rect x="30" y="15" width="50" height="20" rx="3" fill="#d97706" stroke="#b45309"/>
-            <!-- Color Bands -->
             <rect x="38" y="15" width="4" height="20" fill="#ea580c"/>
             <rect x="48" y="15" width="4" height="20" fill="#000000"/>
             <rect x="58" y="15" width="4" height="20" fill="#78350f"/>
@@ -422,6 +525,11 @@ window.SimLabComponents = {
             <rect width="140" height="100" rx="8" fill="#7f1d1d" stroke="#991b1b" stroke-width="2"/>
             <text x="70" y="30" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">POWER SUPPLY</text>
             <text x="70" y="50" fill="#fca5a5" font-size="10" font-weight="bold" text-anchor="middle">5V & 3.3V (2A Max)</text>
+            <g fill="#ffffff" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="30" y="76">5V</text>
+                <text x="70" y="76">3.3V</text>
+                <text x="110" y="76">GND</text>
+            </g>
             `;
         }
     }
