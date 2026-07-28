@@ -10,7 +10,6 @@ use App\Models\PaymentType;
 use App\Models\School;
 use App\Models\SchoolContribution;
 use App\Models\Semester;
-use App\Models\StudentBill;
 use App\Models\StudentClass;
 use App\Services\EmployeeAssignmentService;
 use Illuminate\Http\Request;
@@ -120,6 +119,7 @@ class FinancialRecapController extends Controller
         }
 
         // 2. DITARIK DARI HALAMAN 2: Total Belanja Pegawai & Total Belanja Operasional
+        // Gunakan gross_pay agar konsisten 100% dengan Halaman 2 (RAPBY Belanja Pegawai)
         $allSchools = School::where('is_active', true)
             ->orderByRaw("CASE WHEN type = 'yayasan' THEN 2 ELSE 1 END, name ASC")
             ->get();
@@ -130,7 +130,7 @@ class FinancialRecapController extends Controller
             if ($currentYear && $currentSemester) {
                 foreach ($employees as $emp) {
                     $sal = $this->assignmentService->calculateFullSalary($emp, $currentYear, $currentSemester, $sch->type, $sch->id);
-                    $totalGajiLembagaMonthly += (float) ($sal['thp'] ?? 0);
+                    $totalGajiLembagaMonthly += (float) ($sal['gross_pay'] ?? 0);
                 }
             }
         }
@@ -142,12 +142,23 @@ class FinancialRecapController extends Controller
             : null;
 
         $savedDetails = $yayasanContribution->expense_details ?? [];
-        $monthlyBelanjaOps = array_sum($savedDetails);
+        $monthlyBelanjaOps = 0;
+        
+        if (is_array($savedDetails) && count($savedDetails) > 0) {
+            foreach ($savedDetails as $code => $item) {
+                if (is_array($item)) {
+                    $monthlyBelanjaOps += (float) ($item['amount'] ?? ($item['tariff'] ?? 0) * ($item['volume'] ?? 1));
+                } elseif (is_numeric($item)) {
+                    $monthlyBelanjaOps += (float) $item;
+                }
+            }
+        }
+
         if ($monthlyBelanjaOps == 0 && $yayasanContribution) {
             $monthlyBelanjaOps = (float) ($yayasanContribution->authorized_expense ?? 0);
         }
-        $totalBelanjaOpsPeriod = $monthlyBelanjaOps * $multiplier;
 
+        $totalBelanjaOpsPeriod = $monthlyBelanjaOps * $multiplier;
         $grandTotalBelanjaPeriod = $totalGajiLembagaPeriod + $totalBelanjaOpsPeriod;
 
         // 3. Saldo Bersih Akhir Perguruan (Pendapatan SPP H1 - Total Rencana Belanja H2)
@@ -161,7 +172,9 @@ class FinancialRecapController extends Controller
             'schoolSppData' => $schoolSppData,
             'grandTotalIncome' => $grandTotalIncome,
             'totalGajiLembagaPeriod' => $totalGajiLembagaPeriod,
+            'totalGajiLembagaMonthly' => $totalGajiLembagaMonthly,
             'totalBelanjaOpsPeriod' => $totalBelanjaOpsPeriod,
+            'totalBelanjaOpsMonthly' => $monthlyBelanjaOps,
             'grandTotalBelanjaPeriod' => $grandTotalBelanjaPeriod,
             'grandTotalSaldoAkhir' => $grandTotalSaldoAkhir,
             'savedExpenseDetails' => $savedDetails,
