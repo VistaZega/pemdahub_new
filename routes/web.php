@@ -25,6 +25,8 @@ Route::prefix('simlab')->name('simlab.')->group(function () {
     Route::post('/save', [SimLabController::class, 'store'])->name('save');
     Route::get('/project/{id}', [SimLabController::class, 'show'])->name('show');
     Route::post('/compile', [SimLabController::class, 'compile'])->name('compile');
+    Route::delete('/project/{id}', [SimLabController::class, 'destroy'])->name('destroy');
+    Route::post('/project/{id}/duplicate', [SimLabController::class, 'duplicate'])->name('duplicate');
 });
 
 

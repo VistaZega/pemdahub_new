@@ -167,4 +167,38 @@ class SimLabController extends Controller
             'hex' => null, // Frontend AVR8js emulates execution
         ]);
     }
+
+    /**
+     * Delete a SimLab Project
+     */
+    public function destroy($id)
+    {
+        $project = SimProject::findOrFail($id);
+
+        // Only the project owner can delete
+        if (auth()->check() && $project->user_id === auth()->id()) {
+            $project->delete();
+            return redirect()->route('simlab.index')->with('success', 'Proyek berhasil dihapus.');
+        }
+
+        return redirect()->route('simlab.index')->with('error', 'Anda tidak memiliki izin untuk menghapus proyek ini.');
+    }
+
+    /**
+     * Duplicate a SimLab Project
+     */
+    public function duplicate($id)
+    {
+        $original = SimProject::findOrFail($id);
+
+        $newProject = $original->replicate();
+        $newProject->title = $original->title . ' (Salinan)';
+        $newProject->user_id = auth()->id();
+        $newProject->share_token = \Illuminate\Support\Str::random(12);
+        $newProject->created_at = now();
+        $newProject->updated_at = now();
+        $newProject->save();
+
+        return redirect()->route('simlab.editor', $newProject->id)->with('success', 'Proyek berhasil diduplikasi.');
+    }
 }

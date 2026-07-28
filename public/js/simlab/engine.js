@@ -10,11 +10,12 @@
  */
 
 window.SimLabEngine = {
-    VERSION: '3.0.0',
+    VERSION: '3.1.0',
     isRunning: false,
     simTimer: null,
     editor: null,
     pinStates: {},
+    hasUnsavedChanges: false,
 
     // Virtual Machine State
     vm: {
@@ -29,6 +30,8 @@ window.SimLabEngine = {
         this.initEditor();
         this.bindEvents();
         this.loadInitialProject();
+        this.initBeforeUnload();
+        this.updateSaveBadge(false);
     },
 
     initEditor: function() {
@@ -42,6 +45,15 @@ window.SimLabEngine = {
                 tabSize: 2,
                 matchBrackets: true,
                 autoCloseBrackets: true
+            });
+
+            // Track code changes for unsaved badge
+            var self = this;
+            this.editor.on('change', function() {
+                if (!self.hasUnsavedChanges) {
+                    self.hasUnsavedChanges = true;
+                    self.updateSaveBadge(true);
+                }
             });
         }
     },
@@ -533,10 +545,17 @@ window.SimLabEngine = {
     },
 
     saveProject: function() {
+        const self = this;
         const title = document.getElementById('projectTitle')?.value || 'Proyek SimLab Tanpa Judul';
         const board = document.getElementById('boardTypeSelect')?.value || 'uno';
         const circuitJson = window.SimLabCircuit.exportJSON();
         const codeIno = this.getCode();
+
+        const btnSave = document.getElementById('btnSaveProject');
+        if (btnSave) {
+            btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Menyimpan...</span>';
+            btnSave.disabled = true;
+        }
 
         const data = {
             id: window.SimLabConfig.projectId,
@@ -557,16 +576,74 @@ window.SimLabEngine = {
         .then(res => res.json())
         .then(res => {
             if (res.success) {
-                alert(res.message);
                 if (res.project && res.project.id) {
                     window.SimLabConfig.projectId = res.project.id;
                 }
+                self.hasUnsavedChanges = false;
+                self.updateSaveBadge(false);
+                self.showSaveNotification('Proyek berhasil disimpan!', 'success');
             } else {
-                alert('Gagal menyimpan proyek: ' + res.message);
+                self.showSaveNotification('Gagal: ' + res.message, 'error');
             }
         })
         .catch(err => {
-            alert('Terjadi kesalahan jaringan saat menyimpan proyek.');
+            self.showSaveNotification('Error jaringan saat menyimpan.', 'error');
+        })
+        .finally(() => {
+            if (btnSave) {
+                btnSave.innerHTML = '<i class="fas fa-save"></i> <span>Simpan</span>';
+                btnSave.disabled = false;
+            }
+        });
+    },
+
+    updateSaveBadge: function(unsaved) {
+        let badge = document.getElementById('saveBadge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.id = 'saveBadge';
+            badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full ml-2';
+            const btnSave = document.getElementById('btnSaveProject');
+            if (btnSave && btnSave.parentNode) {
+                btnSave.parentNode.insertBefore(badge, btnSave.nextSibling);
+            }
+        }
+        if (unsaved) {
+            badge.textContent = '● Belum Tersimpan';
+            badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full ml-2 bg-amber-500/20 text-amber-400 border border-amber-500/30';
+        } else {
+            badge.textContent = '✓ Tersimpan';
+            badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full ml-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        }
+    },
+
+    showSaveNotification: function(message, type) {
+        let notif = document.getElementById('saveNotification');
+        if (!notif) {
+            notif = document.createElement('div');
+            notif.id = 'saveNotification';
+            notif.className = 'fixed top-20 right-4 z-50 px-4 py-2.5 rounded-xl shadow-2xl text-sm font-bold transition-all';
+            document.body.appendChild(notif);
+        }
+        notif.textContent = message;
+        notif.style.opacity = '1';
+        if (type === 'success') {
+            notif.className = 'fixed top-20 right-4 z-50 px-4 py-2.5 rounded-xl shadow-2xl text-sm font-bold bg-emerald-600 text-white';
+        } else {
+            notif.className = 'fixed top-20 right-4 z-50 px-4 py-2.5 rounded-xl shadow-2xl text-sm font-bold bg-red-600 text-white';
+        }
+        setTimeout(function() { notif.style.opacity = '0'; }, 2500);
+        setTimeout(function() { notif.remove(); }, 3000);
+    },
+
+    initBeforeUnload: function() {
+        var self = this;
+        window.addEventListener('beforeunload', function(e) {
+            if (self.hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = 'Anda memiliki perubahan yang belum tersimpan. Yakin ingin meninggalkan halaman?';
+                return e.returnValue;
+            }
         });
     }
 };
@@ -574,3 +651,4 @@ window.SimLabEngine = {
 document.addEventListener('DOMContentLoaded', function() {
     window.SimLabEngine.init();
 });
+
