@@ -1,6 +1,6 @@
 /**
  * PembdaHUB SimLab - Simulation & Compiler Engine Bridge
- * Menangani VM Interpreter C++ Arduino sejati (AST execution, delay(ms) presisi real-time, digitalWrite, Serial, Servo, LCD).
+ * Menangani VM Interpreter C++ Arduino sejati (AST execution, delay(ms) presisi real-time, Live Code Update, digitalWrite, Serial, Servo, LCD).
  */
 
 window.SimLabEngine = {
@@ -23,6 +23,7 @@ window.SimLabEngine = {
     },
 
     initEditor: function() {
+        const self = this;
         const textarea = document.getElementById('codeEditorArea');
         if (textarea && typeof CodeMirror !== 'undefined') {
             this.editor = CodeMirror.fromTextArea(textarea, {
@@ -33,6 +34,14 @@ window.SimLabEngine = {
                 tabSize: 2,
                 matchBrackets: true,
                 autoCloseBrackets: true
+            });
+
+            // Live Code Re-parsing when user edits code during running simulation
+            this.editor.on('change', function() {
+                if (self.isRunning) {
+                    const code = self.getCode();
+                    self.vmLoopInstructions = self.parseCodeToInstructions(code);
+                }
             });
         }
     },
@@ -159,11 +168,14 @@ window.SimLabEngine = {
             loopBody = loopMatch[1];
         }
 
+        // Clean comments
+        loopBody = loopBody.replace(/\/\/.*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+
         // Split statements by semicolon
         const lines = loopBody.split(';');
         lines.forEach(line => {
             const cleanLine = line.trim();
-            if (!cleanLine || cleanLine.startsWith('//')) return;
+            if (!cleanLine) return;
 
             // 1. digitalWrite(pin, val)
             const dwMatch = cleanLine.match(/digitalWrite\s*\(\s*([^,\s]+)\s*,\s*([^)\s]+)\s*\)/);
@@ -229,7 +241,9 @@ window.SimLabEngine = {
         document.getElementById('statusIndicatorPin').className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
         document.getElementById('statusText').textContent = 'RUNNING (16 MHz VM)';
 
-        this.appendSerialLog('\n[SIMULATOR STARTED]\n');
+        // Log parsed VM timings for transparency
+        const delays = this.vmLoopInstructions.filter(i => i.op === 'delay').map(i => i.ms + 'ms');
+        this.appendSerialLog(`\n[SIMULATOR STARTED - Loaded ${this.vmLoopInstructions.length} VM Instructions. Timings: ${delays.join(', ')}]\n`);
 
         // Check setup() for Serial.println initial output
         const setupMatch = code.match(/void\s+setup\s*\(\s*\)\s*\{([\s\S]*)\}/);
@@ -240,7 +254,7 @@ window.SimLabEngine = {
             }
         }
 
-        // Fast Virtual Machine Loop Timer (10ms Tick = 100 Hz Resolution)
+        // Fast Virtual Machine Loop Timer (15ms Tick = 66 Hz Resolution)
         this.simTimer = setInterval(function() {
             self.vmExecutionTick();
         }, 15);
