@@ -5,104 +5,143 @@
 
 window.SimLabComponents = {
     // ----------------------------------------------------
-    // 1. ARDUINO UNO (ATmega328P) - Authentic Arduino R3 Pin Layout (320x200)
+    // 1. ARDUINO UNO (ATmega328P) - Authentic Physical Board (360x240)
+    // Persis Foto Fisik Resmi Arduino Uno R3 Blue Board
     // ----------------------------------------------------
     uno: {
         name: "Arduino Uno",
-        width: 320,
-        height: 200,
-        bg: "#008784",
+        width: 360,
+        height: 240,
+        bg: "#1e40af",
         pins: [
-            // Top Digital Pins (Urutan Resmi Arduino R3 Kiri ke Kanan: SCL, SDA, AREF, GND, 13..8 | 7..2, TX, RX)
-            { id: "SCL", label: "SCL", x: 30, y: 18, type: "digital" },
-            { id: "SDA", label: "SDA", x: 45, y: 18, type: "digital" },
-            { id: "AREF", label: "AREF", x: 60, y: 18, type: "analog" },
-            { id: "GND_TOP", label: "GND", x: 75, y: 18, type: "gnd" },
-            { id: "D13", label: "13", x: 90, y: 18, type: "digital", pwm: true },
-            { id: "D12", label: "12", x: 105, y: 18, type: "digital" },
-            { id: "D11", label: "~11", x: 120, y: 18, type: "digital", pwm: true },
-            { id: "D10", label: "~10", x: 135, y: 18, type: "digital", pwm: true },
-            { id: "D9", label: "~9", x: 150, y: 18, type: "digital", pwm: true },
-            { id: "D8", label: "8", x: 165, y: 18, type: "digital" },
+            // Top Digital Pins (Kiri ke Kanan: SCL, SDA, AREF, GND, 13..8 | 7..2, TX, RX)
+            { id: "SCL", label: "SCL", x: 130, y: 19, type: "digital" },
+            { id: "SDA", label: "SDA", x: 142, y: 19, type: "digital" },
+            { id: "AREF", label: "AREF", x: 154, y: 19, type: "analog" },
+            { id: "GND_TOP", label: "GND", x: 166, y: 19, type: "gnd" },
+            { id: "D13", label: "13", x: 178, y: 19, type: "digital", pwm: true },
+            { id: "D12", label: "12", x: 190, y: 19, type: "digital" },
+            { id: "D11", label: "~11", x: 202, y: 19, type: "digital", pwm: true },
+            { id: "D10", label: "~10", x: 214, y: 19, type: "digital", pwm: true },
+            { id: "D9", label: "~9", x: 226, y: 19, type: "digital", pwm: true },
+            { id: "D8", label: "8", x: 238, y: 19, type: "digital" },
             
-            { id: "D7", label: "7", x: 195, y: 18, type: "digital" },
-            { id: "D6", label: "~6", x: 210, y: 18, type: "digital", pwm: true },
-            { id: "D5", label: "~5", x: 225, y: 18, type: "digital", pwm: true },
-            { id: "D4", label: "4", x: 240, y: 18, type: "digital" },
-            { id: "D3", label: "~3", x: 255, y: 18, type: "digital", pwm: true },
-            { id: "D2", label: "2", x: 270, y: 18, type: "digital" },
-            { id: "TX", label: "1 (TX)", x: 285, y: 18, type: "serial" },
-            { id: "RX", label: "0 (RX)", x: 300, y: 18, type: "serial" },
+            { id: "D7", label: "7", x: 256, y: 19, type: "digital" },
+            { id: "D6", label: "~6", x: 268, y: 19, type: "digital", pwm: true },
+            { id: "D5", label: "~5", x: 280, y: 19, type: "digital", pwm: true },
+            { id: "D4", label: "4", x: 292, y: 19, type: "digital" },
+            { id: "D3", label: "~3", x: 304, y: 19, type: "digital", pwm: true },
+            { id: "D2", label: "2", x: 316, y: 19, type: "digital" },
+            { id: "TX", label: "1 (TX)", x: 328, y: 19, type: "serial" },
+            { id: "RX", label: "0 (RX)", x: 340, y: 19, type: "serial" },
 
-            // Bottom Power & Analog Pins (Urutan Resmi Arduino R3 Kiri ke Kanan: RST, 3.3V, 5V, GND, GND, VIN | A0..A5)
-            { id: "RESET", label: "RST", x: 60, y: 182, type: "power" },
-            { id: "3V3", label: "3.3V", x: 75, y: 182, type: "power" },
-            { id: "5V", label: "5V", x: 90, y: 182, type: "power" },
-            { id: "GND_1", label: "GND", x: 105, y: 182, type: "gnd" },
-            { id: "GND_2", label: "GND", x: 120, y: 182, type: "gnd" },
-            { id: "VIN", label: "VIN", x: 135, y: 182, type: "power" },
+            // Bottom Power & Analog Pins (Kiri ke Kanan: IOREF, RST, 3.3V, 5V, GND, GND, VIN | A0..A5)
+            { id: "IOREF", label: "IOREF", x: 170, y: 221, type: "power" },
+            { id: "RESET", label: "RST", x: 182, y: 221, type: "power" },
+            { id: "3V3", label: "3.3V", x: 194, y: 221, type: "power" },
+            { id: "5V", label: "5V", x: 206, y: 221, type: "power" },
+            { id: "GND_1", label: "GND", x: 218, y: 221, type: "gnd" },
+            { id: "GND_2", label: "GND", x: 230, y: 221, type: "gnd" },
+            { id: "VIN", label: "VIN", x: 242, y: 221, type: "power" },
             
-            { id: "A0", label: "A0", x: 175, y: 182, type: "analog" },
-            { id: "A1", label: "A1", x: 190, y: 182, type: "analog" },
-            { id: "A2", label: "A2", x: 205, y: 182, type: "analog" },
-            { id: "A3", label: "A3", x: 220, y: 182, type: "analog" },
-            { id: "A4", label: "A4", x: 235, y: 182, type: "analog" },
-            { id: "A5", label: "A5", x: 250, y: 182, type: "analog" }
+            { id: "A0", label: "A0", x: 266, y: 221, type: "analog" },
+            { id: "A1", label: "A1", x: 278, y: 221, type: "analog" },
+            { id: "A2", label: "A2", x: 290, y: 221, type: "analog" },
+            { id: "A3", label: "A3", x: 302, y: 221, type: "analog" },
+            { id: "A4", label: "A4", x: 314, y: 221, type: "analog" },
+            { id: "A5", label: "A5", x: 326, y: 221, type: "analog" }
         ],
         svg: function(comp) {
             return `
-            <rect width="320" height="200" rx="12" fill="#008784" stroke="#005d5b" stroke-width="3"/>
-            <rect x="160" y="80" width="140" height="32" rx="4" fill="#1e293b"/>
-            <text x="230" y="100" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">ATMEGA328P-PU</text>
-            <rect x="15" y="130" width="45" height="50" rx="4" fill="#475569"/>
-            <text x="37" y="160" fill="#e2e8f0" font-size="9" text-anchor="middle">USB B</text>
-            <circle cx="285" cy="155" r="16" fill="#0f172a"/>
-            <text x="285" y="159" fill="#94a3b8" font-size="8" text-anchor="middle">POWER</text>
-            <text x="90" y="125" fill="#ffffff" font-size="16" font-family="sans-serif" font-weight="900" text-anchor="middle">ARDUINO UNO</text>
+            <!-- PCB Body Royal Blue -->
+            <rect width="360" height="240" rx="12" fill="#1e40af" stroke="#1d4ed8" stroke-width="3"/>
             
-            <circle id="led_uno_13_${comp.id}" cx="75" cy="55" r="4" fill="#451a03" stroke="#78350f" stroke-width="1"/>
-            <text x="85" y="58" fill="#cbd5e1" font-size="8">L (D13)</text>
-            <circle id="led_uno_on_${comp.id}" cx="75" cy="70" r="4" fill="#15803d" stroke="#22c55e" stroke-width="1"/>
-            <text x="85" y="73" fill="#cbd5e1" font-size="8">ON</text>
+            <!-- USB B Port Silver (Top Left) -->
+            <rect x="10" y="25" width="55" height="50" rx="4" fill="#cbd5e1" stroke="#94a3b8" stroke-width="2"/>
+            <rect x="15" y="32" width="45" height="36" rx="2" fill="#64748b"/>
+            <text x="37" y="54" fill="#f8fafc" font-size="9" font-weight="bold" text-anchor="middle">USB B</text>
 
-            <!-- Top Header Silkscreen Labels: rotate(90 32) (Mulai Y=32 berlanjut KE BAWAH masuk ke PCB hijau) -->
-            <g fill="#ffffff" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="start">
-                <text x="30" y="32" transform="rotate(90 30 32)">SCL</text>
-                <text x="45" y="32" transform="rotate(90 45 32)">SDA</text>
-                <text x="60" y="32" transform="rotate(90 60 32)">AREF</text>
-                <text x="75" y="32" transform="rotate(90 75 32)">GND</text>
-                <text x="90" y="32" transform="rotate(90 90 32)">13</text>
-                <text x="105" y="32" transform="rotate(90 105 32)">12</text>
-                <text x="120" y="32" transform="rotate(90 120 32)">~11</text>
-                <text x="135" y="32" transform="rotate(90 135 32)">~10</text>
-                <text x="150" y="32" transform="rotate(90 150 32)">~9</text>
-                <text x="165" y="32" transform="rotate(90 165 32)">8</text>
+            <!-- DC Barrel Jack Black (Bottom Left) -->
+            <rect x="10" y="160" width="60" height="50" rx="4" fill="#0f172a" stroke="#1e293b" stroke-width="2"/>
+            <circle cx="10" cy="185" r="12" fill="#000000"/>
+
+            <!-- Red Reset Button (Top Left next to USB) -->
+            <rect x="75" y="25" width="22" height="22" rx="3" fill="#cbd5e1" stroke="#94a3b8"/>
+            <circle cx="86" cy="36" r="6" fill="#ef4444"/>
+
+            <!-- Crystal Oscillator Silver (16.000 MHz) -->
+            <rect x="92" y="65" width="36" height="18" rx="7" fill="#94a3b8" stroke="#e2e8f0" stroke-width="1.5"/>
+            <text x="110" y="77" fill="#1e293b" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">16.000</text>
+
+            <!-- Main ATmega328P Chip (Middle Right) -->
+            <rect x="200" y="90" width="55" height="55" rx="5" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+            <circle cx="210" cy="100" r="3" fill="#334155"/>
+            <text x="227" y="118" fill="#64748b" font-size="8" font-family="monospace" text-anchor="middle">ATMEGA</text>
+            <text x="227" y="128" fill="#64748b" font-size="8" font-family="monospace" text-anchor="middle">328P</text>
+
+            <!-- ICSP Header 2x3 Grid (Far Right) -->
+            <rect x="295" y="100" width="22" height="32" rx="2" fill="#020617" stroke="#1e293b"/>
+            <circle cx="301" cy="106" r="2" fill="#eab308"/><circle cx="311" cy="106" r="2" fill="#eab308"/>
+            <circle cx="301" cy="116" r="2" fill="#eab308"/><circle cx="311" cy="116" r="2" fill="#eab308"/>
+            <circle cx="301" cy="126" r="2" fill="#eab308"/><circle cx="311" cy="126" r="2" fill="#eab308"/>
+
+            <!-- Branding Logos -->
+            <text x="227" y="60" fill="#ffffff" font-size="22" font-family="sans-serif" font-weight="900" text-anchor="middle">UNO</text>
+            <text x="227" y="73" fill="#93c5fd" font-size="8" font-family="sans-serif" font-weight="bold" text-anchor="middle">DIGITAL PWM(~)</text>
+            <text x="206" y="200" fill="#93c5fd" font-size="9" font-family="sans-serif" font-weight="bold" text-anchor="middle">POWER</text>
+            <text x="296" y="200" fill="#93c5fd" font-size="9" font-family="sans-serif" font-weight="bold" text-anchor="middle">ANALOG IN</text>
+
+            <!-- Status LEDs (L D13 & ON) -->
+            <circle id="led_uno_13_${comp.id}" cx="170" cy="95" r="4" fill="#451a03" stroke="#78350f" stroke-width="1"/>
+            <text x="180" y="98" fill="#cbd5e1" font-size="8">L (D13)</text>
+            <circle id="led_uno_on_${comp.id}" cx="170" cy="110" r="4" fill="#15803d" stroke="#22c55e" stroke-width="1"/>
+            <text x="180" y="113" fill="#cbd5e1" font-size="8">ON</text>
+
+            <!-- Top Header Black Socket Bar -->
+            <rect x="122" y="10" width="226" height="18" rx="2" fill="#020617"/>
+
+            <!-- Top Header Silkscreen Labels: rotate(90 32) (Persis Foto Fisik dari atas ke bawah) -->
+            <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="start">
+                <text x="130" y="32" transform="rotate(90 130 32)">SCL</text>
+                <text x="142" y="32" transform="rotate(90 142 32)">SDA</text>
+                <text x="154" y="32" transform="rotate(90 154 32)">AREF</text>
+                <text x="166" y="32" transform="rotate(90 166 32)">GND</text>
+                <text x="178" y="32" transform="rotate(90 178 32)">13</text>
+                <text x="190" y="32" transform="rotate(90 190 32)">12</text>
+                <text x="202" y="32" transform="rotate(90 202 32)">~11</text>
+                <text x="214" y="32" transform="rotate(90 214 32)">~10</text>
+                <text x="226" y="32" transform="rotate(90 226 32)">~9</text>
+                <text x="238" y="32" transform="rotate(90 238 32)">8</text>
                 
-                <text x="195" y="32" transform="rotate(90 195 32)">7</text>
-                <text x="210" y="32" transform="rotate(90 210 32)">~6</text>
-                <text x="225" y="32" transform="rotate(90 225 32)">~5</text>
-                <text x="240" y="32" transform="rotate(90 240 32)">4</text>
-                <text x="255" y="32" transform="rotate(90 255 32)">~3</text>
-                <text x="270" y="32" transform="rotate(90 270 32)">2</text>
-                <text x="285" y="32" transform="rotate(90 285 32)">TX (1)</text>
-                <text x="300" y="32" transform="rotate(90 300 32)">RX (0)</text>
+                <text x="256" y="32" transform="rotate(90 256 32)">7</text>
+                <text x="268" y="32" transform="rotate(90 268 32)">~6</text>
+                <text x="280" y="32" transform="rotate(90 280 32)">~5</text>
+                <text x="292" y="32" transform="rotate(90 292 32)">4</text>
+                <text x="304" y="32" transform="rotate(90 304 32)">~3</text>
+                <text x="316" y="32" transform="rotate(90 316 32)">2</text>
+                <text x="328" y="32" transform="rotate(90 328 32)">TX-1</text>
+                <text x="340" y="32" transform="rotate(90 340 32)">RX-0</text>
             </g>
 
-            <!-- Bottom Power/Analog Silkscreen Pin Labels: rotate(-90 168) (Mulai Y=168 berlanjut KE ATAS masuk ke PCB hijau) -->
-            <g fill="#ffffff" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="start">
-                <text x="60" y="168" transform="rotate(-90 60 168)">RST</text>
-                <text x="75" y="168" transform="rotate(-90 75 168)">3.3V</text>
-                <text x="90" y="168" transform="rotate(-90 90 168)">5V</text>
-                <text x="105" y="168" transform="rotate(-90 105 168)">GND</text>
-                <text x="120" y="168" transform="rotate(-90 120 168)">GND</text>
-                <text x="135" y="168" transform="rotate(-90 135 168)">VIN</text>
+            <!-- Bottom Header Black Socket Bar -->
+            <rect x="162" y="212" width="172" height="18" rx="2" fill="#020617"/>
 
-                <text x="175" y="168" transform="rotate(-90 175 168)">A0</text>
-                <text x="190" y="168" transform="rotate(-90 190 168)">A1</text>
-                <text x="205" y="168" transform="rotate(-90 205 168)">A2</text>
-                <text x="220" y="168" transform="rotate(-90 220 168)">A3</text>
-                <text x="235" y="168" transform="rotate(-90 235 168)">A4</text>
-                <text x="250" y="168" transform="rotate(-90 250 168)">A5</text>
+            <!-- Bottom Power/Analog Silkscreen Pin Labels: rotate(-90 208) (Persis Foto Fisik dari bawah ke atas) -->
+            <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="end">
+                <text x="170" y="208" transform="rotate(-90 170 208)">IOREF</text>
+                <text x="182" y="208" transform="rotate(-90 182 208)">RESET</text>
+                <text x="194" y="208" transform="rotate(-90 194 208)">3.3V</text>
+                <text x="206" y="208" transform="rotate(-90 206 208)">5V</text>
+                <text x="218" y="208" transform="rotate(-90 218 208)">GND</text>
+                <text x="230" y="208" transform="rotate(-90 230 208)">GND</text>
+                <text x="242" y="208" transform="rotate(-90 242 208)">VIN</text>
+
+                <text x="266" y="208" transform="rotate(-90 266 208)">A0</text>
+                <text x="278" y="208" transform="rotate(-90 278 208)">A1</text>
+                <text x="290" y="208" transform="rotate(-90 290 208)">A2</text>
+                <text x="302" y="208" transform="rotate(-90 302 208)">A3</text>
+                <text x="314" y="208" transform="rotate(-90 314 208)">A4</text>
+                <text x="326" y="208" transform="rotate(-90 326 208)">A5</text>
             </g>
             `;
         }
