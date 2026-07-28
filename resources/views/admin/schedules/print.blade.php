@@ -103,12 +103,24 @@
                     <tr class="bg-gray-900 text-white font-bold border-b border-gray-400">
                         <th class="p-1 border-r border-gray-400 text-center w-12">Hari</th>
                         <th class="p-1 border-r border-gray-400 text-center w-16">Waktu</th>
+                        @php
+                            $romanGrades = [
+                                10 => 'X', 11 => 'XI', 12 => 'XII',
+                                7 => 'VII', 8 => 'VIII', 9 => 'IX'
+                            ];
+                        @endphp
                         @foreach($classrooms as $classroom)
-                        <th class="p-0.5 border-r border-gray-400 text-center align-middle">
-                            <div class="font-black text-[8px] leading-tight text-white break-words max-h-10 overflow-hidden text-center uppercase tracking-tighter">
-                                {{ $classroom->class_code ?? $classroom->class_name }}
-                            </div>
-                        </th>
+                            @php
+                                $romanGrade = $romanGrades[$classroom->grade_level] ?? $classroom->grade_level;
+                                $rawName = $classroom->class_name ?: $classroom->class_code;
+                                $cleanName = preg_replace('/^\d+\s*[\-\:]?\s*/', '', $rawName);
+                                $displayClassName = $romanGrade . ' - ' . $cleanName;
+                            @endphp
+                            <th class="p-0.5 border-r border-gray-400 text-center align-middle">
+                                <div class="font-black text-[8px] leading-tight text-white break-words max-h-10 overflow-hidden text-center uppercase tracking-tighter">
+                                    {{ $displayClassName }}
+                                </div>
+                            </th>
                         @endforeach
                     </tr>
                 </thead>
