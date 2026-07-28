@@ -150,7 +150,7 @@ class ScheduleExport implements FromArray, WithTitle, WithStyles, WithColumnWidt
                     if ($schedulesInSlot && $schedulesInSlot->count() > 0) {
                         $cellContents = [];
                         foreach ($schedulesInSlot as $schedule) {
-                            $subjectName = $schedule->subject->name ?? $schedule->subject->subject_name ?? '-';
+                            $subjectCode = $schedule->subject->code ?? $schedule->subject->subject_code ?? $schedule->subject->name ?? '-';
                             $teacherName = $schedule->teacher->full_name ?? '-';
                             $classroomName = $schedule->classroom->class_name ?? '-';
                             $duration = $schedule->duration_slots > 1 ? " ({$schedule->duration_slots} jam)" : "";
@@ -165,7 +165,7 @@ class ScheduleExport implements FromArray, WithTitle, WithStyles, WithColumnWidt
                                 $blockLabel = " [Paralel]";
                             }
                             
-                            $cellContents[] = $subjectName . $blockLabel . "\n" . 
+                            $cellContents[] = $subjectCode . $blockLabel . "\n" . 
                                           $teacherName . "\n" . 
                                           $classroomName . 
                                           $duration;

@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Jadwal Pelajaran - {{ $school->name ?? 'PembdaHUB' }}</title>
+    <title>Cetak Matriks Jadwal Pelajaran - {{ $school->name ?? 'PembdaHUB' }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; padding: 0 !important; }
@@ -16,6 +16,7 @@
             table { page-break-inside: auto; }
             tr { page-break-inside: avoid; page-break-after: auto; }
             thead { display: table-header-group; }
+            @page { size: landscape; margin: 8mm; }
         }
         .badge-reguler { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
         .badge-block-a { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
@@ -26,57 +27,57 @@
 <body class="p-6">
 
     <!-- ACTION TOOLBAR (NO PRINT) -->
-    <div class="no-print max-w-7xl mx-auto mb-6 flex items-center justify-between bg-white p-4 rounded-2xl shadow-md border border-gray-100">
+    <div class="no-print max-w-[98%] mx-auto mb-6 flex items-center justify-between bg-white p-4 rounded-2xl shadow-md border border-gray-100">
         <div class="flex items-center gap-3">
             <button onclick="window.history.back()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-sm transition flex items-center gap-2">
                 <i class="fas fa-arrow-left"></i> Kembali
             </button>
-            <span class="text-sm font-semibold text-gray-500">Pratinjau Cetak Jadwal Pelajaran</span>
+            <span class="text-sm font-semibold text-gray-500">Pratinjau Cetak Matriks Jadwal (Vertikal Time Slot & Horizontal Kelas)</span>
         </div>
         <div class="flex items-center gap-3">
             <button onclick="window.print()" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg hover:shadow-indigo-500/25 transition flex items-center gap-2 text-sm">
-                <i class="fas fa-print"></i> Cetak / Simpan PDF
+                <i class="fas fa-print"></i> Cetak / Simpan PDF (Landscape)
             </button>
         </div>
     </div>
 
     <!-- MAIN PRINT CONTAINER -->
-    <div class="print-container max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-xl border border-gray-200">
+    <div class="print-container max-w-[98%] mx-auto bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
         
         <!-- HEADER KOP -->
-        <div class="border-b-2 border-gray-800 pb-4 mb-6 text-center relative">
+        <div class="border-b-2 border-gray-900 pb-3 mb-4 text-center">
             <h1 class="text-2xl font-black uppercase tracking-wider text-gray-900">{{ $school->name ?? 'PEMBDA HUB' }}</h1>
-            <p class="text-xs text-gray-600 mt-1">{{ $school->address ?? 'Sistem Informasi Akademik Terpadu' }}</p>
-            <h2 class="text-lg font-bold uppercase tracking-wide text-purple-900 mt-3">JADWAL PELAJARAN SEKOAH</h2>
-            <div class="flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-gray-700 mt-2">
-                <span><i class="fas fa-calendar-alt text-purple-600"></i> Tahun Ajaran: {{ $academicYear->year ?? '-' }}</span>
-                <span><i class="fas fa-flag text-purple-600"></i> Semester: {{ ucfirst($semester) }}</span>
-                <span><i class="fas fa-clock text-purple-600"></i> Shift KBM: 
+            <p class="text-xs text-gray-600 mt-0.5">{{ $school->address ?? 'Sistem Informasi Akademik Terpadu' }}</p>
+            <h2 class="text-base font-extrabold uppercase tracking-wide text-purple-900 mt-2">MATRIKS JADWAL PELAJARAN SEKOAH</h2>
+            <div class="flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-gray-700 mt-1">
+                <span><strong>Tahun Ajaran:</strong> {{ $academicYear->year ?? '-' }}</span>
+                <span><strong>Semester:</strong> {{ ucfirst($semester) }}</span>
+                <span><strong>Shift KBM:</strong> 
                     @if($selectedShift === 'pagi') ☀️ Shift Pagi (Reguler)
                     @elseif($selectedShift === 'siang') 🌙 Shift Siang (Eksekutif)
                     @else 🔘 Semua Shift
                     @endif
                 </span>
                 @if($currentRotation !== 'normal')
-                <span><i class="fas fa-sync text-purple-600"></i> Rotasi Blok Aktif: <strong>{{ strtoupper($currentRotation) }}</strong></span>
+                <span><strong>Rotasi Blok Aktif:</strong> {{ strtoupper($currentRotation) }}</span>
                 @endif
             </div>
         </div>
 
-        <!-- LEGEND & INFORMASI INDIKATOR -->
-        <div class="flex flex-wrap items-center justify-between gap-3 text-xs mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
-            <div class="flex items-center gap-2 font-bold text-gray-700">
-                <i class="fas fa-info-circle text-purple-600"></i> Keterangan Sistem:
+        <!-- LEGEND / INDIKATOR MODUL -->
+        <div class="flex items-center justify-between text-xs mb-3 p-2 bg-gray-50 rounded-xl border border-gray-200">
+            <div class="font-bold text-gray-700">
+                <i class="fas fa-info-circle text-purple-600"></i> Legenda Modul Penjadwalan:
             </div>
-            <div class="flex flex-wrap items-center gap-3 font-semibold">
-                <span class="px-2.5 py-1 rounded-lg badge-reguler">Jadwal Reguler</span>
-                <span class="px-2.5 py-1 rounded-lg badge-block-a">Blok Kelompok A</span>
-                <span class="px-2.5 py-1 rounded-lg badge-block-b">Blok Kelompok B</span>
-                <span class="px-2.5 py-1 rounded-lg badge-parallel">Paralel / Agama</span>
+            <div class="flex items-center gap-3 font-semibold text-[11px]">
+                <span class="px-2 py-0.5 rounded badge-reguler">Reguler</span>
+                <span class="px-2 py-0.5 rounded badge-block-a">Blok Kelompok A</span>
+                <span class="px-2 py-0.5 rounded badge-block-b">Blok Kelompok B</span>
+                <span class="px-2 py-0.5 rounded badge-parallel">Paralel / Agama</span>
             </div>
         </div>
 
-        <!-- TABLE MATRIKS JADWAL -->
+        <!-- TABLE MATRIKS JADWAL (VERTIKAL TIME SLOT x HORIZONTAL KELAS) -->
         @php
             $days = [
                 'monday' => 'Senin',
@@ -88,55 +89,55 @@
             ];
         @endphp
 
-        @foreach($days as $dayKey => $dayLabel)
-            @php
-                $daySlots = $timeSlots->where('day_of_week', $dayKey)->sortBy('slot_order');
-            @endphp
+        <div class="overflow-x-auto border border-gray-400 rounded-xl">
+            <table class="w-full text-xs text-left border-collapse border border-gray-400">
+                <thead>
+                    <tr class="bg-gray-900 text-white font-bold border-b border-gray-400">
+                        <th class="p-2 border-r border-gray-400 text-center w-20">Hari</th>
+                        <th class="p-2 border-r border-gray-400 text-center w-28">Waktu / Jam</th>
+                        @foreach($classrooms as $classroom)
+                        <th class="p-2 border-r border-gray-400 text-center min-w-[105px]">
+                            <div class="font-extrabold text-sm tracking-tight">{{ $classroom->class_name }}</div>
+                            <div class="text-[10px] text-purple-200 font-normal">Tingkat {{ $classroom->grade_level }} • {{ ucfirst($classroom->shift ?? 'pagi') }}</div>
+                        </th>
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($days as $dayKey => $dayLabel)
+                        @php
+                            $daySlots = $timeSlots->where('day_of_week', $dayKey)->sortBy('slot_order');
+                            $slotCount = $daySlots->count();
+                        @endphp
 
-            @if($daySlots->count() > 0)
-            <div class="mb-8 page-break-inside-avoid">
-                <div class="bg-indigo-900 text-white px-4 py-2 rounded-t-xl font-extrabold text-sm uppercase tracking-wider flex items-center justify-between">
-                    <span><i class="fas fa-calendar-day mr-2"></i> Hari {{ $dayLabel }}</span>
-                    <span class="text-xs font-normal text-indigo-200">{{ $daySlots->count() }} Slot Pelajaran</span>
-                </div>
-
-                <div class="overflow-x-auto border border-gray-300 rounded-b-xl">
-                    <table class="w-full text-xs text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-800 border-b border-gray-300 font-bold">
-                                <th class="p-2 border-r border-gray-300 text-center w-28">Jam / Slot</th>
-                                @foreach($classrooms as $classroom)
-                                <th class="p-2 border-r border-gray-300 text-center min-w-[120px]">
-                                    <div class="font-extrabold">{{ $classroom->class_name }}</div>
-                                    <div class="text-[10px] text-gray-500 font-medium">Tingkat {{ $classroom->grade_level }} • {{ ucfirst($classroom->shift ?? 'pagi') }}</div>
-                                </th>
-                                @endforeach
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            @foreach($daySlots as $slot)
-                            <tr class="{{ $slot->is_teaching_slot ? 'bg-white' : 'bg-amber-50/50' }}">
-                                <!-- TIME SLOT CELL -->
-                                <td class="p-2 border-r border-gray-300 text-center font-semibold bg-gray-50">
-                                    <div class="font-bold text-gray-900">{{ $slot->slot_name }}</div>
-                                    <div class="text-[10px] text-gray-500">{{ substr($slot->start_time, 0, 5) }} - {{ substr($slot->end_time, 0, 5) }}</div>
+                        @if($slotCount > 0)
+                            @foreach($daySlots as $index => $slot)
+                            <tr class="border-b border-gray-300 {{ $slot->is_teaching_slot ? 'bg-white' : 'bg-amber-50/60' }}">
+                                @if($index === 0)
+                                <td rowspan="{{ $slotCount }}" class="p-2 border-r border-gray-400 text-center font-black bg-gray-100 uppercase tracking-widest text-xs align-middle">
+                                    {{ $dayLabel }}
                                 </td>
-
-                                <!-- CLASSROOM COLUMNS -->
+                                @endif
+                                <td class="p-2 border-r border-gray-400 text-center font-bold bg-gray-50">
+                                    <div class="text-gray-900 font-black text-xs">{{ $slot->slot_name }}</div>
+                                    <div class="text-[10px] text-gray-500 font-medium">{{ substr($slot->start_time, 0, 5) }} - {{ substr($slot->end_time, 0, 5) }}</div>
+                                </td>
                                 @foreach($classrooms as $classroom)
                                     @php
                                         $key = $dayKey . '_' . $slot->id . '_' . $classroom->id;
                                         $cellSchedules = $scheduleGrid[$key] ?? [];
                                     @endphp
-                                    <td class="p-1.5 border-r border-gray-200 text-center align-top min-h-[50px]">
+                                    <td class="p-1 border-r border-gray-300 text-center align-top">
                                         @if(!$slot->is_teaching_slot)
-                                            <span class="text-[10px] font-bold text-amber-700 uppercase tracking-widest">{{ $slot->slot_name }}</span>
+                                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{{ $slot->slot_name }}</span>
                                         @elseif(!empty($cellSchedules))
                                             @foreach($cellSchedules as $sched)
                                                 @php
+                                                    $subjectCode = $sched->subject->code ?? $sched->subject->subject_code ?? $sched->subject->name ?? '-';
+                                                    $teacherName = $sched->teacher->full_name ?? '-';
                                                     $blockType = $sched->teachingAssignment->block_type ?? 'none';
-                                                    $badgeClass = 'badge-reguler';
                                                     $blockTag = '';
+                                                    $badgeClass = 'badge-reguler';
                                                     if ($blockType === 'all') {
                                                         $badgeClass = 'badge-block-a';
                                                         $blockTag = '(Blok A)';
@@ -149,39 +150,40 @@
                                                     }
                                                 @endphp
                                                 <div class="p-1.5 mb-1 rounded-lg text-left {{ $badgeClass }} shadow-sm">
-                                                    <div class="font-bold leading-tight">{{ $sched->subject->name ?? $sched->subject->subject_name ?? '-' }} <span class="text-[9px] opacity-75">{{ $blockTag }}</span></div>
-                                                    <div class="text-[10px] mt-0.5 opacity-90"><i class="fas fa-user-tie text-[9px] mr-1"></i>{{ $sched->teacher->full_name ?? '-' }}</div>
-                                                    @if($sched->duration_slots > 1)
-                                                    <div class="text-[9px] mt-0.5 text-gray-500 italic">{{ $sched->duration_slots }} Slot Jam</div>
-                                                    @endif
+                                                    <div class="font-black text-xs text-gray-900 tracking-tight">
+                                                        {{ $subjectCode }} 
+                                                        <span class="text-[9px] font-normal opacity-80">{{ $blockTag }}</span>
+                                                    </div>
+                                                    <div class="text-[10px] text-gray-800 truncate font-semibold leading-tight mt-0.5">
+                                                        <i class="fas fa-user-tie text-[9px] mr-0.5 opacity-60"></i>{{ $teacherName }}
+                                                    </div>
                                                 </div>
                                             @endforeach
                                         @else
-                                            <span class="text-gray-300">-</span>
+                                            <span class="text-gray-300 text-[10px]">-</span>
                                         @endif
                                     </td>
                                 @endforeach
                             </tr>
                             @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            @endif
-        @endforeach
+                        @endif
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
 
         <!-- FOOTER TANDA TANGAN -->
-        <div class="mt-12 pt-6 border-t border-gray-300 grid grid-cols-2 text-xs font-semibold text-center page-break-inside-avoid">
+        <div class="mt-8 pt-4 border-t border-gray-300 grid grid-cols-2 text-xs font-semibold text-center page-break-inside-avoid">
             <div>
                 <p>Mengetahui,</p>
-                <p class="font-bold text-gray-900 mt-1">Kepala Sekolah</p>
-                <div class="h-16"></div>
+                <p class="font-bold text-gray-900 mt-0.5">Kepala Sekolah</p>
+                <div class="h-14"></div>
                 <p class="font-extrabold text-gray-900 underline">( ___________________________ )</p>
             </div>
             <div>
                 <p>Nias Selatan, {{ \Carbon\Carbon::now()->isoFormat('D MMMM Y') }}</p>
-                <p class="font-bold text-gray-900 mt-1">Waka Kurikulum / Tim Penjadwalan</p>
-                <div class="h-16"></div>
+                <p class="font-bold text-gray-900 mt-0.5">Waka Kurikulum / Tim Penjadwalan</p>
+                <div class="h-14"></div>
                 <p class="font-extrabold text-gray-900 underline">( ___________________________ )</p>
             </div>
         </div>
