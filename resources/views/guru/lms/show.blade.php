@@ -136,16 +136,16 @@
             </div>
 
             {{-- Course Info --}}
-            <div class="flex items-start gap-4 mb-6">
-                <div class="w-16 h-16 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #1e3a8a !important; color: #ffffff !important;">
+            <div class="flex items-start mb-6" style="display: flex !important; align-items: flex-start !important; gap: 16px !important;">
+                <div class="w-16 h-16 rounded-2xl flex items-center justify-center shadow-md border-2 border-black" style="width: 64px !important; height: 64px !important; min-width: 64px !important; min-height: 64px !important; flex-shrink: 0 !important; margin-right: 16px !important; background-color: #1e3a8a !important; color: #ffffff !important;">
                     @if($scientist)
                     <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
                     @else
                     <i class="fas fa-chalkboard-teacher text-white text-2xl"></i>
                     @endif
                 </div>
-                <div>
-                    <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight leading-tight">{{ $course->course_name ?? $course->name }}</h1>
+                <div style="flex: 1 !important; min-width: 0 !important;">
+                    <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight leading-tight" style="margin: 0 !important;">{{ $course->course_name ?? $course->name }}</h1>
                     <div class="flex flex-wrap items-center gap-3 mt-2">
                         <span class="border-2 border-black px-3 py-1 rounded-xl text-xs font-black" style="background-color: #fbbf24 !important; color: #000000 !important;">{{ $course->subject->subject_name ?? '' }}</span>
                         <span class="text-black font-black text-xs flex items-center gap-1"><i class="fas fa-clock text-xs text-black"></i> {{ $course->semester->semester_name ?? '-' }}</span>

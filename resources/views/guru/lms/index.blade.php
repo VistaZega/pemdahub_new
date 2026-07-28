@@ -26,16 +26,16 @@
     <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl border-2 border-black">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-                <div class="flex items-center gap-3.5 mb-3">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #059669 !important; color: #ffffff !important;">
+                <div class="flex items-center mb-3" style="display: flex !important; align-items: center !important; gap: 16px !important;">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-black" style="width: 56px !important; height: 56px !important; min-width: 56px !important; min-height: 56px !important; flex-shrink: 0 !important; margin-right: 16px !important; background-color: #059669 !important; color: #ffffff !important;">
                         <i class="fas fa-chalkboard-teacher text-2xl text-white"></i>
                     </div>
-                    <div>
-                        <p class="text-black text-xs font-black uppercase tracking-[0.2em]">Learning Management System Guru</p>
-                        <h2 class="text-2xl md:text-3xl font-black text-black tracking-tight">Selamat Datang, {{ explode(' ', $teacher->user->name ?? 'Guru')[0] }}!</h2>
+                    <div style="flex: 1 !important; min-width: 0 !important;">
+                        <p class="text-black text-xs font-black uppercase tracking-[0.2em]" style="margin-bottom: 4px !important;">Learning Management System Guru</p>
+                        <h2 class="text-2xl md:text-3xl font-black text-black tracking-tight" style="margin: 0 !important; line-height: 1.25 !important;">Selamat Datang, {{ explode(' ', $teacher->user->name ?? 'Guru')[0] }}!</h2>
                     </div>
                 </div>
-                <p class="text-black font-bold text-sm max-w-md leading-relaxed">Kelola modul ajar, materi digital, tugas siswa, dan kuis evaluasi untuk kelas Anda.</p>
+                <p class="text-black font-bold text-sm max-w-md leading-relaxed mt-2">Kelola modul ajar, materi digital, tugas siswa, dan kuis evaluasi untuk kelas Anda.</p>
                 
                 @if($activeSemester)
                 <div class="mt-4 inline-flex items-center gap-2 border-2 border-black rounded-xl px-4 py-2 shadow-sm" style="background-color: #fef08a !important; color: #000000 !important;">
