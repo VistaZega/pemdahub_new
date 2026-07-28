@@ -575,5 +575,305 @@ window.SimLabComponents = {
             </g>
             `;
         }
+    },
+
+    led_yellow: {
+        name: "LED Kuning",
+        width: 60,
+        height: 100,
+        pins: [
+            { id: "ANODE", label: "Anoda (+)", x: 20, y: 85, type: "digital" },
+            { id: "CATHODE", label: "Katoda (-)", x: 40, y: 85, type: "gnd" }
+        ],
+        svg: function(comp) {
+            const lit = comp.state?.lit || false;
+            return `
+            <rect width="60" height="100" rx="6" fill="#18181b" stroke="#27272a"/>
+            <circle cx="30" cy="35" r="20" fill="${lit ? '#eab308' : '#713f12'}" stroke="${lit ? '#fde047' : '#854d0e'}" stroke-width="2"/>
+            ${lit ? '<circle cx="30" cy="35" r="25" fill="#eab308" opacity="0.3"/>' : ''}
+            <text x="30" y="70" fill="#fde047" font-size="10" font-weight="bold" text-anchor="middle">LED</text>
+            <text x="20" y="97" fill="#ffffff" font-size="7" font-weight="bold" text-anchor="middle">+</text>
+            <text x="40" y="97" fill="#ffffff" font-size="7" font-weight="bold" text-anchor="middle">-</text>
+            `;
+        }
+    },
+
+    led_white: {
+        name: "LED Putih",
+        width: 60,
+        height: 100,
+        pins: [
+            { id: "ANODE", label: "Anoda (+)", x: 20, y: 85, type: "digital" },
+            { id: "CATHODE", label: "Katoda (-)", x: 40, y: 85, type: "gnd" }
+        ],
+        svg: function(comp) {
+            const lit = comp.state?.lit || false;
+            return `
+            <rect width="60" height="100" rx="6" fill="#18181b" stroke="#27272a"/>
+            <circle cx="30" cy="35" r="20" fill="${lit ? '#f8fafc' : '#334155'}" stroke="${lit ? '#e2e8f0' : '#475569'}" stroke-width="2"/>
+            ${lit ? '<circle cx="30" cy="35" r="25" fill="#f8fafc" opacity="0.3"/>' : ''}
+            <text x="30" y="70" fill="#e2e8f0" font-size="10" font-weight="bold" text-anchor="middle">LED</text>
+            <text x="20" y="97" fill="#ffffff" font-size="7" font-weight="bold" text-anchor="middle">+</text>
+            <text x="40" y="97" fill="#ffffff" font-size="7" font-weight="bold" text-anchor="middle">-</text>
+            `;
+        }
+    },
+
+    lcd2004: {
+        name: "LCD 20x4 I2C Display",
+        width: 320,
+        height: 160,
+        pins: [
+            { id: "GND", label: "GND", x: 260, y: 145, type: "gnd" },
+            { id: "VCC", label: "VCC", x: 275, y: 145, type: "power" },
+            { id: "SDA", label: "SDA", x: 290, y: 145, type: "digital" },
+            { id: "SCL", label: "SCL", x: 305, y: 145, type: "digital" }
+        ],
+        svg: function(comp) {
+            const line1 = comp.state?.line1 || "  PembdaHUB         ";
+            const line2 = comp.state?.line2 || "   SimLab v1.0      ";
+            const line3 = comp.state?.line3 || " 20x4 Character     ";
+            const line4 = comp.state?.line4 || " LCD Display        ";
+            return `
+            <rect width="320" height="160" rx="8" fill="#15803d" stroke="#166534" stroke-width="3"/>
+            <rect x="25" y="15" width="270" height="110" rx="4" fill="#042f2e" stroke="#115e59" stroke-width="2"/>
+            <rect x="35" y="23" width="250" height="94" rx="2" fill="#065f46"/>
+            <text x="45" y="45" fill="#a7f3d0" font-size="14" font-family="monospace" font-weight="bold">${line1.padEnd(20, ' ')}</text>
+            <text x="45" y="65" fill="#a7f3d0" font-size="14" font-family="monospace" font-weight="bold">${line2.padEnd(20, ' ')}</text>
+            <text x="45" y="85" fill="#a7f3d0" font-size="14" font-family="monospace" font-weight="bold">${line3.padEnd(20, ' ')}</text>
+            <text x="45" y="105" fill="#a7f3d0" font-size="14" font-family="monospace" font-weight="bold">${line4.padEnd(20, ' ')}</text>
+            <text x="120" y="145" fill="#ffffff" font-size="11" font-weight="bold">LCD 20x4 I2C</text>
+            
+            <g fill="#ffffff" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="260" y="137">GND</text>
+                <text x="275" y="137">VCC</text>
+                <text x="290" y="137">SDA</text>
+                <text x="305" y="137">SCL</text>
+            </g>
+            `;
+        }
+    },
+
+    rc522: {
+        name: "RC522 RFID Reader",
+        width: 120,
+        height: 140,
+        pins: [
+            { id: "VCC", label: "VCC", x: 15, y: 125, type: "power" },
+            { id: "RST", label: "RST", x: 28, y: 125, type: "digital" },
+            { id: "GND", label: "GND", x: 41, y: 125, type: "gnd" },
+            { id: "IRQ", label: "IRQ", x: 54, y: 125, type: "digital" },
+            { id: "MISO", label: "MISO", x: 67, y: 125, type: "digital" },
+            { id: "MOSI", label: "MOSI", x: 80, y: 125, type: "digital" },
+            { id: "SCK", label: "SCK", x: 93, y: 125, type: "digital" },
+            { id: "SDA", label: "SDA", x: 106, y: 125, type: "digital" }
+        ],
+        svg: function(comp) {
+            return `
+            <rect width="120" height="140" rx="4" fill="#047857" stroke="#064e3b" stroke-width="2"/>
+            <rect x="20" y="15" width="80" height="80" rx="2" fill="none" stroke="#e2e8f0" stroke-width="3"/>
+            <rect x="25" y="20" width="70" height="70" rx="2" fill="none" stroke="#e2e8f0" stroke-width="2"/>
+            <rect x="30" y="25" width="60" height="60" rx="2" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+            <text x="60" y="60" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">RFID-RC522</text>
+            
+            <g fill="#ffffff" font-size="6" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="15" y="117">VCC</text>
+                <text x="28" y="117">RST</text>
+                <text x="41" y="117">GND</text>
+                <text x="54" y="117">IRQ</text>
+                <text x="67" y="117">MISO</text>
+                <text x="80" y="117">MOSI</text>
+                <text x="93" y="117">SCK</text>
+                <text x="106" y="117">SDA</text>
+            </g>
+            `;
+        }
+    },
+
+    tcrt5000: {
+        name: "TCRT5000 Line Tracking Sensor",
+        width: 100,
+        height: 80,
+        pins: [
+            { id: "VCC", label: "VCC", x: 20, y: 65, type: "power" },
+            { id: "GND", label: "GND", x: 40, y: 65, type: "gnd" },
+            { id: "D0", label: "D0", x: 60, y: 65, type: "digital" },
+            { id: "A0", label: "A0", x: 80, y: 65, type: "analog" }
+        ],
+        svg: function(comp) {
+            return `
+            <rect width="100" height="80" rx="4" fill="#1e3a8a" stroke="#1e40af" stroke-width="2"/>
+            <circle cx="35" cy="30" r="12" fill="#000000" stroke="#333333"/>
+            <circle cx="65" cy="30" r="12" fill="#ffffff" stroke="#999999" opacity="0.8"/>
+            <text x="50" y="55" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">TCRT5000</text>
+            
+            <g fill="#ffffff" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="20" y="57">VCC</text>
+                <text x="40" y="57">GND</text>
+                <text x="60" y="57">D0</text>
+                <text x="80" y="57">A0</text>
+            </g>
+            `;
+        }
+    },
+
+    pir: {
+        name: "PIR Motion Sensor HC-SR501",
+        width: 100,
+        height: 120,
+        pins: [
+            { id: "VCC", label: "VCC", x: 30, y: 105, type: "power" },
+            { id: "OUT", label: "OUT", x: 50, y: 105, type: "digital" },
+            { id: "GND", label: "GND", x: 70, y: 105, type: "gnd" }
+        ],
+        svg: function(comp) {
+            return `
+            <rect width="100" height="120" rx="4" fill="#047857" stroke="#064e3b" stroke-width="2"/>
+            <circle cx="50" cy="50" r="40" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2" opacity="0.9"/>
+            <circle cx="50" cy="50" r="30" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+            <circle cx="50" cy="50" r="20" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="50" y="10" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">HC-SR501</text>
+            
+            <g fill="#ffffff" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="30" y="97">VCC</text>
+                <text x="50" y="97">OUT</text>
+                <text x="70" y="97">GND</text>
+            </g>
+            `;
+        }
+    },
+
+    ldr: {
+        name: "LDR Light Dependent Resistor",
+        width: 80,
+        height: 60,
+        pins: [
+            { id: "PIN_1", label: "Pin 1", x: 25, y: 45, type: "passive" },
+            { id: "PIN_2", label: "Pin 2", x: 55, y: 45, type: "passive" }
+        ],
+        svg: function(comp) {
+            return `
+            <rect width="80" height="60" rx="4" fill="#facc15" stroke="#ca8a04" stroke-width="2"/>
+            <circle cx="40" cy="25" r="20" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
+            <path d="M 28 25 L 32 15 L 36 35 L 40 15 L 44 35 L 48 15 L 52 25" fill="none" stroke="#a16207" stroke-width="2"/>
+            <text x="40" y="55" fill="#a16207" font-size="8" font-weight="bold" text-anchor="middle">LDR</text>
+            `;
+        }
+    },
+
+    motor_dc: {
+        name: "Motor DC",
+        width: 80,
+        height: 100,
+        pins: [
+            { id: "MOTOR_A", label: "A", x: 25, y: 85, type: "digital" },
+            { id: "MOTOR_B", label: "B", x: 55, y: 85, type: "digital" }
+        ],
+        svg: function(comp) {
+            return `
+            <rect width="80" height="100" rx="8" fill="#e5e5e5" stroke="#a3a3a3" stroke-width="2"/>
+            <rect x="25" y="10" width="30" height="20" fill="#fcd34d" stroke="#d97706" stroke-width="2"/>
+            <circle cx="40" cy="50" r="25" fill="#d4d4d4" stroke="#737373" stroke-width="2"/>
+            <circle cx="40" cy="50" r="5" fill="#404040"/>
+            <text x="40" y="80" fill="#404040" font-size="10" font-weight="bold" text-anchor="middle">MOTOR</text>
+            
+            <g fill="#404040" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="25" y="97">A</text>
+                <text x="55" y="97">B</text>
+            </g>
+            `;
+        }
+    },
+
+    l298n: {
+        name: "L298N Motor Driver",
+        width: 180,
+        height: 140,
+        pins: [
+            { id: "ENA", label: "ENA", x: 20, y: 125, type: "digital" },
+            { id: "IN1", label: "IN1", x: 38, y: 125, type: "digital" },
+            { id: "IN2", label: "IN2", x: 56, y: 125, type: "digital" },
+            { id: "IN3", label: "IN3", x: 74, y: 125, type: "digital" },
+            { id: "IN4", label: "IN4", x: 92, y: 125, type: "digital" },
+            { id: "ENB", label: "ENB", x: 110, y: 125, type: "digital" },
+            { id: "V12", label: "12V", x: 135, y: 125, type: "power" },
+            { id: "GND", label: "GND", x: 150, y: 125, type: "gnd" },
+            { id: "V5", label: "5V", x: 165, y: 125, type: "power" }
+        ],
+        svg: function(comp) {
+            return `
+            <rect width="180" height="140" rx="4" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
+            <rect x="50" y="15" width="80" height="40" fill="#171717" stroke="#404040" stroke-width="2"/>
+            <path d="M50 15 L130 15 L130 35 L50 35 Z" fill="none" stroke="#d4d4d4" stroke-width="1" stroke-dasharray="2,2"/>
+            <text x="90" y="75" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">L298N</text>
+            <rect x="15" y="55" width="20" height="40" fill="#0284c7" stroke="#0369a1"/>
+            <rect x="145" y="55" width="20" height="40" fill="#0284c7" stroke="#0369a1"/>
+            
+            <g fill="#ffffff" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="20" y="117">ENA</text>
+                <text x="38" y="117">IN1</text>
+                <text x="56" y="117">IN2</text>
+                <text x="74" y="117">IN3</text>
+                <text x="92" y="117">IN4</text>
+                <text x="110" y="117">ENB</text>
+                <text x="135" y="117">12V</text>
+                <text x="150" y="117">GND</text>
+                <text x="165" y="117">5V</text>
+            </g>
+            `;
+        }
+    },
+
+    dfplayer: {
+        name: "DFPlayer Mini MP3",
+        width: 100,
+        height: 80,
+        pins: [
+            { id: "VCC", label: "VCC", x: 15, y: 65, type: "power" },
+            { id: "RX", label: "RX", x: 30, y: 65, type: "digital" },
+            { id: "TX", label: "TX", x: 45, y: 65, type: "digital" },
+            { id: "SPK1", label: "SPK1", x: 60, y: 65, type: "digital" },
+            { id: "SPK2", label: "SPK2", x: 75, y: 65, type: "digital" },
+            { id: "GND", label: "GND", x: 90, y: 65, type: "gnd" }
+        ],
+        svg: function(comp) {
+            return `
+            <rect width="100" height="80" rx="4" fill="#1d4ed8" stroke="#1e40af" stroke-width="2"/>
+            <rect x="25" y="10" width="50" height="35" fill="#d4d4d4" stroke="#a3a3a3" stroke-width="2"/>
+            <text x="50" y="55" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">DFPlayer</text>
+            
+            <g fill="#ffffff" font-size="6" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="15" y="73">VCC</text>
+                <text x="30" y="73">RX</text>
+                <text x="45" y="73">TX</text>
+                <text x="60" y="73">SP1</text>
+                <text x="75" y="73">SP2</text>
+                <text x="90" y="73">GND</text>
+            </g>
+            `;
+        }
+    },
+
+    speaker: {
+        name: "Speaker/Buzzer",
+        width: 70,
+        height: 80,
+        pins: [
+            { id: "SIGNAL", label: "SIGNAL", x: 25, y: 65, type: "digital" },
+            { id: "GND", label: "GND", x: 45, y: 65, type: "gnd" }
+        ],
+        svg: function(comp) {
+            return `
+            <rect width="70" height="80" rx="4" fill="#262626" stroke="#171717" stroke-width="2"/>
+            <circle cx="35" cy="35" r="25" fill="#404040" stroke="#525252" stroke-width="2"/>
+            <circle cx="35" cy="35" r="10" fill="#171717"/>
+            <text x="35" y="38" fill="#a3a3a3" font-size="10" font-weight="bold" text-anchor="middle">+</text>
+            
+            <g fill="#ffffff" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="25" y="73">SIG</text>
+                <text x="45" y="73">GND</text>
+            </g>
+            `;
+        }
     }
 };
