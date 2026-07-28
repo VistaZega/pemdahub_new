@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet">
 
 <style>
-    /* 100% SOLID COLORS - NO OPACITY TRANSPARENCY */
     .ui-ux-promax {
         font-family: 'Plus Jakarta Sans', sans-serif;
         color: #000000;
@@ -152,7 +151,7 @@
         </div>
     @endif
 
-    {{-- STATISTICAL SUMMARY CARDS (100% SOLID CONTRAST ON WHITE CARD) --}}
+    {{-- STATISTICAL SUMMARY CARDS --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="stat-card-pro blue rapby-card-pro rounded-2xl p-5 shadow-md">
             <div class="flex items-center gap-4">
@@ -232,35 +231,35 @@
                 <table class="w-full text-xs text-left border-collapse">
                     <thead>
                         <tr class="bg-black text-white border-b-2 border-black">
-                            <th class="px-3 py-4 text-center w-14 text-xs uppercase font-black">No</th>
-                            <th class="px-3 py-4 w-28 text-xs uppercase font-black">Kode Rek.</th>
-                            <th class="px-4 py-4 text-xs uppercase font-black">Nama Rekening Belanja</th>
-                            <th class="px-3 py-4 w-24 text-center text-xs uppercase font-black">Jumlah</th>
-                            <th class="px-3 py-4 w-24 text-center text-xs uppercase font-black">Satuan</th>
-                            <th class="px-4 py-4 text-right w-44 text-xs uppercase font-black whitespace-nowrap">Tarif Satuan (Rp)</th>
-                            <th class="px-4 py-4 text-right w-44 text-xs uppercase font-black whitespace-nowrap">Total / Bulan</th>
-                            <th class="px-4 py-4 text-right w-48 text-xs uppercase font-black whitespace-nowrap">Total Periode</th>
+                            <th class="px-3 py-4 text-center w-14 text-xs uppercase font-black text-white">No</th>
+                            <th class="px-3 py-4 w-28 text-xs uppercase font-black text-white">Kode Rek.</th>
+                            <th class="px-4 py-4 text-xs uppercase font-black text-white">Nama Rekening Belanja</th>
+                            <th class="px-3 py-4 w-24 text-center text-xs uppercase font-black text-white">Jumlah</th>
+                            <th class="px-3 py-4 w-24 text-center text-xs uppercase font-black text-white">Satuan</th>
+                            <th class="px-4 py-4 text-right w-44 text-xs uppercase font-black text-white whitespace-nowrap">Tarif Satuan (Rp)</th>
+                            <th class="px-4 py-4 text-right w-44 text-xs uppercase font-black text-white whitespace-nowrap">Total / Bulan</th>
+                            <th class="px-4 py-4 text-right w-48 text-xs uppercase font-black text-white whitespace-nowrap">Total Periode</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y-2 divide-slate-400 bg-white">
 
-                        {{-- KELOMPOK 5.1.00: BELANJA PEGAWAI --}}
-                        <tr class="bg-blue-950 text-white border-b-2 border-black">
-                            <td class="px-3 py-3.5 text-center">
-                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-blue-900 text-white text-xs font-black border-2 border-white">5.1</span>
+                        {{-- KELOMPOK 5.1.00: BELANJA PEGAWAI (BG TERANG KONTRAST MAKSIMAL DENGAN TEKS HITAM) --}}
+                        <tr class="bg-blue-200 text-black font-black border-b-2 border-black">
+                            <td class="px-3 py-4 text-center">
+                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-black text-white text-xs font-black border-2 border-black">5.1</span>
                             </td>
-                            <td class="px-3 py-3.5 font-mono font-black text-amber-400 text-sm">5.1.00</td>
-                            <td colspan="4" class="px-4 py-3.5">
+                            <td class="px-3 py-4 font-mono font-black text-black text-sm">5.1.00</td>
+                            <td colspan="4" class="px-4 py-4">
                                 <div class="flex items-center gap-2">
-                                    <i class="fas fa-users-gear text-amber-400 text-base"></i>
-                                    <span class="font-black uppercase tracking-wide text-xs text-white">Kelompok: Belanja Pegawai Perguruan</span>
-                                    <span class="pro-badge bg-blue-900 text-white border border-white ml-2">
+                                    <i class="fas fa-users-gear text-black text-base"></i>
+                                    <span class="font-black uppercase tracking-wide text-xs text-black">Kelompok: Belanja Pegawai Perguruan</span>
+                                    <span class="pro-badge bg-black text-white border border-black ml-2">
                                         <i class="fas fa-lock text-[8px]"></i> Otomatis Penugasan
                                     </span>
                                 </div>
                             </td>
-                            <td class="px-4 py-3.5 text-right font-black text-amber-400 num-col text-xs whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanMonthly, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3.5 text-right font-black text-white text-sm num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right font-black text-black num-col text-xs whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanMonthly, 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</td>
                         </tr>
 
                         @foreach($hierarchicalSalaryData as $uIdx => $uData)
@@ -268,7 +267,7 @@
                             @if($item)
                             <tr class="hover:bg-slate-200 transition-all {{ $uData['school_type'] === 'yayasan' ? 'bg-purple-100' : 'bg-white' }} border-b border-slate-400">
                                 <td class="px-3 py-4 text-center">
-                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full {{ $uData['school_type'] === 'yayasan' ? 'bg-purple-950 text-white' : 'bg-blue-950 text-white' }} text-xs font-black border border-black">
+                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full {{ $uData['school_type'] === 'yayasan' ? 'bg-black text-white' : 'bg-black text-white' }} text-xs font-black border border-black">
                                         {{ $uIdx + 1 }}
                                     </span>
                                 </td>
@@ -295,7 +294,7 @@
                         @endforeach
 
                         {{-- Subtotal Pegawai --}}
-                        <tr class="bg-blue-200 border-y-2 border-black">
+                        <tr class="bg-blue-300 border-y-2 border-black">
                             <td colspan="6" class="px-4 py-4 text-right font-black text-black uppercase text-xs tracking-wider">
                                 <i class="fas fa-sigma mr-1.5 text-black text-sm"></i> Subtotal Belanja Pegawai (5.1.00):
                             </td>
@@ -303,23 +302,23 @@
                             <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</td>
                         </tr>
 
-                        {{-- KELOMPOK 5.1.01+: BELANJA OPERASIONAL --}}
-                        <tr class="bg-amber-950 text-white border-b-2 border-black">
-                            <td class="px-3 py-3.5 text-center">
-                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-amber-900 text-white text-xs font-black border-2 border-amber-400">5.1</span>
+                        {{-- KELOMPOK 5.1.01+: BELANJA OPERASIONAL (BG TERANG KONTRAST MAKSIMAL DENGAN TEKS HITAM) --}}
+                        <tr class="bg-amber-300 text-black font-black border-b-2 border-black">
+                            <td class="px-3 py-4 text-center">
+                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-black text-white text-xs font-black border-2 border-black">5.1</span>
                             </td>
-                            <td class="px-3 py-3.5 font-mono font-black text-amber-400 text-sm">5.1.01+</td>
-                            <td colspan="4" class="px-4 py-3.5">
+                            <td class="px-3 py-4 font-mono font-black text-black text-sm">5.1.01+</td>
+                            <td colspan="4" class="px-4 py-4">
                                 <div class="flex items-center gap-2">
-                                    <i class="fas fa-list-check text-amber-400 text-base"></i>
-                                    <span class="font-black uppercase tracking-wide text-xs text-white">Kelompok: Belanja Operasional Non-Gaji</span>
-                                    <span class="pro-badge bg-amber-400 text-black border border-black ml-2">
+                                    <i class="fas fa-list-check text-black text-base"></i>
+                                    <span class="font-black uppercase tracking-wide text-xs text-black">Kelompok: Belanja Operasional Non-Gaji</span>
+                                    <span class="pro-badge bg-black text-white border border-black ml-2">
                                         <i class="fas fa-pen-to-square text-[8px]"></i> Editable
                                     </span>
                                 </div>
                             </td>
-                            <td class="px-4 py-3.5 text-right font-black text-amber-400 num-col text-xs whitespace-nowrap" id="groupOpsMonthly">Rp&nbsp;{{ number_format($totalOpsMonthly, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3.5 text-right font-black text-white text-sm num-col whitespace-nowrap" id="groupOpsPeriod">Rp&nbsp;{{ number_format($totalOpsPeriod, 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right font-black text-black num-col text-xs whitespace-nowrap" id="groupOpsMonthly">Rp&nbsp;{{ number_format($totalOpsMonthly, 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap" id="groupOpsPeriod">Rp&nbsp;{{ number_format($totalOpsPeriod, 0, ',', '.') }}</td>
                         </tr>
 
                         @php $opsNo = 1; @endphp
