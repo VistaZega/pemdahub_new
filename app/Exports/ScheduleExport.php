@@ -22,16 +22,18 @@ class ScheduleExport implements FromArray, WithTitle, WithStyles, WithColumnWidt
     protected $semester;
     protected $classroomId;
     protected $day;
+    protected $shift;
     protected $classroom;
     protected $academicYear;
     
-    public function __construct($schoolId, $academicYearId, $semester, $classroomId = null, $day = null)
+    public function __construct($schoolId, $academicYearId, $semester, $classroomId = null, $day = null, $shift = 'all')
     {
         $this->schoolId = $schoolId;
         $this->academicYearId = $academicYearId;
         $this->semester = $semester;
         $this->classroomId = $classroomId;
         $this->day = $day;
+        $this->shift = $shift ?: 'all';
         
         if ($classroomId) {
             $this->classroom = Classroom::find($classroomId);
@@ -54,6 +56,8 @@ class ScheduleExport implements FromArray, WithTitle, WithStyles, WithColumnWidt
         if ($this->classroom) {
             $data[] = ['Kelas', ':', $this->classroom->class_name];
         }
+        $shiftLabel = $this->shift === 'pagi' ? 'Shift Pagi (Reguler)' : ($this->shift === 'siang' ? 'Shift Siang (Eksekutif)' : 'Semua Shift');
+        $data[] = ['Shift KBM', ':', $shiftLabel];
         $data[] = []; // Empty row before table
         
         // Days mapping
@@ -79,14 +83,21 @@ class ScheduleExport implements FromArray, WithTitle, WithStyles, WithColumnWidt
         // Get all time slots grouped by day and slot_order
         $allTimeSlots = [];
         $maxSlots = 0;
+        $shiftFilter = $this->shift;
         
         foreach ($daysToShow as $day) {
             $dayEnglish = $dayMapping[$day];
-            $slots = TimeSlot::where('school_id', $this->schoolId)
+            $slotsQuery = TimeSlot::where('school_id', $this->schoolId)
                 ->where('day_of_week', $dayEnglish)
-                ->where('is_teaching_slot', true)
-                ->orderBy('slot_order')
-                ->get();
+                ->where('is_teaching_slot', true);
+                
+            if ($shiftFilter !== 'all') {
+                $slotsQuery->where(function($q) use ($shiftFilter) {
+                    $q->where('shift', $shiftFilter)->orWhere('shift', 'all')->orWhereNull('shift');
+                });
+            }
+
+            $slots = $slotsQuery->orderBy('slot_order')->get();
             
             $allTimeSlots[$day] = $slots->keyBy('slot_order');
             $maxSlots = max($maxSlots, $slots->max('slot_order') ?? 0);
@@ -96,7 +107,7 @@ class ScheduleExport implements FromArray, WithTitle, WithStyles, WithColumnWidt
         $schedules = [];
         foreach ($daysToShow as $day) {
             $dayEnglish = $dayMapping[$day];
-            $daySchedules = Schedule::with(['teacher', 'subject', 'classroom', 'timeSlot'])
+            $daySchedules = Schedule::with(['teacher', 'subject', 'classroom', 'timeSlot', 'teachingAssignment'])
                 ->where('school_id', $this->schoolId)
                 ->where('academic_year_id', $this->academicYearId)
                 ->where('semester', $this->semester)
@@ -144,10 +155,20 @@ class ScheduleExport implements FromArray, WithTitle, WithStyles, WithColumnWidt
                             $classroomName = $schedule->classroom->class_name ?? '-';
                             $duration = $schedule->duration_slots > 1 ? " ({$schedule->duration_slots} jam)" : "";
                             
-                            $cellContents[] = $subjectName . "\n" . 
-                                         $teacherName . "\n" . 
-                                         $classroomName . 
-                                         $duration;
+                            $blockType = $schedule->teachingAssignment->block_type ?? 'none';
+                            $blockLabel = '';
+                            if ($blockType === 'all') {
+                                $blockLabel = " [Blok Klp A]";
+                            } elseif ($blockType === 'split') {
+                                $blockLabel = " [Blok Klp B]";
+                            } elseif ($blockType === 'parallel') {
+                                $blockLabel = " [Paralel]";
+                            }
+                            
+                            $cellContents[] = $subjectName . $blockLabel . "\n" . 
+                                          $teacherName . "\n" . 
+                                          $classroomName . 
+                                          $duration;
                         }
                         
                         $row[] = implode("\n---\n", $cellContents);

@@ -607,6 +607,7 @@ class ScheduleGridController extends Controller
         $semester = $request->get('semester', 'ganjil');
         $classroomId = $request->get('classroom_id');
         $day = $request->get('day');
+        $shift = $request->get('shift', 'all');
         
         // Authorization check
         if (!$user->isSuperAdmin() && $schoolId != $user->school_id) {
@@ -625,14 +626,109 @@ class ScheduleGridController extends Controller
             $filename .= '_' . $day;
         }
         // Clean academic year (remove / and \ characters)
-        $yearClean = str_replace(['/', '\\'], '-', $academicYear->year);
+        $yearClean = str_replace(['/', '\\'], '-', $academicYear ? $academicYear->year : 'TP');
         $filename .= '_' . $yearClean . '_' . ucfirst($semester);
         $filename .= '_' . date('YmdHis') . '.xlsx';
         
         return Excel::download(
-            new ScheduleExport($schoolId, $academicYearId, $semester, $classroomId, $day),
+            new ScheduleExport($schoolId, $academicYearId, $semester, $classroomId, $day, $shift),
             $filename
         );
+    }
+
+    /**
+     * Print HTML schedule view (for browser print / PDF export)
+     */
+    public function print(Request $request)
+    {
+        $user = auth()->user();
+        
+        $schools = $user->isSuperAdmin() 
+            ? School::where('is_active', 1)->where('type', '!=', 'yayasan')->get()
+            : School::where('id', $user->school_id)->where('type', '!=', 'yayasan')->get();
+        
+        $selectedSchoolId = $request->input('school_id', $user->isSuperAdmin() ? ($schools->first()->id ?? null) : $user->school_id);
+        $activeYear = AcademicYear::where('is_active', 1)->first();
+        $selectedYearId = $request->input('academic_year_id', $activeYear ? $activeYear->id : null);
+        $semester = $request->input('semester', 'ganjil');
+        $selectedGradeLevel = $request->input('grade_level', 'all');
+        $selectedShift = $request->input('shift', 'all');
+
+        $school = School::find($selectedSchoolId);
+        $academicYear = AcademicYear::find($selectedYearId);
+
+        $classroomsQuery = Classroom::where('school_id', $selectedSchoolId)
+            ->where('academic_year_id', $selectedYearId)
+            ->where('is_active', 1);
+
+        if ($selectedGradeLevel && $selectedGradeLevel !== 'all') {
+            $classroomsQuery->where('grade_level', $selectedGradeLevel);
+        }
+
+        if ($selectedShift && $selectedShift !== 'all') {
+            $classroomsQuery->where('shift', $selectedShift);
+        }
+
+        $classrooms = $classroomsQuery->select('id', 'class_name', 'grade_level', 'shift', 'school_id', 'academic_year_id')
+            ->orderBy('grade_level', 'asc')
+            ->orderBy('shift', 'asc')
+            ->orderByRaw('LENGTH(class_name) ASC, class_name ASC')
+            ->get();
+
+        $timeSlotsQuery = TimeSlot::where('school_id', $selectedSchoolId)
+            ->where('academic_year_id', $selectedYearId)
+            ->where('is_active', 1);
+
+        if ($selectedShift && $selectedShift !== 'all') {
+            $timeSlotsQuery->where(function($q) use ($selectedShift) {
+                $q->where('shift', $selectedShift)->orWhere('shift', 'all')->orWhereNull('shift');
+            });
+        }
+
+        $timeSlots = $timeSlotsQuery->select('id', 'school_id', 'academic_year_id', 'day_of_week', 'slot_name', 'shift', 'start_time', 'end_time', 'slot_order', 'is_teaching_slot')
+            ->orderBy('slot_order')
+            ->get();
+
+        $schedules = Schedule::where('school_id', $selectedSchoolId)
+            ->where('academic_year_id', $selectedYearId)
+            ->where('semester', $semester)
+            ->with([
+                'teacher:id,full_name,photo,school_id',
+                'subject:id,name,subject_name,code,school_id',
+                'classroom:id,class_name,school_id',
+                'timeSlot:id,slot_name,start_time,end_time,slot_order,day_of_week,is_teaching_slot,school_id',
+                'teachingAssignment:id,block_type'
+            ])
+            ->get();
+
+        $scheduleGrid = [];
+        foreach ($schedules as $schedule) {
+            $key = $schedule->day_of_week . '_' . $schedule->time_slot_id . '_' . $schedule->classroom_id;
+            if (!isset($scheduleGrid[$key])) {
+                $scheduleGrid[$key] = [];
+            }
+            $scheduleGrid[$key][] = $schedule;
+        }
+
+        $blockSchedule = \App\Models\BlockSchedule::where('school_id', $selectedSchoolId)
+            ->where('academic_year_id', $selectedYearId)
+            ->first();
+            
+        $currentRotation = $blockSchedule ? $blockSchedule->getActiveRotationForDate(\Carbon\Carbon::now()) : 'normal';
+
+        return view('admin.schedules.print', compact(
+            'school',
+            'academicYear',
+            'semester',
+            'classrooms',
+            'timeSlots',
+            'schedules',
+            'scheduleGrid',
+            'selectedShift',
+            'selectedGradeLevel',
+            'currentRotation',
+            'blockSchedule'
+        ));
     }
 
     /**

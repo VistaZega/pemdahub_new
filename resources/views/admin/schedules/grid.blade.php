@@ -202,7 +202,12 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-2">
-                <a href="{{ route('admin.schedules.export', array_filter(['school_id'=>$selectedSchoolId,'academic_year_id'=>$selectedYearId,'semester'=>request('semester','ganjil')])) }}"
+                <a href="{{ route('admin.schedules.print', array_filter(['school_id'=>$selectedSchoolId,'academic_year_id'=>$selectedYearId,'semester'=>request('semester','ganjil'),'shift'=>request('shift','all'),'grade_level'=>request('grade_level','all')])) }}"
+                   target="_blank"
+                   class="toolbar-btn toolbar-btn-blue">
+                    <i class="fas fa-print"></i> Cetak / PDF
+                </a>
+                <a href="{{ route('admin.schedules.export', array_filter(['school_id'=>$selectedSchoolId,'academic_year_id'=>$selectedYearId,'semester'=>request('semester','ganjil'),'shift'=>request('shift','all')])) }}"
                    class="toolbar-btn toolbar-btn-green">
                     <i class="fas fa-file-excel"></i> Export Excel
                 </a>

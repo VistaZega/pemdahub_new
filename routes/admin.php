@@ -149,6 +149,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::get('schedules/modal-data', [App\Http\Controllers\Admin\ScheduleGridController::class, 'getModalData'])->name('schedules.modal-data');
     Route::post('schedules/clear-cache', [App\Http\Controllers\Admin\ScheduleGridController::class, 'clearCache'])->name('schedules.clear-cache');
     Route::get('schedules/export', [App\Http\Controllers\Admin\ScheduleGridController::class, 'export'])->name('schedules.export');
+    Route::get('schedules/print', [App\Http\Controllers\Admin\ScheduleGridController::class, 'print'])->name('schedules.print');
     Route::post('schedules/store-grid', [App\Http\Controllers\Admin\ScheduleGridController::class, 'store'])->name('schedules.store-grid');
     Route::get('schedules/{schedule}/edit-grid', [App\Http\Controllers\Admin\ScheduleGridController::class, 'edit'])->name('schedules.edit-grid');
     Route::put('schedules/{schedule}/update-grid', [App\Http\Controllers\Admin\ScheduleGridController::class, 'update'])->name('schedules.update-grid');
