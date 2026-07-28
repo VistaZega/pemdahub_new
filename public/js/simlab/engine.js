@@ -1,6 +1,6 @@
 /**
  * PembdaHUB SimLab - Simulation & Compiler Engine Bridge
- * Menangani kompilasi C++, eksekusi simulasi real-time, sinkronisasi pin, dan Serial Monitor.
+ * Menangani kompilasi C++, eksekusi simulasi real-time, sinkronisasi pin (digitalWrite, Resistor, LED, Relay, Servo), dan Serial Monitor.
  */
 
 window.SimLabEngine = {
@@ -164,7 +164,7 @@ window.SimLabEngine = {
 
         this.appendSerialLog('\n[SIMULATOR STARTED]\n');
 
-        // Simulation Loop Execution Engine
+        // Initial execution tick
         let stepCount = 0;
         this.simTimer = setInterval(function() {
             stepCount++;
@@ -175,6 +175,11 @@ window.SimLabEngine = {
     stopSimulation: function() {
         this.isRunning = false;
         if (this.simTimer) clearInterval(this.simTimer);
+
+        // Turn off all active LEDs / Pins when simulation stops
+        Object.keys(this.pinStates).forEach(pin => {
+            this.setPinState(pin, 0);
+        });
 
         // UI Updates
         document.getElementById('simText').textContent = 'Jalankan Simulasi';
@@ -190,24 +195,40 @@ window.SimLabEngine = {
     executionStep: function(step) {
         const code = this.getCode();
 
-        // Simulate LED Pin 13 Blink if code contains digitalWrite(13, ...) or digitalWrite(LED_BUILTIN, ...)
-        if (code.includes('digitalWrite')) {
-            const isHighStep = (step % 10) < 5;
-            this.setPinState('13', isHighStep ? 1 : 0);
+        // 1. Dynamic Parsing for all digitalWrite(pin, state) in user code
+        const regex = /digitalWrite\s*\(\s*([^,\s]+)\s*,\s*([^)\s]+)\s*\)/g;
+        let match;
+        const activePins = new Set();
+
+        while ((match = regex.exec(code)) !== null) {
+            let pinStr = match[1].replace(/['"]/g, '').replace('D', '');
+            if (pinStr === 'LED_BUILTIN') pinStr = '13';
+            if (!isNaN(parseInt(pinStr))) {
+                activePins.add(pinStr);
+            }
         }
 
-        // Simulate Servo Angle sweep if code uses servo.write(...)
+        // Toggle active pins (blink timing logic)
+        if (activePins.size > 0) {
+            const isHighStep = (step % 10) < 5;
+            activePins.forEach(pin => {
+                this.setPinState(pin, isHighStep ? 1 : 0);
+            });
+        }
+
+        // 2. Servo Motor sweep simulation
         if (code.includes('servo.write') || code.includes('Servo')) {
             const angle = (step * 15) % 180;
             this.updateAllServos(angle);
         }
 
-        // Output Serial logs if Serial.println is present
+        // 3. Serial Monitor output simulation
         if (code.includes('Serial.println')) {
-            if (step % 20 === 0) {
-                // Check if reading distance sensor
-                let msg = "PembdaHUB SimLab Tick #" + step;
-                const ultraComp = window.SimLabCircuit.components.find(c => c.type === 'hc_sr04');
+            if (step === 1 || step % 20 === 0) {
+                const matches = code.match(/Serial\.println\s*\(\s*"([^"]+)"\s*\)/);
+                let msg = matches ? matches[1] : ("PembdaHUB SimLab Tick #" + step);
+                
+                const ultraComp = window.SimLabCircuit?.components.find(c => c.type === 'hc_sr04');
                 if (ultraComp) {
                     const dist = ultraComp.state?.distance || 50;
                     msg = "Sensor HC-SR04 Jarak: " + dist + " cm";
@@ -217,46 +238,102 @@ window.SimLabEngine = {
         }
     },
 
+    // Set Pin State & Trace Wires / Resistors to update connected LEDs
     setPinState: function(pinNum, stateVal) {
-        this.pinStates[pinNum] = stateVal;
+        const cleanPin = pinNum.toString().replace('D', '');
+        this.pinStates[cleanPin] = stateVal;
 
         // Update onboard LED 13 if Uno
-        const unoComp = window.SimLabCircuit.components.find(c => c.type === 'uno');
-        if (unoComp) {
-            const led13 = document.getElementById('led_uno_13_' + unoComp.id);
-            if (led13) {
-                led13.setAttribute('fill', stateVal === 1 ? '#ef4444' : '#451a03');
+        if (cleanPin === '13') {
+            const unoComp = window.SimLabCircuit.components.find(c => c.type === 'uno');
+            if (unoComp) {
+                const led13 = document.getElementById('led_uno_13_' + unoComp.id);
+                if (led13) {
+                    led13.setAttribute('fill', stateVal === 1 ? '#ef4444' : '#451a03');
+                }
             }
         }
 
-        // Find connected external LEDs via wires connected to pin D13 or pinNum
+        // Target Pin IDs (e.g. ['D8', '8'])
+        const targetPins = ['D' + cleanPin, cleanPin];
+        let needsReRender = false;
+
         window.SimLabCircuit.wires.forEach(wire => {
-            let targetCompId = null;
-            if (wire.fromPin === 'D' + pinNum || wire.fromPin === pinNum) {
-                targetCompId = wire.toComp;
-            } else if (wire.toPin === 'D' + pinNum || wire.toPin === pinNum) {
-                targetCompId = wire.fromComp;
+            let connectedCompId = null;
+            let connectedPinId = null;
+
+            if (targetPins.includes(wire.fromPin)) {
+                connectedCompId = wire.toComp;
+                connectedPinId = wire.toPin;
+            } else if (targetPins.includes(wire.toPin)) {
+                connectedCompId = wire.fromComp;
+                connectedPinId = wire.fromPin;
             }
 
-            if (targetCompId) {
-                const targetComp = window.SimLabCircuit.components.find(c => c.id === targetCompId);
-                if (targetComp && (targetComp.type.startsWith('led_'))) {
-                    targetComp.state = targetComp.state || {};
-                    targetComp.state.lit = (stateVal === 1);
-                    window.SimLabCircuit.renderComponents();
+            if (connectedCompId) {
+                const targetComp = window.SimLabCircuit.components.find(c => c.id === connectedCompId);
+                if (targetComp) {
+                    // Direct LED connection
+                    if (targetComp.type.startsWith('led_')) {
+                        targetComp.state = targetComp.state || {};
+                        if (targetComp.state.lit !== (stateVal === 1)) {
+                            targetComp.state.lit = (stateVal === 1);
+                            needsReRender = true;
+                        }
+                    } 
+                    // Resistor connection: trace to next wire!
+                    else if (targetComp.type === 'resistor') {
+                        const otherResPin = (connectedPinId === 'PIN_1') ? 'PIN_2' : 'PIN_1';
+                        window.SimLabCircuit.wires.forEach(wire2 => {
+                            let nextCompId = null;
+                            if (wire2.fromComp === targetComp.id && wire2.fromPin === otherResPin) {
+                                nextCompId = wire2.toComp;
+                            } else if (wire2.toComp === targetComp.id && wire2.toPin === otherResPin) {
+                                nextCompId = wire2.fromComp;
+                            }
+                            if (nextCompId) {
+                                const ledComp = window.SimLabCircuit.components.find(c => c.id === nextCompId);
+                                if (ledComp && ledComp.type.startsWith('led_')) {
+                                    ledComp.state = ledComp.state || {};
+                                    if (ledComp.state.lit !== (stateVal === 1)) {
+                                        ledComp.state.lit = (stateVal === 1);
+                                        needsReRender = true;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    // Relay connection
+                    else if (targetComp.type === 'relay') {
+                        targetComp.state = targetComp.state || {};
+                        if (targetComp.state.active !== (stateVal === 1)) {
+                            targetComp.state.active = (stateVal === 1);
+                            needsReRender = true;
+                        }
+                    }
                 }
             }
         });
+
+        if (needsReRender) {
+            window.SimLabCircuit.renderComponents();
+        }
     },
 
     updateAllServos: function(angle) {
+        let changed = false;
         window.SimLabCircuit.components.forEach(comp => {
             if (comp.type === 'servo') {
                 comp.state = comp.state || {};
-                comp.state.angle = angle;
+                if (comp.state.angle !== angle) {
+                    comp.state.angle = angle;
+                    changed = true;
+                }
             }
         });
-        window.SimLabCircuit.renderComponents();
+        if (changed) {
+            window.SimLabCircuit.renderComponents();
+        }
     },
 
     updateCompState: function(compId, newState) {
