@@ -686,7 +686,7 @@ class ScheduleGridController extends Controller
             $classroomsQuery->where('shift', $selectedShift);
         }
 
-        $classrooms = $classroomsQuery->select('id', 'class_name', 'grade_level', 'shift', 'school_id', 'academic_year_id')
+        $classrooms = $classroomsQuery->select('id', 'class_code', 'class_name', 'grade_level', 'shift', 'school_id', 'academic_year_id')
             ->orderBy('grade_level', 'asc')
             ->orderBy('shift', 'asc')
             ->orderByRaw('LENGTH(class_name) ASC, class_name ASC')
