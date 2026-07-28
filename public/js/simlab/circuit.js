@@ -163,19 +163,26 @@ window.SimLabCircuit = {
             const def = window.SimLabComponents[comp.type];
             if (!def) return;
 
+            const scale = comp.scale || 1.0;
             const div = document.createElement('div');
             div.id = 'comp_' + comp.id;
             div.className = 'absolute pointer-events-auto bg-gray-900/50 rounded-xl p-2 border border-gray-700/60 shadow-2xl group hover:border-emerald-500/90 transition-all';
             div.style.left = comp.x + 'px';
             div.style.top = comp.y + 'px';
             div.style.width = (def.width + 16) + 'px';
+            div.style.transform = `scale(${scale})`;
+            div.style.transformOrigin = '0 0';
             div.style.zIndex = '30';
 
-            // Top Header Bar of Component
+            // Top Header Bar of Component with Resize (+/-) Controls
             let html = `
             <div class="flex items-center justify-between mb-1 handle cursor-move text-[10px] text-gray-400 border-b border-gray-800 pb-1">
                 <span class="font-bold text-gray-200">${def.name}</span>
-                <button onclick="SimLabCircuit.removeComponent('${comp.id}')" class="text-red-400 hover:text-red-300 font-bold px-1" title="Hapus Komponen">✕</button>
+                <div class="flex items-center space-x-1">
+                    <button onclick="SimLabCircuit.scaleComponent('${comp.id}', 0.15)" class="text-emerald-400 hover:text-emerald-300 font-black px-1.5 py-0.5 text-xs hover:bg-gray-800 rounded" title="Perbesar Komponen (+)">+</button>
+                    <button onclick="SimLabCircuit.scaleComponent('${comp.id}', -0.15)" class="text-amber-400 hover:text-amber-300 font-black px-1.5 py-0.5 text-xs hover:bg-gray-800 rounded" title="Perkecil Komponen (-)">-</button>
+                    <button onclick="SimLabCircuit.removeComponent('${comp.id}')" class="text-red-400 hover:text-red-300 font-black px-1.5 py-0.5 text-xs hover:bg-gray-800 rounded" title="Hapus Komponen">✕</button>
+                </div>
             </div>
             <div class="relative" style="width: ${def.width}px; height: ${def.height}px;">
                 <svg width="${def.width}" height="${def.height}" viewBox="0 0 ${def.width} ${def.height}">
@@ -209,6 +216,15 @@ window.SimLabCircuit = {
             // Make Component Draggable
             self.makeDraggable(div, comp);
         });
+    },
+
+    scaleComponent: function(id, delta) {
+        const comp = this.components.find(c => c.id === id);
+        if (comp) {
+            comp.scale = Math.max(0.5, Math.min(2.5, (comp.scale || 1.0) + delta));
+            this.renderComponents();
+            this.renderWires();
+        }
     },
 
     makeDraggable: function(el, comp) {
@@ -284,10 +300,10 @@ window.SimLabCircuit = {
         const pin = def.pins.find(p => p.id === pinId);
         if (!pin) return null;
 
-        // Account for component padding (8px) and header height (~24px)
+        const scale = comp.scale || 1.0;
         return {
-            x: comp.x + 8 + pin.x,
-            y: comp.y + 28 + pin.y
+            x: comp.x + (8 + pin.x) * scale,
+            y: comp.y + (28 + pin.y) * scale
         };
     },
 

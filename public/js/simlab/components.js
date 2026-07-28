@@ -5,101 +5,101 @@
 
 window.SimLabComponents = {
     // ----------------------------------------------------
-    // 1. ARDUINO UNO (ATmega328P)
+    // 1. ARDUINO UNO (ATmega328P) - Enhanced Spacious Design
     // ----------------------------------------------------
     uno: {
         name: "Arduino Uno",
-        width: 260,
-        height: 180,
+        width: 320,
+        height: 200,
         bg: "#008784",
         pins: [
             // Top Digital Pins (D0 - D13 + GND + AREF + SDA + SCL)
-            { id: "SCL", label: "SCL", x: 235, y: 15, type: "digital" },
-            { id: "SDA", label: "SDA", x: 223, y: 15, type: "digital" },
-            { id: "AREF", label: "AREF", x: 211, y: 15, type: "analog" },
-            { id: "GND_TOP", label: "GND", x: 199, y: 15, type: "gnd" },
-            { id: "D13", label: "13", x: 187, y: 15, type: "digital", pwm: true },
-            { id: "D12", label: "12", x: 175, y: 15, type: "digital" },
-            { id: "D11", label: "~11", x: 163, y: 15, type: "digital", pwm: true },
-            { id: "D10", label: "~10", x: 151, y: 15, type: "digital", pwm: true },
-            { id: "D9", label: "~9", x: 139, y: 15, type: "digital", pwm: true },
-            { id: "D8", label: "8", x: 127, y: 15, type: "digital" },
-            { id: "D7", label: "7", x: 105, y: 15, type: "digital" },
-            { id: "D6", label: "~6", x: 93, y: 15, type: "digital", pwm: true },
-            { id: "D5", label: "~5", x: 81, y: 15, type: "digital", pwm: true },
-            { id: "D4", label: "4", x: 69, y: 15, type: "digital" },
-            { id: "D3", label: "~3", x: 57, y: 15, type: "digital", pwm: true },
-            { id: "D2", label: "2", x: 45, y: 15, type: "digital" },
-            { id: "TX", label: "1 (TX)", x: 33, y: 15, type: "serial" },
-            { id: "RX", label: "0 (RX)", x: 21, y: 15, type: "serial" },
+            { id: "SCL", label: "SCL", x: 295, y: 18, type: "digital" },
+            { id: "SDA", label: "SDA", x: 280, y: 18, type: "digital" },
+            { id: "AREF", label: "AREF", x: 265, y: 18, type: "analog" },
+            { id: "GND_TOP", label: "GND", x: 250, y: 18, type: "gnd" },
+            { id: "D13", label: "13", x: 235, y: 18, type: "digital", pwm: true },
+            { id: "D12", label: "12", x: 220, y: 18, type: "digital" },
+            { id: "D11", label: "~11", x: 205, y: 18, type: "digital", pwm: true },
+            { id: "D10", label: "~10", x: 190, y: 18, type: "digital", pwm: true },
+            { id: "D9", label: "~9", x: 175, y: 18, type: "digital", pwm: true },
+            { id: "D8", label: "8", x: 160, y: 18, type: "digital" },
+            { id: "D7", label: "7", x: 130, y: 18, type: "digital" },
+            { id: "D6", label: "~6", x: 115, y: 18, type: "digital", pwm: true },
+            { id: "D5", label: "~5", x: 100, y: 18, type: "digital", pwm: true },
+            { id: "D4", label: "4", x: 85, y: 18, type: "digital" },
+            { id: "D3", label: "~3", x: 70, y: 18, type: "digital", pwm: true },
+            { id: "D2", label: "2", x: 55, y: 18, type: "digital" },
+            { id: "TX", label: "1 (TX)", x: 40, y: 18, type: "serial" },
+            { id: "RX", label: "0 (RX)", x: 25, y: 18, type: "serial" },
 
             // Bottom Power & Analog Pins
-            { id: "RESET", label: "RST", x: 57, y: 165, type: "power" },
-            { id: "3V3", label: "3.3V", x: 69, y: 165, type: "power" },
-            { id: "5V", label: "5V", x: 81, y: 165, type: "power" },
-            { id: "GND_1", label: "GND", x: 93, y: 165, type: "gnd" },
-            { id: "GND_2", label: "GND", x: 105, y: 165, type: "gnd" },
-            { id: "VIN", label: "VIN", x: 117, y: 165, type: "power" },
+            { id: "RESET", label: "RST", x: 60, y: 182, type: "power" },
+            { id: "3V3", label: "3.3V", x: 75, y: 182, type: "power" },
+            { id: "5V", label: "5V", x: 90, y: 182, type: "power" },
+            { id: "GND_1", label: "GND", x: 105, y: 182, type: "gnd" },
+            { id: "GND_2", label: "GND", x: 120, y: 182, type: "gnd" },
+            { id: "VIN", label: "VIN", x: 135, y: 182, type: "power" },
             
-            { id: "A0", label: "A0", x: 139, y: 165, type: "analog" },
-            { id: "A1", label: "A1", x: 151, y: 165, type: "analog" },
-            { id: "A2", label: "A2", x: 163, y: 165, type: "analog" },
-            { id: "A3", label: "A3", x: 175, y: 165, type: "analog" },
-            { id: "A4", label: "A4", x: 187, y: 165, type: "analog" },
-            { id: "A5", label: "A5", x: 199, y: 165, type: "analog" }
+            { id: "A0", label: "A0", x: 175, y: 182, type: "analog" },
+            { id: "A1", label: "A1", x: 190, y: 182, type: "analog" },
+            { id: "A2", label: "A2", x: 205, y: 182, type: "analog" },
+            { id: "A3", label: "A3", x: 220, y: 182, type: "analog" },
+            { id: "A4", label: "A4", x: 235, y: 182, type: "analog" },
+            { id: "A5", label: "A5", x: 250, y: 182, type: "analog" }
         ],
         svg: function(comp) {
             return `
-            <rect width="260" height="180" rx="10" fill="#008784" stroke="#005d5b" stroke-width="3"/>
-            <rect x="15" y="68" width="120" height="30" rx="4" fill="#1e293b"/>
-            <text x="75" y="87" fill="#94a3b8" font-size="10" font-family="monospace" text-anchor="middle" font-weight="bold">ATMEGA328P-PU</text>
-            <rect x="10" y="115" width="40" height="45" rx="4" fill="#475569"/>
-            <text x="30" y="142" fill="#e2e8f0" font-size="9" text-anchor="middle">USB B</text>
-            <circle cx="235" cy="140" r="14" fill="#0f172a"/>
-            <text x="235" y="144" fill="#94a3b8" font-size="8" text-anchor="middle">POWER</text>
-            <text x="130" y="118" fill="#ffffff" font-size="15" font-family="sans-serif" font-weight="900" text-anchor="middle">ARDUINO UNO</text>
+            <rect width="320" height="200" rx="12" fill="#008784" stroke="#005d5b" stroke-width="3"/>
+            <rect x="20" y="80" width="140" height="32" rx="4" fill="#1e293b"/>
+            <text x="90" y="100" fill="#94a3b8" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">ATMEGA328P-PU</text>
+            <rect x="15" y="130" width="45" height="50" rx="4" fill="#475569"/>
+            <text x="37" y="160" fill="#e2e8f0" font-size="9" text-anchor="middle">USB B</text>
+            <circle cx="285" cy="155" r="16" fill="#0f172a"/>
+            <text x="285" y="159" fill="#94a3b8" font-size="8" text-anchor="middle">POWER</text>
+            <text x="175" y="130" fill="#ffffff" font-size="16" font-family="sans-serif" font-weight="900" text-anchor="middle">ARDUINO UNO</text>
             
-            <circle id="led_uno_13_${comp.id}" cx="199" cy="48" r="4" fill="#451a03" stroke="#78350f" stroke-width="1"/>
-            <text x="210" y="51" fill="#cbd5e1" font-size="8">L (D13)</text>
-            <circle id="led_uno_on_${comp.id}" cx="199" cy="62" r="4" fill="#15803d" stroke="#22c55e" stroke-width="1"/>
-            <text x="210" y="65" fill="#cbd5e1" font-size="8">ON</text>
+            <circle id="led_uno_13_${comp.id}" cx="245" cy="55" r="4" fill="#451a03" stroke="#78350f" stroke-width="1"/>
+            <text x="255" y="58" fill="#cbd5e1" font-size="8">L (D13)</text>
+            <circle id="led_uno_on_${comp.id}" cx="245" cy="70" r="4" fill="#15803d" stroke="#22c55e" stroke-width="1"/>
+            <text x="255" y="73" fill="#cbd5e1" font-size="8">ON</text>
 
-            <!-- Top Header Silkscreen Pin Labels (Rapi, Tegak Vertical -90°, Bebas Overlap) -->
-            <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="end">
-                <text x="235" y="44" transform="rotate(-90 235 44)">SCL</text>
-                <text x="223" y="44" transform="rotate(-90 223 44)">SDA</text>
-                <text x="211" y="44" transform="rotate(-90 211 44)">AREF</text>
-                <text x="199" y="44" transform="rotate(-90 199 44)">GND</text>
-                <text x="187" y="44" transform="rotate(-90 187 44)">13</text>
-                <text x="175" y="44" transform="rotate(-90 175 44)">12</text>
-                <text x="163" y="44" transform="rotate(-90 163 44)">~11</text>
-                <text x="151" y="44" transform="rotate(-90 151 44)">~10</text>
-                <text x="139" y="44" transform="rotate(-90 139 44)">~9</text>
-                <text x="127" y="44" transform="rotate(-90 127 44)">8</text>
-                <text x="105" y="44" transform="rotate(-90 105 44)">7</text>
-                <text x="93" y="44" transform="rotate(-90 93 44)">~6</text>
-                <text x="81" y="44" transform="rotate(-90 81 44)">~5</text>
-                <text x="69" y="44" transform="rotate(-90 69 44)">4</text>
-                <text x="57" y="44" transform="rotate(-90 57 44)">~3</text>
-                <text x="45" y="44" transform="rotate(-90 45 44)">2</text>
-                <text x="33" y="44" transform="rotate(-90 33 44)">TX</text>
-                <text x="21" y="44" transform="rotate(-90 21 44)">RX</text>
+            <!-- Top Header Silkscreen Labels (Rapi, Rotated -90° text-anchor="start" (Mulai y=30 ke bawah, 0 Overlap!)) -->
+            <g fill="#ffffff" font-size="9" font-family="monospace" font-weight="bold" text-anchor="start">
+                <text x="295" y="30" transform="rotate(-90 295 30)">SCL</text>
+                <text x="280" y="30" transform="rotate(-90 280 30)">SDA</text>
+                <text x="265" y="30" transform="rotate(-90 265 30)">AREF</text>
+                <text x="250" y="30" transform="rotate(-90 250 30)">GND</text>
+                <text x="235" y="30" transform="rotate(-90 235 30)">13</text>
+                <text x="220" y="30" transform="rotate(-90 220 30)">12</text>
+                <text x="205" y="30" transform="rotate(-90 205 30)">~11</text>
+                <text x="190" y="30" transform="rotate(-90 190 30)">~10</text>
+                <text x="175" y="30" transform="rotate(-90 175 30)">~9</text>
+                <text x="160" y="30" transform="rotate(-90 160 30)">8</text>
+                <text x="130" y="30" transform="rotate(-90 130 30)">7</text>
+                <text x="115" y="30" transform="rotate(-90 115 30)">~6</text>
+                <text x="100" y="30" transform="rotate(-90 100 30)">~5</text>
+                <text x="85" y="30" transform="rotate(-90 85 30)">4</text>
+                <text x="70" y="30" transform="rotate(-90 70 30)">~3</text>
+                <text x="55" y="30" transform="rotate(-90 55 30)">2</text>
+                <text x="40" y="30" transform="rotate(-90 40 30)">TX</text>
+                <text x="25" y="30" transform="rotate(-90 25 30)">RX</text>
             </g>
 
-            <!-- Bottom Power/Analog Silkscreen Pin Labels (Vertical Rotated -90°) -->
-            <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="start">
-                <text x="57" y="146" transform="rotate(-90 57 146)">RST</text>
-                <text x="69" y="146" transform="rotate(-90 69 146)">3.3V</text>
-                <text x="81" y="146" transform="rotate(-90 81 146)">5V</text>
-                <text x="93" y="146" transform="rotate(-90 93 146)">GND</text>
-                <text x="105" y="146" transform="rotate(-90 105 146)">GND</text>
-                <text x="117" y="146" transform="rotate(-90 117 146)">VIN</text>
-                <text x="139" y="146" transform="rotate(-90 139 146)">A0</text>
-                <text x="151" y="146" transform="rotate(-90 151 146)">A1</text>
-                <text x="163" y="146" transform="rotate(-90 163 146)">A2</text>
-                <text x="175" y="146" transform="rotate(-90 175 146)">A3</text>
-                <text x="187" y="146" transform="rotate(-90 187 146)">A4</text>
-                <text x="199" y="146" transform="rotate(-90 199 146)">A5</text>
+            <!-- Bottom Power/Analog Silkscreen Pin Labels (Rotated -90° text-anchor="end" (Selesai y=170 ke atas)) -->
+            <g fill="#ffffff" font-size="9" font-family="monospace" font-weight="bold" text-anchor="end">
+                <text x="60" y="170" transform="rotate(-90 60 170)">RST</text>
+                <text x="75" y="170" transform="rotate(-90 75 170)">3.3V</text>
+                <text x="90" y="170" transform="rotate(-90 90 170)">5V</text>
+                <text x="105" y="170" transform="rotate(-90 105 170)">GND</text>
+                <text x="120" y="170" transform="rotate(-90 120 170)">GND</text>
+                <text x="135" y="170" transform="rotate(-90 135 170)">VIN</text>
+                <text x="175" y="170" transform="rotate(-90 175 170)">A0</text>
+                <text x="190" y="170" transform="rotate(-90 190 170)">A1</text>
+                <text x="205" y="170" transform="rotate(-90 205 170)">A2</text>
+                <text x="220" y="170" transform="rotate(-90 220 170)">A3</text>
+                <text x="235" y="170" transform="rotate(-90 235 170)">A4</text>
+                <text x="250" y="170" transform="rotate(-90 250 170)">A5</text>
             </g>
             `;
         }
@@ -110,58 +110,58 @@ window.SimLabComponents = {
     // ----------------------------------------------------
     nano: {
         name: "Arduino Nano",
-        width: 130,
-        height: 220,
+        width: 150,
+        height: 240,
         bg: "#0284c7",
         pins: [
-            { id: "D13", label: "D13", x: 15, y: 30, type: "digital" },
-            { id: "3V3", label: "3V3", x: 15, y: 45, type: "power" },
-            { id: "REF", label: "REF", x: 15, y: 60, type: "analog" },
-            { id: "A0", label: "A0", x: 15, y: 75, type: "analog" },
-            { id: "A1", label: "A1", x: 15, y: 90, type: "analog" },
-            { id: "A2", label: "A2", x: 15, y: 105, type: "analog" },
-            { id: "A3", label: "A3", x: 15, y: 120, type: "analog" },
-            { id: "A4", label: "A4", x: 15, y: 135, type: "analog" },
-            { id: "A5", label: "A5", x: 15, y: 150, type: "analog" },
-            { id: "A6", label: "A6", x: 15, y: 165, type: "analog" },
-            { id: "A7", label: "A7", x: 15, y: 180, type: "analog" },
-            { id: "5V", label: "5V", x: 15, y: 195, type: "power" },
+            { id: "D13", label: "D13", x: 18, y: 35, type: "digital" },
+            { id: "3V3", label: "3V3", x: 18, y: 50, type: "power" },
+            { id: "REF", label: "REF", x: 18, y: 65, type: "analog" },
+            { id: "A0", label: "A0", x: 18, y: 80, type: "analog" },
+            { id: "A1", label: "A1", x: 18, y: 95, type: "analog" },
+            { id: "A2", label: "A2", x: 18, y: 110, type: "analog" },
+            { id: "A3", label: "A3", x: 18, y: 125, type: "analog" },
+            { id: "A4", label: "A4", x: 18, y: 140, type: "analog" },
+            { id: "A5", label: "A5", x: 18, y: 155, type: "analog" },
+            { id: "A6", label: "A6", x: 18, y: 170, type: "analog" },
+            { id: "A7", label: "A7", x: 18, y: 185, type: "analog" },
+            { id: "5V", label: "5V", x: 18, y: 200, type: "power" },
 
-            { id: "D12", label: "D12", x: 115, y: 30, type: "digital" },
-            { id: "D11", label: "D11", x: 115, y: 45, type: "digital" },
-            { id: "D10", label: "D10", x: 115, y: 60, type: "digital" },
-            { id: "D9", label: "D9", x: 115, y: 75, type: "digital" },
-            { id: "D8", label: "D8", x: 115, y: 90, type: "digital" },
-            { id: "D7", label: "D7", x: 115, y: 105, type: "digital" },
-            { id: "D6", label: "D6", x: 115, y: 120, type: "digital" },
-            { id: "D5", label: "D5", x: 115, y: 135, type: "digital" },
-            { id: "D4", label: "D4", x: 115, y: 150, type: "digital" },
-            { id: "D3", label: "D3", x: 115, y: 165, type: "digital" },
-            { id: "D2", label: "D2", x: 115, y: 180, type: "digital" },
-            { id: "GND", label: "GND", x: 115, y: 195, type: "gnd" }
+            { id: "D12", label: "D12", x: 132, y: 35, type: "digital" },
+            { id: "D11", label: "D11", x: 132, y: 50, type: "digital" },
+            { id: "D10", label: "D10", x: 132, y: 65, type: "digital" },
+            { id: "D9", label: "D9", x: 132, y: 80, type: "digital" },
+            { id: "D8", label: "D8", x: 132, y: 95, type: "digital" },
+            { id: "D7", label: "D7", x: 132, y: 110, type: "digital" },
+            { id: "D6", label: "D6", x: 132, y: 125, type: "digital" },
+            { id: "D5", label: "D5", x: 132, y: 140, type: "digital" },
+            { id: "D4", label: "D4", x: 132, y: 155, type: "digital" },
+            { id: "D3", label: "D3", x: 132, y: 170, type: "digital" },
+            { id: "D2", label: "D2", x: 132, y: 185, type: "digital" },
+            { id: "GND", label: "GND", x: 132, y: 200, type: "gnd" }
         ],
         svg: function(comp) {
             return `
-            <rect width="130" height="220" rx="8" fill="#0284c7" stroke="#0369a1" stroke-width="3"/>
-            <rect x="35" y="10" width="60" height="30" rx="3" fill="#334155"/>
-            <text x="65" y="28" fill="#94a3b8" font-size="9" text-anchor="middle">USB-MINI</text>
-            <rect x="40" y="80" width="50" height="50" rx="4" fill="#0f172a"/>
-            <text x="65" y="108" fill="#38bdf8" font-size="9" font-family="monospace" text-anchor="middle">NANO328</text>
-            <text x="65" y="160" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">NANO</text>
+            <rect width="150" height="240" rx="8" fill="#0284c7" stroke="#0369a1" stroke-width="3"/>
+            <rect x="45" y="10" width="60" height="30" rx="3" fill="#334155"/>
+            <text x="75" y="28" fill="#94a3b8" font-size="9" text-anchor="middle">USB-MINI</text>
+            <rect x="50" y="90" width="50" height="50" rx="4" fill="#0f172a"/>
+            <text x="75" y="118" fill="#38bdf8" font-size="9" font-family="monospace" text-anchor="middle">NANO328</text>
+            <text x="75" y="170" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">NANO</text>
             
             <!-- Left Header Silkscreen -->
-            <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="start">
-                <text x="26" y="33">D13</text><text x="26" y="48">3V3</text><text x="26" y="63">REF</text>
-                <text x="26" y="78">A0</text><text x="26" y="93">A1</text><text x="26" y="108">A2</text>
-                <text x="26" y="123">A3</text><text x="26" y="138">A4</text><text x="26" y="153">A5</text>
-                <text x="26" y="168">A6</text><text x="26" y="183">A7</text><text x="26" y="198">5V</text>
+            <g fill="#ffffff" font-size="9" font-family="monospace" font-weight="bold" text-anchor="start">
+                <text x="30" y="38">D13</text><text x="30" y="53">3V3</text><text x="30" y="68">REF</text>
+                <text x="30" y="83">A0</text><text x="30" y="98">A1</text><text x="30" y="113">A2</text>
+                <text x="30" y="128">A3</text><text x="30" y="143">A4</text><text x="30" y="158">A5</text>
+                <text x="30" y="173">A6</text><text x="30" y="188">A7</text><text x="30" y="203">5V</text>
             </g>
             <!-- Right Header Silkscreen -->
-            <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="end">
-                <text x="104" y="33">D12</text><text x="104" y="48">D11</text><text x="104" y="63">D10</text>
-                <text x="104" y="78">D9</text><text x="104" y="93">D8</text><text x="104" y="108">D7</text>
-                <text x="104" y="123">D6</text><text x="104" y="138">D5</text><text x="104" y="153">D4</text>
-                <text x="104" y="168">D3</text><text x="104" y="183">D2</text><text x="104" y="198">GND</text>
+            <g fill="#ffffff" font-size="9" font-family="monospace" font-weight="bold" text-anchor="end">
+                <text x="120" y="38">D12</text><text x="120" y="53">D11</text><text x="120" y="68">D10</text>
+                <text x="120" y="83">D9</text><text x="120" y="98">D8</text><text x="120" y="113">D7</text>
+                <text x="120" y="128">D6</text><text x="120" y="143">D5</text><text x="120" y="158">D4</text>
+                <text x="120" y="173">D3</text><text x="120" y="188">D2</text><text x="120" y="203">GND</text>
             </g>
             `;
         }
@@ -172,61 +172,61 @@ window.SimLabComponents = {
     // ----------------------------------------------------
     esp32: {
         name: "ESP32 DevKit V1",
-        width: 150,
-        height: 240,
+        width: 170,
+        height: 260,
         bg: "#18181b",
         pins: [
-            { id: "EN", label: "EN", x: 15, y: 30, type: "power" },
-            { id: "VP", label: "VP", x: 15, y: 45, type: "analog" },
-            { id: "VN", label: "VN", x: 15, y: 60, type: "analog" },
-            { id: "D34", label: "D34", x: 15, y: 75, type: "digital" },
-            { id: "D35", label: "D35", x: 15, y: 90, type: "digital" },
-            { id: "D32", label: "D32", x: 15, y: 105, type: "digital" },
-            { id: "D33", label: "D33", x: 15, y: 120, type: "digital" },
-            { id: "D25", label: "D25", x: 15, y: 135, type: "digital" },
-            { id: "D26", label: "D26", x: 15, y: 150, type: "digital" },
-            { id: "D27", label: "D27", x: 15, y: 165, type: "digital" },
-            { id: "D14", label: "D14", x: 15, y: 180, type: "digital" },
-            { id: "D12", label: "D12", x: 15, y: 195, type: "digital" },
-            { id: "GND_L", label: "GND", x: 15, y: 210, type: "gnd" },
+            { id: "EN", label: "EN", x: 18, y: 35, type: "power" },
+            { id: "VP", label: "VP", x: 18, y: 50, type: "analog" },
+            { id: "VN", label: "VN", x: 18, y: 65, type: "analog" },
+            { id: "D34", label: "D34", x: 18, y: 80, type: "digital" },
+            { id: "D35", label: "D35", x: 18, y: 95, type: "digital" },
+            { id: "D32", label: "D32", x: 18, y: 110, type: "digital" },
+            { id: "D33", label: "D33", x: 18, y: 125, type: "digital" },
+            { id: "D25", label: "D25", x: 18, y: 140, type: "digital" },
+            { id: "D26", label: "D26", x: 18, y: 155, type: "digital" },
+            { id: "D27", label: "D27", x: 18, y: 170, type: "digital" },
+            { id: "D14", label: "D14", x: 18, y: 185, type: "digital" },
+            { id: "D12", label: "D12", x: 18, y: 200, type: "digital" },
+            { id: "GND_L", label: "GND", x: 18, y: 215, type: "gnd" },
 
-            { id: "3V3", label: "3V3", x: 135, y: 30, type: "power" },
-            { id: "GND_R", label: "GND", x: 135, y: 45, type: "gnd" },
-            { id: "D15", label: "D15", x: 135, y: 60, type: "digital" },
-            { id: "D2", label: "D2", x: 135, y: 75, type: "digital" },
-            { id: "D4", label: "D4", x: 135, y: 90, type: "digital" },
-            { id: "RX2", label: "RX2", x: 135, y: 105, type: "serial" },
-            { id: "TX2", label: "TX2", x: 135, y: 120, type: "serial" },
-            { id: "D5", label: "D5", x: 135, y: 135, type: "digital" },
-            { id: "D18", label: "D18", x: 135, y: 150, type: "digital" },
-            { id: "D19", label: "D19", x: 135, y: 165, type: "digital" },
-            { id: "D21", label: "D21", x: 135, y: 180, type: "digital" },
-            { id: "D22", label: "D22", x: 135, y: 195, type: "digital" },
-            { id: "D23", label: "D23", x: 135, y: 210, type: "digital" }
+            { id: "3V3", label: "3V3", x: 152, y: 35, type: "power" },
+            { id: "GND_R", label: "GND", x: 152, y: 50, type: "gnd" },
+            { id: "D15", label: "D15", x: 152, y: 65, type: "digital" },
+            { id: "D2", label: "D2", x: 152, y: 80, type: "digital" },
+            { id: "D4", label: "D4", x: 152, y: 95, type: "digital" },
+            { id: "RX2", label: "RX2", x: 152, y: 110, type: "serial" },
+            { id: "TX2", label: "TX2", x: 152, y: 125, type: "serial" },
+            { id: "D5", label: "D5", x: 152, y: 140, type: "digital" },
+            { id: "D18", label: "D18", x: 152, y: 155, type: "digital" },
+            { id: "D19", label: "D19", x: 152, y: 170, type: "digital" },
+            { id: "D21", label: "D21", x: 152, y: 185, type: "digital" },
+            { id: "D22", label: "D22", x: 152, y: 200, type: "digital" },
+            { id: "D23", label: "D23", x: 152, y: 215, type: "digital" }
         ],
         svg: function(comp) {
             return `
-            <rect width="150" height="240" rx="8" fill="#18181b" stroke="#3f3f46" stroke-width="3"/>
-            <rect x="35" y="20" width="80" height="70" rx="4" fill="#71717a" stroke="#a1a1aa" stroke-width="2"/>
-            <text x="75" y="55" fill="#18181b" font-size="12" font-weight="900" text-anchor="middle">ESP-WROOM-32</text>
-            <text x="75" y="70" fill="#27272a" font-size="8" text-anchor="middle">Wi-Fi & Bluetooth</text>
-            <text x="75" y="160" fill="#f43f5e" font-size="16" font-weight="bold" text-anchor="middle">ESP32</text>
+            <rect width="170" height="260" rx="8" fill="#18181b" stroke="#3f3f46" stroke-width="3"/>
+            <rect x="40" y="20" width="90" height="70" rx="4" fill="#71717a" stroke="#a1a1aa" stroke-width="2"/>
+            <text x="85" y="55" fill="#18181b" font-size="12" font-weight="900" text-anchor="middle">ESP-WROOM-32</text>
+            <text x="85" y="70" fill="#27272a" font-size="8" text-anchor="middle">Wi-Fi & Bluetooth</text>
+            <text x="85" y="175" fill="#f43f5e" font-size="16" font-weight="bold" text-anchor="middle">ESP32</text>
             
             <!-- Left Header Silkscreen -->
-            <g fill="#ffffff" font-size="8" font-family="monospace" font-weight="bold" text-anchor="start">
-                <text x="26" y="33">EN</text><text x="26" y="48">VP</text><text x="26" y="63">VN</text>
-                <text x="26" y="78">D34</text><text x="26" y="93">D35</text><text x="26" y="108">D32</text>
-                <text x="26" y="123">D33</text><text x="26" y="138">D25</text><text x="26" y="153">D26</text>
-                <text x="26" y="168">D27</text><text x="26" y="183">D14</text><text x="26" y="198">D12</text>
-                <text x="26" y="213">GND</text>
+            <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="start">
+                <text x="30" y="38">EN</text><text x="30" y="53">VP</text><text x="30" y="68">VN</text>
+                <text x="30" y="83">D34</text><text x="30" y="98">D35</text><text x="30" y="113">D32</text>
+                <text x="30" y="128">D33</text><text x="30" y="143">D25</text><text x="30" y="158">D26</text>
+                <text x="30" y="173">D27</text><text x="30" y="188">D14</text><text x="30" y="203">D12</text>
+                <text x="30" y="218">GND</text>
             </g>
             <!-- Right Header Silkscreen -->
-            <g fill="#ffffff" font-size="8" font-family="monospace" font-weight="bold" text-anchor="end">
-                <text x="124" y="33">3V3</text><text x="124" y="48">GND</text><text x="124" y="63">D15</text>
-                <text x="124" y="78">D2</text><text x="124" y="93">D4</text><text x="124" y="108">RX2</text>
-                <text x="124" y="123">TX2</text><text x="124" y="138">D5</text><text x="124" y="153">D18</text>
-                <text x="124" y="168">D19</text><text x="124" y="183">D21</text><text x="124" y="198">D22</text>
-                <text x="124" y="213">D23</text>
+            <g fill="#ffffff" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="end">
+                <text x="140" y="38">3V3</text><text x="140" y="53">GND</text><text x="140" y="68">D15</text>
+                <text x="140" y="83">D2</text><text x="140" y="98">D4</text><text x="140" y="113">RX2</text>
+                <text x="140" y="128">TX2</text><text x="140" y="143">D5</text><text x="140" y="158">D18</text>
+                <text x="140" y="173">D19</text><text x="140" y="188">D21</text><text x="140" y="203">D22</text>
+                <text x="140" y="218">D23</text>
             </g>
             `;
         }
