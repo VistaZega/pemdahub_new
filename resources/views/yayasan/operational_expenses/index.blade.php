@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet">
 
 <style>
+    /* 100% SOLID COLORS - NO OPACITY TRANSPARENCY */
     .ui-ux-promax {
         font-family: 'Plus Jakarta Sans', sans-serif;
         color: #000000;
@@ -91,13 +92,13 @@
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div class="space-y-2">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-400 text-black flex items-center justify-center font-black shadow-lg border-2 border-black">
-                        <i class="fas fa-file-invoice-dollar text-2xl"></i>
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-lg border-2 border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                        <i class="fas fa-file-invoice-dollar text-2xl text-black"></i>
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
                             <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">Rencana Anggaran Belanja</h1>
-                            <span class="pro-badge bg-amber-400 text-black border-2 border-black">RAPBY v2.0</span>
+                            <span class="pro-badge border-2 border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">RAPBY v2.0</span>
                         </div>
                         <p class="text-amber-400 text-sm font-black tracking-wide">Yayasan & Perguruan Pembda</p>
                     </div>
@@ -124,11 +125,11 @@
                     <span class="text-[11px] uppercase tracking-wider font-black text-amber-400 mb-1">Mode Periode</span>
                     <div class="bg-black p-1 rounded-xl border-2 border-slate-700 flex items-center gap-1">
                         <a href="{{ route('yayasan.operational_expenses.index', ['academic_year_id' => $currentYear->id, 'period_mode' => 'annual']) }}"
-                           class="px-4 py-2 rounded-lg text-xs font-black transition-all {{ $periodMode === 'annual' ? 'bg-amber-400 text-black border-2 border-black' : 'text-white hover:bg-slate-900' }}">
+                           class="px-4 py-2 rounded-lg text-xs font-black transition-all" style="{{ $periodMode === 'annual' ? 'background-color: #fbbf24 !important; color: #000000 !important; border: 2px solid #000000;' : 'color: #ffffff;' }}">
                             <i class="fas fa-calendar-days mr-1.5"></i> 12 Bulan
                         </a>
                         <a href="{{ route('yayasan.operational_expenses.index', ['academic_year_id' => $currentYear->id, 'period_mode' => 'monthly']) }}"
-                           class="px-4 py-2 rounded-lg text-xs font-black transition-all {{ $periodMode === 'monthly' ? 'bg-amber-400 text-black border-2 border-black' : 'text-white hover:bg-slate-900' }}">
+                           class="px-4 py-2 rounded-lg text-xs font-black transition-all" style="{{ $periodMode === 'monthly' ? 'background-color: #fbbf24 !important; color: #000000 !important; border: 2px solid #000000;' : 'color: #ffffff;' }}">
                             <i class="fas fa-calendar-day mr-1.5"></i> 1 Bulan
                         </a>
                     </div>
@@ -136,8 +137,8 @@
 
                 <div class="flex flex-col justify-end pt-5">
                     <a href="{{ route('yayasan.operational_expenses.export_pdf', ['academic_year_id' => $currentYear->id, 'period_mode' => $periodMode]) }}" target="_blank"
-                       class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-lg transition flex items-center gap-2 border-2 border-black">
-                        <i class="fas fa-file-pdf text-sm"></i> Export PDF
+                       class="px-4 py-2.5 text-white font-black text-xs rounded-xl shadow-lg transition flex items-center gap-2 border-2 border-black" style="background-color: #059669 !important;">
+                        <i class="fas fa-file-pdf text-sm text-white"></i> Export PDF
                     </a>
                 </div>
             </form>
@@ -145,59 +146,62 @@
     </div>
 
     @if(session('success'))
-        <div class="p-4 bg-emerald-300 border-2 border-black text-black rounded-2xl text-xs font-black flex items-center gap-3 shadow-md">
-            <i class="fas fa-check-circle text-emerald-950 text-xl"></i>
+        <div class="p-4 border-2 border-black text-black rounded-2xl text-xs font-black flex items-center gap-3 shadow-md" style="background-color: #6ee7b7 !important;">
+            <i class="fas fa-check-circle text-black text-xl"></i>
             <span>{{ session('success') }}</span>
         </div>
     @endif
 
-    {{-- STATISTICAL SUMMARY CARDS --}}
+    {{-- STATISTICAL SUMMARY CARDS (INLINE BULLETPROOF BACKGROUNDS & ICONS) --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {{-- Card 1: Belanja Pegawai --}}
         <div class="stat-card-pro blue rapby-card-pro rounded-2xl p-5 shadow-md">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-blue-900 text-white flex items-center justify-center font-black border-2 border-black">
-                    <i class="fas fa-users-gear text-2xl"></i>
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-black border-2 border-black shrink-0" style="background-color: #1e3a8a !important; color: #ffffff !important;">
+                    <i class="fas fa-users-gear text-2xl text-white"></i>
                 </div>
                 <div>
                     <p class="text-xs text-black font-black uppercase tracking-wider">5.1.00 — Belanja Pegawai</p>
                     <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</p>
                     <div class="flex items-center gap-2 mt-1.5">
-                        <span class="pro-badge bg-blue-950 text-white border-2 border-black">
-                            <i class="fas fa-building text-[10px]"></i> {{ count($hierarchicalSalaryData) }} Unit
+                        <span class="pro-badge border-2 border-black" style="background-color: #1e3a8a !important; color: #ffffff !important;">
+                            <i class="fas fa-building text-[10px] text-white"></i> {{ count($hierarchicalSalaryData) }} Unit
                         </span>
-                        <span class="pro-badge bg-indigo-950 text-white border-2 border-black">
-                            <i class="fas fa-user-check text-[10px]"></i> {{ $totalPegawaiCount }} Pegawai
+                        <span class="pro-badge border-2 border-black" style="background-color: #312e81 !important; color: #ffffff !important;">
+                            <i class="fas fa-user-check text-[10px] text-white"></i> {{ $totalPegawaiCount }} Pegawai
                         </span>
                     </div>
                 </div>
             </div>
         </div>
 
+        {{-- Card 2: Belanja Operasional --}}
         <div class="stat-card-pro amber rapby-card-pro rounded-2xl p-5 shadow-md">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-amber-600 text-white flex items-center justify-center font-black border-2 border-black">
-                    <i class="fas fa-list-check text-2xl"></i>
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-black border-2 border-black shrink-0" style="background-color: #d97706 !important; color: #ffffff !important;">
+                    <i class="fas fa-list-check text-2xl text-white"></i>
                 </div>
                 <div>
                     <p class="text-xs text-black font-black uppercase tracking-wider">5.1.01–14 — Belanja Operasional</p>
                     <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap" id="cardOpsTotal">Rp&nbsp;{{ number_format($totalOpsPeriod, 0, ',', '.') }}</p>
-                    <span class="pro-badge bg-amber-400 text-black border-2 border-black mt-1.5">
-                        <i class="fas fa-pen-to-square text-[10px]"></i> Dapat Diedit
+                    <span class="pro-badge border-2 border-black mt-1.5" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                        <i class="fas fa-pen-to-square text-[10px] text-black"></i> Dapat Diedit
                     </span>
                 </div>
             </div>
         </div>
 
-        <div class="stat-card-pro violet rapby-card-pro rounded-2xl p-5 shadow-md bg-purple-100 border-2 border-black">
+        {{-- Card 3: Grand Total --}}
+        <div class="stat-card-pro violet rapby-card-pro rounded-2xl p-5 shadow-md border-2 border-black" style="background-color: #f3e8ff !important;">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-950 text-white flex items-center justify-center font-black border-2 border-black">
-                    <i class="fas fa-calculator text-2xl"></i>
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-black border-2 border-black shrink-0" style="background-color: #581c87 !important; color: #ffffff !important;">
+                    <i class="fas fa-calculator text-2xl text-white"></i>
                 </div>
                 <div>
                     <p class="text-xs text-black font-black uppercase tracking-wider">Grand Total RAPBY</p>
                     <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap" id="cardGrandTotal">Rp&nbsp;{{ number_format($grandTotalBelanjaPeriod, 0, ',', '.') }}</p>
-                    <span class="pro-badge bg-purple-950 text-white border-2 border-black mt-1.5">
-                        <i class="fas fa-layer-group text-[10px]"></i> Total Keseluruhan
+                    <span class="pro-badge border-2 border-black mt-1.5" style="background-color: #581c87 !important; color: #ffffff !important;">
+                        <i class="fas fa-layer-group text-[10px] text-white"></i> Total Keseluruhan
                     </span>
                 </div>
             </div>
@@ -213,16 +217,16 @@
             {{-- Table Header Toolbar --}}
             <div class="rapby-hero p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-black">
                 <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-amber-400 text-black font-black flex items-center justify-center shadow-md border-2 border-black">
-                        <i class="fas fa-table-list text-xl"></i>
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center shadow-md border-2 border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                        <i class="fas fa-table-list text-xl text-black"></i>
                     </div>
                     <div>
                         <h2 class="text-lg font-black text-white">Rincian Anggaran Belanja RAPBY</h2>
                         <p class="text-amber-400 text-xs font-black">Tahun Pelajaran {{ $currentYear->year ?? '-' }} • Periode {{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }}</p>
                     </div>
                 </div>
-                <button type="submit" class="px-6 py-3 bg-amber-400 hover:bg-amber-300 text-black font-black text-xs rounded-xl shadow-xl transition-all flex items-center gap-2 border-2 border-black">
-                    <i class="fas fa-save text-sm"></i> Simpan Rencana Belanja
+                <button type="submit" class="px-6 py-3 text-black font-black text-xs rounded-xl shadow-xl transition-all flex items-center gap-2 border-2 border-black" style="background-color: #fbbf24 !important;">
+                    <i class="fas fa-save text-sm text-black"></i> Simpan Rencana Belanja
                 </button>
             </div>
 
@@ -243,8 +247,8 @@
                     </thead>
                     <tbody class="divide-y-2 divide-slate-400 bg-white">
 
-                        {{-- KELOMPOK 5.1.00: BELANJA PEGAWAI (BG TERANG KONTRAST MAKSIMAL DENGAN TEKS HITAM) --}}
-                        <tr class="bg-blue-200 text-black font-black border-b-2 border-black">
+                        {{-- KELOMPOK 5.1.00: BELANJA PEGAWAI --}}
+                        <tr class="text-black font-black border-b-2 border-black" style="background-color: #bfdbfe !important;">
                             <td class="px-3 py-4 text-center">
                                 <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-black text-white text-xs font-black border-2 border-black">5.1</span>
                             </td>
@@ -253,8 +257,8 @@
                                 <div class="flex items-center gap-2">
                                     <i class="fas fa-users-gear text-black text-base"></i>
                                     <span class="font-black uppercase tracking-wide text-xs text-black">Kelompok: Belanja Pegawai Perguruan</span>
-                                    <span class="pro-badge bg-black text-white border border-black ml-2">
-                                        <i class="fas fa-lock text-[8px]"></i> Otomatis Penugasan
+                                    <span class="pro-badge border border-black ml-2" style="background-color: #000000 !important; color: #ffffff !important;">
+                                        <i class="fas fa-lock text-[8px] text-white"></i> Otomatis Penugasan
                                     </span>
                                 </div>
                             </td>
@@ -265,9 +269,9 @@
                         @foreach($hierarchicalSalaryData as $uIdx => $uData)
                             @php $item = $uData['items'][0] ?? null; @endphp
                             @if($item)
-                            <tr class="hover:bg-slate-200 transition-all {{ $uData['school_type'] === 'yayasan' ? 'bg-purple-100' : 'bg-white' }} border-b border-slate-400">
+                            <tr class="hover:bg-slate-200 transition-all border-b border-slate-400" style="{{ $uData['school_type'] === 'yayasan' ? 'background-color: #f3e8ff !important;' : 'background-color: #ffffff;' }}">
                                 <td class="px-3 py-4 text-center">
-                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full {{ $uData['school_type'] === 'yayasan' ? 'bg-black text-white' : 'bg-black text-white' }} text-xs font-black border border-black">
+                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-black text-white text-xs font-black border border-black">
                                         {{ $uIdx + 1 }}
                                     </span>
                                 </td>
@@ -276,8 +280,8 @@
                                 </td>
                                 <td class="px-4 py-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-lg bg-black text-amber-400 font-black flex items-center justify-center border border-black">
-                                            <i class="fas {{ $item['icon'] }} text-sm"></i>
+                                        <div class="w-8 h-8 rounded-lg bg-black text-amber-400 font-black flex items-center justify-center border border-black shrink-0">
+                                            <i class="fas {{ $item['icon'] }} text-sm text-amber-400"></i>
                                         </div>
                                         <span class="font-black text-black text-xs">{{ $item['name'] }}</span>
                                     </div>
@@ -294,7 +298,7 @@
                         @endforeach
 
                         {{-- Subtotal Pegawai --}}
-                        <tr class="bg-blue-300 border-y-2 border-black">
+                        <tr class="border-y-2 border-black" style="background-color: #93c5fd !important;">
                             <td colspan="6" class="px-4 py-4 text-right font-black text-black uppercase text-xs tracking-wider">
                                 <i class="fas fa-sigma mr-1.5 text-black text-sm"></i> Subtotal Belanja Pegawai (5.1.00):
                             </td>
@@ -302,8 +306,8 @@
                             <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</td>
                         </tr>
 
-                        {{-- KELOMPOK 5.1.01+: BELANJA OPERASIONAL (BG TERANG KONTRAST MAKSIMAL DENGAN TEKS HITAM) --}}
-                        <tr class="bg-amber-300 text-black font-black border-b-2 border-black">
+                        {{-- KELOMPOK 5.1.01+: BELANJA OPERASIONAL --}}
+                        <tr class="text-black font-black border-b-2 border-black" style="background-color: #fde68a !important;">
                             <td class="px-3 py-4 text-center">
                                 <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-black text-white text-xs font-black border-2 border-black">5.1</span>
                             </td>
@@ -312,8 +316,8 @@
                                 <div class="flex items-center gap-2">
                                     <i class="fas fa-list-check text-black text-base"></i>
                                     <span class="font-black uppercase tracking-wide text-xs text-black">Kelompok: Belanja Operasional Non-Gaji</span>
-                                    <span class="pro-badge bg-black text-white border border-black ml-2">
-                                        <i class="fas fa-pen-to-square text-[8px]"></i> Editable
+                                    <span class="pro-badge border border-black ml-2" style="background-color: #000000 !important; color: #ffffff !important;">
+                                        <i class="fas fa-pen-to-square text-[8px] text-white"></i> Editable
                                     </span>
                                 </div>
                             </td>
@@ -332,17 +336,17 @@
                                     $amtPeriod = $amtMonthly * $multiplier;
                                     $safeCode = str_replace('.', '_', $code);
                                 @endphp
-                                <tr class="hover:bg-amber-200 transition-all {{ $opsNo % 2 === 0 ? 'bg-amber-100' : 'bg-white' }} border-b border-slate-400">
+                                <tr class="hover:bg-amber-200 transition-all border-b border-slate-400" style="{{ $opsNo % 2 === 0 ? 'background-color: #fef3c7 !important;' : 'background-color: #ffffff;' }}">
                                     <td class="px-3 py-4 text-center">
                                         <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-black text-white text-xs font-black">{{ $opsNo++ }}</span>
                                     </td>
                                     <td class="px-3 py-4">
-                                        <span class="font-mono font-black text-black bg-amber-400 px-2.5 py-1 rounded-md border-2 border-black text-xs">{{ $code }}</span>
+                                        <span class="font-mono font-black text-black px-2.5 py-1 rounded-md border-2 border-black text-xs" style="background-color: #fbbf24 !important;">{{ $code }}</span>
                                     </td>
                                     <td class="px-4 py-4">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-lg bg-black text-amber-400 font-black flex items-center justify-center border border-black">
-                                                <i class="fas {{ $detail['icon'] }} text-sm"></i>
+                                            <div class="w-8 h-8 rounded-lg bg-black text-amber-400 font-black flex items-center justify-center border border-black shrink-0">
+                                                <i class="fas {{ $detail['icon'] }} text-sm text-amber-400"></i>
                                             </div>
                                             <span class="font-black text-black text-xs">{{ $detail['name'] }}</span>
                                         </div>
@@ -371,7 +375,7 @@
                         @endforeach
 
                         {{-- Subtotal Ops --}}
-                        <tr class="bg-amber-300 border-y-2 border-black">
+                        <tr class="border-y-2 border-black" style="background-color: #fcd34d !important;">
                             <td colspan="6" class="px-4 py-4 text-right font-black text-black uppercase text-xs tracking-wider">
                                 <i class="fas fa-sigma mr-1.5 text-black text-sm"></i> Subtotal Belanja Operasional (5.1.01–14):
                             </td>
@@ -396,7 +400,7 @@
             </div>
 
             {{-- Footer Notes & Action --}}
-            <div class="p-6 bg-slate-300 border-t-2 border-black flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="p-6 border-t-2 border-black flex flex-col md:flex-row items-center justify-between gap-4" style="background-color: #cbd5e1 !important;">
                 <div class="w-full md:w-2/3">
                     <label class="block text-xs font-black text-black mb-1.5 uppercase tracking-wider">
                         <i class="fas fa-comment-dots mr-1 text-black"></i> Catatan Rencana Anggaran Belanja (Opsional)
@@ -404,8 +408,8 @@
                     <input type="text" name="notes" value="{{ $contribution->notes ?? '' }}"
                            class="rapby-input-pro w-full text-xs p-3.5 rounded-2xl bg-white text-black font-black border-2 border-black" placeholder="Tambahkan catatan persetujuan rencana anggaran belanja...">
                 </div>
-                <button type="submit" class="px-8 py-4 bg-amber-400 hover:bg-amber-300 text-black font-black text-xs rounded-2xl shadow-2xl transition-all flex items-center gap-2.5 border-2 border-black">
-                    <i class="fas fa-save text-base"></i> Simpan Rencana Belanja
+                <button type="submit" class="px-8 py-4 text-black font-black text-xs rounded-2xl shadow-2xl transition-all flex items-center gap-2.5 border-2 border-black" style="background-color: #fbbf24 !important;">
+                    <i class="fas fa-save text-base text-black"></i> Simpan Rencana Belanja
                 </button>
             </div>
         </div>
