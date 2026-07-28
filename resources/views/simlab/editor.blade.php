@@ -281,8 +281,13 @@
 
         <!-- CENTER PANEL: Interactive Circuit SVG Canvas -->
         <main class="flex-grow bg-gray-950 relative overflow-hidden flex flex-col select-none">
-            <!-- Canvas Toolbar Controls (Clear Wires, Reset Canvas, Zoom) -->
-            <div class="absolute top-3 left-3 z-10 flex items-center space-x-2 bg-gray-900/90 border border-gray-800 backdrop-blur rounded-xl p-1.5 shadow-lg">
+            <!-- Canvas Toolbar Controls (Clear Wires, Reset Canvas, Zoom, Cable Mode) -->
+            <div class="absolute top-3 left-3 z-30 flex items-center space-x-2 bg-gray-900/90 border border-gray-800 backdrop-blur rounded-xl p-1.5 shadow-lg">
+                <button id="btnToggleWireStyle" class="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-emerald-400 transition-colors flex items-center gap-1" title="Ganti Gaya Kabel (Lurus 90° vs Lengkung)">
+                    <i class="fas fa-ruler-combined"></i>
+                    <span id="wireStyleLabel">Kabel: Lurus 90°</span>
+                </button>
+                <div class="h-4 w-px bg-gray-800"></div>
                 <button id="btnClearWires" class="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-red-400 transition-colors flex items-center gap-1" title="Hapus Semua Kabel">
                     <i class="fas fa-trash-alt"></i>
                     <span>Reset Kabel</span>
@@ -302,15 +307,16 @@
 
             <!-- Canvas Viewport -->
             <div id="circuitCanvasContainer" class="w-full h-full canvas-grid overflow-auto relative cursor-crosshair">
-                <svg id="circuitSvg" class="w-[3000px] h-[2000px] absolute top-0 left-0">
-                    <!-- Dynamic Bezier Wires rendered here -->
+                <!-- HTML Layer for Draggable Components -->
+                <div id="componentsLayer" class="w-[3000px] h-[2000px] absolute top-0 left-0 pointer-events-auto z-10"></div>
+
+                <!-- SVG Layer for Wires (Rendered ON TOP of components layer z-20) -->
+                <svg id="circuitSvg" class="w-[3000px] h-[2000px] absolute top-0 left-0 pointer-events-none z-20">
+                    <!-- Dynamic Bezier/Orthogonal Wires rendered here -->
                     <g id="wiresGroup"></g>
                     <!-- Temporary wire drawing preview -->
-                    <path id="tempWire" d="" stroke="#10b981" stroke-width="3" fill="none" stroke-dasharray="6,6" class="hidden"></path>
+                    <path id="tempWire" d="" stroke="#10b981" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6,6" class="hidden"></path>
                 </svg>
-                
-                <!-- HTML Layer for Draggable Components -->
-                <div id="componentsLayer" class="w-[3000px] h-[2000px] absolute top-0 left-0 pointer-events-none"></div>
             </div>
 
             <!-- Canvas Bottom Helper Info -->

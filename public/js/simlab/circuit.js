@@ -1,6 +1,6 @@
 /**
  * PembdaHUB SimLab - Circuit Workspace Manager
- * Menangani rendering komponen visual, drag & drop, penyambungan kabel Bezier curve, serta import/export JSON.
+ * Menangani rendering komponen visual, label nomor pin, drag & drop, penyambungan kabel 90° Lurus / Bezier, serta import/export JSON.
  */
 
 window.SimLabCircuit = {
@@ -10,6 +10,7 @@ window.SimLabCircuit = {
     connectingPin: null,
     compCounter: 0,
     zoomLevel: 1.0,
+    wireStyleMode: "orthogonal", // "orthogonal" (lurus 90-derajat) atau "curved" (lengkung)
 
     init: function() {
         this.bindEvents();
@@ -34,6 +35,18 @@ window.SimLabCircuit = {
                 const type = this.dataset.type;
                 self.addComponent(type);
             });
+        });
+
+        // Toggle Wire Style Mode Button (Lurus 90° vs Lengkung)
+        document.getElementById('btnToggleWireStyle')?.addEventListener('click', function() {
+            if (self.wireStyleMode === 'orthogonal') {
+                self.wireStyleMode = 'curved';
+                document.getElementById('wireStyleLabel').textContent = 'Kabel: Lengkung Curve';
+            } else {
+                self.wireStyleMode = 'orthogonal';
+                document.getElementById('wireStyleLabel').textContent = 'Kabel: Lurus 90°';
+            }
+            self.renderWires();
         });
 
         // Clear Canvas Buttons
@@ -72,7 +85,7 @@ window.SimLabCircuit = {
                 
                 const startPos = self.getPinPos(self.connectingPin.compId, self.connectingPin.pinId);
                 if (startPos) {
-                    const d = self.calculateBezier(startPos.x, startPos.y, mouseX, mouseY);
+                    const d = self.calculateWirePath(startPos.x, startPos.y, mouseX, mouseY);
                     const tempPath = document.getElementById('tempWire');
                     tempPath.setAttribute('d', d);
                     tempPath.setAttribute('stroke', self.selectedWireColor);
@@ -82,8 +95,8 @@ window.SimLabCircuit = {
         });
 
         // Click outside cancels wire drawing
-        svg.addEventListener('click', function(e) {
-            if (e.target.tagName === 'svg' || e.target.id === 'circuitSvg') {
+        document.getElementById('circuitCanvasContainer').addEventListener('click', function(e) {
+            if (e.target.id === 'circuitCanvasContainer' || e.target.id === 'circuitSvg') {
                 if (self.connectingPin) {
                     self.connectingPin = null;
                     document.getElementById('tempWire').classList.add('hidden');
@@ -111,7 +124,6 @@ window.SimLabCircuit = {
         this.compCounter++;
         const id = savedId || (type + '_' + this.compCounter + '_' + Math.random().toString(36).substr(2, 4));
         
-        // Offset cascading position if default
         if (!savedId) {
             x += (this.components.length * 30) % 300;
             y += (this.components.length * 20) % 200;
@@ -153,7 +165,7 @@ window.SimLabCircuit = {
 
             const div = document.createElement('div');
             div.id = 'comp_' + comp.id;
-            div.className = 'absolute pointer-events-auto bg-gray-900/40 rounded-xl p-2 border border-gray-700/50 shadow-xl group hover:border-emerald-500/80 transition-border';
+            div.className = 'absolute pointer-events-auto bg-gray-900/50 rounded-xl p-2 border border-gray-700/60 shadow-2xl group hover:border-emerald-500/90 transition-all';
             div.style.left = comp.x + 'px';
             div.style.top = comp.y + 'px';
             div.style.width = (def.width + 16) + 'px';
@@ -169,12 +181,32 @@ window.SimLabCircuit = {
                     ${def.svg(comp)}
             `;
 
-            // Render Pins as Interactive Circles
+            // Render Pins + VISIBLE TEXT LABELS (Silkscreen Pin Numbers)
             def.pins.forEach(pin => {
+                let textX = pin.x;
+                let textY = pin.y;
+                let textAnchor = "middle";
+
+                // Smart positioning for Pin text labels
+                if (pin.y <= 25) {
+                    textY = pin.y + 16;
+                } else if (pin.y >= def.height - 25) {
+                    textY = pin.y - 9;
+                } else if (pin.x <= 35) {
+                    textX = pin.x + 12;
+                    textY = pin.y + 3;
+                    textAnchor = "start";
+                } else if (pin.x >= def.width - 35) {
+                    textX = pin.x - 12;
+                    textY = pin.y + 3;
+                    textAnchor = "end";
+                }
+
                 html += `
-                <g class="pin-hover" onclick="SimLabCircuit.onPinClick('${comp.id}', '${pin.id}')">
+                <g class="pin-hover cursor-pointer" onclick="SimLabCircuit.onPinClick('${comp.id}', '${pin.id}')">
                     <circle cx="${pin.x}" cy="${pin.y}" r="6" fill="#10b981" stroke="#ffffff" stroke-width="1.5"/>
                     <circle cx="${pin.x}" cy="${pin.y}" r="2" fill="#000000"/>
+                    <text x="${textX}" y="${textY}" fill="#ffffff" font-size="9.5" font-family="monospace" font-weight="900" text-anchor="${textAnchor}" pointer-events="none" style="text-shadow: 0 0 3px #000;">${pin.label}</text>
                     <title>Pin ${pin.label} (${pin.type.toUpperCase()})</title>
                 </g>
                 `;
@@ -274,14 +306,29 @@ window.SimLabCircuit = {
         };
     },
 
-    calculateBezier: function(x1, y1, x2, y2) {
-        const dx = Math.abs(x2 - x1) * 0.5;
-        const dy = Math.abs(y2 - y1) * 0.5;
-        const cx1 = x1 + (x2 > x1 ? dx : -dx);
-        const cy1 = y1 + dy;
-        const cx2 = x2 + (x2 > x1 ? -dx : dx);
-        const cy2 = y2 - dy;
-        return `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`;
+    // Flexible Wire Path Calculation: Supports 90° Orthogonal Straight Segments or Curves
+    calculateWirePath: function(x1, y1, x2, y2) {
+        if (this.wireStyleMode === 'orthogonal') {
+            const dx = Math.abs(x2 - x1);
+            const dy = Math.abs(y2 - y1);
+
+            if (dx > dy) {
+                const midX = x1 + (x2 - x1) / 2;
+                return `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`;
+            } else {
+                const midY = y1 + (y2 - y1) / 2;
+                return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
+            }
+        } else {
+            // Bezier Smooth Curve
+            const dx = Math.abs(x2 - x1) * 0.5;
+            const dy = Math.abs(y2 - y1) * 0.5;
+            const cx1 = x1 + (x2 > x1 ? dx : -dx);
+            const cy1 = y1 + dy;
+            const cx2 = x2 + (x2 > x1 ? -dx : dx);
+            const cy2 = y2 - dy;
+            return `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`;
+        }
     },
 
     renderWires: function() {
@@ -295,14 +342,16 @@ window.SimLabCircuit = {
             const pos2 = self.getPinPos(wire.toComp, wire.toPin);
 
             if (pos1 && pos2) {
-                const d = self.calculateBezier(pos1.x, pos1.y, pos2.x, pos2.y);
+                const d = self.calculateWirePath(pos1.x, pos1.y, pos2.x, pos2.y);
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', d);
                 path.setAttribute('stroke', wire.color || '#ef4444');
                 path.setAttribute('stroke-width', '4');
                 path.setAttribute('fill', 'none');
                 path.setAttribute('stroke-linecap', 'round');
+                path.setAttribute('stroke-linejoin', 'round');
                 path.style.cursor = 'pointer';
+                path.style.pointerEvents = 'stroke'; // Allow clicking wire overlaid on top of components!
 
                 // Click to delete wire
                 path.addEventListener('click', function(e) {
@@ -318,20 +367,26 @@ window.SimLabCircuit = {
         });
     },
 
-    // Export current workspace state as JSON object
     exportJSON: function() {
         return {
             components: this.components,
             wires: this.wires,
+            wireStyleMode: this.wireStyleMode,
             zoom: this.zoomLevel
         };
     },
 
-    // Import state from JSON
     importJSON: function(data) {
         if (!data) return;
         this.components = data.components || [];
         this.wires = data.wires || [];
+        if (data.wireStyleMode) {
+            this.wireStyleMode = data.wireStyleMode;
+            const label = document.getElementById('wireStyleLabel');
+            if (label) {
+                label.textContent = this.wireStyleMode === 'orthogonal' ? 'Kabel: Lurus 90°' : 'Kabel: Lengkung Curve';
+            }
+        }
         this.renderAll();
     }
 };
