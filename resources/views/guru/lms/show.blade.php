@@ -1022,10 +1022,10 @@
     <div class="flex items-center justify-center min-h-screen p-4">
         <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false"></div>
 
-        <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-2xl w-full relative z-10 border border-indigo-100">
-            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 flex items-center justify-between">
-                <h3 class="text-white font-bold tracking-wide flex items-center gap-2"><i class="fas fa-gamepad"></i> Game Builder Studio</h3>
-                <button @click="open = false" class="text-white/70 hover:text-white transition-colors bg-white/10 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-2xl w-full relative z-10 border-2 border-black">
+            <div class="px-6 py-4 flex items-center justify-between border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
+                <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-sm uppercase"><i class="fas fa-gamepad text-amber-400"></i> Game Builder Studio (Interaktif)</h3>
+                <button @click="open = false" class="text-white/80 hover:text-white transition-colors bg-slate-800 border border-slate-700 w-8 h-8 rounded-xl flex items-center justify-center font-black"><i class="fas fa-times"></i></button>
             </div>
             
             <form action="{{ route('guru.lms.games.store') }}" method="POST" enctype="multipart/form-data" class="p-6">
@@ -1383,20 +1383,20 @@
 {{-- ═══════════════════════════════════════════════ --}}
 <div x-data="{ open: false, type: 'document' }" @open-material-modal.window="open = true" x-show="open" class="fixed inset-0 z-50 overflow-y-auto" style="display: none">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 bg-gray-900/60 transition-opacity" @click="open = false"></div>
+        <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 transition-opacity" @click="open = false"></div>
 
-        <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-lg w-full relative z-10 border border-gray-100">
-            <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4 flex items-center justify-between">
-                <h3 class="text-white font-bold tracking-wide flex items-center gap-2"><i class="fas fa-upload"></i> Upload Materi Baru</h3>
-                <button @click="open = false" class="text-white/70 hover:text-white transition-colors"><i class="fas fa-times"></i></button>
+        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-lg w-full relative z-10 border-2 border-black">
+            <div class="px-6 py-4 flex items-center justify-between border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
+                <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-sm uppercase"><i class="fas fa-upload text-amber-400"></i> Upload Materi Pembelajaran Baru</h3>
+                <button @click="open = false" class="text-white/80 hover:text-white transition-colors bg-slate-800 border border-slate-700 w-8 h-8 rounded-xl flex items-center justify-center font-black"><i class="fas fa-times"></i></button>
             </div>
             
             <form action="{{ route('guru.lms.materials.store', $course->id) }}" method="POST" enctype="multipart/form-data" class="p-6">
                 @csrf
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Modul Target</label>
-                        <select name="module_id" required class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Modul Target <span class="text-red-600">*</span></label>
+                        <select name="module_id" required class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white">
                             <option value="">-- Pilih Modul --</option>
                             @foreach($course->modules as $mod)
                             <option value="{{ $mod->id }}">Modul {{ $mod->sequence }}: {{ $mod->title }}</option>
@@ -1405,15 +1405,15 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Judul Materi</label>
-                        <input type="text" name="title" required placeholder="Contoh: Pengantar Algoritma..." class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Judul Materi <span class="text-red-600">*</span></label>
+                        <input type="text" name="title" required placeholder="Contoh: Pengantar Algoritma Pemrograman..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Tipe Materi</label>
-                            <select name="material_type" required x-model="type" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
-                                <option value="document">Dokumen</option>
+                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Tipe Materi</label>
+                            <select name="material_type" required x-model="type" class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white">
+                                <option value="document">Dokumen Word/PPT</option>
                                 <option value="pdf">PDF</option>
                                 <option value="video">Video</option>
                                 <option value="image">Gambar</option>
@@ -1422,44 +1422,43 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">File (Opsional, Maks. 10 MB)</label>
-                            <input type="file" name="file" class="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">File (Maks. 10 MB)</label>
+                            <input type="file" name="file" class="w-full text-xs text-black font-bold file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-2 file:border-black file:text-xs file:font-black file:bg-amber-300 file:text-black hover:file:bg-black hover:file:text-white cursor-pointer">
                         </div>
                     </div>
 
                     <!-- Info Batasan Video & File -->
-                    <div x-show="type === 'video'" class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-700 space-y-2" style="display: none">
-                        <p class="font-bold flex items-center gap-1">
-                            <i class="fas fa-info-circle text-blue-600 text-sm"></i> Informasi Upload Video:
+                    <div x-show="type === 'video'" class="bg-sky-100 border-2 border-black rounded-2xl p-4 text-xs text-black space-y-1.5" style="display: none">
+                        <p class="font-black uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fas fa-info-circle text-sky-600 text-sm"></i> Petunjuk Upload Video:
                         </p>
-                        <ul class="list-disc list-inside space-y-1 ml-1 text-blue-600">
-                            <li>Format yang didukung: <strong>MP4</strong> (disarankan agar dapat diputar langsung di browser).</li>
-                            <li>Ukuran file maksimal: <strong>10 MB</strong> (melalui upload langsung).</li>
-                            <li class="text-orange-700 font-medium mt-1"><strong>Rekomendasi:</strong> Jika video terlalu besar/berat (&gt;10 MB), disarankan untuk menguploadnya ke <strong>YouTube</strong> terlebih dahulu, lalu masukkan linknya pada kolom <strong>URL</strong> di bawah. Ini akan menghemat penyimpanan hosting dan memastikan video berjalan lancar bagi siswa.</li>
+                        <ul class="list-disc list-inside space-y-1 text-black font-bold text-xs">
+                            <li>Format MP4 disarankan untuk pemutaran langsung di browser.</li>
+                            <li>Batas file upload langsung: <strong>10 MB</strong>.</li>
+                            <li><strong>Rekomendasi Terbaik:</strong> Untuk video &gt;10 MB, upload ke <strong>YouTube</strong> lalu tempelkan link URL-nya pada kolom di bawah.</li>
                         </ul>
                     </div>
 
-                    <div x-show="type === 'interactive'" class="bg-purple-50 border border-purple-200 rounded-xl p-4 text-xs text-purple-700 space-y-2" style="display: none">
-                        <p class="font-bold flex items-center gap-1">
-                            <i class="fas fa-gamepad text-purple-600 text-sm"></i> Informasi Game / Interaktif (Embed):
+                    <div x-show="type === 'interactive'" class="bg-purple-100 border-2 border-black rounded-2xl p-4 text-xs text-black space-y-1.5" style="display: none">
+                        <p class="font-black uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fas fa-gamepad text-purple-600 text-sm"></i> Petunjuk Game / Interaktif (Embed):
                         </p>
-                        <p>Masukkan Link URL Game dari platform edukasi eksternal (Contoh: Quizizz, Wordwall, PhET, H5P) ke dalam kolom <strong>URL/Link</strong> di bawah ini.</p>
-                        <p class="font-bold">Sistem akan secara otomatis menyematkannya ke dalam halaman materi agar siswa bisa memainkannya langsung!</p>
+                        <p class="font-bold">Masukkan Link URL Game dari Quizizz, Wordwall, PhET, atau H5P ke kolom <strong>URL/Link</strong> di bawah ini.</p>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">URL (Opsional)</label>
-                        <input type="url" name="file_url" placeholder="https://..." class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">URL / Link Pembelajaran (Opsional)</label>
+                        <input type="url" name="file_url" placeholder="https://..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Isi Konten Teks (Opsional)</label>
-                        <textarea name="content" rows="3" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all"></textarea>
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Isi Konten Teks / Keterangan (Opsional)</label>
+                        <textarea name="content" rows="3" placeholder="Tuliskan petunjuk atau rangkuman materi..." class="w-full border-2 border-black rounded-2xl p-4 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none"></textarea>
                     </div>
 
                     <div class="pt-4 flex gap-3">
-                        <button type="button" @click="open = false" class="flex-1 px-6 py-3 rounded-xl font-bold bg-gray-50 text-gray-400 hover:text-gray-600 transition-all uppercase tracking-widest text-xs">Batal</button>
-                        <button type="submit" class="flex-1 px-6 py-3 rounded-xl font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow-lg hover:shadow-emerald-200 uppercase tracking-widest text-xs">Simpan Materi</button>
+                        <button type="button" @click="open = false" class="flex-1 px-6 py-3.5 rounded-2xl font-black bg-slate-200 text-black border-2 border-black hover:bg-slate-300 transition-all uppercase tracking-wider text-xs">Batal</button>
+                        <button type="submit" class="flex-1 px-6 py-3.5 rounded-2xl font-black bg-black text-white hover:bg-emerald-600 transition-all border-2 border-black shadow-md uppercase tracking-wider text-xs"><i class="fas fa-save mr-1 text-amber-400"></i> Simpan Materi</button>
                     </div>
                 </div>
             </form>
@@ -1472,12 +1471,12 @@
 {{-- ═══════════════════════════════════════════════ --}}
 <div x-data="{ open: false, mat: {} }" @open-edit-material-modal.window="mat = $event.detail; open = true" x-show="open" class="fixed inset-0 z-50 overflow-y-auto" style="display: none">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 bg-gray-900/60 transition-opacity" @click="open = false"></div>
+        <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 transition-opacity" @click="open = false"></div>
 
-        <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-lg w-full relative z-10 border border-gray-100">
-            <div class="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-4 flex items-center justify-between">
-                <h3 class="text-white font-bold tracking-wide flex items-center gap-2"><i class="fas fa-edit"></i> Edit Materi Pembelajaran</h3>
-                <button @click="open = false" class="text-white/70 hover:text-white transition-colors"><i class="fas fa-times"></i></button>
+        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-lg w-full relative z-10 border-2 border-black">
+            <div class="px-6 py-4 flex items-center justify-between border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
+                <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-sm uppercase"><i class="fas fa-edit text-amber-400"></i> Edit Materi Pembelajaran</h3>
+                <button @click="open = false" class="text-white/80 hover:text-white transition-colors bg-slate-800 border border-slate-700 w-8 h-8 rounded-xl flex items-center justify-center font-black"><i class="fas fa-times"></i></button>
             </div>
             
             <form :action="mat.update_url" method="POST" enctype="multipart/form-data" class="p-6">
@@ -1485,8 +1484,8 @@
                 @method('PUT')
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Modul Target</label>
-                        <select name="module_id" x-model="mat.module_id" required class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all">
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Modul Target</label>
+                        <select name="module_id" x-model="mat.module_id" required class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white">
                             @foreach($course->modules as $mod)
                             <option value="{{ $mod->id }}">Modul {{ $mod->sequence }}: {{ $mod->title }}</option>
                             @endforeach
@@ -1494,20 +1493,20 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Judul Materi</label>
-                        <input type="text" name="title" x-model="mat.title" required placeholder="Judul Materi..." class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all">
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Judul Materi</label>
+                        <input type="text" name="title" x-model="mat.title" required placeholder="Judul Materi..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Keterangan / Teks Materi</label>
-                        <textarea name="content" x-model="mat.content" rows="4" placeholder="Keterangan materi atau instruksi..." class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all"></textarea>
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Isi Konten Teks / Keterangan</label>
+                        <textarea name="content" x-model="mat.content" rows="4" placeholder="Keterangan materi atau instruksi..." class="w-full border-2 border-black rounded-2xl p-4 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none"></textarea>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Tipe Materi</label>
-                            <select name="material_type" x-model="mat.material_type" required class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all">
-                                <option value="document">Dokumen</option>
+                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Tipe Materi</label>
+                            <select name="material_type" x-model="mat.material_type" required class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white">
+                                <option value="document">Dokumen Word/PPT</option>
                                 <option value="pdf">PDF</option>
                                 <option value="video">Video</option>
                                 <option value="image">Gambar</option>
@@ -1516,19 +1515,19 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Ganti File (Maks. 10 MB)</label>
-                            <input type="file" name="file" class="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 cursor-pointer">
+                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Ganti File (Maks. 10 MB)</label>
+                            <input type="file" name="file" class="w-full text-xs text-black font-bold file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-2 file:border-black file:text-xs file:font-black file:bg-amber-300 file:text-black hover:file:bg-black hover:file:text-white cursor-pointer">
                         </div>
                     </div>
 
                     <div x-show="mat.material_type === 'video' || mat.material_type === 'link' || mat.material_type === 'interactive'" style="display: none;">
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">URL / Link (YouTube, Game, dll)</label>
-                        <input type="url" name="file_url" x-model="mat.file_url" placeholder="https://..." class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all">
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">URL / Link Pembelajaran</label>
+                        <input type="url" name="file_url" x-model="mat.file_url" placeholder="https://..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                     </div>
 
                     <div class="pt-4 flex gap-3">
-                        <button type="button" @click="open = false" class="flex-1 px-6 py-3 rounded-xl font-bold bg-gray-50 text-gray-400 hover:text-gray-600 transition-all uppercase tracking-widest text-xs">Batal</button>
-                        <button type="submit" class="flex-1 px-6 py-3 rounded-xl font-bold bg-amber-600 text-white hover:bg-amber-700 transition-all shadow-lg hover:shadow-amber-200 uppercase tracking-widest text-xs">Simpan Perubahan</button>
+                        <button type="button" @click="open = false" class="flex-1 px-6 py-3.5 rounded-2xl font-black bg-slate-200 text-black border-2 border-black hover:bg-slate-300 transition-all uppercase tracking-wider text-xs">Batal</button>
+                        <button type="submit" class="flex-1 px-6 py-3.5 rounded-2xl font-black bg-black text-white hover:bg-emerald-600 transition-all border-2 border-black shadow-md uppercase tracking-wider text-xs"><i class="fas fa-save mr-1 text-amber-400"></i> Perbarui Materi</button>
                     </div>
                 </div>
             </form>
