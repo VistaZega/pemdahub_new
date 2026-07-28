@@ -1,8 +1,13 @@
 /**
- * PembdaHUB SimLab - Circuit Workspace Manager
- * Menangani rendering komponen visual, snap 100% presisi di titik pusat pin,
- * rotasi (0°-360°), perbesar/perkecil, drag & drop, penarikan lengan kabel 90° Wokwi 100% tegak lurus (tanpa kabel serong!),
- * menu klik kanan warna & tipe kabel, serta indikator nomor pin di kedua ujung kabel.
+ * PembdaHUB SimLab - Circuit Workspace Manager v4.0
+ * Fitur:
+ * - Waypoint-based wire routing (setiap segmen bisa digeser H & V)
+ * - Workspace putih dengan grid SVG konfigurabel & snap-to-grid
+ * - Nama komponen editable oleh user (double-click)
+ * - Panel daftar komponen & koneksi (collapsible)
+ * - Right-click context menu warna & tipe kabel
+ * - Indikator pin di kedua ujung kabel
+ * - Rotasi & zoom komponen
  */
 
 window.SimLabCircuit = {
@@ -15,10 +20,23 @@ window.SimLabCircuit = {
     wireStyleMode: "orthogonal",
     activeWireContext: null,
 
+    // Grid Settings
+    gridSize: 20,
+    gridVisible: true,
+    snapEnabled: true,
+
     init: function() {
         this.bindEvents();
         this.initContextMenu();
+        this.drawGrid();
         this.renderAll();
+        this.updateConnectionPanel();
+    },
+
+    // Snap value to nearest grid multiple
+    snap: function(val) {
+        if (!this.snapEnabled || this.gridSize <= 1) return val;
+        return Math.round(val / this.gridSize) * this.gridSize;
     },
 
     bindEvents: function() {
@@ -41,31 +59,28 @@ window.SimLabCircuit = {
             });
         });
 
-        // Toggle Wire Style Mode Button (Lurus 90° vs Lengkung)
+        // Toggle Wire Style Mode
         document.getElementById('btnToggleWireStyle')?.addEventListener('click', function() {
-            if (self.wireStyleMode === 'orthogonal') {
-                self.wireStyleMode = 'curved';
-                document.getElementById('wireStyleLabel').textContent = 'Kabel: Lengkung Curve';
-            } else {
-                self.wireStyleMode = 'orthogonal';
-                document.getElementById('wireStyleLabel').textContent = 'Kabel: Lurus 90°';
-            }
+            self.wireStyleMode = self.wireStyleMode === 'orthogonal' ? 'curved' : 'orthogonal';
+            document.getElementById('wireStyleLabel').textContent =
+                self.wireStyleMode === 'orthogonal' ? 'Kabel: Lurus 90°' : 'Kabel: Lengkung';
             self.renderWires();
         });
 
-        // Clear Canvas Buttons
+        // Clear Buttons
         document.getElementById('btnClearWires')?.addEventListener('click', function() {
             if (confirm('Hapus semua sambungan kabel?')) {
                 self.wires = [];
                 self.renderWires();
+                self.updateConnectionPanel();
             }
         });
-
         document.getElementById('btnClearCanvas')?.addEventListener('click', function() {
             if (confirm('Kosongkan canvas (hapus semua komponen & kabel)?')) {
                 self.components = [];
                 self.wires = [];
                 self.renderAll();
+                self.updateConnectionPanel();
             }
         });
 
@@ -75,32 +90,57 @@ window.SimLabCircuit = {
             self.applyZoom();
         });
         document.getElementById('btnZoomOut')?.addEventListener('click', function() {
-            self.zoomLevel = Math.max(0.4, self.zoomLevel - 0.15);
+            self.zoomLevel = Math.max(0.3, self.zoomLevel - 0.15);
             self.applyZoom();
         });
 
-        // Mouse Wheel Canvas Zooming
+        // Mouse Wheel Zoom
         const canvasContainer = document.getElementById('circuitCanvasContainer');
         if (canvasContainer) {
             canvasContainer.addEventListener('wheel', function(e) {
                 e.preventDefault();
                 const delta = e.deltaY < 0 ? 0.08 : -0.08;
-                self.zoomLevel = Math.min(3.0, Math.max(0.4, self.zoomLevel + delta));
+                self.zoomLevel = Math.min(3.0, Math.max(0.3, self.zoomLevel + delta));
                 self.applyZoom();
             }, { passive: false });
         }
 
-        // Canvas Mouse Movements for Wire Preview
+        // Grid Controls
+        document.getElementById('gridSizeSelect')?.addEventListener('change', function() {
+            self.gridSize = parseInt(this.value) || 20;
+            self.drawGrid();
+        });
+        document.getElementById('btnToggleGrid')?.addEventListener('click', function() {
+            self.gridVisible = !self.gridVisible;
+            self.drawGrid();
+            this.classList.toggle('text-emerald-400', self.gridVisible);
+            this.classList.toggle('text-gray-500', !self.gridVisible);
+        });
+        document.getElementById('btnToggleSnap')?.addEventListener('click', function() {
+            self.snapEnabled = !self.snapEnabled;
+            this.classList.toggle('text-emerald-400', self.snapEnabled);
+            this.classList.toggle('text-gray-500', !self.snapEnabled);
+            const label = this.querySelector('span');
+            if (label) label.textContent = self.snapEnabled ? 'Snap: ON' : 'Snap: OFF';
+        });
+
+        // Toggle Connection Panel
+        document.getElementById('btnToggleConnPanel')?.addEventListener('click', function() {
+            const panel = document.getElementById('connectionPanel');
+            if (panel) panel.classList.toggle('hidden');
+        });
+
+        // Wire Preview on Mouse Move
         const svg = document.getElementById('circuitSvg');
         svg.addEventListener('mousemove', function(e) {
             if (self.connectingPin) {
                 const rect = svg.getBoundingClientRect();
                 const mouseX = (e.clientX - rect.left) / self.zoomLevel;
                 const mouseY = (e.clientY - rect.top) / self.zoomLevel;
-                
                 const startPos = self.getPinPos(self.connectingPin.compId, self.connectingPin.pinId);
                 if (startPos) {
-                    const d = self.calculateWirePath(startPos.x, startPos.y, mouseX, mouseY);
+                    const midX = startPos.x + (mouseX - startPos.x) / 2;
+                    const d = `M ${startPos.x} ${startPos.y} L ${midX} ${startPos.y} L ${midX} ${mouseY} L ${mouseX} ${mouseY}`;
                     const tempPath = document.getElementById('tempWire');
                     tempPath.setAttribute('d', d);
                     tempPath.setAttribute('stroke', self.selectedWireColor);
@@ -109,12 +149,10 @@ window.SimLabCircuit = {
             }
         });
 
-        // Click outside cancels wire drawing and hides context menu
+        // Click outside cancels wire drawing
         document.addEventListener('click', function(e) {
             const menu = document.getElementById('wireContextMenu');
-            if (menu && !menu.contains(e.target)) {
-                menu.classList.add('hidden');
-            }
+            if (menu && !menu.contains(e.target)) menu.classList.add('hidden');
             if (e.target.id === 'circuitCanvasContainer' || e.target.id === 'circuitSvg') {
                 if (self.connectingPin) {
                     self.connectingPin = null;
@@ -125,9 +163,44 @@ window.SimLabCircuit = {
         });
     },
 
+    // ═══════════════════════════════════════════════════════════════
+    // Grid System
+    // ═══════════════════════════════════════════════════════════════
+
+    drawGrid: function() {
+        const gridGroup = document.getElementById('gridGroup');
+        if (!gridGroup) return;
+        gridGroup.innerHTML = '';
+        if (!this.gridVisible) return;
+
+        const W = 3000, H = 2000;
+        const g = this.gridSize;
+
+        // Minor grid lines
+        for (let x = 0; x <= W; x += g) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x); line.setAttribute('y1', 0);
+            line.setAttribute('x2', x); line.setAttribute('y2', H);
+            line.setAttribute('stroke', (x % (g * 5) === 0) ? '#cbd5e1' : '#e2e8f0');
+            line.setAttribute('stroke-width', (x % (g * 5) === 0) ? '0.8' : '0.4');
+            gridGroup.appendChild(line);
+        }
+        for (let y = 0; y <= H; y += g) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', 0); line.setAttribute('y1', y);
+            line.setAttribute('x2', W); line.setAttribute('y2', y);
+            line.setAttribute('stroke', (y % (g * 5) === 0) ? '#cbd5e1' : '#e2e8f0');
+            line.setAttribute('stroke-width', (y % (g * 5) === 0) ? '0.8' : '0.4');
+            gridGroup.appendChild(line);
+        }
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // Context Menu (Right-Click on Wire)
+    // ═══════════════════════════════════════════════════════════════
+
     initContextMenu: function() {
         if (document.getElementById('wireContextMenu')) return;
-
         const menu = document.createElement('div');
         menu.id = 'wireContextMenu';
         menu.className = 'fixed hidden z-50 bg-gray-900/95 border border-gray-700/90 rounded-xl shadow-2xl p-2.5 text-xs text-gray-200 backdrop-blur-md w-52 space-y-2 select-none';
@@ -137,74 +210,45 @@ window.SimLabCircuit = {
                 <span id="ctxWirePinLabel" class="text-emerald-400 font-mono text-[10px]"></span>
             </div>
             <div>
-                <label class="text-[10px] text-gray-400 block mb-1">Pilih Warna Kabel:</label>
+                <label class="text-[10px] text-gray-400 block mb-1">Warna Kabel:</label>
                 <div class="grid grid-cols-4 gap-1.5">
-                    <button onclick="SimLabCircuit.setContextMenuWireColor('#ef4444')" class="h-6 rounded bg-red-500 hover:scale-105 transition-all border border-white/20"></button>
-                    <button onclick="SimLabCircuit.setContextMenuWireColor('#22c55e')" class="h-6 rounded bg-emerald-500 hover:scale-105 transition-all border border-white/20"></button>
-                    <button onclick="SimLabCircuit.setContextMenuWireColor('#3b82f6')" class="h-6 rounded bg-blue-500 hover:scale-105 transition-all border border-white/20"></button>
-                    <button onclick="SimLabCircuit.setContextMenuWireColor('#eab308')" class="h-6 rounded bg-yellow-500 hover:scale-105 transition-all border border-white/20"></button>
-                    <button onclick="SimLabCircuit.setContextMenuWireColor('#f97316')" class="h-6 rounded bg-orange-500 hover:scale-105 transition-all border border-white/20"></button>
-                    <button onclick="SimLabCircuit.setContextMenuWireColor('#a855f7')" class="h-6 rounded bg-purple-500 hover:scale-105 transition-all border border-white/20"></button>
-                    <button onclick="SimLabCircuit.setContextMenuWireColor('#f8fafc')" class="h-6 rounded bg-slate-100 hover:scale-105 transition-all border border-white/20"></button>
-                    <button onclick="SimLabCircuit.setContextMenuWireColor('#18181b')" class="h-6 rounded bg-zinc-900 hover:scale-105 transition-all border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setCtxWireColor('#ef4444')" class="h-6 rounded bg-red-500 hover:scale-105 border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setCtxWireColor('#22c55e')" class="h-6 rounded bg-emerald-500 hover:scale-105 border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setCtxWireColor('#3b82f6')" class="h-6 rounded bg-blue-500 hover:scale-105 border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setCtxWireColor('#eab308')" class="h-6 rounded bg-yellow-500 hover:scale-105 border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setCtxWireColor('#f97316')" class="h-6 rounded bg-orange-500 hover:scale-105 border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setCtxWireColor('#a855f7')" class="h-6 rounded bg-purple-500 hover:scale-105 border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setCtxWireColor('#f8fafc')" class="h-6 rounded bg-slate-100 hover:scale-105 border border-white/20"></button>
+                    <button onclick="SimLabCircuit.setCtxWireColor('#18181b')" class="h-6 rounded bg-zinc-900 hover:scale-105 border border-white/20"></button>
                 </div>
             </div>
             <div>
-                <label class="text-[10px] text-gray-400 block mb-1">Tipe Garis Kabel:</label>
+                <label class="text-[10px] text-gray-400 block mb-1">Tipe Garis:</label>
                 <div class="grid grid-cols-3 gap-1 text-[10px]">
-                    <button onclick="SimLabCircuit.setContextMenuWireStyle('orthogonal')" class="px-1.5 py-1 bg-gray-800 hover:bg-gray-700 rounded text-center border border-gray-700">Lurus 90°</button>
-                    <button onclick="SimLabCircuit.setContextMenuWireStyle('curved')" class="px-1.5 py-1 bg-gray-800 hover:bg-gray-700 rounded text-center border border-gray-700">Lengkung</button>
-                    <button onclick="SimLabCircuit.setContextMenuWireStyle('dashed')" class="px-1.5 py-1 bg-gray-800 hover:bg-gray-700 rounded text-center border border-gray-700">Putus</button>
+                    <button onclick="SimLabCircuit.setCtxWireStyle('orthogonal')" class="px-1.5 py-1 bg-gray-800 hover:bg-gray-700 rounded border border-gray-700">Lurus 90°</button>
+                    <button onclick="SimLabCircuit.setCtxWireStyle('curved')" class="px-1.5 py-1 bg-gray-800 hover:bg-gray-700 rounded border border-gray-700">Lengkung</button>
+                    <button onclick="SimLabCircuit.setCtxWireStyle('dashed')" class="px-1.5 py-1 bg-gray-800 hover:bg-gray-700 rounded border border-gray-700">Putus</button>
                 </div>
             </div>
-            <button onclick="SimLabCircuit.deleteContextMenuWire()" class="w-full text-center py-1.5 bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white rounded font-bold transition-all border border-red-500/40">
-                ✕ Hapus Kabel Ini
-            </button>
+            <button onclick="SimLabCircuit.deleteCtxWire()" class="w-full py-1.5 bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white rounded font-bold border border-red-500/40">✕ Hapus Kabel</button>
         `;
         document.body.appendChild(menu);
     },
-
     showContextMenu: function(e, wire) {
-        e.preventDefault();
-        e.stopPropagation();
+        e.preventDefault(); e.stopPropagation();
         this.activeWireContext = wire;
-
         const menu = document.getElementById('wireContextMenu');
         if (menu) {
             menu.style.left = e.clientX + 'px';
             menu.style.top = e.clientY + 'px';
             menu.classList.remove('hidden');
-
             const label = document.getElementById('ctxWirePinLabel');
-            if (label) {
-                label.textContent = `${wire.fromPin} ➔ ${wire.toPin}`;
-            }
+            if (label) label.textContent = wire.fromPin + ' → ' + wire.toPin;
         }
     },
-
-    setContextMenuWireColor: function(color) {
-        if (this.activeWireContext) {
-            this.activeWireContext.color = color;
-            this.renderWires();
-            document.getElementById('wireContextMenu')?.classList.add('hidden');
-        }
-    },
-
-    setContextMenuWireStyle: function(style) {
-        if (this.activeWireContext) {
-            this.activeWireContext.style = style;
-            this.renderWires();
-            document.getElementById('wireContextMenu')?.classList.add('hidden');
-        }
-    },
-
-    deleteContextMenuWire: function() {
-        if (this.activeWireContext) {
-            this.wires = this.wires.filter(w => w.id !== this.activeWireContext.id);
-            this.renderWires();
-            document.getElementById('wireContextMenu')?.classList.add('hidden');
-        }
-    },
+    setCtxWireColor: function(c) { if (this.activeWireContext) { this.activeWireContext.color = c; this.renderWires(); document.getElementById('wireContextMenu')?.classList.add('hidden'); } },
+    setCtxWireStyle: function(s) { if (this.activeWireContext) { this.activeWireContext.style = s; this.renderWires(); document.getElementById('wireContextMenu')?.classList.add('hidden'); } },
+    deleteCtxWire: function() { if (this.activeWireContext) { this.wires = this.wires.filter(w => w.id !== this.activeWireContext.id); this.renderWires(); this.updateConnectionPanel(); document.getElementById('wireContextMenu')?.classList.add('hidden'); } },
 
     applyZoom: function() {
         const svg = document.getElementById('circuitSvg');
@@ -215,33 +259,28 @@ window.SimLabCircuit = {
         layer.style.transformOrigin = '0 0';
     },
 
-    addComponent: function(type, x = 100, y = 100, savedId = null, savedState = null) {
+    // ═══════════════════════════════════════════════════════════════
+    // Component Management
+    // ═══════════════════════════════════════════════════════════════
+
+    addComponent: function(type, x, y, savedId, savedState, savedLabel) {
         const def = window.SimLabComponents[type];
         if (!def) {
-            console.error('Tipe komponen tidak dikenal:', type);
+            console.warn('Komponen "' + type + '" belum didefinisikan di components.js');
+            alert('Komponen "' + type + '" belum tersedia. Akan ditambahkan di versi mendatang.');
             return null;
         }
-
         this.compCounter++;
+        x = x || 100 + (this.components.length * 30) % 300;
+        y = y || 100 + (this.components.length * 20) % 200;
+        x = this.snap(x);
+        y = this.snap(y);
+
         const id = savedId || (type + '_' + this.compCounter + '_' + Math.random().toString(36).substr(2, 4));
-        
-        if (!savedId) {
-            x += (this.components.length * 30) % 300;
-            y += (this.components.length * 20) % 200;
-        }
-
-        const comp = {
-            id: id,
-            type: type,
-            x: x,
-            y: y,
-            scale: 1.0,
-            rotation: 0,
-            state: savedState || {}
-        };
-
+        const comp = { id: id, type: type, x: x, y: y, scale: 1.0, rotation: 0, label: savedLabel || def.name, state: savedState || {} };
         this.components.push(comp);
         this.renderComponents();
+        this.updateConnectionPanel();
         return comp;
     },
 
@@ -249,6 +288,7 @@ window.SimLabCircuit = {
         this.components = this.components.filter(c => c.id !== id);
         this.wires = this.wires.filter(w => w.fromComp !== id && w.toComp !== id);
         this.renderAll();
+        this.updateConnectionPanel();
     },
 
     renderAll: function() {
@@ -259,163 +299,160 @@ window.SimLabCircuit = {
     renderComponents: function() {
         const layer = document.getElementById('componentsLayer');
         layer.innerHTML = '';
-
         const self = this;
 
         this.components.forEach(comp => {
             const def = window.SimLabComponents[comp.type];
             if (!def) return;
-
             const scale = comp.scale || 1.0;
             const rotation = comp.rotation || 0;
-
-            // Ensure container width has at least 145px to comfortably fit Title + 4 Action Buttons inside border
             const headerWidth = Math.max(145, def.width + 16);
 
             const div = document.createElement('div');
             div.id = 'comp_' + comp.id;
-            div.className = 'absolute pointer-events-auto bg-gray-900/60 rounded-xl p-2 border border-gray-700/80 shadow-2xl group hover:border-emerald-500/90 transition-transform';
+            div.className = 'absolute pointer-events-auto rounded-xl p-2 border border-gray-300 shadow-lg group hover:border-emerald-500 transition-all';
             div.style.left = comp.x + 'px';
             div.style.top = comp.y + 'px';
             div.style.width = headerWidth + 'px';
             div.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
             div.style.transformOrigin = 'center center';
             div.style.zIndex = '30';
+            div.style.backgroundColor = 'rgba(255,255,255,0.95)';
 
-            // Top Header Bar of Component (Strictly left-aligned SVG inside container, 0px offset error!)
             let html = `
-            <div class="flex items-center justify-between mb-1 handle cursor-move text-[10px] text-gray-400 border-b border-gray-800 pb-1 select-none w-full">
-                <span class="font-bold text-gray-200 truncate pr-1 text-[11px]">${def.name}</span>
+            <div class="flex items-center justify-between mb-1 handle cursor-move text-[10px] text-gray-500 border-b border-gray-200 pb-1 select-none w-full">
+                <span class="font-bold text-gray-800 truncate pr-1 text-[11px] comp-label cursor-text" ondblclick="SimLabCircuit.editLabel('${comp.id}', this)" title="Double-click untuk edit nama">${comp.label || def.name}</span>
                 <div class="flex items-center space-x-1 shrink-0">
-                    <button onclick="SimLabCircuit.rotateComponent('${comp.id}')" class="text-cyan-400 hover:text-cyan-300 font-black px-1 py-0.5 text-xs hover:bg-gray-800 rounded" title="Rotasi Komponen (90°)">⟳</button>
-                    <button onclick="SimLabCircuit.scaleComponent('${comp.id}', 0.15)" class="text-emerald-400 hover:text-emerald-300 font-black px-1 py-0.5 text-xs hover:bg-gray-800 rounded" title="Perbesar Komponen (+)">+</button>
-                    <button onclick="SimLabCircuit.scaleComponent('${comp.id}', -0.15)" class="text-amber-400 hover:text-amber-300 font-black px-1 py-0.5 text-xs hover:bg-gray-800 rounded" title="Perkecil Komponen (-)">-</button>
-                    <button onclick="SimLabCircuit.removeComponent('${comp.id}')" class="text-red-400 hover:text-red-300 font-black px-1 py-0.5 text-xs hover:bg-gray-800 rounded" title="Hapus Komponen">✕</button>
+                    <button onclick="SimLabCircuit.rotateComponent('${comp.id}')" class="text-cyan-600 hover:text-cyan-500 font-black px-1 py-0.5 text-xs hover:bg-gray-100 rounded" title="Rotasi 90°">⟳</button>
+                    <button onclick="SimLabCircuit.scaleComponent('${comp.id}', 0.15)" class="text-emerald-600 hover:text-emerald-500 font-black px-1 py-0.5 text-xs hover:bg-gray-100 rounded" title="Perbesar">+</button>
+                    <button onclick="SimLabCircuit.scaleComponent('${comp.id}', -0.15)" class="text-amber-600 hover:text-amber-500 font-black px-1 py-0.5 text-xs hover:bg-gray-100 rounded" title="Perkecil">-</button>
+                    <button onclick="SimLabCircuit.removeComponent('${comp.id}')" class="text-red-500 hover:text-red-400 font-black px-1 py-0.5 text-xs hover:bg-gray-100 rounded" title="Hapus">✕</button>
                 </div>
             </div>
-            <div class="relative" style="width: ${def.width}px; height: ${def.height}px;">
+            <div class="relative" style="width:${def.width}px;height:${def.height}px;">
                 <svg width="${def.width}" height="${def.height}" viewBox="0 0 ${def.width} ${def.height}">
-                    ${def.svg(comp)}
-            `;
+                    ${def.svg(comp)}`;
 
-            // Render Pins as Interactive Circles with Active Selection Ring
             def.pins.forEach(pin => {
                 const isSelected = self.connectingPin && self.connectingPin.compId === comp.id && self.connectingPin.pinId === pin.id;
                 html += `
-                <g class="pin-hover cursor-pointer" onclick="SimLabCircuit.onPinClick('${comp.id}', '${pin.id}')">
-                    <circle cx="${pin.x}" cy="${pin.y}" r="${isSelected ? 8 : 6}" fill="${isSelected ? '#f59e0b' : '#10b981'}" stroke="#ffffff" stroke-width="${isSelected ? 2.5 : 1.5}"/>
-                    <circle cx="${pin.x}" cy="${pin.y}" r="2" fill="#000000"/>
-                    <title>Pin ${pin.label} (${pin.type.toUpperCase()})</title>
-                </g>
-                `;
+                <g class="pin-hover cursor-pointer" onclick="SimLabCircuit.onPinClick('${comp.id}','${pin.id}')">
+                    <circle cx="${pin.x}" cy="${pin.y}" r="${isSelected ? 8 : 6}" fill="${isSelected ? '#f59e0b' : '#10b981'}" stroke="#fff" stroke-width="${isSelected ? 2.5 : 1.5}"/>
+                    <circle cx="${pin.x}" cy="${pin.y}" r="2" fill="#000"/>
+                    <title>${pin.label} (${pin.type})</title>
+                </g>`;
             });
 
-            html += `
-                </svg>
-            </div>
-            `;
-
-            // Render optional controls (sliders, triggers)
-            if (def.controls) {
-                html += def.controls(comp);
-            }
-
+            html += `</svg></div>`;
+            if (def.controls) html += def.controls(comp);
             div.innerHTML = html;
             layer.appendChild(div);
-
-            // Make Component Draggable
             self.makeDraggable(div, comp);
         });
     },
 
-    rotateComponent: function(id) {
-        const comp = this.components.find(c => c.id === id);
-        if (comp) {
-            comp.rotation = ((comp.rotation || 0) + 90) % 360;
-            this.renderComponents();
-            this.renderWires();
+    editLabel: function(compId, el) {
+        const comp = this.components.find(c => c.id === compId);
+        if (!comp) return;
+        const oldLabel = comp.label || '';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = oldLabel;
+        input.className = 'bg-white text-gray-900 text-[11px] font-bold border border-emerald-400 rounded px-1 py-0 w-full focus:outline-none';
+        input.style.minWidth = '60px';
+        el.replaceWith(input);
+        input.focus();
+        input.select();
+
+        const self = this;
+        function save() {
+            comp.label = input.value.trim() || oldLabel;
+            self.renderComponents();
+            self.updateConnectionPanel();
         }
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', function(e) { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input.value = oldLabel; input.blur(); } });
     },
 
+    rotateComponent: function(id) {
+        const comp = this.components.find(c => c.id === id);
+        if (comp) { comp.rotation = ((comp.rotation || 0) + 90) % 360; this.renderComponents(); this.renderWires(); }
+    },
     scaleComponent: function(id, delta) {
         const comp = this.components.find(c => c.id === id);
         if (comp) {
-            comp.scale = Math.max(0.5, Math.min(3.0, (comp.scale || 1.0) + delta));
-            this.renderComponents();
-            this.renderWires();
+            const step = this.snapEnabled ? Math.max(delta, this.gridSize / 100) : delta;
+            comp.scale = Math.max(0.5, Math.min(3.0, (comp.scale || 1.0) + step));
+            this.renderComponents(); this.renderWires();
         }
     },
 
     makeDraggable: function(el, comp) {
         const self = this;
-        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        let startMouseX, startMouseY, startCompX, startCompY;
         const handle = el.querySelector('.handle') || el;
 
-        handle.onmousedown = dragMouseDown;
-
-        function dragMouseDown(e) {
-            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+        handle.onmousedown = function(e) {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.tagName === 'INPUT') return;
+            e.preventDefault(); e.stopPropagation();
+            startMouseX = e.clientX; startMouseY = e.clientY;
+            startCompX = comp.x; startCompY = comp.y;
+            window.addEventListener('mousemove', drag);
+            window.addEventListener('mouseup', stop);
+        };
+        function drag(e) {
             e.preventDefault();
-            e.stopPropagation();
-
-            pos3 = e.clientX;
-            pos4 = e.clientY;
-
-            window.addEventListener('mousemove', elementDrag);
-            window.addEventListener('mouseup', closeDragElement);
-        }
-
-        function elementDrag(e) {
-            e.preventDefault();
-            pos1 = pos3 - e.clientX;
-            pos2 = pos4 - e.clientY;
-            pos3 = e.clientX;
-            pos4 = e.clientY;
-
-            comp.x = Math.max(0, el.offsetLeft - (pos1 / self.zoomLevel));
-            comp.y = Math.max(0, el.offsetTop - (pos2 / self.zoomLevel));
-
-            el.style.left = comp.x + "px";
-            el.style.top = comp.y + "px";
-
-            // Re-render connected wires smoothly during drag
+            const dx = (e.clientX - startMouseX) / self.zoomLevel;
+            const dy = (e.clientY - startMouseY) / self.zoomLevel;
+            comp.x = self.snap(Math.max(0, startCompX + dx));
+            comp.y = self.snap(Math.max(0, startCompY + dy));
+            el.style.left = comp.x + 'px';
+            el.style.top = comp.y + 'px';
             self.renderWires();
         }
-
-        function closeDragElement() {
-            window.removeEventListener('mousemove', elementDrag);
-            window.removeEventListener('mouseup', closeDragElement);
-        }
+        function stop() { window.removeEventListener('mousemove', drag); window.removeEventListener('mouseup', stop); }
     },
+
+    // ═══════════════════════════════════════════════════════════════
+    // Pin Click & Wire Connection
+    // ═══════════════════════════════════════════════════════════════
 
     onPinClick: function(compId, pinId) {
         if (!this.connectingPin) {
-            // Start wire connection from Pin A
             this.connectingPin = { compId: compId, pinId: pinId };
             this.renderComponents();
         } else {
-            // Finish wire connection to Pin B if target is different
             if (this.connectingPin.compId !== compId || this.connectingPin.pinId !== pinId) {
-                const wire = {
+                const pos1 = this.getPinPos(this.connectingPin.compId, this.connectingPin.pinId);
+                const pos2 = this.getPinPos(compId, pinId);
+
+                // Generate 2 default waypoints for clean 90° routing
+                let wps = [];
+                if (pos1 && pos2) {
+                    const midX = this.snap(pos1.x + (pos2.x - pos1.x) / 2);
+                    wps = [
+                        { x: midX, y: pos1.y },
+                        { x: midX, y: pos2.y }
+                    ];
+                }
+
+                this.wires.push({
                     id: 'wire_' + Math.random().toString(36).substr(2, 6),
-                    fromComp: this.connectingPin.compId,
-                    fromPin: this.connectingPin.pinId,
-                    toComp: compId,
-                    toPin: pinId,
-                    color: this.selectedWireColor,
-                    style: 'orthogonal',
-                    armRatio: 0.5
-                };
-                this.wires.push(wire);
+                    fromComp: this.connectingPin.compId, fromPin: this.connectingPin.pinId,
+                    toComp: compId, toPin: pinId,
+                    color: this.selectedWireColor, style: 'orthogonal',
+                    waypoints: wps
+                });
             }
             this.connectingPin = null;
             document.getElementById('tempWire').classList.add('hidden');
             this.renderComponents();
             this.renderWires();
+            this.updateConnectionPanel();
         }
     },
 
-    // 100% Exact Pin Center Coordinate Calculator (Presisi Ujung Kabel Ke Pin Center 0.00px Error)
+    // Exact pin center position calculator
     getPinPos: function(compId, pinId) {
         const comp = this.components.find(c => c.id === compId);
         if (!comp) return null;
@@ -426,223 +463,133 @@ window.SimLabCircuit = {
 
         const scale = comp.scale || 1.0;
         const rotation = comp.rotation || 0;
-
         const headerWidth = Math.max(145, def.width + 16);
-
-        // Fixed DOM offsets: p-2 padding = 8px, header height = 36px
-        const offsetX = 8;
-        const offsetY = 36;
-
-        // Exact center of component box in local space
-        const cx = (headerWidth / 2);
-        const cy = offsetY + (def.height / 2);
-
-        // Pin pos relative to box center
-        const px = offsetX + pin.x - cx;
-        const py = offsetY + pin.y - cy;
-
-        // 2D Rotation matrix transformation
+        const offsetX = 8, offsetY = 36;
+        const cx = headerWidth / 2, cy = offsetY + def.height / 2;
+        const px = offsetX + pin.x - cx, py = offsetY + pin.y - cy;
         const rad = rotation * Math.PI / 180;
         const rx = px * Math.cos(rad) - py * Math.sin(rad);
         const ry = px * Math.sin(rad) + py * Math.cos(rad);
-
-        return {
-            x: comp.x + (cx + rx) * scale,
-            y: comp.y + (cy + ry) * scale
-        };
+        return { x: comp.x + (cx + rx) * scale, y: comp.y + (cy + ry) * scale };
     },
 
-    // Flexible Wire Path Calculation: Supports 90° Orthogonal Straight Segments or Curves
-    calculateWirePath: function(x1, y1, x2, y2) {
-        if (this.wireStyleMode === 'orthogonal') {
-            const dx = Math.abs(x2 - x1);
-            const dy = Math.abs(y2 - y1);
+    // ═══════════════════════════════════════════════════════════════
+    // Wire Rendering with Waypoint System
+    // ═══════════════════════════════════════════════════════════════
 
-            if (dx >= dy) {
-                const midX = x1 + (x2 - x1) / 2;
-                return `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`;
-            } else {
-                const midY = y1 + (y2 - y1) / 2;
-                return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
-            }
-        } else {
-            // Bezier Smooth Curve
-            const dx = Math.abs(x2 - x1) * 0.5;
-            const dy = Math.abs(y2 - y1) * 0.5;
-            const cx1 = x1 + (x2 > x1 ? dx : -dx);
-            const cy1 = y1 + dy;
-            const cx2 = x2 + (x2 > x1 ? -dx : dx);
-            const cy2 = y2 - dy;
-            return `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`;
-        }
-    },
-
-    // Render Wires + Wokwi 100% Strictly Perpendicular 90° Manhattan Arm Segment Dragging + Right-Click Menu + Pin Label Badges
     renderWires: function() {
         const group = document.getElementById('wiresGroup');
         group.innerHTML = '';
-
         const self = this;
 
         this.wires.forEach(wire => {
             const pos1 = self.getPinPos(wire.fromComp, wire.fromPin);
             const pos2 = self.getPinPos(wire.toComp, wire.toPin);
-
             if (!pos1 || !pos2) return;
 
-            const currentStyle = wire.style || self.wireStyleMode;
-            const ratio = (typeof wire.armRatio === 'number') ? wire.armRatio : 0.5;
+            const style = wire.style || self.wireStyleMode;
 
-            let pathD = "";
-            let midSegment = null; // Stores middle arm info for dragging
-
-            if (currentStyle === 'curved') {
-                pathD = self.calculateWirePath(pos1.x, pos1.y, pos2.x, pos2.y);
-            } else {
-                // Strict 90° Manhattan Perpendicular Routing (HVH vs VHV)
-                const dx = Math.abs(pos2.x - pos1.x);
-                const dy = Math.abs(pos2.y - pos1.y);
-
-                if (dx >= dy) {
-                    // HVH Layout (Horizontal - Vertical Middle Arm - Horizontal)
-                    const Wx = pos1.x + (pos2.x - pos1.x) * ratio;
-                    pathD = `M ${pos1.x} ${pos1.y} L ${Wx} ${pos1.y} L ${Wx} ${pos2.y} L ${pos2.x} ${pos2.y}`;
-
-                    midSegment = {
-                        type: 'vertical',
-                        x: Wx,
-                        y1: Math.min(pos1.y, pos2.y),
-                        y2: Math.max(pos1.y, pos2.y),
-                        midX: Wx,
-                        midY: (pos1.y + pos2.y) / 2
-                    };
-                } else {
-                    // VHV Layout (Vertical - Horizontal Middle Arm - Vertical)
-                    const Wy = pos1.y + (pos2.y - pos1.y) * ratio;
-                    pathD = `M ${pos1.x} ${pos1.y} L ${pos1.x} ${Wy} L ${pos2.x} ${Wy} L ${pos2.x} ${pos2.y}`;
-
-                    midSegment = {
-                        type: 'horizontal',
-                        y: Wy,
-                        x1: Math.min(pos1.x, pos2.x),
-                        x2: Math.max(pos1.x, pos2.x),
-                        midX: (pos1.x + pos2.x) / 2,
-                        midY: Wy
-                    };
-                }
+            // Initialize default waypoints if missing
+            if (!wire.waypoints || wire.waypoints.length < 2) {
+                const midX = self.snap(pos1.x + (pos2.x - pos1.x) / 2);
+                wire.waypoints = [{ x: midX, y: pos1.y }, { x: midX, y: pos2.y }];
             }
 
-            // Render Main Wire Path
+            // Build polyline path: start → waypoints → end
+            const allPoints = [pos1, ...wire.waypoints, pos2];
+            let pathD;
+
+            if (style === 'curved') {
+                const dx = Math.abs(pos2.x - pos1.x) * 0.4;
+                pathD = `M ${pos1.x} ${pos1.y} C ${pos1.x + dx} ${pos1.y}, ${pos2.x - dx} ${pos2.y}, ${pos2.x} ${pos2.y}`;
+            } else {
+                pathD = `M ${pos1.x} ${pos1.y}`;
+                wire.waypoints.forEach(wp => { pathD += ` L ${wp.x} ${wp.y}`; });
+                pathD += ` L ${pos2.x} ${pos2.y}`;
+            }
+
+            // Draw wire path
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', pathD);
             path.setAttribute('stroke', wire.color || '#ef4444');
-            path.setAttribute('stroke-width', '5');
+            path.setAttribute('stroke-width', '4');
             path.setAttribute('fill', 'none');
             path.setAttribute('stroke-linecap', 'round');
             path.setAttribute('stroke-linejoin', 'round');
-            if (currentStyle === 'dashed') {
-                path.setAttribute('stroke-dasharray', '8,6');
-            }
+            if (style === 'dashed') path.setAttribute('stroke-dasharray', '8,6');
             path.style.cursor = 'pointer';
             path.style.pointerEvents = 'stroke';
-
-            // Right-Click Context Menu on Wire (Warna & Tipe Kabel)
-            path.addEventListener('contextmenu', function(e) {
-                self.showContextMenu(e, wire);
-            });
-
+            path.addEventListener('contextmenu', function(e) { self.showContextMenu(e, wire); });
             group.appendChild(path);
 
-            // 1. Render Wokwi 100% Strictly Perpendicular Middle Arm Segment Drag Handle
-            if (currentStyle !== 'curved' && midSegment) {
-                const segHandle = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            // Segment drag handles (for each segment between consecutive points)
+            if (style !== 'curved') {
+                for (let i = 0; i < allPoints.length - 1; i++) {
+                    const pA = allPoints[i];
+                    const pB = allPoints[i + 1];
+                    const mx = (pA.x + pB.x) / 2;
+                    const my = (pA.y + pB.y) / 2;
+                    const dx = Math.abs(pA.x - pB.x);
+                    const dy = Math.abs(pA.y - pB.y);
+                    const isH = dy < dx; // segment is more horizontal than vertical
 
-                if (midSegment.type === 'horizontal') {
-                    segHandle.setAttribute('x', midSegment.midX - 16);
-                    segHandle.setAttribute('y', midSegment.midY - 4);
-                    segHandle.setAttribute('width', 32);
-                    segHandle.setAttribute('height', 8);
-                    segHandle.style.cursor = 'ns-resize';
-                } else {
-                    segHandle.setAttribute('x', midSegment.midX - 4);
-                    segHandle.setAttribute('y', midSegment.midY - 16);
-                    segHandle.setAttribute('width', 8);
-                    segHandle.setAttribute('height', 32);
-                    segHandle.style.cursor = 'ew-resize';
+                    const handle = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    if (isH) {
+                        handle.setAttribute('x', mx - 14); handle.setAttribute('y', my - 4);
+                        handle.setAttribute('width', 28); handle.setAttribute('height', 8);
+                    } else {
+                        handle.setAttribute('x', mx - 4); handle.setAttribute('y', my - 14);
+                        handle.setAttribute('width', 8); handle.setAttribute('height', 28);
+                    }
+                    handle.setAttribute('rx', 3);
+                    handle.setAttribute('fill', wire.color || '#ef4444');
+                    handle.setAttribute('stroke', '#fff');
+                    handle.setAttribute('stroke-width', '1.5');
+                    handle.style.cursor = 'move';
+                    handle.style.pointerEvents = 'all';
+
+                    // Free-form segment drag (BOTH horizontal and vertical!)
+                    self.makeSegmentDraggable(handle, wire, i, allPoints);
+                    handle.addEventListener('contextmenu', function(e) { self.showContextMenu(e, wire); });
+                    group.appendChild(handle);
                 }
-
-                segHandle.setAttribute('rx', 4);
-                segHandle.setAttribute('fill', wire.color || '#ef4444');
-                segHandle.setAttribute('stroke', '#ffffff');
-                segHandle.setAttribute('stroke-width', '2');
-                segHandle.style.pointerEvents = 'all';
-
-                // Drag Middle Cable Arm (Guarantees 100% Perpendicular 90° Lines with ZERO Slanted Wires!)
-                self.makeStrictManhattanSegmentDraggable(segHandle, wire, pos1, pos2, midSegment.type);
-
-                segHandle.addEventListener('contextmenu', function(e) {
-                    self.showContextMenu(e, wire);
-                });
-
-                group.appendChild(segHandle);
             }
 
-            // 2. Render Pin Indicator Badges at BOTH ends of the Wire (Presisi Tepat Di Titik Pusat Pin)
-            const fromCompDef = window.SimLabComponents[self.components.find(c => c.id === wire.fromComp)?.type];
-            const toCompDef = window.SimLabComponents[self.components.find(c => c.id === wire.toComp)?.type];
-
-            const fromPinName = `${fromCompDef ? fromCompDef.name.split(' ')[0] : 'Comp'}:${wire.fromPin}`;
-            const toPinName = `${toCompDef ? toCompDef.name.split(' ')[0] : 'Comp'}:${wire.toPin}`;
-
-            self.renderPinBadge(group, pos1.x, pos1.y, fromPinName, wire.color);
-            self.renderPinBadge(group, pos2.x, pos2.y, toPinName, wire.color);
+            // Pin badges at wire endpoints
+            const fromLabel = (self.components.find(c => c.id === wire.fromComp)?.label || 'Comp') + ':' + wire.fromPin;
+            const toLabel = (self.components.find(c => c.id === wire.toComp)?.label || 'Comp') + ':' + wire.toPin;
+            self.renderPinBadge(group, pos1.x, pos1.y, fromLabel, wire.color);
+            self.renderPinBadge(group, pos2.x, pos2.y, toLabel, wire.color);
         });
     },
 
-    // Render Small Pin Indicator Badge Pill at Wire End (Center Pin Snap)
-    renderPinBadge: function(group, x, y, labelText, wireColor) {
+    renderPinBadge: function(group, x, y, text, color) {
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         g.style.pointerEvents = 'none';
-
-        const textWidth = Math.max(36, labelText.length * 6 + 10);
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', x - textWidth / 2);
-        rect.setAttribute('y', y - 18);
-        rect.setAttribute('width', textWidth);
-        rect.setAttribute('height', 14);
-        rect.setAttribute('rx', 4);
-        rect.setAttribute('fill', '#0f172a');
-        rect.setAttribute('stroke', wireColor || '#10b981');
-        rect.setAttribute('stroke-width', '1');
-        rect.setAttribute('opacity', '0.9');
-
-        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('x', x);
-        text.setAttribute('y', y - 8);
-        text.setAttribute('fill', '#ffffff');
-        text.setAttribute('font-size', '8');
-        text.setAttribute('font-family', 'monospace');
-        text.setAttribute('font-weight', 'bold');
-        text.setAttribute('text-anchor', 'middle');
-        text.textContent = labelText;
-
-        g.appendChild(rect);
-        g.appendChild(text);
-        group.appendChild(g);
+        const w = Math.max(36, text.length * 5.5 + 10);
+        const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        r.setAttribute('x', x - w / 2); r.setAttribute('y', y - 19);
+        r.setAttribute('width', w); r.setAttribute('height', 14);
+        r.setAttribute('rx', 4); r.setAttribute('fill', '#1e293b');
+        r.setAttribute('stroke', color || '#10b981'); r.setAttribute('stroke-width', '1');
+        r.setAttribute('opacity', '0.92');
+        const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        t.setAttribute('x', x); t.setAttribute('y', y - 9);
+        t.setAttribute('fill', '#fff'); t.setAttribute('font-size', '7.5');
+        t.setAttribute('font-family', 'monospace'); t.setAttribute('font-weight', 'bold');
+        t.setAttribute('text-anchor', 'middle');
+        t.textContent = text;
+        g.appendChild(r); g.appendChild(t); group.appendChild(g);
     },
 
-    // Strictly Perpendicular 90° Manhattan Arm Segment Dragging (Vertikal: Kiri-Kanan, Horizontal: Atas-Bawah)
-    makeStrictManhattanSegmentDraggable: function(el, wire, pos1, pos2, armType) {
+    // Free-form Segment Dragging — move neighboring waypoints in BOTH directions
+    makeSegmentDraggable: function(el, wire, segIndex, allPoints) {
         const self = this;
-        let startX = 0, startY = 0;
+        let startX, startY;
 
         el.onmousedown = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            startX = e.clientX;
-            startY = e.clientY;
-
+            e.preventDefault(); e.stopPropagation();
+            startX = e.clientX; startY = e.clientY;
             window.addEventListener('mousemove', onMove);
             window.addEventListener('mouseup', onStop);
         };
@@ -651,25 +598,27 @@ window.SimLabCircuit = {
             e.preventDefault();
             const dx = (e.clientX - startX) / self.zoomLevel;
             const dy = (e.clientY - startY) / self.zoomLevel;
-            startX = e.clientX;
-            startY = e.clientY;
+            startX = e.clientX; startY = e.clientY;
 
-            let currentRatio = (typeof wire.armRatio === 'number') ? wire.armRatio : 0.5;
+            // segIndex 0 = segment from pos1 (fixed) to waypoint[0]
+            // segIndex 1 = segment from waypoint[0] to waypoint[1]
+            // segIndex N = segment from waypoint[N-1] to pos2 (fixed)
+            // Waypoints are wire.waypoints[0..n-1], index in allPoints is segIndex-shifted
 
-            if (armType === 'vertical') {
-                // Vertical Arm: move whole vertical line left/right (dx)
-                const totalDist = pos2.x - pos1.x;
-                if (Math.abs(totalDist) > 5) {
-                    currentRatio += dx / totalDist;
-                    wire.armRatio = Math.max(0.05, Math.min(0.95, currentRatio));
-                }
-            } else {
-                // Horizontal Arm: move whole horizontal line up/down (dy)
-                const totalDist = pos2.y - pos1.y;
-                if (Math.abs(totalDist) > 5) {
-                    currentRatio += dy / totalDist;
-                    wire.armRatio = Math.max(0.05, Math.min(0.95, currentRatio));
-                }
+            // Move the waypoint(s) that form this segment
+            // Left endpoint of segment: allPoints[segIndex] → if segIndex > 0, it's waypoint[segIndex-1]
+            // Right endpoint: allPoints[segIndex+1] → if segIndex+1 < allPoints.length-1, it's waypoint[segIndex]
+
+            const leftWpIdx = segIndex - 1;  // -1 means it's pos1 (fixed start)
+            const rightWpIdx = segIndex;     // waypoints.length means it's pos2 (fixed end)
+
+            if (leftWpIdx >= 0 && leftWpIdx < wire.waypoints.length) {
+                wire.waypoints[leftWpIdx].x = self.snap(wire.waypoints[leftWpIdx].x + dx);
+                wire.waypoints[leftWpIdx].y = self.snap(wire.waypoints[leftWpIdx].y + dy);
+            }
+            if (rightWpIdx >= 0 && rightWpIdx < wire.waypoints.length) {
+                wire.waypoints[rightWpIdx].x = self.snap(wire.waypoints[rightWpIdx].x + dx);
+                wire.waypoints[rightWpIdx].y = self.snap(wire.waypoints[rightWpIdx].y + dy);
             }
 
             self.renderWires();
@@ -681,11 +630,50 @@ window.SimLabCircuit = {
         }
     },
 
+    // ═══════════════════════════════════════════════════════════════
+    // Connection Panel (Daftar Komponen & Koneksi)
+    // ═══════════════════════════════════════════════════════════════
+
+    updateConnectionPanel: function() {
+        const tbody = document.getElementById('connPanelBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (this.wires.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 py-2 text-[10px]">Belum ada koneksi kabel</td></tr>';
+            return;
+        }
+
+        this.wires.forEach((wire, idx) => {
+            const fromComp = this.components.find(c => c.id === wire.fromComp);
+            const toComp = this.components.find(c => c.id === wire.toComp);
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-gray-700/50 hover:bg-gray-800/50 text-[10px]';
+            tr.innerHTML = `
+                <td class="px-2 py-1 text-gray-500">${idx + 1}</td>
+                <td class="px-2 py-1 text-gray-200">${fromComp?.label || '?'}</td>
+                <td class="px-2 py-1 text-emerald-400 font-mono">${wire.fromPin}</td>
+                <td class="px-2 py-1 text-gray-200">${toComp?.label || '?'}</td>
+                <td class="px-2 py-1 text-cyan-400 font-mono">${wire.toPin}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Update component count badge
+        const badge = document.getElementById('connPanelCount');
+        if (badge) badge.textContent = this.components.length + ' komp, ' + this.wires.length + ' kabel';
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // Export / Import
+    // ═══════════════════════════════════════════════════════════════
+
     exportJSON: function() {
         return {
-            components: this.components,
+            components: this.components.map(c => ({ id: c.id, type: c.type, x: c.x, y: c.y, scale: c.scale, rotation: c.rotation, label: c.label, state: c.state })),
             wires: this.wires,
             wireStyleMode: this.wireStyleMode,
+            gridSize: this.gridSize,
             zoom: this.zoomLevel
         };
     },
@@ -694,14 +682,10 @@ window.SimLabCircuit = {
         if (!data) return;
         this.components = data.components || [];
         this.wires = data.wires || [];
-        if (data.wireStyleMode) {
-            this.wireStyleMode = data.wireStyleMode;
-            const label = document.getElementById('wireStyleLabel');
-            if (label) {
-                label.textContent = this.wireStyleMode === 'orthogonal' ? 'Kabel: Lurus 90°' : 'Kabel: Lengkung Curve';
-            }
-        }
+        if (data.wireStyleMode) this.wireStyleMode = data.wireStyleMode;
+        if (data.gridSize) { this.gridSize = data.gridSize; this.drawGrid(); }
         this.renderAll();
+        this.updateConnectionPanel();
     }
 };
 

@@ -35,10 +35,8 @@
             background: #161b22 !important;
             border-right: 1px solid #30363d !important;
         }
-        .canvas-grid {
-            background-size: 20px 20px;
-            background-image: 
-                radial-gradient(circle, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+        .canvas-workspace {
+            background-color: #f8fafc;
         }
         .pin-hover:hover {
             filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.9));
@@ -282,36 +280,50 @@
         <!-- CENTER PANEL: Interactive Circuit SVG Canvas -->
         <main class="flex-grow bg-gray-950 relative overflow-hidden flex flex-col select-none">
             <!-- Canvas Toolbar Controls (Clear Wires, Reset Canvas, Zoom, Cable Mode) -->
-            <div class="absolute top-3 left-3 z-30 flex items-center space-x-2 bg-gray-900/90 border border-gray-800 backdrop-blur rounded-xl p-1.5 shadow-lg">
-                <button id="btnToggleWireStyle" class="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-emerald-400 transition-colors flex items-center gap-1" title="Ganti Gaya Kabel (Lurus 90° vs Lengkung)">
+            <div class="absolute top-3 left-3 z-30 flex items-center space-x-1.5 bg-white/95 border border-gray-300 backdrop-blur rounded-xl p-1.5 shadow-lg">
+                <button id="btnToggleWireStyle" class="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-emerald-600 transition-colors flex items-center gap-1" title="Ganti Gaya Kabel">
                     <i class="fas fa-ruler-combined"></i>
                     <span id="wireStyleLabel">Kabel: Lurus 90°</span>
                 </button>
-                <div class="h-4 w-px bg-gray-800"></div>
-                <button id="btnClearWires" class="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-red-400 transition-colors flex items-center gap-1" title="Hapus Semua Kabel">
-                    <i class="fas fa-trash-alt"></i>
-                    <span>Reset Kabel</span>
+                <div class="h-4 w-px bg-gray-300"></div>
+                <button id="btnClearWires" class="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-red-500 transition-colors flex items-center gap-1" title="Hapus Kabel">
+                    <i class="fas fa-trash-alt"></i> <span>Reset</span>
                 </button>
-                <button id="btnClearCanvas" class="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-gray-300 transition-colors flex items-center gap-1" title="Hapus Semua Komponen">
+                <button id="btnClearCanvas" class="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-gray-600 transition-colors flex items-center gap-1" title="Kosongkan">
                     <i class="fas fa-eraser"></i>
-                    <span>Kosongkan</span>
                 </button>
-                <div class="h-4 w-px bg-gray-800"></div>
-                <button id="btnZoomIn" class="w-7 h-7 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 flex items-center justify-center text-xs" title="Zoom In">
-                    <i class="fas fa-search-plus"></i>
+                <div class="h-4 w-px bg-gray-300"></div>
+                <button id="btnZoomIn" class="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center text-xs" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                <button id="btnZoomOut" class="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center text-xs" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                <div class="h-4 w-px bg-gray-300"></div>
+                <!-- Grid Controls -->
+                <select id="gridSizeSelect" class="bg-gray-100 text-gray-700 text-[10px] font-mono rounded border border-gray-300 px-1.5 py-1 focus:outline-none" title="Ukuran Grid">
+                    <option value="10">Grid 10px</option>
+                    <option value="20" selected>Grid 20px</option>
+                    <option value="40">Grid 40px</option>
+                    <option value="60">Grid 60px</option>
+                </select>
+                <button id="btnToggleGrid" class="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-emerald-600 transition-colors flex items-center gap-1" title="Tampilkan/Sembunyikan Grid">
+                    <i class="fas fa-th"></i>
                 </button>
-                <button id="btnZoomOut" class="w-7 h-7 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 flex items-center justify-center text-xs" title="Zoom Out">
-                    <i class="fas fa-search-minus"></i>
+                <button id="btnToggleSnap" class="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-emerald-600 transition-colors flex items-center gap-1" title="Snap ke Grid">
+                    <i class="fas fa-magnet"></i> <span>Snap: ON</span>
+                </button>
+                <div class="h-4 w-px bg-gray-300"></div>
+                <button id="btnToggleConnPanel" class="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-blue-600 transition-colors flex items-center gap-1" title="Panel Daftar Koneksi">
+                    <i class="fas fa-list-alt"></i> <span>Koneksi</span>
                 </button>
             </div>
 
             <!-- Canvas Viewport -->
-            <div id="circuitCanvasContainer" class="w-full h-full canvas-grid overflow-auto relative cursor-crosshair">
-                <!-- SVG Layer for Wires -->
+            <div id="circuitCanvasContainer" class="w-full h-full canvas-workspace overflow-auto relative cursor-crosshair">
+                <!-- SVG Layer for Grid + Wires -->
                 <svg id="circuitSvg" class="w-[3000px] h-[2000px] absolute top-0 left-0 pointer-events-none z-20">
-                    <!-- Dynamic Bezier/Orthogonal Wires rendered here -->
+                    <!-- Grid Lines (rendered by circuit.js) -->
+                    <g id="gridGroup"></g>
+                    <!-- Dynamic Wires -->
                     <g id="wiresGroup"></g>
-                    <!-- Temporary wire drawing preview -->
+                    <!-- Temporary wire preview -->
                     <path id="tempWire" d="" stroke="#10b981" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6,6" class="hidden"></path>
                 </svg>
 
@@ -319,13 +331,42 @@
                 <div id="componentsLayer" class="w-[3000px] h-[2000px] absolute top-0 left-0 pointer-events-auto z-10"></div>
             </div>
 
+            <!-- Connection Panel (Collapsible) -->
+            <div id="connectionPanel" class="absolute bottom-3 right-3 z-30 w-80 bg-gray-900/95 border border-gray-700 backdrop-blur rounded-xl shadow-2xl hidden">
+                <div class="flex items-center justify-between p-2 border-b border-gray-700">
+                    <span class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+                        <i class="fas fa-project-diagram text-blue-400"></i> Daftar Koneksi
+                        <span id="connPanelCount" class="text-[10px] px-1.5 py-0.5 rounded bg-blue-900/50 text-blue-300 font-mono">0 komp, 0 kabel</span>
+                    </span>
+                    <button onclick="document.getElementById('connectionPanel').classList.add('hidden')" class="text-gray-500 hover:text-white text-xs px-1">✕</button>
+                </div>
+                <div class="max-h-48 overflow-y-auto custom-scrollbar">
+                    <table class="w-full text-[10px]">
+                        <thead class="text-gray-500 uppercase sticky top-0 bg-gray-900">
+                            <tr>
+                                <th class="px-2 py-1 text-left">#</th>
+                                <th class="px-2 py-1 text-left">Dari</th>
+                                <th class="px-2 py-1 text-left">Pin</th>
+                                <th class="px-2 py-1 text-left">Ke</th>
+                                <th class="px-2 py-1 text-left">Pin</th>
+                            </tr>
+                        </thead>
+                        <tbody id="connPanelBody">
+                            <tr><td colspan="5" class="text-center text-gray-400 py-2">Belum ada koneksi</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Canvas Bottom Helper Info -->
-            <div class="absolute bottom-3 left-3 z-10 bg-gray-900/90 border border-gray-800 backdrop-blur rounded-xl px-3 py-1.5 text-[11px] text-gray-400 flex items-center space-x-3 shadow-lg pointer-events-none">
-                <span><i class="fas fa-mouse-pointer text-emerald-400 mr-1"></i> Klik Pin & Tarik untuk Sambung Kabel</span>
+            <div class="absolute bottom-3 left-3 z-10 bg-white/90 border border-gray-300 backdrop-blur rounded-xl px-3 py-1.5 text-[11px] text-gray-500 flex items-center space-x-3 shadow-lg pointer-events-none">
+                <span><i class="fas fa-mouse-pointer text-emerald-500 mr-1"></i> Klik Pin → Sambung Kabel</span>
                 <span>•</span>
-                <span><i class="fas fa-arrows-alt text-cyan-400 mr-1"></i> Geser Komponen</span>
+                <span><i class="fas fa-arrows-alt text-cyan-500 mr-1"></i> Geser Komponen</span>
                 <span>•</span>
-                <span><i class="fas fa-trash text-red-400 mr-1"></i> Klik Kabel untuk Menghapus</span>
+                <span><i class="fas fa-hand-pointer text-amber-500 mr-1"></i> Klik Kanan Kabel → Menu</span>
+                <span>•</span>
+                <span><i class="fas fa-edit text-blue-500 mr-1"></i> Double-Klik Nama → Edit</span>
             </div>
         </main>
 
