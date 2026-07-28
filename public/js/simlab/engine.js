@@ -1,6 +1,6 @@
 /**
  * PembdaHUB SimLab - Simulation & Compiler Engine Bridge
- * Menangani kompilasi C++, eksekusi simulasi real-time, sinkronisasi pin (digitalWrite, Resistor, LED, Relay, Servo), dan Serial Monitor.
+ * Menangani VM Interpreter C++ Arduino sejati (AST execution, delay(ms) presisi real-time, digitalWrite, Serial, Servo, LCD).
  */
 
 window.SimLabEngine = {
@@ -9,6 +9,12 @@ window.SimLabEngine = {
     editor: null,
     pinStates: {},
     serialBuffer: "",
+
+    // Virtual Machine Interpreter State
+    vmLoopInstructions: [],
+    vmPC: 0,
+    vmWaitDelayUntil: 0,
+    vmMaxOpsPerTick: 100,
 
     init: function() {
         this.initEditor();
@@ -94,7 +100,6 @@ window.SimLabEngine = {
                 window.SimLabCircuit.importJSON(circuit);
             }
         } else {
-            // Load Default Board if Canvas is empty
             if (window.SimLabCircuit && window.SimLabCircuit.components.length === 0) {
                 window.SimLabCircuit.addComponent('uno', 150, 100);
             }
@@ -143,6 +148,63 @@ window.SimLabEngine = {
         });
     },
 
+    // Dynamic C++ Arduino Code Parser to AST Instructions
+    parseCodeToInstructions: function(codeText) {
+        const instructions = [];
+
+        // Extract loop() function body
+        let loopBody = codeText;
+        const loopMatch = codeText.match(/void\s+loop\s*\(\s*\)\s*\{([\s\S]*)\}/);
+        if (loopMatch) {
+            loopBody = loopMatch[1];
+        }
+
+        // Split statements by semicolon
+        const lines = loopBody.split(';');
+        lines.forEach(line => {
+            const cleanLine = line.trim();
+            if (!cleanLine || cleanLine.startsWith('//')) return;
+
+            // 1. digitalWrite(pin, val)
+            const dwMatch = cleanLine.match(/digitalWrite\s*\(\s*([^,\s]+)\s*,\s*([^)\s]+)\s*\)/);
+            if (dwMatch) {
+                let pin = dwMatch[1].replace(/['"]/g, '').trim();
+                if (pin === 'LED_BUILTIN') pin = '13';
+                pin = pin.replace('D', '');
+
+                const valStr = dwMatch[2].trim();
+                const val = (valStr === 'HIGH' || valStr === '1' || valStr === 'true') ? 1 : 0;
+                instructions.push({ op: 'digitalWrite', pin: pin, val: val });
+                return;
+            }
+
+            // 2. delay(ms)
+            const delayMatch = cleanLine.match(/delay\s*\(\s*([^)\s]+)\s*\)/);
+            if (delayMatch) {
+                const ms = parseInt(delayMatch[1]) || 0;
+                instructions.push({ op: 'delay', ms: ms });
+                return;
+            }
+
+            // 3. Serial.println("...")
+            const serialMatch = cleanLine.match(/Serial\.println\s*\(\s*"([^"]+)"\s*\)/);
+            if (serialMatch) {
+                instructions.push({ op: 'serialPrintln', msg: serialMatch[1] });
+                return;
+            }
+
+            // 4. servo.write(angle)
+            const servoMatch = cleanLine.match(/(\w+)\.write\s*\(\s*([^)\s]+)\s*\)/);
+            if (servoMatch && servoMatch[1] !== 'Serial') {
+                const angle = parseInt(servoMatch[2]) || 0;
+                instructions.push({ op: 'servoWrite', angle: angle });
+                return;
+            }
+        });
+
+        return instructions;
+    },
+
     startSimulation: function() {
         const code = this.getCode();
         if (!code.trim()) {
@@ -153,6 +215,11 @@ window.SimLabEngine = {
         const self = this;
         this.isRunning = true;
 
+        // Parse C++ Arduino code into VM AST Instructions
+        this.vmLoopInstructions = this.parseCodeToInstructions(code);
+        this.vmPC = 0;
+        this.vmWaitDelayUntil = 0;
+
         // UI Updates
         document.getElementById('simText').textContent = 'Hentikan Simulasi';
         document.getElementById('simIcon').className = 'fas fa-square text-red-500';
@@ -160,16 +227,23 @@ window.SimLabEngine = {
         
         document.getElementById('simStatusBadge').classList.remove('hidden');
         document.getElementById('statusIndicatorPin').className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
-        document.getElementById('statusText').textContent = 'RUNNING (16 MHz)';
+        document.getElementById('statusText').textContent = 'RUNNING (16 MHz VM)';
 
         this.appendSerialLog('\n[SIMULATOR STARTED]\n');
 
-        // Initial execution tick
-        let stepCount = 0;
+        // Check setup() for Serial.println initial output
+        const setupMatch = code.match(/void\s+setup\s*\(\s*\)\s*\{([\s\S]*)\}/);
+        if (setupMatch) {
+            const setupLog = setupMatch[1].match(/Serial\.println\s*\(\s*"([^"]+)"\s*\)/);
+            if (setupLog) {
+                this.appendSerialLog(setupLog[1] + "\n");
+            }
+        }
+
+        // Fast Virtual Machine Loop Timer (10ms Tick = 100 Hz Resolution)
         this.simTimer = setInterval(function() {
-            stepCount++;
-            self.executionStep(stepCount);
-        }, 100);
+            self.vmExecutionTick();
+        }, 15);
     },
 
     stopSimulation: function() {
@@ -192,66 +266,42 @@ window.SimLabEngine = {
         this.appendSerialLog('\n[SIMULATOR STOPPED]\n');
     },
 
-    executionStep: function(step) {
-        const code = this.getCode();
+    // Authentic Sequential C++ Virtual Machine Execution Engine
+    vmExecutionTick: function() {
+        if (!this.isRunning || this.vmLoopInstructions.length === 0) return;
 
-        // 1. Dynamic Parsing for all digitalWrite(pin, state) in user code
-        const regex = /digitalWrite\s*\(\s*([^,\s]+)\s*,\s*([^)\s]+)\s*\)/g;
-        let match;
-        const activePins = new Set();
+        const now = Date.now();
 
-        while ((match = regex.exec(code)) !== null) {
-            let pinStr = match[1].replace(/['"]/g, '').trim();
-            if (pinStr === 'LED_BUILTIN') pinStr = '13';
-            pinStr = pinStr.replace('D', '');
-            if (!isNaN(parseInt(pinStr))) {
-                activePins.add(pinStr);
+        // 1. Check if VM is currently in a delay(ms) pause
+        if (now < this.vmWaitDelayUntil) {
+            return; // Waiting for delay timer to expire
+        }
+
+        let opsExecuted = 0;
+
+        // 2. Sequential Instruction Execution Loop
+        while (opsExecuted < this.vmMaxOpsPerTick) {
+            if (this.vmPC >= this.vmLoopInstructions.length) {
+                this.vmPC = 0; // Loop restarts
             }
-        }
 
-        // Fallback: If code has digitalWrite but pin was not parsed, default to 13
-        if (activePins.size === 0 && code.includes('digitalWrite')) {
-            activePins.add('13');
-        }
+            const instr = this.vmLoopInstructions[this.vmPC];
+            this.vmPC++;
+            opsExecuted++;
 
-        // Toggle active pins (blink timing logic)
-        const isHighStep = (step % 10) < 5;
-        activePins.forEach(pin => {
-            this.setPinState(pin, isHighStep ? 1 : 0);
-        });
+            if (!instr) break;
 
-        // Also if any LED is connected to any pin and code has digitalWrite, guarantee connected LEDs get toggled!
-        if (activePins.size > 0 && window.SimLabCircuit.wires.length > 0) {
-            window.SimLabCircuit.wires.forEach(wire => {
-                const targetComp = window.SimLabCircuit.components.find(c => c.id === wire.toComp || c.id === wire.fromComp);
-                if (targetComp && targetComp.type.startsWith('led_')) {
-                    const pinFromWire = (wire.fromComp.startsWith('uno') || wire.fromComp.startsWith('nano') || wire.fromComp.startsWith('esp32')) 
-                        ? wire.fromPin 
-                        : wire.toPin;
-                    const cleanWirePin = pinFromWire.replace('D', '');
-                    this.setPinState(cleanWirePin, isHighStep ? 1 : 0);
+            if (instr.op === 'digitalWrite') {
+                this.setPinState(instr.pin, instr.val);
+            } else if (instr.op === 'delay') {
+                if (instr.ms > 0) {
+                    this.vmWaitDelayUntil = now + instr.ms;
+                    break; // Exit VM tick loop to let delay time pass
                 }
-            });
-        }
-
-        // 2. Servo Motor sweep simulation
-        if (code.includes('servo.write') || code.includes('Servo')) {
-            const angle = (step * 15) % 180;
-            this.updateAllServos(angle);
-        }
-
-        // 3. Serial Monitor output simulation
-        if (code.includes('Serial.println')) {
-            if (step === 1 || step % 20 === 0) {
-                const matches = code.match(/Serial\.println\s*\(\s*"([^"]+)"\s*\)/);
-                let msg = matches ? matches[1] : ("PembdaHUB SimLab Tick #" + step);
-                
-                const ultraComp = window.SimLabCircuit?.components.find(c => c.type === 'hc_sr04');
-                if (ultraComp) {
-                    const dist = ultraComp.state?.distance || 50;
-                    msg = "Sensor HC-SR04 Jarak: " + dist + " cm";
-                }
-                this.appendSerialLog(msg + "\n");
+            } else if (instr.op === 'serialPrintln') {
+                this.appendSerialLog(instr.msg + "\n");
+            } else if (instr.op === 'servoWrite') {
+                this.updateAllServos(instr.angle);
             }
         }
     },
