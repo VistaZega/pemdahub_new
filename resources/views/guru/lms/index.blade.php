@@ -15,40 +15,32 @@
         from { opacity: 0; transform: translateY(16px); }
         to { opacity: 1; transform: translateY(0); }
     }
-    .hero-pattern {
-        background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 50%),
-                          radial-gradient(circle at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 40%);
-    }
 </style>
 @endpush
 
 @section('content')
 <div class="space-y-8">
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- HERO BANNER --}}
+    {{-- HERO BANNER (100% SOLID UI UX PRO MAX) --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-2xl p-8 md:p-10 overflow-hidden shadow-lg border border-emerald-200">
-        {{-- Decorative blobs --}}
-        <div class="absolute -right-12 -top-12 w-64 h-64 bg-emerald-200/30 rounded-full blur-2xl"></div>
-        <div class="absolute -left-8 -bottom-8 w-48 h-48 bg-teal-200/20 rounded-full blur-xl"></div>
-        
+    <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl border-2 border-black">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-md">
-                        <i class="fas fa-chalkboard-teacher text-xl text-white"></i>
+                <div class="flex items-center gap-3.5 mb-3">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #059669 !important; color: #ffffff !important;">
+                        <i class="fas fa-chalkboard-teacher text-2xl text-white"></i>
                     </div>
                     <div>
-                        <p class="text-emerald-700 text-xs font-bold uppercase tracking-[0.2em]">Learning Management System</p>
-                        <h2 class="text-2xl md:text-2xl font-bold text-gray-900 tracking-tight text-gray-900">Selamat Datang, {{ explode(' ', $teacher->user->name ?? 'Guru')[0] }}!</h2>
+                        <p class="text-black text-xs font-black uppercase tracking-[0.2em]">Learning Management System Guru</p>
+                        <h2 class="text-2xl md:text-3xl font-black text-black tracking-tight">Selamat Datang, {{ explode(' ', $teacher->user->name ?? 'Guru')[0] }}!</h2>
                     </div>
                 </div>
-                <p class="text-gray-600 text-sm max-w-md leading-relaxed">Kelola course, materi pembelajaran, tugas, dan quiz untuk kelas Anda.</p>
+                <p class="text-black font-bold text-sm max-w-md leading-relaxed">Kelola modul ajar, materi digital, tugas siswa, dan kuis evaluasi untuk kelas Anda.</p>
                 
                 @if($activeSemester)
-                <div class="mt-4 inline-flex items-center gap-2 bg-emerald-100 border border-emerald-200 rounded-xl px-4 py-2">
-                    <i class="fas fa-calendar-alt text-emerald-600 text-xs"></i>
-                    <span class="text-sm font-semibold text-emerald-800">{{ $activeSemester->semester_name }}</span>
+                <div class="mt-4 inline-flex items-center gap-2 border-2 border-black rounded-xl px-4 py-2 shadow-sm" style="background-color: #fef08a !important; color: #000000 !important;">
+                    <i class="fas fa-calendar-alt text-black text-sm"></i>
+                    <span class="text-xs font-black uppercase tracking-wider">{{ $activeSemester->semester_name }}</span>
                 </div>
                 @endif
             </div>
@@ -60,25 +52,25 @@
                     $totalAssignments = $courses->sum('assignments_count');
                     $totalQuizzes = $courses->sum('quizzes_count');
                 @endphp
-                <div class="bg-white border border-emerald-200 rounded-xl px-5 py-3 text-center min-w-[80px] shadow-sm">
-                    <div class="text-2xl font-bold leading-none text-emerald-700">{{ $courses->total() }}</div>
-                    <div class="text-[9px] font-bold uppercase tracking-widest text-gray-500 mt-1.5">Course</div>
+                <div class="bg-white border-2 border-black rounded-2xl px-5 py-3 text-center min-w-[90px] shadow-md">
+                    <div class="text-2xl font-black leading-none text-black">{{ $courses->total() }}</div>
+                    <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Course</div>
                 </div>
-                <div class="bg-white border border-blue-200 rounded-xl px-5 py-3 text-center min-w-[80px] shadow-sm">
-                    <div class="text-2xl font-bold leading-none text-blue-700">{{ $totalMaterials }}</div>
-                    <div class="text-[9px] font-bold uppercase tracking-widest text-gray-500 mt-1.5">Materi</div>
+                <div class="bg-white border-2 border-black rounded-2xl px-5 py-3 text-center min-w-[90px] shadow-md" style="background-color: #e0f2fe !important;">
+                    <div class="text-2xl font-black leading-none text-black">{{ $totalMaterials }}</div>
+                    <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Materi</div>
                 </div>
-                <div class="bg-white border border-purple-200 rounded-xl px-5 py-3 text-center min-w-[80px] shadow-sm">
-                    <div class="text-2xl font-bold leading-none text-purple-700">{{ $totalAssignments + $totalQuizzes }}</div>
-                    <div class="text-[9px] font-bold uppercase tracking-widest text-gray-500 mt-1.5">Evaluasi</div>
+                <div class="bg-white border-2 border-black rounded-2xl px-5 py-3 text-center min-w-[90px] shadow-md" style="background-color: #e9d5ff !important;">
+                    <div class="text-2xl font-black leading-none text-black">{{ $totalAssignments + $totalQuizzes }}</div>
+                    <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Evaluasi</div>
                 </div>
             </div>
         </div>
 
         {{-- Create button --}}
         <div class="relative z-10 mt-6 flex items-center gap-3">
-            <a href="{{ route('guru.lms.create') }}" class="inline-flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0">
-                <i class="fas fa-plus-circle"></i> Buat Course Baru
+            <a href="{{ route('guru.lms.create') }}" class="inline-flex items-center gap-2 bg-black hover:bg-emerald-600 text-white px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-md border-2 border-black">
+                <i class="fas fa-plus-circle text-sm"></i> Buat Course Ajar Baru
             </a>
         </div>
     </div>
@@ -91,84 +83,73 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         @foreach($courses as $course)
         @php
-            $colorConfig = \App\Models\LmsCourse::getColorClasses($course->color);
             $scientist = $course->getScientistConfig();
             $classNames = $course->lmsClasses->pluck('classroom.class_name')->filter()->implode(', ');
         @endphp
         <div class="course-card group">
-            <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col">
-                {{-- Card Header --}}
-                <div class="relative bg-gradient-to-br {{ $colorConfig['gradient'] }} p-5 overflow-hidden">
-                    {{-- Subtle pattern --}}
-                    <div class="absolute inset-0 opacity-[0.07]" style="background-image: radial-gradient(circle at 70% 30%, white 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <div class="absolute -right-6 -bottom-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                        @if($scientist)
-                        <svg class="w-28 h-28 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
-                        @else
-                        <i class="fas fa-book text-7xl text-white"></i>
-                        @endif
-                    </div>
-                    
+            <div class="bg-white rounded-3xl border-2 border-black overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+                {{-- Card Header (Solid Dark Header) --}}
+                <div class="relative p-5 overflow-hidden border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
                     <div class="relative z-10">
                         <div class="flex items-start gap-3 mb-3">
-                            <div class="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center border border-gray-100 flex-shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-black flex-shrink-0 shadow-md" style="background-color: #fbbf24 !important; color: #000000 !important;">
                                 @if($scientist)
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
+                                <svg class="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
                                 @else
-                                <i class="fas fa-book text-white"></i>
+                                <i class="fas fa-book text-black text-xl"></i>
                                 @endif
                             </div>
                             <div class="min-w-0 flex-1">
-                                <h3 class="font-bold text-white text-base leading-snug line-clamp-2">{{ $course->name }}</h3>
-                                <p class="text-white text-[10px] font-bold uppercase tracking-wider mt-0.5">{{ $course->subject->subject_name ?? '-' }}</p>
+                                <h3 class="font-black text-white text-base leading-snug line-clamp-2">{{ $course->name }}</h3>
+                                <p class="text-amber-400 text-[11px] font-black uppercase tracking-wider mt-0.5">{{ $course->subject->subject_name ?? '-' }}</p>
                             </div>
                         </div>
                         
                         <div class="flex items-center gap-2">
-                            <span class="bg-white/20 px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest border border-gray-100">{{ $course->getShortCode() }}</span>
+                            <span class="bg-slate-800 text-amber-300 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-700">{{ $course->getShortCode() }}</span>
                             @if($course->is_published)
-                            <span class="bg-emerald-400/30 px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest text-emerald-50 border border-emerald-400/20"><i class="fas fa-check-circle mr-0.5"></i> LIVE</span>
+                            <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest text-black border border-black" style="background-color: #a7f3d0 !important;"><i class="fas fa-check-circle mr-1"></i> PUBLISHED</span>
                             @else
-                            <span class="bg-yellow-400/30 px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest text-yellow-50 border border-yellow-400/20">DRAFT</span>
+                            <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest text-black border border-black" style="background-color: #fef08a !important;">DRAFT</span>
                             @endif
                         </div>
                     </div>
                 </div>
 
                 {{-- Card Body --}}
-                <div class="p-5 flex-1 flex flex-col">
+                <div class="p-5 flex-1 flex flex-col bg-white">
                     {{-- Description --}}
-                    <p class="text-gray-500 text-sm mb-4 line-clamp-2 leading-relaxed flex-shrink-0">{{ $course->description ?: 'Kelola materi dan aktivitas belajar untuk ' . ($course->subject->subject_name ?? '') . '.' }}</p>
+                    <p class="text-black font-bold text-xs mb-4 line-clamp-2 leading-relaxed flex-shrink-0">{{ $course->description ?: 'Kelola materi dan aktivitas belajar untuk ' . ($course->subject->subject_name ?? '') . '.' }}</p>
                     
                     {{-- Stats Row --}}
                     <div class="grid grid-cols-3 gap-2 mb-4 flex-shrink-0">
-                        <div class="bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-2.5 rounded-xl text-center border border-emerald-100/80">
-                            <div class="text-lg font-bold text-emerald-700 leading-none">{{ $course->materials_count }}</div>
-                            <div class="text-[8px] font-bold text-emerald-500 mt-1 uppercase tracking-widest">Materi</div>
+                        <div class="p-2.5 rounded-2xl text-center border-2 border-black shadow-sm" style="background-color: #d1fae5 !important;">
+                            <div class="text-xl font-black text-black leading-none">{{ $course->materials_count }}</div>
+                            <div class="text-[9px] font-black text-black mt-1 uppercase tracking-widest">Materi</div>
                         </div>
-                        <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 p-2.5 rounded-xl text-center border border-blue-100/80">
-                            <div class="text-lg font-bold text-blue-700 leading-none">{{ $course->assignments_count }}</div>
-                            <div class="text-[8px] font-bold text-blue-500 mt-1 uppercase tracking-widest">Tugas</div>
+                        <div class="p-2.5 rounded-2xl text-center border-2 border-black shadow-sm" style="background-color: #e0f2fe !important;">
+                            <div class="text-xl font-black text-black leading-none">{{ $course->assignments_count }}</div>
+                            <div class="text-[9px] font-black text-black mt-1 uppercase tracking-widest">Tugas</div>
                         </div>
-                        <div class="bg-gradient-to-br from-purple-50 to-purple-100/50 p-2.5 rounded-xl text-center border border-purple-100/80">
-                            <div class="text-lg font-bold text-purple-700 leading-none">{{ $course->quizzes_count }}</div>
-                            <div class="text-[8px] font-bold text-purple-500 mt-1 uppercase tracking-widest">Quiz</div>
+                        <div class="p-2.5 rounded-2xl text-center border-2 border-black shadow-sm" style="background-color: #f3e8ff !important;">
+                            <div class="text-xl font-black text-black leading-none">{{ $course->quizzes_count }}</div>
+                            <div class="text-[9px] font-black text-black mt-1 uppercase tracking-widest">Quiz</div>
                         </div>
                     </div>
 
                     {{-- Classroom Info --}}
                     @if($classNames)
-                    <div class="flex items-center gap-2 text-xs text-gray-400 mb-4 bg-gray-50 p-2.5 rounded-xl border border-gray-100 flex-shrink-0">
-                        <i class="fas fa-users text-gray-300"></i>
-                        <span class="truncate font-medium" title="{{ $classNames }}">{{ $classNames }}</span>
+                    <div class="flex items-center gap-2 text-xs text-black font-bold mb-4 bg-slate-100 p-3 rounded-2xl border-2 border-black flex-shrink-0">
+                        <i class="fas fa-users text-black text-sm"></i>
+                        <span class="truncate font-black" title="{{ $classNames }}">Kelas: {{ $classNames }}</span>
                     </div>
                     @endif
                     
                     {{-- CTA --}}
                     <div class="mt-auto">
                         <a href="{{ route('guru.lms.show', $course->id) }}"
-                           class="flex items-center justify-center gap-2 w-full {{ $colorConfig['bg'] }} hover:brightness-110 text-white px-4 py-3 rounded-xl transition-all shadow-sm hover:shadow-lg text-sm font-bold group-hover:-translate-y-0.5 active:translate-y-0">
-                            <i class="fas fa-arrow-right-to-bracket"></i> Kelola Course
+                           class="flex items-center justify-center gap-2 w-full bg-black hover:bg-emerald-600 text-white px-4 py-3 rounded-2xl transition-all shadow-md text-xs font-black uppercase tracking-wider border-2 border-black">
+                            <i class="fas fa-arrow-right-to-bracket text-xs"></i> Kelola Ruang Ajar
                         </a>
                     </div>
                 </div>
@@ -181,14 +162,12 @@
     
     @else
     {{-- Empty State --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center">
-        <div class="w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-            <i class="fas fa-book-open text-4xl text-emerald-400"></i>
-        </div>
-        <h3 class="text-xl font-bold text-gray-800 mb-2">Belum Ada Course</h3>
-        <p class="text-gray-500 mb-8 max-w-sm mx-auto leading-relaxed">Mulai buat course pertama Anda untuk mengelola materi pembelajaran secara digital.</p>
-        <a href="{{ route('guru.lms.create') }}" class="inline-flex items-center gap-2 bg-emerald-600 text-white px-8 py-3.5 rounded-xl hover:bg-emerald-700 transition-all shadow-lg hover:shadow-xl font-bold text-sm">
-            <i class="fas fa-plus-circle"></i> Buat Course Pertama
+    <div class="bg-white rounded-3xl shadow-md border-2 border-black p-16 text-center">
+        <div class="w-20 h-20 bg-amber-100 border-2 border-black rounded-3xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-book-open text-3xl text-black"></i></div>
+        <h3 class="text-lg font-black text-black mb-1">Belum Ada Course Ajar</h3>
+        <p class="text-black font-bold text-xs mb-6 max-w-sm mx-auto">Mulai buat course pertama Anda untuk mengunggah materi digital dan tugas siswa.</p>
+        <a href="{{ route('guru.lms.create') }}" class="inline-flex items-center gap-2 bg-black hover:bg-emerald-600 text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider border-2 border-black shadow-md">
+            <i class="fas fa-plus-circle text-sm"></i> Buat Course Pertama
         </a>
     </div>
     @endif

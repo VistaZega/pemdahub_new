@@ -84,56 +84,46 @@
 @endphp
 <div class="space-y-6">
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- COURSE HERO BANNER --}}
+    {{-- COURSE HERO BANNER (100% SOLID UI UX PRO MAX) --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 rounded-2xl p-6 md:p-8 overflow-hidden shadow-lg border border-blue-200">
-        <div class="absolute -right-12 -top-12 w-64 h-64 bg-blue-200/20 rounded-full blur-2xl"></div>
-        <div class="absolute -left-8 -bottom-8 w-48 h-48 bg-indigo-200/15 rounded-full blur-xl"></div>
-        <div class="absolute right-8 bottom-4 opacity-[0.06]">
-            @if($scientist)
-            <svg class="w-40 h-40 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
-            @else
-            <i class="fas fa-chalkboard-teacher text-blue-900" style="font-size: 8rem;"></i>
-            @endif
-        </div>
-
+    <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl border-2 border-black">
         <div class="relative z-10">
             {{-- Back + Status --}}
-            <div class="flex items-center justify-between mb-5">
-                <a href="{{ route('guru.lms.index') }}" class="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all shadow-sm">
-                    <i class="fas fa-arrow-left"></i> Kembali
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+                <a href="{{ route('guru.lms.index') }}" class="inline-flex items-center gap-2 bg-black text-white border-2 border-black px-4 py-2 rounded-xl text-xs font-black hover:bg-amber-400 hover:text-black transition-all shadow-md">
+                    <i class="fas fa-arrow-left text-xs"></i> Kembali ke Daftar Course
                 </a>
-                <div class="flex items-center gap-2">
-                    <a href="{{ route('guru.lms.meeting.attendance', $course->id) }}" class="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all">
-                        <i class="fas fa-clipboard-user text-indigo-500"></i> Rekap Kehadiran
+                <div class="flex flex-wrap items-center gap-2">
+                    <a href="{{ route('guru.lms.meeting.attendance', $course->id) }}" class="bg-slate-100 border-2 border-black text-black hover:bg-amber-300 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all">
+                        <i class="fas fa-clipboard-user text-black"></i> Rekap Kehadiran
                     </a>
                     @if($course->meeting_active)
-                        <a href="{{ route('guru.lms.meeting.join', $course->id) }}" class="bg-rose-600 text-white font-bold px-3 py-2 rounded-xl text-[10px] uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-rose-900/10 hover:bg-rose-700 hover:scale-105 active:scale-95 transition-all">
+                        <a href="{{ route('guru.lms.meeting.join', $course->id) }}" class="bg-rose-600 text-white font-black px-3.5 py-2 rounded-xl text-[10px] uppercase tracking-wider flex items-center gap-1.5 shadow-md border-2 border-black hover:bg-rose-700 transition-all">
                             <span class="w-2 h-2 bg-white rounded-full animate-ping"></span>
                             Live Tatap Muka
                         </a>
                         <form action="{{ route('guru.lms.meeting.stop', $course->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin mengakhiri tatap muka virtual?');">
                             @csrf
-                            <button type="submit" class="bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all">
+                            <button type="submit" class="bg-black text-white hover:bg-rose-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border-2 border-black">
                                 Akhiri
                             </button>
                         </form>
                     @else
                         <form action="{{ route('guru.lms.meeting.start', $course->id) }}" method="POST" class="inline">
                             @csrf
-                            <button type="submit" class="bg-emerald-600 text-white hover:bg-emerald-700 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-emerald-900/10 transition-all">
-                                <i class="fas fa-video text-xs"></i> Mulai Tatap Muka
+                            <button type="submit" class="bg-black hover:bg-emerald-600 text-white px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all border-2 border-black">
+                                <i class="fas fa-video text-xs text-amber-400"></i> Mulai Tatap Muka
                             </button>
                         </form>
                     @endif
 
-                    <a href="{{ route('guru.lms.analytics', $course->id) }}" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all">
+                    <a href="{{ route('guru.lms.analytics', $course->id) }}" class="px-3 py-2 bg-black hover:bg-amber-400 hover:text-black text-white border-2 border-black rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all">
                         <i class="fas fa-chart-line text-xs"></i> Analitik
                     </a>
-                    <a href="{{ route('guru.lms.export-gradebook', $course->id) }}" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all">
-                        <i class="fas fa-file-excel text-xs"></i> Ekspor Excel
+                    <a href="{{ route('guru.lms.export-gradebook', $course->id) }}" class="px-3 py-2 text-white rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md border-2 border-black transition-all" style="background-color: #059669 !important;">
+                        <i class="fas fa-file-excel text-xs text-white"></i> Ekspor Excel
                     </a>
-                    <a href="{{ route('guru.lms.edit', $course->id) }}" class="w-9 h-9 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all shadow-sm" title="Edit Course">
+                    <a href="{{ route('guru.lms.edit', $course->id) }}" class="w-9 h-9 bg-white border-2 border-black rounded-xl flex items-center justify-center text-black hover:bg-amber-300 transition-all shadow-sm" title="Edit Course">
                         <i class="fas fa-edit text-xs"></i>
                     </a>
                 </div>
@@ -141,54 +131,56 @@
 
             {{-- Course Info --}}
             <div class="flex items-start gap-4 mb-6">
-                @if($scientist)
-                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-md flex-shrink-0">
+                <div class="w-16 h-16 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #1e3a8a !important; color: #ffffff !important;">
+                    @if($scientist)
                     <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
+                    @else
+                    <i class="fas fa-chalkboard-teacher text-white text-2xl"></i>
+                    @endif
                 </div>
-                @endif
                 <div>
-                    <h1 class="text-2xl md:text-2xl font-bold text-gray-900 tracking-tight leading-tight text-gray-900">{{ $course->course_name ?? $course->name }}</h1>
+                    <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight leading-tight">{{ $course->course_name ?? $course->name }}</h1>
                     <div class="flex flex-wrap items-center gap-3 mt-2">
-                        <span class="bg-blue-100 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold text-blue-800">{{ $course->subject->subject_name ?? '' }}</span>
-                        <span class="text-gray-600 text-xs flex items-center gap-1"><i class="fas fa-clock text-[10px] text-gray-400"></i> {{ $course->semester->semester_name ?? '-' }}</span>
+                        <span class="border-2 border-black px-3 py-1 rounded-xl text-xs font-black" style="background-color: #fbbf24 !important; color: #000000 !important;">{{ $course->subject->subject_name ?? '' }}</span>
+                        <span class="text-black font-black text-xs flex items-center gap-1"><i class="fas fa-clock text-xs text-black"></i> {{ $course->semester->semester_name ?? '-' }}</span>
                         @if($classNames)
-                        <span class="text-gray-600 text-xs flex items-center gap-1"><i class="fas fa-users text-[10px] text-gray-400"></i> {{ $classNames }}</span>
+                        <span class="text-black font-black text-xs flex items-center gap-1"><i class="fas fa-users text-xs text-black"></i> Kelas: {{ $classNames }}</span>
                         @endif
                     </div>
                 </div>
             </div>
 
             {{-- Stat Pills --}}
-            <div class="flex flex-wrap gap-2">
-                <div class="bg-white border border-emerald-200 rounded-xl px-4 py-2 flex items-center gap-2 shadow-sm">
-                    <i class="fas fa-book text-emerald-600 text-xs"></i>
-                    <span class="text-sm font-bold text-emerald-700">{{ $course->materials_count }}</span>
-                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Materi</span>
+            <div class="flex flex-wrap gap-2.5">
+                <div class="bg-white border-2 border-black rounded-2xl px-4 py-2 flex items-center gap-2 shadow-sm" style="background-color: #d1fae5 !important;">
+                    <i class="fas fa-book text-black text-xs"></i>
+                    <span class="text-sm font-black text-black">{{ $course->materials_count }}</span>
+                    <span class="text-[10px] text-black font-black uppercase tracking-wider">Materi</span>
                 </div>
-                <div class="bg-white border border-blue-200 rounded-xl px-4 py-2 flex items-center gap-2 shadow-sm">
-                    <i class="fas fa-tasks text-blue-600 text-xs"></i>
-                    <span class="text-sm font-bold text-blue-700">{{ $course->assignments_count }}</span>
-                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Tugas</span>
+                <div class="bg-white border-2 border-black rounded-2xl px-4 py-2 flex items-center gap-2 shadow-sm" style="background-color: #e0f2fe !important;">
+                    <i class="fas fa-tasks text-black text-xs"></i>
+                    <span class="text-sm font-black text-black">{{ $course->assignments_count }}</span>
+                    <span class="text-[10px] text-black font-black uppercase tracking-wider">Tugas</span>
                 </div>
-                <div class="bg-white border border-purple-200 rounded-xl px-4 py-2 flex items-center gap-2 shadow-sm">
-                    <i class="fas fa-question-circle text-purple-600 text-xs"></i>
-                    <span class="text-sm font-bold text-purple-700">{{ $course->quizzes_count }}</span>
-                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Quiz</span>
+                <div class="bg-white border-2 border-black rounded-2xl px-4 py-2 flex items-center gap-2 shadow-sm" style="background-color: #f3e8ff !important;">
+                    <i class="fas fa-question-circle text-black text-xs"></i>
+                    <span class="text-sm font-black text-black">{{ $course->quizzes_count }}</span>
+                    <span class="text-[10px] text-black font-black uppercase tracking-wider">Quiz</span>
                 </div>
-                <div class="bg-white border border-amber-200 rounded-xl px-4 py-2 flex items-center gap-2 shadow-sm">
-                    <i class="fas fa-user-graduate text-amber-600 text-xs"></i>
-                    <span class="text-sm font-bold text-amber-700">{{ $totalStudents }}</span>
-                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Siswa</span>
+                <div class="bg-white border-2 border-black rounded-2xl px-4 py-2 flex items-center gap-2 shadow-sm" style="background-color: #fef08a !important;">
+                    <i class="fas fa-user-graduate text-black text-xs"></i>
+                    <span class="text-sm font-black text-black">{{ $totalStudents }}</span>
+                    <span class="text-[10px] text-black font-black uppercase tracking-wider">Siswa</span>
                 </div>
-                <div class="bg-white border border-rose-200 rounded-xl px-4 py-2 flex items-center gap-2 shadow-sm">
-                    <i class="fas fa-bullhorn text-rose-600 text-xs"></i>
-                    <span class="text-sm font-bold text-rose-700">{{ $course->announcements_count ?? 0 }}</span>
-                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Info</span>
+                <div class="bg-white border-2 border-black rounded-2xl px-4 py-2 flex items-center gap-2 shadow-sm" style="background-color: #fecdd3 !important;">
+                    <i class="fas fa-bullhorn text-black text-xs"></i>
+                    <span class="text-sm font-black text-black">{{ $course->announcements_count ?? 0 }}</span>
+                    <span class="text-[10px] text-black font-black uppercase tracking-wider">Info</span>
                 </div>
-                <div class="bg-white border border-cyan-200 rounded-xl px-4 py-2 flex items-center gap-2 shadow-sm">
-                    <i class="fas fa-comments text-cyan-600 text-xs"></i>
-                    <span class="text-sm font-bold text-cyan-700">{{ $course->discussions_count ?? 0 }}</span>
-                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Diskusi</span>
+                <div class="bg-white border-2 border-black rounded-2xl px-4 py-2 flex items-center gap-2 shadow-sm" style="background-color: #cff4fc !important;">
+                    <i class="fas fa-comments text-black text-xs"></i>
+                    <span class="text-sm font-black text-black">{{ $course->discussions_count ?? 0 }}</span>
+                    <span class="text-[10px] text-black font-black uppercase tracking-wider">Diskusi</span>
                 </div>
             </div>
         </div>
@@ -199,29 +191,29 @@
     {{-- TAB NAVIGATION --}}
     {{-- ═══════════════════════════════════════════════ --}}
     <div x-data="{ tab: '{{ request('tab', 'materials') }}' }">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-1.5 flex flex-wrap gap-1 sticky top-0 z-20">
-            <button @click="tab = 'materials'" :class="tab === 'materials' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200/50' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 min-w-[70px] px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
-                <i class="fas fa-book"></i> <span class="hidden sm:inline">Kurikulum</span>
+        <div class="bg-white rounded-2xl shadow-md border-2 border-black p-1.5 flex flex-wrap gap-1.5 sticky top-0 z-20">
+            <button @click="tab = 'materials'" :class="tab === 'materials' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <i class="fas fa-book text-xs"></i> <span class="hidden sm:inline">Kurikulum</span>
             </button>
-            <button @click="tab = 'assignments'" :class="tab === 'assignments' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200/50' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 min-w-[70px] px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
-                <i class="fas fa-tasks"></i> <span class="hidden sm:inline">Tugas</span>
-                @if($course->assignments_count > 0)<span class="bg-white/20 rounded-full px-1.5 py-0.5 text-[9px] font-bold">{{ $course->assignments_count }}</span>@endif
+            <button @click="tab = 'assignments'" :class="tab === 'assignments' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <i class="fas fa-tasks text-xs"></i> <span class="hidden sm:inline">Tugas</span>
+                @if($course->assignments_count > 0)<span class="rounded-full px-2 py-0.5 text-[10px] font-black border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">{{ $course->assignments_count }}</span>@endif
             </button>
-            <button @click="tab = 'quizzes'" :class="tab === 'quizzes' ? 'bg-purple-600 text-white shadow-lg shadow-purple-200/50' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 min-w-[70px] px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
-                <i class="fas fa-question-circle"></i> <span class="hidden sm:inline">Quiz</span>
-                @if($course->quizzes_count > 0)<span class="bg-white/20 rounded-full px-1.5 py-0.5 text-[9px] font-bold">{{ $course->quizzes_count }}</span>@endif
+            <button @click="tab = 'quizzes'" :class="tab === 'quizzes' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <i class="fas fa-question-circle text-xs"></i> <span class="hidden sm:inline">Quiz</span>
+                @if($course->quizzes_count > 0)<span class="rounded-full px-2 py-0.5 text-[10px] font-black border border-black" style="background-color: #c084fc !important; color: #000000 !important;">{{ $course->quizzes_count }}</span>@endif
             </button>
-            <button @click="tab = 'announcements'" :class="tab === 'announcements' ? 'bg-amber-600 text-white shadow-lg shadow-amber-200/50' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 min-w-[70px] px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
-                <i class="fas fa-bullhorn"></i> <span class="hidden sm:inline">Pengumuman</span>
+            <button @click="tab = 'announcements'" :class="tab === 'announcements' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <i class="fas fa-bullhorn text-xs"></i> <span class="hidden sm:inline">Pengumuman</span>
             </button>
-            <button @click="tab = 'discussions'" :class="tab === 'discussions' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-200/50' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 min-w-[70px] px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
-                <i class="fas fa-comments"></i> <span class="hidden sm:inline">Diskusi</span>
+            <button @click="tab = 'discussions'" :class="tab === 'discussions' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <i class="fas fa-comments text-xs"></i> <span class="hidden sm:inline">Diskusi</span>
             </button>
-            <button @click="tab = 'analytics'" :class="tab === 'analytics' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200/50' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 min-w-[70px] px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
-                <i class="fas fa-chart-line"></i> <span class="hidden sm:inline">Analitik</span>
+            <button @click="tab = 'analytics'" :class="tab === 'analytics' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <i class="fas fa-chart-line text-xs"></i> <span class="hidden sm:inline">Analitik</span>
             </button>
-            <button @click="tab = 'info'" :class="tab === 'info' ? 'bg-orange-600 text-white shadow-lg shadow-orange-200/50' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 min-w-[70px] px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
-                <i class="fas fa-info-circle"></i> <span class="hidden sm:inline">Data Kelas</span>
+            <button @click="tab = 'info'" :class="tab === 'info' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <i class="fas fa-info-circle text-xs"></i> <span class="hidden sm:inline">Data Kelas</span>
             </button>
         </div>
 
