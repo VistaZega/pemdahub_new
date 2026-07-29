@@ -22,7 +22,6 @@
 //  │ LCD VCC      │ 5V       │ LCD 16x2 butuh 5V!            │
 //  │ GND          │ GND      │ Common ground semua komponen  │
 //  └──────────────┴──────────┴───────────────────────────────┘
-//
 
 #include <SPI.h>
 #include <MFRC522.h>
@@ -97,19 +96,131 @@ MFRC522           rfid(RFID_SS_PIN, RFID_RST_PIN);
 LiquidCrystal_I2C lcd(LCD_ADDRESS, LCD_COLS, LCD_ROWS);
 ESP8266WiFiMulti  wifiMulti;
 
-// Prototipe Fungsi Indikator
+// ============================================================
+//  DEKLARASI PROTOTIPE FUNGSI (Agar tidak error 'not declared')
+// ============================================================
+void connectWiFi();
+void showReady();
+void showError(String msg);
 void indicatorSuccess();
 void indicatorFail();
 void indicatorCooldown();
 void indicatorNewCard();
-void beep(int count, int duration);
-void showReady();
-void showError(String msg);
-void connectWiFi();
 void handleRfidScan();
 void sendToServer(String uid, String type);
 void parseAndDisplay(String json);
 String getRfidUID();
+
+// ============================================================
+//  INDIKATOR BUZZER & 2 LED (HIJAU & MERAH)
+// ============================================================
+
+// Sukses (Check-In / Check-Out): LED Hijau Nyala + 2 Beep Pendek
+void indicatorSuccess() {
+  digitalWrite(LED_RED_PIN, LOW);
+  for (int i = 0; i < 2; i++) {
+    digitalWrite(LED_GREEN_PIN, HIGH);
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(100);
+    digitalWrite(LED_GREEN_PIN, LOW);
+    digitalWrite(BUZZER_PIN, LOW);
+    if (i < 1) delay(100);
+  }
+}
+
+// Cooldown / Sudah Absen: LED Hijau Nyala 1x Panjang (400ms) + 1 Beep
+void indicatorCooldown() {
+  digitalWrite(LED_RED_PIN, LOW);
+  digitalWrite(LED_GREEN_PIN, HIGH);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(400);
+  digitalWrite(LED_GREEN_PIN, LOW);
+  digitalWrite(BUZZER_PIN, LOW);
+}
+
+// Kartu Baru / Belum Terdaftar: LED Merah Kedip 3x Cepat + Beep
+void indicatorNewCard() {
+  digitalWrite(LED_GREEN_PIN, LOW);
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(LED_RED_PIN, HIGH);
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(80);
+    digitalWrite(LED_RED_PIN, LOW);
+    digitalWrite(BUZZER_PIN, LOW);
+    if (i < 2) delay(80);
+  }
+}
+
+// Gagal / Error: LED Merah Nyala 1x Panjang (700ms) + 1 Beep Panjang
+void indicatorFail() {
+  digitalWrite(LED_GREEN_PIN, LOW);
+  digitalWrite(LED_RED_PIN, HIGH);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(700);
+  digitalWrite(LED_RED_PIN, LOW);
+  digitalWrite(BUZZER_PIN, LOW);
+}
+
+// ============================================================
+//  KONEKSI WIFI
+// ============================================================
+void connectWiFi() {
+  WiFi.mode(WIFI_STA);
+  WiFi.persistent(false); 
+  int attempt = 0;
+
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print(F("MENCARI WIFI... "));
+
+  while (wifiMulti.run() != WL_CONNECTED && attempt < 20) {
+    delay(500);
+    String dots = "";
+    for (int i = 0; i < (attempt % 4) + 1; i++) dots += ".";
+    lcd.setCursor(0, 1); lcd.print("Menghubungkan   ");
+    lcd.setCursor(13, 1); lcd.print(dots);
+    attempt++;
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    lcd.clear();
+    lcd.setCursor(0, 0); lcd.print(F("WIFI CONNECTED! "));
+    lcd.setCursor(0, 1); lcd.print(WiFi.localIP().toString());
+    
+    // Kedip LED Hijau 2x sebagai tanda siap
+    for(int i=0; i<2; i++){
+      digitalWrite(LED_GREEN_PIN, HIGH); digitalWrite(BUZZER_PIN, HIGH); delay(100);
+      digitalWrite(LED_GREEN_PIN, LOW);  digitalWrite(BUZZER_PIN, LOW);  delay(100);
+    }
+    delay(1000);
+  } else {
+    lcd.clear();
+    lcd.setCursor(0, 0); lcd.print(F("WIFI GAGAL!     "));
+    lcd.setCursor(0, 1); lcd.print(F("Auto-retry bg..."));
+    indicatorFail();
+    delay(1500);
+  }
+}
+
+// ============================================================
+//  FUNGSI DISPLAY UMUM
+// ============================================================
+
+void showReady() {
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print(F("   PEMBDA HUB   "));
+  if (isOnline) {
+    lcd.setCursor(0, 1); lcd.print(F("  Silakan Scan  "));
+  } else {
+    lcd.setCursor(0, 1); lcd.print(F("  [ OFFLINE ]   "));
+  }
+}
+
+void showError(String msg) {
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print(F("!!! ERROR !!!   "));
+  lcd.setCursor(0, 1); lcd.print(msg.substring(0, 16));
+  indicatorFail();
+}
 
 // ============================================================
 //  SETUP
@@ -318,7 +429,7 @@ void parseAndDisplay(String json) {
 
   if (status == "success" || status == "info") {
     String namaDisplay  = nama.substring(0, min((int)nama.length(), 16));
-    String waktuShort   = waktu.substring(0, min((int)waktu.length(), 11)); // e.g. 07:15:00
+    String waktuShort   = waktu.substring(0, min((int)waktu.length(), 11));
 
     lcd.clear();
     
@@ -360,117 +471,6 @@ void parseAndDisplay(String json) {
     }
     showError(errMsg);
   }
-}
-
-// ============================================================
-//  KONEKSI WIFI
-// ============================================================
-void connectWiFi() {
-  WiFi.mode(WIFI_STA);
-  WiFi.persistent(false); 
-  int attempt = 0;
-
-  lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(F("MENCARI WIFI... "));
-
-  while (wifiMulti.run() != WL_CONNECTED && attempt < 20) {
-    delay(500);
-    String dots = "";
-    for (int i = 0; i < (attempt % 4) + 1; i++) dots += ".";
-    lcd.setCursor(0, 1); lcd.print("Menghubungkan   ");
-    lcd.setCursor(13, 1); lcd.print(dots);
-    attempt++;
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("WIFI CONNECTED! "));
-    lcd.setCursor(0, 1); lcd.print(WiFi.localIP().toString());
-    
-    // Kedip LED Hijau 2x sebagai tanda siap
-    for(int i=0; i<2; i++){
-      digitalWrite(LED_GREEN_PIN, HIGH); digitalWrite(BUZZER_PIN, HIGH); delay(100);
-      digitalWrite(LED_GREEN_PIN, LOW);  digitalWrite(BUZZER_PIN, LOW);  delay(100);
-    }
-    delay(1000);
-  } else {
-    lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("WIFI GAGAL!     "));
-    lcd.setCursor(0, 1); lcd.print(F("Auto-retry bg..."));
-    indicatorFail();
-    delay(1500);
-  }
-}
-
-// ============================================================
-//  FUNGSI DISPLAY UMUM
-// ============================================================
-
-void showReady() {
-  lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(F("   PEMBDA HUB   "));
-  if (isOnline) {
-    lcd.setCursor(0, 1); lcd.print(F("  Silakan Scan  "));
-  } else {
-    lcd.setCursor(0, 1); lcd.print(F("  [ OFFLINE ]   "));
-  }
-}
-
-void showError(String msg) {
-  lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(F("!!! ERROR !!!   "));
-  lcd.setCursor(0, 1); lcd.print(msg.substring(0, 16));
-  indicatorFail();
-}
-
-// ============================================================
-//  INDIKATOR BUZZER & 2 LED (HIJAU & MERAH)
-// ============================================================
-
-// Sukses (Check-In / Check-Out): LED Hijau Nyala + 2 Beep Pendek
-void indicatorSuccess() {
-  digitalWrite(LED_RED_PIN, LOW);
-  for (int i = 0; i < 2; i++) {
-    digitalWrite(LED_GREEN_PIN, HIGH);
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(100);
-    digitalWrite(LED_GREEN_PIN, LOW);
-    digitalWrite(BUZZER_PIN, LOW);
-    if (i < 1) delay(100);
-  }
-}
-
-// Cooldown / Sudah Absen: LED Hijau Nyala 1x Panjang (400ms) + 1 Beep
-void indicatorCooldown() {
-  digitalWrite(LED_RED_PIN, LOW);
-  digitalWrite(LED_GREEN_PIN, HIGH);
-  digitalWrite(BUZZER_PIN, HIGH);
-  delay(400);
-  digitalWrite(LED_GREEN_PIN, LOW);
-  digitalWrite(BUZZER_PIN, LOW);
-}
-
-// Kartu Baru / Belum Terdaftar: LED Merah Kedip 3x Cepat + Beep
-void indicatorNewCard() {
-  digitalWrite(LED_GREEN_PIN, LOW);
-  for (int i = 0; i < 3; i++) {
-    digitalWrite(LED_RED_PIN, HIGH);
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(80);
-    digitalWrite(LED_RED_PIN, LOW);
-    digitalWrite(BUZZER_PIN, LOW);
-    if (i < 2) delay(80);
-  }
-}
-
-// Gagal / Error: LED Merah Nyala 1x Panjang (700ms) + 1 Beep Panjang
-void indicatorFail() {
-  digitalWrite(LED_GREEN_PIN, LOW);
-  digitalWrite(LED_RED_PIN, HIGH);
-  digitalWrite(BUZZER_PIN, HIGH);
-  delay(700);
-  digitalWrite(LED_RED_PIN, LOW);
-  digitalWrite(BUZZER_PIN, LOW);
 }
 
 // ============================================================
