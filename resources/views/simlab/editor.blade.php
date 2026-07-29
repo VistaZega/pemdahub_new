@@ -113,12 +113,14 @@
     <!-- Main Workspace Container -->
     <div class="flex-grow flex overflow-hidden relative">
         
-        <!-- LEFT PANEL: Component Library + Connections (Tabbed, Collapsible) -->
-        <aside id="leftSidebar" class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col shrink-0 z-20 transition-all duration-300 relative">
-            <!-- Collapse/Expand Toggle -->
-            <button id="btnToggleSidebar" onclick="document.getElementById('leftSidebar').classList.toggle('w-0');document.getElementById('leftSidebar').classList.toggle('w-64');document.getElementById('leftSidebar').classList.toggle('overflow-hidden');this.querySelector('i').classList.toggle('fa-chevron-left');this.querySelector('i').classList.toggle('fa-chevron-right')" class="absolute -right-4 top-1/2 -translate-y-1/2 z-30 w-4 h-12 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-r flex items-center justify-center text-gray-400 hover:text-white cursor-pointer text-[10px]">
+        <!-- LEFT PANEL WRAPPER: Sidebar + Toggle Button -->
+        <div class="relative flex shrink-0 z-20">
+            <!-- Toggle Button (OUTSIDE sidebar so it stays visible when collapsed) -->
+            <button id="btnToggleSidebar" class="absolute -right-5 top-1/2 -translate-y-1/2 z-40 w-5 h-14 bg-gray-800 hover:bg-emerald-700 border border-gray-700 rounded-r-lg flex items-center justify-center text-gray-400 hover:text-white cursor-pointer text-[10px] transition-colors shadow-lg" title="Buka/Tutup Panel">
                 <i class="fas fa-chevron-left"></i>
             </button>
+
+            <aside id="leftSidebar" class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col transition-all duration-300 overflow-hidden">
 
             <!-- Tabs: Komponen / Koneksi -->
             <div class="flex border-b border-gray-800 bg-gray-950/80 shrink-0">
@@ -293,6 +295,7 @@
                 </div>
             </div>
         </aside>
+        </div><!-- end LEFT PANEL WRAPPER -->
 
         <!-- CENTER PANEL: Interactive Circuit SVG Canvas -->
         <main class="flex-grow bg-gray-950 relative overflow-hidden flex flex-col select-none">
