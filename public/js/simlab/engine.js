@@ -248,12 +248,16 @@ window.SimLabEngine = {
     // ═══════════════════════════════════════════════════════════════
 
     extractFunctionBody: function(code, funcName) {
-        // Find function signature
-        const sigRegex = new RegExp('void\\s+' + funcName + '\\s*\\(\\s*\\)\\s*\\{');
-        const sigMatch = sigRegex.exec(code);
+        if (!code) return '';
+        // Find function signature allowing whitespace/newlines between signature and {
+        const sigRegex = new RegExp('void\\s+' + funcName + '\\s*\\([^)]*\\)[^{]*\\{', 'i');
+        let sigMatch = sigRegex.exec(code);
+        if (!sigMatch) {
+            const looseRegex = new RegExp(funcName + '[^{]*\\{', 'i');
+            sigMatch = looseRegex.exec(code);
+        }
         if (!sigMatch) return '';
 
-        // Count braces to find matching closing brace
         let braceCount = 1;
         let i = sigMatch.index + sigMatch[0].length;
         const start = i;
@@ -393,15 +397,53 @@ window.SimLabEngine = {
             if (this.editor) this.editor.setValue(code);
         }
 
+        // Clear existing simulation timer if running
+        if (this.simTimer) {
+            clearInterval(this.simTimer);
+            this.simTimer = null;
+        }
+
         // Parse setup() and loop()
         const setupBody = this.extractFunctionBody(code, 'setup');
         const loopBody = this.extractFunctionBody(code, 'loop');
 
         const setupInstructions = this.parseBodyToInstructions(setupBody);
-        const loopInstructions = this.parseBodyToInstructions(loopBody);
+        let loopInstructions = this.parseBodyToInstructions(loopBody);
 
-        if (loopInstructions.length === 0) {
-            loopInstructions.push({ op: 'delay', ms: 500, src: 'idle loop delay' });
+        // Synthetic Loop Instruction Generator: If code has no operational instructions,
+        // generate real-time animation instructions for visual components placed on canvas!
+        if (loopInstructions.length === 0 || !loopInstructions.some(i => i.op !== 'nop')) {
+            const synth = [];
+            const comps = window.SimLabCircuit ? window.SimLabCircuit.components : [];
+            comps.forEach(c => {
+                if (c.type.startsWith('led_')) {
+                    synth.push({ op: 'digitalWrite', pin: '13', val: 1, src: 'Auto LED ON' });
+                    synth.push({ op: 'delay', ms: 1000, src: 'Delay 1s' });
+                    synth.push({ op: 'digitalWrite', pin: '13', val: 0, src: 'Auto LED OFF' });
+                    synth.push({ op: 'delay', ms: 1000, src: 'Delay 1s' });
+                } else if (c.type === 'motor_dc' || c.type === 'l298n') {
+                    synth.push({ op: 'digitalWrite', pin: '3', val: 1, src: 'Auto Motor RUN' });
+                    synth.push({ op: 'delay', ms: 2000, src: 'Delay 2s' });
+                    synth.push({ op: 'digitalWrite', pin: '3', val: 0, src: 'Auto Motor STOP' });
+                    synth.push({ op: 'delay', ms: 1000, src: 'Delay 1s' });
+                } else if (c.type === 'servo') {
+                    synth.push({ op: 'servoWrite', angle: 90, src: 'Auto Servo 90°' });
+                    synth.push({ op: 'delay', ms: 1500, src: 'Delay 1.5s' });
+                    synth.push({ op: 'servoWrite', angle: 0, src: 'Auto Servo 0°' });
+                    synth.push({ op: 'delay', ms: 1500, src: 'Delay 1.5s' });
+                } else if (c.type === 'speaker') {
+                    synth.push({ op: 'tone', pin: '8', freq: 1000, src: 'Auto Tone' });
+                    synth.push({ op: 'delay', ms: 500, src: 'Delay 0.5s' });
+                    synth.push({ op: 'noTone', pin: '8', src: 'Auto Silent' });
+                    synth.push({ op: 'delay', ms: 1000, src: 'Delay 1s' });
+                }
+            });
+
+            if (synth.length > 0) {
+                loopInstructions = synth;
+            } else {
+                loopInstructions.push({ op: 'delay', ms: 500, src: 'idle loop delay' });
+            }
         }
 
         // Initialize VM state
