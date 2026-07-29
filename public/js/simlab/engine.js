@@ -970,20 +970,52 @@ void loop() {
         const hasLdr = compTypes.includes('ldr');
         const hasDht = compTypes.includes('dht11');
         const hasRelay = compTypes.includes('relay');
+        const hasLcd = compTypes.includes('lcd1602') || compTypes.includes('lcd2004');
+
+        let includes = [];
+        let globalObjects = [];
+
+        if (hasServo) {
+            includes.push('#include <Servo.h>');
+            globalObjects.push('Servo myservo;');
+        }
+        if (hasRfid) {
+            includes.push('#include <SPI.h>');
+            includes.push('#include <MFRC522.h>');
+            globalObjects.push('#define SS_PIN 10');
+            globalObjects.push('#define RST_PIN 9');
+            globalObjects.push('MFRC522 rfid(SS_PIN, RST_PIN);');
+        }
+        if (hasLcd) {
+            includes.push('#include <Wire.h>');
+            includes.push('#include <LiquidCrystal_I2C.h>');
+            globalObjects.push('LiquidCrystal_I2C lcd(0x27, 16, 2);');
+        }
+        if (hasDht) {
+            includes.push('#include <DHT.h>');
+            globalObjects.push('#define DHTPIN 4');
+            globalObjects.push('#define DHTTYPE DHT11');
+            globalObjects.push('DHT dht(DHTPIN, DHTTYPE);');
+        }
+
+        includes = [...new Set(includes)];
 
         let title = '';
         let setupLines = [];
         let loopCode = '';
+
+        if (hasServo) setupLines.push(`  myservo.attach(9); // Servo pada Pin D9`);
+        if (hasRfid) setupLines.push(`  SPI.begin();\n  rfid.PCD_Init(); // Inisialisasi Reader RFID RC522`);
+        if (hasLcd) setupLines.push(`  lcd.init();\n  lcd.backlight(); // Inisialisasi Layar LCD I2C`);
+        if (hasDht) setupLines.push(`  dht.begin(); // Inisialisasi Sensor DHT11`);
 
         // -------------------------------------------------------------
         // SCENARIO 1: RFID + Motor DC / Servo / Relay (Sistem Pintu Otomatis)
         // -------------------------------------------------------------
         if (hasRfid && (hasMotor || hasServo || hasRelay || hasLed)) {
             title = `// PROYEK TERINTEGRASI: Sistem Pintu Otomatis RFID (${compNames.join(', ')})`;
-            setupLines.push(`  pinMode(10, OUTPUT); // Pin SDA RFID RC522`);
-            setupLines.push(`  pinMode(9, OUTPUT);  // Pin RST RFID`);
             if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT);  digitalWrite(3, LOW); // Standby: Motor DC Stop`);
-            if (hasServo) setupLines.push(`  pinMode(9, OUTPUT);  servo.write(0);        // Standby: Pintu Tertutup (0°)`);
+            if (hasServo) setupLines.push(`  myservo.write(0);        // Standby: Pintu Tertutup (0°)`);
             if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT);  digitalWrite(7, LOW); // Standby: Solenoid Lock`);
             if (hasLed) setupLines.push(`  pinMode(13, OUTPUT); digitalWrite(13, LOW);`);
 
@@ -991,7 +1023,7 @@ void loop() {
   // Status Standby: Motor DC / Servo DIAM (Pintu Tertutup)
   // Silakan Klik Tombol '💳 Tap Kartu RFID' Pada Komponen Untuk Membuka Pintu
   ${hasMotor ? 'digitalWrite(3, LOW); // Motor DC Standby (Diam)' : ''}
-  ${hasServo ? 'servo.write(0);        // Servo Standby (0°)' : ''}
+  ${hasServo ? 'myservo.write(0);       // Servo Standby (0°)' : ''}
   ${hasRelay ? 'digitalWrite(7, LOW);  // Relay Standby (Lock)' : ''}
   ${hasLed ? 'digitalWrite(13, LOW);' : ''}
   Serial.println("RFID: Standby Membaca Kartu... (Klik 'Tap Kartu' Untuk Buka Pintu)");
@@ -1027,14 +1059,14 @@ void loop() {
             title = `// PROYEK TERINTEGRASI: Sistem Palang Otomatis Jarak Ultrasonik (${compNames.join(', ')})`;
             setupLines.push(`  pinMode(2, OUTPUT); // Trig HC-SR04`);
             setupLines.push(`  pinMode(3, INPUT);  // Echo HC-SR04`);
-            if (hasServo) setupLines.push(`  pinMode(9, OUTPUT); servo.write(0); // Standby: Palang 0°`);
+            if (hasServo) setupLines.push(`  myservo.write(0); // Standby: Palang 0°`);
             if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT); digitalWrite(3, LOW);`);
             if (hasSpeaker) setupLines.push(`  pinMode(8, OUTPUT); digitalWrite(8, LOW);`);
 
             loopCode = `  // --- SISTEM PALANG OTOMATIS SENSOR JARAK ---
   // Status Standby: Area Aman (Palang Pintu Tertutup 0°)
   // Geser Slider Jarak HC-SR04 Ke < 20 cm Untuk Membuka Palang Pintu
-  ${hasServo ? 'servo.write(0);' : ''}
+  ${hasServo ? 'myservo.write(0);' : ''}
   ${hasMotor ? 'digitalWrite(3, LOW);' : ''}
   ${hasSpeaker ? 'digitalWrite(8, LOW);' : ''}
   Serial.println("HC-SR04: Jarak Terbaca 50 cm (Aman, Palang Pintu Tertutup)");
@@ -1064,7 +1096,6 @@ void loop() {
         // -------------------------------------------------------------
         else if (hasDht && (hasMotor || hasRelay || hasSpeaker)) {
             title = `// PROYEK TERINTEGRASI: Kipas Pendingin Otomatis Sensor Suhu DHT11 (${compNames.join(', ')})`;
-            setupLines.push(`  pinMode(4, INPUT);  // Pin Data Sensor DHT11`);
             if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT); digitalWrite(3, LOW); // Standby: Kipas Stop`);
             if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT); digitalWrite(7, LOW);`);
 
@@ -1097,20 +1128,18 @@ void loop() {
                         loopBlocks.push(`  // --- Motor DC (${label}) ---\n  Serial.println("Motor DC ${label}: BERPUTAR...");\n  digitalWrite(3, HIGH);\n  delay(2500);\n  Serial.println("Motor DC ${label}: BERHENTI.");\n  digitalWrite(3, LOW);\n  delay(1500);`);
                         break;
                     case 'servo':
-                        if (!pinsUsed.has(9)) { pinsUsed.add(9); setupLines.push(`  pinMode(9, OUTPUT); // Servo ${label}`); }
-                        loopBlocks.push(`  // --- Servo SG90 (${label}) ---\n  Serial.println("Servo ${label}: Posisi 0°");\n  servo.write(0);\n  delay(1000);\n  Serial.println("Servo ${label}: Posisi 90°");\n  servo.write(90);\n  delay(1000);`);
+                        if (!pinsUsed.has(9)) { pinsUsed.add(9); setupLines.push(`  // Servo pada Pin D9`); }
+                        loopBlocks.push(`  // --- Servo SG90 (${label}) ---\n  Serial.println("Servo ${label}: Posisi 0°");\n  myservo.write(0);\n  delay(1000);\n  Serial.println("Servo ${label}: Posisi 90°");\n  myservo.write(90);\n  delay(1000);`);
                         break;
                     case 'hc_sr04':
                         if (!pinsUsed.has(2)) { pinsUsed.add(2); pinsUsed.add(3); setupLines.push(`  pinMode(2, OUTPUT); // Trig\n  pinMode(3, INPUT);  // Echo`); }
                         loopBlocks.push(`  // --- Sensor Jarak HC-SR04 ---\n  digitalWrite(2, HIGH); delay(10); digitalWrite(2, LOW);\n  Serial.println("HC-SR04: Jarak Terbaca 45 cm");\n  delay(1000);`);
                         break;
                     case 'dht11':
-                        if (!pinsUsed.has(4)) { pinsUsed.add(4); setupLines.push(`  pinMode(4, INPUT); // Data DHT11`); }
-                        loopBlocks.push(`  // --- Sensor Suhu DHT11 ---\n  Serial.println("DHT11: Suhu 28 C, Kelembaban 65 %RH");\n  delay(1500);`);
+                        loopBlocks.push(`  // --- Sensor Suhu DHT11 ---\n  float temp = dht.readTemperature();\n  Serial.println("DHT11: Suhu 28 C, Kelembaban 65 %RH");\n  delay(1500);`);
                         break;
                     case 'lcd1602': case 'lcd2004':
-                        setupLines.push(`  // Inisialisasi Layar LCD I2C (${label})`);
-                        loopBlocks.push(`  // --- Display LCD I2C (${label}) ---\n  Serial.println("LCD: PembdaHUB SimLab System Active");\n  delay(2000);`);
+                        loopBlocks.push(`  // --- Display LCD I2C (${label}) ---\n  lcd.setCursor(0, 0);\n  lcd.print("PembdaHUB SimLab");\n  Serial.println("LCD: PembdaHUB SimLab System Active");\n  delay(2000);`);
                         break;
                     case 'relay':
                         if (!pinsUsed.has(7)) { pinsUsed.add(7); setupLines.push(`  pinMode(7, OUTPUT); // Relay`); }
@@ -1129,7 +1158,6 @@ void loop() {
                         loopBlocks.push(`  // --- Sensor Cahaya LDR ---\n  Serial.println("LDR: Intensitas Cahaya 750 Lux");\n  delay(1500);`);
                         break;
                     case 'rc522':
-                        setupLines.push(`  pinMode(10, OUTPUT); // SDA RFID\n  pinMode(9, OUTPUT);  // RST RFID`);
                         loopBlocks.push(`  // --- RFID RC522 Reader ---\n  Serial.println("RFID: Menunggu Tap Kartu...");\n  delay(2000);`);
                         break;
                 }
@@ -1138,6 +1166,12 @@ void loop() {
         }
 
         let code = `${title}\n\n`;
+        if (includes.length > 0) {
+            code += includes.join('\n') + `\n\n`;
+        }
+        if (globalObjects.length > 0) {
+            code += globalObjects.join('\n') + `\n\n`;
+        }
         code += `void setup() {\n`;
         code += `  Serial.begin(9600);\n`;
         code += `  Serial.println("PembdaHUB SimLab System Ready!");\n`;
