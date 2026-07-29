@@ -972,6 +972,34 @@ void loop() {
         const hasRelay = compTypes.includes('relay');
         const hasLcd = compTypes.includes('lcd1602') || compTypes.includes('lcd2004');
 
+        const wires = window.SimLabCircuit ? window.SimLabCircuit.wires : [];
+        const uno = window.SimLabCircuit ? window.SimLabCircuit.components.find(c => c.type === 'uno' || c.type === 'nano' || c.type === 'esp32') : null;
+
+        const getConnectedPin = (compType, compPin, defaultPinStr) => {
+            if (!uno) return defaultPinStr.replace(/^D/, '');
+            const compObj = nonBoardComps.find(c => c.type === compType);
+            if (!compObj) return defaultPinStr.replace(/^D/, '');
+            const wire = wires.find(w => 
+                (w.fromComp === compObj.id && w.fromPin === compPin && w.toComp === uno.id) ||
+                (w.toComp === compObj.id && w.toPin === compPin && w.fromComp === uno.id)
+            );
+            if (wire) {
+                const unoPin = (wire.fromComp === uno.id) ? wire.fromPin : wire.toPin;
+                return unoPin.replace(/^D/, '');
+            }
+            return defaultPinStr.replace(/^D/, '');
+        };
+
+        const motorPin = getConnectedPin('motor_dc', 'MOTOR_A', getConnectedPin('l298n', 'IN1', '3'));
+        const servoPin = getConnectedPin('servo', 'PWM', '9');
+        const pirPin = getConnectedPin('pir', 'OUT', '2');
+        const dhtPin = getConnectedPin('dht11', 'DATA', '4');
+        const speakerPin = getConnectedPin('speaker', 'SIGNAL', '8');
+        const relayPin = getConnectedPin('relay', 'IN', '7');
+        const trigPin = getConnectedPin('hc_sr04', 'TRIG', '2');
+        const echoPin = getConnectedPin('hc_sr04', 'ECHO', '3');
+        const ledPin = getConnectedPin('led_red', 'ANODE', getConnectedPin('led_green', 'ANODE', getConnectedPin('led_yellow', 'ANODE', getConnectedPin('led_white', 'ANODE', '13'))));
+
         let includes = [];
         let globalObjects = [];
 
@@ -993,7 +1021,7 @@ void loop() {
         }
         if (hasDht) {
             includes.push('#include <DHT.h>');
-            globalObjects.push('#define DHTPIN 4');
+            globalObjects.push('#define DHTPIN ' + dhtPin);
             globalObjects.push('#define DHTTYPE DHT11');
             globalObjects.push('DHT dht(DHTPIN, DHTTYPE);');
         }
@@ -1004,7 +1032,7 @@ void loop() {
         let setupLines = [];
         let loopCode = '';
 
-        if (hasServo) setupLines.push(`  myservo.attach(9); // Servo pada Pin D9`);
+        if (hasServo) setupLines.push(`  myservo.attach(${servoPin}); // Servo pada Pin D${servoPin}`);
         if (hasRfid) setupLines.push(`  SPI.begin();\n  rfid.PCD_Init(); // Inisialisasi Reader RFID RC522`);
         if (hasLcd) setupLines.push(`  lcd.init();\n  lcd.backlight(); // Inisialisasi Layar LCD I2C`);
         if (hasDht) setupLines.push(`  dht.begin(); // Inisialisasi Sensor DHT11`);
@@ -1014,18 +1042,18 @@ void loop() {
         // -------------------------------------------------------------
         if (hasRfid && (hasMotor || hasServo || hasRelay || hasLed)) {
             title = `// PROYEK TERINTEGRASI: Sistem Pintu Otomatis RFID (${compNames.join(', ')})`;
-            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT);  digitalWrite(3, LOW); // Standby: Motor DC Stop`);
+            if (hasMotor) setupLines.push(`  pinMode(${motorPin}, OUTPUT);  digitalWrite(${motorPin}, LOW); // Standby: Motor DC Stop`);
             if (hasServo) setupLines.push(`  myservo.write(0);        // Standby: Pintu Tertutup (0°)`);
-            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT);  digitalWrite(7, LOW); // Standby: Solenoid Lock`);
-            if (hasLed) setupLines.push(`  pinMode(13, OUTPUT); digitalWrite(13, LOW);`);
+            if (hasRelay) setupLines.push(`  pinMode(${relayPin}, OUTPUT);  digitalWrite(${relayPin}, LOW); // Standby: Solenoid Lock`);
+            if (hasLed) setupLines.push(`  pinMode(${ledPin}, OUTPUT); digitalWrite(${ledPin}, LOW);`);
 
             loopCode = `  // --- SISTEM KONTROL PINTU RFID TERINTEGRASI ---
   // Status Standby: Motor DC / Servo DIAM (Pintu Tertutup)
   // Silakan Klik Tombol '💳 Tap Kartu RFID' Pada Komponen Untuk Membuka Pintu
-  ${hasMotor ? 'digitalWrite(3, LOW); // Motor DC Standby (Diam)' : ''}
+  ${hasMotor ? 'digitalWrite(' + motorPin + ', LOW); // Motor DC Standby (Diam)' : ''}
   ${hasServo ? 'myservo.write(0);       // Servo Standby (0°)' : ''}
-  ${hasRelay ? 'digitalWrite(7, LOW);  // Relay Standby (Lock)' : ''}
-  ${hasLed ? 'digitalWrite(13, LOW);' : ''}
+  ${hasRelay ? 'digitalWrite(' + relayPin + ', LOW);  // Relay Standby (Lock)' : ''}
+  ${hasLed ? 'digitalWrite(' + ledPin + ', LOW);' : ''}
   Serial.println("RFID: Standby Membaca Kartu... (Klik 'Tap Kartu' Untuk Buka Pintu)");
   delay(1000);`;
         }

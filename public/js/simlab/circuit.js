@@ -370,10 +370,18 @@ window.SimLabCircuit = {
 
         if (!usedPins.has(preferredPin)) return preferredPin;
 
+        const pwmPins = ['D3', 'D5', 'D6', 'D9', 'D10', 'D11'];
         const digitalPins = ['D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11', 'D12', 'D13'];
         const analogPins = ['A0', 'A1', 'A2', 'A3', 'A4', 'A5'];
 
-        if (pinType === 'digital') {
+        if (pinType === 'pwm') {
+            for (let i = 0; i < pwmPins.length; i++) {
+                if (!usedPins.has(pwmPins[i])) return pwmPins[i];
+            }
+            for (let i = 0; i < digitalPins.length; i++) {
+                if (!usedPins.has(digitalPins[i])) return digitalPins[i];
+            }
+        } else if (pinType === 'digital') {
             for (let i = 0; i < digitalPins.length; i++) {
                 if (!usedPins.has(digitalPins[i])) return digitalPins[i];
             }
@@ -411,18 +419,18 @@ window.SimLabCircuit = {
                 break;
 
             case 'motor_dc':
-                this.connectWire(compId, 'MOTOR_A', unoId, this.getAvailablePin('digital', 'D3'), '#3b82f6');
+                this.connectWire(compId, 'MOTOR_A', unoId, this.getAvailablePin('pwm', 'D3'), '#3b82f6');
                 this.connectWire(compId, 'MOTOR_B', unoId, 'GND_1', '#1e293b');
                 break;
 
             case 'l298n':
-                this.connectWire(compId, 'IN1', unoId, this.getAvailablePin('digital', 'D3'), '#3b82f6');
+                this.connectWire(compId, 'IN1', unoId, this.getAvailablePin('pwm', 'D3'), '#3b82f6');
                 this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
                 this.connectWire(compId, 'V5', unoId, '5V', '#ef4444');
                 break;
 
             case 'servo':
-                this.connectWire(compId, 'PWM', unoId, this.getAvailablePin('digital', 'D9'), '#f59e0b');
+                this.connectWire(compId, 'PWM', unoId, this.getAvailablePin('pwm', 'D9'), '#f59e0b');
                 this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
                 this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
                 break;
