@@ -582,10 +582,22 @@ window.SimLabCircuit = {
         g.appendChild(r); g.appendChild(t); group.appendChild(g);
     },
 
-    // Free-form Segment Dragging — move neighboring waypoints in BOTH directions
+    // Strict Manhattan Segment Dragging — NO diagonal wires ever!
+    // Horizontal segment → drag only changes Y (move up/down)
+    // Vertical segment → drag only changes X (move left/right)
     makeSegmentDraggable: function(el, wire, segIndex, allPoints) {
         const self = this;
         let startX, startY;
+
+        // Determine segment orientation at drag start
+        const pA = allPoints[segIndex];
+        const pB = allPoints[segIndex + 1];
+        const segDx = Math.abs(pB.x - pA.x);
+        const segDy = Math.abs(pB.y - pA.y);
+        const isHorizontal = segDx >= segDy; // horizontal segment
+
+        // Set appropriate cursor
+        el.style.cursor = isHorizontal ? 'ns-resize' : 'ew-resize';
 
         el.onmousedown = function(e) {
             e.preventDefault(); e.stopPropagation();
@@ -596,29 +608,33 @@ window.SimLabCircuit = {
 
         function onMove(e) {
             e.preventDefault();
-            const dx = (e.clientX - startX) / self.zoomLevel;
-            const dy = (e.clientY - startY) / self.zoomLevel;
+            const rawDx = (e.clientX - startX) / self.zoomLevel;
+            const rawDy = (e.clientY - startY) / self.zoomLevel;
             startX = e.clientX; startY = e.clientY;
 
-            // segIndex 0 = segment from pos1 (fixed) to waypoint[0]
-            // segIndex 1 = segment from waypoint[0] to waypoint[1]
-            // segIndex N = segment from waypoint[N-1] to pos2 (fixed)
-            // Waypoints are wire.waypoints[0..n-1], index in allPoints is segIndex-shifted
+            // segIndex maps to allPoints: [pos1, wp0, wp1, ..., pos2]
+            // Waypoint indices: leftWpIdx = segIndex - 1, rightWpIdx = segIndex
+            const leftWpIdx = segIndex - 1;
+            const rightWpIdx = segIndex;
 
-            // Move the waypoint(s) that form this segment
-            // Left endpoint of segment: allPoints[segIndex] → if segIndex > 0, it's waypoint[segIndex-1]
-            // Right endpoint: allPoints[segIndex+1] → if segIndex+1 < allPoints.length-1, it's waypoint[segIndex]
-
-            const leftWpIdx = segIndex - 1;  // -1 means it's pos1 (fixed start)
-            const rightWpIdx = segIndex;     // waypoints.length means it's pos2 (fixed end)
-
-            if (leftWpIdx >= 0 && leftWpIdx < wire.waypoints.length) {
-                wire.waypoints[leftWpIdx].x = self.snap(wire.waypoints[leftWpIdx].x + dx);
-                wire.waypoints[leftWpIdx].y = self.snap(wire.waypoints[leftWpIdx].y + dy);
-            }
-            if (rightWpIdx >= 0 && rightWpIdx < wire.waypoints.length) {
-                wire.waypoints[rightWpIdx].x = self.snap(wire.waypoints[rightWpIdx].x + dx);
-                wire.waypoints[rightWpIdx].y = self.snap(wire.waypoints[rightWpIdx].y + dy);
+            if (isHorizontal) {
+                // Horizontal segment: only move Y of both endpoints
+                // This shifts the entire horizontal line up or down
+                if (leftWpIdx >= 0 && leftWpIdx < wire.waypoints.length) {
+                    wire.waypoints[leftWpIdx].y = self.snap(wire.waypoints[leftWpIdx].y + rawDy);
+                }
+                if (rightWpIdx >= 0 && rightWpIdx < wire.waypoints.length) {
+                    wire.waypoints[rightWpIdx].y = self.snap(wire.waypoints[rightWpIdx].y + rawDy);
+                }
+            } else {
+                // Vertical segment: only move X of both endpoints
+                // This shifts the entire vertical line left or right
+                if (leftWpIdx >= 0 && leftWpIdx < wire.waypoints.length) {
+                    wire.waypoints[leftWpIdx].x = self.snap(wire.waypoints[leftWpIdx].x + rawDx);
+                }
+                if (rightWpIdx >= 0 && rightWpIdx < wire.waypoints.length) {
+                    wire.waypoints[rightWpIdx].x = self.snap(wire.waypoints[rightWpIdx].x + rawDx);
+                }
             }
 
             self.renderWires();
@@ -659,9 +675,15 @@ window.SimLabCircuit = {
             tbody.appendChild(tr);
         });
 
-        // Update component count badge
+        // Update count badge in sidebar tab
         const badge = document.getElementById('connPanelCount');
-        if (badge) badge.textContent = this.components.length + ' komp, ' + this.wires.length + ' kabel';
+        if (badge) badge.textContent = this.wires.length + ' kabel';
+        // Also update tab button text with count
+        const tabBtn = document.getElementById('tabBtnKoneksi');
+        if (tabBtn) {
+            const icon = '<i class="fas fa-project-diagram"></i> ';
+            tabBtn.innerHTML = icon + 'Koneksi' + (this.wires.length > 0 ? ' (' + this.wires.length + ')' : '');
+        }
     },
 
     // ═══════════════════════════════════════════════════════════════

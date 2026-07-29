@@ -103,9 +103,9 @@
                 <span id="statusText" class="font-mono">SIAP</span>
             </div>
 
-            <button id="btnSaveProject" class="px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black text-xs font-bold transition-all flex items-center space-x-1.5 shadow-md">
-                <i class="fas fa-save"></i>
-                <span>Simpan</span>
+            <button id="btnSaveProject" class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black text-sm font-black transition-all flex items-center space-x-2 shadow-lg shadow-emerald-500/25 ring-1 ring-emerald-400/30">
+                <i class="fas fa-save text-base"></i>
+                <span>Simpan Proyek</span>
             </button>
         </div>
     </header>
@@ -113,167 +113,184 @@
     <!-- Main Workspace Container -->
     <div class="flex-grow flex overflow-hidden relative">
         
-        <!-- LEFT PANEL: Component Library Palette -->
-        <aside class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col shrink-0 z-20">
-            <div class="p-3 border-b border-gray-800 flex items-center justify-between bg-gray-950/60">
-                <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fas fa-boxes text-emerald-400"></i> Komponen SimLab
-                </span>
-                <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-mono border border-emerald-800">16+ Kit</span>
+        <!-- LEFT PANEL: Component Library + Connections (Tabbed, Collapsible) -->
+        <aside id="leftSidebar" class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col shrink-0 z-20 transition-all duration-300 relative">
+            <!-- Collapse/Expand Toggle -->
+            <button id="btnToggleSidebar" onclick="document.getElementById('leftSidebar').classList.toggle('w-0');document.getElementById('leftSidebar').classList.toggle('w-64');document.getElementById('leftSidebar').classList.toggle('overflow-hidden');this.querySelector('i').classList.toggle('fa-chevron-left');this.querySelector('i').classList.toggle('fa-chevron-right')" class="absolute -right-4 top-1/2 -translate-y-1/2 z-30 w-4 h-12 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-r flex items-center justify-center text-gray-400 hover:text-white cursor-pointer text-[10px]">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <!-- Tabs: Komponen / Koneksi -->
+            <div class="flex border-b border-gray-800 bg-gray-950/80 shrink-0">
+                <button id="tabBtnKomponen" onclick="document.getElementById('tabKomponen').classList.remove('hidden');document.getElementById('tabKoneksi').classList.add('hidden');this.classList.add('text-emerald-400','border-emerald-400');document.getElementById('tabBtnKoneksi').classList.remove('text-emerald-400','border-emerald-400')" class="flex-1 py-2 text-[11px] font-bold text-emerald-400 border-b-2 border-emerald-400 transition-colors flex items-center justify-center gap-1">
+                    <i class="fas fa-boxes"></i> Komponen
+                </button>
+                <button id="tabBtnKoneksi" onclick="document.getElementById('tabKoneksi').classList.remove('hidden');document.getElementById('tabKomponen').classList.add('hidden');this.classList.add('text-emerald-400','border-emerald-400');document.getElementById('tabBtnKomponen').classList.remove('text-emerald-400','border-emerald-400')" class="flex-1 py-2 text-[11px] font-bold text-gray-500 border-b-2 border-transparent transition-colors flex items-center justify-center gap-1">
+                    <i class="fas fa-project-diagram"></i> Koneksi
+                </button>
             </div>
 
-            <!-- Wire Color Palette Bar -->
-            <div class="p-2 border-b border-gray-800 bg-gray-900/80 flex items-center justify-between text-xs">
-                <span class="text-[11px] text-gray-400 font-medium">Warna Kabel:</span>
-                <div class="flex items-center space-x-1.5">
-                    <button class="wire-color-btn w-5 h-5 rounded-full bg-red-500 border-2 border-white ring-2 ring-emerald-400" data-color="#ef4444" title="Merah (VCC/5V)"></button>
-                    <button class="wire-color-btn w-5 h-5 rounded-full bg-black border border-gray-600" data-color="#000000" title="Hitam (GND)"></button>
-                    <button class="wire-color-btn w-5 h-5 rounded-full bg-emerald-500 border border-gray-600" data-color="#10b981" title="Hijau (Signal)"></button>
-                    <button class="wire-color-btn w-5 h-5 rounded-full bg-cyan-400 border border-gray-600" data-color="#22d3ee" title="Biru (SDA/Tx)"></button>
-                    <button class="wire-color-btn w-5 h-5 rounded-full bg-amber-400 border border-gray-600" data-color="#fbbf24" title="Kuning (SCL/Rx)"></button>
+            <!-- TAB: Komponen -->
+            <div id="tabKomponen" class="flex-grow flex flex-col overflow-hidden">
+                <!-- Wire Color Palette Bar -->
+                <div class="p-2 border-b border-gray-800 bg-gray-900/80 flex items-center justify-between text-xs shrink-0">
+                    <span class="text-[11px] text-gray-400 font-medium">Warna Kabel:</span>
+                    <div class="flex items-center space-x-1.5">
+                        <button class="wire-color-btn w-5 h-5 rounded-full bg-red-500 border-2 border-white ring-2 ring-emerald-400" data-color="#ef4444" title="Merah (VCC/5V)"></button>
+                        <button class="wire-color-btn w-5 h-5 rounded-full bg-black border border-gray-600" data-color="#000000" title="Hitam (GND)"></button>
+                        <button class="wire-color-btn w-5 h-5 rounded-full bg-emerald-500 border border-gray-600" data-color="#10b981" title="Hijau (Signal)"></button>
+                        <button class="wire-color-btn w-5 h-5 rounded-full bg-cyan-400 border border-gray-600" data-color="#22d3ee" title="Biru (SDA/Tx)"></button>
+                        <button class="wire-color-btn w-5 h-5 rounded-full bg-amber-400 border border-gray-600" data-color="#fbbf24" title="Kuning (SCL/Rx)"></button>
+                    </div>
+                </div>
+
+                <!-- Component List Scrollable -->
+                <div class="flex-grow overflow-y-auto p-3 space-y-4 custom-scrollbar">
+                    
+                    <!-- Category: Board Mikrokontroler -->
+                    <div>
+                        <h4 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <i class="fas fa-microchip text-cyan-400"></i> Board Utama
+                        </h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-semibold text-white flex flex-col items-center justify-center gap-1 group" data-type="uno">
+                                <i class="fas fa-microchip text-lg text-cyan-400 group-hover:scale-110 transition-transform"></i>
+                                <span>Arduino Uno</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-semibold text-white flex flex-col items-center justify-center gap-1 group" data-type="nano">
+                                <i class="fas fa-microchip text-lg text-emerald-400 group-hover:scale-110 transition-transform"></i>
+                                <span>Arduino Nano</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-semibold text-white flex flex-col items-center justify-center gap-1 col-span-2 group" data-type="esp32">
+                                <i class="fas fa-wifi text-lg text-amber-400 group-hover:scale-110 transition-transform"></i>
+                                <span>ESP32 DevKit V1</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Category: Sensor & Input -->
+                    <div>
+                        <h4 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <i class="fas fa-eye text-emerald-400"></i> Sensor & Input
+                        </h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="hc_sr04">
+                                <i class="fas fa-broadcast-tower text-teal-400"></i> <span>HC-SR04</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="dht11">
+                                <i class="fas fa-temperature-high text-rose-400"></i> <span>DHT11 Suhu</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="rc522">
+                                <i class="fas fa-id-card text-purple-400"></i> <span>RC522 RFID</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="tcrt5000">
+                                <i class="fas fa-road text-amber-400"></i> <span>TCRT5000</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="pir">
+                                <i class="fas fa-running text-green-400"></i> <span>PIR Gerak</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="ldr">
+                                <i class="fas fa-sun text-yellow-400"></i> <span>LDR Cahaya</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Category: Motor & Aktuator -->
+                    <div>
+                        <h4 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <i class="fas fa-cogs text-amber-400"></i> Motor & Aktuator
+                        </h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="servo">
+                                <i class="fas fa-sync text-indigo-400"></i> <span>Servo SG90</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="motor_dc">
+                                <i class="fas fa-fan text-blue-400"></i> <span>Motor DC</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="l298n">
+                                <i class="fas fa-memory text-emerald-400"></i> <span>L298N</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="relay">
+                                <i class="fas fa-toggle-on text-orange-400"></i> <span>Relay 5V</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="dfplayer">
+                                <i class="fas fa-music text-pink-400"></i> <span>DFPlayer</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="speaker">
+                                <i class="fas fa-volume-up text-cyan-400"></i> <span>Buzzer</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Category: Display & LED -->
+                    <div>
+                        <h4 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <i class="fas fa-tv text-purple-400"></i> Display & LED
+                        </h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="lcd1602">
+                                <i class="fas fa-desktop text-emerald-400"></i> <span>LCD 16x2</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="lcd2004">
+                                <i class="fas fa-desktop text-cyan-400"></i> <span>LCD 20x4</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="led_red">
+                                <i class="fas fa-lightbulb text-red-500"></i> <span>LED Merah</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="led_green">
+                                <i class="fas fa-lightbulb text-emerald-400"></i> <span>LED Hijau</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="led_yellow">
+                                <i class="fas fa-lightbulb text-yellow-400"></i> <span>LED Kuning</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="led_white">
+                                <i class="fas fa-lightbulb text-gray-100"></i> <span>LED Putih</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Category: Pasif & Daya -->
+                    <div>
+                        <h4 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <i class="fas fa-bolt text-yellow-400"></i> Pasif & Daya
+                        </h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="resistor">
+                                <i class="fas fa-wave-square text-amber-500"></i> <span>Resistor</span>
+                            </button>
+                            <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="psu">
+                                <i class="fas fa-plug text-red-400"></i> <span>PSU 5V/2A</span>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <!-- Component List Scrollable -->
-            <div class="flex-grow overflow-y-auto p-3 space-y-4 custom-scrollbar">
-                
-                <!-- Category: Board Mikrokontroler -->
-                <div>
-                    <h4 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                        <i class="fas fa-microchip text-cyan-400"></i> Board Utama
-                    </h4>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-semibold text-white flex flex-col items-center justify-center gap-1 group" data-type="uno">
-                            <i class="fas fa-microchip text-lg text-cyan-400 group-hover:scale-110 transition-transform"></i>
-                            <span>Arduino Uno</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-semibold text-white flex flex-col items-center justify-center gap-1 group" data-type="nano">
-                            <i class="fas fa-microchip text-lg text-emerald-400 group-hover:scale-110 transition-transform"></i>
-                            <span>Arduino Nano</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-semibold text-white flex flex-col items-center justify-center gap-1 col-span-2 group" data-type="esp32">
-                            <i class="fas fa-wifi text-lg text-amber-400 group-hover:scale-110 transition-transform"></i>
-                            <span>ESP32 DevKit V1</span>
-                        </button>
-                    </div>
+            <!-- TAB: Koneksi (Hidden by default) -->
+            <div id="tabKoneksi" class="hidden flex-grow flex flex-col overflow-hidden">
+                <div class="p-2 border-b border-gray-800 bg-gray-900/80 flex items-center justify-between text-xs shrink-0">
+                    <span class="text-[11px] text-gray-400 font-medium flex items-center gap-1">
+                        <i class="fas fa-project-diagram text-blue-400"></i> Daftar Sambungan Kabel
+                    </span>
+                    <span id="connPanelCount" class="text-[10px] px-1.5 py-0.5 rounded bg-blue-900/50 text-blue-300 font-mono border border-blue-800">0 kabel</span>
                 </div>
-
-                <!-- Category: Sensor & Input -->
-                <div>
-                    <h4 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                        <i class="fas fa-eye text-emerald-400"></i> Sensor & Input
-                    </h4>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="hc_sr04">
-                            <i class="fas fa-broadcast-tower text-teal-400"></i>
-                            <span>HC-SR04 Ultrasonik</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="dht11">
-                            <i class="fas fa-temperature-high text-rose-400"></i>
-                            <span>DHT11 Suhu</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="rc522">
-                            <i class="fas fa-id-card text-purple-400"></i>
-                            <span>RC522 RFID</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="tcrt5000">
-                            <i class="fas fa-road text-amber-400"></i>
-                            <span>TCRT5000 Line</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="pir">
-                            <i class="fas fa-running text-green-400"></i>
-                            <span>PIR Gerak</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="ldr">
-                            <i class="fas fa-sun text-yellow-400"></i>
-                            <span>LDR Cahaya</span>
-                        </button>
-                    </div>
+                <div class="flex-grow overflow-y-auto custom-scrollbar">
+                    <table class="w-full text-[10px]">
+                        <thead class="text-gray-500 uppercase sticky top-0 bg-gray-900">
+                            <tr>
+                                <th class="px-2 py-1.5 text-left">#</th>
+                                <th class="px-2 py-1.5 text-left">Dari</th>
+                                <th class="px-2 py-1.5 text-left">Pin</th>
+                                <th class="px-2 py-1.5 text-left">Ke</th>
+                                <th class="px-2 py-1.5 text-left">Pin</th>
+                            </tr>
+                        </thead>
+                        <tbody id="connPanelBody">
+                            <tr><td colspan="5" class="text-center text-gray-500 py-4 text-[10px]">Belum ada koneksi kabel</td></tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <!-- Category: Aktuator & Audio -->
-                <div>
-                    <h4 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                        <i class="fas fa-cogs text-amber-400"></i> Motor & Aktuator
-                    </h4>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="servo">
-                            <i class="fas fa-sync text-indigo-400"></i>
-                            <span>Servo SG90</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="motor_dc">
-                            <i class="fas fa-fan text-blue-400"></i>
-                            <span>Motor DC</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="l298n">
-                            <i class="fas fa-memory text-emerald-400"></i>
-                            <span>Driver L298N</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="relay">
-                            <i class="fas fa-toggle-on text-orange-400"></i>
-                            <span>Relay 5V</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="dfplayer">
-                            <i class="fas fa-music text-pink-400"></i>
-                            <span>Mini DFPlayer</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="speaker">
-                            <i class="fas fa-volume-up text-cyan-400"></i>
-                            <span>Speaker/Buzzer</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Category: Display & LED -->
-                <div>
-                    <h4 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                        <i class="fas fa-tv text-purple-400"></i> Display & Indikator
-                    </h4>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="lcd1602">
-                            <i class="fas fa-desktop text-emerald-400"></i>
-                            <span>LCD 16x2 I2C</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="lcd2004">
-                            <i class="fas fa-desktop text-cyan-400"></i>
-                            <span>LCD 20x4 I2C</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="led_red">
-                            <i class="fas fa-lightbulb text-red-500"></i>
-                            <span>LED Merah</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="led_green">
-                            <i class="fas fa-lightbulb text-emerald-400"></i>
-                            <span>LED Hijau</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="led_yellow">
-                            <i class="fas fa-lightbulb text-yellow-400"></i>
-                            <span>LED Kuning</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="led_white">
-                            <i class="fas fa-lightbulb text-gray-100"></i>
-                            <span>LED Putih</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Category: Komponen Pasif & Catu Daya -->
-                <div>
-                    <h4 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                        <i class="fas fa-[#e5e7eb] text-yellow-400"></i> Pasif & Daya
-                    </h4>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="resistor">
-                            <i class="fas fa-wave-square text-amber-500"></i>
-                            <span>Resistor 300Ω</span>
-                        </button>
-                        <button class="add-comp-btn p-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-left transition-all text-xs font-medium text-gray-200 flex flex-col items-center gap-1 text-center" data-type="psu">
-                            <i class="fas fa-plug text-red-400"></i>
-                            <span>Power Supply 5V/2A</span>
-                        </button>
-                    </div>
-                </div>
-
             </div>
         </aside>
 
@@ -309,10 +326,7 @@
                 <button id="btnToggleSnap" class="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-emerald-600 transition-colors flex items-center gap-1" title="Snap ke Grid">
                     <i class="fas fa-magnet"></i> <span>Snap: ON</span>
                 </button>
-                <div class="h-4 w-px bg-gray-300"></div>
-                <button id="btnToggleConnPanel" class="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-blue-600 transition-colors flex items-center gap-1" title="Panel Daftar Koneksi">
-                    <i class="fas fa-list-alt"></i> <span>Koneksi</span>
-                </button>
+
             </div>
 
             <!-- Canvas Viewport -->
@@ -331,32 +345,7 @@
                 <div id="componentsLayer" class="w-[3000px] h-[2000px] absolute top-0 left-0 pointer-events-auto z-10"></div>
             </div>
 
-            <!-- Connection Panel (Collapsible) -->
-            <div id="connectionPanel" class="absolute bottom-3 right-3 z-30 w-80 bg-gray-900/95 border border-gray-700 backdrop-blur rounded-xl shadow-2xl hidden">
-                <div class="flex items-center justify-between p-2 border-b border-gray-700">
-                    <span class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
-                        <i class="fas fa-project-diagram text-blue-400"></i> Daftar Koneksi
-                        <span id="connPanelCount" class="text-[10px] px-1.5 py-0.5 rounded bg-blue-900/50 text-blue-300 font-mono">0 komp, 0 kabel</span>
-                    </span>
-                    <button onclick="document.getElementById('connectionPanel').classList.add('hidden')" class="text-gray-500 hover:text-white text-xs px-1">✕</button>
-                </div>
-                <div class="max-h-48 overflow-y-auto custom-scrollbar">
-                    <table class="w-full text-[10px]">
-                        <thead class="text-gray-500 uppercase sticky top-0 bg-gray-900">
-                            <tr>
-                                <th class="px-2 py-1 text-left">#</th>
-                                <th class="px-2 py-1 text-left">Dari</th>
-                                <th class="px-2 py-1 text-left">Pin</th>
-                                <th class="px-2 py-1 text-left">Ke</th>
-                                <th class="px-2 py-1 text-left">Pin</th>
-                            </tr>
-                        </thead>
-                        <tbody id="connPanelBody">
-                            <tr><td colspan="5" class="text-center text-gray-400 py-2">Belum ada koneksi</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
 
             <!-- Canvas Bottom Helper Info -->
             <div class="absolute bottom-3 left-3 z-10 bg-white/90 border border-gray-300 backdrop-blur rounded-xl px-3 py-1.5 text-[11px] text-gray-500 flex items-center space-x-3 shadow-lg pointer-events-none">
