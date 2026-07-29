@@ -673,7 +673,7 @@ window.SimLabCircuit = {
         group.innerHTML = '';
         const self = this;
 
-        this.wires.forEach(wire => {
+        this.wires.forEach((wire, wireIdx) => {
             const pos1 = self.getPinPos(wire.fromComp, wire.fromPin);
             const pos2 = self.getPinPos(wire.toComp, wire.toPin);
             if (!pos1 || !pos2) return;
@@ -682,36 +682,31 @@ window.SimLabCircuit = {
             const dir1 = self.getPinDir(wire.fromComp, wire.fromPin);
             const dir2 = self.getPinDir(wire.toComp, wire.toPin);
 
-            if (!wire.bend) {
-                wire.bend = {
-                    offset1: 30,
-                    offset2: 30,
-                    midX: self.snap((pos1.x + pos2.x) / 2),
-                    midY: self.snap((pos1.y + pos2.y) / 2)
-                };
-            }
-            const b = wire.bend;
+            // Dynamic channel offset calculation based on wire index & pin spacing
+            // Creates 16px parallel channels to prevent lines from stacking on top of each other!
+            const channelOffset = (wireIdx % 8 - 3.5) * 16;
+            const pinStep = ((wireIdx * 10) % 40);
 
             let points = [];
 
             if (dir1 === 'V' && dir2 === 'V') {
-                const dy1 = (b.dy1 !== undefined) ? b.dy1 : (pos2.y >= pos1.y ? 30 : -30);
-                const dy2 = (b.dy2 !== undefined) ? b.dy2 : (pos1.y >= pos2.y ? 30 : -30);
+                const dy1 = (pos2.y >= pos1.y ? (25 + pinStep) : (-25 - pinStep));
+                const dy2 = (pos1.y >= pos2.y ? (25 + pinStep) : (-25 - pinStep));
                 const y1 = self.snap(pos1.y + dy1);
                 const y2 = self.snap(pos2.y + dy2);
-                const xMid = (b.midX !== undefined) ? b.midX : self.snap((pos1.x + pos2.x) / 2);
+                const xMid = self.snap((pos1.x + pos2.x) / 2 + channelOffset);
 
-                const p1 = { x: pos1.x, y: y1 }; // V out of pin1 (length = |dy1|, locked to pos1.x)
-                const p2 = { x: xMid, y: y1 };   // H to xMid
-                const p3 = { x: xMid, y: y2 };   // V to y2
-                const p4 = { x: pos2.x, y: y2 }; // H to pos2.x
+                const p1 = { x: pos1.x, y: y1 };
+                const p2 = { x: xMid, y: y1 };
+                const p3 = { x: xMid, y: y2 };
+                const p4 = { x: pos2.x, y: y2 };
 
                 points = [pos1, p1, p2, p3, p4, pos2];
             }
             else if (dir1 === 'V' && dir2 === 'H') {
-                const dy1 = (b.dy1 !== undefined) ? b.dy1 : (pos2.y >= pos1.y ? 30 : -30);
+                const dy1 = (pos2.y >= pos1.y ? (25 + pinStep) : (-25 - pinStep));
                 const y1 = self.snap(pos1.y + dy1);
-                const xMid = (b.midX !== undefined) ? b.midX : self.snap((pos1.x + pos2.x) / 2);
+                const xMid = self.snap((pos1.x + pos2.x) / 2 + channelOffset);
 
                 const p1 = { x: pos1.x, y: y1 };
                 const p2 = { x: xMid, y: y1 };
@@ -720,9 +715,9 @@ window.SimLabCircuit = {
                 points = [pos1, p1, p2, p3, pos2];
             }
             else if (dir1 === 'H' && dir2 === 'V') {
-                const dx1 = (b.dx1 !== undefined) ? b.dx1 : (pos2.x >= pos1.x ? 30 : -30);
+                const dx1 = (pos2.x >= pos1.x ? (25 + pinStep) : (-25 - pinStep));
                 const x1 = self.snap(pos1.x + dx1);
-                const yMid = (b.midY !== undefined) ? b.midY : self.snap((pos1.y + pos2.y) / 2);
+                const yMid = self.snap((pos1.y + pos2.y) / 2 + channelOffset);
 
                 const p1 = { x: x1, y: pos1.y };
                 const p2 = { x: x1, y: yMid };
@@ -732,11 +727,11 @@ window.SimLabCircuit = {
             }
             else {
                 // H-H
-                const dx1 = (b.dx1 !== undefined) ? b.dx1 : (pos2.x >= pos1.x ? 30 : -30);
-                const dx2 = (b.dx2 !== undefined) ? b.dx2 : (pos1.x >= pos2.x ? 30 : -30);
+                const dx1 = (pos2.x >= pos1.x ? (25 + pinStep) : (-25 - pinStep));
+                const dx2 = (pos1.x >= pos2.x ? (25 + pinStep) : (-25 - pinStep));
                 const x1 = self.snap(pos1.x + dx1);
                 const x2 = self.snap(pos2.x + dx2);
-                const yMid = (b.midY !== undefined) ? b.midY : self.snap((pos1.y + pos2.y) / 2);
+                const yMid = self.snap((pos1.y + pos2.y) / 2 + channelOffset);
 
                 const p1 = { x: x1, y: pos1.y };
                 const p2 = { x: x1, y: yMid };
