@@ -286,6 +286,16 @@ window.SimLabCircuit = {
     // Component Management
     // ═══════════════════════════════════════════════════════════════
 
+    checkAutoStopSimulation: function(reason) {
+        if (window.SimLabEngine && window.SimLabEngine.isRunning) {
+            window.SimLabEngine.stopSimulation();
+            const msg = reason 
+                ? '\n[SIMULATOR AUTO-STOPPED] ' + reason + '. Silakan klik "Jalankan Simulasi" untuk memulai kembali.\n'
+                : '\n[SIMULATOR AUTO-STOPPED] Kertas kerja diubah saat simulasi berjalan. Silakan klik "Jalankan Simulasi" untuk memulai kembali.\n';
+            window.SimLabEngine.appendSerialLog(msg);
+        }
+    },
+
     addComponent: function(type, x, y, savedId, savedState, savedLabel) {
         const def = window.SimLabComponents[type];
         if (!def) {
@@ -307,6 +317,7 @@ window.SimLabCircuit = {
 
         // Auto connect schematic wires & generate code if pulled manually
         if (!savedId) {
+            this.checkAutoStopSimulation('Komponen "' + (savedLabel || def.name) + '" ditarik ke kertas kerja');
             this.autoConnectComponentWires(comp);
             if (window.SimLabEngine && window.SimLabEngine.autoCodeEnabled) {
                 window.SimLabEngine.generateSmartCode();
@@ -445,6 +456,7 @@ window.SimLabCircuit = {
     },
 
     removeComponent: function(id) {
+        this.checkAutoStopSimulation('Komponen dihapus dari kertas kerja');
         this.components = this.components.filter(c => c.id !== id);
         this.wires = this.wires.filter(w => w.fromComp !== id && w.toComp !== id);
         this.renderAll();
@@ -530,6 +542,9 @@ window.SimLabCircuit = {
 
         const self = this;
         function save() {
+            if (comp.label !== input.value.trim()) {
+                self.checkAutoStopSimulation('Label komponen diubah');
+            }
             comp.label = input.value.trim() || oldLabel;
             self.renderComponents();
             self.updateConnectionPanel();
@@ -539,10 +554,12 @@ window.SimLabCircuit = {
     },
 
     rotateComponent: function(id) {
+        this.checkAutoStopSimulation('Komponen diputar 90°');
         const comp = this.components.find(c => c.id === id);
         if (comp) { comp.rotation = ((comp.rotation || 0) + 90) % 360; this.renderComponents(); this.renderWires(); }
     },
     scaleComponent: function(id, delta) {
+        this.checkAutoStopSimulation('Ukuran komponen diubah');
         const comp = this.components.find(c => c.id === id);
         if (comp) {
             const currentScale = comp.scale || 1.0;
@@ -561,6 +578,7 @@ window.SimLabCircuit = {
         handle.onmousedown = function(e) {
             if (e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.tagName === 'INPUT') return;
             e.preventDefault(); e.stopPropagation();
+            self.checkAutoStopSimulation('Komponen digeser di kertas kerja');
             startMouseX = e.clientX; startMouseY = e.clientY;
             startCompX = comp.x; startCompY = comp.y;
             window.addEventListener('mousemove', drag);
@@ -589,6 +607,7 @@ window.SimLabCircuit = {
             this.renderComponents();
         } else {
             if (this.connectingPin.compId !== compId || this.connectingPin.pinId !== pinId) {
+                this.checkAutoStopSimulation('Pengabelan baru dihubungkan');
                 const pos1 = this.getPinPos(this.connectingPin.compId, this.connectingPin.pinId);
                 const pos2 = this.getPinPos(compId, pinId);
 
