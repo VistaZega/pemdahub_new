@@ -404,9 +404,11 @@ window.SimLabCircuit = {
     scaleComponent: function(id, delta) {
         const comp = this.components.find(c => c.id === id);
         if (comp) {
-            const step = this.snapEnabled ? Math.max(delta, this.gridSize / 100) : delta;
-            comp.scale = Math.max(0.5, Math.min(3.0, (comp.scale || 1.0) + step));
-            this.renderComponents(); this.renderWires();
+            const currentScale = comp.scale || 1.0;
+            const newScale = Math.max(0.4, Math.min(3.0, Math.round((currentScale + delta) * 100) / 100));
+            comp.scale = newScale;
+            this.renderComponents();
+            this.renderWires();
         }
     },
 
