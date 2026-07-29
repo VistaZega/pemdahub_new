@@ -222,6 +222,19 @@ window.SimLabEngine = {
                 continue;
             }
 
+            // 1.5. analogWrite(pin, pwmVal) — PWM Speed Control (0-255)
+            const awMatch = line.match(/analogWrite\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/);
+            if (awMatch) {
+                let pin = awMatch[1].trim().replace(/['"]/g, '');
+                if (pin === 'LED_BUILTIN') pin = '13';
+                pin = pin.replace(/^D/, '');
+
+                const valStr = awMatch[2].trim();
+                const val = parseInt(valStr, 10) || 0;
+                instructions.push({ op: 'analogWrite', pin: pin, val: Math.min(255, Math.max(0, val)), src: line.trim() });
+                continue;
+            }
+
             // 2. delay(ms) — MUST parse the number correctly
             const delayMatch = line.match(/delay\s*\(\s*(\d+)\s*\)/);
             if (delayMatch) {
@@ -407,6 +420,10 @@ window.SimLabEngine = {
                     this.setPinState(instr.pin, instr.val);
                     break;
 
+                case 'analogWrite':
+                    this.setPinState(instr.pin, instr.val > 0 ? 1 : 0, instr.val);
+                    break;
+
                 case 'delay':
                     if (instr.ms > 0) {
                         // Set the absolute timestamp when this delay expires
@@ -437,7 +454,7 @@ window.SimLabEngine = {
     // Pin State Manager & Wire/Resistor/LED Tracer
     // ═══════════════════════════════════════════════════════════════
 
-    setPinState: function(pinNum, stateVal) {
+    setPinState: function(pinNum, stateVal, pwmVal) {
         const cleanPin = pinNum.toString().replace(/^D/, '').trim();
         this.pinStates[cleanPin] = stateVal;
 
@@ -484,8 +501,10 @@ window.SimLabEngine = {
             // Motor DC
             else if (targetComp.type === 'motor_dc' || targetComp.type === 'l298n') {
                 targetComp.state = targetComp.state || {};
-                if (targetComp.state.active !== (stateVal === 1)) {
-                    targetComp.state.active = (stateVal === 1);
+                const speed = (typeof pwmVal === 'number') ? pwmVal : (stateVal === 1 ? 255 : 0);
+                if (targetComp.state.active !== (stateVal === 1 || speed > 0) || targetComp.state.speed !== speed) {
+                    targetComp.state.active = (stateVal === 1 || speed > 0);
+                    targetComp.state.speed = speed;
                     needsReRender = true;
                 }
             }

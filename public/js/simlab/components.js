@@ -873,21 +873,25 @@ window.SimLabComponents = {
         ],
         svg: function(comp) {
             const active = comp.state?.active || false;
+            const speed = typeof comp.state?.speed === 'number' ? comp.state.speed : (active ? 255 : 0);
+            const rpmFactor = speed / 255;
+            const angle = (Date.now() * 0.35 * rpmFactor) % 360;
+
             return `
             <rect width="100" height="110" rx="8" fill="#e5e5e5" stroke="#a3a3a3" stroke-width="2"/>
             <rect x="35" y="8" width="30" height="18" rx="2" fill="#fcd34d" stroke="#d97706" stroke-width="2"/>
             <circle cx="50" cy="50" r="28" fill="#d4d4d4" stroke="#737373" stroke-width="2"/>
             <circle cx="50" cy="50" r="6" fill="#404040"/>
             
-            ${active ? `
-            <!-- Spinning Rotor -->
-            <g transform="rotate(${((Date.now() / 5) % 360)}, 50, 50)">
+            ${(active && speed > 0) ? `
+            <!-- Spinning Rotor (Smooth Visible Speed) -->
+            <g transform="rotate(${angle}, 50, 50)">
                 <path d="M 50 50 L 35 30 A 15 15 0 0 1 50 22 Z" fill="#3b82f6" opacity="0.9"/>
                 <path d="M 50 50 L 65 70 A 15 15 0 0 1 50 78 Z" fill="#3b82f6" opacity="0.9"/>
                 <path d="M 50 50 L 30 65 A 15 15 0 0 1 22 50 Z" fill="#3b82f6" opacity="0.9"/>
                 <path d="M 50 50 L 70 35 A 15 15 0 0 1 78 50 Z" fill="#3b82f6" opacity="0.9"/>
             </g>
-            <text x="50" y="88" fill="#16a34a" font-size="8.5" font-weight="bold" text-anchor="middle">● PUTAR (ON)</text>
+            <text x="50" y="88" fill="#16a34a" font-size="7.5" font-weight="bold" text-anchor="middle">● PUTAR (${Math.round((speed/255)*100)}%)</text>
             ` : `
             <!-- Stationary Rotor -->
             <path d="M 50 50 L 35 30 A 15 15 0 0 1 50 22 Z" fill="#64748b" opacity="0.6"/>
@@ -903,12 +907,22 @@ window.SimLabComponents = {
         },
         controls: function(comp) {
             const active = comp.state?.active || false;
+            const speed = typeof comp.state?.speed === 'number' ? comp.state.speed : (active ? 255 : 0);
             return `
-            <div class="mt-2 p-2 bg-gray-900 rounded border border-gray-800 text-xs">
-                <button onclick="SimLabEngine.updateCompState('${comp.id}', {active: ${!active}})" 
+            <div class="mt-2 p-2 bg-gray-900 rounded border border-gray-800 text-xs space-y-1.5">
+                <button onclick="SimLabEngine.updateCompState('${comp.id}', {active: ${!active}, speed: ${!active ? (speed || 255) : 0}})" 
                     class="w-full py-1 rounded font-bold transition-colors ${active ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-emerald-600 hover:bg-emerald-500 text-white'}">
                     ${active ? '⏹ Stop Motor DC' : '▶ Tes Putar Motor DC'}
                 </button>
+                <div>
+                    <div class="flex justify-between text-[10px] text-gray-400 font-bold mb-0.5">
+                        <span>Kecepatan PWM:</span>
+                        <span class="text-emerald-400">${speed} / 255</span>
+                    </div>
+                    <input type="range" min="0" max="255" value="${speed}" 
+                        oninput="SimLabEngine.updateCompState('${comp.id}', {active: parseInt(this.value) > 0, speed: parseInt(this.value)})"
+                        class="w-full accent-emerald-500 cursor-pointer h-1.5 bg-gray-800 rounded-lg"/>
+                </div>
             </div>
             `;
         }
