@@ -370,6 +370,9 @@ window.SimLabEngine = {
                 instructions.push({ op: 'lcdClear', src: line.trim() });
                 continue;
             }
+
+            // 11. Fallback for any other statement/expression
+            instructions.push({ op: 'nop', src: line.trim() });
         }
 
         return instructions;
@@ -394,8 +397,7 @@ window.SimLabEngine = {
         const loopInstructions = this.parseBodyToInstructions(loopBody);
 
         if (loopInstructions.length === 0) {
-            alert('Tidak ditemukan instruksi di dalam fungsi loop().');
-            return;
+            loopInstructions.push({ op: 'delay', ms: 500, src: 'idle loop delay' });
         }
 
         // Initialize VM state
