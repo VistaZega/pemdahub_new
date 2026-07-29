@@ -486,23 +486,33 @@ window.SimLabCircuit = {
         return { x: comp.x + (cx + rx) * scale, y: comp.y + (cy + ry) * scale };
     },
 
+    // Determine pin exit direction: 'V' (Vertical: top/bottom edge) or 'H' (Horizontal: left/right edge)
+    getPinDir: function(compId, pinId) {
+        const comp = this.components.find(c => c.id === compId);
+        if (!comp) return 'V';
+        const def = window.SimLabComponents[comp.type];
+        if (!def) return 'V';
+        const pin = def.pins ? def.pins.find(p => p.id === pinId) : null;
+        if (!pin) return 'V';
+
+        const w = def.width || 100;
+        const h = def.height || 100;
+
+        // Top or bottom edge -> exit Vertically (UP or DOWN)
+        if (pin.y <= 35 || pin.y >= h - 35) {
+            return 'V';
+        }
+        // Left or right edge -> exit Horizontally (LEFT or RIGHT)
+        if (pin.x <= 35 || pin.x >= w - 35) {
+            return 'H';
+        }
+        return 'V';
+    },
+
     // ═══════════════════════════════════════════════════════════════
-    // Wire Rendering — H-V-H-V-H Manhattan Routing (5 segments)
-    //
-    // Path: pin1 → p1 → p2 → p3 → p4 → pin2
-    //   pin1 ──H──→ p1 ──V──→ p2 ──H──→ p3 ──V──→ p4 ──H──→ pin2
-    //
-    // Stored: wire.bend = { x1, y, x2 }
-    //   x1 = X of first vertical bend
-    //   y  = Y of horizontal middle segment
-    //   x2 = X of second vertical bend
-    //
-    // Drag handles:
-    //   [V1] First vertical segment  → ↔ changes x1
-    //   [H]  Middle horizontal segment → ↕ changes y
-    //   [V2] Last vertical segment   → ↔ changes x2
-    //
-    // ALWAYS 100% orthogonal — no diagonals possible!
+    // Wire Rendering — Smart Pin-Direction Orthogonal Wire Routing
+    // Segmen yang terhubung ke PIN otomatis keluar Vertikal (V) atau Horizontal (H)
+    // sesuai posisi pin pada komponen, dan memanjang/memendek secara presisi.
     // ═══════════════════════════════════════════════════════════════
 
     renderWires: function() {
@@ -516,31 +526,80 @@ window.SimLabCircuit = {
             if (!pos1 || !pos2) return;
 
             const style = wire.style || self.wireStyleMode;
+            const dir1 = self.getPinDir(wire.fromComp, wire.fromPin);
+            const dir2 = self.getPinDir(wire.toComp, wire.toPin);
 
-            // Initialize bend data if missing
             if (!wire.bend) {
-                const midX = self.snap(pos1.x + (pos2.x - pos1.x) / 2);
-                const midY = self.snap(pos1.y + (pos2.y - pos1.y) / 2);
-                wire.bend = { x1: midX, y: midY, x2: midX };
+                wire.bend = {
+                    offset1: 30,
+                    offset2: 30,
+                    midX: self.snap((pos1.x + pos2.x) / 2),
+                    midY: self.snap((pos1.y + pos2.y) / 2)
+                };
             }
-
-            // Compute the 4 intermediate points (always orthogonal)
             const b = wire.bend;
-            const p1 = { x: b.x1, y: pos1.y }; // end of first H segment
-            const p2 = { x: b.x1, y: b.y };     // end of first V segment
-            const p3 = { x: b.x2, y: b.y };     // end of middle H segment
-            const p4 = { x: b.x2, y: pos2.y };  // end of second V segment
 
-            // Build path
-            let pathD;
-            if (style === 'curved') {
-                const dx = Math.abs(pos2.x - pos1.x) * 0.4;
-                pathD = `M ${pos1.x} ${pos1.y} C ${pos1.x + dx} ${pos1.y}, ${pos2.x - dx} ${pos2.y}, ${pos2.x} ${pos2.y}`;
-            } else {
-                pathD = `M ${pos1.x} ${pos1.y} L ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y} L ${pos2.x} ${pos2.y}`;
+            let points = [];
+
+            if (dir1 === 'V' && dir2 === 'V') {
+                const dy1 = (b.dy1 !== undefined) ? b.dy1 : (pos2.y >= pos1.y ? 30 : -30);
+                const dy2 = (b.dy2 !== undefined) ? b.dy2 : (pos1.y >= pos2.y ? 30 : -30);
+                const y1 = self.snap(pos1.y + dy1);
+                const y2 = self.snap(pos2.y + dy2);
+                const xMid = (b.midX !== undefined) ? b.midX : self.snap((pos1.x + pos2.x) / 2);
+
+                const p1 = { x: pos1.x, y: y1 }; // V out of pin1 (length = |dy1|, locked to pos1.x)
+                const p2 = { x: xMid, y: y1 };   // H to xMid
+                const p3 = { x: xMid, y: y2 };   // V to y2
+                const p4 = { x: pos2.x, y: y2 }; // H to pos2.x
+
+                points = [pos1, p1, p2, p3, p4, pos2];
+            }
+            else if (dir1 === 'V' && dir2 === 'H') {
+                const dy1 = (b.dy1 !== undefined) ? b.dy1 : (pos2.y >= pos1.y ? 30 : -30);
+                const y1 = self.snap(pos1.y + dy1);
+                const xMid = (b.midX !== undefined) ? b.midX : self.snap((pos1.x + pos2.x) / 2);
+
+                const p1 = { x: pos1.x, y: y1 };
+                const p2 = { x: xMid, y: y1 };
+                const p3 = { x: xMid, y: pos2.y };
+
+                points = [pos1, p1, p2, p3, pos2];
+            }
+            else if (dir1 === 'H' && dir2 === 'V') {
+                const dx1 = (b.dx1 !== undefined) ? b.dx1 : (pos2.x >= pos1.x ? 30 : -30);
+                const x1 = self.snap(pos1.x + dx1);
+                const yMid = (b.midY !== undefined) ? b.midY : self.snap((pos1.y + pos2.y) / 2);
+
+                const p1 = { x: x1, y: pos1.y };
+                const p2 = { x: x1, y: yMid };
+                const p3 = { x: pos2.x, y: yMid };
+
+                points = [pos1, p1, p2, p3, pos2];
+            }
+            else {
+                // H-H
+                const dx1 = (b.dx1 !== undefined) ? b.dx1 : (pos2.x >= pos1.x ? 30 : -30);
+                const dx2 = (b.dx2 !== undefined) ? b.dx2 : (pos1.x >= pos2.x ? 30 : -30);
+                const x1 = self.snap(pos1.x + dx1);
+                const x2 = self.snap(pos2.x + dx2);
+                const yMid = (b.midY !== undefined) ? b.midY : self.snap((pos1.y + pos2.y) / 2);
+
+                const p1 = { x: x1, y: pos1.y };
+                const p2 = { x: x1, y: yMid };
+                const p3 = { x: x2, y: yMid };
+                const p4 = { x: x2, y: pos2.y };
+
+                points = [pos1, p1, p2, p3, p4, pos2];
             }
 
-            // Draw wire path
+            // Build SVG pathD
+            let pathD = `M ${points[0].x} ${points[0].y}`;
+            for (let i = 1; i < points.length; i++) {
+                pathD += ` L ${points[i].x} ${points[i].y}`;
+            }
+
+            // Draw main wire path
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', pathD);
             path.setAttribute('stroke', wire.color || '#ef4444');
@@ -554,22 +613,36 @@ window.SimLabCircuit = {
             path.addEventListener('contextmenu', function(e) { self.showContextMenu(e, wire); });
             group.appendChild(path);
 
-            // 3 drag handles on the 3 adjustable segments
+            // Add Drag Handles for each intermediate segment
             if (style !== 'curved') {
-                // Handle 1: First V segment (p1→p2) — drag LEFT/RIGHT → changes x1
-                self._createDragHandle(group, wire, p1, p2, 'vertical', function(dx) {
-                    wire.bend.x1 = self.snap(wire.bend.x1 + dx);
-                });
+                for (let i = 1; i <= points.length - 3; i++) {
+                    const pA = points[i];
+                    const pB = points[i + 1];
+                    const isV = (pA.x === pB.x);
 
-                // Handle 2: Middle H segment (p2→p3) — drag UP/DOWN → changes y
-                self._createDragHandle(group, wire, p2, p3, 'horizontal', function(dx, dy) {
-                    wire.bend.y = self.snap(wire.bend.y + dy);
-                });
-
-                // Handle 3: Last V segment (p3→p4) — drag LEFT/RIGHT → changes x2
-                self._createDragHandle(group, wire, p3, p4, 'vertical', function(dx) {
-                    wire.bend.x2 = self.snap(wire.bend.x2 + dx);
-                });
+                    const segIndex = i;
+                    self._createSegmentDragHandle(group, wire, pA, pB, isV ? 'vertical' : 'horizontal', function(dx, dy) {
+                        if (isV) {
+                            // Vertical segment -> drag left/right (dx)
+                            if (segIndex === 1 && dir1 === 'H') {
+                                b.dx1 = self.snap((b.dx1 !== undefined ? b.dx1 : (pos2.x >= pos1.x ? 30 : -30)) + dx);
+                            } else if (segIndex === points.length - 3 && dir2 === 'H') {
+                                b.dx2 = self.snap((b.dx2 !== undefined ? b.dx2 : (pos1.x >= pos2.x ? 30 : -30)) + dx);
+                            } else {
+                                b.midX = self.snap((b.midX !== undefined ? b.midX : (pos1.x + pos2.x) / 2) + dx);
+                            }
+                        } else {
+                            // Horizontal segment -> drag up/down (dy)
+                            if (segIndex === 1 && dir1 === 'V') {
+                                b.dy1 = self.snap((b.dy1 !== undefined ? b.dy1 : (pos2.y >= pos1.y ? 30 : -30)) + dy);
+                            } else if (segIndex === points.length - 3 && dir2 === 'V') {
+                                b.dy2 = self.snap((b.dy2 !== undefined ? b.dy2 : (pos1.y >= pos2.y ? 30 : -30)) + dy);
+                            } else {
+                                b.midY = self.snap((b.midY !== undefined ? b.midY : (pos1.y + pos2.y) / 2) + dy);
+                            }
+                        }
+                    });
+                }
             }
 
             // Pin badges at wire endpoints
@@ -581,7 +654,7 @@ window.SimLabCircuit = {
     },
 
     // Create a drag handle on a segment
-    _createDragHandle: function(group, wire, pA, pB, orientation, onDragFn) {
+    _createSegmentDragHandle: function(group, wire, pA, pB, orientation, onDragFn) {
         const self = this;
         const mx = (pA.x + pB.x) / 2;
         const my = (pA.y + pB.y) / 2;
@@ -589,15 +662,13 @@ window.SimLabCircuit = {
 
         const handle = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         if (isV) {
-            // Vertical segment → tall narrow handle
-            const segLen = Math.max(20, Math.abs(pB.y - pA.y));
+            const segLen = Math.max(16, Math.abs(pB.y - pA.y));
             handle.setAttribute('x', mx - 5);
             handle.setAttribute('y', my - Math.min(16, segLen / 2));
             handle.setAttribute('width', 10);
             handle.setAttribute('height', Math.min(32, segLen));
         } else {
-            // Horizontal segment → wide short handle
-            const segLen = Math.max(20, Math.abs(pB.x - pA.x));
+            const segLen = Math.max(16, Math.abs(pB.x - pA.x));
             handle.setAttribute('x', mx - Math.min(16, segLen / 2));
             handle.setAttribute('y', my - 5);
             handle.setAttribute('width', Math.min(32, segLen));
@@ -611,7 +682,6 @@ window.SimLabCircuit = {
         handle.style.pointerEvents = 'all';
         handle.style.opacity = '0.85';
 
-        // Drag logic
         let startX, startY;
         handle.onmousedown = function(e) {
             e.preventDefault(); e.stopPropagation();
