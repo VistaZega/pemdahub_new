@@ -305,12 +305,143 @@ window.SimLabCircuit = {
         this.renderComponents();
         this.updateConnectionPanel();
 
-        // Auto generate smart combined code if pulled manually
-        if (!savedId && window.SimLabEngine && window.SimLabEngine.autoCodeEnabled) {
-            window.SimLabEngine.generateSmartCode();
+        // Auto connect schematic wires & generate code if pulled manually
+        if (!savedId) {
+            this.autoConnectComponentWires(comp);
+            if (window.SimLabEngine && window.SimLabEngine.autoCodeEnabled) {
+                window.SimLabEngine.generateSmartCode();
+            }
         }
 
         return comp;
+    },
+
+    connectWire: function(fromCompId, fromPinId, toCompId, toPinId, color) {
+        // Prevent duplicate wire
+        const exists = this.wires.some(w => 
+            (w.fromComp === fromCompId && w.fromPin === fromPinId && w.toComp === toCompId && w.toPin === toPinId) ||
+            (w.fromComp === toCompId && w.fromPin === toPinId && w.toComp === fromCompId && w.toPin === fromPinId)
+        );
+        if (exists) return;
+
+        const pos1 = this.getPinPos(fromCompId, fromPinId);
+        const pos2 = this.getPinPos(toCompId, toPinId);
+
+        let wps = [];
+        if (pos1 && pos2) {
+            const midX = this.snap(pos1.x + (pos2.x - pos1.x) / 2);
+            wps = [
+                { x: midX, y: pos1.y },
+                { x: midX, y: pos2.y }
+            ];
+        }
+
+        this.wires.push({
+            id: 'wire_' + Math.random().toString(36).substr(2, 6),
+            fromComp: fromCompId, fromPin: fromPinId,
+            toComp: toCompId, toPin: toPinId,
+            color: color || '#10b981', style: 'orthogonal',
+            waypoints: wps
+        });
+        this.renderWires();
+        this.updateConnectionPanel();
+    },
+
+    autoConnectComponentWires: function(comp) {
+        const uno = this.components.find(c => c.type === 'uno' || c.type === 'nano' || c.type === 'esp32');
+        if (!uno) return;
+
+        const unoId = uno.id;
+        const compId = comp.id;
+
+        switch (comp.type) {
+            case 'led_red':
+                this.connectWire(compId, 'ANODE', unoId, 'D13', '#ef4444');
+                this.connectWire(compId, 'CATHODE', unoId, 'GND_1', '#1e293b');
+                break;
+            case 'led_green':
+                this.connectWire(compId, 'ANODE', unoId, 'D13', '#10b981');
+                this.connectWire(compId, 'CATHODE', unoId, 'GND_1', '#1e293b');
+                break;
+            case 'led_yellow':
+                this.connectWire(compId, 'ANODE', unoId, 'D13', '#eab308');
+                this.connectWire(compId, 'CATHODE', unoId, 'GND_1', '#1e293b');
+                break;
+            case 'led_white':
+                this.connectWire(compId, 'ANODE', unoId, 'D13', '#f8fafc');
+                this.connectWire(compId, 'CATHODE', unoId, 'GND_1', '#1e293b');
+                break;
+
+            case 'motor_dc':
+                this.connectWire(compId, 'MOTOR_A', unoId, 'D3', '#3b82f6');
+                this.connectWire(compId, 'MOTOR_B', unoId, 'GND_1', '#1e293b');
+                break;
+
+            case 'l298n':
+                this.connectWire(compId, 'IN1', unoId, 'D3', '#3b82f6');
+                this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
+                this.connectWire(compId, 'V5', unoId, '5V', '#ef4444');
+                break;
+
+            case 'servo':
+                this.connectWire(compId, 'PWM', unoId, 'D9', '#f59e0b');
+                this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
+                this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
+                break;
+
+            case 'hc_sr04':
+                this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
+                this.connectWire(compId, 'TRIG', unoId, 'D2', '#10b981');
+                this.connectWire(compId, 'ECHO', unoId, 'D3', '#3b82f6');
+                this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
+                break;
+
+            case 'dht11':
+                this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
+                this.connectWire(compId, 'DATA', unoId, 'D4', '#8b5cf6');
+                this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
+                break;
+
+            case 'lcd1602':
+            case 'lcd2004':
+                this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
+                this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
+                this.connectWire(compId, 'SDA', unoId, 'A4', '#3b82f6');
+                this.connectWire(compId, 'SCL', unoId, 'A5', '#f59e0b');
+                break;
+
+            case 'relay':
+                this.connectWire(compId, 'IN', unoId, 'D7', '#ec4899');
+                this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
+                this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
+                break;
+
+            case 'pir':
+                this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
+                this.connectWire(compId, 'OUT', unoId, 'D2', '#10b981');
+                this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
+                break;
+
+            case 'speaker':
+                this.connectWire(compId, 'SIGNAL', unoId, 'D8', '#06b6d4');
+                this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
+                break;
+
+            case 'ldr':
+                this.connectWire(compId, 'PIN_1', unoId, 'A0', '#eab308');
+                this.connectWire(compId, 'PIN_2', unoId, 'GND_1', '#1e293b');
+                break;
+
+            case 'rc522':
+                this.connectWire(compId, 'VCC', unoId, '3V3', '#ef4444');
+                this.connectWire(compId, 'RST', unoId, 'D9', '#f59e0b');
+                this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
+                this.connectWire(compId, 'MISO', unoId, 'D12', '#3b82f6');
+                this.connectWire(compId, 'MOSI', unoId, 'D11', '#10b981');
+                this.connectWire(compId, 'SCK', unoId, 'D13', '#8b5cf6');
+                this.connectWire(compId, 'SDA', unoId, 'D10', '#ec4899');
+                break;
+        }
     },
 
     removeComponent: function(id) {
