@@ -487,11 +487,22 @@ window.SimLabCircuit = {
     },
 
     // ═══════════════════════════════════════════════════════════════
-    // Wire Rendering — Strict H-V-H Manhattan Routing
-    // The wire ALWAYS goes: Horizontal → Vertical → Horizontal
-    // wp[0].y is ALWAYS locked to pos1.y (start pin Y)
-    // wp[1].y is ALWAYS locked to pos2.y (end pin Y)
-    // Only wp[0].x / wp[1].x (= the vertical bend X) is adjustable
+    // Wire Rendering — H-V-H-V-H Manhattan Routing (5 segments)
+    //
+    // Path: pin1 → p1 → p2 → p3 → p4 → pin2
+    //   pin1 ──H──→ p1 ──V──→ p2 ──H──→ p3 ──V──→ p4 ──H──→ pin2
+    //
+    // Stored: wire.bend = { x1, y, x2 }
+    //   x1 = X of first vertical bend
+    //   y  = Y of horizontal middle segment
+    //   x2 = X of second vertical bend
+    //
+    // Drag handles:
+    //   [V1] First vertical segment  → ↔ changes x1
+    //   [H]  Middle horizontal segment → ↕ changes y
+    //   [V2] Last vertical segment   → ↔ changes x2
+    //
+    // ALWAYS 100% orthogonal — no diagonals possible!
     // ═══════════════════════════════════════════════════════════════
 
     renderWires: function() {
@@ -506,26 +517,27 @@ window.SimLabCircuit = {
 
             const style = wire.style || self.wireStyleMode;
 
-            // Initialize waypoints: only store the X of the vertical bend
-            if (!wire.waypoints || wire.waypoints.length < 2) {
+            // Initialize bend data if missing
+            if (!wire.bend) {
                 const midX = self.snap(pos1.x + (pos2.x - pos1.x) / 2);
-                wire.waypoints = [{ x: midX }, { x: midX }];
+                const midY = self.snap(pos1.y + (pos2.y - pos1.y) / 2);
+                wire.bend = { x1: midX, y: midY, x2: midX };
             }
 
-            // ENFORCE H-V-H: waypoints Y are ALWAYS locked to pin positions
-            // This guarantees no diagonal wires ever — the horizontal segments
-            // automatically extend/shorten as components move
-            const bendX = wire.waypoints[0].x; // vertical bend X position
-            const wp0 = { x: bendX, y: pos1.y }; // locked to start pin Y
-            const wp1 = { x: bendX, y: pos2.y }; // locked to end pin Y
+            // Compute the 4 intermediate points (always orthogonal)
+            const b = wire.bend;
+            const p1 = { x: b.x1, y: pos1.y }; // end of first H segment
+            const p2 = { x: b.x1, y: b.y };     // end of first V segment
+            const p3 = { x: b.x2, y: b.y };     // end of middle H segment
+            const p4 = { x: b.x2, y: pos2.y };  // end of second V segment
 
-            // Build the 3-segment path: H → V → H
+            // Build path
             let pathD;
             if (style === 'curved') {
                 const dx = Math.abs(pos2.x - pos1.x) * 0.4;
                 pathD = `M ${pos1.x} ${pos1.y} C ${pos1.x + dx} ${pos1.y}, ${pos2.x - dx} ${pos2.y}, ${pos2.x} ${pos2.y}`;
             } else {
-                pathD = `M ${pos1.x} ${pos1.y} L ${wp0.x} ${wp0.y} L ${wp1.x} ${wp1.y} L ${pos2.x} ${pos2.y}`;
+                pathD = `M ${pos1.x} ${pos1.y} L ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y} L ${pos2.x} ${pos2.y}`;
             }
 
             // Draw wire path
@@ -542,30 +554,22 @@ window.SimLabCircuit = {
             path.addEventListener('contextmenu', function(e) { self.showContextMenu(e, wire); });
             group.appendChild(path);
 
-            // Only ONE drag handle: on the VERTICAL middle segment (wp0 → wp1)
-            // This handle moves the bend LEFT/RIGHT only
+            // 3 drag handles on the 3 adjustable segments
             if (style !== 'curved') {
-                const mx = bendX;
-                const my = (wp0.y + wp1.y) / 2;
-                const segH = Math.abs(wp1.y - wp0.y);
+                // Handle 1: First V segment (p1→p2) — drag LEFT/RIGHT → changes x1
+                self._createDragHandle(group, wire, p1, p2, 'vertical', function(dx) {
+                    wire.bend.x1 = self.snap(wire.bend.x1 + dx);
+                });
 
-                const handle = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                handle.setAttribute('x', mx - 5);
-                handle.setAttribute('y', my - Math.min(16, segH / 2));
-                handle.setAttribute('width', 10);
-                handle.setAttribute('height', Math.min(32, segH));
-                handle.setAttribute('rx', 4);
-                handle.setAttribute('fill', wire.color || '#ef4444');
-                handle.setAttribute('stroke', '#fff');
-                handle.setAttribute('stroke-width', '1.5');
-                handle.style.cursor = 'ew-resize'; // left-right only
-                handle.style.pointerEvents = 'all';
-                handle.style.opacity = '0.85';
+                // Handle 2: Middle H segment (p2→p3) — drag UP/DOWN → changes y
+                self._createDragHandle(group, wire, p2, p3, 'horizontal', function(dx, dy) {
+                    wire.bend.y = self.snap(wire.bend.y + dy);
+                });
 
-                // Drag: only changes X of the vertical bend
-                self.makeBendDraggable(handle, wire);
-                handle.addEventListener('contextmenu', function(e) { self.showContextMenu(e, wire); });
-                group.appendChild(handle);
+                // Handle 3: Last V segment (p3→p4) — drag LEFT/RIGHT → changes x2
+                self._createDragHandle(group, wire, p3, p4, 'vertical', function(dx) {
+                    wire.bend.x2 = self.snap(wire.bend.x2 + dx);
+                });
             }
 
             // Pin badges at wire endpoints
@@ -574,6 +578,62 @@ window.SimLabCircuit = {
             self.renderPinBadge(group, pos1.x, pos1.y, fromLabel, wire.color);
             self.renderPinBadge(group, pos2.x, pos2.y, toLabel, wire.color);
         });
+    },
+
+    // Create a drag handle on a segment
+    _createDragHandle: function(group, wire, pA, pB, orientation, onDragFn) {
+        const self = this;
+        const mx = (pA.x + pB.x) / 2;
+        const my = (pA.y + pB.y) / 2;
+        const isV = orientation === 'vertical';
+
+        const handle = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        if (isV) {
+            // Vertical segment → tall narrow handle
+            const segLen = Math.max(20, Math.abs(pB.y - pA.y));
+            handle.setAttribute('x', mx - 5);
+            handle.setAttribute('y', my - Math.min(16, segLen / 2));
+            handle.setAttribute('width', 10);
+            handle.setAttribute('height', Math.min(32, segLen));
+        } else {
+            // Horizontal segment → wide short handle
+            const segLen = Math.max(20, Math.abs(pB.x - pA.x));
+            handle.setAttribute('x', mx - Math.min(16, segLen / 2));
+            handle.setAttribute('y', my - 5);
+            handle.setAttribute('width', Math.min(32, segLen));
+            handle.setAttribute('height', 10);
+        }
+        handle.setAttribute('rx', 4);
+        handle.setAttribute('fill', wire.color || '#ef4444');
+        handle.setAttribute('stroke', '#fff');
+        handle.setAttribute('stroke-width', '1.5');
+        handle.style.cursor = isV ? 'ew-resize' : 'ns-resize';
+        handle.style.pointerEvents = 'all';
+        handle.style.opacity = '0.85';
+
+        // Drag logic
+        let startX, startY;
+        handle.onmousedown = function(e) {
+            e.preventDefault(); e.stopPropagation();
+            startX = e.clientX; startY = e.clientY;
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onStop);
+        };
+        function onMove(e) {
+            e.preventDefault();
+            const dx = (e.clientX - startX) / self.zoomLevel;
+            const dy = (e.clientY - startY) / self.zoomLevel;
+            startX = e.clientX; startY = e.clientY;
+            onDragFn(dx, dy);
+            self.renderWires();
+        }
+        function onStop() {
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onStop);
+        }
+
+        handle.addEventListener('contextmenu', function(e) { self.showContextMenu(e, wire); });
+        group.appendChild(handle);
     },
 
     renderPinBadge: function(group, x, y, text, color) {
@@ -593,38 +653,6 @@ window.SimLabCircuit = {
         t.setAttribute('text-anchor', 'middle');
         t.textContent = text;
         g.appendChild(r); g.appendChild(t); group.appendChild(g);
-    },
-
-    // Simple Bend Drag — only changes X position of the vertical bend
-    // The horizontal segments automatically extend/shorten
-    makeBendDraggable: function(el, wire) {
-        const self = this;
-        let startX;
-
-        el.onmousedown = function(e) {
-            e.preventDefault(); e.stopPropagation();
-            startX = e.clientX;
-            window.addEventListener('mousemove', onMove);
-            window.addEventListener('mouseup', onStop);
-        };
-
-        function onMove(e) {
-            e.preventDefault();
-            const dx = (e.clientX - startX) / self.zoomLevel;
-            startX = e.clientX;
-
-            // Move ONLY the X of both waypoints (they share the same X = the bend)
-            const newX = self.snap((wire.waypoints[0].x || 0) + dx);
-            wire.waypoints[0].x = newX;
-            if (wire.waypoints.length > 1) wire.waypoints[1].x = newX;
-
-            self.renderWires();
-        }
-
-        function onStop() {
-            window.removeEventListener('mousemove', onMove);
-            window.removeEventListener('mouseup', onStop);
-        }
     },
 
     // ═══════════════════════════════════════════════════════════════
@@ -684,7 +712,15 @@ window.SimLabCircuit = {
     importJSON: function(data) {
         if (!data) return;
         this.components = data.components || [];
-        this.wires = data.wires || [];
+        this.wires = (data.wires || []).map(wire => {
+            if (!wire.bend && wire.waypoints && wire.waypoints.length > 0) {
+                const x1 = wire.waypoints[0].x || 100;
+                const y = wire.waypoints[0].y || (wire.waypoints[1] ? wire.waypoints[1].y : 100);
+                const x2 = (wire.waypoints[1] ? wire.waypoints[1].x : x1);
+                wire.bend = { x1, y, x2 };
+            }
+            return wire;
+        });
         if (data.wireStyleMode) this.wireStyleMode = data.wireStyleMode;
         if (data.gridSize) { this.gridSize = data.gridSize; this.drawGrid(); }
         this.renderAll();
