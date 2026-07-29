@@ -358,6 +358,33 @@ window.SimLabCircuit = {
         this.updateConnectionPanel();
     },
 
+    getAvailablePin: function(pinType, preferredPin) {
+        const uno = this.components.find(c => c.type === 'uno' || c.type === 'nano' || c.type === 'esp32');
+        if (!uno) return preferredPin;
+
+        const usedPins = new Set();
+        this.wires.forEach(w => {
+            if (w.fromComp === uno.id) usedPins.add(w.fromPin);
+            if (w.toComp === uno.id) usedPins.add(w.toPin);
+        });
+
+        if (!usedPins.has(preferredPin)) return preferredPin;
+
+        const digitalPins = ['D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11', 'D12', 'D13'];
+        const analogPins = ['A0', 'A1', 'A2', 'A3', 'A4', 'A5'];
+
+        if (pinType === 'digital') {
+            for (let i = 0; i < digitalPins.length; i++) {
+                if (!usedPins.has(digitalPins[i])) return digitalPins[i];
+            }
+        } else if (pinType === 'analog') {
+            for (let i = 0; i < analogPins.length; i++) {
+                if (!usedPins.has(analogPins[i])) return analogPins[i];
+            }
+        }
+        return preferredPin;
+    },
+
     autoConnectComponentWires: function(comp) {
         const uno = this.components.find(c => c.type === 'uno' || c.type === 'nano' || c.type === 'esp32');
         if (!uno) return;
@@ -367,49 +394,49 @@ window.SimLabCircuit = {
 
         switch (comp.type) {
             case 'led_red':
-                this.connectWire(compId, 'ANODE', unoId, 'D13', '#ef4444');
+                this.connectWire(compId, 'ANODE', unoId, this.getAvailablePin('digital', 'D13'), '#ef4444');
                 this.connectWire(compId, 'CATHODE', unoId, 'GND_1', '#1e293b');
                 break;
             case 'led_green':
-                this.connectWire(compId, 'ANODE', unoId, 'D13', '#10b981');
+                this.connectWire(compId, 'ANODE', unoId, this.getAvailablePin('digital', 'D13'), '#10b981');
                 this.connectWire(compId, 'CATHODE', unoId, 'GND_1', '#1e293b');
                 break;
             case 'led_yellow':
-                this.connectWire(compId, 'ANODE', unoId, 'D13', '#eab308');
+                this.connectWire(compId, 'ANODE', unoId, this.getAvailablePin('digital', 'D13'), '#eab308');
                 this.connectWire(compId, 'CATHODE', unoId, 'GND_1', '#1e293b');
                 break;
             case 'led_white':
-                this.connectWire(compId, 'ANODE', unoId, 'D13', '#f8fafc');
+                this.connectWire(compId, 'ANODE', unoId, this.getAvailablePin('digital', 'D13'), '#f8fafc');
                 this.connectWire(compId, 'CATHODE', unoId, 'GND_1', '#1e293b');
                 break;
 
             case 'motor_dc':
-                this.connectWire(compId, 'MOTOR_A', unoId, 'D3', '#3b82f6');
+                this.connectWire(compId, 'MOTOR_A', unoId, this.getAvailablePin('digital', 'D3'), '#3b82f6');
                 this.connectWire(compId, 'MOTOR_B', unoId, 'GND_1', '#1e293b');
                 break;
 
             case 'l298n':
-                this.connectWire(compId, 'IN1', unoId, 'D3', '#3b82f6');
+                this.connectWire(compId, 'IN1', unoId, this.getAvailablePin('digital', 'D3'), '#3b82f6');
                 this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
                 this.connectWire(compId, 'V5', unoId, '5V', '#ef4444');
                 break;
 
             case 'servo':
-                this.connectWire(compId, 'PWM', unoId, 'D9', '#f59e0b');
+                this.connectWire(compId, 'PWM', unoId, this.getAvailablePin('digital', 'D9'), '#f59e0b');
                 this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
                 this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
                 break;
 
             case 'hc_sr04':
                 this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
-                this.connectWire(compId, 'TRIG', unoId, 'D2', '#10b981');
-                this.connectWire(compId, 'ECHO', unoId, 'D3', '#3b82f6');
+                this.connectWire(compId, 'TRIG', unoId, this.getAvailablePin('digital', 'D2'), '#10b981');
+                this.connectWire(compId, 'ECHO', unoId, this.getAvailablePin('digital', 'D3'), '#3b82f6');
                 this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
                 break;
 
             case 'dht11':
                 this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
-                this.connectWire(compId, 'DATA', unoId, 'D4', '#8b5cf6');
+                this.connectWire(compId, 'DATA', unoId, this.getAvailablePin('digital', 'D4'), '#8b5cf6');
                 this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
                 break;
 
@@ -422,36 +449,36 @@ window.SimLabCircuit = {
                 break;
 
             case 'relay':
-                this.connectWire(compId, 'IN', unoId, 'D7', '#ec4899');
+                this.connectWire(compId, 'IN', unoId, this.getAvailablePin('digital', 'D7'), '#ec4899');
                 this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
                 this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
                 break;
 
             case 'pir':
                 this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
-                this.connectWire(compId, 'OUT', unoId, 'D2', '#10b981');
+                this.connectWire(compId, 'OUT', unoId, this.getAvailablePin('digital', 'D2'), '#10b981');
                 this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
                 break;
 
             case 'speaker':
-                this.connectWire(compId, 'SIGNAL', unoId, 'D8', '#06b6d4');
+                this.connectWire(compId, 'SIGNAL', unoId, this.getAvailablePin('digital', 'D8'), '#06b6d4');
                 this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
                 break;
 
             case 'ldr':
-                this.connectWire(compId, 'PIN_1', unoId, 'A0', '#eab308');
+                this.connectWire(compId, 'PIN_1', unoId, this.getAvailablePin('analog', 'A0'), '#eab308');
                 this.connectWire(compId, 'PIN_2', unoId, 'GND_1', '#1e293b');
                 break;
 
             case 'tcrt5000':
                 this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
                 this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
-                this.connectWire(compId, 'D0', unoId, 'D2', '#10b981');
+                this.connectWire(compId, 'D0', unoId, this.getAvailablePin('digital', 'D2'), '#10b981');
                 break;
 
             case 'rc522':
                 this.connectWire(compId, 'VCC', unoId, '3V3', '#ef4444');
-                this.connectWire(compId, 'RST', unoId, 'D9', '#f59e0b');
+                this.connectWire(compId, 'RST', unoId, this.getAvailablePin('digital', 'D9'), '#f59e0b');
                 this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
                 this.connectWire(compId, 'MISO', unoId, 'D12', '#3b82f6');
                 this.connectWire(compId, 'MOSI', unoId, 'D11', '#10b981');
