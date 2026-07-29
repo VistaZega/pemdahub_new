@@ -673,6 +673,9 @@ window.SimLabCircuit = {
         group.innerHTML = '';
         const self = this;
 
+        // Group wires by component pair to calculate exact pin indices for staggered channels
+        const compWireCounts = {};
+
         this.wires.forEach((wire, wireIdx) => {
             const pos1 = self.getPinPos(wire.fromComp, wire.fromPin);
             const pos2 = self.getPinPos(wire.toComp, wire.toPin);
@@ -682,62 +685,56 @@ window.SimLabCircuit = {
             const dir1 = self.getPinDir(wire.fromComp, wire.fromPin);
             const dir2 = self.getPinDir(wire.toComp, wire.toPin);
 
-            // Dynamic channel offset calculation based on wire index & pin spacing
-            // Creates 16px parallel channels to prevent lines from stacking on top of each other!
-            const channelOffset = (wireIdx % 8 - 3.5) * 16;
-            const pinStep = ((wireIdx * 10) % 40);
+            // Pair key for tracking channel offsets between component pairs
+            const pairKey = [wire.fromComp, wire.toComp].sort().join('__');
+            compWireCounts[pairKey] = (compWireCounts[pairKey] || 0);
+            const pinIdx = compWireCounts[pairKey];
+            compWireCounts[pairKey]++;
+
+            // 18px staggered channel spacing for zero wire overlapping
+            const channelOffset = pinIdx * 18;
 
             let points = [];
 
             if (dir1 === 'V' && dir2 === 'V') {
-                const dy1 = (pos2.y >= pos1.y ? (25 + pinStep) : (-25 - pinStep));
-                const dy2 = (pos1.y >= pos2.y ? (25 + pinStep) : (-25 - pinStep));
-                const y1 = self.snap(pos1.y + dy1);
-                const y2 = self.snap(pos2.y + dy2);
-                const xMid = self.snap((pos1.x + pos2.x) / 2 + channelOffset);
-
-                const p1 = { x: pos1.x, y: y1 };
-                const p2 = { x: xMid, y: y1 };
-                const p3 = { x: xMid, y: y2 };
-                const p4 = { x: pos2.x, y: y2 };
-
-                points = [pos1, p1, p2, p3, p4, pos2];
+                if (pos1.y <= pos2.y) {
+                    const yChannel = self.snap(pos1.y + 35 + channelOffset);
+                    const p1 = { x: pos1.x, y: yChannel };
+                    const p2 = { x: pos2.x, y: yChannel };
+                    points = [pos1, p1, p2, pos2];
+                } else {
+                    const yChannel = self.snap(pos1.y - 35 - channelOffset);
+                    const p1 = { x: pos1.x, y: yChannel };
+                    const p2 = { x: pos2.x, y: yChannel };
+                    points = [pos1, p1, p2, pos2];
+                }
             }
             else if (dir1 === 'V' && dir2 === 'H') {
-                const dy1 = (pos2.y >= pos1.y ? (25 + pinStep) : (-25 - pinStep));
-                const y1 = self.snap(pos1.y + dy1);
-                const xMid = self.snap((pos1.x + pos2.x) / 2 + channelOffset);
-
-                const p1 = { x: pos1.x, y: y1 };
-                const p2 = { x: xMid, y: y1 };
-                const p3 = { x: xMid, y: pos2.y };
-
-                points = [pos1, p1, p2, p3, pos2];
+                const dy = pos2.y >= pos1.y ? (35 + channelOffset) : (-35 - channelOffset);
+                const yChannel = self.snap(pos1.y + dy);
+                const p1 = { x: pos1.x, y: yChannel };
+                const p2 = { x: pos2.x, y: yChannel };
+                points = [pos1, p1, p2, pos2];
             }
             else if (dir1 === 'H' && dir2 === 'V') {
-                const dx1 = (pos2.x >= pos1.x ? (25 + pinStep) : (-25 - pinStep));
-                const x1 = self.snap(pos1.x + dx1);
-                const yMid = self.snap((pos1.y + pos2.y) / 2 + channelOffset);
-
-                const p1 = { x: x1, y: pos1.y };
-                const p2 = { x: x1, y: yMid };
-                const p3 = { x: pos2.x, y: yMid };
-
-                points = [pos1, p1, p2, p3, pos2];
+                const dx = pos2.x >= pos1.x ? (35 + channelOffset) : (-35 - channelOffset);
+                const xChannel = self.snap(pos1.x + dx);
+                const p1 = { x: xChannel, y: pos1.y };
+                const p2 = { x: xChannel, y: pos2.y };
+                points = [pos1, p1, p2, pos2];
             }
             else {
-                // H-H
-                const dx1 = (pos2.x >= pos1.x ? (25 + pinStep) : (-25 - pinStep));
-                const dx2 = (pos1.x >= pos2.x ? (25 + pinStep) : (-25 - pinStep));
+                // H - H
+                const dx1 = pos2.x >= pos1.x ? (35 + channelOffset) : (-35 - channelOffset);
+                const dx2 = pos1.x >= pos2.x ? (35 + channelOffset) : (-35 - channelOffset);
                 const x1 = self.snap(pos1.x + dx1);
                 const x2 = self.snap(pos2.x + dx2);
-                const yMid = self.snap((pos1.y + pos2.y) / 2 + channelOffset);
+                const yMid = self.snap((pos1.y + pos2.y) / 2 + (pinIdx % 5 - 2) * 16);
 
                 const p1 = { x: x1, y: pos1.y };
                 const p2 = { x: x1, y: yMid };
                 const p3 = { x: x2, y: yMid };
                 const p4 = { x: x2, y: pos2.y };
-
                 points = [pos1, p1, p2, p3, p4, pos2];
             }
 
@@ -798,52 +795,29 @@ window.SimLabCircuit = {
 
                     const segIndex = i;
                     self._createSegmentDragHandle(group, wire, pA, pB, isV ? 'vertical' : 'horizontal', function(dx, dy) {
+                        if (!wire.bend) wire.bend = {};
                         if (isV) {
-                            // Vertical segment -> drag left/right (dx)
-                            let newX;
-                            if (segIndex === 1 && dir1 === 'H') {
-                                newX = self.snap((b.dx1 !== undefined ? b.dx1 : (pos2.x >= pos1.x ? 30 : -30)) + dx);
-                                if (Math.abs((pos1.x + newX) - pos2.x) < 8) newX = pos2.x - pos1.x; // Magnetic snap straight
-                                b.dx1 = newX;
-                            } else if (segIndex === points.length - 3 && dir2 === 'H') {
-                                newX = self.snap((b.dx2 !== undefined ? b.dx2 : (pos1.x >= pos2.x ? 30 : -30)) + dx);
-                                if (Math.abs((pos2.x + newX) - pos1.x) < 8) newX = pos1.x - pos2.x; // Magnetic snap straight
-                                b.dx2 = newX;
-                            } else {
-                                let currX = (b.midX !== undefined ? b.midX : (pos1.x + pos2.x) / 2) + dx;
-                                // Magnetic alignment snap to Pin1 or Pin2 X for 100% straight line
-                                if (Math.abs(currX - pos1.x) < 8) currX = pos1.x;
-                                else if (Math.abs(currX - pos2.x) < 8) currX = pos2.x;
-                                b.midX = self.snap(currX);
-                            }
+                            let currX = (wire.bend.midX !== undefined ? wire.bend.midX : (pos1.x + pos2.x) / 2) + dx;
+                            if (Math.abs(currX - pos1.x) < 8) currX = pos1.x;
+                            else if (Math.abs(currX - pos2.x) < 8) currX = pos2.x;
+                            wire.bend.midX = self.snap(currX);
                         } else {
-                            // Horizontal segment -> drag up/down (dy)
-                            let newY;
-                            if (segIndex === 1 && dir1 === 'V') {
-                                newY = self.snap((b.dy1 !== undefined ? b.dy1 : (pos2.y >= pos1.y ? 30 : -30)) + dy);
-                                if (Math.abs((pos1.y + newY) - pos2.y) < 8) newY = pos2.y - pos1.y; // Magnetic snap straight
-                                b.dy1 = newY;
-                            } else if (segIndex === points.length - 3 && dir2 === 'V') {
-                                newY = self.snap((b.dy2 !== undefined ? b.dy2 : (pos1.y >= pos2.y ? 30 : -30)) + dy);
-                                if (Math.abs((pos2.y + newY) - pos1.y) < 8) newY = pos1.y - pos2.y; // Magnetic snap straight
-                                b.dy2 = newY;
-                            } else {
-                                let currY = (b.midY !== undefined ? b.midY : (pos1.y + pos2.y) / 2) + dy;
-                                // Magnetic alignment snap to Pin1 or Pin2 Y for 100% straight line
-                                if (Math.abs(currY - pos1.y) < 8) currY = pos1.y;
-                                else if (Math.abs(currY - pos2.y) < 8) currY = pos2.y;
-                                b.midY = self.snap(currY);
-                            }
+                            let currY = (wire.bend.midY !== undefined ? wire.bend.midY : (pos1.y + pos2.y) / 2) + dy;
+                            if (Math.abs(currY - pos1.y) < 8) currY = pos1.y;
+                            else if (Math.abs(currY - pos2.y) < 8) currY = pos2.y;
+                            wire.bend.midY = self.snap(currY);
                         }
                     });
                 }
             }
 
-            // Pin badges at wire endpoints
-            const fromLabel = (self.components.find(c => c.id === wire.fromComp)?.label || 'Comp') + ':' + wire.fromPin;
-            const toLabel = (self.components.find(c => c.id === wire.toComp)?.label || 'Comp') + ':' + wire.toPin;
-            self.renderPinBadge(group, pos1.x, pos1.y, fromLabel, wire.color);
-            self.renderPinBadge(group, pos2.x, pos2.y, toLabel, wire.color);
+            // Pin badges ONLY when wire is selected to avoid overlapping clutter!
+            if (isSelected) {
+                const fromLabel = (self.components.find(c => c.id === wire.fromComp)?.label || 'Comp') + ':' + wire.fromPin;
+                const toLabel = (self.components.find(c => c.id === wire.toComp)?.label || 'Comp') + ':' + wire.toPin;
+                self.renderPinBadge(group, pos1.x, pos1.y, fromLabel, wire.color);
+                self.renderPinBadge(group, pos2.x, pos2.y, toLabel, wire.color);
+            }
         });
     },
 
