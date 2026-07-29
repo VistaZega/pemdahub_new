@@ -128,14 +128,25 @@ class FinancialRecapController extends Controller
             ->get();
 
         $totalGajiLembagaMonthly = 0;
+        $schoolSalaryData = [];
         foreach ($allSchools as $sch) {
             $employees = Employee::where('school_id', $sch->id)->where('is_active', true)->get();
+            $schoolGajiMonthly = 0;
+            $empCount = 0;
             if ($currentYear && $currentSemester) {
                 foreach ($employees as $emp) {
                     $sal = $this->assignmentService->calculateFullSalary($emp, $currentYear, $currentSemester, $sch->type, $sch->id);
-                    $totalGajiLembagaMonthly += (float) ($sal['gross_pay'] ?? 0);
+                    $schoolGajiMonthly += (float) ($sal['gross_pay'] ?? 0);
+                    $empCount++;
                 }
             }
+            $schoolSalaryData[] = [
+                'school' => $sch,
+                'employee_count' => $empCount,
+                'salary_monthly' => $schoolGajiMonthly,
+                'salary_total' => $schoolGajiMonthly * $multiplier,
+            ];
+            $totalGajiLembagaMonthly += $schoolGajiMonthly;
         }
         $totalGajiLembagaPeriod = $totalGajiLembagaMonthly * $multiplier;
 
@@ -159,6 +170,26 @@ class FinancialRecapController extends Controller
 
         if ($monthlyBelanjaOps == 0 && $yayasanContribution) {
             $monthlyBelanjaOps = (float) ($yayasanContribution->authorized_expense ?? 0);
+        }
+
+        $operationalExpenseItems = [];
+        foreach (FoundationExpenseController::OPERATIONAL_ACCOUNTS as $code => $account) {
+            $amount = 0;
+            if (isset($savedDetails[$code])) {
+                $item = $savedDetails[$code];
+                if (is_array($item)) {
+                    $amount = (float) ($item['amount'] ?? ($item['tariff'] ?? 0) * ($item['volume'] ?? 1));
+                } elseif (is_numeric($item)) {
+                    $amount = (float) $item;
+                }
+            }
+            $operationalExpenseItems[] = [
+                'code' => $code,
+                'name' => $account['name'],
+                'icon' => $account['icon'],
+                'amount_monthly' => $amount,
+                'amount_total' => $amount * $multiplier,
+            ];
         }
 
         $totalBelanjaOpsPeriod = $monthlyBelanjaOps * $multiplier;
@@ -187,6 +218,8 @@ class FinancialRecapController extends Controller
             'grandTotalSaldoAkhir' => $grandTotalSaldoAkhir,
             'savedExpenseDetails' => $savedDetails,
             'expenseAccounts' => FoundationExpenseController::OPERATIONAL_ACCOUNTS,
+            'schoolSalaryData' => $schoolSalaryData,
+            'operationalExpenseItems' => $operationalExpenseItems,
         ];
     }
 }
