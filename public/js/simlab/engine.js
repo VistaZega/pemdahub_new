@@ -579,9 +579,121 @@ window.SimLabEngine = {
 
     updateCompState: function(compId, newState) {
         const comp = window.SimLabCircuit.components.find(c => c.id === compId);
-        if (comp) {
-            comp.state = Object.assign({}, comp.state, newState);
+        if (!comp) return;
+
+        comp.state = Object.assign({}, comp.state, newState);
+        window.SimLabCircuit.renderComponents();
+
+        // ═══════════════════════════════════════════════════════════════
+        // SMART CROSS-COMPONENT INTERACTIVE TRIGGERS
+        // ═══════════════════════════════════════════════════════════════
+
+        // 1. RFID Card Tapped -> Trigger Motor DC / Servo / Relay / LED
+        if (comp.type === 'rc522' && comp.state.cardTapped) {
+            this.appendSerialLog('[RFID] Kartu Terdeteksi UID: 1A 2B 3C 4D -> Akses Diterima!\n');
+            const actuators = window.SimLabCircuit.components.filter(c => 
+                c.type === 'motor_dc' || c.type === 'l298n' || c.type === 'servo' || c.type === 'relay' || c.type.startsWith('led_')
+            );
+            if (actuators.length > 0) {
+                actuators.forEach(act => {
+                    if (act.type === 'servo') {
+                        act.state = act.state || {};
+                        act.state.angle = 90;
+                    } else if (act.type.startsWith('led_')) {
+                        act.state = act.state || {};
+                        act.state.lit = true;
+                    } else {
+                        act.state = act.state || {};
+                        act.state.active = true;
+                        act.state.speed = 255;
+                    }
+                });
+                window.SimLabCircuit.renderComponents();
+                this.appendSerialLog('[Sistem Terintegrasi] Pintu Terbuka / Motor DC & Servo Aktif!\n');
+
+                // Auto-close after 3 seconds
+                setTimeout(() => {
+                    actuators.forEach(act => {
+                        if (act.type === 'servo') act.state.angle = 0;
+                        else if (act.type.startsWith('led_')) act.state.lit = false;
+                        else { act.state.active = false; act.state.speed = 0; }
+                    });
+                    comp.state.cardTapped = false;
+                    window.SimLabCircuit.renderComponents();
+                    SimLabEngine.appendSerialLog('[Sistem Terintegrasi] Pintu Menutup Kembali (Motor DC Stop).\n');
+                }, 3000);
+            }
+        }
+
+        // 2. PIR Motion Detected -> Trigger Speaker / Motor DC / LED / Relay
+        if (comp.type === 'pir' && comp.state.motion) {
+            this.appendSerialLog('[PIR] ADA GERAKAN MANUSIA TERDETEKSI!\n');
+            const alarms = window.SimLabCircuit.components.filter(c => 
+                c.type === 'speaker' || c.type === 'motor_dc' || c.type.startsWith('led_') || c.type === 'relay'
+            );
+            if (alarms.length > 0) {
+                alarms.forEach(act => {
+                    if (act.type.startsWith('led_')) act.state = { lit: true };
+                    else act.state = { active: true, speed: 255 };
+                });
+                window.SimLabCircuit.renderComponents();
+                this.appendSerialLog('[Sistem Alarm] Speaker & Motor DC Aktivasi Peringatan!\n');
+
+                setTimeout(() => {
+                    alarms.forEach(act => {
+                        if (act.type.startsWith('led_')) act.state.lit = false;
+                        else { act.state.active = false; act.state.speed = 0; }
+                    });
+                    comp.state.motion = false;
+                    window.SimLabCircuit.renderComponents();
+                    SimLabEngine.appendSerialLog('[Sistem Alarm] Alarm Kembali Standby.\n');
+                }, 3000);
+            }
+        }
+
+        // 3. LDR Light Sensor Slider -> Trigger LED / Relay
+        if (comp.type === 'ldr' && typeof comp.state.lux === 'number') {
+            const isDark = comp.state.lux < 400;
+            const lights = window.SimLabCircuit.components.filter(c => c.type.startsWith('led_') || c.type === 'relay');
+            lights.forEach(act => {
+                if (act.type.startsWith('led_')) act.state = { lit: isDark };
+                else act.state = { active: isDark };
+            });
             window.SimLabCircuit.renderComponents();
+            if (isDark) {
+                this.appendSerialLog('[LDR] Cahaya Gelap (' + comp.state.lux + ' Lux) -> Lampu Otomatis Menyala!\n');
+            } else {
+                this.appendSerialLog('[LDR] Cahaya Terang (' + comp.state.lux + ' Lux) -> Lampu Otomatis Padam.\n');
+            }
+        }
+
+        // 4. DHT11 Temp Sensor Slider -> Trigger Motor DC Fan / Relay
+        if (comp.type === 'dht11' && typeof comp.state.temp === 'number') {
+            const isHot = comp.state.temp > 30;
+            const fans = window.SimLabCircuit.components.filter(c => c.type === 'motor_dc' || c.type === 'l298n' || c.type === 'relay');
+            fans.forEach(act => {
+                act.state = { active: isHot, speed: isHot ? 255 : 0 };
+            });
+            window.SimLabCircuit.renderComponents();
+            if (isHot) {
+                this.appendSerialLog('[DHT11] Suhu Panas (' + comp.state.temp + '°C) -> Kipas Motor DC Berputar!\n');
+            } else {
+                this.appendSerialLog('[DHT11] Suhu Normal (' + comp.state.temp + '°C) -> Kipas Matikan.\n');
+            }
+        }
+
+        // 5. TCRT5000 Line Detector -> Trigger Motor DC
+        if (comp.type === 'tcrt5000' && typeof comp.state.onLine === 'boolean') {
+            const motors = window.SimLabCircuit.components.filter(c => c.type === 'motor_dc' || c.type === 'l298n');
+            motors.forEach(act => {
+                act.state = { active: comp.state.onLine, speed: comp.state.onLine ? 255 : 0 };
+            });
+            window.SimLabCircuit.renderComponents();
+            if (comp.state.onLine) {
+                this.appendSerialLog('[TCRT5000] Garis Hitam Terdeteksi -> Motor DC Aktif Melacak Garis!\n');
+            } else {
+                this.appendSerialLog('[TCRT5000] Permukaan Putih -> Motor DC Stop.\n');
+            }
         }
     },
 
@@ -833,104 +945,221 @@ void loop() {
             return;
         }
 
+        const compTypes = nonBoardComps.map(c => c.type);
+        const compNames = nonBoardComps.map(c => c.label || c.type);
+
+        const hasRfid = compTypes.includes('rc522');
+        const hasMotor = compTypes.includes('motor_dc') || compTypes.includes('l298n');
+        const hasServo = compTypes.includes('servo');
+        const hasPir = compTypes.includes('pir');
+        const hasSpeaker = compTypes.includes('speaker');
+        const hasLed = compTypes.some(t => t.startsWith('led_'));
+        const hasUltrasonic = compTypes.includes('hc_sr04');
+        const hasLdr = compTypes.includes('ldr');
+        const hasDht = compTypes.includes('dht11');
+        const hasRelay = compTypes.includes('relay');
+
+        let title = '';
         let setupLines = [];
-        let loopBlocks = [];
-        let compNames = [];
-        const pinsUsed = new Set();
+        let loopCode = '';
 
-        nonBoardComps.forEach(comp => {
-            const label = comp.label || comp.type;
-            compNames.push(label);
+        // -------------------------------------------------------------
+        // SCENARIO 1: RFID + Motor DC / Servo / Relay (Sistem Pintu Otomatis)
+        // -------------------------------------------------------------
+        if (hasRfid && (hasMotor || hasServo || hasRelay || hasLed)) {
+            title = `// PROYEK TERINTEGRASI: Sistem Pintu Otomatis RFID (${compNames.join(', ')})`;
+            setupLines.push(`  pinMode(10, OUTPUT); // Pin SDA RFID RC522`);
+            setupLines.push(`  pinMode(9, OUTPUT);  // Pin RST RFID`);
+            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT);  // Pin Kontrol Motor DC (Pintu)`);
+            if (hasServo) setupLines.push(`  pinMode(9, OUTPUT);  // Pin Kontrol Servo SG90 (Palang Pintu)`);
+            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT);  // Pin Modul Relay 5V (Solenoid Pintu)`);
+            if (hasLed) setupLines.push(`  pinMode(13, OUTPUT); // Pin LED Indikator`);
 
-            switch (comp.type) {
-                case 'led_red':
-                case 'led_green':
-                case 'led_yellow':
-                case 'led_white':
-                    if (!pinsUsed.has(13)) {
-                        pinsUsed.add(13);
-                        setupLines.push(`  pinMode(13, OUTPUT); // Pin LED ${label}`);
-                    }
-                    loopBlocks.push(`  // --- LED (${label}) ---\n  digitalWrite(13, HIGH);\n  Serial.println("LED ${label}: Menyala (HIGH)");\n  delay(1000);\n  digitalWrite(13, LOW);\n  Serial.println("LED ${label}: Padam (LOW)");\n  delay(1000);`);
-                    break;
+            loopCode = `  // --- SISTEM KONTROL PINTU RFID TERINTEGRASI ---
+  Serial.println("RFID: Menunggu Tap Kartu...");
+  
+  // Simulasi Aksi: Saat Kartu RFID Di-tap (Klik tombol 'Tap Kartu' di komponen)
+  // Sistem membaca UID Kartu -> Membuka Pintu (Motor DC / Servo / Relay Aktif)
+  Serial.println("[RFID] Akses Diterima (UID: 1A2B3C4D) -> Membuka Pintu...");
+  ${hasMotor ? 'digitalWrite(3, HIGH); // Motor DC Berputar Membuka Pintu' : ''}
+  ${hasServo ? 'servo.write(90);        // Servo Membuka Palang Pintu 90°' : ''}
+  ${hasRelay ? 'digitalWrite(7, HIGH); // Relay Switch Aktif (Solenoid UNLOCK)' : ''}
+  ${hasLed ? 'digitalWrite(13, HIGH); // LED Indikator Akses Menyala' : ''}
+  delay(3000); // Pintu Terbuka Selama 3 Detik
 
-                case 'motor_dc':
-                case 'l298n':
-                    if (!pinsUsed.has(3)) {
-                        pinsUsed.add(3);
-                        setupLines.push(`  pinMode(3, OUTPUT); // Pin Motor DC ${label}`);
-                    }
-                    loopBlocks.push(`  // --- Motor DC (${label}) ---\n  Serial.println("Motor DC ${label}: BERPUTAR...");\n  digitalWrite(3, HIGH);\n  delay(2500);\n  Serial.println("Motor DC ${label}: BERHENTI.");\n  digitalWrite(3, LOW);\n  delay(1500);`);
-                    break;
+  // Menutup kembali pintu secara otomatis
+  Serial.println("[RFID] Pintu Menutup Kembali (Motor DC Stop)...");
+  ${hasMotor ? 'digitalWrite(3, LOW);  // Motor DC Stop' : ''}
+  ${hasServo ? 'servo.write(0);         // Servo Kembali Posisi 0°' : ''}
+  ${hasRelay ? 'digitalWrite(7, LOW);  // Relay Switch Off (Solenoid LOCK)' : ''}
+  ${hasLed ? 'digitalWrite(13, LOW);  // LED Indikator Padam' : ''}
+  delay(2000);`;
+        }
 
-                case 'servo':
-                    if (!pinsUsed.has(9)) {
-                        pinsUsed.add(9);
-                        setupLines.push(`  pinMode(9, OUTPUT); // Pin Servo SG90 ${label}`);
-                    }
-                    loopBlocks.push(`  // --- Servo SG90 (${label}) ---\n  Serial.println("Servo ${label}: ke 0 Derajat");\n  servo.write(0);\n  delay(1000);\n  Serial.println("Servo ${label}: ke 90 Derajat");\n  servo.write(90);\n  delay(1000);\n  Serial.println("Servo ${label}: ke 180 Derajat");\n  servo.write(180);\n  delay(1000);`);
-                    break;
+        // -------------------------------------------------------------
+        // SCENARIO 2: PIR Motion + Speaker / Motor / LED / Relay (Sistem Alarm Otomatis)
+        // -------------------------------------------------------------
+        else if (hasPir && (hasSpeaker || hasMotor || hasLed || hasRelay)) {
+            title = `// PROYEK TERINTEGRASI: Sistem Alarm Deteksi Gerakan PIR (${compNames.join(', ')})`;
+            setupLines.push(`  pinMode(2, INPUT);   // Pin Signal OUT Sensor PIR`);
+            if (hasSpeaker) setupLines.push(`  pinMode(8, OUTPUT);  // Pin Speaker / Buzzer Alarm`);
+            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT);  // Pin Motor DC (Kipas Alarm/Aktuator)`);
+            if (hasLed) setupLines.push(`  pinMode(13, OUTPUT); // Pin LED Indikator`);
+            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT);  // Pin Relay Sirine`);
 
-                case 'hc_sr04':
-                    if (!pinsUsed.has(2)) {
-                        pinsUsed.add(2); pinsUsed.add(3);
-                        setupLines.push(`  pinMode(2, OUTPUT); // Trig HC-SR04\n  pinMode(3, INPUT);  // Echo HC-SR04`);
-                    }
-                    loopBlocks.push(`  // --- Sensor Jarak HC-SR04 ---\n  digitalWrite(2, HIGH);\n  delay(10);\n  digitalWrite(2, LOW);\n  Serial.println("HC-SR04: Jarak Terbaca 45 cm");\n  delay(1000);`);
-                    break;
+            loopCode = `  // --- SISTEM ALARM DETEKSI GERAKAN TERINTEGRASI ---
+  Serial.println("PIR: Standby Membaca Deteksi Gerakan Manusia...");
 
-                case 'dht11':
-                    if (!pinsUsed.has(4)) {
-                        pinsUsed.add(4);
-                        setupLines.push(`  pinMode(4, INPUT); // Data DHT11`);
-                    }
-                    loopBlocks.push(`  // --- Sensor Suhu DHT11 ---\n  Serial.println("DHT11: Suhu 28 C, Kelembaban 65 %RH");\n  delay(1500);`);
-                    break;
+  // Simulasi Aksi: Bila gerakan terdeteksi (Klik tombol 'Picu Ada Gerakan' pada PIR)
+  Serial.println("[PIR] GERAKAN TERDETEKSI! Mengaktifkan Sirine Alarm...");
+  ${hasSpeaker ? 'digitalWrite(8, HIGH);  // Buzzer Bunyi Nyaring' : ''}
+  ${hasMotor ? 'digitalWrite(3, HIGH);  // Motor DC Berputar' : ''}
+  ${hasLed ? 'digitalWrite(13, HIGH); // LED Indikator Menyala Kedip' : ''}
+  ${hasRelay ? 'digitalWrite(7, HIGH);  // Relay Switch On' : ''}
+  delay(3000); // Alarm Aktif 3 Detik
 
-                case 'lcd1602':
-                case 'lcd2004':
-                    setupLines.push(`  // Inisialisasi Layar LCD I2C (${label})`);
-                    loopBlocks.push(`  // --- Display LCD I2C (${label}) ---\n  Serial.println("LCD: PembdaHUB SimLab System Active");\n  delay(2000);`);
-                    break;
+  Serial.println("[PIR] Reset Alarm (Aman)...");
+  ${hasSpeaker ? 'digitalWrite(8, LOW);' : ''}
+  ${hasMotor ? 'digitalWrite(3, LOW);' : ''}
+  ${hasLed ? 'digitalWrite(13, LOW);' : ''}
+  ${hasRelay ? 'digitalWrite(7, LOW);' : ''}
+  delay(2000);`;
+        }
 
-                case 'relay':
-                    if (!pinsUsed.has(7)) {
-                        pinsUsed.add(7);
-                        setupLines.push(`  pinMode(7, OUTPUT); // Control Pin Relay`);
-                    }
-                    loopBlocks.push(`  // --- Modul Relay 5V ---\n  Serial.println("Relay: Switch AKTIF (NO)");\n  digitalWrite(7, HIGH);\n  delay(2000);\n  Serial.println("Relay: Switch MATI (NC)");\n  digitalWrite(7, LOW);\n  delay(2000);`);
-                    break;
+        // -------------------------------------------------------------
+        // SCENARIO 3: Ultrasonik HC-SR04 + Servo / Motor / Speaker (Sistem Palang Otomatis)
+        // -------------------------------------------------------------
+        else if (hasUltrasonic && (hasServo || hasMotor || hasSpeaker)) {
+            title = `// PROYEK TERINTEGRASI: Sistem Palang Otomatis Jarak Ultrasonik (${compNames.join(', ')})`;
+            setupLines.push(`  pinMode(2, OUTPUT); // Trig HC-SR04`);
+            setupLines.push(`  pinMode(3, INPUT);  // Echo HC-SR04`);
+            if (hasServo) setupLines.push(`  pinMode(9, OUTPUT); // Servo SG90 Palang`);
+            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT); // Motor DC`);
+            if (hasSpeaker) setupLines.push(`  pinMode(8, OUTPUT); // Buzzer Warning`);
 
-                case 'pir':
-                    if (!pinsUsed.has(2)) {
-                        pinsUsed.add(2);
-                        setupLines.push(`  pinMode(2, INPUT); // Signal OUT PIR`);
-                    }
-                    loopBlocks.push(`  // --- Sensor Gerak PIR ---\n  Serial.println("PIR: Membaca Deteksi Gerakan Manusia");\n  delay(1500);`);
-                    break;
+            loopCode = `  // --- SISTEM PALANG OTOMATIS SENSOR JARAK ---
+  digitalWrite(2, HIGH); delay(10); digitalWrite(2, LOW);
+  Serial.println("HC-SR04: Jarak Terbaca 15 cm (Objek Mendekat < 20 cm)");
+  
+  Serial.println("[HC-SR04] Objek Terdeteksi -> Palang Pintu Berbuka...");
+  ${hasServo ? 'servo.write(90);        // Servo Membuka Palang Pintu 90°' : ''}
+  ${hasMotor ? 'digitalWrite(3, HIGH); // Motor DC Berputar' : ''}
+  ${hasSpeaker ? 'digitalWrite(8, HIGH); // Buzzer Bunyi Peringatan' : ''}
+  delay(3000);
 
-                case 'speaker':
-                    if (!pinsUsed.has(8)) {
-                        pinsUsed.add(8);
-                        setupLines.push(`  pinMode(8, OUTPUT); // Signal Speaker/Buzzer`);
-                    }
-                    loopBlocks.push(`  // --- Speaker / Buzzer ---\n  Serial.println("Buzzer: BUNYI (HIGH)");\n  digitalWrite(8, HIGH);\n  delay(800);\n  digitalWrite(8, LOW);\n  delay(1000);`);
-                    break;
+  Serial.println("[HC-SR04] Area Aman -> Palang Menutup Kembali.");
+  ${hasServo ? 'servo.write(0);' : ''}
+  ${hasMotor ? 'digitalWrite(3, LOW);' : ''}
+  ${hasSpeaker ? 'digitalWrite(8, LOW);' : ''}
+  delay(2000);`;
+        }
 
-                case 'ldr':
-                    setupLines.push(`  // Pin Sensor Cahaya LDR (Analog A0)`);
-                    loopBlocks.push(`  // --- Sensor Cahaya LDR ---\n  Serial.println("LDR: Intensitas Cahaya 750 Lux");\n  delay(1500);`);
-                    break;
+        // -------------------------------------------------------------
+        // SCENARIO 4: LDR + LED / Relay (Smart Street Light)
+        // -------------------------------------------------------------
+        else if (hasLdr && (hasLed || hasRelay || hasMotor)) {
+            title = `// PROYEK TERINTEGRASI: Sistem Lampu Otomatis Sensor Cahaya LDR (${compNames.join(', ')})`;
+            setupLines.push(`  // Pin LDR pada Analog A0`);
+            if (hasLed) setupLines.push(`  pinMode(13, OUTPUT); // Pin LED Utama`);
+            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT);  // Pin Relay Lampu AC`);
 
-                case 'rc522':
-                    setupLines.push(`  pinMode(10, OUTPUT); // SDA RFID\n  pinMode(9, OUTPUT);  // RST RFID`);
-                    loopBlocks.push(`  // --- RFID RC522 Reader ---\n  Serial.println("RFID: Menunggu Tap Kartu...");\n  delay(2000);`);
-                    break;
-            }
-        });
+            loopCode = `  // --- SISTEM LAMPU OTOMATIS SENSOR CAHAYA ---
+  Serial.println("LDR: Intensitas Cahaya 250 Lux (Gelap)");
+  Serial.println("[LDR] Cahaya Gelap -> Lampu Otomatis MENYALA (HIGH)...");
+  ${hasLed ? 'digitalWrite(13, HIGH);' : ''}
+  ${hasRelay ? 'digitalWrite(7, HIGH);' : ''}
+  delay(3000);
 
-        let code = `// PembdaHUB SimLab - Kode Otomatis Tergenerasi\n`;
-        code += `// Komponen Aktif (${nonBoardComps.length}): ${compNames.join(', ')}\n\n`;
+  Serial.println("LDR: Intensitas Cahaya 850 Lux (Terang)");
+  Serial.println("[LDR] Cahaya Terang -> Lampu Otomatis PADAM (LOW).");
+  ${hasLed ? 'digitalWrite(13, LOW);' : ''}
+  ${hasRelay ? 'digitalWrite(7, LOW);' : ''}
+  delay(2000);`;
+        }
+
+        // -------------------------------------------------------------
+        // SCENARIO 5: DHT11 + Motor / Relay (Smart Cooling Fan)
+        // -------------------------------------------------------------
+        else if (hasDht && (hasMotor || hasRelay || hasSpeaker)) {
+            title = `// PROYEK TERINTEGRASI: Kipas Pendingin Otomatis Sensor Suhu DHT11 (${compNames.join(', ')})`;
+            setupLines.push(`  pinMode(4, INPUT);  // Pin Data Sensor DHT11`);
+            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT); // Pin Motor DC Kipas Pendingin`);
+            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT); // Pin Relay Kipas`);
+
+            loopCode = `  // --- SISTEM PENDINGIN KIPAS OTOMATIS SENSOR SUHU ---
+  Serial.println("DHT11: Suhu Terbaca 34.5 C (Suhu Panas > 30°C)");
+  Serial.println("[DHT11] Suhu Panas -> Kipas Motor DC Berputar Mendinginkan...");
+  ${hasMotor ? 'digitalWrite(3, HIGH); // Kipas Berputar Fast' : ''}
+  ${hasRelay ? 'digitalWrite(7, HIGH);' : ''}
+  delay(4000);
+
+  Serial.println("DHT11: Suhu Normal (25.0 C) -> Kipas Otomatis Stop.");
+  ${hasMotor ? 'digitalWrite(3, LOW);' : ''}
+  ${hasRelay ? 'digitalWrite(7, LOW);' : ''}
+  delay(2000);`;
+        }
+
+        // -------------------------------------------------------------
+        // FALLBACK: Sequential Individual Control for Unrelated Components
+        // -------------------------------------------------------------
+        else {
+            title = `// PembdaHUB SimLab - Kode Kontrol Sekuensial (${compNames.join(', ')})`;
+            const pinsUsed = new Set();
+            let loopBlocks = [];
+
+            nonBoardComps.forEach(comp => {
+                const label = comp.label || comp.type;
+                switch (comp.type) {
+                    case 'led_red': case 'led_green': case 'led_yellow': case 'led_white':
+                        if (!pinsUsed.has(13)) { pinsUsed.add(13); setupLines.push(`  pinMode(13, OUTPUT); // LED ${label}`); }
+                        loopBlocks.push(`  // --- LED (${label}) ---\n  digitalWrite(13, HIGH);\n  Serial.println("LED ${label}: Menyala (HIGH)");\n  delay(1000);\n  digitalWrite(13, LOW);\n  Serial.println("LED ${label}: Padam (LOW)");\n  delay(1000);`);
+                        break;
+                    case 'motor_dc': case 'l298n':
+                        if (!pinsUsed.has(3)) { pinsUsed.add(3); setupLines.push(`  pinMode(3, OUTPUT); // Motor DC ${label}`); }
+                        loopBlocks.push(`  // --- Motor DC (${label}) ---\n  Serial.println("Motor DC ${label}: BERPUTAR...");\n  digitalWrite(3, HIGH);\n  delay(2500);\n  Serial.println("Motor DC ${label}: BERHENTI.");\n  digitalWrite(3, LOW);\n  delay(1500);`);
+                        break;
+                    case 'servo':
+                        if (!pinsUsed.has(9)) { pinsUsed.add(9); setupLines.push(`  pinMode(9, OUTPUT); // Servo ${label}`); }
+                        loopBlocks.push(`  // --- Servo SG90 (${label}) ---\n  Serial.println("Servo ${label}: Posisi 0°");\n  servo.write(0);\n  delay(1000);\n  Serial.println("Servo ${label}: Posisi 90°");\n  servo.write(90);\n  delay(1000);`);
+                        break;
+                    case 'hc_sr04':
+                        if (!pinsUsed.has(2)) { pinsUsed.add(2); pinsUsed.add(3); setupLines.push(`  pinMode(2, OUTPUT); // Trig\n  pinMode(3, INPUT);  // Echo`); }
+                        loopBlocks.push(`  // --- Sensor Jarak HC-SR04 ---\n  digitalWrite(2, HIGH); delay(10); digitalWrite(2, LOW);\n  Serial.println("HC-SR04: Jarak Terbaca 45 cm");\n  delay(1000);`);
+                        break;
+                    case 'dht11':
+                        if (!pinsUsed.has(4)) { pinsUsed.add(4); setupLines.push(`  pinMode(4, INPUT); // Data DHT11`); }
+                        loopBlocks.push(`  // --- Sensor Suhu DHT11 ---\n  Serial.println("DHT11: Suhu 28 C, Kelembaban 65 %RH");\n  delay(1500);`);
+                        break;
+                    case 'lcd1602': case 'lcd2004':
+                        setupLines.push(`  // Inisialisasi Layar LCD I2C (${label})`);
+                        loopBlocks.push(`  // --- Display LCD I2C (${label}) ---\n  Serial.println("LCD: PembdaHUB SimLab System Active");\n  delay(2000);`);
+                        break;
+                    case 'relay':
+                        if (!pinsUsed.has(7)) { pinsUsed.add(7); setupLines.push(`  pinMode(7, OUTPUT); // Relay`); }
+                        loopBlocks.push(`  // --- Modul Relay 5V ---\n  Serial.println("Relay: Switch AKTIF (NO)");\n  digitalWrite(7, HIGH);\n  delay(2000);\n  Serial.println("Relay: Switch MATI (NC)");\n  digitalWrite(7, LOW);\n  delay(2000);`);
+                        break;
+                    case 'pir':
+                        if (!pinsUsed.has(2)) { pinsUsed.add(2); setupLines.push(`  pinMode(2, INPUT); // PIR OUT`); }
+                        loopBlocks.push(`  // --- Sensor Gerak PIR ---\n  Serial.println("PIR: Membaca Deteksi Gerakan Manusia");\n  delay(1500);`);
+                        break;
+                    case 'speaker':
+                        if (!pinsUsed.has(8)) { pinsUsed.add(8); setupLines.push(`  pinMode(8, OUTPUT); // Speaker`); }
+                        loopBlocks.push(`  // --- Speaker / Buzzer ---\n  Serial.println("Buzzer: BUNYI!");\n  digitalWrite(8, HIGH);\n  delay(800);\n  digitalWrite(8, LOW);\n  delay(1000);`);
+                        break;
+                    case 'ldr':
+                        setupLines.push(`  // LDR pada Analog A0`);
+                        loopBlocks.push(`  // --- Sensor Cahaya LDR ---\n  Serial.println("LDR: Intensitas Cahaya 750 Lux");\n  delay(1500);`);
+                        break;
+                    case 'rc522':
+                        setupLines.push(`  pinMode(10, OUTPUT); // SDA RFID\n  pinMode(9, OUTPUT);  // RST RFID`);
+                        loopBlocks.push(`  // --- RFID RC522 Reader ---\n  Serial.println("RFID: Menunggu Tap Kartu...");\n  delay(2000);`);
+                        break;
+                }
+            });
+            loopCode = loopBlocks.join('\n\n');
+        }
+
+        let code = `${title}\n\n`;
         code += `void setup() {\n`;
         code += `  Serial.begin(9600);\n`;
         code += `  Serial.println("PembdaHUB SimLab System Ready!");\n`;
@@ -939,7 +1168,7 @@ void loop() {
         }
         code += `}\n\n`;
         code += `void loop() {\n`;
-        code += loopBlocks.join('\n\n') + `\n`;
+        code += loopCode + `\n`;
         code += `}`;
 
         this.isGeneratingCode = true;
