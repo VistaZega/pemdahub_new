@@ -391,19 +391,18 @@
                     <button id="btnToggleAutoCode" onclick="SimLabEngine.toggleAutoCode()" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold hover:bg-emerald-500/30 transition-colors cursor-pointer" title="Auto-Code Pintar: Generasi/Hapus kode otomatis sesuai komponen aktif">
                         <i class="fas fa-magic text-amber-400 mr-1"></i> Auto-Code: ON
                     </button>
-                    <select id="codeTemplateSelect" onchange="SimLabEngine.loadSampleCode(this.value)" class="bg-gray-900 text-emerald-400 text-xs font-bold rounded-lg border border-gray-700 px-2 py-1 focus:outline-none focus:border-emerald-500 cursor-pointer transition-colors max-w-[180px] truncate">
-                        <option value="">-- Contoh Kode --</option>
-                        <option value="led">1. LED Blink</option>
-                        <option value="motor_dc">2. Motor DC</option>
-                        <option value="servo">3. Servo SG90</option>
-                        <option value="hc_sr04">4. HC-SR04</option>
-                        <option value="dht11">5. Sensor DHT11</option>
-                        <option value="lcd">6. LCD I2C</option>
-                        <option value="relay">7. Relay 5V</option>
-                        <option value="pir">8. Sensor PIR</option>
-                        <option value="speaker">9. Buzzer</option>
-                        <option value="ldr">10. Sensor LDR</option>
-                        <option value="rc522">11. RFID RC522</option>
+                    <select id="codeTemplateSelect" onchange="SimLabEngine.loadProjectTemplate(this.value)" class="bg-gray-900 text-emerald-400 text-xs font-bold rounded-lg border border-gray-700 px-2 py-1 focus:outline-none focus:border-emerald-500 cursor-pointer transition-colors max-w-[240px] truncate" title="Pilih 10 Template Proyek Edukatif Siap Pakai">
+                        <option value="">-- 10 Template Proyek Edukatif --</option>
+                        <option value="blink">01. Lampu LED Blink</option>
+                        <option value="traffic_light">02. Lampu Lalu Lintas 3 Warna</option>
+                        <option value="dc_motor">03. Kipas & Kecepatan Motor DC</option>
+                        <option value="rfid_door">04. Smart Door Access RFID & Motor DC</option>
+                        <option value="pir_alarm">05. Alarm Deteksi Gerakan PIR & Buzzer</option>
+                        <option value="ultrasonic_gate">06. Palang Otomatis HC-SR04 & Servo</option>
+                        <option value="smart_lamp_ldr">07. Lampu Jalan Otomatis LDR & Relay</option>
+                        <option value="cooling_fan_dht">08. Pendingin Suhu Ruangan DHT11</option>
+                        <option value="line_follower">09. Robot Line Follower TCRT5000</option>
+                        <option value="smart_home_iot">10. Smart Home Automation Terpadu IoT</option>
                     </select>
                 </div>
 
