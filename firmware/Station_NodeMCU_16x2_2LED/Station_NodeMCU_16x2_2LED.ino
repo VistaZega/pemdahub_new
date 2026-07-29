@@ -1,7 +1,7 @@
 // ============================================================
 //  FIRMWARE NODEMCU V3 (ESP-12F) - PEMBDAHUB ATTENDANCE STATION
 //  Versi: RFID RC522 + LCD 16x2 + 2 LED (Hijau & Merah) + Buzzer
-//  (TANPA MP3 PLAYER)
+//  (TANPA MP3 PLAYER - WITH MULTI WIFI DISPLAY & CONTINUOUS LOOP)
 // ============================================================
 //
 //  WIRING DIAGRAM NODEMCU V3:
@@ -37,17 +37,32 @@
 //  KONFIGURASI - Sesuaikan untuk setiap station!
 // ============================================================
 
-// WiFi Utama
+// WiFi Utama & Alternatif
 const char* WIFI_SSID         = "Xspace";
 const char* WIFI_PASSWORD     = "12345678starlink";
 
-// WiFi Alternatif (otomatis fallback jika utama gagal)
 const char* WIFI_ALT_SSID     = "TEFA";
 const char* WIFI_ALT_PASSWORD = "PEMBDA2026";
 
-// WiFi Alternatif 2
 const char* WIFI_ALT2_SSID    = "VistaHotLine";
 const char* WIFI_ALT2_PASSWORD= "pelita31";
+
+const char* WIFI_ALT3_SSID    = "VISTAFAMILY";
+const char* WIFI_ALT3_PASSWORD= "pelita31";
+
+// Struktur daftar WiFi untuk pencarian berulang di LCD
+struct WiFiCredential {
+  const char* ssid;
+  const char* password;
+};
+
+const WiFiCredential wifiList[] = {
+  { WIFI_SSID,      WIFI_PASSWORD },
+  { WIFI_ALT_SSID,  WIFI_ALT_PASSWORD },
+  { WIFI_ALT2_SSID, WIFI_ALT2_PASSWORD },
+  { WIFI_ALT3_SSID, WIFI_ALT3_PASSWORD }
+};
+const int NUM_WIFI = sizeof(wifiList) / sizeof(wifiList[0]);
 
 // Server API PembdaHUB
 const char* SERVER_URL        = "https://perguruanpembda.com/api/attendance/rfid-scan";
@@ -60,23 +75,17 @@ const char* DEVICE_ID         = "STATION-SMK-01";
 //  PIN DEFINITIONS - NodeMCU V3 (ESP-12F)
 // ============================================================
 
-// SPI Pins untuk RFID RC522
 #define RFID_SS_PIN    16   // D0 (GPIO16)
-#define RFID_RST_PIN  255   // UNUSED - Hubungkan pin RST RFID langsung ke 3.3V NodeMCU
+#define RFID_RST_PIN  255   // UNUSED - Hubungkan pin RST RFID langsung ke 3.3V
 
-// Indikator LED & Buzzer
 #define LED_GREEN_PIN   0   // D3 (GPIO0)  - LED Hijau (Berhasil / Sukses)
 #define LED_RED_PIN     2   // D4 (GPIO2)  - LED Merah (Gagal / Kartu Salah)
-#define BUZZER_PIN     15   // D8 (GPIO15) - Buzzer (Pull-down bawaan)
+#define BUZZER_PIN     15   // D8 (GPIO15) - Buzzer
 
-// I2C LCD 16x2
 #define LCD_ADDRESS    0x27
 #define LCD_COLS       16
 #define LCD_ROWS       2
 
-// ============================================================
-//  TIMEOUTS & COOLDOWNS
-// ============================================================
 #define HTTP_TIMEOUT        10000   // 10 detik (ESP8266 TLS)
 #define DISPLAY_RESULT_MS   3500    // Durasi tampil hasil di LCD
 #define SCAN_COOLDOWN_MS    3000    // Anti double-tap (3 detik)
@@ -89,15 +98,12 @@ unsigned long lastTapTime      = 0;
 unsigned long lastWiFiCheck    = 0;
 bool          isOnline         = false;
 
-// ============================================================
-//  OBJEK HARDWARE
-// ============================================================
 MFRC522           rfid(RFID_SS_PIN, RFID_RST_PIN);
 LiquidCrystal_I2C lcd(LCD_ADDRESS, LCD_COLS, LCD_ROWS);
 ESP8266WiFiMulti  wifiMulti;
 
 // ============================================================
-//  DEKLARASI PROTOTIPE FUNGSI (Agar tidak error 'not declared')
+//  PROTOTIPE FUNGSI
 // ============================================================
 void connectWiFi();
 void showReady();
@@ -112,10 +118,9 @@ void parseAndDisplay(String json);
 String getRfidUID();
 
 // ============================================================
-//  INDIKATOR BUZZER & 2 LED (HIJAU & MERAH)
+//  INDIKATOR BUZZER & 2 LED
 // ============================================================
 
-// Sukses (Check-In / Check-Out): LED Hijau Nyala + 2 Beep Pendek
 void indicatorSuccess() {
   digitalWrite(LED_RED_PIN, LOW);
   for (int i = 0; i < 2; i++) {
@@ -128,7 +133,6 @@ void indicatorSuccess() {
   }
 }
 
-// Cooldown / Sudah Absen: LED Hijau Nyala 1x Panjang (400ms) + 1 Beep
 void indicatorCooldown() {
   digitalWrite(LED_RED_PIN, LOW);
   digitalWrite(LED_GREEN_PIN, HIGH);
@@ -138,7 +142,6 @@ void indicatorCooldown() {
   digitalWrite(BUZZER_PIN, LOW);
 }
 
-// Kartu Baru / Belum Terdaftar: LED Merah Kedip 3x Cepat + Beep
 void indicatorNewCard() {
   digitalWrite(LED_GREEN_PIN, LOW);
   for (int i = 0; i < 3; i++) {
@@ -151,7 +154,6 @@ void indicatorNewCard() {
   }
 }
 
-// Gagal / Error: LED Merah Nyala 1x Panjang (700ms) + 1 Beep Panjang
 void indicatorFail() {
   digitalWrite(LED_GREEN_PIN, LOW);
   digitalWrite(LED_RED_PIN, HIGH);
@@ -162,43 +164,62 @@ void indicatorFail() {
 }
 
 // ============================================================
-//  KONEKSI WIFI
+//  KONEKSI WIFI (LOOP PENCARIAN CONTINUOUS + TAMPIL SSID DI LCD)
 // ============================================================
 void connectWiFi() {
   WiFi.mode(WIFI_STA);
   WiFi.persistent(false); 
-  int attempt = 0;
 
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("MENCARI WIFI... "));
 
-  while (wifiMulti.run() != WL_CONNECTED && attempt < 20) {
-    delay(500);
-    String dots = "";
-    for (int i = 0; i < (attempt % 4) + 1; i++) dots += ".";
-    lcd.setCursor(0, 1); lcd.print("Menghubungkan   ");
-    lcd.setCursor(13, 1); lcd.print(dots);
-    attempt++;
+  int apIndex = 0;
+
+  // Ulangi terus tanpa batas sampai salah satu WiFi terhubung!
+  while (wifiMulti.run() != WL_CONNECTED) {
+    const char* currentSSID = wifiList[apIndex].ssid;
+    
+    // Tampilkan nama SSID yang sedang dicari di baris 1
+    String line0 = "Cari:" + String(currentSSID);
+    while (line0.length() < 16) line0 += " ";
+    if (line0.length() > 16) line0 = line0.substring(0, 16);
+
+    lcd.setCursor(0, 0); lcd.print(line0);
+
+    // Animasi titik-titik (....) di baris 2 sambil mencoba koneksi
+    for (int dot = 0; dot < 4; dot++) {
+      if (wifiMulti.run() == WL_CONNECTED) break;
+
+      String line1 = "Menghubungkan";
+      for (int d = 0; d <= dot; d++) line1 += ".";
+      while (line1.length() < 16) line1 += " ";
+
+      lcd.setCursor(0, 1); lcd.print(line1);
+      delay(400);
+    }
+
+    // Pindah ke SSID berikutnya dalam daftar jika belum terhubung
+    apIndex = (apIndex + 1) % NUM_WIFI;
   }
 
-  if (WiFi.status() == WL_CONNECTED) {
-    lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("WIFI CONNECTED! "));
-    lcd.setCursor(0, 1); lcd.print(WiFi.localIP().toString());
-    
-    // Kedip LED Hijau 2x sebagai tanda siap
-    for(int i=0; i<2; i++){
-      digitalWrite(LED_GREEN_PIN, HIGH); digitalWrite(BUZZER_PIN, HIGH); delay(100);
-      digitalWrite(LED_GREEN_PIN, LOW);  digitalWrite(BUZZER_PIN, LOW);  delay(100);
-    }
-    delay(1000);
-  } else {
-    lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("WIFI GAGAL!     "));
-    lcd.setCursor(0, 1); lcd.print(F("Auto-retry bg..."));
-    indicatorFail();
-    delay(1500);
+  // Jika WiFi sudah berhasil terhubung
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print(F("WIFI CONNECTED! "));
+  
+  String ipStr = WiFi.localIP().toString();
+  while (ipStr.length() < 16) ipStr += " ";
+  lcd.setCursor(0, 1); lcd.print(ipStr);
+  
+  // Indikator LED Hijau & Beep 2x
+  for (int i = 0; i < 2; i++) {
+    digitalWrite(LED_GREEN_PIN, HIGH);
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(100);
+    digitalWrite(LED_GREEN_PIN, LOW);
+    digitalWrite(BUZZER_PIN, LOW);
+    if (i < 1) delay(100);
   }
+  delay(1200);
 }
 
 // ============================================================
@@ -228,11 +249,10 @@ void showError(String msg) {
 void setup() {
   Serial.begin(115200);
   delay(1000);
-  Serial.println(F("\n=== NODEMCU STATION BOOTING (2 LED + NO MP3) ==="));
+  Serial.println(F("\n=== NODEMCU STATION BOOTING (4 WIFI + 2 LED + NO MP3) ==="));
   Serial.println(F("Board: NodeMCU V3 (ESP-12F) - 16x2 + 2 LED + Buzzer"));
   Serial.print(F("Device ID: ")); Serial.println(DEVICE_ID);
 
-  // Inisialisasi LED & Buzzer
   pinMode(LED_GREEN_PIN, OUTPUT);
   pinMode(LED_RED_PIN, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
@@ -272,10 +292,11 @@ void setup() {
     rfid.PCD_AntennaOn();
   }
 
-  // Koneksi WiFi dengan multi-AP
-  wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
-  wifiMulti.addAP(WIFI_ALT_SSID, WIFI_ALT_PASSWORD);
-  wifiMulti.addAP(WIFI_ALT2_SSID, WIFI_ALT2_PASSWORD);
+  // Tambahkan semua 4 WiFi AP ke wifiMulti
+  for (int i = 0; i < NUM_WIFI; i++) {
+    wifiMulti.addAP(wifiList[i].ssid, wifiList[i].password);
+  }
+
   connectWiFi();
   isOnline = (WiFi.status() == WL_CONNECTED);
   showReady();
@@ -310,7 +331,6 @@ void loop() {
   // Cek RFID
   handleRfidScan();
 
-  // Delay kecil agar WDT ESP8266 tidak trigger
   delay(20);
 }
 
@@ -328,7 +348,7 @@ void handleRfidScan() {
   String uid = getRfidUID();
   Serial.println("RFID UID: " + uid);
 
-  // Anti double-tap: abaikan UID sama dalam cooldown window
+  // Anti double-tap
   unsigned long now = millis();
   if (uid == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
     rfid.PICC_HaltA();
@@ -338,24 +358,18 @@ void handleRfidScan() {
   lastUID     = uid;
   lastTapTime = now;
 
-  // Tampilkan di LCD
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("MEMPROSES...    "));
   lcd.setCursor(0, 1); lcd.print("ID:" + uid);
   
-  // Beep pendek saat scan kartu
   digitalWrite(BUZZER_PIN, HIGH);
   delay(80);
   digitalWrite(BUZZER_PIN, LOW);
 
-  // Halt kartu SEBELUM kirim HTTP
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
 
-  // Kirim ke server
   sendToServer(uid, "rfid");
-
-  // Reset lastUID
   lastUID = "";
 }
 
