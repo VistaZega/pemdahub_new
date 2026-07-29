@@ -125,6 +125,11 @@ window.SimLabEngine = {
                     : proj.circuit_json;
                 window.SimLabCircuit.importJSON(circuit);
             }
+        } else if (config && config.templateKey) {
+            const self = this;
+            setTimeout(function() {
+                self.loadProjectTemplate(config.templateKey);
+            }, 200);
         } else {
             if (window.SimLabCircuit && window.SimLabCircuit.components.length === 0) {
                 window.SimLabCircuit.addComponent('uno', 150, 100);
@@ -916,6 +921,12 @@ void loop() {
             window.SimLabCircuit.resetCircuit();
         }
 
+        // Ensure Arduino Uno exists on canvas
+        let uno = window.SimLabCircuit ? window.SimLabCircuit.components.find(c => c.type === 'uno' || c.type === 'nano' || c.type === 'esp32') : null;
+        if (!uno && window.SimLabCircuit) {
+            uno = window.SimLabCircuit.addComponent('uno', 100, 100, 'uno_main', {}, 'Arduino Uno');
+        }
+
         let title = '';
 
         switch (templateId) {
@@ -925,6 +936,7 @@ void loop() {
                 break;
 
             case 'traffic_light':
+            case 'traffic-light':
                 title = '02. Simulasi Lampu Lalu Lintas 3 Warna';
                 window.SimLabCircuit.addComponent('led_red', 520, 80, null, null, 'LED Merah (Stop)');
                 window.SimLabCircuit.addComponent('led_yellow', 520, 200, null, null, 'LED Kuning (Siap)');
@@ -932,11 +944,13 @@ void loop() {
                 break;
 
             case 'dc_motor':
+            case 'dc-motor':
                 title = '03. Kontrol Kipas & Kecepatan Motor DC';
                 window.SimLabCircuit.addComponent('motor_dc', 520, 160, null, null, 'Kipas Motor DC');
                 break;
 
             case 'rfid_door':
+            case 'rfid-door':
                 title = '04. Smart Door Access RFID & Motor DC';
                 window.SimLabCircuit.addComponent('rc522', 480, 80, null, null, 'Reader RFID RC522');
                 window.SimLabCircuit.addComponent('motor_dc', 480, 280, null, null, 'Motor DC Pintu');
@@ -945,6 +959,7 @@ void loop() {
                 break;
 
             case 'pir_alarm':
+            case 'pir-alarm':
                 title = '05. Alarm Deteksi Gerakan PIR & Buzzer';
                 window.SimLabCircuit.addComponent('pir', 480, 100, null, null, 'Sensor Gerak PIR');
                 window.SimLabCircuit.addComponent('speaker', 480, 280, null, null, 'Sirine Buzzer');
@@ -952,6 +967,9 @@ void loop() {
                 break;
 
             case 'ultrasonic_gate':
+            case 'ultrasonic-gate':
+            case 'ultrasonic-lcd':
+            case 'servo-sweep':
                 title = '06. Palang Otomatis HC-SR04 & Servo';
                 window.SimLabCircuit.addComponent('hc_sr04', 480, 80, null, null, 'Sensor Jarak HC-SR04');
                 window.SimLabCircuit.addComponent('servo', 480, 260, null, null, 'Servo Palang Pintu');
@@ -959,6 +977,7 @@ void loop() {
                 break;
 
             case 'smart_lamp_ldr':
+            case 'smart-lamp-ldr':
                 title = '07. Lampu Jalan Otomatis LDR & Relay';
                 window.SimLabCircuit.addComponent('ldr', 480, 120, null, null, 'Sensor Cahaya LDR');
                 window.SimLabCircuit.addComponent('relay', 480, 280, null, null, 'Modul Relay 5V');
@@ -966,6 +985,8 @@ void loop() {
                 break;
 
             case 'cooling_fan_dht':
+            case 'cooling-fan-dht':
+            case 'dht11-esp32':
                 title = '08. Pendingin Suhu Ruangan DHT11';
                 window.SimLabCircuit.addComponent('dht11', 480, 100, null, null, 'Sensor Suhu DHT11');
                 window.SimLabCircuit.addComponent('motor_dc', 480, 280, null, null, 'Kipas Pendingin');
@@ -973,6 +994,8 @@ void loop() {
                 break;
 
             case 'line_follower':
+            case 'line-follower':
+            case 'l298n-motor':
                 title = '09. Robot Line Follower TCRT5000';
                 window.SimLabCircuit.addComponent('tcrt5000', 480, 80, null, null, 'Sensor Garis TCRT5000');
                 window.SimLabCircuit.addComponent('l298n', 480, 240, null, null, 'Driver Motor L298N');
@@ -980,6 +1003,8 @@ void loop() {
                 break;
 
             case 'smart_home_iot':
+            case 'smart-home-iot':
+            case 'relay-pir':
                 title = '10. Smart Home Automation Terpadu IoT';
                 window.SimLabCircuit.addComponent('rc522', 480, 60, null, null, 'RFID Pintu Utama');
                 window.SimLabCircuit.addComponent('pir', 480, 240, null, null, 'PIR Keamanan');

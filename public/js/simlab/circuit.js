@@ -993,9 +993,17 @@ window.SimLabCircuit = {
         }
     },
 
-    // ═══════════════════════════════════════════════════════════════
-    // Export / Import
-    // ═══════════════════════════════════════════════════════════════
+    resetCircuit: function() {
+        this.checkAutoStopSimulation('Kertas kerja di-reset');
+        const uno = this.components.find(c => c.type === 'uno' || c.type === 'nano' || c.type === 'esp32');
+        this.components = uno ? [uno] : [];
+        this.wires = [];
+        this.connectingPin = null;
+        this.selectedWireId = null;
+        this.compCounter = this.components.length;
+        this.renderAll();
+        this.updateConnectionPanel();
+    },
 
     exportJSON: function() {
         return {

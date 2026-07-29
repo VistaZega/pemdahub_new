@@ -507,6 +507,7 @@ PembdaHUB SimLab Serial Console Connected
     <script>
         window.SimLabConfig = {
             projectId: {{ $project ? $project->id : 'null' }},
+            templateKey: "{{ $templateKey ?? '' }}",
             saveUrl: "{{ route('simlab.save') }}",
             compileUrl: "{{ route('simlab.compile') }}",
             initialProject: {!! json_encode($project) !!}

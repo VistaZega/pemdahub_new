@@ -39,14 +39,21 @@ class SimLabController extends Controller
     public function editor($id = null)
     {
         $project = null;
+        $templateKey = null;
+
         if ($id && $id !== 'new') {
-            $project = SimProject::find($id);
-            if (!$project && strlen($id) > 10) {
+            if (is_numeric($id)) {
+                $project = SimProject::find($id);
+            } else if (strlen($id) > 10) {
                 $project = SimProject::where('share_token', $id)->first();
+            }
+
+            if (!$project) {
+                $templateKey = Str::slug($id);
             }
         }
 
-        return view('simlab.editor', compact('project'));
+        return view('simlab.editor', compact('project', 'templateKey'));
     }
 
     /**
