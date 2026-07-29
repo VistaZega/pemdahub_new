@@ -383,10 +383,14 @@ window.SimLabEngine = {
     // ═══════════════════════════════════════════════════════════════
 
     startSimulation: function() {
-        const code = this.getCode();
-        if (!code.trim()) {
-            alert('Tuliskan kode Arduino Anda terlebih dahulu.');
-            return;
+        let code = this.getCode();
+        if (!code || !code.trim()) {
+            this.generateSmartCode();
+            code = this.getCode();
+        }
+        if (!code || !code.trim()) {
+            code = "// PembdaHUB SimLab System Ready\nvoid setup() {\n  Serial.begin(9600);\n  Serial.println(\"PembdaHUB SimLab Started!\");\n}\nvoid loop() {\n  delay(500);\n}";
+            if (this.editor) this.editor.setValue(code);
         }
 
         // Parse setup() and loop()
