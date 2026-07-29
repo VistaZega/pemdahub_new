@@ -14,6 +14,7 @@ window.SimLabCircuit = {
     components: [],
     wires: [],
     selectedWireColor: "#ef4444",
+    selectedWireId: null,
     connectingPin: null,
     compCounter: 0,
     zoomLevel: 1.0,
@@ -162,10 +163,17 @@ window.SimLabCircuit = {
             }
         });
 
-        // Click outside cancels wire drawing
+        // Click outside cancels wire drawing, deselects wire, and hides context menu
         document.addEventListener('click', function(e) {
             const menu = document.getElementById('wireContextMenu');
             if (menu && !menu.contains(e.target)) menu.classList.add('hidden');
+
+            const isWireOrMenu = (e.target.closest && (e.target.closest('#wiresGroup') || e.target.closest('#wireContextMenu')));
+            if (!isWireOrMenu && self.selectedWireId !== null) {
+                self.selectedWireId = null;
+                self.renderWires();
+            }
+
             if (e.target.id === 'circuitCanvasContainer' || e.target.id === 'circuitSvg') {
                 if (self.connectingPin) {
                     self.connectingPin = null;
@@ -250,6 +258,8 @@ window.SimLabCircuit = {
     showContextMenu: function(e, wire) {
         e.preventDefault(); e.stopPropagation();
         this.activeWireContext = wire;
+        this.selectedWireId = wire.id;
+        this.renderWires();
         const menu = document.getElementById('wireContextMenu');
         if (menu) {
             menu.style.left = e.clientX + 'px';
@@ -261,7 +271,7 @@ window.SimLabCircuit = {
     },
     setCtxWireColor: function(c) { if (this.activeWireContext) { this.activeWireContext.color = c; this.renderWires(); document.getElementById('wireContextMenu')?.classList.add('hidden'); } },
     setCtxWireStyle: function(s) { if (this.activeWireContext) { this.activeWireContext.style = s; this.renderWires(); document.getElementById('wireContextMenu')?.classList.add('hidden'); } },
-    deleteCtxWire: function() { if (this.activeWireContext) { this.wires = this.wires.filter(w => w.id !== this.activeWireContext.id); this.renderWires(); this.updateConnectionPanel(); document.getElementById('wireContextMenu')?.classList.add('hidden'); } },
+    deleteCtxWire: function() { if (this.activeWireContext) { this.wires = this.wires.filter(w => w.id !== this.activeWireContext.id); if (this.selectedWireId === this.activeWireContext.id) this.selectedWireId = null; this.renderWires(); this.updateConnectionPanel(); document.getElementById('wireContextMenu')?.classList.add('hidden'); } },
 
     applyZoom: function() {
         const svg = document.getElementById('circuitSvg');
@@ -593,28 +603,56 @@ window.SimLabCircuit = {
                 points = [pos1, p1, p2, p3, p4, pos2];
             }
 
+            const isSelected = (self.selectedWireId === wire.id);
+
             // Build SVG pathD
             let pathD = `M ${points[0].x} ${points[0].y}`;
             for (let i = 1; i < points.length; i++) {
                 pathD += ` L ${points[i].x} ${points[i].y}`;
             }
 
+            // Selection Glow Effect (under path)
+            if (isSelected) {
+                const glow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                glow.setAttribute('d', pathD);
+                glow.setAttribute('stroke', '#0ea5e9');
+                glow.setAttribute('stroke-width', '10');
+                glow.setAttribute('fill', 'none');
+                glow.setAttribute('opacity', '0.45');
+                glow.setAttribute('stroke-linecap', 'round');
+                glow.setAttribute('stroke-linejoin', 'round');
+                group.appendChild(glow);
+            }
+
             // Draw main wire path
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', pathD);
             path.setAttribute('stroke', wire.color || '#ef4444');
-            path.setAttribute('stroke-width', '4');
+            path.setAttribute('stroke-width', isSelected ? '5' : '4');
             path.setAttribute('fill', 'none');
             path.setAttribute('stroke-linecap', 'round');
             path.setAttribute('stroke-linejoin', 'round');
             if (style === 'dashed') path.setAttribute('stroke-dasharray', '8,6');
             path.style.cursor = 'pointer';
             path.style.pointerEvents = 'stroke';
-            path.addEventListener('contextmenu', function(e) { self.showContextMenu(e, wire); });
+
+            // Click selects wire
+            path.addEventListener('click', function(e) {
+                e.stopPropagation();
+                self.selectedWireId = wire.id;
+                self.renderWires();
+            });
+
+            path.addEventListener('contextmenu', function(e) {
+                e.stopPropagation();
+                self.selectedWireId = wire.id;
+                self.showContextMenu(e, wire);
+                self.renderWires();
+            });
             group.appendChild(path);
 
-            // Add Drag Handles for each intermediate segment
-            if (style !== 'curved') {
+            // Add Drag Handles ONLY if wire is selected! (Penanda H/V hanya muncul saat kabel diklik)
+            if (isSelected && style !== 'curved') {
                 for (let i = 1; i <= points.length - 3; i++) {
                     const pA = points[i];
                     const pB = points[i + 1];
@@ -624,21 +662,39 @@ window.SimLabCircuit = {
                     self._createSegmentDragHandle(group, wire, pA, pB, isV ? 'vertical' : 'horizontal', function(dx, dy) {
                         if (isV) {
                             // Vertical segment -> drag left/right (dx)
+                            let newX;
                             if (segIndex === 1 && dir1 === 'H') {
-                                b.dx1 = self.snap((b.dx1 !== undefined ? b.dx1 : (pos2.x >= pos1.x ? 30 : -30)) + dx);
+                                newX = self.snap((b.dx1 !== undefined ? b.dx1 : (pos2.x >= pos1.x ? 30 : -30)) + dx);
+                                if (Math.abs((pos1.x + newX) - pos2.x) < 8) newX = pos2.x - pos1.x; // Magnetic snap straight
+                                b.dx1 = newX;
                             } else if (segIndex === points.length - 3 && dir2 === 'H') {
-                                b.dx2 = self.snap((b.dx2 !== undefined ? b.dx2 : (pos1.x >= pos2.x ? 30 : -30)) + dx);
+                                newX = self.snap((b.dx2 !== undefined ? b.dx2 : (pos1.x >= pos2.x ? 30 : -30)) + dx);
+                                if (Math.abs((pos2.x + newX) - pos1.x) < 8) newX = pos1.x - pos2.x; // Magnetic snap straight
+                                b.dx2 = newX;
                             } else {
-                                b.midX = self.snap((b.midX !== undefined ? b.midX : (pos1.x + pos2.x) / 2) + dx);
+                                let currX = (b.midX !== undefined ? b.midX : (pos1.x + pos2.x) / 2) + dx;
+                                // Magnetic alignment snap to Pin1 or Pin2 X for 100% straight line
+                                if (Math.abs(currX - pos1.x) < 8) currX = pos1.x;
+                                else if (Math.abs(currX - pos2.x) < 8) currX = pos2.x;
+                                b.midX = self.snap(currX);
                             }
                         } else {
                             // Horizontal segment -> drag up/down (dy)
+                            let newY;
                             if (segIndex === 1 && dir1 === 'V') {
-                                b.dy1 = self.snap((b.dy1 !== undefined ? b.dy1 : (pos2.y >= pos1.y ? 30 : -30)) + dy);
+                                newY = self.snap((b.dy1 !== undefined ? b.dy1 : (pos2.y >= pos1.y ? 30 : -30)) + dy);
+                                if (Math.abs((pos1.y + newY) - pos2.y) < 8) newY = pos2.y - pos1.y; // Magnetic snap straight
+                                b.dy1 = newY;
                             } else if (segIndex === points.length - 3 && dir2 === 'V') {
-                                b.dy2 = self.snap((b.dy2 !== undefined ? b.dy2 : (pos1.y >= pos2.y ? 30 : -30)) + dy);
+                                newY = self.snap((b.dy2 !== undefined ? b.dy2 : (pos1.y >= pos2.y ? 30 : -30)) + dy);
+                                if (Math.abs((pos2.y + newY) - pos1.y) < 8) newY = pos1.y - pos2.y; // Magnetic snap straight
+                                b.dy2 = newY;
                             } else {
-                                b.midY = self.snap((b.midY !== undefined ? b.midY : (pos1.y + pos2.y) / 2) + dy);
+                                let currY = (b.midY !== undefined ? b.midY : (pos1.y + pos2.y) / 2) + dy;
+                                // Magnetic alignment snap to Pin1 or Pin2 Y for 100% straight line
+                                if (Math.abs(currY - pos1.y) < 8) currY = pos1.y;
+                                else if (Math.abs(currY - pos2.y) < 8) currY = pos2.y;
+                                b.midY = self.snap(currY);
                             }
                         }
                     });
