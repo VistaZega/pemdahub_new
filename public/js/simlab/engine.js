@@ -371,6 +371,12 @@ window.SimLabEngine = {
             if (statusEl) {
                 statusEl.textContent = 'DELAY: ' + remaining + 's tersisa';
             }
+
+            // Re-render active animated components (Motor DC rotor, buzzer, etc) continuously during delay
+            const hasActiveAnim = window.SimLabCircuit && window.SimLabCircuit.components.some(c => c.state && (c.state.active || c.state.lit));
+            if (hasActiveAnim) {
+                window.SimLabCircuit.renderComponents();
+            }
             return;
         }
 
