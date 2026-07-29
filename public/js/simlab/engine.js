@@ -269,6 +269,43 @@ window.SimLabEngine = {
                 instructions.push({ op: 'servoWrite', angle: angle, src: line.trim() });
                 continue;
             }
+
+            // 6. tone(pin, freq)
+            const toneMatch = line.match(/tone\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/);
+            if (toneMatch) {
+                let pin = toneMatch[1].trim().replace(/^D/, '');
+                let freq = parseInt(toneMatch[2].trim(), 10) || 1000;
+                instructions.push({ op: 'tone', pin: pin, freq: freq, src: line.trim() });
+                continue;
+            }
+
+            // 7. noTone(pin)
+            const noToneMatch = line.match(/noTone\s*\(\s*([^)]+)\s*\)/);
+            if (noToneMatch) {
+                let pin = noToneMatch[1].trim().replace(/^D/, '');
+                instructions.push({ op: 'noTone', pin: pin, src: line.trim() });
+                continue;
+            }
+
+            // 8. lcd.setCursor(col, row)
+            const lcdCursorMatch = line.match(/lcd\.setCursor\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+            if (lcdCursorMatch) {
+                instructions.push({ op: 'lcdSetCursor', col: parseInt(lcdCursorMatch[1], 10), row: parseInt(lcdCursorMatch[2], 10), src: line.trim() });
+                continue;
+            }
+
+            // 9. lcd.print(...)
+            const lcdPrintMatch = line.match(/lcd\.print\s*\(\s*"?([^"]+)"?\s*\)/);
+            if (lcdPrintMatch) {
+                instructions.push({ op: 'lcdPrint', text: lcdPrintMatch[1], src: line.trim() });
+                continue;
+            }
+
+            // 10. lcd.clear()
+            if (line.includes('lcd.clear()')) {
+                instructions.push({ op: 'lcdClear', src: line.trim() });
+                continue;
+            }
         }
 
         return instructions;
@@ -450,6 +487,46 @@ window.SimLabEngine = {
 
                 case 'servoWrite':
                     this.updateAllServos(instr.angle);
+                    break;
+
+                case 'tone':
+                    this.setPinState(instr.pin, 1);
+                    this.appendSerialLog('[Buzzer/Tone] Pin D' + instr.pin + ' Berbunyi (' + instr.freq + ' Hz)\n');
+                    break;
+
+                case 'noTone':
+                    this.setPinState(instr.pin, 0);
+                    break;
+
+                case 'lcdSetCursor':
+                    this.vm.lcdRow = instr.row;
+                    this.vm.lcdCol = instr.col;
+                    break;
+
+                case 'lcdPrint':
+                    {
+                        const lcds = window.SimLabCircuit.components.filter(c => c.type.startsWith('lcd'));
+                        const r = this.vm.lcdRow || 0;
+                        lcds.forEach(lcd => {
+                            lcd.state = lcd.state || {};
+                            if (r === 0) lcd.state.line1 = instr.text;
+                            else if (r === 1) lcd.state.line2 = instr.text;
+                            else if (r === 2) lcd.state.line3 = instr.text;
+                            else if (r === 3) lcd.state.line4 = instr.text;
+                        });
+                        if (lcds.length > 0) window.SimLabCircuit.renderComponents();
+                        this.appendSerialLog('LCD Line ' + (r + 1) + ': "' + instr.text + '"\n');
+                    }
+                    break;
+
+                case 'lcdClear':
+                    {
+                        const lcds = window.SimLabCircuit.components.filter(c => c.type.startsWith('lcd'));
+                        lcds.forEach(lcd => {
+                            lcd.state = { line1: '', line2: '', line3: '', line4: '' };
+                        });
+                        if (lcds.length > 0) window.SimLabCircuit.renderComponents();
+                    }
                     break;
             }
         }
@@ -711,6 +788,44 @@ window.SimLabEngine = {
             } else {
                 this.appendSerialLog('[TCRT5000] Permukaan Putih -> Motor DC Stop.\n');
             }
+        }
+
+        // 6. HC-SR04 Ultrasonic Distance Slider -> Trigger Servo Palang / LCD / Speaker / Motor
+        if (comp.type === 'hc_sr04' && typeof comp.state.distance === 'number') {
+            const dist = comp.state.distance;
+            const isNear = dist < 20;
+
+            const servos = window.SimLabCircuit.components.filter(c => c.type === 'servo');
+            servos.forEach(s => { s.state = s.state || {}; s.state.angle = isNear ? 90 : 0; });
+
+            const lcds = window.SimLabCircuit.components.filter(c => c.type.startsWith('lcd'));
+            lcds.forEach(lcd => {
+                lcd.state = lcd.state || {};
+                lcd.state.line1 = ('Jarak: ' + dist + ' cm').padEnd(16, ' ');
+                lcd.state.line2 = (isNear ? 'PALANG: BUKA  ' : 'PALANG: TUTUP ').padEnd(16, ' ');
+            });
+
+            const alarms = window.SimLabCircuit.components.filter(c => c.type === 'speaker' || c.type.startsWith('led_'));
+            alarms.forEach(act => {
+                if (act.type.startsWith('led_')) act.state = { lit: isNear };
+                else act.state = { active: isNear };
+            });
+
+            window.SimLabCircuit.renderComponents();
+
+            if (isNear) {
+                this.appendSerialLog('[HC-SR04] Jarak Dekat (' + dist + ' cm) -> Palang Servo Terbuka & LCD Update!\n');
+            } else {
+                this.appendSerialLog('[HC-SR04] Jarak Terbaca ' + dist + ' cm (Aman, Palang Pintu Tertutup).\n');
+            }
+        }
+
+        // 7. DFPlayer Mini MP3 Player -> Trigger Speaker
+        if (comp.type === 'dfplayer' && comp.state.active) {
+            this.appendSerialLog('[DFPlayer MP3] Memutar Musik Track 001.mp3...\n');
+            const speakers = window.SimLabCircuit.components.filter(c => c.type === 'speaker');
+            speakers.forEach(spk => { spk.state = { active: true }; });
+            window.SimLabCircuit.renderComponents();
         }
     },
 
@@ -1307,6 +1422,13 @@ void loop() {
                     case 'ldr':
                         setupLines.push(`  // LDR pada Analog A0`);
                         loopBlocks.push(`  // --- Sensor Cahaya LDR ---\n  Serial.println("LDR: Intensitas Cahaya 750 Lux");\n  delay(1500);`);
+                        break;
+                    case 'tcrt5000':
+                        if (!pinsUsed.has(2)) { pinsUsed.add(2); setupLines.push(`  pinMode(2, INPUT); // Sensor Garis TCRT5000`); }
+                        loopBlocks.push(`  // --- Sensor Garis TCRT5000 ---\n  Serial.println("TCRT5000: Membaca Garis Hitam");\n  delay(1500);`);
+                        break;
+                    case 'dfplayer':
+                        loopBlocks.push(`  // --- DFPlayer Mini MP3 ---\n  Serial.println("DFPlayer: Memutar Audio Track 001.mp3");\n  delay(2000);`);
                         break;
                     case 'rc522':
                         loopBlocks.push(`  // --- RFID RC522 Reader ---\n  Serial.println("RFID: Menunggu Tap Kartu...");\n  delay(2000);`);
