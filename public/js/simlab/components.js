@@ -757,30 +757,173 @@ window.SimLabComponents = {
             <circle cx="40" cy="25" r="20" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
             <path d="M 28 25 L 32 15 L 36 35 L 40 15 L 44 35 L 48 15 L 52 25" fill="none" stroke="#a16207" stroke-width="2"/>
             <text x="40" y="55" fill="#a16207" font-size="8" font-weight="bold" text-anchor="middle">LDR</text>
+    tcrt5000: {
+        name: "TCRT5000 Line Tracker",
+        width: 100,
+        height: 90,
+        pins: [
+            { id: "VCC", label: "VCC", x: 20, y: 75, type: "power" },
+            { id: "GND", label: "GND", x: 40, y: 75, type: "gnd" },
+            { id: "D0", label: "D0", x: 60, y: 75, type: "digital" },
+            { id: "A0", label: "A0", x: 80, y: 75, type: "analog" }
+        ],
+        svg: function(comp) {
+            const onLine = comp.state?.onLine || false;
+            return `
+            <rect width="100" height="90" rx="6" fill="#1e3a8a" stroke="#1d4ed8" stroke-width="2"/>
+            <rect x="25" y="15" width="20" height="35" rx="3" fill="#171717" stroke="#404040"/>
+            <rect x="55" y="15" width="20" height="35" rx="3" fill="#3b82f6" stroke="#60a5fa"/>
+            <circle cx="85" cy="20" r="4" fill="${onLine ? '#ef4444' : '#1e1b4b'}" stroke="#fff" stroke-width="1"/>
+            
+            <text x="50" y="62" fill="${onLine ? '#fef08a' : '#ffffff'}" font-size="8.5" font-weight="bold" text-anchor="middle">
+                ${onLine ? 'GARIS HITAM' : 'TCRT5000'}
+            </text>
+            
+            <g fill="#ffffff" font-size="7.5" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="20" y="84">VCC</text>
+                <text x="40" y="84">GND</text>
+                <text x="60" y="84">D0</text>
+                <text x="80" y="84">A0</text>
+            </g>
+            `;
+        },
+        controls: function(comp) {
+            const onLine = comp.state?.onLine || false;
+            return `
+            <div class="mt-2 p-2 bg-gray-900 rounded border border-gray-800 text-xs">
+                <button onclick="SimLabEngine.updateCompState('${comp.id}', {onLine: ${!onLine}})" 
+                    class="w-full py-1 rounded font-bold transition-colors ${onLine ? 'bg-amber-600 text-white' : 'bg-blue-600 hover:bg-blue-500 text-white'}">
+                    ${onLine ? '⬜ Permukaan Putih' : '⬛ Deteksi Garis Hitam'}
+                </button>
+            </div>
+            `;
+        }
+    },
+
+    pir: {
+        name: "PIR Motion Sensor",
+        width: 100,
+        height: 120,
+        pins: [
+            { id: "VCC", label: "VCC", x: 25, y: 105, type: "power" },
+            { id: "OUT", label: "OUT", x: 50, y: 105, type: "digital" },
+            { id: "GND", label: "GND", x: 75, y: 105, type: "gnd" }
+        ],
+        svg: function(comp) {
+            const motion = comp.state?.motion || false;
+            return `
+            <rect width="100" height="120" rx="8" fill="#15803d" stroke="#166534" stroke-width="2"/>
+            <circle cx="50" cy="50" r="32" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+            <circle cx="50" cy="50" r="22" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+            
+            <circle cx="20" cy="18" r="4" fill="${motion ? '#ef4444' : '#14532d'}" stroke="#fff" stroke-width="1"/>
+            
+            <text x="50" y="93" fill="${motion ? '#fef08a' : '#ffffff'}" font-size="9" font-weight="bold" text-anchor="middle">
+                ${motion ? '🏃 GERAKAN!' : 'PIR STANDBY'}
+            </text>
+            
+            <g fill="#ffffff" font-size="7.5" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="25" y="115">VCC</text>
+                <text x="50" y="115">OUT</text>
+                <text x="75" y="115">GND</text>
+            </g>
+            `;
+        },
+        controls: function(comp) {
+            const motion = comp.state?.motion || false;
+            return `
+            <div class="mt-2 p-2 bg-gray-900 rounded border border-gray-800 text-xs">
+                <button onclick="SimLabEngine.updateCompState('${comp.id}', {motion: ${!motion}})" 
+                    class="w-full py-1 rounded font-bold transition-colors ${motion ? 'bg-amber-600 text-white' : 'bg-green-600 hover:bg-green-500 text-white'}">
+                    ${motion ? '✋ Reset Gerakan' : '🏃 Picu Ada Gerakan'}
+                </button>
+            </div>
+            `;
+        }
+    },
+
+    ldr: {
+        name: "LDR Light Sensor",
+        width: 80,
+        height: 70,
+        pins: [
+            { id: "PIN_1", label: "Pin 1", x: 25, y: 55, type: "passive" },
+            { id: "PIN_2", label: "Pin 2", x: 55, y: 55, type: "passive" }
+        ],
+        svg: function(comp) {
+            const lux = comp.state?.lux || 500;
+            return `
+            <rect width="80" height="70" rx="4" fill="#facc15" stroke="#ca8a04" stroke-width="2"/>
+            <circle cx="40" cy="25" r="18" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
+            <path d="M 28 25 L 32 15 L 36 35 L 40 15 L 44 35 L 48 15 L 52 25" fill="none" stroke="#a16207" stroke-width="2"/>
+            <text x="40" y="48" fill="#a16207" font-size="8" font-weight="bold" text-anchor="middle">${lux} Lux</text>
+            
+            <g fill="#a16207" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="25" y="65">P1</text>
+                <text x="55" y="65">P2</text>
+            </g>
+            `;
+        },
+        controls: function(comp) {
+            const lux = comp.state?.lux || 500;
+            return `
+            <div class="mt-2 p-2 bg-gray-900 rounded border border-gray-800 text-xs">
+                <label class="text-gray-400 block mb-1">Cahaya (${lux} Lux):</label>
+                <input type="range" min="0" max="1000" value="${lux}" 
+                    oninput="SimLabEngine.updateCompState('${comp.id}', {lux: parseInt(this.value)})"
+                    class="w-full accent-yellow-400 cursor-pointer"/>
+            </div>
             `;
         }
     },
 
     motor_dc: {
         name: "Motor DC",
-        width: 80,
-        height: 100,
+        width: 100,
+        height: 110,
         pins: [
-            { id: "MOTOR_A", label: "A", x: 25, y: 85, type: "digital" },
-            { id: "MOTOR_B", label: "B", x: 55, y: 85, type: "digital" }
+            { id: "MOTOR_A", label: "A", x: 30, y: 95, type: "digital" },
+            { id: "MOTOR_B", label: "B", x: 70, y: 95, type: "digital" }
         ],
         svg: function(comp) {
+            const active = comp.state?.active || false;
             return `
-            <rect width="80" height="100" rx="8" fill="#e5e5e5" stroke="#a3a3a3" stroke-width="2"/>
-            <rect x="25" y="10" width="30" height="20" fill="#fcd34d" stroke="#d97706" stroke-width="2"/>
-            <circle cx="40" cy="50" r="25" fill="#d4d4d4" stroke="#737373" stroke-width="2"/>
-            <circle cx="40" cy="50" r="5" fill="#404040"/>
-            <text x="40" y="80" fill="#404040" font-size="10" font-weight="bold" text-anchor="middle">MOTOR</text>
+            <rect width="100" height="110" rx="8" fill="#e5e5e5" stroke="#a3a3a3" stroke-width="2"/>
+            <rect x="35" y="8" width="30" height="18" rx="2" fill="#fcd34d" stroke="#d97706" stroke-width="2"/>
+            <circle cx="50" cy="50" r="28" fill="#d4d4d4" stroke="#737373" stroke-width="2"/>
+            <circle cx="50" cy="50" r="6" fill="#404040"/>
             
-            <g fill="#404040" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">
-                <text x="25" y="97">A</text>
-                <text x="55" y="97">B</text>
+            ${active ? `
+            <!-- Spinning Rotor -->
+            <g transform="rotate(${((Date.now() / 5) % 360)}, 50, 50)">
+                <path d="M 50 50 L 35 30 A 15 15 0 0 1 50 22 Z" fill="#3b82f6" opacity="0.9"/>
+                <path d="M 50 50 L 65 70 A 15 15 0 0 1 50 78 Z" fill="#3b82f6" opacity="0.9"/>
+                <path d="M 50 50 L 30 65 A 15 15 0 0 1 22 50 Z" fill="#3b82f6" opacity="0.9"/>
+                <path d="M 50 50 L 70 35 A 15 15 0 0 1 78 50 Z" fill="#3b82f6" opacity="0.9"/>
             </g>
+            <text x="50" y="88" fill="#16a34a" font-size="8.5" font-weight="bold" text-anchor="middle">● PUTAR (ON)</text>
+            ` : `
+            <!-- Stationary Rotor -->
+            <path d="M 50 50 L 35 30 A 15 15 0 0 1 50 22 Z" fill="#64748b" opacity="0.6"/>
+            <path d="M 50 50 L 65 70 A 15 15 0 0 1 50 78 Z" fill="#64748b" opacity="0.6"/>
+            <text x="50" y="88" fill="#64748b" font-size="8.5" font-weight="bold" text-anchor="middle">OFF (DIAM)</text>
+            `}
+
+            <g fill="#404040" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="30" y="105">A</text>
+                <text x="70" y="105">B</text>
+            </g>
+            `;
+        },
+        controls: function(comp) {
+            const active = comp.state?.active || false;
+            return `
+            <div class="mt-2 p-2 bg-gray-900 rounded border border-gray-800 text-xs">
+                <button onclick="SimLabEngine.updateCompState('${comp.id}', {active: ${!active}})" 
+                    class="w-full py-1 rounded font-bold transition-colors ${active ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-emerald-600 hover:bg-emerald-500 text-white'}">
+                    ${active ? '⏹ Stop Motor DC' : '▶ Tes Putar Motor DC'}
+                </button>
+            </div>
             `;
         }
     },
@@ -801,11 +944,13 @@ window.SimLabComponents = {
             { id: "V5", label: "5V", x: 165, y: 125, type: "power" }
         ],
         svg: function(comp) {
+            const active = comp.state?.active || false;
             return `
             <rect width="180" height="140" rx="4" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
             <rect x="50" y="15" width="80" height="40" fill="#171717" stroke="#404040" stroke-width="2"/>
             <path d="M50 15 L130 15 L130 35 L50 35 Z" fill="none" stroke="#d4d4d4" stroke-width="1" stroke-dasharray="2,2"/>
-            <text x="90" y="75" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">L298N</text>
+            <circle cx="20" cy="20" r="4" fill="${active ? '#22c55e' : '#451a03'}" stroke="#fff" stroke-width="1"/>
+            <text x="90" y="75" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">L298N ${active ? '(ON)' : ''}</text>
             <rect x="15" y="55" width="20" height="40" fill="#0284c7" stroke="#0369a1"/>
             <rect x="145" y="55" width="20" height="40" fill="#0284c7" stroke="#0369a1"/>
             
@@ -820,6 +965,70 @@ window.SimLabComponents = {
                 <text x="150" y="117">GND</text>
                 <text x="165" y="117">5V</text>
             </g>
+            `;
+        },
+        controls: function(comp) {
+            const active = comp.state?.active || false;
+            return `
+            <div class="mt-2 p-2 bg-gray-900 rounded border border-gray-800 text-xs">
+                <button onclick="SimLabEngine.updateCompState('${comp.id}', {active: ${!active}})" 
+                    class="w-full py-1 rounded font-bold transition-colors ${active ? 'bg-red-600 text-white' : 'bg-emerald-600 hover:bg-emerald-500 text-white'}">
+                    ${active ? '⏹ Matikan L298N' : '▶ Power ON L298N'}
+                </button>
+            </div>
+            `;
+        }
+    },
+
+    rc522: {
+        name: "RC522 RFID Reader",
+        width: 120,
+        height: 140,
+        pins: [
+            { id: "VCC", label: "VCC", x: 15, y: 125, type: "power" },
+            { id: "RST", label: "RST", x: 29, y: 125, type: "digital" },
+            { id: "GND", label: "GND", x: 43, y: 125, type: "gnd" },
+            { id: "IRQ", label: "IRQ", x: 57, y: 125, type: "digital" },
+            { id: "MISO", label: "MISO", x: 71, y: 125, type: "digital" },
+            { id: "MOSI", label: "MOSI", x: 85, y: 125, type: "digital" },
+            { id: "SCK", label: "SCK", x: 99, y: 125, type: "digital" },
+            { id: "SDA", label: "SDA", x: 113, y: 125, type: "digital" }
+        ],
+        svg: function(comp) {
+            const card = comp.state?.cardTapped || false;
+            return `
+            <rect width="120" height="140" rx="8" fill="#15803d" stroke="#166534" stroke-width="2"/>
+            <rect x="15" y="15" width="90" height="85" rx="6" fill="#166534" stroke="#e2e8f0" stroke-width="2"/>
+            <rect x="25" y="25" width="70" height="65" rx="4" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+            <rect x="35" y="35" width="50" height="45" rx="3" fill="none" stroke="#94a3b8" stroke-width="1"/>
+            
+            <circle cx="100" cy="20" r="4" fill="${card ? '#22c55e' : '#14532d'}" stroke="#fff" stroke-width="1"/>
+            
+            <text x="60" y="60" fill="${card ? '#fef08a' : '#ffffff'}" font-size="9" font-weight="bold" text-anchor="middle">
+                ${card ? 'CARD: 1A2B3C4D' : 'RFID RC522'}
+            </text>
+            
+            <g fill="#ffffff" font-size="6" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="15" y="135">VCC</text>
+                <text x="29" y="135">RST</text>
+                <text x="43" y="135">GND</text>
+                <text x="57" y="135">IRQ</text>
+                <text x="71" y="135">MIS</text>
+                <text x="85" y="135">MOS</text>
+                <text x="99" y="135">SCK</text>
+                <text x="113" y="135">SDA</text>
+            </g>
+            `;
+        },
+        controls: function(comp) {
+            const card = comp.state?.cardTapped || false;
+            return `
+            <div class="mt-2 p-2 bg-gray-900 rounded border border-gray-800 text-xs">
+                <button onclick="SimLabEngine.updateCompState('${comp.id}', {cardTapped: ${!card}}); if (${!card}) SimLabEngine.appendSerialLog('[RFID] Kartu Terdeteksi UID: 1A 2B 3C 4D\\n');" 
+                    class="w-full py-1 rounded font-bold transition-colors ${card ? 'bg-amber-600 text-white' : 'bg-purple-600 hover:bg-purple-500 text-white'}">
+                    ${card ? '💳 Lepas Kartu RFID' : '💳 Tap Kartu RFID'}
+                </button>
+            </div>
             `;
         }
     },
@@ -837,10 +1046,11 @@ window.SimLabComponents = {
             { id: "GND", label: "GND", x: 90, y: 65, type: "gnd" }
         ],
         svg: function(comp) {
+            const active = comp.state?.active || false;
             return `
             <rect width="100" height="80" rx="4" fill="#1d4ed8" stroke="#1e40af" stroke-width="2"/>
             <rect x="25" y="10" width="50" height="35" fill="#d4d4d4" stroke="#a3a3a3" stroke-width="2"/>
-            <text x="50" y="55" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">DFPlayer</text>
+            <text x="50" y="55" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">DFPlayer ${active ? '▶ PLAYING' : ''}</text>
             
             <g fill="#ffffff" font-size="6" font-family="monospace" font-weight="bold" text-anchor="middle">
                 <text x="15" y="73">VCC</text>
@@ -851,28 +1061,59 @@ window.SimLabComponents = {
                 <text x="90" y="73">GND</text>
             </g>
             `;
+        },
+        controls: function(comp) {
+            const active = comp.state?.active || false;
+            return `
+            <div class="mt-2 p-2 bg-gray-900 rounded border border-gray-800 text-xs">
+                <button onclick="SimLabEngine.updateCompState('${comp.id}', {active: ${!active}}); if (${!active}) SimLabEngine.appendSerialLog('[MP3] Playing Track 001.mp3\\n');" 
+                    class="w-full py-1 rounded font-bold transition-colors ${active ? 'bg-amber-600 text-white' : 'bg-pink-600 hover:bg-pink-500 text-white'}">
+                    ${active ? '⏹ Pause MP3' : '▶ Putar Lagu MP3'}
+                </button>
+            </div>
+            `;
         }
     },
 
     speaker: {
         name: "Speaker/Buzzer",
-        width: 70,
-        height: 80,
+        width: 80,
+        height: 90,
         pins: [
-            { id: "SIGNAL", label: "SIGNAL", x: 25, y: 65, type: "digital" },
-            { id: "GND", label: "GND", x: 45, y: 65, type: "gnd" }
+            { id: "SIGNAL", label: "SIGNAL", x: 25, y: 75, type: "digital" },
+            { id: "GND", label: "GND", x: 55, y: 75, type: "gnd" }
         ],
         svg: function(comp) {
+            const active = comp.state?.active || false;
             return `
-            <rect width="70" height="80" rx="4" fill="#262626" stroke="#171717" stroke-width="2"/>
-            <circle cx="35" cy="35" r="25" fill="#404040" stroke="#525252" stroke-width="2"/>
-            <circle cx="35" cy="35" r="10" fill="#171717"/>
-            <text x="35" y="38" fill="#a3a3a3" font-size="10" font-weight="bold" text-anchor="middle">+</text>
+            <rect width="80" height="90" rx="6" fill="#262626" stroke="#171717" stroke-width="2"/>
+            <circle cx="40" cy="40" r="26" fill="#404040" stroke="#525252" stroke-width="2"/>
+            <circle cx="40" cy="40" r="10" fill="#171717"/>
+            <text x="40" y="43" fill="#a3a3a3" font-size="10" font-weight="bold" text-anchor="middle">+</text>
             
+            ${active ? `
+            <circle cx="40" cy="40" r="32" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" opacity="0.9"/>
+            <circle cx="40" cy="40" r="36" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6"/>
+            <text x="40" y="14" fill="#38bdf8" font-size="8" font-weight="bold" text-anchor="middle">🔊 BUNYI!</text>
+            ` : `
+            <text x="40" y="14" fill="#64748b" font-size="8" font-weight="bold" text-anchor="middle">SILENT</text>
+            `}
+
             <g fill="#ffffff" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">
-                <text x="25" y="73">SIG</text>
-                <text x="45" y="73">GND</text>
+                <text x="25" y="84">SIG</text>
+                <text x="55" y="84">GND</text>
             </g>
+            `;
+        },
+        controls: function(comp) {
+            const active = comp.state?.active || false;
+            return `
+            <div class="mt-2 p-2 bg-gray-900 rounded border border-gray-800 text-xs">
+                <button onclick="SimLabEngine.updateCompState('${comp.id}', {active: ${!active}})" 
+                    class="w-full py-1 rounded font-bold transition-colors ${active ? 'bg-amber-600 text-white' : 'bg-cyan-600 hover:bg-cyan-500 text-white'}">
+                    ${active ? '🔇 Stop Bunyi' : '🔊 Tes Bunyi Buzzer'}
+                </button>
+            </div>
             `;
         }
     }

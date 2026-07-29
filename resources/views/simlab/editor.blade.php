@@ -376,6 +376,27 @@
 
             <!-- Code Editor Container -->
             <div id="codeTabContent" class="flex-grow flex flex-col overflow-hidden">
+                <!-- Code Template Quick Loader -->
+                <div class="p-2 border-b border-gray-800 bg-gray-950 flex items-center justify-between text-xs shrink-0">
+                    <span class="text-gray-400 font-semibold flex items-center gap-1.5">
+                        <i class="fas fa-magic text-amber-400"></i> Template Kode:
+                    </span>
+                    <select id="codeTemplateSelect" onchange="SimLabEngine.loadSampleCode(this.value)" class="bg-gray-900 text-emerald-400 text-xs font-bold rounded-lg border border-gray-700 px-2.5 py-1 focus:outline-none focus:border-emerald-500 cursor-pointer transition-colors">
+                        <option value="">-- Pilih Contoh Kode --</option>
+                        <option value="led">1. LED Blink (Kedip LED)</option>
+                        <option value="motor_dc">2. Kontrol Motor DC (Putar/Stop)</option>
+                        <option value="servo">3. Kontrol Servo SG90 (0°-180°)</option>
+                        <option value="hc_sr04">4. Sensor Ultrasonik HC-SR04</option>
+                        <option value="dht11">5. Sensor Suhu & Humid DHT11</option>
+                        <option value="lcd">6. Display LCD I2C (16x2 / 20x4)</option>
+                        <option value="relay">7. Modul Relay 5V (Switch)</option>
+                        <option value="pir">8. Sensor Gerak PIR</option>
+                        <option value="speaker">9. Speaker / Buzzer (Bunyi)</option>
+                        <option value="ldr">10. Sensor Cahaya LDR</option>
+                        <option value="rc522">11. RFID RC522 Reader</option>
+                    </select>
+                </div>
+
                 <div class="flex-grow relative">
                     <textarea id="codeEditorArea" class="hidden">
 // PembdaHUB SimLab - Kode Utama Arduino

@@ -467,7 +467,15 @@ window.SimLabEngine = {
                     needsReRender = true;
                 }
             }
-            // Resistor → trace through to LED on the other side
+            // Motor DC
+            else if (targetComp.type === 'motor_dc' || targetComp.type === 'l298n') {
+                targetComp.state = targetComp.state || {};
+                if (targetComp.state.active !== (stateVal === 1)) {
+                    targetComp.state.active = (stateVal === 1);
+                    needsReRender = true;
+                }
+            }
+            // Resistor → trace through to LED or Motor on the other side
             else if (targetComp.type === 'resistor') {
                 const otherResPin = (connectedPinId === 'PIN_1') ? 'PIN_2' : 'PIN_1';
                 window.SimLabCircuit.wires.forEach(wire2 => {
@@ -478,22 +486,38 @@ window.SimLabEngine = {
                         nextCompId = wire2.fromComp;
                     }
                     if (nextCompId) {
-                        const ledComp = window.SimLabCircuit.components.find(c => c.id === nextCompId);
-                        if (ledComp && ledComp.type.startsWith('led_')) {
-                            ledComp.state = ledComp.state || {};
-                            if (ledComp.state.lit !== (stateVal === 1)) {
-                                ledComp.state.lit = (stateVal === 1);
-                                needsReRender = true;
+                        const nextComp = window.SimLabCircuit.components.find(c => c.id === nextCompId);
+                        if (nextComp) {
+                            nextComp.state = nextComp.state || {};
+                            if (nextComp.type.startsWith('led_')) {
+                                if (nextComp.state.lit !== (stateVal === 1)) {
+                                    nextComp.state.lit = (stateVal === 1);
+                                    needsReRender = true;
+                                }
+                            } else if (nextComp.type === 'motor_dc' || nextComp.type === 'relay' || nextComp.type === 'speaker') {
+                                if (nextComp.state.active !== (stateVal === 1)) {
+                                    nextComp.state.active = (stateVal === 1);
+                                    needsReRender = true;
+                                }
                             }
                         }
                     }
                 });
             }
-            // Relay
-            else if (targetComp.type === 'relay') {
+            // Relay, Speaker, DFPlayer, LCD
+            else if (targetComp.type === 'relay' || targetComp.type === 'speaker' || targetComp.type === 'dfplayer' || targetComp.type.startsWith('lcd')) {
                 targetComp.state = targetComp.state || {};
                 if (targetComp.state.active !== (stateVal === 1)) {
                     targetComp.state.active = (stateVal === 1);
+                    needsReRender = true;
+                }
+            }
+            // Servo
+            else if (targetComp.type === 'servo') {
+                targetComp.state = targetComp.state || {};
+                const newAngle = (stateVal === 1) ? 180 : 0;
+                if (targetComp.state.angle !== newAngle) {
+                    targetComp.state.angle = newAngle;
                     needsReRender = true;
                 }
             }
@@ -527,6 +551,214 @@ window.SimLabEngine = {
             window.SimLabCircuit.renderComponents();
         }
     },
+
+    // ═══════════════════════════════════════════════════════════════
+    // Sample Code Templates for Components
+    // ═══════════════════════════════════════════════════════════════
+
+    sampleTemplates: {
+        led: `// PembdaHUB SimLab - Kode Kontrol LED
+// Pin D13 terhubung ke Anoda LED
+
+void setup() {
+  pinMode(13, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("SimLab: Kontrol LED Dimulai!");
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  Serial.println("LED Menyala (HIGH)...");
+  delay(1000);
+
+  digitalWrite(13, LOW);
+  Serial.println("LED Padam (LOW)...");
+  delay(1000);
+}`,
+
+        motor_dc: `// PembdaHUB SimLab - Kode Kontrol Motor DC
+// Pin D3 terhubung ke Motor DC / Driver IN1
+
+void setup() {
+  pinMode(3, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("SimLab: Kontrol Motor DC Dimulai!");
+}
+
+void loop() {
+  Serial.println("Motor DC BERPUTAR (HIGH)...");
+  digitalWrite(3, HIGH);
+  delay(3000);
+
+  Serial.println("Motor DC BERHENTI (LOW)...");
+  digitalWrite(3, LOW);
+  delay(2000);
+}`,
+
+        servo: `// PembdaHUB SimLab - Kode Kontrol Servo SG90
+// Pin D9 terhubung ke Pin PWM Servo
+
+void setup() {
+  pinMode(9, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("SimLab: Kontrol Servo SG90 Dimulai!");
+}
+
+void loop() {
+  Serial.println("Servo Posisi 0 Derajat...");
+  servo.write(0);
+  digitalWrite(9, LOW);
+  delay(1500);
+
+  Serial.println("Servo Posisi 90 Derajat...");
+  servo.write(90);
+  digitalWrite(9, HIGH);
+  delay(1500);
+
+  Serial.println("Servo Posisi 180 Derajat...");
+  servo.write(180);
+  digitalWrite(9, HIGH);
+  delay(1500);
+}`,
+
+        hc_sr04: `// PembdaHUB SimLab - Kode Sensor Jarak HC-SR04
+// Trig = Pin 2, Echo = Pin 3
+
+void setup() {
+  pinMode(2, OUTPUT);
+  pinMode(3, INPUT);
+  Serial.begin(9600);
+  Serial.println("SimLab: Sensor HC-SR04 Siap!");
+}
+
+void loop() {
+  digitalWrite(2, HIGH);
+  delay(10);
+  digitalWrite(2, LOW);
+  Serial.println("Membaca Jarak Sensor: 45 cm");
+  delay(1000);
+}`,
+
+        dht11: `// PembdaHUB SimLab - Kode Sensor Suhu & Kelembaban DHT11
+// Data = Pin 4
+
+void setup() {
+  pinMode(4, INPUT);
+  Serial.begin(9600);
+  Serial.println("SimLab: Sensor DHT11 Siap!");
+}
+
+void loop() {
+  Serial.println("Membaca DHT11 -> Suhu: 28 C, Kelembaban: 65 %RH");
+  delay(2000);
+}`,
+
+        lcd: `// PembdaHUB SimLab - Kode Layar LCD I2C
+// SDA = Pin A4, SCL = Pin A5
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("SimLab: Display LCD I2C Aktif!");
+}
+
+void loop() {
+  Serial.println("LCD: PembdaHUB SimLab - Siap Digunakan!");
+  delay(2000);
+}`,
+
+        relay: `// PembdaHUB SimLab - Kode Modul Relay 5V
+// IN = Pin 7
+
+void setup() {
+  pinMode(7, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("SimLab: Modul Relay Dimulai!");
+}
+
+void loop() {
+  Serial.println("Relay AKTIF (Switch NO Terhubung)...");
+  digitalWrite(7, HIGH);
+  delay(2500);
+
+  Serial.println("Relay MATI (Switch NC Terhubung)...");
+  digitalWrite(7, LOW);
+  delay(2500);
+}`,
+
+        pir: `// PembdaHUB SimLab - Kode Sensor Gerak PIR
+// OUT = Pin 2, LED Indikator = Pin 13
+
+void setup() {
+  pinMode(2, INPUT);
+  pinMode(13, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("SimLab: Sensor Gerak PIR Aktif!");
+}
+
+void loop() {
+  Serial.println("Mengecek Gerakan Manusia...");
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(2000);
+}`,
+
+        speaker: `// PembdaHUB SimLab - Kode Speaker / Buzzer
+// Signal = Pin 8
+
+void setup() {
+  pinMode(8, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("SimLab: Speaker / Buzzer Dimulai!");
+}
+
+void loop() {
+  Serial.println("Buzzer Bunyi (HIGH)...");
+  digitalWrite(8, HIGH);
+  delay(1000);
+
+  Serial.println("Buzzer Diam (LOW)...");
+  digitalWrite(8, LOW);
+  delay(1500);
+}`,
+
+        ldr: `// PembdaHUB SimLab - Kode Sensor Cahaya LDR
+// Pin Analog A0
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("SimLab: Sensor Cahaya LDR Aktif!");
+}
+
+void loop() {
+  Serial.println("Intensitas Cahaya LDR: 750 Lux (Terang)");
+  delay(1500);
+}`,
+
+        rc522: `// PembdaHUB SimLab - Kode Reader RFID RC522
+// SDA = Pin 10, RST = Pin 9
+
+void setup() {
+  pinMode(10, OUTPUT);
+  pinMode(9, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("SimLab: RFID RC522 Ready to Scan!");
+}
+
+void loop() {
+  Serial.println("Menunggu Kartu Tap RFID...");
+  delay(2000);
+}`
+    },
+
+    loadSampleCode: function(templateKey) {
+        if (!templateKey || !this.sampleTemplates[templateKey]) return;
+        const code = this.sampleTemplates[templateKey];
+        if (this.editor) {
+            this.editor.setValue(code);
+            this.showSaveNotification('Template Kode (' + templateKey.toUpperCase() + ') Berhasil Dimuat!', 'success');
+        }
+    }
 
     appendSerialLog: function(text) {
         const output = document.getElementById('serialOutputText');

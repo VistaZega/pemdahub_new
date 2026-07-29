@@ -304,6 +304,24 @@ window.SimLabCircuit = {
         this.components.push(comp);
         this.renderComponents();
         this.updateConnectionPanel();
+
+        // Auto load template code if pulled manually
+        if (!savedId && window.SimLabEngine) {
+            const templateKeyMap = {
+                'motor_dc': 'motor_dc', 'l298n': 'motor_dc',
+                'servo': 'servo', 'hc_sr04': 'hc_sr04',
+                'dht11': 'dht11', 'lcd1602': 'lcd', 'lcd2004': 'lcd',
+                'relay': 'relay', 'pir': 'pir', 'speaker': 'speaker',
+                'ldr': 'ldr', 'rc522': 'rc522'
+            };
+            const key = templateKeyMap[type];
+            if (key && window.SimLabEngine.sampleTemplates[key]) {
+                const selectEl = document.getElementById('codeTemplateSelect');
+                if (selectEl) selectEl.value = key;
+                window.SimLabEngine.loadSampleCode(key);
+            }
+        }
+
         return comp;
     },
 
