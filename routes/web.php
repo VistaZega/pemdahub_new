@@ -23,6 +23,7 @@ Route::prefix('simlab')->name('simlab.')->group(function () {
     Route::get('/', [SimLabController::class, 'index'])->name('index');
     Route::get('/editor/{id?}', [SimLabController::class, 'editor'])->name('editor');
     Route::post('/save', [SimLabController::class, 'store'])->name('save');
+    Route::get('/my-projects', [SimLabController::class, 'myProjects'])->name('my-projects');
     Route::get('/project/{id}', [SimLabController::class, 'show'])->name('show');
     Route::post('/compile', [SimLabController::class, 'compile'])->name('compile');
     Route::delete('/project/{id}', [SimLabController::class, 'destroy'])->name('destroy');

@@ -98,14 +98,24 @@
 
         <!-- Right: Actions & Save -->
         <div class="flex items-center space-x-2">
-            <div id="simStatusBadge" class="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-gray-800 border border-gray-700 text-xs text-gray-400">
+            <button onclick="SimLabEngine.newProject()" class="px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold transition-all border border-gray-700 flex items-center space-x-1.5 shadow-sm cursor-pointer" title="Buat Proyek Baru">
+                <i class="fas fa-file-alt text-emerald-400"></i>
+                <span class="hidden md:inline">Proyek Baru</span>
+            </button>
+
+            <button onclick="SimLabEngine.openMyProjectsModal()" class="px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-amber-300 text-xs font-bold transition-all border border-amber-500/30 flex items-center space-x-1.5 shadow-sm cursor-pointer" title="Daftar Proyek Saya (Load / Edit / Hapus)">
+                <i class="fas fa-folder-open text-amber-400"></i>
+                <span>Proyek Saya</span>
+            </button>
+
+            <div id="simStatusBadge" class="hidden lg:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-gray-800 border border-gray-700 text-xs text-gray-400">
                 <span id="statusIndicatorPin" class="w-2 h-2 rounded-full bg-gray-500"></span>
                 <span id="statusText" class="font-mono">SIAP</span>
             </div>
 
-            <button id="btnSaveProject" class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black text-sm font-black transition-all flex items-center space-x-2 shadow-lg shadow-emerald-500/25 ring-1 ring-emerald-400/30">
-                <i class="fas fa-save text-base"></i>
-                <span>Simpan Proyek</span>
+            <button id="btnSaveProject" onclick="SimLabEngine.saveProject()" class="px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black text-xs font-black transition-all flex items-center space-x-1.5 shadow-lg shadow-emerald-500/25 ring-1 ring-emerald-400/30 cursor-pointer">
+                <i class="fas fa-save"></i>
+                <span>Simpan</span>
             </button>
         </div>
     </header>
@@ -376,24 +386,24 @@
 
             <!-- Code Editor Container -->
             <div id="codeTabContent" class="flex-grow flex flex-col overflow-hidden">
-                <!-- Code Template Quick Loader -->
-                <div class="p-2 border-b border-gray-800 bg-gray-950 flex items-center justify-between text-xs shrink-0">
-                    <span class="text-gray-400 font-semibold flex items-center gap-1.5">
-                        <i class="fas fa-magic text-amber-400"></i> Template Kode:
-                    </span>
-                    <select id="codeTemplateSelect" onchange="SimLabEngine.loadSampleCode(this.value)" class="bg-gray-900 text-emerald-400 text-xs font-bold rounded-lg border border-gray-700 px-2.5 py-1 focus:outline-none focus:border-emerald-500 cursor-pointer transition-colors">
-                        <option value="">-- Pilih Contoh Kode --</option>
-                        <option value="led">1. LED Blink (Kedip LED)</option>
-                        <option value="motor_dc">2. Kontrol Motor DC (Putar/Stop)</option>
-                        <option value="servo">3. Kontrol Servo SG90 (0°-180°)</option>
-                        <option value="hc_sr04">4. Sensor Ultrasonik HC-SR04</option>
-                        <option value="dht11">5. Sensor Suhu & Humid DHT11</option>
-                        <option value="lcd">6. Display LCD I2C (16x2 / 20x4)</option>
-                        <option value="relay">7. Modul Relay 5V (Switch)</option>
-                        <option value="pir">8. Sensor Gerak PIR</option>
-                        <option value="speaker">9. Speaker / Buzzer (Bunyi)</option>
-                        <option value="ldr">10. Sensor Cahaya LDR</option>
-                        <option value="rc522">11. RFID RC522 Reader</option>
+                <!-- Code Template Quick Loader & Auto-Code Toggle -->
+                <div class="p-2 border-b border-gray-800 bg-gray-950 flex items-center justify-between text-xs shrink-0 gap-2">
+                    <button id="btnToggleAutoCode" onclick="SimLabEngine.toggleAutoCode()" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold hover:bg-emerald-500/30 transition-colors cursor-pointer" title="Auto-Code Pintar: Generasi/Hapus kode otomatis sesuai komponen aktif">
+                        <i class="fas fa-magic text-amber-400 mr-1"></i> Auto-Code: ON
+                    </button>
+                    <select id="codeTemplateSelect" onchange="SimLabEngine.loadSampleCode(this.value)" class="bg-gray-900 text-emerald-400 text-xs font-bold rounded-lg border border-gray-700 px-2 py-1 focus:outline-none focus:border-emerald-500 cursor-pointer transition-colors max-w-[180px] truncate">
+                        <option value="">-- Contoh Kode --</option>
+                        <option value="led">1. LED Blink</option>
+                        <option value="motor_dc">2. Motor DC</option>
+                        <option value="servo">3. Servo SG90</option>
+                        <option value="hc_sr04">4. HC-SR04</option>
+                        <option value="dht11">5. Sensor DHT11</option>
+                        <option value="lcd">6. LCD I2C</option>
+                        <option value="relay">7. Relay 5V</option>
+                        <option value="pir">8. Sensor PIR</option>
+                        <option value="speaker">9. Buzzer</option>
+                        <option value="ldr">10. Sensor LDR</option>
+                        <option value="rc522">11. RFID RC522</option>
                     </select>
                 </div>
 
@@ -459,6 +469,39 @@ PembdaHUB SimLab Serial Console Connected
             </div>
 
         </aside>
+    </div>
+
+    <!-- MODAL: DAFTAR PROYEK SAYA (LOAD, EDIT, HAPUS) -->
+    <div id="modalMyProjects" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <!-- Modal Header -->
+            <div class="px-5 py-4 border-b border-gray-800 flex items-center justify-between bg-gray-950">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold text-lg">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Daftar Proyek Saya</h3>
+                        <p class="text-xs text-gray-400">Pilih proyek tersimpan untuk dimuat ke workspace atau dikelola</p>
+                    </div>
+                </div>
+                <button onclick="SimLabEngine.closeMyProjectsModal()" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 text-lg transition-colors">✕</button>
+            </div>
+
+            <!-- Modal Content (Project List) -->
+            <div id="myProjectsListContainer" class="p-5 overflow-y-auto space-y-3 custom-scrollbar flex-grow min-h-[260px]">
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl text-emerald-400 mb-2"></i>
+                    <p class="text-xs">Memuat daftar proyek...</p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-3 border-t border-gray-800 bg-gray-950 flex items-center justify-between text-xs">
+                <span class="text-gray-500">Bisa memuat rangkaian SVG & kode C++ secara otomatis</span>
+                <button onclick="SimLabEngine.closeMyProjectsModal()" class="px-4 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold transition-colors">Tutup</button>
+            </div>
+        </div>
     </div>
 
     <!-- Pass Project JSON data to Frontend JS -->

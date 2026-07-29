@@ -10,12 +10,15 @@
  */
 
 window.SimLabEngine = {
-    VERSION: '3.1.0',
+    VERSION: '3.2.0',
     isRunning: false,
     simTimer: null,
     editor: null,
     pinStates: {},
     hasUnsavedChanges: false,
+    autoCodeEnabled: true,
+    currentProjectId: null,
+    isGeneratingCode: false,
 
     // Virtual Machine State
     vm: {
@@ -32,6 +35,7 @@ window.SimLabEngine = {
         this.loadInitialProject();
         this.initBeforeUnload();
         this.updateSaveBadge(false);
+        this.updateAutoCodeBtn();
     },
 
     initEditor: function() {
@@ -47,12 +51,16 @@ window.SimLabEngine = {
                 autoCloseBrackets: true
             });
 
-            // Track code changes for unsaved badge
+            // Track code changes for unsaved badge & auto-code mode
             var self = this;
             this.editor.on('change', function() {
                 if (!self.hasUnsavedChanges) {
                     self.hasUnsavedChanges = true;
                     self.updateSaveBadge(true);
+                }
+                if (!self.isGeneratingCode && self.autoCodeEnabled) {
+                    self.autoCodeEnabled = false;
+                    self.updateAutoCodeBtn();
                 }
             });
         }
@@ -755,10 +763,340 @@ void loop() {
         if (!templateKey || !this.sampleTemplates[templateKey]) return;
         const code = this.sampleTemplates[templateKey];
         if (this.editor) {
+            this.isGeneratingCode = true;
             this.editor.setValue(code);
+            this.isGeneratingCode = false;
             this.showSaveNotification('Template Kode (' + templateKey.toUpperCase() + ') Berhasil Dimuat!', 'success');
         }
-    }
+    },
+
+    toggleAutoCode: function() {
+        this.autoCodeEnabled = !this.autoCodeEnabled;
+        this.updateAutoCodeBtn();
+        if (this.autoCodeEnabled) {
+            this.generateSmartCode();
+            this.showSaveNotification('Auto-Code Pintar Diaktifkan!', 'success');
+        } else {
+            this.showSaveNotification('Auto-Code Dimatikan (Mode Manual)', 'info');
+        }
+    },
+
+    updateAutoCodeBtn: function() {
+        const btn = document.getElementById('btnToggleAutoCode');
+        if (btn) {
+            if (this.autoCodeEnabled) {
+                btn.className = 'px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold hover:bg-emerald-500/30 transition-colors cursor-pointer';
+                btn.innerHTML = '<i class="fas fa-magic text-amber-400 mr-1"></i> Auto-Code: ON';
+            } else {
+                btn.className = 'px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700 text-[10px] font-bold hover:bg-gray-700 transition-colors cursor-pointer';
+                btn.innerHTML = '<i class="fas fa-magic mr-1"></i> Auto-Code: OFF';
+            }
+        }
+    },
+
+    generateSmartCode: function() {
+        if (!this.autoCodeEnabled || !this.editor) return;
+
+        const components = window.SimLabCircuit ? window.SimLabCircuit.components : [];
+        const nonBoardComps = components.filter(c => c.type !== 'uno' && c.type !== 'nano' && c.type !== 'esp32');
+
+        if (nonBoardComps.length === 0) {
+            const baseCode = `// PembdaHUB SimLab - Kode Utama Arduino\n// Papan: Arduino Uno (ATmega328P)\n\nvoid setup() {\n  Serial.begin(9600);\n  Serial.println("PembdaHUB SimLab Berhasil Dimulai!");\n}\n\nvoid loop() {\n  // Tarik komponen ke kertas kerja untuk membuat kode otomatis\n  delay(1000);\n}`;
+            this.isGeneratingCode = true;
+            this.editor.setValue(baseCode);
+            this.isGeneratingCode = false;
+            return;
+        }
+
+        let setupLines = [];
+        let loopBlocks = [];
+        let compNames = [];
+        const pinsUsed = new Set();
+
+        nonBoardComps.forEach(comp => {
+            const label = comp.label || comp.type;
+            compNames.push(label);
+
+            switch (comp.type) {
+                case 'led_red':
+                case 'led_green':
+                case 'led_yellow':
+                case 'led_white':
+                    if (!pinsUsed.has(13)) {
+                        pinsUsed.add(13);
+                        setupLines.push(`  pinMode(13, OUTPUT); // Pin LED ${label}`);
+                    }
+                    loopBlocks.push(`  // --- LED (${label}) ---\n  digitalWrite(13, HIGH);\n  Serial.println("LED ${label}: Menyala (HIGH)");\n  delay(1000);\n  digitalWrite(13, LOW);\n  Serial.println("LED ${label}: Padam (LOW)");\n  delay(1000);`);
+                    break;
+
+                case 'motor_dc':
+                case 'l298n':
+                    if (!pinsUsed.has(3)) {
+                        pinsUsed.add(3);
+                        setupLines.push(`  pinMode(3, OUTPUT); // Pin Motor DC ${label}`);
+                    }
+                    loopBlocks.push(`  // --- Motor DC (${label}) ---\n  Serial.println("Motor DC ${label}: BERPUTAR...");\n  digitalWrite(3, HIGH);\n  delay(2500);\n  Serial.println("Motor DC ${label}: BERHENTI.");\n  digitalWrite(3, LOW);\n  delay(1500);`);
+                    break;
+
+                case 'servo':
+                    if (!pinsUsed.has(9)) {
+                        pinsUsed.add(9);
+                        setupLines.push(`  pinMode(9, OUTPUT); // Pin Servo SG90 ${label}`);
+                    }
+                    loopBlocks.push(`  // --- Servo SG90 (${label}) ---\n  Serial.println("Servo ${label}: ke 0 Derajat");\n  servo.write(0);\n  delay(1000);\n  Serial.println("Servo ${label}: ke 90 Derajat");\n  servo.write(90);\n  delay(1000);\n  Serial.println("Servo ${label}: ke 180 Derajat");\n  servo.write(180);\n  delay(1000);`);
+                    break;
+
+                case 'hc_sr04':
+                    if (!pinsUsed.has(2)) {
+                        pinsUsed.add(2); pinsUsed.add(3);
+                        setupLines.push(`  pinMode(2, OUTPUT); // Trig HC-SR04\n  pinMode(3, INPUT);  // Echo HC-SR04`);
+                    }
+                    loopBlocks.push(`  // --- Sensor Jarak HC-SR04 ---\n  digitalWrite(2, HIGH);\n  delay(10);\n  digitalWrite(2, LOW);\n  Serial.println("HC-SR04: Jarak Terbaca 45 cm");\n  delay(1000);`);
+                    break;
+
+                case 'dht11':
+                    if (!pinsUsed.has(4)) {
+                        pinsUsed.add(4);
+                        setupLines.push(`  pinMode(4, INPUT); // Data DHT11`);
+                    }
+                    loopBlocks.push(`  // --- Sensor Suhu DHT11 ---\n  Serial.println("DHT11: Suhu 28 C, Kelembaban 65 %RH");\n  delay(1500);`);
+                    break;
+
+                case 'lcd1602':
+                case 'lcd2004':
+                    setupLines.push(`  // Inisialisasi Layar LCD I2C (${label})`);
+                    loopBlocks.push(`  // --- Display LCD I2C (${label}) ---\n  Serial.println("LCD: PembdaHUB SimLab System Active");\n  delay(2000);`);
+                    break;
+
+                case 'relay':
+                    if (!pinsUsed.has(7)) {
+                        pinsUsed.add(7);
+                        setupLines.push(`  pinMode(7, OUTPUT); // Control Pin Relay`);
+                    }
+                    loopBlocks.push(`  // --- Modul Relay 5V ---\n  Serial.println("Relay: Switch AKTIF (NO)");\n  digitalWrite(7, HIGH);\n  delay(2000);\n  Serial.println("Relay: Switch MATI (NC)");\n  digitalWrite(7, LOW);\n  delay(2000);`);
+                    break;
+
+                case 'pir':
+                    if (!pinsUsed.has(2)) {
+                        pinsUsed.add(2);
+                        setupLines.push(`  pinMode(2, INPUT); // Signal OUT PIR`);
+                    }
+                    loopBlocks.push(`  // --- Sensor Gerak PIR ---\n  Serial.println("PIR: Membaca Deteksi Gerakan Manusia");\n  delay(1500);`);
+                    break;
+
+                case 'speaker':
+                    if (!pinsUsed.has(8)) {
+                        pinsUsed.add(8);
+                        setupLines.push(`  pinMode(8, OUTPUT); // Signal Speaker/Buzzer`);
+                    }
+                    loopBlocks.push(`  // --- Speaker / Buzzer ---\n  Serial.println("Buzzer: BUNYI (HIGH)");\n  digitalWrite(8, HIGH);\n  delay(800);\n  digitalWrite(8, LOW);\n  delay(1000);`);
+                    break;
+
+                case 'ldr':
+                    setupLines.push(`  // Pin Sensor Cahaya LDR (Analog A0)`);
+                    loopBlocks.push(`  // --- Sensor Cahaya LDR ---\n  Serial.println("LDR: Intensitas Cahaya 750 Lux");\n  delay(1500);`);
+                    break;
+
+                case 'rc522':
+                    setupLines.push(`  pinMode(10, OUTPUT); // SDA RFID\n  pinMode(9, OUTPUT);  // RST RFID`);
+                    loopBlocks.push(`  // --- RFID RC522 Reader ---\n  Serial.println("RFID: Menunggu Tap Kartu...");\n  delay(2000);`);
+                    break;
+            }
+        });
+
+        let code = `// PembdaHUB SimLab - Kode Otomatis Tergenerasi\n`;
+        code += `// Komponen Aktif (${nonBoardComps.length}): ${compNames.join(', ')}\n\n`;
+        code += `void setup() {\n`;
+        code += `  Serial.begin(9600);\n`;
+        code += `  Serial.println("PembdaHUB SimLab System Ready!");\n`;
+        if (setupLines.length > 0) {
+            code += setupLines.join('\n') + `\n`;
+        }
+        code += `}\n\n`;
+        code += `void loop() {\n`;
+        code += loopBlocks.join('\n\n') + `\n`;
+        code += `}`;
+
+        this.isGeneratingCode = true;
+        this.editor.setValue(code);
+        this.isGeneratingCode = false;
+    },
+
+    newProject: function() {
+        if (this.hasUnsavedChanges && !confirm('Buat proyek baru? Perubahan yang belum disimpan pada proyek ini akan hilang.')) {
+            return;
+        }
+
+        window.SimLabConfig.projectId = null;
+        this.currentProjectId = null;
+        this.autoCodeEnabled = true;
+        this.updateAutoCodeBtn();
+
+        const titleEl = document.getElementById('projectTitle');
+        if (titleEl) titleEl.value = 'Proyek SimLab Baru';
+
+        if (window.SimLabCircuit) {
+            window.SimLabCircuit.components = [];
+            window.SimLabCircuit.wires = [];
+            window.SimLabCircuit.addComponent('uno', 150, 100);
+            window.SimLabCircuit.renderAll();
+            window.SimLabCircuit.updateConnectionPanel();
+        }
+
+        this.generateSmartCode();
+        this.hasUnsavedChanges = false;
+        this.updateSaveBadge(false);
+        this.showSaveNotification('Proyek Baru Berhasil Dibuat!', 'success');
+    },
+
+    openMyProjectsModal: function() {
+        const modal = document.getElementById('modalMyProjects');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+
+        const container = document.getElementById('myProjectsListContainer');
+        if (container) {
+            container.innerHTML = `
+            <div class="text-center text-gray-500 py-8">
+                <i class="fas fa-spinner fa-spin text-2xl text-emerald-400 mb-2"></i>
+                <p class="text-xs">Memuat daftar proyek Anda...</p>
+            </div>`;
+        }
+
+        const self = this;
+        fetch('/simlab/my-projects')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    self.renderMyProjectsModal(data.projects);
+                } else {
+                    if (container) container.innerHTML = '<p class="text-red-400 text-center py-4">Gagal memuat proyek.</p>';
+                }
+            })
+            .catch(err => {
+                if (container) container.innerHTML = '<p class="text-red-400 text-center py-4">Terjadi kesalahan koneksi.</p>';
+            });
+    },
+
+    closeMyProjectsModal: function() {
+        const modal = document.getElementById('modalMyProjects');
+        if (modal) modal.classList.add('hidden');
+    },
+
+    renderMyProjectsModal: function(projects) {
+        const container = document.getElementById('myProjectsListContainer');
+        if (!container) return;
+
+        if (!projects || projects.length === 0) {
+            container.innerHTML = `
+            <div class="text-center py-10 text-gray-500">
+                <i class="fas fa-folder-open text-4xl mb-3 opacity-40 text-emerald-400"></i>
+                <p class="font-bold text-sm text-gray-300">Belum Ada Proyek Tersimpan</p>
+                <p class="text-xs mt-1">Buat rangkaian & klik "Simpan Proyek" untuk membukanya kembali kapan saja.</p>
+            </div>`;
+            return;
+        }
+
+        let html = '';
+        projects.forEach(p => {
+            const boardName = p.board_type === 'uno' ? 'Arduino Uno' : (p.board_type === 'nano' ? 'Arduino Nano' : 'ESP32');
+            const updatedDate = new Date(p.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+            html += `
+            <div class="p-3.5 bg-gray-950 border border-gray-800 hover:border-emerald-500/50 rounded-xl flex items-center justify-between transition-all group">
+                <div class="flex items-center space-x-3 truncate pr-2">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-lg shrink-0">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div class="truncate">
+                        <h4 class="font-bold text-white text-sm truncate group-hover:text-emerald-400 transition-colors">${p.title}</h4>
+                        <div class="flex items-center space-x-2 text-[11px] text-gray-400 mt-0.5">
+                            <span class="bg-gray-800 px-2 py-0.5 rounded text-gray-300 font-medium">${boardName}</span>
+                            <span>•</span>
+                            <span>Diperbarui ${updatedDate}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 shrink-0">
+                    <button onclick="SimLabEngine.loadProjectFromModal('${p.id}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center space-x-1 cursor-pointer">
+                        <i class="fas fa-folder-open"></i>
+                        <span>Muat Proyek</span>
+                    </button>
+                    <button onclick="SimLabEngine.deleteProjectFromModal('${p.id}', '${p.title.replace(/'/g, "\\'")}')" class="p-1.5 bg-red-950/60 hover:bg-red-600 text-red-400 hover:text-white rounded-xl border border-red-800/40 text-xs transition-colors cursor-pointer" title="Hapus Proyek">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+    },
+
+    loadProjectFromModal: function(id) {
+        const self = this;
+        fetch('/simlab/project/' + id)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.project) {
+                    const p = data.project;
+                    window.SimLabConfig.projectId = p.id;
+                    self.currentProjectId = p.id;
+                    self.autoCodeEnabled = false;
+                    self.updateAutoCodeBtn();
+
+                    const titleEl = document.getElementById('projectTitle');
+                    if (titleEl) titleEl.value = p.title;
+
+                    const boardSelect = document.getElementById('boardTypeSelect');
+                    if (boardSelect && p.board_type) boardSelect.value = p.board_type;
+
+                    if (p.code_ino && self.editor) {
+                        self.isGeneratingCode = true;
+                        self.editor.setValue(p.code_ino);
+                        self.isGeneratingCode = false;
+                    }
+
+                    if (p.circuit_json && window.SimLabCircuit) {
+                        const circuit = typeof p.circuit_json === 'string' ? JSON.parse(p.circuit_json) : p.circuit_json;
+                        window.SimLabCircuit.importJSON(circuit);
+                    }
+
+                    self.closeMyProjectsModal();
+                    self.hasUnsavedChanges = false;
+                    self.updateSaveBadge(false);
+                    self.showSaveNotification('Proyek "' + p.title + '" Berhasil Dimuat!', 'success');
+                }
+            })
+            .catch(err => {
+                alert('Gagal memuat data proyek.');
+            });
+    },
+
+    deleteProjectFromModal: function(id, title) {
+        if (!confirm('Apakah Anda yakin ingin menghapus proyek "' + title + '"?')) return;
+
+        const self = this;
+        fetch('/simlab/project/' + id, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                self.showSaveNotification('Proyek Berhasil Dihapus!', 'success');
+                self.openMyProjectsModal(); // Refresh modal list
+            } else {
+                alert(data.message || 'Gagal menghapus proyek.');
+            }
+        })
+        .catch(err => {
+            alert('Terjadi kesalahan saat menghapus proyek.');
+        });
+    },
 
     appendSerialLog: function(text) {
         const output = document.getElementById('serialOutputText');

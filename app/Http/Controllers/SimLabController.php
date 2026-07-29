@@ -169,19 +169,54 @@ class SimLabController extends Controller
     }
 
     /**
-     * Delete a SimLab Project
+     * Delete a SimLab Project (supports JSON & redirect)
      */
     public function destroy($id)
     {
-        $project = SimProject::findOrFail($id);
+        $project = SimProject::find($id);
 
-        // Only the project owner can delete
-        if (auth()->check() && $project->user_id === auth()->id()) {
+        if (!$project) {
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Proyek tidak ditemukan.'], 404);
+            }
+            return redirect()->route('simlab.index')->with('error', 'Proyek tidak ditemukan.');
+        }
+
+        if (!auth()->check() || $project->user_id === auth()->id() || (auth()->user() && auth()->user()->isAdmin())) {
             $project->delete();
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Proyek berhasil dihapus.']);
+            }
             return redirect()->route('simlab.index')->with('success', 'Proyek berhasil dihapus.');
         }
 
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin untuk menghapus proyek ini.'], 403);
+        }
         return redirect()->route('simlab.index')->with('error', 'Anda tidak memiliki izin untuk menghapus proyek ini.');
+    }
+
+    /**
+     * Get My Projects List via JSON for Modal Manager
+     */
+    public function myProjects()
+    {
+        $user = auth()->user();
+        if ($user) {
+            $projects = SimProject::where('user_id', $user->id)
+                ->orderBy('updated_at', 'desc')
+                ->get();
+        } else {
+            $projects = SimProject::where('is_template', false)
+                ->orderBy('updated_at', 'desc')
+                ->take(20)
+                ->get();
+        }
+
+        return response()->json([
+            'success' => true,
+            'projects' => $projects
+        ]);
     }
 
     /**
