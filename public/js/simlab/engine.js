@@ -77,8 +77,16 @@ window.SimLabEngine = {
             }
         });
 
+        document.getElementById('boardTypeSelect')?.addEventListener('change', function() {
+            self.changeBoardType(this.value);
+        });
+
         document.getElementById('btnCompile')?.addEventListener('click', function() {
             self.compileCode();
+        });
+
+        document.getElementById('btnPrintCode')?.addEventListener('click', function() {
+            self.copyOrPrintCode();
         });
 
         document.getElementById('btnSaveProject')?.addEventListener('click', function() {
