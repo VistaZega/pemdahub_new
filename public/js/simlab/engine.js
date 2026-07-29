@@ -582,6 +582,18 @@ window.SimLabEngine = {
         if (!comp) return;
 
         comp.state = Object.assign({}, comp.state, newState);
+
+        // Interactive triggers MUST ONLY execute if the simulation is ACTIVE!
+        if (!this.isRunning) {
+            this.appendSerialLog('[SIMULATOR STOPPED] Klik tombol "Jalankan Simulasi" terlebih dahulu untuk menguji interaksi komponen.\n');
+            comp.state.cardTapped = false;
+            comp.state.motion = false;
+            comp.state.active = false;
+            comp.state.speed = 0;
+            window.SimLabCircuit.renderComponents();
+            return;
+        }
+
         window.SimLabCircuit.renderComponents();
 
         // ═══════════════════════════════════════════════════════════════
