@@ -744,19 +744,40 @@ window.SimLabComponents = {
     },
 
     ldr: {
-        name: "LDR Light Dependent Resistor",
+        name: "LDR Light Sensor",
         width: 80,
-        height: 60,
+        height: 70,
         pins: [
-            { id: "PIN_1", label: "Pin 1", x: 25, y: 45, type: "passive" },
-            { id: "PIN_2", label: "Pin 2", x: 55, y: 45, type: "passive" }
+            { id: "PIN_1", label: "Pin 1", x: 25, y: 55, type: "passive" },
+            { id: "PIN_2", label: "Pin 2", x: 55, y: 55, type: "passive" }
         ],
         svg: function(comp) {
+            const lux = comp.state?.lux || 500;
             return `
-            <rect width="80" height="60" rx="4" fill="#facc15" stroke="#ca8a04" stroke-width="2"/>
-            <circle cx="40" cy="25" r="20" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
+            <rect width="80" height="70" rx="4" fill="#facc15" stroke="#ca8a04" stroke-width="2"/>
+            <circle cx="40" cy="25" r="18" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
             <path d="M 28 25 L 32 15 L 36 35 L 40 15 L 44 35 L 48 15 L 52 25" fill="none" stroke="#a16207" stroke-width="2"/>
-            <text x="40" y="55" fill="#a16207" font-size="8" font-weight="bold" text-anchor="middle">LDR</text>
+            <text x="40" y="48" fill="#a16207" font-size="8" font-weight="bold" text-anchor="middle">${lux} Lux</text>
+            
+            <g fill="#a16207" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">
+                <text x="25" y="65">P1</text>
+                <text x="55" y="65">P2</text>
+            </g>
+            `;
+        },
+        controls: function(comp) {
+            const lux = comp.state?.lux || 500;
+            return `
+            <div class="mt-2 p-2 bg-gray-900 rounded border border-gray-800 text-xs">
+                <label class="text-gray-400 block mb-1">Cahaya (${lux} Lux):</label>
+                <input type="range" min="0" max="1000" value="${lux}" 
+                    oninput="SimLabEngine.updateCompState('${comp.id}', {lux: parseInt(this.value)})"
+                    class="w-full accent-yellow-400 cursor-pointer"/>
+            </div>
+            `;
+        }
+    },
+
     tcrt5000: {
         name: "TCRT5000 Line Tracker",
         width: 100,
@@ -837,41 +858,6 @@ window.SimLabComponents = {
                     class="w-full py-1 rounded font-bold transition-colors ${motion ? 'bg-amber-600 text-white' : 'bg-green-600 hover:bg-green-500 text-white'}">
                     ${motion ? '✋ Reset Gerakan' : '🏃 Picu Ada Gerakan'}
                 </button>
-            </div>
-            `;
-        }
-    },
-
-    ldr: {
-        name: "LDR Light Sensor",
-        width: 80,
-        height: 70,
-        pins: [
-            { id: "PIN_1", label: "Pin 1", x: 25, y: 55, type: "passive" },
-            { id: "PIN_2", label: "Pin 2", x: 55, y: 55, type: "passive" }
-        ],
-        svg: function(comp) {
-            const lux = comp.state?.lux || 500;
-            return `
-            <rect width="80" height="70" rx="4" fill="#facc15" stroke="#ca8a04" stroke-width="2"/>
-            <circle cx="40" cy="25" r="18" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
-            <path d="M 28 25 L 32 15 L 36 35 L 40 15 L 44 35 L 48 15 L 52 25" fill="none" stroke="#a16207" stroke-width="2"/>
-            <text x="40" y="48" fill="#a16207" font-size="8" font-weight="bold" text-anchor="middle">${lux} Lux</text>
-            
-            <g fill="#a16207" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">
-                <text x="25" y="65">P1</text>
-                <text x="55" y="65">P2</text>
-            </g>
-            `;
-        },
-        controls: function(comp) {
-            const lux = comp.state?.lux || 500;
-            return `
-            <div class="mt-2 p-2 bg-gray-900 rounded border border-gray-800 text-xs">
-                <label class="text-gray-400 block mb-1">Cahaya (${lux} Lux):</label>
-                <input type="range" min="0" max="1000" value="${lux}" 
-                    oninput="SimLabEngine.updateCompState('${comp.id}', {lux: parseInt(this.value)})"
-                    class="w-full accent-yellow-400 cursor-pointer"/>
             </div>
             `;
         }
