@@ -443,6 +443,12 @@ window.SimLabCircuit = {
                 this.connectWire(compId, 'PIN_2', unoId, 'GND_1', '#1e293b');
                 break;
 
+            case 'tcrt5000':
+                this.connectWire(compId, 'VCC', unoId, '5V', '#ef4444');
+                this.connectWire(compId, 'GND', unoId, 'GND_1', '#1e293b');
+                this.connectWire(compId, 'D0', unoId, 'D2', '#10b981');
+                break;
+
             case 'rc522':
                 this.connectWire(compId, 'VCC', unoId, '3V3', '#ef4444');
                 this.connectWire(compId, 'RST', unoId, 'D9', '#f59e0b');
