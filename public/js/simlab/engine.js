@@ -970,30 +970,20 @@ void loop() {
             title = `// PROYEK TERINTEGRASI: Sistem Pintu Otomatis RFID (${compNames.join(', ')})`;
             setupLines.push(`  pinMode(10, OUTPUT); // Pin SDA RFID RC522`);
             setupLines.push(`  pinMode(9, OUTPUT);  // Pin RST RFID`);
-            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT);  // Pin Kontrol Motor DC (Pintu)`);
-            if (hasServo) setupLines.push(`  pinMode(9, OUTPUT);  // Pin Kontrol Servo SG90 (Palang Pintu)`);
-            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT);  // Pin Modul Relay 5V (Solenoid Pintu)`);
-            if (hasLed) setupLines.push(`  pinMode(13, OUTPUT); // Pin LED Indikator`);
+            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT);  digitalWrite(3, LOW); // Standby: Motor DC Stop`);
+            if (hasServo) setupLines.push(`  pinMode(9, OUTPUT);  servo.write(0);        // Standby: Pintu Tertutup (0°)`);
+            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT);  digitalWrite(7, LOW); // Standby: Solenoid Lock`);
+            if (hasLed) setupLines.push(`  pinMode(13, OUTPUT); digitalWrite(13, LOW);`);
 
             loopCode = `  // --- SISTEM KONTROL PINTU RFID TERINTEGRASI ---
-  Serial.println("RFID: Menunggu Tap Kartu...");
-  
-  // Simulasi Aksi: Saat Kartu RFID Di-tap (Klik tombol 'Tap Kartu' di komponen)
-  // Sistem membaca UID Kartu -> Membuka Pintu (Motor DC / Servo / Relay Aktif)
-  Serial.println("[RFID] Akses Diterima (UID: 1A2B3C4D) -> Membuka Pintu...");
-  ${hasMotor ? 'digitalWrite(3, HIGH); // Motor DC Berputar Membuka Pintu' : ''}
-  ${hasServo ? 'servo.write(90);        // Servo Membuka Palang Pintu 90°' : ''}
-  ${hasRelay ? 'digitalWrite(7, HIGH); // Relay Switch Aktif (Solenoid UNLOCK)' : ''}
-  ${hasLed ? 'digitalWrite(13, HIGH); // LED Indikator Akses Menyala' : ''}
-  delay(3000); // Pintu Terbuka Selama 3 Detik
-
-  // Menutup kembali pintu secara otomatis
-  Serial.println("[RFID] Pintu Menutup Kembali (Motor DC Stop)...");
-  ${hasMotor ? 'digitalWrite(3, LOW);  // Motor DC Stop' : ''}
-  ${hasServo ? 'servo.write(0);         // Servo Kembali Posisi 0°' : ''}
-  ${hasRelay ? 'digitalWrite(7, LOW);  // Relay Switch Off (Solenoid LOCK)' : ''}
-  ${hasLed ? 'digitalWrite(13, LOW);  // LED Indikator Padam' : ''}
-  delay(2000);`;
+  // Status Standby: Motor DC / Servo DIAM (Pintu Tertutup)
+  // Silakan Klik Tombol '💳 Tap Kartu RFID' Pada Komponen Untuk Membuka Pintu
+  ${hasMotor ? 'digitalWrite(3, LOW); // Motor DC Standby (Diam)' : ''}
+  ${hasServo ? 'servo.write(0);        // Servo Standby (0°)' : ''}
+  ${hasRelay ? 'digitalWrite(7, LOW);  // Relay Standby (Lock)' : ''}
+  ${hasLed ? 'digitalWrite(13, LOW);' : ''}
+  Serial.println("RFID: Standby Membaca Kartu... (Klik 'Tap Kartu' Untuk Buka Pintu)");
+  delay(1000);`;
         }
 
         // -------------------------------------------------------------
@@ -1002,28 +992,20 @@ void loop() {
         else if (hasPir && (hasSpeaker || hasMotor || hasLed || hasRelay)) {
             title = `// PROYEK TERINTEGRASI: Sistem Alarm Deteksi Gerakan PIR (${compNames.join(', ')})`;
             setupLines.push(`  pinMode(2, INPUT);   // Pin Signal OUT Sensor PIR`);
-            if (hasSpeaker) setupLines.push(`  pinMode(8, OUTPUT);  // Pin Speaker / Buzzer Alarm`);
-            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT);  // Pin Motor DC (Kipas Alarm/Aktuator)`);
-            if (hasLed) setupLines.push(`  pinMode(13, OUTPUT); // Pin LED Indikator`);
-            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT);  // Pin Relay Sirine`);
+            if (hasSpeaker) setupLines.push(`  pinMode(8, OUTPUT);  digitalWrite(8, LOW); // Standby: Buzzer Off`);
+            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT);  digitalWrite(3, LOW); // Standby: Motor Stop`);
+            if (hasLed) setupLines.push(`  pinMode(13, OUTPUT); digitalWrite(13, LOW);`);
+            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT);  digitalWrite(7, LOW);`);
 
             loopCode = `  // --- SISTEM ALARM DETEKSI GERAKAN TERINTEGRASI ---
-  Serial.println("PIR: Standby Membaca Deteksi Gerakan Manusia...");
-
-  // Simulasi Aksi: Bila gerakan terdeteksi (Klik tombol 'Picu Ada Gerakan' pada PIR)
-  Serial.println("[PIR] GERAKAN TERDETEKSI! Mengaktifkan Sirine Alarm...");
-  ${hasSpeaker ? 'digitalWrite(8, HIGH);  // Buzzer Bunyi Nyaring' : ''}
-  ${hasMotor ? 'digitalWrite(3, HIGH);  // Motor DC Berputar' : ''}
-  ${hasLed ? 'digitalWrite(13, HIGH); // LED Indikator Menyala Kedip' : ''}
-  ${hasRelay ? 'digitalWrite(7, HIGH);  // Relay Switch On' : ''}
-  delay(3000); // Alarm Aktif 3 Detik
-
-  Serial.println("[PIR] Reset Alarm (Aman)...");
-  ${hasSpeaker ? 'digitalWrite(8, LOW);' : ''}
-  ${hasMotor ? 'digitalWrite(3, LOW);' : ''}
+  // Status Standby: Kondisi Aman (Buzzer & Motor DC DIAM)
+  // Silakan Klik Tombol '🏃 Picu Ada Gerakan' Pada Sensor PIR Untuk Uji Alarm
+  ${hasSpeaker ? 'digitalWrite(8, LOW);  // Buzzer Off' : ''}
+  ${hasMotor ? 'digitalWrite(3, LOW);  // Motor DC Stop' : ''}
   ${hasLed ? 'digitalWrite(13, LOW);' : ''}
   ${hasRelay ? 'digitalWrite(7, LOW);' : ''}
-  delay(2000);`;
+  Serial.println("PIR: Standby Membaca Gerakan... (Kondisi Aman)");
+  delay(1000);`;
         }
 
         // -------------------------------------------------------------
@@ -1033,25 +1015,18 @@ void loop() {
             title = `// PROYEK TERINTEGRASI: Sistem Palang Otomatis Jarak Ultrasonik (${compNames.join(', ')})`;
             setupLines.push(`  pinMode(2, OUTPUT); // Trig HC-SR04`);
             setupLines.push(`  pinMode(3, INPUT);  // Echo HC-SR04`);
-            if (hasServo) setupLines.push(`  pinMode(9, OUTPUT); // Servo SG90 Palang`);
-            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT); // Motor DC`);
-            if (hasSpeaker) setupLines.push(`  pinMode(8, OUTPUT); // Buzzer Warning`);
+            if (hasServo) setupLines.push(`  pinMode(9, OUTPUT); servo.write(0); // Standby: Palang 0°`);
+            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT); digitalWrite(3, LOW);`);
+            if (hasSpeaker) setupLines.push(`  pinMode(8, OUTPUT); digitalWrite(8, LOW);`);
 
             loopCode = `  // --- SISTEM PALANG OTOMATIS SENSOR JARAK ---
-  digitalWrite(2, HIGH); delay(10); digitalWrite(2, LOW);
-  Serial.println("HC-SR04: Jarak Terbaca 15 cm (Objek Mendekat < 20 cm)");
-  
-  Serial.println("[HC-SR04] Objek Terdeteksi -> Palang Pintu Berbuka...");
-  ${hasServo ? 'servo.write(90);        // Servo Membuka Palang Pintu 90°' : ''}
-  ${hasMotor ? 'digitalWrite(3, HIGH); // Motor DC Berputar' : ''}
-  ${hasSpeaker ? 'digitalWrite(8, HIGH); // Buzzer Bunyi Peringatan' : ''}
-  delay(3000);
-
-  Serial.println("[HC-SR04] Area Aman -> Palang Menutup Kembali.");
+  // Status Standby: Area Aman (Palang Pintu Tertutup 0°)
+  // Geser Slider Jarak HC-SR04 Ke < 20 cm Untuk Membuka Palang Pintu
   ${hasServo ? 'servo.write(0);' : ''}
   ${hasMotor ? 'digitalWrite(3, LOW);' : ''}
   ${hasSpeaker ? 'digitalWrite(8, LOW);' : ''}
-  delay(2000);`;
+  Serial.println("HC-SR04: Jarak Terbaca 50 cm (Aman, Palang Pintu Tertutup)");
+  delay(1000);`;
         }
 
         // -------------------------------------------------------------
@@ -1060,21 +1035,16 @@ void loop() {
         else if (hasLdr && (hasLed || hasRelay || hasMotor)) {
             title = `// PROYEK TERINTEGRASI: Sistem Lampu Otomatis Sensor Cahaya LDR (${compNames.join(', ')})`;
             setupLines.push(`  // Pin LDR pada Analog A0`);
-            if (hasLed) setupLines.push(`  pinMode(13, OUTPUT); // Pin LED Utama`);
-            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT);  // Pin Relay Lampu AC`);
+            if (hasLed) setupLines.push(`  pinMode(13, OUTPUT); digitalWrite(13, LOW);`);
+            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT);  digitalWrite(7, LOW);`);
 
             loopCode = `  // --- SISTEM LAMPU OTOMATIS SENSOR CAHAYA ---
-  Serial.println("LDR: Intensitas Cahaya 250 Lux (Gelap)");
-  Serial.println("[LDR] Cahaya Gelap -> Lampu Otomatis MENYALA (HIGH)...");
-  ${hasLed ? 'digitalWrite(13, HIGH);' : ''}
-  ${hasRelay ? 'digitalWrite(7, HIGH);' : ''}
-  delay(3000);
-
-  Serial.println("LDR: Intensitas Cahaya 850 Lux (Terang)");
-  Serial.println("[LDR] Cahaya Terang -> Lampu Otomatis PADAM (LOW).");
+  // Status Standby: Cahaya Terang (500 Lux) -> Lampu Padam (LOW)
+  // Geser Slider Cahaya LDR Ke < 400 Lux (Gelap) Untuk Menyala
   ${hasLed ? 'digitalWrite(13, LOW);' : ''}
   ${hasRelay ? 'digitalWrite(7, LOW);' : ''}
-  delay(2000);`;
+  Serial.println("LDR: Intensitas Cahaya 500 Lux (Terang) -> Lampu Padam");
+  delay(1000);`;
         }
 
         // -------------------------------------------------------------
@@ -1083,20 +1053,16 @@ void loop() {
         else if (hasDht && (hasMotor || hasRelay || hasSpeaker)) {
             title = `// PROYEK TERINTEGRASI: Kipas Pendingin Otomatis Sensor Suhu DHT11 (${compNames.join(', ')})`;
             setupLines.push(`  pinMode(4, INPUT);  // Pin Data Sensor DHT11`);
-            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT); // Pin Motor DC Kipas Pendingin`);
-            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT); // Pin Relay Kipas`);
+            if (hasMotor) setupLines.push(`  pinMode(3, OUTPUT); digitalWrite(3, LOW); // Standby: Kipas Stop`);
+            if (hasRelay) setupLines.push(`  pinMode(7, OUTPUT); digitalWrite(7, LOW);`);
 
             loopCode = `  // --- SISTEM PENDINGIN KIPAS OTOMATIS SENSOR SUHU ---
-  Serial.println("DHT11: Suhu Terbaca 34.5 C (Suhu Panas > 30°C)");
-  Serial.println("[DHT11] Suhu Panas -> Kipas Motor DC Berputar Mendinginkan...");
-  ${hasMotor ? 'digitalWrite(3, HIGH); // Kipas Berputar Fast' : ''}
-  ${hasRelay ? 'digitalWrite(7, HIGH);' : ''}
-  delay(4000);
-
-  Serial.println("DHT11: Suhu Normal (25.0 C) -> Kipas Otomatis Stop.");
+  // Status Standby: Suhu Normal (25°C) -> Kipas Motor DC Stop
+  // Geser Slider Suhu DHT11 Ke > 30°C (Panas) Untuk Menyala
   ${hasMotor ? 'digitalWrite(3, LOW);' : ''}
   ${hasRelay ? 'digitalWrite(7, LOW);' : ''}
-  delay(2000);`;
+  Serial.println("DHT11: Suhu Normal (25.0 C) -> Kipas Motor DC Standby");
+  delay(1000);`;
         }
 
         // -------------------------------------------------------------
