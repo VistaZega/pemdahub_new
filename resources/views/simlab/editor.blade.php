@@ -78,19 +78,24 @@
         <div class="flex items-center space-x-2">
             <div class="flex items-center bg-gray-800/80 rounded-xl p-1 border border-gray-700/60">
                 <span class="text-xs text-gray-400 font-semibold px-2">Board:</span>
-                <select id="boardTypeSelect" class="bg-gray-900 text-emerald-400 text-xs font-bold rounded-lg px-2 py-1 focus:outline-none border border-gray-700">
+                <select id="boardTypeSelect" onchange="SimLabEngine.changeBoardType(this.value)" class="bg-gray-900 text-emerald-400 text-xs font-bold rounded-lg px-2 py-1 focus:outline-none border border-gray-700 cursor-pointer">
                     <option value="uno" {{ ($project->board_type ?? 'uno') == 'uno' ? 'selected' : '' }}>Arduino Uno (ATmega328P)</option>
                     <option value="nano" {{ ($project->board_type ?? '') == 'nano' ? 'selected' : '' }}>Arduino Nano</option>
                     <option value="esp32" {{ ($project->board_type ?? '') == 'esp32' ? 'selected' : '' }}>ESP32 DevKit V1</option>
                 </select>
             </div>
 
-            <button id="btnCompile" class="px-3.5 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-amber-400 text-xs font-bold transition-all border border-amber-500/30 flex items-center space-x-1.5 shadow-sm">
-                <i class="fas fa-cogs"></i>
+            <button id="btnCompile" onclick="SimLabEngine.compileCode()" class="px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-amber-400 text-xs font-bold transition-all border border-amber-500/30 flex items-center space-x-1.5 shadow-sm cursor-pointer" title="Cek Sintaks & Verifikasi Kode">
+                <i class="fas fa-check-circle"></i>
                 <span>Cek Sintaks</span>
             </button>
 
-            <button id="btnRunSim" class="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all flex items-center space-x-1.5 shadow-lg shadow-emerald-500/20">
+            <button id="btnPrintCode" onclick="SimLabEngine.copyOrPrintCode()" class="px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-cyan-400 text-xs font-bold transition-all border border-cyan-500/30 flex items-center space-x-1.5 shadow-sm cursor-pointer" title="Cetak / Salin Sintaks C++ Ke Clipboard">
+                <i class="fas fa-print"></i>
+                <span>Cetak Sintaks</span>
+            </button>
+
+            <button id="btnRunSim" onclick="if(SimLabEngine.isRunning){SimLabEngine.stopSimulation();}else{SimLabEngine.startSimulation();}" class="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all flex items-center space-x-1.5 shadow-lg shadow-emerald-500/20 cursor-pointer">
                 <i class="fas fa-play" id="simIcon"></i>
                 <span id="simText">Jalankan Simulasi</span>
             </button>
