@@ -133,7 +133,10 @@
                                 <a href="{{ route('yayasan.letters.edit', $letter->id) }}" class="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors" title="Edit Surat">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <a href="{{ $letter->wa_share_url }}" target="_blank" class="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors" title="Bagikan ke WhatsApp Group">
+                                <button onclick="copyLetterText({{ json_encode($letter->wa_text_content) }})" class="p-2 text-teal-600 hover:bg-teal-100 rounded-lg transition-colors" title="Salin Teks Surat & Link WA (1-Klik)">
+                                    <i class="fas fa-copy text-base"></i>
+                                </button>
+                                <a href="{{ $letter->wa_share_url }}" target="_blank" class="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors" title="Buka WhatsApp Web">
                                     <i class="fab fa-whatsapp text-base"></i>
                                 </a>
                                 <a href="{{ route('yayasan.letters.print', $letter->id) }}" target="_blank" class="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors" title="Cetak / Pratinjau PDF">
@@ -163,4 +166,14 @@
         @endif
     </div>
 </div>
+
+<script>
+function copyLetterText(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert("✅ Teks Surat & Link Verifikasi Berhasil Disalin ke Clipboard!\n\nSilakan buka WhatsApp Aplikasi / Desktop di Windows Anda lalu tekan Ctrl + V (Paste) di grup WA.");
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+}
+</script>
 @endsection

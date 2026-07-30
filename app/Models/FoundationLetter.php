@@ -58,7 +58,7 @@ class FoundationLetter extends Model
         return "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" . urlencode($this->verification_url);
     }
 
-    public function getWaShareUrlAttribute()
+    public function getWaTextContentAttribute()
     {
         $targetLabels = is_array($this->recipients) && isset($this->recipients['target_labels'])
             ? implode("\n- ", $this->recipients['target_labels'])
@@ -93,7 +93,12 @@ class FoundationLetter extends Model
         $text .= $this->verification_url . "\n\n";
         $text .= "_Demikian disampaikan untuk dilaksanakan dengan penuh rasa tanggung jawab. Terima kasih._";
 
-        return "https://api.whatsapp.com/send?text=" . urlencode($text);
+        return $text;
+    }
+
+    public function getWaShareUrlAttribute()
+    {
+        return "https://api.whatsapp.com/send?text=" . urlencode($this->wa_text_content);
     }
 
     public function scopeForRole($query, $roleKey = 'guru_pegawai')
