@@ -182,6 +182,9 @@ class DashboardController extends Controller
             ['user_id' => $teacher->user_id],
             ['total_points' => 0, 'level' => 1, 'current_streak' => 0]
         );
+        $reputationLogs = $teacher->user ? $teacher->user->reputationLogs()->latest()->take(5)->get() : collect();
+        $rank = \App\Models\Reputation::where('total_points', '>', $reputation->total_points ?? 0)->count() + 1;
+
         // Foundation Letters / Surat Edaran Yayasan
         $foundationLetters = \App\Models\FoundationLetter::where('status', 'published')
             ->orderBy('effective_date', 'desc')
