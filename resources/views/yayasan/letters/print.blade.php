@@ -68,7 +68,8 @@
             <div class="flex items-center justify-center gap-5">
                 <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Yayasan" class="w-20 h-auto max-h-24 object-contain flex-shrink-0">
                 <div class="text-center">
-                    <h1 class="text-xl font-extrabold uppercase tracking-wide text-black leading-tight">Yayasan Perguruan Pembangunan Daerah Nias (PEMBDA)</h1>
+                    <h1 class="text-lg md:text-xl font-bold uppercase tracking-wide text-black leading-tight">Yayasan Perguruan Pembangunan Daerah Nias</h1>
+                    <h1 class="text-2xl md:text-3xl font-black uppercase tracking-widest text-black my-0.5">( P E M B D A )</h1>
                     <p class="text-xs font-semibold text-gray-900 mt-1">Jl. Pelita No.09 Kel. Ilir Kota Gunungsitoli (22815)</p>
                     <p class="text-xs font-medium text-gray-800 mt-0.5">web : perguruanpembda.com | email : perguruanpembdanias@gmail.com</p>
                 </div>
@@ -112,9 +113,9 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="font-semibold align-top">Di Tempat</td>
-                    <td class="font-bold align-top">:</td>
-                    <td class="align-top text-gray-800">Gunungsitoli</td>
+                    <td class="font-semibold align-top">Di -</td>
+                    <td class="font-bold align-top"></td>
+                    <td class="font-bold align-top text-gray-900">Gunungsitoli</td>
                 </tr>
             </table>
         </div>
