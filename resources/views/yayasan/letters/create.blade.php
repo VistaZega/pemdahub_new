@@ -51,7 +51,7 @@
                 </div>
             </div>
 
-            {{-- Block 2: Jenis Surat, Tujuan & Perihal --}}
+            {{-- Block 2: Jenis Surat & Tanggal --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label for="category" class="block text-xs font-bold text-gray-700 uppercase mb-1">
@@ -67,32 +67,10 @@
                 </div>
 
                 <div>
-                    <label for="target_audience" class="block text-xs font-bold text-gray-700 uppercase mb-1">
-                        Tujuan Surat (Penerima) <span class="text-rose-500">*</span>
-                    </label>
-                    <select name="target_audience" id="target_audience" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-violet-600 focus:ring-0 font-medium">
-                        @foreach($targetAudiences as $key => $label)
-                            <option value="{{ $key }}" {{ old('target_audience', $defaultTarget) === $key ? 'selected' : '' }}>
-                                {{ $label }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
                     <label for="effective_date" class="block text-xs font-bold text-gray-700 uppercase mb-1">
                         Tanggal Ditetapkan <span class="text-rose-500">*</span>
                     </label>
                     <input type="date" name="effective_date" id="effective_date" value="{{ old('effective_date', $defaultEffectiveDate) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-violet-600 focus:ring-0" required>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="md:col-span-2">
-                    <label for="title" class="block text-xs font-bold text-gray-700 uppercase mb-1">
-                        Perihal / Judul Surat <span class="text-rose-500">*</span>
-                    </label>
-                    <input type="text" name="title" id="title" value="{{ old('title', $defaultTitle) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold text-gray-900 focus:border-violet-600 focus:ring-0" placeholder="Masukkan perihal surat..." required>
                 </div>
 
                 <div>
@@ -103,7 +81,40 @@
                 </div>
             </div>
 
-            {{-- Block 3: Isi Surat Rich Text --}}
+            {{-- Block 3: Multi-Select Checkbox Tujuan Surat --}}
+            <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 md:p-6 space-y-3">
+                <div class="flex items-center justify-between border-b border-indigo-200/60 pb-2">
+                    <label class="block text-xs font-bold text-indigo-900 uppercase flex items-center gap-2">
+                        <i class="fas fa-users-cog text-violet-700"></i> Tujuan Surat (Dapat Ditandai / Centang Banyak sekaligus) <span class="text-rose-500">*</span>
+                    </label>
+                    <span class="text-[11px] text-indigo-600 font-medium">Pilih 1 atau lebih penerima</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                    @foreach($targetAudiences as $key => $label)
+                        @php
+                            $isChecked = is_array(old('target_audiences', $defaultTargets)) && in_array($key, old('target_audiences', $defaultTargets));
+                        @endphp
+                        <label class="flex items-start gap-3 p-3 bg-white border rounded-xl hover:border-violet-400 cursor-pointer transition-all shadow-sm">
+                            <input type="checkbox" name="target_audiences[]" value="{{ $key }}" class="w-4 h-4 mt-0.5 rounded text-violet-600 focus:ring-violet-500 border-gray-300" {{ $isChecked ? 'checked' : '' }}>
+                            <span class="text-xs font-semibold text-gray-800 leading-snug">{{ $label }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('target_audiences')
+                    <p class="text-xs text-rose-600 font-semibold">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Perihal --}}
+            <div>
+                <label for="title" class="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Perihal / Judul Surat <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" name="title" id="title" value="{{ old('title', $defaultTitle) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold text-gray-900 focus:border-violet-600 focus:ring-0" placeholder="Masukkan perihal surat..." required>
+            </div>
+
+            {{-- Block 4: Isi Surat Rich Text --}}
             <div>
                 <div class="flex items-center justify-between mb-1">
                     <label for="content" class="block text-xs font-bold text-gray-700 uppercase">
@@ -121,10 +132,10 @@
                 <p class="text-[11px] text-gray-500 mt-1">Dapat memuat tag HTML sederhana (&lt;p&gt;, &lt;strong&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;ol&gt;, &lt;br&gt;).</p>
             </div>
 
-            {{-- Block 4: Identitas Penandatangan (Ketua Yayasan) --}}
+            {{-- Block 5: Identitas Penandatangan (Ketua Yayasan) --}}
             <div class="bg-amber-50/60 border border-amber-200/80 rounded-xl p-4 md:p-6 space-y-4">
                 <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2 border-b border-amber-200 pb-2">
-                    <i class="fas fa-user-check"></i> 2. Identitas Penandatangan & Digital Signature Authorization
+                    <i class="fas fa-user-check"></i> Identitas Penandatangan & Digital Signature Authorization
                 </h4>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

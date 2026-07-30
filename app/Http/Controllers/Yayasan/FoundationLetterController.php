@@ -50,11 +50,11 @@ class FoundationLetterController extends Controller
         // Default / Preset Content if requested
         $preset = $request->query('preset');
         $defaultNumber = '045/SE-YAY/PEMBDA/VII/' . date('Y');
-        $defaultTitle = 'Penetapan Standar Minimal Progress Input Data dan Kesiapan LMS Kelas Eksperimen TA 2026/2027';
+        $defaultTitle = 'Penetapan Standar Minimal Progress Input Data, Kesiapan LMS Kelas Eksperimen, dan Implementasi Modul PKL TA 2026/2027';
         $defaultEffectiveDate = date('Y-m-d');
         $defaultDeadlineDate = date('Y-08-03');
         $defaultCategory = 'edaran';
-        $defaultTarget = 'kepala_sekolah';
+        $defaultTargets = ['kepala_sekolah'];
 
         $defaultContent = '';
         if ($preset === 'standar_input') {
@@ -126,7 +126,7 @@ Administrator PembdaHUB dan Manajemen Yayasan akan melakukan verifikasi dan pena
             'defaultEffectiveDate',
             'defaultDeadlineDate',
             'defaultCategory',
-            'defaultTarget',
+            'defaultTargets',
             'defaultContent'
         ));
     }
@@ -137,21 +137,29 @@ Administrator PembdaHUB dan Manajemen Yayasan akan melakukan verifikasi dan pena
             'letter_number'      => 'required|string|max:100',
             'title'              => 'required|string|max:255',
             'category'           => 'required|string|in:' . implode(',', array_keys(self::CATEGORIES)),
-            'target_audience'    => 'required|string|in:' . implode(',', array_keys(self::TARGET_AUDIENCES)),
+            'target_audiences'   => 'required|array|min:1',
+            'target_audiences.*' => 'string|in:' . implode(',', array_keys(self::TARGET_AUDIENCES)),
             'content'            => 'required|string',
             'effective_date'     => 'required|date',
             'deadline_date'      => 'nullable|date',
-            'recipients'         => 'nullable|array',
             'signatory_name'     => 'required|string|max:255',
             'signatory_position' => 'required|string|max:255',
         ]);
 
         $hash = FoundationLetter::generateHash($request->letter_number, $request->title, $request->effective_date);
 
+        $selectedTargets = $request->target_audiences;
+        $targetLabels = [];
+        foreach ($selectedTargets as $targetKey) {
+            if (isset(self::TARGET_AUDIENCES[$targetKey])) {
+                $targetLabels[] = self::TARGET_AUDIENCES[$targetKey];
+            }
+        }
+
         $recipientsData = [
-            'target_key' => $request->target_audience,
-            'target_label' => self::TARGET_AUDIENCES[$request->target_audience] ?? $request->target_audience,
-            'unit_ids'   => $request->recipients ?? [1, 2, 3],
+            'target_keys'   => $selectedTargets,
+            'target_labels' => $targetLabels,
+            'unit_ids'      => [1, 2, 3],
         ];
 
         $letter = FoundationLetter::create([

@@ -56,13 +56,21 @@
                         <span class="font-bold text-violet-900 text-sm">{{ $letter->title }}</span>
                     </div>
                     @php
-                        $targetLabel = is_array($letter->recipients) && isset($letter->recipients['target_label']) 
-                            ? $letter->recipients['target_label'] 
-                            : 'Kepala Sekolah se-Perguruan Pembda Nias';
+                        $targetLabels = is_array($letter->recipients) && isset($letter->recipients['target_labels']) 
+                            ? $letter->recipients['target_labels'] 
+                            : [(is_array($letter->recipients) && isset($letter->recipients['target_label']) ? $letter->recipients['target_label'] : 'Kepala Sekolah se-Perguruan Pembda Nias')];
                     @endphp
                     <div class="md:col-span-2">
-                        <span class="text-slate-400 font-semibold block uppercase">Tujuan Penerima</span>
-                        <span class="font-semibold text-slate-800">{{ $targetLabel }}</span>
+                        <span class="text-slate-400 font-semibold block uppercase mb-1">Tujuan Penerima</span>
+                        @if(count($targetLabels) > 1)
+                            <ol class="list-decimal list-inside space-y-0.5 font-semibold text-slate-800">
+                                @foreach($targetLabels as $targetItem)
+                                    <li>{{ $targetItem }}</li>
+                                @endforeach
+                            </ol>
+                        @else
+                            <span class="font-semibold text-slate-800">{{ $targetLabels[0] ?? 'Kepala Sekolah se-Perguruan Pembda Nias' }}</span>
+                        @endif
                     </div>
                 </div>
 

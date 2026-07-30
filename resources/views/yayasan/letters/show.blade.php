@@ -57,20 +57,30 @@
 
         {{-- Meta Penerima & Tanggal --}}
         @php
-            $targetLabel = is_array($letter->recipients) && isset($letter->recipients['target_label']) 
-                ? $letter->recipients['target_label'] 
-                : 'Kepala Sekolah se-Perguruan Pembda Nias';
+            $targetLabels = is_array($letter->recipients) && isset($letter->recipients['target_labels']) 
+                ? $letter->recipients['target_labels'] 
+                : [(is_array($letter->recipients) && isset($letter->recipients['target_label']) ? $letter->recipients['target_label'] : 'Kepala Sekolah se-Perguruan Pembda Nias')];
         @endphp
-        <div class="mb-8 text-sm text-gray-800 space-y-1">
+        <div class="mb-8 text-sm text-gray-800 space-y-2">
             <div class="flex">
                 <span class="w-28 font-semibold text-gray-600">Perihal</span>
                 <span class="w-4 text-center font-bold">:</span>
                 <span class="font-bold text-gray-900 flex-1">{{ $letter->title }}</span>
             </div>
-            <div class="flex">
+            <div class="flex items-start">
                 <span class="w-28 font-semibold text-gray-600">Kepada Yth.</span>
                 <span class="w-4 text-center font-bold">:</span>
-                <span class="font-semibold text-gray-900 flex-1">{{ $targetLabel }}</span>
+                <div class="font-semibold text-gray-900 flex-1">
+                    @if(count($targetLabels) > 1)
+                        <ol class="list-decimal list-inside space-y-0.5">
+                            @foreach($targetLabels as $targetItem)
+                                <li>{{ $targetItem }}</li>
+                            @endforeach
+                        </ol>
+                    @else
+                        <span>{{ $targetLabels[0] ?? 'Kepala Sekolah se-Perguruan Pembda Nias' }}</span>
+                    @endif
+                </div>
             </div>
             <div class="flex">
                 <span class="w-28 font-semibold text-gray-600">Di Tempat</span>

@@ -88,12 +88,12 @@
 
         {{-- Meta Penerima --}}
         @php
-            $targetLabel = is_array($letter->recipients) && isset($letter->recipients['target_label']) 
-                ? $letter->recipients['target_label'] 
-                : 'Kepala Sekolah se-Perguruan Pembda Nias';
+            $targetLabels = is_array($letter->recipients) && isset($letter->recipients['target_labels']) 
+                ? $letter->recipients['target_labels'] 
+                : [(is_array($letter->recipients) && isset($letter->recipients['target_label']) ? $letter->recipients['target_label'] : 'Kepala Sekolah se-Perguruan Pembda Nias')];
         @endphp
-        <div class="mb-6 text-sm space-y-1">
-            <table class="text-sm">
+        <div class="mb-6 text-sm">
+            <table class="text-sm w-full">
                 <tr>
                     <td class="w-28 font-semibold align-top">Perihal</td>
                     <td class="w-4 font-bold align-top">:</td>
@@ -102,7 +102,17 @@
                 <tr>
                     <td class="font-semibold align-top">Kepada Yth.</td>
                     <td class="font-bold align-top">:</td>
-                    <td class="font-bold align-top text-gray-900">{{ $targetLabel }}</td>
+                    <td class="font-bold align-top text-gray-900">
+                        @if(count($targetLabels) > 1)
+                            <ol class="list-decimal list-inside space-y-0.5 font-bold">
+                                @foreach($targetLabels as $targetItem)
+                                    <li>{{ $targetItem }}</li>
+                                @endforeach
+                            </ol>
+                        @else
+                            <span>{{ $targetLabels[0] ?? 'Kepala Sekolah se-Perguruan Pembda Nias' }}</span>
+                        @endif
+                    </td>
                 </tr>
                 <tr>
                     <td class="font-semibold align-top">Di Tempat</td>
