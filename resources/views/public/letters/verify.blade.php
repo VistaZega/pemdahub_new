@@ -75,6 +75,16 @@
                     </div>
                 </div>
 
+                {{-- Isi Naskah Surat Resmi --}}
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-violet-900 border-b border-slate-200 pb-2 flex items-center gap-2">
+                        <i class="fas fa-file-alt"></i> Naskah Dokumen Surat Resmi
+                    </h3>
+                    <div class="text-xs md:text-sm text-slate-800 font-sans leading-relaxed whitespace-pre-line">
+                        {!! nl2br(e($letter->content)) !!}
+                    </div>
+                </div>
+
                 {{-- Signatory Info --}}
                 <div class="bg-amber-50/70 border border-amber-200/80 p-4 rounded-2xl flex items-center justify-between gap-4">
                     <div>

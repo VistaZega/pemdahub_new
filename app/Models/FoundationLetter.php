@@ -60,38 +60,15 @@ class FoundationLetter extends Model
 
     public function getWaTextContentAttribute()
     {
-        $targetLabels = is_array($this->recipients) && isset($this->recipients['target_labels'])
-            ? implode("\n- ", $this->recipients['target_labels'])
-            : (is_array($this->recipients) && isset($this->recipients['target_label']) ? $this->recipients['target_label'] : 'Kepala Sekolah se-Perguruan Pembda Nias');
-
-        // Convert HTML content to plain text suited for WhatsApp
-        $rawContent = $this->content;
-        $cleanContent = str_replace(['<br>', '<br/>', '<br />'], "\n", $rawContent);
-        $cleanContent = str_replace(['</p>', '</div>', '</h1>', '</h2>', '</h3>', '</h4>'], "\n\n", $cleanContent);
-        $cleanContent = str_replace(['<li>', 'inline-list'], "\n• ", $cleanContent);
-        $cleanContent = str_replace(['<strong>', '<b>'], "*", $cleanContent);
-        $cleanContent = str_replace(['</strong>', '</b>'], "*", $cleanContent);
-        $cleanContent = trim(strip_tags($cleanContent));
-
         $text = "*YAYASAN PERGURUAN PEMBDA NIAS*\n";
-        $text .= "Jl. Pelita No.09 Kel. Ilir Kota Gunungsitoli (22815)\n";
-        $text .= "--------------------------------------------------\n";
         $text .= "*SURAT EDARAN YAYASAN*\n";
-        $text .= "*Nomor:* " . $this->letter_number . "\n\n";
-        $text .= "*Perihal:* " . $this->title . "\n";
-        $text .= "*Tanggal Terbit:* " . ($this->effective_date ? $this->effective_date->translatedFormat('d F Y') : '-') . "\n";
+        $text .= "Nomor: " . $this->letter_number . "\n";
+        $text .= "Perihal: " . $this->title . "\n";
         if ($this->deadline_date) {
-            $text .= "*Tenggat Waktu:* " . $this->deadline_date->translatedFormat('d F Y') . "\n";
+            $text .= "Tenggat Waktu: " . $this->deadline_date->translatedFormat('d F Y') . "\n";
         }
-        $text .= "\n*Kepada Yth.:*\n- " . $targetLabels . "\n";
-        $text .= "Di -\n   Gunungsitoli\n\n";
-        $text .= "--------------------------------------------------\n";
-        $text .= "*ISI SURAT:*\n\n";
-        $text .= $cleanContent . "\n\n";
-        $text .= "--------------------------------------------------\n";
-        $text .= "🔗 *Link Dokumen Resmi & QR Code Verifikasi:*\n";
-        $text .= $this->verification_url . "\n\n";
-        $text .= "_Demikian disampaikan untuk dilaksanakan dengan penuh rasa tanggung jawab. Terima kasih._";
+        $text .= "\nBuka dan baca dokumen resmi selengkapnya di PembdaHUB melalui tautan berikut:\n";
+        $text .= $this->verification_url;
 
         return $text;
     }
