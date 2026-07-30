@@ -58,6 +58,29 @@ class FoundationLetter extends Model
         return "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" . urlencode($this->verification_url);
     }
 
+    public function getWaShareUrlAttribute()
+    {
+        $targetLabels = is_array($this->recipients) && isset($this->recipients['target_labels'])
+            ? implode("\n- ", $this->recipients['target_labels'])
+            : (is_array($this->recipients) && isset($this->recipients['target_label']) ? $this->recipients['target_label'] : 'Kepala Sekolah se-Perguruan Pembda Nias');
+
+        $text = "*YAYASAN PERGURUAN PEMBDA NIAS*\n";
+        $text .= "--------------------------------------------------\n";
+        $text .= "*SURAT EDARAN YAYASAN*\n";
+        $text .= "*Nomor:* " . $this->letter_number . "\n\n";
+        $text .= "*Perihal:* " . $this->title . "\n";
+        $text .= "*Tanggal Terbit:* " . ($this->effective_date ? $this->effective_date->translatedFormat('d F Y') : '-') . "\n";
+        if ($this->deadline_date) {
+            $text .= "*Tenggat Waktu:* " . $this->deadline_date->translatedFormat('d F Y') . "\n";
+        }
+        $text .= "\n*Kepada Yth.:*\n- " . $targetLabels . "\n\n";
+        $text .= "Yth. Bapak/Ibu, silakan baca dokumen resmi dan verifikasi keaslian surat edaran ini secara online melalui tautan resmi PembdaHUB berikut:\n\n";
+        $text .= "🔗 *Link Dokumen & Verifikasi Resmi:*\n" . $this->verification_url . "\n\n";
+        $text .= "_Demikian disampaikan untuk dilaksanakan dengan penuh rasa tanggung jawab. Terima kasih._";
+
+        return "https://api.whatsapp.com/send?text=" . urlencode($text);
+    }
+
     public function scopeForRole($query, $roleKey = 'guru_pegawai')
     {
         return $query->where(function ($q) use ($roleKey) {
