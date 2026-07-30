@@ -103,6 +103,12 @@ class FoundationLetterController extends Controller
             <li>Pemetaan ID Kartu RFID / Perangkat Presensi Guru & Pegawai telah selesai disinkronkan.</li>
         </ul>
     </li>
+    <li><strong>KHUSUS UNIT SMKS SWASTA PEMBDA NIAS - IMPLEMENTASI MODUL PKL (Target: 100%)</strong>
+        <ul>
+            <li><strong>Sisi Siswa Peserta PKL:</strong> Pengisian Logbook / Jurnal Kegiatan Harian PKL secara aktif melalui akun siswa di PembdaHUB.</li>
+            <li><strong>Sisi Guru Pendamping / Pembimbing PKL:</strong> Pelaksanaan verifikasi, monitoring catatan harian, dan pemberian penilaian logbook PKL oleh Guru Pendamping di PembdaHUB.</li>
+        </ul>
+    </li>
 </ol>
 
 <p><strong>MONITORING & EVALUASI:</strong><br>
