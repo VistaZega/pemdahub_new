@@ -16,6 +16,7 @@ class FoundationLetterReaderController extends Controller
         $schoolId = session('school_id', $user->school_id);
 
         $letters = FoundationLetter::where('status', 'published')
+            ->forUser($user)
             ->orderBy('effective_date', 'desc')
             ->paginate(10);
 

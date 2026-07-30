@@ -57,4 +57,31 @@ class FoundationLetter extends Model
     {
         return "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" . urlencode($this->verification_url);
     }
+
+    public function scopeForUser($query, $user)
+    {
+        if (!$user) {
+            return $query;
+        }
+
+        $role = $user->role ?? 'guru';
+
+        // Superadmin & Ketua Yayasan can see all letters
+        if (in_array($role, ['superadmin', 'ketua_yayasan'])) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($role) {
+            if (in_array($role, ['admin_sekolah', 'kepala_sekolah'])) {
+                $q->whereJsonContains('recipients->target_keys', 'kepala_sekolah')
+                  ->orWhereJsonContains('recipients->target_keys', 'guru_pegawai');
+            } elseif (in_array($role, ['guru', 'pegawai'])) {
+                $q->whereJsonContains('recipients->target_keys', 'guru_pegawai');
+            } elseif ($role === 'siswa') {
+                $q->whereJsonContains('recipients->target_keys', 'siswa');
+            } else {
+                $q->whereJsonContains('recipients->target_keys', 'all');
+            }
+        });
+    }
 }
