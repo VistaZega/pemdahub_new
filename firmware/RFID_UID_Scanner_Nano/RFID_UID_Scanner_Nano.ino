@@ -36,9 +36,9 @@
 
 MFRC522 rfid(RFID_SS_PIN, RFID_RST_PIN);
 
-String        lastUID     = "";
-unsigned long lastTap     = 0;
-unsigned long scanCount   = 0;
+String        lastUID       = "";
+unsigned long lastTap       = 0;
+unsigned long scanCount     = 0;
 unsigned long lastHeartbeat = 0;
 
 void setup() {
@@ -56,15 +56,15 @@ void setup() {
   Serial.println(F("   RFID UID SCANNER - Arduino Nano      "));
   Serial.println(F("========================================"));
 
-  // Inisialisasi SPI & RFID RC522
+  // Inisialisasi SPI untuk AVR Arduino Nano
   SPI.begin();
-  SPI.setFrequency(1000000); // 1MHz untuk kestabilan chip clone (0xB2)
+  SPI.setClockDivider(SPI_CLOCK_DIV16); // 1MHz pada AVR Nano (16MHz / 16 = 1MHz)
   delay(50);
 
   rfid.PCD_Init();
   delay(100);
 
-  // Cek apakah modul RFID RC522 terhubung dengan benar
+  // Auto Diagnostik: Cek apakah IC RC522 terdeteksi
   byte version = rfid.PCD_ReadRegister(rfid.VersionReg);
   
   if (version == 0x00 || version == 0xFF) {
@@ -78,7 +78,6 @@ void setup() {
       digitalWrite(LED_RED, LOW);  delay(100);
     }
   } else {
-    // Maximalkan antenna gain
     rfid.PCD_SetAntennaGain(rfid.RxGain_max);
     rfid.PCD_AntennaOn();
 
@@ -92,7 +91,6 @@ void setup() {
     Serial.println(F(" Status: SIAP. Tempelkan kartu RFID...  "));
     Serial.println(F("========================================"));
 
-    // Beep 1x + LED Hijau tanda siap
     digitalWrite(BUZZER_PIN, HIGH);
     digitalWrite(LED_GREEN, HIGH);
     delay(150);
@@ -104,29 +102,23 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  // Heartbeat setiap 5 detik agar user tahu alat tidak hang/stuck
+  // Heartbeat check kabel terputus
   if (now - lastHeartbeat >= 5000) {
     lastHeartbeat = now;
-    // Cek ulang register chip RFID untuk memastikan kabel tidak lepas saat operasi
     byte v = rfid.PCD_ReadRegister(rfid.VersionReg);
     if (v == 0x00 || v == 0xFF) {
       Serial.println(F("⚠️ WARNING: Sambungan kabel RFID terputus!"));
     }
   }
 
-  // Cek apakah ada kartu di dekat antena
   if (!rfid.PICC_IsNewCardPresent()) return;
-
-  // Coba baca serial kartu (retry 1x untuk chip clone)
   if (!rfid.PICC_ReadCardSerial()) {
     delay(10);
     if (!rfid.PICC_ReadCardSerial()) return;
   }
 
-  // Baca UID
   String uid = getUID();
 
-  // Anti double-tap
   if (uid == lastUID && (now - lastTap) < SCAN_COOLDOWN_MS) {
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
@@ -137,11 +129,9 @@ void loop() {
   lastTap = now;
   scanCount++;
 
-  // Kirim data ke Serial USB
   Serial.println("UID:" + uid);
   Serial.println("COUNT:" + String(scanCount));
 
-  // Indikator Suara & LED
   digitalWrite(BUZZER_PIN, HIGH);
   digitalWrite(LED_GREEN, HIGH);
   delay(120);
