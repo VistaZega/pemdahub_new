@@ -72,7 +72,7 @@
                 <div class="text-center">
                     <h1 class="text-xl font-bold uppercase tracking-wider text-black leading-tight">YAYASAN PERGURUAN PEMBDA NIAS</h1>
                     <p class="text-xs font-bold uppercase text-gray-800 tracking-normal mt-0.5">SMPS SWASTA PEMBDA 2 • SMA SWASTA PEMBDA 1 • SMKS SWASTA PEMBDA NIAS</p>
-                    <p class="text-xs text-gray-800 mt-1">Alamat: Jl. Pelita No.31, Gunungsitoli, Kabupaten Nias, Sumatera Utara (Kode Pos: 22812)</p>
+                    <p class="text-xs text-gray-800 mt-1">Alamat: Jl. Pelita No.09, Gunungsitoli, Kabupaten Nias, Sumatera Utara (Kode Pos: 22812)</p>
                     <p class="text-[11px] text-gray-700">Website: https://perguruanpembda.com | Email: yayasan@perguruanpembda.com</p>
                 </div>
             </div>

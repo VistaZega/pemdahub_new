@@ -26,7 +26,7 @@
                 </div>
                 <h1 class="text-xl font-extrabold tracking-wide uppercase">YAYASAN PERGURUAN PEMBDA NIAS</h1>
                 <p class="text-xs text-violet-200 mt-1">Sistem Otentikasi & Verifikasi Keaslian Dokumen Resmi Digital</p>
-                <p class="text-[11px] text-violet-300">Jl. Pelita No.31, Gunungsitoli, Sumatera Utara (Kode Pos: 22812)</p>
+                <p class="text-[11px] text-violet-300">Jl. Pelita No.09, Gunungsitoli, Sumatera Utara (Kode Pos: 22812)</p>
             </div>
 
             @if($isValid && $letter)

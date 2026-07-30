@@ -112,9 +112,9 @@ class FoundationLetterController extends Controller
 </ol>
 
 <p><strong>MONITORING & EVALUASI:</strong><br>
-Tim IT dan Manajemen Yayasan akan melakukan verifikasi dan penarikan laporan progress secara otomatis dari sistem PembdaHUB pada hari Selasa, 4 Agustus 2026. Hasil progress masing-masing unit sekolah akan dilaporkan langsung kepada Pengurus Yayasan sebagai bahan evaluasi kinerja unit.</p>
+Administrator PembdaHUB dan Manajemen Yayasan akan melakukan verifikasi dan penarikan laporan progress secara otomatis dari sistem PembdaHUB pada hari Selasa, 4 Agustus 2026. Hasil progress masing-masing unit sekolah akan dilaporkan langsung kepada Pengurus Yayasan sebagai bahan evaluasi kinerja unit.</p>
 
-<p>Demikian Surat Edaran ini disampaikan untuk dilaksanakan dengan penuh rasa tanggung jawab. Atas perhatian dan kerja sama Bapak/Ibu Kepala Sekolah beserta jajaran Tim IT Unit, kami ucapkan terima kasih.</p>';
+<p>Demikian Surat Edaran ini disampaikan untuk dilaksanakan dengan penuh rasa tanggung jawab. Atas perhatian dan kerja sama Bapak/Ibu Kepala Sekolah beserta jajaran Administrator PembdaHUB Unit, kami ucapkan terima kasih.</p>';
         }
 
         return view('yayasan.letters.create', compact(

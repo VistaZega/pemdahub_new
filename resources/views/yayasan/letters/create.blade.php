@@ -38,7 +38,7 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Identitas Instansi Penerbit</label>
                         <input type="text" value="Yayasan Perguruan PEMBDA Nias" class="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 font-semibold cursor-not-allowed" readonly>
-                        <p class="text-[11px] text-gray-500 mt-1"><i class="fas fa-map-marker-alt mr-1"></i>Jl. Pelita No.31, Gunungsitoli, Sumatera Utara (22812)</p>
+                        <p class="text-[11px] text-gray-500 mt-1"><i class="fas fa-map-marker-alt mr-1"></i>Jl. Pelita No.09, Gunungsitoli, Sumatera Utara (22812)</p>
                     </div>
 
                     <div>
