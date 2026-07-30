@@ -29,6 +29,43 @@
         </div>
     </div>
 
+    {{-- Widget Surat Digital & Edaran Yayasan Terbaru --}}
+    @if(isset($foundationLetters) && $foundationLetters->isNotEmpty())
+    <div class="bg-gradient-to-r from-violet-900 via-purple-900 to-indigo-950 rounded-2xl p-5 text-white shadow-lg border border-violet-700/50">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-400 text-gray-900 flex items-center justify-center font-black text-lg flex-shrink-0 shadow">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-0.5">
+                        <span class="bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">Surat & Edaran Yayasan Terbaru</span>
+                        @if($foundationLetters->first()->deadline_date)
+                        <span class="bg-rose-500/20 text-rose-300 border border-rose-400/30 px-2 py-0.5 rounded text-[10px] font-semibold">
+                            <i class="fas fa-clock mr-1"></i>Tenggat: {{ \Carbon\Carbon::parse($foundationLetters->first()->deadline_date)->translatedFormat('d M Y') }}
+                        </span>
+                        @endif
+                    </div>
+                    <h3 class="text-base md:text-lg font-bold text-white leading-snug">
+                        {{ $foundationLetters->first()->title }}
+                    </h3>
+                    <p class="text-xs text-violet-200 mt-1 font-mono">
+                        No. Surat: {{ $foundationLetters->first()->letter_number }} • Tanggal Terbit: {{ \Carbon\Carbon::parse($foundationLetters->first()->effective_date)->translatedFormat('d F Y') }}
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <a href="{{ route('admin.letters.show', $foundationLetters->first()->id) }}" class="bg-amber-400 hover:bg-amber-500 text-gray-950 font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center gap-2">
+                    <i class="fas fa-book-open"></i> Baca Surat Digital
+                </a>
+                <a href="{{ route('admin.letters.index') }}" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-3 py-2 rounded-xl text-xs transition-all">
+                    Lihat Semua ({{ $foundationLetters->count() }})
+                </a>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- Stats Cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {{-- Total Kelas --}}

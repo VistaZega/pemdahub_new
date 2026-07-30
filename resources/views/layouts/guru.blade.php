@@ -48,6 +48,12 @@
         <span>Kalender Pendidikan</span>
     </a>
 
+    <!-- Surat Edaran Yayasan -->
+    <a href="{{ route('admin.letters.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.letters.*') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white"><i class="fas fa-file-signature text-[10px]"></i></div>
+        <span>Surat Edaran Yayasan</span>
+    </a>
+
     <!-- Kelas Saya -->
     <a href="{{ route('guru.kelas') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.kelas', 'guru.siswa-kelas') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white"><i class="fas fa-users text-[10px]"></i></div>
