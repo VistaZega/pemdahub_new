@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verifikasi Keaslian Surat Digital - Yayasan Perguruan PEMBDA Nias</title>
+    <title>Surat Digital Resmi - {{ $letter->title ?? 'Yayasan Perguruan PEMBDA Nias' }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -11,129 +11,147 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen py-10 px-4">
-    <div class="max-w-2xl mx-auto space-y-6">
+<body class="bg-slate-200 min-h-screen py-6 px-3 md:py-10 md:px-4">
+    <div class="max-w-4xl mx-auto space-y-4">
 
-        {{-- Main Verification Card --}}
-        <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
-            {{-- Header Band --}}
-            <div class="bg-gradient-to-r from-violet-900 via-purple-900 to-indigo-900 p-6 text-white text-center relative overflow-hidden">
-                <div class="absolute -left-10 -bottom-10 opacity-10 text-9xl">
-                    <i class="fas fa-shield-alt"></i>
+        @if($isValid && $letter)
+        {{-- Status Banner Verified --}}
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-4 rounded-2xl shadow-lg flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+                    <i class="fas fa-check-circle"></i>
                 </div>
-                <div class="w-16 h-16 bg-white p-2 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
-                    <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Yayasan" class="w-full h-full object-contain">
-                </div>
-                <h1 class="text-base md:text-lg font-bold tracking-wide uppercase">Yayasan Perguruan Pembangunan Daerah Nias</h1>
-                <h1 class="text-xl md:text-2xl font-black tracking-widest text-amber-300 uppercase my-0.5">( P E M B D A )</h1>
-                <p class="text-xs text-violet-200 mt-1">Jl. Pelita No.09 Kel. Ilir Kota Gunungsitoli (22815)</p>
-                <p class="text-[11px] text-violet-300">web : perguruanpembda.com | email : perguruanpembdanias@gmail.com</p>
-            </div>
-
-            @if($isValid && $letter)
-            {{-- Status Banner Valid --}}
-            <div class="bg-emerald-500 text-white p-4 text-center flex items-center justify-center gap-3">
-                <i class="fas fa-check-circle text-2xl"></i>
-                <div class="text-left">
+                <div>
                     <h2 class="text-sm font-extrabold uppercase tracking-wide">DOKUMEN RESMI TERVERIFIKASI & SAH</h2>
-                    <p class="text-xs text-emerald-100">Surat ini terdaftar secara sah pada Server Resmi PembdaHUB</p>
+                    <p class="text-xs text-emerald-100">Surat terdaftar secara otentik pada Server Resmi PembdaHUB</p>
+                </div>
+            </div>
+            <a href="{{ route('public.letters.verify', $letter->signature_hash) }}" class="bg-white/10 hover:bg-white/20 text-white font-mono text-xs px-3 py-1.5 rounded-lg transition-all border border-white/20 flex items-center gap-1.5">
+                <i class="fas fa-lock text-emerald-300"></i> SHA-256: {{ substr($letter->signature_hash, 0, 12) }}...
+            </a>
+        </div>
+
+        {{-- Paper Container --}}
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-300/80 p-6 md:p-12 space-y-6 relative overflow-hidden">
+            
+            {{-- Kop Surat Resmi Yayasan --}}
+            <div class="border-b-4 border-double border-gray-900 pb-6 text-center relative">
+                <div class="flex flex-col md:flex-row items-center justify-center gap-5">
+                    <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Yayasan" class="w-20 h-auto max-h-24 object-contain flex-shrink-0">
+                    <div class="text-center">
+                        <h1 class="text-lg md:text-xl font-bold uppercase tracking-wide text-gray-900 leading-tight">Yayasan Perguruan Pembangunan Daerah Nias</h1>
+                        <h1 class="text-2xl md:text-3xl font-black uppercase tracking-widest text-gray-950 my-0.5">( P E M B D A )</h1>
+                        <p class="text-xs font-semibold text-gray-800 mt-1">Jl. Pelita No.09 Kel. Ilir Kota Gunungsitoli (22815)</p>
+                        <p class="text-xs font-medium text-gray-600 mt-0.5">web : perguruanpembda.com | email : perguruanpembdanias@gmail.com</p>
+                    </div>
                 </div>
             </div>
 
-            {{-- Document Details --}}
-            <div class="p-6 md:p-8 space-y-6">
-                {{-- Metadata Grid --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
-                    <div>
-                        <span class="text-slate-400 font-semibold block uppercase">Nomor Surat</span>
-                        <span class="font-mono font-bold text-slate-900 text-sm">{{ $letter->letter_number }}</span>
-                    </div>
-                    <div>
-                        <span class="text-slate-400 font-semibold block uppercase">Tanggal Ditetapkan</span>
-                        <span class="font-bold text-slate-900">{{ \Carbon\Carbon::parse($letter->effective_date)->translatedFormat('d F Y') }}</span>
-                    </div>
-                    <div class="md:col-span-2">
-                        <span class="text-slate-400 font-semibold block uppercase">Perihal Surat</span>
-                        <span class="font-bold text-violet-900 text-sm">{{ $letter->title }}</span>
-                    </div>
-                    @php
-                        $targetLabels = is_array($letter->recipients) && isset($letter->recipients['target_labels']) 
-                            ? $letter->recipients['target_labels'] 
-                            : [(is_array($letter->recipients) && isset($letter->recipients['target_label']) ? $letter->recipients['target_label'] : 'Kepala Sekolah se-Perguruan Pembda Nias')];
-                    @endphp
-                    <div class="md:col-span-2">
-                        <span class="text-slate-400 font-semibold block uppercase mb-1">Tujuan Penerima</span>
+            {{-- Judul & Nomor Surat --}}
+            <div class="text-center">
+                <h2 class="text-base font-extrabold uppercase underline tracking-wide text-gray-900">
+                    {{ strtoupper($letter->category_label ?? 'SURAT EDARAN YAYASAN') }}
+                </h2>
+                <p class="text-xs font-mono font-bold text-gray-700 mt-1">Nomor: {{ $letter->letter_number }}</p>
+            </div>
+
+            {{-- Meta Penerima --}}
+            @php
+                $targetLabels = is_array($letter->recipients) && isset($letter->recipients['target_labels']) 
+                    ? $letter->recipients['target_labels'] 
+                    : [(is_array($letter->recipients) && isset($letter->recipients['target_label']) ? $letter->recipients['target_label'] : 'Kepala Sekolah se-Perguruan Pembda Nias')];
+            @endphp
+            <div class="text-sm text-gray-800 space-y-2">
+                <div class="flex">
+                    <span class="w-28 font-semibold text-gray-600">Perihal</span>
+                    <span class="w-4 text-center font-bold">:</span>
+                    <span class="font-bold text-gray-900 flex-1">{{ $letter->title }}</span>
+                </div>
+                <div class="flex items-start">
+                    <span class="w-28 font-semibold text-gray-600">Kepada Yth.</span>
+                    <span class="w-4 text-center font-bold">:</span>
+                    <div class="font-semibold text-gray-900 flex-1">
                         @if(count($targetLabels) > 1)
-                            <ol class="list-decimal list-inside space-y-0.5 font-semibold text-slate-800">
+                            <ol class="list-decimal list-inside space-y-0.5">
                                 @foreach($targetLabels as $targetItem)
                                     <li>{{ $targetItem }}</li>
                                 @endforeach
                             </ol>
                         @else
-                            <span class="font-semibold text-slate-800">{{ $targetLabels[0] ?? 'Kepala Sekolah se-Perguruan Pembda Nias' }}</span>
+                            <span>{{ $targetLabels[0] ?? 'Kepala Sekolah se-Perguruan Pembda Nias' }}</span>
                         @endif
                     </div>
                 </div>
-
-                {{-- Isi Naskah Surat Resmi --}}
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-violet-900 border-b border-slate-200 pb-2 flex items-center gap-2">
-                        <i class="fas fa-file-alt"></i> Naskah Dokumen Surat Resmi
-                    </h3>
-                    <div class="text-xs md:text-sm text-slate-800 font-sans leading-relaxed whitespace-pre-line">
-                        {!! nl2br(e($letter->content)) !!}
-                    </div>
+                <div class="flex">
+                    <span class="w-28 font-semibold text-gray-600">Di -</span>
+                    <span class="w-4 text-center font-bold"></span>
+                    <span class="font-bold text-gray-900 flex-1">Gunungsitoli</span>
                 </div>
+            </div>
 
-                {{-- Signatory Info --}}
-                <div class="bg-amber-50/70 border border-amber-200/80 p-4 rounded-2xl flex items-center justify-between gap-4">
-                    <div>
-                        <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">Penandatangan Digital</span>
-                        <h4 class="text-sm font-extrabold text-slate-900">{{ $letter->signatory_name }}</h4>
-                        <p class="text-xs text-slate-600 font-medium">{{ $letter->signatory_position }}</p>
-                    </div>
-                    <div class="text-right">
-                        <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-full border border-emerald-300">
-                            <i class="fas fa-certificate text-emerald-600"></i> SIGNED
-                        </span>
-                        <span class="text-[10px] text-slate-400 block mt-1 font-mono">
-                            {{ $letter->signed_at ? $letter->signed_at->format('d/m/Y H:i') : '' }} WIB
-                        </span>
-                    </div>
-                </div>
+            {{-- Naskah Isi Surat Lengkap (Rendered Clean HTML) --}}
+            <div class="prose max-w-none text-xs md:text-sm text-gray-800 leading-relaxed font-sans pt-2 border-t border-gray-100">
+                {!! $letter->content !!}
+            </div>
 
-                {{-- Cryptographic Integrity --}}
-                <div class="p-4 bg-slate-900 text-white rounded-2xl space-y-2">
-                    <div class="flex items-center justify-between text-xs text-slate-400">
-                        <span class="font-bold text-slate-200 flex items-center gap-1.5">
-                            <i class="fas fa-lock text-emerald-400"></i> Cryptographic Hash Integrity
-                        </span>
-                        <span class="font-mono text-[10px] bg-slate-800 px-2 py-0.5 rounded text-emerald-400">SHA-256</span>
+            {{-- Tanda Tangan Digital & Verifikasi Box --}}
+            <div class="pt-6 border-t border-gray-200 flex flex-col md:flex-row items-end justify-between gap-6">
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 w-full md:w-auto text-xs space-y-2">
+                    <div class="flex items-center gap-2 text-emerald-700 font-bold">
+                        <i class="fas fa-shield-alt text-base"></i>
+                        <span>VERIFIKASI KEASLIAN KRIPTOGRAFI</span>
                     </div>
-                    <div class="bg-slate-950 p-3 rounded-xl font-mono text-[11px] text-slate-300 break-all border border-slate-800">
+                    <div class="font-mono text-[11px] text-gray-600 break-all bg-white p-2.5 rounded-xl border border-gray-200">
+                        <span class="text-gray-400 block text-[9px] uppercase font-bold mb-0.5">SHA-256 Signature Hash:</span>
                         {{ $letter->signature_hash }}
                     </div>
+                    <div class="text-[11px] text-gray-500 flex justify-between">
+                        <span>Ditandatangani secara digital:</span>
+                        <span class="font-bold text-gray-700">{{ $letter->signed_at ? $letter->signed_at->format('d/m/Y H:i') : '' }} WIB</span>
+                    </div>
                 </div>
-            </div>
-            @else
-            {{-- Invalid / Not Found Banner --}}
-            <div class="bg-rose-500 text-white p-4 text-center flex items-center justify-center gap-3">
-                <i class="fas fa-exclamation-triangle text-2xl"></i>
-                <div class="text-left">
-                    <h2 class="text-sm font-extrabold uppercase tracking-wide">DOKUMEN TIDAK DITEMUK ATAU TIDAK VALID</h2>
-                    <p class="text-xs text-rose-100">Kode verifikasi QR Code tidak terdaftar pada database resmi PembdaHUB.</p>
-                </div>
-            </div>
-            <div class="p-8 text-center text-slate-600 text-sm">
-                <p>Silakan pastikan bahwa QR Code yang Anda pindai berasal dari dokumen Surat Resmi yang diterbitkan oleh <strong>Yayasan Perguruan PEMBDA Nias</strong>.</p>
-            </div>
-            @endif
 
-            {{-- Footer --}}
-            <div class="bg-slate-50 p-4 border-t border-slate-200 text-center text-xs text-slate-500">
-                <p>© {{ date('Y') }} Yayasan Perguruan PEMBDA Nias. Official Portal: <a href="https://perguruanpembda.com" class="text-violet-700 font-bold hover:underline">perguruanpembda.com</a></p>
+                <div class="text-center min-w-[240px]">
+                    <p class="text-xs text-gray-600">Ditetapkan di : Gunungsitoli</p>
+                    <p class="text-xs text-gray-600">Pada tanggal : {{ \Carbon\Carbon::parse($letter->effective_date)->translatedFormat('d F Y') }}</p>
+                    
+                    <p class="text-xs font-bold text-gray-900 mt-2 uppercase">YAYASAN PERGURUAN PEMBDA NIAS</p>
+
+                    <div class="my-3 flex justify-center">
+                        <div class="border-2 border-emerald-500 rounded-xl p-2 bg-emerald-50/50 flex items-center gap-3">
+                            <img src="{{ $letter->qr_code_url }}" alt="QR Code" class="w-16 h-16 rounded border bg-white p-1">
+                            <div class="text-left text-[10px]">
+                                <span class="bg-emerald-600 text-white font-extrabold px-1.5 py-0.5 rounded uppercase block w-max">TTD DIGITAL SAH</span>
+                                <span class="font-bold text-gray-900 block mt-1">{{ $letter->signatory_name }}</span>
+                                <span class="text-gray-500 block">{{ $letter->signatory_position }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-sm font-extrabold text-gray-900 underline">{{ $letter->signatory_name }}</p>
+                    <p class="text-xs font-semibold text-gray-700">{{ $letter->signatory_position }}</p>
+                </div>
             </div>
+
         </div>
+        @else
+        {{-- Invalid / Not Found Card --}}
+        <div class="bg-white rounded-3xl shadow-xl border border-rose-200 p-8 text-center space-y-4">
+            <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto text-3xl">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 class="text-xl font-extrabold text-rose-600">DOKUMEN TIDAK DITEMUK ATAU TIDAK VALID</h2>
+            <p class="text-xs text-gray-600 max-w-md mx-auto">
+                Tautan atau Kode Verifikasi SHA-256 yang Anda buka tidak terdaftar pada database resmi Yayasan Perguruan PEMBDA Nias.
+            </p>
+        </div>
+        @endif
+
+        {{-- Footer --}}
+        <div class="text-center text-xs text-slate-500 py-4">
+            <p>© {{ date('Y') }} Yayasan Perguruan PEMBDA Nias • Portal Resmi: <a href="https://perguruanpembda.com" class="text-violet-700 font-bold hover:underline">perguruanpembda.com</a></p>
+        </div>
+
     </div>
 </body>
 </html>
