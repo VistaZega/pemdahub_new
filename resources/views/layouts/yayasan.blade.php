@@ -36,6 +36,12 @@
         <span class="text-sm flex-1 font-semibold">Kalender Pendidikan</span>
     </a>
 
+    <!-- Surat Digital Yayasan -->
+    <a href="{{ route('yayasan.letters.index') }}" class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-xl {{ request()->routeIs('yayasan.letters.*') ? $ac : 'text-gray-700 hover:bg-gray-50' }}">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center text-white shadow"><i class="fas fa-file-signature text-xs"></i></div>
+        <span class="text-sm flex-1 font-semibold">Surat Digital / Edaran</span>
+    </a>
+
     <!-- ════════════════ REKAP KINERJA & SDM ════════════════ -->
     <div class="pt-4" data-menu-group="kinerja">
         <button class="menu-group-toggle open w-full flex items-center justify-between px-3 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-gray-600" onclick="toggleGroup(this)">

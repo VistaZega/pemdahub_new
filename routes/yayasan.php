@@ -65,4 +65,15 @@ Route::prefix('yayasan')->name('yayasan.')->middleware('auth', 'yayasan')->group
         Route::get('/', [App\Http\Controllers\Admin\PklMonitoringReportController::class, 'index'])->name('index');
         Route::get('/{teacher}', [App\Http\Controllers\Admin\PklMonitoringReportController::class, 'show'])->name('show');
     });
+
+    // Modul Surat Digital Yayasan
+    Route::prefix('surat-edaran')->name('letters.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'create'])->name('create');
+        Route::post('/store', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'store'])->name('store');
+        Route::get('/{id}', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'show'])->name('show');
+        Route::get('/{id}/print', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'print'])->name('print');
+        Route::delete('/{id}', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'destroy'])->name('destroy');
+    });
 });
+

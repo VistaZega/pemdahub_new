@@ -792,6 +792,9 @@ Route::prefix('psb-test')->name('psb.test.')->middleware('auth', 'role:superadmi
     Route::post('/simulate', [App\Http\Controllers\PSBTestController::class, 'simulateSend'])->name('simulate');
 });
 
+// Public QR Code Document Verification Route
+Route::get('/verifikasi-surat/{hash}', [App\Http\Controllers\PublicLetterVerificationController::class, 'verify'])->name('public.letters.verify');
+
 // General Dashboard Redirect Route
 Route::get('/dashboard', function () {
     if (auth()->check()) {

@@ -543,7 +543,12 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     // Evaluasi Perjanjian Kinerja Akhir Semester
     Route::get('/performance-evaluations', [App\Http\Controllers\Admin\PerformanceEvaluationController::class, 'index'])->name('performance_evaluations.index');
     Route::get('/performance-evaluations/{contractId}/{semesterId}/evaluate', [App\Http\Controllers\Admin\PerformanceEvaluationController::class, 'evaluate'])->name('performance_evaluations.evaluate');
-    Route::post('/performance-evaluations/{contractId}/{semesterId}', [App\Http\Controllers\Admin\PerformanceEvaluationController::class, 'store'])->name('performance_evaluations.store');
+    // Surat Edaran Masuk (Unit Sekolah)
+    Route::prefix('surat-edaran')->name('letters.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\FoundationLetterReaderController::class, 'index'])->name('index');
+        Route::get('/{id}', [App\Http\Controllers\Admin\FoundationLetterReaderController::class, 'show'])->name('show');
+        Route::get('/{id}/print', [App\Http\Controllers\Admin\FoundationLetterReaderController::class, 'print'])->name('print');
+    });
 });
 
 // User Management routes with all role permissions (gates are handled by UserPolicy)
