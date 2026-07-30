@@ -66,14 +66,11 @@
         {{-- Kop Surat Resmi Yayasan --}}
         <div class="kop-border pb-4 mb-6 text-center">
             <div class="flex items-center justify-center gap-5">
-                <div class="w-20 h-20 bg-violet-900 text-white rounded-full flex items-center justify-center font-extrabold text-4xl border-2 border-amber-400">
-                    P
-                </div>
+                <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Yayasan" class="w-20 h-auto max-h-24 object-contain flex-shrink-0">
                 <div class="text-center">
-                    <h1 class="text-xl font-bold uppercase tracking-wider text-black leading-tight">YAYASAN PERGURUAN PEMBDA NIAS</h1>
-                    <p class="text-xs font-bold uppercase text-gray-800 tracking-normal mt-0.5">SMPS SWASTA PEMBDA 2 • SMA SWASTA PEMBDA 1 • SMKS SWASTA PEMBDA NIAS</p>
-                    <p class="text-xs text-gray-800 mt-1">Alamat: Jl. Pelita No.09, Gunungsitoli, Kabupaten Nias, Sumatera Utara (Kode Pos: 22812)</p>
-                    <p class="text-[11px] text-gray-700">Website: https://perguruanpembda.com | Email: yayasan@perguruanpembda.com</p>
+                    <h1 class="text-xl font-extrabold uppercase tracking-wide text-black leading-tight">Yayasan Perguruan Pembangunan Daerah Nias (PEMBDA)</h1>
+                    <p class="text-xs font-semibold text-gray-900 mt-1">Jl. Pelita No.09 Kel. Ilir Kota Gunungsitoli (22815)</p>
+                    <p class="text-xs font-medium text-gray-800 mt-0.5">web : perguruanpembda.com | email : perguruanpembdanias@gmail.com</p>
                 </div>
             </div>
         </div>
