@@ -50,12 +50,12 @@
     <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 md:p-12 relative overflow-hidden">
         {{-- Kop Surat Preview --}}
         <div class="border-b-4 border-double border-gray-900 pb-6 mb-8 text-center relative">
-            <div class="flex flex-col md:flex-row items-center justify-center gap-5">
-                <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Yayasan" class="w-20 h-auto max-h-24 object-contain flex-shrink-0">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4">
+                <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Yayasan" class="w-16 md:w-20 h-auto max-h-24 object-contain flex-shrink-0">
                 <div class="text-center">
-                    <h2 class="text-lg md:text-xl font-bold text-gray-900 uppercase">Yayasan Perguruan Pembangunan Daerah Nias</h2>
-                    <h2 class="text-2xl md:text-3xl font-black text-gray-950 tracking-widest uppercase my-0.5">( P E M B D A )</h2>
-                    <p class="text-xs font-semibold text-gray-800 mt-1">Jl. Pelita No.09 Kel. Ilir Kota Gunungsitoli (22815)</p>
+                    <h2 class="text-base md:text-lg font-extrabold text-gray-900 uppercase tracking-tight whitespace-nowrap">Yayasan Perguruan Pembangunan Daerah Nias</h2>
+                    <h2 class="text-xl md:text-2xl font-black text-gray-950 tracking-widest uppercase my-0.5">( P E M B D A )</h2>
+                    <p class="text-xs font-semibold text-gray-800 mt-0.5">Jl. Pelita No.09 Kel. Ilir Kota Gunungsitoli (22815)</p>
                     <p class="text-xs font-medium text-gray-600 mt-0.5">web : perguruanpembda.com | email : perguruanpembdanias@gmail.com</p>
                 </div>
             </div>
