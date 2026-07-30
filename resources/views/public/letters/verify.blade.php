@@ -11,28 +11,28 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
-<body class="bg-slate-200 min-h-screen py-6 px-3 md:py-10 md:px-4">
-    <div class="max-w-4xl mx-auto space-y-4">
+<body class="bg-slate-200 min-h-screen py-6 px-3 md:py-10 md:px-6">
+    <div class="max-w-6xl mx-auto space-y-6">
 
         @if($isValid && $letter)
         {{-- Status Banner Verified --}}
-        <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-4 rounded-2xl shadow-lg flex items-center justify-between flex-wrap gap-3">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-5 rounded-2xl shadow-lg flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
                     <i class="fas fa-check-circle"></i>
                 </div>
                 <div>
-                    <h2 class="text-sm font-extrabold uppercase tracking-wide">DOKUMEN RESMI TERVERIFIKASI & SAH</h2>
+                    <h2 class="text-base font-extrabold uppercase tracking-wide">DOKUMEN RESMI TERVERIFIKASI & SAH</h2>
                     <p class="text-xs text-emerald-100">Surat terdaftar secara otentik pada Server Resmi PembdaHUB</p>
                 </div>
             </div>
-            <a href="{{ route('public.letters.verify', $letter->signature_hash) }}" class="bg-white/10 hover:bg-white/20 text-white font-mono text-xs px-3 py-1.5 rounded-lg transition-all border border-white/20 flex items-center gap-1.5">
-                <i class="fas fa-lock text-emerald-300"></i> SHA-256: {{ substr($letter->signature_hash, 0, 12) }}...
+            <a href="{{ route('public.letters.verify', $letter->signature_hash) }}" class="bg-white/10 hover:bg-white/20 text-white font-mono text-xs px-4 py-2 rounded-xl transition-all border border-white/20 flex items-center gap-2 shadow-sm">
+                <i class="fas fa-lock text-emerald-300"></i> SHA-256: {{ substr($letter->signature_hash, 0, 16) }}...
             </a>
         </div>
 
         {{-- Paper Container --}}
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-300/80 p-6 md:p-12 space-y-6 relative overflow-hidden">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-300/80 p-6 md:p-12 lg:p-16 space-y-8 relative overflow-hidden">
             
             {{-- Kop Surat Resmi Yayasan --}}
             <div class="border-b-4 border-double border-gray-900 pb-6 text-center relative">
