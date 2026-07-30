@@ -45,7 +45,7 @@
                         <label for="letter_number" class="block text-xs font-bold text-gray-700 uppercase mb-1">
                             Nomor Surat (Input Manual) <span class="text-rose-500">*</span>
                         </label>
-                        <input type="text" name="letter_number" id="letter_number" value="{{ old('letter_number', $defaultNumber) }}" class="w-full border-2 border-violet-200 focus:border-violet-600 rounded-lg px-3 py-2 text-sm font-mono font-bold text-violet-900 focus:ring-0" placeholder="Contoh: 045/SE-YAY/PEMBDA/VII/2026" required>
+                        <input type="text" name="letter_number" id="letter_number" value="{{ old('letter_number', $defaultNumber) }}" class="w-full border-2 border-violet-200 focus:border-violet-600 rounded-lg px-3 py-2 text-sm font-mono font-bold text-violet-900 focus:ring-0" placeholder="Contoh: ....../SE/YP-PEMBDA/VII/2026" required>
                         <p class="text-[11px] text-gray-500 mt-1">Format penomoran surat fisik/dinas yang berlaku di Yayasan.</p>
                     </div>
                 </div>
@@ -143,7 +143,7 @@
                         <label for="signatory_name" class="block text-xs font-bold text-gray-700 uppercase mb-1">
                             Nama Penandatangan <span class="text-rose-500">*</span>
                         </label>
-                        <input type="text" name="signatory_name" id="signatory_name" value="{{ old('signatory_name', 'Drs. Yulianus Zega, M.Pd.') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 focus:border-violet-600 focus:ring-0" required>
+                        <input type="text" name="signatory_name" id="signatory_name" value="{{ old('signatory_name', 'Yulianus Zega, S.Kom,M.Pd.T') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 focus:border-violet-600 focus:ring-0" required>
                     </div>
 
                     <div>

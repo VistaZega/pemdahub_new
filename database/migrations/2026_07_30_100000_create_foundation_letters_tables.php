@@ -17,7 +17,7 @@ return new class extends Migration
             $table->date('effective_date'); // Tanggal Ditetapkan
             $table->date('deadline_date')->nullable(); // Tanggal Tenggat (misal 3 Agustus 2026)
             $table->json('recipients')->nullable(); // Target unit IDs [1, 2, 3] atau ['all']
-            $table->string('signatory_name')->default('Ketua Yayasan Perguruan PEMBDA Nias'); // Nama Penandatangan
+            $table->string('signatory_name')->default('Yulianus Zega, S.Kom,M.Pd.T'); // Nama Penandatangan
             $table->string('signatory_position')->default('Ketua Yayasan'); // Jabatan Penandatangan
             $table->string('signature_hash')->unique(); // Hash Unik SHA-256 untuk QR Code Verifikasi
             $table->timestamp('signed_at')->nullable(); // Waktu TTD Digital

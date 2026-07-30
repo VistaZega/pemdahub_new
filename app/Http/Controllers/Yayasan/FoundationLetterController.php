@@ -49,7 +49,7 @@ class FoundationLetterController extends Controller
 
         // Default / Preset Content if requested
         $preset = $request->query('preset');
-        $defaultNumber = '045/SE-YAY/PEMBDA/VII/' . date('Y');
+        $defaultNumber = '......./SE/YP-PEMBDA/VII/' . date('Y');
         $defaultTitle = 'Penetapan Standar Minimal Progress Input Data, Kesiapan LMS Kelas Eksperimen, dan Implementasi Modul PKL TA 2026/2027';
         $defaultEffectiveDate = date('Y-m-d');
         $defaultDeadlineDate = date('Y-08-03');
