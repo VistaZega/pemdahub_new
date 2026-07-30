@@ -10,12 +10,22 @@
             <i class="fas fa-arrow-left"></i> Kembali ke Daftar Surat
         </a>
         <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ route('yayasan.letters.edit', $letter->id) }}" class="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2 text-sm">
+                <i class="fas fa-edit"></i> Edit Surat
+            </a>
             <a href="{{ route('yayasan.letters.print', $letter->id) }}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2 text-sm">
                 <i class="fas fa-print"></i> Cetak / Pratinjau Dokumen PDF
             </a>
             <a href="{{ $letter->verification_url }}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2 text-sm">
                 <i class="fas fa-qrcode"></i> Uji Halaman QR Verifikasi
             </a>
+            <form action="{{ route('yayasan.letters.destroy', $letter->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus surat digital ini? Dokumen yang dihapus tidak akan dapat diverifikasi lagi.')" class="inline">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-xl shadow text-sm transition-all flex items-center gap-2">
+                    <i class="fas fa-trash-alt"></i> Hapus Surat
+                </button>
+            </form>
         </div>
     </div>
 

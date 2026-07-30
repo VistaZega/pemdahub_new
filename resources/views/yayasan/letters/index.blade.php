@@ -130,6 +130,9 @@
                                 <a href="{{ route('yayasan.letters.show', $letter->id) }}" class="p-2 text-violet-600 hover:bg-violet-100 rounded-lg transition-colors" title="Lihat Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
+                                <a href="{{ route('yayasan.letters.edit', $letter->id) }}" class="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors" title="Edit Surat">
+                                    <i class="fas fa-edit"></i>
+                                </a>
                                 <a href="{{ route('yayasan.letters.print', $letter->id) }}" target="_blank" class="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors" title="Cetak / Pratinjau PDF">
                                     <i class="fas fa-print"></i>
                                 </a>

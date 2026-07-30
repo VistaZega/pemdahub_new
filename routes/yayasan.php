@@ -72,6 +72,8 @@ Route::prefix('yayasan')->name('yayasan.')->middleware('auth', 'yayasan')->group
         Route::get('/create', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'create'])->name('create');
         Route::post('/store', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'store'])->name('store');
         Route::get('/{id}', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'update'])->name('update');
         Route::get('/{id}/print', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'print'])->name('print');
         Route::delete('/{id}', [App\Http\Controllers\Yayasan\FoundationLetterController::class, 'destroy'])->name('destroy');
     });

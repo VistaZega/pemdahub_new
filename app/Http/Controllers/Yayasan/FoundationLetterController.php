@@ -200,6 +200,73 @@ Administrator PembdaHUB dan Manajemen Yayasan akan melakukan verifikasi dan pena
         return view('yayasan.letters.print', compact('letter', 'categories', 'targetAudiences'));
     }
 
+    public function edit($id)
+    {
+        $letter = FoundationLetter::findOrFail($id);
+        $categories = self::CATEGORIES;
+        $targetAudiences = self::TARGET_AUDIENCES;
+        $schools = School::whereIn('id', [1, 2, 3])->get();
+
+        $selectedTargets = is_array($letter->recipients) && isset($letter->recipients['target_keys'])
+            ? $letter->recipients['target_keys']
+            : ['kepala_sekolah'];
+
+        return view('yayasan.letters.edit', compact(
+            'letter',
+            'categories',
+            'targetAudiences',
+            'schools',
+            'selectedTargets'
+        ));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $letter = FoundationLetter::findOrFail($id);
+
+        $request->validate([
+            'letter_number'      => 'required|string|max:100',
+            'title'              => 'required|string|max:255',
+            'category'           => 'required|string|in:' . implode(',', array_keys(self::CATEGORIES)),
+            'target_audiences'   => 'required|array|min:1',
+            'target_audiences.*' => 'string|in:' . implode(',', array_keys(self::TARGET_AUDIENCES)),
+            'content'            => 'required|string',
+            'effective_date'     => 'required|date',
+            'deadline_date'      => 'nullable|date',
+            'signatory_name'     => 'required|string|max:255',
+            'signatory_position' => 'required|string|max:255',
+        ]);
+
+        $selectedTargets = $request->target_audiences;
+        $targetLabels = [];
+        foreach ($selectedTargets as $targetKey) {
+            if (isset(self::TARGET_AUDIENCES[$targetKey])) {
+                $targetLabels[] = self::TARGET_AUDIENCES[$targetKey];
+            }
+        }
+
+        $recipientsData = [
+            'target_keys'   => $selectedTargets,
+            'target_labels' => $targetLabels,
+            'unit_ids'      => [1, 2, 3],
+        ];
+
+        $letter->update([
+            'letter_number'      => $request->letter_number,
+            'title'              => $request->title,
+            'category'           => $request->category,
+            'content'            => $request->content,
+            'effective_date'     => $request->effective_date,
+            'deadline_date'      => $request->deadline_date,
+            'recipients'         => $recipientsData,
+            'signatory_name'     => $request->signatory_name,
+            'signatory_position' => $request->signatory_position,
+        ]);
+
+        return redirect()->route('yayasan.letters.show', $letter->id)
+            ->with('success', 'Surat Digital berhasil diperbarui!');
+    }
+
     public function destroy($id)
     {
         $letter = FoundationLetter::findOrFail($id);
