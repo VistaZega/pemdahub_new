@@ -187,7 +187,7 @@ class DashboardController extends Controller
 
         // Foundation Letters / Surat Edaran Yayasan (Filter khusus target penerima)
         $foundationLetters = \App\Models\FoundationLetter::where('status', 'published')
-            ->forUser(Auth::user())
+            ->forUser(Auth::user(), 'guru_pegawai')
             ->orderBy('effective_date', 'desc')
             ->take(3)
             ->get();
