@@ -1,7 +1,8 @@
 // ============================================================
-//  RFID UID SCANNER - Arduino Nano
-//  Alat khusus untuk membaca UID kartu RFID/NFC
-//  dan mengirimkan ke PC via USB Serial (COM Port)
+//  RFID UID SCANNER - Arduino Nano (Enhanced Diagnostics)
+//  Alat khusus untuk membaca UID kartu RFID/NFC (13.56MHz)
+//  dan mengirimkan ke PC via USB Serial (115200 baud)
+// ============================================================
 //
 //  WIRING DIAGRAM (Arduino Nano + RC522):
 //  ┌─────────────┬────────────┬───────────────────────────┐
@@ -12,60 +13,38 @@
 //  │ MOSI        │ Pin 11     │ SPI MOSI                  │
 //  │ MISO        │ Pin 12     │ SPI MISO                  │
 //  │ RST         │ Pin 9      │ Reset                     │
-//  │ 3.3V        │ 3.3V       │ ⚠️ JANGAN 5V! Rusak chip │
+//  │ 3.3V        │ 3.3V       │ ⚠️ Wajib 3.3V (Jangan 5V!)│
 //  │ GND         │ GND        │ Ground                    │
 //  └─────────────┴────────────┴───────────────────────────┘
 //
-//  BUZZER (Opsional):
-//  ┌─────────────┬────────────┐
-//  │ Buzzer (+)  │ Pin 7      │
-//  │ Buzzer (-)  │ GND        │
-//  └─────────────┴────────────┘
-//
-//  LED (Opsional):
-//  ┌─────────────┬────────────┐
-//  │ LED Hijau   │ Pin 5      │
-//  │ LED Merah   │ Pin 6      │
-//  └─────────────┴────────────┘
-//
-//  OUTPUT FORMAT via USB Serial (115200 baud):
-//  Setiap kartu di-tap, Nano akan mengirim:
-//  UID:A3B2C1D4
-//
-//  CARA PAKAI:
-//  1. Upload firmware ini ke Arduino Nano
-//  2. Colok ke laptop via USB
-//  3. Buka halaman "Registrasi RFID Massal" di PembdaHub
-//  4. Klik "Hubungkan Scanner"
-//  5. Tempelkan kartu siswa → UID langsung muncul di browser!
-//
-//  LIBRARY YANG DIBUTUHKAN:
-//  - MFRC522 by GithubCommunity (Install via Library Manager)
+//  BUZZER & LED (Opsional):
+//  - Buzzer (+)   ---> Pin 7
+//  - LED Hijau    ---> Pin 5
+//  - LED Merah    ---> Pin 6
 // ============================================================
 
 #include <SPI.h>
 #include <MFRC522.h>
 
-// === PIN DEFINITIONS ===
 #define RFID_SS_PIN   10   // Pin 10 - SPI Chip Select
 #define RFID_RST_PIN   9   // Pin 9  - Reset
 #define BUZZER_PIN     7   // Pin 7  - Buzzer (Opsional)
 #define LED_GREEN      5   // Pin 5  - LED Hijau (Opsional)
 #define LED_RED        6   // Pin 6  - LED Merah (Opsional)
 
-// === COOLDOWN (Anti Double Tap) ===
-#define SCAN_COOLDOWN_MS 2000  // 2 detik sebelum kartu yang sama bisa di-scan lagi
+#define SCAN_COOLDOWN_MS 2000  // Anti double-tap 2 detik
 
 MFRC522 rfid(RFID_SS_PIN, RFID_RST_PIN);
 
-String  lastUID     = "";
-unsigned long lastTap = 0;
-unsigned long scanCount = 0;
+String        lastUID     = "";
+unsigned long lastTap     = 0;
+unsigned long scanCount   = 0;
+unsigned long lastHeartbeat = 0;
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
   
-  // Inisialisasi pin LED & Buzzer
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(LED_GREEN,  OUTPUT);
   pinMode(LED_RED,    OUTPUT);
@@ -73,40 +52,72 @@ void setup() {
   digitalWrite(LED_GREEN,  LOW);
   digitalWrite(LED_RED,    LOW);
 
-  // Inisialisasi SPI & RFID
+  Serial.println(F("\n========================================"));
+  Serial.println(F("   RFID UID SCANNER - Arduino Nano      "));
+  Serial.println(F("========================================"));
+
+  // Inisialisasi SPI & RFID RC522
   SPI.begin();
+  SPI.setFrequency(1000000); // 1MHz untuk kestabilan chip clone (0xB2)
+  delay(50);
+
   rfid.PCD_Init();
   delay(100);
 
-  // Naikkan antenna gain ke MAX (untuk chip clone)
-  rfid.PCD_SetAntennaGain(rfid.RxGain_max);
-
-  // Cek apakah RFID terdeteksi
+  // Cek apakah modul RFID RC522 terhubung dengan benar
   byte version = rfid.PCD_ReadRegister(rfid.VersionReg);
+  
   if (version == 0x00 || version == 0xFF) {
-    Serial.println(F("ERROR:RFID_NOT_FOUND"));
-    // Kedipkan LED Merah cepat sebagai tanda error
+    Serial.println(F("❌ ERROR: Modul RFID RC522 TIDAK Terdeteksi!"));
+    Serial.println(F("  -> Periksa kabel wiring SPI (Pin 9, 10, 11, 12, 13)"));
+    Serial.println(F("  -> Pastikan pin 3.3V dan GND terhubung rapat"));
+    
+    // Kedipkan LED Merah cepat sebagai tanda error hardware
     for (int i = 0; i < 10; i++) {
       digitalWrite(LED_RED, HIGH); delay(100);
       digitalWrite(LED_RED, LOW);  delay(100);
     }
   } else {
-    Serial.println(F("READY:RFID_UID_SCANNER_NANO"));
-    Serial.print(F("INFO:RFID_VERSION_0x"));
-    Serial.println(version, HEX);
-    // Beep 1x tanda siap
-    beep(1, 200);
-    ledGreen(300);
-  }
+    // Maximalkan antenna gain
+    rfid.PCD_SetAntennaGain(rfid.RxGain_max);
+    rfid.PCD_AntennaOn();
 
-  Serial.println(F("INFO:Tempelkan kartu RFID untuk membaca UID..."));
+    Serial.print(F("✅ SENSOR RFID OK! Version Chip: 0x"));
+    Serial.print(version, HEX);
+    if (version == 0x91 || version == 0x92) Serial.println(F(" (Original MFRC522)"));
+    else if (version == 0xB2) Serial.println(F(" (Clone Chip MFRC522 - OK)"));
+    else Serial.println();
+
+    Serial.println(F("========================================"));
+    Serial.println(F(" Status: SIAP. Tempelkan kartu RFID...  "));
+    Serial.println(F("========================================"));
+
+    // Beep 1x + LED Hijau tanda siap
+    digitalWrite(BUZZER_PIN, HIGH);
+    digitalWrite(LED_GREEN, HIGH);
+    delay(150);
+    digitalWrite(BUZZER_PIN, LOW);
+    digitalWrite(LED_GREEN, LOW);
+  }
 }
 
 void loop() {
-  // Cek ada kartu baru
+  unsigned long now = millis();
+
+  // Heartbeat setiap 5 detik agar user tahu alat tidak hang/stuck
+  if (now - lastHeartbeat >= 5000) {
+    lastHeartbeat = now;
+    // Cek ulang register chip RFID untuk memastikan kabel tidak lepas saat operasi
+    byte v = rfid.PCD_ReadRegister(rfid.VersionReg);
+    if (v == 0x00 || v == 0xFF) {
+      Serial.println(F("⚠️ WARNING: Sambungan kabel RFID terputus!"));
+    }
+  }
+
+  // Cek apakah ada kartu di dekat antena
   if (!rfid.PICC_IsNewCardPresent()) return;
 
-  // Coba baca serial (retry 1x untuk chip clone)
+  // Coba baca serial kartu (retry 1x untuk chip clone)
   if (!rfid.PICC_ReadCardSerial()) {
     delay(10);
     if (!rfid.PICC_ReadCardSerial()) return;
@@ -114,9 +125,8 @@ void loop() {
 
   // Baca UID
   String uid = getUID();
-  unsigned long now = millis();
 
-  // Anti double-tap: abaikan UID sama dalam cooldown
+  // Anti double-tap
   if (uid == lastUID && (now - lastTap) < SCAN_COOLDOWN_MS) {
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
@@ -127,19 +137,21 @@ void loop() {
   lastTap = now;
   scanCount++;
 
-  // Kirim UID ke PC via Serial
+  // Kirim data ke Serial USB
   Serial.println("UID:" + uid);
   Serial.println("COUNT:" + String(scanCount));
 
-  // Indikator: Beep + LED Hijau
-  beep(1, 80);
-  ledGreen(400);
+  // Indikator Suara & LED
+  digitalWrite(BUZZER_PIN, HIGH);
+  digitalWrite(LED_GREEN, HIGH);
+  delay(120);
+  digitalWrite(BUZZER_PIN, LOW);
+  digitalWrite(LED_GREEN, LOW);
 
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
 }
 
-// Baca UID dalam format HEX uppercase (sama persis dengan firmware station)
 String getUID() {
   if (rfid.uid.size < 4) return "";
   String hex = "";
@@ -149,28 +161,4 @@ String getUID() {
   }
   hex.toUpperCase();
   return hex;
-}
-
-// Nyalakan LED Hijau selama durasi ms
-void ledGreen(int durasi) {
-  digitalWrite(LED_GREEN, HIGH);
-  delay(durasi);
-  digitalWrite(LED_GREEN, LOW);
-}
-
-// Nyalakan LED Merah selama durasi ms
-void ledRed(int durasi) {
-  digitalWrite(LED_RED, HIGH);
-  delay(durasi);
-  digitalWrite(LED_RED, LOW);
-}
-
-// Beep n kali dengan durasi ms
-void beep(int kali, int durasi) {
-  for (int i = 0; i < kali; i++) {
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(durasi);
-    digitalWrite(BUZZER_PIN, LOW);
-    if (i < kali - 1) delay(80);
-  }
 }
