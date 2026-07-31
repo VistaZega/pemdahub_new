@@ -132,7 +132,7 @@
                 <td class="text-right font-bold nowrap">Rp&nbsp;{{ number_format($totalGajiLembagaPeriod, 0, ',', '.') }}</td>
             </tr>
             <tr style="background-color: #ffffff;">
-                <td style="padding-left: 20px;">b. Belanja Operasional Non-Gaji (Kode Rekening 5.1.01 - 5.1.14)</td>
+                <td style="padding-left: 20px;">b. Belanja Operasional Non-Gaji (Kode Rekening 5.1.01 - 5.1.15)</td>
                 <td class="text-right font-bold nowrap">Rp&nbsp;{{ number_format($totalBelanjaOpsMonthly, 0, ',', '.') }}</td>
                 <td class="text-right font-bold nowrap">Rp&nbsp;{{ number_format($totalBelanjaOpsPeriod, 0, ',', '.') }}</td>
             </tr>

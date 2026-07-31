@@ -118,6 +118,13 @@ class FoundationExpenseController extends Controller
         ],
         '5.1.14' => [
             'code' => '5.1.14',
+            'name' => 'Belanja Iuran Asuransi Kesehatan & Tenaga Kerja',
+            'icon' => 'fa-shield-heart',
+            'category' => 'Asuransi & Ketenagakerjaan',
+            'default_unit' => 'Bulan',
+        ],
+        '5.1.15' => [
+            'code' => '5.1.15',
             'name' => 'Belanja Operasional Lain-Lain',
             'icon' => 'fa-ellipsis-h',
             'category' => 'Lain-Lain',
@@ -300,7 +307,7 @@ class FoundationExpenseController extends Controller
 
         $totalGajiPerguruanPeriod = $totalGajiPerguruanMonthly * $multiplier;
 
-        // 2. Sub-Rekening Belanja Operasional Non-Gaji (5.1.01 s/d 5.1.14)
+        // 2. Sub-Rekening Belanja Operasional Non-Gaji (5.1.01 s/d 5.1.15)
         $yayasanSchool = School::where('type', 'yayasan')->first();
         $contribution = $yayasanSchool
             ? SchoolContribution::where('school_id', $yayasanSchool->id)->where('academic_year_id', $currentYear->id ?? 0)->first()
@@ -316,7 +323,7 @@ class FoundationExpenseController extends Controller
             $parsedExpenseDetails[$subCode] = $salItem;
         }
 
-        // Masukkan Belanja Operasional (5.1.01 s/d 5.1.14)
+        // Masukkan Belanja Operasional (5.1.01 s/d 5.1.15)
         foreach (self::OPERATIONAL_ACCOUNTS as $code => $acc) {
             $savedItem = $rawSavedDetails[$code] ?? null;
             if (is_array($savedItem)) {

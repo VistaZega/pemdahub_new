@@ -182,7 +182,7 @@
                     <i class="fas fa-list-check text-2xl text-white"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-black font-black uppercase tracking-wider">5.1.01–14 — Belanja Operasional</p>
+                    <p class="text-xs text-black font-black uppercase tracking-wider">5.1.01–15 — Belanja Operasional</p>
                     <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap" id="cardOpsTotal">Rp&nbsp;{{ number_format($totalOpsPeriod, 0, ',', '.') }}</p>
                     <span class="pro-badge border-2 border-black mt-1.5" style="background-color: #fbbf24 !important; color: #000000 !important;">
                         <i class="fas fa-pen-to-square text-[10px] text-black"></i> Dapat Diedit
@@ -377,7 +377,7 @@
                         {{-- Subtotal Ops --}}
                         <tr class="border-y-2 border-black" style="background-color: #fcd34d !important;">
                             <td colspan="6" class="px-4 py-4 text-right font-black text-black uppercase text-xs tracking-wider">
-                                <i class="fas fa-sigma mr-1.5 text-black text-sm"></i> Subtotal Belanja Operasional (5.1.01–14):
+                                <i class="fas fa-sigma mr-1.5 text-black text-sm"></i> Subtotal Belanja Operasional (5.1.01–15):
                             </td>
                             <td class="px-4 py-4 text-right font-black text-black text-xs num-col whitespace-nowrap" id="subtotalOpsMonthly">Rp&nbsp;{{ number_format($totalOpsMonthly, 0, ',', '.') }}</td>
                             <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap" id="subtotalOpsPeriod">Rp&nbsp;{{ number_format($totalOpsPeriod, 0, ',', '.') }}</td>

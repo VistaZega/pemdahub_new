@@ -115,7 +115,7 @@
             @endforeach
 
             <tr class="subtotal-ops">
-                <td colspan="6" class="text-right" style="font-size:8px;text-transform:uppercase;">Subtotal Belanja Operasional (5.1.01–14):</td>
+                <td colspan="6" class="text-right" style="font-size:8px;text-transform:uppercase;">Subtotal Belanja Operasional (5.1.01–15):</td>
                 <td class="text-right nowrap" style="font-size:9.5px;color:#000;">Rp&nbsp;{{ number_format($totalOpsPeriod, 0, ',', '.') }}</td>
             </tr>
         </tbody>

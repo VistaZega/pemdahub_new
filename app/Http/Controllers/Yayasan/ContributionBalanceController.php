@@ -121,6 +121,12 @@ class ContributionBalanceController extends Controller
         ],
         '5.1.14' => [
             'code' => '5.1.14',
+            'name' => 'Belanja Iuran Asuransi Kesehatan & Tenaga Kerja',
+            'icon' => 'fa-shield-heart',
+            'category' => 'Asuransi & Ketenagakerjaan',
+        ],
+        '5.1.15' => [
+            'code' => '5.1.15',
             'name' => 'Belanja Operasional Lain-Lain',
             'icon' => 'fa-ellipsis-h',
             'category' => 'Lain-Lain',
