@@ -204,17 +204,17 @@
                 </div>
 
                 <div class="p-6 max-h-[70vh] overflow-y-auto space-y-4">
-                    @php $isBiodataEditable = now()->format('Y-m') <= '2026-07'; @endphp
+                    @php $isBiodataEditable = now()->format('Y-m-d') <= '2026-08-10'; @endphp
                     
                     @if($isBiodataEditable)
                     <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-lg text-xs text-emerald-800 mb-4 flex gap-2 items-start">
                         <i class="fas fa-info-circle mt-0.5"></i>
-                        <p><strong>Perhatian:</strong> Fitur Edit Biodata Mandiri hanya dibuka sampai dengan <strong>31 Juli 2026</strong>. Pastikan data Anda sudah benar sebelum batas waktu tersebut.</p>
+                        <p><strong>Perhatian:</strong> Fitur Edit Biodata Mandiri diperpanjang sampai dengan <strong>10 Agustus 2026</strong>. Pastikan data Anda sudah benar sebelum batas waktu tersebut.</p>
                     </div>
                     @else
                     <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-lg text-xs text-amber-800 mb-4 flex gap-2 items-start">
                         <i class="fas fa-exclamation-triangle mt-0.5"></i>
-                        <p>Waktu pembaruan biodata mandiri telah berakhir pada <strong>31 Juli 2026</strong>. Anda tidak dapat mengubah data ini lagi. Hubungi Admin jika ada kesalahan data.</p>
+                        <p>Waktu pembaruan biodata mandiri telah berakhir pada <strong>10 Agustus 2026</strong>. Anda tidak dapat mengubah data ini lagi. Hubungi Admin jika ada kesalahan data.</p>
                     </div>
                     @endif
 

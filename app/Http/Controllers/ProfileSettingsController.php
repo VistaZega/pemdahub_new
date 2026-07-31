@@ -21,7 +21,7 @@ class ProfileSettingsController extends Controller
         elseif ($user->teacher) $biodata = $user->teacher;
         else $biodata = $user->employee;
 
-        $isBiodataEditable = now()->format('Y-m') <= '2026-07';
+        $isBiodataEditable = now()->format('Y-m-d') <= '2026-08-10';
 
         return view('profile.settings', compact('user', 'biodata', 'isBiodataEditable'));
     }
@@ -90,9 +90,9 @@ class ProfileSettingsController extends Controller
      */
     public function updateBiodata(Request $request)
     {
-        // Fitur hanya berlaku sampai 31 Juli 2026
-        if (now()->format('Y-m') > '2026-07') {
-            abort(403, 'Waktu pembaruan profil mandiri telah berakhir pada Juli 2026.');
+        // Fitur berlaku sampai 10 Agustus 2026
+        if (now()->format('Y-m-d') > '2026-08-10') {
+            abort(403, 'Waktu pembaruan profil mandiri telah berakhir pada 10 Agustus 2026.');
         }
 
         $user = auth()->user();
