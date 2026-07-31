@@ -19,6 +19,10 @@ use App\Models\Classroom;
 use App\Models\Subject;
 use App\Models\User;
 use App\Models\LmsCourse;
+use App\Models\LmsModule;
+use App\Models\LmsMaterial;
+use App\Models\LmsAssignment;
+use App\Models\LmsQuiz;
 use App\Models\CbtExam;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -833,11 +837,29 @@ class ProgressInputController extends Controller
             'schools_data' => $item11Schools,
         ];
 
-        // ════════════════ ITEM 12: KESIAPAN LMS & BANK SOAL (CBT) ════════════════
+        // ════════════════ ITEM 12: KESIAPAN LMS DIGITAL & BANK SOAL (CBT) ════════════════
         $item12Schools = [];
         foreach ($schools as $school) {
-            $lmsCourses = LmsCourse::where('school_id', $school->id)->get();
-            $lmsCount = $lmsCourses->count();
+            // Ambil semua rombel aktif di sekolah ini
+            $classrooms = Classroom::where('school_id', $school->id)
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get();
+
+            // Total per sekolah
+            $totalCourses = LmsCourse::where('school_id', $school->id)->count();
+            $totalModules = LmsModule::whereHas('course', function($q) use ($school) {
+                $q->where('school_id', $school->id);
+            })->count();
+            $totalMaterials = LmsMaterial::whereHas('course', function($q) use ($school) {
+                $q->where('school_id', $school->id);
+            })->count();
+            $totalAssignments = LmsAssignment::whereHas('course', function($q) use ($school) {
+                $q->where('school_id', $school->id);
+            })->count();
+            $totalQuizzes = LmsQuiz::whereHas('course', function($q) use ($school) {
+                $q->where('school_id', $school->id);
+            })->count();
 
             $cbtQuery = CbtExam::where('school_id', $school->id);
             if ($currentYear) {
@@ -845,41 +867,127 @@ class ProgressInputController extends Controller
                     $q->where('academic_year_id', $currentYear->id)->orWhereNull('academic_year_id');
                 });
             }
-            $cbtExams = $cbtQuery->get();
-            $cbtCount = $cbtExams->count();
+            $totalCbtExams = $cbtQuery->count();
+            $totalQuizCbtSum = $totalQuizzes + $totalCbtExams;
 
-            if ($lmsCount == 0 && $cbtCount == 0) {
-                $rekomendasi = "Belum ada Modul Pembelajaran LMS maupun Bank Soal Ujian CBT yang dibuat oleh guru di unit ini.";
-                $statusColor = 'red';
-            } elseif ($lmsCount == 0 || $cbtCount == 0) {
-                $rekomendasi = "Terdapat {$lmsCount} Modul LMS dan {$cbtCount} Bank Soal CBT. Dorong guru untuk melengkapi kedua sarana digital.";
-                $statusColor = 'amber';
-            } else {
-                $rekomendasi = "Sangat baik! Sarana digital pembelajaran LMS ({$lmsCount} Modul) & Ujian Online CBT ({$cbtCount} Bank Soal) telah siap.";
+            $completePilotClasses = [];
+            $partialPilotClasses = [];
+            $classroomBreakdown = [];
+
+            foreach ($classrooms as $cls) {
+                // Ambil course yang terhubung ke rombel ini (langsung classroom_id atau via lmsClasses pivot)
+                $clsCourses = LmsCourse::where('school_id', $school->id)
+                    ->where(function($q) use ($cls) {
+                        $q->where('classroom_id', $cls->id)
+                          ->orWhereHas('lmsClasses', function($lq) use ($cls) {
+                              $lq->where('classroom_id', $cls->id);
+                          });
+                    })->get();
+
+                $clsCourseIds = $clsCourses->pluck('id');
+                $courseCount = $clsCourses->count();
+
+                if ($courseCount == 0) {
+                    continue;
+                }
+
+                $modCount = $clsCourseIds->isNotEmpty() ? LmsModule::whereIn('course_id', $clsCourseIds)->count() : 0;
+                $matCount = $clsCourseIds->isNotEmpty() ? LmsMaterial::whereIn('course_id', $clsCourseIds)->count() : 0;
+                $asgCount = $clsCourseIds->isNotEmpty() ? LmsAssignment::whereIn('course_id', $clsCourseIds)->count() : 0;
+                $quizCount = $clsCourseIds->isNotEmpty() ? LmsQuiz::whereIn('course_id', $clsCourseIds)->count() : 0;
+
+                $hasCourse = $courseCount > 0;
+                $hasModul = $modCount > 0;
+                $hasMateri = $matCount > 0;
+                $hasTugas = $asgCount > 0;
+                $hasKuis = ($quizCount > 0 || $totalCbtExams > 0);
+
+                $componentsMet = ($hasCourse ? 1 : 0) + ($hasModul ? 1 : 0) + ($hasMateri ? 1 : 0) + ($hasTugas ? 1 : 0) + ($hasKuis ? 1 : 0);
+
+                $clsInfo = [
+                    'classroom' => $cls,
+                    'name' => $cls->name,
+                    'courses' => $courseCount,
+                    'modules' => $modCount,
+                    'materials' => $matCount,
+                    'assignments' => $asgCount,
+                    'quizzes' => $quizCount,
+                    'components_met' => $componentsMet,
+                    'is_complete' => ($componentsMet === 5),
+                ];
+
+                if ($componentsMet === 5) {
+                    $completePilotClasses[] = $clsInfo;
+                } elseif ($componentsMet >= 2) {
+                    $partialPilotClasses[] = $clsInfo;
+                }
+                $classroomBreakdown[] = $clsInfo;
+            }
+
+            $completeCount = count($completePilotClasses);
+            $partialCount = count($partialPilotClasses);
+
+            // Penilaian Status & Rekomendasi
+            if ($completeCount >= 1) {
                 $statusColor = 'green';
+                $bestClass = $completePilotClasses[0]['name'];
+                $perkembangan = "{$completeCount} Kelas Pilot Lengkap 100%";
+                $rekomendasi = "Memenuhi Standar Yayasan! Terdapat {$completeCount} Kelas Pilot LMS ({$bestClass}) yang lengkap 100% (Course, Modul, Materi, Tugas, & Kuis/CBT). Pertahankan dan replikasi ke kelas lainnya.";
+            } elseif ($partialCount >= 1 || ($totalCourses > 0 && ($totalModules > 0 || $totalMaterials > 0 || $totalAssignments > 0))) {
+                $statusColor = 'amber';
+                if (!empty($classroomBreakdown)) {
+                    usort($classroomBreakdown, fn($a, $b) => $b['components_met'] <=> $a['components_met']);
+                    $bestCls = $classroomBreakdown[0];
+                    $perkembangan = "Dalam Penyiapan (Kelas {$bestCls['name']}: {$bestCls['components_met']}/5)";
+                    $rekomendasi = "Belum memenuhi standar minimum 1 Kelas Pilot LMS Lengkap 100%. Kelas {$bestCls['name']} telah mengisi {$bestCls['components_met']}/5 komponen. Segera lengkapi seluruh 5 komponen digital.";
+                } else {
+                    $perkembangan = "{$totalCourses} Course / Penyiapan Rombel";
+                    $rekomendasi = "Telah ada {$totalCourses} Course dan {$totalModules} Modul digital di unit, namun belum terhubung presisi ke 1 Kelas Pilot (Course, Modul, Materi, Tugas, Kuis).";
+                }
+            } else {
+                $statusColor = 'red';
+                $perkembangan = "0 Kelas Pilot (Belum Ada LMS)";
+                $rekomendasi = "Belum ada Kelas Pilot LMS maupun Modul Pembelajaran Digital yang disiapkan. Segera tentukan 1 Kelas Pilot LMS dan lengkapi 5 komponen utama (Course, Modul, Materi, Tugas, Kuis/CBT).";
             }
 
             $details = [
-                "Modul Pembelajaran LMS: {$lmsCount} Modul",
-                "Bank Soal Ujian CBT: {$cbtCount} Bank Soal",
-                "Platform Pembelajaran Digital: Siap Digunakan",
+                "Standar Minimum Yayasan: Minimal 1 Kelas Pilot LMS Lengkap 100% (5-in-1)",
+                "Status Kelas Pilot Lengkap: " . ($completeCount > 0 ? "{$completeCount} Kelas (Siap & Lengkap 100%)" : "Belum Ada (0 Kelas)"),
+                "Total Rincian Digital Unit: {$totalCourses} Course, {$totalModules} Modul, {$totalMaterials} Materi, {$totalAssignments} Tugas, {$totalQuizCbtSum} Kuis/CBT",
             ];
+
+            if (!empty($classroomBreakdown)) {
+                $sampleClasses = array_slice($classroomBreakdown, 0, 2);
+                foreach ($sampleClasses as $sCls) {
+                    $details[] = "Rincian Kelas {$sCls['name']}: {$sCls['courses']} Course, {$sCls['modules']} Modul, {$sCls['materials']} Materi, {$sCls['assignments']} Tugas, " . ($sCls['quizzes'] + $totalCbtExams) . " Kuis/CBT (" . ($sCls['is_complete'] ? 'Lengkap 100%' : "{$sCls['components_met']}/5 Komponen") . ")";
+                }
+            }
+
+            $actionItems = [];
+            if ($completeCount == 0) {
+                $actionItems[] = "Tetapkan 1 Kelas Pilot/Eksperimen LMS di Unit Sekolah";
+                if ($totalCourses == 0) $actionItems[] = "Buat Course (Matpel Digital LMS)";
+                if ($totalModules == 0) $actionItems[] = "Input Modul Pembelajaran Bab 1";
+                if ($totalMaterials == 0) $actionItems[] = "Upload Materi Ajar (PDF/Video/Slide)";
+                if ($totalAssignments == 0) $actionItems[] = "Tambahkan Tugas Pembelajaran";
+                if ($totalQuizCbtSum == 0) $actionItems[] = "Buat Kuis LMS / Bank Soal CBT";
+            }
 
             $item12Schools[] = [
                 'school_name' => $school->name,
-                'perkembangan' => "{$lmsCount} LMS / {$cbtCount} CBT",
-                'satuan' => 'Modul/Soal',
+                'perkembangan' => $perkembangan,
+                'satuan' => 'Kelas Pilot',
                 'rekomendasi' => $rekomendasi,
                 'status_color' => $statusColor,
-                'raw_value' => $lmsCount + $cbtCount,
+                'raw_value' => $completeCount,
                 'details' => $details,
-                'action_items' => ($lmsCount == 0 || $cbtCount == 0) ? ["Buat Modul LMS & Bank Soal CBT Digital"] : [],
+                'action_items' => $actionItems,
             ];
         }
         $items[] = [
             'number' => 12,
             'title' => 'Kesiapan LMS Digital & Bank Soal CBT',
-            'description' => 'Jumlah modul materi pembelajaran online (LMS) dan bank soal ujian online (CBT) yang disiapkan guru',
+            'description' => 'Standar Minimum Yayasan: Minimal 1 Kelas Eksperimen/Pilot LMS yang terisi lengkap (Course, Modul, Materi, Tugas, & Kuis/CBT)',
             'schools_data' => $item12Schools,
         ];
 
