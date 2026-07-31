@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Rekap Progress Input Data TP. {{ $currentYear->year ?? '2026/2027' }}</title>
+    <title>Rekap Laporan Progress Input Data SE 05 - TP. {{ $currentYear->year ?? '2026/2027' }}</title>
     <style>
         @page {
             margin: 0.8cm 1cm 1cm 1cm;
@@ -24,25 +24,44 @@
             border-collapse: collapse;
         }
         .logo-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             color: #4c1d95;
             margin: 0;
             text-transform: uppercase;
         }
         .logo-subtitle {
-            font-size: 10.5px;
+            font-size: 10px;
             color: #4b5563;
             margin: 2px 0 0 0;
             font-weight: bold;
         }
         .header-meta {
             text-align: right;
-            font-size: 9.5px;
+            font-size: 9px;
             color: #4b5563;
         }
         .header-meta strong {
             color: #111827;
+        }
+
+        /* Notice Box SE 05 */
+        .se-notice-box {
+            background-color: #fffbeb;
+            border: 1.5px solid #f59e0b;
+            border-radius: 4px;
+            padding: 7px 10px;
+            margin-bottom: 10px;
+        }
+        .se-notice-title {
+            font-size: 10.5px;
+            font-weight: bold;
+            color: #78350f;
+            margin-bottom: 3px;
+        }
+        .se-notice-desc {
+            font-size: 8.5px;
+            color: #92400e;
         }
 
         /* Summary Box */
@@ -109,6 +128,27 @@
             border-bottom: 1px solid #cbd5e1;
             padding: 6px 8px;
         }
+        .standar-badge {
+            display: inline-block;
+            background-color: #d97706;
+            color: #ffffff;
+            font-weight: bold;
+            border-radius: 2px;
+            padding: 1px 5px;
+            font-size: 8px;
+            text-transform: uppercase;
+            margin-right: 4px;
+        }
+        .target-badge {
+            display: inline-block;
+            background-color: #4c1d95;
+            color: #ffffff;
+            font-weight: bold;
+            border-radius: 2px;
+            padding: 1px 5px;
+            font-size: 8px;
+            margin-right: 6px;
+        }
         .item-number {
             display: inline-block;
             background-color: #6d28d9;
@@ -122,7 +162,7 @@
         .item-title {
             font-weight: bold;
             color: #1e1b4b;
-            font-size: 10px;
+            font-size: 9.5px;
         }
         .item-desc {
             color: #64748b;
@@ -206,7 +246,7 @@
         }
         .signature-box {
             float: right;
-            width: 220px;
+            width: 240px;
             text-align: center;
         }
         .clear {
@@ -221,14 +261,26 @@
         <tr>
             <td style="width: 70%;">
                 <h1 class="logo-title">Yayasan Perguruan Pembangunan Daerah Nias</h1>
-                <p class="logo-subtitle">Laporan Progress Input Data & Kesiapan Akademik (12 Indikator Seluruh Unit)</p>
+                <p class="logo-subtitle">Laporan Progress Input Data & Pemantauan Kepatuhan Standar Minimal SE 05</p>
             </td>
             <td class="header-meta">
                 <p style="margin: 0;">Tahun Pelajaran: <strong>{{ $currentYear->year ?? '2026/2027' }}</strong></p>
-                <p style="margin: 3px 0 0 0;">Tanggal Cetak: <strong>{{ now()->translatedFormat('d F Y, H:i') }}</strong></p>
+                <p style="margin: 3px 0 0 0;">Tanggal Cetak: <strong>{{ now()->translatedFormat('d F Y, H:i') }} WIB</strong></p>
             </td>
         </tr>
     </table>
+</div>
+
+{{-- Notice Banner SE 05 --}}
+<div class="se-notice-box">
+    <div class="se-notice-title">
+        SURAT EDARAN YAYASAN No. {{ $seMetadata['nomor'] ?? '05/SE/YP-PEMBDA/VII/2026' }}
+    </div>
+    <div class="se-notice-desc">
+        <strong>Perihal:</strong> {{ $seMetadata['perihal'] ?? 'Penetapan Standar Minimal Progress Input Data PembdaHUB untuk TP. 2026/2027' }}<br>
+        <strong>Tenggat Waktu Minimal Input Data:</strong> <span style="color: #b45309; font-weight: bold;">{{ $seMetadata['tenggat_waktu'] ?? 'Senin, 3 Agustus 2026 Pukul 23.59 WIB' }}</span> | 
+        <strong>Penarikan & Laporan Evaluasi Kinerja:</strong> {{ $seMetadata['evaluasi_waktu'] ?? 'Selasa, 4 Agustus 2026' }}
+    </div>
 </div>
 
 @php
@@ -256,7 +308,7 @@
             <div class="summary-val">{{ count($schools) }} Unit</div>
         </td>
         <td class="summary-cell">
-            <div class="summary-lbl">Indikator Dipantau</div>
+            <div class="summary-lbl">Indikator SE 05</div>
             <div class="summary-val">{{ $totalItemsCount }} Item</div>
         </td>
         <td class="summary-cell">
@@ -283,6 +335,8 @@
         @foreach($items as $item)
             <tr class="item-group-header">
                 <td colspan="4">
+                    <span class="standar-badge">{{ $item['standar_title'] ?? 'STANDAR SE 05' }}</span>
+                    <span class="target-badge">{{ $item['standar_target'] ?? 'Target: 100%' }}</span>
                     <span class="item-number">{{ $item['number'] }}</span>
                     <span class="item-title">{{ $item['title'] }}</span>
                     <span class="item-desc"> — {{ $item['description'] }}</span>
@@ -333,12 +387,12 @@
 <div class="footer-signature">
     <div class="signature-box">
         <p style="margin: 0;">Gunungsitoli, {{ now()->translatedFormat('d F Y') }}</p>
-        <p style="margin: 4px 0 45px 0; font-weight: bold;">Ketua Yayasan PEMBDA,</p>
-        <p style="margin: 0; font-weight: bold; text-decoration: underline;">Yulianus Zega</p>
+        <p style="margin: 4px 0 35px 0; font-weight: bold;">KETUA YAYASAN PERGURUAN PEMBDA NIAS,</p>
+        <p style="margin: 0; font-weight: bold; text-decoration: underline;">Yulianus Zega, S.Kom, M.Pd.T</p>
+        <p style="margin: 2px 0 0 0; font-size: 8px; color: #166534; font-weight: bold;">✔ SIGNED DIGITAL VIA PEMBDAHUB</p>
     </div>
     <div class="clear"></div>
 </div>
 
 </body>
 </html>
-

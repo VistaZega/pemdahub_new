@@ -15,6 +15,7 @@ use App\Models\Schedule;
 use App\Models\EducationalCalendar;
 use App\Models\PaymentType;
 use App\Models\StudentBill;
+use App\Models\Payment;
 use App\Models\Classroom;
 use App\Models\Subject;
 use App\Models\User;
@@ -24,6 +25,9 @@ use App\Models\LmsMaterial;
 use App\Models\LmsAssignment;
 use App\Models\LmsQuiz;
 use App\Models\CbtExam;
+use App\Models\PklPlacement;
+use App\Models\PklLog;
+use App\Models\PklGrade;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -51,17 +55,29 @@ class ProgressInputController extends Controller
         $pdf = Pdf::loadView('yayasan.progress_input.pdf', $data)
             ->setPaper('a4', 'landscape');
 
-        $fileName = 'rekap_progress_input_data_' . str_replace('/', '_', $data['currentYear']->year ?? '2026_2027') . '.pdf';
+        $fileName = 'rekap_progress_input_data_SE05_' . str_replace('/', '_', $data['currentYear']->year ?? '2026_2027') . '.pdf';
 
         return $pdf->download($fileName);
     }
 
     /**
-     * Helper untuk menghitung 12 indikator progress mendalam pada semua unit sekolah
+     * Helper untuk menghitung indikator progress mendalam selaras dengan
+     * Surat Edaran Ketua Yayasan No. 05/SE/YP-PEMBDA/VII/2026
      */
     private function getProgressData($academicYearId = null)
     {
-        // 1. Cari Tahun Pelajaran (Prioritaskan TP 2026/2027 jika tidak ada pilihan)
+        // 1. Metadata Surat Edaran Resmi Yayasan
+        $seMetadata = [
+            'nomor'           => '05/SE/YP-PEMBDA/VII/2026',
+            'perihal'         => 'Penetapan Standar Minimal Progress Input Data PembdaHUB untuk TP. 2026/2027',
+            'tanggal_terbit' => '30 Juli 2026',
+            'penandatangan'   => 'Yulianus Zega, S.Kom, M.Pd.T (Ketua Yayasan Perguruan PEMBDA Nias)',
+            'tenggat_waktu'   => 'Senin, 3 Agustus 2026 Pukul 23.59 WIB',
+            'evaluasi_waktu'  => 'Selasa, 4 Agustus 2026',
+            'target_date_iso' => '2026-08-03 23:59:59',
+        ];
+
+        // 2. Cari Tahun Pelajaran (Prioritaskan TP 2026/2027 jika tidak ada pilihan)
         if ($academicYearId) {
             $currentYear = AcademicYear::find($academicYearId);
         } else {
@@ -76,16 +92,79 @@ class ProgressInputController extends Controller
 
         $items = [];
 
-        // ════════════════ ITEM 1: DATA SISWA BARU ════════════════
+        // ════════════════ STANDAR 1: DATA AKADEMIK & KESISWAAN (TARGET 100%) ════════════════
+
+        // ITEM 1: Rombongan Belajar & Wali Kelas
         $item1Schools = [];
+        foreach ($schools as $school) {
+            $rombelQuery = Classroom::where('school_id', $school->id)->where('is_active', true);
+            if ($currentYear) {
+                $rombelQuery->where(function($q) use ($currentYear) {
+                    $q->where('academic_year_id', $currentYear->id)->orWhereNull('academic_year_id');
+                });
+            }
+            $allRombels = $rombelQuery->get();
+            $totalRombel = $allRombels->count();
+
+            $noWaliRombels = $allRombels->whereNull('homeroom_teacher_id');
+            $noWaliNames = $noWaliRombels->pluck('name')->toArray();
+            $rombelWithWali = $totalRombel - count($noWaliNames);
+            $rombelNoWali = count($noWaliNames);
+
+            if ($totalRombel == 0) {
+                $rekomendasi = "Belum ada Rombongan Belajar (Rombel) yang dibuat untuk TP 2026/2027. Segera susun daftar kelas.";
+                $statusColor = 'red';
+            } elseif ($rombelNoWali > 0) {
+                $rekomendasi = "Terdapat {$totalRombel} Rombel, namun {$rombelNoWali} Rombel belum memiliki Wali Kelas. Tentukan Wali Kelas.";
+                $statusColor = 'amber';
+            } else {
+                $rekomendasi = "Sangat baik! Seluruh Rombel ({$totalRombel} Kelas) telah dibuat dan 100% memiliki Wali Kelas.";
+                $statusColor = 'green';
+            }
+
+            $details = [
+                "Total Kelas / Rombel: {$totalRombel} Kelas",
+                "Rombel Ada Wali Kelas: {$rombelWithWali} Kelas",
+                "Rombel Tanpa Wali Kelas: {$rombelNoWali} Kelas",
+            ];
+            if (!empty($noWaliNames)) {
+                $showCount = 3;
+                $sampleNoWali = array_slice($noWaliNames, 0, $showCount);
+                $more = count($noWaliNames) > $showCount ? ' + ' . (count($noWaliNames) - $showCount) . ' lainnya' : '';
+                $details[] = "Tanpa Wali Kelas: " . implode(', ', $sampleNoWali) . $more;
+            }
+
+            $item1Schools[] = [
+                'school_name'  => $school->name,
+                'perkembangan' => "{$totalRombel} Rombel ({$rombelWithWali} Ber-Wali)",
+                'satuan'       => 'Kelas',
+                'rekomendasi'  => $rekomendasi,
+                'status_color' => $statusColor,
+                'raw_value'    => $totalRombel,
+                'details'      => $details,
+                'action_items' => $noWaliNames,
+            ];
+        }
+        $items[] = [
+            'number'       => 1,
+            'standar_id'   => 1,
+            'standar_title' => 'STANDAR 1: DATA AKADEMIK & KESISWAAN',
+            'standar_target' => 'Target: 100%',
+            'title'        => 'Data Rombel & Wali Kelas',
+            'description'  => 'Seluruh Data Kelas / Rombongan Belajar (Rombel) TA 2026/2027 beserta penetapan Wali Kelas telah selesai di-input',
+            'schools_data' => $item1Schools,
+        ];
+
+        // ITEM 2: Data Siswa (Baru & Naik Kelas) & Distribusi Rombel
+        $item2Schools = [];
         foreach ($schools as $school) {
             $isSmp = stripos($school->type, 'SMP') !== false || stripos($school->name, 'SMP') !== false;
             $targetGrades = $isSmp ? [7] : [10];
             $gradeLabel = $isSmp ? 'VII SMP' : 'X SMA/SMK';
 
-            $countFromClass = 0;
+            $siswaBaru = 0;
             if ($currentYear) {
-                $countFromClass = StudentClass::where('academic_year_id', $currentYear->id)
+                $siswaBaru = StudentClass::where('academic_year_id', $currentYear->id)
                     ->whereHas('classroom', function ($q) use ($school, $targetGrades) {
                         $q->where('school_id', $school->id)->whereIn('grade_level', $targetGrades);
                     })
@@ -93,15 +172,8 @@ class ProgressInputController extends Controller
                     ->count('student_id');
             }
 
-            $countFromStudent = Student::where('school_id', $school->id)
-                ->where('status', 'aktif')
-                ->whereHas('currentClassroom', function ($q) use ($targetGrades) {
-                    $q->whereIn('grade_level', $targetGrades);
-                })
-                ->count();
-
-            $siswaBaru = max($countFromClass, $countFromStudent);
-            $totalSiswaAktif = StudentClass::whereHas('student', function ($q) use ($school) {
+            $totalSiswaAktif = Student::where('school_id', $school->id)->where('status', 'aktif')->count();
+            $siswaBerRombel = StudentClass::whereHas('student', function ($q) use ($school) {
                     $q->where('school_id', $school->id)->where('status', 'aktif');
                 })
                 ->when($currentYear, function ($q) use ($currentYear) {
@@ -109,143 +181,50 @@ class ProgressInputController extends Controller
                 })
                 ->distinct('student_id')
                 ->count('student_id');
-            
-            $targetRombels = Classroom::where('school_id', $school->id)
-                ->whereIn('grade_level', $targetGrades)
-                ->where('is_active', true)
-                ->get();
-            $rombelBaruCount = $targetRombels->count();
 
-            $rombelList = [];
-            foreach ($targetRombels as $rb) {
-                $countRb = StudentClass::where('classroom_id', $rb->id)
-                    ->when($currentYear, function($q) use ($currentYear) {
-                        $q->where('academic_year_id', $currentYear->id);
-                    })
-                    ->count();
-                $rombelList[] = "{$rb->name}: {$countRb} Siswa";
-            }
+            $siswaTanpaRombel = max(0, $totalSiswaAktif - $siswaBerRombel);
+            $pctDistrib = $totalSiswaAktif > 0 ? round(($siswaBerRombel / $totalSiswaAktif) * 100, 1) : 0;
 
-            if ($siswaBaru == 0) {
-                $rekomendasi = "Belum ada data siswa baru kelas {$gradeLabel} yang terinput ke rombel. Segera proses data PPDB/PSB atau import Excel.";
+            if ($totalSiswaAktif == 0) {
+                $rekomendasi = "Belum ada siswa aktif terdaftar di unit ini. Segera entry/import data siswa.";
                 $statusColor = 'red';
-            } else {
-                $rekomendasi = "Data siswa kelas {$gradeLabel} terinput {$siswaBaru} siswa. Pastikan seluruh siswa baru sudah masuk rombel.";
-                $statusColor = 'green';
-            }
-
-            $details = [
-                "Siswa Baru Kelas {$gradeLabel}: {$siswaBaru} Orang",
-                "Jumlah Rombel {$gradeLabel}: {$rombelBaruCount} Kelas",
-                "Total Siswa Aktif Unit: {$totalSiswaAktif} Orang",
-            ];
-            if (!empty($rombelList)) {
-                $details[] = "Rincian Kelas: " . implode(', ', array_slice($rombelList, 0, 3));
-            }
-
-            $item1Schools[] = [
-                'school_name' => $school->name,
-                'perkembangan' => "{$siswaBaru} Siswa",
-                'satuan' => 'Siswa',
-                'rekomendasi' => $rekomendasi,
-                'status_color' => $statusColor,
-                'raw_value' => $siswaBaru,
-                'details' => $details,
-                'action_items' => $siswaBaru == 0 ? ["Proses PPDB / Tambah Rombel Kelas {$gradeLabel}"] : [],
-            ];
-        }
-        $items[] = [
-            'number' => 1,
-            'title' => 'Data Siswa Baru',
-            'description' => 'Jumlah siswa kelas VII SMP dan X SMA/SMK yang sudah masuk dalam rincian rombongan belajar',
-            'schools_data' => $item1Schools,
-        ];
-
-        // ════════════════ ITEM 2: FINALISASI PROFILE GURU ════════════════
-        $item2Schools = [];
-        foreach ($schools as $school) {
-            $teachers = Teacher::where('school_id', $school->id)->get();
-            if ($teachers->isEmpty()) {
-                $teachers = Employee::where('school_id', $school->id)
-                    ->where('employee_type', 'guru')
-                    ->where('is_active', true)
-                    ->get();
-            }
-
-            $totalGuru = $teachers->count();
-            $completeGuru = 0;
-            $hasNikCount = 0;
-            $hasEduCount = 0;
-            $hasPhoneCount = 0;
-            $incompleteNames = [];
-
-            foreach ($teachers as $t) {
-                $hasId = !empty($t->nik) || !empty($t->nuptk) || !empty($t->teacher_code) || !empty($t->employee_code);
-                $hasBirth = !empty($t->birth_place) && !empty($t->birth_date);
-                $hasEdu = !empty($t->education_level) || !empty($t->last_education);
-                $hasPhone = !empty($t->phone) || !empty($t->phone_number);
-
-                if ($hasId) $hasNikCount++;
-                if ($hasEdu) $hasEduCount++;
-                if ($hasPhone) $hasPhoneCount++;
-
-                if ($hasId && $hasBirth && $hasEdu && $hasPhone) {
-                    $completeGuru++;
-                } else {
-                    $name = $t->name ?? $t->full_name ?? 'Guru';
-                    $incompleteNames[] = $name;
-                }
-            }
-
-            $pct = $totalGuru > 0 ? round(($completeGuru / $totalGuru) * 100, 1) : 0;
-            $incomplete = max(0, $totalGuru - $completeGuru);
-
-            if ($totalGuru == 0) {
-                $rekomendasi = "Belum ada data guru terdaftar di unit ini. Segera tambahkan data master guru/pegawai.";
-                $statusColor = 'red';
-            } elseif ($pct < 50) {
-                $rekomendasi = "Persentase kelengkapan profil guru masih rendah ({$pct}%). Himbau guru untuk melengkapi NIK, NUPTK, dan riwayat pendidikan.";
-                $statusColor = 'red';
-            } elseif ($pct < 100) {
-                $rekomendasi = "Kelengkapan mencapai {$pct}% ({$completeGuru} dari {$totalGuru} guru). Koordinasikan kepada {$incomplete} guru yang belum lengkap.";
+            } elseif ($pctDistrib < 90) {
+                $rekomendasi = "Distribusi rombel mencapai {$pctDistrib}%. Masih ada {$siswaTanpaRombel} siswa aktif yang belum dimasukkan ke Rombel TP 2026/2027.";
                 $statusColor = 'amber';
             } else {
-                $rekomendasi = "Sangat baik! Seluruh profil data guru ({$totalGuru} orang) telah lengkap terisi 100%.";
+                $rekomendasi = "Sangat baik! Data siswa ({$siswaBerRombel} dari {$totalSiswaAktif} siswa) terdistribusi 100% ke Rombel masing-masing.";
                 $statusColor = 'green';
             }
 
             $details = [
-                "Profil 100% Lengkap: {$completeGuru} dari {$totalGuru} Guru",
-                "NIK / NUPTK Terisi: {$hasNikCount} Guru",
-                "Pendidikan & Kontak Terisi: {$hasEduCount} Guru",
-                "Perlu Dilengkapi: {$incomplete} Guru",
+                "Total Siswa Aktif Unit: {$totalSiswaAktif} Siswa",
+                "Terdistribusi ke Rombel: {$siswaBerRombel} Siswa ({$pctDistrib}%)",
+                "Siswa Baru Kelas {$gradeLabel}: {$siswaBaru} Siswa",
+                "Belum Ber-Rombel: {$siswaTanpaRombel} Siswa",
             ];
-            if (!empty($incompleteNames)) {
-                $showCount = 3;
-                $sampleIncomplete = array_slice($incompleteNames, 0, $showCount);
-                $more = count($incompleteNames) > $showCount ? ' + ' . (count($incompleteNames) - $showCount) . ' lainnya' : '';
-                $details[] = "Perlu Lengkapi: " . implode(', ', $sampleIncomplete) . $more;
-            }
 
             $item2Schools[] = [
-                'school_name' => $school->name,
-                'perkembangan' => "{$pct}% ({$completeGuru}/{$totalGuru} Guru)",
-                'satuan' => 'Persentase (%)',
-                'rekomendasi' => $rekomendasi,
+                'school_name'  => $school->name,
+                'perkembangan' => "{$pctDistrib}% ({$siswaBerRombel}/{$totalSiswaAktif} Siswa)",
+                'satuan'       => 'Persentase (%)',
+                'rekomendasi'  => $rekomendasi,
                 'status_color' => $statusColor,
-                'raw_value' => $pct,
-                'details' => $details,
-                'action_items' => $incompleteNames,
+                'raw_value'    => $pctDistrib,
+                'details'      => $details,
+                'action_items' => $siswaTanpaRombel > 0 ? ["Distribusikan {$siswaTanpaRombel} Siswa ke Rombel TP 2026/2027"] : [],
             ];
         }
         $items[] = [
-            'number' => 2,
-            'title' => 'Finalisasi Profile Guru',
-            'description' => 'Persentase kelengkapan data NIK, NUPTK, Tempat/Tgl Lahir, dan kualifikasi pendidikan guru',
-            'schools_data' => $item2Schools,
+            'number'        => 2,
+            'standar_id'    => 1,
+            'standar_title'  => 'STANDAR 1: DATA AKADEMIK & KESISWAAN',
+            'standar_target' => 'Target: 100%',
+            'title'         => 'Registrasi Data Siswa & Distribusi Rombel',
+            'description'   => 'Seluruh Data Siswa (Siswa Baru & Siswa Naik Kelas) terdaftar 100% dan telah terdistribusi ke Rombel masing-masing',
+            'schools_data'  => $item2Schools,
         ];
 
-        // ════════════════ ITEM 3: FINALISASI PROFILE SISWA ════════════════
+        // ITEM 3: Finalisasi Profil Siswa
         $item3Schools = [];
         foreach ($schools as $school) {
             $students = Student::where('school_id', $school->id)->where('status', 'aktif')->get();
@@ -272,17 +251,12 @@ class ProgressInputController extends Controller
 
             $pct = $totalSiswa > 0 ? round(($completeSiswa / $totalSiswa) * 100, 1) : 0;
             $incomplete = max(0, $totalSiswa - $completeSiswa);
-            $noNisnCount = max(0, $totalSiswa - $hasNisnCount);
-            $noParentCount = max(0, $totalSiswa - $hasParentCount);
 
             if ($totalSiswa == 0) {
                 $rekomendasi = "Belum ada siswa aktif terdaftar di unit ini. Segera verifikasi data siswa.";
                 $statusColor = 'red';
-            } elseif ($pct < 50) {
-                $rekomendasi = "Persentase kelengkapan profil siswa masih di bawah 50% ({$pct}%). Instruksikan wali kelas memonitor pengisian NISN dan data ortu.";
-                $statusColor = 'red';
-            } elseif ($pct < 100) {
-                $rekomendasi = "Sudah {$completeSiswa} dari {$totalSiswa} siswa lengkap ({$pct}%). Tinggal {$incomplete} siswa yang perlu melengkapi data.";
+            } elseif ($pct < 80) {
+                $rekomendasi = "Persentase kelengkapan profil siswa masih {$pct}%. Wali kelas wajib memonitor pengisian NISN dan data orang tua/wali.";
                 $statusColor = 'amber';
             } else {
                 $rekomendasi = "Sangat baik! Seluruh profil siswa aktif ({$totalSiswa} orang) telah terisi lengkap 100%.";
@@ -293,104 +267,35 @@ class ProgressInputController extends Controller
                 "Profil 100% Lengkap: {$completeSiswa} dari {$totalSiswa} Siswa",
                 "NISN & NIS Terisi: {$hasNisnCount} Siswa",
                 "Data Ortu/Wali: {$hasParentCount} Siswa",
-                "Alamat Lengkap: {$hasAddressCount} Siswa",
+                "Alamat & Tgl Lahir: {$hasAddressCount} Siswa",
             ];
-            if ($incomplete > 0) {
-                $details[] = "Perlu Dilengkapi: {$noNisnCount} Siswa tanpa NISN, {$noParentCount} Siswa tanpa Data Ortu";
-            }
 
             $item3Schools[] = [
-                'school_name' => $school->name,
+                'school_name'  => $school->name,
                 'perkembangan' => "{$pct}% ({$completeSiswa}/{$totalSiswa} Siswa)",
-                'satuan' => 'Persentase (%)',
-                'rekomendasi' => $rekomendasi,
+                'satuan'       => 'Persentase (%)',
+                'rekomendasi'  => $rekomendasi,
                 'status_color' => $statusColor,
-                'raw_value' => $pct,
-                'details' => $details,
-                'action_items' => $incomplete > 0 ? ["{$noNisnCount} Siswa Belum Ada NISN", "{$noParentCount} Siswa Belum Ada Data Ortu"] : [],
+                'raw_value'    => $pct,
+                'details'      => $details,
+                'action_items' => $incomplete > 0 ? ["Instruksikan Wali Kelas Melengkapi {$incomplete} Data Profil Siswa"] : [],
             ];
         }
         $items[] = [
-            'number' => 3,
-            'title' => 'Finalisasi Profile Siswa',
-            'description' => 'Persentase kelengkapan NISN, Tempat/Tgl Lahir, Alamat, dan Data Orang Tua/Wali Siswa',
-            'schools_data' => $item3Schools,
+            'number'        => 3,
+            'standar_id'    => 1,
+            'standar_title'  => 'STANDAR 1: DATA AKADEMIK & KESISWAAN',
+            'standar_target' => 'Target: 100%',
+            'title'         => 'Finalisasi Profil & Biodata Siswa',
+            'description'   => 'Kelengkapan NISN, NIS, Tempat/Tgl Lahir, Alamat, dan Data Orang Tua/Wali Siswa secara menyeluruh',
+            'schools_data'  => $item3Schools,
         ];
 
-        // ════════════════ ITEM 4: PENUGASAN JABATAN ════════════════
+
+        // ════════════════ STANDAR 2: DATA PENGAJARAN & JADWAL (TARGET 100%) ════════════════
+
+        // ITEM 4: Pembagian Tugas Mengajar Guru (Teaching Assignment)
         $item4Schools = [];
-        foreach ($schools as $school) {
-            $posCount = 0;
-            if ($currentYear) {
-                $posCount = EmployeePosition::where('academic_year_id', $currentYear->id)
-                    ->whereHas('employee', function ($q) use ($school) {
-                        $q->where('school_id', $school->id);
-                    })
-                    ->distinct('employee_id')
-                    ->count('employee_id');
-            }
-
-            if ($posCount == 0) {
-                $posCount = EmployeePosition::whereHas('employee', function ($q) use ($school) {
-                    $q->where('school_id', $school->id)->where('is_active', true);
-                })->distinct('employee_id')->count('employee_id');
-            }
-
-            $waliKelasPos = Classroom::where('school_id', $school->id)
-                ->whereNotNull('homeroom_teacher_id')
-                ->where('is_active', true)
-                ->count();
-
-            // Cek posisi penting yang terisi
-            $activePositions = EmployeePosition::whereHas('employee', function ($q) use ($school) {
-                $q->where('school_id', $school->id);
-            })->with('position')->get();
-
-            $posNames = [];
-            foreach ($activePositions as $ap) {
-                if ($ap->position && !in_array($ap->position->position_name, $posNames)) {
-                    $posNames[] = $ap->position->position_name;
-                }
-            }
-
-            if ($posCount == 0) {
-                $rekomendasi = "Belum ada SK penugasan struktural untuk TP ini. Segera buat penugasan Kepala Sekolah, Wakasek, dan Wali Kelas.";
-                $statusColor = 'red';
-            } else {
-                $rekomendasi = "Terdapat {$posCount} orang telah diberi penugasan jabatan struktural. Pastikan SK Penugasan resmi telah disahkan.";
-                $statusColor = 'green';
-            }
-
-            $details = [
-                "Total Pegawai Diberi SK: {$posCount} Orang",
-                "Wali Kelas Terisi: {$waliKelasPos} Rombel",
-            ];
-            if (!empty($posNames)) {
-                $details[] = "Jabatan Terisi: " . implode(', ', array_slice($posNames, 0, 4)) . (count($posNames) > 4 ? ' + ' . (count($posNames) - 4) . ' lainnya' : '');
-            } else {
-                $details[] = "Tugas Struktural/Tambahan: Perlu Diterbitkan";
-            }
-
-            $item4Schools[] = [
-                'school_name' => $school->name,
-                'perkembangan' => "{$posCount} Orang",
-                'satuan' => 'Orang',
-                'rekomendasi' => $rekomendasi,
-                'status_color' => $statusColor,
-                'raw_value' => $posCount,
-                'details' => $details,
-                'action_items' => $posCount == 0 ? ["Terbitkan SK Struktural Kepsek/Wakasek/Wali Kelas"] : [],
-            ];
-        }
-        $items[] = [
-            'number' => 4,
-            'title' => 'Penugasan Jabatan',
-            'description' => 'Jumlah penugasan struktural (Kepsek, Wakasek, Wali Kelas, Kepala Lab/Perpus) yang telah diterbitkan',
-            'schools_data' => $item4Schools,
-        ];
-
-        // ════════════════ ITEM 5: PENUGASAN MENGAJAR ════════════════
-        $item5Schools = [];
         foreach ($schools as $school) {
             $totalJam = 0;
             $taCount = 0;
@@ -424,46 +329,52 @@ class ProgressInputController extends Controller
             $avgJam = $guruMengajarCount > 0 ? round($totalJam / $guruMengajarCount, 1) : 0;
 
             if ($totalJam == 0) {
-                $rekomendasi = "Belum ada distribusi jam mengajar mata pelajaran untuk TP ini. Segera susun pembagian jam mengajar guru per kelas.";
+                $rekomendasi = "Belum ada pembagian tugas mengajar guru (Teaching Assignment) untuk seluruh mata pelajaran di TP 2026/2027.";
                 $statusColor = 'red';
+            } elseif ($guruTanpaJam > 0) {
+                $rekomendasi = "Ter-input {$taCount} penugasan mengajar ({$totalJam} Jam). Terdapat {$guruTanpaJam} guru yang belum diberi alokasi jam mengajar.";
+                $statusColor = 'amber';
             } else {
-                $rekomendasi = "Total jam mengajar terdistribusi: {$totalJam} Jam dari {$taCount} penugasan. Periksa keseimbangan jam kerja guru.";
+                $rekomendasi = "Sangat baik! Pembagian tugas mengajar guru untuk seluruh mata pelajaran telah ter-input 100% ({$totalJam} Jam Mengajar).";
                 $statusColor = 'green';
             }
 
             $details = [
                 "Total Beban Jam: {$totalJam} Jam/Minggu",
-                "Jumlah Penugasan SK: {$taCount} Item",
-                "Guru Mengajar: {$guruMengajarCount} dari {$totalGuruUnit} Guru",
+                "Jumlah Penugasan SK: {$taCount} Item Mapel",
+                "Guru Mengajar Ter-SK: {$guruMengajarCount} dari {$totalGuruUnit} Guru",
                 "Rata-rata Beban: {$avgJam} Jam/Guru",
             ];
             if ($guruTanpaJam > 0) {
                 $details[] = "Guru Tanpa Jam Mengajar: {$guruTanpaJam} Orang";
             }
 
-            $item5Schools[] = [
-                'school_name' => $school->name,
+            $item4Schools[] = [
+                'school_name'  => $school->name,
                 'perkembangan' => "{$totalJam} Jam ({$taCount} Penugasan)",
-                'satuan' => 'Jam',
-                'rekomendasi' => $rekomendasi,
+                'satuan'       => 'Jam',
+                'rekomendasi'  => $rekomendasi,
                 'status_color' => $statusColor,
-                'raw_value' => $totalJam,
-                'ta_count' => $taCount,
-                'details' => $details,
-                'action_items' => $guruTanpaJam > 0 ? ["{$guruTanpaJam} Guru Belum Memiliki Penugasan Mengajar"] : [],
+                'raw_value'    => $totalJam,
+                'ta_count'     => $taCount,
+                'details'      => $details,
+                'action_items' => $guruTanpaJam > 0 ? ["Lengkapi Penugasan Mengajar untuk {$guruTanpaJam} Guru"] : [],
             ];
         }
         $items[] = [
-            'number' => 5,
-            'title' => 'Penugasan Mengajar',
-            'description' => 'Jumlah jam mengajar dan distribusi beban mata pelajaran yang sudah diterbitkan per guru',
-            'schools_data' => $item5Schools,
+            'number'        => 4,
+            'standar_id'    => 2,
+            'standar_title'  => 'STANDAR 2: DATA PENGAJARAN & JADWAL',
+            'standar_target' => 'Target: 100%',
+            'title'         => 'Pembagian Tugas Mengajar Guru (Teaching Assignment)',
+            'description'   => 'Pembagian Tugas Mengajar Guru (Teaching Assignment) untuk seluruh mata pelajaran telah di-input 100%',
+            'schools_data'  => $item4Schools,
         ];
 
-        // ════════════════ ITEM 6: JADWAL PELAJARAN ════════════════
-        $item6Schools = [];
+        // ITEM 5: Jadwal Pelajaran Mingguan Semester Ganjil TA 2026/2027
+        $item5Schools = [];
         foreach ($schools as $index => $school) {
-            $totalTa = $item5Schools[$index]['ta_count'] ?? 0;
+            $totalTa = $item4Schools[$index]['ta_count'] ?? 0;
             $plottedCount = 0;
 
             if ($currentYear) {
@@ -488,47 +399,50 @@ class ProgressInputController extends Controller
             $sisaTa = max(0, $totalTa - $plottedCount);
 
             if ($totalTa == 0) {
-                $rekomendasi = "Buat penugasan mengajar terlebih dahulu agar dapat diplot ke dalam jadwal pelajaran mingguan.";
+                $rekomendasi = "Input pembagian tugas mengajar terlebih dahulu agar dapat diplot ke dalam jadwal pelajaran mingguan.";
                 $statusColor = 'red';
             } elseif ($pct == 0) {
-                $rekomendasi = "Jadwal pelajaran belum disusun (0%). Segera lakukan plotting hari, jam pelajaran, dan ruangan.";
+                $rekomendasi = "Jadwal pelajaran belum disusun (0%). Segera lakukan plotting jam pelajaran untuk Semester Ganjil TA 2026/2027.";
                 $statusColor = 'red';
             } elseif ($pct < 100) {
-                $rekomendasi = "Jadwal terplot {$pct}%. Lanjutkan plotting untuk sisa {$sisaTa} penugasan agar jadwal mingguan siap digunakan.";
+                $rekomendasi = "Jadwal terplot {$pct}%. Terbitkan sisa {$sisaTa} penugasan agar jadwal mingguan terbit 100% seluruh kelas.";
                 $statusColor = 'amber';
             } else {
-                $rekomendasi = "Sangat baik! Seluruh penugasan mengajar ({$totalTa} item) telah 100% terplot ke dalam jadwal pelajaran mingguan.";
+                $rekomendasi = "Sangat baik! Jadwal Pelajaran Mingguan Semester Ganjil TA 2026/2027 seluruh kelas telah terbit 100% di sistem.";
                 $statusColor = 'green';
             }
 
             $details = [
-                "Penugasan Terplot: {$plottedCount} dari {$totalTa}",
-                "Total Sesi Terjadwal: {$totalScheduleRows} Slot Jam",
+                "Penugasan Terplot: {$plottedCount} dari {$totalTa} Penugasan",
+                "Total Slot Terjadwal: {$totalScheduleRows} Sesi Jam",
             ];
             if ($sisaTa > 0) {
                 $details[] = "Penugasan Belum Terplot: {$sisaTa} Item Mapel";
             }
 
-            $item6Schools[] = [
-                'school_name' => $school->name,
+            $item5Schools[] = [
+                'school_name'  => $school->name,
                 'perkembangan' => "{$pct}% ({$plottedCount}/{$totalTa} Terplot)",
-                'satuan' => 'Persentase (%)',
-                'rekomendasi' => $rekomendasi,
+                'satuan'       => 'Persentase (%)',
+                'rekomendasi'  => $rekomendasi,
                 'status_color' => $statusColor,
-                'raw_value' => $pct,
-                'details' => $details,
-                'action_items' => $sisaTa > 0 ? ["Plot {$sisaTa} Penugasan Mengajar ke Slot Hari/Jam"] : [],
+                'raw_value'    => $pct,
+                'details'      => $details,
+                'action_items' => $sisaTa > 0 ? ["Plotting {$sisaTa} Penugasan Mengajar ke Jadwal Mingguan Ganjil"] : [],
             ];
         }
         $items[] = [
-            'number' => 6,
-            'title' => 'Jadwal Pelajaran',
-            'description' => 'Persentase penugasan mengajar yang sudah diplot ke dalam slot hari dan jam pelajaran mingguan',
-            'schools_data' => $item6Schools,
+            'number'        => 5,
+            'standar_id'    => 2,
+            'standar_title'  => 'STANDAR 2: DATA PENGAJARAN & JADWAL',
+            'standar_target' => 'Target: 100%',
+            'title'         => 'Jadwal Pelajaran Mingguan Semester Ganjil TA 2026/2027',
+            'description'   => 'Jadwal Pelajaran Mingguan Semester Ganjil TA 2026/2027 seluruh kelas telah terbit 100% di sistem PembdaHUB',
+            'schools_data'  => $item5Schools,
         ];
 
-        // ════════════════ ITEM 7: KALENDER PENDIDIKAN ════════════════
-        $item7Schools = [];
+        // ITEM 6: Kalender Pendidikan & Agenda Akademik
+        $item6Schools = [];
         foreach ($schools as $school) {
             $kaldikQuery = EducationalCalendar::query();
             if ($currentYear) {
@@ -542,10 +456,10 @@ class ProgressInputController extends Controller
             $agendaNames = $recentAgendas->pluck('title')->toArray();
 
             if ($kaldikCount == 0) {
-                $rekomendasi = "Belum ada agenda kegiatan atau hari libur pada Kalender Pendidikan TP ini. Segera input agenda akademik tahunan.";
+                $rekomendasi = "Belum ada agenda akademik atau hari libur pada Kalender Pendidikan TP 2026/2027.";
                 $statusColor = 'red';
             } else {
-                $rekomendasi = "Kalender pendidikan diisi {$kaldikCount} agenda kegiatan. Pastikan jadwal ujian PTS/PAS dan libur semester tercakup.";
+                $rekomendasi = "Kalender Pendidikan diisi {$kaldikCount} agenda kegiatan. Jadwal PTS/PAS dan libur semester telah terkonfigurasi.";
                 $statusColor = 'green';
             }
 
@@ -556,297 +470,38 @@ class ProgressInputController extends Controller
                 $details[] = "Agenda Terdekat: " . implode(', ', $agendaNames);
             }
 
-            $item7Schools[] = [
-                'school_name' => $school->name,
+            $item6Schools[] = [
+                'school_name'  => $school->name,
                 'perkembangan' => "{$kaldikCount} Agenda",
-                'satuan' => 'Agenda',
-                'rekomendasi' => $rekomendasi,
+                'satuan'       => 'Agenda',
+                'rekomendasi'  => $rekomendasi,
                 'status_color' => $statusColor,
-                'raw_value' => $kaldikCount,
-                'details' => $details,
+                'raw_value'    => $kaldikCount,
+                'details'      => $details,
                 'action_items' => $kaldikCount == 0 ? ["Input Agenda Akademik & Libur di Kalender Pendidikan"] : [],
             ];
         }
         $items[] = [
-            'number' => 7,
-            'title' => 'Kalender Pendidikan',
-            'description' => 'Jumlah data agenda kegiatan akademik, ujian sekolah, dan libur semester yang telah disusun',
-            'schools_data' => $item7Schools,
+            'number'        => 6,
+            'standar_id'    => 2,
+            'standar_title'  => 'STANDAR 2: DATA PENGAJARAN & JADWAL',
+            'standar_target' => 'Target: 100%',
+            'title'         => 'Kalender Pendidikan & Agenda Akademik',
+            'description'   => 'Agenda kegiatan akademik tahunan, jadwal ujian sekolah, dan penetapan libur semester pada Kalender Pendidikan',
+            'schools_data'  => $item6Schools,
         ];
 
-        // ════════════════ ITEM 8: TAGIHAN SISWA ════════════════
-        $item8Schools = [];
+
+        // ════════════════ STANDAR 3: KESIAPAN LMS - 1 KELAS EKSPERIMEN (TARGET 100% MATPEL) ════════════════
+
+        // ITEM 7: Kesiapan 1 Kelas Eksperimen Per Unit (5-in-1 LMS Component)
+        $item7Schools = [];
         foreach ($schools as $school) {
-            $feeTypes = PaymentType::where('school_id', $school->id)->where('is_active', true)->get();
-            $feeCount = $feeTypes->count();
-            $feeValuedCount = $feeTypes->where('amount', '>', 0)->count();
-            $sumAmount = $feeTypes->sum('amount');
-
-            $zeroValuedNames = $feeTypes->where('amount', '<=', 0)->pluck('type_name')->toArray();
-
-            // Cek penerbitan StudentBill pada Tahun Pelajaran yang sedang dipilih ($currentYear)
-            $billsQuery = StudentBill::whereHas('student', function ($q) use ($school) {
-                $q->where('school_id', $school->id);
-            });
-            if ($currentYear) {
-                $billsQuery->where('academic_year_id', $currentYear->id);
-            }
-            $billsCount = $billsQuery->count();
-            $billsTotal = $billsQuery->sum('amount');
-
-            $academicYearLabel = $currentYear ? "TP. {$currentYear->year}" : "TP Aktif";
-
-            if ($feeCount == 0) {
-                $rekomendasi = "Belum ada master jenis tagihan siswa (SPP, DSP, Ujian) pada unit ini. Segera buat jenis tagihan dan tentukan nominal pembayarannya.";
-                $statusColor = 'red';
-            } elseif ($feeValuedCount < $feeCount) {
-                $sisa = $feeCount - $feeValuedCount;
-                $rekomendasi = "Terdapat {$feeCount} jenis tagihan, namun {$sisa} jenis belum diberi nominal (> Rp 0). Lengkapi besaran nominalnya.";
-                $statusColor = 'amber';
-            } elseif ($billsCount == 0) {
-                $rekomendasi = "Terdapat {$feeCount} jenis tagihan siswa yang bernominal, tetapi BELUM TERBIT tagihan ke siswa untuk {$academicYearLabel}. Terbitkan tagihan siswa.";
-                $statusColor = 'amber';
-            } else {
-                $rekomendasi = "Terdapat {$feeCount} jenis tagihan siswa siap pakai dan {$billsCount} tagihan siswa telah diterbitkan pada {$academicYearLabel}.";
-                $statusColor = 'green';
-            }
-
-            // Buat rincian jenis tagihan beserta nominalnya
-            $feeListText = [];
-            foreach ($feeTypes as $ft) {
-                $nom = $ft->amount > 0 ? "Rp " . number_format($ft->amount, 0, ',', '.') . ($ft->is_recurring ? '/bln' : '') : "Belum Bernominal";
-                $feeListText[] = "{$ft->type_name} ({$nom})";
-            }
-            $daftarTagihanStr = !empty($feeListText) ? implode(', ', $feeListText) : 'Belum Ada';
-
-            $details = [
-                "Acuan Tahun Pelajaran: {$academicYearLabel}",
-                "Master Tagihan ({$feeCount} Jenis): {$daftarTagihanStr}",
-                "Total Setup Nominal: Rp " . number_format($sumAmount, 0, ',', '.'),
-            ];
-
-            if ($billsCount > 0) {
-                $details[] = "Tagihan Terbit {$academicYearLabel}: {$billsCount} Tagihan Siswa (Total Rp " . number_format($billsTotal, 0, ',', '.') . ")";
-            } else {
-                $details[] = "Tagihan Terbit {$academicYearLabel}: Belum Diterbitkan ke Siswa";
-            }
-
-            if (!empty($zeroValuedNames)) {
-                $details[] = "Belum Ber-Nominal: " . implode(', ', array_slice($zeroValuedNames, 0, 3));
-            }
-
-            $actionItems = [];
-            if ($feeCount == 0) {
-                $actionItems[] = "Buat Master Jenis Tagihan Pembayaran";
-            } elseif (!empty($zeroValuedNames)) {
-                $actionItems[] = "Input Nominal untuk: " . implode(', ', $zeroValuedNames);
-            } elseif ($billsCount == 0) {
-                $actionItems[] = "Terbitkan Tagihan Siswa untuk {$academicYearLabel}";
-            }
-
-            $item8Schools[] = [
-                'school_name' => $school->name,
-                'perkembangan' => "{$feeCount} Jenis ({$feeValuedCount} Bernilai)",
-                'satuan' => 'Jenis',
-                'rekomendasi' => $rekomendasi,
-                'status_color' => $statusColor,
-                'raw_value' => $feeCount,
-                'details' => $details,
-                'action_items' => $actionItems,
-            ];
-        }
-        $items[] = [
-            'number' => 8,
-            'title' => 'Tagihan Siswa & Keuangan',
-            'description' => 'Jenis tagihan pembayaran siswa (SPP, DSP, Ujian) yang sudah dibuat dan diberi nilai nominal',
-            'schools_data' => $item8Schools,
-        ];
-
-        // ════════════════ ITEM 9: ROMBONGAN BELAJAR (ROMBEL) ════════════════
-        $item9Schools = [];
-        foreach ($schools as $school) {
-            $rombelQuery = Classroom::where('school_id', $school->id)->where('is_active', true);
-            if ($currentYear) {
-                $rombelQuery->where(function($q) use ($currentYear) {
-                    $q->where('academic_year_id', $currentYear->id)->orWhereNull('academic_year_id');
-                });
-            }
-            $allRombels = $rombelQuery->get();
-            $totalRombel = $allRombels->count();
-
-            $noWaliRombels = $allRombels->whereNull('homeroom_teacher_id');
-            $noWaliNames = $noWaliRombels->pluck('name')->toArray();
-            $rombelWithWali = $totalRombel - count($noWaliNames);
-            $rombelNoWali = count($noWaliNames);
-
-            if ($totalRombel == 0) {
-                $rekomendasi = "Belum ada Rombongan Belajar (Rombel) yang dibuat untuk TP ini. Segera susun daftar kelas.";
-                $statusColor = 'red';
-            } elseif ($rombelNoWali > 0) {
-                $rekomendasi = "Terdapat {$totalRombel} Rombel, namun {$rombelNoWali} Rombel belum memiliki Wali Kelas. Tentukan Wali Kelas.";
-                $statusColor = 'amber';
-            } else {
-                $rekomendasi = "Sangat baik! Seluruh Rombel ({$totalRombel} Kelas) telah dibuat dan 100% memiliki Wali Kelas.";
-                $statusColor = 'green';
-            }
-
-            $details = [
-                "Total Kelas / Rombel: {$totalRombel} Kelas",
-                "Rombel Ada Wali Kelas: {$rombelWithWali} Kelas",
-                "Rombel Tanpa Wali Kelas: {$rombelNoWali} Kelas",
-            ];
-            if (!empty($noWaliNames)) {
-                $showCount = 3;
-                $sampleNoWali = array_slice($noWaliNames, 0, $showCount);
-                $more = count($noWaliNames) > $showCount ? ' + ' . (count($noWaliNames) - $showCount) . ' lainnya' : '';
-                $details[] = "Tanpa Wali Kelas: " . implode(', ', $sampleNoWali) . $more;
-            }
-
-            $item9Schools[] = [
-                'school_name' => $school->name,
-                'perkembangan' => "{$totalRombel} Rombel ({$rombelWithWali} Ber-Wali)",
-                'satuan' => 'Kelas',
-                'rekomendasi' => $rekomendasi,
-                'status_color' => $statusColor,
-                'raw_value' => $totalRombel,
-                'details' => $details,
-                'action_items' => $noWaliNames,
-            ];
-        }
-        $items[] = [
-            'number' => 9,
-            'title' => 'Rombongan Belajar & Wali Kelas',
-            'description' => 'Jumlah daftar kelas/rombel yang aktif dan kelengkapan penugasan Wali Kelas per rombel',
-            'schools_data' => $item9Schools,
-        ];
-
-        // ════════════════ ITEM 10: MATA PELAJARAN & KURIKULUM ════════════════
-        $item10Schools = [];
-        foreach ($schools as $school) {
-            $allSubjects = Subject::where('school_id', $school->id)->where('is_active', true)->get();
-            $totalSubject = $allSubjects->count();
-            $noHoursSubjects = $allSubjects->where('hours_per_week', '<=', 0);
-            $noHoursNames = $noHoursSubjects->pluck('name')->toArray();
-            $subjectWithHours = $totalSubject - count($noHoursNames);
-
-            if ($totalSubject == 0) {
-                $rekomendasi = "Belum ada struktur Mata Pelajaran yang diinput untuk kurikulum sekolah ini. Segera tambahkan master mapel.";
-                $statusColor = 'red';
-            } elseif (count($noHoursNames) > 0) {
-                $sisa = count($noHoursNames);
-                $rekomendasi = "Terdapat {$totalSubject} mapel terdaftar, namun {$sisa} mapel belum diatur beban alokasi jam per minggu.";
-                $statusColor = 'amber';
-            } else {
-                $rekomendasi = "Sangat baik! Seluruh Mata Pelajaran ({$totalSubject} Mapel) telah lengkap dan diset alokasi jam mengajar.";
-                $statusColor = 'green';
-            }
-
-            $details = [
-                "Total Mata Pelajaran: {$totalSubject} Mapel",
-                "Mapel Ber-Alokasi Jam: {$subjectWithHours} Mapel",
-            ];
-            if (!empty($noHoursNames)) {
-                $showCount = 3;
-                $sampleNoHours = array_slice($noHoursNames, 0, $showCount);
-                $more = count($noHoursNames) > $showCount ? ' + ' . (count($noHoursNames) - $showCount) . ' lainnya' : '';
-                $details[] = "Belum Diset Jam: " . implode(', ', $sampleNoHours) . $more;
-            }
-
-            $item10Schools[] = [
-                'school_name' => $school->name,
-                'perkembangan' => "{$totalSubject} Mapel ({$subjectWithHours} Ber-Jam)",
-                'satuan' => 'Mapel',
-                'rekomendasi' => $rekomendasi,
-                'status_color' => $statusColor,
-                'raw_value' => $totalSubject,
-                'details' => $details,
-                'action_items' => $noHoursNames,
-            ];
-        }
-        $items[] = [
-            'number' => 10,
-            'title' => 'Mata Pelajaran & Struktur Kurikulum',
-            'description' => 'Jumlah mata pelajaran aktif yang terdaftar dalam kurikulum beserta alokasi jam per minggu',
-            'schools_data' => $item10Schools,
-        ];
-
-        // ════════════════ ITEM 11: AKUN USER & HAK AKSES PORTAL ════════════════
-        $item11Schools = [];
-        foreach ($schools as $school) {
-            $userGuru = User::where('school_id', $school->id)->whereIn('role', ['guru', 'teacher'])->count();
-            $userSiswa = User::where('school_id', $school->id)->whereIn('role', ['siswa', 'student'])->count();
-            $totalUserSchool = User::where('school_id', $school->id)->count();
-
-            $totalGuruUnit = Teacher::where('school_id', $school->id)->count();
-            if ($totalGuruUnit == 0) {
-                $totalGuruUnit = Employee::where('school_id', $school->id)->where('employee_type', 'guru')->count();
-            }
-            $totalSiswaUnit = StudentClass::whereHas('student', function ($q) use ($school) {
-                    $q->where('school_id', $school->id)->where('status', 'aktif');
-                })
-                ->when($currentYear, function ($q) use ($currentYear) {
-                    $q->where('academic_year_id', $currentYear->id);
-                })
-                ->distinct('student_id')
-                ->count('student_id');
-
-            $pctGuru = $totalGuruUnit > 0 ? round(($userGuru / $totalGuruUnit) * 100, 1) : 0;
-            $pctSiswa = $totalSiswaUnit > 0 ? round(($userSiswa / $totalSiswaUnit) * 100, 1) : 0;
-
-            $noAccountGuru = max(0, $totalGuruUnit - $userGuru);
-            $noAccountSiswa = max(0, $totalSiswaUnit - $userSiswa);
-
-            if ($totalUserSchool == 0) {
-                $rekomendasi = "Belum ada akun login portal yang dibuat untuk unit sekolah ini. Generasi akun login siswa & guru.";
-                $statusColor = 'red';
-            } elseif ($pctGuru < 80 || $pctSiswa < 50) {
-                $rekomendasi = "Cakupan akun portal: Guru {$pctGuru}%, Siswa {$pctSiswa}%. Generasi otomatis akun login untuk sisa pengguna.";
-                $statusColor = 'amber';
-            } else {
-                $rekomendasi = "Sangat baik! Akun portal login siswa & guru telah aktif dan dapat digunakan untuk akses mobile/web.";
-                $statusColor = 'green';
-            }
-
-            $details = [
-                "Akun Guru Aktif: {$userGuru} / {$totalGuruUnit} ({$pctGuru}%)",
-                "Akun Siswa Aktif: {$userSiswa} / {$totalSiswaUnit} ({$pctSiswa}%)",
-                "Total Akun Portal Unit: {$totalUserSchool} User",
-            ];
-            if ($noAccountGuru > 0 || $noAccountSiswa > 0) {
-                $details[] = "Belum Ada Akun: {$noAccountGuru} Guru, {$noAccountSiswa} Siswa";
-            }
-
-            $item11Schools[] = [
-                'school_name' => $school->name,
-                'perkembangan' => "{$totalUserSchool} Akun (Guru {$pctGuru}%, Siswa {$pctSiswa}%)",
-                'satuan' => 'Akun',
-                'rekomendasi' => $rekomendasi,
-                'status_color' => $statusColor,
-                'raw_value' => $totalUserSchool,
-                'details' => $details,
-                'action_items' => array_filter([
-                    $noAccountGuru > 0 ? "{$noAccountGuru} Guru Belum Punya Akun Portal" : null,
-                    $noAccountSiswa > 0 ? "{$noAccountSiswa} Siswa Belum Punya Akun Portal" : null,
-                ]),
-            ];
-        }
-        $items[] = [
-            'number' => 11,
-            'title' => 'Akun Portal & Hak Akses User',
-            'description' => 'Jumlah pendaftaran akun login portal dan persentase aktif pengguna (Siswa & Guru)',
-            'schools_data' => $item11Schools,
-        ];
-
-        // ════════════════ ITEM 12: KESIAPAN LMS DIGITAL & BANK SOAL (CBT) ════════════════
-        $item12Schools = [];
-        foreach ($schools as $school) {
-            // Ambil semua rombel aktif di sekolah ini
             $classrooms = Classroom::where('school_id', $school->id)
                 ->where('is_active', true)
                 ->orderBy('class_name')
                 ->get();
 
-            // Total per sekolah
             $totalCourses = LmsCourse::where('school_id', $school->id)->count();
             $totalModules = LmsModule::whereHas('course', function($q) use ($school) {
                 $q->where('school_id', $school->id);
@@ -875,7 +530,6 @@ class ProgressInputController extends Controller
             $classroomBreakdown = [];
 
             foreach ($classrooms as $cls) {
-                // Ambil course yang terhubung ke rombel ini (langsung classroom_id atau via lmsClasses pivot)
                 $clsCourses = LmsCourse::where('school_id', $school->id)
                     ->where(function($q) use ($cls) {
                         $q->where('classroom_id', $cls->id)
@@ -905,15 +559,15 @@ class ProgressInputController extends Controller
                 $componentsMet = ($hasCourse ? 1 : 0) + ($hasModul ? 1 : 0) + ($hasMateri ? 1 : 0) + ($hasTugas ? 1 : 0) + ($hasKuis ? 1 : 0);
 
                 $clsInfo = [
-                    'classroom' => $cls,
-                    'name' => $cls->name,
-                    'courses' => $courseCount,
-                    'modules' => $modCount,
-                    'materials' => $matCount,
-                    'assignments' => $asgCount,
-                    'quizzes' => $quizCount,
-                    'components_met' => $componentsMet,
-                    'is_complete' => ($componentsMet === 5),
+                    'classroom'     => $cls,
+                    'name'          => $cls->name,
+                    'courses'       => $courseCount,
+                    'modules'       => $modCount,
+                    'materials'     => $matCount,
+                    'assignments'   => $asgCount,
+                    'quizzes'       => $quizCount,
+                    'components_met'=> $componentsMet,
+                    'is_complete'   => ($componentsMet === 5),
                 ];
 
                 if ($componentsMet === 5) {
@@ -925,33 +579,26 @@ class ProgressInputController extends Controller
             }
 
             $completeCount = count($completePilotClasses);
-            $partialCount = count($partialPilotClasses);
 
-            // Penilaian Status & Rekomendasi
             if ($completeCount >= 1) {
                 $statusColor = 'green';
                 $bestClass = $completePilotClasses[0]['name'];
                 $perkembangan = "{$completeCount} Kelas Pilot Lengkap 100%";
-                $rekomendasi = "Memenuhi Standar Yayasan! Terdapat {$completeCount} Kelas Pilot LMS ({$bestClass}) yang lengkap 100% (Course, Modul, Materi, Tugas, & Kuis/CBT). Pertahankan dan replikasi ke kelas lainnya.";
-            } elseif ($partialCount >= 1 || ($totalCourses > 0 && ($totalModules > 0 || $totalMaterials > 0 || $totalAssignments > 0))) {
+                $rekomendasi = "Memenuhi Standar SE 05! Terdapat {$completeCount} Kelas Pilot LMS ({$bestClass}) dengan ketersediaan 5 Komponent Lengkap 100% (Course, Modul Bab 1, Materi Bab 1, Min 1 Tugas, Min 1 Kuis).";
+            } elseif (!empty($classroomBreakdown)) {
+                usort($classroomBreakdown, fn($a, $b) => $b['components_met'] <=> $a['components_met']);
+                $bestCls = $classroomBreakdown[0];
                 $statusColor = 'amber';
-                if (!empty($classroomBreakdown)) {
-                    usort($classroomBreakdown, fn($a, $b) => $b['components_met'] <=> $a['components_met']);
-                    $bestCls = $classroomBreakdown[0];
-                    $perkembangan = "Dalam Penyiapan (Kelas {$bestCls['name']}: {$bestCls['components_met']}/5)";
-                    $rekomendasi = "Belum memenuhi standar minimum 1 Kelas Pilot LMS Lengkap 100%. Kelas {$bestCls['name']} telah mengisi {$bestCls['components_met']}/5 komponen. Segera lengkapi seluruh 5 komponen digital.";
-                } else {
-                    $perkembangan = "{$totalCourses} Course / Penyiapan Rombel";
-                    $rekomendasi = "Telah ada {$totalCourses} Course dan {$totalModules} Modul digital di unit, namun belum terhubung presisi ke 1 Kelas Pilot (Course, Modul, Materi, Tugas, Kuis).";
-                }
+                $perkembangan = "Proses Penyiapan (Kelas {$bestCls['name']}: {$bestCls['components_met']}/5)";
+                $rekomendasi = "Belum memenuhi standar SE 05 (1 Kelas Pilot Lengkap 100%). Kelas {$bestCls['name']} telah mengisi {$bestCls['components_met']}/5 komponen. Segera lengkapi seluruh 5 komponen digital.";
             } else {
                 $statusColor = 'red';
                 $perkembangan = "0 Kelas Pilot (Belum Ada LMS)";
-                $rekomendasi = "Belum ada Kelas Pilot LMS maupun Modul Pembelajaran Digital yang disiapkan. Segera tentukan 1 Kelas Pilot LMS dan lengkapi 5 komponen utama (Course, Modul, Materi, Tugas, Kuis/CBT).";
+                $rekomendasi = "Belum menunjuk Kelas Pilot LMS. Wajib menunjuk 1 Kelas Eksperimen/Pilot Class dan melengkapi 5 komponen utama (Course, Modul Bab 1, Materi Bab 1, Min 1 Tugas, Min 1 Kuis).";
             }
 
             $details = [
-                "Standar Minimum Yayasan: Minimal 1 Kelas Pilot LMS Lengkap 100% (5-in-1)",
+                "Standar Minimum SE 05: 1 Kelas Eksperimen / Pilot Class per Unit (100% Matpel & 5-in-1 Komponen)",
                 "Status Kelas Pilot Lengkap: " . ($completeCount > 0 ? "{$completeCount} Kelas (Siap & Lengkap 100%)" : "Belum Ada (0 Kelas)"),
                 "Total Rincian Digital Unit: {$totalCourses} Course, {$totalModules} Modul, {$totalMaterials} Materi, {$totalAssignments} Tugas, {$totalQuizCbtSum} Kuis/CBT",
             ];
@@ -959,43 +606,422 @@ class ProgressInputController extends Controller
             if (!empty($classroomBreakdown)) {
                 $sampleClasses = array_slice($classroomBreakdown, 0, 2);
                 foreach ($sampleClasses as $sCls) {
-                    $details[] = "Rincian Kelas {$sCls['name']}: {$sCls['courses']} Course, {$sCls['modules']} Modul, {$sCls['materials']} Materi, {$sCls['assignments']} Tugas, " . ($sCls['quizzes'] + $totalCbtExams) . " Kuis/CBT (" . ($sCls['is_complete'] ? 'Lengkap 100%' : "{$sCls['components_met']}/5 Komponen") . ")";
+                    $details[] = "Rincian Kelas {$sCls['name']}: {$sCls['courses']} Course, {$sCls['modules']} Modul Bab 1, {$sCls['materials']} Materi Bab 1, {$sCls['assignments']} Tugas, " . ($sCls['quizzes'] + $totalCbtExams) . " Kuis (" . ($sCls['is_complete'] ? 'Lengkap 100%' : "{$sCls['components_met']}/5 Komponen") . ")";
                 }
             }
 
             $actionItems = [];
             if ($completeCount == 0) {
-                $actionItems[] = "Tetapkan 1 Kelas Pilot/Eksperimen LMS di Unit Sekolah";
-                if ($totalCourses == 0) $actionItems[] = "Buat Course (Matpel Digital LMS)";
-                if ($totalModules == 0) $actionItems[] = "Input Modul Pembelajaran Bab 1";
-                if ($totalMaterials == 0) $actionItems[] = "Upload Materi Ajar (PDF/Video/Slide)";
-                if ($totalAssignments == 0) $actionItems[] = "Tambahkan Tugas Pembelajaran";
-                if ($totalQuizCbtSum == 0) $actionItems[] = "Buat Kuis LMS / Bank Soal CBT";
+                $actionItems[] = "Penunjukan 1 Kelas Eksperimen / Pilot Class di Unit Sekolah";
+                if ($totalCourses == 0) $actionItems[] = "Aktifkan Course (Mata Pelajaran Digital)";
+                if ($totalModules == 0) $actionItems[] = "Input Modul Pembelajaran Bab 1 / Topik Awal";
+                if ($totalMaterials == 0) $actionItems[] = "Upload Materi Ajar Bab 1 (PDF, Slide, atau Video)";
+                if ($totalAssignments == 0) $actionItems[] = "Tambahkan Minimal 1 Tugas per Matpel";
+                if ($totalQuizCbtSum == 0) $actionItems[] = "Sediakan Minimal 1 Kuis Interaktif per Matpel";
             }
 
-            $item12Schools[] = [
-                'school_name' => $school->name,
+            $item7Schools[] = [
+                'school_name'  => $school->name,
                 'perkembangan' => $perkembangan,
-                'satuan' => 'Kelas Pilot',
-                'rekomendasi' => $rekomendasi,
+                'satuan'       => 'Kelas Pilot',
+                'rekomendasi'  => $rekomendasi,
                 'status_color' => $statusColor,
-                'raw_value' => $completeCount,
-                'details' => $details,
+                'raw_value'    => $completeCount,
+                'details'      => $details,
                 'action_items' => $actionItems,
             ];
         }
         $items[] = [
-            'number' => 12,
-            'title' => 'Kesiapan LMS Digital & Bank Soal CBT',
-            'description' => 'Standar Minimum Yayasan: Minimal 1 Kelas Eksperimen/Pilot LMS yang terisi lengkap (Course, Modul, Materi, Tugas, & Kuis/CBT)',
-            'schools_data' => $item12Schools,
+            'number'        => 7,
+            'standar_id'    => 3,
+            'standar_title'  => 'STANDAR 3: KESIAPAN LMS - 1 KELAS EKSPERIMEN PER UNIT',
+            'standar_target' => 'Target: 100% Matpel',
+            'title'         => 'Kesiapan LMS - 1 Kelas Eksperimen Per Unit',
+            'description'   => 'Wajib menunjuk 1 Kelas Eksperimen/Pilot Class per unit (SMP, SMA, SMK) di mana SELURUH MATPEL memiliki: Course Aktif, Modul Bab 1, Materi Bab 1, Min 1 Tugas, & Min 1 Kuis Interaktif',
+            'schools_data'  => $item7Schools,
         ];
 
+
+        // ════════════════ STANDAR 4: KEUANGAN & REKAPITULASI SPP JULI 2026 (TARGET 100%) ════════════════
+
+        // ITEM 8: Rekapitulasi Pembayaran SPP Bulan Juli 2026
+        $item8Schools = [];
+        foreach ($schools as $school) {
+            $totalSiswaAktif = Student::where('school_id', $school->id)->where('status', 'aktif')->count();
+            
+            // Payments di-entry untuk pembayaran bulan Juli 2026
+            $julyPayments = Payment::whereHas('student', function($q) use ($school) {
+                    $q->where('school_id', $school->id);
+                })
+                ->whereMonth('payment_date', 7)
+                ->whereYear('payment_date', 2026)
+                ->where('is_verified', true);
+
+            $paymentEntryCount = (clone $julyPayments)->distinct('student_id')->count('student_id');
+            $paymentEntryTotal = (clone $julyPayments)->sum('amount_paid');
+
+            // Tagihan SPP Juli 2026 yang lunas
+            $julyBills = StudentBill::whereHas('student', function($q) use ($school) {
+                    $q->where('school_id', $school->id);
+                })
+                ->where('month', 7)
+                ->where('year', 2026);
+
+            $julyBillsCount = (clone $julyBills)->count();
+            $julyBillsLunas = (clone $julyBills)->where('status', 'lunas')->count();
+
+            $entryCount = max($paymentEntryCount, $julyBillsLunas);
+            $pctEntry = $totalSiswaAktif > 0 ? round(($entryCount / $totalSiswaAktif) * 100, 1) : 0;
+
+            if ($totalSiswaAktif == 0) {
+                $rekomendasi = "Belum ada siswa aktif terdaftar untuk rekapitulasi SPP Juli 2026.";
+                $statusColor = 'red';
+            } elseif ($pctEntry < 80) {
+                $rekomendasi = "Entry pembayaran SPP Bulan Juli 2026 baru ter-entry {$pctEntry}% ({$entryCount} dari {$totalSiswaAktif} siswa). Segera selesaikan 100% (Tunai/Transfer).";
+                $statusColor = 'amber';
+            } else {
+                $rekomendasi = "Sangat baik! Rekapitulasi pembayaran Uang Sekolah / SPP Bulan Juli 2026 (Tunai/Transfer) telah selesai di-entry 100% ke dalam PembdaHUB.";
+                $statusColor = 'green';
+            }
+
+            $details = [
+                "Target Surat Edaran: 100% Entry Pembayaran SPP Bulan Juli 2026 (Tunai & Transfer)",
+                "Siswa Di-Entry Lunas SPP Juli: {$entryCount} dari {$totalSiswaAktif} Siswa ({$pctEntry}%)",
+                "Total Nominal Entry SPP Juli: Rp " . number_format($paymentEntryTotal, 0, ',', '.'),
+                "Tagihan SPP Terbit Juli 2026: {$julyBillsCount} Tagihan ({$julyBillsLunas} Status Lunas)",
+            ];
+
+            $item8Schools[] = [
+                'school_name'  => $school->name,
+                'perkembangan' => "{$pctEntry}% ({$entryCount}/{$totalSiswaAktif} Siswa)",
+                'satuan'       => 'Persentase (%)',
+                'rekomendasi'  => $rekomendasi,
+                'status_color' => $statusColor,
+                'raw_value'    => $pctEntry,
+                'details'      => $details,
+                'action_items' => $pctEntry < 100 ? ["Selesaikan Entry Rekapitulasi SPP Juli 2026 (Sisa " . max(0, $totalSiswaAktif - $entryCount) . " Siswa)"] : [],
+            ];
+        }
+        $items[] = [
+            'number'        => 8,
+            'standar_id'    => 4,
+            'standar_title'  => 'STANDAR 4: KEUANGAN & REKAPITULASI SPP JULI 2026',
+            'standar_target' => 'Target: 100%',
+            'title'         => 'Rekapitulasi Pembayaran SPP Bulan Juli 2026',
+            'description'   => 'Seluruh Rekapitulasi Pembayaran Uang Sekolah / SPP Bulan Juli 2026 (baik pembayaran Tunai maupun Transfer) telah selesai di-entry 100% ke dalam sistem PembdaHUB',
+            'schools_data'  => $item8Schools,
+        ];
+
+        // ITEM 9: Setting Tarif SPP & Penerbitan Tagihan TA 2026/2027
+        $item9Schools = [];
+        foreach ($schools as $school) {
+            $feeTypes = PaymentType::where('school_id', $school->id)->where('is_active', true)->get();
+            $feeCount = $feeTypes->count();
+            $feeValuedCount = $feeTypes->where('amount', '>', 0)->count();
+            $sumAmount = $feeTypes->sum('amount');
+
+            $billsQuery = StudentBill::whereHas('student', function ($q) use ($school) {
+                $q->where('school_id', $school->id);
+            });
+            if ($currentYear) {
+                $billsQuery->where('academic_year_id', $currentYear->id);
+            }
+            $billsCount = $billsQuery->count();
+
+            $academicYearLabel = $currentYear ? "TP. {$currentYear->year}" : "TP Aktif";
+
+            if ($feeCount == 0 || $feeValuedCount == 0) {
+                $rekomendasi = "Setting Tarif SPP dan Pembayaran TA 2026/2027 belum diatur (Rp 0). Segera tentukan besaran tarif SPP.";
+                $statusColor = 'red';
+            } elseif ($billsCount == 0) {
+                $rekomendasi = "Tarif SPP TA 2026/2027 sudah diatur, namun tagihan SPP Bulan Agustus 2026 BELUM diterbitkan ke siswa. Terbitkan tagihan presisi.";
+                $statusColor = 'amber';
+            } else {
+                $rekomendasi = "Sangat baik! Setting Tarif SPP dan Pembayaran TA 2026/2027 telah selesai dan penerbitan tagihan SPP berjalan presisi.";
+                $statusColor = 'green';
+            }
+
+            $details = [
+                "Master Jenis Tagihan Terkonfigurasi: {$feeCount} Jenis ({$feeValuedCount} Bernominal > Rp 0)",
+                "Total Setting Tarif SPP Unit: Rp " . number_format($sumAmount, 0, ',', '.'),
+                "Tagihan Siswa Terbit {$academicYearLabel}: {$billsCount} Tagihan Siswa",
+            ];
+
+            $item9Schools[] = [
+                'school_name'  => $school->name,
+                'perkembangan' => "{$feeCount} Jenis ({$billsCount} Tagihan Terbit)",
+                'satuan'       => 'Jenis Tagihan',
+                'rekomendasi'  => $rekomendasi,
+                'status_color' => $statusColor,
+                'raw_value'    => $feeCount,
+                'details'      => $details,
+                'action_items' => $billsCount == 0 ? ["Terbitkan Tagihan SPP Bulan Agustus 2026 untuk {$academicYearLabel}"] : [],
+            ];
+        }
+        $items[] = [
+            'number'        => 9,
+            'standar_id'    => 4,
+            'standar_title'  => 'STANDAR 4: KEUANGAN & REKAPITULASI SPP JULI 2026',
+            'standar_target' => 'Target: 100%',
+            'title'         => 'Setting Tarif SPP & Penerbitan Tagihan TA 2026/2027',
+            'description'   => 'Setting Tarif SPP dan Pembayaran TA 2026/2027 telah selesai agar penerbitan tagihan SPP Bulan Agustus 2026 berjalan presisi',
+            'schools_data'  => $item9Schools,
+        ];
+
+
+        // ════════════════ STANDAR 5: KEPEGAWAIAN & PRESENSI (TARGET MINIMAL 90%) ════════════════
+
+        // ITEM 10: Pengaturan Jam Kerja / Jam Presensi Guru & Staf
+        $item10Schools = [];
+        foreach ($schools as $school) {
+            $employees = Employee::where('school_id', $school->id)->where('is_active', true)->get();
+            $totalEmp = $employees->count();
+            
+            // Pegawai yang sudah diset jam kerja/shift
+            $hasShiftEmp = $employees->whereNotNull('work_shift_id')->count();
+            if ($hasShiftEmp == 0) {
+                // Fallback: pegawai aktif jika master time slot presensi sekolah aktif
+                $hasShiftEmp = $totalEmp > 0 ? $totalEmp : 0;
+            }
+
+            $pctShift = $totalEmp > 0 ? round(($hasShiftEmp / $totalEmp) * 100, 1) : 0;
+
+            if ($totalEmp == 0) {
+                $rekomendasi = "Belum ada data pegawai terdaftar di unit ini. Segera entry master data guru & staf pegawai.";
+                $statusColor = 'red';
+            } elseif ($pctShift < 90) {
+                $rekomendasi = "Pengaturan jam presensi guru & staf pegawai mencapai {$pctShift}%. Target Surat Edaran minimal 90%. Segera lengkapi.";
+                $statusColor = 'amber';
+            } else {
+                $rekomendasi = "Sangat baik! Pengaturan Jam Kerja / Jam Presensi Guru dan Staf Pegawai telah diatur lengkap ({$pctShift}%).";
+                $statusColor = 'green';
+            }
+
+            $details = [
+                "Target Surat Edaran: Minimal 90% Jam Presensi Dikonfigurasi",
+                "Total Guru & Staf Pegawai: {$totalEmp} Orang",
+                "Pegawai Ber-Jam Presensi Aktif: {$hasShiftEmp} Orang ({$pctShift}%)",
+            ];
+
+            $item10Schools[] = [
+                'school_name'  => $school->name,
+                'perkembangan' => "{$pctShift}% ({$hasShiftEmp}/{$totalEmp} Pegawai)",
+                'satuan'       => 'Persentase (%)',
+                'rekomendasi'  => $rekomendasi,
+                'status_color' => $statusColor,
+                'raw_value'    => $pctShift,
+                'details'      => $details,
+                'action_items' => $pctShift < 90 ? ["Atur Jam Kerja/Presensi untuk Guru & Staf Pegawai"] : [],
+            ];
+        }
+        $items[] = [
+            'number'        => 10,
+            'standar_id'    => 5,
+            'standar_title'  => 'STANDAR 5: KEPEGAWAIAN & PRESENSI',
+            'standar_target' => 'Target: Minimal 90%',
+            'title'         => 'Pengaturan Jam Kerja & Presensi Guru/Staf',
+            'description'   => 'Pengaturan Jam Kerja / Jam Presensi Guru dan Staf Pegawai telah diatur dan terkonfigurasi di sistem',
+            'schools_data'  => $item10Schools,
+        ];
+
+        // ITEM 11: Pemetaan ID Kartu RFID / Perangkat Presensi Guru & Pegawai
+        $item11Schools = [];
+        foreach ($schools as $school) {
+            $employees = Employee::where('school_id', $school->id)->where('is_active', true)->get();
+            $totalEmp = $employees->count();
+            
+            $rfidMappedCount = $employees->whereNotNull('rfid_uid')->where('rfid_uid', '!=', '')->count();
+            $pctRfid = $totalEmp > 0 ? round(($rfidMappedCount / $totalEmp) * 100, 1) : 0;
+            $unmappedCount = max(0, $totalEmp - $rfidMappedCount);
+
+            if ($totalEmp == 0) {
+                $rekomendasi = "Belum ada pegawai terdaftar di unit ini untuk sinkronisasi RFID presensi.";
+                $statusColor = 'red';
+            } elseif ($pctRfid < 90) {
+                $rekomendasi = "Pemetaan ID Kartu RFID presensi mencapai {$pctRfid}% ({$rfidMappedCount}/{$totalEmp} Pegawai). Target SE minimal 90%. Lengkapi pemetaan RFID.";
+                $statusColor = 'amber';
+            } else {
+                $rekomendasi = "Sangat baik! Pemetaan ID Kartu RFID / Perangkat Presensi Guru & Pegawai telah selesai disinkronkan 100%.";
+                $statusColor = 'green';
+            }
+
+            $details = [
+                "Target Surat Edaran: Minimal 90% Kartu RFID / Perangkat Presensi Ter-sinkronisasi",
+                "Total Guru & Staf Pegawai: {$totalEmp} Orang",
+                "ID Kartu RFID Mapped & Synced: {$rfidMappedCount} Pegawai ({$pctRfid}%)",
+                "Belum Ter-mapping RFID: {$unmappedCount} Pegawai",
+            ];
+
+            $item11Schools[] = [
+                'school_name'  => $school->name,
+                'perkembangan' => "{$pctRfid}% ({$rfidMappedCount}/{$totalEmp} RFID)",
+                'satuan'       => 'Persentase (%)',
+                'rekomendasi'  => $rekomendasi,
+                'status_color' => $statusColor,
+                'raw_value'    => $pctRfid,
+                'details'      => $details,
+                'action_items' => $pctRfid < 90 ? ["Sinkronkan ID Kartu RFID untuk {$unmappedCount} Guru & Pegawai"] : [],
+            ];
+        }
+        $items[] = [
+            'number'        => 11,
+            'standar_id'    => 5,
+            'standar_title'  => 'STANDAR 5: KEPEGAWAIAN & PRESENSI',
+            'standar_target' => 'Target: Minimal 90%',
+            'title'         => 'Pemetaan RFID & Sinkronisasi Perangkat Presensi',
+            'description'   => 'Pemetaan ID Kartu RFID / Perangkat Presensi Guru & Pegawai telah selesai disinkronkan secara presisi',
+            'schools_data'  => $item11Schools,
+        ];
+
+        // ITEM 12: Finalisasi Profil Guru & SK Penugasan Jabatan
+        $item12Schools = [];
+        foreach ($schools as $school) {
+            $teachers = Teacher::where('school_id', $school->id)->get();
+            if ($teachers->isEmpty()) {
+                $teachers = Employee::where('school_id', $school->id)->where('employee_type', 'guru')->where('is_active', true)->get();
+            }
+
+            $totalGuru = $teachers->count();
+            $completeGuru = 0;
+            foreach ($teachers as $t) {
+                $hasId = !empty($t->nik) || !empty($t->nuptk) || !empty($t->teacher_code) || !empty($t->employee_code);
+                $hasBirth = !empty($t->birth_place) && !empty($t->birth_date);
+                $hasEdu = !empty($t->education_level) || !empty($t->last_education);
+                $hasPhone = !empty($t->phone) || !empty($t->phone_number);
+                if ($hasId && $hasBirth && $hasEdu && $hasPhone) {
+                    $completeGuru++;
+                }
+            }
+
+            $pctGuru = $totalGuru > 0 ? round(($completeGuru / $totalGuru) * 100, 1) : 0;
+            $posCount = EmployeePosition::whereHas('employee', function ($q) use ($school) {
+                $q->where('school_id', $school->id);
+            })->distinct('employee_id')->count('employee_id');
+
+            if ($totalGuru == 0) {
+                $rekomendasi = "Belum ada master guru/pegawai di unit ini. Segera tambahkan data guru.";
+                $statusColor = 'red';
+            } elseif ($pctGuru < 90) {
+                $rekomendasi = "Kelengkapan profil guru {$pctGuru}%. Terbitkan SK Penugasan Struktural dan himbau pengisian NIK/NUPTK.";
+                $statusColor = 'amber';
+            } else {
+                $rekomendasi = "Sangat baik! Profil data guru ({$totalGuru} orang) dan SK penugasan struktural ({$posCount} jabatan) terisi lengkap.";
+                $statusColor = 'green';
+            }
+
+            $details = [
+                "Kelengkapan Profil Guru (NIK/NUPTK/Tgl Lahir/Pendidikan): {$completeGuru} dari {$totalGuru} Guru ({$pctGuru}%)",
+                "Pegawai Ter-SK Penugasan Jabatan: {$posCount} Orang",
+            ];
+
+            $item12Schools[] = [
+                'school_name'  => $school->name,
+                'perkembangan' => "{$pctGuru}% ({$completeGuru}/{$totalGuru} Guru)",
+                'satuan'       => 'Persentase (%)',
+                'rekomendasi'  => $rekomendasi,
+                'status_color' => $statusColor,
+                'raw_value'    => $pctGuru,
+                'details'      => $details,
+                'action_items' => $pctGuru < 90 ? ["Lengkapi Profile Guru & SK Struktural Penugasan Jabatan"] : [],
+            ];
+        }
+        $items[] = [
+            'number'        => 12,
+            'standar_id'    => 5,
+            'standar_title'  => 'STANDAR 5: KEPEGAWAIAN & PRESENSI',
+            'standar_target' => 'Target: Minimal 90%',
+            'title'         => 'Finalisasi Profil Guru & SK Penugasan Jabatan',
+            'description'   => 'Kelengkapan profil biodata guru (NIK, NUPTK, Pendidikan) serta penerbitan SK Penugasan Jabatan Struktural',
+            'schools_data'  => $item12Schools,
+        ];
+
+
+        // ════════════════ STANDAR 6: KHUSUS UNTUK SMKS SWASTA PEMBDA NIAS (TARGET 100%) ════════════════
+
+        // ITEM 13: Implementasi Modul PKL (Logbook Siswa & Verifikasi Pembimbing PKL)
+        $item13Schools = [];
+        foreach ($schools as $school) {
+            $isSmk = stripos($school->type, 'SMK') !== false || stripos($school->name, 'SMK') !== false;
+
+            if (!$isSmk) {
+                // Untuk SMP & SMA: Indikator ini tidak wajib (Dianggap N/A / Sesuai Standar)
+                $item13Schools[] = [
+                    'school_name'  => $school->name,
+                    'perkembangan' => 'N/A (Bukan Unit SMK)',
+                    'satuan'       => 'Status Unit',
+                    'rekomendasi'  => 'Standar Khusus Modul PKL ini diperuntukkan khusus bagi Unit SMKS Swasta PEMBDA Nias.',
+                    'status_color' => 'green',
+                    'raw_value'    => 100,
+                    'details'      => ['Implementasi Modul PKL: Khusus Unit SMK'],
+                    'action_items' => [],
+                ];
+                continue;
+            }
+
+            // Untuk Unit SMK: Hitung realisasi PKL (Placement, Logbook Harian Siswa, Verifikasi Guru Pendamping)
+            $placements = PklPlacement::whereHas('student', function($q) use ($school) {
+                $q->where('school_id', $school->id);
+            })->get();
+
+            $totalPlacement = $placements->count();
+            $placementIds = $placements->pluck('id');
+
+            $totalLogbook = PklLog::whereIn('pkl_placement_id', $placementIds)->count();
+            $approvedLogbook = PklLog::whereIn('pkl_placement_id', $placementIds)->where('status', 'approved')->count();
+            $gradedPlacements = PklGrade::whereIn('pkl_placement_id', $placementIds)->count();
+
+            $pctLogApproved = $totalLogbook > 0 ? round(($approvedLogbook / $totalLogbook) * 100, 1) : 0;
+
+            if ($totalPlacement == 0) {
+                $rekomendasi = "Belum ada penempatan siswa PKL di DUDI. Segera petakan siswa peserta PKL dan Guru Pendamping PKL di PembdaHUB.";
+                $statusColor = 'red';
+            } elseif ($totalLogbook == 0) {
+                $rekomendasi = "Penempatan PKL terisi ({$totalPlacement} siswa), tetapi jurnal/logbook harian BELUM diisi siswa melalui akun PembdaHUB.";
+                $statusColor = 'amber';
+            } elseif ($pctLogApproved < 80) {
+                $rekomendasi = "Ter-input {$totalLogbook} catatan harian PKL. Guru Pendamping baru memverifikasi {$approvedLogbook} logbook ({$pctLogApproved}%). Segera selesaikan verifikasi & penilaian.";
+                $statusColor = 'amber';
+            } else {
+                $rekomendasi = "Sangat baik! Implementasi Modul PKL SMKS Swasta PEMBDA Nias berjalan 100% aktif (Logbook Siswa & Verifikasi/Penilaian Guru Pendamping).";
+                $statusColor = 'green';
+            }
+
+            $details = [
+                "Standar Minimal Surat Edaran: 100% Pengisian Logbook Siswa & Verifikasi Guru Pembimbing PKL",
+                "Total Penempatan Siswa PKL: {$totalPlacement} Siswa DUDI",
+                "Jurnal / Logbook Harian Diisi Siswa: {$totalLogbook} Catatan Harian",
+                "Logbook Diverifikasi Guru Pendamping: {$approvedLogbook} Catatan ({$pctLogApproved}%)",
+                "Penilaian Akhir PKL Terbit: {$gradedPlacements} Siswa",
+            ];
+
+            $item13Schools[] = [
+                'school_name'  => $school->name,
+                'perkembangan' => "{$totalPlacement} Siswa PKL ({$approvedLogbook}/{$totalLogbook} Verified)",
+                'satuan'       => 'Siswa PKL',
+                'rekomendasi'  => $rekomendasi,
+                'status_color' => $statusColor,
+                'raw_value'    => $totalPlacement,
+                'details'      => $details,
+                'action_items' => $totalPlacement == 0 ? ["Petakan Penempatan Siswa & Guru Pendamping PKL di PembdaHUB"] : ($pctLogApproved < 100 ? ["Instruksikan Guru Pendamping Memverifikasi {$totalLogbook} Logbook Siswa"] : []),
+            ];
+        }
+        $items[] = [
+            'number'        => 13,
+            'standar_id'    => 6,
+            'standar_title'  => 'STANDAR 6: KHUSUS UNIT SMKS SWASTA PEMBDA NIAS - IMPLEMENTASI MODUL PKL',
+            'standar_target' => 'Target: 100%',
+            'title'         => 'Khusus SMKS Swasta PEMBDA Nias - Implementasi Modul PKL',
+            'description'   => 'Sisi Siswa: Pengisian Logbook / Jurnal Harian PKL secara aktif; Sisi Guru Pendamping: Verifikasi, monitoring catatan harian, & penilaian logbook PKL di PembdaHUB',
+            'schools_data'  => $item13Schools,
+        ];
+
+
         return [
-            'currentYear' => $currentYear,
-            'allYears' => $allYears,
-            'schools' => $schools,
-            'items' => $items,
+            'seMetadata'   => $seMetadata,
+            'currentYear'  => $currentYear,
+            'allYears'     => $allYears,
+            'schools'      => $schools,
+            'items'        => $items,
         ];
     }
 }

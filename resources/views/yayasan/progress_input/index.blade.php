@@ -1,11 +1,11 @@
 @extends('layouts.yayasan')
 
-@section('title', 'Progress Input Data - Ketua Yayasan')
+@section('title', 'Progress Input Data & Standar Minimal SE 05 - Ketua Yayasan')
 
 @section('content')
 <div class="space-y-6">
     {{-- Header Banner --}}
-    <div class="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+    <div class="bg-gradient-to-r from-violet-700 via-purple-700 to-indigo-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
         <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl">
             <i class="fas fa-tasks"></i>
         </div>
@@ -13,10 +13,10 @@
             <div>
                 <div class="flex items-center gap-2 mb-1">
                     <span class="text-2xl">📊</span>
-                    <span class="bg-white/20 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider">Monitoring Yayasan</span>
+                    <span class="bg-white/20 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider">Monitoring Kepatuhan Yayasan</span>
                 </div>
-                <h1 class="text-2xl font-extrabold tracking-tight">Progress Input Data & Kesiapan Akademik</h1>
-                <p class="text-white/80 text-sm mt-1">Rekapitulasi rinci 12 indikator perkembangan penginputan data seluruh unit sekolah TP. {{ $currentYear->year ?? '2026/2027' }}</p>
+                <h1 class="text-2xl font-extrabold tracking-tight">Progress Input Data & Standar Minimal SE 05</h1>
+                <p class="text-white/80 text-sm mt-1">Pemantauan 13 indikator kesiapan akademik & tata kelola seluruh unit sekolah TP. {{ $currentYear->year ?? '2026/2027' }}</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
                 {{-- Form Filter Tahun Pelajaran --}}
@@ -34,13 +34,52 @@
                 <a href="{{ route('yayasan.progress-input.export-pdf', ['academic_year_id' => request('academic_year_id')]) }}" 
                    class="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5">
                     <i class="fas fa-file-pdf text-lg"></i>
-                    <span>Eksport PDF Rinci</span>
+                    <span>Export PDF Laporan SE 05</span>
                 </a>
             </div>
         </div>
     </div>
 
-    {{-- Keterangan Indikator Status & Summary Stats --}}
+    {{-- Official Surat Edaran Yayasan Notice Banner --}}
+    <div class="bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 rounded-2xl p-5 text-gray-950 shadow-xl border-2 border-amber-300/80 relative overflow-hidden">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative z-10">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-gray-950/15 border border-gray-950/20 flex items-center justify-center text-gray-950 text-2xl shrink-0 shadow-sm">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                        <span class="bg-gray-950 text-amber-300 px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm">
+                            <i class="fas fa-bullhorn mr-1 text-amber-400"></i> SURAT EDARAN RESMI YAYASAN
+                        </span>
+                        <span class="bg-white/40 text-gray-950 px-2.5 py-0.5 rounded-lg text-xs font-bold font-mono">
+                            No. {{ $seMetadata['nomor'] ?? '05/SE/YP-PEMBDA/VII/2026' }}
+                        </span>
+                    </div>
+                    <h2 class="text-base md:text-lg font-black text-gray-950 tracking-tight">
+                        {{ $seMetadata['perihal'] ?? 'Penetapan Standar Minimal Progress Input Data PembdaHUB untuk TP. 2026/2027' }}
+                    </h2>
+                    <p class="text-xs font-semibold text-gray-900 mt-1">
+                        Disahkan pada {{ $seMetadata['tanggal_terbit'] ?? '30 Juli 2026' }} oleh <span class="underline font-bold">{{ $seMetadata['penandatangan'] ?? 'Ketua Yayasan' }}</span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="bg-gray-950 text-white p-4 rounded-xl shadow-lg border border-amber-400/30 flex items-center gap-4 shrink-0 w-full lg:w-auto justify-between">
+                <div>
+                    <p class="text-[10px] uppercase font-extrabold text-amber-300 tracking-wider">Tenggat Waktu Minimal Input Data</p>
+                    <p class="text-sm font-black text-white mt-0.5">
+                        <i class="fas fa-clock text-amber-400 mr-1.5"></i>{{ $seMetadata['tenggat_waktu'] ?? 'Senin, 3 Agustus 2026 Pukul 23.59 WIB' }}
+                    </p>
+                    <p class="text-[10px] text-gray-300 mt-0.5">
+                        <i class="fas fa-robot text-emerald-400 mr-1"></i>Penarikan Laporan Evaluasi Kinerja: {{ $seMetadata['evaluasi_waktu'] ?? 'Selasa, 4 Agustus 2026' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Summary Stats Grid --}}
     @php
         $totalItems = count($items);
         $totalSchoolData = 0;
@@ -76,7 +115,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
-                <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Unit Sekolah</div>
+                <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Unit Sekolah Dipantau</div>
                 <div class="text-xl font-extrabold text-gray-900 mt-1">{{ count($schools) }} Unit</div>
                 <div class="text-[11px] text-gray-500 mt-0.5">
                     @foreach($schools as $sch)
@@ -91,9 +130,9 @@
 
         <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
-                <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Indikator Dipantau</div>
-                <div class="text-xl font-extrabold text-gray-900 mt-1">{{ $totalItems }} Item Kesiapan</div>
-                <div class="text-[11px] text-gray-500 mt-0.5">12 Indikator per unit sekolah</div>
+                <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Indikator SE 05</div>
+                <div class="text-xl font-extrabold text-gray-900 mt-1">{{ $totalItems }} Item Pemantauan</div>
+                <div class="text-[11px] text-gray-500 mt-0.5">Tersebar di 6 Standar Minimal</div>
             </div>
             <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg font-bold flex-shrink-0">
                 <i class="fas fa-list-check"></i>
@@ -102,7 +141,7 @@
 
         <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
-                <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Tingkat Kesiapan Input</div>
+                <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Tingkat Kesiapan SE 05</div>
                 <div class="text-xl font-extrabold text-emerald-600 mt-1">{{ $readinessPct }}% <span class="text-xs text-gray-400 font-semibold">({{ $greenCount }}/{{ $totalSchoolData }})</span></div>
                 <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
                     <div class="bg-emerald-500 h-1.5 rounded-full" style="width: {{ $readinessPct }}%"></div>
@@ -118,7 +157,7 @@
                 <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Perlu Perhatian / Follow-up</div>
                 <div class="text-xl font-extrabold text-rose-600 mt-1">{{ $redCount + $amberCount }} Indikator</div>
                 <div class="text-[11px] text-gray-500 mt-0.5 font-medium">
-                    <span class="text-rose-600 font-bold">{{ $redCount }} Kosong</span> • 
+                    <span class="text-rose-600 font-bold">{{ $redCount }} Belum</span> • 
                     <span class="text-amber-600 font-bold">{{ $amberCount }} Sebagian</span>
                 </div>
             </div>
@@ -132,7 +171,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         @foreach($schools as $sch)
             @php
-                $sData = $schoolStats[$sch->name] ?? ['green' => 0, 'amber' => 0, 'red' => 0, 'total' => 12];
+                $sData = $schoolStats[$sch->name] ?? ['green' => 0, 'amber' => 0, 'red' => 0, 'total' => $totalItems];
                 $sPct = $sData['total'] > 0 ? round(($sData['green'] / $sData['total']) * 100, 1) : 0;
             @endphp
             <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
@@ -142,14 +181,14 @@
                         <h4 class="font-extrabold text-gray-900 text-sm">{{ $sch->name }}</h4>
                     </div>
                     <span class="text-xs font-bold px-2 py-0.5 rounded-lg {{ $sPct >= 80 ? 'bg-emerald-100 text-emerald-700' : ($sPct >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700') }}">
-                        {{ $sPct }}% Lengkap
+                        {{ $sPct }}% Memenuhi SE 05
                     </span>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-2 mb-3">
                     <div class="bg-violet-600 h-2 rounded-full transition-all duration-500" style="width: {{ $sPct }}%"></div>
                 </div>
                 <div class="flex items-center justify-between text-xs font-medium text-gray-600">
-                    <span class="text-emerald-700 font-bold"><i class="fas fa-check-circle text-emerald-500 mr-1"></i> {{ $sData['green'] }} Selesai</span>
+                    <span class="text-emerald-700 font-bold"><i class="fas fa-check-circle text-emerald-500 mr-1"></i> {{ $sData['green'] }} Memenuhi</span>
                     <span class="text-amber-700 font-bold"><i class="fas fa-exclamation-triangle text-amber-500 mr-1"></i> {{ $sData['amber'] }} Proses</span>
                     <span class="text-rose-700 font-bold"><i class="fas fa-times-circle text-rose-500 mr-1"></i> {{ $sData['red'] }} Belum</span>
                 </div>
@@ -180,18 +219,18 @@
                 <i class="fas fa-exclamation-circle text-rose-500 mr-1"></i> Perlu Perhatian
             </button>
             <button type="button" onclick="filterStatus('green')" id="btn-status-green" class="btn-status-filter bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-bold transition">
-                <i class="fas fa-check-circle text-emerald-500 mr-1"></i> Lengkap
+                <i class="fas fa-check-circle text-emerald-500 mr-1"></i> Lengkap / Memenuhi
             </button>
         </div>
     </div>
 
-    {{-- Tabel Rekapitulasi Progress Input Rinci --}}
+    {{-- Tabel Rekapitulasi Progress Input Rinci Berdasarkan SE 05 --}}
     <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full border-collapse" id="progress-table">
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-left text-xs uppercase tracking-wider font-extrabold border-b border-gray-700">
-                        <th class="py-4 px-5 w-1/4 border-r border-gray-700">Indikator Item</th>
+                        <th class="py-4 px-5 w-1/4 border-r border-gray-700">Standar Minimal SE 05 & Indikator</th>
                         <th class="py-4 px-4 w-40 border-r border-gray-700">Unit Sekolah</th>
                         <th class="py-4 px-4 w-48 text-center border-r border-gray-700">Perkembangan</th>
                         <th class="py-4 px-4 w-28 text-center border-r border-gray-700">Satuan</th>
@@ -215,13 +254,24 @@
                                 {{-- Kolom Item (Merged rowspan untuk semua sekolah) --}}
                                 @if($idx === 0)
                                     <td rowspan="{{ $schoolsCount }}" class="py-4 px-5 align-top bg-gray-50/60 border-r border-gray-200 item-cell">
-                                        <div class="flex items-start gap-3 sticky top-4">
-                                            <span class="flex-shrink-0 w-8 h-8 rounded-xl bg-violet-600 text-white font-extrabold text-xs flex items-center justify-center shadow-sm mt-0.5">
-                                                {{ $item['number'] }}
-                                            </span>
-                                            <div>
-                                                <h4 class="font-extrabold text-gray-900 text-base leading-snug">{{ $item['title'] }}</h4>
-                                                <p class="text-xs text-gray-500 mt-1.5 leading-relaxed">{{ $item['description'] }}</p>
+                                        <div class="sticky top-4 space-y-2">
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <span class="bg-amber-400 text-gray-950 px-2 py-0.5 rounded font-black text-[10px] uppercase tracking-wider">
+                                                    {{ $item['standar_title'] ?? 'STANDAR SE 05' }}
+                                                </span>
+                                                <span class="bg-violet-100 text-violet-800 border border-violet-200 px-2 py-0.5 rounded font-extrabold text-[10px]">
+                                                    {{ $item['standar_target'] ?? 'Target: 100%' }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-start gap-3 pt-1">
+                                                <span class="flex-shrink-0 w-8 h-8 rounded-xl bg-violet-600 text-white font-extrabold text-xs flex items-center justify-center shadow-sm mt-0.5">
+                                                    {{ $item['number'] }}
+                                                </span>
+                                                <div>
+                                                    <h4 class="font-extrabold text-gray-900 text-base leading-snug">{{ $item['title'] }}</h4>
+                                                    <p class="text-xs text-gray-500 mt-1 leading-relaxed">{{ $item['description'] }}</p>
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -327,7 +377,6 @@
     function filterSchool(schoolSlug) {
         activeSchoolFilter = schoolSlug;
         
-        // Update active class on school buttons
         document.querySelectorAll('.btn-school-filter').forEach(btn => {
             btn.classList.remove('bg-violet-600', 'text-white', 'shadow-sm', 'active');
             btn.classList.add('bg-gray-100', 'text-gray-700');
@@ -345,7 +394,6 @@
     function filterStatus(statusKey) {
         activeStatusFilter = statusKey;
 
-        // Update active class on status buttons
         document.querySelectorAll('.btn-status-filter').forEach(btn => {
             btn.classList.remove('bg-gray-800', 'text-white', 'shadow-sm', 'active');
         });
@@ -381,20 +429,17 @@
             }
         });
 
-        // Adjust rowspans on item cells dynamically
         document.querySelectorAll('.item-cell').forEach(cell => {
             const parentRow = cell.parentElement;
-            const itemNumber = parentRow.querySelector('span').innerText.trim();
+            const itemNumber = parentRow.querySelector('span.w-8')?.innerText.trim() ?? '';
             
-            // Count visible rows for this item
             const itemRows = Array.from(rows).filter(r => {
-                const numSpan = r.querySelector('.item-cell span');
+                const numSpan = r.querySelector('.item-cell span.w-8');
                 if (numSpan && r.style.display !== 'none') return true;
                 if (!numSpan && r.style.display !== 'none') {
-                    // Check if part of same group
                     let prev = r.previousElementSibling;
                     while (prev) {
-                        const prevSpan = prev.querySelector('.item-cell span');
+                        const prevSpan = prev.querySelector('.item-cell span.w-8');
                         if (prevSpan) {
                             return prevSpan.innerText.trim() === itemNumber;
                         }
@@ -414,4 +459,3 @@
     }
 </script>
 @endsection
-
