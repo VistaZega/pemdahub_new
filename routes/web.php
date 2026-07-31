@@ -798,13 +798,13 @@ Route::get('/verifikasi-surat/{hash}', [App\Http\Controllers\PublicLetterVerific
 // General Dashboard Redirect Route
 Route::get('/dashboard', function () {
     if (auth()->check()) {
-        $role = auth()->user()->role;
+        $role = session('active_role', auth()->user()->role);
         $url = match ($role) {
-            'superadmin' => route('admin.dashboard'),
+            'superadmin', 'kepala_sekolah' => route('admin.dashboard'),
             'admin_sekolah' => route('sekolah.dashboard'),
             'bendahara' => route('treasurer.dashboard'),
             'ketua_yayasan' => route('yayasan.dashboard'),
-            'guru' => route('guru.dashboard'),
+            'guru', 'pegawai' => route('guru.dashboard'),
             'siswa' => route('siswa.dashboard'),
             'orang_tua' => route('orangtua.dashboard'),
             'alumni' => route('alumni.dashboard'),

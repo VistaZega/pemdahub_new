@@ -552,7 +552,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
 });
 
 // User Management routes with all role permissions (gates are handled by UserPolicy)
-Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admin_sekolah,bendahara,ketua_yayasan,guru,siswa,orang_tua')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admin_sekolah,bendahara,ketua_yayasan,guru,siswa,orang_tua,pegawai,alumni')->group(function () {
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
     Route::get('users/{user}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPasswordForm'])->name('users.reset-password.form');
     Route::post('users/{user}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
