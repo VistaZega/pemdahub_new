@@ -174,7 +174,7 @@
     {{-- Modal Edit Biodata --}}
     <div x-show="isEditModalOpen" 
          style="display: none;" 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+         class="fixed inset-0 z-[99999] overflow-y-auto flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -182,7 +182,7 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0">
         
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden"
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col my-auto overflow-hidden relative"
              @click.outside="isEditModalOpen = false"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -191,10 +191,10 @@
              x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
              x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             
-            <form action="{{ route('profile.biodata.update') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('profile.biodata.update') }}" method="POST" enctype="multipart/form-data" class="flex flex-col h-full overflow-hidden">
                 @csrf
                 @method('PUT')
-                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/80 shrink-0">
                     <h3 class="font-bold text-gray-800 text-lg flex items-center gap-2">
                         <i class="fas fa-edit text-emerald-500"></i> Edit Biodata Mandiri
                     </h3>
@@ -203,7 +203,7 @@
                     </button>
                 </div>
 
-                <div class="p-6 max-h-[70vh] overflow-y-auto space-y-4">
+                <div class="p-6 overflow-y-auto flex-1 space-y-4 min-h-0">
                     @php $isBiodataEditable = now()->format('Y-m-d') <= '2026-08-10'; @endphp
                     
                     @if($isBiodataEditable)
@@ -282,7 +282,7 @@
                     </div>
                 </div>
 
-                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 rounded-b-2xl">
+                <div class="px-6 py-4 bg-gray-50/80 border-t border-gray-100 flex justify-end gap-3 shrink-0 rounded-b-2xl">
                     <button type="button" @click="isEditModalOpen = false" class="px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-200 transition">
                         Batal
                     </button>

@@ -1017,7 +1017,7 @@
     }" 
     @open-game-modal.window="open = true" 
     x-show="open" 
-    class="fixed inset-0 z-50 overflow-y-auto" style="display: none">
+    class="fixed inset-0 z-[99999] overflow-y-auto" style="display: none">
     
     <div class="flex items-center justify-center min-h-screen p-4">
         <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false"></div>
@@ -1381,7 +1381,7 @@
 {{-- ═══════════════════════════════════════════════ --}}
 {{-- MATERIAL UPLOAD MODAL --}}
 {{-- ═══════════════════════════════════════════════ --}}
-<div x-data="{ open: false, type: 'document', file_url: '', material_title: '' }" @open-material-modal.window="open = true" x-show="open" class="fixed inset-0 z-50 overflow-y-auto" style="display: none">
+<div x-data="{ open: false, type: 'document', file_url: '', material_title: '' }" @open-material-modal.window="open = true" x-show="open" class="fixed inset-0 z-[99999] overflow-y-auto" style="display: none">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 transition-opacity" @click="open = false"></div>
 
@@ -1490,7 +1490,7 @@
 {{-- ═══════════════════════════════════════════════ --}}
 {{-- MATERIAL EDIT MODAL --}}
 {{-- ═══════════════════════════════════════════════ --}}
-<div x-data="{ open: false, mat: {} }" @open-edit-material-modal.window="mat = $event.detail; open = true" x-show="open" class="fixed inset-0 z-50 overflow-y-auto" style="display: none">
+<div x-data="{ open: false, mat: {} }" @open-edit-material-modal.window="mat = $event.detail; open = true" x-show="open" class="fixed inset-0 z-[99999] overflow-y-auto" style="display: none">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 transition-opacity" @click="open = false"></div>
 

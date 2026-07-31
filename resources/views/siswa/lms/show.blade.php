@@ -1017,7 +1017,7 @@
 <div x-data="gamePlayer()" 
     @open-game-player.window="loadGame($event.detail)" 
     x-show="open" 
-    class="fixed inset-0 z-[100] overflow-y-auto" style="display: none"
+    class="fixed inset-0 z-[99999] overflow-y-auto" style="display: none"
     x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
 
     {{-- Dark backdrop (clickable to close) --}}
