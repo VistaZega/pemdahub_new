@@ -46,9 +46,11 @@
                         onchange="updateClassroomOptions(); updateStudentCount();">
                         <option value="">-- Pilih Sekolah --</option>
                         @foreach($schools as $school)
+                        @if(!str_contains(strtolower($school->name), 'yayasan') && strtolower($school->type) !== 'yayasan')
                         <option value="{{ $school->id }}" {{ old('school_id') == $school->id ? 'selected' : '' }}>
                             {{ $school->name }}
                         </option>
+                        @endif
                         @endforeach
                     </select>
                 </div>
