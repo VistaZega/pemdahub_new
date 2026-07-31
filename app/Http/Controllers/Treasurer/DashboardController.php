@@ -54,7 +54,7 @@ class DashboardController extends Controller
 
         // Statistics - cached for 5 minutes per school to reduce DB load
         $cacheKey = "treasurer_stats_{$schoolId}_{$currentYear}_{$currentMonth}";
-        $stats = Cache::remember($cacheKey, 300, function () use ($billsThisMonth, $billsYtd, $schoolId, $currentMonth, $currentYear) {
+        $stats = Cache::remember($cacheKey, 300, function () use ($billsThisMonth, $billsYtd, $schoolId, $currentMonth, $currentYear, $currentAcademicYear) {
             return [
             'bills_this_month' => (clone $billsThisMonth)->count(),
 
