@@ -18,7 +18,35 @@ class AttendanceController extends Controller
      */
     private function getTeacher(): Teacher
     {
-        return Teacher::where('user_id', Auth::id())->firstOrFail();
+        $userId = Auth::id();
+        $teacher = Teacher::where('user_id', $userId)->first();
+        if ($teacher) return $teacher;
+
+        $employee = \App\Models\Employee::where('user_id', $userId)->first();
+        if ($employee) {
+            return Teacher::firstOrCreate(
+                ['user_id' => $userId],
+                [
+                    'school_id' => $employee->school_id ?? Auth::user()->school_id,
+                    'teacher_code' => $employee->employee_code ?? 'PGW-'.$userId,
+                    'full_name' => $employee->full_name ?? Auth::user()->name,
+                    'gender' => $employee->gender ?? 'L',
+                    'birth_place' => $employee->birth_place ?? '-',
+                    'is_active' => $employee->is_active ?? true,
+                ]
+            );
+        }
+
+        return Teacher::firstOrCreate(
+            ['user_id' => $userId],
+            [
+                'school_id' => Auth::user()->school_id ?? 1,
+                'teacher_code' => 'USR-'.$userId,
+                'full_name' => Auth::user()->name,
+                'gender' => 'L',
+                'is_active' => true,
+            ]
+        );
     }
 
     /**

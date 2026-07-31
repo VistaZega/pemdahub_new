@@ -25,7 +25,36 @@ class DashboardController extends Controller
     private function getTeacher()
     {
         $user = Auth::user();
-        return Teacher::where('user_id', $user->id)->firstOrFail();
+        $teacher = Teacher::where('user_id', $user->id)->first();
+        if ($teacher) {
+            return $teacher;
+        }
+
+        $employee = \App\Models\Employee::where('user_id', $user->id)->first();
+        if ($employee) {
+            return Teacher::firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'school_id' => $employee->school_id ?? $user->school_id,
+                    'teacher_code' => $employee->employee_code ?? 'PGW-'.$user->id,
+                    'full_name' => $employee->full_name ?? $user->name,
+                    'gender' => $employee->gender ?? 'L',
+                    'birth_place' => $employee->birth_place ?? '-',
+                    'is_active' => $employee->is_active ?? true,
+                ]
+            );
+        }
+
+        return Teacher::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'school_id' => $user->school_id ?? 1,
+                'teacher_code' => 'USR-'.$user->id,
+                'full_name' => $user->name,
+                'gender' => 'L',
+                'is_active' => true,
+            ]
+        );
     }
 
     /**
