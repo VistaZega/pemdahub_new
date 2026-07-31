@@ -791,8 +791,8 @@ document.addEventListener('keydown', function(e) {
 </script>
 
 <!-- Modern Bulk Update Modal (Treasurer) -->
-<div id="bulkUpdateModal" style="display: none;" class="fixed inset-0 z-[99999] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-8">
+<div id="bulkUpdateModal" style="display: none;" class="fixed inset-0 z-[99999] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 pt-20 sm:pt-24 pb-12">
+    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden mb-8">
         <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
         <div class="px-6 py-6 sm:px-8 sm:py-8">
             <div class="flex items-center justify-between mb-6">
@@ -816,7 +816,7 @@ document.addEventListener('keydown', function(e) {
                 <!-- Tabel Tagihan Yang Pernah Dibuat -->
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">1. Pilih Jenis Tagihan, Kelas & Nominal Yang Pernah Dibuat <span class="text-rose-500">*</span></label>
-                    <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-2xl shadow-inner bg-white">
+                    <div class="max-h-48 sm:max-h-56 overflow-y-auto border border-gray-200 rounded-2xl shadow-inner bg-white">
                         <table class="w-full text-xs text-left">
                             <thead class="bg-gray-100 text-gray-700 uppercase tracking-wider sticky top-0 border-b border-gray-200">
                                 <tr>
@@ -887,8 +887,8 @@ document.addEventListener('keydown', function(e) {
 </div>
 
 <!-- Modern Bulk Delete Modal (Treasurer) -->
-<div id="bulkDeleteModal" style="display: none;" class="fixed inset-0 z-[99999] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-8">
+<div id="bulkDeleteModal" style="display: none;" class="fixed inset-0 z-[99999] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 pt-20 sm:pt-24 pb-12">
+    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden mb-8">
         <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-rose-500 to-red-600"></div>
         <div class="px-6 py-6 sm:px-8 sm:py-8">
             <div class="flex items-center justify-between mb-6">
@@ -917,7 +917,7 @@ document.addEventListener('keydown', function(e) {
                 <!-- Tabel Tagihan Yang Pernah Dibuat -->
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Pilih Jenis Tagihan, Kelas & Nominal Yang Akan Dihapus <span class="text-rose-500">*</span></label>
-                    <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-2xl shadow-inner bg-white">
+                    <div class="max-h-48 sm:max-h-56 overflow-y-auto border border-gray-200 rounded-2xl shadow-inner bg-white">
                         <table class="w-full text-xs text-left">
                             <thead class="bg-gray-100 text-gray-700 uppercase tracking-wider sticky top-0 border-b border-gray-200">
                                 <tr>
