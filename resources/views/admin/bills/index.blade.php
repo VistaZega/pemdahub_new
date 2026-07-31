@@ -1251,95 +1251,96 @@ document.addEventListener('keydown', e => {
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-900/60 transition-opacity" onclick="closeBulkUpdateModal()"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="relative z-50 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-gray-100">
+        <div class="relative z-50 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full border border-gray-100">
             <div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-indigo-500/10 to-transparent"></div>
-            <div class="px-10 py-10">
-                <div class="flex items-center justify-between mb-8">
-                    <div class="flex items-center gap-5">
-                        <div class="p-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="px-8 py-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-2xl font-bold text-gray-900">Ubah Nominal Massal</h3>
-                            <p class="text-sm font-bold text-indigo-500 uppercase tracking-[0.2em] mt-1">Perbarui Nominal Tagihan Siswa</p>
+                            <h3 class="text-xl font-bold text-gray-900">Ubah Nominal Massal</h3>
+                            <p class="text-xs font-bold text-indigo-500 uppercase tracking-wider mt-0.5">Centang Tagihan Siswa yang Ingin Diperbarui</p>
                         </div>
                     </div>
-                    <button onclick="closeBulkUpdateModal()" class="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-900 transition-all">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button onclick="closeBulkUpdateModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-900 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <div class="space-y-6">
-                    <input type="hidden" id="bulk_update_use_selected" value="0">
-
-                    <div id="bulkUpdateSelectedNotice" class="hidden p-4 bg-indigo-50 border border-indigo-200 rounded-2xl text-sm font-semibold text-indigo-800">
-                        📌 Mengubah nominal untuk <strong>tagihan terpilih dari tabel</strong> yang belum lunas.
-                    </div>
-
-                    <div id="bulkUpdateFilterNotice" class="space-y-4">
-                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Filter Target Tagihan</p>
-                        
-                        @if(auth()->user()->isSuperAdmin())
+                <div class="space-y-5">
+                    <!-- Input Nominal Baru -->
+                    <div class="p-5 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Sekolah Target</label>
-                            <select id="bulk_update_school_id" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500">
-                                <option value="">Semua Sekolah</option>
-                                @foreach($allSchools as $school)
-                                <option value="{{ $school->id }}" {{ session('bills_filter_school_id') == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
-                                @endforeach
-                            </select>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-indigo-900 mb-1">Nominal Tagihan Baru (Rp) <span class="text-rose-500">*</span></label>
+                            <p class="text-xs text-gray-500">Nominal baru ini akan diterapkan pada tagihan yang Anda centang.</p>
                         </div>
-                        @else
-                        <input type="hidden" id="bulk_update_school_id" value="{{ auth()->user()->school_id }}">
-                        @endif
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Tahun Ajaran</label>
-                                <select id="bulk_update_academic_year_id" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500">
-                                    <option value="">Semua Tahun Ajaran</option>
-                                    @foreach($allAcademicYears as $ay)
-                                    <option value="{{ $ay->id }}" {{ $academicYearId == $ay->id ? 'selected' : '' }}>{{ $ay->year }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Jenis Tagihan</label>
-                                <select id="bulk_update_payment_type_id" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500">
-                                    <option value="">Semua Jenis Tagihan</option>
-                                    @foreach($allPaymentTypes as $pt)
-                                    <option value="{{ $pt->id }}">{{ $pt->type_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Kelas Target</label>
-                            <select id="bulk_update_classroom_id" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500">
-                                <option value="">Semua Kelas</option>
-                                @foreach($allClassrooms as $c)
-                                <option value="{{ $c->id }}">{{ $c->class_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100 space-y-2">
-                        <label class="block text-sm font-bold text-gray-800">Nominal Tagihan Baru (Rp) <span class="text-rose-500">*</span></label>
                         <input type="number" id="bulk_new_amount" placeholder="Misal: 150000" min="0" step="1000"
-                            class="w-full px-5 py-4 bg-white border-2 border-indigo-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-gray-900 text-xl outline-none">
-                        <p class="text-xs text-gray-500">Nominal tagihan baru akan diterapkan pada tagihan yang belum dibayar / belum lunas.</p>
+                            class="w-full md:w-64 px-4 py-3 bg-white border-2 border-indigo-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-gray-900 text-lg outline-none">
+                    </div>
+
+                    <!-- Live Search & Select All -->
+                    <div class="flex items-center justify-between gap-4 pt-1">
+                        <div class="relative flex-1">
+                            <input type="text" id="modal_update_search" onkeyup="filterModalBills('update')" placeholder="🔍 Cari nama siswa atau kelas di modal..." 
+                                class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <label class="flex items-center gap-2 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-xl cursor-pointer text-xs font-bold text-indigo-700 transition-all">
+                            <input type="checkbox" id="modal_update_select_all" onchange="toggleModalSelectAll('update', this.checked)" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                            Pilih Semua
+                        </label>
+                    </div>
+
+                    <!-- Visual Table inside Modal -->
+                    <div class="max-h-64 overflow-y-auto border border-gray-100 rounded-2xl shadow-inner bg-white">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider sticky top-0 bg-white border-b border-gray-100">
+                                <tr>
+                                    <th class="p-3 text-center w-10">Pilih</th>
+                                    <th class="p-3">Siswa</th>
+                                    <th class="p-3">Jenis Tagihan</th>
+                                    <th class="p-3">Bulan/Tahun</th>
+                                    <th class="p-3 text-right">Nominal Saat Ini</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50" id="modal_update_bills_tbody">
+                                @forelse($unpaidBillsList as $bill)
+                                <tr class="modal-update-row hover:bg-indigo-50/40 transition-colors" data-search="{{ strtolower($bill->student->full_name . ' ' . ($bill->student->classroom->class_name ?? '')) }}">
+                                    <td class="p-3 text-center">
+                                        <input type="checkbox" class="modal-update-cb w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" value="{{ $bill->id }}">
+                                    </td>
+                                    <td class="p-3 font-bold text-gray-900">
+                                        {{ $bill->student->full_name }}
+                                        <span class="block text-[10px] font-normal text-gray-400">{{ $bill->student->classroom->class_name ?? 'Tanpa Kelas' }}</span>
+                                    </td>
+                                    <td class="p-3 text-gray-600">{{ $bill->paymentType->type_name ?? '-' }}</td>
+                                    <td class="p-3 text-gray-600">
+                                        @if($bill->month)
+                                        {{ \Carbon\Carbon::create($bill->year, $bill->month, 1)->format('M Y') }}
+                                        @else
+                                        1 Kali ({{ $bill->year }})
+                                        @endif
+                                    </td>
+                                    <td class="p-3 text-right font-bold text-gray-800">Rp {{ number_format($bill->amount, 0, ',', '.') }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="5" class="p-8 text-center text-gray-400 font-medium">Tidak ada tagihan yang belum dibayar saat ini.</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
 
                     <div class="flex gap-4 pt-2">
-                        <button type="button" onclick="closeBulkUpdateModal()" class="flex-1 py-3.5 bg-gray-100 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-200 transition-all">
+                        <button type="button" onclick="closeBulkUpdateModal()" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold text-xs hover:bg-gray-200 transition-all">
                             Batal
                         </button>
-                        <button type="button" id="bulk_update_submit_btn" onclick="submitBulkUpdate()" class="flex-[2] py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold text-sm shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300">
-                            Simpan & Perbarui Nominal
+                        <button type="button" id="bulk_update_submit_btn" onclick="submitBulkUpdateVisual()" class="flex-[2] py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold text-xs shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 transition-all">
+                            Simpan & Perbarui Nominal Terpilih
                         </button>
                     </div>
                 </div>
@@ -1353,93 +1354,91 @@ document.addEventListener('keydown', e => {
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-900/60 transition-opacity" onclick="closeBulkDeleteModal()"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="relative z-50 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-gray-100">
+        <div class="relative z-50 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full border border-gray-100">
             <div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-rose-500/10 to-transparent"></div>
-            <div class="px-10 py-10">
-                <div class="flex items-center justify-between mb-8">
-                    <div class="flex items-center gap-5">
-                        <div class="p-4 bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl shadow-lg">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="px-8 py-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl shadow-lg">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-2xl font-bold text-gray-900">Hapus Tagihan Massal</h3>
-                            <p class="text-sm font-bold text-rose-500 uppercase tracking-[0.2em] mt-1">Pembersihan Tagihan Belum Dibayar</p>
+                            <h3 class="text-xl font-bold text-gray-900">Hapus Tagihan Massal</h3>
+                            <p class="text-xs font-bold text-rose-500 uppercase tracking-wider mt-0.5">Centang Tagihan Hasil Latihan / Uji Coba yang Akan Dihapus</p>
                         </div>
                     </div>
-                    <button onclick="closeBulkDeleteModal()" class="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-900 transition-all">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button onclick="closeBulkDeleteModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-900 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <div class="space-y-6">
-                    <input type="hidden" id="bulk_delete_use_selected" value="0">
-
-                    <div id="bulkDeleteSelectedNotice" class="hidden p-4 bg-rose-50 border border-rose-200 rounded-2xl text-sm font-semibold text-rose-800">
-                        ⚠️ Menghapus <strong>tagihan terpilih dari tabel</strong> yang belum memiliki riwayat pembayaran.
+                <div class="space-y-5">
+                    <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-xl text-xs text-amber-800 space-y-1">
+                        <p class="font-bold text-xs text-amber-900">🛡️ Pembersihan Tagihan Latihan</p>
+                        <p>Centang tagihan-tagihan di bawah ini yang ingin Anda hapus dari sistem. Tagihan yang pernah dibayar secara otomatis terlindungi.</p>
                     </div>
 
-                    <div id="bulkDeleteFilterNotice" class="space-y-4">
-                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Target Tagihan yang Akan Dihapus</p>
-                        
-                        @if(auth()->user()->isSuperAdmin())
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Sekolah Target</label>
-                            <select id="bulk_delete_school_id" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-rose-500">
-                                <option value="">Semua Sekolah</option>
-                                @foreach($allSchools as $school)
-                                <option value="{{ $school->id }}" {{ session('bills_filter_school_id') == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
-                                @endforeach
-                            </select>
+                    <!-- Live Search & Select All -->
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="relative flex-1">
+                            <input type="text" id="modal_delete_search" onkeyup="filterModalBills('delete')" placeholder="🔍 Cari nama siswa atau kelas di modal..." 
+                                class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-rose-500">
                         </div>
-                        @else
-                        <input type="hidden" id="bulk_delete_school_id" value="{{ auth()->user()->school_id }}">
-                        @endif
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Tahun Ajaran</label>
-                                <select id="bulk_delete_academic_year_id" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-rose-500">
-                                    <option value="">Semua Tahun Ajaran</option>
-                                    @foreach($allAcademicYears as $ay)
-                                    <option value="{{ $ay->id }}" {{ $academicYearId == $ay->id ? 'selected' : '' }}>{{ $ay->year }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Jenis Tagihan</label>
-                                <select id="bulk_delete_payment_type_id" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-rose-500">
-                                    <option value="">Semua Jenis Tagihan</option>
-                                    @foreach($allPaymentTypes as $pt)
-                                    <option value="{{ $pt->id }}">{{ $pt->type_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Kelas Target</label>
-                            <select id="bulk_delete_classroom_id" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-rose-500">
-                                <option value="">Semua Kelas</option>
-                                @foreach($allClassrooms as $c)
-                                <option value="{{ $c->id }}">{{ $c->class_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <label class="flex items-center gap-2 px-3 py-2 bg-rose-50 hover:bg-rose-100 rounded-xl cursor-pointer text-xs font-bold text-rose-700 transition-all">
+                            <input type="checkbox" id="modal_delete_select_all" onchange="toggleModalSelectAll('delete', this.checked)" class="w-4 h-4 rounded text-rose-600 focus:ring-rose-500">
+                            Pilih Semua
+                        </label>
                     </div>
 
-                    <div class="p-5 bg-amber-50 border-l-4 border-amber-500 rounded-2xl text-xs text-amber-800 space-y-1">
-                        <p class="font-bold text-sm text-amber-900">🛡️ Proteksi Keamanan Data</p>
-                        <p>Tagihan yang <em>sudah pernah dibayar / cicilan</em> secara otomatis akan DILEWATI dan TIDAK AKAN DIHAPUS demi menjaga integritas data keuangan.</p>
+                    <!-- Visual Table inside Modal -->
+                    <div class="max-h-64 overflow-y-auto border border-gray-100 rounded-2xl shadow-inner bg-white">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider sticky top-0 bg-white border-b border-gray-100">
+                                <tr>
+                                    <th class="p-3 text-center w-10">Pilih</th>
+                                    <th class="p-3">Siswa</th>
+                                    <th class="p-3">Jenis Tagihan</th>
+                                    <th class="p-3">Bulan/Tahun</th>
+                                    <th class="p-3 text-right">Nominal Tagihan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50" id="modal_delete_bills_tbody">
+                                @forelse($unpaidBillsList as $bill)
+                                <tr class="modal-delete-row hover:bg-rose-50/40 transition-colors" data-search="{{ strtolower($bill->student->full_name . ' ' . ($bill->student->classroom->class_name ?? '')) }}">
+                                    <td class="p-3 text-center">
+                                        <input type="checkbox" class="modal-delete-cb w-4 h-4 rounded border-gray-300 text-rose-600 focus:ring-rose-500 cursor-pointer" value="{{ $bill->id }}">
+                                    </td>
+                                    <td class="p-3 font-bold text-gray-900">
+                                        {{ $bill->student->full_name }}
+                                        <span class="block text-[10px] font-normal text-gray-400">{{ $bill->student->classroom->class_name ?? 'Tanpa Kelas' }}</span>
+                                    </td>
+                                    <td class="p-3 text-gray-600">{{ $bill->paymentType->type_name ?? '-' }}</td>
+                                    <td class="p-3 text-gray-600">
+                                        @if($bill->month)
+                                        {{ \Carbon\Carbon::create($bill->year, $bill->month, 1)->format('M Y') }}
+                                        @else
+                                        1 Kali ({{ $bill->year }})
+                                        @endif
+                                    </td>
+                                    <td class="p-3 text-right font-bold text-rose-600">Rp {{ number_format($bill->amount, 0, ',', '.') }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="5" class="p-8 text-center text-gray-400 font-medium">Tidak ada tagihan yang dapat dihapus saat ini.</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
 
                     <div class="flex gap-4 pt-2">
-                        <button type="button" onclick="closeBulkDeleteModal()" class="flex-1 py-3.5 bg-gray-100 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-200 transition-all">
+                        <button type="button" onclick="closeBulkDeleteModal()" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold text-xs hover:bg-gray-200 transition-all">
                             Batal
                         </button>
-                        <button type="button" id="bulk_delete_submit_btn" onclick="submitBulkDelete()" class="flex-[2] py-3.5 bg-gradient-to-r from-rose-600 to-red-700 text-white rounded-xl font-semibold text-sm shadow-lg shadow-rose-500/20 hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300">
-                            Ya, Hapus Tagihan
+                        <button type="button" id="bulk_delete_submit_btn" onclick="submitBulkDeleteVisual()" class="flex-[2] py-3 bg-gradient-to-r from-rose-600 to-red-700 text-white rounded-xl font-semibold text-xs shadow-lg shadow-rose-500/20 hover:-translate-y-0.5 transition-all">
+                            Ya, Hapus Tagihan Terpilih
                         </button>
                     </div>
                 </div>
@@ -1450,57 +1449,85 @@ document.addEventListener('keydown', e => {
 
 <script>
 function openBulkUpdateModal(useSelected = false) {
-    const modal = document.getElementById('bulkUpdateModal');
-    const selectedNotice = document.getElementById('bulkUpdateSelectedNotice');
-    const filterNotice = document.getElementById('bulkUpdateFilterNotice');
-    
-    if (useSelected) {
-        selectedNotice.classList.remove('hidden');
-        filterNotice.classList.add('hidden');
-    } else {
-        selectedNotice.classList.add('hidden');
-        filterNotice.classList.remove('hidden');
+    document.getElementById('bulkUpdateModal').classList.remove('hidden');
+    if (useSelected && selectedBills.length > 0) {
+        // Pre-check selected bills inside modal
+        const selectedIds = selectedBills.map(b => b.id.toString());
+        document.querySelectorAll('.modal-update-cb').forEach(cb => {
+            cb.checked = selectedIds.includes(cb.value.toString());
+        });
     }
-    document.getElementById('bulk_update_use_selected').value = useSelected ? '1' : '0';
-    modal.classList.remove('hidden');
 }
 
 function closeBulkUpdateModal() {
     document.getElementById('bulkUpdateModal').classList.add('hidden');
 }
 
-function submitBulkUpdate() {
+function openBulkDeleteModal(useSelected = false) {
+    document.getElementById('bulkDeleteModal').classList.remove('hidden');
+    if (useSelected && selectedBills.length > 0) {
+        // Pre-check selected bills inside modal
+        const selectedIds = selectedBills.map(b => b.id.toString());
+        document.querySelectorAll('.modal-delete-cb').forEach(cb => {
+            cb.checked = selectedIds.includes(cb.value.toString());
+        });
+    }
+}
+
+function closeBulkDeleteModal() {
+    document.getElementById('bulkDeleteModal').classList.add('hidden');
+}
+
+function filterModalBills(type) {
+    const q = document.getElementById(`modal_${type}_search`).value.toLowerCase();
+    document.querySelectorAll(`.modal-${type}-row`).forEach(row => {
+        const text = row.dataset.search || '';
+        if (text.includes(q)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function toggleModalSelectAll(type, isChecked) {
+    document.querySelectorAll(`.modal-${type}-cb`).forEach(cb => {
+        const row = cb.closest('tr');
+        if (row && row.style.display !== 'none') {
+            cb.checked = isChecked;
+        }
+    });
+}
+
+function submitBulkUpdateVisual() {
     const newAmount = document.getElementById('bulk_new_amount').value;
     if (!newAmount || parseFloat(newAmount) < 0) {
         alert('Harap masukkan nominal tagihan baru yang valid!');
         return;
     }
-    const useSelected = document.getElementById('bulk_update_use_selected').value === '1';
-    
-    let payload = {
-        new_amount: newAmount,
-        _token: '{{ csrf_token() }}'
-    };
 
-    if (useSelected) {
-        let ids = getSelectedBillIds();
-        if (ids.length === 0) { alert('Tidak ada tagihan yang dipilih!'); return; }
-        payload.bill_ids = ids;
-    } else {
-        payload.school_id = document.getElementById('bulk_update_school_id') ? document.getElementById('bulk_update_school_id').value : '';
-        payload.academic_year_id = document.getElementById('bulk_update_academic_year_id').value;
-        payload.payment_type_id = document.getElementById('bulk_update_payment_type_id').value;
-        payload.classroom_id = document.getElementById('bulk_update_classroom_id').value;
+    let selectedIds = [];
+    document.querySelectorAll('.modal-update-cb:checked').forEach(cb => {
+        selectedIds.push(parseInt(cb.value));
+    });
+
+    if (selectedIds.length === 0) {
+        alert('Harap centang setidaknya 1 tagihan dari daftar di dalam modal!');
+        return;
     }
 
     const btn = document.getElementById('bulk_update_submit_btn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="animate-pulse">Memproses...</span>';
+    btn.innerHTML = '<span class="animate-pulse">Memproses Perubahan...</span>';
 
     fetch('{{ route('admin.bills.bulk-update-amount') }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+            bill_ids: selectedIds,
+            new_amount: newAmount,
+            _token: '{{ csrf_token() }}'
+        })
     })
     .then(r => r.json())
     .then(data => {
@@ -1510,54 +1537,28 @@ function submitBulkUpdate() {
         } else {
             alert(data.message || 'Terjadi kesalahan.');
             btn.disabled = false;
-            btn.textContent = 'Simpan & Perbarui Nominal';
+            btn.textContent = 'Simpan & Perbarui Nominal Terpilih';
         }
     })
     .catch(err => {
         alert('Terjadi kesalahan jaringan.');
         btn.disabled = false;
-        btn.textContent = 'Simpan & Perbarui Nominal';
+        btn.textContent = 'Simpan & Perbarui Nominal Terpilih';
     });
 }
 
-function openBulkDeleteModal(useSelected = false) {
-    const modal = document.getElementById('bulkDeleteModal');
-    const selectedNotice = document.getElementById('bulkDeleteSelectedNotice');
-    const filterNotice = document.getElementById('bulkDeleteFilterNotice');
+function submitBulkDeleteVisual() {
+    let selectedIds = [];
+    document.querySelectorAll('.modal-delete-cb:checked').forEach(cb => {
+        selectedIds.push(parseInt(cb.value));
+    });
 
-    if (useSelected) {
-        selectedNotice.classList.remove('hidden');
-        filterNotice.classList.add('hidden');
-    } else {
-        selectedNotice.classList.add('hidden');
-        filterNotice.classList.remove('hidden');
-    }
-    document.getElementById('bulk_delete_use_selected').value = useSelected ? '1' : '0';
-    modal.classList.remove('hidden');
-}
-
-function closeBulkDeleteModal() {
-    document.getElementById('bulkDeleteModal').classList.add('hidden');
-}
-
-function submitBulkDelete() {
-    const useSelected = document.getElementById('bulk_delete_use_selected').value === '1';
-    let payload = {
-        _token: '{{ csrf_token() }}'
-    };
-
-    if (useSelected) {
-        let ids = getSelectedBillIds();
-        if (ids.length === 0) { alert('Tidak ada tagihan yang dipilih!'); return; }
-        payload.bill_ids = ids;
-    } else {
-        payload.school_id = document.getElementById('bulk_delete_school_id') ? document.getElementById('bulk_delete_school_id').value : '';
-        payload.academic_year_id = document.getElementById('bulk_delete_academic_year_id').value;
-        payload.payment_type_id = document.getElementById('bulk_delete_payment_type_id').value;
-        payload.classroom_id = document.getElementById('bulk_delete_classroom_id').value;
+    if (selectedIds.length === 0) {
+        alert('Harap centang setidaknya 1 tagihan dari daftar di dalam modal!');
+        return;
     }
 
-    if (!confirm('Apakah Anda yakin ingin menghapus tagihan yang belum dibayar sesuai kriteria ini? Tindakan ini tidak dapat dibatalkan.')) {
+    if (!confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} tagihan terpilih ini? Tindakan ini tidak dapat dibatalkan.`)) {
         return;
     }
 
@@ -1568,7 +1569,10 @@ function submitBulkDelete() {
     fetch('{{ route('admin.bills.bulk-delete') }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+            bill_ids: selectedIds,
+            _token: '{{ csrf_token() }}'
+        })
     })
     .then(r => r.json())
     .then(data => {
@@ -1578,22 +1582,14 @@ function submitBulkDelete() {
         } else {
             alert(data.message || 'Terjadi kesalahan.');
             btn.disabled = false;
-            btn.textContent = 'Ya, Hapus Tagihan';
+            btn.textContent = 'Ya, Hapus Tagihan Terpilih';
         }
     })
     .catch(err => {
         alert('Terjadi kesalahan jaringan.');
         btn.disabled = false;
-        btn.textContent = 'Ya, Hapus Tagihan';
+        btn.textContent = 'Ya, Hapus Tagihan Terpilih';
     });
-}
-
-function getSelectedBillIds() {
-    let ids = [];
-    document.querySelectorAll('.bill-checkbox:checked').forEach(cb => {
-        if (cb.dataset.billId) ids.push(parseInt(cb.dataset.billId));
-    });
-    return ids;
 }
 </script>
 
