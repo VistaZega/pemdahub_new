@@ -22,9 +22,9 @@
                         Eksekutif & Kebijakan Strategis
                     </span>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Dashboard Overview Yayasan</h1>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Dashboard Strategic Analytics Yayasan</h1>
                 <p class="text-violet-100 text-sm md:text-base max-w-2xl">
-                    Monitoring data terintegrasi seluruh unit sekolah di bawah naungan <strong>Yayasan Perguruan Pembangunan Daerah (PEMBDA) Nias</strong>.
+                    Executive Decision Support System terpadu membaca Kehadiran, Keuangan, LMS, CBT, dan SDM <strong>Yayasan PEMBDA Nias</strong>.
                 </p>
             </div>
 
@@ -64,7 +64,7 @@
                 </div>
             </div>
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                <span class="font-medium">Jenjang Terdaftar:</span>
+                <span class="font-medium">Jenjang Aktif:</span>
                 <span class="font-bold text-violet-700">SMP • SMA • SMK</span>
             </div>
         </div>
@@ -84,8 +84,8 @@
                 </div>
             </div>
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-500">Demografi Gender:</span>
-                <span class="font-bold text-slate-800">👦 {{ number_format($chartData['total_male']) }} | 👧 {{ number_format($chartData['total_female']) }}</span>
+                <span class="text-slate-500">Rata-rata Presensi Siswa:</span>
+                <span class="font-bold text-blue-700">📈 {{ round(array_sum($chartData['student_attendance_rates'])/max(1, count($chartData['student_attendance_rates'])), 1) }}%</span>
             </div>
         </div>
 
@@ -103,8 +103,8 @@
                 </div>
             </div>
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-500">Pendidik & Tendik:</span>
-                <span class="font-bold text-emerald-700">👨‍🏫 {{ number_format(array_sum($chartData['teachers'])) }} Guru | 💼 {{ number_format(array_sum($chartData['staff'])) }} Staf</span>
+                <span class="text-slate-500">Rata-rata Presensi SDM:</span>
+                <span class="font-bold text-emerald-700">⏱️ {{ round(array_sum($chartData['employee_attendance_rates'])/max(1, count($chartData['employee_attendance_rates'])), 1) }}%</span>
             </div>
         </div>
 
@@ -122,112 +122,208 @@
                 </div>
             </div>
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-500">Terbayar vs Tunggakan:</span>
+                <span class="text-slate-500">Terbayar Lunas:</span>
                 <span class="font-bold text-amber-700">Rp {{ number_format($stats['total_paid'], 0, ',', '.') }}</span>
             </div>
         </div>
     </div>
 
-    {{-- ════════════════ GRAFIK-GRAFIK STRATEGIS YAYASAN ════════════════ --}}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {{-- Chart 1: Distribusi Siswa & SDM Per Unit Sekolah (Column 8) --}}
-        <div class="lg:col-span-8 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+    {{-- ════════════════ AI STRATEGIC POLICY ENGINE (REKOMENDASI AI YAYASAN) ════════════════ --}}
+    <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white shadow-xl border border-indigo-900/50">
+        <div class="flex items-center justify-between mb-5 border-b border-white/10 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
+                    🤖
+                </div>
                 <div>
-                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-violet-600"></span>
-                        Distribusi Siswa & SDM Per Unit Sekolah
+                    <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+                        AI Strategic Policy Insights
+                        <span class="bg-violet-500/30 text-violet-300 border border-violet-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Real-Time Evaluation</span>
                     </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Perbandingan statistik jumlah Siswa, Guru, dan Staf di SMP, SMA, dan SMK</p>
+                    <p class="text-xs text-slate-300">Rekomendasi kebijakan strategis berbasis pembacaan data otomatis untuk Yayasan PEMBDA Nias</p>
                 </div>
-                <div class="flex items-center gap-3 text-xs font-semibold">
-                    <span class="flex items-center gap-1 text-slate-600"><span class="w-3 h-3 rounded-md bg-indigo-600"></span> Siswa</span>
-                    <span class="flex items-center gap-1 text-slate-600"><span class="w-3 h-3 rounded-md bg-emerald-500"></span> Guru</span>
-                    <span class="flex items-center gap-1 text-slate-600"><span class="w-3 h-3 rounded-md bg-amber-500"></span> Staf</span>
-                </div>
-            </div>
-
-            <div class="relative w-full h-[320px]">
-                <canvas id="schoolPopulationChart"></canvas>
             </div>
         </div>
 
-        {{-- Chart 2: Demografi Gender Siswa (Column 4) --}}
-        <div class="lg:col-span-4 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
-            <div>
-                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                    Demografi Gender Siswa
-                </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Proporsi Laki-laki vs Perempuan seluruh unit</p>
-            </div>
-
-            <div class="relative w-full h-[220px] my-4 flex items-center justify-center">
-                <canvas id="genderDemographicChart"></canvas>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 text-center">
-                <div class="bg-blue-50/60 p-2.5 rounded-2xl border border-blue-100">
-                    <span class="text-[11px] font-bold text-blue-600 uppercase">Laki-laki</span>
-                    <p class="text-lg font-extrabold text-slate-900 mt-0.5">{{ number_format($chartData['total_male']) }}</p>
-                    <span class="text-[10px] text-slate-500">{{ $stats['total_students'] > 0 ? round(($chartData['total_male'] / $stats['total_students']) * 100, 1) : 0 }}%</span>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {{-- Insight Keuangan --}}
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:bg-white/15 transition-all">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-2.5 h-2.5 rounded-full @if($aiInsights['keuangan']['status']==='optimal') bg-emerald-400 @else bg-amber-400 @endif"></span>
+                    <h4 class="text-sm font-bold text-amber-300">💡 {{ $aiInsights['keuangan']['title'] }}</h4>
                 </div>
-                <div class="bg-rose-50/60 p-2.5 rounded-2xl border border-rose-100">
-                    <span class="text-[11px] font-bold text-rose-600 uppercase">Perempuan</span>
-                    <p class="text-lg font-extrabold text-slate-900 mt-0.5">{{ number_format($chartData['total_female']) }}</p>
-                    <span class="text-[10px] text-slate-500">{{ $stats['total_students'] > 0 ? round(($chartData['total_female'] / $stats['total_students']) * 100, 1) : 0 }}%</span>
+                <p class="text-xs text-slate-200 leading-relaxed">{{ $aiInsights['keuangan']['summary'] }}</p>
+                <div class="mt-3 pt-2.5 border-t border-white/10 text-[11px] text-indigo-200 font-medium">
+                    📌 <strong>Aksi Strategis:</strong> {{ $aiInsights['keuangan']['action'] }}
+                </div>
+            </div>
+
+            {{-- Insight Presensi & SDM --}}
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:bg-white/15 transition-all">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                    <h4 class="text-sm font-bold text-emerald-300">🎯 {{ $aiInsights['sdm_presensi']['title'] }}</h4>
+                </div>
+                <p class="text-xs text-slate-200 leading-relaxed">{{ $aiInsights['sdm_presensi']['summary'] }}</p>
+                <div class="mt-3 pt-2.5 border-t border-white/10 text-[11px] text-indigo-200 font-medium">
+                    📌 <strong>Aksi Strategis:</strong> {{ $aiInsights['sdm_presensi']['action'] }}
+                </div>
+            </div>
+
+            {{-- Insight LMS & CBT --}}
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:bg-white/15 transition-all">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+                    <h4 class="text-sm font-bold text-sky-300">🚀 {{ $aiInsights['digital_lms_cbt']['title'] }}</h4>
+                </div>
+                <p class="text-xs text-slate-200 leading-relaxed">{{ $aiInsights['digital_lms_cbt']['summary'] }}</p>
+                <div class="mt-3 pt-2.5 border-t border-white/10 text-[11px] text-indigo-200 font-medium">
+                    📌 <strong>Aksi Strategis:</strong> {{ $aiInsights['digital_lms_cbt']['action'] }}
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- ════════════════ GRAFIK KEUANGAN & KOMPOSISI SDM ════════════════ --}}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {{-- Chart 3: Realisasi vs Tunggakan Tagihan (Column 8) --}}
-        <div class="lg:col-span-8 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+    {{-- ════════════════ GRAFIK ANALYTICS PINTAR (GRID 2 KOLOM PER BARIS) ════════════════ --}}
+    {{-- BARIS 1: Presensi & Keuangan --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {{-- GRAFIK 1: Presensi Kehadiran Siswa & Pegawai --}}
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
                     <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                        Realisasi Pembayaran vs Tunggakan Per Unit Sekolah
+                        <span class="w-3 h-3 rounded-full bg-indigo-600"></span>
+                        1. Presensi Kehadiran (Siswa vs Pegawai)
                     </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Status penerimaan dana tagihan siswa di SMP, SMA, dan SMK</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Tingkat kehadiran presensi di SMP, SMA, dan SMK</p>
                 </div>
-                <div class="flex items-center gap-3 text-xs font-semibold">
-                    <span class="flex items-center gap-1 text-slate-600"><span class="w-3 h-3 rounded-md bg-emerald-500"></span> Terbayar</span>
-                    <span class="flex items-center gap-1 text-slate-600"><span class="w-3 h-3 rounded-md bg-rose-400"></span> Tunggakan</span>
+                <div class="flex items-center gap-3 text-xs font-bold">
+                    <span class="flex items-center gap-1 text-slate-700"><span class="w-3 h-3 rounded-md bg-indigo-600"></span> Siswa (%)</span>
+                    <span class="flex items-center gap-1 text-slate-700"><span class="w-3 h-3 rounded-md bg-emerald-500"></span> Pegawai (%)</span>
                 </div>
             </div>
 
-            <div class="relative w-full h-[300px]">
-                <canvas id="financialRealizationChart"></canvas>
+            <div class="relative w-full h-[280px]">
+                <canvas id="attendanceRateChart"></canvas>
             </div>
         </div>
 
-        {{-- Chart 4: Rasio SDM Pendidik vs Tendik (Column 4) --}}
-        <div class="lg:col-span-4 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
-            <div>
-                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                    Komposisi SDM Yayasan
-                </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Rasio Tenaga Pendidik (Guru) vs Kependidikan (Staf)</p>
-            </div>
-
-            <div class="relative w-full h-[220px] my-4 flex items-center justify-center">
-                <canvas id="sdmCompositionChart"></canvas>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 text-center">
-                <div class="bg-emerald-50/60 p-2.5 rounded-2xl border border-emerald-100">
-                    <span class="text-[11px] font-bold text-emerald-700 uppercase">Tenaga Pendidik</span>
-                    <p class="text-lg font-extrabold text-slate-900 mt-0.5">{{ number_format(array_sum($chartData['teachers'])) }}</p>
-                    <span class="text-[10px] text-slate-500">Guru Aktif</span>
+        {{-- GRAFIK 2: Realisasi Pembayaran vs Tunggakan Keuangan --}}
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                        2. Realisasi Keuangan vs Tunggakan Tagihan
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Status penerimaan dana tagihan siswa (dalam Rupiah)</p>
                 </div>
-                <div class="bg-amber-50/60 p-2.5 rounded-2xl border border-amber-100">
-                    <span class="text-[11px] font-bold text-amber-700 uppercase">Kependidikan</span>
-                    <p class="text-lg font-extrabold text-slate-900 mt-0.5">{{ number_format(array_sum($chartData['staff'])) }}</p>
-                    <span class="text-[10px] text-slate-500">Staf Administrasi</span>
+                <div class="flex items-center gap-3 text-xs font-bold">
+                    <span class="flex items-center gap-1 text-slate-700"><span class="w-3 h-3 rounded-md bg-emerald-500"></span> Terbayar</span>
+                    <span class="flex items-center gap-1 text-slate-700"><span class="w-3 h-3 rounded-md bg-rose-400"></span> Tunggakan</span>
+                </div>
+            </div>
+
+            <div class="relative w-full h-[280px]">
+                <canvas id="financialRealizationChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    {{-- BARIS 2: LMS & CBT --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {{-- GRAFIK 3: Adopsi LMS Digital Learning --}}
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-sky-500"></span>
+                        3. Adopsi LMS & Pembelajaran Digital
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Jumlah kursus & mata pelajaran digital aktif di LMS per sekolah</p>
+                </div>
+                <span class="bg-sky-100 text-sky-800 text-[11px] font-extrabold px-3 py-1 rounded-full">
+                    Total {{ array_sum($chartData['lms_engagement']) }} Kursus
+                </span>
+            </div>
+
+            <div class="relative w-full h-[280px]">
+                <canvas id="lmsAdoptionChart"></canvas>
+            </div>
+        </div>
+
+        {{-- GRAFIK 4: Evaluasi Ujian Digital CBT --}}
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-violet-600"></span>
+                        4. Rata-Rata Nilai Evaluasi Ujian CBT
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Capaian skor rata-rata ujian Computer Based Test per sekolah</p>
+                </div>
+                <span class="bg-violet-100 text-violet-800 text-[11px] font-extrabold px-3 py-1 rounded-full">
+                    Rata-rata: {{ round(array_sum($chartData['cbt_scores'])/max(1, count($chartData['cbt_scores'])), 1) }} / 100
+                </span>
+            </div>
+
+            <div class="relative w-full h-[280px]">
+                <canvas id="cbtPerformanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    {{-- BARIS 3: Komposisi Siswa & SDM --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {{-- GRAFIK 5: Populasi Siswa & Kecukupan SDM --}}
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                        5. Populasi Siswa & Distribusi SDM
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Jumlah Siswa, Guru, dan Staf di setiap unit sekolah</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold">
+                    <span class="flex items-center gap-1 text-slate-700"><span class="w-3 h-3 rounded-md bg-indigo-600"></span> Siswa</span>
+                    <span class="flex items-center gap-1 text-slate-700"><span class="w-3 h-3 rounded-md bg-emerald-500"></span> Guru</span>
+                    <span class="flex items-center gap-1 text-slate-700"><span class="w-3 h-3 rounded-md bg-amber-500"></span> Staf</span>
+                </div>
+            </div>
+
+            <div class="relative w-full h-[280px]">
+                <canvas id="schoolPopulationChart"></canvas>
+            </div>
+        </div>
+
+        {{-- GRAFIK 6: Demografi Gender & Rasio SDM --}}
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                        6. Demografi Gender Siswa & Rasio SDM
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Proporsi Siswa Laki-laki vs Perempuan dan Pendidik vs Tendik</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 my-2">
+                <div class="relative w-full h-[180px] flex items-center justify-center">
+                    <canvas id="genderDemographicChart"></canvas>
+                </div>
+                <div class="relative w-full h-[180px] flex items-center justify-center">
+                    <canvas id="sdmCompositionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 text-center text-xs">
+                <div class="bg-blue-50/60 p-2 rounded-xl border border-blue-100 font-bold text-blue-800">
+                    👦 Laki-laki: {{ number_format($chartData['total_male']) }} | 👧 Perempuan: {{ number_format($chartData['total_female']) }}
+                </div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl border border-emerald-100 font-bold text-emerald-800">
+                    👨‍🏫 Guru: {{ number_format(array_sum($chartData['teachers'])) }} | 💼 Staf: {{ number_format(array_sum($chartData['staff'])) }}
                 </div>
             </div>
         </div>
@@ -241,9 +337,9 @@
                     <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 5h4M7 3h10M7 7h10"></path>
                     </svg>
-                    Matriks Detail Kinerja Unit Sekolah
+                    Matriks Evaluasi Kinerja Unit Sekolah Terpadu
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Rincian data per unit sekolah untuk bahan evaluasi dan keputusan kebijakan strategis</p>
+                <p class="text-xs text-slate-500 mt-0.5">Rincian data per unit sekolah untuk evaluasi presensi, CBT, LMS, keuangan, dan SDM</p>
             </div>
         </div>
 
@@ -252,11 +348,11 @@
                 <thead>
                     <tr class="bg-slate-50/80 text-slate-600 text-xs uppercase font-extrabold border-b border-slate-100">
                         <th class="py-3.5 px-4 rounded-l-2xl">Unit Sekolah</th>
-                        <th class="py-3.5 px-4 text-center">Jenjang</th>
+                        <th class="py-3.5 px-4 text-center">Presensi Siswa / SDM</th>
+                        <th class="py-3.5 px-4 text-center">LMS / Skor CBT</th>
                         <th class="py-3.5 px-4 text-center">Siswa (L / P)</th>
                         <th class="py-3.5 px-4 text-center">SDM (Guru / Staf)</th>
-                        <th class="py-3.5 px-4 text-right">Total Tagihan</th>
-                        <th class="py-3.5 px-4 text-right">Terbayar</th>
+                        <th class="py-3.5 px-4 text-right">Realisasi Keuangan</th>
                         <th class="py-3.5 px-4 text-center rounded-r-2xl">Hari Aktif</th>
                     </tr>
                 </thead>
@@ -275,9 +371,12 @@
                             </div>
                         </td>
                         <td class="py-3.5 px-4 text-center">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-extrabold @if($school['type'] === 'SMP') bg-blue-100 text-blue-700 @elseif($school['type'] === 'SMA') bg-emerald-100 text-emerald-700 @elseif($school['type'] === 'SMK') bg-amber-100 text-amber-700 @else bg-slate-100 text-slate-700 @endif">
-                                {{ $school['type'] }}
-                            </span>
+                            <span class="font-bold text-indigo-700">Siswa: {{ $school['student_att_rate'] }}%</span>
+                            <span class="block text-[11px] text-emerald-600 font-bold">SDM: {{ $school['employee_att_rate'] }}%</span>
+                        </td>
+                        <td class="py-3.5 px-4 text-center">
+                            <span class="font-bold text-sky-700">LMS: {{ $school['lms_courses'] }} Kursus</span>
+                            <span class="block text-[11px] text-violet-600 font-bold">CBT Avg: {{ $school['cbt_avg_score'] }}</span>
                         </td>
                         <td class="py-3.5 px-4 text-center">
                             <span class="font-bold text-slate-900">{{ number_format($school['student_count']) }}</span>
@@ -287,20 +386,12 @@
                             <span class="font-bold text-slate-900">{{ number_format($school['employee_count']) }}</span>
                             <span class="block text-[11px] text-slate-400">({{ $school['teacher_count'] }} Guru | {{ $school['staff_count'] }} Staf)</span>
                         </td>
-                        <td class="py-3.5 px-4 text-right font-bold text-slate-700">
-                            Rp {{ number_format($school['billed'], 0, ',', '.') }}
-                        </td>
                         <td class="py-3.5 px-4 text-right">
                             <span class="font-extrabold text-emerald-600">Rp {{ number_format($school['paid'], 0, ',', '.') }}</span>
-                            @if($school['billed'] > 0)
-                            <span class="block text-[11px] text-slate-400">({{ round(($school['paid'] / $school['billed']) * 100, 1) }}%)</span>
-                            @endif
+                            <span class="block text-[11px] text-slate-400">Target: Rp {{ number_format($school['billed'], 0, ',', '.') }}</span>
                         </td>
                         <td class="py-3.5 px-4 text-center">
                             <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-700 px-3 py-1 rounded-xl text-xs font-bold">
-                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
                                 {{ $school['active_days'] }} Hari
                             </span>
                         </td>
@@ -310,10 +401,10 @@
                 <tfoot>
                     <tr class="bg-violet-50/70 font-extrabold text-violet-900">
                         <td class="py-3.5 px-4 rounded-l-2xl">TOTAL PEMBDA NIAS</td>
-                        <td class="py-3.5 px-4 text-center">{{ $schoolSummaries->count() }} Unit</td>
+                        <td class="py-3.5 px-4 text-center">Presensi Sehat</td>
+                        <td class="py-3.5 px-4 text-center">{{ array_sum($chartData['lms_engagement']) }} Kursus LMS</td>
                         <td class="py-3.5 px-4 text-center">{{ number_format($stats['total_students']) }} Siswa</td>
                         <td class="py-3.5 px-4 text-center">{{ number_format($stats['total_employees']) }} Pegawai</td>
-                        <td class="py-3.5 px-4 text-right">Rp {{ number_format($stats['total_billed'], 0, ',', '.') }}</td>
                         <td class="py-3.5 px-4 text-right text-emerald-700">Rp {{ number_format($stats['total_paid'], 0, ',', '.') }}</td>
                         <td class="py-3.5 px-4 text-center rounded-r-2xl">—</td>
                     </tr>
@@ -321,37 +412,6 @@
             </table>
         </div>
     </div>
-
-    {{-- ════════════════ INFORMASI YAYASAN PROFIL ════════════════ --}}
-    @if($yayasan)
-    <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-        <h3 class="text-base font-extrabold text-slate-900 mb-4 flex items-center gap-2">
-            <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            Profil Yayasan Perguruan Pembangunan Daerah Nias
-        </h3>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <span class="text-xs font-bold text-slate-400 uppercase">Nama Resmi</span>
-                <p class="font-extrabold text-slate-900 mt-1">{{ $yayasan->name }}</p>
-            </div>
-            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <span class="text-xs font-bold text-slate-400 uppercase">Alamat</span>
-                <p class="font-extrabold text-slate-900 mt-1">{{ $yayasan->address ?? 'Kota Gunungsitoli' }}</p>
-            </div>
-            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <span class="text-xs font-bold text-slate-400 uppercase">Kabupaten / Kota</span>
-                <p class="font-extrabold text-slate-900 mt-1">{{ $yayasan->city ?? 'Gunungsitoli' }}</p>
-            </div>
-            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <span class="text-xs font-bold text-slate-400 uppercase">Provinsi</span>
-                <p class="font-extrabold text-slate-900 mt-1">{{ $yayasan->province ?? 'Sumatera Utara' }}</p>
-            </div>
-        </div>
-    </div>
-    @endif
 </div>
 
 {{-- Chart.js Script CDN --}}
@@ -366,6 +426,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const billedData = @json($chartData['billed']);
     const paidData = @json($chartData['paid']);
     const unpaidData = @json($chartData['unpaid']);
+    const studentAttRates = @json($chartData['student_attendance_rates']);
+    const employeeAttRates = @json($chartData['employee_attendance_rates']);
+    const lmsEngagement = @json($chartData['lms_engagement']);
+    const cbtScores = @json($chartData['cbt_scores']);
     const totalMale = {{ $chartData['total_male'] }};
     const totalFemale = {{ $chartData['total_female'] }};
 
@@ -373,198 +437,190 @@ document.addEventListener('DOMContentLoaded', function () {
     Chart.defaults.font.family = "'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif";
     Chart.defaults.color = '#64748b';
 
-    // 1. Chart Populasi Per Sekolah (Grouped Bar Chart)
-    const ctxPop = document.getElementById('schoolPopulationChart').getContext('2d');
-    new Chart(ctxPop, {
+    // 1. Chart Presensi (Line / Bar)
+    new Chart(document.getElementById('attendanceRateChart').getContext('2d'), {
         type: 'bar',
         data: {
             labels: schoolsData,
             datasets: [
                 {
-                    label: 'Siswa',
-                    data: studentsData,
-                    backgroundColor: '#4f46e5', // Indigo 600
+                    label: 'Siswa (%)',
+                    data: studentAttRates,
+                    backgroundColor: '#4f46e5',
                     borderRadius: 8,
-                    barPercentage: 0.6,
+                    barPercentage: 0.5,
                 },
                 {
-                    label: 'Guru',
-                    data: teachersData,
-                    backgroundColor: '#10b981', // Emerald 500
+                    label: 'Pegawai (%)',
+                    data: employeeAttRates,
+                    backgroundColor: '#10b981',
                     borderRadius: 8,
-                    barPercentage: 0.6,
-                },
-                {
-                    label: 'Staf',
-                    data: staffData,
-                    backgroundColor: '#f59e0b', // Amber 500
-                    borderRadius: 8,
-                    barPercentage: 0.6,
+                    barPercentage: 0.5,
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#0f172a',
-                    padding: 12,
-                    cornerRadius: 12,
-                    bodyFont: { weight: 'bold' }
-                }
-            },
+            plugins: { legend: { display: false } },
             scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { weight: '600', size: 11 } }
+                x: { grid: { display: false } },
+                y: { min: 60, max: 100, ticks: { callback: v => v + '%' } }
+            }
+        }
+    });
+
+    // 2. Chart Keuangan (Stacked Bar)
+    new Chart(document.getElementById('financialRealizationChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: schoolsData,
+            datasets: [
+                {
+                    label: 'Terbayar',
+                    data: paidData,
+                    backgroundColor: '#10b981',
+                    borderRadius: 8,
+                    stack: 'Stack 0',
                 },
+                {
+                    label: 'Tunggakan',
+                    data: unpaidData,
+                    backgroundColor: '#fb7185',
+                    borderRadius: 8,
+                    stack: 'Stack 0',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false } },
                 y: {
-                    grid: { color: '#f1f5f9' },
-                    ticks: { font: { size: 11 } },
-                    beginAtZero: true
+                    ticks: {
+                        callback: function(v) {
+                            if (v >= 1000000000) return 'Rp ' + (v / 1000000000).toFixed(1) + 'B';
+                            if (v >= 1000000) return 'Rp ' + (v / 1000000).toFixed(0) + 'M';
+                            return 'Rp ' + v;
+                        }
+                    }
                 }
             }
         }
     });
 
-    // 2. Chart Demografi Gender Siswa (Doughnut Chart)
-    const ctxGender = document.getElementById('genderDemographicChart').getContext('2d');
-    new Chart(ctxGender, {
+    // 3. Chart LMS (Bar Chart)
+    new Chart(document.getElementById('lmsAdoptionChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: schoolsData,
+            datasets: [{
+                label: 'Mata Pelajaran LMS',
+                data: lmsEngagement,
+                backgroundColor: '#0284c7', // Sky 600
+                borderRadius: 10,
+                barPercentage: 0.5,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // 4. Chart CBT Average Score (Line / Bar)
+    new Chart(document.getElementById('cbtPerformanceChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: schoolsData,
+            datasets: [{
+                label: 'Skor Ujian CBT',
+                data: cbtScores,
+                borderColor: '#7c3aed', // Violet 600
+                backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 6,
+                pointBackgroundColor: '#7c3aed',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { min: 50, max: 100 }
+            }
+        }
+    });
+
+    // 5. Chart Populasi Per Sekolah (Grouped Bar)
+    new Chart(document.getElementById('schoolPopulationChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: schoolsData,
+            datasets: [
+                { label: 'Siswa', data: studentsData, backgroundColor: '#4f46e5', borderRadius: 6, barPercentage: 0.6 },
+                { label: 'Guru', data: teachersData, backgroundColor: '#10b981', borderRadius: 6, barPercentage: 0.6 },
+                { label: 'Staf', data: staffData, backgroundColor: '#f59e0b', borderRadius: 6, barPercentage: 0.6 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
+        }
+    });
+
+    // 6. Chart Demografi Gender Siswa (Doughnut)
+    new Chart(document.getElementById('genderDemographicChart').getContext('2d'), {
         type: 'doughnut',
         data: {
             labels: ['Laki-laki', 'Perempuan'],
             datasets: [{
                 data: [totalMale, totalFemale],
-                backgroundColor: ['#3b82f6', '#f43f5e'], // Blue & Rose
-                borderWidth: 4,
-                borderColor: '#ffffff',
-                hoverOffset: 6
+                backgroundColor: ['#3b82f6', '#f43f5e'],
+                borderWidth: 3,
+                borderColor: '#ffffff'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '72%',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#0f172a',
-                    padding: 12,
-                    cornerRadius: 12,
-                    callbacks: {
-                        label: function(context) {
-                            const value = context.raw || 0;
-                            const total = totalMale + totalFemale;
-                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-                            return ` ${context.label}: ${value.toLocaleString()} (${percentage}%)`;
-                        }
-                    }
-                }
-            }
+            cutout: '70%',
+            plugins: { legend: { display: false } }
         }
     });
 
-    // 3. Chart Realisasi Keuangan (Stacked Bar Chart)
-    const ctxFinance = document.getElementById('financialRealizationChart').getContext('2d');
-    new Chart(ctxFinance, {
-        type: 'bar',
-        data: {
-            labels: schoolsData,
-            datasets: [
-                {
-                    label: 'Terbayar (Lunas)',
-                    data: paidData,
-                    backgroundColor: '#10b981', // Emerald
-                    borderRadius: 8,
-                    stack: 'Stack 0',
-                },
-                {
-                    label: 'Sisa Tunggakan',
-                    data: unpaidData,
-                    backgroundColor: '#fb7185', // Rose 400
-                    borderRadius: 8,
-                    stack: 'Stack 0',
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#0f172a',
-                    padding: 12,
-                    cornerRadius: 12,
-                    callbacks: {
-                        label: function(context) {
-                            const val = context.raw || 0;
-                            return ` ${context.dataset.label}: Rp ${val.toLocaleString('id-ID')}`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { weight: '600', size: 11 } }
-                },
-                y: {
-                    grid: { color: '#f1f5f9' },
-                    ticks: {
-                        font: { size: 10 },
-                        callback: function(value) {
-                            if (value >= 1000000000) return 'Rp ' + (value / 1000000000).toFixed(1) + 'B';
-                            if (value >= 1000000) return 'Rp ' + (value / 1000000).toFixed(0) + 'M';
-                            if (value >= 1000) return 'Rp ' + (value / 1000).toFixed(0) + 'K';
-                            return 'Rp ' + value;
-                        }
-                    },
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-
-    // 4. Chart Komposisi SDM (Doughnut Chart)
+    // 7. Chart Komposisi SDM (Doughnut)
     const totalTeachers = teachersData.reduce((a, b) => a + b, 0);
     const totalStaff = staffData.reduce((a, b) => a + b, 0);
 
-    const ctxSdm = document.getElementById('sdmCompositionChart').getContext('2d');
-    new Chart(ctxSdm, {
+    new Chart(document.getElementById('sdmCompositionChart').getContext('2d'), {
         type: 'doughnut',
         data: {
-            labels: ['Tenaga Pendidik (Guru)', 'Tenaga Kependidikan (Staf)'],
+            labels: ['Guru', 'Staf'],
             datasets: [{
                 data: [totalTeachers, totalStaff],
-                backgroundColor: ['#10b981', '#f59e0b'], // Emerald & Amber
-                borderWidth: 4,
-                borderColor: '#ffffff',
-                hoverOffset: 6
+                backgroundColor: ['#10b981', '#f59e0b'],
+                borderWidth: 3,
+                borderColor: '#ffffff'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '72%',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#0f172a',
-                    padding: 12,
-                    cornerRadius: 12,
-                    callbacks: {
-                        label: function(context) {
-                            const value = context.raw || 0;
-                            const total = totalTeachers + totalStaff;
-                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-                            return ` ${context.label}: ${value.toLocaleString()} (${percentage}%)`;
-                        }
-                    }
-                }
-            }
+            cutout: '70%',
+            plugins: { legend: { display: false } }
         }
     });
 });
