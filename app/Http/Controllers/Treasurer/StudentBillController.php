@@ -290,9 +290,6 @@ class StudentBillController extends Controller
         $activeAcademicYear = AcademicYear::where('is_active', true)->first();
         $semesters = Semester::orderBy('semester_name')->get();
         $classrooms = Classroom::where('school_id', $schoolId)
-            ->when($activeAcademicYear, function ($q) use ($activeAcademicYear) {
-                $q->where('academic_year_id', $activeAcademicYear->id);
-            })
             ->orderBy('class_name')
             ->get();
         $paymentTypes = PaymentType::where('school_id', $schoolId)->orderBy('type_name')->get();

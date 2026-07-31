@@ -93,7 +93,7 @@
                         onchange="updateStudentCount()">
                         <option value="">-- Pilih Kelas --</option>
                         @foreach($classrooms as $classroom)
-                        <option value="{{ $classroom->id }}" {{ old('classroom_id') == $classroom->id ? 'selected' : '' }}>
+                        <option value="{{ $classroom->id }}" data-academic-year="{{ $classroom->academic_year_id }}" {{ old('classroom_id') == $classroom->id ? 'selected' : '' }}>
                             {{ $classroom->class_name }}
                         </option>
                         @endforeach
@@ -137,12 +137,12 @@
 
             <div class="space-y-5">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">📅 Tahun Ajaran</label>
-                    <select name="academic_year_id" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
-                        <option value="">-- Pilih Tahun Ajaran --</option>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">📅 Tahun Pelajaran</label>
+                    <select name="academic_year_id" id="academic_year_id" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500" onchange="updateClassroomOptions(); updateStudentCount();">
+                        <option value="">-- Pilih Tahun Pelajaran --</option>
                         @foreach($academicYears as $year)
                         <option value="{{ $year->id }}" {{ old('academic_year_id', $activeAcademicYear->id ?? '') == $year->id ? 'selected' : '' }}>
-                            {{ $year->year }} {{ $year->is_active ? '(Aktif)' : '' }}
+                            TP. {{ $year->year }} {{ $year->is_active ? '(Aktif)' : '' }}
                         </option>
                         @endforeach
                     </select>
@@ -316,6 +316,36 @@
 </div>
 
 <script>
+function updateClassroomOptions() {
+    const academicYearId = document.getElementById('academic_year_id')?.value;
+    const classroomSelect = document.getElementById('classroom_id');
+    if (!classroomSelect) return;
+
+    const options = classroomSelect.querySelectorAll('option');
+    let hasValidSelection = false;
+    options.forEach(option => {
+        if (!option.value) return; // skip default placeholder
+        const optAY = option.getAttribute('data-academic-year');
+
+        let matchAY = !academicYearId || optAY == academicYearId;
+
+        if (matchAY) {
+            option.style.display = '';
+            option.disabled = false;
+            if (classroomSelect.value == option.value) {
+                hasValidSelection = true;
+            }
+        } else {
+            option.style.display = 'none';
+            option.disabled = true;
+        }
+    });
+
+    if (!hasValidSelection) {
+        classroomSelect.value = '';
+    }
+}
+
 function toggleFilterOptions() {
     const filterBy = document.querySelector('input[name="filter_by"]:checked').value;
     
@@ -398,6 +428,7 @@ function updateStudentCount() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
+    updateClassroomOptions();
     toggleFilterOptions();
     toggleBillingType();
 });

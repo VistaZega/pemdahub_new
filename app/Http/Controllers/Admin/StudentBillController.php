@@ -246,8 +246,9 @@ class StudentBillController extends Controller
         $paymentTypes = PaymentType::where('is_active', true)->orderBy('type_name')->get()->unique('type_code')->values();
         $academicYears = AcademicYear::orderBy('year', 'desc')->get()->unique('year')->values();
         $semesters = Semester::orderBy('semester_number')->get();
+        $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::orderBy('year', 'desc')->first();
 
-        return view('admin.bills.create', compact('schools', 'students', 'paymentTypes', 'academicYears', 'semesters'));
+        return view('admin.bills.create', compact('schools', 'students', 'paymentTypes', 'academicYears', 'semesters', 'activeYear'));
     }
 
     public function store(Request $request)
@@ -400,12 +401,11 @@ class StudentBillController extends Controller
         $academicYears = AcademicYear::orderBy('year', 'desc')->get();
         $semesters = Semester::orderBy('semester_number')->get();
         $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::orderBy('year', 'desc')->first();
-        $classrooms = Classroom::where('academic_year_id', $activeYear?->id)
-            ->with('school')
+        $classrooms = Classroom::with('school')
             ->orderBy('class_name')
             ->get();
 
-        return view('admin.bills.bulk-create', compact('schools', 'paymentTypes', 'academicYears', 'semesters', 'classrooms'));
+        return view('admin.bills.bulk-create', compact('schools', 'paymentTypes', 'academicYears', 'semesters', 'classrooms', 'activeYear'));
     }
 
     public function bulkStore(Request $request)

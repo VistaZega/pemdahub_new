@@ -61,12 +61,12 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-calendar-alt mr-1"></i> Tahun Ajaran <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-calendar-alt mr-1"></i> Tahun Pelajaran <span class="text-red-500">*</span></label>
                         <select name="academic_year_id" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500">
-                            <option value="">-- Pilih Tahun Ajaran --</option>
+                            <option value="">-- Pilih Tahun Pelajaran --</option>
                             @foreach($academicYears as $year)
-                            <option value="{{ $year->id }}" {{ old('academic_year_id') == $year->id ? 'selected' : '' }}>
-                                {{ $year->year }}
+                            <option value="{{ $year->id }}" {{ old('academic_year_id', $activeYear->id ?? '') == $year->id ? 'selected' : '' }}>
+                                TP. {{ $year->year }} {{ $year->is_active ? '(Aktif)' : '' }}
                             </option>
                             @endforeach
                         </select>
