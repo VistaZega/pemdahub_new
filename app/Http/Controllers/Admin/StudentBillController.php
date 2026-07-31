@@ -173,7 +173,18 @@ class StudentBillController extends Controller
             ->orderBy('class_name')
             ->get();
 
-        // Unpaid bills list for visual selection inside modals
+        // Created bill groups for bulk update & bulk delete modals
+        $createdBillGroups = StudentBill::with(['paymentType', 'academicYear'])
+            ->where('paid_amount', 0)
+            ->when($schoolId, fn($q) => $q->whereHas('student', fn($sq) => $sq->where('school_id', $schoolId)))
+            ->when($academicYearId, fn($q) => $q->where('academic_year_id', $academicYearId))
+            ->selectRaw('payment_type_id, amount, academic_year_id, month, year, count(*) as total_bills, sum(amount) as total_amount')
+            ->groupBy('payment_type_id', 'amount', 'academic_year_id', 'month', 'year')
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
+            ->get();
+
+        // Unpaid bills list
         $unpaidBillsList = StudentBill::with(['student.classroom', 'paymentType', 'academicYear'])
             ->where('paid_amount', 0)
             ->when($academicYearId, fn($q) => $q->where('academic_year_id', $academicYearId))
@@ -205,7 +216,7 @@ class StudentBillController extends Controller
         return view('admin.bills.index', compact(
             'paginatedBills', 'paymentTypes', 'academicYears', 'schools', 'classrooms',
             'allSchools', 'allAcademicYears', 'allPaymentTypes', 'allClassrooms',
-            'unpaidBillsList',
+            'unpaidBillsList', 'createdBillGroups',
             'academicYearId', 'schoolId', 'paymentTypeId', 'classroomId', 'search',
             'totalStudents', 'totalOutstanding', 'totalPaid', 'totalBillsCount'
         ));
@@ -527,6 +538,15 @@ class StudentBillController extends Controller
             if ($request->filled('payment_type_id')) {
                 $query->where('payment_type_id', $request->payment_type_id);
             }
+            if ($request->filled('old_amount')) {
+                $query->where('amount', $request->old_amount);
+            }
+            if ($request->filled('month')) {
+                $query->where('month', $request->month);
+            }
+            if ($request->filled('year')) {
+                $query->where('year', $request->year);
+            }
             if ($request->filled('classroom_id')) {
                 $query->whereHas('student.classrooms', fn($q) => $q->where('classrooms.id', $request->classroom_id));
             } elseif ($request->filled('grade_level')) {
@@ -592,6 +612,15 @@ class StudentBillController extends Controller
             }
             if ($request->filled('payment_type_id')) {
                 $query->where('payment_type_id', $request->payment_type_id);
+            }
+            if ($request->filled('old_amount')) {
+                $query->where('amount', $request->old_amount);
+            }
+            if ($request->filled('month')) {
+                $query->where('month', $request->month);
+            }
+            if ($request->filled('year')) {
+                $query->where('year', $request->year);
             }
             if ($request->filled('classroom_id')) {
                 $query->whereHas('student.classrooms', fn($q) => $q->where('classrooms.id', $request->classroom_id));
