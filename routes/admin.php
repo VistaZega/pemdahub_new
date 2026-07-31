@@ -273,6 +273,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::get('bills/bulk-create', [App\Http\Controllers\Admin\StudentBillController::class, 'bulkCreate'])->name('bills.bulk-create');
     Route::post('bills/bulk-store', [App\Http\Controllers\Admin\StudentBillController::class, 'bulkStore'])->name('bills.bulk-store');
     Route::post('bills/bulk-waive', [App\Http\Controllers\Admin\StudentBillController::class, 'bulkWaiveLateFee'])->name('bills.bulk-waive');
+    Route::post('bills/bulk-update-amount', [App\Http\Controllers\Admin\StudentBillController::class, 'bulkUpdateAmount'])->name('bills.bulk-update-amount');
+    Route::post('bills/bulk-delete', [App\Http\Controllers\Admin\StudentBillController::class, 'bulkDelete'])->name('bills.bulk-delete');
     Route::get('bills/export', [App\Http\Controllers\Admin\StudentBillController::class, 'export'])->name('bills.export');
     Route::resource('bills', App\Http\Controllers\Admin\StudentBillController::class);
     

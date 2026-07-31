@@ -211,4 +211,76 @@ class StudentBillService
 
         return $query->get();
     }
+
+    // ──────────────────────────────────────────────
+    //  Bulk Update & Bulk Delete Operations
+    // ──────────────────────────────────────────────
+
+    /**
+     * Update bill amount in bulk based on selected bill IDs.
+     */
+    public function bulkUpdateAmount(array $billIds, float $newAmount, int $userId): int
+    {
+        return DB::transaction(function () use ($billIds, $newAmount, $userId) {
+            $updated = StudentBill::whereIn('id', $billIds)
+                ->where('paid_amount', '<=', $newAmount)
+                ->where('status', '!=', 'lunas')
+                ->update([
+                    'amount' => $newAmount,
+                ]);
+
+            \App\Models\ActivityLog::create([
+                'user_id' => $userId,
+                'action' => 'update',
+                'description' => "Mengubah nominal tagihan massal menjadi Rp " . number_format($newAmount, 0, ',', '.') . " untuk {$updated} tagihan.",
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'logged_at' => now(),
+            ]);
+
+            return $updated;
+        });
+    }
+
+    /**
+     * Delete bills in bulk (only bills with NO payments and paid_amount == 0).
+     */
+    public function bulkDeleteBills(array $billIds, int $userId): array
+    {
+        return DB::transaction(function () use ($billIds, $userId) {
+            $bills = StudentBill::whereIn('id', $billIds)
+                ->withCount('payments')
+                ->get();
+
+            $deletedCount = 0;
+            $skippedCount = 0;
+
+            foreach ($bills as $bill) {
+                if ($bill->payments_count > 0 || $bill->paid_amount > 0) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                $bill->delete();
+                $deletedCount++;
+            }
+
+            if ($deletedCount > 0) {
+                \App\Models\ActivityLog::create([
+                    'user_id' => $userId,
+                    'action' => 'delete',
+                    'description' => "Menghapus massal {$deletedCount} tagihan siswa yang belum dibayar.",
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                    'logged_at' => now(),
+                ]);
+            }
+
+            return [
+                'deleted' => $deletedCount,
+                'skipped' => $skippedCount,
+            ];
+        });
+    }
 }
+

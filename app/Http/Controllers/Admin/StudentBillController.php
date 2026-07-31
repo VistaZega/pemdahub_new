@@ -475,6 +475,142 @@ class StudentBillController extends Controller
         }
     }
 
+    public function bulkUpdateAmount(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user->isSuperAdmin() && !$user->isAdminSekolah()) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah data tagihan.');
+        }
+
+        $validated = $request->validate([
+            'bill_ids' => 'nullable|array',
+            'bill_ids.*' => 'exists:student_bills,id',
+            'school_id' => 'nullable|exists:schools,id',
+            'academic_year_id' => 'nullable|exists:academic_years,id',
+            'payment_type_id' => 'nullable|exists:payment_types,id',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+            'grade_level' => 'nullable|integer',
+            'new_amount' => 'required|numeric|min:0',
+        ]);
+
+        $billIds = $request->bill_ids ?? [];
+
+        if (empty($billIds)) {
+            $query = StudentBill::query();
+            
+            $schoolId = $user->isSuperAdmin() ? $request->school_id : $user->school_id;
+            if ($schoolId) {
+                $query->whereHas('student', fn($q) => $q->where('school_id', $schoolId));
+            }
+            if ($request->filled('academic_year_id')) {
+                $query->where('academic_year_id', $request->academic_year_id);
+            }
+            if ($request->filled('payment_type_id')) {
+                $query->where('payment_type_id', $request->payment_type_id);
+            }
+            if ($request->filled('classroom_id')) {
+                $query->whereHas('student.classrooms', fn($q) => $q->where('classrooms.id', $request->classroom_id));
+            } elseif ($request->filled('grade_level')) {
+                $query->whereHas('student.classrooms', fn($q) => $q->where('grade_level', $request->grade_level));
+            }
+
+            $billIds = $query->pluck('id')->toArray();
+        }
+
+        if (empty($billIds)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Tidak ada tagihan yang sesuai dengan kriteria.'], 400);
+            }
+            return redirect()->back()->with('error', 'Tidak ada tagihan yang sesuai untuk diperbarui.');
+        }
+
+        try {
+            $updated = $this->billService->bulkUpdateAmount($billIds, (float)$validated['new_amount'], auth()->id());
+
+            $msg = "Berhasil memperbarui nominal menjadi Rp " . number_format($validated['new_amount'], 0, ',', '.') . " untuk {$updated} tagihan.";
+            
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => $msg, 'count' => $updated]);
+            }
+            return redirect()->back()->with('success', $msg);
+        } catch (\Exception $e) {
+            Log::error('Gagal update nominal massal: ' . $e->getMessage());
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem.'], 500);
+            }
+            return redirect()->back()->with('error', 'Terjadi kesalahan pada sistem.');
+        }
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user->isSuperAdmin() && !$user->isAdminSekolah()) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menghapus data tagihan.');
+        }
+
+        $validated = $request->validate([
+            'bill_ids' => 'nullable|array',
+            'bill_ids.*' => 'exists:student_bills,id',
+            'school_id' => 'nullable|exists:schools,id',
+            'academic_year_id' => 'nullable|exists:academic_years,id',
+            'payment_type_id' => 'nullable|exists:payment_types,id',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+            'grade_level' => 'nullable|integer',
+        ]);
+
+        $billIds = $request->bill_ids ?? [];
+
+        if (empty($billIds)) {
+            $query = StudentBill::query();
+            
+            $schoolId = $user->isSuperAdmin() ? $request->school_id : $user->school_id;
+            if ($schoolId) {
+                $query->whereHas('student', fn($q) => $q->where('school_id', $schoolId));
+            }
+            if ($request->filled('academic_year_id')) {
+                $query->where('academic_year_id', $request->academic_year_id);
+            }
+            if ($request->filled('payment_type_id')) {
+                $query->where('payment_type_id', $request->payment_type_id);
+            }
+            if ($request->filled('classroom_id')) {
+                $query->whereHas('student.classrooms', fn($q) => $q->where('classrooms.id', $request->classroom_id));
+            } elseif ($request->filled('grade_level')) {
+                $query->whereHas('student.classrooms', fn($q) => $q->where('grade_level', $request->grade_level));
+            }
+
+            $billIds = $query->pluck('id')->toArray();
+        }
+
+        if (empty($billIds)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Tidak ada tagihan yang dipilih / ditemukan.'], 400);
+            }
+            return redirect()->back()->with('error', 'Tidak ada tagihan yang dipilih atau ditemukan.');
+        }
+
+        try {
+            $result = $this->billService->bulkDeleteBills($billIds, auth()->id());
+
+            $msg = "Berhasil menghapus {$result['deleted']} tagihan yang belum dibayar.";
+            if ($result['skipped'] > 0) {
+                $msg .= " ({$result['skipped']} tagihan dilewati karena sudah ada riwayat pembayaran).";
+            }
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => $msg, 'deleted' => $result['deleted'], 'skipped' => $result['skipped']]);
+            }
+            return redirect()->back()->with('success', $msg);
+        } catch (\Exception $e) {
+            Log::error('Gagal hapus massal tagihan: ' . $e->getMessage());
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem.'], 500);
+            }
+            return redirect()->back()->with('error', 'Terjadi kesalahan pada sistem.');
+        }
+    }
+
     public function export(Request $request)
     {
         $fileName = 'Tagihan_' . now()->format('Y-m-d_His') . '.xlsx';

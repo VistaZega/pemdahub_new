@@ -429,17 +429,179 @@ class StudentBillController extends Controller
 
     public function edit(StudentBill $bill)
     {
-        abort(403, 'Bendahara tidak diperbolehkan mengubah atau menghapus data tagihan.');
+        $schoolId = auth()->user()->school_id;
+        if ($bill->student->school_id != $schoolId) {
+            abort(403, 'Unauthorized');
+        }
+
+        if ($bill->paid_amount > 0 || $bill->payments()->exists()) {
+            return redirect()->back()->with('error', 'Tagihan tidak dapat diubah karena sudah memiliki riwayat pembayaran.');
+        }
+
+        $bill->load(['student', 'paymentType', 'academicYear']);
+        return view('treasurer.bills.edit', compact('bill'));
     }
 
     public function update(Request $request, StudentBill $bill)
     {
-        abort(403, 'Bendahara tidak diperbolehkan mengubah atau menghapus data tagihan.');
+        $schoolId = auth()->user()->school_id;
+        if ($bill->student->school_id != $schoolId) {
+            abort(403, 'Unauthorized');
+        }
+
+        if ($bill->paid_amount > 0 || $bill->payments()->exists()) {
+            return redirect()->back()->with('error', 'Tagihan tidak dapat diubah karena sudah memiliki riwayat pembayaran.');
+        }
+
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'due_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+        ]);
+
+        $bill->update($validated);
+
+        return redirect()->route('treasurer.bills.index')
+            ->with('success', 'Tagihan berhasil diperbarui.');
     }
 
     public function destroy(StudentBill $bill)
     {
-        abort(403, 'Bendahara tidak diperbolehkan mengubah atau menghapus data tagihan.');
+        $schoolId = auth()->user()->school_id;
+        if ($bill->student->school_id != $schoolId) {
+            abort(403, 'Unauthorized');
+        }
+
+        if ($bill->paid_amount > 0 || $bill->payments()->exists()) {
+            return redirect()->back()->with('error', 'Tagihan tidak dapat dihapus karena sudah memiliki riwayat pembayaran.');
+        }
+
+        $bill->delete();
+
+        return redirect()->route('treasurer.bills.index')
+            ->with('success', 'Tagihan berhasil dihapus.');
+    }
+
+    public function bulkUpdateAmount(Request $request)
+    {
+        $schoolId = auth()->user()->school_id;
+
+        $validated = $request->validate([
+            'bill_ids' => 'nullable|array',
+            'bill_ids.*' => 'exists:student_bills,id',
+            'academic_year_id' => 'nullable|exists:academic_years,id',
+            'payment_type_id' => 'nullable|exists:payment_types,id',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+            'grade_level' => 'nullable|integer',
+            'new_amount' => 'required|numeric|min:0',
+        ]);
+
+        $billIds = $request->bill_ids ?? [];
+
+        if (empty($billIds)) {
+            $query = StudentBill::whereHas('student', fn($q) => $q->where('school_id', $schoolId));
+            
+            if ($request->filled('academic_year_id')) {
+                $query->where('academic_year_id', $request->academic_year_id);
+            }
+            if ($request->filled('payment_type_id')) {
+                $query->where('payment_type_id', $request->payment_type_id);
+            }
+            if ($request->filled('classroom_id')) {
+                $query->whereHas('student.classrooms', fn($q) => $q->where('classrooms.id', $request->classroom_id));
+            } elseif ($request->filled('grade_level')) {
+                $query->whereHas('student.classrooms', fn($q) => $q->where('grade_level', $request->grade_level));
+            }
+
+            $billIds = $query->pluck('id')->toArray();
+        }
+
+        if (empty($billIds)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Tidak ada tagihan yang sesuai dengan kriteria.'], 400);
+            }
+            return redirect()->back()->with('error', 'Tidak ada tagihan yang sesuai untuk diperbarui.');
+        }
+
+        try {
+            $billService = app(\App\Services\StudentBillService::class);
+            $updated = $billService->bulkUpdateAmount($billIds, (float)$validated['new_amount'], auth()->id());
+
+            $msg = "Berhasil memperbarui nominal menjadi Rp " . number_format($validated['new_amount'], 0, ',', '.') . " untuk {$updated} tagihan.";
+            
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => $msg, 'count' => $updated]);
+            }
+            return redirect()->back()->with('success', $msg);
+        } catch (\Exception $e) {
+            Log::error('Gagal update nominal massal (Treasurer): ' . $e->getMessage());
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem.'], 500);
+            }
+            return redirect()->back()->with('error', 'Terjadi kesalahan pada sistem.');
+        }
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $schoolId = auth()->user()->school_id;
+
+        $validated = $request->validate([
+            'bill_ids' => 'nullable|array',
+            'bill_ids.*' => 'exists:student_bills,id',
+            'academic_year_id' => 'nullable|exists:academic_years,id',
+            'payment_type_id' => 'nullable|exists:payment_types,id',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+            'grade_level' => 'nullable|integer',
+        ]);
+
+        $billIds = $request->bill_ids ?? [];
+
+        if (empty($billIds)) {
+            $query = StudentBill::whereHas('student', fn($q) => $q->where('school_id', $schoolId));
+            
+            if ($request->filled('academic_year_id')) {
+                $query->where('academic_year_id', $request->academic_year_id);
+            }
+            if ($request->filled('payment_type_id')) {
+                $query->where('payment_type_id', $request->payment_type_id);
+            }
+            if ($request->filled('classroom_id')) {
+                $query->whereHas('student.classrooms', fn($q) => $q->where('classrooms.id', $request->classroom_id));
+            } elseif ($request->filled('grade_level')) {
+                $query->whereHas('student.classrooms', fn($q) => $q->where('grade_level', $request->grade_level));
+            }
+
+            $billIds = $query->pluck('id')->toArray();
+        }
+
+        if (empty($billIds)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Tidak ada tagihan yang dipilih / ditemukan.'], 400);
+            }
+            return redirect()->back()->with('error', 'Tidak ada tagihan yang dipilih atau ditemukan.');
+        }
+
+        try {
+            $billService = app(\App\Services\StudentBillService::class);
+            $result = $billService->bulkDeleteBills($billIds, auth()->id());
+
+            $msg = "Berhasil menghapus {$result['deleted']} tagihan yang belum dibayar.";
+            if ($result['skipped'] > 0) {
+                $msg .= " ({$result['skipped']} tagihan dilewati karena sudah ada riwayat pembayaran).";
+            }
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => $msg, 'deleted' => $result['deleted'], 'skipped' => $result['skipped']]);
+            }
+            return redirect()->back()->with('success', $msg);
+        } catch (\Exception $e) {
+            Log::error('Gagal hapus massal tagihan (Treasurer): ' . $e->getMessage());
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem.'], 500);
+            }
+            return redirect()->back()->with('error', 'Terjadi kesalahan pada sistem.');
+        }
     }
 
     public function export(Request $request)

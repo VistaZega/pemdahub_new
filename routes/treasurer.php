@@ -17,6 +17,8 @@ Route::prefix('bendahara')->name('treasurer.')->middleware('auth', 'treasurer')-
     // Student Bills Management
     Route::get('bills/bulk-create', [App\Http\Controllers\Treasurer\StudentBillController::class, 'bulkCreate'])->name('bills.bulk-create');
     Route::post('bills/bulk-store', [App\Http\Controllers\Treasurer\StudentBillController::class, 'bulkStore'])->name('bills.bulk-store');
+    Route::post('bills/bulk-update-amount', [App\Http\Controllers\Treasurer\StudentBillController::class, 'bulkUpdateAmount'])->name('bills.bulk-update-amount');
+    Route::post('bills/bulk-delete', [App\Http\Controllers\Treasurer\StudentBillController::class, 'bulkDelete'])->name('bills.bulk-delete');
     Route::get('bills/export', [App\Http\Controllers\Treasurer\StudentBillController::class, 'export'])->name('bills.export');
     Route::resource('bills', App\Http\Controllers\Treasurer\StudentBillController::class);
     
