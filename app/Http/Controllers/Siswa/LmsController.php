@@ -328,33 +328,50 @@ class LmsController extends Controller
         }
 
         // Standard web form submission redirect logic
-        $currentModuleOrder = $material->module->order_index ?? 0;
-        
-        $nextMaterial = LmsMaterial::where('module_id', $material->module_id)
-            ->where(function($q) use ($material) {
-                $q->where('order_index', '>', $material->order_index)
-                  ->orWhere(function($subQ) use ($material) {
-                      $subQ->where('order_index', '=', $material->order_index)
-                           ->where('id', '>', $material->id);
-                  });
-            })
-            ->orderBy('order_index', 'asc')
-            ->orderBy('id', 'asc')
-            ->first();
+        $currentMaterialId = (int) $material->id;
+        $moduleId = $material->module_id;
+        $courseId = $material->course_id;
 
-        if (!$nextMaterial) {
-            // Check next module's first material
-            $nextModule = LmsModule::where('course_id', $material->course_id)
-                ->where('order_index', '>', $currentModuleOrder)
-                ->orderBy('order_index', 'asc')
+        // 1. Find next material in current module
+        $nextMaterial = null;
+        if ($moduleId) {
+            $nextMaterial = LmsMaterial::where('module_id', $moduleId)
+                ->where('id', '>', $currentMaterialId)
+                ->orderBy('order_number', 'asc')
+                ->orderBy('id', 'asc')
+                ->first();
+        }
+
+        // 2. If not found in current module, check next module's first material
+        if (!$nextMaterial && $courseId) {
+            $currentModuleSeq = $material->module->sequence ?? 0;
+            $nextModule = LmsModule::where('course_id', $courseId)
+                ->where(function($q) use ($moduleId, $currentModuleSeq) {
+                    if ($currentModuleSeq > 0) {
+                        $q->where('sequence', '>', $currentModuleSeq);
+                    }
+                    if ($moduleId) {
+                        $q->orWhere('id', '>', $moduleId);
+                    }
+                })
+                ->orderBy('sequence', 'asc')
+                ->orderBy('id', 'asc')
                 ->first();
 
             if ($nextModule) {
                 $nextMaterial = $nextModule->materials()
-                    ->orderBy('order_index', 'asc')
+                    ->orderBy('order_number', 'asc')
                     ->orderBy('id', 'asc')
                     ->first();
             }
+        }
+
+        // 3. Fallback: next material in course by ID
+        if (!$nextMaterial && $courseId) {
+            $nextMaterial = LmsMaterial::where('course_id', $courseId)
+                ->where('id', '>', $currentMaterialId)
+                ->orderBy('id', 'asc')
+                ->first();
         }
 
         if ($nextMaterial) {
@@ -362,7 +379,7 @@ class LmsController extends Controller
                 ->with('success', 'Materi berhasil diselesaikan! Melanjutkan ke materi berikutnya (+50 EXP)');
         }
 
-        return redirect()->route('siswa.lms.show', $material->course_id)
+        return redirect()->route('siswa.lms.show', $courseId)
             ->with('success', 'Selamat! Anda telah menyelesaikan seluruh materi pada kelas ini! (+50 EXP)');
     }
 
