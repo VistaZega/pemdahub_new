@@ -59,6 +59,11 @@ class CheckRole
                 
                 $allowed = false;
                 
+                // Surat Edaran Masuk Yayasan (Dapat dibaca oleh Guru & Pegawai)
+                if (str_starts_with($routeName, 'admin.letters.') || str_starts_with($path, 'admin/surat-edaran')) {
+                    $allowed = true;
+                }
+                
                 // Panitia CBT
                 if ($user->isPanitiaCbt() && (str_starts_with($routeName, 'admin.cbt.') || str_starts_with($path, 'admin/cbt'))) {
                     $allowed = true;
