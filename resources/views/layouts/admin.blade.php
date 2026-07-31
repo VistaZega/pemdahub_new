@@ -467,14 +467,15 @@
     @endif
 
     <!-- ════════════════ GROUP: KEUANGAN ════════════════ -->
-    @if($isYayasan || $isFinance || $isSA)
+    @if($isYayasan || $isFinance || $isSA || $isAdmin)
     <div class="pt-3" data-menu-group="finance">
         <button class="menu-group-toggle w-full flex items-center justify-between px-3 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-gray-600" onclick="toggleGroup(this)">
             <span class="flex items-center gap-2"><i class="fas fa-coins text-[10px]"></i> Keuangan</span>
             <i class="fas fa-chevron-right text-[9px] chevron"></i>
         </button>
         <div class="menu-group-body closed mt-1 space-y-0.5">
-            @if($isYayasan || $isFinance || $isSA)
+            {{-- Menu khusus Super Admin Erwin, Admin Sekolah, & Bendahara --}}
+            @if(($isSA || $isAdmin || $isFinance) && !$isYayasan)
             <a href="{{ route('admin.bills.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.bills.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-file-invoice-dollar text-[10px]"></i></div>
                 <span>Tagihan Siswa</span>
@@ -484,15 +485,15 @@
                 <span>Pembayaran</span>
             </a>
             @endif
+
+            {{-- Laporan Rekap Tagihan: Dibuka untuk Super Admin Erwin & Super Admin Yayasan --}}
             <a href="{{ route('admin.payment_reports.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.payment_reports.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-chart-pie text-[10px]"></i></div>
                 <span>Laporan Rekap Tagihan</span>
             </a>
-            @if($isYayasan || $isSA)
-            <a href="{{ route('yayasan.contribution_balance.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.contribution_balance.*') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white"><i class="fas fa-school text-[10px]"></i></div>
-                <span>Kontribusi Unit Sekolah</span>
-            </a>
+
+            {{-- Menu khusus Super Admin Yayasan --}}
+            @if($isYayasan)
             <a href="{{ route('yayasan.operational_expenses.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.operational_expenses.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center text-white"><i class="fas fa-list-check text-[10px]"></i></div>
                 <span>Rencana Belanja Operasional</span>
@@ -500,6 +501,13 @@
             <a href="{{ route('yayasan.financial_recap.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.financial_recap.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-purple-800 flex items-center justify-center text-white"><i class="fas fa-chart-line text-[10px]"></i></div>
                 <span>Rekapitulasi Keuangan Yayasan</span>
+            </a>
+            @endif
+
+            @if($isSA && !$isYayasan)
+            <a href="{{ route('yayasan.contribution_balance.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.contribution_balance.*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white"><i class="fas fa-school text-[10px]"></i></div>
+                <span>Kontribusi Unit Sekolah</span>
             </a>
             <a href="{{ route('admin.settings.late-fees') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.settings.late-fees*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center text-white"><i class="fas fa-percent text-[10px]"></i></div>
