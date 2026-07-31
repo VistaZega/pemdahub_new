@@ -437,7 +437,7 @@ class User extends Authenticatable
         
         return match ($role) {
             'superadmin', 'admin_sekolah', 'kepala_sekolah' => 'layouts.admin',
-            'guru' => 'layouts.guru',
+            'guru', 'pegawai' => 'layouts.guru',
             'siswa' => 'layouts.siswa',
             'orang_tua' => 'layouts.orangtua',
             'bendahara' => 'layouts.treasurer',

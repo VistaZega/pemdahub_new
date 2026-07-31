@@ -38,9 +38,11 @@ class CheckRole
 
         // Prevent 404 trap for missing profiles
         $effectiveRole = $activeRole ?? $user->role;
-        if ($effectiveRole === 'guru' || $effectiveRole === 'kepala_sekolah') {
-            if (!$user->isSuperAdmin() && !\App\Models\Teacher::where('user_id', $user->id)->exists()) {
-                return response()->view('errors.missing_profile', ['role' => 'Guru / Kepala Sekolah']);
+        if ($effectiveRole === 'guru' || $effectiveRole === 'kepala_sekolah' || $effectiveRole === 'pegawai') {
+            if (!$user->isSuperAdmin() 
+                && !\App\Models\Teacher::where('user_id', $user->id)->exists() 
+                && !\App\Models\Employee::where('user_id', $user->id)->exists()) {
+                return response()->view('errors.missing_profile', ['role' => 'Guru / Pegawai']);
             }
         }
         if ($effectiveRole === 'siswa') {

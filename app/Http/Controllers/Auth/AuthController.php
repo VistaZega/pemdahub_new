@@ -243,7 +243,7 @@ class AuthController extends Controller
             'admin_sekolah' => route('sekolah.dashboard'),
             'bendahara' => route('treasurer.dashboard'),
             'ketua_yayasan' => route('yayasan.dashboard'),
-            'guru' => route('guru.dashboard'),
+            'guru', 'pegawai' => route('guru.dashboard'),
             'siswa' => route('siswa.dashboard'),
             'orang_tua' => route('orangtua.dashboard'),
             'alumni' => route('alumni.dashboard'),

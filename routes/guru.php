@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 | Middleware: auth, role:guru
 */
 
-Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekolah')->group(function () {
+Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekolah,pegawai')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Guru\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/calendar', [App\Http\Controllers\Guru\EducationalCalendarController::class, 'index'])->name('calendar.index');
     Route::get('/jadwal', [App\Http\Controllers\Guru\DashboardController::class, 'jadwal'])->name('jadwal');
