@@ -174,7 +174,7 @@
     {{-- Modal Edit Biodata --}}
     <div x-show="isEditModalOpen" 
          style="display: none;" 
-         class="fixed top-[66px] inset-x-0 bottom-0 z-[99999] overflow-y-auto flex items-start justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm"
+         class="fixed inset-0 z-[99999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 pt-20 pb-6 overflow-y-auto"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -182,7 +182,7 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0">
         
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[82vh] flex flex-col overflow-hidden relative my-2"
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[calc(100vh-100px)] flex flex-col overflow-hidden relative"
              @click.outside="isEditModalOpen = false"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -191,7 +191,7 @@
              x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
              x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             
-            <form action="{{ route('profile.biodata.update') }}" method="POST" enctype="multipart/form-data" class="flex flex-col h-full overflow-hidden">
+            <form action="{{ route('profile.biodata.update') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                 @csrf
                 @method('PUT')
                 <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/80 shrink-0">
@@ -203,7 +203,7 @@
                     </button>
                 </div>
 
-                <div class="p-6 overflow-y-auto flex-1 space-y-4 min-h-0">
+                <div class="p-6 overflow-y-auto flex-1 min-h-0 space-y-4">
                     @php $isBiodataEditable = now()->format('Y-m-d') <= '2026-08-10'; @endphp
                     
                     @if($isBiodataEditable)
