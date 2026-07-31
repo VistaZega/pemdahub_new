@@ -843,7 +843,7 @@ class ProgressInputController extends Controller
             // Ambil semua rombel aktif di sekolah ini
             $classrooms = Classroom::where('school_id', $school->id)
                 ->where('is_active', true)
-                ->orderBy('name')
+                ->orderBy('class_name')
                 ->get();
 
             // Total per sekolah
