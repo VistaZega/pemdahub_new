@@ -20,7 +20,9 @@ class FoundationLetterReaderController extends Controller
             ->orderBy('effective_date', 'desc')
             ->paginate(10);
 
-        return view('admin.letters.index', compact('letters', 'user', 'schoolId'));
+        $layout = $user->layout;
+
+        return view('admin.letters.index', compact('letters', 'user', 'schoolId', 'layout'));
     }
 
     public function show($id)
@@ -47,7 +49,9 @@ class FoundationLetterReaderController extends Controller
             'read_at' => now(),
         ]);
 
-        return view('admin.letters.show', compact('letter', 'user'));
+        $layout = $user->layout;
+
+        return view('admin.letters.show', compact('letter', 'user', 'layout'));
     }
 
     public function print($id)
