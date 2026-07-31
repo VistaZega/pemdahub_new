@@ -1244,11 +1244,9 @@ document.addEventListener('keydown', e => {
             </div>
         </div>
     </div>
-</div>
-
-<!-- Modern Bulk Update Modal -->
+</div><!-- Modern Bulk Update Modal (Admin) -->
 <div id="bulkUpdateModal" style="display: none;" class="fixed inset-0 z-[99999] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-8">
+    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-8">
         <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
         <div class="px-6 py-6 sm:px-8 sm:py-8">
             <div class="flex items-center justify-between mb-6">
@@ -1259,8 +1257,8 @@ document.addEventListener('keydown', e => {
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-gray-900">Ubah Nominal Massal</h3>
-                        <p class="text-xs font-bold text-indigo-600 uppercase tracking-wider mt-0.5">Centang Tagihan Siswa yang Ingin Diperbarui</p>
+                        <h3 class="text-xl font-bold text-gray-900">Ubah Nominal Jenis Tagihan Massal</h3>
+                        <p class="text-xs font-bold text-indigo-600 uppercase tracking-wider mt-0.5">Pilih Jenis Tagihan yang Nominalnya Ingin Diubah</p>
                     </div>
                 </div>
                 <button type="button" onclick="hideBulkUpdateModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-900 transition-all">
@@ -1268,86 +1266,69 @@ document.addEventListener('keydown', e => {
                 </button>
             </div>
 
-            <div class="space-y-5">
-                <!-- Input Nominal Baru -->
-                <div class="p-5 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <form id="bulkUpdateForm" onsubmit="submitBulkUpdateType(event)" class="space-y-5">
+                <!-- 1. Pilih Jenis Tagihan -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">1. Pilih Jenis Tagihan <span class="text-rose-500">*</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border border-gray-200 rounded-xl bg-gray-50">
+                        @foreach($allPaymentTypes as $pt)
+                        <label class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl hover:border-indigo-500 hover:bg-indigo-50/30 cursor-pointer transition-all">
+                            <input type="checkbox" name="payment_type_ids[]" value="{{ $pt->id }}" class="bulk-update-pt-cb w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                            <div class="text-xs">
+                                <span class="font-bold text-gray-900 block">{{ $pt->type_name }}</span>
+                                <span class="text-[10px] text-gray-400">Kode: {{ $pt->type_code }}</span>
+                            </div>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- 2. Nominal Baru -->
+                <div class="p-4 bg-indigo-50/60 rounded-2xl border border-indigo-100">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-indigo-900 mb-1">2. Nominal Baru (Rp) <span class="text-rose-500">*</span></label>
+                    <input type="number" id="bulk_type_new_amount" required placeholder="Contoh: 150000" min="0" step="1000"
+                        class="w-full px-4 py-3 bg-white border-2 border-indigo-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-gray-900 text-lg outline-none">
+                    <p class="text-[11px] text-indigo-700 mt-1">Semua tagihan yang belum dibayar untuk Jenis Tagihan yang dicentang akan diubah ke nominal baru ini.</p>
+                </div>
+
+                <!-- 3. Filter Scope (Opsional) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-indigo-900 mb-1">Nominal Tagihan Baru (Rp) <span class="text-rose-500">*</span></label>
-                        <p class="text-xs text-gray-500">Nominal baru ini akan diterapkan pada tagihan yang Anda centang di bawah.</p>
+                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Filter Tahun Ajaran</label>
+                        <select id="bulk_update_academic_year_id" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold">
+                            <option value="">Semua Tahun Ajaran</option>
+                            @foreach($allAcademicYears as $ay)
+                            <option value="{{ $ay->id }}" {{ $ay->id == $academicYearId ? 'selected' : '' }}>{{ $ay->year }} ({{ $ay->semester }})</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <input type="number" id="bulk_new_amount" placeholder="Misal: 150000" min="0" step="1000"
-                        class="w-full md:w-64 px-4 py-3 bg-white border-2 border-indigo-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-gray-900 text-lg outline-none">
-                </div>
-
-                <!-- Live Search & Select All -->
-                <div class="flex items-center justify-between gap-4 pt-1">
-                    <div class="relative flex-1">
-                        <input type="text" id="modal_update_search" onkeyup="filterModalBills('update')" placeholder="🔍 Cari nama siswa atau kelas..." 
-                            class="w-full pl-4 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500">
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Filter Kelas</label>
+                        <select id="bulk_update_classroom_id" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold">
+                            <option value="">Semua Kelas</option>
+                            @foreach($allClassrooms as $c)
+                            <option value="{{ $c->id }}" {{ $c->id == $classroomId ? 'selected' : '' }}>{{ $c->class_name }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <label class="flex items-center gap-2 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-xl cursor-pointer text-xs font-bold text-indigo-700 transition-all">
-                        <input type="checkbox" id="modal_update_select_all" onchange="toggleModalSelectAll('update', this.checked)" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
-                        Pilih Semua
-                    </label>
-                </div>
-
-                <!-- Visual Table inside Modal -->
-                <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-2xl shadow-inner bg-white">
-                    <table class="w-full text-xs text-left">
-                        <thead class="bg-gray-100 text-gray-600 uppercase tracking-wider sticky top-0 border-b border-gray-200">
-                            <tr>
-                                <th class="p-3 text-center w-12">Pilih</th>
-                                <th class="p-3">Siswa</th>
-                                <th class="p-3">Jenis Tagihan</th>
-                                <th class="p-3">Bulan/Tahun</th>
-                                <th class="p-3 text-right">Nominal Saat Ini</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100" id="modal_update_bills_tbody">
-                            @forelse($unpaidBillsList as $bill)
-                            <tr class="modal-update-row hover:bg-indigo-50/50 transition-colors" data-search="{{ strtolower(($bill->student->full_name ?? '') . ' ' . ($bill->student->classroom->class_name ?? '')) }}">
-                                <td class="p-3 text-center">
-                                    <input type="checkbox" class="modal-update-cb w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" value="{{ $bill->id }}">
-                                </td>
-                                <td class="p-3 font-bold text-gray-900">
-                                    {{ $bill->student->full_name ?? '-' }}
-                                    <span class="block text-[10px] font-normal text-gray-400">{{ $bill->student->classroom->class_name ?? 'Tanpa Kelas' }}</span>
-                                </td>
-                                <td class="p-3 text-gray-600">{{ $bill->paymentType->type_name ?? '-' }}</td>
-                                <td class="p-3 text-gray-600">
-                                    @if($bill->month)
-                                    {{ \Carbon\Carbon::create($bill->year, $bill->month, 1)->format('M Y') }}
-                                    @else
-                                    1 Kali ({{ $bill->year }})
-                                    @endif
-                                </td>
-                                <td class="p-3 text-right font-bold text-gray-800">Rp {{ number_format($bill->amount, 0, ',', '.') }}</td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="p-8 text-center text-gray-400 font-medium">Tidak ada tagihan yang belum dibayar saat ini.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
                 </div>
 
                 <div class="flex gap-4 pt-2">
                     <button type="button" onclick="hideBulkUpdateModal()" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold text-xs hover:bg-gray-200 transition-all">
                         Batal
                     </button>
-                    <button type="button" id="bulk_update_submit_btn" onclick="submitBulkUpdateVisual()" class="flex-[2] py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold text-xs shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 transition-all">
-                        Simpan & Perbarui Nominal Terpilih
+                    <button type="submit" id="bulk_update_type_btn" class="flex-[2] py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold text-xs shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 transition-all">
+                        Simpan & Ubah Nominal
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Modern Bulk Delete Modal -->
+<!-- Modern Bulk Delete Modal (Admin) -->
 <div id="bulkDeleteModal" style="display: none;" class="fixed inset-0 z-[99999] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-8">
+    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-8">
         <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-rose-500 to-red-600"></div>
         <div class="px-6 py-6 sm:px-8 sm:py-8">
             <div class="flex items-center justify-between mb-6">
@@ -1358,8 +1339,8 @@ document.addEventListener('keydown', e => {
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-gray-900">Hapus Tagihan Massal</h3>
-                        <p class="text-xs font-bold text-rose-600 uppercase tracking-wider mt-0.5">Centang Tagihan Hasil Latihan / Uji Coba yang Akan Dihapus</p>
+                        <h3 class="text-xl font-bold text-gray-900">Hapus Jenis Tagihan Massal</h3>
+                        <p class="text-xs font-bold text-rose-600 uppercase tracking-wider mt-0.5">Penghapusan Tagihan Latihan / Uji Coba per Jenis Tagihan</p>
                     </div>
                 </div>
                 <button type="button" onclick="hideBulkDeleteModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-900 transition-all">
@@ -1367,74 +1348,59 @@ document.addEventListener('keydown', e => {
                 </button>
             </div>
 
-            <div class="space-y-5">
-                <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-xl text-xs text-amber-800 space-y-1">
-                    <p class="font-bold text-xs text-amber-900">🛡️ Pembersihan Tagihan Latihan / Uji Coba</p>
-                    <p>Centang tagihan-tagihan di bawah ini yang ingin Anda hapus secara permanen. Tagihan yang pernah dibayar secara otomatis terlindungi.</p>
+            <form id="bulkDeleteForm" onsubmit="submitBulkDeleteType(event)" class="space-y-5">
+                <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-xl text-xs text-amber-900 space-y-1">
+                    <p class="font-bold">🛡️ Fitur Hapus Tagihan Latihan / Salah Buat</p>
+                    <p>Centang Jenis Tagihan di bawah ini. Semua tagihan yang <b>belum dibayar</b> pada jenis tagihan tersebut akan terhapus. Tagihan yang sudah memiliki transaksi pembayaran otomatis terlindungi.</p>
                 </div>
 
-                <!-- Live Search & Select All -->
-                <div class="flex items-center justify-between gap-4">
-                    <div class="relative flex-1">
-                        <input type="text" id="modal_delete_search" onkeyup="filterModalBills('delete')" placeholder="🔍 Cari nama siswa atau kelas..." 
-                            class="w-full pl-4 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-rose-500">
+                <!-- 1. Pilih Jenis Tagihan -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">1. Pilih Jenis Tagihan yang Akan Dihapus <span class="text-rose-500">*</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border border-gray-200 rounded-xl bg-gray-50">
+                        @foreach($allPaymentTypes as $pt)
+                        <label class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl hover:border-rose-500 hover:bg-rose-50/30 cursor-pointer transition-all">
+                            <input type="checkbox" name="payment_type_ids[]" value="{{ $pt->id }}" class="bulk-delete-pt-cb w-4 h-4 rounded text-rose-600 focus:ring-rose-500">
+                            <div class="text-xs">
+                                <span class="font-bold text-gray-900 block">{{ $pt->type_name }}</span>
+                                <span class="text-[10px] text-gray-400">Kode: {{ $pt->type_code }}</span>
+                            </div>
+                        </label>
+                        @endforeach
                     </div>
-                    <label class="flex items-center gap-2 px-3 py-2 bg-rose-50 hover:bg-rose-100 rounded-xl cursor-pointer text-xs font-bold text-rose-700 transition-all">
-                        <input type="checkbox" id="modal_delete_select_all" onchange="toggleModalSelectAll('delete', this.checked)" class="w-4 h-4 rounded text-rose-600 focus:ring-rose-500">
-                        Pilih Semua
-                    </label>
                 </div>
 
-                <!-- Visual Table inside Modal -->
-                <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-2xl shadow-inner bg-white">
-                    <table class="w-full text-xs text-left">
-                        <thead class="bg-gray-100 text-gray-600 uppercase tracking-wider sticky top-0 border-b border-gray-200">
-                            <tr>
-                                <th class="p-3 text-center w-12">Pilih</th>
-                                <th class="p-3">Siswa</th>
-                                <th class="p-3">Jenis Tagihan</th>
-                                <th class="p-3">Bulan/Tahun</th>
-                                <th class="p-3 text-right">Nominal Tagihan</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100" id="modal_delete_bills_tbody">
-                            @forelse($unpaidBillsList as $bill)
-                            <tr class="modal-delete-row hover:bg-rose-50/50 transition-colors" data-search="{{ strtolower(($bill->student->full_name ?? '') . ' ' . ($bill->student->classroom->class_name ?? '')) }}">
-                                <td class="p-3 text-center">
-                                    <input type="checkbox" class="modal-delete-cb w-4 h-4 rounded border-gray-300 text-rose-600 focus:ring-rose-500 cursor-pointer" value="{{ $bill->id }}">
-                                </td>
-                                <td class="p-3 font-bold text-gray-900">
-                                    {{ $bill->student->full_name ?? '-' }}
-                                    <span class="block text-[10px] font-normal text-gray-400">{{ $bill->student->classroom->class_name ?? 'Tanpa Kelas' }}</span>
-                                </td>
-                                <td class="p-3 text-gray-600">{{ $bill->paymentType->type_name ?? '-' }}</td>
-                                <td class="p-3 text-gray-600">
-                                    @if($bill->month)
-                                    {{ \Carbon\Carbon::create($bill->year, $bill->month, 1)->format('M Y') }}
-                                    @else
-                                    1 Kali ({{ $bill->year }})
-                                    @endif
-                                </td>
-                                <td class="p-3 text-right font-bold text-rose-600">Rp {{ number_format($bill->amount, 0, ',', '.') }}</td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="p-8 text-center text-gray-400 font-medium">Tidak ada tagihan yang dapat dihapus saat ini.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                <!-- 2. Filter Scope (Opsional) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Filter Tahun Ajaran</label>
+                        <select id="bulk_delete_academic_year_id" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold">
+                            <option value="">Semua Tahun Ajaran</option>
+                            @foreach($allAcademicYears as $ay)
+                            <option value="{{ $ay->id }}" {{ $ay->id == $academicYearId ? 'selected' : '' }}>{{ $ay->year }} ({{ $ay->semester }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Filter Kelas</label>
+                        <select id="bulk_delete_classroom_id" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold">
+                            <option value="">Semua Kelas</option>
+                            @foreach($allClassrooms as $c)
+                            <option value="{{ $c->id }}" {{ $c->id == $classroomId ? 'selected' : '' }}>{{ $c->class_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 <div class="flex gap-4 pt-2">
                     <button type="button" onclick="hideBulkDeleteModal()" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold text-xs hover:bg-gray-200 transition-all">
                         Batal
                     </button>
-                    <button type="button" id="bulk_delete_submit_btn" onclick="submitBulkDeleteVisual()" class="flex-[2] py-3 bg-gradient-to-r from-rose-600 to-red-700 text-white rounded-xl font-semibold text-xs shadow-lg shadow-rose-500/20 hover:-translate-y-0.5 transition-all">
-                        Ya, Hapus Tagihan Terpilih
+                    <button type="submit" id="bulk_delete_type_btn" class="flex-[2] py-3 bg-gradient-to-r from-rose-600 to-red-700 text-white rounded-xl font-semibold text-xs shadow-lg shadow-rose-500/20 hover:-translate-y-0.5 transition-all">
+                        Ya, Hapus Tagihan Jenis Terpilih
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>
@@ -1460,116 +1426,92 @@ function hideBulkDeleteModal() {
     if (modal) modal.style.display = 'none';
 }
 
-function filterModalBills(type) {
-    const q = (document.getElementById('modal_' + type + '_search')?.value || '').toLowerCase();
-    document.querySelectorAll('.modal-' + type + '-row').forEach(row => {
-        const text = row.dataset.search || '';
-        row.style.display = text.includes(q) ? '' : 'none';
-    });
-}
-
-function toggleModalSelectAll(type, isChecked) {
-    document.querySelectorAll('.modal-' + type + '-cb').forEach(cb => {
-        const row = cb.closest('tr');
-        if (row && row.style.display !== 'none') {
-            cb.checked = isChecked;
-        }
-    });
-}
-
-function submitBulkUpdateVisual() {
-    const newAmount = document.getElementById('bulk_new_amount')?.value;
+function submitBulkUpdateType(e) {
+    e.preventDefault();
+    const newAmount = document.getElementById('bulk_type_new_amount')?.value;
     if (!newAmount || parseFloat(newAmount) < 0) {
-        alert('Harap masukkan nominal tagihan baru yang valid!');
+        alert('Harap masukkan nominal tagihan baru!');
         return;
     }
 
-    let selectedIds = [];
-    document.querySelectorAll('.modal-update-cb:checked').forEach(cb => {
-        selectedIds.push(parseInt(cb.value));
+    const selectedPtIds = Array.from(document.querySelectorAll('.bulk-update-pt-cb:checked')).map(cb => parseInt(cb.value));
+    if (selectedPtIds.length === 0) {
+        alert('Harap centang setidaknya 1 Jenis Tagihan!');
+        return;
+    }
+
+    const ayId = document.getElementById('bulk_update_academic_year_id')?.value;
+    const classId = document.getElementById('bulk_update_classroom_id')?.value;
+
+    const btn = document.getElementById('bulk_update_type_btn');
+    if (btn) { btn.disabled = true; btn.innerHTML = 'Memproses Perubahan...'; }
+
+    let promises = selectedPtIds.map(ptId => {
+        return fetch('{{ route('admin.bills.bulk-update-amount') }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({
+                payment_type_id: ptId,
+                academic_year_id: ayId || null,
+                classroom_id: classId || null,
+                new_amount: newAmount,
+                _token: '{{ csrf_token() }}'
+            })
+        }).then(r => r.json());
     });
 
-    if (selectedIds.length === 0) {
-        alert('Harap centang setidaknya 1 tagihan dari daftar di dalam modal!');
-        return;
-    }
-
-    const btn = document.getElementById('bulk_update_submit_btn');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="animate-pulse">Memproses Perubahan...</span>';
-    }
-
-    fetch('{{ route('admin.bills.bulk-update-amount') }}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: JSON.stringify({
-            bill_ids: selectedIds,
-            new_amount: newAmount,
-            _token: '{{ csrf_token() }}'
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            location.reload();
-        } else {
-            alert(data.message || 'Terjadi kesalahan.');
-            if (btn) { btn.disabled = false; btn.textContent = 'Simpan & Perbarui Nominal Terpilih'; }
-        }
-    })
-    .catch(err => {
-        alert('Terjadi kesalahan jaringan.');
-        if (btn) { btn.disabled = false; btn.textContent = 'Simpan & Perbarui Nominal Terpilih'; }
+    Promise.all(promises).then(results => {
+        let totalUpdated = 0;
+        results.forEach(res => { if (res.success && res.count) totalUpdated += res.count; });
+        alert(`Berhasil memperbarui nominal tagihan untuk jenis tagihan terpilih! (${totalUpdated} tagihan ter-update)`);
+        location.reload();
+    }).catch(err => {
+        alert('Terjadi kesalahan saat memproses.');
+        if (btn) { btn.disabled = false; btn.textContent = 'Simpan & Ubah Nominal'; }
     });
 }
 
-function submitBulkDeleteVisual() {
-    let selectedIds = [];
-    document.querySelectorAll('.modal-delete-cb:checked').forEach(cb => {
-        selectedIds.push(parseInt(cb.value));
+function submitBulkDeleteType(e) {
+    e.preventDefault();
+    const selectedPtIds = Array.from(document.querySelectorAll('.bulk-delete-pt-cb:checked')).map(cb => parseInt(cb.value));
+    if (selectedPtIds.length === 0) {
+        alert('Harap centang setidaknya 1 Jenis Tagihan!');
+        return;
+    }
+
+    if (!confirm('Apakah Anda yakin ingin menghapus seluruh tagihan yang belum dibayar untuk Jenis Tagihan terpilih?')) {
+        return;
+    }
+
+    const ayId = document.getElementById('bulk_delete_academic_year_id')?.value;
+    const classId = document.getElementById('bulk_delete_classroom_id')?.value;
+
+    const btn = document.getElementById('bulk_delete_type_btn');
+    if (btn) { btn.disabled = true; btn.innerHTML = 'Memproses Penghapusan...'; }
+
+    let promises = selectedPtIds.map(ptId => {
+        return fetch('{{ route('admin.bills.bulk-delete') }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({
+                payment_type_id: ptId,
+                academic_year_id: ayId || null,
+                classroom_id: classId || null,
+                _token: '{{ csrf_token() }}'
+            })
+        }).then(r => r.json());
     });
 
-    if (selectedIds.length === 0) {
-        alert('Harap centang setidaknya 1 tagihan dari daftar di dalam modal!');
-        return;
-    }
-
-    if (!confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} tagihan terpilih ini? Tindakan ini tidak dapat dibatalkan.`)) {
-        return;
-    }
-
-    const btn = document.getElementById('bulk_delete_submit_btn');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="animate-pulse">Memproses Hapus...</span>';
-    }
-
-    fetch('{{ route('admin.bills.bulk-delete') }}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: JSON.stringify({
-            bill_ids: selectedIds,
-            _token: '{{ csrf_token() }}'
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            location.reload();
-        } else {
-            alert(data.message || 'Terjadi kesalahan.');
-            if (btn) { btn.disabled = false; btn.textContent = 'Ya, Hapus Tagihan Terpilih'; }
-        }
-    })
-    .catch(err => {
-        alert('Terjadi kesalahan jaringan.');
-        if (btn) { btn.disabled = false; btn.textContent = 'Ya, Hapus Tagihan Terpilih'; }
+    Promise.all(promises).then(results => {
+        let totalDeleted = 0;
+        results.forEach(res => { if (res.success && res.deleted) totalDeleted += res.deleted; });
+        alert(`Berhasil menghapus ${totalDeleted} tagihan yang belum dibayar!`);
+        location.reload();
+    }).catch(err => {
+        alert('Terjadi kesalahan saat memproses.');
+        if (btn) { btn.disabled = false; btn.textContent = 'Ya, Hapus Tagihan Jenis Terpilih'; }
     });
 }
 </script>
-
 @endsection
 
