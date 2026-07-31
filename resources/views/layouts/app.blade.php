@@ -184,7 +184,7 @@
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-[9998] hidden lg:hidden"></div>
 
     <!-- ═══════ HEADER ═══════ -->
-    <header class="bg-gradient-to-r {{ $t['header'] }} text-white shadow-lg fixed top-0 w-full z-[100]">
+    <header class="bg-gradient-to-r {{ $t['header'] }} text-white shadow-lg fixed top-0 w-full z-40">
         <div class="flex items-center justify-between px-4 lg:px-6 h-[62px]">
             <div class="flex items-center gap-3">
                 <button id="sidebar-toggle" type="button" style="touch-action: manipulation;" class="hamburger flex flex-col justify-center items-center gap-[5px] p-2 rounded-lg hover:bg-white/10 transition is-active" aria-label="Toggle sidebar">
