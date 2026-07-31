@@ -187,7 +187,7 @@
     <template x-teleport="body">
         <div x-show="isEditModalOpen" 
              style="display: none;" 
-             class="fixed inset-0 z-[999999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-hidden"
+             class="fixed inset-0 z-[999999] bg-slate-900/70 backdrop-blur-md flex flex-col items-center justify-start p-3 sm:p-6 pt-[75px] pb-6 overflow-y-auto"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0"
              x-transition:enter-end="opacity-100"
@@ -195,7 +195,7 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0">
             
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden relative my-auto"
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[calc(100vh-95px)] my-auto overflow-hidden relative border border-gray-100"
                  @click.outside="isEditModalOpen = false"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -216,7 +216,7 @@
                         </button>
                     </div>
 
-                    <div class="p-6 overflow-y-auto flex-1 min-h-0 space-y-4">
+                    <div class="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-4 max-h-[60vh] sm:max-h-[65vh] focus:outline-none">
                         @php $isBiodataEditable = now()->format('Y-m-d') <= '2026-08-10'; @endphp
                         
                         @if($isBiodataEditable)
