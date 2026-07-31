@@ -23,24 +23,31 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Photo & Identity --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-center text-white relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4"></div>
-                <div class="w-24 h-24 mx-auto mb-3 rounded-xl overflow-hidden shadow-sm">
-                    <img src="{{ $student->photo_url }}" class="w-full h-full object-cover" alt="{{ $student->full_name }}">
+            <div class="bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 p-6 text-center text-white relative overflow-hidden">
+                <div class="w-36 h-36 sm:w-40 sm:h-40 mx-auto mb-4 rounded-2xl overflow-hidden shadow-xl ring-4 ring-white/30 border-2 border-white bg-white/20 flex items-center justify-center transition-transform duration-300 hover:scale-105">
+                    @if($student->photo)
+                        <img src="{{ $student->photo_url }}" class="w-full h-full object-cover rounded-2xl" alt="{{ $student->full_name }}">
+                    @else
+                        <span class="text-6xl">🎓</span>
+                    @endif
                 </div>
-                <h2 class="text-lg font-bold">{{ $student->full_name }}</h2>
-                <p class="text-white/70 text-sm">{{ $student->nisn ? 'NISN: '.$student->nisn : '' }}</p>
-                @if($student->nis)
-                    <p class="text-white/70 text-sm">NIS: {{ $student->nis }}</p>
-                @endif
+                <h2 class="text-lg sm:text-xl font-extrabold tracking-tight">{{ $student->full_name }}</h2>
+                <div class="flex flex-wrap items-center justify-center gap-2 mt-1.5">
+                    @if($student->nisn)
+                        <span class="text-amber-100 text-xs font-mono bg-black/20 px-2.5 py-0.5 rounded-full">NISN: {{ $student->nisn }}</span>
+                    @endif
+                    @if($student->nis)
+                        <span class="text-amber-100 text-xs font-mono bg-black/20 px-2.5 py-0.5 rounded-full">NIS: {{ $student->nis }}</span>
+                    @endif
+                </div>
             </div>
-            <div class="p-4 text-center">
+            <div class="p-4 text-center bg-slate-50/50">
                 <div class="flex flex-wrap justify-center gap-1.5">
                     @if($classroom)
-                        <span class="inline-block bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold">{{ $classroom->class_name }}</span>
+                        <span class="inline-block bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1 rounded-full text-xs font-bold shadow-sm">{{ $classroom->class_name }}</span>
                     @endif
-                    <span class="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">{{ $student->school->name ?? '-' }}</span>
-                    <span class="inline-block {{ $student->isActive() ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }} px-3 py-1 rounded-full text-xs font-bold">
+                    <span class="inline-block bg-blue-100 text-blue-800 border border-blue-200 px-3 py-1 rounded-full text-xs font-bold shadow-sm">{{ $student->school->name ?? '-' }}</span>
+                    <span class="inline-block {{ $student->isActive() ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-rose-100 text-rose-800 border border-rose-200' }} px-3 py-1 rounded-full text-xs font-bold shadow-sm">
                         {{ $student->status_label }}
                     </span>
                 </div>

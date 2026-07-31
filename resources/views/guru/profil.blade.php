@@ -23,23 +23,25 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Photo & Name Card --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="bg-gradient-to-r from-emerald-600 to-green-600 p-6 text-center text-white">
-                <div class="w-24 h-24 mx-auto bg-white/20 rounded-xl flex items-center justify-center text-5xl mb-3">
+            <div class="bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 p-6 text-center text-white relative">
+                <div class="w-36 h-36 sm:w-40 sm:h-40 mx-auto bg-white/20 rounded-2xl flex items-center justify-center text-6xl mb-4 shadow-xl ring-4 ring-white/30 border-2 border-white overflow-hidden transition-transform duration-300 hover:scale-105">
                     @if($teacher->photo)
-                        <img src="{{ asset('storage/'.$teacher->photo) }}" class="w-full h-full object-cover rounded-xl">
+                        <img src="{{ asset('storage/'.$teacher->photo) }}" class="w-full h-full object-cover rounded-2xl" alt="{{ $teacher->full_name }}">
                     @else
-                        👨‍🏫
+                        <span>👨‍🏫</span>
                     @endif
                 </div>
-                <h2 class="text-xl font-bold">{{ $teacher->full_name }}</h2>
-                <p class="text-white/80 text-sm">{{ $teacher->teacher_code ?? '-' }}</p>
+                <h2 class="text-lg sm:text-xl font-extrabold tracking-tight">{{ $teacher->full_name }}</h2>
+                <p class="text-emerald-100 text-xs mt-1 font-mono bg-black/20 inline-block px-3 py-0.5 rounded-full">{{ $teacher->teacher_code ?? '-' }}</p>
                 @if($teacher->position)
-                    <span class="inline-block mt-2 text-xs bg-white/20 px-3 py-1 rounded-full">{{ $teacher->position }}</span>
+                    <div class="mt-2">
+                        <span class="inline-block text-xs bg-white/20 border border-white/20 px-3 py-1 rounded-full font-medium">{{ $teacher->position }}</span>
+                    </div>
                 @endif
             </div>
-            <div class="p-4 text-center">
-                <p class="text-sm text-gray-600">{{ $teacher->school->name ?? '-' }}</p>
-                <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold {{ $teacher->is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+            <div class="p-4 text-center bg-slate-50/50">
+                <p class="text-xs text-gray-500 font-medium">{{ $teacher->school->name ?? '-' }}</p>
+                <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold shadow-sm {{ $teacher->is_active ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-rose-100 text-rose-700 border border-rose-200' }}">
                     {{ $teacher->is_active ? 'Aktif' : 'Tidak Aktif' }}
                 </span>
             </div>

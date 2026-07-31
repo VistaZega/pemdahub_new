@@ -41,12 +41,12 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Card Info Ringkas --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between h-fit">
-            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 text-center text-white">
-                <div class="w-20 h-20 mx-auto bg-white/20 rounded-2xl flex items-center justify-center text-4xl mb-3 shadow-inner">
+            <div class="bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 p-6 text-center text-white">
+                <div class="w-36 h-36 sm:w-40 sm:h-40 mx-auto bg-white/20 rounded-2xl flex items-center justify-center text-6xl mb-4 shadow-xl ring-4 ring-white/30 border-2 border-white overflow-hidden transition-transform duration-300 hover:scale-105">
                     <img src="{{ $user->photo_url }}" class="w-full h-full object-cover rounded-2xl" alt="Foto Profil">
                 </div>
-                <h2 class="text-lg font-bold truncate">{{ $user->name }}</h2>
-                <p class="text-white/80 text-xs mt-1 bg-white/10 inline-block px-3 py-1 rounded-full uppercase tracking-wider font-semibold">
+                <h2 class="text-lg sm:text-xl font-extrabold truncate tracking-tight">{{ $user->name }}</h2>
+                <p class="text-indigo-100 text-xs mt-1.5 bg-black/20 inline-block px-3 py-1 rounded-full uppercase tracking-wider font-semibold">
                     {{ str_replace('_', ' ', $user->role) }}
                 </p>
             </div>
