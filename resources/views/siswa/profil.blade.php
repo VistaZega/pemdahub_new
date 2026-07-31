@@ -276,7 +276,15 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Nomor Telepon/HP</label>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Jenis Kelamin</label>
+                            <select name="gender" @if(!$isBiodataEditable) disabled @endif class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:bg-gray-50 disabled:text-gray-500">
+                                <option value="L" {{ old('gender', $student->gender) === 'L' ? 'selected' : '' }}>Laki-laki (L)</option>
+                                <option value="P" {{ old('gender', $student->gender) === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Nomor Telepon/HP Siswa</label>
                             <input type="text" name="phone" value="{{ old('phone', $student->phone) }}"
                                 @if(!$isBiodataEditable) disabled @endif
                                 class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:bg-gray-50 disabled:text-gray-500">
@@ -284,8 +292,35 @@
 
                         <div class="sm:col-span-2">
                             <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Alamat Lengkap</label>
-                            <textarea name="address" rows="3" @if(!$isBiodataEditable) disabled @endif
+                            <textarea name="address" rows="2" @if(!$isBiodataEditable) disabled @endif
                                 class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:bg-gray-50 disabled:text-gray-500">{{ old('address', $student->address) }}</textarea>
+                        </div>
+
+                        {{-- Section Data Ortu / Wali --}}
+                        <div class="sm:col-span-2 pt-3 border-t border-gray-100">
+                            <h4 class="font-extrabold text-amber-700 text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                <i class="fas fa-users text-amber-500"></i> Data Orang Tua / Wali Siswa
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Nama Ortu / Wali</label>
+                                    <input type="text" name="guardian_name" value="{{ old('guardian_name', $student->guardian_name ?? $student->parent_name) }}"
+                                        @if(!$isBiodataEditable) disabled @endif
+                                        class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:bg-gray-50 disabled:text-gray-500" placeholder="Nama Ayah/Ibu/Wali">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">No. HP/Telepon Ortu</label>
+                                    <input type="text" name="guardian_phone" value="{{ old('guardian_phone', $student->guardian_phone ?? $student->parent_phone) }}"
+                                        @if(!$isBiodataEditable) disabled @endif
+                                        class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:bg-gray-50 disabled:text-gray-500" placeholder="08xxxxxxxxxx">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Pekerjaan Ortu/Wali</label>
+                                    <input type="text" name="guardian_occupation" value="{{ old('guardian_occupation', $student->guardian_occupation) }}"
+                                        @if(!$isBiodataEditable) disabled @endif
+                                        class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:bg-gray-50 disabled:text-gray-500" placeholder="PNS, Wiraswasta, dll">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

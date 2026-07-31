@@ -105,6 +105,10 @@ class ProfileSettingsController extends Controller
             'birth_date' => 'nullable|date',
             'religion' => 'nullable|string|max:50',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+            'gender' => 'nullable|in:L,P',
+            'guardian_name' => 'nullable|string|max:100',
+            'guardian_phone' => 'nullable|string|max:20',
+            'guardian_occupation' => 'nullable|string|max:100',
         ]);
 
         // Upload Photo jika ada
@@ -129,6 +133,18 @@ class ProfileSettingsController extends Controller
         if ($user->student) {
             $studentData = $updatedData;
             if ($photoPath) $studentData['photo'] = $photoPath;
+            if (!empty($validated['gender'])) $studentData['gender'] = $validated['gender'];
+            if ($request->has('guardian_name')) {
+                $studentData['guardian_name'] = $validated['guardian_name'];
+                $studentData['parent_name'] = $validated['guardian_name'];
+            }
+            if ($request->has('guardian_phone')) {
+                $studentData['guardian_phone'] = $validated['guardian_phone'];
+                $studentData['parent_phone'] = $validated['guardian_phone'];
+            }
+            if ($request->has('guardian_occupation')) {
+                $studentData['guardian_occupation'] = $validated['guardian_occupation'];
+            }
             $user->student->update($studentData);
             $profileUpdated = true;
         } 
