@@ -14,6 +14,7 @@ use App\Models\LmsDiscussion;
 use App\Models\LmsDiscussionReply;
 use App\Models\LmsMaterialProgress;
 use App\Models\LmsMaterial;
+use App\Models\LmsModule;
 use App\Models\LmsMeetingSession;
 use App\Models\LmsMeetingAttendance;
 use App\Models\Student;
