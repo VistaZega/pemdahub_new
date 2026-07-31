@@ -948,8 +948,6 @@ function toggleBillSelection(element) {
     }
     updateToolbar();
 }
-    updateToolbar();
-}
 
 // Row Checklist Selection
 document.getElementById('selectAll')?.addEventListener('change', function() {
