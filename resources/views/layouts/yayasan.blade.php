@@ -45,37 +45,37 @@
     <!-- ════════════════ REKAP KINERJA & SDM ════════════════ -->
     <div class="pt-4" data-menu-group="kinerja">
         <button class="menu-group-toggle open w-full flex items-center justify-between px-3 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-gray-600" onclick="toggleGroup(this)">
-            <span class="flex items-center gap-2"><i class="fas fa-award text-[10px]"></i> Rekap Kinerja & SDM</span>
+            <span class="flex items-center gap-2"><i class="fas fa-award text-[10px]"></i> Kepegawaian & SDM</span>
             <i class="fas fa-chevron-right text-[9px] chevron"></i>
         </button>
         <div class="menu-group-body mt-1 space-y-0.5" style="max-height:2000px">
             <a href="{{ route('admin.employees.dashboard') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.employees.dashboard') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-white"><i class="fas fa-chart-pie text-[10px]"></i></div>
-                <span>Dashboard Rekap SDM</span>
+                <span>Dashboard SDM</span>
             </a>
             <a href="{{ route('yayasan.performance_contracts.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.performance_contracts.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-400 to-red-600 flex items-center justify-center text-white"><i class="fas fa-file-signature text-[10px]"></i></div>
-                <span>Finalisasi Perjanjian Kinerja</span>
+                <span>Validasi Perjanjian Kinerja</span>
             </a>
             <a href="{{ route('yayasan.performance_evaluations.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.performance_evaluations.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-star-half-alt text-[10px]"></i></div>
-                <span>ACC Evaluasi Kinerja</span>
+                <span>Evaluasi Kinerja</span>
             </a>
-            <a href="{{ route('admin.employees.attendance.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.employees.attendance.*') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-fingerprint text-[10px]"></i></div>
-                <span>Rekap Absensi Pegawai</span>
+            <a href="{{ route('admin.employees.leaves.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.employees.leaves.*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-sky-600 flex items-center justify-center text-white"><i class="fas fa-calendar-check text-[10px]"></i></div>
+                <span>Cuti & Izin</span>
             </a>
-            <a href="{{ route('yayasan.pkl_monitorings.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.pkl_monitorings.*') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-file-invoice text-[10px]"></i></div>
-                <span>Rekap Monitoring PKL</span>
-            </a>
-            <a href="{{ route('admin.workload.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.workload.index') ? $ac : $nc }}">
+            <a href="{{ route('admin.workload.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.workload.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-list-check text-[10px]"></i></div>
-                <span>Rekap Beban Kerja Guru</span>
+                <span>Rekap Beban Kerja dan Penggajian</span>
             </a>
-            <a href="{{ route('admin.workload.salary-report') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.workload.salary-report') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-coins text-[10px]"></i></div>
-                <span>Rekap Gaji & Honor</span>
+            <a href="{{ route('admin.payroll.slip-search') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.payroll.slip-search') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white"><i class="fas fa-file-invoice-dollar text-[10px]"></i></div>
+                <span>Slip Gaji</span>
+            </a>
+            <a href="{{ route('admin.payroll.settings') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.payroll.settings') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center text-white"><i class="fas fa-sliders text-[10px]"></i></div>
+                <span>Pengaturan Gaji</span>
             </a>
         </div>
     </div>

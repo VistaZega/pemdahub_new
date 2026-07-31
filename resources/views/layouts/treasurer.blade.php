@@ -93,13 +93,9 @@
             <i class="fas fa-chevron-right text-[9px] chevron"></i>
         </button>
         <div class="menu-group-body mt-1 space-y-0.5" style="max-height:2000px">
-            <a href="{{ route('treasurer.assignments.positions.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('treasurer.assignments.positions.index') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white"><i class="fas fa-list-ul text-[10px]"></i></div>
-                <span>Penugasan Jabatan</span>
-            </a>
             <a href="{{ route('treasurer.salary-report') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('treasurer.salary-report') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center text-white"><i class="fas fa-coins text-[10px]"></i></div>
-                <span>Laporan Gaji</span>
+                <span>Rekap Beban Kerja dan Penggajian</span>
             </a>
             <a href="{{ route('treasurer.payroll.slip-search') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('treasurer.payroll.slip-search') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-receipt text-[10px]"></i></div>

@@ -220,17 +220,23 @@
     </div>
 
     <!-- ════════════════ GROUP: SDM & KEPEGAWAIAN ════════════════ -->
-    @if($isSA || $isAdmin || $isYayasan || $isKepsek)
+    @if($isSA || $isAdmin || $isYayasan || $isKepsek || $isFinance)
     <div class="pt-3" data-menu-group="payroll">
         <button class="menu-group-toggle w-full flex items-center justify-between px-3 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-gray-600" onclick="toggleGroup(this)">
             <span class="flex items-center gap-2"><i class="fas fa-id-card-clip text-[10px]"></i> Kepegawaian</span>
             <i class="fas fa-chevron-right text-[9px] chevron"></i>
         </button>
         <div class="menu-group-body closed mt-1 space-y-0.5">
+            {{-- Dashboard SDM: Super Admin Erwin, Super Admin Yayasan, Admin Sekolah, Kepala Sekolah --}}
+            @if($isSA || $isYayasan || $isAdmin || $isKepsek)
             <a href="{{ route('admin.employees.dashboard') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.employees.dashboard') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-white"><i class="fas fa-chart-pie text-[10px]"></i></div>
                 <span>Dashboard SDM</span>
             </a>
+            @endif
+
+            {{-- Validasi & Evaluasi Kinerja: Super Admin Yayasan, Kepala Sekolah --}}
+            @if($isYayasan || $isKepsek)
             <a href="{{ route('admin.performance_contracts.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.performance_contracts.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-400 to-red-600 flex items-center justify-center text-white"><i class="fas fa-file-signature text-[10px]"></i></div>
                 <span>Validasi Perjanjian Kinerja</span>
@@ -239,6 +245,10 @@
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-star-half-alt text-[10px]"></i></div>
                 <span>Evaluasi Kinerja</span>
             </a>
+            @endif
+
+            {{-- Absensi Guru & Absensi Staf: Super Admin Erwin, Admin Sekolah, Kepala Sekolah --}}
+            @if(($isSA || $isAdmin || $isKepsek) && !$isYayasan)
             <a href="{{ route('admin.teachers.attendance.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.teachers.attendance.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-chalkboard-teacher text-[10px]"></i></div>
                 <span>Absensi Guru</span>
@@ -247,22 +257,29 @@
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-fingerprint text-[10px]"></i></div>
                 <span>Absensi Staf</span>
             </a>
+            @endif
+
+            {{-- Absensi TEFA: Super Admin Erwin --}}
+            @if($isSA && !$isYayasan)
             <a href="{{ route('admin.tefa.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.tefa.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white"><i class="fas fa-tools text-[10px]"></i></div>
                 <span>Absensi TEFA (Bengkelin)</span>
             </a>
-            @if($isYayasan || $isSA)
+            @endif
+
+            {{-- Cuti & Izin: Super Admin Yayasan, Kepala Sekolah --}}
+            @if($isYayasan || $isKepsek)
             <a href="{{ route('admin.employees.leaves.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.employees.leaves.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-sky-600 flex items-center justify-center text-white"><i class="fas fa-calendar-check text-[10px]"></i></div>
                 <span>Cuti & Izin</span>
             </a>
-            <a href="{{ route('admin.workload.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.workload.index') ? $ac : $nc }}">
+            @endif
+
+            {{-- Rekap Beban Kerja & Penggajian, Slip Gaji, Pengaturan Gaji: Super Admin Yayasan, Bendahara --}}
+            @if($isYayasan || $isFinance)
+            <a href="{{ route('admin.workload.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.workload.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-list-check text-[10px]"></i></div>
-                <span>Rekap Beban Kerja</span>
-            </a>
-            <a href="{{ route('admin.workload.salary-report') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.workload.salary-report') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-coins text-[10px]"></i></div>
-                <span>Penggajian</span>
+                <span>Rekap Beban Kerja dan Penggajian</span>
             </a>
             <a href="{{ route('admin.payroll.slip-search') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.payroll.slip-search') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white"><i class="fas fa-file-invoice-dollar text-[10px]"></i></div>
