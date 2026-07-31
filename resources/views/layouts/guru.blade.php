@@ -1,3 +1,8 @@
+@php
+    $userRole = session('active_role', auth()->user()?->role);
+    $isPegawaiOnly = ($userRole === 'pegawai');
+@endphp
+
 {{--
     Guru Layout — extends unified master layout
     Theme: Emerald/Teal
@@ -6,9 +11,9 @@
     'theme'       => 'emerald',
     'sidebarId'   => 'guru-sidebar',
     'storageKey'  => 'guru_sidebar_collapsed',
-    'portalName'  => 'Portal Guru',
+    'portalName'  => $isPegawaiOnly ? 'Portal Kepegawaian' : 'Portal Guru',
     'portalSub'   => 'PembdaHUB Education System',
-    'portalIcon'  => 'fas fa-chalkboard-teacher',
+    'portalIcon'  => $isPegawaiOnly ? 'fas fa-id-card-clip' : 'fas fa-chalkboard-teacher',
 ])
 
 @section('sidebar-menu')
@@ -19,7 +24,7 @@
         $isWaliKelas = false;
         $activeYearId = \App\Models\AcademicYear::where('is_active', true)->value('id');
         $teacherId = \App\Models\Teacher::where('user_id', auth()->id())->value('id');
-        if ($activeYearId && $teacherId) {
+        if (!$isPegawaiOnly && $activeYearId && $teacherId) {
             $isWaliKelas = \App\Models\Classroom::where('homeroom_teacher_id', $teacherId)
                 ->where('academic_year_id', $activeYearId)
                 ->exists();
@@ -34,13 +39,13 @@
         <span class="text-sm flex-1 font-semibold">Dashboard</span>
     </a>
 
-
-
+    @if(!$isPegawaiOnly)
     <!-- Jadwal Mengajar -->
     <a href="{{ route('guru.jadwal') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.jadwal') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-calendar-alt text-[10px]"></i></div>
         <span>Jadwal Mengajar</span>
     </a>
+    @endif
 
     <!-- Kalender Pendidikan -->
     <a href="{{ route('guru.calendar.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.calendar.*') ? $ac : $nc }}">
@@ -54,6 +59,7 @@
         <span>Surat Edaran Yayasan</span>
     </a>
 
+    @if(!$isPegawaiOnly)
     <!-- Kelas Saya -->
     <a href="{{ route('guru.kelas') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.kelas', 'guru.siswa-kelas') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white"><i class="fas fa-users text-[10px]"></i></div>
@@ -75,6 +81,7 @@
         <span>LMS</span>
     </a>
     @endif
+    @endif
 
     <!-- Pembda Knowledge & Media -->
     <a href="{{ route('guru.knowledge.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.knowledge.*') ? $ac : $nc }}">
@@ -88,6 +95,7 @@
         <span>Simulator Lab</span>
     </a>
 
+    @if(!$isPegawaiOnly)
     <!-- Nilai Siswa -->
     <a href="{{ route('guru.nilai') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.nilai*') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-chart-bar text-[10px]"></i></div>
@@ -124,6 +132,7 @@
     </div>
     @endif
     @endif
+    @endif
 
     <!-- Perjanjian Kinerja -->
     <a href="{{ route('guru.performance_contracts.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.performance_contracts.*') ? $ac : $nc }}">
@@ -131,6 +140,7 @@
         <span>Perjanjian Kinerja</span>
     </a>
 
+    @if(!$isPegawaiOnly)
     <!-- Asisten AI -->
     <div data-menu-group="asisten-ai" class="menu-group">
         <button onclick="toggleGroup(this)" class="menu-group-toggle w-full menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.ai.*') ? $ac : $nc }}">
@@ -151,6 +161,7 @@
             </a>
         </div>
     </div>
+    @endif
 
     <!-- Absensi Siswa -->
     <a href="{{ route('guru.absensi') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.absensi*') && !request()->routeIs('guru.absensi.saya') ? $ac : $nc }}">
@@ -184,6 +195,7 @@
     </a>
     @endif
 
+    @if(!$isPegawaiOnly)
     <!-- Raport -->
     <a href="{{ route('guru.raport.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.raport.*') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-400 to-pink-600 flex items-center justify-center text-white"><i class="fas fa-file-alt text-[10px]"></i></div>
@@ -232,6 +244,7 @@
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-fuchsia-700 flex items-center justify-center text-white"><i class="fas fa-graduation-cap text-[10px]"></i></div>
         <span>{{ $ujianLabel }}</span>
     </a>
+    @endif
     @endif
 
     <!-- Pembda Space -->

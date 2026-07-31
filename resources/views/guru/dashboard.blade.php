@@ -2,6 +2,11 @@
 @section('title', 'Dashboard - Portal Guru')
 
 @section('content')
+@php
+    $userRole = session('active_role', auth()->user()?->role);
+    $isPegawaiOnly = ($userRole === 'pegawai');
+@endphp
+
 <div class="space-y-6">
     {{-- Compact Greeting Bar --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-4">
@@ -354,6 +359,24 @@
                     <i class="fas fa-bolt text-amber-500"></i> Aksi Cepat
                 </h2>
                 <div class="grid grid-cols-2 gap-2">
+                    @if($isPegawaiOnly)
+                    <a href="{{ route('guru.absensi.saya') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 transition group">
+                        <i class="fas fa-clipboard-user text-lg group-hover:scale-110 transition-transform"></i>
+                        <span class="text-[11px] font-medium text-center">Absensi Saya</span>
+                    </a>
+                    <a href="{{ route('guru.leaves.index') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 transition group">
+                        <i class="fas fa-calendar-times text-lg group-hover:scale-110 transition-transform"></i>
+                        <span class="text-[11px] font-medium text-center">Cuti Pegawai</span>
+                    </a>
+                    <a href="{{ route('admin.letters.index') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 transition group">
+                        <i class="fas fa-file-signature text-lg group-hover:scale-110 transition-transform"></i>
+                        <span class="text-[11px] font-medium text-center">Surat Edaran</span>
+                    </a>
+                    <a href="{{ route('guru.profil') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition group">
+                        <i class="fas fa-user text-lg group-hover:scale-110 transition-transform"></i>
+                        <span class="text-[11px] font-medium text-center">Profil Saya</span>
+                    </a>
+                    @else
                     <a href="{{ route('guru.absensi') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 transition group">
                         <i class="fas fa-clipboard-check text-lg group-hover:scale-110 transition-transform"></i>
                         <span class="text-[11px] font-medium text-center">Absensi</span>
@@ -370,6 +393,7 @@
                         <i class="fas fa-users text-lg group-hover:scale-110 transition-transform"></i>
                         <span class="text-[11px] font-medium text-center">Kelas</span>
                     </a>
+                    @endif
                 </div>
             </div>
         </div>
