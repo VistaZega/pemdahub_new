@@ -797,17 +797,49 @@ function closeBulkUpdateModal() {
 function submitBulkUpdate() {
     const newAmount = document.getElementById('bulk_new_amount').value;
     if (!newAmount || parseFloat(newAmount) < 0) {
+function openBulkUpdateModal(useSelected = false) {
+    const modal = document.getElementById('bulkUpdateModal');
+    const selectedNotice = document.getElementById('bulkUpdateSelectedNotice');
+    const filterNotice = document.getElementById('bulkUpdateFilterNotice');
+    
+    if (useSelected) {
+        if (selectedNotice) selectedNotice.classList.remove('hidden');
+        if (filterNotice) filterNotice.classList.add('hidden');
+    } else {
+        if (selectedNotice) selectedNotice.classList.add('hidden');
+        if (filterNotice) filterNotice.classList.remove('hidden');
+    }
+    const inputUseSel = document.getElementById('bulk_update_use_selected');
+    if (inputUseSel) inputUseSel.value = useSelected ? '1' : '0';
+    modal.classList.remove('hidden');
+}
+
+function closeBulkUpdateModal() {
+    document.getElementById('bulkUpdateModal').classList.add('hidden');
+}
+
+function submitBulkUpdate() {
+    const newAmount = document.getElementById('bulk_new_amount').value;
+    if (!newAmount || parseFloat(newAmount) < 0) {
         alert('Harap masukkan nominal tagihan baru yang valid!');
         return;
     }
 
-    const payload = {
-        academic_year_id: document.getElementById('bulk_update_academic_year_id').value,
-        payment_type_id: document.getElementById('bulk_update_payment_type_id').value,
-        classroom_id: document.getElementById('bulk_update_classroom_id').value,
+    const inputUseSel = document.getElementById('bulk_update_use_selected');
+    const useSelected = inputUseSel && inputUseSel.value === '1';
+
+    let payload = {
         new_amount: newAmount,
         _token: '{{ csrf_token() }}'
     };
+
+    if (useSelected && selectedBills.length > 0) {
+        payload.bill_ids = selectedBills.map(b => parseInt(b.id));
+    } else {
+        payload.academic_year_id = document.getElementById('bulk_update_academic_year_id').value;
+        payload.payment_type_id = document.getElementById('bulk_update_payment_type_id').value;
+        payload.classroom_id = document.getElementById('bulk_update_classroom_id').value;
+    }
 
     const btn = document.getElementById('bulk_update_submit_btn');
     btn.disabled = true;
@@ -836,21 +868,44 @@ function submitBulkUpdate() {
     });
 }
 
-function openBulkDeleteModal() {
-    document.getElementById('bulkDeleteModal').classList.remove('hidden');
+function openBulkDeleteModal(useSelected = false) {
+    const modal = document.getElementById('bulkDeleteModal');
+    const selectedNotice = document.getElementById('bulkDeleteSelectedNotice');
+    const filterNotice = document.getElementById('bulkDeleteFilterNotice');
+
+    if (useSelected) {
+        if (selectedNotice) selectedNotice.classList.remove('hidden');
+        if (filterNotice) filterNotice.classList.add('hidden');
+    } else {
+        if (selectedNotice) selectedNotice.classList.add('hidden');
+        if (filterNotice) filterNotice.classList.remove('hidden');
+    }
+    const inputUseSel = document.getElementById('bulk_delete_use_selected');
+    if (inputUseSel) inputUseSel.value = useSelected ? '1' : '0';
+    modal.classList.remove('hidden');
 }
+
 function closeBulkDeleteModal() {
     document.getElementById('bulkDeleteModal').classList.add('hidden');
 }
+
 function submitBulkDelete() {
-    const payload = {
-        academic_year_id: document.getElementById('bulk_delete_academic_year_id').value,
-        payment_type_id: document.getElementById('bulk_delete_payment_type_id').value,
-        classroom_id: document.getElementById('bulk_delete_classroom_id').value,
+    const inputUseSel = document.getElementById('bulk_delete_use_selected');
+    const useSelected = inputUseSel && inputUseSel.value === '1';
+
+    let payload = {
         _token: '{{ csrf_token() }}'
     };
 
-    if (!confirm('Apakah Anda yakin ingin menghapus tagihan yang belum dibayar sesuai kriteria ini? Tindakan ini tidak dapat dibatalkan.')) {
+    if (useSelected && selectedBills.length > 0) {
+        payload.bill_ids = selectedBills.map(b => parseInt(b.id));
+    } else {
+        payload.academic_year_id = document.getElementById('bulk_delete_academic_year_id').value;
+        payload.payment_type_id = document.getElementById('bulk_delete_payment_type_id').value;
+        payload.classroom_id = document.getElementById('bulk_delete_classroom_id').value;
+    }
+
+    if (!confirm('Apakah Anda yakin ingin menghapus tagihan yang belum dibayar ini? Tindakan ini tidak dapat dibatalkan.')) {
         return;
     }
 
