@@ -171,12 +171,12 @@ class StudentBillController extends Controller
             ->get();
 
         // Unpaid bills list for visual selection inside modals
-        $unpaidBillsList = StudentBill::with(['student.classroom', 'paymentType', 'academicYear'])
+        $unpaidBillsList = StudentBill::with(['student.classrooms', 'paymentType', 'academicYear'])
             ->where('paid_amount', 0)
             ->whereHas('student', fn($sq) => $sq->where('school_id', $schoolId))
             ->when($academicYearId, fn($q) => $q->where('academic_year_id', $academicYearId))
             ->when($paymentTypeId, fn($q) => $q->where('payment_type_id', $paymentTypeId))
-            ->when($classroomId, fn($q) => $q->whereHas('student', fn($sq) => $sq->where('classroom_id', $classroomId)))
+            ->when($classroomId, fn($q) => $q->whereHas('student.classrooms', fn($sq) => $sq->where('classrooms.id', $classroomId)))
             ->orderBy('id', 'desc')
             ->take(200)
             ->get();
