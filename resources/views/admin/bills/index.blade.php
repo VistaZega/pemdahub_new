@@ -349,20 +349,17 @@
                     <tr class="group hover:bg-emerald-50/30 transition-all duration-300">
                         <td class="px-3 py-4 text-center">
                             @php
-                                $billIds = collect($group['monthly_data'])->filter()->pluck('id')->join(',');
-                                if (!$billIds && isset($group['first_bill'])) {
-                                    $billIds = $group['first_bill']->id;
+                                $unpaidBills = collect($group['monthly_data'])->filter(fn($b) => $b && $b->status !== 'lunas');
+                                if ($unpaidBills->isEmpty() && isset($group['first_bill']) && $group['first_bill']->status !== 'lunas') {
+                                    $unpaidBills = collect([$group['first_bill']]);
                                 }
-                                $hasLateFee = collect($group['monthly_data'])->filter(fn($b) => $b && $b->late_fee > 0 && !$b->late_fee_waived && $b->status !== 'lunas')->isNotEmpty();
-                                if (!$hasLateFee && isset($group['first_bill'])) {
-                                    $fb = $group['first_bill'];
-                                    $hasLateFee = $fb->late_fee > 0 && !$fb->late_fee_waived && $fb->status !== 'lunas';
-                                }
+                                $unpaidIds = $unpaidBills->pluck('id')->join(',');
                             @endphp
-                            @if($hasLateFee)
-                            <input type="checkbox" class="row-checkbox w-5 h-5 rounded-lg border-2 border-gray-200 text-amber-500 focus:ring-amber-500/20 transition-all cursor-pointer" 
-                                   data-row-index="{{ $index }}">
-                            @endif
+                            <input type="checkbox" class="row-checkbox w-5 h-5 rounded-lg border-2 border-gray-300 text-indigo-600 focus:ring-indigo-500/20 transition-all cursor-pointer" 
+                                   data-row-index="{{ $index }}"
+                                   data-bill-ids="{{ $unpaidIds }}"
+                                   onchange="toggleRowBills(this)"
+                                   title="Centang untuk memilih tagihan siswa ini">
                         </td>
                         @if($group['is_first_row'])
                         <td class="px-4 py-4 align-top" rowspan="{{ $group['rowspan'] }}">
@@ -861,33 +858,72 @@ function updateToolbar() {
     }
 }
 
+function toggleRowBills(checkbox) {
+    const rawIds = checkbox.dataset.billIds;
+    if (!rawIds) return;
+    const ids = rawIds.split(',').filter(id => id.trim() !== '');
+    
+    if (checkbox.checked) {
+        ids.forEach(id => {
+            if (!selectedBills.some(b => b.id === id)) {
+                const btn = document.querySelector(`button[data-bill-id="${id}"]`);
+                if (btn) {
+                    btn.classList.add('ring-4', 'ring-indigo-500', 'scale-110');
+                    selectedBills.push({
+                        id: id,
+                        studentId: btn.dataset.studentId,
+                        studentName: btn.dataset.studentName,
+                        amount: parseFloat(btn.dataset.amount || 0),
+                        lateFee: parseFloat(btn.dataset.lateFee || 0),
+                        month: btn.dataset.month,
+                        year: btn.dataset.year,
+                        paymentType: btn.dataset.paymentType
+                    });
+                } else {
+                    selectedBills.push({ id: id });
+                }
+            }
+        });
+    } else {
+        ids.forEach(id => {
+            const idx = selectedBills.findIndex(b => b.id === id);
+            if (idx > -1) selectedBills.splice(idx, 1);
+            const btn = document.querySelector(`button[data-bill-id="${id}"]`);
+            if (btn) btn.classList.remove('ring-4', 'ring-indigo-500', 'scale-110');
+        });
+    }
+    updateToolbar();
+}
+
 function clearSelection() {
     selectedBills = [];
     selectedRowIndices = [];
     
     // Uncheck UI
     document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
-    document.getElementById('selectAll').checked = false;
+    const selectAllCb = document.getElementById('selectAll');
+    if (selectAllCb) selectAllCb.checked = false;
     
     // Reset Monthly Boxes
     document.querySelectorAll('button[data-bill-id]').forEach(btn => {
-        btn.classList.remove('ring-4', 'ring-emerald-500/50', 'scale-110');
+        btn.classList.remove('ring-4', 'ring-indigo-500', 'ring-emerald-500/50', 'scale-110');
     });
     
     updateToolbar();
 }
 
-// Monthly Bill Selection (Shift+Click)
+// Monthly Bill Selection & Select All
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('button[data-bill-id]').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            if (e.shiftKey) {
-                e.preventDefault();
-                e.stopPropagation();
-                toggleBillSelection(this);
-            }
+    const selectAllCb = document.getElementById('selectAll');
+    if (selectAllCb) {
+        selectAllCb.addEventListener('change', function() {
+            const isChecked = this.checked;
+            document.querySelectorAll('.row-checkbox').forEach(cb => {
+                cb.checked = isChecked;
+                toggleRowBills(cb);
+            });
         });
-    });
+    }
 });
 
 function toggleBillSelection(element) {
@@ -896,21 +932,22 @@ function toggleBillSelection(element) {
     
     if (index > -1) {
         selectedBills.splice(index, 1);
-        element.classList.remove('ring-4', 'ring-emerald-500/50', 'scale-110');
+        element.classList.remove('ring-4', 'ring-indigo-500', 'ring-emerald-500/50', 'scale-110');
     } else {
         selectedBills.push({
             id: billId,
             studentId: element.dataset.studentId,
             studentName: element.dataset.studentName,
-            amount: parseFloat(element.dataset.amount),
+            amount: parseFloat(element.dataset.amount || 0),
             lateFee: parseFloat(element.dataset.lateFee || 0),
             month: element.dataset.month,
             year: element.dataset.year,
             paymentType: element.dataset.paymentType
         });
-        element.classList.add('ring-4', 'ring-emerald-500/50', 'scale-110');
+        element.classList.add('ring-4', 'ring-indigo-500', 'scale-110');
     }
-    
+    updateToolbar();
+}
     updateToolbar();
 }
 
