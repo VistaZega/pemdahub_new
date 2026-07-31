@@ -188,12 +188,11 @@ class DashboardController extends Controller
             $lmsCourses = LmsCourse::where('school_id', $school->id)->count();
             $lmsCourses = $lmsCourses > 0 ? $lmsCourses : ($school->type === 'SMK' ? 42 : ($school->type === 'SMA' ? 38 : 28));
 
-            // 4. CBT Average Score
-            $cbtAvg = CbtExamResult::whereHas('participant', function($q) use ($school) {
-                $q->whereHas('student', function($sq) use ($school) {
-                    $sq->where('school_id', $school->id);
-                });
-            })->avg('score');
+            // 4. CBT Average Score (via student relation)
+            $cbtAvg = CbtExamResult::whereHas('student', function($q) use ($school) {
+                $q->where('school_id', $school->id);
+            })->avg('final_score');
+            
             $cbtAvg = $cbtAvg ? round($cbtAvg, 1) : ($school->type === 'SMK' ? 84.5 : ($school->type === 'SMA' ? 86.2 : 81.0));
 
             // Push to chart arrays
