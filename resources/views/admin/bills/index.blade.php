@@ -1245,8 +1245,8 @@ document.addEventListener('keydown', e => {
         </div>
     </div>
 </div><!-- Modern Bulk Update Modal (Admin) -->
-<div id="bulkUpdateModal" style="display: none;" class="fixed inset-0 z-[99999] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 pt-20 sm:pt-24 pb-12">
-    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden mb-8">
+<div id="bulkUpdateModal" style="display: none; z-index: 9999999;" class="fixed inset-0 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-start justify-center p-4">
+    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden mb-12" style="margin-top: 80px !important;">
         <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
         <div class="px-6 py-6 sm:px-8 sm:py-8">
             <div class="flex items-center justify-between mb-6">
@@ -1341,8 +1341,8 @@ document.addEventListener('keydown', e => {
 </div>
 
 <!-- Modern Bulk Delete Modal (Admin) -->
-<div id="bulkDeleteModal" style="display: none;" class="fixed inset-0 z-[99999] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 pt-20 sm:pt-24 pb-12">
-    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden mb-8">
+<div id="bulkDeleteModal" style="display: none; z-index: 9999999;" class="fixed inset-0 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-start justify-center p-4">
+    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden mb-12" style="margin-top: 80px !important;">
         <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-rose-500 to-red-600"></div>
         <div class="px-6 py-6 sm:px-8 sm:py-8">
             <div class="flex items-center justify-between mb-6">
