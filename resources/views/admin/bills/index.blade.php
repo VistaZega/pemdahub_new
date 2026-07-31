@@ -1218,10 +1218,10 @@ document.addEventListener('keydown', e => {
                 
                 @if(auth()->user()->isSuperAdmin())
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Sekolah</label>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Sekolah Target</label>
                     <select id="bulk_update_school_id" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm">
                         <option value="">Semua Sekolah</option>
-                        @foreach($schools as $school)
+                        @foreach($allSchools as $school)
                         <option value="{{ $school->id }}" {{ session('bills_filter_school_id') == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
                         @endforeach
                     </select>
@@ -1235,7 +1235,7 @@ document.addEventListener('keydown', e => {
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Tahun Ajaran</label>
                         <select id="bulk_update_academic_year_id" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm">
                             <option value="">Semua Tahun Ajaran</option>
-                            @foreach($academicYears as $ay)
+                            @foreach($allAcademicYears as $ay)
                             <option value="{{ $ay->id }}" {{ $academicYearId == $ay->id ? 'selected' : '' }}>{{ $ay->year }}</option>
                             @endforeach
                         </select>
@@ -1244,7 +1244,7 @@ document.addEventListener('keydown', e => {
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Jenis Tagihan</label>
                         <select id="bulk_update_payment_type_id" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm">
                             <option value="">Semua Jenis Tagihan</option>
-                            @foreach($paymentTypes as $pt)
+                            @foreach($allPaymentTypes as $pt)
                             <option value="{{ $pt->id }}">{{ $pt->type_name }}</option>
                             @endforeach
                         </select>
@@ -1255,7 +1255,7 @@ document.addEventListener('keydown', e => {
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Kelas Target</label>
                     <select id="bulk_update_classroom_id" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm">
                         <option value="">Semua Kelas</option>
-                        @foreach($classrooms as $c)
+                        @foreach($allClassrooms as $c)
                         <option value="{{ $c->id }}">{{ $c->class_name }}</option>
                         @endforeach
                     </select>
@@ -1318,7 +1318,7 @@ document.addEventListener('keydown', e => {
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Sekolah Target</label>
                     <select id="bulk_delete_school_id" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm">
                         <option value="">Semua Sekolah</option>
-                        @foreach($schools as $school)
+                        @foreach($allSchools as $school)
                         <option value="{{ $school->id }}" {{ session('bills_filter_school_id') == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
                         @endforeach
                     </select>
@@ -1332,7 +1332,7 @@ document.addEventListener('keydown', e => {
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Tahun Ajaran</label>
                         <select id="bulk_delete_academic_year_id" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm">
                             <option value="">Semua Tahun Ajaran</option>
-                            @foreach($academicYears as $ay)
+                            @foreach($allAcademicYears as $ay)
                             <option value="{{ $ay->id }}" {{ $academicYearId == $ay->id ? 'selected' : '' }}>{{ $ay->year }}</option>
                             @endforeach
                         </select>
@@ -1341,7 +1341,7 @@ document.addEventListener('keydown', e => {
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Jenis Tagihan</label>
                         <select id="bulk_delete_payment_type_id" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm">
                             <option value="">Semua Jenis Tagihan</option>
-                            @foreach($paymentTypes as $pt)
+                            @foreach($allPaymentTypes as $pt)
                             <option value="{{ $pt->id }}">{{ $pt->type_name }}</option>
                             @endforeach
                         </select>
@@ -1352,7 +1352,7 @@ document.addEventListener('keydown', e => {
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Kelas Target</label>
                     <select id="bulk_delete_classroom_id" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm">
                         <option value="">Semua Kelas</option>
-                        @foreach($classrooms as $c)
+                        @foreach($allClassrooms as $c)
                         <option value="{{ $c->id }}">{{ $c->class_name }}</option>
                         @endforeach
                     </select>

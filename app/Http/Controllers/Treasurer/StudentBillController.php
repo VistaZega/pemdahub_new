@@ -139,11 +139,19 @@ class StudentBillController extends Controller
         $totalPaid = $groupedBills->sum('total_paid');
         $totalBills = $groupedBills->sum('total_amount');
 
+        // All master data for modals (unfiltered by current bills)
+        $allAcademicYears = AcademicYear::orderBy('year', 'desc')->get();
+        $allPaymentTypes = PaymentType::where('school_id', $schoolId)->orderBy('type_name')->get();
+        $allClassrooms = Classroom::where('school_id', $schoolId)->orderBy('class_name')->get();
+
         return view('treasurer.bills.index', compact(
             'groupedBills', 
             'paymentTypes', 
             'academicYears', 
             'classrooms',
+            'allAcademicYears',
+            'allPaymentTypes',
+            'allClassrooms',
             'academicYearId', 
             'paymentTypeId', 
             'classroomId',

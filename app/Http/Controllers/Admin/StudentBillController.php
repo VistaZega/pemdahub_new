@@ -173,6 +173,12 @@ class StudentBillController extends Controller
             ->orderBy('class_name')
             ->get();
 
+        // All master data for modals (unfiltered)
+        $allSchools = School::orderBy('name')->get();
+        $allAcademicYears = AcademicYear::orderBy('year', 'desc')->get();
+        $allPaymentTypes = PaymentType::orderBy('type_name')->get();
+        $allClassrooms = Classroom::orderBy('class_name')->get();
+
         // Pagination
         $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
         $perPage = 15;
@@ -187,6 +193,7 @@ class StudentBillController extends Controller
 
         return view('admin.bills.index', compact(
             'paginatedBills', 'paymentTypes', 'academicYears', 'schools', 'classrooms',
+            'allSchools', 'allAcademicYears', 'allPaymentTypes', 'allClassrooms',
             'academicYearId', 'schoolId', 'paymentTypeId', 'classroomId', 'search',
             'totalStudents', 'totalOutstanding', 'totalPaid', 'totalBillsCount'
         ));
