@@ -175,7 +175,11 @@ class StudentBillController extends Controller
 
         // Created bill groups (Jenis Tagihan + Nominal + Kelas/Tingkat + TP) for bulk update & bulk delete modals
         $createdBillGroups = StudentBill::join('students', 'student_bills.student_id', '=', 'students.id')
-            ->leftJoin('classrooms', 'students.classroom_id', '=', 'classrooms.id')
+            ->leftJoin('student_classes', function($join) {
+                $join->on('students.id', '=', 'student_classes.student_id')
+                     ->on('student_bills.academic_year_id', '=', 'student_classes.academic_year_id');
+            })
+            ->leftJoin('classrooms', 'student_classes.classroom_id', '=', 'classrooms.id')
             ->join('payment_types', 'student_bills.payment_type_id', '=', 'payment_types.id')
             ->leftJoin('academic_years', 'student_bills.academic_year_id', '=', 'academic_years.id')
             ->where('student_bills.paid_amount', 0)
