@@ -474,8 +474,8 @@
             <i class="fas fa-chevron-right text-[9px] chevron"></i>
         </button>
         <div class="menu-group-body closed mt-1 space-y-0.5">
-            {{-- Menu khusus Super Admin Erwin, Admin Sekolah, & Bendahara --}}
-            @if(($isSA || $isAdmin || $isFinance) && !$isYayasan)
+            {{-- Tagihan Siswa & Pembayaran: Dibuka untuk Super Admin Erwin & Bendahara. Ditutup untuk Admin Sekolah & Yayasan --}}
+            @if(($isSA || $isFinance) && !$isYayasan && !$isAdmin)
             <a href="{{ route('admin.bills.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.bills.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-file-invoice-dollar text-[10px]"></i></div>
                 <span>Tagihan Siswa</span>
@@ -486,7 +486,7 @@
             </a>
             @endif
 
-            {{-- Laporan Rekap Tagihan: Dibuka untuk Super Admin Erwin & Super Admin Yayasan --}}
+            {{-- Laporan Rekap Tagihan: Dibuka untuk Super Admin Erwin, Super Admin Yayasan, Admin Sekolah, & Bendahara --}}
             <a href="{{ route('admin.payment_reports.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.payment_reports.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-chart-pie text-[10px]"></i></div>
                 <span>Laporan Rekap Tagihan</span>

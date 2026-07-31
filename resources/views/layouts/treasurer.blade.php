@@ -1,4 +1,4 @@
-﻿{{--
+{{--
     Treasurer Layout — extends unified master layout
     Theme: Emerald/Green (Finance-focused)
 --}}
@@ -74,8 +74,12 @@
             <i class="fas fa-chevron-right text-[9px] chevron"></i>
         </button>
         <div class="menu-group-body mt-1 space-y-0.5" style="max-height:2000px">
+            <a href="{{ route('admin.payment_reports.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.payment_reports.*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-chart-pie text-[10px]"></i></div>
+                <span>Laporan Rekap Tagihan</span>
+            </a>
             <a href="{{ route('treasurer.reports.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('treasurer.reports.*') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-white"><i class="fas fa-chart-pie text-[10px]"></i></div>
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-white"><i class="fas fa-chart-line text-[10px]"></i></div>
                 <span>Progress Pembayaran</span>
             </a>
         </div>
