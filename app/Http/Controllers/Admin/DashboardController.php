@@ -209,9 +209,10 @@ class DashboardController extends Controller
                 ->get();
         }
 
-        // Surat Edaran Yayasan terbaru untuk admin/kepsek
+        // Surat Edaran Yayasan terbaru untuk admin/kepsek (max 7 hari di dashboard)
         $foundationLetters = \App\Models\FoundationLetter::where('status', 'published')
             ->forUser($user)
+            ->recent(7)
             ->orderBy('effective_date', 'desc')
             ->take(3)
             ->get();

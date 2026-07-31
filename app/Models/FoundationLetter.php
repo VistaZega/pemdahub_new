@@ -131,4 +131,14 @@ class FoundationLetter extends Model
 
         return $this->scopeForRole($query, $role);
     }
+
+    public function scopeRecent($query, $days = 7)
+    {
+        $cutoff = now()->subDays($days)->startOfDay();
+        return $query->where(function ($q) use ($cutoff) {
+            $q->where('created_at', '>=', $cutoff)
+              ->orWhere('effective_date', '>=', $cutoff);
+        });
+    }
 }
+
