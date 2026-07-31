@@ -1017,12 +1017,12 @@
     }" 
     @open-game-modal.window="open = true" 
     x-show="open" 
-    class="fixed inset-0 z-[99999] overflow-y-auto" style="display: none">
+    class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
     
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false"></div>
+    <div class="flex items-center justify-center min-h-screen p-4" style="z-index: 99999 !important;">
+        <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
 
-        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-2xl w-full relative z-10 border-2 border-black">
+        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-2xl w-full relative border-2 border-black" style="z-index: 100000 !important;">
             <div class="px-6 py-4 flex items-center justify-between border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
                 <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-sm uppercase"><i class="fas fa-gamepad text-amber-400"></i> Game Builder Studio (Interaktif)</h3>
                 <button @click="open = false" class="text-white/80 hover:text-white transition-colors bg-slate-800 border border-slate-700 w-8 h-8 rounded-xl flex items-center justify-center font-black"><i class="fas fa-times"></i></button>
@@ -1381,11 +1381,11 @@
 {{-- ═══════════════════════════════════════════════ --}}
 {{-- MATERIAL UPLOAD MODAL --}}
 {{-- ═══════════════════════════════════════════════ --}}
-<div x-data="{ open: false, type: 'document', file_url: '', material_title: '' }" @open-material-modal.window="open = true" x-show="open" class="fixed inset-0 z-[99999] overflow-y-auto" style="display: none">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 transition-opacity" @click="open = false"></div>
+<div x-data="{ open: false, type: 'document', file_url: '', material_title: '' }" @open-material-modal.window="open = true" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
+    <div class="flex items-center justify-center min-h-screen p-4" style="z-index: 99999 !important;">
+        <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
 
-        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-lg w-full relative z-10 border-2 border-black">
+        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-lg w-full relative border-2 border-black" style="z-index: 100000 !important;">
             <div class="px-6 py-4 flex items-center justify-between border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
                 <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-sm uppercase"><i class="fas fa-upload text-amber-400"></i> Upload Materi Pembelajaran Baru</h3>
                 <button @click="open = false" class="text-white/80 hover:text-white transition-colors bg-slate-800 border border-slate-700 w-8 h-8 rounded-xl flex items-center justify-center font-black"><i class="fas fa-times"></i></button>
@@ -1490,11 +1490,11 @@
 {{-- ═══════════════════════════════════════════════ --}}
 {{-- MATERIAL EDIT MODAL --}}
 {{-- ═══════════════════════════════════════════════ --}}
-<div x-data="{ open: false, mat: {} }" @open-edit-material-modal.window="mat = $event.detail; open = true" x-show="open" class="fixed inset-0 z-[99999] overflow-y-auto" style="display: none">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 transition-opacity" @click="open = false"></div>
+<div x-data="{ open: false, mat: {} }" @open-edit-material-modal.window="mat = $event.detail; open = true" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
+    <div class="flex items-center justify-center min-h-screen p-4" style="z-index: 99999 !important;">
+        <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
 
-        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-lg w-full relative z-10 border-2 border-black">
+        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-lg w-full relative border-2 border-black" style="z-index: 100000 !important;">
             <div class="px-6 py-4 flex items-center justify-between border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
                 <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-sm uppercase"><i class="fas fa-edit text-amber-400"></i> Edit Materi Pembelajaran</h3>
                 <button @click="open = false" class="text-white/80 hover:text-white transition-colors bg-slate-800 border border-slate-700 w-8 h-8 rounded-xl flex items-center justify-center font-black"><i class="fas fa-times"></i></button>
