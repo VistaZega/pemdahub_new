@@ -31,28 +31,29 @@ class DashboardController extends Controller
         }
 
         $employee = \App\Models\Employee::where('user_id', $user->id)->first();
-        if ($employee) {
-            return Teacher::firstOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'school_id' => $employee->school_id ?? $user->school_id,
-                    'teacher_code' => $employee->employee_code ?? 'PGW-'.$user->id,
-                    'full_name' => $employee->full_name ?? $user->name,
-                    'gender' => $employee->gender ?? 'L',
-                    'birth_place' => $employee->birth_place ?? '-',
-                    'is_active' => $employee->is_active ?? true,
-                ]
-            );
+        if (!$employee) {
+            $employee = \App\Models\Employee::create([
+                'school_id' => $user->school_id ?? 1,
+                'user_id' => $user->id,
+                'employee_code' => 'PGW-'.$user->id,
+                'full_name' => $user->name,
+                'gender' => 'L',
+                'employee_type' => 'other',
+                'employment_status' => 'yayasan',
+                'is_active' => true,
+            ]);
         }
 
         return Teacher::firstOrCreate(
             ['user_id' => $user->id],
             [
-                'school_id' => $user->school_id ?? 1,
-                'teacher_code' => 'USR-'.$user->id,
-                'full_name' => $user->name,
-                'gender' => 'L',
-                'is_active' => true,
+                'employee_id' => $employee->id,
+                'school_id' => $employee->school_id ?? $user->school_id ?? 1,
+                'teacher_code' => $employee->employee_code ?? 'PGW-'.$user->id,
+                'full_name' => $employee->full_name ?? $user->name,
+                'gender' => $employee->gender ?? 'L',
+                'birth_place' => $employee->birth_place ?? '-',
+                'is_active' => $employee->is_active ?? true,
             ]
         );
     }
