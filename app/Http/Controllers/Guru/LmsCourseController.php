@@ -660,16 +660,9 @@ class LmsCourseController extends Controller
 
         $filename = 'Rekap_Nilai_LMS_' . Str::slug($course->course_name ?? $course->name) . '_' . date('Y-m-d') . '.csv';
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0',
-        ];
-
-        $callback = function () use ($students, $course) {
+        return response()->streamDownload(function () use ($students, $course) {
             $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF");
 
             $headerRow = ['No', 'NISN', 'Nama Siswa'];
             foreach ($course->assignments as $asgn) {
@@ -700,9 +693,9 @@ class LmsCourseController extends Controller
                 foreach ($course->quizzes as $qz) {
                     $att = LmsQuizAttempt::where('quiz_id', $qz->id)
                         ->where('student_id', $student->id)
-                        ->orderByDesc('total_score')
+                        ->orderByDesc('score')
                         ->first();
-                    $row[] = $att ? $att->total_score : '-';
+                    $row[] = $att ? ($att->score !== null ? $att->score : '-') : '-';
                 }
 
                 $row[] = LmsMaterialProgress::getProgressForCourse($course->id, $student->id) . '%';
@@ -711,9 +704,9 @@ class LmsCourseController extends Controller
             }
 
             fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 
     /**
