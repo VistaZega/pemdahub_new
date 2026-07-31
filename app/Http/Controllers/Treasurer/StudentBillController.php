@@ -144,12 +144,26 @@ class StudentBillController extends Controller
         $allPaymentTypes = PaymentType::where('school_id', $schoolId)->orderBy('type_name')->get();
         $allClassrooms = Classroom::where('school_id', $schoolId)->orderBy('class_name')->get();
 
-        // Created bill groups (Jenis Tagihan + Nominal) for bulk update & bulk delete modals
-        $createdBillGroups = StudentBill::with('paymentType')
-            ->where('paid_amount', 0)
-            ->whereHas('student', fn($sq) => $sq->where('school_id', $schoolId))
-            ->selectRaw('payment_type_id, amount, count(*) as total_bills')
-            ->groupBy('payment_type_id', 'amount')
+        // Created bill groups (Jenis Tagihan + Nominal + Kelas/Tingkat + TP) for bulk update & bulk delete modals
+        $createdBillGroups = StudentBill::join('students', 'student_bills.student_id', '=', 'students.id')
+            ->leftJoin('classrooms', 'students.classroom_id', '=', 'classrooms.id')
+            ->join('payment_types', 'student_bills.payment_type_id', '=', 'payment_types.id')
+            ->leftJoin('academic_years', 'student_bills.academic_year_id', '=', 'academic_years.id')
+            ->where('student_bills.paid_amount', 0)
+            ->where('students.school_id', $schoolId)
+            ->selectRaw('
+                student_bills.payment_type_id,
+                payment_types.type_name,
+                student_bills.amount,
+                classrooms.grade_level,
+                GROUP_CONCAT(DISTINCT classrooms.class_name ORDER BY classrooms.class_name SEPARATOR ", ") as class_names,
+                academic_years.year as academic_year_name,
+                student_bills.academic_year_id,
+                count(DISTINCT student_bills.id) as total_bills
+            ')
+            ->groupBy('student_bills.payment_type_id', 'payment_types.type_name', 'student_bills.amount', 'classrooms.grade_level', 'academic_years.year', 'student_bills.academic_year_id')
+            ->orderBy('payment_types.type_name')
+            ->orderBy('classrooms.grade_level')
             ->get();
 
         // Unpaid bills list for visual selection inside modals
