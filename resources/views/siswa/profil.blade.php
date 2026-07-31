@@ -186,7 +186,7 @@
     {{-- Modal Edit Biodata --}}
     <div x-show="isEditModalOpen" 
          style="display: none;" 
-         class="fixed inset-0 z-[99999] overflow-y-auto flex items-start sm:items-center justify-center p-4 sm:p-6 pt-[75px] sm:pt-[75px] bg-slate-900/60 backdrop-blur-sm"
+         class="fixed top-[66px] inset-x-0 bottom-0 z-[99999] overflow-y-auto flex items-start justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -194,7 +194,7 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0">
         
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col my-auto overflow-hidden relative"
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[82vh] flex flex-col overflow-hidden relative my-2"
              @click.outside="isEditModalOpen = false"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
