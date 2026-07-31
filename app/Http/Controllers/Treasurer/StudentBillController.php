@@ -144,15 +144,12 @@ class StudentBillController extends Controller
         $allPaymentTypes = PaymentType::where('school_id', $schoolId)->orderBy('type_name')->get();
         $allClassrooms = Classroom::where('school_id', $schoolId)->orderBy('class_name')->get();
 
-        // Created bill groups for bulk update & bulk delete modals
-        $createdBillGroups = StudentBill::with(['paymentType', 'academicYear'])
+        // Created bill groups (Jenis Tagihan + Nominal) for bulk update & bulk delete modals
+        $createdBillGroups = StudentBill::with('paymentType')
             ->where('paid_amount', 0)
             ->whereHas('student', fn($sq) => $sq->where('school_id', $schoolId))
-            ->when($academicYearId, fn($q) => $q->where('academic_year_id', $academicYearId))
-            ->selectRaw('payment_type_id, amount, academic_year_id, month, year, count(*) as total_bills, sum(amount) as total_amount')
-            ->groupBy('payment_type_id', 'amount', 'academic_year_id', 'month', 'year')
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
+            ->selectRaw('payment_type_id, amount, count(*) as total_bills')
+            ->groupBy('payment_type_id', 'amount')
             ->get();
 
         // Unpaid bills list for visual selection inside modals

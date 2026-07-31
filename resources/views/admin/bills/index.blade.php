@@ -1246,7 +1246,7 @@ document.addEventListener('keydown', e => {
     </div>
 </div><!-- Modern Bulk Update Modal (Admin) -->
 <div id="bulkUpdateModal" style="display: none;" class="fixed inset-0 z-[99999] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-8">
+    <div class="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-8">
         <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
         <div class="px-6 py-6 sm:px-8 sm:py-8">
             <div class="flex items-center justify-between mb-6">
@@ -1258,7 +1258,7 @@ document.addEventListener('keydown', e => {
                     </div>
                     <div>
                         <h3 class="text-xl font-bold text-gray-900">Ubah Nominal Tagihan Yang Pernah Dibuat</h3>
-                        <p class="text-xs font-bold text-indigo-600 uppercase tracking-wider mt-0.5">Centang Kelompok Tagihan Dibuat yang Nominalnya Ingin Diubah</p>
+                        <p class="text-xs font-bold text-indigo-600 uppercase tracking-wider mt-0.5">Centang Jenis Tagihan & Nominal yang Ingin Diubah</p>
                     </div>
                 </div>
                 <button type="button" onclick="hideBulkUpdateModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-900 transition-all">
@@ -1269,16 +1269,14 @@ document.addEventListener('keydown', e => {
             <form id="bulkUpdateForm" onsubmit="submitBulkUpdateGroup(event)" class="space-y-5">
                 <!-- Tabel Tagihan Yang Pernah Dibuat -->
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">1. Centang Tagihan Yang Pernah Dibuat <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">1. Pilih Jenis Tagihan & Nominal Yang Pernah Dibuat <span class="text-rose-500">*</span></label>
                     <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-2xl shadow-inner bg-white">
                         <table class="w-full text-xs text-left">
                             <thead class="bg-gray-100 text-gray-700 uppercase tracking-wider sticky top-0 border-b border-gray-200">
                                 <tr>
                                     <th class="p-3 text-center w-12">Pilih</th>
                                     <th class="p-3">Jenis Tagihan</th>
-                                    <th class="p-3">Periode / TP</th>
                                     <th class="p-3 text-right">Nominal Saat Ini</th>
-                                    <th class="p-3 text-center">Jumlah Tagihan</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -1287,34 +1285,18 @@ document.addEventListener('keydown', e => {
                                     <td class="p-3 text-center">
                                         <input type="checkbox" class="group-update-cb w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                                             data-pt="{{ $bg->payment_type_id }}"
-                                            data-amount="{{ $bg->amount }}"
-                                            data-ay="{{ $bg->academic_year_id }}"
-                                            data-month="{{ $bg->month ?? '' }}"
-                                            data-year="{{ $bg->year ?? '' }}">
+                                            data-amount="{{ $bg->amount }}">
                                     </td>
                                     <td class="p-3 font-bold text-gray-900">
                                         {{ $bg->paymentType->type_name ?? '-' }}
                                     </td>
-                                    <td class="p-3 text-gray-600">
-                                        @if($bg->month)
-                                        {{ \Carbon\Carbon::create($bg->year, $bg->month, 1)->format('M Y') }}
-                                        @else
-                                        1 Kali ({{ $bg->year }})
-                                        @endif
-                                        <span class="block text-[10px] text-gray-400">TP: {{ $bg->academicYear->year ?? '-' }}</span>
-                                    </td>
                                     <td class="p-3 text-right font-bold text-indigo-700">
                                         Rp {{ number_format($bg->amount, 0, ',', '.') }}
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full font-bold text-[11px]">
-                                            {{ number_format($bg->total_bills) }} Siswa
-                                        </span>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="5" class="p-8 text-center text-gray-400 font-medium">Belum ada tagihan yang pernah dibuat dalam sistem.</td>
+                                    <td colspan="3" class="p-8 text-center text-gray-400 font-medium">Belum ada tagihan yang pernah dibuat dalam sistem.</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -1327,7 +1309,7 @@ document.addEventListener('keydown', e => {
                     <label class="block text-xs font-bold uppercase tracking-wider text-indigo-900 mb-1">2. Nominal Baru (Rp) <span class="text-rose-500">*</span></label>
                     <input type="number" id="bulk_group_new_amount" required placeholder="Contoh: 150000" min="0" step="1000"
                         class="w-full px-4 py-3 bg-white border-2 border-indigo-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 font-bold text-gray-900 text-lg outline-none">
-                    <p class="text-[11px] text-indigo-700 mt-1">Seluruh tagihan siswa yang belum dibayar pada kelompok tagihan terpilih akan diubah ke nominal baru ini.</p>
+                    <p class="text-[11px] text-indigo-700 mt-1">Seluruh tagihan siswa yang belum dibayar pada jenis tagihan & nominal terpilih akan diubah ke nominal baru ini.</p>
                 </div>
 
                 <div class="flex gap-4 pt-2">
@@ -1345,7 +1327,7 @@ document.addEventListener('keydown', e => {
 
 <!-- Modern Bulk Delete Modal (Admin) -->
 <div id="bulkDeleteModal" style="display: none;" class="fixed inset-0 z-[99999] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-8">
+    <div class="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-8">
         <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-rose-500 to-red-600"></div>
         <div class="px-6 py-6 sm:px-8 sm:py-8">
             <div class="flex items-center justify-between mb-6">
@@ -1368,21 +1350,19 @@ document.addEventListener('keydown', e => {
             <form id="bulkDeleteForm" onsubmit="submitBulkDeleteGroup(event)" class="space-y-5">
                 <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-xl text-xs text-amber-900 space-y-1">
                     <p class="font-bold">🛡️ Fitur Hapus Tagihan Latihan / Uji Coba</p>
-                    <p>Centang kelompok tagihan yang ingin dihapus. Semua tagihan siswa yang <b>belum dibayar</b> pada kelompok tersebut akan terhapus secara permanen. Tagihan yang sudah pernah dibayar otomatis terlindungi.</p>
+                    <p>Centang jenis tagihan & nominal yang ingin dihapus. Semua tagihan siswa yang <b>belum dibayar</b> pada item tersebut akan terhapus secara permanen.</p>
                 </div>
 
                 <!-- Tabel Tagihan Yang Pernah Dibuat -->
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Pilih Kelompok Tagihan Yang Akan Dihapus <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Pilih Jenis Tagihan & Nominal Yang Akan Dihapus <span class="text-rose-500">*</span></label>
                     <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-2xl shadow-inner bg-white">
                         <table class="w-full text-xs text-left">
                             <thead class="bg-gray-100 text-gray-700 uppercase tracking-wider sticky top-0 border-b border-gray-200">
                                 <tr>
                                     <th class="p-3 text-center w-12">Pilih</th>
                                     <th class="p-3">Jenis Tagihan</th>
-                                    <th class="p-3">Periode / TP</th>
                                     <th class="p-3 text-right">Nominal Tagihan</th>
-                                    <th class="p-3 text-center">Jumlah Tagihan</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -1391,34 +1371,18 @@ document.addEventListener('keydown', e => {
                                     <td class="p-3 text-center">
                                         <input type="checkbox" class="group-delete-cb w-4 h-4 rounded border-gray-300 text-rose-600 focus:ring-rose-500 cursor-pointer"
                                             data-pt="{{ $bg->payment_type_id }}"
-                                            data-amount="{{ $bg->amount }}"
-                                            data-ay="{{ $bg->academic_year_id }}"
-                                            data-month="{{ $bg->month ?? '' }}"
-                                            data-year="{{ $bg->year ?? '' }}">
+                                            data-amount="{{ $bg->amount }}">
                                     </td>
                                     <td class="p-3 font-bold text-gray-900">
                                         {{ $bg->paymentType->type_name ?? '-' }}
                                     </td>
-                                    <td class="p-3 text-gray-600">
-                                        @if($bg->month)
-                                        {{ \Carbon\Carbon::create($bg->year, $bg->month, 1)->format('M Y') }}
-                                        @else
-                                        1 Kali ({{ $bg->year }})
-                                        @endif
-                                        <span class="block text-[10px] text-gray-400">TP: {{ $bg->academicYear->year ?? '-' }}</span>
-                                    </td>
                                     <td class="p-3 text-right font-bold text-rose-600">
                                         Rp {{ number_format($bg->amount, 0, ',', '.') }}
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-full font-bold text-[11px]">
-                                            {{ number_format($bg->total_bills) }} Siswa
-                                        </span>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="5" class="p-8 text-center text-gray-400 font-medium">Belum ada tagihan yang dapat dihapus.</td>
+                                    <td colspan="3" class="p-8 text-center text-gray-400 font-medium">Belum ada tagihan yang dapat dihapus.</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -1470,7 +1434,7 @@ function submitBulkUpdateGroup(e) {
 
     const checkboxes = Array.from(document.querySelectorAll('.group-update-cb:checked'));
     if (checkboxes.length === 0) {
-        alert('Harap centang setidaknya 1 kelompok tagihan dari tabel!');
+        alert('Harap centang setidaknya 1 item dari tabel!');
         return;
     }
 
@@ -1484,9 +1448,6 @@ function submitBulkUpdateGroup(e) {
             body: JSON.stringify({
                 payment_type_id: cb.dataset.pt,
                 old_amount: cb.dataset.amount,
-                academic_year_id: cb.dataset.ay || null,
-                month: cb.dataset.month || null,
-                year: cb.dataset.year || null,
                 new_amount: newAmount,
                 _token: '{{ csrf_token() }}'
             })
@@ -1508,11 +1469,11 @@ function submitBulkDeleteGroup(e) {
     e.preventDefault();
     const checkboxes = Array.from(document.querySelectorAll('.group-delete-cb:checked'));
     if (checkboxes.length === 0) {
-        alert('Harap centang setidaknya 1 kelompok tagihan dari tabel!');
+        alert('Harap centang setidaknya 1 item dari tabel!');
         return;
     }
 
-    if (!confirm(`Apakah Anda yakin ingin menghapus seluruh tagihan yang belum dibayar untuk ${checkboxes.length} kelompok tagihan terpilih?`)) {
+    if (!confirm(`Apakah Anda yakin ingin menghapus seluruh tagihan yang belum dibayar untuk ${checkboxes.length} item terpilih?`)) {
         return;
     }
 
@@ -1526,9 +1487,6 @@ function submitBulkDeleteGroup(e) {
             body: JSON.stringify({
                 payment_type_id: cb.dataset.pt,
                 old_amount: cb.dataset.amount,
-                academic_year_id: cb.dataset.ay || null,
-                month: cb.dataset.month || null,
-                year: cb.dataset.year || null,
                 _token: '{{ csrf_token() }}'
             })
         }).then(r => r.json());
