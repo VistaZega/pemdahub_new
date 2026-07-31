@@ -30,6 +30,14 @@ class FoundationLetterReaderController extends Controller
 
         $letter = FoundationLetter::where('status', 'published')->findOrFail($id);
 
+        // Verifikasi apakah pengguna berhak membaca surat ini berdasarkan sasaran/tujuan surat
+        if (!$user->isSuperAdmin() && $user->role !== 'ketua_yayasan') {
+            $canAccess = FoundationLetter::where('id', $letter->id)->forUser($user)->exists();
+            if (!$canAccess) {
+                abort(403, 'Akses Ditolak: Surat edaran ini tidak ditujukan untuk peran/jabatan Anda.');
+            }
+        }
+
         // Record read receipt
         FoundationLetterRead::firstOrCreate([
             'foundation_letter_id' => $letter->id,

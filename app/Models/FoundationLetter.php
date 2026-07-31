@@ -89,8 +89,13 @@ class FoundationLetter extends Model
             $q->orWhere('recipients->target_key', $roleKey)
               ->orWhere('recipients->target_key', 'all');
 
-            if ($roleKey === 'guru_pegawai' || $roleKey === 'guru') {
-                $q->orWhereJsonContains('recipients->target_keys', 'guru_pegawai');
+            if ($roleKey === 'guru_pegawai' || $roleKey === 'guru' || $roleKey === 'pegawai') {
+                $q->orWhereJsonContains('recipients->target_keys', 'guru_pegawai')
+                  ->orWhereJsonContains('recipients->target_keys', 'guru')
+                  ->orWhereJsonContains('recipients->target_keys', 'pegawai')
+                  ->orWhere('recipients->target_key', 'guru_pegawai')
+                  ->orWhere('recipients->target_key', 'guru')
+                  ->orWhere('recipients->target_key', 'pegawai');
             }
         });
     }
