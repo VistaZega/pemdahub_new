@@ -323,7 +323,47 @@ class LmsController extends Controller
             $progress->increment('time_spent_seconds', $request->time_spent);
         }
 
-        return response()->json(['success' => true, 'progress' => $progress]);
+        if ($request->expectsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
+            return response()->json(['success' => true, 'progress' => $progress]);
+        }
+
+        // Standard web form submission redirect logic
+        $currentModuleOrder = $material->module->order_index ?? 0;
+        
+        $nextMaterial = LmsMaterial::where('module_id', $material->module_id)
+            ->where(function($q) use ($material) {
+                $q->where('order_index', '>', $material->order_index)
+                  ->orWhere(function($subQ) use ($material) {
+                      $subQ->where('order_index', '=', $material->order_index)
+                           ->where('id', '>', $material->id);
+                  });
+            })
+            ->orderBy('order_index', 'asc')
+            ->orderBy('id', 'asc')
+            ->first();
+
+        if (!$nextMaterial) {
+            // Check next module's first material
+            $nextModule = LmsModule::where('course_id', $material->course_id)
+                ->where('order_index', '>', $currentModuleOrder)
+                ->orderBy('order_index', 'asc')
+                ->first();
+
+            if ($nextModule) {
+                $nextMaterial = $nextModule->materials()
+                    ->orderBy('order_index', 'asc')
+                    ->orderBy('id', 'asc')
+                    ->first();
+            }
+        }
+
+        if ($nextMaterial) {
+            return redirect()->route('siswa.lms.materials.player', $nextMaterial->id)
+                ->with('success', 'Materi berhasil diselesaikan! Melanjutkan ke materi berikutnya (+50 EXP)');
+        }
+
+        return redirect()->route('siswa.lms.show', $material->course_id)
+            ->with('success', 'Selamat! Anda telah menyelesaikan seluruh materi pada kelas ini! (+50 EXP)');
     }
 
     /**
