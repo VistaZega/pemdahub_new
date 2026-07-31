@@ -44,6 +44,16 @@
         <span class="text-sm flex-1 font-semibold">Dashboard</span>
     </a>
 
+    <!-- ── Surat Edaran Yayasan ── -->
+    <a href="{{ route('admin.letters.index') }}"
+       class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-xl {{ request()->routeIs('admin.letters.*') ? $ac : 'text-gray-700 hover:bg-gray-50' }}">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white shadow">
+            <i class="fas fa-file-signature text-xs"></i>
+        </div>
+        <span class="text-sm flex-1 font-semibold">Surat Edaran Yayasan</span>
+    </a>
+
+
     @if($isOnlyCommittee)
     <!-- tombol kembali ke portal guru -->
     <a href="{{ route('guru.dashboard') }}"

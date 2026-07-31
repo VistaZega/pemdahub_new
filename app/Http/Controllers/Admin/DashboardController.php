@@ -209,6 +209,13 @@ class DashboardController extends Controller
                 ->get();
         }
 
+        // Surat Edaran Yayasan terbaru untuk admin/kepsek
+        $foundationLetters = \App\Models\FoundationLetter::where('status', 'published')
+            ->forUser($user)
+            ->orderBy('effective_date', 'desc')
+            ->take(3)
+            ->get();
+
         return view('admin.dashboard', compact(
             'isSuperAdmin', 'isKepsek', 'school', 'totalStudents', 'activeStudents', 'totalTeachers', 
             'totalClassrooms', 'totalSchools', 'totalEmployees', 'totalCbtExams', 'activeLmsCourses', 
@@ -217,7 +224,8 @@ class DashboardController extends Controller
             'cumulativeRate', 'classDistribution', 'activeTeachersCount', 'activeStaffCount',
             'teachersHadir', 'teachersTugasKhusus', 'teachersSakit', 'teachersIzin', 'teachersAlpha',
             'staffHadir', 'staffTugasKhusus', 'staffSakit', 'staffIzin', 'staffAlpha', 'staffLate',
-            'totalApplicants', 'pendingApplicants', 'totalBillsCount', 'paidBillsCount', 'billPaidPercentage', 'activeCounselings'
+            'totalApplicants', 'pendingApplicants', 'totalBillsCount', 'paidBillsCount', 'billPaidPercentage', 'activeCounselings',
+            'foundationLetters'
         ));
     }
 }
