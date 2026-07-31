@@ -46,14 +46,18 @@ class DashboardController extends Controller
             ->where('is_active', true)
             ->count();
 
-        // Total Tagihan & Keuangan (Realisasi Yayasan)
-        $totalBilled = StudentBill::whereIn('school_id', $schoolIds)
+        // Total Tagihan & Keuangan (Realisasi Yayasan via Student relation)
+        $totalBilled = (float) StudentBill::whereHas('student', function ($q) use ($schoolIds) {
+                $q->whereIn('school_id', $schoolIds);
+            })
             ->when($currentAcademicYear, function ($q) use ($currentAcademicYear) {
                 $q->where('academic_year_id', $currentAcademicYear->id);
             })
             ->sum('amount');
 
-        $totalPaid = StudentBill::whereIn('school_id', $schoolIds)
+        $totalPaid = (float) StudentBill::whereHas('student', function ($q) use ($schoolIds) {
+                $q->whereIn('school_id', $schoolIds);
+            })
             ->when($currentAcademicYear, function ($q) use ($currentAcademicYear) {
                 $q->where('academic_year_id', $currentAcademicYear->id);
             })
@@ -135,14 +139,18 @@ class DashboardController extends Controller
 
             $staffCount = max(0, $totalEmp - $teacherCount);
 
-            // Financials per school
-            $schoolBilled = (float) StudentBill::where('school_id', $school->id)
+            // Financials per school (via student relation)
+            $schoolBilled = (float) StudentBill::whereHas('student', function ($q) use ($school) {
+                    $q->where('school_id', $school->id);
+                })
                 ->when($currentAcademicYear, function ($q) use ($currentAcademicYear) {
                     $q->where('academic_year_id', $currentAcademicYear->id);
                 })
                 ->sum('amount');
 
-            $schoolPaid = (float) StudentBill::where('school_id', $school->id)
+            $schoolPaid = (float) StudentBill::whereHas('student', function ($q) use ($school) {
+                    $q->where('school_id', $school->id);
+                })
                 ->when($currentAcademicYear, function ($q) use ($currentAcademicYear) {
                     $q->where('academic_year_id', $currentAcademicYear->id);
                 })
