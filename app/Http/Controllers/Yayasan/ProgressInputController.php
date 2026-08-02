@@ -838,34 +838,62 @@ class ProgressInputController extends Controller
             $pctRfid = $totalEmp > 0 ? round(($rfidMappedCount / $totalEmp) * 100, 1) : 0;
             $unmappedCount = max(0, $totalEmp - $rfidMappedCount);
 
-            if ($totalEmp == 0) {
-                $rekomendasi = "Belum ada pegawai terdaftar di unit ini untuk sinkronisasi {$techName} presensi.";
-                $statusColor = 'red';
-            } elseif ($pctRfid < 90) {
-                $rekomendasi = "Pemetaan ID {$techFullName} presensi mencapai {$pctRfid}% ({$rfidMappedCount}/{$totalEmp} Pegawai). Target SE minimal 90%. Lengkapi pemetaan {$techName}.";
-                $statusColor = 'amber';
-            } else {
-                $rekomendasi = "Sangat baik! Pemetaan ID {$techFullName} / Perangkat Presensi Guru & Pegawai telah selesai disinkronkan 100%.";
+            if ($isQrCode) {
+                // Untuk SMP Pembda 2: Hitung Total Guru, Pegawai & Siswa
+                $studentsCount = Student::where('school_id', $school->id)->where('status', 'aktif')->count();
+                $totalTarget = $totalEmp + $studentsCount;
+                
+                $pctQr = 100; // QR Code ter-generate otomatis
+                $rekomendasi = "Semua data Siswa, Guru & Pegawai telah memiliki QR Code. Silakan lakukan proses Cetak/Print ID Card dan lakukan Uji Coba (Test) scan presensi.";
                 $statusColor = 'green';
+                
+                $details = [
+                    "Sistem Presensi: QR Code Terintegrasi (Otomatis)",
+                    "Total Target (Guru, Pegawai & Siswa): {$totalTarget} Orang",
+                    "Rincian: {$totalEmp} Guru/Pegawai, {$studentsCount} Siswa",
+                    "Status ID Card & QR Code: 100% Siap Cetak & Test",
+                ];
+
+                $item11Schools[] = [
+                    'school_name'  => $school->name,
+                    'perkembangan' => "100% ({$totalTarget}/{$totalTarget} {$techName})",
+                    'satuan'       => 'Persentase (%)',
+                    'rekomendasi'  => $rekomendasi,
+                    'status_color' => $statusColor,
+                    'raw_value'    => $pctQr,
+                    'details'      => $details,
+                    'action_items' => ["Cetak/Print ID Card dengan QR Code", "Test/Uji Coba scan QR Code untuk presensi"],
+                ];
+            } else {
+                if ($totalEmp == 0) {
+                    $rekomendasi = "Belum ada pegawai terdaftar di unit ini untuk sinkronisasi {$techName} presensi.";
+                    $statusColor = 'red';
+                } elseif ($pctRfid < 90) {
+                    $rekomendasi = "Pemetaan ID {$techFullName} presensi mencapai {$pctRfid}% ({$rfidMappedCount}/{$totalEmp} Pegawai). Target SE minimal 90%. Lengkapi pemetaan {$techName}.";
+                    $statusColor = 'amber';
+                } else {
+                    $rekomendasi = "Sangat baik! Pemetaan ID {$techFullName} / Perangkat Presensi Guru & Pegawai telah selesai disinkronkan 100%.";
+                    $statusColor = 'green';
+                }
+
+                $details = [
+                    "Target Surat Edaran: Minimal 90% {$techFullName} / Perangkat Presensi Ter-sinkronisasi",
+                    "Total Guru & Staf Pegawai: {$totalEmp} Orang",
+                    "ID {$techFullName} Mapped & Synced: {$rfidMappedCount} Pegawai ({$pctRfid}%)",
+                    "Belum Ter-mapping {$techName}: {$unmappedCount} Pegawai",
+                ];
+
+                $item11Schools[] = [
+                    'school_name'  => $school->name,
+                    'perkembangan' => "{$pctRfid}% ({$rfidMappedCount}/{$totalEmp} {$techName})",
+                    'satuan'       => 'Persentase (%)',
+                    'rekomendasi'  => $rekomendasi,
+                    'status_color' => $statusColor,
+                    'raw_value'    => $pctRfid,
+                    'details'      => $details,
+                    'action_items' => $pctRfid < 90 ? ["Sinkronkan ID {$techFullName} untuk {$unmappedCount} Guru & Pegawai"] : [],
+                ];
             }
-
-            $details = [
-                "Target Surat Edaran: Minimal 90% {$techFullName} / Perangkat Presensi Ter-sinkronisasi",
-                "Total Guru & Staf Pegawai: {$totalEmp} Orang",
-                "ID {$techFullName} Mapped & Synced: {$rfidMappedCount} Pegawai ({$pctRfid}%)",
-                "Belum Ter-mapping {$techName}: {$unmappedCount} Pegawai",
-            ];
-
-            $item11Schools[] = [
-                'school_name'  => $school->name,
-                'perkembangan' => "{$pctRfid}% ({$rfidMappedCount}/{$totalEmp} {$techName})",
-                'satuan'       => 'Persentase (%)',
-                'rekomendasi'  => $rekomendasi,
-                'status_color' => $statusColor,
-                'raw_value'    => $pctRfid,
-                'details'      => $details,
-                'action_items' => $pctRfid < 90 ? ["Sinkronkan ID {$techFullName} untuk {$unmappedCount} Guru & Pegawai"] : [],
-            ];
         }
         $items[] = [
             'number'        => 11,
