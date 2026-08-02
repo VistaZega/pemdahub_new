@@ -415,8 +415,14 @@ class StudentBillController extends Controller
         $classrooms = Classroom::with('school')
             ->orderBy('class_name')
             ->get();
+        $classTypes = Classroom::whereNotNull('class_type')
+            ->where('class_type', '!=', '')
+            ->select('class_type')
+            ->distinct()
+            ->orderBy('class_type')
+            ->pluck('class_type');
 
-        return view('admin.bills.bulk-create', compact('schools', 'paymentTypes', 'academicYears', 'semesters', 'classrooms', 'activeYear'));
+        return view('admin.bills.bulk-create', compact('schools', 'paymentTypes', 'academicYears', 'semesters', 'classrooms', 'activeYear', 'classTypes'));
     }
 
     public function bulkStore(Request $request)
@@ -429,9 +435,10 @@ class StudentBillController extends Controller
             'academic_year_id' => 'required|exists:academic_years,id',
             'semester_id' => 'nullable|exists:semesters,id',
             'notes' => 'nullable|string',
-            'filter_by' => 'required|in:all,classroom,grade',
+            'filter_by' => 'required|in:all,classroom,grade,class_type',
             'classroom_id' => 'nullable|exists:classrooms,id',
             'grade_level' => 'nullable|integer|min:7|max:12',
+            'class_type' => 'nullable|string',
             'billing_type' => 'required|in:single,monthly',
             'generate_months' => 'nullable|integer|min:1|max:12',
             'start_month' => 'nullable|integer|min:1|max:12',
@@ -448,6 +455,7 @@ class StudentBillController extends Controller
             $validated['classroom_id'] ?? null,
             $validated['grade_level'] ?? null,
             $validated['academic_year_id'],
+            $validated['class_type'] ?? null,
         );
 
         if ($students->isEmpty()) {
@@ -457,6 +465,9 @@ class StudentBillController extends Controller
             }
             if ($validated['filter_by'] == 'classroom') {
                 return redirect()->back()->with('error', 'Tidak ada siswa aktif di kelas yang dipilih.');
+            }
+            if ($validated['filter_by'] == 'class_type') {
+                return redirect()->back()->with('error', "Tidak ada siswa aktif di tipe kelas {$validated['class_type']}.");
             }
             if ($validated['filter_by'] == 'grade') {
                 return redirect()->back()->with('error', "Tidak ada siswa aktif di tingkat {$validated['grade_level']}.");

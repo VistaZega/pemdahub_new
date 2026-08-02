@@ -105,14 +105,14 @@
                         Jangkauan Filter Siswa <span class="text-rose-500">*</span>
                     </label>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <label class="relative flex items-start p-4 border-2 border-slate-200 rounded-xl cursor-pointer hover:bg-emerald-50/50 hover:border-emerald-400 transition-all group">
                             <input type="radio" name="filter_by" value="all" {{ old('filter_by', 'all') == 'all' ? 'checked' : '' }} required
                                 class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 mt-0.5 cursor-pointer"
                                 onchange="toggleFilterOptions()">
                             <div class="ml-3">
-                                <span class="font-bold text-slate-900 text-xs block group-hover:text-emerald-700 transition-colors">Semua Siswa di Sekolah</span>
-                                <span class="text-[11px] text-slate-400 font-medium block mt-0.5">Buat tagihan untuk seluruh siswa aktif</span>
+                                <span class="font-bold text-slate-900 text-xs block group-hover:text-emerald-700 transition-colors">Semua Siswa</span>
+                                <span class="text-[11px] text-slate-400 font-medium block mt-0.5">Seluruh siswa aktif</span>
                             </div>
                         </label>
 
@@ -121,7 +121,7 @@
                                 class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 mt-0.5 cursor-pointer"
                                 onchange="toggleFilterOptions()">
                             <div class="ml-3">
-                                <span class="font-bold text-slate-900 text-xs block group-hover:text-emerald-700 transition-colors">Per Kelas Tertentu</span>
+                                <span class="font-bold text-slate-900 text-xs block group-hover:text-emerald-700 transition-colors">Per Kelas</span>
                                 <span class="text-[11px] text-slate-400 font-medium block mt-0.5">Pilih 1 kelas spesifik</span>
                             </div>
                         </label>
@@ -131,8 +131,18 @@
                                 class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 mt-0.5 cursor-pointer"
                                 onchange="toggleFilterOptions()">
                             <div class="ml-3">
-                                <span class="font-bold text-slate-900 text-xs block group-hover:text-emerald-700 transition-colors">Per Tingkat / Angkatan</span>
-                                <span class="text-[11px] text-slate-400 font-medium block mt-0.5">Kelas 7, 8, 9 atau 10, 11, 12</span>
+                                <span class="font-bold text-slate-900 text-xs block group-hover:text-emerald-700 transition-colors">Per Tingkat</span>
+                                <span class="text-[11px] text-slate-400 font-medium block mt-0.5">Kelas 7, 8, atau 10</span>
+                            </div>
+                        </label>
+
+                        <label class="relative flex items-start p-4 border-2 border-slate-200 rounded-xl cursor-pointer hover:bg-emerald-50/50 hover:border-emerald-400 transition-all group">
+                            <input type="radio" name="filter_by" value="class_type" {{ old('filter_by') == 'class_type' ? 'checked' : '' }} required
+                                class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 mt-0.5 cursor-pointer"
+                                onchange="toggleFilterOptions()">
+                            <div class="ml-3">
+                                <span class="font-bold text-slate-900 text-xs block group-hover:text-emerald-700 transition-colors">Per Tipe Kelas</span>
+                                <span class="text-[11px] text-slate-400 font-medium block mt-0.5">Industri, Reguler, dll</span>
                             </div>
                         </label>
                     </div>
@@ -188,6 +198,31 @@
                                 <option value="11" {{ old('grade_level') == '11' ? 'selected' : '' }}>Kelas XI (11)</option>
                                 <option value="12" {{ old('grade_level') == '12' ? 'selected' : '' }}>Kelas XII (12)</option>
                             </optgroup>
+                        </select>
+                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conditional Filter: Tipe Kelas -->
+                <div id="class_type_filter" style="display: none;" class="space-y-2">
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        Pilih Tipe Kelas <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <select name="class_type" id="class_type"
+                            class="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer"
+                            onchange="updateStudentCount()">
+                            <option value="">-- Pilih Tipe Kelas --</option>
+                            @foreach($classTypes as $type)
+                                <option value="{{ $type }}" {{ old('class_type') == $type ? 'selected' : '' }}>{{ ucfirst($type) }}</option>
+                            @endforeach
                         </select>
                         <div class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -512,6 +547,25 @@ function toggleFilterOptions() {
     
     document.getElementById('classroom_filter').style.display = filterBy === 'classroom' ? 'block' : 'none';
     document.getElementById('grade_filter').style.display = filterBy === 'grade' ? 'block' : 'none';
+    document.getElementById('class_type_filter').style.display = filterBy === 'class_type' ? 'block' : 'none';
+    
+    if (filterBy === 'classroom') {
+        document.getElementById('classroom_id').setAttribute('required', 'required');
+        document.getElementById('grade_level').removeAttribute('required');
+        document.getElementById('class_type').removeAttribute('required');
+    } else if (filterBy === 'grade') {
+        document.getElementById('grade_level').setAttribute('required', 'required');
+        document.getElementById('classroom_id').removeAttribute('required');
+        document.getElementById('class_type').removeAttribute('required');
+    } else if (filterBy === 'class_type') {
+        document.getElementById('class_type').setAttribute('required', 'required');
+        document.getElementById('classroom_id').removeAttribute('required');
+        document.getElementById('grade_level').removeAttribute('required');
+    } else {
+        document.getElementById('classroom_id').removeAttribute('required');
+        document.getElementById('grade_level').removeAttribute('required');
+        document.getElementById('class_type').removeAttribute('required');
+    }
     
     updateStudentCount();
 }

@@ -185,7 +185,7 @@ class StudentBillService
     /**
      * Get students matching the given filter criteria.
      */
-    public function getFilteredStudents(int $schoolId, string $filterBy, ?int $classroomId, ?int $gradeLevel, int $academicYearId): Collection
+    public function getFilteredStudents(int $schoolId, string $filterBy, ?int $classroomId, ?int $gradeLevel, int $academicYearId, ?string $classType = null): Collection
     {
         $query = Student::where('school_id', $schoolId);
 
@@ -198,6 +198,12 @@ class StudentBillService
         } elseif ($filterBy === 'grade' && $gradeLevel) {
             $query->whereHas('classrooms', function ($q) use ($gradeLevel, $academicYearId) {
                 $q->where('grade_level', $gradeLevel)
+                  ->where('student_classes.academic_year_id', $academicYearId)
+                  ->where('student_classes.status', 'aktif');
+            });
+        } elseif ($filterBy === 'class_type' && $classType) {
+            $query->whereHas('classrooms', function ($q) use ($classType, $academicYearId) {
+                $q->where('class_type', $classType)
                   ->where('student_classes.academic_year_id', $academicYearId)
                   ->where('student_classes.status', 'aktif');
             });

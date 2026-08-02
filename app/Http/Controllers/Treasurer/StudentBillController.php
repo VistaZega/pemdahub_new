@@ -293,17 +293,26 @@ class StudentBillController extends Controller
             ->orderBy('class_name')
             ->get();
         $paymentTypes = PaymentType::where('school_id', $schoolId)->orderBy('type_name')->get();
+        
+        $classTypes = Classroom::where('school_id', $schoolId)
+            ->whereNotNull('class_type')
+            ->where('class_type', '!=', '')
+            ->select('class_type')
+            ->distinct()
+            ->orderBy('class_type')
+            ->pluck('class_type');
 
-        return view('treasurer.bills.bulk-create', compact('academicYears', 'activeAcademicYear', 'semesters', 'classrooms', 'paymentTypes'));
+        return view('treasurer.bills.bulk-create', compact('academicYears', 'activeAcademicYear', 'semesters', 'classrooms', 'paymentTypes', 'classTypes'));
     }
 
     public function bulkStore(Request $request)
     {
         $request->validate([
             'academic_year_id' => 'required|exists:academic_years,id',
-            'filter_by' => 'required|in:all,classroom,grade',
+            'filter_by' => 'required|in:all,classroom,grade,class_type',
             'classroom_id' => 'required_if:filter_by,classroom|nullable|exists:classrooms,id',
             'grade_level' => 'required_if:filter_by,grade|nullable|integer',
+            'class_type' => 'required_if:filter_by,class_type|nullable|string',
             'payment_type_id' => 'required|exists:payment_types,id',
             'billing_type' => 'required|in:monthly,single',
             'amount' => 'required_if:billing_type,single|nullable|numeric|min:0',
@@ -353,6 +362,18 @@ class StudentBillController extends Controller
                     ->distinct()
                     ->pluck('student_id');
                 
+                $studentsQuery->whereIn('id', $studentIds);
+            } elseif ($request->filter_by == 'class_type') {
+                $classroomIds = Classroom::where('school_id', $schoolId)
+                    ->where('class_type', $request->class_type)
+                    ->where('is_active', true)
+                    ->pluck('id');
+                
+                $studentIds = DB::table('student_classes')
+                    ->whereIn('classroom_id', $classroomIds)
+                    ->where('status', 'aktif')
+                    ->pluck('student_id');
+
                 $studentsQuery->whereIn('id', $studentIds);
             }
 
