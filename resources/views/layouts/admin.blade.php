@@ -14,8 +14,23 @@
 @section('sidebar-menu')
     @php
         $user = auth()->user();
+        $activeRole = session('active_role');
+        
         $isYayasan = $user ? ($user->isKetuaYayasan() || $user->hasRole('ketua_yayasan')) : false;
-        $isSA = $user ? ($user->isSuperAdmin() && !$isYayasan) : false;
+        $isSA = $user ? $user->isSuperAdmin() : false;
+        
+        // Prioritaskan session active_role jika di-set secara eksplisit
+        if ($activeRole === 'superadmin') {
+            $isYayasan = false;
+            $isSA = true;
+        } elseif ($activeRole === 'ketua_yayasan') {
+            $isYayasan = true;
+            $isSA = false;
+        } else {
+            // Default: Yayasan override Super Admin untuk sidebar ini
+            $isSA = $isSA && !$isYayasan;
+        }
+
         $isAdmin = $user ? ($user->isAdminSekolah() && !$isYayasan) : false;
         $isKepsek = $user ? ($user->isKepalaSekolah() && !$isYayasan) : false;
         $isFinance = $user ? ($user->isBendahara() && !$isYayasan) : false;
