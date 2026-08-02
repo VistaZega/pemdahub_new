@@ -40,6 +40,23 @@ class ProgressInputController extends Controller
     {
         $academicYearId = $request->input('academic_year_id');
         $data = $this->getProgressData($academicYearId);
+        $data['isSharedView'] = false;
+
+        return view('yayasan.progress_input.index', $data);
+    }
+
+    /**
+     * Tampilkan halaman Progress Input Data (Shared View, Public)
+     */
+    public function indexShared(Request $request)
+    {
+        if ($request->query('token') !== 'pembda-yayasan-2026') {
+            abort(403, 'Akses link tidak valid atau sudah kadaluarsa.');
+        }
+
+        $academicYearId = $request->input('academic_year_id');
+        $data = $this->getProgressData($academicYearId);
+        $data['isSharedView'] = true;
 
         return view('yayasan.progress_input.index', $data);
     }
@@ -51,6 +68,28 @@ class ProgressInputController extends Controller
     {
         $academicYearId = $request->input('academic_year_id');
         $data = $this->getProgressData($academicYearId);
+        $data['isSharedView'] = false;
+
+        $pdf = Pdf::loadView('yayasan.progress_input.pdf', $data)
+            ->setPaper('a4', 'landscape');
+
+        $fileName = 'rekap_progress_input_data_SE05_' . str_replace('/', '_', $data['currentYear']->year ?? '2026_2027') . '.pdf';
+
+        return $pdf->download($fileName);
+    }
+
+    /**
+     * Export rekap progress input ke PDF (Shared View, Public)
+     */
+    public function exportPdfShared(Request $request)
+    {
+        if ($request->query('token') !== 'pembda-yayasan-2026') {
+            abort(403, 'Akses link tidak valid atau sudah kadaluarsa.');
+        }
+
+        $academicYearId = $request->input('academic_year_id');
+        $data = $this->getProgressData($academicYearId);
+        $data['isSharedView'] = true;
 
         $pdf = Pdf::loadView('yayasan.progress_input.pdf', $data)
             ->setPaper('a4', 'landscape');

@@ -1,4 +1,4 @@
-@extends('layouts.yayasan')
+@extends(isset($isSharedView) && $isSharedView ? 'layouts.shared' : 'layouts.yayasan')
 
 @section('title', 'Progress Input Data & Standar Minimal SE 05 - Ketua Yayasan')
 
@@ -20,8 +20,12 @@
             </div>
             <div class="flex flex-wrap items-center gap-3">
                 {{-- Form Filter Tahun Pelajaran --}}
-                <form action="{{ route('yayasan.progress-input') }}" method="GET" class="flex items-center gap-2 m-0 p-0">
+                <form action="{{ isset($isSharedView) && $isSharedView ? route('shared.progress-input') : route('yayasan.progress-input') }}" method="GET" class="flex items-center gap-2 m-0 p-0">
+                    @if(isset($isSharedView) && $isSharedView)
+                        <input type="hidden" name="token" value="{{ request('token') }}">
+                    @endif
                     <select name="academic_year_id" onchange="this.form.submit()" class="bg-white/15 text-white border border-white/30 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm">
+                        <option value="" class="text-gray-800">Semua TP</option>
                         @foreach($allYears as $year)
                             <option value="{{ $year->id }}" class="text-gray-800" {{ ($currentYear && $currentYear->id == $year->id) ? 'selected' : '' }}>
                                 TP. {{ $year->year }} {{ $year->is_active ? '(Aktif)' : '' }}
@@ -30,11 +34,12 @@
                     </select>
                 </form>
 
-                {{-- Tombol Export PDF --}}
-                <a href="{{ route('yayasan.progress-input.export-pdf', ['academic_year_id' => request('academic_year_id')]) }}" 
+                {{-- Export PDF --}}
+                <a href="{{ isset($isSharedView) && $isSharedView ? route('shared.progress-input.export-pdf', ['academic_year_id' => request('academic_year_id'), 'token' => request('token')]) : route('yayasan.progress-input.export-pdf', ['academic_year_id' => request('academic_year_id')]) }}" 
+                   target="_blank"
                    class="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5">
-                    <i class="fas fa-file-pdf text-lg"></i>
-                    <span>Export PDF Laporan SE 05</span>
+                    <i class="fas fa-file-pdf"></i>
+                    <span class="hidden sm:inline">Export PDF</span>
                 </a>
             </div>
         </div>

@@ -17,6 +17,12 @@ Route::prefix('display')->name('display.')->group(function () {
 });
 
 // ============================================================
+//  SHARED YAYASAN VIEW (Public dengan Token)
+// ============================================================
+Route::get('/yayasan/progress-input/shared', [App\Http\Controllers\Yayasan\ProgressInputController::class, 'indexShared'])->name('shared.progress-input');
+Route::get('/yayasan/progress-input/shared/export-pdf', [App\Http\Controllers\Yayasan\ProgressInputController::class, 'exportPdfShared'])->name('shared.progress-input.export-pdf');
+
+// ============================================================
 //  PEMBDAHUB SIMLAB - Virtual Microcontroller & IoT Simulator
 // ============================================================
 Route::prefix('simlab')->name('simlab.')->group(function () {
