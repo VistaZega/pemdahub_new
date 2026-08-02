@@ -827,7 +827,7 @@ class ProgressInputController extends Controller
         // ITEM 11: Pemetaan ID Kartu RFID / QR Code / Perangkat Presensi Guru & Pegawai
         $item11Schools = [];
         foreach ($schools as $school) {
-            $isQrCode = stripos($school->name, 'SMP Pembda 2') !== false;
+            $isQrCode = stripos($school->name, 'Pembda 2') !== false;
             $techName = $isQrCode ? 'QR Code' : 'RFID';
             $techFullName = $isQrCode ? 'QR Code' : 'Kartu RFID';
 
