@@ -218,6 +218,8 @@ class ScheduleGridController extends Controller
             'teacher_id' => 'required|exists:teachers,id',
             'subject_id' => 'required|exists:subjects,id',
             'classroom_id' => 'required|exists:classrooms,id',
+            'additional_classrooms' => 'nullable|array',
+            'additional_classrooms.*' => 'exists:classrooms,id',
             'time_slot_id' => 'required|exists:time_slots,id',
             'duration_slots' => 'required|integer|min:1|max:12',
             'day_of_week' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,monday,tuesday,wednesday,thursday,friday,saturday',
@@ -238,6 +240,13 @@ class ScheduleGridController extends Controller
             if ($assignment && $assignment->group_code) {
                 $groupCode = $assignment->group_code;
             }
+        }
+        
+        $hasAdditional = !empty($validated['additional_classrooms']) && is_array($validated['additional_classrooms']);
+        
+        // Jika ada kelas tambahan dan group code belum ada, buat otomatis
+        if ($hasAdditional && empty($groupCode)) {
+            $groupCode = 'GAB-' . strtoupper(\Illuminate\Support\Str::random(6));
         }
         
         // Convert Indonesian day name to English for storage consistency
@@ -278,72 +287,91 @@ class ScheduleGridController extends Controller
             abort(403, 'Unauthorized');
         }
         
-        // STRICT LIMITATION VALIDATION & GET ASSIGNMENT (Moved up before checkConflicts)
-        $assignmentId = $validated['teaching_assignment_id'] ?? null;
-        $assignment = null;
+        $targetClassrooms = [$validated['classroom_id']];
+        if ($hasAdditional) {
+            $targetClassrooms = array_merge($targetClassrooms, $validated['additional_classrooms']);
+            $targetClassrooms = array_unique($targetClassrooms); // Hapus duplikat
+        }
 
-        if ($assignmentId) {
-            $assignment = TeachingAssignment::find($assignmentId);
-        } else {
-            // Cari apakah sudah ada penugasan mengajar untuk kombinasi ini
-            $assignment = TeachingAssignment::where([
+        $schedulesToInsert = [];
+
+        foreach ($targetClassrooms as $classId) {
+            // STRICT LIMITATION VALIDATION & GET ASSIGNMENT
+            $assignmentId = null;
+            $assignment = null;
+
+            if ($classId == $validated['classroom_id'] && !empty($validated['teaching_assignment_id'])) {
+                $assignmentId = $validated['teaching_assignment_id'];
+                $assignment = TeachingAssignment::find($assignmentId);
+            } else {
+                // Cari penugasan mengajar untuk kelas target ini
+                $assignment = TeachingAssignment::where([
+                    'teacher_id' => $validated['teacher_id'],
+                    'subject_id' => $validated['subject_id'],
+                    'classroom_id' => $classId,
+                    'academic_year_id' => $validated['academic_year_id'],
+                    'semester_id' => $semester->id,
+                ])->first();
+            }
+
+            $classroomName = \App\Models\Classroom::find($classId)->class_name ?? 'Kelas Tidak Dikenal';
+
+            if ($assignment) {
+                // Cek batasan JP
+                $plottedJP = Schedule::where('teaching_assignment_id', $assignment->id)->sum('duration_slots');
+                if (($plottedJP + $validated['duration_slots']) > $assignment->hours_per_week) {
+                    return back()->with('error', "Validasi Ketat: Guru {$teacher->full_name} hanya ditugaskan {$assignment->hours_per_week} JP di {$classroomName}. Saat ini sudah terjadwal {$plottedJP} JP. Tidak bisa menambah {$validated['duration_slots']} JP lagi.")->withInput();
+                }
+                $assignmentId = $assignment->id;
+            } else {
+                // Tolak jika belum ada Penugasan Mengajar
+                return back()->with('error', "Validasi Ketat: Guru {$teacher->full_name} belum ditugaskan mengajar {$subject->subject_name} di {$classroomName}. Silakan tambahkan di menu Penugasan Mengajar terlebih dahulu dengan jumlah JP yang sesuai.")->withInput();
+            }
+
+            $blockType = $assignment->block_type ?? 'none';
+
+            // Check conflicts and multi-duration slot availability
+            $conflictError = $this->checkConflicts(
+                $validated['academic_year_id'],
+                $validated['semester'],
+                $validated['day_of_week'],
+                $validated['time_slot_id'],
+                $classId,
+                $validated['teacher_id'],
+                $validated['duration_slots'],
+                $groupCode,
+                null,
+                $blockType
+            );
+            
+            if ($conflictError) {
+                return back()->with('error', "Bentrok pada {$classroomName}: {$conflictError}")->withInput();
+            }
+
+            $schedulesToInsert[] = [
+                'school_id' => $teacher->school_id,
                 'teacher_id' => $validated['teacher_id'],
                 'subject_id' => $validated['subject_id'],
-                'classroom_id' => $validated['classroom_id'],
+                'classroom_id' => $classId,
+                'time_slot_id' => $validated['time_slot_id'],
+                'duration_slots' => $validated['duration_slots'],
+                'day_of_week' => $validated['day_of_week'],
                 'academic_year_id' => $validated['academic_year_id'],
                 'semester_id' => $semester->id,
-            ])->first();
+                'semester' => $validated['semester'],
+                'teaching_assignment_id' => $assignmentId,
+                'group_code' => $groupCode,
+            ];
         }
 
-        if ($assignment) {
-            // Cek batasan JP
-            $plottedJP = Schedule::where('teaching_assignment_id', $assignment->id)->sum('duration_slots');
-            if (($plottedJP + $validated['duration_slots']) > $assignment->hours_per_week) {
-                return back()->with('error', "Validasi Ketat: Guru {$teacher->full_name} hanya ditugaskan {$assignment->hours_per_week} JP untuk mata pelajaran {$subject->subject_name}. Saat ini sudah terjadwal {$plottedJP} JP. Tidak bisa menambah {$validated['duration_slots']} JP lagi.")->withInput();
-            }
-            $assignmentId = $assignment->id;
-        } else {
-            // Tolak jika belum ada Penugasan Mengajar
-            return back()->with('error', "Validasi Ketat: Guru {$teacher->full_name} belum ditugaskan mengajar {$subject->subject_name} di kelas ini. Silakan tambahkan di menu Penugasan Mengajar terlebih dahulu dengan jumlah JP yang sesuai.")->withInput();
+        foreach ($schedulesToInsert as $data) {
+            Schedule::create($data);
         }
-
-        $blockType = $assignment->block_type ?? 'none';
-
-        // Check conflicts and multi-duration slot availability
-        $conflictError = $this->checkConflicts(
-            $validated['academic_year_id'],
-            $validated['semester'],
-            $validated['day_of_week'],
-            $validated['time_slot_id'],
-            $validated['classroom_id'],
-            $validated['teacher_id'],
-            $validated['duration_slots'],
-            $groupCode,
-            null,
-            $blockType
-        );
         
-        if ($conflictError) {
-            return back()->with('error', "Jadwal bentrok atau bermasalah: {$conflictError}")->withInput();
-        }
-
-        Schedule::create([
-            'school_id' => $teacher->school_id,
-            'teacher_id' => $validated['teacher_id'],
-            'subject_id' => $validated['subject_id'],
-            'classroom_id' => $validated['classroom_id'],
-            'time_slot_id' => $validated['time_slot_id'],
-            'duration_slots' => $validated['duration_slots'],
-            'day_of_week' => $validated['day_of_week'],
-            'academic_year_id' => $validated['academic_year_id'],
-            'semester_id' => $semester->id,
-            'semester' => $validated['semester'],
-            'teaching_assignment_id' => $assignmentId,
-            'group_code' => $groupCode,
-        ]);
-        
-        return back()->with('success', 'Jadwal berhasil ditambahkan!');
+        $msg = count($schedulesToInsert) > 1 ? 'Jadwal multi-kelas berhasil ditambahkan!' : 'Jadwal berhasil ditambahkan!';
+        return back()->with('success', $msg);
     }
+    
     
     public function edit($id)
     {

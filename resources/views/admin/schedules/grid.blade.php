@@ -638,6 +638,20 @@
                         <p class="text-[10px] text-gray-400 mt-1">Kosongkan jika bukan kelas gabungan. Isi kode yang sama untuk kelas-kelas yang digabung.</p>
                     </div>
 
+                    <!-- Multi-Class (Gabungan Kelas) -->
+                    <div class="bg-gradient-to-r from-indigo-50 to-white rounded-xl p-4 border border-indigo-200" id="multiClassSection">
+                        <label class="block text-sm font-semibold text-indigo-700 mb-2">
+                            <i class="fas fa-users-viewfinder mr-1"></i> Pilih Kelas Tambahan (Untuk Kelas Gabungan)
+                        </label>
+                        <select name="additional_classrooms[]" id="additionalClassrooms" class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-sm select2" multiple="multiple">
+                            @foreach($classrooms as $cls)
+                                <option value="{{ $cls->id }}" class="classroom-option-{{ $cls->id }}">{{ $cls->class_name }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-[10px] text-gray-500 mt-1">Pilih kelas lain yang belajar bersamaan. Sistem akan otomatis menyamakan Kode Grup dan menghindari bentrok antar-kelas ini.</p>
+                    </div>
+
+
                     <!-- Teaching Assignments Section -->
                     <div id="assignmentsSection" class="hidden">
                         <div class="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-4 border border-emerald-200">
@@ -748,6 +762,7 @@ async function openScheduleModal(day, timeSlotId, classroomId, scheduleId) {
         document.getElementById('formMethod').value = 'PUT';
         deleteBtn.classList.remove('hidden');
         document.getElementById('editWarning').classList.remove('hidden');
+        document.getElementById('multiClassSection').classList.add('hidden'); // Sembunyikan multi-kelas di mode Edit
     } else {
         // Create mode
         title.textContent = 'Tambah Jadwal';
@@ -755,10 +770,27 @@ async function openScheduleModal(day, timeSlotId, classroomId, scheduleId) {
         document.getElementById('formMethod').value = 'POST';
         deleteBtn.classList.add('hidden');
         document.getElementById('editWarning').classList.add('hidden');
+        document.getElementById('multiClassSection').classList.remove('hidden'); // Tampilkan multi-kelas di mode Create
     }
+    
+    // Disable current classroom in additional_classrooms select
+    const additionalSelect = $('#additionalClassrooms');
+    additionalSelect.find('option').prop('disabled', false); // enable all first
+    additionalSelect.find('option[value="' + classroomId + '"]').prop('disabled', true);
+    additionalSelect.val(null).trigger('change'); // reset selection
     
     // Reset assignment selection
     document.getElementById('selectedAssignmentId').value = '';
+    
+    // Inisialisasi Select2 jika tersedia
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+        $('#additionalClassrooms').select2({
+            placeholder: "Pilih kelas tambahan...",
+            allowClear: true,
+            width: '100%',
+            dropdownParent: $('#scheduleModal')
+        });
+    }
     
     try {
         // Fetch subjects, teachers, AND teaching assignments for this classroom
