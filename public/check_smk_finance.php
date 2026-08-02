@@ -22,22 +22,28 @@ try {
     echo "🏫 Sekolah Ditemukan: ID {$school->id} - {$school->name} ({$school->type})\n\n";
 
     // 1. Total Tagihan
-    $billsCount = App\Models\StudentBill::where('school_id', $school->id)->count();
-    $totalAmount = App\Models\StudentBill::where('school_id', $school->id)->sum('amount');
+    $billsCount = App\Models\StudentBill::whereHas('student', function($q) use ($school) {
+        $q->where('school_id', $school->id);
+    })->count();
+    $totalAmount = App\Models\StudentBill::whereHas('student', function($q) use ($school) {
+        $q->where('school_id', $school->id);
+    })->sum('amount');
     echo "📊 TOTAL TAGIHAN: {$billsCount} records (Total Nominal: Rp " . number_format($totalAmount, 0, ',', '.') . ")\n";
 
     // 2. Total Pembayaran
-    $paymentsCount = App\Models\Payment::whereHas('bill', function($q) use ($school) {
+    $paymentsCount = App\Models\Payment::whereHas('bill.student', function($q) use ($school) {
         $q->where('school_id', $school->id);
     })->count();
-    $totalPaid = App\Models\Payment::whereHas('bill', function($q) use ($school) {
+    $totalPaid = App\Models\Payment::whereHas('bill.student', function($q) use ($school) {
         $q->where('school_id', $school->id);
     })->sum('amount_paid');
     echo "💳 TOTAL PEMBAYARAN: {$paymentsCount} records (Total Nominal: Rp " . number_format($totalPaid, 0, ',', '.') . ")\n\n";
 
     // 3. Rincian Tagihan berdasarkan Jenis Pembayaran (Payment Type)
     echo "📋 RINCIAN TAGIHAN BERDASARKAN JENIS:\n";
-    $billTypes = App\Models\StudentBill::where('school_id', $school->id)
+    $billTypes = App\Models\StudentBill::whereHas('student', function($q) use ($school) {
+            $q->where('school_id', $school->id);
+        })
         ->selectRaw('payment_type_id, count(*) as total_records, sum(amount) as total_amount')
         ->groupBy('payment_type_id')
         ->get();
@@ -49,7 +55,9 @@ try {
     }
 
     echo "\n📋 RINCIAN TAGIHAN BERDASARKAN TAHUN PELAJARAN:\n";
-    $years = App\Models\StudentBill::where('school_id', $school->id)
+    $years = App\Models\StudentBill::whereHas('student', function($q) use ($school) {
+            $q->where('school_id', $school->id);
+        })
         ->selectRaw('academic_year_id, count(*) as total_records')
         ->groupBy('academic_year_id')
         ->get();
@@ -62,7 +70,9 @@ try {
 
     // 4. Sample 5 Tagihan Terakhir
     echo "\n🔎 5 TAGIHAN TERAKHIR YANG DIBUAT (SAMPLE):\n";
-    $latestBills = App\Models\StudentBill::where('school_id', $school->id)->latest()->take(5)->get();
+    $latestBills = App\Models\StudentBill::whereHas('student', function($q) use ($school) {
+            $q->where('school_id', $school->id);
+        })->latest()->take(5)->get();
     if ($latestBills->isEmpty()) {
         echo "  - Tidak ada data tagihan.\n";
     } else {
