@@ -4,8 +4,8 @@ $app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-if (request('token') !== 'pembda99') {
-    abort(403);
+if (!isset($_GET['token']) || $_GET['token'] !== 'pembda99') {
+    die("Akses ditolak. Token tidak valid.");
 }
 
 header('Content-Type: text/html; charset=UTF-8');
