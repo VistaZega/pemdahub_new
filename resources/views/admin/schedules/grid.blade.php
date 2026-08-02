@@ -773,23 +773,30 @@ async function openScheduleModal(day, timeSlotId, classroomId, scheduleId) {
         document.getElementById('multiClassSection').classList.remove('hidden'); // Tampilkan multi-kelas di mode Create
     }
     
-    // Disable current classroom in additional_classrooms select
-    const additionalSelect = $('#additionalClassrooms');
-    additionalSelect.find('option').prop('disabled', false); // enable all first
-    additionalSelect.find('option[value="' + classroomId + '"]').prop('disabled', true);
-    additionalSelect.val(null).trigger('change'); // reset selection
+    // Disable current classroom in additional_classrooms select (use vanilla JS to prevent jQuery ReferenceError)
+    const additionalSelect = document.getElementById('additionalClassrooms');
+    if (additionalSelect) {
+        Array.from(additionalSelect.options).forEach(opt => opt.disabled = false); // enable all first
+        const currentOpt = additionalSelect.querySelector(`option[value="${classroomId}"]`);
+        if (currentOpt) currentOpt.disabled = true;
+    }
     
     // Reset assignment selection
     document.getElementById('selectedAssignmentId').value = '';
     
     // Inisialisasi Select2 jika tersedia
-    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
-        $('#additionalClassrooms').select2({
-            placeholder: "Pilih kelas tambahan...",
-            allowClear: true,
-            width: '100%',
-            dropdownParent: $('#scheduleModal')
-        });
+    if (typeof jQuery !== 'undefined') {
+        if (additionalSelect) {
+            jQuery(additionalSelect).val(null).trigger('change'); // reset selection visually for select2
+        }
+        if (typeof jQuery.fn.select2 !== 'undefined') {
+            jQuery('#additionalClassrooms').select2({
+                placeholder: "Pilih kelas tambahan...",
+                allowClear: true,
+                width: '100%',
+                dropdownParent: jQuery('#scheduleModal')
+            });
+        }
     }
     
     try {
