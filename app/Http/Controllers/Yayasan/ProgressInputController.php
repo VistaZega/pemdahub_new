@@ -824,9 +824,13 @@ class ProgressInputController extends Controller
             'schools_data'  => $item10Schools,
         ];
 
-        // ITEM 11: Pemetaan ID Kartu RFID / Perangkat Presensi Guru & Pegawai
+        // ITEM 11: Pemetaan ID Kartu RFID / QR Code / Perangkat Presensi Guru & Pegawai
         $item11Schools = [];
         foreach ($schools as $school) {
+            $isQrCode = stripos($school->name, 'SMP Pembda 2') !== false;
+            $techName = $isQrCode ? 'QR Code' : 'RFID';
+            $techFullName = $isQrCode ? 'QR Code' : 'Kartu RFID';
+
             $employees = Employee::where('school_id', $school->id)->where('is_active', true)->get();
             $totalEmp = $employees->count();
             
@@ -835,32 +839,32 @@ class ProgressInputController extends Controller
             $unmappedCount = max(0, $totalEmp - $rfidMappedCount);
 
             if ($totalEmp == 0) {
-                $rekomendasi = "Belum ada pegawai terdaftar di unit ini untuk sinkronisasi RFID presensi.";
+                $rekomendasi = "Belum ada pegawai terdaftar di unit ini untuk sinkronisasi {$techName} presensi.";
                 $statusColor = 'red';
             } elseif ($pctRfid < 90) {
-                $rekomendasi = "Pemetaan ID Kartu RFID presensi mencapai {$pctRfid}% ({$rfidMappedCount}/{$totalEmp} Pegawai). Target SE minimal 90%. Lengkapi pemetaan RFID.";
+                $rekomendasi = "Pemetaan ID {$techFullName} presensi mencapai {$pctRfid}% ({$rfidMappedCount}/{$totalEmp} Pegawai). Target SE minimal 90%. Lengkapi pemetaan {$techName}.";
                 $statusColor = 'amber';
             } else {
-                $rekomendasi = "Sangat baik! Pemetaan ID Kartu RFID / Perangkat Presensi Guru & Pegawai telah selesai disinkronkan 100%.";
+                $rekomendasi = "Sangat baik! Pemetaan ID {$techFullName} / Perangkat Presensi Guru & Pegawai telah selesai disinkronkan 100%.";
                 $statusColor = 'green';
             }
 
             $details = [
-                "Target Surat Edaran: Minimal 90% Kartu RFID / Perangkat Presensi Ter-sinkronisasi",
+                "Target Surat Edaran: Minimal 90% {$techFullName} / Perangkat Presensi Ter-sinkronisasi",
                 "Total Guru & Staf Pegawai: {$totalEmp} Orang",
-                "ID Kartu RFID Mapped & Synced: {$rfidMappedCount} Pegawai ({$pctRfid}%)",
-                "Belum Ter-mapping RFID: {$unmappedCount} Pegawai",
+                "ID {$techFullName} Mapped & Synced: {$rfidMappedCount} Pegawai ({$pctRfid}%)",
+                "Belum Ter-mapping {$techName}: {$unmappedCount} Pegawai",
             ];
 
             $item11Schools[] = [
                 'school_name'  => $school->name,
-                'perkembangan' => "{$pctRfid}% ({$rfidMappedCount}/{$totalEmp} RFID)",
+                'perkembangan' => "{$pctRfid}% ({$rfidMappedCount}/{$totalEmp} {$techName})",
                 'satuan'       => 'Persentase (%)',
                 'rekomendasi'  => $rekomendasi,
                 'status_color' => $statusColor,
                 'raw_value'    => $pctRfid,
                 'details'      => $details,
-                'action_items' => $pctRfid < 90 ? ["Sinkronkan ID Kartu RFID untuk {$unmappedCount} Guru & Pegawai"] : [],
+                'action_items' => $pctRfid < 90 ? ["Sinkronkan ID {$techFullName} untuk {$unmappedCount} Guru & Pegawai"] : [],
             ];
         }
         $items[] = [
@@ -868,8 +872,8 @@ class ProgressInputController extends Controller
             'standar_id'    => 5,
             'standar_title'  => 'STANDAR 5: KEPEGAWAIAN & PRESENSI',
             'standar_target' => 'Target: Minimal 90%',
-            'title'         => 'Pemetaan RFID & Sinkronisasi Perangkat Presensi',
-            'description'   => 'Pemetaan ID Kartu RFID / Perangkat Presensi Guru & Pegawai telah selesai disinkronkan secara presisi',
+            'title'         => 'Pemetaan RFID / QR Code & Sinkronisasi Perangkat Presensi',
+            'description'   => 'Pemetaan ID Kartu RFID / QR Code / Perangkat Presensi Guru & Pegawai telah selesai disinkronkan secara presisi',
             'schools_data'  => $item11Schools,
         ];
 
