@@ -709,6 +709,39 @@
                         @if($assignment->description)
                             <p class="text-base mt-2 mb-4 p-3 rounded-xl border-l-4 shadow-sm {{ $hasModule ? 'bg-white/10 border-white/20 text-white/90' : 'bg-gray-50 border-emerald-300 text-gray-600' }}">{{ $assignment->description }}</p>
                         @endif
+
+                        @if($assignment->file_path)
+                            @php
+                                $ext = strtolower(pathinfo($assignment->file_path, PATHINFO_EXTENSION));
+                                $isPdf = $ext === 'pdf';
+                            @endphp
+                            
+                            @if($isPdf)
+                                <div class="w-full rounded-xl overflow-hidden shadow-md border border-gray-200 bg-white mb-4 mt-2" style="height: 500px;">
+                                    <iframe src="{{ Storage::disk('public')->url($assignment->file_path) }}" class="w-full h-full" frameborder="0"></iframe>
+                                </div>
+                            @endif
+
+                            <div class="p-4 rounded-xl border {{ $hasModule ? 'border-white/20 bg-white/10' : 'border-blue-100 bg-blue-50/30' }} flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 mt-2">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl {{ $isPdf ? 'bg-red-500' : 'bg-blue-500' }} text-white flex items-center justify-center shadow-md flex-shrink-0">
+                                        <i class="fas {{ $isPdf ? 'fa-file-pdf' : 'fa-file-alt' }} text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-sm {{ $hasModule ? 'text-white' : 'text-gray-800' }}">File Lampiran Tugas</p>
+                                        <p class="text-[10px] font-medium {{ $hasModule ? 'text-white/60' : 'text-gray-500' }}">Format: {{ strtoupper($ext) }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 w-full sm:w-auto">
+                                    <a href="{{ Storage::disk('public')->url($assignment->file_path) }}" target="_blank" class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 font-bold text-xs transition-all shadow-sm flex items-center gap-1.5" onclick="event.stopPropagation()">
+                                        <i class="fas fa-external-link-alt"></i> Buka
+                                    </a>
+                                    <a href="{{ Storage::disk('public')->url($assignment->file_path) }}" download class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-xl {{ $isPdf ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700' }} text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5" onclick="event.stopPropagation()">
+                                        <i class="fas fa-download"></i> Unduh
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
                         <div class="flex flex-wrap gap-3 text-[11px] font-extrabold uppercase tracking-widest">
                             @if($assignment->deadline)
                             <span class="flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 shadow-sm {{ $hasModule ? ($assignment->isOverdue() ? 'bg-rose-500/20 text-white border-rose-500/30' : 'bg-white/15 text-white border-white/10') : ($assignment->isOverdue() ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-white text-gray-600 border-gray-200') }}">
