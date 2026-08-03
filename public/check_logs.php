@@ -7,14 +7,11 @@ if (empty($files)) {
     $logFile = end($files);
     echo "Reading from " . basename($logFile) . "\n";
     $lines = file($logFile);
-    $lastLines = array_slice($lines, -1000);
-    $count = 0;
+    $lastLines = array_slice($lines, -500);
     foreach ($lastLines as $line) {
-        if (strpos($line, "local.INFO: Received") !== false || strpos($line, "local.ERROR") !== false || strpos($line, "cropped") !== false) {
+        if (strpos($line, "INFO:") !== false || strpos($line, "ERROR:") !== false) {
             echo $line;
-            $count++;
         }
     }
-    if ($count === 0) echo "No matched log lines.";
 }
 
