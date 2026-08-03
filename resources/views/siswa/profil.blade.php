@@ -397,21 +397,21 @@
                 
                 {{-- Cropper Controls --}}
                 <div class="px-5 py-3 border-t border-gray-100 flex justify-center gap-3 bg-white">
-                    <button type="button" @click="cropperInstance.zoom(0.1)" class="w-10 h-10 flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition shadow-sm" title="Perbesar">
+                    <button type="button" @click="window.currentCropper && window.currentCropper.zoom(0.1)" class="w-10 h-10 flex items-center justify-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition shadow-sm" title="Perbesar">
                         <i class="fas fa-search-plus"></i>
                     </button>
-                    <button type="button" @click="cropperInstance.zoom(-0.1)" class="w-10 h-10 flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition shadow-sm" title="Perkecil">
+                    <button type="button" @click="window.currentCropper && window.currentCropper.zoom(-0.1)" class="w-10 h-10 flex items-center justify-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition shadow-sm" title="Perkecil">
                         <i class="fas fa-search-minus"></i>
                     </button>
                     <div class="w-px h-8 bg-gray-200 mx-1 self-center"></div>
-                    <button type="button" @click="cropperInstance.rotate(-90)" class="w-10 h-10 flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition shadow-sm" title="Putar Kiri">
+                    <button type="button" @click="window.currentCropper && window.currentCropper.rotate(-90)" class="w-10 h-10 flex items-center justify-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition shadow-sm" title="Putar Kiri">
                         <i class="fas fa-undo"></i>
                     </button>
-                    <button type="button" @click="cropperInstance.rotate(90)" class="w-10 h-10 flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition shadow-sm" title="Putar Kanan">
+                    <button type="button" @click="window.currentCropper && window.currentCropper.rotate(90)" class="w-10 h-10 flex items-center justify-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition shadow-sm" title="Putar Kanan">
                         <i class="fas fa-redo"></i>
                     </button>
                     <div class="w-px h-8 bg-gray-200 mx-1 self-center"></div>
-                    <button type="button" @click="cropperInstance.reset()" class="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition shadow-sm" title="Reset Ulang">
+                    <button type="button" @click="window.currentCropper && window.currentCropper.reset()" class="w-10 h-10 flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-xl transition shadow-sm" title="Reset Ulang">
                         <i class="fas fa-sync-alt"></i>
                     </button>
                 </div>
@@ -448,7 +448,6 @@
             isEditModalOpen: false,
             photoPreview: null,
             isCropModalOpen: false,
-            cropperInstance: null,
             
             initCropper(e) {
                 const files = e.target.files;
@@ -468,13 +467,13 @@
                         
                         this.isCropModalOpen = true;
                         
-                        if (this.cropperInstance) {
-                            this.cropperInstance.destroy();
+                        if (window.currentCropper) {
+                            window.currentCropper.destroy();
                         }
                         
                         // Wait for modal to display before init
                         setTimeout(() => {
-                            this.cropperInstance = new Cropper(image, {
+                            window.currentCropper = new Cropper(image, {
                                 aspectRatio: 1, // 1:1 for profile picture
                                 viewMode: 1,
                                 dragMode: 'move',
@@ -495,9 +494,9 @@
             
             cancelCrop() {
                 this.isCropModalOpen = false;
-                if (this.cropperInstance) {
-                    this.cropperInstance.destroy();
-                    this.cropperInstance = null;
+                if (window.currentCropper) {
+                    window.currentCropper.destroy();
+                    window.currentCropper = null;
                 }
                 document.getElementById('photoInput').value = '';
                 document.getElementById('croppedPhotoInput').value = '';
@@ -505,9 +504,9 @@
             },
             
             saveCrop() {
-                if (!this.cropperInstance) return;
+                if (!window.currentCropper) return;
                 
-                const base64data = this.cropperInstance.getCroppedCanvas({
+                const base64data = window.currentCropper.getCroppedCanvas({
                     width: 600,
                     height: 600,
                     imageSmoothingEnabled: true,
@@ -520,8 +519,8 @@
                 
                 this.isCropModalOpen = false;
                 setTimeout(() => {
-                    this.cropperInstance.destroy();
-                    this.cropperInstance = null;
+                    window.currentCropper.destroy();
+                    window.currentCropper = null;
                     document.getElementById('imageToCrop').classList.add('hidden');
                 }, 300);
             }
