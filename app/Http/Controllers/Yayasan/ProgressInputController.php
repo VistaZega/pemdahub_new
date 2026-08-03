@@ -229,7 +229,7 @@ class ProgressInputController extends Controller
 
             $siswaTanpaRombelList = $allActiveStudents->whereNotIn('id', $siswaBerRombelIds);
             $siswaTanpaRombel = $siswaTanpaRombelList->count();
-            $siswaTanpaRombelNames = $siswaTanpaRombelList->pluck('name')->toArray();
+            $siswaTanpaRombelNames = $siswaTanpaRombelList->pluck('full_name')->toArray();
             $pctDistrib = $totalSiswaAktif > 0 ? round(($siswaBerRombel / $totalSiswaAktif) * 100, 1) : 0;
 
             if ($totalSiswaAktif == 0) {
@@ -311,7 +311,7 @@ class ProgressInputController extends Controller
                     $hasParent = !empty($s->parent_name) || !empty($s->guardian_name);
                     $hasAddress = !empty($s->address);
                     if (!($hasId && $hasBirth && $hasParent && $hasAddress)) {
-                        $incompleteSiswaNames[] = $s->name;
+                        $incompleteSiswaNames[] = $s->full_name;
                     }
                 }
             }
@@ -403,7 +403,7 @@ class ProgressInputController extends Controller
             
             $guruTanpaJamNames = [];
             if ($guruTanpaJam > 0 && $guruTanpaJam < 25) {
-                $guruTanpaJamNames = $teachersList->whereNotIn('id', $guruMengajarIds)->pluck('name')->toArray();
+                $guruTanpaJamNames = $teachersList->whereNotIn('id', $guruMengajarIds)->pluck('full_name')->toArray();
             }
 
             if ($totalJam == 0) {
@@ -766,7 +766,7 @@ class ProgressInputController extends Controller
                 $sisaSiswaNames = Student::where('school_id', $school->id)
                     ->where('status', 'aktif')
                     ->whereNotIn('id', $allEntryStudentIds)
-                    ->pluck('name')->toArray();
+                    ->pluck('full_name')->toArray();
             }
 
             if ($totalSiswaAktif == 0) {
@@ -887,7 +887,7 @@ class ProgressInputController extends Controller
             } else {
                 $empNoShiftCount = $totalEmp - $hasShiftEmp;
                 if ($empNoShiftCount > 0 && $empNoShiftCount < 25) {
-                    $empNoShiftNames = $employees->whereNull('work_shift_id')->pluck('name')->toArray();
+                    $empNoShiftNames = $employees->whereNull('work_shift_id')->pluck('full_name')->toArray();
                 }
             }
 
@@ -953,7 +953,7 @@ class ProgressInputController extends Controller
             if (!$isQrCode && $unmappedCount > 0 && $unmappedCount < 25) {
                 $unmappedNames = $employees->filter(function($emp) {
                     return empty($emp->rfid_uid);
-                })->pluck('name')->toArray();
+                })->pluck('full_name')->toArray();
             }
 
             if ($isQrCode) {
@@ -1060,7 +1060,7 @@ class ProgressInputController extends Controller
                     $hasEdu = !empty($t->education_level) || !empty($t->last_education);
                     $hasPhone = !empty($t->phone) || !empty($t->phone_number);
                     if (!($hasId && $hasBirth && $hasEdu && $hasPhone)) {
-                        $incompleteGuruNames[] = $t->name;
+                        $incompleteGuruNames[] = $t->full_name;
                     }
                 }
             }
