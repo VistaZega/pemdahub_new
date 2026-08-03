@@ -111,6 +111,10 @@
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white shadow-sm"><i class="fas fa-school text-[10px]"></i></div>
                 <span>Kontribusi Unit Sekolah</span>
             </a>
+            <a href="{{ route('yayasan.consolidation.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.consolidation.index') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-400 to-red-600 flex items-center justify-center text-white"><i class="fas fa-file-invoice-dollar text-[10px]"></i></div>
+                <span>Laporan Konsolidasi Bulanan</span>
+            </a>
         </div>
     </div>
 

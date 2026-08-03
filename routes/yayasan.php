@@ -55,6 +55,9 @@ Route::prefix('yayasan')->name('yayasan.')->middleware('auth', 'yayasan')->group
         Route::get('/export-pdf', [App\Http\Controllers\Yayasan\FinancialRecapController::class, 'exportPdf'])->name('export_pdf');
     });
 
+    // 4. Laporan Konsolidasi (Laporan Bulanan Bendahara)
+    Route::get('/konsolidasi', [App\Http\Controllers\Yayasan\ConsolidationReportController::class, 'index'])->name('consolidation.index');
+
     // Evaluasi Perjanjian Kinerja Akhir Semester (Satu Controller dengan Admin)
     Route::get('/performance-evaluations', [App\Http\Controllers\Admin\PerformanceEvaluationController::class, 'index'])->name('performance_evaluations.index');
     Route::get('/performance-evaluations/{contractId}/{semesterId}/evaluate', [App\Http\Controllers\Admin\PerformanceEvaluationController::class, 'evaluate'])->name('performance_evaluations.evaluate');
