@@ -29,7 +29,7 @@ class ConsolidationReportController extends Controller
         $activeSemester = Semester::where('is_active', true)->first();
 
         // 1. PENDAPATAN (Berdasarkan Uang Masuk Riil di bulan tersebut)
-        $payments = Payment::with(['bill.paymentType', 'student'])
+        $payments = Payment::with(['bill.paymentType', 'student.classroom'])
             ->whereHas('student', function ($query) use ($schoolId) {
                 $query->where('school_id', $schoolId);
             })
@@ -50,6 +50,17 @@ class ConsolidationReportController extends Controller
         foreach ($payments as $payment) {
             $bill = $payment->bill;
             $typeName = $bill->paymentType->type_name ?? 'Lainnya';
+            
+            // Format SPP by Grade Level
+            if (stripos($typeName, 'SPP') !== false && $payment->student && $payment->student->classroom) {
+                $grade = $payment->student->classroom->grade_level;
+                $gradeMap = [
+                    7 => 'VII', 8 => 'VIII', 9 => 'IX',
+                    10 => 'X', 11 => 'XI', 12 => 'XII'
+                ];
+                $gradeText = $gradeMap[$grade] ?? $grade;
+                $typeName = "Pendapatan SPP Kelas {$gradeText}";
+            }
             
             // Hitung gross
             $paymentAmount = $payment->amount_paid;
