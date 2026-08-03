@@ -1805,4 +1805,40 @@ Route::post('/knowledge/{knowledge}/like', [App\Http\Controllers\PublicKnowledge
 Route::post('/knowledge/{knowledge}/bookmark', [App\Http\Controllers\PublicKnowledgeController::class, 'toggleBookmark'])->name('knowledge.bookmark');
 Route::get('/knowledge/{knowledge}/download', [App\Http\Controllers\PublicKnowledgeController::class, 'download'])->name('knowledge.download');
 
+Route::get('/debug-salary', function() {
+    if (request('secret') !== 'pembda99') return 'Unauthorized';
+    
+    $schoolId = request('school_id', 3);
+    $employees = \App\Models\Employee::where('school_id', $schoolId)->where('is_active', true)->get();
+    
+    $out = "School $schoolId Employees: " . $employees->count() . "<br>";
+    
+    $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+    $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+    $svc = app(\App\Services\EmployeeAssignmentService::class);
+    
+    foreach($employees as $e) {
+        $thp = $svc->calculateFullSalary($e, $activeYear, $activeSemester, null, $schoolId);
+        $out .= "Emp: {$e->full_name} | THP: " . ($thp['take_home_pay'] ?? 0);
+        $out .= " | Details: " . json_encode($thp) . "<br>";
+    }
+    
+    // payments
+    $payments = \App\Models\Payment::with(['bill.paymentType', 'student'])
+        ->whereHas('student', function ($query) use ($schoolId) {
+            $query->where('school_id', $schoolId);
+        })
+        ->whereMonth('payment_date', request('month', 8))
+        ->whereYear('payment_date', request('year', 2026))
+        ->where('is_verified', true)
+        ->get();
+        
+    $out .= "<br>Total Payments: " . $payments->count() . "<br>";
+    foreach($payments as $p) {
+        $out .= "Payment: {$p->id} Amount: {$p->amount_paid}<br>";
+    }
+    
+    return $out;
+});
+
 
