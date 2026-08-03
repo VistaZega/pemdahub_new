@@ -115,8 +115,11 @@ class ProfileSettingsController extends Controller
         $photoPath = null;
         if ($request->has('cropped_photo') && !empty($request->cropped_photo)) {
             $base64Image = $request->cropped_photo;
+            \Illuminate\Support\Facades\Log::info("Received cropped_photo. Length: " . strlen($base64Image));
+            
             if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
                 $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
+                $base64Image = str_replace(' ', '+', $base64Image); // Fix potential form submission + to space conversion
                 $type = strtolower($type[1]);
                 if (in_array($type, ['jpg', 'jpeg', 'png'])) {
                     $decodedImage = base64_decode($base64Image);
@@ -126,10 +129,18 @@ class ProfileSettingsController extends Controller
                         $photoPath = $fileName;
                         $user->photo = $photoPath;
                         $user->save();
+                        \Illuminate\Support\Facades\Log::info("Saved cropped photo as: " . $fileName);
+                    } else {
+                        \Illuminate\Support\Facades\Log::error("Failed to decode base64 image.");
                     }
+                } else {
+                    \Illuminate\Support\Facades\Log::error("Invalid image type: " . $type);
                 }
+            } else {
+                \Illuminate\Support\Facades\Log::error("Regex failed for cropped_photo.");
             }
         } elseif ($request->hasFile('photo')) {
+            \Illuminate\Support\Facades\Log::info("Received standard photo file.");
             $photoPath = $request->file('photo')->store('photos', 'public');
             $user->photo = $photoPath;
             $user->save();
