@@ -20,16 +20,12 @@ if (!$school) {
 
 $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::orderBy('year', 'desc')->first();
 
-echo "=== DAFTAR SISWA BELUM BER-ROMBEL ===\n";
-echo "Unit: " . $school->name . "\n";
-echo "Tahun Ajaran: " . $activeYear->year . "\n\n";
-
 // Query total aktif
 $totalSiswaAktif = Student::where('school_id', $school->id)
     ->where('status', 'aktif')
     ->count();
 
-// Ambil data siswa yang belum ber-rombel menggunakan left join atau whereDoesntHave
+// Ambil data siswa yang belum ber-rombel
 $studentsWithoutRombel = Student::where('school_id', $school->id)
     ->where('status', 'aktif')
     ->whereDoesntHave('classrooms', function ($q) use ($activeYear) {
@@ -39,10 +35,16 @@ $studentsWithoutRombel = Student::where('school_id', $school->id)
     ->orderBy('full_name')
     ->get();
 
-echo "Total Siswa Aktif: " . $totalSiswaAktif . "\n";
-echo "Siswa Belum Ber-Rombel: " . $studentsWithoutRombel->count() . "\n\n";
+$output = "=== DAFTAR SISWA BELUM BER-ROMBEL ===\n";
+$output .= "Unit: " . $school->name . "\n";
+$output .= "Tahun Ajaran: " . $activeYear->year . "\n\n";
+$output .= "Total Siswa Aktif: " . $totalSiswaAktif . "\n";
+$output .= "Siswa Belum Ber-Rombel: " . $studentsWithoutRombel->count() . "\n\n";
 
 foreach ($studentsWithoutRombel as $index => $student) {
     $num = $index + 1;
-    echo "{$num}. {$student->full_name} (NISN: {$student->nisn})\n";
+    $output .= "{$num}. {$student->full_name} (NISN: {$student->nisn})\n";
 }
+
+file_put_contents(__DIR__ . '/daftar_smk.txt', $output);
+echo "File created at daftar_smk.txt";
