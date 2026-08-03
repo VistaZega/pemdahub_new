@@ -30,7 +30,9 @@ class ConsolidationReportController extends Controller
 
         // 1. PENDAPATAN (Berdasarkan Uang Masuk Riil di bulan tersebut)
         $payments = Payment::with(['bill.paymentType', 'student'])
-            ->where('school_id', $schoolId)
+            ->whereHas('student', function ($query) use ($schoolId) {
+                $query->where('school_id', $schoolId);
+            })
             ->whereMonth('payment_date', $month)
             ->whereYear('payment_date', $year)
             ->where('is_verified', true)
