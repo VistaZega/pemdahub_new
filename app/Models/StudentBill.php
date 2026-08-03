@@ -22,6 +22,7 @@ class StudentBill extends Model
         'month',
         'year',
         'amount',
+        'yayasan_share_amount',
         'paid_amount',
         'status',
         'notes',
@@ -33,6 +34,7 @@ class StudentBill extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'yayasan_share_amount' => 'decimal:2',
         'paid_amount' => 'decimal:2',
         'month' => 'integer',
         'year' => 'integer',

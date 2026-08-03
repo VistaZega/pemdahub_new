@@ -38,10 +38,12 @@ class StudentBillService
             $baseYear = (int)preg_replace('/[^0-9]/', '', $yearParts[0]);
         }
 
+        $paymentType = PaymentType::find($validated['payment_type_id']);
+        $yayasanShareAmount = $paymentType ? $paymentType->yayasan_share_amount : null;
         $billsCreated = 0;
 
         DB::transaction(function () use (
-            $students, $validated, $generateMonths, $startMonth, $amount, $baseYear, &$billsCreated
+            $students, $validated, $generateMonths, $startMonth, $amount, $baseYear, $yayasanShareAmount, &$billsCreated
         ) {
             foreach ($students as $student) {
                 for ($i = 0; $i < $generateMonths; $i++) {
@@ -73,6 +75,7 @@ class StudentBillService
                         'month' => $month,
                         'year' => $year,
                         'amount' => $amount,
+                        'yayasan_share_amount' => $yayasanShareAmount,
                         'paid_amount' => 0,
                         'status' => 'belum_bayar',
                         'notes' => $validated['notes'] ?? null,
@@ -108,11 +111,14 @@ class StudentBillService
         }
         
         $billYear = $singleMonth <= 6 ? $baseYear + 1 : $baseYear;
+        
+        $paymentType = PaymentType::find($validated['payment_type_id']);
+        $yayasanShareAmount = $paymentType ? $paymentType->yayasan_share_amount : null;
 
         $billsCreated = 0;
 
         DB::transaction(function () use (
-            $students, $validated, $amount, $singleMonth, $billYear, &$billsCreated
+            $students, $validated, $amount, $singleMonth, $billYear, $yayasanShareAmount, &$billsCreated
         ) {
             foreach ($students as $student) {
                 // Prevent duplicate single bills
@@ -135,6 +141,7 @@ class StudentBillService
                     'month' => $singleMonth,
                     'year' => $billYear,
                     'amount' => $amount,
+                    'yayasan_share_amount' => $yayasanShareAmount,
                     'paid_amount' => 0,
                     'status' => 'belum_bayar',
                     'notes' => $validated['notes'] ?? null,

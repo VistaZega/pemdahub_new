@@ -257,13 +257,12 @@ class ContributionBalanceController extends Controller
 
             $savedSppRates = $contribution->spp_rates ?? [];
 
-            // Default SPP dari master payment_types
             $defaultSppType = PaymentType::where('school_id', $school->id)
                 ->where('type_code', 'SPP')
                 ->where('is_active', true)
                 ->first();
 
-            $masterSppAmount = (float) ($defaultSppType->amount ?? 0);
+            $masterSppAmount = (float) ($defaultSppType->yayasan_share_amount ?? $defaultSppType->amount ?? 0);
 
             // Tingkat kelas per jenis sekolah
             $levels = $school->getGradeLevels();

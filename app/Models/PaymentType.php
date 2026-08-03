@@ -17,16 +17,18 @@ class PaymentType extends Model
         'type_name',
         'description',
         'amount',
+        'yayasan_share_amount',
         'is_recurring',
         'allow_installment',
         'is_active',
     ];
 
     protected $casts = [
+        'amount' => 'decimal:2',
+        'yayasan_share_amount' => 'decimal:2',
         'is_recurring' => 'boolean',
         'allow_installment' => 'boolean',
         'is_active' => 'boolean',
-        'amount' => 'decimal:2',
     ];
 
     /**

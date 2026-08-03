@@ -81,7 +81,7 @@ class FinancialRecapController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            $masterSppAmount = (float) ($defaultSppType->amount ?? 0);
+            $masterSppAmount = (float) ($defaultSppType->yayasan_share_amount ?? $defaultSppType->amount ?? 0);
             $levels = $school->getGradeLevels();
             $schoolTotalIncomeMonthly = 0;
             $totalStudentsInSchool = 0;

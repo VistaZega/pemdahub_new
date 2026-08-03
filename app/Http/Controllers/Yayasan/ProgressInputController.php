@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Yayasan;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use App\Models\School;
 use App\Models\AcademicYear;
 use App\Models\Student;
@@ -697,7 +698,9 @@ class ProgressInputController extends Controller
                 ->where('is_verified', true);
 
             $paymentEntryCount = (clone $julyPayments)->distinct('student_id')->count('student_id');
-            $paymentEntryTotal = (clone $julyPayments)->sum('amount_paid');
+            $paymentEntryTotal = (clone $julyPayments)
+                ->join('student_bills', 'payments.bill_id', '=', 'student_bills.id')
+                ->sum(DB::raw('COALESCE(student_bills.yayasan_share_amount, student_bills.amount)'));
 
             // Tagihan SPP Juli 2026 yang lunas
             $julyBills = StudentBill::whereHas('student', function($q) use ($school) {
