@@ -98,7 +98,7 @@ class ConsolidationReportController extends Controller
                     $schoolId
                 );
                 
-                $thp = $salaryData['take_home_pay'] ?? 0;
+                $thp = $salaryData['thp'] ?? 0;
                 $salaryTotal += $thp;
                 
                 // Categorize for report
