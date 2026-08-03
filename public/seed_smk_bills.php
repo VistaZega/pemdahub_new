@@ -43,9 +43,9 @@ try {
             
             $pt = PaymentType::firstOrCreate([
                 'school_id' => $school->id,
-                'type_name' => "SPP Kelas {$level} {$type} (TP " . explode('/', $academicYear->name)[0] . ")",
+                'type_name' => "SPP Kelas {$level} {$type} 26/27",
             ], [
-                'type_code' => "SPP-{$level}-" . strtoupper($type) . "-" . explode('/', $academicYear->name)[0],
+                'type_code' => "SPP-{$level}-" . strtoupper(substr($type, 0, 3)),
                 'description' => "Uang Sekolah Kelas {$level} Tipe {$type}",
                 'amount' => $config['amount'],
                 'yayasan_share_amount' => $yayasanShare,
