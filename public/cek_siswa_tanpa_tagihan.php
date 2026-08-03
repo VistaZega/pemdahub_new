@@ -7,53 +7,85 @@ require __DIR__ . '/../vendor/autoload.php';
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
-$studentNames = [
-    'BELINDA ANGELIA BU\'ULOLO',
-    'ALVAN ZEBUA'
+use App\Models\User;
+use App\Models\Teacher;
+
+$names = [
+    'SOZARO HAREFA',
+    'MOLIRHATI TELAUMBANUA',
+    'HERDIYANA LAHAGU',
+    'HERDIYANI LAHAGU',
 ];
 
-foreach ($studentNames as $name) {
-    echo "=== Investigasi Siswa: $name ===\n";
+echo "=== INVESTIGASI USER/GURU ===\n\n";
+
+foreach ($names as $name) {
+    $user = User::where('name', 'like', "%$name%")->first();
     
-    // Use like to handle apostrophe variations if any, or just find by string
-    $student = App\Models\Student::where('full_name', 'like', "%" . str_replace("'", "%", $name) . "%")->first();
-    
-    if (!$student) {
-        echo "Siswa tidak ditemukan.\n\n";
+    if (!$user) {
+        echo "User '$name' tidak ditemukan.\n\n";
         continue;
     }
     
-    echo "ID Siswa: " . $student->id . " | Status: " . $student->status . " | Dibuat: " . $student->created_at . "\n";
+    echo "--- $name ---\n";
+    echo "User ID: {$user->id}\n";
+    echo "Email: {$user->email}\n";
+    echo "Role: {$user->role}\n";
+    echo "School ID: {$user->school_id}\n";
+    echo "Status: " . ($user->is_active ? 'Aktif' : 'Non-aktif') . "\n";
     
-    // Check classes
-    $classes = DB::table('student_classes')
-        ->join('classrooms', 'student_classes.classroom_id', '=', 'classrooms.id')
-        ->join('academic_years', 'student_classes.academic_year_id', '=', 'academic_years.id')
-        ->where('student_classes.student_id', $student->id)
-        ->select('student_classes.status', 'student_classes.created_at', 'student_classes.updated_at', 'classrooms.class_name', 'academic_years.year')
-        ->get();
+    // Check if they have a teacher record
+    $teacher = Teacher::where('user_id', $user->id)->first();
+    if ($teacher) {
+        echo "Teacher Record: ADA (ID: {$teacher->id})\n";
+        echo "  - Full Name: {$teacher->full_name}\n";
+        echo "  - Position: {$teacher->position}\n";
+        echo "  - Is Active: " . ($teacher->is_active ? 'Ya' : 'Tidak') . "\n";
+        echo "  - School ID: {$teacher->school_id}\n";
         
-    echo "Riwayat Kelas:\n";
-    foreach ($classes as $c) {
-        echo "- Kelas: {$c->class_name} | TP: {$c->year} | Status: {$c->status} | Tgl Dibuat: {$c->created_at}\n";
+        // Check teaching assignments
+        $assignments = DB::table('teaching_assignments')
+            ->where('teacher_id', $teacher->id)
+            ->count();
+        echo "  - Teaching Assignments: {$assignments}\n";
+        
+        // Check schedules
+        $schedules = DB::table('schedules')
+            ->where('teacher_id', $teacher->id)
+            ->count();
+        echo "  - Jadwal Mengajar: {$schedules}\n";
+        
+        // Check LMS courses
+        $courses = DB::table('lms_courses')
+            ->where('teacher_id', $teacher->id)
+            ->count();
+        echo "  - LMS Courses: {$courses}\n";
+    } else {
+        echo "Teacher Record: TIDAK ADA\n";
     }
     
-    // Check any bills ever created for this student
-    $allBillsCount = App\Models\StudentBill::where('student_id', $student->id)->count();
-    echo "Total Semua Tagihan Siswa (Semua bulan/tahun/jenis): " . $allBillsCount . "\n";
+    // Check employee record
+    $employee = DB::table('employees')->where('user_id', $user->id)->first();
+    if ($employee) {
+        echo "Employee Record: ADA (ID: {$employee->id})\n";
+        echo "  - Jabatan: " . ($employee->position ?? '-') . "\n";
+        
+        // Check positions
+        $positions = DB::table('employee_positions')
+            ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
+            ->where('employee_positions.employee_id', $employee->id)
+            ->select('positions.position_name', 'employee_positions.is_active')
+            ->get();
+        
+        if ($positions->isNotEmpty()) {
+            echo "  - Jabatan Resmi:\n";
+            foreach ($positions as $pos) {
+                echo "    * {$pos->position_name} (" . ($pos->is_active ? 'Aktif' : 'Non-aktif') . ")\n";
+            }
+        }
+    } else {
+        echo "Employee Record: TIDAK ADA\n";
+    }
     
     echo "\n";
 }
-
-// Check activity logs to see if someone generated bills for Class IX recently and exactly when,
-// or if someone deleted bills for these specific students
-$recentBillLogs = \App\Models\ActivityLog::where('description', 'like', '%tagihan%')
-    ->orderBy('id', 'desc')
-    ->take(10)
-    ->get();
-
-echo "=== 10 Log Aktivitas Tagihan Terakhir ===\n";
-foreach ($recentBillLogs as $log) {
-    echo "[{$log->created_at}] User {$log->user_id} ({$log->action}): {$log->description}\n";
-}
-
