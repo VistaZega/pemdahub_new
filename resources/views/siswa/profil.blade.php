@@ -2,7 +2,7 @@
 @section('title', 'Profil Saya - Portal Siswa')
 
 @section('content')
-<div x-data="{ isEditModalOpen: false, photoPreview: null }" class="space-y-6">
+<div x-data="profileCropper" class="space-y-6">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
@@ -251,8 +251,8 @@
                                         </template>
                                     </div>
                                     <div class="flex-1">
-                                        <input type="file" name="photo" accept="image/jpeg,image/png,image/jpg"
-                                            @change="if($event.target.files.length > 0) { photoPreview = URL.createObjectURL($event.target.files[0]) } else { photoPreview = null }"
+                                        <input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png,image/jpg"
+                                            @change="initCropper($event)"
                                             @if(!$isBiodataEditable) disabled @endif
                                             class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 disabled:opacity-50">
                                         <p class="text-[10px] text-gray-400 mt-1">Maks 2MB (JPG/PNG). Pilih foto baru untuk melihat pratinjau.</p>
@@ -370,5 +370,162 @@
             </div>
         </div>
     </template>
+
+    {{-- Modal Crop Foto --}}
+    <template x-teleport="body">
+        <div x-show="isCropModalOpen" 
+             style="display: none;" 
+             class="fixed inset-0 z-[999999] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4">
+            
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col" @click.outside="cancelCrop()">
+                <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                    <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-crop-alt text-amber-500"></i> Sesuaikan Foto Profil
+                    </h3>
+                    <button type="button" @click="cancelCrop()" class="text-gray-400 hover:text-gray-600 transition">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="p-4 bg-slate-100 flex justify-center items-center">
+                    <div class="img-container w-full overflow-hidden rounded-xl shadow-inner bg-slate-200 flex items-center justify-center" style="height: 350px;">
+                        <img id="imageToCrop" src="" alt="Picture" class="max-w-full max-h-full hidden">
+                    </div>
+                </div>
+                
+                {{-- Cropper Controls --}}
+                <div class="px-5 py-3 border-t border-gray-100 flex justify-center gap-3 bg-white">
+                    <button type="button" @click="cropperInstance.zoom(0.1)" class="w-10 h-10 flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition shadow-sm" title="Perbesar">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button type="button" @click="cropperInstance.zoom(-0.1)" class="w-10 h-10 flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition shadow-sm" title="Perkecil">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <div class="w-px h-8 bg-gray-200 mx-1 self-center"></div>
+                    <button type="button" @click="cropperInstance.rotate(-90)" class="w-10 h-10 flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition shadow-sm" title="Putar Kiri">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button type="button" @click="cropperInstance.rotate(90)" class="w-10 h-10 flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition shadow-sm" title="Putar Kanan">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <div class="w-px h-8 bg-gray-200 mx-1 self-center"></div>
+                    <button type="button" @click="cropperInstance.reset()" class="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition shadow-sm" title="Reset Ulang">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+
+                <div class="px-5 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
+                    <button type="button" @click="cancelCrop()" class="px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-200 transition">
+                        Batal
+                    </button>
+                    <button type="button" @click="saveCrop()" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-6 py-2 rounded-xl text-sm font-semibold transition shadow-sm flex items-center gap-2">
+                        <i class="fas fa-check"></i> Terapkan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
 </div>
 @endsection
+
+@push('styles')
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<style>
+    .cropper-view-box,
+    .cropper-face {
+        border-radius: 50%; /* Make the crop box circular */
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('profileCropper', () => ({
+            isEditModalOpen: false,
+            photoPreview: null,
+            isCropModalOpen: false,
+            cropperInstance: null,
+            
+            initCropper(e) {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                    const file = files[0];
+                    if (!file.type.match(/^image\/(jpeg|png|jpg)$/)) {
+                        alert('Hanya format JPG dan PNG yang diperbolehkan.');
+                        e.target.value = '';
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const image = document.getElementById('imageToCrop');
+                        image.src = event.target.result;
+                        image.classList.remove('hidden');
+                        
+                        this.isCropModalOpen = true;
+                        
+                        if (this.cropperInstance) {
+                            this.cropperInstance.destroy();
+                        }
+                        
+                        // Wait for modal to display before init
+                        setTimeout(() => {
+                            this.cropperInstance = new Cropper(image, {
+                                aspectRatio: 1, // 1:1 for profile picture
+                                viewMode: 1,
+                                dragMode: 'move',
+                                autoCropArea: 0.9,
+                                restore: false,
+                                guides: false,
+                                center: false,
+                                highlight: false,
+                                cropBoxMovable: true,
+                                cropBoxResizable: true,
+                                toggleDragModeOnDblclick: false,
+                            });
+                        }, 150);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            },
+            
+            cancelCrop() {
+                this.isCropModalOpen = false;
+                if (this.cropperInstance) {
+                    this.cropperInstance.destroy();
+                    this.cropperInstance = null;
+                }
+                document.getElementById('photoInput').value = '';
+                document.getElementById('imageToCrop').classList.add('hidden');
+            },
+            
+            saveCrop() {
+                if (!this.cropperInstance) return;
+                
+                this.cropperInstance.getCroppedCanvas({
+                    width: 600,
+                    height: 600,
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
+                }).toBlob((blob) => {
+                    const file = new File([blob], "cropped_profile.jpg", { type: "image/jpeg", lastModified: new Date().getTime() });
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    
+                    document.getElementById('photoInput').files = dataTransfer.files;
+                    this.photoPreview = URL.createObjectURL(blob);
+                    
+                    this.isCropModalOpen = false;
+                    setTimeout(() => {
+                        this.cropperInstance.destroy();
+                        this.cropperInstance = null;
+                        document.getElementById('imageToCrop').classList.add('hidden');
+                    }, 300);
+                }, 'image/jpeg', 0.85);
+            }
+        }));
+    });
+</script>
+@endpush
