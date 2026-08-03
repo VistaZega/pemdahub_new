@@ -9,31 +9,47 @@ $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 use Illuminate\Support\Facades\DB;
 
-$names = [
-    'SOZARO HAREFA',
-    'MOLIRHATI TELAUMBANUA',
-    'HERDIYANA LAHAGU',
-    'HERDIYANI LAHAGU',
-];
+// Cari langsung berdasarkan teacher ID yang terlihat di halaman
+$teacherIds = [43, 44, 45, 46, 47]; // Sozaro=43, Molirhati=44, Herdiyana=45, Herdiyani=46, Herlinawati=47
 
-echo "=== INVESTIGASI LENGKAP ===\n\n";
+echo "=== INVESTIGASI TEACHER BY ID ===\n\n";
 
-foreach ($names as $name) {
-    echo "--- $name ---\n";
-    
-    // Cari SEMUA user dengan nama mirip
-    $users = DB::table('users')->where('name', 'like', "%$name%")->get();
-    echo "Total User Accounts: " . $users->count() . "\n";
-    foreach ($users as $u) {
-        echo "  User ID={$u->id} | Email={$u->email} | Role={$u->role} | School={$u->school_id}\n";
+foreach ($teacherIds as $tid) {
+    $teacher = DB::table('teachers')->where('id', $tid)->first();
+    if (!$teacher) {
+        echo "Teacher ID $tid: TIDAK DITEMUKAN\n\n";
+        continue;
     }
     
-    // Cari SEMUA teacher records dengan nama mirip
-    $teachers = DB::table('teachers')->where('full_name', 'like', "%$name%")->get();
-    echo "Total Teacher Records: " . $teachers->count() . "\n";
-    foreach ($teachers as $t) {
-        echo "  Teacher ID={$t->id} | Name={$t->full_name} | User ID={$t->user_id} | School={$t->school_id} | Active={$t->is_active} | Position=" . ($t->position ?? '-') . "\n";
-    }
+    echo "Teacher ID: {$teacher->id}\n";
+    echo "  Full Name: {$teacher->full_name}\n";
+    echo "  User ID: {$teacher->user_id}\n";
+    echo "  School ID: {$teacher->school_id}\n";
+    echo "  Position: " . ($teacher->position ?? '-') . "\n";
+    echo "  Is Active: " . ($teacher->is_active ? 'Ya' : 'Tidak') . "\n";
     
+    // Cari user terkait
+    $user = DB::table('users')->where('id', $teacher->user_id)->first();
+    if ($user) {
+        echo "  => User Email: {$user->email}\n";
+        echo "  => User Role: {$user->role}\n";
+        echo "  => User Name: {$user->name}\n";
+    } else {
+        echo "  => User NOT FOUND!\n";
+    }
     echo "\n";
 }
+
+// Juga cari semua teacher records dengan email pattern _adminsmk
+echo "=== SEMUA TEACHER DENGAN EMAIL PATTERN '_admin' ===\n\n";
+$adminTeachers = DB::table('teachers')
+    ->join('users', 'teachers.user_id', '=', 'users.id')
+    ->where('users.email', 'like', '%_admin%')
+    ->select('teachers.id', 'teachers.full_name', 'teachers.is_active', 'teachers.school_id', 'users.email', 'users.role')
+    ->get();
+
+foreach ($adminTeachers as $at) {
+    echo "Teacher ID={$at->id} | {$at->full_name} | Email={$at->email} | Role={$at->role} | Active={$at->is_active}\n";
+}
+
+echo "\nTotal: " . $adminTeachers->count() . " teacher records dengan email pattern '_admin'\n";
