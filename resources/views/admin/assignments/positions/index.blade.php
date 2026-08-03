@@ -167,7 +167,13 @@
                                 <div class="space-y-2">
                                     @foreach($positions as $empPos)
                                         @php
-                                            $totalAllowance += $empPos->position->allowance_amount ?? 0;
+                                            $posAllowance = $empPos->position->allowance_amount ?? 0;
+                                            $isPkl = str_contains(strtolower($empPos->position->position_code ?? ''), 'pembimbing-pkl') || str_contains(strtolower($empPos->position->position_name ?? ''), 'pembimbing pkl');
+                                            if ($isPkl) {
+                                                $pklRate = \App\Models\Setting::where('group', 'salary_formula')->where('key', 'pkl_honor_rate')->value('value') ?? 43000;
+                                                $posAllowance = ($empPos->pkl_supervisor_hours ?? 0) * $pklRate;
+                                            }
+                                            $totalAllowance += $posAllowance;
                                         @endphp
                                         <div class="flex items-center gap-2 px-3 py-2 bg-white border-l-4 {{ $empPos->is_primary ? 'border-purple-600 bg-gradient-to-r from-purple-50 to-pink-50' : 'border-gray-300 bg-gray-50' }} rounded-r-lg shadow-sm hover:shadow-md transition-shadow group">
                                             <div class="flex-1">
@@ -192,9 +198,15 @@
                                             <div class="text-right flex items-center gap-3">
                                                 @if(auth()->user()->isKetuaYayasan() || auth()->user()->hasRole('bendahara'))
                                                 <div>
-                                                    <div class="text-xs text-gray-500">Tunjangan</div>
-                                                    <div class="font-bold text-green-600">
-                                                        {{ number_format($empPos->position->allowance_amount ?? 0, 0, ',', '.') }}
+                                                    <div class="text-xs text-gray-500">
+                                                        @if($isPkl)
+                                                            Honor ({{ $empPos->pkl_supervisor_hours ?? 0 }} JP)
+                                                        @else
+                                                            Tunjangan
+                                                        @endif
+                                                    </div>
+                                                    <div class="font-bold {{ $posAllowance > 0 ? 'text-green-600' : 'text-gray-400' }}">
+                                                        {{ number_format($posAllowance, 0, ',', '.') }}
                                                     </div>
                                                 </div>
                                                 @endif
