@@ -133,7 +133,7 @@ class ConsolidationReportController extends Controller
                     $emp, 
                     $activeYear, 
                     $activeSemester, 
-                    null, 
+                    $school ? $school->type : null, 
                     $schoolId
                 );
                 
