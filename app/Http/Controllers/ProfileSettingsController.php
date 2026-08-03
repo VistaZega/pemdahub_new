@@ -216,4 +216,59 @@ class ProfileSettingsController extends Controller
 
         return back()->with('success', 'Biodata diri berhasil diperbarui!');
     }
+    /**
+     * Update user profile photo only
+     */
+    public function updatePhoto(Request $request)
+    {
+        $user = auth()->user();
+
+        if ($request->has('cropped_photo') && !empty($request->cropped_photo)) {
+            $base64Image = $request->cropped_photo;
+            
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+                $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
+                $base64Image = str_replace(' ', '+', $base64Image);
+                $type = strtolower($type[1]);
+                if (in_array($type, ['jpg', 'jpeg', 'png'])) {
+                    $decodedImage = base64_decode($base64Image);
+                    if ($decodedImage !== false) {
+                        $fileName = 'photos/' . uniqid() . '.' . $type;
+                        \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $decodedImage);
+                        $photoPath = $fileName;
+                        $user->photo = $photoPath;
+                        $user->save();
+                        
+                        // Update relasi
+                        if ($user->student) {
+                            $user->student->update(['photo' => $photoPath]);
+                        }
+                        if ($user->teacher) {
+                            $user->teacher->update(['photo' => $photoPath]);
+                            if ($user->teacher->employee) {
+                                $user->teacher->employee->update(['photo' => $photoPath]);
+                            }
+                        }
+                        if ($user->employee && !$user->teacher) {
+                            $user->employee->update(['photo' => $photoPath]);
+                        }
+
+                        ActivityLog::create([
+                            'user_id' => $user->id,
+                            'school_id' => $user->school_id,
+                            'action' => 'profile_photo_update',
+                            'description' => 'Memperbarui foto profil secara mandiri',
+                            'ip_address' => $request->ip(),
+                            'user_agent' => $request->userAgent(),
+                            'logged_at' => now(),
+                        ]);
+
+                        return back()->with('success', 'Foto profil berhasil diperbarui!');
+                    }
+                }
+            }
+        }
+        
+        return back()->withErrors(['photo' => 'Gagal memperbarui foto profil. Pastikan gambar valid.']);
+    }
 }

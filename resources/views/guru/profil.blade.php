@@ -22,28 +22,50 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Photo & Name Card --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 p-6 text-center text-white relative">
-                <div class="w-36 h-36 sm:w-40 sm:h-40 mx-auto bg-white/20 rounded-2xl flex items-center justify-center text-6xl mb-4 shadow-xl ring-4 ring-white/30 border-2 border-white overflow-hidden transition-transform duration-300 hover:scale-105">
-                    @if($teacher->photo)
-                        <img src="{{ asset('storage/'.$teacher->photo) }}" class="w-full h-full object-cover rounded-2xl" alt="{{ $teacher->full_name }}">
-                    @else
-                        <span>👨‍🏫</span>
-                    @endif
-                </div>
-                <h2 class="text-lg sm:text-xl font-extrabold tracking-tight">{{ $teacher->full_name }}</h2>
-                <p class="text-emerald-100 text-xs mt-1 font-mono bg-black/20 inline-block px-3 py-0.5 rounded-full">{{ $teacher->teacher_code ?? '-' }}</p>
-                @if($teacher->position)
-                    <div class="mt-2">
-                        <span class="inline-block text-xs bg-white/20 border border-white/20 px-3 py-1 rounded-full font-medium">{{ $teacher->position }}</span>
-                    </div>
-                @endif
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative">
+            {{-- Cover Photo Banner --}}
+            <div class="h-32 sm:h-48 w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 relative overflow-hidden">
+                <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 20px 20px;"></div>
             </div>
-            <div class="p-4 text-center bg-slate-50/50">
-                <p class="text-xs text-gray-500 font-medium">{{ $teacher->school->name ?? '-' }}</p>
-                <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold shadow-sm {{ $teacher->is_active ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-rose-100 text-rose-700 border border-rose-200' }}">
-                    {{ $teacher->is_active ? 'Aktif' : 'Tidak Aktif' }}
-                </span>
+            
+            {{-- Profile Info Section --}}
+            <div class="px-6 pb-6 relative text-center sm:text-left sm:flex sm:items-end sm:gap-6">
+                {{-- Profile Photo --}}
+                <div class="relative inline-block -mt-16 sm:-mt-20 mb-4 sm:mb-0 z-10">
+                    <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-white p-1.5 shadow-xl mx-auto sm:mx-0 relative">
+                        <div class="w-full h-full rounded-full overflow-hidden bg-gray-100 border border-gray-100 flex items-center justify-center text-5xl">
+                            @if($teacher->photo)
+                                <img src="{{ asset('storage/'.$teacher->photo) }}" class="w-full h-full object-cover" alt="{{ $teacher->full_name }}">
+                            @else
+                                <span>👨‍🏫</span>
+                            @endif
+                        </div>
+                        
+                        {{-- Edit Photo Button overlay --}}
+                        <button type="button" @click="$refs.standalonePhotoInput.click()" class="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 sm:p-2.5 rounded-full shadow-md border border-gray-300 transition-all z-20 group" title="Ubah Foto Profil">
+                            <i class="fas fa-camera text-sm sm:text-base group-hover:scale-110 transition-transform"></i>
+                        </button>
+                        <input type="file" x-ref="standalonePhotoInput" class="hidden" accept="image/jpeg,image/png,image/jpg" @change="initCropper($event, 'standalone')">
+                    </div>
+                </div>
+                
+                {{-- Name and Badges --}}
+                <div class="flex-1 pb-2">
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 tracking-tight mt-2 sm:mt-0">{{ $teacher->full_name }}</h2>
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
+                        <span class="text-gray-600 text-xs font-mono bg-gray-100 border border-gray-200 px-3 py-1 rounded-full"><i class="fas fa-id-badge text-emerald-500 mr-1"></i> {{ $teacher->teacher_code ?? '-' }}</span>
+                        @if($teacher->position)
+                            <span class="inline-block text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full font-semibold"><i class="fas fa-briefcase mr-1"></i> {{ $teacher->position }}</span>
+                        @endif
+                    </div>
+                    <div class="mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                        <span class="text-xs text-gray-500 font-medium"><i class="fas fa-school mr-1"></i> {{ $teacher->school->name ?? '-' }}</span>
+                        <span class="text-gray-300">•</span>
+                        <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm uppercase {{ $teacher->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">
+                            {{ $teacher->is_active ? 'Aktif' : 'Tidak Aktif' }}
+                        </span>
+                    </div>
+                </div>
             </div>
 
             {{-- Reputation & Badges --}}
@@ -349,13 +371,18 @@
                     <button type="button" @click="cancelCrop()" class="px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-200 transition">
                         Batal
                     </button>
-                    <button type="button" @click="saveCrop()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-6 py-2 rounded-xl text-sm font-semibold transition shadow-sm flex items-center gap-2">
+                    <button type="button" id="saveCropBtn" @click="saveCrop()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-6 py-2 rounded-xl text-sm font-semibold transition shadow-sm flex items-center gap-2">
                         <i class="fas fa-check"></i> Terapkan
                     </button>
                 </div>
             </div>
         </div>
     </template>
+    {{-- Standalone Photo Form --}}
+    <form id="standalonePhotoForm" action="{{ route('profile.photo.update') }}" method="POST" class="hidden">
+        @csrf
+        <input type="hidden" name="cropped_photo" id="standaloneCroppedPhotoInput">
+    </form>
 </div>
 @endsection
 
@@ -377,8 +404,10 @@
             isEditModalOpen: false,
             photoPreview: null,
             isCropModalOpen: false,
+            cropType: 'biodata', // 'biodata' or 'standalone'
             
-            initCropper(e) {
+            initCropper(e, type = 'biodata') {
+                this.cropType = type;
                 const files = e.target.files;
                 if (files && files.length > 0) {
                     const file = files[0];
@@ -435,6 +464,13 @@
             saveCrop() {
                 if (!window.currentCropper) return;
                 
+                // Show loading state on button (optional, but good UX)
+                const saveBtn = document.getElementById('saveCropBtn');
+                if (saveBtn) {
+                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+                    saveBtn.disabled = true;
+                }
+                
                 const base64data = window.currentCropper.getCroppedCanvas({
                     width: 600,
                     height: 600,
@@ -442,16 +478,26 @@
                     imageSmoothingQuality: 'high',
                 }).toDataURL('image/jpeg', 0.85);
                 
-                document.getElementById('croppedPhotoInput').value = base64data;
-                document.getElementById('photoInput').value = ''; // clear original file
-                this.photoPreview = base64data;
-                
-                this.isCropModalOpen = false;
-                setTimeout(() => {
-                    window.currentCropper.destroy();
-                    window.currentCropper = null;
-                    document.getElementById('imageToCrop').classList.add('hidden');
-                }, 300);
+                if (this.cropType === 'standalone') {
+                    document.getElementById('standaloneCroppedPhotoInput').value = base64data;
+                    document.getElementById('standalonePhotoForm').submit();
+                } else {
+                    document.getElementById('croppedPhotoInput').value = base64data;
+                    document.getElementById('photoInput').value = ''; // clear original file
+                    this.photoPreview = base64data;
+                    
+                    if (saveBtn) {
+                        saveBtn.innerHTML = '<i class="fas fa-check"></i> Terapkan';
+                        saveBtn.disabled = false;
+                    }
+                    
+                    this.isCropModalOpen = false;
+                    setTimeout(() => {
+                        window.currentCropper.destroy();
+                        window.currentCropper = null;
+                        document.getElementById('imageToCrop').classList.add('hidden');
+                    }, 300);
+                }
             }
         }));
     });

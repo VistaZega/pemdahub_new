@@ -88,6 +88,14 @@ class Student extends Model
     }
 
     /**
+     * Relationship: Latest Student Class (pivot record)
+     */
+    public function studentClass()
+    {
+        return $this->hasOne(StudentClass::class)->latestOfMany();
+    }
+
+    /**
      * Relationship: Siswa Current Classroom (active year)
      */
     public function currentClassroom()

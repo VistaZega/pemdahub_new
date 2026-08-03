@@ -862,6 +862,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/settings', [App\Http\Controllers\ProfileSettingsController::class, 'edit'])->name('profile.settings');
     Route::put('/profile/settings', [App\Http\Controllers\ProfileSettingsController::class, 'update'])->name('profile.settings.update');
     Route::put('/profile/biodata', [App\Http\Controllers\ProfileSettingsController::class, 'updateBiodata'])->name('profile.biodata.update');
+    Route::post('/profile/photo', [App\Http\Controllers\ProfileSettingsController::class, 'updatePhoto'])->name('profile.photo.update');
 
     // Admin Sekolah Routes - Redirect ke /admin (shared with SuperAdmin)
     Route::prefix('sekolah')->name('sekolah.')->group(function () {
