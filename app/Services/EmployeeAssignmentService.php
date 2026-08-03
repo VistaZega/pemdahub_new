@@ -31,9 +31,9 @@ class EmployeeAssignmentService
      * Can be overridden per school via settings
      */
     public const DEFAULT_JAM_HONOR = [
-        'SMP' => ['jam_wajib_tetap' => 22, 'jam_wajib_honor' => 0, 'honor_tetap' => 65000, 'honor_honorer' => 65000],
-        'SMA' => ['jam_wajib_tetap' => 22, 'jam_wajib_honor' => 0, 'honor_tetap' => 70000, 'honor_honorer' => 50000],
-        'SMK' => ['jam_wajib_tetap' => 22, 'jam_wajib_honor' => 0, 'honor_tetap' => 70000, 'honor_honorer' => 50000],
+        'SMP' => ['jam_wajib_tetap' => 22, 'jam_wajib_honor' => 0, 'honor_tetap' => 65000, 'honor_honorer' => 65000, 'honor_percobaan' => 50000],
+        'SMA' => ['jam_wajib_tetap' => 22, 'jam_wajib_honor' => 0, 'honor_tetap' => 70000, 'honor_honorer' => 50000, 'honor_percobaan' => 50000],
+        'SMK' => ['jam_wajib_tetap' => 22, 'jam_wajib_honor' => 0, 'honor_tetap' => 70000, 'honor_honorer' => 50000, 'honor_percobaan' => 50000],
     ];
 
     /**
@@ -86,6 +86,7 @@ class EmployeeAssignmentService
                 "jam_wajib_honor_{$lk}",
                 "honor_tetap_{$lk}",
                 "honor_honorer_{$lk}",
+                "honor_percobaan_{$lk}",
             ])
             ->pluck('value', 'key')
             ->toArray();
@@ -95,6 +96,7 @@ class EmployeeAssignmentService
             'jam_wajib_honor' => (int) ($settings["jam_wajib_honor_{$lk}"] ?? $defaults['jam_wajib_honor']),
             'honor_tetap' => (float) ($settings["honor_tetap_{$lk}"] ?? $defaults['honor_tetap']),
             'honor_honorer' => (float) ($settings["honor_honorer_{$lk}"] ?? $defaults['honor_honorer']),
+            'honor_percobaan' => (float) ($settings["honor_percobaan_{$lk}"] ?? $defaults['honor_percobaan']),
         ];
     }
 
@@ -124,10 +126,14 @@ class EmployeeAssignmentService
         $hasJamWajib = !$isNonGuruStaff && in_array($employmentStatus, self::JAM_WAJIB_ELIGIBLE);
         $jamWajib = $hasJamWajib ? $rules['jam_wajib_tetap'] : 0;
 
-        // Yayasan = honor tetap, honorer = honor honorer (termasuk gty/pty)
-        $honorPerJam = in_array($statusLower, ['yayasan', 'pns', 'gty', 'pty'])
-            ? $rules['honor_tetap']
-            : $rules['honor_honorer'];
+        // Yayasan = honor tetap, honorer = honor honorer, percobaan = honor percobaan
+        if (in_array($statusLower, ['yayasan', 'pns', 'gty', 'pty', 'tetap'])) {
+            $honorPerJam = $rules['honor_tetap'];
+        } elseif ($statusLower === 'percobaan') {
+            $honorPerJam = $rules['honor_percobaan'];
+        } else {
+            $honorPerJam = $rules['honor_honorer'];
+        }
 
         $jamHonor = max(0, $totalJamMengajar - $jamWajib);
         $honor = $jamHonor * $honorPerJam;

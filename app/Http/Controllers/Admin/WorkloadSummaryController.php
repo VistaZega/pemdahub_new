@@ -99,9 +99,10 @@ class WorkloadSummaryController extends Controller
                         WHEN LOWER(employment_status) = 'pns' THEN 1 
                         WHEN LOWER(employment_status) = 'gty' THEN 2 
                         WHEN LOWER(employment_status) = 'yayasan' THEN 3
-                        WHEN LOWER(employment_status) = 'honorer' THEN 4 
-                        WHEN LOWER(employment_status) = 'kontrak' THEN 5 
-                        ELSE 6 END")
+                        WHEN LOWER(employment_status) = 'percobaan' THEN 4 
+                        WHEN LOWER(employment_status) = 'honorer' THEN 5 
+                        WHEN LOWER(employment_status) = 'kontrak' THEN 6 
+                        ELSE 7 END")
                         ->from('employees')
                         ->whereColumn('id', 'employee_workload_summaries.employee_id');
                 }
@@ -380,9 +381,10 @@ class WorkloadSummaryController extends Controller
                             WHEN LOWER(employment_status) = 'pns' THEN 1 
                             WHEN LOWER(employment_status) = 'gty' THEN 2 
                             WHEN LOWER(employment_status) = 'yayasan' THEN 3
-                            WHEN LOWER(employment_status) = 'honorer' THEN 4 
-                            WHEN LOWER(employment_status) = 'kontrak' THEN 5 
-                            ELSE 6 END")
+                            WHEN LOWER(employment_status) = 'percobaan' THEN 4
+                            WHEN LOWER(employment_status) = 'honorer' THEN 5 
+                            WHEN LOWER(employment_status) = 'kontrak' THEN 6 
+                            ELSE 7 END")
                             ->from('employees as emp_inner')
                             ->whereColumn('emp_inner.id', 'employees.id');
                     }
@@ -466,9 +468,10 @@ class WorkloadSummaryController extends Controller
                         WHEN LOWER(employment_status) = 'pns' THEN 1 
                         WHEN LOWER(employment_status) = 'gty' THEN 2 
                         WHEN LOWER(employment_status) = 'yayasan' THEN 3
-                        WHEN LOWER(employment_status) = 'honorer' THEN 4 
-                        WHEN LOWER(employment_status) = 'kontrak' THEN 5 
-                        ELSE 6 END")
+                        WHEN LOWER(employment_status) = 'percobaan' THEN 4
+                        WHEN LOWER(employment_status) = 'honorer' THEN 5 
+                        WHEN LOWER(employment_status) = 'kontrak' THEN 6 
+                        ELSE 7 END")
                         ->from('employees as emp_inner')
                         ->whereColumn('emp_inner.id', 'employees.id');
                 }

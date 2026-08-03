@@ -1,4 +1,4 @@
-﻿@extends('layouts.treasurer')
+@extends('layouts.treasurer')
 
 @section('title', 'Pengaturan Gaji - PembdaHUB')
 
@@ -105,7 +105,7 @@
                 <p class="text-white/70 text-xs mt-1">Pengaturan jam wajib dan honor per jam untuk jenjang {{ $level }}</p>
             </div>
             <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             <i class="fas fa-clock text-teal-500 mr-1"></i> Jam Wajib (Tetap)
@@ -149,6 +149,17 @@
                                 class="w-full border border-gray-200 bg-gray-50 text-gray-500 rounded-xl pl-10 pr-4 py-2.5 cursor-not-allowed font-medium">
                         </div>
                         <p class="text-xs text-gray-400 mt-1">Guru Honorer per jam</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-money-bill-wave text-cyan-500 mr-1"></i> Honor/Jam (Percobaan)
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">Rp</span>
+                            <input type="number" value="{{ $settings["honor_percobaan_{$lk}"] }}" disabled
+                                class="w-full border border-gray-200 bg-gray-50 text-gray-500 rounded-xl pl-10 pr-4 py-2.5 cursor-not-allowed font-medium">
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Status Percobaan per jam</p>
                     </div>
                 </div>
             </div>

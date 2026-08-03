@@ -84,18 +84,21 @@ class PayrollController extends Controller
             'jam_wajib_honor_smp' => $savedSettings['jam_wajib_honor_smp'] ?? $jamHonorDefaults['SMP']['jam_wajib_honor'],
             'honor_tetap_smp' => $savedSettings['honor_tetap_smp'] ?? $jamHonorDefaults['SMP']['honor_tetap'],
             'honor_honorer_smp' => $savedSettings['honor_honorer_smp'] ?? $jamHonorDefaults['SMP']['honor_honorer'],
+            'honor_percobaan_smp' => $savedSettings['honor_percobaan_smp'] ?? $jamHonorDefaults['SMP']['honor_percobaan'],
 
             // Honor Mengajar - SMA
             'jam_wajib_tetap_sma' => $savedSettings['jam_wajib_tetap_sma'] ?? $jamHonorDefaults['SMA']['jam_wajib_tetap'],
             'jam_wajib_honor_sma' => $savedSettings['jam_wajib_honor_sma'] ?? $jamHonorDefaults['SMA']['jam_wajib_honor'],
             'honor_tetap_sma' => $savedSettings['honor_tetap_sma'] ?? $jamHonorDefaults['SMA']['honor_tetap'],
             'honor_honorer_sma' => $savedSettings['honor_honorer_sma'] ?? $jamHonorDefaults['SMA']['honor_honorer'],
+            'honor_percobaan_sma' => $savedSettings['honor_percobaan_sma'] ?? $jamHonorDefaults['SMA']['honor_percobaan'],
 
             // Honor Mengajar - SMK
             'jam_wajib_tetap_smk' => $savedSettings['jam_wajib_tetap_smk'] ?? $jamHonorDefaults['SMK']['jam_wajib_tetap'],
             'jam_wajib_honor_smk' => $savedSettings['jam_wajib_honor_smk'] ?? $jamHonorDefaults['SMK']['jam_wajib_honor'],
             'honor_tetap_smk' => $savedSettings['honor_tetap_smk'] ?? $jamHonorDefaults['SMK']['honor_tetap'],
             'honor_honorer_smk' => $savedSettings['honor_honorer_smk'] ?? $jamHonorDefaults['SMK']['honor_honorer'],
+            'honor_percobaan_smk' => $savedSettings['honor_percobaan_smk'] ?? $jamHonorDefaults['SMK']['honor_percobaan'],
 
             // Potongan BPJS
             'bpjs_kesehatan_persen' => $savedSettings['bpjs_kesehatan_persen'] ?? 1.0,
