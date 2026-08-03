@@ -151,9 +151,12 @@ class StudentBillController extends Controller
         $paymentTypeIds = DB::table('student_bills')
             ->where('academic_year_id', $academicYearId)
             ->distinct()->pluck('payment_type_id');
-        $paymentTypes = PaymentType::whereIn('id', $paymentTypeIds)
-            ->orderBy('type_name')
-            ->get();
+        
+        $paymentTypesQuery = PaymentType::with('school')->whereIn('id', $paymentTypeIds);
+        if ($schoolId) {
+            $paymentTypesQuery->where('school_id', $schoolId);
+        }
+        $paymentTypes = $paymentTypesQuery->orderBy('type_name')->get();
 
         $academicYears = AcademicYear::whereHas('studentBills')->orderBy('year', 'desc')->get();
 

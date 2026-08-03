@@ -159,7 +159,7 @@
                                 <option value="">Semua Jenis</option>
                                 @foreach($paymentTypes as $type)
                                 <option value="{{ $type->id }}" {{ $paymentTypeId == $type->id ? 'selected' : '' }}>
-                                    {{ ($type->is_recurring ?? false) ? '[Bulanan] ' : '[1 Kali] ' }}{{ $type->type_name }}
+                                    {{ ($type->is_recurring ?? false) ? '[Bulanan] ' : '[1 Kali] ' }}{{ $type->type_name }} {{ !$schoolId && $type->school ? ' - ' . $type->school->name : '' }}
                                 </option>
                                 @endforeach
                             </select>
