@@ -479,6 +479,31 @@ class ProgressInputController extends Controller
             $pct = $totalTa > 0 ? round(($plottedCount / $totalTa) * 100, 1) : ($plottedCount > 0 ? 100 : 0);
             $sisaTa = max(0, $totalTa - $plottedCount);
 
+            $unplottedNamesStr = '';
+            if ($currentYear && $sisaTa > 0) {
+                $unplottedTAs = \App\Models\TeachingAssignment::with('teacher')
+                    ->where('academic_year_id', $currentYear->id)
+                    ->whereHas('classroom', function ($q) use ($school) {
+                        $q->where('school_id', $school->id);
+                    })
+                    ->whereNotIn('id', function($q) use ($school, $currentYear) {
+                        $q->select('teaching_assignment_id')
+                          ->from('schedules')
+                          ->where('school_id', $school->id)
+                          ->where('academic_year_id', $currentYear->id)
+                          ->whereNotNull('teaching_assignment_id');
+                    })
+                    ->get();
+                    
+                $unplottedTeacherNames = $unplottedTAs->map(function($ta) {
+                    return $ta->teacher ? $ta->teacher->full_name : 'Unknown';
+                })->unique()->filter()->values()->toArray();
+                
+                if (!empty($unplottedTeacherNames)) {
+                    $unplottedNamesStr = implode(', ', $unplottedTeacherNames);
+                }
+            }
+
             if ($totalTa == 0) {
                 $rekomendasi = "Input pembagian tugas mengajar terlebih dahulu agar dapat diplot ke dalam jadwal pelajaran mingguan.";
                 $statusColor = 'red';
@@ -499,6 +524,9 @@ class ProgressInputController extends Controller
             ];
             if ($sisaTa > 0) {
                 $details[] = "Penugasan Belum Terplot: {$sisaTa} Item Mapel";
+                if (!empty($unplottedNamesStr)) {
+                    $details[] = "Daftar Guru Belum Terplot: " . $unplottedNamesStr;
+                }
             }
 
             $item5Schools[] = [
