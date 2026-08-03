@@ -238,6 +238,8 @@ class StudentBillController extends Controller
             'due_day' => 'nullable|integer|min:1|max:31',
             'monthly_amount' => 'nullable|numeric|min:0',
             'amount' => 'nullable|numeric|min:0',
+            'monthly_yayasan_share_amount' => 'nullable|numeric|min:0',
+            'yayasan_share_amount' => 'nullable|numeric|min:0',
             'due_date' => 'nullable|date',
             'single_month' => 'nullable|integer|min:1|max:12',
         ]);
@@ -317,6 +319,8 @@ class StudentBillController extends Controller
             'billing_type' => 'required|in:monthly,single',
             'amount' => 'required_if:billing_type,single|nullable|numeric|min:0',
             'monthly_amount' => 'required_if:billing_type,monthly|nullable|numeric|min:0',
+            'yayasan_share_amount' => 'nullable|numeric|min:0',
+            'monthly_yayasan_share_amount' => 'nullable|numeric|min:0',
             'start_month' => 'nullable|integer|min:1|max:12',
             'generate_months' => 'nullable|integer|min:1|max:12',
             'single_month' => 'nullable|integer|min:1|max:12',

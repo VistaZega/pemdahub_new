@@ -54,6 +54,7 @@
                             @foreach($paymentTypes as $type)
                             <option value="{{ $type->id }}" 
                                 data-amount="{{ $type->amount }}"
+                                data-yayasan-share="{{ $type->yayasan_share_amount }}"
                                 {{ old('payment_type_id') == $type->id ? 'selected' : '' }}>
                                 {{ $type->type_name }}
                             </option>
@@ -166,22 +167,40 @@
 
                 <!-- Bill Amount fields -->
                 <div id="single_amount_details">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">💰 Jumlah Tagihan <span class="text-red-500">*</span></label>
-                        <input type="number" name="amount" id="amount" value="{{ old('amount') }}" min="0" step="1000"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                            placeholder="500000">
-                        <p class="text-xs text-gray-500 mt-1">Masukkan jumlah dalam Rupiah</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">💰 Jumlah Tagihan <span class="text-red-500">*</span></label>
+                            <input type="number" name="amount" id="amount" value="{{ old('amount') }}" min="0" step="1000"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                                placeholder="500000">
+                            <p class="text-xs text-gray-500 mt-1">Masukkan jumlah dalam Rupiah</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">🏢 Setoran Yayasan</label>
+                            <input type="number" name="yayasan_share_amount" id="yayasan_share_amount" value="{{ old('yayasan_share_amount') }}" min="0" step="1000"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                                placeholder="0">
+                            <p class="text-xs text-gray-500 mt-1">Nominal hak Yayasan (opsional)</p>
+                        </div>
                     </div>
                 </div>
 
                 <div id="monthly_details" style="display: none;">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">💰 Jumlah Per Bulan (Rp) <span class="text-red-500">*</span></label>
-                        <input type="number" name="monthly_amount" id="monthly_amount" value="{{ old('monthly_amount') }}" min="0" step="1000"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                            placeholder="500000">
-                        <p class="text-xs text-gray-500 mt-1">Jumlah SPP setiap bulan</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">💰 Jumlah Per Bulan (Rp) <span class="text-red-500">*</span></label>
+                            <input type="number" name="monthly_amount" id="monthly_amount" value="{{ old('monthly_amount') }}" min="0" step="1000"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                                placeholder="500000">
+                            <p class="text-xs text-gray-500 mt-1">Jumlah SPP setiap bulan</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">🏢 Setoran Yayasan Per Bulan</label>
+                            <input type="number" name="monthly_yayasan_share_amount" id="monthly_yayasan_share_amount" value="{{ old('monthly_yayasan_share_amount') }}" min="0" step="1000"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                                placeholder="0">
+                            <p class="text-xs text-gray-500 mt-1">Nominal hak Yayasan per bulan</p>
+                        </div>
                     </div>
                 </div>
 
@@ -249,13 +268,23 @@ function updateAmounts() {
     if (!selectedOption) return;
     
     const defaultAmount = selectedOption.getAttribute('data-amount');
+    const defaultYayasanShare = selectedOption.getAttribute('data-yayasan-share');
+    
     if (defaultAmount) {
         if (!isRecurring) {
             const amountInput = document.querySelector('input[name="amount"]');
+            const yayasanInput = document.querySelector('input[name="yayasan_share_amount"]');
+            
             if (amountInput) amountInput.value = parseInt(defaultAmount);
+            if (yayasanInput && defaultYayasanShare) yayasanInput.value = parseInt(defaultYayasanShare);
+            else if (yayasanInput) yayasanInput.value = '';
         } else {
             const monthlyAmountInput = document.querySelector('input[name="monthly_amount"]');
+            const monthlyYayasanInput = document.querySelector('input[name="monthly_yayasan_share_amount"]');
+            
             if (monthlyAmountInput) monthlyAmountInput.value = parseInt(defaultAmount);
+            if (monthlyYayasanInput && defaultYayasanShare) monthlyYayasanInput.value = parseInt(defaultYayasanShare);
+            else if (monthlyYayasanInput) monthlyYayasanInput.value = '';
         }
     }
 }

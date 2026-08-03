@@ -280,9 +280,10 @@
                                 onchange="updateAmounts()">
                                 <option value="">-- Pilih Jenis Tagihan --</option>
                                 @foreach($paymentTypes as $type)
-                                <option value="{{ $type->id }}" 
-                                    data-amount="{{ $type->amount }}"
-                                    {{ old('payment_type_id') == $type->id ? 'selected' : '' }}>
+                                  <option value="{{ $type->id }}" 
+                                      data-amount="{{ $type->amount }}"
+                                      data-yayasan-share="{{ $type->yayasan_share_amount }}"
+                                      {{ old('payment_type_id') == $type->id ? 'selected' : '' }}>
                                     {{ $type->type_name }}
                                 </option>
                                 @endforeach
@@ -394,13 +395,21 @@
                             class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none">
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
                         <div class="space-y-2">
                             <label class="text-xs font-bold text-slate-700">Nominal Per Siswa (Rp) <span class="text-rose-500">*</span></label>
                             <input type="number" name="amount" value="{{ old('amount') }}" required min="0" step="1000"
                                 placeholder="500000"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none">
                             <p class="text-[11px] font-medium text-slate-400">Nominal yang sama untuk setiap siswa</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-700">Setoran Yayasan (Rp)</label>
+                            <input type="number" name="yayasan_share_amount" value="{{ old('yayasan_share_amount') }}" min="0" step="1000"
+                                placeholder="0"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none">
+                            <p class="text-[11px] font-medium text-slate-400">Nominal hak Yayasan (Opsional)</p>
                         </div>
 
                         <div class="space-y-2">
@@ -444,7 +453,7 @@
 
                 <!-- Monthly Details -->
                 <div id="monthly_details" style="display: none;" class="space-y-5">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <div class="space-y-2">
                             <label class="text-xs font-bold text-slate-700">Nominal Per Bulan (Rp) <span class="text-rose-500">*</span></label>
                             <input type="number" name="monthly_amount" value="{{ old('monthly_amount') }}" min="0" step="1000"
@@ -452,6 +461,15 @@
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none">
                             <p class="text-[11px] font-medium text-slate-400">Nominal SPP yang ditagihkan setiap bulan</p>
                         </div>
+                        
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-700">Setoran Yayasan (Rp)</label>
+                            <input type="number" name="monthly_yayasan_share_amount" value="{{ old('monthly_yayasan_share_amount') }}" min="0" step="1000"
+                                placeholder="0"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none">
+                            <p class="text-[11px] font-medium text-slate-400">Nominal hak Yayasan per bulan</p>
+                        </div>
+
                         <div class="space-y-2">
                             <label class="text-xs font-bold text-slate-700">Prefix Awalan Deskripsi</label>
                             <input type="text" name="description_prefix" value="{{ old('description_prefix', 'SPP') }}"
@@ -582,13 +600,23 @@ function updateAmounts() {
     if (!selectedOption) return;
     
     const defaultAmount = selectedOption.getAttribute('data-amount');
+    const defaultYayasanShare = selectedOption.getAttribute('data-yayasan-share');
+    
     if (defaultAmount) {
         if (!isRecurring) {
             const amountInput = document.querySelector('input[name="amount"]');
+            const yayasanInput = document.querySelector('input[name="yayasan_share_amount"]');
+            
             if (amountInput) amountInput.value = parseInt(defaultAmount);
+            if (yayasanInput && defaultYayasanShare) yayasanInput.value = parseInt(defaultYayasanShare);
+            else if (yayasanInput) yayasanInput.value = '';
         } else {
             const monthlyAmountInput = document.querySelector('input[name="monthly_amount"]');
+            const monthlyYayasanInput = document.querySelector('input[name="monthly_yayasan_share_amount"]');
+            
             if (monthlyAmountInput) monthlyAmountInput.value = parseInt(defaultAmount);
+            if (monthlyYayasanInput && defaultYayasanShare) monthlyYayasanInput.value = parseInt(defaultYayasanShare);
+            else if (monthlyYayasanInput) monthlyYayasanInput.value = '';
         }
     }
 }

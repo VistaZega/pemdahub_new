@@ -39,7 +39,14 @@ class StudentBillService
         }
 
         $paymentType = PaymentType::find($validated['payment_type_id']);
-        $yayasanShareAmount = $paymentType ? $paymentType->yayasan_share_amount : null;
+        
+        // Use custom amount if provided, otherwise fallback to payment type default
+        $yayasanShareAmount = null;
+        if (array_key_exists('monthly_yayasan_share_amount', $validated) && $validated['monthly_yayasan_share_amount'] !== null) {
+            $yayasanShareAmount = $validated['monthly_yayasan_share_amount'];
+        } elseif ($paymentType) {
+            $yayasanShareAmount = $paymentType->yayasan_share_amount;
+        }
         $billsCreated = 0;
 
         DB::transaction(function () use (
@@ -113,7 +120,14 @@ class StudentBillService
         $billYear = $singleMonth <= 6 ? $baseYear + 1 : $baseYear;
         
         $paymentType = PaymentType::find($validated['payment_type_id']);
-        $yayasanShareAmount = $paymentType ? $paymentType->yayasan_share_amount : null;
+        
+        // Use custom amount if provided, otherwise fallback to payment type default
+        $yayasanShareAmount = null;
+        if (array_key_exists('yayasan_share_amount', $validated) && $validated['yayasan_share_amount'] !== null) {
+            $yayasanShareAmount = $validated['yayasan_share_amount'];
+        } elseif ($paymentType) {
+            $yayasanShareAmount = $paymentType->yayasan_share_amount;
+        }
 
         $billsCreated = 0;
 
