@@ -19,8 +19,8 @@ try {
     $academicYear = AcademicYear::where('is_active', true)->first();
     if (!$academicYear) die("Academic year not found");
 
-    $semester1 = Semester::where('academic_year_id', $academicYear->id)->where('semester', 1)->first();
-    $semester2 = Semester::where('academic_year_id', $academicYear->id)->where('semester', 2)->first();
+    $semester1 = Semester::where('academic_year_id', $academicYear->id)->where('semester_name', 'like', '%Ganjil%')->first();
+    $semester2 = Semester::where('academic_year_id', $academicYear->id)->where('semester_name', 'like', '%Genap%')->first();
 
     $billsConfig = [
         'Reguler' => [
