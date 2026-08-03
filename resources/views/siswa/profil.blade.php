@@ -223,6 +223,8 @@
                         </button>
                     </div>
 
+                    <input type="hidden" name="cropped_photo" id="croppedPhotoInput">
+
                     <div class="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-4 max-h-[60vh] sm:max-h-[65vh] focus:outline-none">
                         @php $isBiodataEditable = now()->format('Y-m-d') <= '2026-08-10'; @endphp
                         
@@ -498,32 +500,30 @@
                     this.cropperInstance = null;
                 }
                 document.getElementById('photoInput').value = '';
+                document.getElementById('croppedPhotoInput').value = '';
                 document.getElementById('imageToCrop').classList.add('hidden');
             },
             
             saveCrop() {
                 if (!this.cropperInstance) return;
                 
-                this.cropperInstance.getCroppedCanvas({
+                const base64data = this.cropperInstance.getCroppedCanvas({
                     width: 600,
                     height: 600,
                     imageSmoothingEnabled: true,
                     imageSmoothingQuality: 'high',
-                }).toBlob((blob) => {
-                    const file = new File([blob], "cropped_profile.jpg", { type: "image/jpeg", lastModified: new Date().getTime() });
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    
-                    document.getElementById('photoInput').files = dataTransfer.files;
-                    this.photoPreview = URL.createObjectURL(blob);
-                    
-                    this.isCropModalOpen = false;
-                    setTimeout(() => {
-                        this.cropperInstance.destroy();
-                        this.cropperInstance = null;
-                        document.getElementById('imageToCrop').classList.add('hidden');
-                    }, 300);
-                }, 'image/jpeg', 0.85);
+                }).toDataURL('image/jpeg', 0.85);
+                
+                document.getElementById('croppedPhotoInput').value = base64data;
+                document.getElementById('photoInput').value = ''; // clear original file
+                this.photoPreview = base64data;
+                
+                this.isCropModalOpen = false;
+                setTimeout(() => {
+                    this.cropperInstance.destroy();
+                    this.cropperInstance = null;
+                    document.getElementById('imageToCrop').classList.add('hidden');
+                }, 300);
             }
         }));
     });

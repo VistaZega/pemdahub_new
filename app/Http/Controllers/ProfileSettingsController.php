@@ -113,7 +113,23 @@ class ProfileSettingsController extends Controller
 
         // Upload Photo jika ada
         $photoPath = null;
-        if ($request->hasFile('photo')) {
+        if ($request->has('cropped_photo') && !empty($request->cropped_photo)) {
+            $base64Image = $request->cropped_photo;
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+                $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
+                $type = strtolower($type[1]);
+                if (in_array($type, ['jpg', 'jpeg', 'png'])) {
+                    $decodedImage = base64_decode($base64Image);
+                    if ($decodedImage !== false) {
+                        $fileName = 'photos/' . uniqid() . '.' . $type;
+                        \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $decodedImage);
+                        $photoPath = $fileName;
+                        $user->photo = $photoPath;
+                        $user->save();
+                    }
+                }
+            }
+        } elseif ($request->hasFile('photo')) {
             $photoPath = $request->file('photo')->store('photos', 'public');
             $user->photo = $photoPath;
             $user->save();
