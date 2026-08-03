@@ -29,7 +29,7 @@ class ConsolidationReportController extends Controller
         $activeSemester = Semester::where('is_active', true)->first();
 
         // 1. PENDAPATAN (Berdasarkan Uang Masuk Riil di bulan tersebut)
-        $payments = Payment::with(['bill.paymentType', 'student.classroom'])
+        $payments = Payment::with(['bill.paymentType', 'student.currentClassroom'])
             ->whereHas('student', function ($query) use ($schoolId) {
                 $query->where('school_id', $schoolId);
             })
@@ -45,25 +45,39 @@ class ConsolidationReportController extends Controller
         $schoolShareTotal = 0;
         
         // Group income by Payment Type for detailed report
-        $incomeDetails = [];
+        $groupedIncome = [];
         
         foreach ($payments as $payment) {
             $bill = $payment->bill;
-            $typeName = $bill->paymentType->type_name ?? 'Lainnya';
-            
-            // Format SPP by Grade Level
-            if (stripos($typeName, 'SPP') !== false && $payment->student && $payment->student->classroom) {
-                $grade = $payment->student->classroom->grade_level;
-                $gradeMap = [
-                    7 => 'VII', 8 => 'VIII', 9 => 'IX',
-                    10 => 'X', 11 => 'XI', 12 => 'XII'
-                ];
-                $gradeText = $gradeMap[$grade] ?? $grade;
-                $typeName = "Pendapatan SPP Kelas {$gradeText}";
-            }
-            
-            // Hitung gross
+            $paymentType = $bill->paymentType;
+            $typeName = $paymentType->type_name ?? 'Lainnya';
             $paymentAmount = $payment->amount_paid;
+            
+            $key = $typeName;
+            
+            // Format SPP by Grade Level and Tariff
+            if (stripos($typeName, 'SPP') !== false && $payment->student) {
+                $classroom = $payment->student->currentClassroom->first();
+                if ($classroom) {
+                    $grade = $classroom->grade_level;
+                    $gradeMap = [
+                        7 => 'VII', 8 => 'VIII', 9 => 'IX',
+                        10 => 'X', 11 => 'XI', 12 => 'XII'
+                    ];
+                    $gradeText = $gradeMap[$grade] ?? $grade;
+                    
+                    $tariff = $bill->amount;
+                    $baseTariff = $paymentType->amount ?? $tariff;
+                    
+                    if ($tariff < $baseTariff) {
+                        $key = "SPP Kelas {$gradeText} (Tarif Netto Rp " . number_format($tariff, 0, ',', '.') . " - Diskon)";
+                    } else {
+                        $key = "SPP Kelas {$gradeText} (Tarif Rp " . number_format($tariff, 0, ',', '.') . ")";
+                    }
+                } else {
+                    $key = "SPP (Tarif Rp " . number_format($bill->amount, 0, ',', '.') . ")";
+                }
+            }
             
             // Hitung school share untuk payment ini
             // Asumsi: Jika payment_amount >= bill->amount, maka school share full.
@@ -81,10 +95,24 @@ class ConsolidationReportController extends Controller
             
             $schoolShareTotal += $schoolShare;
             
-            if (!isset($incomeDetails[$typeName])) {
-                $incomeDetails[$typeName] = 0;
+            if (!isset($groupedIncome[$key])) {
+                $groupedIncome[$key] = [
+                    'amount' => 0,
+                    'count' => 0,
+                ];
             }
-            $incomeDetails[$typeName] += $paymentAmount;
+            $groupedIncome[$key]['amount'] += $paymentAmount;
+            $groupedIncome[$key]['count'] += 1;
+        }
+
+        $incomeDetails = [];
+        foreach ($groupedIncome as $key => $data) {
+            if (stripos($key, 'SPP') !== false) {
+                $displayKey = $key . " - " . $data['count'] . " Siswa/Pembayaran";
+            } else {
+                $displayKey = $key . " (" . $data['count'] . " Transaksi)";
+            }
+            $incomeDetails[$displayKey] = $data['amount'];
         }
 
         // 2. PENGELUARAN GAJI
