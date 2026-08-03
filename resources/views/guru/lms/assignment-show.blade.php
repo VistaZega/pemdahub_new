@@ -88,6 +88,14 @@
                       bg-white text-black hover:bg-amber-300 border-2 border-black shadow-sm transition">
                 <i class="fas fa-edit"></i> Edit Tugas
             </a>
+
+            <form action="{{ route('guru.lms.assignments.destroy', $assignment->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus tugas ini beserta semua submisi siswa? Tindakan ini tidak dapat dibatalkan.')">
+                @csrf @method('DELETE')
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider
+                       bg-white text-red-600 hover:bg-red-100 border-2 border-red-300 shadow-sm transition">
+                    <i class="fas fa-trash"></i> Hapus
+                </button>
+            </form>
         </div>
     </div>
 

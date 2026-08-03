@@ -21,6 +21,7 @@ class UpdateLmsAssignmentRequest extends FormRequest
             'max_score' => 'required|numeric|min:1|max:100',
             'allow_resubmit' => 'sometimes|boolean',
             'max_resubmissions' => 'nullable|integer|min:1|max:5',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,zip|max:10240',
         ];
     }
 

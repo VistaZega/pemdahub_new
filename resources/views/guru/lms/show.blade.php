@@ -564,6 +564,10 @@
                     </div>
                     <div class="flex gap-2 ml-4 flex-shrink-0">
                         <a href="{{ route('guru.lms.assignments.edit', $assignment->id) }}" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all border-2 border-black bg-white text-black hover:bg-amber-300 shadow-sm" title="Edit Tugas"><i class="fas fa-edit text-xs"></i></a>
+                        <form action="{{ route('guru.lms.assignments.destroy', $assignment->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus tugas ini? Tindakan ini tidak dapat dibatalkan.')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all border-2 border-black bg-white text-red-600 hover:bg-red-100 shadow-sm" title="Hapus Tugas"><i class="fas fa-trash text-xs"></i></button>
+                        </form>
                         <a href="{{ route('guru.lms.assignments.show', $assignment->id) }}" class="px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition shadow-md flex items-center justify-center gap-1.5 bg-black hover:bg-blue-600 text-white border-2 border-black">
                             <i class="fas fa-check-double text-amber-400"></i> KOREKSI
                         </a>
@@ -644,6 +648,12 @@
                         <a href="{{ route('guru.lms.quizzes.results', $quiz->id) }}" class="px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition text-center flex justify-center items-center gap-1.5 bg-slate-100 hover:bg-amber-300 text-black border-2 border-black shadow-sm">
                             <i class="fas fa-chart-bar text-black"></i> Hasil Quiz
                         </a>
+                        <form action="{{ route('guru.lms.quizzes.destroy', $quiz->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus quiz ini? Tindakan ini tidak dapat dibatalkan.')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="w-full px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition text-center flex justify-center items-center gap-1.5 bg-white hover:bg-red-100 text-red-600 border-2 border-red-300 shadow-sm">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

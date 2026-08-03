@@ -150,6 +150,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::delete('/questions/{question}', [App\Http\Controllers\Guru\LmsQuizController::class, 'destroyQuestion'])->name('questions.destroy');
         Route::get('/quizzes/{quiz}/results', [App\Http\Controllers\Guru\LmsQuizController::class, 'results'])->name('quizzes.results');
         Route::post('/quizzes/{quiz}/toggle-publish', [App\Http\Controllers\Guru\LmsQuizController::class, 'togglePublish'])->name('quizzes.togglePublish');
+        Route::post('/quizzes/{quiz}/sync-from-bank', [App\Http\Controllers\Guru\LmsQuizController::class, 'syncFromBank'])->name('quizzes.syncFromBank');
         Route::get('/quizzes/attempts/{attempt}', [App\Http\Controllers\Guru\LmsQuizController::class, 'showAttempt'])->name('quizzes.attempts.show');
         Route::post('/quizzes/attempts/{attempt}/grade', [App\Http\Controllers\Guru\LmsQuizController::class, 'gradeAttempt'])->name('quizzes.attempts.grade');
 

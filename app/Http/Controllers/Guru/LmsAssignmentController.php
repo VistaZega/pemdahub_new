@@ -127,7 +127,8 @@ class LmsAssignmentController extends Controller
             abort(403);
         }
 
-        $assignment->update([
+        // Handle file replacement
+        $updateData = [
             'module_id' => $request->has('module_id') ? $request->module_id : $assignment->module_id,
             'title' => $request->title,
             'description' => $request->description,
@@ -135,7 +136,17 @@ class LmsAssignmentController extends Controller
             'max_score' => $request->max_score,
             'allow_resubmit' => $request->boolean('allow_resubmit'),
             'max_resubmissions' => $request->max_resubmissions ?? $assignment->max_resubmissions,
-        ]);
+        ];
+
+        if ($request->hasFile('file')) {
+            // Hapus file lama jika ada
+            if ($assignment->file_path && \Storage::disk('public')->exists($assignment->file_path)) {
+                \Storage::disk('public')->delete($assignment->file_path);
+            }
+            $updateData['file_path'] = $request->file('file')->store('lms/assignments', 'public');
+        }
+
+        $assignment->update($updateData);
 
         return redirect()->route('guru.lms.assignments.show', $assignment->id)
             ->with('success', 'Tugas berhasil diperbarui.');

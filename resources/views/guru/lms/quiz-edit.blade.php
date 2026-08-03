@@ -43,6 +43,21 @@
                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500">{{ old('description', $quiz->description) }}</textarea>
             </div>
 
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">📦 Bank Soal (Opsional)</label>
+                <select name="question_package_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                    <option value="">— Tanpa Bank Soal (Soal Manual) —</option>
+                    @if(isset($cbtQuestionBanks))
+                        @foreach($cbtQuestionBanks as $qb)
+                        <option value="{{ $qb->id }}" {{ old('question_package_id', $quiz->question_package_id) == $qb->id ? 'selected' : '' }}>
+                            📦 {{ $qb->bank_name }} ({{ $qb->total_questions ?? 0 }} Soal)
+                        </option>
+                        @endforeach
+                    @endif
+                </select>
+                <p class="text-xs text-gray-400 mt-1">Pilih bank soal untuk menghubungkan quiz ini. Gunakan tombol "Sinkron dari Bank Soal" di halaman kelola quiz untuk mengimpor soal.</p>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Batas Waktu (menit)</label>

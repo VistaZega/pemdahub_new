@@ -31,6 +31,11 @@
             <h2 class="text-lg font-bold text-gray-900">Informasi Bank Soal</h2>
         </div>
 
+        {{-- Form DELETE terpisah (di luar form UPDATE untuk menghindari nested form) --}}
+        <form id="delete-bank-form" action="{{ route('guru.cbt.banks.destroy', $bank) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus bank soal ini beserta semua soalnya? Tindakan ini tidak dapat dibatalkan.')">
+            @csrf @method('DELETE')
+        </form>
+
         <form action="{{ route('guru.cbt.banks.update', $bank) }}" method="POST">
             @csrf
             @method('PUT')
@@ -79,12 +84,9 @@
             </div>
 
             <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-                <form action="{{ route('guru.cbt.banks.destroy', $bank) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus bank soal ini beserta semua soalnya? Tindakan ini tidak dapat dibatalkan.')">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="px-5 py-2.5 bg-white border border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition text-base font-medium flex items-center gap-2">
-                        <i class="fas fa-trash"></i>Hapus Bank Soal
-                    </button>
-                </form>
+                <button type="submit" form="delete-bank-form" class="px-5 py-2.5 bg-white border border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition text-base font-medium flex items-center gap-2">
+                    <i class="fas fa-trash"></i>Hapus Bank Soal
+                </button>
                 <div class="flex gap-3">
                     <a href="{{ route('guru.cbt.banks.show', $bank) }}" class="px-6 py-2.5 bg-white border border-gray-200 text-gray-800 rounded-xl hover:bg-gray-50 transition text-base font-medium">Batal</a>
                     <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl hover:shadow-lg transition text-base font-medium flex items-center gap-2">

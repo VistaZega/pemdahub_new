@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Lms\StoreLmsQuizRequest;
+use App\Models\CbtQuestion;
+use App\Models\CbtQuestionBank;
 use App\Models\LmsCourse;
 use App\Models\LmsQuiz;
 use App\Models\LmsQuizQuestion;
@@ -72,8 +74,21 @@ class LmsQuizController extends Controller
             'is_published' => false,
         ]);
 
+        // Auto-sync soal dari bank soal jika dipilih
+        $syncCount = 0;
+        if ($request->question_package_id) {
+            $syncCount = $this->syncQuestionsFromBank($quiz, $request->question_package_id);
+        }
+
+        $message = 'Quiz berhasil dibuat.';
+        if ($syncCount > 0) {
+            $message .= " {$syncCount} soal berhasil diimpor dari bank soal.";
+        } else {
+            $message .= ' Silakan tambahkan soal.';
+        }
+
         return redirect()->route('guru.lms.quizzes.show', $quiz->id)
-            ->with('success', 'Quiz berhasil dibuat. Silakan tambahkan soal.');
+            ->with('success', $message);
     }
 
     /**
@@ -109,8 +124,11 @@ class LmsQuizController extends Controller
         }
         $teacher->load('school');
         $modules = $course->modules()->where('is_active', true)->orderBy('sequence')->get();
+        $cbtQuestionBanks = CbtQuestionBank::where('school_id', $teacher->school_id)
+            ->where('is_active', true)
+            ->get();
 
-        return view('guru.lms.quiz-edit', compact('teacher', 'course', 'quiz', 'modules'));
+        return view('guru.lms.quiz-edit', compact('teacher', 'course', 'quiz', 'modules', 'cbtQuestionBanks'));
     }
 
     /**
@@ -128,6 +146,7 @@ class LmsQuizController extends Controller
 
         $quiz->update([
             'module_id' => $request->has('module_id') ? $request->module_id : $quiz->module_id,
+            'question_package_id' => $request->has('question_package_id') ? ($request->question_package_id ?: null) : $quiz->question_package_id,
             'title' => $request->title,
             'description' => $request->description,
             'time_limit' => $request->time_limit,
@@ -206,6 +225,108 @@ class LmsQuizController extends Controller
 
         return redirect()->route('guru.lms.show', $courseId)
             ->with('success', 'Quiz berhasil dihapus.');
+    }
+
+    /**
+     * Sync/import questions from CBT question bank into quiz
+     */
+    public function syncFromBank(LmsQuiz $quiz)
+    {
+        $teacher = $this->getTeacher();
+        $course = $quiz->course;
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        if (!$quiz->question_package_id) {
+            return redirect()->route('guru.lms.quizzes.show', $quiz->id)
+                ->with('error', 'Quiz ini tidak terhubung ke bank soal manapun.');
+        }
+
+        $syncCount = $this->syncQuestionsFromBank($quiz, $quiz->question_package_id);
+
+        if ($syncCount > 0) {
+            return redirect()->route('guru.lms.quizzes.show', $quiz->id)
+                ->with('success', "{$syncCount} soal berhasil disinkronisasi dari bank soal.");
+        }
+
+        return redirect()->route('guru.lms.quizzes.show', $quiz->id)
+            ->with('info', 'Tidak ada soal baru untuk disinkronisasi. Bank soal mungkin kosong.');
+    }
+
+    /**
+     * Helper: Sync questions from a CBT question bank into an LMS quiz
+     * Converts CbtQuestion + CbtQuestionOptions into LmsQuizQuestion format
+     */
+    private function syncQuestionsFromBank(LmsQuiz $quiz, int $bankId): int
+    {
+        $bank = CbtQuestionBank::with(['questions' => function ($q) {
+            $q->where('is_active', true)->with('options');
+        }])->find($bankId);
+
+        if (!$bank || $bank->questions->isEmpty()) {
+            return 0;
+        }
+
+        $maxOrder = $quiz->questions()->max('order_number') ?? 0;
+        $imported = 0;
+
+        foreach ($bank->questions as $cbtQuestion) {
+            // Tentukan question_type mapping dari CBT ke LMS
+            $questionType = $this->mapCbtQuestionType($cbtQuestion->question_type);
+
+            // Konversi options dari CbtQuestionOption ke format JSON LmsQuizQuestion
+            $options = null;
+            $correctAnswer = $cbtQuestion->answer_key;
+
+            if (in_array($questionType, ['multiple_choice', 'true_false']) && $cbtQuestion->options->isNotEmpty()) {
+                $options = $cbtQuestion->options->sortBy('sort_order')->values()->map(function ($opt) {
+                    return [
+                        'key' => $opt->option_label,
+                        'text' => $opt->option_text,
+                    ];
+                })->toArray();
+
+                // Cari jawaban benar dari options
+                $correctOption = $cbtQuestion->options->firstWhere('is_correct', true);
+                if ($correctOption) {
+                    $correctAnswer = $correctOption->option_label;
+                }
+            }
+
+            $maxOrder++;
+            $quiz->questions()->create([
+                'question' => $cbtQuestion->question_text,
+                'question_type' => $questionType,
+                'options' => $options,
+                'correct_answer' => $correctAnswer,
+                'order_number' => $maxOrder,
+                'score' => $cbtQuestion->points ?: 1,
+                'image_path' => $cbtQuestion->question_image,
+                'video_url' => $cbtQuestion->question_video,
+            ]);
+
+            $imported++;
+        }
+
+        // Update total score quiz
+        $quiz->update(['total_score' => $quiz->questions()->sum('score')]);
+
+        return $imported;
+    }
+
+    /**
+     * Map CBT question types to LMS quiz question types
+     */
+    private function mapCbtQuestionType(string $cbtType): string
+    {
+        return match ($cbtType) {
+            'multiple_choice', 'pilihan_ganda' => 'multiple_choice',
+            'true_false', 'benar_salah' => 'true_false',
+            'short_answer', 'isian_singkat' => 'short_answer',
+            'essay', 'uraian' => 'essay',
+            default => 'multiple_choice',
+        };
     }
 
     /**

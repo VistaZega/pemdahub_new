@@ -41,6 +41,13 @@
             <a href="{{ route('guru.lms.quizzes.results', $quiz->id) }}" class="bg-black text-white hover:bg-purple-600 border-2 border-black px-4 py-2.5 rounded-2xl font-black uppercase tracking-wider transition shadow-md">
                 <i class="fas fa-chart-bar mr-1 text-amber-400"></i> {{ $quiz->attempts_count }} Percobaan
             </a>
+
+            <form action="{{ route('guru.lms.quizzes.destroy', $quiz->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus quiz ini beserta semua percobaan siswa? Tindakan ini tidak dapat dibatalkan.')">
+                @csrf @method('DELETE')
+                <button type="submit" class="bg-white text-red-600 hover:bg-red-100 border-2 border-red-300 px-4 py-2.5 rounded-2xl font-black uppercase tracking-wider transition shadow-sm text-xs">
+                    <i class="fas fa-trash mr-1"></i> Hapus Quiz
+                </button>
+            </form>
         </div>
     </div>
 
@@ -162,6 +169,19 @@
             <h3 class="font-bold text-gray-800 text-lg flex-shrink-0"><i class="fas fa-list-ol text-purple-500 mr-2"></i>Daftar Soal</h3>
             
             <div class="flex flex-wrap items-center gap-3">
+                {{-- Sinkronisasi dari Bank Soal --}}
+                @if($quiz->question_package_id)
+                <form action="{{ route('guru.lms.quizzes.syncFromBank', $quiz->id) }}" method="POST" onsubmit="return confirm('Soal dari bank soal akan ditambahkan ke quiz ini. Soal yang sudah ada tidak akan terhapus. Lanjutkan?')">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition shadow-sm">
+                        <i class="fas fa-sync-alt"></i> Sinkron dari Bank Soal
+                        @if($quiz->cbtQuestionBank)
+                        <span class="text-[10px] opacity-80">({{ $quiz->cbtQuestionBank->bank_name }})</span>
+                        @endif
+                    </button>
+                </form>
+                @endif
+
                 <!-- Unduh Template -->
                 <a href="{{ route('guru.lms.quizzes.template', $quiz->id) }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg transition shadow-sm">
                     <i class="fas fa-download text-purple-500"></i> Unduh Template Soal
