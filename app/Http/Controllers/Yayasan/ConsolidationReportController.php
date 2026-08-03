@@ -154,6 +154,17 @@ class ConsolidationReportController extends Controller
         // Saldo = Pendapatan Kotor - Gaji - Kas Sekolah
         $netBalance = $grossIncome - $salaryTotal - $schoolShareTotal;
 
+        // 4. DAFTAR TUNGGAKAN (PENDAPATAN BELUM TERCAPAI)
+        $unpaidBills = \App\Models\StudentBill::with(['student.currentClassroom', 'paymentType'])
+            ->whereHas('student', function ($query) use ($schoolId) {
+                $query->where('school_id', $schoolId);
+                // Optionally only active students: ->whereIn('status', ['aktif'])
+            })
+            ->where('month', $month)
+            ->where('year', $year)
+            ->where('status', '!=', 'lunas')
+            ->get();
+
         return view('yayasan.reports.consolidation', compact(
             'schools',
             'schoolId',
@@ -165,7 +176,8 @@ class ConsolidationReportController extends Controller
             'schoolShareTotal',
             'salaryTotal',
             'salaryDetails',
-            'netBalance'
+            'netBalance',
+            'unpaidBills'
         ));
     }
 }

@@ -128,6 +128,58 @@
                 </div>
             </div>
             
+            <!-- LAMPIRAN TUNGGAKAN -->
+            @if(isset($unpaidBills) && $unpaidBills->count() > 0)
+            <div class="mt-12 print-page-break">
+                <h3 class="text-lg font-bold text-gray-800 mb-3 border-b border-gray-200 pb-2">LAMPIRAN: DAFTAR PENDAPATAN BELUM TERCAPAI (TUNGGAKAN)</h3>
+                <p class="text-sm text-gray-600 mb-4 print:mb-2">Berikut adalah daftar tagihan siswa untuk periode ini yang belum dilunasi sepenuhnya.</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left border border-gray-200">
+                        <thead class="bg-gray-50 text-gray-700">
+                            <tr>
+                                <th class="py-3 px-4 border-b">No</th>
+                                <th class="py-3 px-4 border-b">Nama Siswa</th>
+                                <th class="py-3 px-4 border-b">Kelas</th>
+                                <th class="py-3 px-4 border-b">Jenis Tagihan</th>
+                                <th class="py-3 px-4 border-b text-right">Nilai Tagihan</th>
+                                <th class="py-3 px-4 border-b text-right">Sudah Dibayar</th>
+                                <th class="py-3 px-4 border-b text-right">Sisa Tunggakan</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @php 
+                                $totalTunggakan = 0; 
+                            @endphp
+                            @foreach($unpaidBills as $index => $bill)
+                            @php
+                                $sisa = $bill->amount - $bill->paid_amount;
+                                $totalTunggakan += $sisa;
+                                $kelas = $bill->student && $bill->student->currentClassroom->first() 
+                                    ? $bill->student->currentClassroom->first()->class_name 
+                                    : '-';
+                            @endphp
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-2 px-4">{{ $index + 1 }}</td>
+                                <td class="py-2 px-4 font-medium">{{ $bill->student->full_name ?? '-' }}</td>
+                                <td class="py-2 px-4">{{ $kelas }}</td>
+                                <td class="py-2 px-4">{{ $bill->paymentType->type_name ?? '-' }}</td>
+                                <td class="py-2 px-4 text-right">Rp {{ number_format($bill->amount, 0, ',', '.') }}</td>
+                                <td class="py-2 px-4 text-right text-emerald-600">Rp {{ number_format($bill->paid_amount, 0, ',', '.') }}</td>
+                                <td class="py-2 px-4 text-right font-medium text-rose-600">Rp {{ number_format($sisa, 0, ',', '.') }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-rose-50 font-bold border-t border-rose-200">
+                                <td colspan="6" class="py-3 px-4 text-right text-rose-900">Total Tunggakan Periode Ini:</td>
+                                <td class="py-3 px-4 text-right text-rose-700">Rp {{ number_format($totalTunggakan, 0, ',', '.') }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            @endif
+            
             <!-- Tanda Tangan -->
             <div class="mt-16 grid grid-cols-2 gap-8 text-center text-sm print:grid-cols-2">
                 <div>
@@ -150,6 +202,7 @@
     #sidebar, header, nav { display: none !important; }
     main { padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; }
     @page { margin: 1.5cm; }
+    .print-page-break { page-break-before: always; }
 }
 </style>
 @endsection
