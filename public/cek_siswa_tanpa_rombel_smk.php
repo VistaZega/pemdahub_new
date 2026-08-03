@@ -12,7 +12,7 @@ use App\Models\School;
 use App\Models\AcademicYear;
 
 // Cari sekolah SMK Pembda
-$school = School::where('name', 'like', '%SMK Swasta Pembda%')->first();
+$school = School::where('name', 'like', '%SMK%')->first();
 if (!$school) {
     echo "SMK School not found.\n";
     exit;
