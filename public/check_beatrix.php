@@ -9,16 +9,16 @@ $response = $kernel->handle(
 echo "<h1>Pengecekan Data Siswa: BEATRIX FIRSTY ANGEL NDRURU</h1>";
 
 try {
-    $student = \App\Models\Student::where('name', 'like', '%BEATRIX FIRSTY ANGEL NDRURU%')->first();
+    $student = \App\Models\Student::where('full_name', 'like', '%BEATRIX FIRSTY ANGEL NDRURU%')->first();
     if (!$student) {
         echo "<p style='color:red'>Data siswa tidak ditemukan di database!</p>";
     } else {
-        echo "<p><strong>Nama:</strong> " . $student->name . "</p>";
+        echo "<p><strong>Nama:</strong> " . $student->full_name . "</p>";
         echo "<p><strong>ID Siswa:</strong> " . $student->id . "</p>";
         echo "<p><strong>Status:</strong> " . $student->status . "</p>";
         
-        $class = $student->currentClass;
-        echo "<p><strong>Kelas Saat Ini:</strong> " . ($class ? $class->name : 'Tidak ada kelas aktif') . "</p>";
+        $class = $student->currentClassroom()->first();
+        echo "<p><strong>Kelas Saat Ini:</strong> " . ($class ? $class->class_name : 'Tidak ada kelas aktif') . "</p>";
         
         $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
         echo "<p><strong>Tahun Pelajaran Aktif:</strong> " . ($activeYear ? $activeYear->name : 'Tidak ada') . "</p>";
@@ -30,7 +30,7 @@ try {
             echo "<table border='1' cellpadding='5' style='border-collapse: collapse;'>";
             echo "<tr><th>Jenis Pembayaran</th><th>Nominal</th><th>Status</th><th>Tahun Pelajaran</th></tr>";
             foreach($bills as $bill) {
-                $typeName = $bill->paymentType ? $bill->paymentType->name : 'Unknown';
+                $typeName = $bill->paymentType ? $bill->paymentType->type_name : 'Unknown';
                 $yearName = $bill->academicYear ? $bill->academicYear->name : 'Unknown';
                 $statusColor = $bill->status == 'paid' ? 'green' : ($bill->status == 'partial' ? 'orange' : 'red');
                 echo "<tr>";
@@ -50,11 +50,11 @@ try {
                 $paymentTypes = \App\Models\PaymentType::whereHas('classes', function($q) use ($class) {
                     $q->where('classrooms.id', $class->id);
                 })->get();
-                echo "<h4>Jenis Pembayaran yang ter-assign ke Kelas {$class->name}:</h4>";
+                echo "<h4>Jenis Pembayaran yang ter-assign ke Kelas {$class->class_name}:</h4>";
                 if ($paymentTypes->count() > 0) {
                     echo "<ul>";
                     foreach ($paymentTypes as $pt) {
-                        echo "<li>{$pt->name} (Rp " . number_format($pt->amount, 0, ',', '.') . ")</li>";
+                        echo "<li>{$pt->type_name} (Rp " . number_format($pt->amount, 0, ',', '.') . ")</li>";
                     }
                     echo "</ul>";
                     echo "<p>Karena jenis pembayaran ada tapi tagihan tidak ada, silakan gunakan fitur 'Generate Tagihan' di menu Admin/Bendahara untuk siswa/kelas ini.</p>";
