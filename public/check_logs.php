@@ -1,6 +1,11 @@
 <?php
-$logFile = __DIR__ . "/../storage/logs/laravel.log";
-if (file_exists($logFile)) {
+$dir = __DIR__ . "/../storage/logs/";
+$files = glob($dir . "*.log");
+if (empty($files)) {
+    echo "No log files found in " . $dir;
+} else {
+    $logFile = end($files);
+    echo "Reading from " . $logFile . "\n";
     $lines = file($logFile);
     $lastLines = array_slice($lines, -100);
     foreach ($lastLines as $line) {
@@ -8,7 +13,5 @@ if (file_exists($logFile)) {
             echo $line;
         }
     }
-} else {
-    echo "Log file not found.";
 }
 
