@@ -1173,7 +1173,7 @@ class ProgressInputController extends Controller
                 'status_color' => $statusColor,
                 'raw_value'    => $totalPlacement,
                 'details'      => $details,
-                'action_items' => $totalPlacement == 0 ? ["Petakan Penempatan Siswa & Guru Pendamping PKL di PembdaHUB"] : ($pctLogApproved < 100 ? ["Instruksikan Guru Pendamping Memverifikasi {$totalLogbook} Logbook Siswa"] : []),
+                'action_items' => $totalPlacement == 0 ? ["Petakan Penempatan Siswa & Guru Pendamping PKL di PembdaHUB"] : ($pctLogApproved < 100 ? ["Instruksikan Guru Pendamping Memverifikasi " . ($totalLogbook - $approvedLogbook) . " Logbook Siswa"] : []),
             ];
         }
         $items[] = [
