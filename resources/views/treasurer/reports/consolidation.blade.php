@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.treasurer')
 
 @section('content')
 <div class="space-y-6">
