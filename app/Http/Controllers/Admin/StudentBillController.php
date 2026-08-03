@@ -251,7 +251,7 @@ class StudentBillController extends Controller
             ->where(fn($q) => $q->whereNull('type')->orWhere('type', '!=', 'Yayasan'))
             ->orderBy('name')->get();
         $students = Student::orderBy('full_name')->get();
-        $paymentTypes = PaymentType::where('is_active', true)->orderBy('type_name')->get()->unique('type_code')->values();
+        $paymentTypes = PaymentType::where('is_active', true)->with('school')->orderBy('type_name')->get();
         $academicYears = AcademicYear::orderBy('year', 'desc')->get()->unique('year')->values();
         $semesters = Semester::orderBy('semester_number')->get();
         $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::orderBy('year', 'desc')->first();
@@ -409,11 +409,9 @@ class StudentBillController extends Controller
             ->where(fn($q) => $q->whereNull('type')->orWhere('type', '!=', 'Yayasan'))
             ->orderBy('name')->get();
         $paymentTypes = PaymentType::where('is_active', true)
+            ->with('school')
             ->orderBy('type_name')
-            ->get()
-            ->groupBy('type_code')
-            ->map(fn($group) => $group->first())
-            ->values();
+            ->get();
         $academicYears = AcademicYear::orderBy('year', 'desc')->get();
         $semesters = Semester::orderBy('semester_number')->get();
         $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::orderBy('year', 'desc')->first();

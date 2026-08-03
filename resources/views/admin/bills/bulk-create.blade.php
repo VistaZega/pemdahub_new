@@ -300,11 +300,13 @@
                                 <option value="">-- Pilih Jenis Tagihan --</option>
                                 @foreach($paymentTypes as $type)
                                 <option value="{{ $type->id }}" 
+                                    data-school="{{ $type->school_id }}"
                                     data-amount="{{ $type->amount }}"
                                     data-yayasan-share="{{ $type->yayasan_share_amount }}"
                                     data-is-recurring="{{ $type->is_recurring ? '1' : '0' }}"
-                                    {{ old('payment_type_id') == $type->id ? 'selected' : '' }}>
-                                    {{ $type->type_code }} - {{ $type->type_name }}
+                                    {{ old('payment_type_id') == $type->id ? 'selected' : '' }}
+                                    style="display: none;" disabled>
+                                    {{ $type->type_code }} - {{ $type->type_name }} {{ $type->school ? ' - ' . $type->school->name : '' }}
                                 </option>
                                 @endforeach
                             </select>
@@ -531,33 +533,63 @@
 function updateClassroomOptions() {
     const schoolId = document.getElementById('school_id')?.value;
     const academicYearId = document.getElementById('academic_year_id')?.value;
+    
+    // Filter Classrooms
     const classroomSelect = document.getElementById('classroom_id');
-    if (!classroomSelect) return;
+    if (classroomSelect) {
+        const options = classroomSelect.querySelectorAll('option');
+        let hasValidSelection = false;
+        options.forEach(option => {
+            if (!option.value) return;
+            const optSchool = option.getAttribute('data-school');
+            const optAY = option.getAttribute('data-academic-year');
 
-    const options = classroomSelect.querySelectorAll('option');
-    let hasValidSelection = false;
-    options.forEach(option => {
-        if (!option.value) return;
-        const optSchool = option.getAttribute('data-school');
-        const optAY = option.getAttribute('data-academic-year');
+            let matchSchool = !schoolId || optSchool == schoolId;
+            let matchAY = !academicYearId || optAY == academicYearId;
 
-        let matchSchool = !schoolId || optSchool == schoolId;
-        let matchAY = !academicYearId || optAY == academicYearId;
-
-        if (matchSchool && matchAY) {
-            option.style.display = '';
-            option.disabled = false;
-            if (classroomSelect.value == option.value) {
-                hasValidSelection = true;
+            if (matchSchool && matchAY) {
+                option.style.display = '';
+                option.disabled = false;
+                if (classroomSelect.value == option.value) {
+                    hasValidSelection = true;
+                }
+            } else {
+                option.style.display = 'none';
+                option.disabled = true;
             }
-        } else {
-            option.style.display = 'none';
-            option.disabled = true;
-        }
-    });
+        });
 
-    if (!hasValidSelection) {
-        classroomSelect.value = '';
+        if (!hasValidSelection) {
+            classroomSelect.value = '';
+        }
+    }
+
+    // Filter Payment Types
+    const paymentTypeSelect = document.getElementById('payment_type_id');
+    if (paymentTypeSelect) {
+        const ptOptions = paymentTypeSelect.querySelectorAll('option');
+        let hasValidPtSelection = false;
+        ptOptions.forEach(option => {
+            if (!option.value) return; // Skip placeholder
+            const optSchool = option.getAttribute('data-school');
+            
+            // Only show payment types that belong to the selected school
+            if (schoolId && optSchool == schoolId) {
+                option.style.display = '';
+                option.disabled = false;
+                if (paymentTypeSelect.value == option.value) {
+                    hasValidPtSelection = true;
+                }
+            } else {
+                option.style.display = 'none';
+                option.disabled = true;
+            }
+        });
+
+        if (!hasValidPtSelection || !schoolId) {
+            paymentTypeSelect.value = '';
+            updateAmounts(); // reset amounts
+        }
     }
 }
 

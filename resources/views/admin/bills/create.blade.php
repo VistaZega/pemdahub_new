@@ -35,10 +35,10 @@
             <div class="space-y-5">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-user mr-1"></i> Siswa <span class="text-red-500">*</span></label>
-                    <select name="student_id" required id="student_select" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500">
+                    <select name="student_id" required id="student_select" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500" onchange="filterPaymentTypes()">
                         <option value="">-- Pilih Siswa --</option>
                         @foreach($students as $student)
-                        <option value="{{ $student->id }}" {{ old('student_id') == $student->id ? 'selected' : '' }}>
+                        <option value="{{ $student->id }}" data-school="{{ $student->school_id }}" {{ old('student_id') == $student->id ? 'selected' : '' }}>
                             {{ $student->full_name }} ({{ $student->nisn }})
                         </option>
                         @endforeach
@@ -53,11 +53,13 @@
                             <option value="">-- Pilih Jenis Tagihan --</option>
                             @foreach($paymentTypes as $type)
                             <option value="{{ $type->id }}" 
+                                data-school="{{ $type->school_id }}"
                                 data-amount="{{ $type->amount }}"
                                 data-yayasan-share="{{ $type->yayasan_share_amount }}"
                                 data-is-recurring="{{ $type->is_recurring ? '1' : '0' }}"
-                                {{ old('payment_type_id') == $type->id ? 'selected' : '' }}>
-                                {{ $type->type_name }}
+                                {{ old('payment_type_id') == $type->id ? 'selected' : '' }}
+                                style="display: none;" disabled>
+                                {{ $type->type_name }} {{ $type->school ? ' - ' . $type->school->name : '' }}
                             </option>
                             @endforeach
                         </select>
@@ -259,6 +261,39 @@ function toggleBillingType() {
     updateAmounts();
 }
 
+function filterPaymentTypes() {
+    const studentSelect = document.getElementById('student_select');
+    const paymentTypeSelect = document.getElementById('payment_type_id');
+    
+    if (!studentSelect || !paymentTypeSelect) return;
+    
+    const selectedStudent = studentSelect.options[studentSelect.selectedIndex];
+    const schoolId = selectedStudent ? selectedStudent.getAttribute('data-school') : null;
+    
+    let hasValidSelection = false;
+    
+    Array.from(paymentTypeSelect.options).forEach(option => {
+        if (!option.value) return; // Skip placeholder
+        
+        const ptSchoolId = option.getAttribute('data-school');
+        if (schoolId && ptSchoolId === schoolId) {
+            option.style.display = '';
+            option.disabled = false;
+            if (paymentTypeSelect.value === option.value) {
+                hasValidSelection = true;
+            }
+        } else {
+            option.style.display = 'none';
+            option.disabled = true;
+        }
+    });
+    
+    if (!hasValidSelection || !schoolId) {
+        paymentTypeSelect.value = '';
+        updateAmounts();
+    }
+}
+
 function handlePaymentTypeChange() {
     const paymentTypeSelect = document.getElementById('payment_type_id');
     if (!paymentTypeSelect) return;
@@ -317,6 +352,10 @@ function updateAmounts() {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     toggleBillingType();
+
+    // Run on load to set initial state
+    filterPaymentTypes();
+    updateAmounts();
 });
 </script>
 @endsection
