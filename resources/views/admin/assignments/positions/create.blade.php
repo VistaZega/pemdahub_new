@@ -180,6 +180,20 @@
                                     </span>
                                     @endif
                                 </div>
+                                
+                                @if(str_contains(strtolower($position->position_code ?? ''), 'pembimbing-pkl') || str_contains(strtolower($position->position_name), 'pembimbing pkl'))
+                                <div class="mt-3 pkl-hours-container" style="display: {{ in_array($position->id, old('positions', $currentPositions ?? [])) ? 'block' : 'none' }}">
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">
+                                        <i class="fas fa-clock mr-1"></i> Jam PKL (JP)
+                                    </label>
+                                    <input type="number" 
+                                           name="pkl_supervisor_hours[{{ $position->id }}]" 
+                                           class="w-full px-3 py-1.5 border border-purple-200 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm" 
+                                           value="{{ old('pkl_supervisor_hours.'.$position->id, 0) }}"
+                                           min="0" placeholder="Contoh: 12">
+                                    <p class="text-[10px] text-gray-500 mt-1">Isi jumlah konversi JP dari siswa PKL (misal 12 JP)</p>
+                                </div>
+                                @endif
                             </div>
                         </label>
                         @endforeach
@@ -366,9 +380,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    positionCheckboxes.forEach(cb => {
-        cb.addEventListener('change', updatePrimaryOptions);
-    });
+    document.querySelectorAll('.position-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updatePrimaryOptions();
+                
+                // Toggle pkl hours container if exists
+                const pklContainer = this.closest('label').querySelector('.pkl-hours-container');
+                if (pklContainer) {
+                    pklContainer.style.display = this.checked ? 'block' : 'none';
+                }
+            });
+        });
     
     // Initial update
     updatePrimaryOptions();

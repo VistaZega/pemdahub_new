@@ -368,6 +368,7 @@ class PositionAssignmentController extends Controller
             if ($assignments->isNotEmpty()) {
                 $currentAssignment = $assignments->first();
                 $currentPositions = $assignments->pluck('position_id')->toArray();
+                $currentPklHours = $assignments->pluck('pkl_supervisor_hours', 'position_id')->toArray();
             }
         }
         
@@ -425,6 +426,7 @@ class PositionAssignmentController extends Controller
             'academicYears',
             'currentYear',
             'currentPositions',
+            'currentPklHours',
             'currentAssignment',
             'classrooms',
             'currentClassroom',
@@ -651,6 +653,7 @@ class PositionAssignmentController extends Controller
             );
             $classroomId = ($isWaliKelas && $request->filled('classroom_id')) ? $validated['classroom_id'] : null;
             $isPrimary = ($positionId == $validated['primary_position_id']);
+            $pklHours = $request->input("pkl_supervisor_hours.{$positionId}", 0);
 
             $activeRecordId = null;
 
@@ -669,6 +672,7 @@ class PositionAssignmentController extends Controller
                     'sk_date' => $validated['sk_date'],
                     'is_primary' => $isPrimary,
                     'classroom_id' => $classroomId,
+                    'pkl_supervisor_hours' => $pklHours,
                     'updated_at' => now(),
                 ]);
                 $activeRecordId = $existingExactDate->id;
@@ -688,6 +692,7 @@ class PositionAssignmentController extends Controller
                         'sk_date' => $validated['sk_date'],
                         'is_primary' => $isPrimary,
                         'classroom_id' => $classroomId,
+                        'pkl_supervisor_hours' => $pklHours,
                         'updated_at' => now(),
                     ]);
                     $activeRecordId = $existingYearRecord->id;
@@ -708,6 +713,7 @@ class PositionAssignmentController extends Controller
                             'sk_date' => $validated['sk_date'],
                             'is_primary' => $isPrimary,
                             'classroom_id' => $classroomId,
+                            'pkl_supervisor_hours' => $pklHours,
                             'updated_at' => now(),
                         ]);
                         $activeRecordId = $existingActive->id;
@@ -722,6 +728,7 @@ class PositionAssignmentController extends Controller
                             'sk_date' => $validated['sk_date'],
                             'is_primary' => $isPrimary,
                             'classroom_id' => $classroomId,
+                            'pkl_supervisor_hours' => $pklHours,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);

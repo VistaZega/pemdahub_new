@@ -212,17 +212,24 @@ class ProgressInputController extends Controller
                     ->count('student_id');
             }
 
-            $totalSiswaAktif = Student::where('school_id', $school->id)->where('status', 'aktif')->count();
-            $siswaBerRombel = StudentClass::whereHas('student', function ($q) use ($school) {
+            $allActiveStudents = Student::where('school_id', $school->id)->where('status', 'aktif')->get();
+            $totalSiswaAktif = $allActiveStudents->count();
+            
+            $siswaBerRombelIds = StudentClass::whereHas('student', function ($q) use ($school) {
                     $q->where('school_id', $school->id)->where('status', 'aktif');
                 })
                 ->when($currentYear, function ($q) use ($currentYear) {
                     $q->where('academic_year_id', $currentYear->id);
                 })
                 ->distinct('student_id')
-                ->count('student_id');
+                ->pluck('student_id')
+                ->toArray();
 
-            $siswaTanpaRombel = max(0, $totalSiswaAktif - $siswaBerRombel);
+            $siswaBerRombel = count($siswaBerRombelIds);
+
+            $siswaTanpaRombelList = $allActiveStudents->whereNotIn('id', $siswaBerRombelIds);
+            $siswaTanpaRombel = $siswaTanpaRombelList->count();
+            $siswaTanpaRombelNames = $siswaTanpaRombelList->pluck('name')->toArray();
             $pctDistrib = $totalSiswaAktif > 0 ? round(($siswaBerRombel / $totalSiswaAktif) * 100, 1) : 0;
 
             if ($totalSiswaAktif == 0) {
@@ -242,6 +249,10 @@ class ProgressInputController extends Controller
                 "Siswa Baru Kelas {$gradeLabel}: {$siswaBaru} Siswa",
                 "Belum Ber-Rombel: {$siswaTanpaRombel} Siswa",
             ];
+
+            if ($siswaTanpaRombel > 0 && $siswaTanpaRombel < 25) {
+                $details[] = "Daftar Siswa Belum Ber-Rombel: " . implode(', ', $siswaTanpaRombelNames);
+            }
 
             $item2Schools[] = [
                 'school_name'  => $school->name,
@@ -292,6 +303,19 @@ class ProgressInputController extends Controller
             $pct = $totalSiswa > 0 ? round(($completeSiswa / $totalSiswa) * 100, 1) : 0;
             $incomplete = max(0, $totalSiswa - $completeSiswa);
 
+            $incompleteSiswaNames = [];
+            if ($incomplete > 0 && $incomplete < 25) {
+                foreach ($students as $s) {
+                    $hasId = !empty($s->nisn) && !empty($s->nis);
+                    $hasBirth = !empty($s->birth_place) && !empty($s->birth_date);
+                    $hasParent = !empty($s->parent_name) || !empty($s->guardian_name);
+                    $hasAddress = !empty($s->address);
+                    if (!($hasId && $hasBirth && $hasParent && $hasAddress)) {
+                        $incompleteSiswaNames[] = $s->name;
+                    }
+                }
+            }
+
             if ($totalSiswa == 0) {
                 $rekomendasi = "Belum ada siswa aktif terdaftar di unit ini. Segera verifikasi data siswa.";
                 $statusColor = 'red';
@@ -309,6 +333,10 @@ class ProgressInputController extends Controller
                 "Data Ortu/Wali: {$hasParentCount} Siswa",
                 "Alamat & Tgl Lahir: {$hasAddressCount} Siswa",
             ];
+            
+            if (!empty($incompleteSiswaNames)) {
+                $details[] = "Daftar Siswa Profil Belum Lengkap: " . implode(', ', $incompleteSiswaNames);
+            }
 
             $item3Schools[] = [
                 'school_name'  => $school->name,
@@ -341,6 +369,7 @@ class ProgressInputController extends Controller
             $taCount = 0;
             $guruMengajarCount = 0;
 
+            $guruMengajarIds = [];
             if ($currentYear) {
                 $taQuery = TeachingAssignment::where('academic_year_id', $currentYear->id)
                     ->whereHas('classroom', function ($q) use ($school) {
@@ -349,6 +378,7 @@ class ProgressInputController extends Controller
                 $totalJam = (int) $taQuery->sum('hours_per_week');
                 $taCount = $taQuery->count();
                 $guruMengajarCount = (clone $taQuery)->distinct('teacher_id')->count('teacher_id');
+                $guruMengajarIds = (clone $taQuery)->pluck('teacher_id')->toArray();
 
                 if ($taCount == 0) {
                     $taQuery = TeachingAssignment::where('academic_year_id', $currentYear->id)
@@ -358,15 +388,23 @@ class ProgressInputController extends Controller
                     $totalJam = (int) $taQuery->sum('hours_per_week');
                     $taCount = $taQuery->count();
                     $guruMengajarCount = (clone $taQuery)->distinct('teacher_id')->count('teacher_id');
+                    $guruMengajarIds = (clone $taQuery)->pluck('teacher_id')->toArray();
                 }
             }
 
-            $totalGuruUnit = Teacher::where('school_id', $school->id)->count();
-            if ($totalGuruUnit == 0) {
-                $totalGuruUnit = Employee::where('school_id', $school->id)->where('employee_type', 'guru')->count();
+            $teachersList = Teacher::where('school_id', $school->id)->get();
+            if ($teachersList->isEmpty()) {
+                $teachersList = Employee::where('school_id', $school->id)->where('employee_type', 'guru')->get();
             }
+            $totalGuruUnit = $teachersList->count();
+            
             $guruTanpaJam = max(0, $totalGuruUnit - $guruMengajarCount);
             $avgJam = $guruMengajarCount > 0 ? round($totalJam / $guruMengajarCount, 1) : 0;
+            
+            $guruTanpaJamNames = [];
+            if ($guruTanpaJam > 0 && $guruTanpaJam < 25) {
+                $guruTanpaJamNames = $teachersList->whereNotIn('id', $guruMengajarIds)->pluck('name')->toArray();
+            }
 
             if ($totalJam == 0) {
                 $rekomendasi = "Belum ada pembagian tugas mengajar guru (Teaching Assignment) untuk seluruh mata pelajaran di TP 2026/2027.";
@@ -387,6 +425,9 @@ class ProgressInputController extends Controller
             ];
             if ($guruTanpaJam > 0) {
                 $details[] = "Guru Tanpa Jam Mengajar: {$guruTanpaJam} Orang";
+            }
+            if (!empty($guruTanpaJamNames)) {
+                $details[] = "Daftar Guru Tanpa Jam: " . implode(', ', $guruTanpaJamNames);
             }
 
             $item4Schools[] = [
@@ -714,6 +755,19 @@ class ProgressInputController extends Controller
 
             $entryCount = max($paymentEntryCount, $julyBillsLunas);
             $pctEntry = $totalSiswaAktif > 0 ? round(($entryCount / $totalSiswaAktif) * 100, 1) : 0;
+            
+            $sisaSiswaEntry = max(0, $totalSiswaAktif - $entryCount);
+            $sisaSiswaNames = [];
+            if ($sisaSiswaEntry > 0 && $sisaSiswaEntry < 25) {
+                $julyPaymentStudentIds = (clone $julyPayments)->pluck('student_id')->toArray();
+                $julyBillLunasStudentIds = (clone $julyBills)->where('status', 'lunas')->pluck('student_id')->toArray();
+                $allEntryStudentIds = array_unique(array_merge($julyPaymentStudentIds, $julyBillLunasStudentIds));
+                
+                $sisaSiswaNames = Student::where('school_id', $school->id)
+                    ->where('status', 'aktif')
+                    ->whereNotIn('id', $allEntryStudentIds)
+                    ->pluck('name')->toArray();
+            }
 
             if ($totalSiswaAktif == 0) {
                 $rekomendasi = "Belum ada siswa aktif terdaftar untuk rekapitulasi SPP Juli 2026.";
@@ -732,6 +786,9 @@ class ProgressInputController extends Controller
                 "Total Nominal Entry SPP Juli: Rp " . number_format($paymentEntryTotal, 0, ',', '.'),
                 "Tagihan SPP Terbit Juli 2026: {$julyBillsCount} Tagihan ({$julyBillsLunas} Status Lunas)",
             ];
+            if (!empty($sisaSiswaNames)) {
+                $details[] = "Daftar Siswa Belum Entry SPP: " . implode(', ', $sisaSiswaNames);
+            }
 
             $item8Schools[] = [
                 'school_name'  => $school->name,
@@ -820,10 +877,18 @@ class ProgressInputController extends Controller
             $totalEmp = $employees->count();
             
             // Pegawai yang sudah diset jam kerja/shift
-            $hasShiftEmp = $employees->whereNotNull('work_shift_id')->count();
+            $empWithShift = $employees->whereNotNull('work_shift_id');
+            $hasShiftEmp = $empWithShift->count();
+            $empNoShiftNames = [];
+            
             if ($hasShiftEmp == 0) {
                 // Fallback: pegawai aktif jika master time slot presensi sekolah aktif
                 $hasShiftEmp = $totalEmp > 0 ? $totalEmp : 0;
+            } else {
+                $empNoShiftCount = $totalEmp - $hasShiftEmp;
+                if ($empNoShiftCount > 0 && $empNoShiftCount < 25) {
+                    $empNoShiftNames = $employees->whereNull('work_shift_id')->pluck('name')->toArray();
+                }
             }
 
             $pctShift = $totalEmp > 0 ? round(($hasShiftEmp / $totalEmp) * 100, 1) : 0;
@@ -844,6 +909,10 @@ class ProgressInputController extends Controller
                 "Total Guru & Staf Pegawai: {$totalEmp} Orang",
                 "Pegawai Ber-Jam Presensi Aktif: {$hasShiftEmp} Orang ({$pctShift}%)",
             ];
+            
+            if (!empty($empNoShiftNames)) {
+                $details[] = "Daftar Pegawai Belum Diatur Jam Kerja: " . implode(', ', $empNoShiftNames);
+            }
 
             $item10Schools[] = [
                 'school_name'  => $school->name,
@@ -879,6 +948,13 @@ class ProgressInputController extends Controller
             $rfidMappedCount = $employees->whereNotNull('rfid_uid')->where('rfid_uid', '!=', '')->count();
             $pctRfid = $totalEmp > 0 ? round(($rfidMappedCount / $totalEmp) * 100, 1) : 0;
             $unmappedCount = max(0, $totalEmp - $rfidMappedCount);
+            
+            $unmappedNames = [];
+            if (!$isQrCode && $unmappedCount > 0 && $unmappedCount < 25) {
+                $unmappedNames = $employees->filter(function($emp) {
+                    return empty($emp->rfid_uid);
+                })->pluck('name')->toArray();
+            }
 
             if ($isQrCode) {
                 // Untuk SMP Pembda 2: Hitung Total Guru, Pegawai & Siswa
@@ -924,6 +1000,9 @@ class ProgressInputController extends Controller
                     "ID {$techFullName} Mapped & Synced: {$rfidMappedCount} Pegawai ({$pctRfid}%)",
                     "Belum Ter-mapping {$techName}: {$unmappedCount} Pegawai",
                 ];
+                if (!empty($unmappedNames)) {
+                    $details[] = "Daftar Belum Ter-mapping {$techName}: " . implode(', ', $unmappedNames);
+                }
 
                 $item11Schools[] = [
                     'school_name'  => $school->name,
@@ -972,6 +1051,20 @@ class ProgressInputController extends Controller
                 $q->where('school_id', $school->id);
             })->distinct('employee_id')->count('employee_id');
 
+            $incompleteGuruNames = [];
+            $incompleteGuruCount = max(0, $totalGuru - $completeGuru);
+            if ($incompleteGuruCount > 0 && $incompleteGuruCount < 25) {
+                foreach ($teachers as $t) {
+                    $hasId = !empty($t->nik) || !empty($t->nuptk) || !empty($t->teacher_code) || !empty($t->employee_code);
+                    $hasBirth = !empty($t->birth_place) && !empty($t->birth_date);
+                    $hasEdu = !empty($t->education_level) || !empty($t->last_education);
+                    $hasPhone = !empty($t->phone) || !empty($t->phone_number);
+                    if (!($hasId && $hasBirth && $hasEdu && $hasPhone)) {
+                        $incompleteGuruNames[] = $t->name;
+                    }
+                }
+            }
+
             if ($totalGuru == 0) {
                 $rekomendasi = "Belum ada master guru/pegawai di unit ini. Segera tambahkan data guru.";
                 $statusColor = 'red';
@@ -987,6 +1080,10 @@ class ProgressInputController extends Controller
                 "Kelengkapan Profil Guru (NIK/NUPTK/Tgl Lahir/Pendidikan): {$completeGuru} dari {$totalGuru} Guru ({$pctGuru}%)",
                 "Pegawai Ter-SK Penugasan Jabatan: {$posCount} Orang",
             ];
+            
+            if (!empty($incompleteGuruNames)) {
+                $details[] = "Daftar Guru Profil Belum Lengkap: " . implode(', ', $incompleteGuruNames);
+            }
 
             $item12Schools[] = [
                 'school_name'  => $school->name,

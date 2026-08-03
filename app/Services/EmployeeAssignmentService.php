@@ -55,6 +55,13 @@ class EmployeeAssignmentService
     public const JAM_WAJIB_ELIGIBLE = ['yayasan', 'pns', 'GTY', 'PNS', 'gty'];
 
     /**
+     * Default tarif honor Pembimbing PKL per JP.
+     * Dapat di-override via settings table (key: pkl_honor_rate, group: salary_formula).
+     * Hanya berlaku untuk guru SMK yang ditugaskan sebagai Pembimbing PKL.
+     */
+    public const DEFAULT_PKL_HONOR_RATE = 43000;
+
+    /**
      * Get salary formula settings (from DB or defaults)
      */
     public function getFormulas(?int $schoolId = null): array
@@ -271,6 +278,27 @@ class EmployeeAssignmentService
             ];
         }
 
+        // 2b. Honor Pembimbing PKL (Khusus SMK)
+        // Dihitung dari pkl_supervisor_hours di setiap posisi aktif guru
+        // Formula: total_pkl_jp × pkl_honor_rate (default Rp 43.000/JP)
+        $pklHonorRate = (float) (Setting::where('group', 'salary_formula')
+            ->where('key', 'pkl_honor_rate')
+            ->value('value') ?? self::DEFAULT_PKL_HONOR_RATE);
+
+        $pklSupervisorHours = 0;
+        $honorPkl = 0;
+
+        foreach ($positions as $position) {
+            $pklHours = (int) ($position->pivot->pkl_supervisor_hours ?? 0);
+            if ($pklHours > 0) {
+                // Gunakan rate override per assignment jika ada, fallback ke setting global
+                $rateForThisPos = (float) ($position->pivot->pkl_honor_rate ?? 0);
+                $effectiveRate = ($rateForThisPos > 0) ? $rateForThisPos : $pklHonorRate;
+                $pklSupervisorHours += $pklHours;
+                $honorPkl += $pklHours * $effectiveRate;
+            }
+        }
+
         // 3. Honor Mengajar
         $teacherModel = $employee->teacher;
         $totalJamMengajar = 0;
@@ -333,6 +361,7 @@ class EmployeeAssignmentService
 
         // 6. Total
         $grossPay = $gajiPokok + $tunjanganJabatan + $honorMengajarYayasan
+            + round($honorPkl)
             + $tunjanganData['tunjangan_keluarga']
             + $tunjanganData['tunjangan_anak']
             + $tunjanganData['tunjangan_beras'];
@@ -356,6 +385,10 @@ class EmployeeAssignmentService
             'honor_mengajar' => $honorMengajarYayasan,
             'honor_mengajar_sekolah' => $honorMengajarSekolah,
             'is_honor_dibayar_sekolah' => $isYayasanUnit && $honorMengajarSekolah > 0,
+
+            'pkl_supervisor_hours' => $pklSupervisorHours,
+            'pkl_honor_rate' => $pklHonorRate,
+            'honor_pkl' => round($honorPkl),
 
             'tunjangan_keluarga' => $tunjanganData['tunjangan_keluarga'],
             'tunjangan_anak' => $tunjanganData['tunjangan_anak'],
@@ -400,8 +433,9 @@ class EmployeeAssignmentService
             $totalTeachingClasses = $teachingAssignments->count();
             $totalTeachingSubjects = $teachingAssignments->groupBy('subject_id')->count();
 
-            // Total allowance = jabatan + honor + tunjangan keluarga/anak/beras
+            // Total allowance = jabatan + honor + tunjangan keluarga/anak/beras + honor PKL
             $totalAllowance = $salary['tunjangan_jabatan'] + $salary['honor_mengajar']
+                + $salary['honor_pkl']
                 + $salary['tunjangan_keluarga'] + $salary['tunjangan_anak'] + $salary['tunjangan_beras'];
 
             // Store summary
@@ -418,6 +452,8 @@ class EmployeeAssignmentService
                     'total_teaching_classes' => $totalTeachingClasses,
                     'total_teaching_subjects' => $totalTeachingSubjects,
                     'total_teaching_allowance' => $salary['honor_mengajar'],
+                    'honor_pkl' => $salary['honor_pkl'],
+                    'pkl_supervisor_hours' => $salary['pkl_supervisor_hours'],
                     'family_allowance' => $salary['tunjangan_keluarga'],
                     'child_allowance' => $salary['tunjangan_anak'],
                     'rice_allowance' => $salary['tunjangan_beras'],
@@ -507,6 +543,12 @@ class EmployeeAssignmentService
             $components[] = [
                 'label' => "Honor Mengajar ({$salary['jam_honor']} jam × Rp " . number_format($salary['honor_per_jam'], 0, ',', '.') . ")",
                 'amount' => $salary['honor_mengajar'],
+            ];
+        }
+        if (isset($salary['honor_pkl']) && $salary['honor_pkl'] > 0) {
+            $components[] = [
+                'label' => "Honor Pembimbing PKL ({$salary['pkl_supervisor_hours']} JP × Rp " . number_format($salary['pkl_honor_rate'], 0, ',', '.') . ")",
+                'amount' => $salary['honor_pkl'],
             ];
         }
 

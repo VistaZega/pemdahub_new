@@ -82,6 +82,8 @@ class Employee extends Model
                 'is_primary',
                 'workload_hours',
                 'position_allowance',
+                'pkl_supervisor_hours',
+                'pkl_honor_rate',
             ])
             ->withTimestamps();
     }

@@ -242,6 +242,13 @@
                                     {{ $honorData['jam_mengajar'] }} | {{ $honorData['jam_wajib'] }} | {{ $honorData['jam_honor'] }} | {{ $honorData['jam_honor'] }} x Rp&nbsp;{{ number_format($honorData['honor_per_jam'], 0, ',', '.') }}
                                 </p>
                                 <p class="text-[9px] text-gray-400 group-hover:text-gray-600 font-medium transition-colors">Jam Tugas | Wajib | Lebih | Perhitungan</p>
+                                
+                                @if(isset($summary->honor_pkl) && $summary->honor_pkl > 0)
+                                <div class="mt-2 pt-2 border-t border-gray-100">
+                                    <span class="text-xs font-bold text-gray-800">Rp&nbsp;{{ number_format($summary->honor_pkl, 0, ',', '.') }}</span>
+                                    <p class="text-[10px] text-purple-600 font-semibold mt-0.5">PKL: {{ $summary->pkl_supervisor_hours }} JP x Rp 43.000</p>
+                                </div>
+                                @endif
                             </div>
                         </td>
                         @endif

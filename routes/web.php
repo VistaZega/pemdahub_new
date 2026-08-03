@@ -993,6 +993,11 @@ Route::get('/run-migrations', function () {
         echo \Illuminate\Support\Facades\Artisan::output();
         echo "\nSPP Tariff Seeder Exit Code: " . $sppSeederExitCode . "\n\n";
 
+        echo "<h1>=== RUNNING PKL SUPERVISOR SEEDER ===</h1>\n";
+        $pklSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'PklSupervisorPositionSeeder', '--force' => true]);
+        echo \Illuminate\Support\Facades\Artisan::output();
+        echo "\nPKL Supervisor Seeder Exit Code: " . $pklSeederExitCode . "\n\n";
+
         echo "<h1>=== SYNCING EMPLOYEE ACCOUNTS ===</h1>\n";
         $syncExitCode = \Illuminate\Support\Facades\Artisan::call('employees:sync-accounts');
         echo \Illuminate\Support\Facades\Artisan::output();

@@ -5,11 +5,9 @@ if (empty($files)) {
     echo "No log files found in " . $dir;
 } else {
     $logFile = end($files);
-    echo "Reading from " . basename($logFile) . "\n";
     $lines = file($logFile);
-    $lastLines = array_slice($lines, -500);
-    foreach ($lastLines as $line) {
-        if (strpos($line, "INFO:") !== false || strpos($line, "ERROR:") !== false) {
+    foreach ($lines as $line) {
+        if (strpos($line, "17:34:") !== false || strpos($line, "17:33:") !== false) {
             echo $line;
         }
     }

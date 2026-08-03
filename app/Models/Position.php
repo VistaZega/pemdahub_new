@@ -74,7 +74,9 @@ class Position extends Model
                 'sk_number',
                 'sk_date',
                 'notes',
-                'is_primary'
+                'is_primary',
+                'pkl_supervisor_hours',
+                'pkl_honor_rate',
             ])
             ->withTimestamps();
     }

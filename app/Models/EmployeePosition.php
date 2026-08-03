@@ -24,6 +24,8 @@ class EmployeePosition extends Model
         'is_primary',
         'workload_hours',
         'position_allowance',
+        'pkl_supervisor_hours',
+        'pkl_honor_rate',
     ];
 
     protected $casts = [
@@ -33,6 +35,8 @@ class EmployeePosition extends Model
         'is_primary' => 'boolean',
         'workload_hours' => 'integer',
         'position_allowance' => 'decimal:2',
+        'pkl_supervisor_hours' => 'integer',
+        'pkl_honor_rate' => 'decimal:2',
     ];
 
     // Relationships
