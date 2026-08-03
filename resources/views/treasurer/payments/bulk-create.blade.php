@@ -46,7 +46,7 @@
         <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
             <h2 class="text-xl font-bold text-gray-900 mb-4">📋 Filter Tagihan</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Tahun Ajaran</label>
                     <select name="academic_year_id" id="academic_year_id" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
@@ -74,6 +74,25 @@
                         @foreach($paymentTypes as $type)
                         <option value="{{ $type->id }}">{{ $type->type_name }}</option>
                         @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-calendar-alt mr-1"></i> Bulan (Untuk SPP)</label>
+                    <select name="month" id="month" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                        <option value="">-- Semua Bulan --</option>
+                        <option value="7">Juli</option>
+                        <option value="8">Agustus</option>
+                        <option value="9">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
+                        <option value="1">Januari</option>
+                        <option value="2">Februari</option>
+                        <option value="3">Maret</option>
+                        <option value="4">April</option>
+                        <option value="5">Mei</option>
+                        <option value="6">Juni</option>
                     </select>
                 </div>
             </div>
@@ -147,6 +166,7 @@ function loadBills() {
     const academicYearId = document.getElementById('academic_year_id').value;
     const classroomId = document.getElementById('classroom_id').value;
     const paymentTypeId = document.getElementById('payment_type_id').value;
+    const month = document.getElementById('month').value;
 
     if (!academicYearId || !classroomId || !paymentTypeId) {
         alert('Harap pilih semua filter!');
@@ -157,7 +177,7 @@ function loadBills() {
     billsSection.style.display = 'block';
     document.getElementById('billsTableContainer').innerHTML = '<p class="text-center py-4">Memuat...</p>';
 
-    fetch(`{{ route('treasurer.payments.fetch-bills') }}?academic_year_id=${academicYearId}&classroom_id=${classroomId}&payment_type_id=${paymentTypeId}`)
+    fetch(`{{ route('treasurer.payments.fetch-bills') }}?academic_year_id=${academicYearId}&classroom_id=${classroomId}&payment_type_id=${paymentTypeId}&month=${month}`)
         .then(response => {
             if (!response.ok) throw new Error('Network error');
             return response.json();
