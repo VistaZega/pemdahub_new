@@ -35,6 +35,9 @@ Route::prefix('bendahara')->name('treasurer.')->middleware('auth', 'treasurer')-
     Route::get('reports', [App\Http\Controllers\Treasurer\ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/export', [App\Http\Controllers\Treasurer\ReportController::class, 'export'])->name('reports.export');
     
+    // Yayasan Consolidation Report
+    Route::get('konsolidasi-yayasan', [App\Http\Controllers\Treasurer\ConsolidationReportController::class, 'index'])->name('consolidation.index');
+    
     // Kepegawaian & Penugasan Jabatan (Read-Only)
     Route::get('assignments/positions', [App\Http\Controllers\Treasurer\PositionAssignmentController::class, 'index'])->name('assignments.positions.index');
     Route::get('salary-report', [App\Http\Controllers\Treasurer\WorkloadSummaryController::class, 'salaryReport'])->name('salary-report');
