@@ -96,12 +96,12 @@ try {
             // Create bills for 12 months (July to June)
             for ($m = 1; $m <= 12; $m++) {
                 $monthStr = str_pad($m, 2, '0', STR_PAD_LEFT);
-                $yearNameParts = explode('/', $academicYear->name);
+                $yearNameParts = explode('/', str_replace('TP. ', '', $academicYear->name));
                 if ($m >= 7) {
-                    $year = trim($yearNameParts[0]); 
+                    $year = (int) trim($yearNameParts[0]); 
                     $sem = $semester1;
                 } else {
-                    $year = trim($yearNameParts[1] ?? ($yearNameParts[0]+1));
+                    $year = (int) trim($yearNameParts[1] ?? ($yearNameParts[0]+1));
                     $sem = $semester2;
                 }
                 
