@@ -90,7 +90,7 @@ try {
         
         $pt = $paymentTypes["{$type}_{$level}"];
         
-        $students = Student::where('classroom_id', $classroom->id)->where('status', 'aktif')->get();
+        $students = $classroom->students()->where('students.status', 'aktif')->get();
         
         foreach ($students as $student) {
             // Create bills for 12 months (July to June)
