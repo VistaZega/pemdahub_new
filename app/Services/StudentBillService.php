@@ -35,7 +35,16 @@ class StudentBillService
             $baseYear = (int)$matches[0];
         } else {
             $yearParts = explode('/', $academicYear->year);
-            $baseYear = (int)preg_replace('/[^0-9]/', '', $yearParts[0]);
+            $baseYearStr = preg_replace('/[^0-9]/', '', $yearParts[0]);
+            $baseYear = (int)$baseYearStr;
+            
+            // If it parsed a 2-digit year like "26", convert it to "2026"
+            if ($baseYear > 0 && $baseYear < 100) {
+                $baseYear += 2000;
+            } elseif ($baseYear == 0) {
+                // Default fallback if we really can't find a year
+                $baseYear = (int)date('Y');
+            }
         }
 
         $paymentType = PaymentType::find($validated['payment_type_id']);
@@ -114,7 +123,16 @@ class StudentBillService
             $baseYear = (int)$matches[0];
         } else {
             $yearParts = explode('/', $academicYear->year);
-            $baseYear = (int)preg_replace('/[^0-9]/', '', $yearParts[0]);
+            $baseYearStr = preg_replace('/[^0-9]/', '', $yearParts[0]);
+            $baseYear = (int)$baseYearStr;
+            
+            // If it parsed a 2-digit year like "26", convert it to "2026"
+            if ($baseYear > 0 && $baseYear < 100) {
+                $baseYear += 2000;
+            } elseif ($baseYear == 0) {
+                // Default fallback if we really can't find a year
+                $baseYear = (int)date('Y');
+            }
         }
         
         $billYear = $singleMonth <= 6 ? $baseYear + 1 : $baseYear;
