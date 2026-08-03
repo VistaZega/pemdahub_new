@@ -382,6 +382,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     // LMS Monitoring (Admin)
     Route::prefix('lms')->name('lms.')->group(function () {
         Route::get('/monitoring', [App\Http\Controllers\Admin\LmsMonitoringController::class, 'index'])->name('monitoring');
+        Route::get('/monitoring/teacher/{teacherId}', [App\Http\Controllers\Admin\LmsMonitoringController::class, 'teacherDetail'])->name('monitoring.teacher-detail');
     });
 
     // Pembda Knowledge & Media Monitoring (Admin/Kepsek/Yayasan)
