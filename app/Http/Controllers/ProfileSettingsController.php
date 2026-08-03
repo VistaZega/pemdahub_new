@@ -97,6 +97,10 @@ class ProfileSettingsController extends Controller
 
         $user = auth()->user();
 
+        \Illuminate\Support\Facades\Log::info("updateBiodata called. Request data:", $request->except(['photo', 'cropped_photo']));
+        \Illuminate\Support\Facades\Log::info("Has cropped_photo? " . ($request->has('cropped_photo') ? 'Yes' : 'No'));
+        \Illuminate\Support\Facades\Log::info("Has photo file? " . ($request->hasFile('photo') ? 'Yes' : 'No'));
+
         // Validasi input umum
         $validated = $request->validate([
             'address' => 'nullable|string|max:500',
