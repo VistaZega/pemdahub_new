@@ -4,6 +4,18 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\PublicDisplayController;
 use App\Http\Controllers\SimLabController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/dev-unassigned', function() {
+    $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+    $students = \App\Models\Student::active()->whereDoesntHave('studentClasses', function($q) use ($activeYear) {
+        $q->where('academic_year_id', $activeYear->id);
+    })->with('school')->get();
+    $results = [];
+    foreach ($students as $s) {
+        $results[] = ['NIS' => $s->nis, 'Nama' => $s->full_name, 'Sekolah' => $s->school ? $s->school->name : '-'];
+    }
+    return response()->json($results);
+});
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 
