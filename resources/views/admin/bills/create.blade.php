@@ -49,12 +49,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-credit-card mr-1"></i> Jenis Tagihan <span class="text-red-500">*</span></label>
-                        <select name="payment_type_id" id="payment_type_id" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500" onchange="updateAmounts()">
+                        <select name="payment_type_id" id="payment_type_id" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500" onchange="handlePaymentTypeChange()">
                             <option value="">-- Pilih Jenis Tagihan --</option>
                             @foreach($paymentTypes as $type)
                             <option value="{{ $type->id }}" 
                                 data-amount="{{ $type->amount }}"
                                 data-yayasan-share="{{ $type->yayasan_share_amount }}"
+                                data-is-recurring="{{ $type->is_recurring ? '1' : '0' }}"
                                 {{ old('payment_type_id') == $type->id ? 'selected' : '' }}>
                                 {{ $type->type_name }}
                             </option>
@@ -256,6 +257,30 @@ function toggleBillingType() {
     
     // Auto-fill default amount based on the selection
     updateAmounts();
+}
+
+function handlePaymentTypeChange() {
+    const paymentTypeSelect = document.getElementById('payment_type_id');
+    if (!paymentTypeSelect) return;
+    
+    const selectedOption = paymentTypeSelect.options[paymentTypeSelect.selectedIndex];
+    if (!selectedOption || !selectedOption.value) {
+        updateAmounts();
+        return;
+    }
+    
+    const isRecurringOption = selectedOption.getAttribute('data-is-recurring') === '1';
+    
+    const singleRadio = document.querySelector('input[name="billing_type"][value="single"]');
+    const monthlyRadio = document.querySelector('input[name="billing_type"][value="monthly"]');
+    
+    if (isRecurringOption && monthlyRadio) {
+        monthlyRadio.checked = true;
+    } else if (!isRecurringOption && singleRadio) {
+        singleRadio.checked = true;
+    }
+    
+    toggleBillingType();
 }
 
 function updateAmounts() {
