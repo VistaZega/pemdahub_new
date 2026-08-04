@@ -19,10 +19,17 @@ class TeacherCompetencyController extends Controller
         $teacher->load(['competentSubjects']);
         
         // Get all subjects for this school (teacher's school)
-        $allSubjects = Subject::where('school_id', $teacher->school_id)
-            ->where('is_active', 1)
-            ->orderBy('subject_name')
-            ->get();
+        if ($teacher->school_id == 4) {
+            $allSubjects = Subject::where('is_active', 1)
+                ->orderBy('school_id')
+                ->orderBy('subject_name')
+                ->get();
+        } else {
+            $allSubjects = Subject::where('school_id', $teacher->school_id)
+                ->where('is_active', 1)
+                ->orderBy('subject_name')
+                ->get();
+        }
         
         // Get assigned subject IDs
         $assignedSubjectIds = $teacher->competentSubjects->pluck('id')->toArray();
