@@ -75,6 +75,48 @@ class PklAlumniAdminController extends Controller
         return view('admin.pkl_alumni.placements.index', compact('placements', 'schools', 'academicYears', 'isSA', 'activeYear'));
     }
 
+    public function placementsMap(Request $request)
+    {
+        $isSA = $this->isSuperAdmin();
+        $schoolId = $this->getSchoolId();
+
+        $query = PklPlacement::with(['student', 'logs' => function($q) {
+            $q->whereNotNull('latitude')
+              ->whereNotNull('longitude')
+              ->latest('log_date');
+        }]);
+
+        if (!$isSA) {
+            $query->whereHas('student', function ($q) use ($schoolId) {
+                $q->where('school_id', $schoolId);
+            });
+        }
+
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        if ($activeYear) {
+            $query->where('academic_year_id', $activeYear->id);
+        }
+
+        $placements = $query->get();
+
+        $mapData = [];
+        foreach ($placements as $p) {
+            if ($p->logs->isNotEmpty()) {
+                $latestLog = $p->logs->first();
+                $mapData[] = [
+                    'student_name' => $p->student->full_name,
+                    'company_name' => $p->company_name,
+                    'lat' => $latestLog->latitude,
+                    'lng' => $latestLog->longitude,
+                    'photo' => $p->student->photo_url,
+                    'log_date' => $latestLog->log_date->format('d M Y'),
+                ];
+            }
+        }
+
+        return view('admin.pkl_alumni.placements.map', compact('mapData'));
+    }
+
     public function placementsCreate()
     {
         $isSA = $this->isSuperAdmin();

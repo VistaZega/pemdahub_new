@@ -412,6 +412,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::resource('dudis', App\Http\Controllers\Admin\DudiController::class);
 
         // Placements CRUD
+        Route::get('placements/map', [App\Http\Controllers\Admin\PklAlumniAdminController::class, 'placementsMap'])->name('placements.map');
         Route::get('placements', [App\Http\Controllers\Admin\PklAlumniAdminController::class, 'placementsIndex'])->name('placements.index');
         Route::get('placements/create', [App\Http\Controllers\Admin\PklAlumniAdminController::class, 'placementsCreate'])->name('placements.create');
         Route::post('placements', [App\Http\Controllers\Admin\PklAlumniAdminController::class, 'placementsStore'])->name('placements.store');

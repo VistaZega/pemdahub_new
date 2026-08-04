@@ -13,7 +13,10 @@
                 Mengatur dan memantau siswa magang di instansi/perusahaan mitra
             </p>
         </div>
-        <div>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('admin.pkl-alumni.placements.map') }}" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">
+                <i class="fas fa-map-marked-alt"></i> Peta Sebaran PKL
+            </a>
             <a href="{{ route('admin.pkl-alumni.placements.create') }}" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">
                 <i class="fas fa-plus"></i> Tambah Penempatan
             </a>
