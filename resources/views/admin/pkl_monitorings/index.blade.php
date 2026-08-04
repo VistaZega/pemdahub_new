@@ -47,6 +47,7 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-white border-b border-slate-100">
+                        <th class="p-5 font-black text-xs text-slate-400 uppercase tracking-widest w-16 text-center">No</th>
                         <th class="p-5 font-black text-xs text-slate-400 uppercase tracking-widest">Identitas Guru</th>
                         <th class="p-5 font-black text-xs text-slate-400 uppercase tracking-widest">Penempatan DUDI</th>
                         <th class="p-5 font-black text-xs text-slate-400 uppercase tracking-widest text-center">Aktivitas Laporan</th>
@@ -54,12 +55,15 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
-                    @forelse($teachers as $t)
+                    @forelse($teachers as $index => $t)
                         <tr class="hover:bg-slate-50/80 transition-all duration-300 group">
+                            <td class="p-5 text-center font-bold text-slate-500">
+                                {{ $teachers->firstItem() + $index }}
+                            </td>
                             <td class="p-5">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center font-bold text-xl shadow-lg shadow-indigo-200 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300 shrink-0">
-                                        {{ substr($t->full_name, 0, 1) }}
+                                    <div class="w-14 h-14 rounded-2xl overflow-hidden shadow-lg shadow-indigo-200 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300 shrink-0 border-2 border-indigo-100">
+                                        <img src="{{ $t->photo_url }}" alt="{{ $t->full_name }}" class="w-full h-full object-cover">
                                     </div>
                                     <div>
                                         <p class="font-extrabold text-slate-800 text-base group-hover:text-indigo-600 transition-colors">{{ $t->full_name }}</p>
@@ -124,7 +128,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="p-16 text-center">
+                            <td colspan="5" class="p-16 text-center">
                                 <div class="w-24 h-24 mx-auto bg-slate-50 rounded-full flex items-center justify-center border-2 border-dashed border-slate-200 mb-4 shadow-inner">
                                     <i class="fas fa-user-slash text-3xl text-slate-300"></i>
                                 </div>

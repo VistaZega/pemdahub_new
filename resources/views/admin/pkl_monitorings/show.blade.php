@@ -11,8 +11,8 @@
         <div class="absolute -right-20 -top-20 w-64 h-64 bg-indigo-50 rounded-full blur-3xl opacity-50 group-hover:bg-purple-50 transition-colors duration-700"></div>
         
         <div class="relative z-10 flex items-center gap-6 pl-4">
-            <div class="w-20 h-20 rounded-[1.5rem] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white flex items-center justify-center font-black text-4xl shadow-xl shadow-indigo-200 transform group-hover:scale-105 group-hover:rotate-3 transition-all duration-300">
-                {{ substr($teacher->full_name, 0, 1) }}
+            <div class="w-20 h-20 rounded-[1.5rem] overflow-hidden shadow-xl shadow-indigo-200 transform group-hover:scale-105 group-hover:rotate-3 transition-all duration-300 shrink-0 border-2 border-white">
+                <img src="{{ $teacher->photo_url }}" alt="{{ $teacher->full_name }}" class="w-full h-full object-cover">
             </div>
             <div>
                 <h2 class="text-3xl font-black text-slate-800 tracking-tight">{{ $teacher->full_name }}</h2>
@@ -35,10 +35,10 @@
         </a>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+    <div class="flex flex-col lg:flex-row gap-8">
         
         <!-- Kolom Kiri: Daftar Lokasi DUDI -->
-        <div class="xl:col-span-1 space-y-6">
+        <div class="w-full lg:w-1/3 space-y-6 shrink-0">
             <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden sticky top-6">
                 <div class="p-6 border-b border-slate-100/80 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
                     <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">
@@ -110,7 +110,7 @@
         </div>
         
         <!-- Kolom Kanan: Riwayat Laporan -->
-        <div class="xl:col-span-2">
+        <div class="w-full lg:w-2/3 flex-1">
             <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
                 <div class="p-6 border-b border-slate-100/80 bg-gradient-to-r from-slate-50 to-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-10">
                     <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">
