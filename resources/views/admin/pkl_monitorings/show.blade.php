@@ -50,13 +50,25 @@
                 
                 <div class="divide-y divide-slate-100/80 p-3">
                     @forelse($placements as $group)
-                        @php $place = $group->first(); @endphp
-                        <div class="p-5 hover:bg-slate-50/80 rounded-2xl transition-all duration-300 m-1 border border-transparent hover:border-slate-100 hover:shadow-md">
+                        @php 
+                            $place = $group->first(); 
+                            $dudiName = $place->dudi->name ?? 'Unknown DUDI';
+                            $colors = [
+                                ['icon' => 'text-indigo-500', 'borderHover' => 'hover:border-indigo-200', 'bgHover' => 'hover:bg-indigo-50/30'],
+                                ['icon' => 'text-emerald-500', 'borderHover' => 'hover:border-emerald-200', 'bgHover' => 'hover:bg-emerald-50/30'],
+                                ['icon' => 'text-rose-500', 'borderHover' => 'hover:border-rose-200', 'bgHover' => 'hover:bg-rose-50/30'],
+                                ['icon' => 'text-amber-500', 'borderHover' => 'hover:border-amber-200', 'bgHover' => 'hover:bg-amber-50/30'],
+                                ['icon' => 'text-sky-500', 'borderHover' => 'hover:border-sky-200', 'bgHover' => 'hover:bg-sky-50/30'],
+                                ['icon' => 'text-fuchsia-500', 'borderHover' => 'hover:border-fuchsia-200', 'bgHover' => 'hover:bg-fuchsia-50/30'],
+                            ];
+                            $theme = $colors[abs(crc32($dudiName)) % count($colors)];
+                        @endphp
+                        <div class="p-5 {{ $theme['bgHover'] }} rounded-2xl transition-all duration-300 m-1 border border-transparent {{ $theme['borderHover'] }} hover:shadow-md">
                             <div class="flex justify-between items-start gap-3">
                                 <div class="flex-1">
                                     <h4 class="font-extrabold text-slate-800 text-base flex items-start gap-2 leading-tight">
-                                        <i class="fas fa-building text-violet-500 mt-1 shrink-0"></i> 
-                                        <span>{{ $place->dudi->name ?? 'Unknown DUDI' }}</span>
+                                        <i class="fas fa-building {{ $theme['icon'] }} mt-1 shrink-0"></i> 
+                                        <span>{{ $dudiName }}</span>
                                     </h4>
                                     <div class="mt-3 flex flex-wrap gap-2 text-xs font-bold">
                                         <span class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-xl flex items-center gap-1.5 shadow-sm"><i class="fas fa-clock text-slate-400"></i> Shift: {{ $place->shift ?: '-' }}</span>
@@ -136,9 +148,21 @@
                                         <span class="text-xs font-bold text-slate-400 px-2">{{ $mon->monitoring_date->format('l') }}</span>
                                     </div>
                                     
-                                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-xl text-xs font-bold mb-5 shadow-sm">
-                                        <i class="fas fa-building text-indigo-400"></i> 
-                                        {{ $mon->dudi->name ?? 'Unknown DUDI' }}
+                                    @php
+                                        $dudiName = $mon->dudi->name ?? 'Unknown DUDI';
+                                        $colors = [
+                                            ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-700', 'border' => 'border-indigo-100', 'icon' => 'text-indigo-400'],
+                                            ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'border' => 'border-emerald-100', 'icon' => 'text-emerald-400'],
+                                            ['bg' => 'bg-rose-50', 'text' => 'text-rose-700', 'border' => 'border-rose-100', 'icon' => 'text-rose-400'],
+                                            ['bg' => 'bg-amber-50', 'text' => 'text-amber-700', 'border' => 'border-amber-100', 'icon' => 'text-amber-400'],
+                                            ['bg' => 'bg-sky-50', 'text' => 'text-sky-700', 'border' => 'border-sky-100', 'icon' => 'text-sky-400'],
+                                            ['bg' => 'bg-fuchsia-50', 'text' => 'text-fuchsia-700', 'border' => 'border-fuchsia-100', 'icon' => 'text-fuchsia-400'],
+                                        ];
+                                        $theme = $colors[abs(crc32($dudiName)) % count($colors)];
+                                    @endphp
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 {{ $theme['bg'] }} border {{ $theme['border'] }} {{ $theme['text'] }} rounded-xl text-xs font-bold mb-5 shadow-sm">
+                                        <i class="fas fa-building {{ $theme['icon'] }}"></i> 
+                                        {{ $dudiName }}
                                         @if($mon->shift) <span class="opacity-40 mx-1">|</span> Shift: {{ $mon->shift }} @endif
                                     </div>
                                     

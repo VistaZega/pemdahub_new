@@ -87,9 +87,18 @@
                                         @foreach($uniquePlacements as $placement)
                                             @php
                                                 $dudiName = $placement->dudi->name ?? $placement->company_name ?? 'DUDI Belum Ditentukan';
+                                                $colors = [
+                                                    ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-500', 'border' => 'hover:border-indigo-300', 'hoverBg' => 'group-hover/badge:bg-indigo-500'],
+                                                    ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-500', 'border' => 'hover:border-emerald-300', 'hoverBg' => 'group-hover/badge:bg-emerald-500'],
+                                                    ['bg' => 'bg-rose-50', 'text' => 'text-rose-500', 'border' => 'hover:border-rose-300', 'hoverBg' => 'group-hover/badge:bg-rose-500'],
+                                                    ['bg' => 'bg-amber-50', 'text' => 'text-amber-600', 'border' => 'hover:border-amber-300', 'hoverBg' => 'group-hover/badge:bg-amber-500'],
+                                                    ['bg' => 'bg-sky-50', 'text' => 'text-sky-500', 'border' => 'hover:border-sky-300', 'hoverBg' => 'group-hover/badge:bg-sky-500'],
+                                                    ['bg' => 'bg-fuchsia-50', 'text' => 'text-fuchsia-500', 'border' => 'hover:border-fuchsia-300', 'hoverBg' => 'group-hover/badge:bg-fuchsia-500'],
+                                                ];
+                                                $theme = $colors[abs(crc32($dudiName)) % count($colors)];
                                             @endphp
-                                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-indigo-100 transition-all group/badge">
-                                                <div class="w-5 h-5 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500 shrink-0 group-hover/badge:bg-indigo-500 group-hover/badge:text-white transition-colors">
+                                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/80 border border-slate-200 shadow-sm {{ $theme['border'] }} hover:shadow-md transition-all group/badge">
+                                                <div class="w-5 h-5 rounded-full {{ $theme['bg'] }} flex items-center justify-center {{ $theme['text'] }} shrink-0 {{ $theme['hoverBg'] }} group-hover/badge:text-white transition-colors">
                                                     <i class="fas fa-building text-[10px]"></i>
                                                 </div>
                                                 <span class="text-xs font-bold text-slate-700 truncate max-w-[150px]">{{ $dudiName }}</span>
