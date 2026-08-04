@@ -17,6 +17,7 @@ use App\Models\School;
 use App\Models\AcademicYear;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,8 @@ use Illuminate\Support\Str;
 
 class EmployeeController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index(Request $request)
     {
         $user = auth()->user();
