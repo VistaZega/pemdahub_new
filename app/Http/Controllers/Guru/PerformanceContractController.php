@@ -35,6 +35,7 @@ class PerformanceContractController extends Controller
         }
 
         // Ambil daftar jabatan struktural yang bisa dipilih untuk Form 4
+        $user = auth()->user();
         $targetSchoolId = $user->school_id;
         if ($user->username === 'yulzega' || (isset($user->teacher->employee) && str_contains($user->teacher->employee->full_name, 'Yulianus Zega'))) {
             $targetSchoolId = 3; // Pengecualian agar PK Yulianus Zega masuk ke Kepala SMK
