@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -289,9 +289,19 @@
                         <i class="fas fa-edit text-brand-500"></i> Formulir Penilaian Akhir Magang (PKL)
                     </h3>
 
-                    <p class="text-xs text-gray-500 mb-6 leading-relaxed">
+                    <p class="text-xs text-gray-500 mb-4 leading-relaxed">
                         Harap berikan nilai evaluasi untuk siswa magang bersangkutan selama melakukan kegiatan praktik kerja di instansi Anda. Rentang nilai: <strong>0 - 100</strong>.
                     </p>
+
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                        <div class="flex items-start gap-3 text-amber-800">
+                            <i class="fas fa-exclamation-triangle mt-1 text-amber-600"></i>
+                            <div>
+                                <p class="text-sm font-bold mb-1">Peringatan Sebelum Menilai</p>
+                                <p class="text-xs leading-relaxed">Masa magang siswa ini dijadwalkan selesai pada <strong>{{ \Carbon\Carbon::parse($placement->end_date)->translatedFormat('d F Y') }}</strong>. Pastikan seluruh laporan kegiatan (logbook) telah diperiksa. <br><strong>PENTING:</strong> Setelah nilai akhir disimpan, status PKL siswa akan otomatis terkunci menjadi <strong>Selesai</strong> dan siswa tidak dapat lagi mengisi logbook harian.</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <form action="{{ route('mentor.pkl.grade.store', $token) }}" method="POST" class="space-y-6">
                         @csrf
@@ -351,7 +361,14 @@
                             <textarea name="notes" rows="4" placeholder="Berikan komentar membangun mengenai sikap, pencapaian terbaik siswa, atau prospek kerja siswa di industri Anda..." class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white transition"></textarea>
                         </div>
 
-                        <div class="flex justify-end">
+                        <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-start gap-3 mt-4">
+                            <input type="checkbox" id="confirm_finish" required class="mt-1 w-4 h-4 text-brand-600 bg-white border-gray-300 rounded focus:ring-brand-500 cursor-pointer">
+                            <label for="confirm_finish" class="text-xs text-gray-700 cursor-pointer">
+                                Saya telah memeriksa semua logbook harian siswa dan <strong>secara sadar memberikan nilai akhir</strong>. Saya mengerti bahwa tindakan ini akan <strong>menutup akses logbook siswa</strong> (Selesai PKL).
+                            </label>
+                        </div>
+
+                        <div class="flex justify-end mt-6">
                             <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-3 rounded-2xl shadow-lg transition text-sm flex items-center gap-2">
                                 <i class="fas fa-check-double"></i> Simpan Penilaian Akhir
                             </button>
