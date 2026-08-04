@@ -126,7 +126,7 @@ class MikrokontrolerLmsSeeder extends Seeder
     {
         // Fix image paths in visual section to point to LMS public directory
         $visual = $data['visual'] ?? '';
-        $visual = preg_replace('/!\[(.*?)\]\(\/(.*?)\)/', '![$1](/lms/materials/$2)', $visual);
+        $visual = preg_replace('/!\[(.*?)\]\(\/(.*?)\)/', '![$1](/lms/$2)', $visual);
         
         $fullMarkdown = "";
         if (isset($data['theory'])) $fullMarkdown .= $data['theory'] . "\n\n";
