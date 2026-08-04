@@ -39,8 +39,8 @@
         
         <!-- Kolom Kiri: Daftar Lokasi DUDI -->
         <div class="lg:col-span-1 space-y-6">
-            <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden sticky top-6">
-                <div class="p-6 border-b border-slate-100/80 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
+            <div class="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl shadow-violet-200/40 border border-violet-100 overflow-hidden sticky top-6 ring-1 ring-white/50">
+                <div class="p-6 border-b border-violet-100/80 bg-gradient-to-r from-violet-50/50 to-white flex items-center justify-between">
                     <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">
                         <div class="w-12 h-12 rounded-[1rem] bg-violet-50 text-violet-600 flex items-center justify-center border border-violet-100 shadow-sm"><i class="fas fa-map-marked-alt text-xl"></i></div>
                         Lokasi Bimbingan
@@ -111,8 +111,8 @@
         
         <!-- Kolom Kanan: Riwayat Laporan -->
         <div class="lg:col-span-2">
-            <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
-                <div class="p-6 border-b border-slate-100/80 bg-gradient-to-r from-slate-50 to-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-10">
+            <div class="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl shadow-emerald-200/40 border border-emerald-100 overflow-hidden ring-1 ring-white/50">
+                <div class="p-6 border-b border-emerald-100/80 bg-gradient-to-r from-emerald-50/50 to-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-10">
                     <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">
                         <div class="w-12 h-12 rounded-[1rem] bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-sm"><i class="fas fa-file-invoice text-xl"></i></div>
                         Riwayat Laporan Monitoring

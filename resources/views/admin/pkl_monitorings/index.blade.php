@@ -33,10 +33,10 @@
     </div>
 
     <!-- Main Content -->
-    <div class="bg-white rounded-[2rem] shadow-2xl shadow-indigo-100/40 border border-indigo-50 overflow-hidden ring-1 ring-slate-900/5">
-        <div class="p-6 border-b border-indigo-50/60 bg-gradient-to-r from-indigo-50/50 via-white to-violet-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h3 class="text-xl font-extrabold text-slate-800 flex items-center gap-3">
-                <div class="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200/50">
+    <div class="bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl shadow-indigo-200/50 border border-indigo-100 overflow-hidden ring-1 ring-white/50">
+        <div class="p-6 border-b border-indigo-100 bg-gradient-to-r from-indigo-100/50 via-white to-purple-100/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h3 class="text-xl font-extrabold text-indigo-900 flex items-center gap-3">
+                <div class="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-indigo-600 to-violet-700 text-white flex items-center justify-center shadow-lg shadow-indigo-300/50">
                     <i class="fas fa-list-ul"></i>
                 </div>
                 Daftar Pembimbing PKL
@@ -45,18 +45,18 @@
         
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-50/80">
-                    <tr class="border-b border-slate-100">
-                        <th class="p-5 font-black text-xs text-slate-500 uppercase tracking-widest w-16 text-center">No</th>
-                        <th class="p-5 font-black text-xs text-slate-400 uppercase tracking-widest">Identitas Guru</th>
-                        <th class="p-5 font-black text-xs text-slate-400 uppercase tracking-widest">Penempatan DUDI</th>
-                        <th class="p-5 font-black text-xs text-slate-400 uppercase tracking-widest text-center">Aktivitas Laporan</th>
-                        <th class="p-5 font-black text-xs text-slate-400 uppercase tracking-widest text-right">Tindakan</th>
+                <thead class="bg-indigo-900/5 backdrop-blur-sm">
+                    <tr class="border-b border-indigo-100">
+                        <th class="p-5 font-black text-xs text-indigo-800 uppercase tracking-widest w-16 text-center">No</th>
+                        <th class="p-5 font-black text-xs text-indigo-800 uppercase tracking-widest">Identitas Guru</th>
+                        <th class="p-5 font-black text-xs text-indigo-800 uppercase tracking-widest">Penempatan DUDI</th>
+                        <th class="p-5 font-black text-xs text-indigo-800 uppercase tracking-widest text-center">Aktivitas Laporan</th>
+                        <th class="p-5 font-black text-xs text-indigo-800 uppercase tracking-widest text-right">Tindakan</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50">
+                <tbody class="divide-y divide-indigo-50/50">
                     @forelse($teachers as $index => $t)
-                        <tr class="hover:bg-slate-50/80 transition-all duration-300 group">
+                        <tr class="hover:bg-indigo-50/80 even:bg-slate-50/30 transition-all duration-300 group">
                             <td class="p-5 text-center font-bold text-slate-500">
                                 {{ $teachers->firstItem() + $index }}
                             </td>
