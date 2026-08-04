@@ -184,12 +184,22 @@ class TeachingAssignmentController extends Controller
         $currentAssignments = collect([]);
 
         if ($selectedTeacher) {
-            $classrooms = Classroom::where('school_id', $selectedTeacher->school_id)
-                ->where('academic_year_id', $selectedAcademicYearId)
-                ->where('is_active', 1)
-                ->orderBy('grade_level')
-                ->orderBy('class_name')
-                ->get();
+            if ($selectedTeacher->school_id == 4) {
+                // Yayasan teachers can teach anywhere
+                $classrooms = Classroom::where('academic_year_id', $selectedAcademicYearId)
+                    ->where('is_active', 1)
+                    ->orderBy('school_id')
+                    ->orderBy('grade_level')
+                    ->orderBy('class_name')
+                    ->get();
+            } else {
+                $classrooms = Classroom::where('school_id', $selectedTeacher->school_id)
+                    ->where('academic_year_id', $selectedAcademicYearId)
+                    ->where('is_active', 1)
+                    ->orderBy('grade_level')
+                    ->orderBy('class_name')
+                    ->get();
+            }
 
             // Use competent subjects if available, fallback to all school subjects
             $competentSubjectIds = $selectedTeacher->competentSubjects()->pluck('subjects.id');
@@ -199,10 +209,18 @@ class TeachingAssignmentController extends Controller
                     ->orderBy('subject_name')
                     ->get();
             } else {
-                $subjects = Subject::where('school_id', $selectedTeacher->school_id)
-                    ->where('is_active', 1)
-                    ->orderBy('subject_name')
-                    ->get();
+                if ($selectedTeacher->school_id == 4) {
+                    // Yayasan teachers can teach all subjects
+                    $subjects = Subject::where('is_active', 1)
+                        ->orderBy('school_id')
+                        ->orderBy('subject_name')
+                        ->get();
+                } else {
+                    $subjects = Subject::where('school_id', $selectedTeacher->school_id)
+                        ->where('is_active', 1)
+                        ->orderBy('subject_name')
+                        ->get();
+                }
             }
 
             // Existing teaching assignments
@@ -377,12 +395,21 @@ class TeachingAssignmentController extends Controller
             ? $request->semester_id
             : ($activeSemester && $activeSemester->academic_year_id == $selectedYearId ? $activeSemester->id : $semesters->first()?->id);
 
-        $classrooms = Classroom::where('school_id', $teacher->school_id)
-            ->where('academic_year_id', $selectedYearId)
-            ->where('is_active', 1)
-            ->orderBy('grade_level')
-            ->orderBy('class_name')
-            ->get();
+        if ($teacher->school_id == 4) {
+            $classrooms = Classroom::where('academic_year_id', $selectedYearId)
+                ->where('is_active', 1)
+                ->orderBy('school_id')
+                ->orderBy('grade_level')
+                ->orderBy('class_name')
+                ->get();
+        } else {
+            $classrooms = Classroom::where('school_id', $teacher->school_id)
+                ->where('academic_year_id', $selectedYearId)
+                ->where('is_active', 1)
+                ->orderBy('grade_level')
+                ->orderBy('class_name')
+                ->get();
+        }
 
         // Use competent subjects if available
         $competentSubjectIds = $teacher->competentSubjects()->pluck('subjects.id');
@@ -392,10 +419,17 @@ class TeachingAssignmentController extends Controller
                 ->orderBy('subject_name')
                 ->get();
         } else {
-            $subjects = Subject::where('school_id', $teacher->school_id)
-                ->where('is_active', 1)
-                ->orderBy('subject_name')
-                ->get();
+            if ($teacher->school_id == 4) {
+                $subjects = Subject::where('is_active', 1)
+                    ->orderBy('school_id')
+                    ->orderBy('subject_name')
+                    ->get();
+            } else {
+                $subjects = Subject::where('school_id', $teacher->school_id)
+                    ->where('is_active', 1)
+                    ->orderBy('subject_name')
+                    ->get();
+            }
         }
 
         // Current teaching assignments
