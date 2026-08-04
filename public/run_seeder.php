@@ -52,17 +52,17 @@ try {
 $courseId = 101;
 
 // 4. Cek course ada
-$stmt = $pdo->prepare("SELECT id, title FROM lms_courses WHERE id = ?");
+$stmt = $pdo->prepare("SELECT id, course_name FROM lms_courses WHERE id = ?");
 $stmt->execute([$courseId]);
 $course = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$course) {
     echo "ERROR: Course ID {$courseId} tidak ada di tabel lms_courses!\n";
-    $stmt2 = $pdo->query("SELECT id, title FROM lms_courses ORDER BY id LIMIT 20");
+    $stmt2 = $pdo->query("SELECT id, course_name FROM lms_courses ORDER BY id LIMIT 20");
     echo "Daftar semua course:\n";
-    while ($r = $stmt2->fetch(PDO::FETCH_ASSOC)) echo "  ID:{$r['id']} | {$r['title']}\n";
+    while ($r = $stmt2->fetch(PDO::FETCH_ASSOC)) echo "  ID:{$r['id']} | {$r['course_name']}\n";
     die();
 }
-echo "Course ditemukan: [{$course['id']}] {$course['title']}\n\n";
+echo "Course ditemukan: [{$course['id']}] {$course['course_name']}\n\n";
 
 // 5. Hapus data lama (hard delete jika ada deleted_at, kalau tidak ada pakai DELETE biasa)
 echo "Membersihkan data lama...\n";
