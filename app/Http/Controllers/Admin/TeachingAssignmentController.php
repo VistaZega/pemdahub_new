@@ -235,7 +235,9 @@ class TeachingAssignmentController extends Controller
 
         // --- SISTEM GEMBOK PERJANJIAN KINERJA (Khusus SMK) ---
         $hasContract = true;
-        if ($selectedTeacher && $selectedTeacher->school) {
+        // Bypassed for Yayasan teachers or Superadmin/Ketua Yayasan
+        $isYayasanUser = $user->isSuperAdmin() || $user->hasRole('ketua_yayasan');
+        if (!$isYayasanUser && $selectedTeacher && $selectedTeacher->school && $selectedTeacher->school_id != 4) {
             $school = $selectedTeacher->school;
             if (strtoupper($school->type) === 'SMK' || str_contains(strtolower($school->name), 'smk') || str_contains(strtolower($school->name), 'kejuruan')) {
                 $hasContract = \App\Models\PerformanceContract::where('employee_id', $selectedTeacher->employee_id)
@@ -290,8 +292,10 @@ class TeachingAssignmentController extends Controller
         }
 
         // --- SISTEM GEMBOK PERJANJIAN KINERJA (Khusus SMK) ---
+        $isYayasanUser = $user->isSuperAdmin() || $user->hasRole('ketua_yayasan');
         $school = \App\Models\School::find($teacher->school_id);
-        if ($school && (strtoupper($school->type) === 'SMK' || str_contains(strtolower($school->name), 'smk') || str_contains(strtolower($school->name), 'kejuruan'))) {
+        
+        if (!$isYayasanUser && $teacher->school_id != 4 && $school && (strtoupper($school->type) === 'SMK' || str_contains(strtolower($school->name), 'smk') || str_contains(strtolower($school->name), 'kejuruan'))) {
             $hasContract = \App\Models\PerformanceContract::where('employee_id', $teacher->employee_id)
                 ->where('academic_year_id', $validated['academic_year_id'])
                 ->whereIn('contract_type', [\App\Models\PerformanceContract::TYPE_PKG_KEJURUAN, \App\Models\PerformanceContract::TYPE_PKG_UMUM])
