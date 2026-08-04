@@ -237,6 +237,17 @@
                                         <p class="font-medium italic leading-relaxed">"{{ $log->mentor_notes }}"</p>
                                     </div>
                                 @endif
+
+                                @if($log->status === 'submitted')
+                                    <div class="mt-5 border-t border-slate-100 pt-4 flex justify-end">
+                                        <form action="{{ route('admin.pkl-alumni.placements.log.approve', [$placement->id, $log->id]) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 border border-indigo-200">
+                                                <i class="fas fa-check-circle"></i> Ambil Alih Persetujuan
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

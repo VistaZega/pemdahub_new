@@ -201,6 +201,40 @@ class PklAlumniAdminController extends Controller
         return view('admin.pkl_alumni.placements.show', compact('placement'));
     }
 
+    public function approveLog(Request $request, $placementId, $logId)
+    {
+        $isSA = $this->isSuperAdmin();
+        $schoolId = $this->getSchoolId();
+
+        $placement = PklPlacement::with('student')->findOrFail($placementId);
+        $log = \App\Models\PklLog::findOrFail($logId);
+
+        if (!$isSA && $placement->student->school_id !== $schoolId) {
+            abort(403);
+        }
+
+        if ($log->pkl_placement_id !== $placement->id) {
+            abort(403);
+        }
+
+        $log->update([
+            'status' => 'approved',
+            'approved_at' => now(),
+        ]);
+
+        if ($placement->student && $placement->student->user_id) {
+            \App\Models\ReputationLog::log(
+                $placement->student->user_id,
+                10,
+                'pkl_log_approved',
+                'Logbook PKL tanggal ' . $log->log_date->format('d/m/Y') . ' disetujui (oleh Admin/Kepsek)',
+                $log
+            );
+        }
+
+        return redirect()->back()->with('success', 'Logbook harian berhasil disetujui.');
+    }
+
     public function placementsEdit($id)
     {
         $isSA = $this->isSuperAdmin();
