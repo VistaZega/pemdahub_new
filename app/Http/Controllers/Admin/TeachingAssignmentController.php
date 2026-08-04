@@ -62,7 +62,8 @@ class TeachingAssignmentController extends Controller
         }
 
         if ($request->filled('school_id') && $user->isSuperAdmin()) {
-            $query->where('school_id', $request->school_id);
+            // Include Yayasan (4) teachers in all school filters
+            $query->whereIn('school_id', [$request->school_id, 4]);
         }
 
         if ($request->filled('search')) {
@@ -174,7 +175,8 @@ class TeachingAssignmentController extends Controller
         if (!$user->isSuperAdmin()) {
             $teacherQuery->where('school_id', $user->school_id);
         } elseif ($selectedSchoolId) {
-            $teacherQuery->where('school_id', $selectedSchoolId);
+            // Include Yayasan (4) teachers in the selection list
+            $teacherQuery->whereIn('school_id', [$selectedSchoolId, 4]);
         }
 
         $teachers = $teacherQuery->get();
