@@ -200,6 +200,17 @@
                                     <p class="italic">"{{ $log->mentor_notes }}"</p>
                                 </div>
                             @endif
+
+                            @if($log->status === 'submitted')
+                                <div class="mt-4 border-t border-gray-100 pt-3 flex justify-end">
+                                    <form action="{{ route('guru.pkl.log.approve', [$placement->id, $log->id]) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1 border border-indigo-200">
+                                            <i class="fas fa-check-circle"></i> Ambil Alih Persetujuan
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @empty

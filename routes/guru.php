@@ -188,6 +188,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
     Route::prefix('pkl')->name('pkl.')->group(function () {
         Route::get('/', [App\Http\Controllers\Guru\PklTeacherController::class, 'index'])->name('index');
         Route::get('/{placement}', [App\Http\Controllers\Guru\PklTeacherController::class, 'show'])->name('show');
+        Route::post('/{placement}/log/{log}/approve', [App\Http\Controllers\Guru\PklTeacherController::class, 'approveLog'])->name('log.approve');
     });
 
     Route::prefix('pkl-monitorings')->name('pkl_monitorings.')->group(function () {
