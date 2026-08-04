@@ -83,8 +83,8 @@
                 @endif
 
                 {{-- Text / Article Body --}}
-                <div id="reader-body" class="font-size-md text-black font-extrabold leading-relaxed space-y-4 prose max-w-none p-4 rounded-2xl bg-white border-2 border-black">
-                    {!! $material->content ?: '<p class="text-black font-black italic">Materi ini menggunakan lampiran file atau pemutar video di atas.</p>' !!}
+                <div id="reader-body" class="text-slate-800 leading-relaxed space-y-4 prose max-w-none p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                    {!! $material->content ?: '<p class="text-slate-500 italic">Materi ini menggunakan lampiran file atau pemutar video di atas.</p>' !!}
                 </div>
 
                 {{-- File Download Attachment --}}

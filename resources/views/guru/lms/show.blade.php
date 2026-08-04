@@ -429,7 +429,7 @@
 
                             {{-- Text Content --}}
                             @if($material->content)
-                            <div class="prose prose-sm max-w-none text-black font-bold mt-3 p-4 rounded-2xl bg-slate-50 border-2 border-black">{!! strip_tags($material->content) !== $material->content ? $material->content : nl2br(e($material->content)) !!}</div>
+                            <div class="prose prose-sm max-w-none text-slate-800 mt-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">{!! strip_tags($material->content) !== $material->content ? $material->content : nl2br(e($material->content)) !!}</div>
                             @endif
                         </div>
                     </div>
