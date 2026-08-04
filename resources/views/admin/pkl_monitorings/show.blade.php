@@ -35,10 +35,10 @@
         </a>
     </div>
 
-    <div class="flex flex-col lg:flex-row gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         
         <!-- Kolom Kiri: Daftar Lokasi DUDI -->
-        <div class="w-full lg:w-1/3 space-y-6 shrink-0">
+        <div class="lg:col-span-1 space-y-6">
             <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden sticky top-6">
                 <div class="p-6 border-b border-slate-100/80 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
                     <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">
@@ -110,7 +110,7 @@
         </div>
         
         <!-- Kolom Kanan: Riwayat Laporan -->
-        <div class="w-full lg:w-2/3 flex-1">
+        <div class="lg:col-span-2">
             <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
                 <div class="p-6 border-b border-slate-100/80 bg-gradient-to-r from-slate-50 to-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-10">
                     <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">

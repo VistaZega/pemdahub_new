@@ -33,10 +33,10 @@
     </div>
 
     <!-- Main Content -->
-    <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
-        <div class="p-6 border-b border-slate-100/80 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div class="bg-white rounded-[2rem] shadow-2xl shadow-indigo-100/40 border border-indigo-50 overflow-hidden ring-1 ring-slate-900/5">
+        <div class="p-6 border-b border-indigo-50/60 bg-gradient-to-r from-indigo-50/50 via-white to-violet-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h3 class="text-xl font-extrabold text-slate-800 flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shadow-sm">
+                <div class="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200/50">
                     <i class="fas fa-list-ul"></i>
                 </div>
                 Daftar Pembimbing PKL
@@ -45,9 +45,9 @@
         
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-white border-b border-slate-100">
-                        <th class="p-5 font-black text-xs text-slate-400 uppercase tracking-widest w-16 text-center">No</th>
+                <thead class="bg-slate-50/80">
+                    <tr class="border-b border-slate-100">
+                        <th class="p-5 font-black text-xs text-slate-500 uppercase tracking-widest w-16 text-center">No</th>
                         <th class="p-5 font-black text-xs text-slate-400 uppercase tracking-widest">Identitas Guru</th>
                         <th class="p-5 font-black text-xs text-slate-400 uppercase tracking-widest">Penempatan DUDI</th>
                         <th class="p-5 font-black text-xs text-slate-400 uppercase tracking-widest text-center">Aktivitas Laporan</th>
