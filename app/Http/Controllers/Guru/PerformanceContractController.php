@@ -35,8 +35,12 @@ class PerformanceContractController extends Controller
         }
 
         // Ambil daftar jabatan struktural yang bisa dipilih untuk Form 4
-        $user = auth()->user();
-        $positions = Position::where('school_id', $user->school_id)
+        $targetSchoolId = $user->school_id;
+        if ($user->username === 'yulzega' || (isset($user->teacher->employee) && str_contains($user->teacher->employee->full_name, 'Yulianus Zega'))) {
+            $targetSchoolId = 3; // Pengecualian agar PK Yulianus Zega masuk ke Kepala SMK
+        }
+
+        $positions = Position::where('school_id', $targetSchoolId)
             ->whereNotIn('position_code', ['KASEK', 'WAKEL'])
             ->orderBy('position_name')
             ->get();
@@ -70,10 +74,15 @@ class PerformanceContractController extends Controller
             return redirect()->back()->with('error', 'Anda sudah mengajukan perjanjian kinerja untuk tipe ini di tahun ajaran ini.');
         }
 
+        $targetSchoolId = $user->school_id;
+        if ($user->username === 'yulzega' || (isset($user->teacher->employee) && str_contains($user->teacher->employee->full_name, 'Yulianus Zega'))) {
+            $targetSchoolId = 3;
+        }
+
         $contract = PerformanceContract::create([
             'employee_id' => $user->teacher->employee_id,
             'academic_year_id' => $currentYear->id,
-            'school_id' => $user->school_id,
+            'school_id' => $targetSchoolId,
             'contract_type' => $validated['contract_type'],
             'position_id' => $validated['contract_type'] === 'jabatan_tambahan' ? $validated['position_id'] : null,
             'target_data' => $validated['target_data'],
@@ -122,7 +131,13 @@ class PerformanceContractController extends Controller
         }
 
         $currentYear = AcademicYear::where('is_active', 1)->first();
-        $positions = Position::where('school_id', $user->school_id)
+        
+        $targetSchoolId = $user->school_id;
+        if ($user->username === 'yulzega' || (isset($user->teacher->employee) && str_contains($user->teacher->employee->full_name, 'Yulianus Zega'))) {
+            $targetSchoolId = 3;
+        }
+
+        $positions = Position::where('school_id', $targetSchoolId)
             ->whereNotIn('position_code', ['KASEK', 'WAKEL'])
             ->orderBy('position_name')
             ->get();
