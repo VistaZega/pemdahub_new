@@ -455,10 +455,18 @@ class AttendanceController extends Controller
         // Radius maksimal diizinkan (dalam Meter) misal: 100 Meter.
         $maxRadiusMeters = 100;
 
+        // Cek apakah siswa sedang PKL aktif saat ini
+        $isPklActive = \App\Models\PklPlacement::where('student_id', $student->id)
+            ->where('status', 'active')
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->exists();
+
         // Rumus Penghitungan Jarak (Haversine Formula via SQL atau hitung di PHP)
         $distance = $this->calculateDistance($request->latitude, $request->longitude, $schoolLat, $schoolLong);
 
-        if ($distance > $maxRadiusMeters && $schoolLat != 0) { //(&& != 0 adalah bypass sementara jika kordinat sekolah belum di set)
+        // Jika tidak sedang PKL aktif, maka terapkan aturan radius 100 meter
+        if (!$isPklActive && $distance > $maxRadiusMeters && $schoolLat != 0) { //(&& != 0 adalah bypass sementara jika kordinat sekolah belum di set)
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal! Lokasi Anda berada di luar jangkauan area sekolah (' . round($distance) . ' meter dari sekolah).'
