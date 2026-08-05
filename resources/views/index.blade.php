@@ -36,17 +36,17 @@
 
     <style>
         :root {
-            /* === PRO MAX HYPER-MODERN SPATIAL THEME === */
-            --bg: #030014;
-            --bg-card: rgba(30, 41, 59, 0.7); /* Slate 800 with 70% opacity for clear contrast */
-            --text-primary: #ffffff;
-            --text-secondary: #cbd5e1; /* Lighter secondary text for better readability */
-            --text-muted: #94a3b8;
-            --border: rgba(255, 255, 255, 0.18); /* Stronger visible border (garis penjelas) */
+            /* === PRO MAX LIGHT PREMIUM GLASS THEME === */
+            --bg: #f8fafc;
+            --bg-card: rgba(255, 255, 255, 0.6); /* Translucent white glass */
+            --text-primary: #0f172a; /* Dark slate for high contrast text */
+            --text-secondary: #334155; 
+            --text-muted: #64748b;
+            --border: rgba(255, 255, 255, 0.8); /* Solid white border for crisp glass edge */
             --radius: 24px;
             --radius-sm: 16px;
-            --shadow-card: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.15); /* 3D glass edge */
-            --shadow-hover: 0 20px 60px -15px rgba(99,102,241,0.3);
+            --shadow-card: 0 8px 32px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,1); /* Elegant soft shadow */
+            --shadow-hover: 0 20px 60px -15px rgba(99,102,241,0.2);
 
             /* Brand - Indigo family -> Spatial/Cyberpunk Neon */
             --indigo: #818cf8;
@@ -373,9 +373,9 @@
         .bcard-emerald { background: rgba(52,211,153,0.06); border-color: rgba(52,211,153,0.3); }
         .bcard-amber { background: rgba(251,191,36,0.06); border-color: rgba(251,191,36,0.3); }
         .bcard-violet { background: rgba(192,132,252,0.06); border-color: rgba(192,132,252,0.3); }
-        .bcard-cyan { background: rgba(34,211,238,0.08); border-color: rgba(34,211,238,0.3); }
-        .bcard-dark { background: rgba(15, 23, 42, 0.7); border-color: rgba(255,255,255,0.15); color: #fff; }
-        .bcard-indigo { background: rgba(99,102,241,0.08); border-color: rgba(99,102,241,0.3); }
+        .bcard-cyan { background: rgba(34,211,238,0.1); border-color: rgba(34,211,238,0.4); }
+        .bcard-dark { background: rgba(15, 23, 42, 0.8); border-color: rgba(15, 23, 42, 0.2); color: #fff; }
+        .bcard-indigo { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.4); }
         .bcard-gold { background: rgba(253,224,71,0.06); border-color: rgba(253,224,71,0.3); }
 
         /* Program sub-item */
