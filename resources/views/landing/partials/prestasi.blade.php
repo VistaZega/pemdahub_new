@@ -18,11 +18,11 @@
                     @php
                         // Level styling
                         $levelColors = [
-                            'internasional' => ['bg' => 'var(--gold-bg)', 'text' => 'var(--gold-bright)', 'label' => 'Internasional'],
-                            'nasional'      => ['bg' => 'var(--coral-bg)', 'text' => 'var(--coral)', 'label' => 'Nasional'],
-                            'propinsi'      => ['bg' => 'var(--violet-bg)', 'text' => 'var(--violet)', 'label' => 'Provinsi'],
-                            'kabupaten'     => ['bg' => 'var(--blue-bg)', 'text' => 'var(--blue)', 'label' => 'Kabupaten'],
-                            'sekolah'       => ['bg' => 'var(--bg)', 'text' => 'var(--text-secondary)', 'label' => 'Sekolah'],
+                            'internasional' => ['bg' => 'linear-gradient(135deg, #f59e0b, #d97706)', 'text' => '#ffffff', 'label' => 'Internasional'],
+                            'nasional'      => ['bg' => 'linear-gradient(135deg, #ef4444, #be123c)', 'text' => '#ffffff', 'label' => 'Nasional'],
+                            'propinsi'      => ['bg' => 'linear-gradient(135deg, #8b5cf6, #6d28d9)', 'text' => '#ffffff', 'label' => 'Provinsi'],
+                            'kabupaten'     => ['bg' => 'linear-gradient(135deg, #0ea5e9, #0369a1)', 'text' => '#ffffff', 'label' => 'Kabupaten'],
+                            'sekolah'       => ['bg' => 'linear-gradient(135deg, #64748b, #475569)', 'text' => '#ffffff', 'label' => 'Sekolah'],
                         ];
                         
                         $level = $achievement->achievement_level ?? 'sekolah';
