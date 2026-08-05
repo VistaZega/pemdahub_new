@@ -31,11 +31,14 @@
     pointer-events: none;
 }
 .pkl-container {
-    max-width: 1200px;
+    width: 100%;
+    padding: 0 40px;
     margin: 0 auto;
     position: relative;
     z-index: 10;
-    padding: 0 1rem;
+}
+@media (max-width: 768px) {
+    .pkl-container { padding: 0 20px; }
 }
 
 /* Header */
@@ -152,6 +155,12 @@
     flex: 0 0 33.333%;
     padding: 0 0.75rem;
     box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+@media (min-width: 1441px) {
+    .pkl-slide {
+        flex: 0 0 25%;
+    }
 }
 
 /* Carousel Card */
@@ -176,7 +185,7 @@
 .pkl-photo-container {
     position: relative;
     width: 100%;
-    padding-top: 65%;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
     overflow: hidden;
 }
 .pkl-photo {
@@ -539,6 +548,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function getSlidesPerView() {
         if (window.innerWidth <= 768) return 1;
         if (window.innerWidth <= 1024) return 2;
+        if (window.innerWidth > 1440) return 4;
         return 3;
     }
 
