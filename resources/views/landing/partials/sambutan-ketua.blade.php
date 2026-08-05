@@ -1,9 +1,9 @@
 {{-- SAMBUTAN KETUA YAYASAN — Bold Indigo Theme --}}
-<section class="section" style="background:#ffffff; border-bottom: 1px solid var(--border);">
+<section class="section" style="background: transparent;">
     <div class="fw">
         <div style="max-width:1000px; margin:0 auto;" data-aos="fade-up">
 
-            <div class="bcard shimmer-card sambutan-card" style="padding:48px 56px; position:relative; overflow:hidden; border: 1.5px solid var(--border); background:linear-gradient(135deg, #ffffff, var(--indigo-bg)); border-left: 4px solid var(--gold);">
+            <div class="bcard shimmer-card sambutan-card" style="padding:48px 56px; position:relative; overflow:hidden; border: 1.5px solid var(--border); background:rgba(255,255,255,0.03); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-left: 4px solid var(--gold);">
 
                 {{-- Decorative Quote Icon Background --}}
                 <div style="position:absolute; top:-20px; left:24px; font-size:200px; color:var(--indigo); opacity:0.04; pointer-events:none; font-family:Georgia, serif; line-height:1;">

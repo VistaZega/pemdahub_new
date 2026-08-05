@@ -538,7 +538,11 @@ Route::get('/', function () {
     $activeAcademicYear = \App\Models\AcademicYear::where('is_active', true)->first();
 
     // Statistik utama
-    $totalStudents = \App\Models\Student::where('status', 'aktif')->count();
+    $totalStudents = $activeAcademicYear 
+        ? \App\Models\Student::where('status', 'aktif')->whereHas('studentClasses', function($q) use ($activeAcademicYear) {
+            $q->where('academic_year_id', $activeAcademicYear->id)->where('status', 'aktif');
+        })->count() 
+        : 0;
     $totalTeachers = \App\Models\Teacher::where('is_active', true)->count();
     $totalSchools = \App\Models\School::schoolsOnly()->where('is_active', true)->count();
     $totalAlumni = \App\Models\Alumni::count();

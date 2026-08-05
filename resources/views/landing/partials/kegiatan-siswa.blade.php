@@ -1,5 +1,5 @@
 {{-- EKSTRAKURIKULER & KEGIATAN SISWA — Bold Indigo Theme --}}
-<section id="kegiatan" class="section" style="background:#ffffff; border-bottom: 1px solid var(--border);">
+<section id="kegiatan" class="section" style="background: transparent;">
     <div class="fw">
         <div style="text-align:center; margin-bottom:56px;" data-aos="fade-up">
             <div class="section-label" style="justify-content:center;">

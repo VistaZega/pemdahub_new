@@ -1,5 +1,5 @@
 {{-- STATISTIK — Bold Indigo Theme --}}
-<section id="statistik" class="section" style="background: linear-gradient(135deg, #1e1b4b, #2d2a6e);">
+<section id="statistik" class="section" style="background: transparent;">
     <div class="fw">
         <div style="text-align:center; margin-bottom:48px;" data-aos="fade-up">
             <div class="section-label" style="justify-content:center; margin-bottom:16px;">

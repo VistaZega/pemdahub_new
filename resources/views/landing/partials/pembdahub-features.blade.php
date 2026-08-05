@@ -1,5 +1,5 @@
 {{-- PEMBDAHUB FEATURES — Bold Indigo Theme --}}
-<section id="features" class="section" style="background:var(--bg);">
+<section id="features" class="section" style="background: transparent;">
     <div class="fw">
         <div style="text-align:center; margin-bottom:64px;" data-aos="fade-up">
             <div class="section-label" style="justify-content:center;">
@@ -59,8 +59,11 @@
                 </div>
             </div>
 
-            {{-- Compact Cards Row --}}
-            <div class="bento bento-4">
+            {{-- Compact Cards Row with News --}}
+            <div class="bento bento-3">
+                @if(isset($news) && $news->count() > 0)
+                    @include('landing.partials.news-card', ['item' => $news[0]])
+                @endif
                 {{-- Feature: Pembayaran --}}
                 <div class="bcard" style="padding:24px;">
                     <div class="icon-circle" style="background:var(--emerald-bg); color:var(--emerald); margin-bottom:16px;">
@@ -89,7 +92,7 @@
                 </div>
 
                 {{-- Feature: Perkembangan Siswa --}}
-                <div class="bcard" style="padding:24px;">
+                <div class="bcard span-2" style="padding:24px;">
                     <div class="icon-circle" style="background:var(--coral-bg); color:var(--coral); margin-bottom:16px;">
                         <i class="fa-solid fa-clipboard-list"></i>
                     </div>
@@ -161,7 +164,11 @@
                 </div>
             </div>
 
-            <div class="bento bento-2">
+            <div class="bento bento-3">
+                @if(isset($news) && $news->count() > 1)
+                    @include('landing.partials.news-card', ['item' => $news[1]])
+                @endif
+                
                 {{-- NEW: PKL & Alumni (Tracer Study) --}}
                 <div class="bcard gradient-border-card shimmer-card" style="padding:28px; display:grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;">
                     <div>
@@ -203,7 +210,10 @@
                 <i class="fa-solid fa-shield-halved" style="color: var(--indigo);"></i> Transparansi & Keterlibatan Orang Tua
             </h3>
 
-            <div class="bento bento-3">
+            <div class="bento bento-4">
+                @if(isset($news) && $news->count() > 2)
+                    @include('landing.partials.news-card', ['item' => $news[2]])
+                @endif
                 {{-- Feature: Kepegawaian --}}
                 <div class="bcard" style="padding:24px;">
                     <div class="icon-circle" style="background:var(--blue-bg); color:var(--blue); margin-bottom:16px;">

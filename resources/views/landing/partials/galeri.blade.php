@@ -1,5 +1,5 @@
 {{-- GALERI — Bento/Apple Style (Dynamic from Database) --}}
-<section id="galeri" class="section" style="background:#fff;">
+<section id="galeri" class="section" style="background: transparent;">
     <div class="fw">
         <div style="text-align:center; margin-bottom:48px;" data-aos="fade-up">
             <div class="section-label" style="justify-content:center;">

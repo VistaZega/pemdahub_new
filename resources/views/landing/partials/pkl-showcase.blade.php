@@ -4,7 +4,7 @@
 /* === PKL SHOWCASE SECTION === */
 .pkl-section {
     padding: 5rem 1rem;
-    background: linear-gradient(180deg, #ffffff 0%, #f0eeff 50%, #f4f3ff 100%);
+    background: transparent;
     position: relative;
     overflow: hidden;
 }
@@ -165,11 +165,13 @@
 
 /* Carousel Card */
 .pkl-card {
-    background: #fff;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-radius: 20px;
     overflow: hidden;
-    border: 1px solid rgba(224,221,247,0.5);
-    box-shadow: 0 4px 16px rgba(79,46,209,0.06);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     height: 100%;
     display: flex;
@@ -669,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @else
 {{-- Fallback: No PKL data yet --}}
-<section id="pkl-showcase" class="section" style="background: #ffffff; border-bottom: 1px solid var(--border);" data-aos="fade-up">
+<section id="pkl-showcase" class="section" style="background: transparent;" data-aos="fade-up">
     <div class="fw">
         <div style="text-align:center; margin-bottom:56px;">
             <div class="section-label" style="justify-content:center;">

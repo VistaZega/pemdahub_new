@@ -1,5 +1,56 @@
 {{-- HERO SECTION — Bold Indigo Theme --}}
 <style>
+    .hero-section {
+        position: relative;
+        background: transparent;
+        overflow: hidden;
+    }
+    .hero-bg-blob1 {
+        position: absolute; top: -10%; left: -10%; width: 50vw; height: 50vw;
+        background: radial-gradient(circle, rgba(99,102,241,0.35) 0%, transparent 70%);
+        border-radius: 50%; filter: blur(60px); z-index: 0; pointer-events: none;
+    }
+    .hero-bg-blob2 {
+        position: absolute; bottom: -10%; right: -10%; width: 45vw; height: 45vw;
+        background: radial-gradient(circle, rgba(16,185,129,0.25) 0%, transparent 70%);
+        border-radius: 50%; filter: blur(60px); z-index: 0; pointer-events: none;
+    }
+    .hero-bg-blob3 {
+        position: absolute; top: 30%; left: 50%; width: 35vw; height: 35vw;
+        background: radial-gradient(circle, rgba(245,158,11,0.2) 0%, transparent 70%);
+        border-radius: 50%; filter: blur(60px); z-index: 0; pointer-events: none;
+    }
+    .hero-card {
+        background: rgba(255, 255, 255, 0.04) !important;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.3);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        z-index: 2;
+    }
+    .hero-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        opacity: 0; transition: opacity 0.4s ease;
+    }
+    .hero-card:hover {
+        transform: translateY(-8px);
+        background: rgba(255, 255, 255, 0.08) !important;
+    }
+    .hero-card:hover::before { opacity: 1; }
+    
+    .hero-card-blue:hover { box-shadow: 0 20px 40px -10px rgba(59,130,246,0.3); border-color: rgba(59,130,246,0.5) !important; }
+    .hero-card-emerald:hover { box-shadow: 0 20px 40px -10px rgba(16,185,129,0.3); border-color: rgba(16,185,129,0.5) !important; }
+    .hero-card-gold:hover { box-shadow: 0 20px 40px -10px rgba(245,158,11,0.3); border-color: rgba(245,158,11,0.5) !important; }
+    .hero-card-coral:hover { box-shadow: 0 20px 40px -10px rgba(244,63,94,0.3); border-color: rgba(244,63,94,0.5) !important; }
+
     .hero-card-icon {
         width: 44px;
         height: 44px;
@@ -73,10 +124,9 @@
 
 <section id="beranda" class="hero-section">
     {{-- Background elements --}}
-    <div class="hero-grid"></div>
-    <div class="hero-glow-1"></div>
-    <div class="hero-glow-2"></div>
-    <div class="hero-glow-3"></div>
+    <div class="hero-bg-blob1"></div>
+    <div class="hero-bg-blob2"></div>
+    <div class="hero-bg-blob3"></div>
     {{-- Animated rings --}}
     <div class="hero-ring" style="width:300px; height:300px; top:10%; left:2%; animation-delay:0s;"></div>
     <div class="hero-ring" style="width:500px; height:500px; top:5%; left:-5%; animation-delay:2s; border-color:rgba(245,158,11,0.04);"></div>
@@ -103,12 +153,12 @@
             </div>
 
             {{-- Main Title --}}
-            <h1 class="display" style="margin-bottom:16px; color:#ffffff;">
-                Yayasan Perguruan <span style="color:#fbbf24;">PEMBDA</span>
+            <h1 class="display" style="margin-bottom:16px; color:#ffffff; text-shadow: 0 4px 20px rgba(0,0,0,0.3); font-weight: 900; letter-spacing: -0.05em;">
+                Yayasan Perguruan <span style="background:linear-gradient(135deg, #38bdf8, #818cf8, #c084fc, #e879f9); -webkit-background-clip:text; color:transparent; filter: drop-shadow(0 0 20px rgba(139,92,246,0.5));">PEMBDA</span>
             </h1>
 
-            {{-- Red underline decoration --}}
-            <div style="width:120px; height:4px; background:linear-gradient(90deg, #ef4444, #f87171, #ef4444); border-radius:2px; margin: 0 auto 28px; opacity:0.9;"></div>
+            {{-- Underline decoration --}}
+            <div style="width:140px; height:6px; background:linear-gradient(90deg, #38bdf8, #818cf8, #c084fc); border-radius:3px; margin: 0 auto 28px; box-shadow: 0 2px 20px rgba(139,92,246,0.6);"></div>
 
             <p class="body-lg" style="max-width:720px; margin:0 auto 14px; font-size:22px; color:rgba(255,255,255,0.92); min-height: 66px; line-height: 1.4;">
                 Pusat Keunggulan Akademik dan Inovasi:<br>
@@ -121,12 +171,12 @@
             </p>
 
             {{-- CTA Buttons --}}
-            <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
-                <a href="{{ route('public.registration.index') }}" class="btn btn-gold">
+            <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top: 40px;">
+                <a href="{{ route('public.registration.index') }}" class="btn" style="background: #ffffff; color: #030014; box-shadow: 0 10px 30px rgba(255,255,255,0.3); font-family: 'Plus Jakarta Sans'; border-radius: 100px;">
                     <i class="fa-solid fa-user-plus"></i> Pendaftaran Siswa Baru
                 </a>
-                <a href="{{ route('login') }}" class="btn btn-ghost-white">
-                    <i class="fa-solid fa-right-to-bracket"></i> Portal Civitas (Login)
+                <a href="{{ route('login') }}" class="btn btn-ghost-white" style="border-radius: 100px; font-family: 'Plus Jakarta Sans';">
+                    <i class="fa-solid fa-right-to-bracket"></i> Portal Civitas
                 </a>
             </div>
 
