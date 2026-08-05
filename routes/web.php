@@ -565,7 +565,17 @@ Route::get('/', function () {
     // Sekolah dengan statistik
     $schools = \App\Models\School::schoolsOnly()
         ->where('is_active', true)
-        ->withCount(['students' => fn($q) => $q->where('status', 'aktif'), 'teachers' => fn($q) => $q->where('is_active', true), 'classrooms' => fn($q) => $q->where('is_active', true)])
+        ->withCount([
+            'students' => fn($q) => $q->where('status', 'aktif')->whereHas('studentClasses', function($sq) use ($activeAcademicYear) {
+                if ($activeAcademicYear) {
+                    $sq->where('academic_year_id', $activeAcademicYear->id)->where('status', 'aktif');
+                }
+            }),
+            'teachers' => fn($q) => $q->where('is_active', true),
+            'classrooms' => fn($q) => $q->where('is_active', true)
+                ->when($activeAcademicYear, fn($query) => $query->where('academic_year_id', $activeAcademicYear->id))
+                ->has('schedules')
+        ])
         ->orderBy('type')
         ->get();
 
