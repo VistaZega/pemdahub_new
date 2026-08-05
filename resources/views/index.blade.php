@@ -38,15 +38,15 @@
         :root {
             /* === PRO MAX HYPER-MODERN SPATIAL THEME === */
             --bg: #030014;
-            --bg-card: rgba(15, 23, 42, 0.6); /* Slate 900 with opacity for contrast against purple */
+            --bg-card: rgba(30, 41, 59, 0.7); /* Slate 800 with 70% opacity for clear contrast */
             --text-primary: #ffffff;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --border: rgba(255, 255, 255, 0.06);
+            --text-secondary: #cbd5e1; /* Lighter secondary text for better readability */
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.18); /* Stronger visible border (garis penjelas) */
             --radius: 24px;
             --radius-sm: 16px;
-            --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
-            --shadow-hover: 0 20px 60px -15px rgba(99,102,241,0.25);
+            --shadow-card: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.15); /* 3D glass edge */
+            --shadow-hover: 0 20px 60px -15px rgba(99,102,241,0.3);
 
             /* Brand - Indigo family -> Spatial/Cyberpunk Neon */
             --indigo: #818cf8;
