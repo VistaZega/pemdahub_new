@@ -814,7 +814,6 @@
     @include('landing.partials.berita')
     @include('landing.partials.alumni-showcase')
     @include('landing.partials.galeri')
-    @include('landing.partials.pelatihan')
     @include('landing.partials.psb-cta')
     @include('landing.partials.footer')
 

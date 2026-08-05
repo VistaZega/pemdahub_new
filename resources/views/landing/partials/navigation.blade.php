@@ -20,7 +20,6 @@
                 <a href="#sekolah" class="nav-link">Sekolah</a>
                 <a href="#program" class="nav-link">Program</a>
                 <a href="#berita" class="nav-link">Berita</a>
-                <a href="#pelatihan" class="nav-link">Pelatihan</a>
                 <a href="#kontak" class="nav-link">Kontak</a>
             </div>
 
@@ -49,7 +48,6 @@
     <a href="#sekolah">Sekolah</a>
     <a href="#program">Program</a>
     <a href="#berita">Berita</a>
-    <a href="#pelatihan">Pelatihan</a>
     <a href="#kontak">Kontak</a>
     <div style="margin-top:24px; display:flex; flex-direction:column; align-items:center; gap:12px;">
         @auth
