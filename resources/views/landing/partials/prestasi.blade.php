@@ -57,7 +57,7 @@
                         $delay = 100 + ($index * 100);
                     @endphp
                     
-                    <div class="bcard hover-glow" data-aos="fade-up" data-aos-delay="{{ $delay }}" style="display:flex; flex-direction:column;">
+                    <div class="bcard hover-glow prestasi-card" data-aos="fade-up" data-aos-delay="{{ $delay }}" style="display:flex; flex-direction:column;">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
                             <span class="feature-pill" style="background:{{ $levelStyle['bg'] }}; color:{{ $levelStyle['text'] }}; border: 1px solid rgba(0,0,0,0.05);">
                                 <i class="fa-solid fa-globe"></i> Tingkat {{ $levelStyle['label'] }}
@@ -67,7 +67,7 @@
                             </div>
                         </div>
                         
-                        <h3 class="h3" style="margin-bottom:16px; font-size:16px; line-height:1.4; flex-grow:1;">{{ $achievement->title }}</h3>
+                        <h3 class="h3" style="margin-bottom:16px; font-size:16px; line-height:1.4; flex-grow:1; color:var(--text-primary);">{{ $achievement->title }}</h3>
                         
                         <div style="margin-bottom:16px; padding:12px; background:var(--bg); border-radius:10px; border:1px solid var(--border);">
                             <div style="display:flex; align-items:center; gap:12px;">
@@ -87,7 +87,7 @@
                         </div>
                         
                         <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:16px;">
-                            <div style="font-weight:800; color:var(--indigo-dark); font-size:15px;">
+                            <div style="font-weight:800; color:var(--text-primary); font-size:15px;">
                                 <i class="fa-solid fa-award" style="color:var(--gold);"></i> {{ $rankLabel }}
                             </div>
                             <div style="font-size:12px; color:var(--text-secondary); font-weight:600;">
@@ -108,3 +108,26 @@
         @endif
     </div>
 </section>
+
+<style>
+.prestasi-card {
+    /* Gradient biru tua ke indigo yang sangat premium dan menonjol */
+    background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 100%) !important;
+    
+    /* Override local variables for dark mode inside this specific card */
+    --bg: rgba(255, 255, 255, 0.1) !important; /* Inner student box background */
+    --border: rgba(255, 255, 255, 0.2) !important;
+    --text-primary: #ffffff !important;
+    --text-secondary: #e2e8f0 !important;
+    --text-muted: #cbd5e1 !important;
+    
+    color: var(--text-primary) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 10px 30px -10px rgba(49, 46, 129, 0.5) !important;
+}
+
+.prestasi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px -15px rgba(55, 48, 163, 0.6) !important;
+}
+</style>
