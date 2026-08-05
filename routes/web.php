@@ -578,6 +578,45 @@ Route::get('/', function () {
         ->take(3)
         ->get();
 
+    // === SHOWCASE PKL TERBAIK UNTUK HOMEPAGE ===
+    $pklLogs = \App\Models\PklLog::where('status', 'approved')
+        ->whereNotNull('photo')
+        ->with(['placement.student.school', 'placement.dudi'])
+        ->latest('log_date')
+        ->take(8)
+        ->get()
+        ->map(fn($log) => [
+            'type' => 'logbook',
+            'photo' => $log->photo_url,
+            'description' => \Illuminate\Support\Str::limit($log->activity, 150),
+            'person_name' => $log->placement?->student?->full_name ?? 'Siswa PKL',
+            'person_photo' => $log->placement?->student?->photo_url ?? null,
+            'school_name' => $log->placement?->student?->school?->name ?? '-',
+            'dudi_name' => $log->placement?->dudi?->name ?? $log->placement?->company_name ?? '-',
+            'date' => $log->log_date?->translatedFormat('d M Y') ?? '-',
+        ]);
+
+    $pklMonitorings = \App\Models\PklMonitoring::whereNotNull('photo_path')
+        ->with(['teacher', 'dudi'])
+        ->latest('monitoring_date')
+        ->take(4)
+        ->get()
+        ->map(fn($m) => [
+            'type' => 'monitoring',
+            'photo' => asset('storage/' . $m->photo_path),
+            'description' => \Illuminate\Support\Str::limit($m->notes, 150),
+            'person_name' => $m->teacher?->full_name ?? 'Guru Pembimbing',
+            'person_photo' => null,
+            'school_name' => 'Guru Pembimbing',
+            'dudi_name' => $m->dudi?->name ?? '-',
+            'date' => $m->monitoring_date?->translatedFormat('d M Y') ?? '-',
+        ]);
+
+    $pklShowcase = $pklLogs->concat($pklMonitorings)->shuffle()->values();
+    $totalApprovedLogs = \App\Models\PklLog::where('status', 'approved')->count();
+    $totalMonitorings = \App\Models\PklMonitoring::count();
+    $totalDudi = \App\Models\Dudi::count();
+
     // Pastikan halaman beranda tidak dicache oleh server (LiteSpeed) maupun browser
     // agar status tombol "Login" vs "Dashboard" selalu ter-update secara real-time.
     return response(view('index', compact(
@@ -586,7 +625,8 @@ Route::get('/', function () {
         'totalCourses', 'totalExams', 'totalForumThreads',
         'achievements', 'totalAchievements',
         'schools', 'activeWave', 'totalApplicants',
-        'recentAlumnis'
+        'recentAlumnis',
+        'pklShowcase', 'totalApprovedLogs', 'totalMonitorings', 'totalDudi'
     )))
         ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
         ->header('Pragma', 'no-cache')

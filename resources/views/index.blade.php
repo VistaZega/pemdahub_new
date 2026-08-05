@@ -810,6 +810,7 @@
     @include('landing.partials.sambutan-ketua')
     @include('landing.partials.profil-yayasan')
     @include('landing.partials.kegiatan-siswa')
+    @include('landing.partials.pkl-showcase')
     @include('landing.partials.berita')
     @include('landing.partials.alumni-showcase')
     @include('landing.partials.galeri')
