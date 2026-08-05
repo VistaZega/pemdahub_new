@@ -1,5 +1,5 @@
 {{-- PRESTASI SISWA — New Section --}}
-<section id="prestasi" class="section" style="background: transparent;">
+<section id="prestasi" class="section" style="background:var(--bg);">
     <div class="fw">
         <div style="text-align:center; margin-bottom:56px;" data-aos="fade-up">
             <div class="section-label" style="justify-content:center;">

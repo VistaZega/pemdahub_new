@@ -1,5 +1,5 @@
 {{-- PELATIHAN & DOKUMENTASI — Bento Grid Style --}}
-<section id="pelatihan" class="section" style="background: transparent;">
+<section id="pelatihan" class="section" style="background: var(--bg-card); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); position: relative; overflow: hidden;">
     {{-- Decorative backgrounds --}}
     <div style="position: absolute; top: -100px; left: -100px; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(79,46,209,0.03) 0%, transparent 70%); pointer-events: none;"></div>
     <div style="position: absolute; bottom: -100px; right: -100px; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(245,158,11,0.03) 0%, transparent 70%); pointer-events: none;"></div>

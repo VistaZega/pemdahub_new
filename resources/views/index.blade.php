@@ -10,7 +10,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
 
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -36,44 +36,44 @@
 
     <style>
         :root {
-            /* === PRO MAX LIGHT PREMIUM GLASS THEME === */
-            --bg: #f8fafc;
-            --bg-card: rgba(255, 255, 255, 0.6); /* Translucent white glass */
-            --text-primary: #0f172a; /* Dark slate for high contrast text */
-            --text-secondary: #334155; 
-            --text-muted: #64748b;
-            --border: rgba(255, 255, 255, 0.8); /* Solid white border for crisp glass edge */
-            --radius: 24px;
-            --radius-sm: 16px;
-            --shadow-card: 0 8px 32px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,1); /* Elegant soft shadow */
-            --shadow-hover: 0 20px 60px -15px rgba(99,102,241,0.2);
+            /* === BOLD INDIGO PREMIUM THEME === */
+            --bg: #f4f3ff;
+            --bg-card: #ffffff;
+            --text-primary: #0f0d2e;
+            --text-secondary: #5b6478;
+            --text-muted: #9ca3af;
+            --border: #e0ddf7;
+            --radius: 20px;
+            --radius-sm: 14px;
+            --shadow-card: 0 1px 4px rgba(79,46,209,0.06), 0 4px 16px rgba(79,46,209,0.05);
+            --shadow-hover: 0 20px 60px -15px rgba(79,46,209,0.22);
 
-            /* Brand - Indigo family -> Spatial/Cyberpunk Neon */
-            --indigo: #818cf8;
-            --indigo-dark: #c7d2fe;
-            --indigo-mid: #6366f1;
-            --indigo-light: #a5b4fc;
-            --indigo-bg: rgba(99,102,241,0.1);
+            /* Brand - Indigo family */
+            --indigo: #4f2ed1;
+            --indigo-dark: #1e1b4b;
+            --indigo-mid: #3730a3;
+            --indigo-light: #6366f1;
+            --indigo-bg: #eef2ff;
 
             /* Gold accent */
-            --gold: #fbbf24;
-            --gold-bright: #fde047;
-            --gold-bg: rgba(251,191,36,0.1);
+            --gold: #f59e0b;
+            --gold-bright: #fbbf24;
+            --gold-bg: #fffbeb;
 
             /* Feature colors */
-            --coral: #f43f5e;
-            --coral-bg: rgba(244,63,94,0.1);
-            --blue: #38bdf8;
-            --blue-bg: rgba(56,189,248,0.1);
-            --emerald: #34d399;
-            --emerald-bg: rgba(52,211,153,0.1);
-            --amber: #fbbf24;
-            --amber-bg: rgba(251,191,36,0.1);
-            --violet: #c084fc;
-            --violet-bg: rgba(192,132,252,0.1);
-            --cyan: #22d3ee;
-            --cyan-bg: rgba(34,211,238,0.1);
-            --navy: #e2e8f0;
+            --coral: #ef4444;
+            --coral-bg: #fff1f2;
+            --blue: #3b82f6;
+            --blue-bg: #eff6ff;
+            --emerald: #10b981;
+            --emerald-bg: #ecfdf5;
+            --amber: #f59e0b;
+            --amber-bg: #fffbeb;
+            --violet: #8b5cf6;
+            --violet-bg: #f5f3ff;
+            --cyan: #06b6d4;
+            --cyan-bg: #ecfeff;
+            --navy: #1e1b4b;
 
             /* Glassmorphism */
             --glass-bg: rgba(255,255,255,0.06);
@@ -88,7 +88,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             background: var(--bg);
             color: var(--text-primary);
             -webkit-font-smoothing: antialiased;
@@ -128,8 +128,6 @@
             transition: var(--transition-smooth);
             position: relative;
             overflow: hidden;
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
         }
         .bcard:hover {
             transform: translateY(-5px) scale(1.005);
@@ -143,10 +141,10 @@
         }
 
         /* Typography */
-        .display { font-family: 'Outfit', sans-serif; font-size: clamp(48px, 6vw, 84px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; }
-        .h1 { font-family: 'Outfit', sans-serif; font-size: clamp(32px, 4vw, 56px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
-        .h2 { font-family: 'Outfit', sans-serif; font-size: clamp(24px, 3vw, 40px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
-        .h3 { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+        .display { font-size: clamp(48px, 6vw, 80px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.05; }
+        .h1 { font-size: clamp(32px, 4vw, 48px); font-weight: 800; letter-spacing: -0.025em; line-height: 1.1; }
+        .h2 { font-size: clamp(24px, 3vw, 36px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+        .h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
         .body-lg { font-size: 18px; line-height: 1.7; color: var(--text-secondary); }
         .body { font-size: 15px; line-height: 1.7; color: var(--text-secondary); }
         .caption { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
@@ -187,9 +185,9 @@
         .btn-ghost-white:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.5); color: #fff; }
         /* Dark - nav CTA on light sections */
         .btn-dark {
-            background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.1);
+            background: var(--indigo-dark); color: #fff;
         }
-        .btn-dark:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); box-shadow: 0 8px 30px -8px rgba(255,255,255,0.1); }
+        .btn-dark:hover { background: var(--indigo-mid); transform: translateY(-2px); box-shadow: 0 8px 30px -8px rgba(30,27,75,0.4); }
         /* Ghost - light section secondary */
         .btn-ghost {
             background: transparent; color: var(--text-primary);
@@ -367,16 +365,16 @@
         }
         .wave-top svg { display: block; fill: #1e1b4b; }
 
-        /* Colored cards - Dark Mode Neon Variants */
-        .bcard-coral { background: rgba(244,63,94,0.06); border-color: rgba(244,63,94,0.3); }
-        .bcard-blue { background: rgba(56,189,248,0.06); border-color: rgba(56,189,248,0.3); }
-        .bcard-emerald { background: rgba(52,211,153,0.06); border-color: rgba(52,211,153,0.3); }
-        .bcard-amber { background: rgba(251,191,36,0.06); border-color: rgba(251,191,36,0.3); }
-        .bcard-violet { background: rgba(192,132,252,0.06); border-color: rgba(192,132,252,0.3); }
-        .bcard-cyan { background: rgba(34,211,238,0.1); border-color: rgba(34,211,238,0.4); }
-        .bcard-dark { background: rgba(15, 23, 42, 0.8); border-color: rgba(15, 23, 42, 0.2); color: #fff; }
-        .bcard-indigo { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.4); }
-        .bcard-gold { background: rgba(253,224,71,0.06); border-color: rgba(253,224,71,0.3); }
+        /* Colored cards - more vibrant */
+        .bcard-coral { background: linear-gradient(135deg, #fff1f2, #ffe4e6); border-color: #fca5a5; }
+        .bcard-blue { background: linear-gradient(135deg, #eff6ff, #dbeafe); border-color: #93c5fd; }
+        .bcard-emerald { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-color: #6ee7b7; }
+        .bcard-amber { background: linear-gradient(135deg, #fffbeb, #fef3c7); border-color: #fcd34d; }
+        .bcard-violet { background: linear-gradient(135deg, #f5f3ff, #ede9fe); border-color: #c4b5fd; }
+        .bcard-cyan { background: linear-gradient(135deg, #ecfeff, #cffafe); border-color: #67e8f9; }
+        .bcard-dark { background: linear-gradient(135deg, #1e1b4b, #2d2a6e); border-color: rgba(255,255,255,0.08); color: #fff; }
+        .bcard-indigo { background: linear-gradient(135deg, #eef2ff, #e0e7ff); border-color: rgba(99,102,241,0.35); }
+        .bcard-gold { background: linear-gradient(135deg, #fffbeb, #fef3c7); border-color: #fde68a; }
 
         /* Program sub-item */
         .prog-item {
@@ -472,7 +470,7 @@
         }
 
         /* Footer */
-        .footer { background: transparent; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.05); }
+        .footer { background: var(--indigo-dark); color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.05); }
         .footer a { color: #94a3b8; text-decoration: none; transition: color 0.2s; }
         .footer a:hover { color: var(--gold-bright); }
 
@@ -800,33 +798,6 @@
 </head>
 
 <body>
-    {{-- GLOBAL SPATIAL AURORA BACKGROUND --}}
-    <div class="global-aurora">
-        <div class="aurora-blob a-1"></div>
-        <div class="aurora-blob a-2"></div>
-        <div class="aurora-blob a-3"></div>
-        <div class="aurora-blob a-4"></div>
-    </div>
-    <style>
-        .global-aurora {
-            position: fixed; inset: 0; z-index: -999; overflow: hidden;
-            background: #030014; pointer-events: none;
-        }
-        .aurora-blob {
-            position: absolute; filter: blur(100px); opacity: 0.5;
-            animation: float-aurora 20s infinite alternate ease-in-out;
-        }
-        .a-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(99,102,241,0.4); }
-        .a-2 { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: rgba(139,92,246,0.3); animation-delay: -5s; }
-        .a-3 { top: 40%; left: 60%; width: 40vw; height: 40vw; background: rgba(236,72,153,0.25); animation-delay: -10s; }
-        .a-4 { bottom: 30%; left: 10%; width: 45vw; height: 45vw; background: rgba(16,185,129,0.15); animation-delay: -15s; }
-        @keyframes float-aurora {
-            0% { transform: scale(1) translate(0, 0); }
-            33% { transform: scale(1.1) translate(5%, 5%); }
-            66% { transform: scale(0.9) translate(-5%, 5%); }
-            100% { transform: scale(1.05) translate(2%, -5%); }
-        }
-    </style>
     @include('landing.partials.navigation')
     @include('landing.partials.hero')
     @include('landing.partials.platform-overview')
@@ -840,6 +811,7 @@
     @include('landing.partials.sambutan-ketua')
     @include('landing.partials.profil-yayasan')
     @include('landing.partials.kegiatan-siswa')
+    @include('landing.partials.berita')
     @include('landing.partials.alumni-showcase')
     @include('landing.partials.galeri')
     @include('landing.partials.psb-cta')
@@ -1067,20 +1039,6 @@
                 }
             });
         }
-
-        // Vanilla Tilt 3D Effect Init
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof VanillaTilt !== 'undefined') {
-                VanillaTilt.init(document.querySelectorAll(".shimmer-card, .bcard"), {
-                    max: 3,
-                    speed: 400,
-                    glare: true,
-                    "max-glare": 0.15,
-                    scale: 1.01
-                });
-            }
-        });
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
 </body>
 </html>

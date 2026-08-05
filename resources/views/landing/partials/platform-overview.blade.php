@@ -25,7 +25,7 @@
     }
 </style>
 
-<section id="platform" class="section" style="background: transparent;">
+<section id="platform" class="section" style="background: var(--bg-card, #ffffff);">
     <div class="fw">
         <div style="max-width:900px; margin:0 auto; text-align:center;" data-aos="fade-up">
             {{-- Subtle intro text --}}

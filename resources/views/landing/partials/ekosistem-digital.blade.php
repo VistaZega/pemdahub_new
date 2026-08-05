@@ -1,5 +1,5 @@
 {{-- EKOSISTEM DIGITAL — New Section --}}
-<section id="ekosistem" class="section" style="background: transparent;">
+<section id="ekosistem" class="section" style="background: linear-gradient(135deg, #0f172a, #1e1b4b);">
     <div class="fw">
         <div style="text-align:center; margin-bottom:56px;" data-aos="fade-up">
             <div class="section-label" style="justify-content:center;">

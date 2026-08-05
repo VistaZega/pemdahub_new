@@ -4,7 +4,7 @@
 /* === PKL SHOWCASE SECTION === */
 .pkl-section {
     padding: 5rem 1rem;
-    background: transparent;
+    background: linear-gradient(180deg, #ffffff 0%, #f0eeff 50%, #f4f3ff 100%);
     position: relative;
     overflow: hidden;
 }
@@ -100,31 +100,19 @@
     margin: 0 auto 3rem;
 }
 .pkl-stat-card {
-    background: var(--bg-card); 
+    background: rgba(255,255,255,0.85);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(224,221,247,0.6);
     border-radius: 16px;
     padding: 1.25rem 1rem;
     text-align: center;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    position: relative;
-    overflow: hidden;
+    transition: all 0.3s ease;
 }
 .pkl-stat-card:hover {
     transform: translateY(-4px);
-    background: var(--bg-card);
-    box-shadow: var(--shadow-hover);
+    box-shadow: 0 12px 24px -8px rgba(99,102,241,0.15);
+    border-color: rgba(99,102,241,0.3);
 }
-/* Variasi Warna Card Stats */
-.stat-indigo { border-bottom: 3px solid rgba(99,102,241,0.6); }
-.stat-indigo:hover { border-color: rgba(99,102,241,1); box-shadow: 0 12px 30px -5px rgba(99,102,241,0.25); }
-
-.stat-emerald { border-bottom: 3px solid rgba(16,185,129,0.6); }
-.stat-emerald:hover { border-color: rgba(16,185,129,1); box-shadow: 0 12px 30px -5px rgba(16,185,129,0.25); }
-
-.stat-amber { border-bottom: 3px solid rgba(245,158,11,0.6); }
-.stat-amber:hover { border-color: rgba(245,158,11,1); box-shadow: 0 12px 30px -5px rgba(245,158,11,0.25); }
 .pkl-stat-icon {
     width: 44px;
     height: 44px;
@@ -145,10 +133,9 @@
 .pkl-stat-label {
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--text-secondary, #94a3b8);
+    color: var(--text-secondary, #5b6478);
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    opacity: 0.9;
 }
 
 /* Carousel Container */
@@ -178,13 +165,11 @@
 
 /* Carousel Card */
 .pkl-card {
-    background: var(--bg-card); 
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: #fff;
     border-radius: 20px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.15); /* Garis Penjelas (Borders) */
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    border: 1px solid rgba(224,221,247,0.5);
+    box-shadow: 0 4px 16px rgba(79,46,209,0.06);
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     height: 100%;
     display: flex;
@@ -442,22 +427,22 @@
 
         {{-- Stats Bar --}}
         <div class="pkl-stats" data-aos="fade-up" data-aos-delay="100">
-            <div class="pkl-stat-card stat-indigo">
-                <div class="pkl-stat-icon" style="background:rgba(99,102,241,0.1); color:#818cf8; border: 1px solid rgba(99,102,241,0.2);">
+            <div class="pkl-stat-card">
+                <div class="pkl-stat-icon" style="background:rgba(99,102,241,0.1); color:#6366f1;">
                     <i class="fa-solid fa-book-open"></i>
                 </div>
                 <div class="pkl-stat-number" data-count="{{ $totalApprovedLogs }}">0</div>
                 <div class="pkl-stat-label">Logbook Disetujui</div>
             </div>
-            <div class="pkl-stat-card stat-emerald">
-                <div class="pkl-stat-icon" style="background:rgba(16,185,129,0.1); color:#34d399; border: 1px solid rgba(16,185,129,0.2);">
+            <div class="pkl-stat-card">
+                <div class="pkl-stat-icon" style="background:rgba(16,185,129,0.1); color:#10b981;">
                     <i class="fa-solid fa-clipboard-check"></i>
                 </div>
                 <div class="pkl-stat-number" data-count="{{ $totalMonitorings }}">0</div>
                 <div class="pkl-stat-label">Kunjungan Monitoring</div>
             </div>
-            <div class="pkl-stat-card stat-amber">
-                <div class="pkl-stat-icon" style="background:rgba(245,158,11,0.1); color:#fbbf24; border: 1px solid rgba(245,158,11,0.2);">
+            <div class="pkl-stat-card">
+                <div class="pkl-stat-icon" style="background:rgba(245,158,11,0.1); color:#f59e0b;">
                     <i class="fa-solid fa-building"></i>
                 </div>
                 <div class="pkl-stat-number" data-count="{{ $totalDudi }}">0</div>
@@ -684,7 +669,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @else
 {{-- Fallback: No PKL data yet --}}
-<section id="pkl-showcase" class="section" style="background: transparent;" data-aos="fade-up">
+<section id="pkl-showcase" class="section" style="background: #ffffff; border-bottom: 1px solid var(--border);" data-aos="fade-up">
     <div class="fw">
         <div style="text-align:center; margin-bottom:56px;">
             <div class="section-label" style="justify-content:center;">

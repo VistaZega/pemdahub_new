@@ -1,5 +1,5 @@
 {{-- STATISTIK — Bold Indigo Theme --}}
-<section id="statistik" class="section" style="background: transparent;">
+<section id="statistik" class="section" style="background: linear-gradient(135deg, #1e1b4b, #2d2a6e);">
     <div class="fw">
         <div style="text-align:center; margin-bottom:48px;" data-aos="fade-up">
             <div class="section-label" style="justify-content:center; margin-bottom:16px;">
@@ -67,8 +67,8 @@
             
             {{-- Stat 8: Program --}}
             <div class="stat-card" style="background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.25);">
-                <div class="stat-card__value" style="color:#fde68a;" data-count="{{ $totalApprovedLogs ?? 50 }}" data-suffix="+"></div>
-                <div class="stat-card__label">Log Jurnal PKL Industri</div>
+                <div class="stat-card__value" style="color:#fde68a;" data-count="5"></div>
+                <div class="stat-card__label">Program Keahlian SMK</div>
                 <div class="stat-card__line" style="background:linear-gradient(90deg,#f59e0b,#fde68a);"></div>
             </div>
         </div>

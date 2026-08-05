@@ -1,19 +1,19 @@
 {{-- PEMBDAHUB FEATURES — Bold Indigo Theme --}}
-<section id="features" class="section" style="background: transparent;">
+<section id="features" class="section" style="background:var(--bg);">
     <div class="fw">
         <div style="text-align:center; margin-bottom:64px;" data-aos="fade-up">
             <div class="section-label" style="justify-content:center;">
                 <div class="section-label-dot" style="background:var(--indigo-light);"></div>
-                <span class="section-label-text" style="color:var(--indigo);">The Pembda Advantage</span>
+                <span class="section-label-text" style="color:var(--indigo);">Modul & Fitur PembdaHUB</span>
             </div>
-            <h2 class="h1" style="margin-bottom:12px;">Fasilitas & <span style="background:linear-gradient(135deg,var(--indigo),var(--indigo-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Keunggulan</span> Belajar</h2>
-            <p class="body-lg" style="max-width:680px; margin:0 auto;">Berbagai fasilitas digital canggih terintegrasi kami siapkan untuk mendukung penuh kegiatan akademik, kreativitas siswa, dan pemantauan transparan bagi orang tua.</p>
+            <h2 class="h1" style="margin-bottom:12px;">Fitur & <span style="background:linear-gradient(135deg,var(--indigo),var(--indigo-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Ekosistem</span> Sistem</h2>
+            <p class="body-lg" style="max-width:680px; margin:0 auto;">Seluruh layanan PembdaHUB dikelompokkan dalam modul-modul utama untuk mendukung kegiatan akademik, operasional, dan pengembangan kompetensi.</p>
         </div>
 
         {{-- CATEGORY 1: MANAJEMEN SEKOLAH --}}
         <div style="margin-bottom:60px;" data-aos="fade-up">
             <h3 class="h2" style="font-size: 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; color: var(--indigo-dark);">
-                <i class="fa-solid fa-chalkboard-user" style="color: var(--indigo);"></i> Pembelajaran Cerdas & Modern
+                <i class="fa-solid fa-chalkboard-user" style="color: var(--indigo);"></i> Manajemen Sekolah & Pembelajaran
             </h3>
             
             {{-- Bento Row: Featured --}}
@@ -59,11 +59,8 @@
                 </div>
             </div>
 
-            {{-- Compact Cards Row with News --}}
-            <div class="bento bento-3">
-                @if(isset($news) && $news->count() > 0)
-                    @include('landing.partials.news-card', ['item' => $news[0]])
-                @endif
+            {{-- Compact Cards Row --}}
+            <div class="bento bento-4">
                 {{-- Feature: Pembayaran --}}
                 <div class="bcard" style="padding:24px;">
                     <div class="icon-circle" style="background:var(--emerald-bg); color:var(--emerald); margin-bottom:16px;">
@@ -92,7 +89,7 @@
                 </div>
 
                 {{-- Feature: Perkembangan Siswa --}}
-                <div class="bcard span-2" style="padding:24px;">
+                <div class="bcard" style="padding:24px;">
                     <div class="icon-circle" style="background:var(--coral-bg); color:var(--coral); margin-bottom:16px;">
                         <i class="fa-solid fa-clipboard-list"></i>
                     </div>
@@ -105,7 +102,7 @@
         {{-- CATEGORY 2: PENGEMBANGAN SISWA & GURU (NEW & Gamification) --}}
         <div style="margin-bottom:60px;" data-aos="fade-up" data-aos-delay="50">
             <h3 class="h2" style="font-size: 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; color: var(--indigo-dark);">
-                <i class="fa-solid fa-people-up-trend" style="color: var(--indigo);"></i> Pembentukan Karakter & Kesiapan Masa Depan
+                <i class="fa-solid fa-people-up-trend" style="color: var(--indigo);"></i> Pengembangan Siswa & Guru
             </h3>
 
             <div class="bento bento-3" style="margin-bottom:20px;">
@@ -164,11 +161,7 @@
                 </div>
             </div>
 
-            <div class="bento bento-3">
-                @if(isset($news) && $news->count() > 1)
-                    @include('landing.partials.news-card', ['item' => $news[1]])
-                @endif
-                
+            <div class="bento bento-2">
                 {{-- NEW: PKL & Alumni (Tracer Study) --}}
                 <div class="bcard gradient-border-card shimmer-card" style="padding:28px; display:grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;">
                     <div>
@@ -207,13 +200,10 @@
         {{-- CATEGORY 3: ADMINISTRASI & MONITORING --}}
         <div data-aos="fade-up" data-aos-delay="100">
             <h3 class="h2" style="font-size: 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; color: var(--indigo-dark);">
-                <i class="fa-solid fa-shield-halved" style="color: var(--indigo);"></i> Transparansi & Keterlibatan Orang Tua
+                <i class="fa-solid fa-sliders" style="color: var(--indigo);"></i> Administrasi & Kontrol Orang Tua
             </h3>
 
-            <div class="bento bento-4">
-                @if(isset($news) && $news->count() > 2)
-                    @include('landing.partials.news-card', ['item' => $news[2]])
-                @endif
+            <div class="bento bento-3">
                 {{-- Feature: Kepegawaian --}}
                 <div class="bcard" style="padding:24px;">
                     <div class="icon-circle" style="background:var(--blue-bg); color:var(--blue); margin-bottom:16px;">

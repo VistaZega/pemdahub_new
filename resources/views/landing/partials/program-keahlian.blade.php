@@ -1,5 +1,5 @@
 {{-- PROGRAM KEAHLIAN — Bento/Apple Style --}}
-<section id="program" class="section" style="background: transparent;">
+<section id="program" class="section" style="background:#fff;">
     <div class="fw">
         <div style="text-align:center; margin-bottom:56px;" data-aos="fade-up">
             <div class="section-label" style="justify-content:center;">
