@@ -4,16 +4,16 @@
         <div style="text-align:center; margin-bottom:64px;" data-aos="fade-up">
             <div class="section-label" style="justify-content:center;">
                 <div class="section-label-dot" style="background:var(--indigo-light);"></div>
-                <span class="section-label-text" style="color:var(--indigo);">Modul & Fitur PembdaHUB</span>
+                <span class="section-label-text" style="color:var(--indigo);">The Pembda Advantage</span>
             </div>
-            <h2 class="h1" style="margin-bottom:12px;">Fitur & <span style="background:linear-gradient(135deg,var(--indigo),var(--indigo-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Ekosistem</span> Sistem</h2>
-            <p class="body-lg" style="max-width:680px; margin:0 auto;">Seluruh layanan PembdaHUB dikelompokkan dalam modul-modul utama untuk mendukung kegiatan akademik, operasional, dan pengembangan kompetensi.</p>
+            <h2 class="h1" style="margin-bottom:12px;">Fasilitas & <span style="background:linear-gradient(135deg,var(--indigo),var(--indigo-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Keunggulan</span> Belajar</h2>
+            <p class="body-lg" style="max-width:680px; margin:0 auto;">Berbagai fasilitas digital canggih terintegrasi kami siapkan untuk mendukung penuh kegiatan akademik, kreativitas siswa, dan pemantauan transparan bagi orang tua.</p>
         </div>
 
         {{-- CATEGORY 1: MANAJEMEN SEKOLAH --}}
         <div style="margin-bottom:60px;" data-aos="fade-up">
             <h3 class="h2" style="font-size: 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; color: var(--indigo-dark);">
-                <i class="fa-solid fa-chalkboard-user" style="color: var(--indigo);"></i> Manajemen Sekolah & Pembelajaran
+                <i class="fa-solid fa-chalkboard-user" style="color: var(--indigo);"></i> Pembelajaran Cerdas & Modern
             </h3>
             
             {{-- Bento Row: Featured --}}
@@ -102,7 +102,7 @@
         {{-- CATEGORY 2: PENGEMBANGAN SISWA & GURU (NEW & Gamification) --}}
         <div style="margin-bottom:60px;" data-aos="fade-up" data-aos-delay="50">
             <h3 class="h2" style="font-size: 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; color: var(--indigo-dark);">
-                <i class="fa-solid fa-people-up-trend" style="color: var(--indigo);"></i> Pengembangan Siswa & Guru
+                <i class="fa-solid fa-people-up-trend" style="color: var(--indigo);"></i> Pembentukan Karakter & Kesiapan Masa Depan
             </h3>
 
             <div class="bento bento-3" style="margin-bottom:20px;">
@@ -200,7 +200,7 @@
         {{-- CATEGORY 3: ADMINISTRASI & MONITORING --}}
         <div data-aos="fade-up" data-aos-delay="100">
             <h3 class="h2" style="font-size: 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; color: var(--indigo-dark);">
-                <i class="fa-solid fa-sliders" style="color: var(--indigo);"></i> Administrasi & Kontrol Orang Tua
+                <i class="fa-solid fa-shield-halved" style="color: var(--indigo);"></i> Transparansi & Keterlibatan Orang Tua
             </h3>
 
             <div class="bento bento-3">

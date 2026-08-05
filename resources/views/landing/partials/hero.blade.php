@@ -99,34 +99,34 @@
             {{-- Badge --}}
             <div class="badge" style="margin-bottom:28px;">
                 <div class="pulse" style="background:#10b981;"></div>
-                <span>Ekosistem Pendidikan Digital Terpadu</span>
+                <span>Selamat Datang di Ekosistem Pendidikan Digital Masa Depan</span>
             </div>
 
             {{-- Main Title --}}
             <h1 class="display" style="margin-bottom:16px; color:#ffffff;">
-                Pembda<span style="color:#ef4444; -webkit-text-fill-color:#ef4444;">HUB</span>
+                Yayasan Perguruan <span style="color:#fbbf24;">PEMBDA</span>
             </h1>
 
             {{-- Red underline decoration --}}
             <div style="width:120px; height:4px; background:linear-gradient(90deg, #ef4444, #f87171, #ef4444); border-radius:2px; margin: 0 auto 28px; opacity:0.9;"></div>
 
             <p class="body-lg" style="max-width:720px; margin:0 auto 14px; font-size:22px; color:rgba(255,255,255,0.92); min-height: 66px; line-height: 1.4;">
-                Dimana Teknologi Bertemu Pendidikan Berkualitas:<br>
+                Pusat Keunggulan Akademik dan Inovasi:<br>
                 <span class="typewriter-text" style="color:#fbbf24; font-weight:800; border-right: 2px solid #fbbf24; padding-right: 5px;"></span><span class="typewriter-cursor" style="border-right: 2px solid #fbbf24;"></span>
             </p>
             <p style="max-width:640px; margin:0 auto 32px; font-size:16px; color:rgba(255,255,255,0.6); line-height:1.7;">
                 Menghubungkan <strong style="color:rgba(255,255,255,0.85);">{{ $totalSchools }} unit sekolah</strong>,
                 <strong style="color:rgba(255,255,255,0.85);">{{ number_format($totalStudents, 0, ',', '.') }} siswa aktif</strong>,
-                dan ratusan pendidik dalam satu platform pintar tanpa batas.
+                dan ribuan alumni dalam satu platform pendidikan yang terintegrasi penuh.
             </p>
 
             {{-- CTA Buttons --}}
             <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
                 <a href="{{ route('public.registration.index') }}" class="btn btn-gold">
-                    <i class="fa-solid fa-user-plus"></i> Bergabung Bersama Kami
+                    <i class="fa-solid fa-user-plus"></i> Pendaftaran Siswa Baru
                 </a>
-                <a href="#platform" class="btn btn-ghost-white">
-                    <i class="fa-solid fa-arrow-down"></i> Eksplorasi Ekosistem
+                <a href="{{ route('login') }}" class="btn btn-ghost-white">
+                    <i class="fa-solid fa-right-to-bracket"></i> Portal Civitas (Login)
                 </a>
             </div>
 
@@ -142,7 +142,7 @@
                 </div>
                 <div class="live-stat-item">
                     <div class="live-stat-val" data-count="{{ $totalAlumni }}">0</div>
-                    <div class="live-stat-label">Alumni Terdata</div>
+                    <div class="live-stat-label">Jejaring Alumni</div>
                 </div>
             </div>
         </div>
@@ -150,40 +150,40 @@
         {{-- Hero Feature Cards - Vibrant Solid Colors --}}
         <div class="hero-cards-grid" data-aos="fade-up" data-aos-delay="250" style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; max-width:1100px; margin:0 auto;">
 
-            {{-- Card 1: Multi-Akses --}}
+            {{-- Card 1: Pembelajaran Digital --}}
             <div class="hero-card hero-card-blue shimmer-card">
+                <div class="hero-card-icon">
+                    <i class="fa-solid fa-laptop-code"></i>
+                </div>
+                <div class="hero-card-title">LMS & CBT</div>
+                <p class="hero-card-desc">Sistem E-Learning interaktif dan Ujian Berbasis Komputer standar nasional.</p>
+            </div>
+
+            {{-- Card 2: PKL & TEFA --}}
+            <div class="hero-card hero-card-emerald shimmer-card">
+                <div class="hero-card-icon">
+                    <i class="fa-solid fa-industry"></i>
+                </div>
+                <div class="hero-card-title">Kesiapan Industri</div>
+                <p class="hero-card-desc">Pemantauan jurnal PKL real-time dan ekosistem Teaching Factory (TEFA).</p>
+            </div>
+
+            {{-- Card 3: Kedisiplinan Pintar --}}
+            <div class="hero-card hero-card-gold shimmer-card">
+                <div class="hero-card-icon">
+                    <i class="fa-solid fa-id-card-clip"></i>
+                </div>
+                <div class="hero-card-title">Smart Attendance</div>
+                <p class="hero-card-desc">Absensi terintegrasi kartu pintar (RFID) demi kedisiplinan dan keamanan.</p>
+            </div>
+
+            {{-- Card 4: Portal Transparan --}}
+            <div class="hero-card hero-card-coral shimmer-card">
                 <div class="hero-card-icon">
                     <i class="fa-solid fa-users-between-lines"></i>
                 </div>
-                <div class="hero-card-title">Portal Kolaboratif</div>
-                <p class="hero-card-desc">Akses terdedikasi dan terpisah untuk Siswa, Guru, dan Orang Tua.</p>
-            </div>
-
-            {{-- Card 2: 3 Unit Sekolah --}}
-            <div class="hero-card hero-card-emerald shimmer-card">
-                <div class="hero-card-icon">
-                    <i class="fa-solid fa-school-flag"></i>
-                </div>
-                <div class="hero-card-title">Terintegrasi Penuh</div>
-                <p class="hero-card-desc">Sinergi antara SMP, SMA, dan SMK dalam satu manajemen terpusat.</p>
-            </div>
-
-            {{-- Card 3: Smart System --}}
-            <div class="hero-card hero-card-gold shimmer-card">
-                <div class="hero-card-icon">
-                    <i class="fa-solid fa-microchip"></i>
-                </div>
-                <div class="hero-card-title">Otomasi Cerdas</div>
-                <p class="hero-card-desc">Modul cerdas LMS, CBT, serta instrumen presensi RFID biometrik.</p>
-            </div>
-
-            {{-- Card 4: Real-time --}}
-            <div class="hero-card hero-card-coral shimmer-card">
-                <div class="hero-card-icon">
-                    <i class="fa-solid fa-chart-line"></i>
-                </div>
-                <div class="hero-card-title">Analitik Otomatis</div>
-                <p class="hero-card-desc">Pemantauan progres nilai harian dan dashboard performa sekolah.</p>
+                <div class="hero-card-title">Kolaborasi Aktif</div>
+                <p class="hero-card-desc">Portal khusus Orang Tua untuk memantau nilai dan perkembangan siswa.</p>
             </div>
         </div>
     </div>
