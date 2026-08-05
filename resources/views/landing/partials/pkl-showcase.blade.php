@@ -100,7 +100,7 @@
     margin: 0 auto 3rem;
 }
 .pkl-stat-card {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(15, 23, 42, 0.6); /* Contrast slate color against purple */
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
@@ -113,8 +113,8 @@
 }
 .pkl-stat-card:hover {
     transform: translateY(-4px);
-    background: rgba(255, 255, 255, 0.05);
-    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.3);
+    background: rgba(15, 23, 42, 0.85);
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.4);
 }
 /* Variasi Warna Card Stats */
 .stat-indigo { border-bottom: 3px solid rgba(99,102,241,0.6); }
@@ -178,7 +178,7 @@
 
 /* Carousel Card */
 .pkl-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(15, 23, 42, 0.6); /* Contrast slate color against purple */
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border-radius: 20px;

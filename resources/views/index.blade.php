@@ -38,7 +38,7 @@
         :root {
             /* === PRO MAX HYPER-MODERN SPATIAL THEME === */
             --bg: #030014;
-            --bg-card: rgba(255, 255, 255, 0.02);
+            --bg-card: rgba(15, 23, 42, 0.6); /* Slate 900 with opacity for contrast against purple */
             --text-primary: #ffffff;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
@@ -373,9 +373,9 @@
         .bcard-emerald { background: rgba(52,211,153,0.06); border-color: rgba(52,211,153,0.3); }
         .bcard-amber { background: rgba(251,191,36,0.06); border-color: rgba(251,191,36,0.3); }
         .bcard-violet { background: rgba(192,132,252,0.06); border-color: rgba(192,132,252,0.3); }
-        .bcard-cyan { background: rgba(34,211,238,0.06); border-color: rgba(34,211,238,0.3); }
-        .bcard-dark { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.08); color: #fff; }
-        .bcard-indigo { background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.3); }
+        .bcard-cyan { background: rgba(34,211,238,0.08); border-color: rgba(34,211,238,0.3); }
+        .bcard-dark { background: rgba(15, 23, 42, 0.7); border-color: rgba(255,255,255,0.15); color: #fff; }
+        .bcard-indigo { background: rgba(99,102,241,0.08); border-color: rgba(99,102,241,0.3); }
         .bcard-gold { background: rgba(253,224,71,0.06); border-color: rgba(253,224,71,0.3); }
 
         /* Program sub-item */
