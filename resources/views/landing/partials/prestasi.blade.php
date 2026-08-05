@@ -57,41 +57,55 @@
                         $delay = 100 + ($index * 100);
                     @endphp
                     
-                    <div class="bcard hover-glow prestasi-card" data-aos="fade-up" data-aos-delay="{{ $delay }}" style="display:flex; flex-direction:column;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
-                            <span class="feature-pill" style="background:{{ $levelStyle['bg'] }}; color:{{ $levelStyle['text'] }}; border: 1px solid rgba(0,0,0,0.05);">
-                                <i class="fa-solid fa-globe"></i> Tingkat {{ $levelStyle['label'] }}
-                            </span>
-                            <div class="icon-circle" style="width:36px; height:36px; font-size:16px; background:var(--bg); border:1px solid var(--border); color:var(--text-secondary);">
+                    <div class="bcard hover-glow prestasi-card" data-aos="fade-up" data-aos-delay="{{ $delay }}" style="position:relative; overflow:hidden; display:flex; flex-direction:column; text-align:center; padding-top:40px;">
+                        
+                        <!-- Watermark Piala -->
+                        <i class="fa-solid fa-trophy" style="position:absolute; right:-20px; bottom:-10px; font-size:140px; opacity:0.04; color:#ffffff; transform:rotate(-15deg); pointer-events:none;"></i>
+                        
+                        <!-- Bintang Hiasan -->
+                        <i class="fa-solid fa-star" style="position:absolute; top:20px; left:20px; color:var(--gold); opacity:0.6; font-size:14px; animation: pulse 2s infinite;"></i>
+                        <i class="fa-solid fa-star" style="position:absolute; top:40px; right:30px; color:var(--gold); opacity:0.8; font-size:20px; animation: pulse 2s infinite 1s;"></i>
+
+                        <!-- Top Badge Tingkat -->
+                        <div style="position:absolute; top:0; left:50%; transform:translateX(-50%); background:{{ $levelStyle['bg'] }}; color:{{ $levelStyle['text'] }}; padding:6px 20px; border-radius:0 0 16px 16px; font-size:12px; font-weight:700; box-shadow:0 4px 10px rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.05); border-top:none;">
+                            <i class="fa-solid fa-globe" style="margin-right:4px;"></i> Tingkat {{ $levelStyle['label'] }}
+                        </div>
+
+                        <!-- Foto Siswa Besar -->
+                        <div style="position:relative; width:110px; height:110px; margin:0 auto 16px; border-radius:50%; padding:4px; background:linear-gradient(135deg, var(--gold), #fef08a); box-shadow:0 8px 24px rgba(251, 191, 36, 0.4);">
+                            <img src="{{ $achievement->student?->photo_url ?? asset('assets/img/default-avatar.png') }}" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:3px solid var(--bg-card);" alt="{{ $achievement->student?->full_name ?? 'Siswa' }}" onerror="this.src='{{ asset('assets/img/default-avatar.png') }}'">
+                            
+                            <!-- Ikon Kategori -->
+                            <div style="position:absolute; bottom:-4px; right:-4px; width:36px; height:36px; background:var(--gold); color:#854d0e; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #ffffff; font-size:15px; box-shadow:0 4px 10px rgba(0,0,0,0.2);">
                                 <i class="fa-solid {{ $icon }}"></i>
                             </div>
                         </div>
+
+                        <!-- Nama Siswa -->
+                        <h4 style="font-size:18px; font-weight:800; color:var(--text-primary); margin-bottom:4px; line-height:1.2;">
+                            {{ $achievement->student?->full_name ?? 'Siswa/i Pembda' }}
+                        </h4>
                         
-                        <h3 class="h3" style="margin-bottom:16px; font-size:16px; line-height:1.4; flex-grow:1; color:var(--text-primary);">{{ $achievement->title }}</h3>
+                        <!-- Sekolah -->
+                        <div style="font-size:13px; color:var(--text-secondary); margin-bottom:20px;">
+                            <i class="fa-solid fa-school" style="margin-right:4px; color:var(--gold);"></i> 
+                            {{ $achievement->student?->school?->name ?? 'Perguruan PEMBDA Nias' }}
+                        </div>
                         
-                        <div style="margin-bottom:16px; padding:12px; background:var(--bg); border-radius:10px; border:1px solid var(--border);">
-                            <div style="display:flex; align-items:center; gap:12px;">
-                                <div style="width:40px; height:40px; border-radius:50%; overflow:hidden; border:2px solid var(--border); flex-shrink:0;">
-                                    <img src="{{ $achievement->student?->photo_url ?? asset('assets/img/default-avatar.png') }}" style="width:100%; height:100%; object-fit:cover;" alt="{{ $achievement->student?->full_name ?? 'Siswa' }}" onerror="this.src='{{ asset('assets/img/default-avatar.png') }}'">
-                                </div>
-                                <div>
-                                    <div style="font-weight:700; font-size:14px; color:var(--text-primary); margin-bottom:2px;">
-                                        {{ $achievement->student?->full_name ?? 'Siswa/i Pembda' }}
-                                    </div>
-                                    <div style="font-size:12px; color:var(--text-secondary);">
-                                        <i class="fa-solid fa-school" style="color:var(--text-muted); margin-right:4px;"></i>
-                                        {{ $achievement->student?->school?->name ?? 'Perguruan PEMBDA Nias' }}
-                                    </div>
-                                </div>
+                        <!-- Judul Prestasi -->
+                        <div style="background:var(--bg); border-radius:12px; padding:16px 12px; border:1px solid var(--border); margin-bottom:20px; flex-grow:1; display:flex; align-items:center; justify-content:center; position:relative; z-index:1;">
+                            <div style="font-size:14px; line-height:1.5; color:var(--text-primary); font-weight:600;">
+                                {{ $achievement->title }}
                             </div>
                         </div>
                         
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:16px;">
-                            <div style="font-weight:800; color:var(--text-primary); font-size:15px;">
-                                <i class="fa-solid fa-award" style="color:var(--gold);"></i> {{ $rankLabel }}
+                        <!-- Footer: Juara & Tanggal -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed rgba(255,255,255,0.2); padding-top:16px; position:relative; z-index:1;">
+                            <div style="font-weight:800; color:var(--gold); font-size:15px; background:rgba(251,191,36,0.15); padding:6px 14px; border-radius:20px;">
+                                <i class="fa-solid fa-award"></i> {{ $rankLabel }}
                             </div>
                             <div style="font-size:12px; color:var(--text-secondary); font-weight:600;">
-                                {{ \Carbon\Carbon::parse($achievement->incident_date)->translatedFormat('M Y') }}
+                                <i class="fa-regular fa-calendar-alt" style="margin-right:4px;"></i> {{ \Carbon\Carbon::parse($achievement->incident_date)->translatedFormat('M Y') }}
                             </div>
                         </div>
                     </div>
@@ -129,5 +143,10 @@
 .prestasi-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 20px 40px -15px rgba(55, 48, 163, 0.6) !important;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.8); }
 }
 </style>
