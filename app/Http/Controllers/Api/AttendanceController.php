@@ -452,14 +452,26 @@ class AttendanceController extends Controller
         $schoolLat = $school->latitude ?? -0.000000; 
         $schoolLong = $school->longitude ?? 0.000000;
 
-        // Radius maksimal diizinkan (dalam Meter) misal: 100 Meter.
-        $maxRadiusMeters = 100;
+        $today = \Carbon\Carbon::now('Asia/Jakarta')->toDateString();
 
-        // Cek apakah siswa sedang PKL aktif saat ini
-        $isPklActive = \App\Models\PklPlacement::where('student_id', $student->id)
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
+        // Cek apakah siswa sedang PKL aktif saat ini (Failsafe & Flexible)
+        $isPklActive = \App\Models\PklPlacement::where(function($q) use ($student, $studentUserId) {
+                $q->where('student_id', $student->id)
+                  ->orWhere('student_id', $studentUserId);
+            })
+            ->where(function($q) {
+                $q->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
+                  ->orWhereNull('status')
+                  ->orWhereNotIn('status', ['cancelled', 'rejected', 'finished', 'completed', 'selesai', 'nonaktif']);
+            })
+            ->where(function($q) use ($today) {
+                $q->whereNull('start_date')
+                  ->orWhereDate('start_date', '<=', $today);
+            })
+            ->where(function($q) use ($today) {
+                $q->whereNull('end_date')
+                  ->orWhereDate('end_date', '>=', $today);
+            })
             ->exists();
 
         // Rumus Penghitungan Jarak (Haversine Formula via SQL atau hitung di PHP)
