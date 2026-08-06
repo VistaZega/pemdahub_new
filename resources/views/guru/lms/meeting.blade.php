@@ -71,7 +71,7 @@
         <div id="material-viewer-panel" class="w-[550px] border-l border-slate-800 bg-slate-900 flex-col h-full z-10 hidden relative">
             {{-- Header of Viewer --}}
             <div class="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
-                <h2 class="font-bold text-xs text-slate-200 uppercase tracking-wider flex items-center gap-1.5 min-w-0">
+                <h2 class="font-bold text-xs text-slate-200 tracking-wide flex items-center gap-1.5 min-w-0">
                     <i id="viewer-icon" class="far fa-file-alt text-rose-500"></i>
                     <span id="viewer-title" class="truncate">Viewer Materi</span>
                 </h2>

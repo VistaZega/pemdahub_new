@@ -55,29 +55,29 @@
 
     {{-- Stats Cards --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="stat-card-gradient-1 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
+        <div class="stat-card-gradient-1 rounded-xl p-6 text-white shadow-md relative overflow-hidden">
             <div class="absolute -right-6 -bottom-6 opacity-10">
                 <i class="fas fa-user-friends text-7xl"></i>
             </div>
-            <p class="text-xs font-bold uppercase tracking-wider text-indigo-100">Total Pengerjaan</p>
+            <p class="text-xs font-bold tracking-wide text-indigo-100">Total Pengerjaan</p>
             <p class="text-3xl font-extrabold mt-1">{{ $totalAttempts }}</p>
             <p class="text-[10px] text-indigo-100 mt-2 font-medium">Jumlah percobaan pengerjaan oleh seluruh siswa.</p>
         </div>
 
-        <div class="stat-card-gradient-2 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
+        <div class="stat-card-gradient-2 rounded-xl p-6 text-white shadow-md relative overflow-hidden">
             <div class="absolute -right-6 -bottom-6 opacity-10">
                 <i class="fas fa-check-circle text-7xl"></i>
             </div>
-            <p class="text-xs font-bold uppercase tracking-wider text-emerald-100">Siswa Lulus</p>
+            <p class="text-xs font-bold tracking-wide text-emerald-100">Siswa Lulus</p>
             <p class="text-3xl font-extrabold mt-1">{{ $passedCount }} <span class="text-sm font-normal text-emerald-100">/ {{ $totalAttempts }}</span></p>
             <p class="text-[10px] text-emerald-100 mt-2 font-medium">Batas kelulusan quiz ini adalah {{ $quiz->passing_score }}%.</p>
         </div>
 
-        <div class="stat-card-gradient-3 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
+        <div class="stat-card-gradient-3 rounded-xl p-6 text-white shadow-md relative overflow-hidden">
             <div class="absolute -right-6 -bottom-6 opacity-10">
                 <i class="fas fa-star text-7xl"></i>
             </div>
-            <p class="text-xs font-bold uppercase tracking-wider text-purple-100">Rata-rata Skor</p>
+            <p class="text-xs font-bold tracking-wide text-purple-100">Rata-rata Skor</p>
             <p class="text-3xl font-extrabold mt-1">{{ $avgScore ? number_format($avgScore, 1) . '%' : '-' }}</p>
             <p class="text-[10px] text-purple-100 mt-2 font-medium">Skor rata-rata dari seluruh pengerjaan yang selesai.</p>
         </div>
@@ -86,9 +86,9 @@
     {{-- Chart & Table Row --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Distribution Chart --}}
-        <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm flex flex-col justify-between">
+        <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm flex flex-col justify-between">
             <div>
-                <h3 class="font-bold text-gray-800 text-sm mb-4 uppercase tracking-wider flex items-center gap-2">
+                <h3 class="font-bold text-gray-800 text-sm mb-4 tracking-wide flex items-center gap-2">
                     <i class="fas fa-chart-bar text-purple-600"></i> Distribusi Nilai Siswa
                 </h3>
                 <div class="space-y-4">
@@ -115,7 +115,7 @@
         </div>
 
         {{-- Table --}}
-        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
             <div class="p-5 border-b border-gray-50 flex items-center justify-between">
                 <h4 class="font-bold text-gray-800 text-sm flex items-center gap-2">
                     <i class="fas fa-users text-indigo-500"></i>
@@ -126,12 +126,12 @@
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
                         <tr class="border-b border-gray-100 bg-gray-50/50">
-                            <th class="px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Siswa</th>
-                            <th class="px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Tanggal Selesai</th>
-                            <th class="px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Durasi</th>
-                            <th class="px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Skor</th>
-                            <th class="px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Status</th>
-                            <th class="px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider text-center pr-6">Aksi</th>
+                            <th class="px-5 py-3 text-xs font-bold text-gray-400 tracking-wide pl-6">Siswa</th>
+                            <th class="px-5 py-3 text-xs font-bold text-gray-400 tracking-wide">Tanggal Selesai</th>
+                            <th class="px-5 py-3 text-xs font-bold text-gray-400 tracking-wide text-center">Durasi</th>
+                            <th class="px-5 py-3 text-xs font-bold text-gray-400 tracking-wide text-center">Skor</th>
+                            <th class="px-5 py-3 text-xs font-bold text-gray-400 tracking-wide text-center">Status</th>
+                            <th class="px-5 py-3 text-xs font-bold text-gray-400 tracking-wide text-center pr-6">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">

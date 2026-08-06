@@ -172,8 +172,8 @@
 
         {{-- Right: Student summary & Stats --}}
         <div class="space-y-6">
-            <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
-                <h3 class="font-bold text-gray-800 text-sm uppercase tracking-wider flex items-center gap-2">
+            <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm space-y-4">
+                <h3 class="font-bold text-gray-800 text-sm tracking-wide flex items-center gap-2">
                     <i class="fas fa-info-circle text-indigo-500"></i> Ringkasan Pengerjaan
                 </h3>
                 

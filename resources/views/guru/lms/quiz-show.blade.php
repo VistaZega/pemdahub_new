@@ -6,16 +6,16 @@
 <div class="space-y-6" x-data="{}">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="flex items-center gap-3">
-            <a href="{{ route('guru.lms.show', $course->id) }}?tab=quizzes" class="w-10 h-10 bg-white border-2 border-black rounded-xl flex items-center justify-center text-black hover:bg-amber-300 transition-all shadow-sm">
+            <a href="{{ route('guru.lms.show', $course->id) }}?tab=quizzes" class="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-800 hover:bg-amber-100 text-amber-800 transition-all shadow-sm">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
-                <h2 class="text-2xl font-black text-black">{{ $quiz->title }}</h2>
-                <p class="text-black font-bold text-xs">Course: {{ $course->name }} | Modul: {{ $quiz->module ? ($quiz->module->getCode() . ' · ' . $quiz->module->title) : 'Global' }}</p>
+                <h2 class="text-2xl font-semibold text-gray-800">{{ $quiz->title }}</h2>
+                <p class="text-gray-800 font-bold text-xs">Course: {{ $course->name }} | Modul: {{ $quiz->module ? ($quiz->module->getCode() . ' · ' . $quiz->module->title) : 'Global' }}</p>
             </div>
         </div>
         <div class="flex items-center gap-2 text-xs flex-wrap">
-            <a href="{{ route('guru.lms.quizzes.edit', $quiz->id) }}" class="px-4 py-2.5 rounded-2xl bg-white text-black border-2 border-black hover:bg-amber-300 font-black uppercase tracking-wider transition shadow-sm">
+            <a href="{{ route('guru.lms.quizzes.edit', $quiz->id) }}" class="px-4 py-2.5 rounded-xl bg-white text-gray-800 border border-gray-200 hover:bg-amber-100 text-amber-800 font-semibold tracking-wide transition shadow-sm">
                 <i class="fas fa-edit mr-1"></i> Edit Detail
             </a>
 
@@ -25,26 +25,26 @@
                 @if($quiz->is_published)
                     <button type="submit"
                         onclick="return confirm('Yakin ingin menyembunyikan quiz ini dari siswa?')"
-                        class="px-4 py-2.5 rounded-2xl bg-emerald-400 text-black border-2 border-black hover:bg-emerald-500 transition font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                        class="px-4 py-2.5 rounded-xl bg-emerald-400 text-gray-800 border border-gray-200 hover:bg-emerald-500 transition font-semibold tracking-wide flex items-center gap-1.5 shadow-sm">
                         <i class="fas fa-eye"></i> Published
                         <span class="text-[10px] uppercase">(Set Draft)</span>
                     </button>
                 @else
                     <button type="submit"
-                        class="px-4 py-2.5 rounded-2xl bg-amber-400 text-black border-2 border-black hover:bg-amber-500 transition font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                        class="px-4 py-2.5 rounded-xl bg-amber-400 text-gray-800 border border-gray-200 hover:bg-amber-500 transition font-semibold tracking-wide flex items-center gap-1.5 shadow-sm">
                         <i class="fas fa-eye-slash"></i> Draft
                         <span class="text-[10px] uppercase">(Klik untuk Publish!)</span>
                     </button>
                 @endif
             </form>
 
-            <a href="{{ route('guru.lms.quizzes.results', $quiz->id) }}" class="bg-black text-white hover:bg-purple-600 border-2 border-black px-4 py-2.5 rounded-2xl font-black uppercase tracking-wider transition shadow-md">
-                <i class="fas fa-chart-bar mr-1 text-amber-400"></i> {{ $quiz->attempts_count }} Percobaan
+            <a href="{{ route('guru.lms.quizzes.results', $quiz->id) }}" class="bg-purple-600 text-white hover:bg-purple-700 border border-gray-200 px-4 py-2.5 rounded-xl font-semibold tracking-wide transition shadow-md">
+                <i class="fas fa-chart-bar mr-1 text-amber-500"></i> {{ $quiz->attempts_count }} Percobaan
             </a>
 
             <form action="{{ route('guru.lms.quizzes.destroy', $quiz->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus quiz ini beserta semua percobaan siswa? Tindakan ini tidak dapat dibatalkan.')">
                 @csrf @method('DELETE')
-                <button type="submit" class="bg-white text-red-600 hover:bg-red-100 border-2 border-red-300 px-4 py-2.5 rounded-2xl font-black uppercase tracking-wider transition shadow-sm text-xs">
+                <button type="submit" class="bg-white text-red-600 hover:bg-red-100 border-2 border-red-300 px-4 py-2.5 rounded-xl font-semibold tracking-wide transition shadow-sm text-xs">
                     <i class="fas fa-trash mr-1"></i> Hapus Quiz
                 </button>
             </form>
@@ -52,44 +52,44 @@
     </div>
 
     <!-- Quiz Info & Settings -->
-    <div class="bg-white rounded-3xl shadow-md border-2 border-black p-6">
+    <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
         {{-- Alert status quiz --}}
         @if(!$quiz->is_published)
-        <div class="mb-5 bg-amber-100 border-2 border-black rounded-2xl p-4 flex items-center gap-3">
-            <i class="fas fa-exclamation-triangle text-black text-xl"></i>
+        <div class="mb-5 bg-amber-100 border border-gray-200 rounded-xl p-4 flex items-center gap-3">
+            <i class="fas fa-exclamation-triangle text-gray-800 text-xl"></i>
             <div>
-                <p class="text-black font-black text-sm uppercase tracking-wider">Status Quiz: DRAFT (Tersembunyi)</p>
-                <p class="text-black font-bold text-xs mt-0.5">Siswa belum dapat melihat quiz ini. Klik tombol <strong>"Draft (Klik untuk Publish!)"</strong> di atas agar terbit untuk siswa.</p>
+                <p class="text-gray-800 font-semibold text-sm tracking-wide">Status Quiz: DRAFT (Tersembunyi)</p>
+                <p class="text-gray-800 font-bold text-xs mt-0.5">Siswa belum dapat melihat quiz ini. Klik tombol <strong>"Draft (Klik untuk Publish!)"</strong> di atas agar terbit untuk siswa.</p>
             </div>
         </div>
         @elseif($quiz->start_time && now()->isBefore($quiz->start_time))
-        <div class="mb-5 bg-amber-200 border-2 border-black rounded-2xl p-4 flex items-center gap-3">
-            <i class="fas fa-clock text-black text-xl"></i>
+        <div class="mb-5 bg-amber-200 border border-gray-200 rounded-xl p-4 flex items-center gap-3">
+            <i class="fas fa-clock text-gray-800 text-xl"></i>
             <div>
-                <p class="text-black font-black text-sm uppercase tracking-wider">⚠️ Quiz Terbit tapi BELUM DAPAT DIBUKA Siswa</p>
-                <p class="text-black font-bold text-xs mt-0.5">Waktu Mulai diset pada: <strong>{{ $quiz->start_time->format('d M Y H:i') }}</strong>.</p>
+                <p class="text-gray-800 font-semibold text-sm tracking-wide">⚠️ Quiz Terbit tapi BELUM DAPAT DIBUKA Siswa</p>
+                <p class="text-gray-800 font-bold text-xs mt-0.5">Waktu Mulai diset pada: <strong>{{ $quiz->start_time->format('d M Y H:i') }}</strong>.</p>
             </div>
         </div>
         @elseif($quiz->end_time && now()->isAfter($quiz->end_time))
-        <div class="mb-5 bg-rose-200 border-2 border-black rounded-2xl p-4 flex items-center gap-3">
-            <i class="fas fa-times-circle text-black text-xl"></i>
+        <div class="mb-5 bg-rose-200 border border-gray-200 rounded-xl p-4 flex items-center gap-3">
+            <i class="fas fa-times-circle text-gray-800 text-xl"></i>
             <div>
-                <p class="text-black font-black text-sm uppercase tracking-wider">⚠️ Waktu Pengerjaan Quiz Telah Berakhir</p>
-                <p class="text-black font-bold text-xs mt-0.5">Quiz berakhir pada: <strong>{{ $quiz->end_time->format('d M Y H:i') }}</strong>.</p>
+                <p class="text-gray-800 font-semibold text-sm tracking-wide">⚠️ Waktu Pengerjaan Quiz Telah Berakhir</p>
+                <p class="text-gray-800 font-bold text-xs mt-0.5">Quiz berakhir pada: <strong>{{ $quiz->end_time->format('d M Y H:i') }}</strong>.</p>
             </div>
         </div>
         @else
-        <div class="mb-5 bg-emerald-200 border-2 border-black rounded-2xl p-4 flex items-center gap-3">
-            <i class="fas fa-check-circle text-black text-xl"></i>
-            <p class="text-black font-black text-xs uppercase tracking-wider">Quiz Aktif & Terbit — Siswa dapat langsung mengerjakan quiz ini.</p>
+        <div class="mb-5 bg-emerald-200 border border-gray-200 rounded-xl p-4 flex items-center gap-3">
+            <i class="fas fa-check-circle text-gray-800 text-xl"></i>
+            <p class="text-gray-800 font-semibold text-xs tracking-wide">Quiz Aktif & Terbit — Siswa dapat langsung mengerjakan quiz ini.</p>
         </div>
         @endif
 
         {{-- Validation Errors --}}
         @if($errors->any())
-        <div class="mb-5 bg-rose-100 border-2 border-black rounded-2xl p-4">
-            <p class="text-black font-black text-xs mb-1 uppercase tracking-wider"><i class="fas fa-times-circle mr-1 text-rose-600"></i> Terjadi kesalahan input:</p>
-            <ul class="list-disc ml-5 text-black font-bold text-xs space-y-0.5">
+        <div class="mb-5 bg-rose-100 border border-gray-200 rounded-xl p-4">
+            <p class="text-gray-800 font-semibold text-xs mb-1 tracking-wide"><i class="fas fa-times-circle mr-1 text-rose-600"></i> Terjadi kesalahan input:</p>
+            <ul class="list-disc ml-5 text-gray-800 font-bold text-xs space-y-0.5">
                 @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
                 @endforeach
@@ -101,12 +101,12 @@
             @csrf @method('PUT')
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-1">Judul Quiz</label>
-                    <input type="text" name="title" value="{{ old('title', $quiz->title) }}" required class="w-full border-2 border-black rounded-2xl px-4 py-2.5 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
+                    <label class="block text-xs font-semibold text-gray-800 tracking-wide mb-1">Judul Quiz</label>
+                    <input type="text" name="title" value="{{ old('title', $quiz->title) }}" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 font-semibold focus:ring-4 focus:ring-black/20 outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-1">Durasi Waktu (Menit)</label>
-                    <input type="number" name="time_limit" value="{{ old('time_limit', $quiz->time_limit) }}" class="w-full border-2 border-black rounded-2xl px-4 py-2.5 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
+                    <label class="block text-xs font-semibold text-gray-800 tracking-wide mb-1">Durasi Waktu (Menit)</label>
+                    <input type="number" name="time_limit" value="{{ old('time_limit', $quiz->time_limit) }}" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 font-semibold focus:ring-4 focus:ring-black/20 outline-none">
                 </div>
                 </div>
                 <div>

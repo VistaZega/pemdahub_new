@@ -45,13 +45,13 @@
 <div class="space-y-6">
 
 {{-- =============================== HEADER =============================== --}}
-<div class="rounded-3xl p-6 md:p-8 shadow-md border-2 border-black relative overflow-hidden" style="background-color: #090d16 !important; color: #ffffff !important;">
+<div class="rounded-xl p-6 md:p-8 shadow-md border border-gray-200 relative overflow-hidden" >
 
     {{-- Breadcrumb --}}
-    <nav class="relative flex items-center gap-2 text-xs font-black text-amber-400 mb-4 uppercase tracking-wider">
+    <nav class="relative flex items-center gap-2 text-xs font-semibold text-amber-500 mb-4 tracking-wide">
         <i class="fas fa-graduation-cap"></i>
         <a href="{{ route('guru.lms.show', $course->id) }}?tab=assignments"
-           class="hover:underline text-amber-400">{{ $course->name }}</a>
+           class="hover:underline text-amber-500">{{ $course->name }}</a>
         <i class="fas fa-chevron-right text-[10px] opacity-70"></i>
         <span class="text-white">Penugasan Siswa</span>
         <i class="fas fa-chevron-right text-[10px] opacity-70"></i>
@@ -60,7 +60,7 @@
 
     <div class="relative flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div class="flex-1 min-w-0">
-            <h1 class="text-2xl lg:text-3xl font-black text-white leading-tight tracking-wide">{{ $assignment->title }}</h1>
+            <h1 class="text-2xl lg:text-3xl font-semibold text-white leading-tight tracking-wide">{{ $assignment->title }}</h1>
             @if($assignment->description)
                 <p class="text-amber-300 text-xs font-bold mt-2 line-clamp-2 max-w-3xl">{{ $assignment->description }}</p>
             @endif
@@ -68,30 +68,30 @@
 
         <div class="flex flex-wrap items-center gap-2 shrink-0">
             @if($assignment->deadline)
-            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide border border-gray-200
                 {{ $assignment->isOverdue()
                     ? 'bg-rose-600 text-white'
-                    : 'bg-amber-300 text-black' }}">
+                    : 'bg-amber-100 text-amber-800 text-gray-800' }}">
                 <i class="fas fa-clock text-xs"></i>
                 @if($assignment->isOverdue()) ⚠ TERLAMBAT — @endif
                 {{ $assignment->deadline->format('d M Y, H:i') }}
             </span>
             @endif
 
-            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-black uppercase tracking-wider bg-emerald-400 text-black border-2 border-black">
-                <i class="fas fa-star text-xs text-black"></i>
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide bg-emerald-400 text-gray-800 border border-gray-200">
+                <i class="fas fa-star text-xs text-gray-800"></i>
                 Skor Maks: {{ $assignment->max_score }}
             </span>
 
             <a href="{{ route('guru.lms.assignments.edit', $assignment->id) }}"
-               class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider
-                      bg-white text-black hover:bg-amber-300 border-2 border-black shadow-sm transition">
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold tracking-wide
+                      bg-white text-gray-800 hover:bg-amber-100 text-amber-800 border border-gray-200 shadow-sm transition">
                 <i class="fas fa-edit"></i> Edit Tugas
             </a>
 
             <form action="{{ route('guru.lms.assignments.destroy', $assignment->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus tugas ini beserta semua submisi siswa? Tindakan ini tidak dapat dibatalkan.')">
                 @csrf @method('DELETE')
-                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold tracking-wide
                        bg-white text-red-600 hover:bg-red-100 border-2 border-red-300 shadow-sm transition">
                     <i class="fas fa-trash"></i> Hapus
                 </button>
@@ -100,7 +100,7 @@
     </div>
 
     @if($assignment->description)
-    <div class="relative mt-5 p-4 bg-slate-900 rounded-2xl border-2 border-slate-800">
+    <div class="relative mt-5 p-4 bg-slate-900 rounded-xl border-2 border-slate-800">
         <p class="text-slate-200 text-xs font-bold leading-relaxed whitespace-pre-line">{{ $assignment->description }}</p>
     </div>
     @endif
@@ -109,42 +109,42 @@
 {{-- ============================== 4 STAT CARDS ============================== --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
     {{-- Total Dikumpulkan --}}
-    <div class="stat-grad-blue rounded-2xl p-5 text-white shadow-lg shadow-blue-300/30 relative overflow-hidden group">
+    <div class="stat-grad-blue rounded-xl p-5 text-white shadow-lg shadow-blue-300/30 relative overflow-hidden group">
         <div class="absolute -bottom-6 -right-6 w-28 h-28 bg-white/10 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
         <div class="w-10 h-10 bg-white/25 rounded-xl flex items-center justify-center mb-3">
             <i class="fas fa-inbox text-lg"></i>
         </div>
-        <div class="text-3xl font-black">{{ $totalSubmissions }}</div>
+        <div class="text-3xl font-semibold">{{ $totalSubmissions }}</div>
         <div class="text-xs text-blue-100 font-semibold uppercase tracking-wide mt-1">Total Dikumpulkan</div>
     </div>
 
     {{-- Sudah Dinilai --}}
-    <div class="stat-grad-green rounded-2xl p-5 text-white shadow-lg shadow-emerald-300/30 relative overflow-hidden group">
+    <div class="stat-grad-green rounded-xl p-5 text-white shadow-lg shadow-emerald-300/30 relative overflow-hidden group">
         <div class="absolute -bottom-6 -right-6 w-28 h-28 bg-white/10 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
         <div class="w-10 h-10 bg-white/25 rounded-xl flex items-center justify-center mb-3">
             <i class="fas fa-check-double text-lg"></i>
         </div>
-        <div class="text-3xl font-black">{{ $gradedCount }}</div>
+        <div class="text-3xl font-semibold">{{ $gradedCount }}</div>
         <div class="text-xs text-emerald-100 font-semibold uppercase tracking-wide mt-1">Sudah Dinilai</div>
     </div>
 
     {{-- Belum Dinilai --}}
-    <div class="stat-grad-amber rounded-2xl p-5 text-white shadow-lg shadow-amber-300/30 relative overflow-hidden group">
+    <div class="stat-grad-amber rounded-xl p-5 text-white shadow-lg shadow-amber-300/30 relative overflow-hidden group">
         <div class="absolute -bottom-6 -right-6 w-28 h-28 bg-white/10 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
         <div class="w-10 h-10 bg-white/25 rounded-xl flex items-center justify-center mb-3">
             <i class="fas fa-hourglass-half text-lg"></i>
         </div>
-        <div class="text-3xl font-black">{{ $ungradedCount }}</div>
+        <div class="text-3xl font-semibold">{{ $ungradedCount }}</div>
         <div class="text-xs text-amber-100 font-semibold uppercase tracking-wide mt-1">Belum Dinilai</div>
     </div>
 
     {{-- Rata-rata Nilai --}}
-    <div class="stat-grad-purple rounded-2xl p-5 text-white shadow-lg shadow-purple-300/30 relative overflow-hidden group">
+    <div class="stat-grad-purple rounded-xl p-5 text-white shadow-lg shadow-purple-300/30 relative overflow-hidden group">
         <div class="absolute -bottom-6 -right-6 w-28 h-28 bg-white/10 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
         <div class="w-10 h-10 bg-white/25 rounded-xl flex items-center justify-center mb-3">
             <i class="fas fa-chart-bar text-lg"></i>
         </div>
-        <div class="text-3xl font-black">{{ $avgScore ? number_format($avgScore, 1) : '—' }}</div>
+        <div class="text-3xl font-semibold">{{ $avgScore ? number_format($avgScore, 1) : '—' }}</div>
         <div class="text-xs text-purple-100 font-semibold uppercase tracking-wide mt-1">Rata-rata Nilai</div>
     </div>
 </div>
@@ -177,7 +177,7 @@
 @endif
 
 {{-- ============================ SUBMISSIONS TABLE ============================ --}}
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
 
     {{-- Table Header --}}
     <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white flex items-center justify-between flex-wrap gap-3">
@@ -201,7 +201,7 @@
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
-                <tr class="bg-gray-50/70 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <tr class="bg-gray-50/70 border-b border-gray-100 text-xs font-semibold text-gray-400 tracking-wide">
                     <th class="text-left px-6 py-3.5">Siswa</th>
                     <th class="text-left px-4 py-3.5">Waktu Kumpul</th>
                     <th class="text-center px-4 py-3.5">Status</th>
@@ -272,7 +272,7 @@
                     <td class="px-4 py-4 text-center">
                         @if($sub->score !== null)
                         <div>
-                            <span class="text-xl font-black {{ $sub->score >= $assignment->max_score * 0.6 ? 'text-emerald-600' : 'text-red-500' }}">
+                            <span class="text-xl font-semibold {{ $sub->score >= $assignment->max_score * 0.6 ? 'text-emerald-600' : 'text-red-500' }}">
                                 {{ $sub->score }}
                             </span>
                             <span class="text-gray-300 text-sm">/{{ $assignment->max_score }}</span>

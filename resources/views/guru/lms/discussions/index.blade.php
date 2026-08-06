@@ -80,28 +80,28 @@
     isPinned: false
 }">
     {{-- Premium Hero Header --}}
-    <div class="rounded-3xl p-6 md:p-8 shadow-md border-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
+    <div class="rounded-xl p-6 md:p-8 shadow-md border border-gray-200" >
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="flex items-center gap-4">
                 <a href="{{ route('guru.lms.show', $course->id) }}?tab=discussions"
-                   class="w-10 h-10 rounded-2xl bg-white border-2 border-black flex items-center justify-center text-black hover:bg-amber-300 transition-all shadow-sm">
+                   class="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-800 hover:bg-amber-100 text-amber-800 transition-all shadow-sm">
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 <div>
-                    <h2 class="text-2xl font-black text-white tracking-wide">Forum Diskusi Kelas</h2>
-                    <p class="text-amber-400 font-bold text-xs mt-0.5">
-                        <i class="fas fa-book-open mr-1 text-amber-400"></i>{{ $course->name }}
+                    <h2 class="text-2xl font-semibold text-white tracking-wide">Forum Diskusi Kelas</h2>
+                    <p class="text-amber-500 font-bold text-xs mt-0.5">
+                        <i class="fas fa-book-open mr-1 text-amber-500"></i>{{ $course->name }}
                     </p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <div class="bg-slate-800 rounded-2xl px-4 py-2.5 border-2 border-slate-700 shadow-sm text-center">
-                    <div class="text-[9px] text-amber-300 uppercase tracking-widest font-black">Topik Diskusi</div>
-                    <div class="text-lg font-black text-white">{{ $discussions->total() }}</div>
+                <div class="bg-slate-800 rounded-xl px-4 py-2.5 border-2 border-slate-700 shadow-sm text-center">
+                    <div class="text-[9px] text-amber-300 tracking-wide font-semibold">Topik Diskusi</div>
+                    <div class="text-lg font-semibold text-white">{{ $discussions->total() }}</div>
                 </div>
-                <div class="bg-slate-800 rounded-2xl px-4 py-2.5 border-2 border-slate-700 shadow-sm text-center">
-                    <div class="text-[9px] text-amber-300 uppercase tracking-widest font-black">Total Balasan</div>
-                    <div class="text-lg font-black text-white">{{ $discussions->sum('replies_count') }}</div>
+                <div class="bg-slate-800 rounded-xl px-4 py-2.5 border-2 border-slate-700 shadow-sm text-center">
+                    <div class="text-[9px] text-amber-300 tracking-wide font-semibold">Total Balasan</div>
+                    <div class="text-lg font-semibold text-white">{{ $discussions->sum('replies_count') }}</div>
                 </div>
             </div>
         </div>
@@ -110,34 +110,34 @@
     {{-- Create Topic Button + Form --}}
     <div>
         <button @click="showForm = !showForm"
-                class="inline-flex items-center gap-2.5 bg-black hover:bg-amber-400 hover:text-black text-white border-2 border-black px-6 py-3 rounded-2xl transition-all duration-300 text-xs font-black uppercase tracking-wider shadow-md">
-            <i class="fas fa-plus text-amber-400 transition-transform duration-300" :class="showForm ? 'rotate-45' : ''"></i>
+                class="inline-flex items-center gap-2.5 bg-gray-800 hover:bg-amber-400 hover:text-gray-800 text-white border border-gray-200 px-6 py-3 rounded-xl transition-all duration-300 text-xs font-semibold tracking-wide shadow-md">
+            <i class="fas fa-plus text-amber-500 transition-transform duration-300" :class="showForm ? 'rotate-45' : ''"></i>
             <span x-text="showForm ? 'Tutup Form' : 'Buat Topik Baru'"></span>
         </button>
 
         <form x-show="showForm"
               x-transition
               action="{{ route('guru.lms.discussions.store', $course->id) }}" method="POST"
-              class="bg-white rounded-3xl shadow-md border-2 border-black p-6 mt-4">
+              class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mt-4">
             @csrf
             <div class="space-y-5">
                 {{-- Type Selector Pills --}}
                 <div>
-                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-3">Tipe Topik Diskusi</label>
+                    <label class="block text-xs font-semibold text-gray-800 tracking-wide mb-3">Tipe Topik Diskusi</label>
                     <div class="flex flex-wrap gap-3">
                         <button type="button" @click="selectedType = 'discussion'"
-                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black border-2 border-black uppercase tracking-wider transition-all"
-                                :class="selectedType === 'discussion' ? 'bg-amber-300 text-black' : 'bg-white text-black hover:bg-slate-100'">
+                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold border border-gray-200 tracking-wide transition-all"
+                                :class="selectedType === 'discussion' ? 'bg-amber-100 text-amber-800 text-gray-800' : 'bg-white text-gray-800 hover:bg-slate-100'">
                             <i class="fas fa-comments text-xs"></i> Diskusi
                         </button>
                         <button type="button" @click="selectedType = 'question'"
-                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black border-2 border-black uppercase tracking-wider transition-all"
-                                :class="selectedType === 'question' ? 'bg-sky-300 text-black' : 'bg-white text-black hover:bg-slate-100'">
+                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold border border-gray-200 tracking-wide transition-all"
+                                :class="selectedType === 'question' ? 'bg-sky-300 text-gray-800' : 'bg-white text-gray-800 hover:bg-slate-100'">
                             <i class="fas fa-question-circle text-xs"></i> Pertanyaan
                         </button>
                         <button type="button" @click="selectedType = 'announcement'"
-                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black border-2 border-black uppercase tracking-wider transition-all"
-                                :class="selectedType === 'announcement' ? 'bg-rose-300 text-black' : 'bg-white text-black hover:bg-slate-100'">
+                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold border border-gray-200 tracking-wide transition-all"
+                                :class="selectedType === 'announcement' ? 'bg-rose-300 text-gray-800' : 'bg-white text-gray-800 hover:bg-slate-100'">
                             <i class="fas fa-bullhorn text-xs"></i> Pengumuman
                         </button>
                     </div>
@@ -146,21 +146,21 @@
 
                 {{-- Title Input --}}
                 <div>
-                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">Judul Topik</label>
+                    <label class="block text-xs font-semibold text-gray-800 tracking-wide mb-2">Judul Topik</label>
                     <input type="text" name="title" required placeholder="Tulis judul topik diskusi..."
-                           class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
+                           class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 font-semibold focus:ring-4 focus:ring-black/20 outline-none">
                 </div>
 
                 {{-- Content Textarea --}}
                 <div>
-                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">Isi Diskusi</label>
+                    <label class="block text-xs font-semibold text-gray-800 tracking-wide mb-2">Isi Diskusi</label>
                     <textarea name="content" required rows="5"
                               placeholder="Tulis detail pembahasan diskusi..."
                               @input="contentLength = $event.target.value.length"
                               :maxlength="maxLength"
-                              class="w-full border-2 border-black rounded-2xl p-4 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none resize-none"></textarea>
+                              class="w-full border border-gray-200 rounded-xl p-4 text-sm text-gray-800 font-semibold focus:ring-4 focus:ring-black/20 outline-none resize-none"></textarea>
                     <div class="flex justify-end mt-1">
-                        <span class="text-xs font-black text-black">
+                        <span class="text-xs font-semibold text-gray-800">
                             <span x-text="contentLength"></span> / <span x-text="maxLength"></span> Karakter
                         </span>
                     </div>
@@ -195,7 +195,7 @@
     <div class="space-y-3">
         @forelse($discussions as $index => $discussion)
         <a href="{{ route('guru.lms.discussions.show', [$course->id, $discussion->id]) }}"
-           class="thread-card block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden fade-up {{ $discussion->is_pinned ? 'pinned-glow' : '' }}"
+           class="thread-card block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-up {{ $discussion->is_pinned ? 'pinned-glow' : '' }}"
            style="animation-delay: {{ 0.15 + ($index * 0.05) }}s">
             <div class="flex">
                 {{-- Color-coded Left Border --}}
@@ -260,7 +260,7 @@
             </div>
         </a>
         @empty
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center fade-up" style="animation-delay: 0.15s">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center fade-up" style="animation-delay: 0.15s">
             <div class="w-20 h-20 rounded-full bg-cyan-50 flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-comments text-3xl text-cyan-300"></i>
             </div>

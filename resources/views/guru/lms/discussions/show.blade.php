@@ -83,7 +83,7 @@
 @section('content')
 <div class="space-y-6" x-data="{ confirmDelete: false }">
     {{-- Thread Header --}}
-    <div class="hero-gradient rounded-2xl p-6 border border-emerald-100/50 fade-up">
+    <div class="hero-gradient rounded-xl p-6 border border-emerald-100/50 fade-up">
         <div class="flex items-start gap-4">
             <a href="{{ route('guru.lms.discussions.index', $course->id) }}"
                class="w-10 h-10 rounded-xl bg-white shadow-sm border border-emerald-100 flex items-center justify-center text-emerald-500 hover:text-emerald-700 hover:shadow-md transition-all duration-300 hover:-translate-x-0.5 flex-shrink-0 mt-1">
@@ -120,7 +120,7 @@
     </div>
 
     {{-- Original Post Card --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden fade-up" style="animation-delay: 0.1s">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-up" style="animation-delay: 0.1s">
         <div class="border-l-4 {{ $discussion->type === 'question' ? 'border-amber-500' : ($discussion->type === 'announcement' ? 'border-rose-500' : 'border-cyan-500') }} p-6">
             <div class="flex items-start gap-4">
                 {{-- Large Avatar with Gradient Ring --}}
@@ -132,7 +132,7 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="font-bold text-gray-800 text-base">{{ $discussion->author->name ?? 'Anonim' }}</span>
-                        <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-600">Guru</span>
+                        <span class="inline-flex items-center text-[10px] font-bold tracking-wide px-2 py-0.5 rounded bg-emerald-50 text-emerald-600">Guru</span>
                         <span class="text-xs text-gray-400 flex items-center gap-1">
                             <i class="fas fa-calendar-alt"></i> {{ $discussion->created_at->format('d M Y H:i') }}
                         </span>
@@ -145,7 +145,7 @@
         {{-- Guru Moderation Actions --}}
         <div class="bg-gray-50/50 border-t border-gray-100 px-6 py-3">
             <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-xs text-gray-400 font-medium uppercase tracking-wider mr-2">Moderasi:</span>
+                <span class="text-xs text-gray-400 font-medium tracking-wide mr-2">Moderasi:</span>
                 <form action="{{ route('guru.lms.discussions.togglePin', [$course->id, $discussion->id]) }}" method="POST" class="inline">
                     @csrf
                     <button class="mod-btn inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-full border transition-all {{ $discussion->is_pinned ? 'bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-100' : 'bg-white text-gray-600 border-gray-200 hover:border-cyan-300 hover:text-cyan-600' }}">
@@ -181,12 +181,12 @@
         </div>
 
         @foreach($discussion->replies as $index => $reply)
-        <div class="reply-card {{ $reply->parent_id ? 'ml-8 nested-connector' : '' }} {{ $reply->is_best_answer ? 'best-answer-glow' : '' }} bg-white rounded-2xl shadow-sm border {{ $reply->is_best_answer ? 'border-amber-300 bg-amber-50/20' : 'border-gray-100' }} overflow-hidden fade-up"
+        <div class="reply-card {{ $reply->parent_id ? 'ml-8 nested-connector' : '' }} {{ $reply->is_best_answer ? 'best-answer-glow' : '' }} bg-white rounded-xl shadow-sm border {{ $reply->is_best_answer ? 'border-amber-300 bg-amber-50/20' : 'border-gray-100' }} overflow-hidden fade-up"
              style="animation-delay: {{ 0.2 + ($index * 0.05) }}s">
             @if($reply->is_best_answer)
             <div class="bg-gradient-to-r from-amber-50 to-yellow-50 px-5 py-2 border-b border-amber-100 flex items-center gap-2">
                 <i class="fas fa-star text-amber-500 star-badge"></i>
-                <span class="text-xs font-bold text-amber-700 uppercase tracking-wider">Jawaban Terbaik</span>
+                <span class="text-xs font-bold text-amber-700 tracking-wide">Jawaban Terbaik</span>
             </div>
             @endif
             <div class="p-5">
@@ -222,7 +222,7 @@
         @endforeach
 
         @if($discussion->replies->count() === 0)
-        <div class="bg-white rounded-2xl border border-gray-100 p-8 text-center fade-up" style="animation-delay: 0.2s">
+        <div class="bg-white rounded-xl border border-gray-100 p-8 text-center fade-up" style="animation-delay: 0.2s">
             <div class="w-14 h-14 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-3">
                 <i class="fas fa-comment-slash text-xl text-gray-300"></i>
             </div>
@@ -233,7 +233,7 @@
 
     {{-- Reply Form --}}
     @if(!$discussion->is_locked)
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden fade-up" style="animation-delay: 0.3s">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-up" style="animation-delay: 0.3s">
         <div class="bg-gradient-to-r from-cyan-50 to-emerald-50 px-6 py-3 border-b border-gray-100">
             <h4 class="font-bold text-gray-700 flex items-center gap-2">
                 <i class="fas fa-reply text-cyan-500"></i> Tulis Balasan
@@ -253,7 +253,7 @@
         </form>
     </div>
     @else
-    <div class="bg-gray-50 rounded-2xl border border-gray-200 p-6 text-center fade-up" style="animation-delay: 0.3s">
+    <div class="bg-gray-50 rounded-xl border border-gray-200 p-6 text-center fade-up" style="animation-delay: 0.3s">
         <div class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
             <i class="fas fa-lock text-xl text-gray-400"></i>
         </div>

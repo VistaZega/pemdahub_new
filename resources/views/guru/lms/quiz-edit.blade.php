@@ -13,7 +13,7 @@
     </div>
 
     <form action="{{ route('guru.lms.quizzes.update', $quiz->id) }}" method="POST"
-          class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         @csrf
         @method('PUT')
         <div class="space-y-5">

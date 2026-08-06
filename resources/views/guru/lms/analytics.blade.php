@@ -7,19 +7,19 @@
     {{-- ═══════════════════════════════════════════════ --}}
     {{-- HEADER BANNER --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 rounded-2xl p-6 md:p-8 text-white shadow-xl border border-slate-800">
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 rounded-xl p-6 md:p-8 text-white shadow-xl border border-slate-800">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <a href="{{ route('guru.lms.show', $course->id) }}" class="inline-flex items-center gap-2 text-xs font-bold text-cyan-400 hover:text-cyan-300 mb-2">
                     <i class="fas fa-arrow-left"></i> Kembali ke Course
                 </a>
-                <h1 class="text-2xl font-black text-white leading-tight">Analitik Pembelajaran Siswa</h1>
+                <h1 class="text-2xl font-semibold text-white leading-tight">Analitik Pembelajaran Siswa</h1>
                 <p class="text-xs text-slate-300 mt-1">Course: <strong class="text-white">{{ $course->course_name ?? $course->name }}</strong> | Mapel: {{ $course->subject->subject_name ?? '-' }}</p>
             </div>
             <div class="flex items-center gap-3">
                 <div class="bg-slate-800/80 border border-slate-700 rounded-xl px-5 py-3 text-center shadow-inner">
-                    <span class="text-2xl font-black text-cyan-400 block">{{ $avgCourseProgress }}%</span>
-                    <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Rata-rata Kelas</span>
+                    <span class="text-2xl font-semibold text-cyan-400 block">{{ $avgCourseProgress }}%</span>
+                    <span class="text-[9px] font-bold tracking-wide text-slate-400">Rata-rata Kelas</span>
                 </div>
             </div>
         </div>
@@ -29,43 +29,43 @@
     {{-- STAT CARDS --}}
     {{-- ═══════════════════════════════════════════════ --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xl">
                 <i class="fas fa-user-graduate"></i>
             </div>
             <div>
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Total Siswa</span>
-                <span class="text-2xl font-black text-gray-900">{{ count($studentStats) }} Siswa</span>
+                <span class="text-xs font-bold text-gray-500 tracking-wide block">Total Siswa</span>
+                <span class="text-2xl font-semibold text-gray-900">{{ count($studentStats) }} Siswa</span>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xl">
                 <i class="fas fa-book-open"></i>
             </div>
             <div>
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Materi Terbit</span>
-                <span class="text-2xl font-black text-gray-900">{{ $course->materials->count() }} Materi</span>
+                <span class="text-xs font-bold text-gray-500 tracking-wide block">Materi Terbit</span>
+                <span class="text-2xl font-semibold text-gray-900">{{ $course->materials->count() }} Materi</span>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xl">
                 <i class="fas fa-tasks"></i>
             </div>
             <div>
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Tugas Terbit</span>
-                <span class="text-2xl font-black text-gray-900">{{ $course->assignments->count() }} Tugas</span>
+                <span class="text-xs font-bold text-gray-500 tracking-wide block">Tugas Terbit</span>
+                <span class="text-2xl font-semibold text-gray-900">{{ $course->assignments->count() }} Tugas</span>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border-2 border-red-200 shadow-sm flex items-center gap-4">
+        <div class="bg-white p-5 rounded-xl border-2 border-red-200 shadow-sm flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-red-500 text-white flex items-center justify-center font-bold text-xl shadow-sm">
                 <i class="fas fa-exclamation-triangle"></i>
             </div>
             <div>
-                <span class="text-xs font-bold text-red-600 uppercase tracking-wider block">Siswa Perlu Perhatian</span>
-                <span class="text-2xl font-black text-red-600">{{ count($atRiskStudents) }} Siswa</span>
+                <span class="text-xs font-bold text-red-600 tracking-wide block">Siswa Perlu Perhatian</span>
+                <span class="text-2xl font-semibold text-red-600">{{ count($atRiskStudents) }} Siswa</span>
             </div>
         </div>
     </div>
@@ -74,7 +74,7 @@
     {{-- AT-RISK STUDENTS BANNER --}}
     {{-- ═══════════════════════════════════════════════ --}}
     @if(count($atRiskStudents) > 0)
-    <div class="bg-red-50 rounded-2xl p-6 border-2 border-red-200 shadow-sm">
+    <div class="bg-red-50 rounded-xl p-6 border-2 border-red-200 shadow-sm">
         <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold">
                 <i class="fas fa-user-clock text-lg"></i>
@@ -92,7 +92,7 @@
                     <h4 class="font-bold text-gray-900 text-sm truncate">{{ $atRisk['student']->user->name ?? '-' }}</h4>
                     <p class="text-xs text-gray-500">Progres: <strong class="text-red-600">{{ $atRisk['progress'] }}%</strong> | Tugas: {{ $atRisk['submissions_count'] }} dikumpul</p>
                 </div>
-                <span class="px-2.5 py-1 bg-red-100 text-red-800 text-[10px] font-bold rounded-lg uppercase tracking-wider">Perlu Dorongan</span>
+                <span class="px-2.5 py-1 bg-red-100 text-red-800 text-[10px] font-bold rounded-lg tracking-wide">Perlu Dorongan</span>
             </div>
             @endforeach
         </div>
@@ -102,7 +102,7 @@
     {{-- ═══════════════════════════════════════════════ --}}
     {{-- ALL STUDENTS PROGRESS TABLE --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="p-5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
             <h3 class="font-bold text-gray-900 text-sm flex items-center gap-2">
                 <i class="fas fa-list-check text-indigo-600"></i> Detail Progres & Keterlibatan Siswa
@@ -113,7 +113,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="bg-gray-100 border-b border-gray-200 text-xs font-extrabold text-gray-600 uppercase tracking-wider">
+                    <tr class="bg-gray-100 border-b border-gray-200 text-xs font-extrabold text-gray-600 tracking-wide">
                         <th class="text-left px-6 py-3.5">Siswa</th>
                         <th class="text-center px-4 py-3.5">Materi Selesai</th>
                         <th class="text-center px-4 py-3.5">Tugas Dikumpul</th>

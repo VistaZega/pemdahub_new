@@ -55,7 +55,7 @@
             <h2 class="text-3xl font-bold mb-2">Gabung di <span class="text-cyan-400">pembdahub.com/live</span></h2>
             <p class="text-xl text-slate-300 mb-8">Masukkan PIN Game di bawah ini:</p>
             
-            <div class="bg-white/10 p-8 rounded-3xl backdrop-blur-xl border border-white/20 mb-12 shadow-2xl">
+            <div class="bg-white/10 p-8 rounded-xl backdrop-blur-xl border border-white/20 mb-12 shadow-2xl">
                 <div class="pin-box">{{ $session->pin_code }}</div>
             </div>
 
@@ -85,12 +85,12 @@
                 </span>
             </div>
             
-            <div class="bg-white text-slate-900 rounded-3xl p-8 mb-8 text-center shadow-2xl relative">
-                <h2 class="text-4xl md:text-5xl font-black mb-4 leading-tight" x-text="currentQuestion?.questionText"></h2>
+            <div class="bg-white text-slate-900 rounded-xl p-8 mb-8 text-center shadow-2xl relative">
+                <h2 class="text-4xl md:text-5xl font-semibold mb-4 leading-tight" x-text="currentQuestion?.questionText"></h2>
                 
                 <!-- Timer Circle -->
                 <div class="absolute -top-8 -right-8 w-24 h-24 bg-purple-600 rounded-full border-4 border-slate-900 flex items-center justify-center shadow-xl">
-                    <span class="text-3xl font-black text-white" x-text="timeLeft"></span>
+                    <span class="text-3xl font-semibold text-white" x-text="timeLeft"></span>
                 </div>
 
                 <!-- Answers count -->
@@ -101,26 +101,26 @@
 
             <!-- Options (Visual representation of colors) -->
             <div class="flex-1 grid grid-cols-2 gap-4 mt-8" x-show="gameType === 'quiz'">
-                <div class="bg-red-500 rounded-2xl flex items-center justify-center p-6 shadow-[0_8px_0_#991b1b]">
+                <div class="bg-red-500 rounded-xl flex items-center justify-center p-6 shadow-[0_8px_0_#991b1b]">
                     <span class="text-3xl font-bold text-white text-center" x-text="currentQuestion?.options[0]"></span>
                 </div>
-                <div class="bg-blue-500 rounded-2xl flex items-center justify-center p-6 shadow-[0_8px_0_#1e40af]">
+                <div class="bg-blue-500 rounded-xl flex items-center justify-center p-6 shadow-[0_8px_0_#1e40af]">
                     <span class="text-3xl font-bold text-white text-center" x-text="currentQuestion?.options[1]"></span>
                 </div>
-                <div class="bg-yellow-500 rounded-2xl flex items-center justify-center p-6 shadow-[0_8px_0_#a16207]">
+                <div class="bg-yellow-500 rounded-xl flex items-center justify-center p-6 shadow-[0_8px_0_#a16207]">
                     <span class="text-3xl font-bold text-white text-center" x-text="currentQuestion?.options[2]"></span>
                 </div>
-                <div class="bg-green-500 rounded-2xl flex items-center justify-center p-6 shadow-[0_8px_0_#166534]">
+                <div class="bg-green-500 rounded-xl flex items-center justify-center p-6 shadow-[0_8px_0_#166534]">
                     <span class="text-3xl font-bold text-white text-center" x-text="currentQuestion?.options[3]"></span>
                 </div>
             </div>
             
             <div class="flex-1 grid grid-cols-2 gap-4 mt-8" x-show="gameType === 'true_false'">
-                <div class="bg-blue-500 rounded-2xl flex items-center justify-center p-6 shadow-[0_8px_0_#1e40af]">
-                    <span class="text-5xl font-black text-white">BENAR</span>
+                <div class="bg-blue-500 rounded-xl flex items-center justify-center p-6 shadow-[0_8px_0_#1e40af]">
+                    <span class="text-5xl font-semibold text-white">BENAR</span>
                 </div>
-                <div class="bg-red-500 rounded-2xl flex items-center justify-center p-6 shadow-[0_8px_0_#991b1b]">
-                    <span class="text-5xl font-black text-white">SALAH</span>
+                <div class="bg-red-500 rounded-xl flex items-center justify-center p-6 shadow-[0_8px_0_#991b1b]">
+                    <span class="text-5xl font-semibold text-white">SALAH</span>
                 </div>
             </div>
             
@@ -133,17 +133,17 @@
 
         <!-- LEADERBOARD / RESULT SCREEN -->
         <div x-show="state.status === 'leaderboard'" class="w-full h-full flex flex-col items-center justify-center" style="display: none;">
-            <h2 class="text-4xl font-black mb-8 text-cyan-400">Papan Peringkat</h2>
+            <h2 class="text-4xl font-semibold mb-8 text-cyan-400">Papan Peringkat</h2>
             
-            <div class="w-full max-w-2xl bg-white/10 p-6 rounded-3xl backdrop-blur border border-white/10 mb-8">
+            <div class="w-full max-w-2xl bg-white/10 p-6 rounded-xl backdrop-blur border border-white/10 mb-8">
                 <template x-for="(player, idx) in state.players.slice(0, 5)" :key="player.id">
                     <div class="flex items-center gap-4 p-4 border-b border-white/10 last:border-0">
-                        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-lg" 
+                        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-semibold text-lg" 
                              :class="{'text-yellow-400': idx===0, 'text-gray-300': idx===1, 'text-orange-400': idx===2}">
                             <span x-text="idx + 1"></span>
                         </div>
                         <div class="flex-1 font-bold text-xl" x-text="player.nickname"></div>
-                        <div class="font-black text-2xl" x-text="player.score"></div>
+                        <div class="font-semibold text-2xl" x-text="player.score"></div>
                     </div>
                 </template>
             </div>
@@ -155,32 +155,32 @@
 
         <!-- FINISHED / PODIUM -->
         <div x-show="state.status === 'finished'" class="w-full h-full flex flex-col items-center justify-center" style="display: none;">
-            <h1 class="text-6xl font-black mb-12 text-yellow-400" style="text-shadow: 0 0 30px rgba(250,204,21,0.5);">PODIUM</h1>
+            <h1 class="text-6xl font-semibold mb-12 text-yellow-400" style="text-shadow: 0 0 30px rgba(250,204,21,0.5);">PODIUM</h1>
             
             <div class="flex items-end justify-center gap-4 h-64 mb-12 w-full max-w-4xl">
                 <!-- Juara 2 -->
                 <div class="flex flex-col items-center w-1/3" x-show="state.players.length >= 2">
                     <div class="font-bold text-2xl mb-2 truncate w-full text-center" x-text="state.players[1]?.nickname"></div>
-                    <div class="font-black text-xl text-slate-300 mb-4" x-text="state.players[1]?.score"></div>
+                    <div class="font-semibold text-xl text-slate-300 mb-4" x-text="state.players[1]?.score"></div>
                     <div class="w-full bg-slate-300 h-3/4 rounded-t-lg flex justify-center pt-4 shadow-lg">
-                        <span class="text-4xl font-black text-slate-800">2</span>
+                        <span class="text-4xl font-semibold text-slate-800">2</span>
                     </div>
                 </div>
                 <!-- Juara 1 -->
                 <div class="flex flex-col items-center w-1/3" x-show="state.players.length >= 1">
                     <i class="fas fa-crown text-5xl text-yellow-400 mb-4"></i>
                     <div class="font-bold text-3xl mb-2 truncate w-full text-center" x-text="state.players[0]?.nickname"></div>
-                    <div class="font-black text-2xl text-yellow-400 mb-4" x-text="state.players[0]?.score"></div>
+                    <div class="font-semibold text-2xl text-yellow-400 mb-4" x-text="state.players[0]?.score"></div>
                     <div class="w-full bg-yellow-400 h-full rounded-t-lg flex justify-center pt-4 shadow-2xl relative z-10">
-                        <span class="text-5xl font-black text-yellow-800">1</span>
+                        <span class="text-5xl font-semibold text-yellow-800">1</span>
                     </div>
                 </div>
                 <!-- Juara 3 -->
                 <div class="flex flex-col items-center w-1/3" x-show="state.players.length >= 3">
                     <div class="font-bold text-xl mb-2 truncate w-full text-center" x-text="state.players[2]?.nickname"></div>
-                    <div class="font-black text-lg text-orange-400 mb-4" x-text="state.players[2]?.score"></div>
+                    <div class="font-semibold text-lg text-orange-400 mb-4" x-text="state.players[2]?.score"></div>
                     <div class="w-full bg-orange-400 h-1/2 rounded-t-lg flex justify-center pt-4 shadow-lg">
-                        <span class="text-3xl font-black text-orange-900">3</span>
+                        <span class="text-3xl font-semibold text-orange-900">3</span>
                     </div>
                 </div>
             </div>

@@ -29,21 +29,21 @@
 
 <div class="space-y-6" x-data="{ searchQuery: '' }">
     {{-- Header --}}
-    <div class="rounded-3xl p-6 md:p-8 shadow-md border-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
+    <div class="rounded-xl p-6 md:p-8 shadow-md border border-gray-200" >
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-                <div class="flex items-center gap-2 text-xs font-black text-amber-400 mb-2 uppercase tracking-wider">
-                    <a href="{{ route('guru.lms.index') }}" class="hover:underline text-amber-400">LMS Guru</a>
+                <div class="flex items-center gap-2 text-xs font-semibold text-amber-500 mb-2 tracking-wide">
+                    <a href="{{ route('guru.lms.index') }}" class="hover:underline text-amber-500">LMS Guru</a>
                     <i class="fas fa-chevron-right text-[10px] opacity-70"></i>
-                    <a href="{{ route('guru.lms.show', $course->id) }}" class="hover:underline text-amber-400">{{ $course->name }}</a>
+                    <a href="{{ route('guru.lms.show', $course->id) }}" class="hover:underline text-amber-500">{{ $course->name }}</a>
                     <i class="fas fa-chevron-right text-[10px] opacity-70"></i>
                     <span class="text-white">Data Kelas & Siswa</span>
                 </div>
-                <h1 class="text-2xl font-black text-white tracking-wide">Data Kelas & Siswa Terdaftar</h1>
+                <h1 class="text-2xl font-semibold text-white tracking-wide">Data Kelas & Siswa Terdaftar</h1>
                 <p class="text-amber-300 font-bold text-xs mt-1">Mengelola siswa terdaftar yang mengikuti course {{ $course->name }}.</p>
             </div>
             <div>
-                <a href="{{ route('guru.lms.show', $course->id) }}" class="inline-flex items-center gap-2 bg-white text-black border-2 border-black px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-amber-300 transition-all shadow-sm">
+                <a href="{{ route('guru.lms.show', $course->id) }}" class="inline-flex items-center gap-2 bg-white text-gray-800 border border-gray-200 px-5 py-2.5 rounded-xl text-xs font-semibold tracking-wide hover:bg-amber-100 text-amber-800 transition-all shadow-sm">
                     <i class="fas fa-arrow-left"></i> Kembali ke Course
                 </a>
             </div>
@@ -52,14 +52,14 @@
 
     {{-- Alert Messages --}}
     @if(session('success'))
-    <div class="bg-emerald-200 border-2 border-black text-black px-5 py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-sm">
-        <i class="fas fa-check-circle text-black text-base"></i> {{ session('success') }}
+    <div class="bg-emerald-200 border border-gray-200 text-gray-800 px-5 py-3.5 rounded-xl text-xs font-semibold tracking-wide flex items-center gap-2 shadow-sm">
+        <i class="fas fa-check-circle text-gray-800 text-base"></i> {{ session('success') }}
     </div>
     @endif
 
     @if(session('error'))
-    <div class="bg-rose-200 border-2 border-black text-black px-5 py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-sm">
-        <i class="fas fa-exclamation-circle text-black text-base"></i> {{ session('error') }}
+    <div class="bg-rose-200 border border-gray-200 text-gray-800 px-5 py-3.5 rounded-xl text-xs font-semibold tracking-wide flex items-center gap-2 shadow-sm">
+        <i class="fas fa-exclamation-circle text-gray-800 text-base"></i> {{ session('error') }}
     </div>
     @endif
 
@@ -67,9 +67,9 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Enroll Form --}}
         @if($availableClassrooms->count() > 0)
-        <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between">
+        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between">
             <div>
-                <h3 class="font-bold text-gray-800 text-sm mb-1 uppercase tracking-wider flex items-center gap-2">
+                <h3 class="font-bold text-gray-800 text-sm mb-1 tracking-wide flex items-center gap-2">
                     <i class="fas fa-user-plus text-emerald-500"></i> Daftarkan Kelas
                 </h3>
                 <p class="text-xs text-gray-400 mb-4">Tambahkan semua siswa dari kelas tertentu sekaligus.</p>
@@ -83,7 +83,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm hover:shadow flex items-center justify-center gap-2">
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all shadow-sm hover:shadow flex items-center justify-center gap-2">
                         <i class="fas fa-plus-circle"></i> Daftarkan Siswa
                     </button>
                 </form>
@@ -93,7 +93,7 @@
             </div>
         </div>
         @else
-        <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center justify-center text-center">
+        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm flex items-center justify-center text-center">
             <div>
                 <div class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center mx-auto mb-2"><i class="fas fa-check-double"></i></div>
                 <p class="text-xs font-bold text-gray-700">Semua Kelas Terdaftar</p>
@@ -103,8 +103,8 @@
         @endif
 
         {{-- Connected Classrooms --}}
-        <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-            <h3 class="font-bold text-gray-800 text-sm mb-1 uppercase tracking-wider flex items-center gap-2">
+        <div class="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <h3 class="font-bold text-gray-800 text-sm mb-1 tracking-wide flex items-center gap-2">
                 <i class="fas fa-link text-blue-500"></i> Kelas Terhubung
             </h3>
             <p class="text-xs text-gray-400 mb-4">Daftar kelas yang saat ini terhubung dengan course ini.</p>
@@ -138,7 +138,7 @@
     </div>
 
     {{-- Search and Table --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {{-- Search Bar --}}
         <div class="p-5 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h4 class="font-bold text-gray-800 text-sm flex items-center gap-2">
@@ -158,12 +158,12 @@
             <table class="w-full text-left border-collapse text-sm">
                 <thead>
                     <tr class="border-b border-gray-100 bg-gray-50/50">
-                        <th class="px-6 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6 w-12">#</th>
-                        <th class="px-6 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Nama Siswa</th>
-                        <th class="px-6 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Kelas</th>
-                        <th class="px-6 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Tanggal Daftar</th>
-                        <th class="px-6 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider text-center pr-6 w-24">Aksi</th>
+                        <th class="px-6 py-3 text-xs font-bold text-gray-400 tracking-wide pl-6 w-12">#</th>
+                        <th class="px-6 py-3 text-xs font-bold text-gray-400 tracking-wide">Nama Siswa</th>
+                        <th class="px-6 py-3 text-xs font-bold text-gray-400 tracking-wide">Kelas</th>
+                        <th class="px-6 py-3 text-xs font-bold text-gray-400 tracking-wide">Status</th>
+                        <th class="px-6 py-3 text-xs font-bold text-gray-400 tracking-wide">Tanggal Daftar</th>
+                        <th class="px-6 py-3 text-xs font-bold text-gray-400 tracking-wide text-center pr-6 w-24">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -229,7 +229,7 @@
         </div>
         @else
         <div class="p-16 text-center">
-            <div class="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div class="w-20 h-20 bg-slate-50 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-users-slash text-3xl text-slate-350"></i>
             </div>
             <h3 class="text-base font-bold text-gray-700 mb-1">Belum Ada Siswa</h3>
@@ -241,21 +241,21 @@
     {{-- Stats Row --}}
     @if($totalCount > 0)
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div class="bg-white rounded-2xl border border-gray-100 p-5 text-center stat-card-glow shadow-sm">
+        <div class="bg-white rounded-xl border border-gray-100 p-5 text-center stat-card-glow shadow-sm">
             <p class="text-2xl font-extrabold text-blue-600">{{ $totalCount }}</p>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Total Terdaftar</p>
+            <p class="text-[10px] font-bold text-gray-400 tracking-wide mt-1">Total Terdaftar</p>
         </div>
-        <div class="bg-white rounded-2xl border border-gray-100 p-5 text-center stat-card-glow shadow-sm">
+        <div class="bg-white rounded-xl border border-gray-100 p-5 text-center stat-card-glow shadow-sm">
             <p class="text-2xl font-extrabold text-amber-600">{{ $activeCount }}</p>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Aktif Belajar</p>
+            <p class="text-[10px] font-bold text-gray-400 tracking-wide mt-1">Aktif Belajar</p>
         </div>
-        <div class="bg-white rounded-2xl border border-gray-100 p-5 text-center stat-card-glow shadow-sm">
+        <div class="bg-white rounded-xl border border-gray-100 p-5 text-center stat-card-glow shadow-sm">
             <p class="text-2xl font-extrabold text-emerald-600">{{ $completedCount }}</p>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Selesai Kelas</p>
+            <p class="text-[10px] font-bold text-gray-400 tracking-wide mt-1">Selesai Kelas</p>
         </div>
-        <div class="bg-white rounded-2xl border border-gray-100 p-5 text-center stat-card-glow shadow-sm">
+        <div class="bg-white rounded-xl border border-gray-100 p-5 text-center stat-card-glow shadow-sm">
             <p class="text-2xl font-extrabold text-rose-600">{{ $droppedCount }}</p>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Dropped Out</p>
+            <p class="text-[10px] font-bold text-gray-400 tracking-wide mt-1">Dropped Out</p>
         </div>
     </div>
     @endif
