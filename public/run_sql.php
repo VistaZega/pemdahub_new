@@ -7,24 +7,21 @@ $kernel->bootstrap();
 header('Content-Type: application/json');
 
 try {
-    $assignments = \Illuminate\Support\Facades\DB::select("
-        SELECT 
-            ta.id, 
-            s.name as subject_name, 
-            c.name as class_name, 
-            sch.name as school_name,
-            ta.day_of_week,
-            ta.start_time,
-            ta.end_time
-        FROM teaching_assignments ta
-        LEFT JOIN subjects s ON ta.subject_id = s.id
-        LEFT JOIN classrooms c ON ta.classroom_id = c.id
-        LEFT JOIN schools sch ON c.school_id = sch.id
-        WHERE ta.teacher_id = 209
-    ");
+    $assignments = \App\Models\TeachingAssignment::with(['subject', 'classroom', 'school'])->where('teacher_id', 209)->get();
+    
+    $results = [];
+    foreach($assignments as $a) {
+        $results[] = [
+            'mapel' => $a->subject ? $a->subject->name : 'N/A',
+            'kelas' => $a->classroom ? $a->classroom->class_name : 'N/A',
+            'sekolah' => $a->school ? $a->school->name : 'N/A',
+            'hari' => $a->day_of_week,
+            'jam' => $a->start_time . ' - ' . $a->end_time
+        ];
+    }
 
     echo json_encode([
-        'assignments' => $assignments
+        'assignments' => $results
     ], JSON_PRETTY_PRINT);
 } catch (\Throwable $e) {
     echo json_encode([
