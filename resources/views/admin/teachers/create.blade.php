@@ -70,11 +70,13 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-2" title="Guru akan bisa mengakses menu di unit-unit ini tanpa perlu akun ganda"><i class="fas fa-plus-circle mr-1 text-emerald-500"></i> Sekolah Tambahan (Lintas Unit)</label>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50 p-4 border border-gray-200 rounded-xl">
                         @foreach($schools as $school)
+                            @if($school->type !== 'yayasan')
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="additional_school_ids[]" value="{{ $school->id }}" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
                                 {{ is_array(old('additional_school_ids')) && in_array($school->id, old('additional_school_ids')) ? 'checked' : '' }}>
                                 <span class="ml-2 text-sm text-gray-700">{{ $school->name }}</span>
                             </label>
+                            @endif
                         @endforeach
                     </div>
                     <p class="text-xs text-gray-500 mt-2">Centang sekolah tambahan jika guru ini juga ditugaskan mengajar di unit lain.</p>

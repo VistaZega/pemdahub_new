@@ -110,7 +110,7 @@ class TeacherController extends Controller
             abort(403, 'Unauthorized. Hanya Super Admin dan Admin Sekolah yang dapat mengelola data guru.');
         }
 
-        $schools = School::where('is_active', 1)->schoolsOnly()->get();
+        $schools = School::where('is_active', 1)->get();
         $subjects = Subject::where('is_active', 1)->get();
         
         return view('admin.teachers.create', compact('schools', 'subjects'));
@@ -229,7 +229,7 @@ class TeacherController extends Controller
             abort(403, 'Unauthorized. Hanya Super Admin dan Admin Sekolah yang dapat mengelola data guru.');
         }
 
-        $schools = School::where('is_active', 1)->schoolsOnly()->get();
+        $schools = School::where('is_active', 1)->get();
         $subjects = Subject::where('is_active', 1)->get();
         
         // Load employee relationship
