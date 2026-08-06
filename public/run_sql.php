@@ -7,14 +7,14 @@ $kernel->bootstrap();
 header('Content-Type: application/json');
 
 try {
-    $assignments = \App\Models\TeachingAssignment::with(['subject', 'classroom', 'school'])->where('teacher_id', 209)->get();
+    $assignments = \App\Models\TeachingAssignment::with(['subject', 'classroom.school'])->where('teacher_id', 209)->get();
     
     $results = [];
     foreach($assignments as $a) {
         $results[] = [
             'mapel' => $a->subject ? $a->subject->name : 'N/A',
-            'kelas' => $a->classroom ? $a->classroom->class_name : 'N/A',
-            'sekolah' => $a->school ? $a->school->name : 'N/A',
+            'kelas' => $a->classroom ? $a->classroom->name : 'N/A',
+            'sekolah' => ($a->classroom && $a->classroom->school) ? $a->classroom->school->name : 'N/A',
             'hari' => $a->day_of_week,
             'jam' => $a->start_time . ' - ' . $a->end_time
         ];
