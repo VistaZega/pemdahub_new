@@ -1,4 +1,4 @@
-{{-- SAMBUTAN KETUA YAYASAN — 0-Gap Margin & Top-Positioned Head Edition --}}
+{{-- SAMBUTAN KETUA YAYASAN — 100% Uncropped Intact Photo & 0-Gap Margin Edition --}}
 <section class="section-fullwidth" id="sambutan-ketua-section" style="width: 100%; position: relative; overflow: hidden; background: linear-gradient(135deg, #0b0f19 0%, #1e1b4b 45%, #312e81 100%); color: #ffffff; padding: 0; margin: 0;">
     
     {{-- Abstract Organic Ambient Glowing Orbs --}}
@@ -9,25 +9,25 @@
         
         <div class="sambutan-full-container" style="display: flex; flex-wrap: wrap; width: 100%; align-items: stretch; margin: 0; padding: 0;">
 
-            {{-- 1. LEFT SIDE: 0-GAP MARGINS (TOP=0, LEFT=0, BOTTOM=0), HEAD POSITIONED CLOSE TO TOP BORDER --}}
-            <div class="sambutan-left-photo" style="flex: 1 1 48%; min-width: 320px; position: relative; display: flex; align-items: stretch; min-height: 520px; overflow: hidden; margin: 0; padding: 0;">
+            {{-- 1. LEFT SIDE: 0-GAP MARGINS (TOP=0, LEFT=0, BOTTOM=0), PHOTO 100% INTACT UNCROPPED --}}
+            <div class="sambutan-left-photo" style="flex: 1 1 45%; min-width: 320px; position: relative; display: flex; align-items: flex-end; justify-content: flex-start; min-height: 520px; overflow: hidden; margin: 0; padding: 0;">
                 @php
                     $photoPath = base_path('public/images/photo-profile.jpeg');
                     $photoExists = file_exists($photoPath);
                 @endphp
                 
                 {{-- Ambient Light Aura behind photo --}}
-                <div style="position: absolute; top: 35%; left: 30%; transform: translate(-50%, -50%); width: 480px; height: 480px; background: radial-gradient(circle, rgba(99, 102, 241, 0.55) 0%, rgba(245, 158, 11, 0.2) 45%, rgba(0,0,0,0) 75%); border-radius: 50%; filter: blur(45px); pointer-events: none;"></div>
+                <div style="position: absolute; top: 50%; left: 30%; transform: translate(-50%, -50%); width: 480px; height: 480px; background: radial-gradient(circle, rgba(99, 102, 241, 0.55) 0%, rgba(245, 158, 11, 0.2) 45%, rgba(0,0,0,0) 75%); border-radius: 50%; filter: blur(45px); pointer-events: none;"></div>
 
                 @if($photoExists)
-                    <div style="position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;">
+                    <div style="position: relative; width: 100%; height: 100%; min-height: 520px; display: flex; align-items: flex-end; justify-content: flex-start;">
                         
-                        {{-- Photo Element: Zoomed & focused on head to eliminate empty blue space above head --}}
+                        {{-- Photo Element with object-fit: contain & object-position: bottom left -> GUARANTEES 100% UNCROPPED FULL PHOTO --}}
                         <img src="{{ asset('images/photo-profile.jpeg') }}?v={{ filemtime($photoPath) }}" 
                              alt="Yulianus Zega, S.Kom, M.Pd.T" 
-                             style="width: 100%; height: 100%; object-fit: cover; object-position: 50% 48%; transform: scale(1.35); transform-origin: 50% 30%; margin: 0; padding: 0; filter: contrast(1.08) brightness(1.05);
-                                    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 98%), linear-gradient(to bottom, rgba(0,0,0,1) 88%, rgba(0,0,0,0) 100%);
-                                    mask-image: linear-gradient(to right, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 98%), linear-gradient(to bottom, rgba(0,0,0,1) 88%, rgba(0,0,0,0) 100%);" />
+                             style="width: 100%; height: 100%; max-height: 520px; object-fit: contain; object-position: bottom left; margin: 0; padding: 0; filter: contrast(1.08) brightness(1.05);
+                                    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
+                                    mask-image: linear-gradient(to right, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);" />
                     </div>
                 @else
                     <div style="width: 100%; height: 100%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">
@@ -37,7 +37,7 @@
             </div>
 
             {{-- 2. RIGHT SIDE: HIGH-IMPACT TEXT & NEAT PARAGRAPHS --}}
-            <div class="sambutan-right-text" style="flex: 1 1 52%; min-width: 320px; padding: 48px 48px 48px 24px; display: flex; flex-direction: column; justify-content: center; gap: 20px; max-width: 800px;">
+            <div class="sambutan-right-text" style="flex: 1 1 55%; min-width: 320px; padding: 48px 48px 48px 24px; display: flex; flex-direction: column; justify-content: center; gap: 20px; max-width: 850px;">
                 
                 {{-- Header Pill --}}
                 <div style="display: flex; align-items: center; gap: 10px;">

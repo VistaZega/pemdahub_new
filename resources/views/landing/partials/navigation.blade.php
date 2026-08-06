@@ -8,7 +8,7 @@
                          onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'color:#fff; font-size:18px;\'></i>';">
                 </div>
                 <div class="nav-brand-text">
-                    <div class="nav-brand-name">Pembda<span>HUB</span></div>
+                    <div class="nav-brand-name" style="color:#ffffff; font-weight:900;">Pembda<span style="color:#ef4444; font-weight:900;">HUB</span></div>
                     <div class="nav-brand-sub">Smart School Management</div>
                 </div>
             </a>
