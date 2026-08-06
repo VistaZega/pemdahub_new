@@ -46,7 +46,7 @@
     <div class="bg-white rounded-3xl shadow-xl border-2 border-black p-6">
         <form action="{{ route('admin.pkl-alumni.placements.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
             {{-- Search Input (Cari Siswa / DUDI) --}}
-            <div class="{{ $isSA ? 'md:col-span-6' : 'md:col-span-8' }} space-y-1">
+            <div class="md:col-span-9 space-y-1">
                 <label class="block text-xs font-black text-black uppercase tracking-wider">Cari Data Siswa / Perusahaan DUDI</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -57,34 +57,13 @@
                            class="w-full bg-white border-2 border-black rounded-2xl pl-10 pr-4 py-3 text-xs font-black text-black focus:ring-4 focus:ring-black/20 outline-none">
                 </div>
             </div>
-            
-            {{-- Filter Sekolah (Super Admin) --}}
-            @if($isSA)
-            <div class="md:col-span-4 space-y-1">
-                <label class="block text-xs font-black text-black uppercase tracking-wider">Filter Sekolah SMK</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <i class="fas fa-school text-black text-sm"></i>
-                    </div>
-                    <select name="school_id" onchange="this.form.submit()" class="w-full bg-white border-2 border-black rounded-2xl pl-10 pr-8 py-3 text-xs font-black text-black focus:ring-4 focus:ring-black/20 outline-none appearance-none cursor-pointer">
-                        <option value="">Semua Sekolah SMK...</option>
-                        @foreach($schools as $school)
-                            <option value="{{ $school->id }}" {{ request('school_id') == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <i class="fas fa-chevron-down text-black text-xs"></i>
-                    </div>
-                </div>
-            </div>
-            @endif
 
             {{-- Action Buttons --}}
-            <div class="{{ $isSA ? 'md:col-span-2' : 'md:col-span-4' }} flex items-center gap-2">
+            <div class="md:col-span-3 flex items-center gap-2">
                 <button type="submit" class="flex-1 bg-black hover:bg-emerald-600 text-white font-black py-3 px-4 rounded-2xl text-xs uppercase tracking-wider transition border-2 border-black shadow-md">
                     <i class="fas fa-search mr-1 text-amber-400"></i> Cari
                 </button>
-                @if(request()->anyFilled(['search', 'school_id']))
+                @if(request()->filled('search'))
                     <a href="{{ route('admin.pkl-alumni.placements.index') }}" class="bg-rose-100 hover:bg-rose-600 hover:text-white text-rose-800 font-black py-3 px-4 rounded-2xl text-xs uppercase tracking-wider transition border-2 border-black shadow-sm text-center">
                         Reset
                     </a>
