@@ -554,24 +554,37 @@ if (!function_exists('balanceHtmlTags')) {
             @endif
 
             @forelse($course->assignments as $assignment)
+            @php
+                $modColor = match($assignment->module->color ?? 'amber') {
+                    'indigo' => '#4f46e5',
+                    'emerald' => '#059669',
+                    'rose' => '#e11d48',
+                    'amber' => '#d97706',
+                    'blue' => '#2563eb',
+                    'purple' => '#9333ea',
+                    'cyan' => '#0891b2',
+                    'orange' => '#ea580c',
+                    default => '#059669'
+                };
+            @endphp
             <div class="rounded-3xl shadow-md border-2 border-black p-5 transition-all bg-white text-black relative overflow-hidden">
                 <div class="flex items-start justify-between">
                     <div class="flex items-start gap-4 flex-1 min-w-0">
-                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 border-2 border-black shadow-md" style="background-color: #e0f2fe !important; color: #000000 !important;">
-                            <i class="fas fa-file-invoice text-2xl text-black"></i>
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 border-2 border-black shadow-md text-white" style="background-color: {{ $modColor }} !important;">
+                            <i class="fas fa-file-invoice text-xl text-white"></i>
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2 flex-wrap mb-1">
                                 <h4 class="font-black text-base leading-tight text-black">{{ $assignment->title }}</h4>
                                 @if($assignment->module)
-                                    <span class="bg-amber-300 text-black text-[9px] font-black px-2.5 py-0.5 rounded-lg border border-black uppercase tracking-wider">
-                                        {{ $assignment->module->getCode() }}
+                                    <span class="text-white text-[9px] font-black px-2.5 py-0.5 rounded-lg border border-black uppercase tracking-wider shadow-2xs" style="background-color: {{ $modColor }} !important;">
+                                        {{ $assignment->module->getCode() }} · {{ $assignment->module->title }}
                                     </span>
                                 @else
                                     <span class="bg-slate-100 text-black text-[9px] font-black px-2 py-0.5 rounded-lg border border-black uppercase tracking-wider">Global</span>
                                 @endif
                                 @if($assignment->allow_resubmit)
-                                <span class="bg-emerald-200 text-black text-[9px] font-black px-2 py-0.5 rounded-lg border border-black uppercase">REVISI DIAZINKAN</span>
+                                <span class="bg-emerald-200 text-black text-[9px] font-black px-2 py-0.5 rounded-lg border border-black uppercase">REVISI DIIZINKAN</span>
                                 @endif
                             </div>
                             @if($assignment->description)
@@ -626,17 +639,30 @@ if (!function_exists('balanceHtmlTags')) {
             </div>
 
             @forelse($course->quizzes as $quiz)
+            @php
+                $modColorQuiz = match($quiz->module->color ?? 'purple') {
+                    'indigo' => '#4f46e5',
+                    'emerald' => '#059669',
+                    'rose' => '#e11d48',
+                    'amber' => '#d97706',
+                    'blue' => '#2563eb',
+                    'purple' => '#9333ea',
+                    'cyan' => '#0891b2',
+                    'orange' => '#ea580c',
+                    default => '#9333ea'
+                };
+            @endphp
             <div class="rounded-3xl shadow-md border-2 border-black p-5 transition-all bg-white text-black relative overflow-hidden">
                 <div class="flex items-start justify-between">
                     <div class="flex items-start gap-4 flex-1 min-w-0">
-                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 border-2 border-black shadow-md" style="background-color: #f3e8ff !important; color: #000000 !important;">
-                            <i class="fas fa-vial text-2xl text-black"></i>
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 border-2 border-black shadow-md text-white" style="background-color: {{ $modColorQuiz }} !important;">
+                            <i class="fas fa-vial text-xl text-white"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap mb-1">
                                 <h4 class="font-black text-base leading-tight text-black">{{ $quiz->title }}</h4>
                                 @if($quiz->module)
-                                    <span class="bg-amber-300 text-black text-[9px] font-black px-2.5 py-0.5 rounded-lg border border-black uppercase tracking-wider">
+                                    <span class="text-white text-[9px] font-black px-2.5 py-0.5 rounded-lg border border-black uppercase tracking-wider shadow-2xs" style="background-color: {{ $modColorQuiz }} !important;">
                                         {{ $quiz->module->getCode() }} · {{ $quiz->module->title }}
                                     </span>
                                 @else
