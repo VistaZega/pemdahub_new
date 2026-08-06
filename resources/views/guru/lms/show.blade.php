@@ -304,7 +304,7 @@ if (!function_exists('balanceHtmlTags')) {
                     @forelse($module->materials as $material)
                     <div x-data="{ expanded: false }" class="bg-white rounded-2xl border-2 border-black hover:shadow-md transition-all overflow-hidden group/mat">
                         <div class="flex items-center justify-between p-3.5 cursor-pointer bg-slate-50 hover:bg-amber-100 transition-colors" @click="expanded = !expanded">
-                            <div class="flex items-center gap-3.5">
+                            <div class="flex items-center gap-4">
                                 @php
                                     $bgMat = match($material->material_type) {
                                         'pdf' => '#dc2626',
@@ -316,15 +316,15 @@ if (!function_exists('balanceHtmlTags')) {
                                         default => '#475569',
                                     };
                                 @endphp
-                                <span class="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-black shadow-md border-2 border-black flex-shrink-0" style="background-color: {{ $bgMat }} !important; color: #ffffff !important;">
+                                <span class="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-black shadow-md border-2 border-black flex-shrink-0 mr-2" style="background-color: {{ $bgMat }} !important; color: #ffffff !important;">
                                     <i class="fas {{ $material->material_type === 'pdf' ? 'fa-file-pdf' : ($material->material_type === 'video' ? 'fa-video' : ($material->material_type === 'image' ? 'fa-image' : ($material->material_type === 'link' ? 'fa-link' : ($material->material_type === 'interactive' ? 'fa-gamepad' : ($material->material_type === 'document' ? 'fa-file-alt' : 'fa-file'))))) }} text-lg"></i>
                                 </span>
-                                <div>
-                                    <p class="font-black text-black text-sm">
-                                        <span class="text-black font-black mr-1 text-xs bg-amber-300 px-2 py-0.5 rounded border border-black">{{ $module->getCode() }}-{{ $loop->iteration }}</span>
-                                        {{ preg_replace('/^\d+\.\d+\s*/', '', $material->title) }}
-                                    </p>
-                                    <p class="text-[10px] text-black font-black uppercase tracking-wider mt-0.5">{{ $material->getContentTypeLabel() }}{{ $material->file_size ? ' · ' . number_format($material->file_size / 1024, 0) . ' KB' : '' }}</p>
+                                <div class="space-y-1">
+                                    <div class="font-black text-black text-sm flex flex-wrap items-center gap-2">
+                                        <span class="text-black font-black text-xs bg-amber-300 px-2.5 py-0.5 rounded-lg border border-black inline-block shadow-2xs">{{ $module->getCode() }}-{{ $loop->iteration }}</span>
+                                        <span>{{ preg_replace('/^\d+\.\d+\s*/', '', $material->title) }}</span>
+                                    </div>
+                                    <p class="text-[10px] text-black font-black uppercase tracking-wider">{{ $material->getContentTypeLabel() }}{{ $material->file_size ? ' · ' . number_format($material->file_size / 1024, 0) . ' KB' : '' }}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
