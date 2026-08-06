@@ -707,7 +707,7 @@
                             </div>
                         </div>
                         @if($assignment->description)
-                            <p class="text-base mt-2 mb-4 p-3 rounded-xl border-l-4 shadow-sm {{ $hasModule ? 'bg-white/10 border-white/20 text-white/90' : 'bg-gray-50 border-emerald-300 text-gray-600' }}">{{ $assignment->description }}</p>
+                            <div class="text-sm font-bold mt-2 mb-4 p-3 rounded-xl border-l-4 shadow-sm {{ $hasModule ? 'bg-white/10 border-white/20 text-white/90' : 'bg-gray-50 border-emerald-300 text-gray-800' }}">{!! balanceHtmlTags($assignment->description) !!}</div>
                         @endif
 
                         @if($assignment->file_path)

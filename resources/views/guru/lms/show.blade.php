@@ -588,7 +588,7 @@ if (!function_exists('balanceHtmlTags')) {
                                 @endif
                             </div>
                             @if($assignment->description)
-                                <p class="text-xs font-bold text-black mt-1 mb-3 line-clamp-2">{{ $assignment->description }}</p>
+                                <p class="text-xs font-bold text-black mt-1 mb-3 line-clamp-2">{{ strip_tags($assignment->description) }}</p>
                             @endif
                             <div class="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider">
                                 @if($assignment->deadline)
@@ -673,7 +673,7 @@ if (!function_exists('balanceHtmlTags')) {
                                 </span>
                             </div>
                             @if($quiz->description)
-                                <p class="text-xs font-bold text-black mt-1 mb-3 line-clamp-2">{{ $quiz->description }}</p>
+                                <p class="text-xs font-bold text-black mt-1 mb-3 line-clamp-2">{{ strip_tags($quiz->description) }}</p>
                             @endif
                             <div class="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider">
                                 @if($quiz->time_limit)
