@@ -1942,7 +1942,36 @@ Route::get('/sync-lms-reputation', function () {
         }
     }
 
-    return "<h2>Sinkronisasi Poin Pembda Elite LMS Selesai!</h2><p>Berhasil memperbarui <b>{$syncedCount}</b> entri item LMS (Modul, Materi, Tugas, Kuis) milik para Guru. Poin Pembda Elite Guru dan peringkat Hall of Fame telah diperbarui secara otomatis!</p>";
+    // Recalculate level for all reputations
+    $reputations = \App\Models\Reputation::with('user')->get();
+    foreach ($reputations as $rep) {
+        $rep->updateLevel();
+        $rep->save();
+    }
+
+    $html = "<h2>Hitung Ulang & Synchronize Poin LMS Seluruh Guru Selesai!</h2>";
+    $html .= "<p>Berhasil melakukan akumulasi ulang untuk total <b>{$syncedCount}</b> entri LMS (Modul, Materi, Tugas, & Kuis) bagi SELURUH Guru.</p>";
+    $html .= "<table border='1' cellpadding='8' cellspacing='0' style='border-collapse:collapse; font-family:sans-serif; width:100%;'>";
+    $html .= "<tr style='background:#1e1b4b; color:white;'><th>No</th><th>Nama Guru</th><th>Email</th><th>Total Poin Pembda Elite</th><th>Level Rank</th></tr>";
+
+    $teachersRep = \App\Models\Reputation::whereHas('user', function($q){
+        $q->where('role', 'guru');
+    })->orderBy('total_points', 'desc')->get();
+
+    $no = 1;
+    foreach ($teachersRep as $tr) {
+        $html .= "<tr>";
+        $html .= "<td>{$no}</td>";
+        $html .= "<td><b>" . ($tr->user->name ?? '-') . "</b></td>";
+        $html .= "<td>" . ($tr->user->email ?? '-') . "</td>";
+        $html .= "<td style='text-align:center; background:#fef3c7;'><b>{$tr->total_points}</b> Poin</td>";
+        $html .= "<td style='text-align:center;'><b>{$tr->level_name}</b></td>";
+        $html .= "</tr>";
+        $no++;
+    }
+    $html .= "</table>";
+
+    return $html;
 });
 
 Route::get('/download-sk-gaji-pdf', function () {
