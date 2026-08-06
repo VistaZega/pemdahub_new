@@ -85,11 +85,13 @@
         @php
             $scientist = $course->getScientistConfig();
             $classNames = $course->lmsClasses->pluck('classroom.class_name')->filter()->implode(', ');
+            $cardColors = ['#4f46e5', '#059669', '#2563eb', '#d97706', '#9333ea', '#0891b2', '#e11d48'];
+            $headerBg = $cardColors[$loop->index % count($cardColors)];
         @endphp
         <div class="course-card group">
             <div class="bg-white rounded-3xl border-2 border-black overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-                {{-- Card Header (Solid Dark Header) --}}
-                <div class="relative p-5 overflow-hidden border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
+                {{-- Card Header (Vibrant Pop Header) --}}
+                <div class="relative p-5 overflow-hidden border-b-2 border-black text-white" style="background-color: {{ $headerBg }} !important;">
                     <div class="relative z-10">
                         <div class="flex items-start gap-3 mb-3">
                             <div class="w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-black flex-shrink-0 shadow-md" style="background-color: #fbbf24 !important; color: #000000 !important;">

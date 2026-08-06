@@ -261,16 +261,29 @@ if (!function_exists('balanceHtmlTags')) {
             </div>
 
             @forelse($course->modules as $module)
+            @php
+                $moduleHeaderBg = match($module->color) {
+                    'indigo' => '#4f46e5',
+                    'emerald' => '#059669',
+                    'rose' => '#e11d48',
+                    'amber' => '#d97706',
+                    'blue' => '#2563eb',
+                    'purple' => '#9333ea',
+                    'cyan' => '#0891b2',
+                    'orange' => '#ea580c',
+                    default => '#2563eb'
+                };
+            @endphp
             <div class="module-card bg-white rounded-3xl shadow-md border-2 border-black overflow-hidden transition-all">
                 {{-- Module Header --}}
-                <div class="px-5 py-4 flex items-center justify-between border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
+                <div class="px-5 py-4 flex items-center justify-between border-b-2 border-black text-white" style="background-color: {{ $moduleHeaderBg }} !important;">
                     <div class="flex items-center gap-3">
                         <span class="w-9 h-9 rounded-xl flex items-center justify-center text-black font-black text-sm border-2 border-black shadow-sm" style="background-color: #fbbf24 !important;">
                             {{ $module->sequence }}
                         </span>
                         <div>
                             <h3 class="font-black text-white text-base tracking-wide">{{ $module->title }}</h3>
-                            <p class="text-amber-400 text-[10px] font-black uppercase tracking-widest">{{ $module->materials->count() }} MATERI AJAR</p>
+                            <p class="text-amber-200 text-[10px] font-black uppercase tracking-widest">{{ $module->materials->count() }} MATERI AJAR</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
