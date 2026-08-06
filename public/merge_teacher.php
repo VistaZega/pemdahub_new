@@ -58,22 +58,28 @@ echo "<h1>🏫 Tool Penggabungan Akun Guru Lintas Unit (Multi-School Teacher Mer
 echo "<p>Mode Eksekusi: " . ($dryRun ? "<span class='badge badge-dry'>DRY RUN / PREVIEW (Tanpa Mengubah DB)</span>" : "<span class='badge badge-real'>REAL EXECUTION (Mengubah DB)</span>") . "</p>";
 echo "</div>";
 
-// Search for Teachers matching NUPTK or Name
+// Search for Teachers matching Kode/NUPTK or Name
 $teachers = Teacher::with(['school', 'user'])
     ->where(function ($q) use ($nuptkQuery, $nameQuery) {
         if ($nuptkQuery) {
-            $q->where('nuptk', $nuptkQuery)
-              ->orWhere('nip', $nuptkQuery);
+            $q->where('teacher_code', 'LIKE', "%{$nuptkQuery}%")
+              ->orWhereHas('user', function ($uq) use ($nuptkQuery) {
+                  $uq->where('username', 'LIKE', "%{$nuptkQuery}%")
+                     ->orWhere('email', 'LIKE', "%{$nuptkQuery}%");
+              });
         }
         if ($nameQuery) {
-            $q->orWhere('name', 'LIKE', "%{$nameQuery}%");
+            $q->orWhere('full_name', 'LIKE', "%{$nameQuery}%")
+              ->orWhereHas('user', function ($uq) use ($nameQuery) {
+                  $uq->where('name', 'LIKE', "%{$nameQuery}%");
+              });
         }
     })
     ->get();
 
 if ($teachers->isEmpty()) {
     echo "<div class='card'>";
-    echo "<p class='err'>❌ Tidak ditemukan data guru dengan NUPTK '{$nuptkQuery}' atau nama '{$nameQuery}'.</p>";
+    echo "<p class='err'>❌ Tidak ditemukan data guru dengan kode/NUPTK '{$nuptkQuery}' atau nama '{$nameQuery}'.</p>";
     echo "</div></body></html>";
     exit;
 }
@@ -81,7 +87,7 @@ if ($teachers->isEmpty()) {
 echo "<div class='card'>";
 echo "<h2>1. Data Akun Guru Ditemukan (" . $teachers->count() . " Akun)</h2>";
 echo "<table>";
-echo "<tr><th>Teacher ID</th><th>User ID</th><th>Nama Guru</th><th>NUPTK / NIP</th><th>Unit Sekolah</th><th>Status</th><th>Role</th></tr>";
+echo "<tr><th>Teacher ID</th><th>User ID</th><th>Nama Lengkap</th><th>Kode/NUPTK</th><th>Unit Sekolah</th><th>Status</th><th>Role</th></tr>";
 
 $primaryTeacher = null;
 $secondaryTeachers = collect();
@@ -99,8 +105,8 @@ foreach ($teachers as $t) {
     echo "<tr>";
     echo "<td><strong>#{$t->id}</strong></td>";
     echo "<td>" . ($t->user ? "#{$t->user->id} ({$t->user->email})" : "<span class='err'>Tidak ada User</span>") . "</td>";
-    echo "<td>{$t->name}</td>";
-    echo "<td>" . ($t->nuptk ?: $t->nip ?: '-') . "</td>";
+    echo "<td>{$t->full_name}</td>";
+    echo "<td>" . ($t->teacher_code ?: '-') . "</td>";
     echo "<td><strong>{$schoolName}</strong></td>";
     echo "<td>" . ($t->is_active ? "<span class='ok'>Aktif</span>" : "<span class='warn'>Non-Aktif</span>") . "</td>";
     echo "<td>" . ($t->user ? $t->user->role : '-') . "</td>";
@@ -115,10 +121,10 @@ if (!$primaryTeacher) {
 }
 
 echo "<div style='margin-top: 16px; padding: 16px; background: #0f172a; border-radius: 12px;'>";
-echo "<p>🎯 <strong>Akun Utama (Target):</strong> <span class='badge badge-primary'>Teacher #{$primaryTeacher->id}</span> - {$primaryTeacher->name} (<strong>" . ($primaryTeacher->school ? $primaryTeacher->school->name : '-') . "</strong>)</p>";
+echo "<p>🎯 <strong>Akun Utama (Target):</strong> <span class='badge badge-primary'>Teacher #{$primaryTeacher->id}</span> - {$primaryTeacher->full_name} (<strong>" . ($primaryTeacher->school ? $primaryTeacher->school->name : '-') . "</strong>)</p>";
 
 foreach ($secondaryTeachers as $sec) {
-    echo "<p>🔄 <strong>Akun Sekunder (Akan Digabung):</strong> <span class='badge badge-secondary'>Teacher #{$sec->id}</span> - {$sec->name} (<strong>" . ($sec->school ? $sec->school->name : '-') . "</strong>)</p>";
+    echo "<p>🔄 <strong>Akun Sekunder (Akan Digabung):</strong> <span class='badge badge-secondary'>Teacher #{$sec->id}</span> - {$sec->full_name} (<strong>" . ($sec->school ? $sec->school->name : '-') . "</strong>)</p>";
 }
 echo "</div>";
 echo "</div>";
@@ -126,8 +132,6 @@ echo "</div>";
 // Analyze records to migrate
 echo "<div class='card'>";
 echo "<h2>2. Analisis Data yang Akan Dipindahkan ke Akun Utama</h2>";
-
-$migrationSummary = [];
 
 foreach ($secondaryTeachers as $sec) {
     $secSchoolId = $sec->school_id;
@@ -154,20 +158,6 @@ foreach ($secondaryTeachers as $sec) {
     echo "<li>Monitoring PKL: <strong>{$pklMon}</strong> entri</li>";
     echo "<li>Nilai Siswa (Grades): <strong>{$grades}</strong> entri</li>";
     echo "</ul>";
-
-    $migrationSummary[] = [
-        'secTeacher' => $sec,
-        'schoolId' => $secSchoolId,
-        'assignments' => $assignments,
-        'schedules' => $schedules,
-        'lmsCourses' => $lmsCourses,
-        'cbtBanks' => $cbtBanks,
-        'cbtExams' => $cbtExams,
-        'homerooms' => $homerooms,
-        'knowledge' => $knowledge,
-        'pklMon' => $pklMon,
-        'grades' => $grades,
-    ];
 }
 echo "</div>";
 
@@ -227,8 +217,7 @@ if ($dryRun) {
             $secSubjects = DB::table('subject_teacher')->where('teacher_id', $secId)->pluck('subject_id');
             foreach ($secSubjects as $subId) {
                 DB::table('subject_teacher')->updateOrInsert(
-                    ['teacher_id' => $priId, 'subject_id' => $subId],
-                    ['created_at' => now(), 'updated_at' => now()]
+                    ['teacher_id' => $priId, 'subject_id' => $subId]
                 );
             }
 
@@ -243,7 +232,6 @@ if ($dryRun) {
             // 12. Deactivate Secondary Teacher
             DB::table('teachers')->where('id', $secId)->update([
                 'is_active' => false,
-                'notes' => 'Telah digabungkan ke Akun Utama Guru #' . $priId . ' (' . now() . ')',
             ]);
 
             // 13. Deactivate Secondary User
@@ -259,7 +247,7 @@ if ($dryRun) {
 
         echo "<p class='ok'>✅ PENGGABUNGAN AKUN BERHASIL LENGKAP!</p>";
         echo "<ul>";
-        echo "<li>Akun Utama: <strong>{$primaryTeacher->name}</strong> (#{$primaryTeacher->id})</li>";
+        echo "<li>Akun Utama: <strong>{$primaryTeacher->full_name}</strong> (#{$primaryTeacher->id})</li>";
         echo "<li>Email/User Utama: <strong>" . ($primaryTeacher->user ? $primaryTeacher->user->email : '-') . "</strong></li>";
         echo "<li>Unit Utama: <strong>" . ($primaryTeacher->school ? $primaryTeacher->school->name : '-') . "</strong></li>";
         echo "<li>Unit Tambahan yang Dihubungkan: <strong>" . $secondaryTeachers->map(fn($t) => $t->school ? $t->school->name : '')->filter()->implode(', ') . "</strong></li>";
