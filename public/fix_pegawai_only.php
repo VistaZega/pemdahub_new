@@ -6,17 +6,16 @@ $app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-// Amankan dengan token (opsional, tapi baik untuk mencegah akses acak)
-$token = request('token');
+$token = $_GET['token'] ?? '';
 if ($token !== 'pembda2026') {
     die("<h3>Akses ditolak. Tambahkan ?token=pembda2026 di URL.</h3>");
 }
 
-$execute = request('execute');
+$execute = $_GET['execute'] ?? '';
 
 echo "<h2>🔧 Fix Data Ganda (Arman & Yarisman menjadi Murni Pegawai)</h2>";
 
-$employeeIds = [230, 231]; // ID Pegawai Arman dan Yarisman
+$employeeIds = [230, 231];
 $teachers = App\Models\Teacher::whereIn('employee_id', $employeeIds)->get();
 
 if ($teachers->isEmpty()) {
@@ -28,7 +27,6 @@ echo "<ul>";
 foreach ($teachers as $teacher) {
     echo "<li>Ditemukan Data Guru: <b>{$teacher->full_name}</b> (Teacher ID: {$teacher->id})</li>";
     
-    // Cek Relasi yang mungkin menghalangi penghapusan
     $hasRelations = false;
     $relationMsgs = [];
     
@@ -63,18 +61,15 @@ if ($execute !== '1') {
     
     foreach ($teachers as $teacher) {
         try {
-            // Cek lagi relasi untuk menentukan apakah dihapus atau di-nonaktifkan
             $hasRelations = false;
             if (class_exists('App\Models\TeachingAssignment') && App\Models\TeachingAssignment::where('teacher_id', $teacher->id)->exists()) $hasRelations = true;
             if (class_exists('App\Models\Classroom') && App\Models\Classroom::where('homeroom_teacher_id', $teacher->id)->exists()) $hasRelations = true;
             
             if ($hasRelations) {
-                // Nonaktifkan saja
                 $teacher->is_active = false;
                 $teacher->save();
                 echo "<p>✅ <b>{$teacher->full_name}</b> dinonaktifkan sebagai Guru (karena masih terikat jadwal/wali kelas). Data Pegawai TU tetap aman.</p>";
             } else {
-                // Hapus permanen dari tabel teachers
                 $name = $teacher->full_name;
                 $teacher->delete();
                 echo "<p>✅ <b>{$name}</b> berhasil dihapus dari tabel Guru. Beliau kini murni sebagai Pegawai TU.</p>";
