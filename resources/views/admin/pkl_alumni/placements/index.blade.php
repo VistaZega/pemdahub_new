@@ -43,29 +43,24 @@
     @endif
 
     {{-- Filter & Search Card --}}
-    <div class="bg-white rounded-3xl shadow-xl border-2 border-black p-6">
-        <form action="{{ route('admin.pkl-alumni.placements.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-            {{-- Search Input (Cari Siswa / DUDI) --}}
-            <div class="md:col-span-9 space-y-1">
-                <label class="block text-xs font-black text-black uppercase tracking-wider">Cari Data Siswa / Perusahaan DUDI</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-black text-sm"></i>
-                    </div>
-                    <input type="text" name="search" value="{{ request('search') }}" 
-                           placeholder="Ketik nama siswa, NISN, atau nama DUDI mitra..." 
-                           class="w-full bg-white border-2 border-black rounded-2xl pl-10 pr-4 py-3 text-xs font-black text-black focus:ring-4 focus:ring-black/20 outline-none">
+    <div class="bg-white rounded-3xl shadow-xl border-2 border-black p-5">
+        <form action="{{ route('admin.pkl-alumni.placements.index') }}" method="GET" class="flex flex-col sm:flex-row items-center gap-3 w-full">
+            <div class="relative flex-1 w-full">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-black text-base"></i>
                 </div>
+                <input type="text" name="search" value="{{ request('search') }}" 
+                       placeholder="Cari nama siswa, NISN, atau nama perusahaan DUDI..." 
+                       class="w-full bg-slate-50 hover:bg-white border-2 border-black rounded-2xl pl-11 pr-4 py-3.5 text-sm font-black text-black placeholder:text-slate-400 focus:ring-4 focus:ring-black/20 focus:bg-white outline-none transition-all">
             </div>
-
-            {{-- Action Buttons --}}
-            <div class="md:col-span-3 flex items-center gap-2">
-                <button type="submit" class="flex-1 bg-black hover:bg-emerald-600 text-white font-black py-3 px-4 rounded-2xl text-xs uppercase tracking-wider transition border-2 border-black shadow-md">
-                    <i class="fas fa-search mr-1 text-amber-400"></i> Cari
+            
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <button type="submit" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-black hover:bg-emerald-600 text-white font-black px-7 py-3.5 rounded-2xl text-xs uppercase tracking-wider transition-all border-2 border-black shadow-md">
+                    <i class="fas fa-search text-amber-400"></i> Cari
                 </button>
                 @if(request()->filled('search'))
-                    <a href="{{ route('admin.pkl-alumni.placements.index') }}" class="bg-rose-100 hover:bg-rose-600 hover:text-white text-rose-800 font-black py-3 px-4 rounded-2xl text-xs uppercase tracking-wider transition border-2 border-black shadow-sm text-center">
-                        Reset
+                    <a href="{{ route('admin.pkl-alumni.placements.index') }}" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-rose-100 hover:bg-rose-600 hover:text-white text-rose-800 font-black px-5 py-3.5 rounded-2xl text-xs uppercase tracking-wider transition-all border-2 border-black shadow-xs">
+                        <i class="fas fa-undo"></i> Reset
                     </a>
                 @endif
             </div>
