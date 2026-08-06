@@ -37,19 +37,12 @@
                     <select name="semester_id" onchange="this.form.submit()" class="text-xs font-black border-2 border-black bg-white rounded-2xl px-4 py-2.5 shadow-sm text-black outline-none">
                         @foreach($semesters as $sem)
                             <option value="{{ $sem->id }}" {{ $selectedSemesterId == $sem->id ? 'selected' : '' }}>
-                                {{ $sem->semester_name }}
+                                {{ $sem->semester_name ?? 'Semester '.$sem->semester_number }} - {{ $sem->academicYear->year ?? '' }}
                             </option>
                         @endforeach
                     </select>
                 </form>
             </div>
-        </div>
-    </div>
-                            {{ $sem->semester_name ?? 'Semester '.$sem->semester_number }} - {{ $sem->academicYear->year ?? '' }}
-                        </option>
-                    @endforeach
-                </select>
-            </form>
         </div>
     </div>
 
