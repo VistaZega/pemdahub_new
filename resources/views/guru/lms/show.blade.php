@@ -52,7 +52,8 @@ if (!function_exists('balanceHtmlTags')) {
         $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         $balanced = $dom->saveHTML();
         libxml_clear_errors();
-        return str_replace('<?xml encoding="utf-8" ?>', '', $balanced);
+        $balanced = str_replace(['<?xml encoding="utf-8" ?>', '<html>', '</html>', '<body>', '</body>'], '', $balanced);
+        return trim($balanced);
     }
 }
 ?>
