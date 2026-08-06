@@ -20,17 +20,17 @@
                 <div style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 480px; height: 480px; background: radial-gradient(circle, rgba(99, 102, 241, 0.55) 0%, rgba(245, 158, 11, 0.2) 45%, rgba(0,0,0,0) 75%); border-radius: 50%; filter: blur(50px); pointer-events: none;"></div>
 
                 @if($photoExists)
-                    <div style="position: relative; width: 100%; max-width: 580px; height: 560px; display: flex; align-items: flex-start; justify-content: center; overflow: hidden;">
+                    <div style="position: relative; width: 100%; max-width: 580px; height: 580px; display: flex; align-items: flex-start; justify-content: center; overflow: hidden; margin-top: -25px;">
                         
-                        {{-- Photo Element: object-position TOP CENTER ensures head is NEVER cut off --}}
+                        {{-- Photo Element: shifted upwards slightly with intact head --}}
                         <img src="{{ asset('images/photo-profile.jpeg') }}?v={{ filemtime($photoPath) }}" 
                              alt="Yulianus Zega, S.Kom, M.Pd.T" 
-                             style="width: 100%; height: 100%; object-fit: cover; object-position: top center; filter: contrast(1.08) brightness(1.04);
-                                    -webkit-mask-image: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.85) 70%, rgba(0,0,0,0) 95%);
-                                    mask-image: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.85) 70%, rgba(0,0,0,0) 95%);" />
+                             style="width: 100%; height: 100%; object-fit: cover; object-position: top center; filter: contrast(1.08) brightness(1.05); transform: translateY(-15px);
+                                    -webkit-mask-image: radial-gradient(ellipse at 50% 35%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.85) 70%, rgba(0,0,0,0) 95%);
+                                    mask-image: radial-gradient(ellipse at 50% 35%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.85) 70%, rgba(0,0,0,0) 95%);" />
                         
                         {{-- Soft Vignette Overlay --}}
-                        <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(30, 27, 75, 0.25) 70%, #0b0f19 92%);"></div>
+                        <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 35%, transparent 40%, rgba(30, 27, 75, 0.25) 70%, #0b0f19 92%);"></div>
                     </div>
                 @else
                     <div style="width: 340px; height: 500px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border-radius: 20px;">
