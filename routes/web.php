@@ -1857,6 +1857,49 @@ Route::get('/debug-gallery', function () {
     return $html;
 });
 
+Route::get('/debug-calendar-check', function () {
+    if (request('secret') !== 'pembda99') return 'Unauthorized';
+
+    $schools = \App\Models\School::all();
+    $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+
+    $html = "<h2>Rincian Input Kalender Pendidikan per Unit Sekolah (TP " . ($activeYear->year ?? '-') . ")</h2>";
+    $html .= "<table border='1' cellpadding='8' cellspacing='0' style='border-collapse:collapse; font-family:sans-serif; width:100%;'>";
+    $html .= "<tr style='background:#312e81; color:white;'><th>No</th><th>Nama Sekolah</th><th>Tipe</th><th>Agenda Khusus Unit</th><th>Agenda Yayasan</th><th>Total (Progress Input)</th><th>Contoh Agenda Khusus</th></tr>";
+
+    $yayasanCount = \App\Models\EducationalCalendar::whereNull('school_id')->count();
+
+    $no = 1;
+    foreach ($schools as $s) {
+        $schoolCount = \App\Models\EducationalCalendar::where('school_id', $s->id)->count();
+        $sampleEvents = \App\Models\EducationalCalendar::where('school_id', $s->id)->take(3)->pluck('title')->toArray();
+        $sampleStr = !empty($sampleEvents) ? implode(', ', $sampleEvents) : '<span style="color:#999;">Belum ada agenda khusus unit</span>';
+
+        $totalCombined = $schoolCount + $yayasanCount;
+
+        $html .= "<tr>";
+        $html .= "<td>{$no}</td>";
+        $html .= "<td><b>{$s->name}</b></td>";
+        $html .= "<td>{$s->type}</td>";
+        $html .= "<td style='text-align:center;'><b>{$schoolCount}</b> Agenda</td>";
+        $html .= "<td style='text-align:center;'>{$yayasanCount} Agenda</td>";
+        $html .= "<td style='text-align:center; background:#e0f2fe;'><b>{$totalCombined}</b> Agenda</td>";
+        $html .= "<td>{$sampleStr}</td>";
+        $html .= "</tr>";
+        $no++;
+    }
+
+    $html .= "<tr style='background:#fef3c7;'>";
+    $html .= "<td colspan='3'><b>YAYASAN / UMUM (school_id = NULL)</b></td>";
+    $html .= "<td colspan='3' style='text-align:center;'><b>{$yayasanCount}</b> Agenda Yayasan</td>";
+    $html .= "<td>Berlaku untuk seluruh unit sekolah</td>";
+    $html .= "</tr>";
+
+    $html .= "</table>";
+
+    return $html;
+});
+
 Route::get('/download-sk-gaji-pdf', function () {
     $filePath = public_path('SURAT_KEPUTUSAN_PENETAPAN_GAJI_DAN_OTORISASI_PEMBDA_2026.pdf');
     if (!file_exists($filePath)) {
