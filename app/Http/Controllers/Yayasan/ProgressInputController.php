@@ -566,44 +566,48 @@ class ProgressInputController extends Controller
             'schools_data'  => $item5Schools,
         ];
 
-        // ITEM 6: Kalender Pendidikan & Agenda Akademik
+        // ITEM 6: Kalender Pendidikan & Agenda Akademik (Khusus Unit Sekolah, Target minimal 5 agenda)
         $item6Schools = [];
         foreach ($schools as $school) {
-            $kaldikQuery = EducationalCalendar::query();
+            $kaldikQuery = EducationalCalendar::where('school_id', $school->id);
             if ($currentYear) {
-                $kaldikQuery->where('academic_year_id', $currentYear->id)
-                    ->where(function ($q) use ($school) {
-                        $q->where('school_id', $school->id)->orWhereNull('school_id');
-                    });
+                $kaldikQuery->where('academic_year_id', $currentYear->id);
             }
+            
             $kaldikCount = $kaldikQuery->count();
             $recentAgendas = (clone $kaldikQuery)->orderBy('start_date', 'asc')->take(3)->get();
             $agendaNames = $recentAgendas->pluck('title')->toArray();
 
-            if ($kaldikCount == 0) {
-                $rekomendasi = "Belum ada agenda akademik atau hari libur pada Kalender Pendidikan TP 2026/2027.";
-                $statusColor = 'red';
-            } else {
-                $rekomendasi = "Kalender Pendidikan diisi {$kaldikCount} agenda kegiatan. Jadwal PTS/PAS dan libur semester telah terkonfigurasi.";
+            if ($kaldikCount >= 5) {
+                $rekomendasi = "Kalender Pendidikan diisi {$kaldikCount} agenda kegiatan khusus unit sekolah (Target minimal 5 agenda unit tercapai).";
                 $statusColor = 'green';
+            } elseif ($kaldikCount > 0) {
+                $rekomendasi = "Unit sekolah baru menginput {$kaldikCount} agenda kegiatan khusus (Target minimal: 5 agenda kegiatan unit sekolah).";
+                $statusColor = 'yellow';
+            } else {
+                $rekomendasi = "Belum ada agenda akademik atau hari libur mandiri yang diinput oleh unit {$school->name} pada TP 2026/2027.";
+                $statusColor = 'red';
             }
 
             $details = [
-                "Total Agenda Akademik: {$kaldikCount} Kegiatan",
+                "Total Agenda Khusus Unit: {$kaldikCount} Kegiatan",
+                "Target Minimal: 5 Agenda Unit",
             ];
             if (!empty($agendaNames)) {
-                $details[] = "Agenda Terdekat: " . implode(', ', $agendaNames);
+                $details[] = "Agenda Terdekat Unit: " . implode(', ', $agendaNames);
+            } else {
+                $details[] = "Agenda Terdekat Unit: Belum ada agenda khusus unit";
             }
 
             $item6Schools[] = [
                 'school_name'  => $school->name,
                 'perkembangan' => "{$kaldikCount} Agenda",
-                'satuan'       => 'Agenda',
+                'satuan'       => 'Agenda Unit',
                 'rekomendasi'  => $rekomendasi,
                 'status_color' => $statusColor,
                 'raw_value'    => $kaldikCount,
                 'details'      => $details,
-                'action_items' => $kaldikCount == 0 ? ["Input Agenda Akademik & Libur di Kalender Pendidikan"] : [],
+                'action_items' => $kaldikCount < 5 ? ["Input Agenda Akademik & Libur Khusus Unit Sekolah (Minimal 5 Agenda)"] : [],
             ];
         }
         $items[] = [
