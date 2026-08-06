@@ -7,14 +7,24 @@ $kernel->bootstrap();
 header('Content-Type: application/json');
 
 try {
-    $users = \Illuminate\Support\Facades\DB::select("SELECT id, name, username, email, role, school_id FROM users WHERE name LIKE '%Yulianus%'");
-    $teachers = \Illuminate\Support\Facades\DB::select("SELECT id, user_id, school_id, full_name, teacher_code FROM teachers WHERE full_name LIKE '%Yulianus%'");
-    $employees = \Illuminate\Support\Facades\DB::select("SELECT id, user_id, school_id, full_name, employee_code FROM employees WHERE full_name LIKE '%Yulianus%'");
+    $assignments = \Illuminate\Support\Facades\DB::select("
+        SELECT 
+            ta.id, 
+            s.name as subject_name, 
+            c.name as class_name, 
+            sch.name as school_name,
+            ta.day_of_week,
+            ta.start_time,
+            ta.end_time
+        FROM teaching_assignments ta
+        LEFT JOIN subjects s ON ta.subject_id = s.id
+        LEFT JOIN classrooms c ON ta.classroom_id = c.id
+        LEFT JOIN schools sch ON c.school_id = sch.id
+        WHERE ta.teacher_id = 209
+    ");
 
     echo json_encode([
-        'users' => $users,
-        'teachers' => $teachers,
-        'employees' => $employees,
+        'assignments' => $assignments
     ], JSON_PRETTY_PRINT);
 } catch (\Throwable $e) {
     echo json_encode([
