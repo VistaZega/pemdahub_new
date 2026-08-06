@@ -179,7 +179,7 @@
                     <div class="w-9 h-9 rounded-xl bg-indigo-600 border-2 border-black flex items-center justify-center text-white text-sm shadow-xs">
                         <i class="fas fa-chalkboard-teacher"></i>
                     </div>
-                    Inspirational Guru (Pendidik)
+                    Inspirational Teachers (Pendidik)
                 </h2>
                 <span class="bg-indigo-100 text-black border-2 border-black text-[10px] font-black px-3 py-1 rounded-xl uppercase">Kinerja Guru</span>
             </div>

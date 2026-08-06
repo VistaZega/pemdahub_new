@@ -72,7 +72,7 @@
                             <i class="fa-solid fa-chalkboard-user"></i>
                         </div>
                         <div>
-                            <h3 style="font-size: 17px; font-weight: 900; color: #000000; margin: 0;">Inspirational Guru</h3>
+                            <h3 style="font-size: 17px; font-weight: 900; color: #000000; margin: 0;">Inspirational Teachers</h3>
                             <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Kinerja & Dedikasi</span>
                         </div>
                     </div>
