@@ -1,4 +1,4 @@
-{{-- SAMBUTAN KETUA YAYASAN — 0-Gap Zero Margin Left/Top/Bottom Edition --}}
+{{-- SAMBUTAN KETUA YAYASAN — 0-Gap Margin & Top-Positioned Head Edition --}}
 <section class="section-fullwidth" id="sambutan-ketua-section" style="width: 100%; position: relative; overflow: hidden; background: linear-gradient(135deg, #0b0f19 0%, #1e1b4b 45%, #312e81 100%); color: #ffffff; padding: 0; margin: 0;">
     
     {{-- Abstract Organic Ambient Glowing Orbs --}}
@@ -9,7 +9,7 @@
         
         <div class="sambutan-full-container" style="display: flex; flex-wrap: wrap; width: 100%; align-items: stretch; margin: 0; padding: 0;">
 
-            {{-- 1. LEFT SIDE: 0-GAP (TOP=0, LEFT=0, BOTTOM=0) --}}
+            {{-- 1. LEFT SIDE: 0-GAP MARGINS (TOP=0, LEFT=0, BOTTOM=0), HEAD POSITIONED CLOSE TO TOP BORDER --}}
             <div class="sambutan-left-photo" style="flex: 1 1 48%; min-width: 320px; position: relative; display: flex; align-items: stretch; min-height: 520px; overflow: hidden; margin: 0; padding: 0;">
                 @php
                     $photoPath = base_path('public/images/photo-profile.jpeg');
@@ -22,12 +22,12 @@
                 @if($photoExists)
                     <div style="position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;">
                         
-                        {{-- Photo Element with 0 Gap on Top, Left, and Bottom --}}
+                        {{-- Photo Element: Zoomed & focused on head to eliminate empty blue space above head --}}
                         <img src="{{ asset('images/photo-profile.jpeg') }}?v={{ filemtime($photoPath) }}" 
                              alt="Yulianus Zega, S.Kom, M.Pd.T" 
-                             style="width: 100%; height: 100%; object-fit: cover; object-position: top left; margin: 0; padding: 0; filter: contrast(1.08) brightness(1.05);
-                                    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 98%), linear-gradient(to bottom, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
-                                    mask-image: linear-gradient(to right, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 98%), linear-gradient(to bottom, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);" />
+                             style="width: 100%; height: 100%; object-fit: cover; object-position: 50% 48%; transform: scale(1.35); transform-origin: 50% 30%; margin: 0; padding: 0; filter: contrast(1.08) brightness(1.05);
+                                    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 98%), linear-gradient(to bottom, rgba(0,0,0,1) 88%, rgba(0,0,0,0) 100%);
+                                    mask-image: linear-gradient(to right, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 98%), linear-gradient(to bottom, rgba(0,0,0,1) 88%, rgba(0,0,0,0) 100%);" />
                     </div>
                 @else
                     <div style="width: 100%; height: 100%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">
