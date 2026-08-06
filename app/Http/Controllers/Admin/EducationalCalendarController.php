@@ -20,10 +20,24 @@ class EducationalCalendarController extends Controller
     public function index(Request $request)
     {
         $academicYear = AcademicYear::where('is_active', true)->first();
-        $school = auth()->user()->school;
-        
+        $user = auth()->user();
+        $isSuperAdmin = $user->isSuperAdmin();
+
         if (!$academicYear) {
             return redirect()->back()->with('error', 'Tahun Ajaran aktif belum diatur.');
+        }
+
+        // Determine school scope
+        if ($isSuperAdmin) {
+            if ($request->filled('school_id') && $request->school_id !== 'all') {
+                $school = School::find($request->school_id);
+            } else {
+                $school = null; // null means fetch ALL events across all school units!
+            }
+            $schools = School::orderBy('name')->get();
+        } else {
+            $school = $user->school;
+            $schools = collect($school ? [$school] : []);
         }
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -32,10 +46,9 @@ class EducationalCalendarController extends Controller
 
         $activeDaysGanjil = $this->calendarService->calculateActiveDaysForSemester($school, $academicYear, 1);
         $activeDaysGenap = $this->calendarService->calculateActiveDaysForSemester($school, $academicYear, 2);
-        
         $activeDaysTotal = $this->calendarService->calculateActiveDays($school, $academicYear);
 
-        return view('admin.calendar.index', compact('school', 'academicYear', 'activeDaysGanjil', 'activeDaysGenap', 'activeDaysTotal'));
+        return view('admin.calendar.index', compact('school', 'schools', 'academicYear', 'activeDaysGanjil', 'activeDaysGenap', 'activeDaysTotal', 'isSuperAdmin'));
     }
 
     public function store(Request $request)

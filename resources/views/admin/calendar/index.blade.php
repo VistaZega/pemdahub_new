@@ -112,12 +112,22 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border border-black bg-purple-100 text-purple-900"><span class="w-3 h-3 rounded-full bg-purple-600 border border-black"></span> Monday Inspiration</span>
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border border-black bg-rose-100 text-rose-900"><span class="w-3 h-3 rounded-full bg-rose-600 border border-black"></span> Libur Yayasan</span>
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border border-black bg-orange-100 text-orange-900"><span class="w-3 h-3 rounded-full bg-orange-500 border border-black"></span> Kegiatan Yayasan</span>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border border-black bg-sky-100 text-sky-900"><span class="w-3 h-3 rounded-full bg-sky-600 border border-black"></span> Libur Sekolah</span>
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border border-black bg-emerald-100 text-emerald-900"><span class="w-3 h-3 rounded-full bg-emerald-600 border border-black"></span> Kegiatan Sekolah</span>
             </div>
-            <div class="text-[11px] font-bold text-slate-600">
-                <i class="fas fa-info-circle text-indigo-600"></i> Klik tanggal/agenda di kalender untuk mengedit
+            
+            @if($isSuperAdmin && count($schools) > 0)
+            <div class="flex items-center gap-2">
+                <label for="schoolFilterSelect" class="text-xs font-black text-black uppercase tracking-wider flex items-center gap-1">
+                    <i class="fas fa-school text-indigo-600"></i> Filter Unit:
+                </label>
+                <select id="schoolFilterSelect" onchange="if(window.calendar) window.calendar.refetchEvents()" class="bg-amber-300 hover:bg-amber-400 border-2 border-black rounded-xl px-3 py-1.5 text-xs font-black text-black outline-none cursor-pointer transition shadow-xs">
+                    <option value="all">🌟 Semua Unit Sekolah (Gabungan)</option>
+                    @foreach($schools as $sch)
+                        <option value="{{ $sch->id }}">{{ $sch->name }}</option>
+                    @endforeach
+                </select>
             </div>
+            @endif
         </div>
 
         {{-- FullCalendar Mount Point --}}
@@ -308,7 +318,9 @@
             },
             locale: 'id',
             events: function(fetchInfo, successCallback, failureCallback) {
-                fetch(`{{ route('admin.calendar.index') }}?start=${fetchInfo.startStr}&end=${fetchInfo.endStr}`, {
+                let schoolSelect = document.getElementById('schoolFilterSelect');
+                let schoolParam = schoolSelect ? schoolSelect.value : '';
+                fetch(`{{ route('admin.calendar.index') }}?start=${fetchInfo.startStr}&end=${fetchInfo.endStr}&school_id=${schoolParam}`, {
                     headers: {
                         "X-Requested-With": "XMLHttpRequest"
                     }
@@ -367,6 +379,7 @@
             }
         });
         calendar.render();
+        window.calendar = calendar;
         
         if (window.ResizeObserver) {
             const resizeObserver = new ResizeObserver(() => {

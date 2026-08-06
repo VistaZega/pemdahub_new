@@ -173,10 +173,23 @@ class EducationalCalendarService
         }
 
         if ($event->level === 'yayasan') {
-            return $event->is_holiday ? '#e3342f' : '#f6993f'; // Red for yayasan holiday, Orange for yayasan event
+            return $event->is_holiday ? '#e11d48' : '#f97316'; // Red for yayasan holiday, Orange for yayasan event
         }
         
-        return $event->is_holiday ? '#6574cd' : '#38c172'; // Blue for school holiday, Green for school event
+        if ($event->school) {
+            $typeKey = strtoupper($event->school->type ?? '');
+            if ($typeKey === 'SMK') {
+                return $event->is_holiday ? '#4f46e5' : '#059669'; // Indigo for SMK holiday, Emerald for SMK event
+            } elseif ($typeKey === 'SMA') {
+                return $event->is_holiday ? '#d97706' : '#2563eb'; // Amber for SMA holiday, Blue for SMA event
+            } elseif ($typeKey === 'SMP') {
+                return $event->is_holiday ? '#db2777' : '#0891b2'; // Pink for SMP holiday, Cyan for SMP event
+            } elseif ($typeKey === 'SD') {
+                return $event->is_holiday ? '#9333ea' : '#ea580c'; // Purple for SD holiday, Orange for SD event
+            }
+        }
+
+        return $event->is_holiday ? '#4f46e5' : '#059669';
     }
 
     public function clearCache(School $school, AcademicYear $academicYear)
