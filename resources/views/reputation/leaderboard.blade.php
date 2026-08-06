@@ -63,7 +63,7 @@
                 $stdRest = $topStudents->slice(3);
             @endphp
 
-            {{-- Top 3 Student Podiums --}}
+            {{-- Top 3 Student Podiums (Enlarged Photos) --}}
             <div class="grid grid-cols-3 gap-3 items-end pt-2 pb-2">
                 {{-- Rank 2 --}}
                 @if($std2)
@@ -77,8 +77,8 @@
                          'logs' => $std2->user->reputationLogs
                      ]) }})"
                      @mouseleave="hideTooltip()">
-                    <div class="mb-2">
-                        <img src="{{ $std2->user->photo_url }}" class="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-black object-cover shadow-md bg-slate-100" />
+                    <div class="mb-3">
+                        <img src="{{ $std2->user->photo_url }}" class="w-18 h-18 md:w-22 md:h-22 rounded-full border-4 border-slate-300 object-cover shadow-lg bg-slate-100" />
                     </div>
                     <div class="w-full bg-slate-100 border-2 border-black rounded-2xl p-3 text-center space-y-1 shadow-sm">
                         <span class="inline-block bg-black text-white text-[10px] font-black px-2 py-0.5 rounded-md border border-black">#2</span>
@@ -101,9 +101,9 @@
                          'logs' => $std1->user->reputationLogs
                      ]) }})"
                      @mouseleave="hideTooltip()">
-                    <div class="mb-2 relative">
-                        <div class="text-amber-500 text-xl font-black drop-shadow-md text-center mb-1"><i class="fas fa-crown"></i></div>
-                        <img src="{{ $std1->user->photo_url }}" class="w-18 h-18 md:w-20 md:h-20 rounded-full border-4 border-amber-400 object-cover shadow-xl bg-amber-50" />
+                    <div class="mb-3 relative">
+                        <div class="text-amber-500 text-2xl font-black drop-shadow-md text-center mb-1"><i class="fas fa-crown"></i></div>
+                        <img src="{{ $std1->user->photo_url }}" class="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-amber-400 object-cover shadow-2xl bg-amber-50" />
                     </div>
                     <div class="w-full bg-amber-300 border-2 border-black rounded-2xl p-4 text-center space-y-1 shadow-md">
                         <span class="inline-block bg-black text-amber-300 text-[10px] font-black px-2.5 py-0.5 rounded-md border border-black">#1 JUARA</span>
@@ -126,8 +126,8 @@
                          'logs' => $std3->user->reputationLogs
                      ]) }})"
                      @mouseleave="hideTooltip()">
-                    <div class="mb-2">
-                        <img src="{{ $std3->user->photo_url }}" class="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-black object-cover shadow-md bg-amber-50" />
+                    <div class="mb-3">
+                        <img src="{{ $std3->user->photo_url }}" class="w-18 h-18 md:w-22 md:h-22 rounded-full border-4 border-amber-700 object-cover shadow-lg bg-amber-50" />
                     </div>
                     <div class="w-full bg-amber-100 border-2 border-black rounded-2xl p-3 text-center space-y-1 shadow-sm">
                         <span class="inline-block bg-black text-amber-400 text-[10px] font-black px-2 py-0.5 rounded-md border border-black">#3</span>
@@ -155,7 +155,7 @@
                      @mouseleave="hideTooltip()">
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="w-7 h-7 rounded-xl bg-black text-white font-black text-xs flex items-center justify-center shrink-0 border border-black">#{{ $index + 4 }}</span>
-                        <img src="{{ $std->user->photo_url }}" class="w-10 h-10 rounded-full border-2 border-black object-cover shrink-0" />
+                        <img src="{{ $std->user->photo_url }}" class="w-11 h-11 rounded-full border-2 border-black object-cover shrink-0" />
                         <div class="min-w-0">
                             <div class="text-xs font-black text-black truncate">{{ $std->user->name }}</div>
                             <div class="text-[11px] font-bold text-slate-600 truncate">{{ $std->user->student->classroom->class_name ?? 'Siswa' }}</div>
@@ -191,7 +191,7 @@
                 $tchRest = $topTeachers->slice(3);
             @endphp
 
-            {{-- Top 3 Teacher Podiums --}}
+            {{-- Top 3 Teacher Podiums (Enlarged Photos) --}}
             <div class="grid grid-cols-3 gap-3 items-end pt-2 pb-2">
                 {{-- Rank 2 --}}
                 @if($tch2)
@@ -205,8 +205,8 @@
                          'logs' => $tch2->user->reputationLogs
                      ]) }})"
                      @mouseleave="hideTooltip()">
-                    <div class="mb-2">
-                        <img src="{{ $tch2->user->photo_url }}" class="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-black object-cover shadow-md bg-slate-100" />
+                    <div class="mb-3">
+                        <img src="{{ $tch2->user->photo_url }}" class="w-18 h-18 md:w-22 md:h-22 rounded-full border-4 border-slate-300 object-cover shadow-lg bg-slate-100" />
                     </div>
                     <div class="w-full bg-slate-100 border-2 border-black rounded-2xl p-3 text-center space-y-1 shadow-sm">
                         <span class="inline-block bg-black text-white text-[10px] font-black px-2 py-0.5 rounded-md border border-black">#2</span>
@@ -229,9 +229,9 @@
                          'logs' => $tch1->user->reputationLogs
                      ]) }})"
                      @mouseleave="hideTooltip()">
-                    <div class="mb-2 relative">
-                        <div class="text-indigo-600 text-xl font-black drop-shadow-md text-center mb-1"><i class="fas fa-medal"></i></div>
-                        <img src="{{ $tch1->user->photo_url }}" class="w-18 h-18 md:w-20 md:h-20 rounded-full border-4 border-indigo-600 object-cover shadow-xl bg-indigo-50" />
+                    <div class="mb-3 relative">
+                        <div class="text-indigo-600 text-2xl font-black drop-shadow-md text-center mb-1"><i class="fas fa-medal"></i></div>
+                        <img src="{{ $tch1->user->photo_url }}" class="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-indigo-600 object-cover shadow-2xl bg-indigo-50" />
                     </div>
                     <div class="w-full bg-indigo-200 border-2 border-black rounded-2xl p-4 text-center space-y-1 shadow-md">
                         <span class="inline-block bg-black text-amber-300 text-[10px] font-black px-2.5 py-0.5 rounded-md border border-black">#1 MASTER</span>
@@ -254,8 +254,8 @@
                          'logs' => $tch3->user->reputationLogs
                      ]) }})"
                      @mouseleave="hideTooltip()">
-                    <div class="mb-2">
-                        <img src="{{ $tch3->user->photo_url }}" class="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-black object-cover shadow-md bg-amber-50" />
+                    <div class="mb-3">
+                        <img src="{{ $tch3->user->photo_url }}" class="w-18 h-18 md:w-22 md:h-22 rounded-full border-4 border-amber-700 object-cover shadow-lg bg-amber-50" />
                     </div>
                     <div class="w-full bg-indigo-50 border-2 border-black rounded-2xl p-3 text-center space-y-1 shadow-sm">
                         <span class="inline-block bg-black text-amber-400 text-[10px] font-black px-2 py-0.5 rounded-md border border-black">#3</span>
@@ -283,7 +283,7 @@
                      @mouseleave="hideTooltip()">
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="w-7 h-7 rounded-xl bg-black text-white font-black text-xs flex items-center justify-center shrink-0 border border-black">#{{ $index + 4 }}</span>
-                        <img src="{{ $tch->user->photo_url }}" class="w-10 h-10 rounded-full border-2 border-black object-cover shrink-0" />
+                        <img src="{{ $tch->user->photo_url }}" class="w-11 h-11 rounded-full border-2 border-black object-cover shrink-0" />
                         <div class="min-w-0">
                             <div class="text-xs font-black text-black truncate">{{ $tch->user->name }}</div>
                             <div class="text-[11px] font-bold text-slate-600 truncate">{{ $tch->user->teacher->school->name ?? 'Guru' }}</div>
@@ -299,7 +299,7 @@
 
     </div>
 
-    {{-- ═══════════════════ COMPACT MINI TOOLTIP WINDOW (KETERANGAN ASAL POIN) ═══════════════════ --}}
+    {{-- ═══════════════════ SMART COMPACT POPOVER (ZERO FACE OVERLAP) ═══════════════════ --}}
     <div x-show="visible" 
          x-transition:enter="transition ease-out duration-150"
          x-transition:enter-start="opacity-0 scale-95"
@@ -308,22 +308,22 @@
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
          :style="`top: ${position.y}px; left: ${position.x}px;`"
-         class="fixed z-50 w-64 bg-white border-2 border-black rounded-2xl p-3.5 shadow-2xl space-y-2 pointer-events-none transform -translate-x-1/2 -translate-y-full"
+         :class="tooltipClass"
          style="display: none;">
         
         <div class="flex items-center gap-2.5 border-b-2 border-black pb-2">
-            <img :src="activeUser.photo" class="w-9 h-9 rounded-full border border-black object-cover shrink-0 bg-slate-100" />
+            <img :src="activeUser.photo" class="w-8 h-8 rounded-full border border-black object-cover shrink-0 bg-slate-100" />
             <div class="min-w-0">
                 <h4 class="text-xs font-black text-black truncate" x-text="activeUser.name"></h4>
-                <div class="flex items-center gap-1.5">
-                    <span class="bg-black text-amber-300 text-[9px] font-black px-1.5 py-0.2 rounded border border-black uppercase" x-text="activeUser.level"></span>
-                    <span class="bg-amber-300 text-black text-[9px] font-black px-1.5 py-0.2 rounded border border-black" x-text="activeUser.points + ' pts'"></span>
+                <div class="flex items-center gap-1">
+                    <span class="bg-black text-amber-300 text-[8px] font-black px-1.5 py-0.2 rounded uppercase" x-text="activeUser.level"></span>
+                    <span class="bg-amber-300 text-black text-[8px] font-black px-1.5 py-0.2 rounded" x-text="activeUser.points + ' pts'"></span>
                 </div>
             </div>
         </div>
 
         <div>
-            <div class="text-[9px] font-black text-black uppercase tracking-wider mb-1.5 flex items-center gap-1">
+            <div class="text-[9px] font-black text-black uppercase tracking-wider mb-1 flex items-center gap-1">
                 <i class="fas fa-history text-indigo-600"></i> Riwayat Asal Poin:
             </div>
             
@@ -359,6 +359,7 @@ function leaderboardTooltip() {
     return {
         visible: false,
         position: { x: 0, y: 0 },
+        tooltipClass: 'fixed z-50 w-64 bg-white border-2 border-black rounded-2xl p-3.5 shadow-2xl space-y-2 pointer-events-none transform -translate-x-1/2',
         activeUser: {
             name: '',
             role: '',
@@ -370,8 +371,21 @@ function leaderboardTooltip() {
         showTooltip(event, userData) {
             this.activeUser = userData;
             let rect = event.currentTarget.getBoundingClientRect();
-            this.position.x = rect.left + (rect.width / 2);
-            this.position.y = rect.top - 8;
+            
+            // Check space below vs space above
+            let spaceBelow = window.innerHeight - rect.bottom;
+            
+            if (spaceBelow >= 180) {
+                // Position BELOW the card/avatar so faces are 100% UNCOVERED
+                this.position.x = rect.left + (rect.width / 2);
+                this.position.y = rect.bottom + 8;
+                this.tooltipClass = 'fixed z-50 w-64 bg-white border-2 border-black rounded-2xl p-3.5 shadow-2xl space-y-2 pointer-events-none transform -translate-x-1/2';
+            } else {
+                // Position ABOVE if at the very bottom of the screen
+                this.position.x = rect.left + (rect.width / 2);
+                this.position.y = rect.top - 8;
+                this.tooltipClass = 'fixed z-50 w-64 bg-white border-2 border-black rounded-2xl p-3.5 shadow-2xl space-y-2 pointer-events-none transform -translate-x-1/2 -translate-y-full';
+            }
             this.visible = true;
         },
         hideTooltip() {
