@@ -334,7 +334,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     'module_id' => $material->module_id,
                                     'title' => preg_replace('/^\d+\.\d+\s*/', '', $material->title),
                                     'material_type' => $material->material_type,
-                                    'content' => $material->content,
+                                    'content' => trim(strip_tags(str_replace(['<br>', '<br/>', '<br />', '</p>', '</h1>', '</h2>', '</h3>'], "\n", $material->content))),
                                     'file_url' => $material->file_url,
                                     'update_url' => route('guru.lms.materials.update', $material->id)
                                 ]) }})" class="w-8 h-8 rounded-xl flex items-center justify-center bg-white text-black hover:bg-amber-300 transition-colors border border-black shadow-sm" title="Edit Materi"><i class="fas fa-edit text-xs"></i></button>
