@@ -18,31 +18,41 @@ foreach($users as $u) {
     ];
 }
 
-$teachers = \App\Models\Teacher::where('full_name', 'like', '%Yulianus%')->where('full_name', 'like', '%Zega%')->get();
-$teacherData = [];
-foreach($teachers as $t) {
-    $assignments = \App\Models\TeachingAssignment::where('teacher_id', $t->id)->get();
-    $assignmentData = [];
-    foreach($assignments as $a) {
-        $assignmentData[] = [
-            'subject' => $a->subject ? $a->subject->name : "ID:{$a->subject_id}",
-            'classroom' => $a->classroom ? $a->classroom->name : "ID:{$a->classroom_id}",
-            'school' => $a->school ? $a->school->name : "ID:{$a->school_id}"
+try {
+    $teachers = \App\Models\Teacher::where('full_name', 'like', '%Yulianus%')->where('full_name', 'like', '%Zega%')->get();
+    $teacherData = [];
+    foreach($teachers as $t) {
+        $assignments = \App\Models\TeachingAssignment::where('teacher_id', $t->id)->get();
+        $assignmentData = [];
+        foreach($assignments as $a) {
+            $assignmentData[] = [
+                'subject' => $a->subject ? $a->subject->name : "ID:{$a->subject_id}",
+                'classroom' => $a->classroom ? $a->classroom->name : "ID:{$a->classroom_id}",
+                'school' => $a->school ? $a->school->name : "ID:{$a->school_id}"
+            ];
+        }
+        
+        $teacherData[] = [
+            'id' => $t->id,
+            'name' => $t->full_name,
+            'user' => $t->user ? $t->user->username : 'NULL',
+            'main_school' => $t->school ? $t->school->name : 'Unknown',
+            'additional_schools' => $t->additionalSchools()->pluck('name')->toArray(),
+            'assignments' => $assignmentData
         ];
     }
-    
-    $teacherData[] = [
-        'id' => $t->id,
-        'name' => $t->full_name,
-        'user' => $t->user ? $t->user->username : 'NULL',
-        'main_school' => $t->school ? $t->school->name : 'Unknown',
-        'additional_schools' => $t->additionalSchools->pluck('name')->toArray(),
-        'assignments' => $assignmentData
-    ];
-}
 
-echo json_encode([
-    'users' => $userData,
-    'teachers' => $teacherData
-], JSON_PRETTY_PRINT);
+    echo json_encode([
+        'users' => $userData,
+        'teachers' => $teacherData
+    ], JSON_PRETTY_PRINT);
+
+} catch (\Throwable $e) {
+    echo json_encode([
+        'users' => $userData,
+        'error' => $e->getMessage(),
+        'line' => $e->getLine(),
+        'file' => $e->getFile()
+    ], JSON_PRETTY_PRINT);
+}
 
