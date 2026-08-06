@@ -123,7 +123,7 @@ if (!function_exists('balanceHtmlTags')) {
                         @endif
                     </div>
                     <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">{{ $course->name }}</h1>
-                    @if($scientist)
+                    @if($scientist && isset($scientist['quote']))
                     <p class="text-slate-300 text-xs italic flex items-center gap-2">
                         <i class="fas fa-quote-left text-amber-400 text-xs"></i>
                         <span>"{{ $scientist['quote'] }}"</span> — <strong class="text-amber-400 font-bold not-italic">{{ $scientist['name'] }}</strong>
