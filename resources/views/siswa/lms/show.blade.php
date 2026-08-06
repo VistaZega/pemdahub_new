@@ -68,6 +68,21 @@
 </style>
 @endpush
 
+<?php
+if (!function_exists('balanceHtmlTags')) {
+    function balanceHtmlTags($html) {
+        if (empty(trim($html))) return $html;
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $balanced = $dom->saveHTML();
+        libxml_clear_errors();
+        $balanced = str_replace(['<?xml encoding="utf-8" ?>', '<html>', '</html>', '<body>', '</body>'], '', $balanced);
+        return trim($balanced);
+    }
+}
+?>
+
 @section('content')
 @php
     $colorConfig = \App\Models\LmsCourse::getColorClasses($course->color);
@@ -499,7 +514,7 @@
 
                         {{-- Text Content --}}
                         @if($material->content)
-                        <div class="prose prose-sm max-w-none text-gray-600 mt-3 mb-4">{!! strip_tags($material->content) !== $material->content ? $material->content : nl2br(e($material->content)) !!}</div>
+                        <div class="prose prose-sm max-w-none text-slate-700 mt-3 mb-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80">{!! strip_tags($material->content) !== $material->content ? balanceHtmlTags($material->content) : balanceHtmlTags(nl2br(e($material->content))) !!}</div>
                         @endif
                         
                         {{-- Material Reaction --}}
