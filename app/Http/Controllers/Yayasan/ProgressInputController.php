@@ -392,7 +392,7 @@ class ProgressInputController extends Controller
                 }
             }
 
-            $teachersList = Teacher::where('school_id', $school->id)->get();
+            $teachersList = Teacher::where('school_id', $school->id)->where('is_active', true)->get();
             
             // Pengecualian: Kepala Sekolah tidak diwajibkan mengajar sehingga tidak dihitung dalam progress
             if ($school->principal_id) {
@@ -402,7 +402,7 @@ class ProgressInputController extends Controller
             }
 
             if ($teachersList->isEmpty()) {
-                $teachersList = Employee::where('school_id', $school->id)->where('employee_type', 'guru')->get();
+                $teachersList = Employee::where('school_id', $school->id)->where('employee_type', 'guru')->where('status', 'aktif')->get();
                 if ($school->principal_id) {
                     $principalTeacher = Teacher::find($school->principal_id);
                     if ($principalTeacher && $principalTeacher->employee_id) {
