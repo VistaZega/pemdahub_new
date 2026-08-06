@@ -23,7 +23,7 @@
                     <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-xl">
                         <i class="fas fa-calendar-alt text-2xl"></i>
                     </div>
-                    Kalender Pendidikan {{ $school->name }}
+                    Kalender Pendidikan {{ $school->name ?? 'Gabungan Unit Sekolah' }}
                 </h1>
                 <p class="text-indigo-100/90 mt-2 text-xs md:text-sm font-medium max-w-2xl">
                     Kelola seluruh agenda kegiatan sekolah, jadwal ujian, dan kalender libur secara terstruktur dan terintegrasi dengan yayasan.
