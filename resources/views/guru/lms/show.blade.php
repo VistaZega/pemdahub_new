@@ -198,10 +198,10 @@ if (!function_exists('balanceHtmlTags')) {
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <a href="{{ route('guru.lms.modules.edit', [$course->id, $module->id]) }}" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors text-xs" title="Edit Modul">
+                        <a href="{{ route('guru.lms.modules.edit', $module->id) }}" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors text-xs" title="Edit Modul">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <form action="{{ route('guru.lms.modules.destroy', [$course->id, $module->id]) }}" method="POST" onsubmit="return confirm('Hapus modul ini beserta materinya?')" class="inline">
+                        <form action="{{ route('guru.lms.modules.destroy', $module->id) }}" method="POST" onsubmit="return confirm('Hapus modul ini beserta materinya?')" class="inline">
                             @csrf @method('DELETE')
                             <button type="submit" class="w-8 h-8 rounded-xl bg-rose-950/80 border border-rose-800/80 text-rose-400 hover:bg-rose-900 flex items-center justify-center transition-colors text-xs" title="Hapus Modul">
                                 <i class="fas fa-trash"></i>
