@@ -7,154 +7,175 @@
     $isPegawaiOnly = ($userRole === 'pegawai');
 @endphp
 
-<div class="space-y-6">
-    {{-- Compact Greeting Bar --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-4">
-        <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-xl flex items-center justify-center text-2xl shadow-md flex-shrink-0">
-                <img src="{{ $teacher->photo_url }}" class="w-full h-full object-cover rounded-xl" alt="{{ $teacher->full_name }}">
+<div class="space-y-6 max-w-9xl mx-auto">
+    {{-- Header Greeting Banner (Vibrant Pop Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-[2.5rem] shadow-2xl p-6 md:p-8 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #064e3b 100%) !important; color: #ffffff !important;">
+        {{-- Ornament blurs --}}
+        <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div class="flex items-center gap-5">
+                <div class="w-16 h-16 rounded-2xl bg-amber-400 border-2 border-black shadow-md flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <img src="{{ $teacher->photo_url }}" class="w-full h-full object-cover" alt="{{ $teacher->full_name }}">
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="px-3 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                            <i class="fas fa-chalkboard-teacher mr-1"></i> {{ $teacher->position ?? 'Tenaga Pendidik' }}
+                        </span>
+                    </div>
+                    <h1 class="text-xl md:text-3xl font-black text-white leading-tight" style="color: #ffffff !important;">
+                        Selamat Datang, {{ explode(' ', $teacher->full_name)[0] }}! 👋
+                    </h1>
+                    <p class="text-xs md:text-sm font-bold mt-1 flex flex-wrap items-center gap-x-3 text-emerald-200" style="color: #a7f3d0 !important;">
+                        <span><i class="fas fa-school mr-1.5 text-amber-300"></i>{{ $teacher->school->name ?? 'Perguruan Pembda' }}</span>
+                    </p>
+                </div>
             </div>
-            <div>
-                <h1 class="text-lg md:text-xl font-bold text-gray-800">Selamat Datang, {{ explode(' ', $teacher->full_name)[0] }}!</h1>
-                <p class="text-xs text-gray-500 mt-0.5 flex flex-wrap items-center gap-x-2">
-                    <span><i class="fas fa-school mr-1 text-emerald-500"></i>{{ $teacher->school->name ?? '' }}</span>
-                    @if($teacher->position) <span class="text-gray-300">·</span> <span>{{ $teacher->position }}</span> @endif
-                </p>
-            </div>
-        </div>
-        <div class="flex items-center gap-3">
-            @if($activeYear)
-                <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-semibold">
-                    <i class="fas fa-calendar-alt text-xs"></i> {{ $activeYear->year }}
+
+            <div class="flex flex-wrap items-center gap-3">
+                @if($activeYear)
+                    <span class="inline-flex items-center gap-2 text-xs font-black px-4 py-2 rounded-2xl border-2 border-black shadow-sm uppercase tracking-wider" style="background-color: #34d399 !important; color: #000000 !important;">
+                        <i class="fas fa-calendar-alt text-black"></i> TA {{ $academicYear->year ?? $activeYear->year }}
+                    </span>
+                @endif
+                <span class="inline-flex items-center gap-2 text-xs font-black px-4 py-2 rounded-2xl border-2 border-black shadow-sm uppercase tracking-wider" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                    <i class="far fa-clock text-black"></i> {{ now()->translatedFormat('l, d M Y') }}
                 </span>
-            @endif
-            <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold">
-                <i class="far fa-clock text-xs"></i> {{ now()->translatedFormat('l, d M Y') }}
-            </span>
+            </div>
         </div>
     </div>
 
     {{-- Widget Surat Digital & Edaran Yayasan Terbaru --}}
     @if(isset($foundationLetters) && $foundationLetters->isNotEmpty())
-    <div class="bg-gradient-to-r from-violet-900 via-purple-900 to-indigo-950 rounded-2xl p-5 text-white shadow-lg border border-violet-700/50">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex items-start gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-400 text-gray-900 flex items-center justify-center font-black text-lg flex-shrink-0 shadow">
-                    <i class="fas fa-file-signature"></i>
+    <div class="rounded-3xl p-6 text-white shadow-xl border-2 border-black relative overflow-hidden" style="background: linear-gradient(135deg, #2e1065 0%, #4c1d95 100%) !important;">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-amber-400 text-black border-2 border-black flex items-center justify-center font-black text-xl flex-shrink-0 shadow-md">
+                    <i class="fas fa-file-signature text-black"></i>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2 mb-0.5">
-                        <span class="bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">Surat & Edaran Yayasan Terbaru</span>
+                    <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span class="px-3 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">Surat & Edaran Yayasan</span>
                         @if($foundationLetters->first()->deadline_date)
-                        <span class="bg-rose-500/20 text-rose-300 border border-rose-400/30 px-2 py-0.5 rounded text-[10px] font-semibold">
+                        <span class="px-3 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-black" style="background-color: #f43f5e !important; color: #ffffff !important;">
                             <i class="fas fa-clock mr-1"></i>Tenggat: {{ \Carbon\Carbon::parse($foundationLetters->first()->deadline_date)->translatedFormat('d M Y') }}
                         </span>
                         @endif
                     </div>
-                    <h3 class="text-base md:text-lg font-bold text-white leading-snug">
+                    <h3 class="text-base md:text-lg font-black text-white leading-snug">
                         {{ $foundationLetters->first()->title }}
                     </h3>
-                    <p class="text-xs text-violet-200 mt-1 font-mono">
-                        No. Surat: {{ $foundationLetters->first()->letter_number }} • Tanggal Terbit: {{ \Carbon\Carbon::parse($foundationLetters->first()->effective_date)->translatedFormat('d F Y') }}
+                    <p class="text-xs text-purple-200 mt-1 font-bold">
+                        No. Surat: {{ $foundationLetters->first()->letter_number }} • Terbit: {{ \Carbon\Carbon::parse($foundationLetters->first()->effective_date)->translatedFormat('d F Y') }}
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-                <a href="{{ route('admin.letters.show', $foundationLetters->first()->id) }}" class="bg-amber-400 hover:bg-amber-500 text-gray-950 font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center gap-2">
-                    <i class="fas fa-book-open"></i> Baca Surat Digital
+            <div class="flex items-center gap-3 flex-shrink-0">
+                <a href="{{ route('admin.letters.show', $foundationLetters->first()->id) }}" 
+                   class="bg-amber-400 hover:bg-amber-300 text-black font-black px-5 py-3 rounded-2xl text-xs uppercase tracking-wider border-2 border-black shadow-md transition-all flex items-center gap-2">
+                    <i class="fas fa-book-open text-black"></i> Baca Surat
                 </a>
-                <a href="{{ route('admin.letters.index') }}" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-3 py-2 rounded-xl text-xs transition-all">
-                    Lihat Semua ({{ $foundationLetters->count() }})
+                <a href="{{ route('admin.letters.index') }}" 
+                   class="bg-white/10 hover:bg-white/20 text-white font-black px-4 py-3 rounded-2xl text-xs uppercase tracking-wider border-2 border-white/20 transition-all">
+                    Semua ({{ $foundationLetters->count() }})
                 </a>
             </div>
         </div>
     </div>
     @endif
 
-    {{-- Stats Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    {{-- Stats Cards (Neo-Brutalism Grid) --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
         {{-- Total Kelas --}}
-        <div class="stat-card group">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-11 h-11 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
-                    <i class="fas fa-chalkboard text-white text-sm"></i>
+        <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center border-2 border-black shadow-sm text-xl font-black">
+                    <i class="fas fa-chalkboard"></i>
                 </div>
-                <div>
-                    <span class="text-3xl font-bold text-gray-800 leading-none">{{ $classrooms->count() }}</span>
-                </div>
+                <span class="text-3xl font-black text-black leading-none">{{ $classrooms->count() }}</span>
             </div>
-            <p class="text-sm font-semibold text-gray-700">Total Kelas</p>
-            <p class="text-xs text-gray-400 mt-0.5">Kelas diampu semester ini</p>
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-indigo-900">Total Kelas</p>
+                <p class="text-[11px] font-bold text-slate-500 mt-0.5">Kelas diampu semester ini</p>
+            </div>
         </div>
+
         {{-- Total Siswa --}}
-        <div class="stat-card group">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-11 h-11 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
-                    <i class="fas fa-user-graduate text-white text-sm"></i>
+        <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl bg-sky-500 text-white flex items-center justify-center border-2 border-black shadow-sm text-xl font-black">
+                    <i class="fas fa-user-graduate"></i>
                 </div>
-                <div>
-                    <span class="text-3xl font-bold text-gray-800 leading-none">{{ $totalStudents }}</span>
-                </div>
+                <span class="text-3xl font-black text-black leading-none">{{ $totalStudents }}</span>
             </div>
-            <p class="text-sm font-semibold text-gray-700">Total Siswa</p>
-            <p class="text-xs text-gray-400 mt-0.5">Di semua kelas</p>
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-sky-900">Total Siswa</p>
+                <p class="text-[11px] font-bold text-slate-500 mt-0.5">Di semua kelas mengajar</p>
+            </div>
         </div>
+
         {{-- Nilai Diinput --}}
-        <div class="stat-card group">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-11 h-11 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
-                    <i class="fas fa-chart-bar text-white text-sm"></i>
+        <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center border-2 border-black shadow-sm text-xl font-black">
+                    <i class="fas fa-chart-bar"></i>
                 </div>
-                <div>
-                    <span class="text-3xl font-bold text-gray-800 leading-none">{{ $gradesCount }}</span>
-                </div>
+                <span class="text-3xl font-black text-black leading-none">{{ $gradesCount }}</span>
             </div>
-            <p class="text-sm font-semibold text-gray-700">Nilai Diinput</p>
-            <p class="text-xs text-gray-400 mt-0.5">Semester ini</p>
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-emerald-900">Nilai Diinput</p>
+                <p class="text-[11px] font-bold text-slate-500 mt-0.5">Telah direkam di sistem</p>
+            </div>
         </div>
+
         {{-- Jadwal Hari Ini --}}
-        <div class="stat-card group relative overflow-hidden">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-11 h-11 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
-                    <i class="fas fa-calendar-check text-white text-sm"></i>
+        <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl bg-amber-400 text-black flex items-center justify-center border-2 border-black shadow-sm text-xl font-black">
+                    <i class="fas fa-calendar-check text-black"></i>
                 </div>
-                <div>
-                    <span class="text-3xl font-bold text-gray-800 leading-none">{{ $todaySchedules->count() }}</span>
-                </div>
+                <span class="text-3xl font-black text-black leading-none">{{ $todaySchedules->count() }}</span>
             </div>
-            <p class="text-sm font-semibold text-gray-700">Jadwal Hari Ini</p>
-            @if($nextSchedule)
-                <p class="text-xs text-amber-600 mt-0.5 font-medium">
-                    <i class="fas fa-arrow-right text-xs mr-0.5"></i> Berikutnya: {{ $nextSchedule->timeSlot->start_time ?? $nextSchedule->start_time ?? '-' }}
-                </p>
-            @elseif($currentSchedule)
-                <p class="text-xs text-emerald-600 mt-0.5 font-medium">
-                    <i class="fas fa-circle text-xs mr-0.5 animate-pulse"></i> Sedang mengajar
-                </p>
-            @else
-                <p class="text-xs text-gray-400 mt-0.5">{{ $weeklyScheduleCount }} sesi/minggu</p>
-            @endif
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-amber-900">Jadwal Hari Ini</p>
+                @if($nextSchedule)
+                    <p class="text-[11px] font-black text-amber-700 mt-0.5 truncate">
+                        <i class="fas fa-arrow-right mr-1"></i>Berikutnya: {{ $nextSchedule->timeSlot->start_time ?? $nextSchedule->start_time ?? '-' }}
+                    </p>
+                @elseif($currentSchedule)
+                    <p class="text-[11px] font-black text-emerald-600 mt-0.5 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sedang mengajar
+                    </p>
+                @else
+                    <p class="text-[11px] font-bold text-slate-500 mt-0.5">{{ $weeklyScheduleCount }} sesi/minggu</p>
+                @endif
+            </div>
         </div>
     </div>
 
     {{-- Main Content: Timeline + Summary --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Jadwal Mengajar Hari Ini - Timeline --}}
-        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 class="font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-calendar-day text-blue-500"></i> Jadwal Mengajar Hari Ini
-                    <span class="text-xs font-normal text-gray-400">({{ now()->translatedFormat('l, d M Y') }})</span>
+        <div class="lg:col-span-2 bg-white rounded-3xl shadow-xl border-2 border-black overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b-2 border-black flex items-center justify-between" style="background-color: #090d16 !important; color: #ffffff !important;">
+                <h2 class="font-black text-white text-sm uppercase tracking-wider flex items-center gap-2 leading-none">
+                    <i class="fas fa-calendar-day text-amber-400 text-base"></i> Jadwal Mengajar Hari Ini
+                    <span class="text-xs font-bold text-slate-300">({{ now()->translatedFormat('d M Y') }})</span>
                 </h2>
-                <a href="{{ route('guru.jadwal') }}" class="text-xs text-emerald-600 hover:underline font-medium">Lihat Semua →</a>
+                <a href="{{ route('guru.jadwal') }}" class="text-xs font-black text-amber-300 hover:text-amber-400 uppercase tracking-wider flex items-center gap-1">
+                    Semua <i class="fas fa-arrow-right text-[10px]"></i>
+                </a>
             </div>
-            <div class="p-5">
+
+            <div class="p-6 flex-1">
                 @if($todaySchedules->count() > 0)
                     <div class="relative">
                         {{-- Timeline line --}}
-                        <div class="absolute left-[18px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-emerald-200 via-emerald-300 to-emerald-100 rounded-full"></div>
+                        <div class="absolute left-[18px] top-3 bottom-3 w-1 bg-black rounded-full"></div>
 
-                        <div class="space-y-1">
+                        <div class="space-y-4">
                             @foreach($groupedTodaySchedules as $timeKey => $schedulesAtTime)
                                 @php
                                     $first = $schedulesAtTime->first();
@@ -171,55 +192,57 @@
                                     
                                     $isPast = $sEnd && $currentTime > $sEnd;
                                 @endphp
-                                <div class="flex items-start gap-4 pl-1 py-2 relative group">
+                                <div class="flex items-start gap-4 pl-1 relative group">
                                     {{-- Timeline dot --}}
                                     <div class="relative z-10 mt-3 flex-shrink-0">
                                         @if($isCurrent)
-                                            <div class="w-[14px] h-[14px] bg-emerald-500 rounded-full ring-4 ring-emerald-100 shadow-sm animate-pulse"></div>
+                                            <div class="w-5 h-5 bg-emerald-400 border-2 border-black rounded-full shadow-md animate-bounce"></div>
                                         @elseif($isNext)
-                                            <div class="w-[14px] h-[14px] bg-amber-400 rounded-full ring-4 ring-amber-50 shadow-sm"></div>
+                                            <div class="w-5 h-5 bg-amber-400 border-2 border-black rounded-full shadow-md"></div>
                                         @elseif($isPast)
-                                            <div class="w-[10px] h-[10px] bg-gray-300 rounded-full ml-0.5 mt-0.5"></div>
+                                            <div class="w-4 h-4 bg-slate-300 border-2 border-black rounded-full ml-0.5"></div>
                                         @else
-                                            <div class="w-[10px] h-[10px] bg-emerald-300 rounded-full ml-0.5 mt-0.5"></div>
+                                            <div class="w-4 h-4 bg-indigo-300 border-2 border-black rounded-full ml-0.5"></div>
                                         @endif
                                     </div>
 
                                     {{-- Schedule Card --}}
-                                    <div class="flex-1 rounded-xl p-3.5 transition-all duration-200 {{ $isCurrent ? 'bg-emerald-50 border border-emerald-200 shadow-sm ring-1 ring-emerald-100' : ($isNext ? 'bg-amber-50/60 border border-amber-100' : ($isPast ? 'bg-gray-50/80 border border-gray-100 opacity-60' : 'bg-gray-50 border border-gray-100 hover:bg-gray-100/80')) }}">
-                                        <div class="flex items-center justify-between mb-1.5">
+                                    <div class="flex-1 rounded-2xl p-4 border-2 border-black shadow-xs transition-all duration-200 {{ $isCurrent ? 'bg-emerald-100 border-2 border-black shadow-md' : ($isNext ? 'bg-amber-100 border-2 border-black' : ($isPast ? 'bg-slate-100 opacity-70' : 'bg-slate-50 hover:bg-amber-50')) }}">
+                                        <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
                                             <div class="flex items-center gap-2">
                                                 @if($isCurrent)
-                                                    <span class="inline-flex items-center gap-1 text-xs bg-emerald-500 text-white px-2 py-0.5 rounded-full font-bold shadow-sm">
-                                                        <i class="fas fa-circle text-xs animate-pulse"></i> BERLANGSUNG
+                                                    <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border border-black" style="background-color: #34d399 !important; color: #000000 !important;">
+                                                        <i class="fas fa-circle text-xs animate-pulse mr-1"></i> BERLANGSUNG
                                                     </span>
                                                 @elseif($isNext)
-                                                    <span class="inline-flex items-center gap-1 text-xs bg-amber-400 text-white px-2 py-0.5 rounded-full font-bold">
-                                                        <i class="fas fa-arrow-right text-xs"></i> BERIKUTNYA
+                                                    <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                                                        <i class="fas fa-arrow-right text-xs mr-1"></i> BERIKUTNYA
                                                     </span>
                                                 @endif
                                             </div>
                                             <div class="text-right">
-                                                <p class="text-xs font-bold {{ $isCurrent ? 'text-emerald-700' : ($isNext ? 'text-amber-700' : 'text-gray-600') }}">{{ \Carbon\Carbon::parse($sStart)->format('H:i') }} – {{ \Carbon\Carbon::parse($sEnd)->format('H:i') }}</p>
+                                                <p class="text-xs font-black text-black bg-white px-3 py-1 rounded-xl border border-black inline-block">
+                                                    <i class="far fa-clock text-amber-500 mr-1"></i>{{ \Carbon\Carbon::parse($sStart)->format('H:i') }} – {{ \Carbon\Carbon::parse($sEnd)->format('H:i') }}
+                                                </p>
                                             </div>
                                         </div>
                                         
-                                        <div class="space-y-1">
+                                        <div class="space-y-1.5 mt-2">
                                             @foreach($schedulesAtTime as $s)
                                                 <div class="flex items-center justify-between">
-                                                    <p class="font-bold text-gray-800 text-sm italic">{{ $s->subject->subject_name ?? $s->subject->name ?? '-' }}</p>
-                                                    <span class="text-xs bg-white px-2 py-0.5 rounded-full text-gray-500 border border-gray-100">
-                                                        <i class="fas fa-users mr-1 text-gray-400"></i>{{ $s->classroom->class_name ?? '-' }}
+                                                    <p class="font-black text-black text-sm uppercase tracking-wide">{{ $s->subject->subject_name ?? $s->subject->name ?? '-' }}</p>
+                                                    <span class="text-xs font-black bg-white px-2.5 py-1 rounded-xl text-black border border-black shadow-xs">
+                                                        <i class="fas fa-users mr-1 text-indigo-600"></i>{{ $s->classroom->class_name ?? '-' }}
                                                     </span>
                                                 </div>
                                             @endforeach
                                         </div>
 
-                                        <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                                        <div class="flex items-center gap-3 mt-3 text-xs font-bold text-black border-t border-black/10 pt-2">
                                             @php $room = $first->room; @endphp
-                                            @if($room) <span><i class="fas fa-door-open mr-1 text-gray-300"></i>{{ $room }}</span> @endif
+                                            @if($room) <span class="bg-white px-2 py-0.5 rounded-lg border border-black"><i class="fas fa-door-open mr-1 text-emerald-600"></i>Ruang: {{ $room }}</span> @endif
                                             @if($first->duration_slots && $first->duration_slots > 1)
-                                                <span class="bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-semibold">{{ $first->duration_slots }} JP</span>
+                                                <span class="bg-amber-300 text-black px-2 py-0.5 rounded-lg border border-black font-black">{{ $first->duration_slots }} JP</span>
                                             @endif
                                         </div>
                                     </div>
@@ -228,170 +251,170 @@
                         </div>
                     </div>
                 @else
-                    <div class="text-center py-10 text-gray-400">
-                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-coffee text-3xl text-gray-300"></i>
+                    <div class="text-center py-12 text-black">
+                        <div class="w-16 h-16 bg-amber-300 border-2 border-black rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md text-2xl">
+                            <i class="fas fa-coffee text-black"></i>
                         </div>
-                        <p class="text-sm font-medium text-gray-500">Tidak ada jadwal mengajar hari ini</p>
-                        <p class="text-xs text-gray-400 mt-1">Nikmati waktu luang Anda! ☕</p>
+                        <p class="text-base font-black uppercase text-black">Tidak ada jadwal mengajar hari ini</p>
+                        <p class="text-xs font-bold text-slate-600 mt-1">Nikmati waktu luang Anda atau persiapkan bahan ajar! ☕</p>
                     </div>
                 @endif
             </div>
         </div>
 
-        {{-- Right Sidebar: Summary --}}
-        <div class="space-y-4">
+        {{-- Right Sidebar: Summary & Quick Actions --}}
+        <div class="space-y-6">
             {{-- Wali Kelas & Rekap Tagihan --}}
             @if($homeroomClassroom)
-            <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5 relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-20 h-20 bg-emerald-50 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-                <h2 class="font-bold text-emerald-700 mb-3 flex items-center gap-2 text-sm relative">
-                    <i class="fas fa-star text-amber-400"></i> Wali Kelas
+            <div class="bg-white rounded-3xl shadow-xl border-2 border-black p-6 relative overflow-hidden">
+                <h2 class="font-black text-black mb-4 flex items-center gap-2 text-xs uppercase tracking-wider">
+                    <span class="w-8 h-8 rounded-xl bg-amber-400 border border-black flex items-center justify-center text-black font-black shadow-xs"><i class="fas fa-star text-xs"></i></span>
+                    Wali Kelas Management
                 </h2>
-                <div class="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl p-4 relative mb-4">
-                    <p class="font-bold text-gray-800 text-lg">{{ $homeroomClassroom->class_name }}</p>
-                    <p class="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                        <i class="fas fa-user-friends text-emerald-400"></i>
-                        {{ $homeroomClassroom->students_count ?? $homeroomClassroom->students->count() }} siswa
+                <div class="bg-emerald-100 border-2 border-black rounded-2xl p-4 relative mb-4 shadow-sm">
+                    <p class="font-black text-black text-xl leading-tight">{{ $homeroomClassroom->class_name }}</p>
+                    <p class="text-xs font-bold text-black mt-1 flex items-center gap-1.5">
+                        <i class="fas fa-users text-emerald-700"></i>
+                        {{ $homeroomClassroom->students_count ?? $homeroomClassroom->students->count() }} Siswa Terdaftar
                     </p>
-                    <a href="{{ route('guru.siswa-kelas', $homeroomClassroom->id) }}" class="inline-flex items-center gap-1.5 mt-3 text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition shadow-sm">
-                        <i class="fas fa-eye"></i> Lihat Siswa
+                    <a href="{{ route('guru.siswa-kelas', $homeroomClassroom->id) }}" 
+                       class="inline-flex items-center gap-2 mt-4 text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl border-2 border-black transition shadow-md uppercase tracking-wider">
+                        <i class="fas fa-eye text-amber-300"></i> Lihat Data Siswa
                     </a>
                 </div>
 
                 @if(isset($homeroomBillingStats))
-                <div class="border-t border-gray-100 pt-4 mt-2">
-                    <h3 class="font-bold text-gray-800 flex items-center gap-2 text-xs uppercase tracking-wider mb-3">
-                        <i class="fas fa-file-invoice-dollar text-indigo-500"></i> Progress Biaya Pendidikan
+                <div class="border-t-2 border-black pt-4 mt-3">
+                    <h3 class="font-black text-black flex items-center gap-2 text-xs uppercase tracking-wider mb-3">
+                        <i class="fas fa-file-invoice-dollar text-indigo-600"></i> Progress SPP & Biaya Kelas
                     </h3>
                     
                     <div class="flex justify-between items-end mb-2">
                         <div>
-                            <p class="text-[10px] text-gray-500 font-bold uppercase">Item Lunas</p>
-                            <p class="text-sm font-bold text-indigo-600">{{ $homeroomBillingStats->lunas_count }} Biaya</p>
+                            <p class="text-[10px] text-black font-black uppercase">Item Lunas</p>
+                            <p class="text-sm font-black text-emerald-700">{{ $homeroomBillingStats->lunas_count }} Biaya</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-[10px] text-gray-500 font-bold uppercase">Item Tunggakan</p>
-                            <p class="text-sm font-bold text-rose-500">{{ $homeroomBillingStats->belum_bayar_count }} Biaya</p>
+                            <p class="text-[10px] text-black font-black uppercase">Tunggakan</p>
+                            <p class="text-sm font-black text-rose-600">{{ $homeroomBillingStats->belum_bayar_count }} Biaya</p>
                         </div>
                     </div>
                     
                     {{-- Progress Bar --}}
-                    <div class="w-full bg-gray-100 rounded-full h-2 mb-2 overflow-hidden">
-                        <div class="bg-gradient-to-r from-indigo-400 to-indigo-600 h-2 rounded-full transition-all duration-1000" style="width: {{ $homeroomBillingStats->percentage }}%"></div>
+                    <div class="w-full bg-slate-200 border-2 border-black rounded-full h-4 mb-2 overflow-hidden p-0.5">
+                        <div class="bg-emerald-500 h-full rounded-full transition-all duration-1000 border-r border-black" style="width: {{ $homeroomBillingStats->percentage }}%"></div>
                     </div>
                     
-                    <div class="flex justify-between items-center text-[10px] font-bold">
-                        <span class="text-gray-500">{{ $homeroomBillingStats->percentage }}% Lunas</span>
-                        <span class="text-gray-400">{{ $homeroomBillingStats->lunas_count }} dari {{ $homeroomBillingStats->due_bills }} Biaya Wajib</span>
+                    <div class="flex justify-between items-center text-[10px] font-black text-black">
+                        <span>{{ $homeroomBillingStats->percentage }}% Terbayar</span>
+                        <span>{{ $homeroomBillingStats->lunas_count }} dari {{ $homeroomBillingStats->due_bills }} Tagihan</span>
                     </div>
                 </div>
                 @endif
             </div>
             @endif
 
-            {{-- Weekly Overview (Moved and simplified) --}}
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            {{-- Weekly Overview --}}
+            <div class="bg-white rounded-3xl shadow-xl border-2 border-black p-5">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Sesi Minggu Ini</p>
-                        <p class="text-xl font-bold text-gray-800">{{ $weeklyScheduleCount }} <span class="text-xs font-normal text-gray-400">Jadwal</span></p>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sesi Minggu Ini</p>
+                        <p class="text-2xl font-black text-black">{{ $weeklyScheduleCount }} <span class="text-xs font-bold text-slate-600">Jadwal</span></p>
                     </div>
                     <div class="text-right">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Siswa Diampu</p>
-                        <p class="text-xl font-bold text-gray-800">{{ $totalStudents }} <span class="text-xs font-normal text-gray-400">Total</span></p>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Siswa Diampu</p>
+                        <p class="text-2xl font-black text-black">{{ $totalStudents }} <span class="text-xs font-bold text-slate-600">Total</span></p>
                     </div>
                 </div>
             </div>
 
             {{-- Reputation / Pembda Elite System --}}
-            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 relative overflow-hidden group">
-                <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-50 rounded-full group-hover:scale-150 transition-transform duration-700 opacity-50"></div>
-                
-                <div class="flex items-center justify-between mb-4 relative z-10">
-                    <h2 class="font-bold text-gray-800 flex items-center gap-2 text-sm uppercase tracking-wider">
-                        <i class="fas fa-award text-blue-500"></i> Reputation
+            <div class="rounded-3xl shadow-xl border-2 border-black p-6 relative overflow-hidden text-white" style="background-color: #090d16 !important;">
+                <div class="flex items-center justify-between mb-4 relative z-10 border-b border-slate-800 pb-3">
+                    <h2 class="font-black text-white flex items-center gap-2 text-xs uppercase tracking-wider" style="color: #ffffff !important;">
+                        <i class="fas fa-award text-amber-400"></i> Reputation Score
                     </h2>
-                    <a href="{{ route('reputation.leaderboard') }}" class="text-xs font-semibold text-blue-600 hover:underline uppercase tracking-wider">Papan Skor</a>
+                    <a href="{{ route('reputation.leaderboard') }}" class="text-xs font-black text-amber-300 hover:text-amber-400 uppercase tracking-wider">Papan Skor →</a>
                 </div>
 
-                <div class="text-center p-6 bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl shadow-lg border border-slate-700 mb-4 relative overflow-hidden group/card text-white">
-                    <div class="absolute top-0 right-0 p-2">
-                        <span class="bg-blue-500/20 text-blue-400 text-xs font-semibold px-2 py-0.5 rounded-full uppercase border border-blue-500/30">Rank #{{ $rank }}</span>
+                <div class="text-center p-5 bg-slate-900 rounded-2xl shadow-md border-2 border-slate-700 mb-4 relative overflow-hidden text-white">
+                    <div class="absolute top-2 right-2">
+                        <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase border border-amber-400" style="background-color: #fbbf24 !important; color: #000000 !important;">Rank #{{ $rank }}</span>
                     </div>
                     
-                    <div class="relative z-10">
-                        <div class="text-3xl font-bold mb-1 drop-shadow-sm">{{ number_format($reputation->total_points) }}</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Elite Score</div>
+                    <div class="relative z-10 pt-2">
+                        <div class="text-4xl font-black text-white mb-0.5">{{ number_format($reputation->total_points) }}</div>
+                        <div class="text-[10px] font-black text-amber-300 uppercase tracking-widest mb-3">Elite Score</div>
                         
-                        <div class="inline-block px-4 py-1.5 {{ $reputation->level_color }} text-white text-xs font-semibold rounded-full shadow-md uppercase tracking-wider border border-gray-100">
+                        <div class="inline-block px-4 py-1.5 {{ $reputation->level_color }} text-white text-xs font-black rounded-xl shadow-sm uppercase tracking-wider border border-black">
                             {{ $reputation->level_name }}
                         </div>
                     </div>
 
                     {{-- Progress Bar --}}
-                    <div class="mt-6 w-full bg-white/10 rounded-full h-1 overflow-hidden">
-                        <div class="bg-blue-500 h-full rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" style="width: {{ $reputation->progress_percentage }}%"></div>
+                    <div class="mt-4 w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700 p-0.5">
+                        <div class="bg-amber-400 h-full rounded-full" style="width: {{ $reputation->progress_percentage }}%"></div>
                     </div>
                 </div>
 
-                <div class="space-y-3 relative z-10">
-                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Kontribusi Terakhir</h3>
+                <div class="space-y-2.5 relative z-10">
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Kontribusi Terakhir</h3>
                     @forelse($reputationLogs as $log)
-                    <div class="flex items-center justify-between text-xs p-2.5 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white transition">
+                    <div class="flex items-center justify-between text-xs p-3 rounded-xl bg-slate-900 border border-slate-800 text-white">
                         <div class="flex flex-col max-w-[70%]">
-                            <span class="font-bold text-gray-700 leading-tight truncate">{{ $log->description }}</span>
-                            <span class="text-xs text-gray-400 mt-0.5">{{ $log->created_at->diffForHumans() }}</span>
+                            <span class="font-bold text-slate-200 leading-tight truncate">{{ $log->description }}</span>
+                            <span class="text-[10px] text-slate-400 mt-0.5">{{ $log->created_at->diffForHumans() }}</span>
                         </div>
-                        <span class="font-bold {{ $log->points >= 0 ? 'text-blue-600' : 'text-rose-600' }}">
+                        <span class="font-black text-amber-400">
                             {{ $log->points >= 0 ? '+' : '' }}{{ $log->points }}
                         </span>
                     </div>
                     @empty
-                    <p class="text-xs text-center text-gray-400 italic py-2">Belum ada aktivitas kontribusi</p>
+                    <p class="text-xs text-center text-slate-500 italic py-2">Belum ada aktivitas kontribusi</p>
                     @endforelse
                 </div>
             </div>
 
-            {{-- Quick Links --}}
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                <h2 class="font-bold text-gray-800 mb-3 flex items-center gap-2 text-sm">
-                    <i class="fas fa-bolt text-amber-500"></i> Aksi Cepat
+            {{-- Quick Links (Aksi Cepat Pop Neo-Brutalism) --}}
+            <div class="bg-white rounded-3xl shadow-xl border-2 border-black p-6">
+                <h2 class="font-black text-black mb-4 flex items-center gap-2 text-xs uppercase tracking-wider">
+                    <span class="w-8 h-8 rounded-xl bg-amber-400 border border-black flex items-center justify-center text-black font-black shadow-xs"><i class="fas fa-bolt text-xs"></i></span>
+                    Aksi Cepat Guru
                 </h2>
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-2 gap-3">
                     @if($isPegawaiOnly)
-                    <a href="{{ route('guru.absensi.saya') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 transition group">
-                        <i class="fas fa-clipboard-user text-lg group-hover:scale-110 transition-transform"></i>
-                        <span class="text-[11px] font-medium text-center">Absensi Saya</span>
+                    <a href="{{ route('guru.absensi.saya') }}" class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl bg-teal-100 hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group">
+                        <i class="fas fa-clipboard-user text-xl group-hover:scale-110 transition-transform text-black"></i>
+                        <span class="text-xs font-black text-center uppercase tracking-wider">Absensi Saya</span>
                     </a>
-                    <a href="{{ route('guru.leaves.index') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 transition group">
-                        <i class="fas fa-calendar-times text-lg group-hover:scale-110 transition-transform"></i>
-                        <span class="text-[11px] font-medium text-center">Cuti Pegawai</span>
+                    <a href="{{ route('guru.leaves.index') }}" class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl bg-amber-100 hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group">
+                        <i class="fas fa-calendar-times text-xl group-hover:scale-110 transition-transform text-black"></i>
+                        <span class="text-xs font-black text-center uppercase tracking-wider">Cuti Pegawai</span>
                     </a>
-                    <a href="{{ route('admin.letters.index') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 transition group">
-                        <i class="fas fa-file-signature text-lg group-hover:scale-110 transition-transform"></i>
-                        <span class="text-[11px] font-medium text-center">Surat Edaran</span>
+                    <a href="{{ route('admin.letters.index') }}" class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl bg-purple-100 hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group">
+                        <i class="fas fa-file-signature text-xl group-hover:scale-110 transition-transform text-black"></i>
+                        <span class="text-xs font-black text-center uppercase tracking-wider">Surat Edaran</span>
                     </a>
-                    <a href="{{ route('guru.profil') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition group">
-                        <i class="fas fa-user text-lg group-hover:scale-110 transition-transform"></i>
-                        <span class="text-[11px] font-medium text-center">Profil Saya</span>
+                    <a href="{{ route('guru.profil') }}" class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl bg-emerald-100 hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group">
+                        <i class="fas fa-user text-xl group-hover:scale-110 transition-transform text-black"></i>
+                        <span class="text-xs font-black text-center uppercase tracking-wider">Profil Saya</span>
                     </a>
                     @else
-                    <a href="{{ route('guru.absensi') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 transition group">
-                        <i class="fas fa-clipboard-check text-lg group-hover:scale-110 transition-transform"></i>
-                        <span class="text-[11px] font-medium text-center">Absensi</span>
+                    <a href="{{ route('guru.absensi') }}" class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl bg-purple-100 hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group">
+                        <i class="fas fa-clipboard-check text-xl group-hover:scale-110 transition-transform text-black"></i>
+                        <span class="text-xs font-black text-center uppercase tracking-wider">Absensi</span>
                     </a>
-                    <a href="{{ route('guru.nilai') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 transition group">
-                        <i class="fas fa-chart-bar text-lg group-hover:scale-110 transition-transform"></i>
-                        <span class="text-[11px] font-medium text-center">Nilai</span>
+                    <a href="{{ route('guru.nilai') }}" class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl bg-emerald-100 hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group">
+                        <i class="fas fa-chart-bar text-xl group-hover:scale-110 transition-transform text-black"></i>
+                        <span class="text-xs font-black text-center uppercase tracking-wider">Input Nilai</span>
                     </a>
-                    <a href="{{ route('guru.jadwal') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 transition group">
-                        <i class="fas fa-calendar-alt text-lg group-hover:scale-110 transition-transform"></i>
-                        <span class="text-[11px] font-medium text-center">Jadwal</span>
+                    <a href="{{ route('guru.jadwal') }}" class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl bg-sky-100 hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group">
+                        <i class="fas fa-calendar-alt text-xl group-hover:scale-110 transition-transform text-black"></i>
+                        <span class="text-xs font-black text-center uppercase tracking-wider">Jadwal</span>
                     </a>
-                    <a href="{{ route('guru.kelas') }}" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition group">
-                        <i class="fas fa-users text-lg group-hover:scale-110 transition-transform"></i>
-                        <span class="text-[11px] font-medium text-center">Kelas</span>
+                    <a href="{{ route('guru.kelas') }}" class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl bg-indigo-100 hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group">
+                        <i class="fas fa-users text-xl group-hover:scale-110 transition-transform text-black"></i>
+                        <span class="text-xs font-black text-center uppercase tracking-wider">Daftar Kelas</span>
                     </a>
                     @endif
                 </div>

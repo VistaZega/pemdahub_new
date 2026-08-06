@@ -3,28 +3,33 @@
 
 @section('content')
 <div class="space-y-5">
-    {{-- Header + Stats --}}
-    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-        <div>
-            <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-calendar-alt text-blue-500"></i> Jadwal Mengajar
-            </h1>
-            <p class="text-sm text-gray-500 mt-0.5">Roster mingguan sesi mengajar</p>
-        </div>
-        {{-- Weekly Stats Badges --}}
-        <div class="flex flex-wrap items-center gap-2">
-            <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold">
-                <i class="fas fa-clock text-xs"></i> {{ $totalSessions }} Sesi
-            </span>
-            <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-semibold">
-                <i class="fas fa-book text-xs"></i> {{ $totalJP }} JP
-            </span>
-            <span class="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-semibold">
-                <i class="fas fa-chalkboard text-xs"></i> {{ $uniqueClassrooms }} Kelas
-            </span>
-            <span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-semibold">
-                <i class="fas fa-book-open text-xs"></i> {{ $uniqueSubjects }} Mapel
-            </span>
+    {{-- Header Banner (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #1e3a8a 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
+                        <i class="fas fa-calendar-alt text-black"></i>
+                    </div>
+                    Jadwal Mengajar
+                </h1>
+                <p class="text-xs md:text-sm font-bold text-sky-200 mt-1" style="color: #bae6fd !important;">Roster mingguan sesi mengajar & kelas yang diampu</p>
+            </div>
+            {{-- Weekly Stats Badges --}}
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl border border-black shadow-xs uppercase tracking-wider" style="background-color: #38bdf8 !important; color: #000000 !important;">
+                    <i class="fas fa-clock text-black"></i> {{ $totalSessions }} Sesi
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl border border-black shadow-xs uppercase tracking-wider" style="background-color: #34d399 !important; color: #000000 !important;">
+                    <i class="fas fa-book text-black"></i> {{ $totalJP }} JP
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl border border-black shadow-xs uppercase tracking-wider" style="background-color: #c084fc !important; color: #000000 !important;">
+                    <i class="fas fa-chalkboard text-black"></i> {{ $uniqueClassrooms }} Kelas
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl border border-black shadow-xs uppercase tracking-wider" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                    <i class="fas fa-book-open text-black"></i> {{ $uniqueSubjects }} Mapel
+                </span>
+            </div>
         </div>
     </div>
 
