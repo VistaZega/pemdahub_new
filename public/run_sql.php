@@ -15,6 +15,7 @@ try {
             'mapel' => $a->subject ? $a->subject->name : 'N/A',
             'kelas' => $a->classroom ? $a->classroom->name : 'N/A',
             'sekolah' => ($a->classroom && $a->classroom->school) ? $a->classroom->school->name : 'N/A',
+            'jam_per_minggu' => $a->hours_per_week,
             'hari' => $a->day_of_week,
             'jam' => $a->start_time . ' - ' . $a->end_time
         ];
