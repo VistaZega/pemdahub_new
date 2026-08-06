@@ -44,12 +44,23 @@ class TeacherController extends Controller
 
         // Auto-filter by school_id for non-superadmin
         if (!$user->isSuperAdmin()) {
-            $query->where('school_id', $user->school_id);
+            $query->where(function ($q) use ($user) {
+                $q->where('school_id', $user->school_id)
+                  ->orWhereHas('additionalSchools', function ($q2) use ($user) {
+                      $q2->where('schools.id', $user->school_id);
+                  });
+            });
         }
 
         // Filter by school (only for superadmin)
         if ($request->filled('school_id') && $user->isSuperAdmin()) {
-            $query->where('school_id', $request->school_id);
+            $schoolId = $request->school_id;
+            $query->where(function ($q) use ($schoolId) {
+                $q->where('school_id', $schoolId)
+                  ->orWhereHas('additionalSchools', function ($q2) use ($schoolId) {
+                      $q2->where('schools.id', $schoolId);
+                  });
+            });
         }
 
         // Filter by status (default: hanya tampilkan yang aktif)

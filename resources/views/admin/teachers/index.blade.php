@@ -172,8 +172,18 @@
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex flex-col gap-0.5">
-                                <div class="font-bold text-gray-900 text-sm md:text-base leading-snug">{{ $teacher->full_name }}</div>
-                                <div class="flex items-center gap-1.5">
+                                <div class="font-bold text-gray-900 text-sm md:text-base leading-snug flex items-center flex-wrap gap-1.5">
+                                    <span>{{ $teacher->full_name }}</span>
+                                    @php
+                                        $viewingSchoolId = auth()->user()->isSuperAdmin() ? request('school_id') : auth()->user()->school_id;
+                                    @endphp
+                                    @if($viewingSchoolId && $teacher->school_id != $viewingSchoolId)
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title="Guru Lintas Unit (Berasal dari {{ $teacher->school->name ?? 'sekolah lain' }})">
+                                            <i class="fas fa-exchange-alt mr-1"></i> Lintas Unit
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="flex items-center gap-1.5 mt-0.5">
                                     <span class="px-2 py-0.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-[10px] font-bold rounded shadow-sm">
                                         {{ $teacher->teacher_code }}
                                     </span>
