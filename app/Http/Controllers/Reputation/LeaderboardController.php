@@ -25,20 +25,28 @@ class LeaderboardController extends Controller
             }
         }
 
-        $topStudents = Reputation::with(['user.student.classroom', 'user.badges'])
+        $topStudents = Reputation::with([
+            'user.student.classroom', 
+            'user.badges', 
+            'user.reputationLogs' => fn($q) => $q->orderBy('id', 'desc')->take(5)
+        ])
             ->whereHas('user', function($q) {
                 $q->where('role', 'siswa');
             })
             ->orderBy('total_points', 'desc')
-            ->take(7)
+            ->take(10)
             ->get();
 
-        $topTeachers = Reputation::with(['user.teacher', 'user.badges'])
+        $topTeachers = Reputation::with([
+            'user.teacher', 
+            'user.badges', 
+            'user.reputationLogs' => fn($q) => $q->orderBy('id', 'desc')->take(5)
+        ])
             ->whereHas('user', function($q) {
                 $q->where('role', 'guru');
             })
             ->orderBy('total_points', 'desc')
-            ->take(5)
+            ->take(10)
             ->get();
 
         $userRanking = null;

@@ -3,817 +3,381 @@
 @section('title', 'Hall of Fame - Pembda Elite')
 
 @section('content')
-<div class="hof-universe" id="hofUniverse">
-    {{-- ═══════════════════ HERO HEADER ═══════════════════ --}}
-    <div class="hof-header">
-        {{-- Floating stars decoration --}}
-        <div class="hof-stars" aria-hidden="true">
-            @for($i = 0; $i < 12; $i++)
-            <span class="hof-star" style="--i:{{ $i }}">{{ ['⭐','🌟','✨','💫'][($i % 4)] }}</span>
-            @endfor
-        </div>
+<div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto space-y-8" x-data="leaderboardTooltip()">
 
-        <div class="hof-header__content">
-            <div class="hof-badge-live">
-                <span class="hof-badge-live__dot"></span>
-                <span class="hof-badge-live__text">Live Rankings</span>
+    {{-- ═══════════════════ HERO HEADER BANNER (VIBRANT NEO-BRUTALISM) ═══════════════════ --}}
+    <div class="relative overflow-hidden bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-700 rounded-[2.5rem] p-8 md:p-10 shadow-2xl border-2 border-black">
+        <div class="absolute -top-12 -right-12 w-64 h-64 bg-amber-300/30 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -left-12 w-64 h-64 bg-purple-400/30 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-white">
+            <div class="space-y-3 text-center md:text-left">
+                <div class="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 text-xs font-black uppercase tracking-wider text-amber-300">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span> Live Leaderboard Ranking
+                </div>
+                <h1 class="text-3xl md:text-5xl font-black tracking-tight text-white flex items-center justify-center md:justify-start gap-3">
+                    <span>🏆</span> Hall of Fame <span class="text-amber-300">Pembda Elite</span>
+                </h1>
+                <p class="text-indigo-100 font-medium text-xs md:text-sm max-w-xl">
+                    Panggung kehormatan tertinggi bagi Siswa dan Guru PembdaHub paling berprestasi, aktif, dan inspiratif.
+                </p>
             </div>
-            <div class="hof-header__trophy">🏆</div>
-            <h1 class="hof-header__title">Hall of Fame</h1>
-            <p class="hof-header__subtitle">Panggung kehormatan bagi siswa & guru PembdaHub terbaik</p>
 
             @if(auth()->check() && $userRanking)
-            <div class="hof-myrank">
-                <div class="hof-myrank__item">
-                    <span class="hof-myrank__label">Peringkat Anda</span>
-                    <span class="hof-myrank__value">#{{ $userRanking }}</span>
+            <div class="bg-white/10 backdrop-blur-md border-2 border-white/30 rounded-3xl p-5 shadow-xl flex items-center gap-6 shrink-0">
+                <div class="text-center px-3">
+                    <div class="text-[10px] font-black uppercase tracking-wider text-indigo-200">Peringkat Anda</div>
+                    <div class="text-3xl font-black text-amber-300">#{{ $userRanking }}</div>
                 </div>
-                <div class="hof-myrank__divider"></div>
-                <div class="hof-myrank__item">
-                    <span class="hof-myrank__label">Poin Elite</span>
-                    <span class="hof-myrank__value hof-myrank__value--emerald">{{ number_format(auth()->user()->reputation->total_points ?? 0) }}</span>
+                <div class="w-0.5 h-10 bg-white/20"></div>
+                <div class="text-center px-3">
+                    <div class="text-[10px] font-black uppercase tracking-wider text-indigo-200">Poin Elite Anda</div>
+                    <div class="text-3xl font-black text-emerald-300">{{ number_format(auth()->user()->reputation->total_points ?? 0) }}</div>
                 </div>
             </div>
             @endif
         </div>
     </div>
 
-    {{-- ═══════════════════ HIERARCHY TREE — STUDENTS ═══════════════════ --}}
-    <div class="hof-section">
-        <h2 class="hof-section__title">
-            <i class="fas fa-sitemap"></i>
-            Pohon Prestasi — Top Elite Students
-        </h2>
+    {{-- ═══════════════════ DUAL PARALLEL COLUMNS (SIDE-BY-SIDE) ═══════════════════ --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
-        @php
-            $s1 = $topStudents->get(0);
-            $s2 = $topStudents->get(1);
-            $s3 = $topStudents->get(2);
-            $s4 = $topStudents->get(3);
-            $s5 = $topStudents->get(4);
-            $s6 = $topStudents->get(5);
-            $s7 = $topStudents->get(6);
-        @endphp
-
-        <div class="hof-tree" id="hofTree">
-            {{-- SVG Connectors --}}
-            <svg class="hof-tree__svg" id="hofTreeSvg" preserveAspectRatio="none">
-                <defs>
-                    <linearGradient id="lineGradGold" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.9"/>
-                        <stop offset="100%" stop-color="#a855f7" stop-opacity="0.4"/>
-                    </linearGradient>
-                    <linearGradient id="lineGradSilver" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#94a3b8" stop-opacity="0.7"/>
-                        <stop offset="100%" stop-color="#6366f1" stop-opacity="0.3"/>
-                    </linearGradient>
-                </defs>
-            </svg>
-
-            {{-- TIER 1: Champion --}}
-            @if($s1)
-            <div class="hof-tier hof-tier--1">
-                <div class="hof-node hof-node--champion" id="node1" data-delay="0">
-                    <div class="hof-node__crown">
-                        <i class="fas fa-crown"></i>
+        {{-- ╔══════════════════════════════════════════════════════════════════╗
+           ║ LEFT COLUMN: TOP ELITE STUDENTS (Siswa)                          ║
+           ╚══════════════════════════════════════════════════════════════════╝ --}}
+        <div class="bg-white rounded-3xl border-2 border-black p-6 shadow-xl space-y-6">
+            <div class="flex items-center justify-between border-b-2 border-black pb-4">
+                <h2 class="text-lg md:text-xl font-black text-black flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black text-sm shadow-xs">
+                        <i class="fas fa-graduation-cap"></i>
                     </div>
-                    <div class="hof-node__glow hof-node__glow--gold"></div>
-                    <div class="hof-node__photo-ring hof-node__photo-ring--gold">
-                        <img src="{{ $s1->user->photo_url }}" alt="{{ $s1->user->name }}" class="hof-node__photo" loading="lazy">
-                    </div>
-                    <div class="hof-node__info">
-                        <span class="hof-node__rank">#1</span>
-                        <h3 class="hof-node__name">{{ $s1->user->name }}</h3>
-                        <span class="hof-node__class">{{ $s1->user->student->classroom->class_name ?? 'Kelas' }}</span>
-                        <div class="hof-node__points">
-                            <span class="hof-node__points-value">{{ number_format($s1->total_points) }}</span>
-                            <span class="hof-node__points-label">Poin Elite</span>
-                        </div>
-                        @if($s1->user->badges->count())
-                        <div class="hof-node__badges">
-                            @foreach($s1->user->badges->take(2) as $badge)
-                            <span class="hof-node__badge {{ $badge->color }}">
-                                <i class="fas {{ $badge->icon }}"></i> {{ $badge->name }}
-                            </span>
-                            @endforeach
-                        </div>
-                        @endif
-                    </div>
-                    <div class="hof-node__particles" aria-hidden="true">
-                        @for($i = 0; $i < 8; $i++)
-                        <span class="hof-particle" style="--i:{{ $i }}"></span>
-                        @endfor
-                    </div>
-                </div>
+                    Top Elite Students (Siswa)
+                </h2>
+                <span class="bg-purple-100 text-purple-900 border border-black text-[10px] font-black px-3 py-1 rounded-xl uppercase">Prestasi Siswa</span>
             </div>
-            @endif
 
-            {{-- TIER 2: Runner-ups --}}
-            <div class="hof-tier hof-tier--2">
-                @if($s2)
-                <div class="hof-node hof-node--silver" id="node2" data-delay="200">
-                    <div class="hof-node__glow hof-node__glow--silver"></div>
-                    <div class="hof-node__photo-ring hof-node__photo-ring--silver">
-                        <img src="{{ $s2->user->photo_url }}" alt="{{ $s2->user->name }}" class="hof-node__photo" loading="lazy">
+            @php
+                $std1 = $topStudents->get(0);
+                $std2 = $topStudents->get(1);
+                $std3 = $topStudents->get(2);
+                $stdRest = $topStudents->slice(3);
+            @endphp
+
+            {{-- Top 3 Student Podiums --}}
+            <div class="grid grid-cols-3 gap-3 items-end pt-4 pb-2">
+                {{-- Rank 2 --}}
+                @if($std2)
+                <div class="flex flex-col items-center cursor-pointer transition hover:-translate-y-1"
+                     @mouseenter="showTooltip($event, {{ json_encode([
+                         'name' => $std2->user->name,
+                         'role' => 'Siswa - ' . ($std2->user->student->classroom->class_name ?? 'Siswa'),
+                         'photo' => $std2->user->photo_url,
+                         'points' => $std2->total_points,
+                         'level' => $std2->level_name,
+                         'logs' => $std2->user->reputationLogs
+                     ]) }})"
+                     @mouseleave="hideTooltip()">
+                    <div class="relative mb-2">
+                        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-300 text-black text-[10px] font-black px-2 py-0.5 rounded-full border border-black z-10">#2</span>
+                        <img src="{{ $std2->user->photo_url }}" class="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-black object-cover shadow-md bg-slate-100" />
                     </div>
-                    <div class="hof-node__info">
-                        <span class="hof-node__rank">#2</span>
-                        <h3 class="hof-node__name">{{ $s2->user->name }}</h3>
-                        <span class="hof-node__class">{{ $s2->user->student->classroom->class_name ?? 'Kelas' }}</span>
-                        <div class="hof-node__points">
-                            <span class="hof-node__points-value">{{ number_format($s2->total_points) }}</span>
-                            <span class="hof-node__points-label">Poin</span>
-                        </div>
+                    <div class="w-full bg-slate-100 border-2 border-black rounded-t-2xl p-3 text-center space-y-1">
+                        <div class="text-xs font-black text-black truncate w-full" title="{{ $std2->user->name }}">{{ Str::words($std2->user->name, 2, '') }}</div>
+                        <div class="text-[10px] font-bold text-slate-600 truncate">{{ $std2->user->student->classroom->class_name ?? 'Siswa' }}</div>
+                        <div class="inline-block bg-slate-800 text-white text-[10px] font-black px-2 py-0.5 rounded-lg border border-black">{{ number_format($std2->total_points) }} pts</div>
                     </div>
                 </div>
                 @endif
 
-                @if($s3)
-                <div class="hof-node hof-node--bronze" id="node3" data-delay="300">
-                    <div class="hof-node__glow hof-node__glow--bronze"></div>
-                    <div class="hof-node__photo-ring hof-node__photo-ring--bronze">
-                        <img src="{{ $s3->user->photo_url }}" alt="{{ $s3->user->name }}" class="hof-node__photo" loading="lazy">
+                {{-- Rank 1 (Champion) --}}
+                @if($std1)
+                <div class="flex flex-col items-center cursor-pointer transition hover:-translate-y-1"
+                     @mouseenter="showTooltip($event, {{ json_encode([
+                         'name' => $std1->user->name,
+                         'role' => 'Siswa - ' . ($std1->user->student->classroom->class_name ?? 'Siswa'),
+                         'photo' => $std1->user->photo_url,
+                         'points' => $std1->total_points,
+                         'level' => $std1->level_name,
+                         'logs' => $std1->user->reputationLogs
+                     ]) }})"
+                     @mouseleave="hideTooltip()">
+                    <div class="relative mb-2">
+                        <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-amber-500 text-xl font-black drop-shadow-md animate-bounce"><i class="fas fa-crown"></i></div>
+                        <span class="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-400 text-black text-[10px] font-black px-2.5 py-0.5 rounded-full border border-black z-10 shadow-xs">#1</span>
+                        <img src="{{ $std1->user->photo_url }}" class="w-18 h-18 md:w-20 md:h-20 rounded-full border-4 border-amber-400 object-cover shadow-xl bg-amber-50" />
                     </div>
-                    <div class="hof-node__info">
-                        <span class="hof-node__rank">#3</span>
-                        <h3 class="hof-node__name">{{ $s3->user->name }}</h3>
-                        <span class="hof-node__class">{{ $s3->user->student->classroom->class_name ?? 'Kelas' }}</span>
-                        <div class="hof-node__points">
-                            <span class="hof-node__points-value">{{ number_format($s3->total_points) }}</span>
-                            <span class="hof-node__points-label">Poin</span>
-                        </div>
+                    <div class="w-full bg-amber-100 border-2 border-black rounded-t-2xl p-4 text-center space-y-1 shadow-md">
+                        <div class="text-xs md:text-sm font-black text-black truncate w-full" title="{{ $std1->user->name }}">{{ Str::words($std1->user->name, 2, '') }}</div>
+                        <div class="text-[10px] font-bold text-amber-900 truncate">{{ $std1->user->student->classroom->class_name ?? 'Siswa' }}</div>
+                        <div class="inline-block bg-amber-500 text-black text-xs font-black px-2.5 py-0.5 rounded-lg border border-black">{{ number_format($std1->total_points) }} pts</div>
+                    </div>
+                </div>
+                @endif
+
+                {{-- Rank 3 --}}
+                @if($std3)
+                <div class="flex flex-col items-center cursor-pointer transition hover:-translate-y-1"
+                     @mouseenter="showTooltip($event, {{ json_encode([
+                         'name' => $std3->user->name,
+                         'role' => 'Siswa - ' . ($std3->user->student->classroom->class_name ?? 'Siswa'),
+                         'photo' => $std3->user->photo_url,
+                         'points' => $std3->total_points,
+                         'level' => $std3->level_name,
+                         'logs' => $std3->user->reputationLogs
+                     ]) }})"
+                     @mouseleave="hideTooltip()">
+                    <div class="relative mb-2">
+                        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-700 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-black z-10">#3</span>
+                        <img src="{{ $std3->user->photo_url }}" class="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-black object-cover shadow-md bg-amber-50" />
+                    </div>
+                    <div class="w-full bg-amber-50 border-2 border-black rounded-t-2xl p-3 text-center space-y-1">
+                        <div class="text-xs font-black text-black truncate w-full" title="{{ $std3->user->name }}">{{ Str::words($std3->user->name, 2, '') }}</div>
+                        <div class="text-[10px] font-bold text-slate-600 truncate">{{ $std3->user->student->classroom->class_name ?? 'Siswa' }}</div>
+                        <div class="inline-block bg-amber-800 text-white text-[10px] font-black px-2 py-0.5 rounded-lg border border-black">{{ number_format($std3->total_points) }} pts</div>
                     </div>
                 </div>
                 @endif
             </div>
 
-            {{-- TIER 3: Leaves --}}
-            <div class="hof-tier hof-tier--3">
-                @php $tier3 = [$s4, $s5, $s6, $s7]; @endphp
-                @foreach($tier3 as $idx => $leaf)
-                    @if($leaf)
-                    <div class="hof-node hof-node--leaf" id="node{{ $idx + 4 }}" data-delay="{{ 400 + ($idx * 100) }}">
-                        <div class="hof-node__photo-ring hof-node__photo-ring--leaf">
-                            <img src="{{ $leaf->user->photo_url }}" alt="{{ $leaf->user->name }}" class="hof-node__photo" loading="lazy">
-                        </div>
-                        <div class="hof-node__info">
-                            <span class="hof-node__rank">#{{ $idx + 4 }}</span>
-                            <h3 class="hof-node__name hof-node__name--sm">{{ $leaf->user->name }}</h3>
-                            <span class="hof-node__class">{{ $leaf->user->student->classroom->class_name ?? 'Kelas' }}</span>
-                            <div class="hof-node__points hof-node__points--sm">
-                                <span class="hof-node__points-value">{{ number_format($leaf->total_points) }}</span>
-                                <span class="hof-node__points-label">Poin</span>
-                            </div>
+            {{-- Student Ranks 4-10 List --}}
+            <div class="space-y-2.5 pt-2">
+                <div class="text-xs font-black text-slate-500 uppercase tracking-wider px-1">Peringkat Selanjutnya:</div>
+                @foreach($stdRest as $index => $std)
+                <div class="flex items-center justify-between p-3 bg-slate-50 hover:bg-amber-50 rounded-2xl border-2 border-black transition cursor-pointer shadow-xs"
+                     @mouseenter="showTooltip($event, {{ json_encode([
+                         'name' => $std->user->name,
+                         'role' => 'Siswa - ' . ($std->user->student->classroom->class_name ?? 'Siswa'),
+                         'photo' => $std->user->photo_url,
+                         'points' => $std->total_points,
+                         'level' => $std->level_name,
+                         'logs' => $std->user->reputationLogs
+                     ]) }})"
+                     @mouseleave="hideTooltip()">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-7 h-7 rounded-xl bg-white border border-black font-black text-xs text-black flex items-center justify-center shrink-0">#{{ $index + 4 }}</span>
+                        <img src="{{ $std->user->photo_url }}" class="w-10 h-10 rounded-full border border-black object-cover shrink-0" />
+                        <div class="min-w-0">
+                            <div class="text-xs font-black text-black truncate">{{ $std->user->name }}</div>
+                            <div class="text-[11px] font-bold text-slate-500 truncate">{{ $std->user->student->classroom->class_name ?? 'Siswa' }}</div>
                         </div>
                     </div>
-                    @endif
+                    <div class="text-right shrink-0 ml-2">
+                        <span class="bg-black text-amber-400 font-black text-xs px-2.5 py-1 rounded-xl border border-black shadow-xs">{{ number_format($std->total_points) }} pts</span>
+                    </div>
+                </div>
                 @endforeach
             </div>
         </div>
-    </div>
 
-    {{-- ═══════════════════ GURU SECTION ═══════════════════ --}}
-    <div class="hof-section">
-        <h2 class="hof-section__title">
-            <i class="fas fa-chalkboard-teacher"></i>
-            Inspirational Guru
-        </h2>
 
-        <div class="hof-guru-deck">
-            @forelse($topTeachers as $index => $rep)
-            <div class="hof-guru-card {{ $index === 0 ? 'hof-guru-card--top' : '' }}" style="animation-delay: {{ $index * 150 }}ms">
-                @if($index === 0)
-                <div class="hof-guru-card__crown">
-                    <i class="fas fa-star"></i> Most Inspiring
+        {{-- ╔══════════════════════════════════════════════════════════════════╗
+           ║ RIGHT COLUMN: INSPIRATIONAL GURU (Guru)                          ║
+           ╚══════════════════════════════════════════════════════════════════╝ --}}
+        <div class="bg-white rounded-3xl border-2 border-black p-6 shadow-xl space-y-6">
+            <div class="flex items-center justify-between border-b-2 border-black pb-4">
+                <h2 class="text-lg md:text-xl font-black text-black flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-600 border-2 border-black flex items-center justify-center text-white text-sm shadow-xs">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    Inspirational Guru (Pendidik)
+                </h2>
+                <span class="bg-indigo-100 text-indigo-900 border border-black text-[10px] font-black px-3 py-1 rounded-xl uppercase">Kinerja Guru</span>
+            </div>
+
+            @php
+                $tch1 = $topTeachers->get(0);
+                $tch2 = $topTeachers->get(1);
+                $tch3 = $topTeachers->get(2);
+                $tchRest = $topTeachers->slice(3);
+            @endphp
+
+            {{-- Top 3 Teacher Podiums --}}
+            <div class="grid grid-cols-3 gap-3 items-end pt-4 pb-2">
+                {{-- Rank 2 --}}
+                @if($tch2)
+                <div class="flex flex-col items-center cursor-pointer transition hover:-translate-y-1"
+                     @mouseenter="showTooltip($event, {{ json_encode([
+                         'name' => $tch2->user->name,
+                         'role' => 'Guru - ' . ($tch2->user->teacher->school->name ?? 'Pembda'),
+                         'photo' => $tch2->user->photo_url,
+                         'points' => $tch2->total_points,
+                         'level' => $tch2->level_name,
+                         'logs' => $tch2->user->reputationLogs
+                     ]) }})"
+                     @mouseleave="hideTooltip()">
+                    <div class="relative mb-2">
+                        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-300 text-black text-[10px] font-black px-2 py-0.5 rounded-full border border-black z-10">#2</span>
+                        <img src="{{ $tch2->user->photo_url }}" class="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-black object-cover shadow-md bg-slate-100" />
+                    </div>
+                    <div class="w-full bg-slate-100 border-2 border-black rounded-t-2xl p-3 text-center space-y-1">
+                        <div class="text-xs font-black text-black truncate w-full" title="{{ $tch2->user->name }}">{{ Str::words($tch2->user->name, 2, '') }}</div>
+                        <div class="text-[10px] font-bold text-slate-600 truncate">{{ $tch2->user->teacher->school->name ?? 'Guru' }}</div>
+                        <div class="inline-block bg-slate-800 text-white text-[10px] font-black px-2 py-0.5 rounded-lg border border-black">{{ number_format($tch2->total_points) }} pts</div>
+                    </div>
                 </div>
                 @endif
-                <div class="hof-guru-card__rank">#{{ $index + 1 }}</div>
-                <div class="hof-guru-card__photo-wrap">
-                    <img src="{{ $rep->user->photo_url }}" alt="{{ $rep->user->name }}" class="hof-guru-card__photo" loading="lazy">
+
+                {{-- Rank 1 (Master Guru) --}}
+                @if($tch1)
+                <div class="flex flex-col items-center cursor-pointer transition hover:-translate-y-1"
+                     @mouseenter="showTooltip($event, {{ json_encode([
+                         'name' => $tch1->user->name,
+                         'role' => 'Guru - ' . ($tch1->user->teacher->school->name ?? 'Pembda'),
+                         'photo' => $tch1->user->photo_url,
+                         'points' => $tch1->total_points,
+                         'level' => $tch1->level_name,
+                         'logs' => $tch1->user->reputationLogs
+                     ]) }})"
+                     @mouseleave="hideTooltip()">
+                    <div class="relative mb-2">
+                        <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-indigo-600 text-xl font-black drop-shadow-md animate-bounce"><i class="fas fa-medal"></i></div>
+                        <span class="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-400 text-black text-[10px] font-black px-2.5 py-0.5 rounded-full border border-black z-10 shadow-xs">#1</span>
+                        <img src="{{ $tch1->user->photo_url }}" class="w-18 h-18 md:w-20 md:h-20 rounded-full border-4 border-indigo-600 object-cover shadow-xl bg-indigo-50" />
+                    </div>
+                    <div class="w-full bg-indigo-100 border-2 border-black rounded-t-2xl p-4 text-center space-y-1 shadow-md">
+                        <div class="text-xs md:text-sm font-black text-black truncate w-full" title="{{ $tch1->user->name }}">{{ Str::words($tch1->user->name, 2, '') }}</div>
+                        <div class="text-[10px] font-bold text-indigo-900 truncate">{{ $tch1->user->teacher->school->name ?? 'Guru' }}</div>
+                        <div class="inline-block bg-indigo-600 text-white text-xs font-black px-2.5 py-0.5 rounded-lg border border-black">{{ number_format($tch1->total_points) }} pts</div>
+                    </div>
                 </div>
-                <h4 class="hof-guru-card__name">{{ $rep->user->name }}</h4>
-                <div class="hof-guru-card__badges">
-                    @foreach($rep->user->badges->take(2) as $badge)
-                    <span class="hof-guru-card__badge {{ $badge->color }}">
-                        <i class="fas {{ $badge->icon }}"></i> {{ $badge->name }}
-                    </span>
-                    @endforeach
+                @endif
+
+                {{-- Rank 3 --}}
+                @if($tch3)
+                <div class="flex flex-col items-center cursor-pointer transition hover:-translate-y-1"
+                     @mouseenter="showTooltip($event, {{ json_encode([
+                         'name' => $tch3->user->name,
+                         'role' => 'Guru - ' . ($tch3->user->teacher->school->name ?? 'Pembda'),
+                         'photo' => $tch3->user->photo_url,
+                         'points' => $tch3->total_points,
+                         'level' => $tch3->level_name,
+                         'logs' => $tch3->user->reputationLogs
+                     ]) }})"
+                     @mouseleave="hideTooltip()">
+                    <div class="relative mb-2">
+                        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-700 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-black z-10">#3</span>
+                        <img src="{{ $tch3->user->photo_url }}" class="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-black object-cover shadow-md bg-amber-50" />
+                    </div>
+                    <div class="w-full bg-indigo-50 border-2 border-black rounded-t-2xl p-3 text-center space-y-1">
+                        <div class="text-xs font-black text-black truncate w-full" title="{{ $tch3->user->name }}">{{ Str::words($tch3->user->name, 2, '') }}</div>
+                        <div class="text-[10px] font-bold text-slate-600 truncate">{{ $tch3->user->teacher->school->name ?? 'Guru' }}</div>
+                        <div class="inline-block bg-amber-800 text-white text-[10px] font-black px-2 py-0.5 rounded-lg border border-black">{{ number_format($tch3->total_points) }} pts</div>
+                    </div>
                 </div>
-                <div class="hof-guru-card__score">
-                    <span class="hof-guru-card__score-val">{{ number_format($rep->total_points) }}</span>
-                    <span class="hof-guru-card__score-lbl">Elite Score</span>
-                </div>
+                @endif
             </div>
-            @empty
-            <div class="hof-empty">
-                <i class="fas fa-users-slash"></i>
-                <p>Belum ada data guru.</p>
+
+            {{-- Teacher Ranks 4-10 List --}}
+            <div class="space-y-2.5 pt-2">
+                <div class="text-xs font-black text-slate-500 uppercase tracking-wider px-1">Pendidik Selanjutnya:</div>
+                @foreach($tchRest as $index => $tch)
+                <div class="flex items-center justify-between p-3 bg-slate-50 hover:bg-indigo-50 rounded-2xl border-2 border-black transition cursor-pointer shadow-xs"
+                     @mouseenter="showTooltip($event, {{ json_encode([
+                         'name' => $tch->user->name,
+                         'role' => 'Guru - ' . ($tch->user->teacher->school->name ?? 'Pembda'),
+                         'photo' => $tch->user->photo_url,
+                         'points' => $tch->total_points,
+                         'level' => $tch->level_name,
+                         'logs' => $tch->user->reputationLogs
+                     ]) }})"
+                     @mouseleave="hideTooltip()">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-7 h-7 rounded-xl bg-white border border-black font-black text-xs text-black flex items-center justify-center shrink-0">#{{ $index + 4 }}</span>
+                        <img src="{{ $tch->user->photo_url }}" class="w-10 h-10 rounded-full border border-black object-cover shrink-0" />
+                        <div class="min-w-0">
+                            <div class="text-xs font-black text-black truncate">{{ $tch->user->name }}</div>
+                            <div class="text-[11px] font-bold text-slate-500 truncate">{{ $tch->user->teacher->school->name ?? 'Guru' }}</div>
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0 ml-2">
+                        <span class="bg-indigo-600 text-white font-black text-xs px-2.5 py-1 rounded-xl border border-black shadow-xs">{{ number_format($tch->total_points) }} pts</span>
+                    </div>
+                </div>
+                @endforeach
             </div>
-            @endforelse
+        </div>
+
+    </div>
+
+    {{-- ═══════════════════ HOVER TOOLTIP / POPOVER CARD (RIWAYAT ASAL POIN) ═══════════════════ --}}
+    <div x-show="visible" 
+         x-transition:enter="transition ease-out duration-150"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-100"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         :style="`top: ${position.y}px; left: ${position.x}px;`"
+         class="fixed z-50 w-80 bg-white border-2 border-black rounded-3xl p-5 shadow-2xl space-y-3 pointer-events-none transform -translate-x-1/2 -translate-y-full"
+         style="display: none;">
+        
+        <div class="flex items-center gap-3 border-b-2 border-black pb-3">
+            <img :src="activeUser.photo" class="w-12 h-12 rounded-full border-2 border-black object-cover shrink-0 bg-slate-100" />
+            <div class="min-w-0">
+                <h4 class="text-xs font-black text-black truncate" x-text="activeUser.name"></h4>
+                <div class="text-[10px] font-bold text-slate-500 truncate" x-text="activeUser.role"></div>
+                <span class="inline-block mt-0.5 bg-amber-300 text-black text-[9px] font-black px-2 py-0.5 rounded-md border border-black uppercase" x-text="activeUser.level"></span>
+            </div>
+        </div>
+
+        <div>
+            <div class="text-[10px] font-black text-black uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span><i class="fas fa-history text-indigo-600 mr-1"></i> Riwayat Asal Poin:</span>
+                <span class="bg-black text-white px-1.5 py-0.5 rounded-md text-[9px]" x-text="activeUser.points + ' pts'"></span>
+            </div>
+            
+            <template x-if="activeUser.logs && activeUser.logs.length > 0">
+                <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    <template x-for="log in activeUser.logs" :key="log.id">
+                        <div class="p-2 bg-slate-50 rounded-xl border border-black text-[11px] space-y-0.5">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-emerald-700" x-text="'+' + log.points + ' Poin'"></span>
+                                <span class="text-[9px] font-bold text-slate-400" x-text="log.category"></span>
+                            </div>
+                            <p class="font-bold text-slate-800 text-[10px] leading-tight" x-text="log.description || 'Aktivitas LMS / PembdaHub'"></p>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <template x-if="!activeUser.logs || activeUser.logs.length === 0">
+                <div class="p-3 bg-slate-50 rounded-xl border border-black text-center text-[10px] font-bold text-slate-500">
+                    Belum ada catatan riwayat detail transaksi poin.
+                </div>
+            </template>
         </div>
     </div>
 
-    {{-- ═══════════════════ BADGE SHOWCASE ═══════════════════ --}}
-    <div class="hof-section hof-section--badges">
-        <h2 class="hof-section__title">
-            <i class="fas fa-medal"></i>
-            Special Elite Badges
-        </h2>
-        <p class="hof-section__desc">Lencana kehormatan yang bisa didapatkan melalui aksi nyata</p>
-
-        <div class="hof-badges-grid">
-            @foreach(\App\Models\Badge::where('is_active', true)->get() as $badge)
-            <div class="hof-badge-card">
-                <div class="hof-badge-card__icon {{ $badge->color }}">
-                    <i class="fas {{ $badge->icon }}"></i>
-                </div>
-                <h4 class="hof-badge-card__name">{{ $badge->name }}</h4>
-                <p class="hof-badge-card__desc">{{ $badge->description }}</p>
-                <div class="hof-badge-card__req">
-                    <span class="hof-badge-card__req-label">Requirement</span>
-                    <span class="hof-badge-card__req-value">{{ number_format($badge->requirement_value) }} Poin</span>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
 </div>
 
-{{-- ═══════════════════ STYLES ═══════════════════ --}}
-<style>
-/* ────── BASE ────── */
-.hof-universe {
-    --gold: #f59e0b;
-    --gold-light: #fbbf24;
-    --silver: #94a3b8;
-    --bronze: #d97706;
-    --emerald: #10b981;
-    --indigo: #6366f1;
-    padding: 1.5rem 0 3rem;
-    min-height: 100vh;
-}
-
-/* ────── HEADER — NEW VIBRANT DESIGN ────── */
-.hof-header {
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(135deg,
-        #667eea 0%,
-        #764ba2 25%,
-        #f093fb 50%,
-        #f5a623 75%,
-        #ffd700 100%
-    );
-    background-size: 300% 300%;
-    animation: headerGradShift 8s ease infinite;
-    border-radius: 2rem;
-    padding: 2.5rem 2rem 2rem;
-    text-align: center;
-    color: #fff;
-    margin-bottom: 3rem;
-    box-shadow:
-        0 20px 60px rgba(102, 126, 234, 0.35),
-        0 8px 25px rgba(245, 166, 35, 0.2),
-        inset 0 1px 0 rgba(255,255,255,0.2);
-}
-
-@keyframes headerGradShift {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-.hof-header::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
-    border-radius: inherit;
-    pointer-events: none;
-}
-
-.hof-header::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
-    border-radius: 0 0 2rem 2rem;
-}
-
-.hof-stars { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.hof-star {
-    position: absolute;
-    font-size: 1.2rem;
-    opacity: 0;
-    animation: starFloat 6s ease-in-out infinite;
-    animation-delay: calc(var(--i) * 0.5s);
-    top: calc(10% + (var(--i) * 7%));
-    left: calc(5% + (var(--i) * 8%));
-}
-@keyframes starFloat {
-    0%   { opacity: 0; transform: translateY(10px) rotate(0deg); }
-    30%  { opacity: 0.7; }
-    70%  { opacity: 0.5; }
-    100% { opacity: 0; transform: translateY(-30px) rotate(20deg); }
-}
-
-.hof-header__content { position: relative; z-index: 2; }
-
-.hof-header__trophy {
-    font-size: 3.5rem;
-    display: block;
-    margin: 0.25rem auto 0.5rem;
-    animation: trophyBounce 3s ease-in-out infinite;
-    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
-}
-@keyframes trophyBounce {
-    0%, 100% { transform: translateY(0) rotate(-3deg); }
-    50%       { transform: translateY(-10px) rotate(3deg); }
-}
-
-.hof-badge-live {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255,255,255,0.2);
-    border: 1px solid rgba(255,255,255,0.35);
-    backdrop-filter: blur(8px);
-    padding: 0.3rem 1rem;
-    border-radius: 9999px;
-    margin-bottom: 0.5rem;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-}
-.hof-badge-live__dot {
-    width: 7px; height: 7px;
-    background: #fff;
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-    box-shadow: 0 0 6px rgba(255,255,255,0.8);
-}
-@keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.5; transform: scale(1.4); }
-}
-
-.hof-header__title {
-    font-size: 2.6rem;
-    font-weight: 900;
-    margin: 0 0 0.4rem;
-    color: #fff;
-    text-shadow: 0 2px 20px rgba(0,0,0,0.15);
-    letter-spacing: -0.02em;
-}
-
-.hof-header__subtitle {
-    color: rgba(255,255,255,0.85);
-    font-size: 0.95rem;
-    margin: 0;
-    font-weight: 500;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-.hof-myrank {
-    display: inline-flex;
-    align-items: center;
-    gap: 1.5rem;
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 1.25rem;
-    padding: 0.85rem 1.75rem;
-    margin-top: 1.25rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-.hof-myrank__label {
-    display: block;
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: rgba(255,255,255,0.7);
-    font-weight: 700;
-    margin-bottom: 0.1rem;
-}
-.hof-myrank__value { font-size: 1.6rem; font-weight: 900; color: #fff; }
-.hof-myrank__value--emerald { color: #d1fae5; }
-.hof-myrank__divider { width: 1px; height: 36px; background: rgba(255,255,255,0.25); }
-
-/* ────── SECTION ────── */
-.hof-section { margin-bottom: 3.5rem; }
-.hof-section__title {
-    text-align: center;
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #1e293b;
-    margin-bottom: 2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-}
-.hof-section__title i { color: var(--gold); font-size: 1.2rem; }
-.hof-section__desc {
-    text-align: center;
-    color: #94a3b8;
-    font-size: 0.9rem;
-    margin-top: -1.5rem;
-    margin-bottom: 2rem;
-}
-
-/* ────── HIERARCHY TREE ────── */
-.hof-tree {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1rem 0;
-}
-.hof-tree__svg {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    pointer-events: none; z-index: 0;
-}
-.hof-tree__svg line, .hof-tree__svg path {
-    stroke-width: 2; stroke-linecap: round; fill: none;
-}
-.hof-tier {
-    display: flex; justify-content: center; gap: 2rem;
-    position: relative; z-index: 1; width: 100%; flex-wrap: wrap;
-}
-.hof-tier--1 { margin-bottom: 0.5rem; }
-.hof-tier--2 { gap: 4rem; }
-.hof-tier--3 { gap: 1.25rem; }
-
-/* ────── NODE CARD ────── */
-.hof-node {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 1.5rem 1.25rem 1.25rem;
-    border-radius: 1.25rem;
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.6);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
-    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease;
-    opacity: 0;
-    transform: translateY(40px) scale(0.9);
-    animation: nodeEnter 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
-}
-.hof-node:hover {
-    transform: translateY(-6px) scale(1.03);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.12);
-}
-@keyframes nodeEnter {
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
-.hof-node--champion {
-    padding: 2rem 2rem 1.75rem;
-    background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,251,235,0.9));
-    border: 2px solid rgba(245,158,11,0.25);
-    box-shadow: 0 8px 40px rgba(245,158,11,0.12), 0 2px 8px rgba(0,0,0,0.04);
-    min-width: 220px;
-}
-.hof-node--champion:hover { box-shadow: 0 24px 60px rgba(245,158,11,0.2); }
-.hof-node--silver { min-width: 180px; }
-.hof-node--bronze { min-width: 180px; }
-.hof-node--leaf { padding: 1rem 1rem 0.85rem; min-width: 140px; max-width: 160px; }
-
-.hof-node__crown {
-    position: absolute; top: -18px; left: 50%;
-    transform: translateX(-50%);
-    color: var(--gold); font-size: 1.75rem;
-    animation: crownBounce 3s ease-in-out infinite;
-    filter: drop-shadow(0 2px 6px rgba(245,158,11,0.4));
-}
-@keyframes crownBounce {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50%       { transform: translateX(-50%) translateY(-6px); }
-}
-
-.hof-node__glow {
-    position: absolute; width: 130%; height: 130%;
-    border-radius: 50%; top: -15%; left: -15%;
-    pointer-events: none; opacity: 0.12;
-    animation: glowPulse 4s ease-in-out infinite;
-}
-.hof-node__glow--gold   { background: radial-gradient(circle, var(--gold), transparent 70%); }
-.hof-node__glow--silver { background: radial-gradient(circle, var(--silver), transparent 70%); opacity: 0.08; }
-.hof-node__glow--bronze { background: radial-gradient(circle, var(--bronze), transparent 70%); opacity: 0.1; }
-@keyframes glowPulse {
-    0%, 100% { transform: scale(1); opacity: 0.12; }
-    50%       { transform: scale(1.15); opacity: 0.2; }
-}
-
-.hof-node__photo-ring {
-    position: relative; border-radius: 50%;
-    padding: 3px; margin-bottom: 0.75rem; z-index: 2;
-}
-.hof-node__photo-ring--gold {
-    width: 100px; height: 100px;
-    background: linear-gradient(135deg, var(--gold), var(--gold-light), #fff, var(--gold));
-    background-size: 300% 300%;
-    animation: ringShimmer 4s ease infinite;
-    box-shadow: 0 0 20px rgba(245,158,11,0.3);
-}
-.hof-node__photo-ring--silver {
-    width: 80px; height: 80px;
-    background: linear-gradient(135deg, #cbd5e1, #e2e8f0, #fff, #94a3b8);
-    background-size: 300% 300%;
-    animation: ringShimmer 5s ease infinite;
-    box-shadow: 0 0 12px rgba(148,163,184,0.3);
-}
-.hof-node__photo-ring--bronze {
-    width: 80px; height: 80px;
-    background: linear-gradient(135deg, var(--bronze), #fbbf24, #fff, #b45309);
-    background-size: 300% 300%;
-    animation: ringShimmer 5s ease infinite;
-    box-shadow: 0 0 12px rgba(217,119,6,0.3);
-}
-.hof-node__photo-ring--leaf {
-    width: 56px; height: 56px;
-    background: linear-gradient(135deg, var(--indigo), #a78bfa);
-    box-shadow: 0 0 8px rgba(99,102,241,0.2);
-}
-@keyframes ringShimmer {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-.hof-node__photo {
-    width: 100%; height: 100%; border-radius: 50%;
-    object-fit: cover; border: 2px solid #fff;
-}
-
-.hof-node__info { position: relative; z-index: 2; }
-.hof-node__rank {
-    display: inline-block; font-size: 0.65rem; font-weight: 800;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    color: #fff; background: var(--indigo);
-    padding: 0.15rem 0.6rem; border-radius: 9999px; margin-bottom: 0.35rem;
-}
-.hof-node--champion .hof-node__rank { background: linear-gradient(135deg, var(--gold), var(--bronze)); font-size: 0.75rem; }
-.hof-node--silver   .hof-node__rank { background: linear-gradient(135deg, #64748b, #94a3b8); }
-.hof-node--bronze   .hof-node__rank { background: linear-gradient(135deg, #b45309, var(--bronze)); }
-
-.hof-node__name { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin: 0.25rem 0 0.1rem; line-height: 1.3; }
-.hof-node__name--sm { font-size: 0.8rem; }
-.hof-node__class { font-size: 0.65rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-
-.hof-node__points {
-    margin-top: 0.5rem;
-    background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
-    border: 1px solid #d1fae5; border-radius: 0.75rem;
-    padding: 0.35rem 0.75rem;
-}
-.hof-node__points--sm { padding: 0.25rem 0.5rem; }
-.hof-node__points-value { display: block; font-size: 1.15rem; font-weight: 800; color: #059669; }
-.hof-node__points--sm .hof-node__points-value { font-size: 0.9rem; }
-.hof-node__points-label { font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.08em; color: #6ee7b7; font-weight: 700; }
-
-.hof-node__badges { display: flex; gap: 0.35rem; flex-wrap: wrap; justify-content: center; margin-top: 0.5rem; }
-.hof-node__badge {
-    font-size: 0.6rem; padding: 0.2rem 0.5rem; border-radius: 0.35rem;
-    color: #fff; font-weight: 700; text-transform: uppercase;
-    display: inline-flex; align-items: center; gap: 0.25rem;
-}
-.hof-node__badge i { font-size: 0.55rem; }
-
-.hof-node__particles { position: absolute; inset: -20px; pointer-events: none; z-index: 0; }
-.hof-particle {
-    position: absolute; width: 4px; height: 4px;
-    background: var(--gold); border-radius: 50%;
-    top: 50%; left: 50%; opacity: 0;
-}
-@keyframes sparkle1 { 0%{opacity:0;transform:translate(0,0) scale(0)} 30%{opacity:1;transform:translate(50px,-30px) scale(1)} 100%{opacity:0;transform:translate(70px,-45px) scale(0)} }
-@keyframes sparkle2 { 0%{opacity:0;transform:translate(0,0) scale(0)} 30%{opacity:1;transform:translate(40px,35px) scale(1)} 100%{opacity:0;transform:translate(60px,50px) scale(0)} }
-@keyframes sparkle3 { 0%{opacity:0;transform:translate(0,0) scale(0)} 30%{opacity:1;transform:translate(-45px,-25px) scale(1)} 100%{opacity:0;transform:translate(-65px,-40px) scale(0)} }
-@keyframes sparkle4 { 0%{opacity:0;transform:translate(0,0) scale(0)} 30%{opacity:1;transform:translate(-35px,40px) scale(1)} 100%{opacity:0;transform:translate(-55px,55px) scale(0)} }
-@keyframes sparkle5 { 0%{opacity:0;transform:translate(0,0) scale(0)} 30%{opacity:1;transform:translate(55px,10px) scale(1)} 100%{opacity:0;transform:translate(75px,15px) scale(0)} }
-@keyframes sparkle6 { 0%{opacity:0;transform:translate(0,0) scale(0)} 30%{opacity:1;transform:translate(-50px,5px) scale(1)} 100%{opacity:0;transform:translate(-70px,8px) scale(0)} }
-@keyframes sparkle7 { 0%{opacity:0;transform:translate(0,0) scale(0)} 30%{opacity:1;transform:translate(15px,-50px) scale(1)} 100%{opacity:0;transform:translate(20px,-70px) scale(0)} }
-@keyframes sparkle8 { 0%{opacity:0;transform:translate(0,0) scale(0)} 30%{opacity:1;transform:translate(-10px,55px) scale(1)} 100%{opacity:0;transform:translate(-15px,75px) scale(0)} }
-.hof-particle:nth-child(1) { animation: sparkle1 3s ease-in-out infinite; }
-.hof-particle:nth-child(2) { animation: sparkle2 3s ease-in-out infinite 0.375s; }
-.hof-particle:nth-child(3) { animation: sparkle3 3s ease-in-out infinite 0.75s; }
-.hof-particle:nth-child(4) { animation: sparkle4 3s ease-in-out infinite 1.125s; }
-.hof-particle:nth-child(5) { animation: sparkle5 3s ease-in-out infinite 1.5s; }
-.hof-particle:nth-child(6) { animation: sparkle6 3s ease-in-out infinite 1.875s; }
-.hof-particle:nth-child(7) { animation: sparkle7 3s ease-in-out infinite 2.25s; }
-.hof-particle:nth-child(8) { animation: sparkle8 3s ease-in-out infinite 2.625s; }
-
-/* ────── GURU DECK ────── */
-.hof-guru-deck {
-    display: flex; gap: 1.25rem;
-    justify-content: center; flex-wrap: wrap; padding: 0 1rem;
-}
-.hof-guru-card {
-    position: relative;
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.6);
-    border-radius: 1.25rem; padding: 2rem 1.5rem 1.5rem;
-    text-align: center; min-width: 170px; max-width: 200px; flex: 1;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease;
-    opacity: 0; animation: nodeEnter 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
-}
-.hof-guru-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 16px 40px rgba(0,0,0,0.1); }
-.hof-guru-card--top {
-    border: 2px solid rgba(16,185,129,0.25);
-    background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(236,253,245,0.9));
-    box-shadow: 0 8px 30px rgba(16,185,129,0.1);
-}
-.hof-guru-card--top:hover { box-shadow: 0 20px 50px rgba(16,185,129,0.15); }
-
-.hof-guru-card__crown {
-    position: absolute; top: -12px; left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, var(--emerald), #059669);
-    color: #fff; font-size: 0.6rem; font-weight: 800;
-    text-transform: uppercase; letter-spacing: 0.06em;
-    padding: 0.25rem 0.75rem; border-radius: 9999px;
-    white-space: nowrap; box-shadow: 0 2px 10px rgba(16,185,129,0.3);
-}
-.hof-guru-card__rank { font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.5rem; }
-.hof-guru-card--top .hof-guru-card__rank { color: var(--emerald); }
-.hof-guru-card__photo-wrap {
-    width: 72px; height: 72px; border-radius: 50%; padding: 3px;
-    background: linear-gradient(135deg, var(--emerald), var(--indigo));
-    margin: 0 auto 0.75rem;
-}
-.hof-guru-card__photo { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
-.hof-guru-card__name { font-size: 0.9rem; font-weight: 700; color: #1e293b; margin: 0 0 0.5rem; line-height: 1.3; }
-.hof-guru-card__badges { display: flex; gap: 0.25rem; flex-wrap: wrap; justify-content: center; margin-bottom: 0.75rem; }
-.hof-guru-card__badge {
-    font-size: 0.55rem; padding: 0.15rem 0.4rem; border-radius: 0.3rem;
-    color: #fff; font-weight: 700; text-transform: uppercase;
-    display: inline-flex; align-items: center; gap: 0.2rem;
-}
-.hof-guru-card__score {
-    background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
-    border: 1px solid #d1fae5; border-radius: 0.75rem; padding: 0.4rem 0.75rem;
-}
-.hof-guru-card__score-val { display: block; font-size: 1.1rem; font-weight: 800; color: #059669; }
-.hof-guru-card__score-lbl { font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.06em; color: #6ee7b7; font-weight: 700; }
-
-.hof-empty { text-align: center; color: #94a3b8; padding: 3rem 0; width: 100%; }
-.hof-empty i { font-size: 2rem; margin-bottom: 0.75rem; display: block; }
-.hof-empty p { font-size: 0.9rem; font-style: italic; margin: 0; }
-
-/* ────── BADGE SHOWCASE ────── */
-.hof-section--badges {
-    background: linear-gradient(135deg, #f8fafc, #eef2ff);
-    border-radius: 1.5rem; padding: 3rem 2rem;
-    border: 1px solid #e0e7ff;
-}
-.hof-badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.25rem; }
-.hof-badge-card {
-    background: #fff; border-radius: 1.25rem; padding: 1.75rem 1.25rem;
-    text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s ease;
-    border: 1px solid #f1f5f9;
-}
-.hof-badge-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
-.hof-badge-card__icon {
-    width: 52px; height: 52px; border-radius: 1rem;
-    display: inline-flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 1.25rem; margin-bottom: 1rem;
-    transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
-}
-.hof-badge-card:hover .hof-badge-card__icon { transform: rotate(12deg) scale(1.1); }
-.hof-badge-card__name { font-size: 1rem; font-weight: 700; color: #1e293b; margin: 0 0 0.35rem; }
-.hof-badge-card__desc { font-size: 0.75rem; color: #94a3b8; line-height: 1.5; margin: 0 0 1rem; }
-.hof-badge-card__req { border-top: 1px solid #f1f5f9; padding-top: 0.75rem; }
-.hof-badge-card__req-label { display: block; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: #cbd5e1; font-weight: 700; margin-bottom: 0.15rem; }
-.hof-badge-card__req-value { font-size: 0.85rem; font-weight: 700; color: #475569; }
-
-/* ────── FLOATING NODE ANIMATION ────── */
-.hof-node--champion { animation: nodeEnter 0.7s cubic-bezier(0.16,1,0.3,1) forwards, nodeFloat 6s ease-in-out 1s infinite; }
-.hof-node--silver   { animation: nodeEnter 0.7s cubic-bezier(0.16,1,0.3,1) 0.2s forwards, nodeFloat 7s ease-in-out 1.5s infinite; }
-.hof-node--bronze   { animation: nodeEnter 0.7s cubic-bezier(0.16,1,0.3,1) 0.3s forwards, nodeFloat 7s ease-in-out 2s infinite; }
-.hof-node--leaf     { animation: nodeEnter 0.7s cubic-bezier(0.16,1,0.3,1) forwards, nodeFloat 8s ease-in-out 2.5s infinite; }
-@keyframes nodeFloat {
-    0%, 100% { transform: translateY(0); }
-    50%       { transform: translateY(-8px); }
-}
-
-/* ────── RESPONSIVE ────── */
-@media (max-width: 768px) {
-    .hof-header { padding: 2rem 1.25rem 1.75rem; border-radius: 1.25rem; }
-    .hof-header__title { font-size: 2rem; }
-    .hof-header__trophy { font-size: 2.75rem; }
-    .hof-myrank { padding: 0.75rem 1.25rem; gap: 1rem; }
-    .hof-myrank__value { font-size: 1.35rem; }
-    .hof-tier--2 { flex-direction: column; align-items: center; gap: 1rem; }
-    .hof-tier--3 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; padding: 0 0.5rem; }
-    .hof-node--leaf { max-width: none; }
-    .hof-node--champion { min-width: auto; padding: 1.5rem 1.25rem; }
-    .hof-node--silver, .hof-node--bronze { min-width: auto; }
-    .hof-guru-deck { flex-direction: column; align-items: center; }
-    .hof-guru-card { max-width: 280px; width: 100%; }
-    .hof-section__title { font-size: 1.2rem; }
-    .hof-badges-grid { grid-template-columns: repeat(2, 1fr); }
-    .hof-star { font-size: 0.9rem; }
-}
-@media (max-width: 480px) {
-    .hof-universe { padding: 1rem 0; }
-    .hof-header { padding: 1.5rem 1rem; }
-    .hof-header__title { font-size: 1.65rem; }
-    .hof-header__trophy { font-size: 2.25rem; }
-    .hof-tier--3 { grid-template-columns: 1fr; }
-    .hof-badges-grid { grid-template-columns: 1fr; }
-    .hof-myrank { flex-direction: column; gap: 0.5rem; }
-    .hof-myrank__divider { width: 60px; height: 1px; }
-}
-
-/* SVG Connectors */
-.hof-connector { stroke-dasharray: 200; stroke-dashoffset: 200; animation: drawLine 1.2s ease-out forwards; }
-.hof-connector--d1 { animation-delay: 0.6s; }
-.hof-connector--d2 { animation-delay: 0.8s; }
-.hof-connector--d3 { animation-delay: 1.0s; }
-.hof-connector--d4 { animation-delay: 1.1s; }
-.hof-connector--d5 { animation-delay: 1.2s; }
-.hof-connector--d6 { animation-delay: 1.3s; }
-@keyframes drawLine { to { stroke-dashoffset: 0; } }
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const svg = document.getElementById('hofTreeSvg');
-    if (!svg) return;
-
-    function getNodeCenter(id) {
-        const el = document.getElementById(id);
-        if (!el) return null;
-        const tree = document.getElementById('hofTree');
-        const treeRect = tree.getBoundingClientRect();
-        const rect = el.getBoundingClientRect();
-        return {
-            x: rect.left + rect.width / 2 - treeRect.left,
-            y: rect.top + rect.height / 2 - treeRect.top,
-            top: rect.top - treeRect.top,
-            bottom: rect.bottom - treeRect.top
-        };
-    }
-
-    function drawConnectors() {
-        svg.querySelectorAll('.hof-connector').forEach(el => el.remove());
-        const tree = document.getElementById('hofTree');
-        if (!tree) return;
-        const treeRect = tree.getBoundingClientRect();
-        svg.setAttribute('viewBox', `0 0 ${treeRect.width} ${treeRect.height}`);
-        svg.style.width = treeRect.width + 'px';
-        svg.style.height = treeRect.height + 'px';
-
-        const n1 = getNodeCenter('node1');
-        const n2 = getNodeCenter('node2');
-        const n3 = getNodeCenter('node3');
-        let delayIdx = 1;
-
-        if (n1 && n2) drawCurve(svg, n1.x, n1.bottom, n2.x, n2.top, 'url(#lineGradGold)', delayIdx++);
-        if (n1 && n3) drawCurve(svg, n1.x, n1.bottom, n3.x, n3.top, 'url(#lineGradGold)', delayIdx++);
-        if (n2) [4, 5].forEach(function(num) { const nx = getNodeCenter('node' + num); if (nx) drawCurve(svg, n2.x, n2.bottom, nx.x, nx.top, 'url(#lineGradSilver)', delayIdx++); });
-        if (n3) [6, 7].forEach(function(num) { const nx = getNodeCenter('node' + num); if (nx) drawCurve(svg, n3.x, n3.bottom, nx.x, nx.top, 'url(#lineGradSilver)', delayIdx++); });
-    }
-
-    function drawCurve(svg, x1, y1, x2, y2, stroke, delayIdx) {
-        const midY = (y1 + y2) / 2;
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        const d = `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`;
-        path.setAttribute('d', d);
-        path.setAttribute('stroke', stroke);
-        path.setAttribute('fill', 'none');
-        path.setAttribute('stroke-width', '2');
-        path.setAttribute('stroke-linecap', 'round');
-        path.classList.add('hof-connector', 'hof-connector--d' + delayIdx);
-        svg.appendChild(path);
-        const length = path.getTotalLength();
-        path.style.strokeDasharray = length;
-        path.style.strokeDashoffset = length;
-    }
-
-    // Stagger node animations
-    document.querySelectorAll('.hof-node').forEach(function(node) {
-        const delay = node.getAttribute('data-delay') || 0;
-        node.style.animationDelay = delay + 'ms, 1.5s';
-    });
-
-    // Draw on load + resize
-    setTimeout(drawConnectors, 300);
-    window.addEventListener('resize', function() {
-        requestAnimationFrame(drawConnectors);
-    });
-});
-</script>
 @endsection
+
+@push('scripts')
+<script>
+function leaderboardTooltip() {
+    return {
+        visible: false,
+        position: { x: 0, y: 0 },
+        activeUser: {
+            name: '',
+            role: '',
+            photo: '',
+            points: 0,
+            level: '',
+            logs: []
+        },
+        showTooltip(event, userData) {
+            this.activeUser = userData;
+            let rect = event.currentTarget.getBoundingClientRect();
+            // Position above the hovered element
+            this.position.x = rect.left + (rect.width / 2);
+            this.position.y = rect.top - 10;
+            this.visible = true;
+        },
+        hideTooltip() {
+            this.visible = false;
+        }
+    }
+}
+</script>
+@endpush
