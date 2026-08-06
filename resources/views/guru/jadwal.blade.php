@@ -2,7 +2,7 @@
 @section('title', 'Jadwal Mengajar - Portal Guru')
 
 @section('content')
-<div class="space-y-5">
+<div class="space-y-6">
     {{-- Header Banner (Neo-Brutalism) --}}
     <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #1e3a8a 100%) !important; color: #ffffff !important;">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -17,16 +17,16 @@
             </div>
             {{-- Weekly Stats Badges --}}
             <div class="flex flex-wrap items-center gap-2">
-                <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl border border-black shadow-xs uppercase tracking-wider" style="background-color: #38bdf8 !important; color: #000000 !important;">
+                <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl border-2 border-black shadow-xs uppercase tracking-wider" style="background-color: #38bdf8 !important; color: #000000 !important;">
                     <i class="fas fa-clock text-black"></i> {{ $totalSessions }} Sesi
                 </span>
-                <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl border border-black shadow-xs uppercase tracking-wider" style="background-color: #34d399 !important; color: #000000 !important;">
+                <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl border-2 border-black shadow-xs uppercase tracking-wider" style="background-color: #34d399 !important; color: #000000 !important;">
                     <i class="fas fa-book text-black"></i> {{ $totalJP }} JP
                 </span>
-                <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl border border-black shadow-xs uppercase tracking-wider" style="background-color: #c084fc !important; color: #000000 !important;">
+                <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl border-2 border-black shadow-xs uppercase tracking-wider" style="background-color: #c084fc !important; color: #000000 !important;">
                     <i class="fas fa-chalkboard text-black"></i> {{ $uniqueClassrooms }} Kelas
                 </span>
-                <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl border border-black shadow-xs uppercase tracking-wider" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl border-2 border-black shadow-xs uppercase tracking-wider" style="background-color: #fbbf24 !important; color: #000000 !important;">
                     <i class="fas fa-book-open text-black"></i> {{ $uniqueSubjects }} Mapel
                 </span>
             </div>
@@ -34,49 +34,41 @@
     </div>
 
     @if(empty($timetable))
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center">
-            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-calendar-times text-4xl text-gray-300"></i>
+        <div class="bg-white rounded-3xl shadow-xl border-2 border-black p-12 text-center">
+            <div class="w-16 h-16 bg-amber-300 border-2 border-black rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-md">
+                <i class="fas fa-calendar-times text-black"></i>
             </div>
-            <p class="text-gray-500 font-medium">Belum ada jadwal mengajar yang terdaftar.</p>
-            <p class="text-sm text-gray-400 mt-1">Hubungi admin untuk menambahkan jadwal Anda.</p>
+            <p class="text-base font-black uppercase text-black">Belum ada jadwal mengajar yang terdaftar</p>
+            <p class="text-xs font-bold text-slate-700 mt-1">Hubungi admin untuk menambahkan jadwal Anda.</p>
         </div>
     @else
-        {{-- Compact Weekly Timetable Grid --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {{-- Compact Weekly Timetable Grid (Neo-Brutalism) --}}
+        <div class="bg-white rounded-3xl shadow-xl border-2 border-black overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse min-w-[640px]">
-                    <thead class="bg-gray-50 border-b border-gray-100">
-                        <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                            <th class="px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center border-b border-r border-gray-200 w-20 sticky left-0 bg-gray-50 z-10">
-                                <i class="fas fa-clock mr-1 text-gray-400"></i>Jam
+                    <thead class="border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
+                        <tr>
+                            <th class="px-3 py-3.5 text-xs font-black uppercase tracking-wider text-center border-b-2 border-r-2 border-black w-24 sticky left-0 z-10 text-amber-400" style="background-color: #090d16 !important;">
+                                <i class="fas fa-clock mr-1 text-amber-400"></i> WAKTU
                             </th>
                             @foreach($activeDays as $day)
                                 @php
                                     $isToday = $day === strtolower(now()->format('l'));
-                                    $dayColors = [
-                                        'monday' => 'from-blue-500 to-blue-600',
-                                        'tuesday' => 'from-emerald-500 to-emerald-600',
-                                        'wednesday' => 'from-purple-500 to-purple-600',
-                                        'thursday' => 'from-amber-500 to-amber-600',
-                                        'friday' => 'from-rose-500 to-rose-600',
-                                        'saturday' => 'from-cyan-500 to-cyan-600',
-                                    ];
                                 @endphp
-                                <th class="px-2 py-3 text-center border-b border-r border-gray-200 last:border-r-0 {{ $isToday ? 'bg-emerald-50' : '' }}" style="min-width: 120px;">
+                                <th class="px-2 py-3.5 text-center border-b-2 border-r-2 border-black last:border-r-0 {{ $isToday ? 'bg-amber-400/20' : '' }}" style="min-width: 130px;">
                                     <div class="flex flex-col items-center gap-1">
                                         @if($isToday)
-                                            <span class="inline-flex items-center gap-1 text-xs bg-emerald-500 text-white px-2 py-0.5 rounded-full font-bold">
+                                            <span class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-lg font-black border border-black uppercase" style="background-color: #fbbf24 !important; color: #000000 !important;">
                                                 <i class="fas fa-circle text-[4px] animate-pulse"></i> HARI INI
                                             </span>
                                         @endif
-                                        <span class="text-sm font-bold {{ $isToday ? 'text-emerald-700' : 'text-gray-700' }}">{{ $dayLabels[$day] ?? $day }}</span>
+                                        <span class="text-sm font-black uppercase tracking-wider text-white">{{ $dayLabels[$day] ?? $day }}</span>
                                     </div>
                                 </th>
                             @endforeach
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y-2 divide-black/10">
                         @php $renderedOccupied = []; @endphp
                         @foreach($timeSlots as $slot)
                             @php
@@ -84,59 +76,55 @@
                                 $startFormatted = \Carbon\Carbon::parse($slot->start_time)->format('H:i');
                                 $endFormatted = \Carbon\Carbon::parse($slot->end_time)->format('H:i');
                             @endphp
-                            <tr class="hover:bg-gray-50/50 transition-colors">
+                            <tr class="hover:bg-amber-50/50 transition-colors">
                                 {{-- Time Column --}}
-                                <td class="px-2 py-3 border-r border-b border-gray-200 text-center sticky left-0 bg-white z-10 w-20">
+                                <td class="px-2 py-3 border-r-2 border-b-2 border-black text-center sticky left-0 bg-slate-50 z-10 w-24">
                                     <div class="flex flex-col items-center">
-                                        <span class="text-xs font-bold text-gray-700">{{ $startFormatted }}</span>
-                                        <span class="text-xs text-gray-400">{{ $endFormatted }}</span>
+                                        <span class="text-xs font-black text-black">{{ $startFormatted }}</span>
+                                        <span class="text-[11px] font-bold text-slate-700">{{ $endFormatted }}</span>
                                     </div>
                                 </td>
                                 {{-- Day Cells --}}
                                 @foreach($activeDays as $day)
                                     @php
-                                        // Skip if this cell is already occupied by a rowspan from above
                                         if (isset($renderedOccupied[$day][$order])) continue;
 
                                         $schedule = $timetable[$order][$day] ?? null;
                                         $isToday = $day === strtolower(now()->format('l'));
                                         $duration = $schedule->duration_slots ?? 1;
                                         
-                                        // Mark future slots as occupied for this day
                                         if ($duration > 1) {
                                             for ($i = 1; $i < $duration; $i++) {
                                                 $renderedOccupied[$day][$order + $i] = true;
                                             }
                                         }
-                                        
-                                        $colors = $schedule ? ($subjectColors[$schedule->subject_id] ?? ['bg' => 'bg-gray-100', 'border' => 'border-gray-300', 'text' => 'text-gray-800', 'sub' => 'text-gray-600']) : null;
                                     @endphp
-                                    <td class="px-1.5 py-1.5 border-r border-b border-gray-200 last:border-r-0 {{ $isToday ? 'bg-emerald-50/30' : '' }}" 
+                                    <td class="px-1.5 py-1.5 border-r-2 border-b-2 border-black/20 last:border-r-0 {{ $isToday ? 'bg-amber-50/40' : '' }}" 
                                         @if($duration > 1) rowspan="{{ $duration }}" @endif>
                                         @if($schedule)
-                                            <div class="rounded-xl p-3 {{ $colors['bg'] }} border-2 {{ $colors['border'] }} hover:shadow-lg transition-all duration-300 cursor-default h-full flex flex-col justify-center min-h-[60px]">
+                                            <div class="rounded-2xl p-3 bg-amber-100 border-2 border-black shadow-xs hover:shadow-md transition-all duration-200 cursor-default h-full flex flex-col justify-between min-h-[65px]">
                                                 <div class="mb-1">
-                                                    <p class="text-xs font-semibold uppercase tracking-wider {{ $colors['sub'] }} opacity-80 mb-0.5">
+                                                    <p class="text-[10px] font-black uppercase tracking-wider text-black bg-white px-2 py-0.5 rounded-lg border border-black inline-block mb-1">
                                                         {{ $schedule->classroom->class_name ?? '-' }}
                                                     </p>
-                                                    <p class="text-sm font-bold {{ $colors['text'] }} leading-tight" title="{{ $schedule->subject->subject_name ?? $schedule->subject->name ?? '-' }}">
+                                                    <p class="text-xs font-black text-black leading-tight uppercase" title="{{ $schedule->subject->subject_name ?? $schedule->subject->name ?? '-' }}">
                                                         {{ $schedule->subject->subject_name ?? $schedule->subject->name ?? '-' }}
                                                     </p>
                                                 </div>
-                                                <div class="flex items-center justify-between mt-auto">
+                                                <div class="flex items-center justify-between mt-1 text-[10px] font-bold text-black border-t border-black/10 pt-1">
                                                     @if($schedule->room)
-                                                        <span class="text-xs {{ $colors['sub'] }} font-medium bg-white px-1.5 py-0.5 rounded">
-                                                            <i class="fas fa-door-open mr-1"></i>{{ $schedule->room }}
+                                                        <span class="bg-white px-1.5 py-0.5 rounded border border-black font-bold">
+                                                            <i class="fas fa-door-open mr-1 text-emerald-700"></i>{{ $schedule->room }}
                                                         </span>
                                                     @endif
                                                     @if($duration > 1)
-                                                        <span class="text-xs font-bold {{ $colors['sub'] }} ml-auto">{{ $duration }} JP</span>
+                                                        <span class="font-black bg-amber-300 px-1.5 py-0.5 rounded border border-black ml-auto">{{ $duration }} JP</span>
                                                     @endif
                                                 </div>
                                             </div>
                                         @else
-                                            <div class="rounded-lg h-full flex items-center justify-center min-h-[60px] border border-transparent">
-                                                <div class="w-1 h-1 bg-gray-200 rounded-full"></div>
+                                            <div class="rounded-xl h-full flex items-center justify-center min-h-[60px] opacity-20">
+                                                <div class="w-2 h-2 bg-black rounded-full"></div>
                                             </div>
                                         @endif
                                     </td>
@@ -149,15 +137,16 @@
         </div>
 
         {{-- Subject Legend --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-                <i class="fas fa-palette mr-1"></i> Legenda Mata Pelajaran
+        <div class="bg-white rounded-3xl shadow-xl border-2 border-black p-5">
+            <h3 class="text-xs font-black text-black uppercase tracking-wider mb-3 flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-amber-400 border border-black flex items-center justify-center text-black text-xs font-black"><i class="fas fa-palette"></i></span>
+                Legenda Mata Pelajaran
             </h3>
             <div class="flex flex-wrap gap-2">
                 @php
                     $legendSubjects = collect();
                     foreach($timetable as $row) {
-                        foreach($row as $schedule) { // Fixed: $row is now [day => schedule]
+                        foreach($row as $schedule) {
                             if($schedule && $schedule->subject) {
                                 $legendSubjects[$schedule->subject_id] = $schedule->subject;
                             }
@@ -165,9 +154,8 @@
                     }
                 @endphp
                 @foreach($legendSubjects as $subjectId => $subject)
-                    @php $colors = $subjectColors[$subjectId] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-700']; @endphp
-                    <span class="inline-flex items-center gap-1.5 {{ $colors['bg'] }} {{ $colors['text'] }} px-2.5 py-1 rounded-lg text-[11px] font-medium">
-                        <span class="w-2 h-2 rounded-full {{ str_replace('bg-', 'bg-', str_replace('-100', '-400', $colors['bg'])) }}"></span>
+                    <span class="inline-flex items-center gap-1.5 bg-slate-100 text-black border-2 border-black px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wide shadow-xs">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 border border-black"></span>
                         {{ $subject->subject_name ?? $subject->name ?? '-' }}
                     </span>
                 @endforeach
