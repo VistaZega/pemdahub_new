@@ -102,7 +102,7 @@ if (!function_exists('balanceHtmlTags')) {
                         <span class="w-2 h-2 rounded-full bg-slate-950"></span> PERTEMUAN AKTIF
                     </a>
                     @else
-                    <form action="{{ route('guru.lms.meeting.toggle', $course->id) }}" method="POST" class="inline">
+                    <form action="{{ route('guru.lms.meeting.start', $course->id) }}" method="POST" class="inline">
                         @csrf
                         <button type="submit" class="bg-slate-800 border border-slate-700 text-emerald-400 hover:bg-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5">
                             <i class="fas fa-video"></i> Mulai Live Meeting
