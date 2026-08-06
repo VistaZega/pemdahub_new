@@ -37,6 +37,8 @@ class StoreTeacherRequest extends FormRequest
             'email' => 'required_if:create_account,1|nullable|email|unique:users,email',
             'password' => ['required_if:create_account,1', 'nullable', Password::defaults()],
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'additional_school_ids' => 'nullable|array',
+            'additional_school_ids.*' => 'exists:schools,id',
         ];
     }
 

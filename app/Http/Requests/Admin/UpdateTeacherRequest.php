@@ -36,6 +36,8 @@ class UpdateTeacherRequest extends FormRequest
             'children_count' => 'nullable|integer|min:0|max:10',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'remove_photo' => 'boolean',
+            'additional_school_ids' => 'nullable|array',
+            'additional_school_ids.*' => 'exists:schools,id',
         ];
     }
 

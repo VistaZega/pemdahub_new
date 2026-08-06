@@ -51,7 +51,7 @@
 
             <div class="space-y-5">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-school mr-1"></i> Sekolah</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-school mr-1"></i> Sekolah Utama</label>
                     @if(auth()->user()->isSuperAdmin())
                         <select name="school_id" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
                             <option value="">-- Pilih Sekolah --</option>
@@ -67,6 +67,22 @@
                     @endif
                     @error('school_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
+
+                @if(auth()->user()->isSuperAdmin())
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2" title="Guru akan bisa mengakses menu di unit-unit ini tanpa perlu akun ganda"><i class="fas fa-plus-circle mr-1 text-emerald-500"></i> Sekolah Tambahan (Lintas Unit)</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50 p-4 border border-gray-200 rounded-xl">
+                        @foreach($schools as $school)
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="additional_school_ids[]" value="{{ $school->id }}" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                                {{ in_array($school->id, old('additional_school_ids', $teacher->additionalSchools->pluck('id')->toArray())) ? 'checked' : '' }}>
+                                <span class="ml-2 text-sm text-gray-700">{{ $school->name }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Centang sekolah tambahan jika guru ini juga ditugaskan mengajar di unit lain.</p>
+                </div>
+                @endif
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>

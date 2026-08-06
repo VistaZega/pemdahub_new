@@ -174,7 +174,7 @@ class TeacherController extends Controller
                 ]);
 
                 // Create Teacher
-                Teacher::create([
+                $teacher = Teacher::create([
                     'employee_id' => $employee->id,
                     'user_id' => $userId,
                     'school_id' => $validated['school_id'],
@@ -192,6 +192,10 @@ class TeacherController extends Controller
                     'position' => null,
                     'is_active' => $request->has('is_active') ? 1 : 0,
                 ]);
+
+                if ($request->has('additional_school_ids')) {
+                    $teacher->additionalSchools()->sync($request->additional_school_ids);
+                }
 
                 return redirect()->route('admin.teachers.index')
                     ->with('success', 'Data guru berhasil ditambahkan.');
@@ -303,6 +307,13 @@ class TeacherController extends Controller
                     'photo' => $validated['photo'] ?? $teacher->photo,
                     'is_active' => $isActive,
                 ]);
+
+                // Sync additional schools
+                if ($request->has('additional_school_ids')) {
+                    $teacher->additionalSchools()->sync($request->additional_school_ids);
+                } else {
+                    $teacher->additionalSchools()->sync([]);
+                }
 
                 // Update user if exists
                 if ($teacher->user) {
