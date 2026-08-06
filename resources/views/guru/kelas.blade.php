@@ -3,19 +3,22 @@
 
 @section('content')
 <div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <span class="w-9 h-9 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-users text-white text-sm"></i>
-                </span>
-                Kelas Saya
-            </h1>
-            <p class="text-gray-500 text-sm mt-1 ml-11">Daftar kelas yang Anda ampu</p>
+    {{-- Header Banner (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #312e81 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex items-center justify-between">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
+                        <i class="fas fa-users text-black"></i>
+                    </div>
+                    Kelas Saya
+                </h1>
+                <p class="text-xs md:text-sm font-bold text-indigo-200 mt-1" style="color: #c7d2fe !important;">Daftar seluruh kelas yang Anda ampu semester ini</p>
+            </div>
+            @if($activeYear)
+                <span class="bg-amber-400 text-black border-2 border-black px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider shadow-sm">{{ $activeYear->year }}</span>
+            @endif
         </div>
-        @if($activeYear)
-            <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-xl text-sm font-semibold">{{ $activeYear->year }}</span>
-        @endif
     </div>
 
     @if($classrooms->count() > 0)

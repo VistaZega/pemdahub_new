@@ -3,34 +3,39 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-            <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-clipboard-user text-teal-600"></i> Absensi Saya
-            </h1>
-            <p class="text-sm text-gray-500 mt-0.5">
-                Rekapitulasi kehadiran mengajar dan tugas khusus
-            </p>
+    {{-- Header Banner (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #0f766e 50%, #115e59 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
+                        <i class="fas fa-clipboard-user text-black"></i>
+                    </div>
+                    Absensi Saya
+                </h1>
+                <p class="text-xs md:text-sm font-bold text-teal-200 mt-1" style="color: #99f6e4 !important;">
+                    Rekapitulasi kehadiran mengajar dan tugas khusus
+                </p>
+            </div>
+            
+            {{-- Filter Bulan/Tahun --}}
+            <form method="GET" action="{{ route('guru.absensi.saya') }}" class="flex items-center gap-2">
+                <select name="month" onchange="this.form.submit()" class="text-xs font-black border-2 border-black bg-white rounded-2xl px-4 py-2.5 shadow-sm text-black outline-none">
+                    @for($m = 1; $m <= 12; $m++)
+                        <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::create(null, $m)->translatedFormat('F') }}
+                        </option>
+                    @endfor
+                </select>
+                <select name="year" onchange="this.form.submit()" class="text-xs font-black border-2 border-black bg-white rounded-2xl px-4 py-2.5 shadow-sm text-black outline-none">
+                    @for($y = now()->year; $y >= now()->year - 2; $y--)
+                        <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>
+                            {{ $y }}
+                        </option>
+                    @endfor
+                </select>
+            </form>
         </div>
-        
-        <!-- Filter Bulan/Tahun -->
-        <form method="GET" action="{{ route('guru.absensi.saya') }}" class="flex items-center gap-2">
-            <select name="month" onchange="this.form.submit()" class="text-sm border border-gray-200 bg-white rounded-xl px-3 py-2 shadow-sm focus:ring-2 focus:ring-teal-300 focus:border-teal-400 transition">
-                @for($m = 1; $m <= 12; $m++)
-                    <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>
-                        {{ \Carbon\Carbon::create(null, $m)->translatedFormat('F') }}
-                    </option>
-                @endfor
-            </select>
-            <select name="year" onchange="this.form.submit()" class="text-sm border border-gray-200 bg-white rounded-xl px-3 py-2 shadow-sm focus:ring-2 focus:ring-teal-300 focus:border-teal-400 transition">
-                @for($y = now()->year; $y >= now()->year - 2; $y--)
-                    <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>
-                        {{ $y }}
-                    </option>
-                @endfor
-            </select>
-        </form>
     </div>
 
     <!-- Stats Grid -->

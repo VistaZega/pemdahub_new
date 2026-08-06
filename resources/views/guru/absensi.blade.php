@@ -3,30 +3,35 @@
 
 @section('content')
 <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-            <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-clipboard-check text-purple-500"></i> Absensi Siswa
-            </h1>
-            <p class="text-sm text-gray-500 mt-0.5">
-                Rekap kehadiran siswa
-                @if($activeYear) · {{ $activeYear->year }} @endif
-            </p>
-        </div>
-        <div class="flex items-center gap-2">
-            <a href="{{ route('guru.absensi.input') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl text-sm font-semibold shadow-md transition">
-                <i class="fas fa-plus-circle"></i> Input Absensi
-            </a>
-            <form method="GET" class="flex items-center gap-2">
-            <select name="classroom_id" onchange="this.form.submit()" class="text-sm border border-gray-200 bg-white rounded-xl px-3 py-2 shadow-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 transition">
-                <option value="">-- Pilih Kelas --</option>
-                @foreach($classrooms as $cr)
-                    <option value="{{ $cr->id }}" {{ $selectedClassroomId == $cr->id ? 'selected' : '' }}>
-                        {{ $cr->class_name }}
-                    </option>
-                @endforeach
-            </select>
-            </form>
+    {{-- Header Banner (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #311b92 50%, #4a148c 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
+                        <i class="fas fa-clipboard-check text-black"></i>
+                    </div>
+                    Absensi Siswa
+                </h1>
+                <p class="text-xs md:text-sm font-bold text-purple-200 mt-1" style="color: #e9d5ff !important;">
+                    Rekapitulasi dan catatan kehadiran siswa @if($activeYear) · {{ $activeYear->year }} @endif
+                </p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="{{ route('guru.absensi.input') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-2xl text-xs font-black uppercase tracking-wider shadow-md transition">
+                    <i class="fas fa-plus-circle text-black"></i> Input Absensi
+                </a>
+                <form method="GET" class="flex items-center gap-2">
+                    <select name="classroom_id" onchange="this.form.submit()" class="text-xs font-black border-2 border-black bg-white rounded-2xl px-4 py-2.5 shadow-sm text-black outline-none focus:ring-0">
+                        <option value="">-- Pilih Kelas --</option>
+                        @foreach($classrooms as $cr)
+                            <option value="{{ $cr->id }}" {{ $selectedClassroomId == $cr->id ? 'selected' : '' }}>
+                                {{ $cr->class_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+            </div>
         </div>
     </div>
 

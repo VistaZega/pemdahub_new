@@ -3,20 +3,26 @@
 
 @section('content')
 <div x-data="profileCropper" class="space-y-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-            <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-user text-emerald-500"></i> Profil Saya
-            </h1>
-            <p class="text-sm text-gray-500 mt-0.5">Informasi data pribadi dan kepegawaian</p>
-        </div>
-        <div class="flex gap-2">
-            <button @click="isEditModalOpen = true" class="bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100 px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition-all duration-300 flex items-center gap-2">
-                <i class="fas fa-edit"></i> Edit Biodata
-            </button>
-            <a href="{{ route('profile.settings') }}" class="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition-all duration-300 flex items-center gap-2">
-                <i class="fas fa-shield-alt"></i> Keamanan Akun
-            </a>
+    {{-- Header Banner (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #047857 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
+                        <i class="fas fa-user text-black"></i>
+                    </div>
+                    Profil Saya
+                </h1>
+                <p class="text-xs md:text-sm font-bold text-emerald-200 mt-1" style="color: #a7f3d0 !important;">Informasi lengkap data pribadi dan kepegawaian Anda</p>
+            </div>
+            <div class="flex gap-2">
+                <button @click="isEditModalOpen = true" class="bg-amber-400 hover:bg-amber-300 text-black border-2 border-black px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center gap-2">
+                    <i class="fas fa-edit text-black"></i> Edit Biodata
+                </button>
+                <a href="{{ route('profile.settings') }}" class="bg-white hover:bg-slate-100 text-black border-2 border-black px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center gap-2">
+                    <i class="fas fa-shield-alt text-black"></i> Keamanan Akun
+                </a>
+            </div>
         </div>
     </div>
 
