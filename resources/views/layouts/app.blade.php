@@ -535,12 +535,56 @@
             });
         }
 
-        // Run initialization
+        // Auto-run initialization
         initMathToolbars();
 
         // Re-run when DOM changes (e.g. Alpine.js modal opening or dynamic questions)
         const observer = new MutationObserver(initMathToolbars);
         observer.observe(document.body, { childList: true, subtree: true });
+
+        // ═════════════════════════════════════════════════════════════════
+        // FORM UPLOAD GUARD & SESSION KEEPALIVE (Mencegah Error 419)
+        // ═════════════════════════════════════════════════════════════════
+        
+        // 1. Session Keep-Alive: Ping server setiap 15 menit agar sesi tidak habis saat mengetik panjang
+        setInterval(() => {
+            fetch(window.location.href, { method: 'HEAD', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .catch(() => {});
+        }, 15 * 60 * 1000);
+
+        // 2. Max File Upload Guard: Cegah submit jika total ukuran file melampaui limit server (~50MB)
+        const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50 MB
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (!form) return;
+
+            const fileInputs = form.querySelectorAll('input[type="file"]');
+            let totalBytes = 0;
+            let oversizedFiles = [];
+
+            fileInputs.forEach(input => {
+                if (input.files) {
+                    for (let i = 0; i < input.files.length; i++) {
+                        const file = input.files[i];
+                        totalBytes += file.size;
+                        if (file.size > MAX_UPLOAD_SIZE) {
+                            oversizedFiles.push(file.name + ' (' + (file.size / (1024 * 1024)).toFixed(1) + ' MB)');
+                        }
+                    }
+                }
+            });
+
+            if (totalBytes > MAX_UPLOAD_SIZE || oversizedFiles.length > 0) {
+                e.preventDefault();
+                alert(
+                    '⚠️ PERINGATAN UKURAN FILE TERLALU BESAR!\n\n' +
+                    'Total file yang diunggah melampaui batas aman (Maksimum 50 MB).\n' +
+                    (oversizedFiles.length > 0 ? 'File bermasalah:\n- ' + oversizedFiles.join('\n- ') + '\n\n' : '') +
+                    'Mengunggah file terlalu besar dapat menyebabkan error 419 (Sesi Berakhir).\n' +
+                    'Silakan kecilkan ukuran file, atau gunakan link Google Drive / Youtube.'
+                );
+            }
+        });
     });
     </script>
     @stack('scripts')
