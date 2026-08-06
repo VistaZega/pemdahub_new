@@ -512,16 +512,18 @@
                     </span>
                     <span class="text-xs font-black text-black bg-amber-300 px-2.5 py-0.5 rounded-lg border border-black">{{ $totalStudents }} siswa terdaftar</span>
                 </div>
-                @foreach($course->assignments as $asgn)
-                @php $subCount = $asgn->submissions_count ?? 0; $subPercent = $totalStudents > 0 ? round(($subCount / $totalStudents) * 100) : 0; @endphp
-                <div class="flex items-center gap-3 py-2 border-b border-slate-200 last:border-0">
-                    <span class="text-xs font-black text-black w-40 truncate">{{ Str::limit($asgn->title, 25) }}</span>
-                    <div class="flex-1 bg-slate-200 rounded-full h-3 overflow-hidden border border-black">
-                        <div class="h-full rounded-full transition-all duration-1000 border-r border-black" style="background-color: #0284c7 !important; width: {{ $subPercent }}%"></div>
+                <div class="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    @foreach($course->assignments as $asgn)
+                    @php $subCount = $asgn->submissions_count ?? 0; $subPercent = $totalStudents > 0 ? round(($subCount / $totalStudents) * 100) : 0; @endphp
+                    <div class="flex items-center gap-3 py-2 border-b border-slate-200 last:border-0">
+                        <span class="text-xs font-black text-black w-48 truncate" title="{{ $asgn->title }}">{{ Str::limit($asgn->title, 40) }}</span>
+                        <div class="flex-1 bg-slate-200 rounded-full h-3 overflow-hidden border border-black">
+                            <div class="h-full rounded-full transition-all duration-1000 border-r border-black" style="background-color: #0284c7 !important; width: {{ $subPercent }}%"></div>
+                        </div>
+                        <span class="text-xs font-black text-black w-24 text-right">{{ $subCount }}/{{ $totalStudents }} Siswa</span>
                     </div>
-                    <span class="text-xs font-black text-black w-24 text-right">{{ $subCount }}/{{ $totalStudents }} Siswa</span>
+                    @endforeach
                 </div>
-                @endforeach
             </div>
             @endif
 
@@ -547,7 +549,7 @@
                                 @endif
                             </div>
                             @if($assignment->description)
-                                <p class="text-xs font-bold text-black mt-1 mb-3 line-clamp-2">{{ $assignment->description }}</p>
+                                <p class="text-xs font-bold text-black mt-1 mb-3 line-clamp-2">{{ strip_tags(html_entity_decode($assignment->description)) }}</p>
                             @endif
                             <div class="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider">
                                 @if($assignment->deadline)
@@ -619,7 +621,7 @@
                                 </span>
                             </div>
                             @if($quiz->description)
-                                <p class="text-xs font-bold text-black mt-1 mb-3 line-clamp-2">{{ $quiz->description }}</p>
+                                <p class="text-xs font-bold text-black mt-1 mb-3 line-clamp-2">{{ strip_tags(html_entity_decode($quiz->description)) }}</p>
                             @endif
                             <div class="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider">
                                 @if($quiz->time_limit)
