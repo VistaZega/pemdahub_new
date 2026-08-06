@@ -7,24 +7,19 @@ $kernel->bootstrap();
 header('Content-Type: application/json');
 
 try {
-    $assignments = \App\Models\TeachingAssignment::with(['subject', 'classroom.school'])->where('teacher_id', 209)->get();
-    
-    $results = [];
-    foreach($assignments as $a) {
-        $results[] = [
-            'mapel' => $a->subject ? $a->subject->name : 'N/A',
-            'kelas' => $a->classroom ? $a->classroom->name : 'N/A',
-            'sekolah' => ($a->classroom && $a->classroom->school) ? $a->classroom->school->name : 'N/A',
-            'jam_per_minggu' => $a->hours_per_week,
-            'academic_year_id' => $a->academic_year_id,
-            'semester_id' => $a->semester_id,
-            'hari' => $a->day_of_week,
-            'jam' => $a->start_time . ' - ' . $a->end_time
-        ];
+    $materials = DB::select('SELECT m.id, m.title, m.content FROM lms_materials m JOIN lms_modules mo ON m.module_id = mo.id WHERE mo.course_id = 221');
+    $broken = [];
+    foreach ($materials as $m) {
+        $c = $m->content;
+        $divs = substr_count($c, '<div');
+        $close = substr_count($c, '</div');
+        if ($divs != $close) {
+            $broken[] = ['id' => $m->id, 'title' => $m->title, 'open' => $divs, 'close' => $close];
+        }
     }
 
     echo json_encode([
-        'assignments' => $results
+        'broken_divs' => $broken
     ], JSON_PRETTY_PRINT);
 } catch (\Throwable $e) {
     echo json_encode([
