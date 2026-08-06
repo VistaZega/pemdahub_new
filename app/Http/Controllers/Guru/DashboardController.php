@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
+    use HasMultiSchool;
+
     /**
      * Get the authenticated teacher record.
      */
@@ -116,11 +118,20 @@ class DashboardController extends Controller
         $activeYear = $this->getActiveYear();
         $activeSemester = $this->getActiveSemester();
 
-        // Kelas yang diampu
+        // Multi-school support: data untuk school switcher
+        $effectiveSchoolId = $this->getEffectiveSchoolId($teacher);
+        $availableSchools = $this->getAvailableSchools();
+        $activeSchoolName = $this->getActiveSchoolName();
+        $isMultiSchool = $this->hasMultiSchoolAccess();
+
+        // Kelas yang diampu (filter by active school jika multi-school)
         $classrooms = $this->getTeacherClassrooms($teacher, $activeYear);
+        if ($isMultiSchool && $effectiveSchoolId) {
+            $classrooms = $classrooms->filter(fn($c) => $c->school_id == $effectiveSchoolId)->values();
+        }
         $totalStudents = $classrooms->sum('students_count');
 
-        // Jadwal hari ini
+        // Jadwal hari ini (filter by active school jika multi-school)
         $todaySchedules = collect();
         $dayMap = [
             'Monday' => 'monday', 'Tuesday' => 'tuesday', 'Wednesday' => 'wednesday',
@@ -130,6 +141,7 @@ class DashboardController extends Controller
         if ($today) {
             $todaySchedules = Schedule::where('teacher_id', $teacher->id)
                 ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                ->when($isMultiSchool && $effectiveSchoolId, fn($q) => $q->where('school_id', $effectiveSchoolId))
                 ->where('day_of_week', $today)
                 ->with(['subject', 'classroom', 'timeSlot'])
                 ->orderBy('time_slot_id')
@@ -205,6 +217,7 @@ class DashboardController extends Controller
         // Total jadwal per minggu
         $weeklyScheduleCount = Schedule::where('teacher_id', $teacher->id)
             ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->when($isMultiSchool && $effectiveSchoolId, fn($q) => $q->where('school_id', $effectiveSchoolId))
             ->count();
 
         // Reputation & Elite standing
@@ -228,7 +241,8 @@ class DashboardController extends Controller
             'totalStudents', 'todaySchedules', 'groupedTodaySchedules', 'gradesCount',
             'homeroomClassroom', 'homeroomBillingStats', 'weeklyScheduleCount',
             'currentTime', 'currentSchedule', 'nextSchedule',
-            'reputation', 'reputationLogs', 'rank', 'foundationLetters'
+            'reputation', 'reputationLogs', 'rank', 'foundationLetters',
+            'availableSchools', 'activeSchoolName', 'isMultiSchool', 'effectiveSchoolId'
         ));
     }
 
@@ -281,7 +295,7 @@ class DashboardController extends Controller
         }
 
         if ($minOrder !== null && $maxOrder !== null) {
-            $timeSlots = \App\Models\TimeSlot::where('school_id', $teacher->school_id)
+            $timeSlots = \App\Models\TimeSlot::where('school_id', $this->getEffectiveSchoolId($teacher))
                 ->whereBetween('slot_order', [$minOrder, $maxOrder])
                 ->orderBy('slot_order')
                 ->get()

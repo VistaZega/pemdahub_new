@@ -911,6 +911,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/change-password', [AuthController::class, 'showChangePasswordForm'])->name('password.change');
     Route::post('/change-password', [AuthController::class, 'changePassword'])->name('password.change.update');
     Route::post('/switch-role', [AuthController::class, 'switchRole'])->name('switch-role');
+    Route::post('/switch-school', [AuthController::class, 'switchSchool'])->name('switch-school');
 
     // Profile Settings
     Route::get('/profile/settings', [App\Http\Controllers\ProfileSettingsController::class, 'edit'])->name('profile.settings');

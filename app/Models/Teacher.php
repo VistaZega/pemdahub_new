@@ -199,5 +199,53 @@ class Teacher extends Model
     {
         return $this->hasMany(PklMonitoring::class, 'teacher_id');
     }
+
+    /**
+     * Relationship: Sekolah tambahan tempat guru mengajar (Multi-School)
+     * Melalui tabel pivot teacher_schools
+     */
+    public function additionalSchools(): BelongsToMany
+    {
+        return $this->belongsToMany(School::class, 'teacher_schools')
+                    ->withPivot('is_primary')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Helper: Dapatkan semua sekolah tempat guru mengajar (sekolah utama + tambahan)
+     */
+    public function allSchools()
+    {
+        $schools = collect();
+
+        // Sekolah utama dari kolom school_id
+        if ($this->school) {
+            $schools->push($this->school);
+        }
+
+        // Sekolah tambahan dari pivot
+        $additional = $this->additionalSchools()->get();
+        foreach ($additional as $addSchool) {
+            if (!$schools->contains('id', $addSchool->id)) {
+                $schools->push($addSchool);
+            }
+        }
+
+        return $schools;
+    }
+
+    /**
+     * Helper: Cek apakah guru boleh mengakses sekolah tertentu
+     */
+    public function canAccessSchool($schoolId): bool
+    {
+        // Sekolah utama
+        if ($this->school_id == $schoolId) {
+            return true;
+        }
+
+        // Sekolah tambahan
+        return $this->additionalSchools()->where('schools.id', $schoolId)->exists();
+    }
 }
 

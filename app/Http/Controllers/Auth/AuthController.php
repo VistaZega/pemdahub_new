@@ -367,4 +367,35 @@ class AuthController extends Controller
             ]);
         }
     }
+
+    /**
+     * Switch active school context for multi-school teachers
+     */
+    public function switchSchool(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+        $targetSchoolId = $request->input('school_id');
+
+        if (!$targetSchoolId) {
+            return back()->with('error', 'Sekolah tujuan tidak valid.');
+        }
+
+        // Validasi akses ke sekolah tujuan
+        if (!$user->canAccessSchool($targetSchoolId)) {
+            return back()->with('error', 'Anda tidak memiliki akses ke unit sekolah tersebut.');
+        }
+
+        $school = \App\Models\School::find($targetSchoolId);
+        if (!$school) {
+            return back()->with('error', 'Unit sekolah tidak ditemukan.');
+        }
+
+        // Set active school di session
+        session(['active_school_id' => (int) $targetSchoolId]);
+
+        $this->logActivity($user, 'switch_school', "Beralih ke unit sekolah: {$school->name}");
+
+        return redirect()->route('guru.dashboard')
+            ->with('success', "Berhasil beralih ke unit {$school->name}");
+    }
 }

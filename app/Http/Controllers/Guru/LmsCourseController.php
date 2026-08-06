@@ -29,6 +29,7 @@ use Illuminate\Support\Str;
 
 class LmsCourseController extends Controller
 {
+    use HasMultiSchool;
     private function getTeacher(): ?Teacher
     {
         $user = Auth::user();
@@ -174,7 +175,7 @@ class LmsCourseController extends Controller
         $firstClassroomId = $request->classroom_ids[0] ?? null;
 
         $course = LmsCourse::create([
-            'school_id' => $teacher->school_id,
+            'school_id' => $this->getEffectiveSchoolId($teacher),
             'teacher_id' => $teacher->id,
             'subject_id' => $request->subject_id,
             'semester_id' => $request->semester_id,
@@ -194,7 +195,7 @@ class LmsCourseController extends Controller
                 $lmsClass = LmsClass::create([
                     'course_id' => $course->id,
                     'classroom_id' => $classroomId,
-                    'school_id' => $teacher->school_id,
+                    'school_id' => $this->getEffectiveSchoolId($teacher),
                     'status' => 'active',
                 ]);
 
@@ -353,7 +354,7 @@ class LmsCourseController extends Controller
             $lmsClass = LmsClass::create([
                 'course_id' => $course->id,
                 'classroom_id' => $classroomId,
-                'school_id' => $teacher->school_id,
+                'school_id' => $this->getEffectiveSchoolId($teacher),
                 'status' => 'active',
             ]);
 
@@ -802,7 +803,7 @@ class LmsCourseController extends Controller
         $teacher = $this->getTeacher();
 
         // Allow download if teacher belongs to the same school as the course
-        if (!$teacher || !$course || $teacher->school_id !== $course->school_id) {
+        if (!$teacher || !$course || !Auth::user()->canAccessSchool($course->school_id)) {
             abort(403, 'Anda tidak memiliki akses untuk mengunduh file ini.');
         }
 
@@ -819,7 +820,7 @@ class LmsCourseController extends Controller
         $teacher = $this->getTeacher();
 
         // Allow view if teacher belongs to the same school as the course
-        if (!$teacher || !$course || $teacher->school_id !== $course->school_id) {
+        if (!$teacher || !$course || !Auth::user()->canAccessSchool($course->school_id)) {
             abort(403, 'Anda tidak memiliki akses untuk melihat file ini.');
         }
 
@@ -861,7 +862,7 @@ class LmsCourseController extends Controller
 
         // Get classrooms available for enrollment (same school, not yet linked)
         $linkedClassroomIds = $course->lmsClasses->pluck('classroom_id')->toArray();
-        $availableClassrooms = \App\Models\Classroom::where('school_id', $teacher->school_id)
+        $availableClassrooms = \App\Models\Classroom::where('school_id', $this->getEffectiveSchoolId($teacher))
             ->whereNotIn('id', $linkedClassroomIds)
             ->orderBy('class_name')
             ->get();
@@ -890,7 +891,7 @@ class LmsCourseController extends Controller
             'course_id' => $course->id,
             'classroom_id' => $classroomId,
         ], [
-            'school_id' => $teacher->school_id,
+            'school_id' => $this->getEffectiveSchoolId($teacher),
             'status' => 'active',
         ]);
 

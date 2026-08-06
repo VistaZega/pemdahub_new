@@ -490,4 +490,78 @@ class User extends Authenticatable
     {
         return $this->avatar_url;
     }
+
+    // ═══════════════ MULTI-SCHOOL SUPPORT ═══════════════
+
+    /**
+     * Mendapatkan school_id aktif (dari session atau fallback ke school_id utama)
+     */
+    public function getActiveSchoolId(): ?int
+    {
+        $sessionSchoolId = session('active_school_id');
+
+        if ($sessionSchoolId && $this->canAccessSchool($sessionSchoolId)) {
+            return (int) $sessionSchoolId;
+        }
+
+        return $this->school_id;
+    }
+
+    /**
+     * Mendapatkan daftar semua sekolah yang bisa diakses user ini
+     */
+    public function getAvailableSchools()
+    {
+        // Ketua Yayasan / SuperAdmin → akses semua sekolah
+        if ($this->isKetuaYayasan() || $this->isSuperAdmin()) {
+            return School::schoolsOnly()->where('is_active', true)->orderBy('name')->get();
+        }
+
+        // Guru biasa → sekolah utama + sekolah tambahan dari pivot
+        if ($this->teacher) {
+            return $this->teacher->allSchools();
+        }
+
+        // Fallback → hanya sekolah sendiri
+        if ($this->school_id) {
+            return School::where('id', $this->school_id)->get();
+        }
+
+        return collect();
+    }
+
+    /**
+     * Cek apakah user ini bisa mengakses sekolah tertentu
+     */
+    public function canAccessSchool($schoolId): bool
+    {
+        // Ketua Yayasan / SuperAdmin → akses semua
+        if ($this->isKetuaYayasan() || $this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Cek dari teacher
+        if ($this->teacher) {
+            return $this->teacher->canAccessSchool($schoolId);
+        }
+
+        // Fallback: hanya sekolah sendiri
+        return $this->school_id == $schoolId;
+    }
+
+    /**
+     * Cek apakah user memiliki akses ke lebih dari satu sekolah
+     */
+    public function hasMultiSchoolAccess(): bool
+    {
+        if ($this->isKetuaYayasan() || $this->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($this->teacher) {
+            return $this->teacher->allSchools()->count() > 1;
+        }
+
+        return false;
+    }
 }

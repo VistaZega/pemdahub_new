@@ -260,6 +260,51 @@
                             @endif
                         </form>
                     @endif
+
+                    {{-- School Switcher untuk guru yang mengajar di beberapa unit --}}
+                    @if(auth()->user()->hasMultiSchoolAccess() && in_array($currentRole, ['guru', 'kepala_sekolah', 'ketua_yayasan']))
+                        @php
+                            $availableSchools = auth()->user()->getAvailableSchools();
+                            $activeSchoolId = session('active_school_id', auth()->user()->school_id);
+                            $activeSchool = $availableSchools->firstWhere('id', $activeSchoolId) ?? $availableSchools->first();
+                        @endphp
+                        @if($availableSchools->count() > 1)
+                            <div class="relative" x-data="{ openSchool: false }">
+                                <button @click="openSchool = !openSchool" @click.away="openSchool = false"
+                                    class="hidden sm:flex items-center gap-1.5 bg-white/15 hover:bg-white/25 px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-white transition border border-white/20 shadow-sm">
+                                    <i class="fas fa-school text-amber-300"></i>
+                                    <span class="max-w-[120px] truncate">{{ $activeSchool->name ?? 'Pilih Unit' }}</span>
+                                    <i class="fas fa-chevron-down text-[9px] ml-0.5 transition-transform" :class="{ 'rotate-180': openSchool }"></i>
+                                </button>
+                                <div x-show="openSchool" x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                                     class="absolute right-0 mt-2 w-64 bg-slate-800 border border-white/20 rounded-xl shadow-xl z-50 overflow-hidden"
+                                     style="display: none;">
+                                    <div class="px-3 py-2 border-b border-white/10">
+                                        <p class="text-[10px] uppercase tracking-wider text-white/50 font-bold">Beralih Unit Sekolah</p>
+                                    </div>
+                                    @foreach($availableSchools as $school)
+                                        <form action="{{ route('switch-school') }}" method="POST" class="m-0 p-0">
+                                            @csrf
+                                            <input type="hidden" name="school_id" value="{{ $school->id }}">
+                                            <button type="submit"
+                                                class="w-full text-left px-3 py-2.5 text-xs hover:bg-white/10 transition flex items-center gap-2.5 {{ $school->id == $activeSchoolId ? 'bg-indigo-600/30 text-white font-bold' : 'text-white/80' }}">
+                                                @if($school->id == $activeSchoolId)
+                                                    <i class="fas fa-check-circle text-emerald-400 text-sm"></i>
+                                                @else
+                                                    <i class="far fa-circle text-white/30 text-sm"></i>
+                                                @endif
+                                                <span class="truncate">{{ $school->name }}</span>
+                                            </button>
+                                        </form>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @endif
+
                     <div class="hidden md:flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg text-sm">
                         <img src="{{ auth()->user()->photo_url }}" class="w-6 h-6 rounded-full object-cover border border-white/20 flex-shrink-0" alt="Avatar">
                         <span class="font-medium">{{ auth()->user()->name ?? 'User' }}</span>
