@@ -631,6 +631,23 @@ Route::get('/', function () {
     $totalMonitorings = \App\Models\PklMonitoring::count();
     $totalDudi = \App\Models\Dudi::count();
 
+    // === TOP HALL OF FAME PEMBDA ELITE FOR HOMEPAGE ===
+    $topStudentsElite = \App\Models\Reputation::with(['user.student.classroom', 'user.badges'])
+        ->whereHas('user', function($q) {
+            $q->where('role', 'siswa');
+        })
+        ->orderBy('total_points', 'desc')
+        ->take(4)
+        ->get();
+
+    $topTeachersElite = \App\Models\Reputation::with(['user.teacher.school', 'user.badges'])
+        ->whereHas('user', function($q) {
+            $q->where('role', 'guru');
+        })
+        ->orderBy('total_points', 'desc')
+        ->take(4)
+        ->get();
+
     // Pastikan halaman beranda tidak dicache oleh server (LiteSpeed) maupun browser
     // agar status tombol "Login" vs "Dashboard" selalu ter-update secara real-time.
     return response(view('index', compact(
@@ -640,7 +657,8 @@ Route::get('/', function () {
         'achievements', 'totalAchievements',
         'schools', 'activeWave', 'totalApplicants',
         'recentAlumnis',
-        'pklShowcase', 'totalApprovedLogs', 'totalMonitorings', 'totalDudi'
+        'pklShowcase', 'totalApprovedLogs', 'totalMonitorings', 'totalDudi',
+        'topStudentsElite', 'topTeachersElite'
     )))
         ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
         ->header('Pragma', 'no-cache')

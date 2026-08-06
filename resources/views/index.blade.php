@@ -805,6 +805,7 @@
     @include('landing.partials.unit-sekolah')
     @include('landing.partials.program-keahlian')
     @include('landing.partials.prestasi')
+    @include('landing.partials.hall-of-fame')
     @include('landing.partials.pkl-showcase')
     @include('landing.partials.ekosistem-digital')
     @include('landing.partials.pembdahub-features')
