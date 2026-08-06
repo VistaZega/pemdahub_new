@@ -4,7 +4,7 @@
 <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto space-y-6">
 
     {{-- Header Banner (Vibrant Neo-Brutalism) --}}
-    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 rounded-[2rem] shadow-2xl p-8 border-2 border-black">
+    <div class="relative overflow-hidden rounded-[2rem] shadow-2xl p-8 border-2 border-black" style="background: linear-gradient(135deg, #312e81 0%, #3730a3 50%, #4c1d95 100%) !important; color: #ffffff !important;">
         <!-- Background Ornaments -->
         <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-indigo-500/20 blur-3xl"></div>
         <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-violet-500/20 blur-3xl"></div>
@@ -12,20 +12,20 @@
         <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
                 <div class="flex items-center gap-3 mb-2">
-                    <span class="bg-amber-400 text-black text-xs font-black px-3 py-1 rounded-xl border border-black uppercase tracking-wider">Tahun Ajaran {{ $academicYear->year }}</span>
+                    <span class="text-xs font-black px-3 py-1 rounded-xl border border-black uppercase tracking-wider" style="background-color: #fbbf24 !important; color: #000000 !important;">Tahun Ajaran {{ $academicYear->year }}</span>
                     @if($academicYear->is_active)
-                    <span class="bg-emerald-400 text-black text-xs font-black px-3 py-1 rounded-xl border border-black uppercase tracking-wider flex items-center gap-1">
+                    <span class="text-xs font-black px-3 py-1 rounded-xl border border-black uppercase tracking-wider flex items-center gap-1" style="background-color: #34d399 !important; color: #000000 !important;">
                         <span class="w-2 h-2 rounded-full bg-black animate-pulse"></span> AKtif
                     </span>
                     @endif
                 </div>
-                <h1 class="text-2xl md:text-3xl font-black text-white flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-xl">
-                        <i class="fas fa-calendar-alt text-2xl"></i>
+                <h1 class="text-2xl md:text-3xl font-black flex items-center gap-3" style="color: #ffffff !important;">
+                    <div class="w-12 h-12 rounded-2xl border border-white/20 flex items-center justify-center shadow-xl" style="background-color: rgba(255, 255, 255, 0.15) !important;">
+                        <i class="fas fa-calendar-alt text-2xl" style="color: #fcd34d !important;"></i>
                     </div>
                     Kalender Pendidikan {{ $school->name ?? 'Gabungan Unit Sekolah' }}
                 </h1>
-                <p class="text-indigo-100/90 mt-2 text-xs md:text-sm font-medium max-w-2xl">
+                <p class="mt-2 text-xs md:text-sm font-medium max-w-2xl" style="color: #e0e7ff !important;">
                     Kelola seluruh agenda kegiatan sekolah, jadwal ujian, dan kalender libur secara terstruktur dan terintegrasi dengan yayasan.
                 </p>
             </div>
