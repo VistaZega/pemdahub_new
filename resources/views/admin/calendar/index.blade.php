@@ -1,47 +1,64 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+<div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto space-y-6">
 
-    <!-- Page header -->
-    <div class="sm:flex sm:justify-between sm:items-center mb-8">
-        <!-- Left: Title -->
-        <div class="mb-4 sm:mb-0">
-            <h1 class="text-2xl md:text-3xl text-slate-800 font-bold">Kalender Pendidikan ({{ $school->name }}) 📅</h1>
-            <p class="text-sm text-slate-500 mt-1">Tahun Ajaran: {{ $academicYear->year }}</p>
-        </div>
-
-        <!-- Right: Actions -->
-        <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
-            <a href="{{ route('admin.calendar.print') }}" target="_blank" class="btn bg-white border-slate-200 hover:border-slate-300 text-slate-500 hover:text-slate-600">
-                <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 16 16">
-                    <path d="M14.3 2.3L11.7.3c-.4-.3-.9-.3-1.4-.3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3.7c0-.5-.2-1-.7-1.4zM11 2v3h3l-3-3zM3 14V2h6v4c0 .6.4 1 1 1h4v7H3z"/>
-                </svg>
-                <span class="hidden xs:block ml-2">Cetak PDF</span>
-            </a>
-            <button class="btn bg-indigo-500 hover:bg-indigo-600 text-white" onclick="document.getElementById('eventModal').classList.remove('hidden')">
-                <svg class="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
-                    <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
-                </svg>
-                <span class="hidden xs:block ml-2">Tambah Jadwal Sekolah</span>
-            </button>
+    {{-- Header Banner (Vibrant Neo-Brutalism) --}}
+    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 rounded-[2rem] shadow-2xl p-8 border-2 border-black">
+        <!-- Background Ornaments -->
+        <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-indigo-500/20 blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-violet-500/20 blur-3xl"></div>
+        
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-amber-400 text-black text-xs font-black px-3 py-1 rounded-xl border border-black uppercase tracking-wider">Tahun Ajaran {{ $academicYear->year }}</span>
+                    @if($academicYear->is_active)
+                    <span class="bg-emerald-400 text-black text-xs font-black px-3 py-1 rounded-xl border border-black uppercase tracking-wider flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-black animate-pulse"></span> AKtif
+                    </span>
+                    @endif
+                </div>
+                <h1 class="text-2xl md:text-3xl font-black text-white flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-xl">
+                        <i class="fas fa-calendar-alt text-2xl"></i>
+                    </div>
+                    Kalender Pendidikan {{ $school->name }}
+                </h1>
+                <p class="text-indigo-100/90 mt-2 text-xs md:text-sm font-medium max-w-2xl">
+                    Kelola seluruh agenda kegiatan sekolah, jadwal ujian, dan kalender libur secara terstruktur dan terintegrasi dengan yayasan.
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{{ route('admin.calendar.print') }}" target="_blank" class="inline-flex items-center gap-2 bg-white hover:bg-slate-100 text-black font-black px-5 py-3 rounded-2xl text-xs uppercase tracking-wider transition border-2 border-black shadow-md">
+                    <i class="fas fa-print text-indigo-600 text-sm"></i>
+                    <span>Cetak PDF</span>
+                </a>
+                <button type="button" onclick="openCreateModal()" class="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-black font-black px-5 py-3 rounded-2xl text-xs uppercase tracking-wider transition border-2 border-black shadow-md">
+                    <i class="fas fa-plus text-black"></i>
+                    <span>Tambah Jadwal</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Validations -->
+    {{-- Alert Validation Messages --}}
     @if (session('success'))
-        <div class="mb-4 px-4 py-3 rounded-sm text-sm bg-emerald-100 border border-emerald-200 text-emerald-600">
-            {{ session('success') }}
+        <div class="bg-emerald-100 border-2 border-black text-black px-5 py-3.5 rounded-2xl text-xs font-black shadow-sm flex items-center justify-between">
+            <span class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-600 text-base"></i> {{ session('success') }}</span>
+            <button onclick="this.parentElement.remove()" class="text-black hover:text-rose-600 font-bold">&times;</button>
         </div>
     @endif
     @if (session('error'))
-        <div class="mb-4 px-4 py-3 rounded-sm text-sm bg-rose-100 border border-rose-200 text-rose-600">
-            {{ session('error') }}
+        <div class="bg-rose-100 border-2 border-black text-black px-5 py-3.5 rounded-2xl text-xs font-black shadow-sm flex items-center justify-between">
+            <span class="flex items-center gap-2"><i class="fas fa-exclamation-triangle text-rose-600 text-base"></i> {{ session('error') }}</span>
+            <button onclick="this.parentElement.remove()" class="text-black hover:text-rose-600 font-bold">&times;</button>
         </div>
     @endif
     @if ($errors->any())
-        <div class="mb-4 px-4 py-3 rounded-sm text-sm bg-rose-100 border border-rose-200 text-rose-600">
-            <ul class="list-disc pl-5">
+        <div class="bg-rose-100 border-2 border-black text-black px-5 py-3.5 rounded-2xl text-xs font-black shadow-sm">
+            <div class="font-black text-rose-800 uppercase tracking-wider mb-1 flex items-center gap-1.5"><i class="fas fa-times-circle"></i> Terjadi Kesalahan Input:</div>
+            <ul class="list-disc pl-5 space-y-0.5">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -49,109 +66,126 @@
         </div>
     @endif
 
-    <!-- Calendar Container -->
-    <div class="bg-white p-5 shadow-sm rounded-sm border border-slate-200">
-        <div class="mb-4 flex flex-wrap gap-4 text-sm">
-            <span class="flex items-center"><span class="w-3 h-3 rounded-full mr-2" style="background-color: #8b5cf6;"></span> Monday Inspiration</span>
-            <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span> Libur Yayasan</span>
-            <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-orange-500 mr-2"></span> Kegiatan Yayasan</span>
-            <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-blue-500 mr-2"></span> Libur Sekolah</span>
-            <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span> Kegiatan Sekolah</span>
-        </div>
-        
-        <!-- Statistik Hari Aktif -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-100 flex items-center">
-                <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-500 flex items-center justify-center mr-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                </div>
-                <div>
-                    <div class="text-sm text-indigo-600 font-medium">Hari Aktif Smt Ganjil</div>
-                    <div class="text-2xl font-bold text-indigo-900">{{ $activeDaysGanjil }} Hari</div>
-                </div>
+    {{-- Statistik Hari Efektif Belajar (HEB) Cards --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="bg-indigo-50/80 rounded-3xl border-2 border-black p-5 shadow-md flex items-center justify-between relative overflow-hidden">
+            <div class="space-y-1">
+                <span class="text-[10px] font-black text-indigo-900 uppercase tracking-wider bg-indigo-200 px-2.5 py-0.5 rounded-lg border border-indigo-400 inline-block">Semester Ganjil</span>
+                <div class="text-3xl font-black text-indigo-950">{{ $activeDaysGanjil }} <span class="text-sm font-bold text-indigo-700">Hari Efektif</span></div>
+                <p class="text-[11px] font-bold text-indigo-700">Hari kegiatan belajar mengajar aktif</p>
             </div>
-            <div class="bg-blue-50 rounded-lg p-4 border border-blue-100 flex items-center">
-                <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-500 flex items-center justify-center mr-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                </div>
-                <div>
-                    <div class="text-sm text-blue-600 font-medium">Hari Aktif Smt Genap</div>
-                    <div class="text-2xl font-bold text-blue-900">{{ $activeDaysGenap }} Hari</div>
-                </div>
-            </div>
-            <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-100 flex items-center">
-                <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center mr-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-                </div>
-                <div>
-                    <div class="text-sm text-emerald-600 font-medium">Total 1 Tahun Ajaran</div>
-                    <div class="text-2xl font-bold text-emerald-900">{{ $activeDaysTotal }} Hari</div>
-                </div>
+            <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center border-2 border-black shadow-sm text-2xl font-black shrink-0">
+                <i class="fas fa-book-open"></i>
             </div>
         </div>
 
-        <div id="calendar"></div>
+        <div class="bg-emerald-50/80 rounded-3xl border-2 border-black p-5 shadow-md flex items-center justify-between relative overflow-hidden">
+            <div class="space-y-1">
+                <span class="text-[10px] font-black text-emerald-900 uppercase tracking-wider bg-emerald-200 px-2.5 py-0.5 rounded-lg border border-emerald-400 inline-block">Semester Genap</span>
+                <div class="text-3xl font-black text-emerald-950">{{ $activeDaysGenap }} <span class="text-sm font-bold text-emerald-700">Hari Efektif</span></div>
+                <p class="text-[11px] font-bold text-emerald-700">Hari kegiatan belajar mengajar aktif</p>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center border-2 border-black shadow-sm text-2xl font-black shrink-0">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+        </div>
+
+        <div class="bg-amber-50/80 rounded-3xl border-2 border-black p-5 shadow-md flex items-center justify-between relative overflow-hidden">
+            <div class="space-y-1">
+                <span class="text-[10px] font-black text-amber-900 uppercase tracking-wider bg-amber-200 px-2.5 py-0.5 rounded-lg border border-amber-400 inline-block">Total 1 Tahun Ajaran</span>
+                <div class="text-3xl font-black text-amber-950">{{ $activeDaysTotal }} <span class="text-sm font-bold text-amber-700">Hari Efektif</span></div>
+                <p class="text-[11px] font-bold text-amber-700">Total akumulasi HEB tahunan</p>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-amber-500 text-black flex items-center justify-center border-2 border-black shadow-sm text-2xl font-black shrink-0">
+                <i class="fas fa-award"></i>
+            </div>
+        </div>
+    </div>
+
+    {{-- Main Calendar Card --}}
+    <div class="bg-white rounded-3xl border-2 border-black p-6 shadow-xl space-y-6">
+        
+        {{-- Category Legend Badges & Quick Controls --}}
+        <div class="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50 rounded-2xl border-2 border-black">
+            <div class="flex flex-wrap items-center gap-2 text-xs font-black">
+                <span class="text-black uppercase tracking-wider mr-1"><i class="fas fa-tags"></i> Kategori:</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border border-black bg-purple-100 text-purple-900"><span class="w-3 h-3 rounded-full bg-purple-600 border border-black"></span> Monday Inspiration</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border border-black bg-rose-100 text-rose-900"><span class="w-3 h-3 rounded-full bg-rose-600 border border-black"></span> Libur Yayasan</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border border-black bg-orange-100 text-orange-900"><span class="w-3 h-3 rounded-full bg-orange-500 border border-black"></span> Kegiatan Yayasan</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border border-black bg-sky-100 text-sky-900"><span class="w-3 h-3 rounded-full bg-sky-600 border border-black"></span> Libur Sekolah</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border border-black bg-emerald-100 text-emerald-900"><span class="w-3 h-3 rounded-full bg-emerald-600 border border-black"></span> Kegiatan Sekolah</span>
+            </div>
+            <div class="text-[11px] font-bold text-slate-600">
+                <i class="fas fa-info-circle text-indigo-600"></i> Klik tanggal/agenda di kalender untuk mengedit
+            </div>
+        </div>
+
+        {{-- FullCalendar Mount Point --}}
+        <div id="calendar" class="w-full"></div>
     </div>
 
 </div>
 
-<!-- Modal Create/Edit -->
-<div id="eventModal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-30 z-50 transition-opacity flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden max-w-lg w-full">
-        <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-slate-800" id="modalTitle">Tambah Jadwal Sekolah</h3>
-            <button class="text-slate-400 hover:text-slate-500" onclick="closeModal()">
-                <svg class="w-4 h-4 fill-current" viewBox="0 0 16 16">
-                    <path d="M7.95 6.536l4.242-4.243a1 1 0 111.415 1.414L9.364 7.95l4.243 4.242a1 1 0 11-1.415 1.415L7.95 9.364l-4.243 4.243a1 1 0 01-1.414-1.415L6.536 7.95 2.293 3.707a1 1 0 011.414-1.414L7.95 6.536z" />
-                </svg>
+{{-- Neo-Brutalism Modal Create / Edit Agenda --}}
+<div id="eventModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 transition-opacity flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border-2 border-black shadow-2xl overflow-hidden max-w-lg w-full transform transition-all">
+        <div class="px-6 py-4 bg-black text-white flex justify-between items-center border-b-2 border-black">
+            <h3 class="text-sm font-black uppercase tracking-wider flex items-center gap-2 text-amber-400" id="modalTitle">
+                <i class="fas fa-calendar-plus"></i> Tambah Jadwal Sekolah
+            </h3>
+            <button type="button" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-rose-600 text-white flex items-center justify-center transition border border-white/20" onclick="closeModal()">
+                <i class="fas fa-times"></i>
             </button>
         </div>
-        <div class="px-6 py-4">
-            <form id="eventForm" method="POST" action="{{ route('admin.calendar.store') }}">
+        
+        <div class="p-6">
+            <form id="eventForm" method="POST" action="{{ route('admin.calendar.store') }}" class="space-y-4">
                 @csrf
                 <input type="hidden" name="_method" id="formMethod" value="POST">
                 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1" for="title">Judul Kegiatan <span class="text-rose-500">*</span></label>
-                    <input id="title" name="title" class="form-input w-full" type="text" required />
+                <div>
+                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-1" for="title">Judul Kegiatan <span class="text-rose-600">*</span></label>
+                    <input id="title" name="title" class="w-full bg-slate-50 border-2 border-black rounded-xl px-4 py-2.5 text-xs font-black text-black focus:bg-white focus:ring-4 focus:ring-black/20 outline-none" type="text" placeholder="Contoh: Ujian Tengah Semester Ganjil" required />
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium mb-1" for="start_date">Tanggal Mulai <span class="text-rose-500">*</span></label>
-                        <input id="start_date" name="start_date" class="form-input w-full" type="date" required />
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1" for="start_date">Tanggal Mulai <span class="text-rose-600">*</span></label>
+                        <input id="start_date" name="start_date" class="w-full bg-slate-50 border-2 border-black rounded-xl px-4 py-2.5 text-xs font-black text-black focus:bg-white focus:ring-4 focus:ring-black/20 outline-none" type="date" required />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1" for="end_date">Tanggal Selesai <span class="text-rose-500">*</span></label>
-                        <input id="end_date" name="end_date" class="form-input w-full" type="date" required />
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1" for="end_date">Tanggal Selesai <span class="text-rose-600">*</span></label>
+                        <input id="end_date" name="end_date" class="w-full bg-slate-50 border-2 border-black rounded-xl px-4 py-2.5 text-xs font-black text-black focus:bg-white focus:ring-4 focus:ring-black/20 outline-none" type="date" required />
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1" for="type">Jenis <span class="text-rose-500">*</span></label>
-                    <select id="type" name="type" class="form-select w-full" required>
-                        <option value="school_event">Kegiatan Sekolah (Rapat, Ujian, dll)</option>
+                <div>
+                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-1" for="type">Jenis Agenda <span class="text-rose-600">*</span></label>
+                    <select id="type" name="type" class="w-full bg-slate-50 border-2 border-black rounded-xl px-4 py-2.5 text-xs font-black text-black focus:bg-white focus:ring-4 focus:ring-black/20 outline-none appearance-none cursor-pointer" required>
+                        <option value="school_event">Kegiatan Sekolah (Rapat, Ujian, Upacara, dll)</option>
                         <option value="holiday">Libur Sekolah (Cuti Khusus Sekolah)</option>
                     </select>
                 </div>
 
-                <div class="mb-4">
-                    <label class="flex items-center">
-                        <input type="checkbox" name="is_holiday" id="is_holiday" value="1" class="form-checkbox" />
-                        <span class="text-sm ml-2 font-bold text-red-600">Tidak Ada KBM / Kegiatan Belajar Mengajar (Libur)</span>
+                <div class="p-3 bg-amber-50 rounded-2xl border border-black space-y-1">
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" name="is_holiday" id="is_holiday" value="1" class="w-4 h-4 rounded border-2 border-black text-rose-600 focus:ring-black" />
+                        <span class="text-xs font-black text-rose-700 uppercase">Tidak Ada KBM (Hari Libur / Non-Efektif)</span>
                     </label>
-                    <p class="text-xs text-slate-500 mt-1 ml-6">Jika dicentang, tanggal ini tidak akan dihitung sebagai hari aktif belajar untuk sekolah Anda.</p>
+                    <p class="text-[11px] font-bold text-slate-600 pl-6">Jika dicentang, tanggal ini tidak dihitung sebagai hari aktif belajar mengajar (HEB).</p>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1" for="description">Keterangan Tambahan</label>
-                    <textarea id="description" name="description" class="form-input w-full" rows="3"></textarea>
+                <div>
+                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-1" for="description">Keterangan Tambahan</label>
+                    <textarea id="description" name="description" class="w-full bg-slate-50 border-2 border-black rounded-xl px-4 py-2 text-xs font-black text-black focus:bg-white focus:ring-4 focus:ring-black/20 outline-none" rows="3" placeholder="Catatan atau rincian tambahan kegiatan..."></textarea>
                 </div>
 
-                <div class="flex justify-end mt-6">
-                    <button type="button" class="btn border-slate-200 hover:border-slate-300 text-slate-600 mr-2" onclick="closeModal()">Batal</button>
-                    <button type="button" id="btnDelete" class="btn bg-rose-500 hover:bg-rose-600 text-white mr-2 hidden" onclick="deleteEvent()">Hapus</button>
-                    <button type="submit" class="btn bg-indigo-500 hover:bg-indigo-600 text-white">Simpan</button>
+                <div class="flex items-center justify-end gap-2 pt-2 border-t-2 border-black">
+                    <button type="button" class="bg-slate-100 hover:bg-slate-200 text-black font-black px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition border-2 border-black" onclick="closeModal()">Batal</button>
+                    <button type="button" id="btnDelete" class="bg-rose-600 hover:bg-rose-700 text-white font-black px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition border-2 border-black shadow-sm hidden" onclick="deleteEvent()">Hapus</button>
+                    <button type="submit" class="bg-black hover:bg-emerald-600 text-white font-black px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider transition border-2 border-black shadow-md flex items-center gap-1.5">
+                        <i class="fas fa-save text-amber-400"></i> Simpan
+                    </button>
                 </div>
             </form>
             
@@ -168,23 +202,32 @@
 @push('styles')
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <style>
-    .fc-event { cursor: pointer; }
-    .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 600 !important; }
+    .fc-event { cursor: pointer; border-radius: 8px !important; border: 1.5px solid #000000 !important; font-weight: 800 !important; font-size: 0.75rem !important; padding: 2px 4px !important; transition: transform 0.15s ease; }
+    .fc-event:hover { transform: scale(1.02); }
+    .fc-toolbar-title { font-size: 1.15rem !important; font-weight: 900 !important; color: #000000 !important; text-transform: uppercase; tracking-wide; }
     
-    /* Header background biru, teks putih */
-    th.fc-col-header-cell { background-color: #3b82f6 !important; border-color: #2563eb !important; }
-    th.fc-col-header-cell .fc-col-header-cell-cushion { color: #ffffff !important; font-weight: 600; padding: 8px 4px; }
+    /* Header background indigo pekat, teks putih */
+    th.fc-col-header-cell { background-color: #312e81 !important; border: 1.5px solid #000000 !important; }
+    th.fc-col-header-cell .fc-col-header-cell-cushion { color: #ffffff !important; font-weight: 900; padding: 10px 4px; text-transform: uppercase; font-size: 0.75rem; }
     
-    /* Hari Aktif (Weekday) BODY hijau muda */
-    td.fc-daygrid-day:not(.fc-day-sat):not(.fc-day-sun) { background-color: #f0fdf4 !important; } /* green-50 */
+    /* Hari Aktif (Weekday) BODY hijau lembut */
+    td.fc-daygrid-day:not(.fc-day-sat):not(.fc-day-sun) { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; }
     
-    /* Mark Weekends BODY pink, teks tanggal merah */
-    td.fc-day-sat, td.fc-day-sun { background-color: #fee2e2 !important; }
-    td.fc-day-sat .fc-daygrid-day-number, td.fc-day-sun .fc-daygrid-day-number { color: #dc2626 !important; font-weight: bold; }
+    /* Mark Weekends BODY pink lembut, teks tanggal merah */
+    td.fc-day-sat, td.fc-day-sun { background-color: #fff1f2 !important; border: 1px solid #fecdd3 !important; }
+    td.fc-day-sat .fc-daygrid-day-number, td.fc-day-sun .fc-daygrid-day-number { color: #e11d48 !important; font-weight: 900; }
+    
+    /* Today Cell Highlight */
+    .fc-day-today { background-color: #fef3c7 !important; border: 2px solid #f59e0b !important; }
+
+    /* Button Customization */
+    .fc-button-primary { background-color: #000000 !important; border: 2px solid #000000 !important; border-radius: 12px !important; font-weight: 900 !important; text-transform: uppercase !important; font-size: 0.7rem !important; }
+    .fc-button-primary:hover { background-color: #4f46e5 !important; border-color: #000000 !important; }
+    .fc-button-active { background-color: #4f46e5 !important; border-color: #000000 !important; }
     
     /* Multi-month styling */
-    .fc-multimonth-title { color: #1e40af !important; font-weight: bold; background-color: #eff6ff; padding: 4px; border-radius: 4px; text-align: center; margin-bottom: 8px; }
-    .fc-multimonth-daygrid { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+    .fc-multimonth-title { color: #312e81 !important; font-weight: 900 !important; background-color: #e0e7ff; padding: 6px; border-radius: 12px; text-align: center; margin-bottom: 8px; border: 1.5px solid #000; text-transform: uppercase; }
+    .fc-multimonth-daygrid { border: 2px solid #000000; border-radius: 16px; overflow: hidden; }
 
     /* Fix FullCalendar width and spacing issues */
     .fc-scrollgrid, .fc-scrollgrid-table, .fc-scrollgrid-sync-table { width: 100% !important; table-layout: fixed !important; }
@@ -203,12 +246,20 @@
     // Base URL calendar agar benar di localhost maupun production
     const CALENDAR_BASE_URL = "{{ url('admin/calendar') }}";
 
+    function openCreateModal() {
+        closeModal();
+        let todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('start_date').value = todayStr;
+        document.getElementById('end_date').value = todayStr;
+        document.getElementById('eventModal').classList.remove('hidden');
+    }
+
     function closeModal() {
         document.getElementById('eventModal').classList.add('hidden');
         document.getElementById('eventForm').reset();
         document.getElementById('formMethod').value = 'POST';
         document.getElementById('eventForm').action = "{{ route('admin.calendar.store') }}";
-        document.getElementById('modalTitle').innerText = 'Tambah Jadwal Sekolah';
+        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-calendar-plus"></i> Tambah Jadwal Sekolah';
         document.getElementById('btnDelete').classList.add('hidden');
     }
 
@@ -228,7 +279,7 @@
         var calendar = new FullCalendar.Calendar(calendarEl, {
             firstDay: 1, // Start week on Monday
             initialView: savedView,
-            initialDate: savedDate || undefined, // Gunakan savedDate jika ada
+            initialDate: savedDate || undefined,
             validRange: {
                 start: '{{ \Carbon\Carbon::parse($academicYear->start_date)->format("Y-m-d") }}',
                 end: '{{ \Carbon\Carbon::parse($academicYear->end_date)->addDay()->format("Y-m-d") }}'
@@ -239,19 +290,20 @@
                 right: 'dayGridMonth,semester,year,listMonth'
             },
             buttonText: {
-                dayGridMonth: 'month',
-                listMonth: 'list'
+                dayGridMonth: 'Bulan',
+                listMonth: 'Daftar Timeline',
+                today: 'Hari Ini'
             },
             views: {
                 semester: {
                     type: 'multiMonth',
                     duration: { months: 6 },
-                    buttonText: 'semester'
+                    buttonText: 'Semester'
                 },
                 year: {
                     type: 'multiMonth',
                     duration: { months: 12 },
-                    buttonText: 'year'
+                    buttonText: '1 Tahun'
                 }
             },
             locale: 'id',
@@ -266,7 +318,6 @@
                 .catch(error => failureCallback(error));
             },
             datesSet: function(info) {
-                // Simpan posisi tampilan dan tanggal saat ini setiap kali pengguna melakukan navigasi (Next/Prev/Change View)
                 sessionStorage.setItem('calendarView_admin', info.view.type);
                 sessionStorage.setItem('calendarDate_admin', calendar.getDate().toISOString());
             },
@@ -275,20 +326,14 @@
                 let props = event.extendedProps;
 
                 if (props.level === 'school' || IS_SUPERADMIN) {
-                    let modalTitle = props.level === 'yayasan' ? 'Edit Jadwal Yayasan' : 'Edit Jadwal Sekolah';
-                    document.getElementById('modalTitle').innerText = modalTitle;
+                    let modalTitle = props.level === 'yayasan' ? '<i class="fas fa-edit"></i> Edit Jadwal Yayasan' : '<i class="fas fa-edit"></i> Edit Jadwal Sekolah';
+                    document.getElementById('modalTitle').innerHTML = modalTitle;
                     
                     document.getElementById('formMethod').value = 'PUT';
-                    // Gunakan CALENDAR_BASE_URL agar benar di localhost dan production
                     document.getElementById('eventForm').action = `${CALENDAR_BASE_URL}/${event.id}`;
-                    
-                    // Gunakan original_title agar tidak ada prefix [yayasan] pada form edit
                     document.getElementById('title').value = props.original_title || event.title;
-                    
-                    // Ambil hanya bagian tanggal (YYYY-MM-DD) tanpa timezone
                     document.getElementById('start_date').value = event.startStr.substring(0, 10);
                     
-                    // FullCalendar exclusive end: kurangi 1 hari. Jika end null, gunakan start.
                     if (event.end) {
                         let endDate = new Date(event.end);
                         endDate.setDate(endDate.getDate() - 1);
@@ -297,11 +342,8 @@
                         document.getElementById('end_date').value = event.startStr.substring(0, 10);
                     }
                     
-                    // Jika SuperAdmin mengubah event yayasan dan form hanya punya 'school_event', biarkan dia memilih 'school_event' tapi nanti di backend otomatis mapping.
-                    // Atau kita bisa memilih value default yang mendekati.
                     let formType = props.type;
                     if (props.level === 'yayasan' && formType === 'yayasan_event') {
-                        // Di form admin tidak ada yayasan_event, map kembali ke school_event khusus untuk tampilan form
                         formType = 'school_event';
                     }
                     
@@ -310,7 +352,6 @@
                     document.getElementById('description').value = props.description || '';
                     
                     document.getElementById('btnDelete').classList.remove('hidden');
-                    // Gunakan CALENDAR_BASE_URL agar benar di localhost dan production
                     document.getElementById('deleteForm').action = `${CALENDAR_BASE_URL}/${event.id}`;
                     
                     document.getElementById('eventModal').classList.remove('hidden');
@@ -327,20 +368,14 @@
         });
         calendar.render();
         
-        // Fix bug: Saat Sidebar di-toggle (disembunyikan/ditampilkan), ukuran container berubah
-        // tetapi browser tidak mentrigger window.resize. 
-        // ResizeObserver akan mendeteksi perubahan dimensi container dan menyesuaikan kalender.
         if (window.ResizeObserver) {
             const resizeObserver = new ResizeObserver(() => {
-                // Gunakan requestAnimationFrame atau timeout kecil untuk mencegah ResizeObserver loop error
                 setTimeout(() => {
                     calendar.updateSize();
                 }, 50);
             });
-            // Observasi container kalender atau parent-nya
             resizeObserver.observe(calendarEl.parentElement);
         } else {
-            // Fallback untuk browser lama
             setTimeout(function() {
                 calendar.updateSize();
             }, 250);
