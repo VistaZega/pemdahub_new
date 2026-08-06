@@ -3,7 +3,7 @@
 @section('content')
 <div class="space-y-8 pb-12">
     {{-- Header Banner Section (Neo-Brutalism) --}}
-    <div class="rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-black relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-6" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #047857 100%) !important; color: #ffffff !important;">
+    <div class="rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-black relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-6" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #047857 100%) !important;">
         <div class="space-y-3 relative z-10">
             <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl border border-black text-xs sm:text-sm font-black uppercase tracking-wider shadow-sm" style="background-color: #fbbf24 !important; color: #000000 !important;">
                 <i class="fas fa-file-signature text-black"></i>

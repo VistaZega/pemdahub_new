@@ -4,7 +4,7 @@
 <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto space-y-6">
 
     {{-- Header Banner (Vibrant Neo-Brutalism for Guru) --}}
-    <div class="relative overflow-hidden rounded-[2rem] shadow-2xl p-8 border-2 border-black" style="background: linear-gradient(135deg, #064e3b 0%, #115e59 50%, #312e81 100%) !important; color: #ffffff !important;">
+    <div class="relative overflow-hidden rounded-[2rem] shadow-2xl p-8 border-2 border-black" style="background: linear-gradient(135deg, #064e3b 0%, #115e59 50%, #312e81 100%) !important;">
         <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-emerald-500/20 blur-3xl"></div>
         <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-teal-500/20 blur-3xl"></div>
         

@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6">
     {{-- Header Banner (Neo-Brutalism) --}}
-    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #047857 100%) !important; color: #ffffff !important;">
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #047857 100%) !important;">
         <div class="relative z-10 flex items-center gap-4">
             <a href="{{ route('guru.leaves.index') }}" class="w-10 h-10 bg-amber-400 text-black border-2 border-black rounded-xl flex items-center justify-center hover:bg-amber-300 transition-all shadow-sm flex-shrink-0">
                 <i class="fas fa-arrow-left text-black"></i>

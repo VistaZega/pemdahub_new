@@ -63,7 +63,7 @@
 @section('content')
 <div class="container mx-auto px-4 py-6">
     {{-- Header Banner (Neo-Brutalism) --}}
-    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black mb-6" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #0f766e 100%) !important; color: #ffffff !important;">
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black mb-6" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #0f766e 100%) !important;">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2 text-xs text-amber-300 font-bold mb-2">

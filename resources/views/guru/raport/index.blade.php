@@ -4,7 +4,7 @@
 @section('content')
 <div class="space-y-6">
     {{-- Header Banner (Neo-Brutalism) --}}
-    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #881337 50%, #9f1239 100%) !important; color: #ffffff !important;">
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #881337 50%, #9f1239 100%) !important;">
         <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
@@ -18,9 +18,9 @@
             <form method="POST" action="{{ route('guru.raport.bulkDownload') }}" class="flex items-center gap-2" id="bulkDownloadForm">
                 @csrf
                 <input type="hidden" name="semester_id" value="{{ $semesterId }}">
-                <select name="classroom_id" class="text-xs font-black border-2 border-black rounded-2xl px-4 py-2.5 bg-white text-black shadow-sm outline-none" form="bulkDownloadForm">
+                <select name="classroom_id" class="text-xs font-black border-2 border-black rounded-2xl px-4 py-2.5 shadow-sm outline-none cursor-pointer" style="color: #000000 !important; background-color: #ffffff !important;" form="bulkDownloadForm">
                     @foreach($classrooms as $cr)
-                        <option value="{{ $cr->id }}">{{ $cr->class_name }}</option>
+                        <option value="{{ $cr->id }}" style="color: #000000 !important;">{{ $cr->class_name }}</option>
                     @endforeach
                 </select>
                 <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-2xl text-xs font-black uppercase tracking-wider shadow-md transition" onclick="return confirm('Download semua rapor kelas ini sebagai ZIP?')">

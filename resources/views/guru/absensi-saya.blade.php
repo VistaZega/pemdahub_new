@@ -4,7 +4,7 @@
 @section('content')
 <div class="space-y-6">
     {{-- Header Banner (Neo-Brutalism) --}}
-    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #0f766e 50%, #115e59 100%) !important; color: #ffffff !important;">
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #0f766e 50%, #115e59 100%) !important;">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
@@ -20,16 +20,16 @@
             
             {{-- Filter Bulan/Tahun --}}
             <form method="GET" action="{{ route('guru.absensi.saya') }}" class="flex items-center gap-2">
-                <select name="month" onchange="this.form.submit()" class="text-xs font-black border-2 border-black bg-white rounded-2xl px-4 py-2.5 shadow-sm text-black outline-none">
+                <select name="month" onchange="this.form.submit()" class="text-xs font-black border-2 border-black rounded-2xl px-4 py-2.5 shadow-sm outline-none cursor-pointer" style="color: #000000 !important; background-color: #ffffff !important;">
                     @for($m = 1; $m <= 12; $m++)
-                        <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>
+                        <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }} style="color: #000000 !important;">
                             {{ \Carbon\Carbon::create(null, $m)->translatedFormat('F') }}
                         </option>
                     @endfor
                 </select>
-                <select name="year" onchange="this.form.submit()" class="text-xs font-black border-2 border-black bg-white rounded-2xl px-4 py-2.5 shadow-sm text-black outline-none">
+                <select name="year" onchange="this.form.submit()" class="text-xs font-black border-2 border-black rounded-2xl px-4 py-2.5 shadow-sm outline-none cursor-pointer" style="color: #000000 !important; background-color: #ffffff !important;">
                     @for($y = now()->year; $y >= now()->year - 2; $y--)
-                        <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>
+                        <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }} style="color: #000000 !important;">
                             {{ $y }}
                         </option>
                     @endfor

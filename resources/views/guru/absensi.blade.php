@@ -4,7 +4,7 @@
 @section('content')
 <div class="space-y-6">
     {{-- Header Banner (Neo-Brutalism) --}}
-    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #311b92 50%, #4a148c 100%) !important; color: #ffffff !important;">
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #311b92 50%, #4a148c 100%) !important;">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
@@ -22,10 +22,10 @@
                     <i class="fas fa-plus-circle text-black"></i> Input Absensi
                 </a>
                 <form method="GET" class="flex items-center gap-2">
-                    <select name="classroom_id" onchange="this.form.submit()" class="text-xs font-black border-2 border-black bg-white rounded-2xl px-4 py-2.5 shadow-sm text-black outline-none focus:ring-0">
-                        <option value="">-- Pilih Kelas --</option>
+                    <select name="classroom_id" onchange="this.form.submit()" class="text-xs font-black border-2 border-black rounded-2xl px-4 py-2.5 shadow-sm outline-none cursor-pointer" style="color: #000000 !important; background-color: #ffffff !important;">
+                        <option value="" style="color: #000000 !important;">-- Pilih Kelas --</option>
                         @foreach($classrooms as $cr)
-                            <option value="{{ $cr->id }}" {{ $selectedClassroomId == $cr->id ? 'selected' : '' }}>
+                            <option value="{{ $cr->id }}" {{ $selectedClassroomId == $cr->id ? 'selected' : '' }} style="color: #000000 !important;">
                                 {{ $cr->class_name }}
                             </option>
                         @endforeach
