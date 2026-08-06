@@ -311,13 +311,13 @@
                                 <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 flex items-center justify-center text-lg font-black shrink-0 ring-4 ring-emerald-100 border-2 border-emerald-400">
                                     <i class="fas fa-check"></i>
                                 </div>
-                                <div>
+                                <div class="w-full flex flex-col items-start sm:items-center">
                                     <span class="text-xs font-black text-emerald-700 uppercase tracking-wider block mb-0.5">[1] Tahap 1</span>
                                     <h5 class="font-black text-base sm:text-lg text-slate-900">Pengajuan Kinerja</h5>
-                                    <div class="mt-1">
-                                        <span class="text-xs sm:text-sm font-black text-emerald-950 bg-emerald-100 px-3.5 py-1 rounded-full border border-emerald-400 inline-block shadow-sm">{{ $step1Text }}</span>
+                                    <div class="mt-1.5 w-full flex justify-start sm:justify-center">
+                                        <span class="text-xs font-bold text-emerald-950 bg-emerald-100 px-4 py-1.5 rounded-full border border-emerald-400 inline-flex items-center justify-center text-center shadow-xs leading-snug">{{ $step1Text }}</span>
                                     </div>
-                                    <span class="text-xs font-bold text-slate-600 block mt-1">{{ $step1Date }}</span>
+                                    <span class="text-[11px] font-bold text-slate-600 block mt-1">{{ $step1Date }}</span>
                                 </div>
                             </div>
 
@@ -340,18 +340,18 @@
                                         2
                                     </div>
                                 @endif
-                                <div>
+                                <div class="w-full flex flex-col items-start sm:items-center">
                                     <span class="text-xs font-black {{ $step2Status == 'done' ? 'text-emerald-700' : ($step2Status == 'active' ? 'text-indigo-700' : ($step2Status == 'rejected' ? 'text-rose-700' : 'text-slate-700')) }} uppercase tracking-wider block mb-0.5">[2] Tahap 2</span>
                                     <h5 class="font-black text-base sm:text-lg text-slate-900">Persetujuan Kasek</h5>
-                                    <div class="mt-1">
+                                    <div class="mt-1.5 w-full flex justify-start sm:justify-center">
                                         @if($step2Status == 'done')
-                                            <span class="text-xs sm:text-sm font-black text-emerald-950 bg-emerald-100 px-3.5 py-1 rounded-full border border-emerald-400 inline-block shadow-sm">{{ $step2Text }}</span>
+                                            <span class="text-xs font-bold text-emerald-950 bg-emerald-100 px-4 py-1.5 rounded-full border border-emerald-400 inline-flex items-center justify-center text-center shadow-xs leading-snug">{{ $step2Text }}</span>
                                         @elseif($step2Status == 'active')
-                                            <span class="text-xs sm:text-sm font-black text-white bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-1.5 rounded-full border border-indigo-300 inline-block shadow-md shadow-indigo-500/20 animate-pulse">{{ $step2Text }}</span>
+                                            <span class="text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-1.5 rounded-full border border-indigo-300 inline-flex items-center justify-center text-center shadow-md shadow-indigo-500/20 animate-pulse leading-snug">{{ $step2Text }}</span>
                                         @elseif($step2Status == 'rejected')
-                                            <span class="text-xs sm:text-sm font-black text-white bg-gradient-to-r from-rose-500 to-red-600 px-3.5 py-1 rounded-full border border-rose-400 inline-block shadow-sm">{{ $step2Text }}</span>
+                                            <span class="text-xs font-bold text-white bg-gradient-to-r from-rose-500 to-red-600 px-4 py-1.5 rounded-full border border-rose-400 inline-flex items-center justify-center text-center shadow-xs leading-snug">{{ $step2Text }}</span>
                                         @else
-                                            <span class="text-xs sm:text-sm font-black text-slate-800 bg-white px-3.5 py-1 rounded-full border-2 border-slate-300 inline-block shadow-sm">{{ $step2Text }}</span>
+                                            <span class="text-xs font-bold text-slate-800 bg-white px-4 py-1.5 rounded-full border border-slate-300 inline-flex items-center justify-center text-center shadow-xs leading-snug">{{ $step2Text }}</span>
                                         @endif
                                     </div>
                                 </div>
@@ -376,18 +376,18 @@
                                         3
                                     </div>
                                 @endif
-                                <div>
+                                <div class="w-full flex flex-col items-start sm:items-center">
                                     <span class="text-xs font-black {{ $step3Status == 'done' ? 'text-emerald-700' : ($step3Status == 'active' ? 'text-amber-700' : ($step3Status == 'rejected' ? 'text-rose-700' : 'text-slate-700')) }} uppercase tracking-wider block mb-0.5">[3] Tahap 3</span>
                                     <h5 class="font-black text-base sm:text-lg text-slate-900">Persetujuan Yayasan</h5>
-                                    <div class="mt-1">
+                                    <div class="mt-1.5 w-full flex justify-start sm:justify-center">
                                         @if($step3Status == 'done')
-                                            <span class="text-xs sm:text-sm font-black text-emerald-950 bg-emerald-100 px-3.5 py-1 rounded-full border border-emerald-400 inline-block shadow-sm">{{ $step3Text }}</span>
+                                            <span class="text-xs font-bold text-emerald-950 bg-emerald-100 px-4 py-1.5 rounded-full border border-emerald-400 inline-flex items-center justify-center text-center shadow-xs leading-snug">{{ $step3Text }}</span>
                                         @elseif($step3Status == 'active')
-                                            <span class="text-xs sm:text-sm font-black text-slate-950 bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-1.5 rounded-full border border-amber-300 inline-block shadow-md shadow-amber-500/20 animate-pulse">{{ $step3Text }}</span>
+                                            <span class="text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-1.5 rounded-full border border-amber-300 inline-flex items-center justify-center text-center shadow-md shadow-amber-500/20 animate-pulse leading-snug">{{ $step3Text }}</span>
                                         @elseif($step3Status == 'rejected')
-                                            <span class="text-xs sm:text-sm font-black text-white bg-gradient-to-r from-rose-500 to-red-600 px-3.5 py-1 rounded-full border border-rose-400 inline-block shadow-sm">{{ $step3Text }}</span>
+                                            <span class="text-xs font-bold text-white bg-gradient-to-r from-rose-500 to-red-600 px-4 py-1.5 rounded-full border border-rose-400 inline-flex items-center justify-center text-center shadow-xs leading-snug">{{ $step3Text }}</span>
                                         @else
-                                            <span class="text-xs sm:text-sm font-black text-slate-800 bg-white px-3.5 py-1 rounded-full border-2 border-slate-300 inline-block shadow-sm">{{ $step3Text }}</span>
+                                            <span class="text-xs font-bold text-slate-800 bg-white px-4 py-1.5 rounded-full border border-slate-300 inline-flex items-center justify-center text-center shadow-xs leading-snug">{{ $step3Text }}</span>
                                         @endif
                                     </div>
                                 </div>
@@ -412,18 +412,18 @@
                                         4
                                     </div>
                                 @endif
-                                <div>
+                                <div class="w-full flex flex-col items-start sm:items-center">
                                     <span class="text-xs font-black {{ $step4Status == 'done' ? 'text-purple-700' : ($step4Status == 'active' ? 'text-purple-700' : 'text-slate-700') }} uppercase tracking-wider block mb-0.5">[4] Tahap 4</span>
                                     <h5 class="font-black text-base sm:text-lg text-slate-900">Evaluasi & Penilaian</h5>
-                                    <div class="mt-1">
+                                    <div class="mt-1.5 w-full flex justify-start sm:justify-center">
                                         @if($step4Status == 'done')
-                                            <span class="text-xs sm:text-sm font-black text-white bg-gradient-to-r from-purple-600 to-indigo-600 px-3.5 py-1 rounded-full border border-purple-400 inline-block shadow-sm">{{ $step4Text }}</span>
+                                            <span class="text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-1.5 rounded-full border border-purple-400 inline-flex items-center justify-center text-center shadow-xs leading-snug">{{ $step4Text }}</span>
                                         @elseif($step4Status == 'active')
-                                            <span class="text-xs sm:text-sm font-black text-white bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-1.5 rounded-full border border-purple-300 inline-block shadow-md shadow-purple-500/20 animate-pulse">{{ $step4Text }}</span>
+                                            <span class="text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-1.5 rounded-full border border-purple-300 inline-flex items-center justify-center text-center shadow-md shadow-purple-500/20 animate-pulse leading-snug">{{ $step4Text }}</span>
                                         @elseif($step4Status == 'rejected')
-                                            <span class="text-xs sm:text-sm font-black text-slate-800 bg-white px-3.5 py-1 rounded-full border-2 border-slate-300 inline-block shadow-sm">-</span>
+                                            <span class="text-xs font-bold text-slate-800 bg-white px-4 py-1.5 rounded-full border border-slate-300 inline-flex items-center justify-center text-center shadow-xs leading-snug">-</span>
                                         @else
-                                            <span class="text-xs sm:text-sm font-black text-slate-800 bg-white px-3.5 py-1 rounded-full border-2 border-slate-300 inline-block shadow-sm">{{ $step4Text }}</span>
+                                            <span class="text-xs font-bold text-slate-800 bg-white px-4 py-1.5 rounded-full border border-slate-300 inline-flex items-center justify-center text-center shadow-xs leading-snug">{{ $step4Text }}</span>
                                         @endif
                                     </div>
                                 </div>
