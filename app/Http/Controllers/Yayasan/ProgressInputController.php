@@ -393,8 +393,24 @@ class ProgressInputController extends Controller
             }
 
             $teachersList = Teacher::where('school_id', $school->id)->get();
+            
+            // Pengecualian: Kepala Sekolah tidak diwajibkan mengajar sehingga tidak dihitung dalam progress
+            if ($school->principal_id) {
+                $teachersList = $teachersList->filter(function($teacher) use ($school) {
+                    return $teacher->id != $school->principal_id;
+                });
+            }
+
             if ($teachersList->isEmpty()) {
                 $teachersList = Employee::where('school_id', $school->id)->where('employee_type', 'guru')->get();
+                if ($school->principal_id) {
+                    $principalTeacher = Teacher::find($school->principal_id);
+                    if ($principalTeacher && $principalTeacher->employee_id) {
+                        $teachersList = $teachersList->filter(function($emp) use ($principalTeacher) {
+                            return $emp->id != $principalTeacher->employee_id;
+                        });
+                    }
+                }
             }
             $totalGuruUnit = $teachersList->count();
             
@@ -403,7 +419,7 @@ class ProgressInputController extends Controller
             
             $guruTanpaJamNames = [];
             if ($guruTanpaJam > 0 && $guruTanpaJam < 25) {
-                $guruTanpaJamNames = $teachersList->whereNotIn('id', $guruMengajarIds)->pluck('full_name')->toArray();
+                $guruTanpaJamNames = collect($teachersList)->whereNotIn('id', $guruMengajarIds)->pluck('full_name')->toArray();
             }
 
             if ($totalJam == 0) {
