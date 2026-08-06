@@ -531,25 +531,36 @@ if (!function_exists('balanceHtmlTags')) {
                 </a>
             </div>
 
-            {{-- Submission Progress Overview --}}
+            {{-- Submission Progress Overview (Collapsible Dropdown) --}}
             @if($course->assignments->count() > 0)
-            <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-xs font-black text-black uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fas fa-chart-bar text-black"></i> Ringkasan Pengumpulan Tugas Siswa
-                    </span>
-                    <span class="text-xs font-black text-black bg-amber-300 px-2.5 py-0.5 rounded-lg border border-black">{{ $totalStudents }} siswa terdaftar</span>
-                </div>
-                @foreach($course->assignments as $asgn)
-                @php $subCount = $asgn->submissions_count ?? 0; $subPercent = $totalStudents > 0 ? round(($subCount / $totalStudents) * 100) : 0; @endphp
-                <div class="flex items-center gap-3 py-2 border-b border-slate-200 last:border-0">
-                    <span class="text-xs font-black text-black w-40 truncate">{{ Str::limit($asgn->title, 25) }}</span>
-                    <div class="flex-1 bg-slate-200 rounded-full h-3 overflow-hidden border border-black">
-                        <div class="h-full rounded-full transition-all duration-1000 border-r border-black" style="background-color: #0284c7 !important; width: {{ $subPercent }}%"></div>
+            <div x-data="{ openSummary: false }" class="bg-white rounded-3xl border-2 border-black p-5 shadow-md transition-all">
+                <div class="flex items-center justify-between cursor-pointer select-none" @click="openSummary = !openSummary">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-xs font-black text-black uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-chart-bar text-black"></i> Ringkasan Pengumpulan Tugas Siswa
+                        </span>
+                        <span class="text-[10px] font-black text-black bg-amber-300 px-2 py-0.5 rounded-lg border border-black">{{ $course->assignments->count() }} Tugas</span>
                     </div>
-                    <span class="text-xs font-black text-black w-24 text-right">{{ $subCount }}/{{ $totalStudents }} Siswa</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-black text-black bg-slate-100 px-2.5 py-0.5 rounded-lg border border-black hidden sm:inline">{{ $totalStudents }} Siswa Terdaftar</span>
+                        <button type="button" class="w-8 h-8 rounded-xl bg-black text-amber-400 flex items-center justify-center font-black border-2 border-black shadow-xs hover:bg-amber-300 hover:text-black transition-all">
+                            <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="openSummary ? 'rotate-180' : ''"></i>
+                        </button>
+                    </div>
                 </div>
-                @endforeach
+
+                <div x-show="openSummary" x-transition.origin.top class="mt-4 pt-4 border-t-2 border-black space-y-2" style="display: none;">
+                    @foreach($course->assignments as $asgn)
+                    @php $subCount = $asgn->submissions_count ?? 0; $subPercent = $totalStudents > 0 ? round(($subCount / $totalStudents) * 100) : 0; @endphp
+                    <div class="flex items-center gap-3 py-2 border-b border-slate-200 last:border-0">
+                        <span class="text-xs font-black text-black w-48 truncate" title="{{ $asgn->title }}">{{ $asgn->title }}</span>
+                        <div class="flex-1 bg-slate-200 rounded-full h-3 overflow-hidden border border-black">
+                            <div class="h-full rounded-full transition-all duration-1000 border-r border-black" style="background-color: #0284c7 !important; width: {{ $subPercent }}%"></div>
+                        </div>
+                        <span class="text-xs font-black text-black w-24 text-right">{{ $subCount }}/{{ $totalStudents }} Siswa</span>
+                    </div>
+                    @endforeach
+                </div>
             </div>
             @endif
 
