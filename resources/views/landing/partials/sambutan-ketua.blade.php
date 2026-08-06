@@ -1,46 +1,46 @@
-{{-- SAMBUTAN KETUA YAYASAN — Compact Height Top-Shifted Photo Edition --}}
+{{-- SAMBUTAN KETUA YAYASAN — Zoomed Head Top-Aligned Edition --}}
 <section class="section-fullwidth" id="sambutan-ketua-section" style="width: 100%; position: relative; overflow: hidden; background: linear-gradient(135deg, #0b0f19 0%, #1e1b4b 45%, #312e81 100%); color: #ffffff; padding: 0;">
     
     {{-- Abstract Organic Ambient Glowing Orbs --}}
-    <div style="position: absolute; top: -10%; left: 5%; width: 450px; height: 450px; background: rgba(99, 102, 241, 0.3); border-radius: 50%; filter: blur(100px); pointer-events: none;"></div>
-    <div style="position: absolute; bottom: 0%; right: 10%; width: 450px; height: 450px; background: rgba(245, 158, 11, 0.2); border-radius: 50%; filter: blur(100px); pointer-events: none;"></div>
+    <div style="position: absolute; top: -10%; left: 5%; width: 480px; height: 480px; background: rgba(99, 102, 241, 0.35); border-radius: 50%; filter: blur(100px); pointer-events: none;"></div>
+    <div style="position: absolute; bottom: 0%; right: 10%; width: 480px; height: 480px; background: rgba(245, 158, 11, 0.2); border-radius: 50%; filter: blur(100px); pointer-events: none;"></div>
 
-    <div style="width: 100%; max-width: 1480px; margin: 0 auto; min-height: 420px; display: flex; align-items: center; position: relative; z-index: 10;">
+    <div style="width: 100%; max-width: 1480px; margin: 0 auto; min-height: 490px; display: flex; align-items: center; position: relative; z-index: 10;">
         
         <div class="sambutan-full-container" style="display: flex; flex-wrap: wrap; width: 100%; align-items: center;">
 
-            {{-- 1. LEFT SIDE: PHOTO SHIFTED CLOSER TO TOP EDGE --}}
-            <div class="sambutan-left-photo" style="flex: 1 1 48%; min-width: 320px; position: relative; display: flex; justify-content: center; align-items: flex-start; min-height: 420px; overflow: hidden; margin-top: -15px;">
+            {{-- 1. LEFT SIDE: PHOTO ZOOMED IN & HEAD MOVED TO TOP BORDER --}}
+            <div class="sambutan-left-photo" style="flex: 1 1 48%; min-width: 320px; position: relative; display: flex; justify-content: center; align-items: flex-start; min-height: 490px; overflow: hidden;">
                 @php
                     $photoPath = base_path('public/images/photo-profile.jpeg');
                     $photoExists = file_exists($photoPath);
                 @endphp
                 
                 {{-- Ambient Light Aura behind photo --}}
-                <div style="position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%); width: 420px; height: 420px; background: radial-gradient(circle, rgba(99, 102, 241, 0.5) 0%, rgba(245, 158, 11, 0.2) 45%, rgba(0,0,0,0) 75%); border-radius: 50%; filter: blur(45px); pointer-events: none;"></div>
+                <div style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 460px; height: 460px; background: radial-gradient(circle, rgba(99, 102, 241, 0.55) 0%, rgba(245, 158, 11, 0.2) 45%, rgba(0,0,0,0) 75%); border-radius: 50%; filter: blur(45px); pointer-events: none;"></div>
 
                 @if($photoExists)
-                    <div style="position: relative; width: 100%; max-width: 580px; height: 480px; display: flex; align-items: flex-start; justify-content: center;">
+                    <div style="position: relative; width: 100%; max-width: 600px; height: 520px; display: flex; align-items: flex-start; justify-content: center; overflow: hidden;">
                         
-                        {{-- Photo Element with Top-Aligned Position & Soft Mask Fade --}}
+                        {{-- Photo Element with Zoomed Head (scale 1.55) shifted up to eliminate empty wall space --}}
                         <img src="{{ asset('images/photo-profile.jpeg') }}?v={{ filemtime($photoPath) }}" 
                              alt="Yulianus Zega, S.Kom, M.Pd.T" 
-                             style="width: 100%; height: 100%; object-fit: cover; object-position: top center; filter: contrast(1.08) brightness(1.05);
-                                    -webkit-mask-image: radial-gradient(ellipse at 50% 25%, #000 25%, rgba(0,0,0,0.85) 48%, rgba(0,0,0,0.3) 68%, transparent 82%);
-                                    mask-image: radial-gradient(ellipse at 50% 25%, #000 25%, rgba(0,0,0,0.85) 48%, rgba(0,0,0,0.3) 68%, transparent 82%);" />
+                             style="width: 100%; height: 100%; object-fit: cover; object-position: center 65%; transform: scale(1.55); filter: contrast(1.08) brightness(1.05);
+                                    -webkit-mask-image: radial-gradient(ellipse at 50% 35%, #000 25%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0.3) 70%, transparent 84%);
+                                    mask-image: radial-gradient(ellipse at 50% 35%, #000 25%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0.3) 70%, transparent 84%);" />
                         
                         {{-- Soft Vignette Overlay --}}
-                        <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 25%, transparent 30%, rgba(30, 27, 75, 0.3) 60%, #0b0f19 85%);"></div>
+                        <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 35%, transparent 28%, rgba(30, 27, 75, 0.3) 60%, #0b0f19 86%);"></div>
                     </div>
                 @else
-                    <div style="width: 340px; height: 420px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border-radius: 20px;">
+                    <div style="width: 340px; height: 460px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border-radius: 20px;">
                         <i class="fa-solid fa-user-tie" style="color: #ffffff; font-size: 120px;"></i>
                     </div>
                 @endif
             </div>
 
             {{-- 2. RIGHT SIDE: COMPACT HIGH-IMPACT TEXT & QUOTE --}}
-            <div class="sambutan-right-text" style="flex: 1 1 52%; min-width: 320px; padding: 28px 40px 28px 16px; display: flex; flex-direction: column; justify-content: center; gap: 16px;">
+            <div class="sambutan-right-text" style="flex: 1 1 52%; min-width: 320px; padding: 32px 40px 32px 16px; display: flex; flex-direction: column; justify-content: center; gap: 18px;">
                 
                 {{-- Header Pill --}}
                 <div style="display: flex; items-center; gap: 10px;">
@@ -53,7 +53,7 @@
                 </div>
 
                 {{-- Quote Body --}}
-                <blockquote style="font-size: clamp(15px, 2.1vw, 19px); font-weight: 600; color: #ffffff; line-height: 1.75; margin: 0; position: relative;">
+                <blockquote style="font-size: clamp(16px, 2.1vw, 20px); font-weight: 600; color: #ffffff; line-height: 1.8; margin: 0; position: relative;">
                     @php
                         $quoteRaw = \App\Models\Setting::getValue('ketua_quote', "Salam sejahtera, Ya'ahowu! Sebagai garda terdepan pendidikan di Kepulauan Nias, Yayasan Perguruan PEMBDA berkomitmen penuh melahirkan generasi emas yang tangguh, berkarakter mulia, dan unggul secara teknologi. Selaras dengan motto abadi kami: 'Keep Moving Forward / Maju Terus Pantang Mundur', kami terus berinovasi tanpa henti melalui PembdaHUB untuk menciptakan ekosistem pembelajaran digital terbaik. Bersama, kita langkah demi langkah melangkah pasti menjawab tantangan zaman demi masa depan Nias yang gemilang!");
                         $quoteDisplay = str_replace(
@@ -66,11 +66,11 @@
                 </blockquote>
 
                 {{-- Golden Accent Divider --}}
-                <div style="width: 70px; height: 3px; background: linear-gradient(90deg, #f59e0b, #fbbf24); border-radius: 2px;"></div>
+                <div style="width: 75px; height: 3.5px; background: linear-gradient(90deg, #f59e0b, #fbbf24); border-radius: 2px;"></div>
 
                 {{-- Chairman Name & Position --}}
                 <div>
-                    <h3 style="font-size: 20px; font-weight: 900; color: #ffffff; margin: 0 0 2px 0; letter-spacing: -0.3px;">
+                    <h3 style="font-size: 21px; font-weight: 900; color: #ffffff; margin: 0 0 2px 0; letter-spacing: -0.3px;">
                         {{ \App\Models\Setting::getValue('ketua_nama', 'Yulianus Zega, S.Kom, M.Pd.T') }}
                     </h3>
                     <p style="font-size: 13px; font-weight: 700; color: #fbbf24; margin: 0;">
@@ -91,12 +91,12 @@
         flex-direction: column !important;
     }
     .sambutan-left-photo {
-        min-height: 380px !important;
+        min-height: 420px !important;
         width: 100% !important;
         margin-top: 0 !important;
     }
     .sambutan-right-text {
-        padding: 20px !important;
+        padding: 24px !important;
         width: 100% !important;
     }
 }
