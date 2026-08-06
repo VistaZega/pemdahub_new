@@ -27,14 +27,22 @@
             ")->first();
     @endphp
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white rounded-3xl shadow-md border border-gray-250 px-6 py-5">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-850 flex items-center justify-center text-lg border border-emerald-305 shadow-sm">
-                <i class="fas fa-file-signature"></i>
+    {{-- Header Banner (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #047857 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-md text-xl">
+                    <i class="fas fa-file-signature text-black"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-white" style="color: #ffffff !important;">{{ $pageTitle }}</h1>
+                    <p class="text-xs md:text-sm font-bold text-emerald-200 mt-1" style="color: #a7f3d0 !important;">Monitoring & Konsultasi Bimbingan Karya {{ $entityName }} Siswa</p>
+                </div>
             </div>
             <div>
-                <h1 class="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">{{ $pageTitle }}</h1>
-                <p class="text-xs text-gray-700 mt-0.5 font-medium">Pantau kemajuan laporan, verifikasi jurnal progress logbook, dan nyatakan kelayakan sidang siswa bimbingan Anda.</p>
+                <span class="bg-amber-400 text-black border-2 border-black px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider shadow-sm inline-flex items-center gap-2">
+                    <i class="fas fa-user-graduate text-black"></i> Pembimbing Utama
+                </span>
             </div>
         </div>
     </div>

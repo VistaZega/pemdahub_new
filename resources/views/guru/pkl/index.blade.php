@@ -4,19 +4,25 @@
 @section('content')
 <div class="space-y-6">
     {{-- Header Bar --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-4">
-        <div>
-            <h1 class="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-briefcase text-emerald-500"></i> Monitoring Praktik Kerja Lapangan (PKL)
-            </h1>
-            <p class="text-xs text-gray-500 mt-0.5">
-                SMKS Swasta Pembda Nias — Pemantauan Harian Logbook & Nilai Evaluasi Industri
-            </p>
-        </div>
-        <div>
-            <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-semibold">
-                <i class="far fa-user text-xs"></i> Pembimbing Lapangan
-            </span>
+    {{-- Header Banner (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #047857 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
+                        <i class="fas fa-briefcase text-black"></i>
+                    </div>
+                    Monitoring Praktik Kerja Lapangan (PKL)
+                </h1>
+                <p class="text-xs md:text-sm font-bold text-emerald-200 mt-1" style="color: #a7f3d0 !important;">
+                    Pemantauan Harian Logbook & Nilai Evaluasi Industri Siswa Bimbingan
+                </p>
+            </div>
+            <div>
+                <span class="inline-flex items-center gap-2 text-xs font-black px-4 py-2 rounded-2xl border-2 border-black shadow-sm uppercase tracking-wider" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                    <i class="far fa-user text-black"></i> Pembimbing Lapangan
+                </span>
+            </div>
         </div>
     </div>
 

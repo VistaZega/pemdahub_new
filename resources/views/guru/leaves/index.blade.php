@@ -4,16 +4,22 @@
 
 @section('content')
 <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-            <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-calendar-alt text-emerald-500"></i> Pengajuan Cuti Saya
-            </h1>
-            <p class="text-sm text-gray-500 mt-0.5">Kelola dan pantau status pengajuan cuti atau izin kepegawaian Anda</p>
+    {{-- Header Banner (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #047857 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
+                        <i class="fas fa-calendar-times text-black"></i>
+                    </div>
+                    Pengajuan Cuti Saya
+                </h1>
+                <p class="text-xs md:text-sm font-bold text-emerald-200 mt-1" style="color: #a7f3d0 !important;">Kelola dan pantau status pengajuan cuti atau izin kepegawaian Anda</p>
+            </div>
+            <a href="{{ route('guru.leaves.create') }}" class="bg-amber-400 hover:bg-amber-300 text-black border-2 border-black px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-md flex items-center gap-2">
+                <i class="fas fa-plus text-black"></i> Ajukan Cuti Baru
+            </a>
         </div>
-        <a href="{{ route('guru.leaves.create') }}" class="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 shadow-sm flex items-center gap-2 hover:-translate-y-0.5">
-            <i class="fas fa-plus text-xs"></i> Ajukan Cuti Baru
-        </a>
     </div>
 
     @if(session('success'))

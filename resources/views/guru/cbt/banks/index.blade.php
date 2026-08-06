@@ -2,27 +2,25 @@
 @section('title', 'Bank Soal')
 @section('content')
 <div class="space-y-8" x-data="{ showModal: false }">
-    {{-- Hero Header --}}
-    <div class="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 rounded-2xl p-8 text-white">
-        <div class="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 -mb-12 -ml-12 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
-        <div class="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    {{-- Hero Header (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 md:p-8 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #0f766e 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div class="flex items-center gap-5">
-                <div class="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center border border-gray-200">
-                    <i class="fas fa-database text-2xl"></i>
+                <div class="w-14 h-14 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-md text-2xl">
+                    <i class="fas fa-database text-black"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Bank Soal</h1>
-                    <p class="text-emerald-50 mt-1 text-base">Kelola koleksi soal untuk ujian CBT</p>
+                    <h1 class="text-2xl font-black text-white tracking-tight" style="color: #ffffff !important;">Bank Soal</h1>
+                    <p class="text-xs md:text-sm font-bold text-teal-200 mt-1" style="color: #99f6e4 !important;">Kelola koleksi soal untuk ujian CBT siswa</p>
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-3">
                 <button type="button" @click="showModal = true" 
-                        class="px-5 py-3 bg-white/15 hover:bg-white/25 text-white rounded-xl font-bold text-base border border-white/20 transition flex items-center gap-2 shadow-sm cursor-pointer">
-                    <i class="fas fa-file-import"></i><span>Import Soal</span>
+                        class="px-5 py-2.5 bg-white text-black border-2 border-black rounded-2xl font-black text-xs uppercase tracking-wider transition flex items-center gap-2 shadow-md cursor-pointer">
+                    <i class="fas fa-file-import text-black"></i><span>Import Soal</span>
                 </button>
-                <a href="{{ route('guru.cbt.banks.create') }}" class="px-6 py-3 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl font-bold text-base shadow-md hover:shadow-lg transition flex items-center gap-2">
-                    <i class="fas fa-plus"></i><span>Buat Bank Soal</span>
+                <a href="{{ route('guru.cbt.banks.create') }}" class="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-2xl font-black text-xs uppercase tracking-wider shadow-md transition flex items-center gap-2">
+                    <i class="fas fa-plus text-black"></i><span>Buat Bank Soal</span>
                 </a>
             </div>
         </div>

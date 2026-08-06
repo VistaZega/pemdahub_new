@@ -5,16 +5,24 @@
 @section('content')
 <div class="px-6 py-6 pb-20 w-full space-y-6">
 
-    <!-- Header Section -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-emerald-100 relative overflow-hidden">
-        <div class="absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-full opacity-50"></div>
-        <div class="relative z-10">
-            <h1 class="text-2xl font-bold text-gray-800">Progress Biaya Pendidikan</h1>
-            <p class="text-gray-500 mt-1">Kelas <span class="font-bold text-emerald-600">{{ $classroom->class_name }}</span> - Tahun Ajaran {{ $activeYear->year }}</p>
-        </div>
-        <div class="relative z-10 flex items-center gap-3">
-            <div class="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl font-semibold flex items-center gap-2">
-                <i class="fas fa-users"></i> {{ $students->count() }} Siswa
+    {{-- Header Banner (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #047857 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
+                        <i class="fas fa-file-invoice-dollar text-black"></i>
+                    </div>
+                    Progress Biaya Pendidikan
+                </h1>
+                <p class="text-xs md:text-sm font-bold text-emerald-200 mt-1" style="color: #a7f3d0 !important;">
+                    Kelas <span class="font-black text-amber-300">{{ $classroom->class_name }}</span> - Tahun Ajaran {{ $activeYear->year }}
+                </p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="bg-amber-400 text-black border-2 border-black px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm">
+                    <i class="fas fa-users text-black"></i> {{ $students->count() }} Siswa
+                </span>
             </div>
         </div>
     </div>

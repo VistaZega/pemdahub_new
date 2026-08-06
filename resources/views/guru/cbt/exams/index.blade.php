@@ -2,22 +2,20 @@
 @section('title', 'Ujian CBT')
 @section('content')
 <div class="space-y-8">
-    {{-- Hero Header --}}
-    <div class="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 rounded-2xl p-8 text-white">
-        <div class="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 -mb-12 -ml-12 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
-        <div class="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+    {{-- Hero Header (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 md:p-8 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #0f766e 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div class="flex items-center gap-5">
-                <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
-                    <i class="fas fa-laptop-code text-3xl"></i>
+                <div class="w-14 h-14 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-md text-2xl">
+                    <i class="fas fa-laptop-code text-black"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Ujian CBT</h1>
-                    <p class="text-emerald-50 mt-1 text-base">Kelola ujian online Anda</p>
+                    <h1 class="text-2xl font-black text-white tracking-tight" style="color: #ffffff !important;">Ujian CBT</h1>
+                    <p class="text-xs md:text-sm font-bold text-teal-200 mt-1" style="color: #99f6e4 !important;">Kelola dan pantau ujian online komputer/smartphone siswa</p>
                 </div>
             </div>
-            <a href="{{ route('guru.cbt.exams.create') }}" class="inline-flex items-center px-5 py-2.5 bg-white text-emerald-700 rounded-xl font-semibold hover:bg-emerald-50 transition shadow-lg shadow-emerald-900/20">
-                <i class="fas fa-plus-circle mr-2"></i>Buat Ujian
+            <a href="{{ route('guru.cbt.exams.create') }}" class="inline-flex items-center px-5 py-3 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-2xl font-black uppercase text-xs tracking-wider shadow-md transition-all">
+                <i class="fas fa-plus-circle text-black mr-2"></i>Buat Ujian
             </a>
         </div>
     </div>

@@ -3,26 +3,31 @@
 
 @section('content')
 <div class="space-y-6">
-    {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-            <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-file-alt text-rose-500"></i> Raport Digital
-            </h1>
-            <p class="text-sm text-gray-500 mt-0.5">Kelola rapor siswa di kelas yang Anda ampu</p>
+    {{-- Header Banner (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #881337 50%, #9f1239 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
+                        <i class="fas fa-file-alt text-black"></i>
+                    </div>
+                    Raport Digital
+                </h1>
+                <p class="text-xs md:text-sm font-bold text-rose-200 mt-1" style="color: #fecdd3 !important;">Kelola dan terbitkan rapor hasil belajar siswa di kelas bimbingan Anda</p>
+            </div>
+            <form method="POST" action="{{ route('guru.raport.bulkDownload') }}" class="flex items-center gap-2" id="bulkDownloadForm">
+                @csrf
+                <input type="hidden" name="semester_id" value="{{ $semesterId }}">
+                <select name="classroom_id" class="text-xs font-black border-2 border-black rounded-2xl px-4 py-2.5 bg-white text-black shadow-sm outline-none" form="bulkDownloadForm">
+                    @foreach($classrooms as $cr)
+                        <option value="{{ $cr->id }}">{{ $cr->class_name }}</option>
+                    @endforeach
+                </select>
+                <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-2xl text-xs font-black uppercase tracking-wider shadow-md transition" onclick="return confirm('Download semua rapor kelas ini sebagai ZIP?')">
+                    <i class="fas fa-download text-black"></i> Bulk Download
+                </button>
+            </form>
         </div>
-        <form method="POST" action="{{ route('guru.raport.bulkDownload') }}" class="inline" id="bulkDownloadForm">
-            @csrf
-            <input type="hidden" name="semester_id" value="{{ $semesterId }}">
-            <select name="classroom_id" class="text-sm border border-gray-200 rounded-xl px-3 py-2 shadow-sm focus:ring-2 focus:ring-rose-300 mr-2" form="bulkDownloadForm">
-                @foreach($classrooms as $cr)
-                    <option value="{{ $cr->id }}">{{ $cr->class_name }}</option>
-                @endforeach
-            </select>
-            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl text-sm font-semibold shadow-md transition" onclick="return confirm('Download semua rapor kelas ini sebagai ZIP?')">
-                <i class="fas fa-download"></i> Bulk Download
-            </button>
-        </form>
     </div>
 
     {{-- Statistics --}}

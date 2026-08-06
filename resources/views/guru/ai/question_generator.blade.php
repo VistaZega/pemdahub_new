@@ -16,23 +16,27 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <!-- Breadcrumb & Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-            <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                <a href="{{ route('guru.dashboard') }}" class="hover:text-emerald-600 transition">Dashboard</a>
-                <i class="fas fa-chevron-right text-[8px]"></i>
-                <span class="text-gray-700">Asisten AI</span>
-                <i class="fas fa-chevron-right text-[8px]"></i>
-                <span class="text-emerald-700 font-medium">Pembuat Soal CBT</span>
+    {{-- Header Banner (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black mb-6" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #0f766e 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 text-xs text-amber-300 font-bold mb-2">
+                    <a href="{{ route('guru.dashboard') }}" class="hover:underline">Dashboard</a>
+                    <i class="fas fa-chevron-right text-[8px]"></i>
+                    <span>Asisten AI</span>
+                    <i class="fas fa-chevron-right text-[8px]"></i>
+                    <span class="text-white font-black">Question Generator</span>
+                </div>
+                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
+                        <i class="fas fa-brain text-black"></i>
+                    </div>
+                    AI CBT Question Generator
+                </h1>
+                <p class="text-xs md:text-sm font-bold text-teal-200 mt-1" style="color: #99f6e4 !important;">
+                    Generate kumpulan soal pilihan ganda secara otomatis dari file PDF atau teks materi ajar.
+                </p>
             </div>
-            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
-                <span class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md">
-                    <i class="fas fa-brain"></i>
-                </span>
-                AI CBT Question Generator
-            </h1>
-            <p class="text-gray-500 text-sm mt-1">Buat kumpulan soal ujian pilihan ganda secara cepat dari berkas PDF materi ajar atau tulisan teks.</p>
         </div>
     </div>
 

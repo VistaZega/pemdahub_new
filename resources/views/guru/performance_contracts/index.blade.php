@@ -2,24 +2,24 @@
 
 @section('content')
 <div class="space-y-8 pb-12">
-    {{-- Header Banner Section --}}
-    <div class="bg-gradient-to-r from-emerald-50 via-teal-50/50 to-white rounded-3xl p-6 sm:p-8 text-slate-900 shadow-xl border-2 border-emerald-300 relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+    {{-- Header Banner Section (Neo-Brutalism) --}}
+    <div class="rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-black relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-6" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #047857 100%) !important; color: #ffffff !important;">
         <div class="space-y-3 relative z-10">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-black uppercase tracking-wider shadow-sm">
-                <i class="fas fa-file-signature"></i>
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl border border-black text-xs sm:text-sm font-black uppercase tracking-wider shadow-sm" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                <i class="fas fa-file-signature text-black"></i>
                 <span>Modul Kinerja Guru & Staff</span>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight" style="color: #ffffff !important;">
                 Perjanjian Kinerja Saya
             </h2>
-            <p class="text-slate-700 font-bold text-sm sm:text-base max-w-2xl leading-relaxed">
+            <p class="text-emerald-200 font-bold text-sm sm:text-base max-w-2xl leading-relaxed" style="color: #a7f3d0 !important;">
                 Kelola dokumen komitmen kinerja riil, pantau tahapan verifikasi secara langsung, serta periksa hasil evaluasi akhir Anda.
             </p>
         </div>
         
         <div class="relative z-10 shrink-0">
-            <a href="{{ route('guru.performance_contracts.create') }}" class="inline-flex items-center gap-2.5 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-4 rounded-2xl text-sm sm:text-base font-black transition-all shadow-lg shadow-emerald-600/30 border-2 border-emerald-500">
-                <i class="fas fa-plus text-base"></i> Buat Kontrak Baru
+            <a href="{{ route('guru.performance_contracts.create') }}" class="inline-flex items-center gap-2.5 bg-amber-400 hover:bg-amber-300 text-black px-6 py-4 rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all shadow-md border-2 border-black">
+                <i class="fas fa-plus text-black"></i> Buat Kontrak Baru
             </a>
         </div>
     </div>

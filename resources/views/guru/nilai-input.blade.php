@@ -3,18 +3,26 @@
 
 @section('content')
 <div class="space-y-6">
-    {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <i class="fas fa-edit text-emerald-500"></i> Input Nilai Siswa
-        </h1>
-        <div class="flex gap-2">
-            <a href="{{ route('guru.nilai') }}" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-lg transition">
-                <i class="fas fa-list mr-1"></i> Lihat Nilai
-            </a>
-            <a href="{{ route('guru.nilai.summary') }}" class="text-sm bg-blue-100 hover:bg-blue-200 text-blue-600 px-4 py-2 rounded-lg transition">
-                <i class="fas fa-chart-bar mr-1"></i> Rekap Nilai
-            </a>
+    {{-- Header Banner (Neo-Brutalism) --}}
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #047857 100%) !important; color: #ffffff !important;">
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
+                        <i class="fas fa-edit text-black"></i>
+                    </div>
+                    Input Nilai Siswa
+                </h1>
+                <p class="text-xs md:text-sm font-bold text-emerald-200 mt-1" style="color: #a7f3d0 !important;">Form pengisian dan pembaruan nilai harian, PTS, & PAS</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="{{ route('guru.nilai') }}" class="text-xs bg-white hover:bg-slate-100 text-black border-2 border-black font-black px-4 py-2.5 rounded-2xl transition uppercase tracking-wider shadow-md">
+                    <i class="fas fa-list mr-1"></i> Lihat Nilai
+                </a>
+                <a href="{{ route('guru.nilai.summary') }}" class="text-xs bg-amber-400 hover:bg-amber-300 text-black border-2 border-black font-black px-4 py-2.5 rounded-2xl transition uppercase tracking-wider shadow-md">
+                    <i class="fas fa-chart-bar mr-1"></i> Rekap Nilai
+                </a>
+            </div>
         </div>
     </div>
 
