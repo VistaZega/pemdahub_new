@@ -43,6 +43,20 @@
 </style>
 @endpush
 
+<?php
+if (!function_exists('balanceHtmlTags')) {
+    function balanceHtmlTags($html) {
+        if (empty(trim($html))) return $html;
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $balanced = $dom->saveHTML();
+        libxml_clear_errors();
+        return str_replace('<?xml encoding="utf-8" ?>', '', $balanced);
+    }
+}
+?>
+
 @section('content')
 @php
     $colorConfig = \App\Models\LmsCourse::getColorClasses($course->color);
@@ -429,7 +443,7 @@
 
                             {{-- Text Content --}}
                             @if($material->content)
-                            <div class="prose prose-sm max-w-none text-slate-800 mt-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">{!! strip_tags($material->content) !== $material->content ? $material->content : nl2br(e($material->content)) !!}</div>
+                            <div class="prose prose-sm max-w-none text-slate-800 mt-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">{!! strip_tags($material->content) !== $material->content ? balanceHtmlTags($material->content) : balanceHtmlTags(nl2br(e($material->content))) !!}</div>
                             @endif
                         </div>
                     </div>
