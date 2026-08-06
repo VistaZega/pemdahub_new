@@ -15,6 +15,7 @@
     </div>
 
     <form action="{{ route('guru.lms.store') }}" method="POST" @submit="if(submitting){ $event.preventDefault(); return false; } submitting = true;" class="bg-white rounded-3xl shadow-xl border-2 border-black overflow-hidden">
+        @csrf
         <div class="px-8 py-6 border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
             <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-base uppercase">
                 <i class="fas fa-book-medical text-amber-400"></i> Detail Informasi Course Ajar
