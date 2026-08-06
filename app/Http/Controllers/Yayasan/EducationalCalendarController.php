@@ -27,7 +27,9 @@ class EducationalCalendarController extends Controller
         }
 
         if ($request->wantsJson() || $request->ajax()) {
-            return response()->json($this->calendarService->getCalendarEvents(null, $academicYear));
+            $schoolFilter = $request->get('school_id');
+            $selectedSchool = ($schoolFilter && $schoolFilter !== 'all') ? \App\Models\School::find($schoolFilter) : null;
+            return response()->json($this->calendarService->getCalendarEvents($selectedSchool, $academicYear));
         }
 
         $activeDaysGanjil = $this->calendarService->calculateActiveDaysForSemester(null, $academicYear, 1);
