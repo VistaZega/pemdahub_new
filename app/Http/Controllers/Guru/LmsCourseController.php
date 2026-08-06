@@ -454,13 +454,22 @@ class LmsCourseController extends Controller
 
         $maxSequence = $course->modules()->max('sequence') ?? 0;
 
-        $course->modules()->create([
+        $module = $course->modules()->create([
             'title' => $request->title,
             'description' => $request->description,
             'color' => $request->color,
             'sequence' => $maxSequence + 1,
             'is_active' => true,
         ]);
+
+        // Reputation Hook for Teacher (+30 Points per Modul)
+        \App\Models\ReputationLog::log(
+            Auth::id(),
+            30,
+            'lms_content',
+            "Membuat modul LMS baru: " . ($module->title ?? 'Modul'),
+            $module
+        );
 
         return redirect()->route('guru.lms.show', $course->id)
             ->with('success', 'Modul berhasil ditambahkan.');

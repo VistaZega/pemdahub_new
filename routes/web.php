@@ -1900,6 +1900,51 @@ Route::get('/debug-calendar-check', function () {
     return $html;
 });
 
+Route::get('/sync-lms-reputation', function () {
+    if (request('secret') !== 'pembda99' && !auth()->check()) return 'Unauthorized';
+
+    $modules = \App\Models\LmsModule::with('course.teacher.user')->get();
+    $materials = \App\Models\LmsMaterial::with('course.teacher.user')->get();
+    $assignments = \App\Models\LmsAssignment::with('course.teacher.user')->get();
+    $quizzes = \App\Models\LmsQuiz::with('course.teacher.user')->get();
+
+    $syncedCount = 0;
+
+    foreach ($modules as $m) {
+        $userId = $m->course?->teacher?->user_id;
+        if ($userId) {
+            \App\Models\ReputationLog::log($userId, 30, 'lms_content', "Membuat modul LMS: " . $m->title, $m);
+            $syncedCount++;
+        }
+    }
+
+    foreach ($materials as $mat) {
+        $userId = $mat->course?->teacher?->user_id;
+        if ($userId) {
+            \App\Models\ReputationLog::log($userId, 30, 'lms_content', "Membuat materi LMS: " . $mat->title, $mat);
+            $syncedCount++;
+        }
+    }
+
+    foreach ($assignments as $asg) {
+        $userId = $asg->course?->teacher?->user_id;
+        if ($userId) {
+            \App\Models\ReputationLog::log($userId, 30, 'lms_content', "Membuat tugas LMS: " . $asg->title, $asg);
+            $syncedCount++;
+        }
+    }
+
+    foreach ($quizzes as $qz) {
+        $userId = $qz->course?->teacher?->user_id;
+        if ($userId) {
+            \App\Models\ReputationLog::log($userId, 30, 'lms_content', "Membuat kuis LMS: " . $qz->title, $qz);
+            $syncedCount++;
+        }
+    }
+
+    return "<h2>Sinkronisasi Poin Pembda Elite LMS Selesai!</h2><p>Berhasil memperbarui <b>{$syncedCount}</b> entri item LMS (Modul, Materi, Tugas, Kuis) milik para Guru. Poin Pembda Elite Guru dan peringkat Hall of Fame telah diperbarui secara otomatis!</p>";
+});
+
 Route::get('/download-sk-gaji-pdf', function () {
     $filePath = public_path('SURAT_KEPUTUSAN_PENETAPAN_GAJI_DAN_OTORISASI_PEMBDA_2026.pdf');
     if (!file_exists($filePath)) {

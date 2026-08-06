@@ -68,6 +68,15 @@ class LmsAssignmentController extends Controller
             'max_resubmissions' => $request->max_resubmissions ?? 1,
         ]);
 
+        // Reputation Hook for Teacher (+30 Points per Tugas)
+        \App\Models\ReputationLog::log(
+            \Auth::id(),
+            30,
+            'lms_content',
+            "Membuat tugas LMS baru: " . ($assignment->title ?? 'Tugas'),
+            $assignment
+        );
+
         // Send WhatsApp notification to enrolled students
         try {
             $notificationService = app(\App\Services\NotificationService::class);

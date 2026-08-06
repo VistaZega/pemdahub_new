@@ -74,6 +74,15 @@ class LmsQuizController extends Controller
             'is_published' => false,
         ]);
 
+        // Reputation Hook for Teacher (+30 Points per Kuis)
+        \App\Models\ReputationLog::log(
+            \Auth::id(),
+            30,
+            'lms_content',
+            "Membuat kuis LMS baru: " . ($quiz->title ?? 'Kuis'),
+            $quiz
+        );
+
         // Auto-sync soal dari bank soal jika dipilih
         $syncCount = 0;
         if ($request->question_package_id) {
