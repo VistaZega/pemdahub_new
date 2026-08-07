@@ -413,7 +413,7 @@
             </a>
             @endif
 
-            @if($isYayasan || $isFinance || $isSA || $isAdmin)
+            @if($isYayasan || $isSA)
             <a href="{{ route('admin.operational-expenses.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.operational-expenses.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-wallet text-[10px]"></i></div>
                 <span>Pengeluaran Operasional</span>
@@ -650,10 +650,12 @@
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-chart-pie text-[10px]"></i></div>
                 <span>Laporan Rekap Tagihan</span>
             </a>
+            @if($isYayasan || $isSA)
             <a href="{{ route('admin.operational-expenses.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.operational-expenses.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-wallet text-[10px]"></i></div>
                 <span>Pengeluaran Operasional</span>
             </a>
+            @endif
 
             {{-- Menu khusus Super Admin Yayasan --}}
             @if($isYayasan)

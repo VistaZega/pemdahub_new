@@ -16,6 +16,10 @@ class OperationalExpenseController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+
+        if (!$user->isSuperAdmin() && !$user->isYayasan()) {
+            abort(403, 'Akses khusus Yayasan.');
+        }
         
         $activeYear = AcademicYear::where('is_active', true)->first();
         $activeSemester = Semester::where('is_active', true)->first();
