@@ -11,7 +11,7 @@
         .doc-header h2 { font-size: 11px; color: #000; margin-bottom: 4px; font-weight: bold; }
         .doc-header .meta { font-size: 8px; color: #000; font-weight: bold; }
         
-        .section-title { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 15px; margin-bottom: 5px; background-color: #f1f5f9; padding: 4px 8px; border: 1px solid #000; }
+        .section-title { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 15px; margin-bottom: 5px; background-color: #f1f5f9; padding: 4px 8px; border: 1px solid #000; border-left: 5px solid #000; }
         
         .rapby-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
         .rapby-table th { background-color: #000; color: #fff; font-weight: bold; text-transform: uppercase; font-size: 7.5px; padding: 5px; border: 1px solid #000; white-space: nowrap; }
@@ -44,7 +44,7 @@
     </div>
 
     {{-- TABEL REKAPITULASI SUMMARY PER UNIT SEKOLAH --}}
-    <div class="section-title">■ REKAPITULASI ALOKASI ANGGARAN BELANJA PER UNIT SEKOLAH</div>
+    <div class="section-title">A. REKAPITULASI ALOKASI ANGGARAN BELANJA PER UNIT SEKOLAH</div>
     <table class="rapby-table">
         <thead>
             <tr>
@@ -82,7 +82,7 @@
 
     {{-- RINCIAN PER UNIT SEKOLAH --}}
     @foreach($schoolExpenseData as $sId => $sData)
-        <div class="section-title">■ RINCIAN BELANJA UNIT: {{ strtoupper($sData['school_name']) }}</div>
+        <div class="section-title">RINCIAN BELANJA UNIT: {{ strtoupper($sData['school_name']) }}</div>
         <table class="rapby-table">
             <thead>
                 <tr>
