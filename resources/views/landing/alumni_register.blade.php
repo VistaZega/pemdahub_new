@@ -113,55 +113,75 @@
                     </div>
                 </div>
 
-                <!-- Invitation Banner -->
-                <div class="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-lg mb-6 border border-indigo-800/80">
+                <!-- Invitation & Detailed Information Banner -->
+                <div class="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl mb-6 border border-indigo-800/80">
                     <span class="inline-block px-3 py-1 bg-amber-400/20 text-amber-300 text-xs font-bold rounded-full mb-3 border border-amber-300/30">
-                        <i class="fas fa-heart text-pink-400 mr-1"></i> AJAKAN BERGABUNG KELUARGA ALUMNI
+                        <i class="fas fa-heart text-pink-400 mr-1"></i> RESMI IKATAN ALUMNI (IKA) PEMBDA
                     </span>
-                    <h2 class="text-xl font-bold text-white mb-2">Mari Terhubung Kembali dengan Almamater Tercinta!</h2>
-                    <p class="text-xs text-indigo-200 leading-relaxed">
-                        Di manapun Anda berada saat ini, Anda adalah bagian tak terpisahkan dari Perguruan Pembda Nias. Mari bergabung di wadah resmi **IKATAN ALUMNI (IKA)** untuk saling menyapa, berbagi manfaat, dan membangun almamater bersama.
+                    <h2 class="text-xl font-bold text-white mb-2 leading-snug">Mari Terhubung Kembali dengan Almamater Tercinta!</h2>
+                    <p class="text-xs text-indigo-200 leading-relaxed mb-4">
+                        Di manapun Anda berdomisili dan berkarya saat ini, Anda adalah bagian tak terpisahkan dari keluarga besar Perguruan Pembda Nias. Portal ini dihadirkan sebagai **rumah digital resmi** untuk menghimpun seluruh alumni dari semua angkatan di seluruh dunia.
                     </p>
+                    <div class="bg-indigo-950/80 p-3.5 rounded-2xl border border-indigo-700/50 text-[11px] text-indigo-100 space-y-1.5">
+                        <div class="flex items-center gap-2 text-amber-300 font-bold mb-1">
+                            <i class="fas fa-shield-alt"></i> Jaminan Kerahasiaan Data:
+                        </div>
+                        <p class="text-[11px] text-indigo-200/90 leading-relaxed">
+                            Data yang Anda daftarkan dijamin aman dan hanya dipergunakan untuk keperluan silaturahmi IKA, pengembangan karir alumni, dan kemajuan almamater Perguruan Pembda Nias.
+                        </p>
+                    </div>
                 </div>
                 
-                <!-- 4 Main Pillars Benefits -->
+                <!-- 4 Main Pillars Detailed Benefits -->
                 <div class="space-y-3 mb-6">
-                    <h3 class="text-xs font-extrabold text-indigo-950 uppercase tracking-wider">Manfaat Utama Bergabung:</h3>
+                    <h3 class="text-xs font-extrabold text-indigo-950 uppercase tracking-wider">Layanan & Fitur yang Anda Dapatkan:</h3>
                     
-                    <div class="flex items-start gap-3 bg-white/80 p-3 rounded-2xl border border-indigo-100 shadow-2xs">
-                        <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                            <i class="fas fa-comments"></i>
+                    <div class="flex items-start gap-3 bg-white/90 p-3.5 rounded-2xl border border-indigo-100 shadow-2xs">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                            <i class="fas fa-comments text-sm"></i>
                         </div>
                         <div>
                             <h4 class="font-bold text-slate-900 text-xs">Ruang Forum & Cuap-cuap Alumni</h4>
-                            <p class="text-[11px] text-slate-600 mt-0.5">Berkomunikasi bebas, bernostalgia, & berdiskusi per angkatan maupun lintas angkatan.</p>
+                            <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">Wadah obrolan santai, bernostalgia masa sekolah, dan berdiskusi per angkatan maupun secara umum.</p>
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-3 bg-white/80 p-3 rounded-2xl border border-amber-100 shadow-2xs">
-                        <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                            <i class="fas fa-briefcase"></i>
+                    <div class="flex items-start gap-3 bg-white/90 p-3.5 rounded-2xl border border-amber-100 shadow-2xs">
+                        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                            <i class="fas fa-briefcase text-sm"></i>
                         </div>
                         <div>
-                            <h4 class="font-bold text-slate-900 text-xs">Info Lapangan Kerja & Karir</h4>
-                            <p class="text-[11px] text-slate-600 mt-0.5">Akses dan bagikan info lowongan pekerjaan, peluang magang, dan jaringan profesional.</p>
+                            <h4 class="font-bold text-slate-900 text-xs">Papan Lowongan Kerja & Karir</h4>
+                            <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">Tempat saling berbagi info lowongan pekerjaan, peluang magang/PKL, dan rujukan profesional sesama alumni.</p>
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-3 bg-white/80 p-3 rounded-2xl border border-rose-100 shadow-2xs">
-                        <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                            <i class="fas fa-hand-holding-heart"></i>
+                    <div class="flex items-start gap-3 bg-white/90 p-3.5 rounded-2xl border border-rose-100 shadow-2xs">
+                        <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                            <i class="fas fa-hand-holding-heart text-sm"></i>
                         </div>
                         <div>
-                            <h4 class="font-bold text-slate-900 text-xs">Wadah Kontribusi & Rekening Yayasan</h4>
-                            <p class="text-[11px] text-slate-600 mt-0.5">Dukung sarana sekolah, beasiswa siswa, & donasi melalui rekening resmi yayasan.</p>
+                            <h4 class="font-bold text-slate-900 text-xs">Wadah Kontribusi & Rekening Resmi Yayasan</h4>
+                            <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">Informasi transparan saluran donasi pendidikan, beasiswa siswa, & sarana sekolah langsung ke rekening resmi yayasan.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 bg-white/90 p-3.5 rounded-2xl border border-emerald-100 shadow-2xs">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                            <i class="fas fa-chart-line text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-xs">Pendataan Tracer Study Alumni</h4>
+                            <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">Pencatatan jejak karir alumni (bekerja/kuliah/wirausaha) guna mendukung mutu dan akreditasi almamater.</p>
                         </div>
                     </div>
                 </div>
 
-                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 bg-white text-indigo-700 px-6 py-3 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all border border-indigo-100 hover:bg-indigo-50">
-                    <i class="fa-solid fa-right-to-bracket"></i> Sudah Punya Akun? Login di Sini
-                </a>
+                <div class="flex flex-col sm:flex-row items-center gap-3 mb-6">
+                    <a href="{{ route('login') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-indigo-700 px-6 py-3 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all border border-indigo-100 hover:bg-indigo-50">
+                        <i class="fa-solid fa-right-to-bracket"></i> Sudah Punya Akun? Login
+                    </a>
+                </div>
             </div>
 
             <!-- Smart Report Widget -->
