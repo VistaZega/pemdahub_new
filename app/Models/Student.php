@@ -356,11 +356,27 @@ class Student extends Model
      */
     public function syncAlumniRecords(): void
     {
-        $currentClass = $this->currentClassroom()->first();
-        $gradYear = $this->graduation_year ?? now()->year;
+        // 1. Resolve final classroom accurately from pivot history
+        $latestPivot = $this->studentClasses()->with('classroom')->latest('id')->first();
+        $finalClassName = $latestPivot?->classroom?->class_name 
+            ?? $this->currentClassroom()->first()?->class_name;
 
-        // 1. Record in `alumni` table
-        if (!$this->alumniRecord()->exists()) {
+        // 2. Resolve entry_year & graduation_year (SMP/SMA/SMK default 3 years duration)
+        $gradYear = $this->graduation_year ?? now()->year;
+        $entryYear = $this->entry_year;
+
+        if (!$entryYear || $entryYear >= $gradYear || ($gradYear - $entryYear) < 2) {
+            $entryYear = $gradYear - 3;
+            $this->update(['entry_year' => $entryYear]);
+        }
+
+        if (!$this->graduation_year) {
+            $this->update(['graduation_year' => $gradYear]);
+        }
+
+        // 3. Record in `alumni` table
+        $alumniRec = $this->alumniRecord()->first();
+        if (!$alumniRec) {
             Alumni::create([
                 'student_id' => $this->id,
                 'school_id' => $this->school_id,
@@ -372,19 +388,21 @@ class Student extends Model
                 'birth_date' => $this->birth_date,
                 'religion' => $this->religion,
                 'phone' => $this->phone,
-                'entry_year' => $this->entry_year,
+                'entry_year' => $entryYear,
                 'graduation_year' => $gradYear,
-                'final_class' => $currentClass?->class_name,
+                'final_class' => $finalClassName,
                 'moved_at' => now(),
+            ]);
+        } else {
+            $alumniRec->update([
+                'entry_year' => $entryYear,
+                'graduation_year' => $gradYear,
+                'final_class' => $alumniRec->final_class ?: $finalClassName,
             ]);
         }
 
-        if (!$this->graduation_year) {
-            $this->update(['graduation_year' => $gradYear]);
-        }
-
-        // 2. Record in `alumni_profiles` table (for Tracer Study)
-        AlumniProfile::firstOrCreate(
+        // 4. Record in `alumni_profiles` table (for Tracer Study)
+        AlumniProfile::updateOrCreate(
             ['student_id' => $this->id],
             [
                 'school_id' => $this->school_id,
@@ -395,14 +413,14 @@ class Student extends Model
             ]
         );
 
-        // 3. User Role Update
+        // 5. User Role Update
         if ($this->user && $this->user->role === 'siswa') {
             $this->user->update(['role' => 'alumni']);
         }
 
-        // 4. Record in `alumni_directories` table (for IKA PEMBDA Directory)
+        // 6. Record in `alumni_directories` table (for IKA PEMBDA Directory)
         if ($this->user_id) {
-            AlumniDirectory::firstOrCreate(
+            AlumniDirectory::updateOrCreate(
                 ['user_id' => $this->user_id],
                 [
                     'full_name' => $this->full_name,
@@ -412,7 +430,7 @@ class Student extends Model
                     'email' => $this->user?->email,
                     'school_id' => $this->school_id,
                     'graduation_year' => $gradYear,
-                    'last_class' => $currentClass?->class_name,
+                    'last_class' => $finalClassName,
                     'is_approved' => true,
                 ]
             );

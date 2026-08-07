@@ -36,7 +36,23 @@ class SyncAlumniData extends Command
             $count++;
         }
 
-        $this->info("Successfully synchronized {$count} alumni records across all tables.");
+        // Auto-fix standalone records in `alumni` table where entry_year is invalid
+        $standaloneAlumni = \App\Models\Alumni::all();
+        foreach ($standaloneAlumni as $alumni) {
+            $dirty = false;
+            $gradYear = $alumni->graduation_year ?? now()->year;
+
+            if (!$alumni->entry_year || $alumni->entry_year >= $gradYear || ($gradYear - $alumni->entry_year) < 2) {
+                $alumni->entry_year = $gradYear - 3;
+                $dirty = true;
+            }
+
+            if ($dirty) {
+                $alumni->save();
+            }
+        }
+
+        $this->info("Successfully synchronized {$count} alumni records and auto-corrected entry years across all tables.");
         return Command::SUCCESS;
     }
 }
