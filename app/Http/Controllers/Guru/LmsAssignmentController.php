@@ -141,6 +141,7 @@ class LmsAssignmentController extends Controller
             'module_id' => $request->has('module_id') ? $request->module_id : $assignment->module_id,
             'title' => $request->title,
             'description' => $request->description,
+            'assignment_type' => $request->assignment_type ?? $assignment->assignment_type,
             'deadline' => $request->due_date,
             'max_score' => $request->max_score,
             'allow_resubmit' => $request->boolean('allow_resubmit'),

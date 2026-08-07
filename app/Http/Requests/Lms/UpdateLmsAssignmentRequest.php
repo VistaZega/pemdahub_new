@@ -17,6 +17,7 @@ class UpdateLmsAssignmentRequest extends FormRequest
             'module_id' => 'sometimes|required|exists:lms_modules,id',
             'title' => 'required|string|max:200',
             'description' => 'nullable|string',
+            'assignment_type' => 'nullable|in:file,text,file_text,link',
             'due_date' => 'nullable|date',
             'max_score' => 'required|numeric|min:1|max:100',
             'allow_resubmit' => 'sometimes|boolean',

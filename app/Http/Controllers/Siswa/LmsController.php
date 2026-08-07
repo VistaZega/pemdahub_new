@@ -442,6 +442,41 @@ class LmsController extends Controller
             }
         }
 
+        // Strict submission type enforcement based on assignment_type
+        $hasUploadedFile = $request->hasFile('file');
+        $hasExistingFile = $existing && !empty($existing->file_path);
+        $hasFile = $hasUploadedFile || $hasExistingFile;
+        $hasText = $request->filled('submission_text');
+        $aType = $assignment->assignment_type;
+
+        if ($aType === 'file' && !$hasFile) {
+            return redirect()->back()->with('error', 'Pengumpulan tugas ini wajib mengunggah file. Silakan pilih dan unggah berkas jawaban Anda.');
+        }
+
+        if ($aType === 'text' && !$hasText) {
+            return redirect()->back()->with('error', 'Pengumpulan tugas ini wajib mengisi teks jawaban. Silakan ketik jawaban Anda.');
+        }
+
+        if ($aType === 'link' && !$hasText) {
+            return redirect()->back()->with('error', 'Pengumpulan tugas ini wajib memasukkan link URL/teks jawaban. Silakan isi link URL jawaban Anda.');
+        }
+
+        if ($aType === 'file_text') {
+            if (!$hasFile && !$hasText) {
+                return redirect()->back()->with('error', 'Pengumpulan tugas ini wajib mengunggah file dan mengisi teks jawaban.');
+            }
+            if (!$hasFile) {
+                return redirect()->back()->with('error', 'Pengumpulan tugas ini wajib mengunggah file.');
+            }
+            if (!$hasText) {
+                return redirect()->back()->with('error', 'Pengumpulan tugas ini wajib mengisi teks jawaban.');
+            }
+        }
+
+        if (empty($aType) && !$hasFile && !$hasText) {
+            return redirect()->back()->with('error', 'Silakan unggah file atau ketik teks jawaban Anda sebelum mengirim.');
+        }
+
         $filePath = null;
         $fileSize = null;
         if ($request->hasFile('file')) {

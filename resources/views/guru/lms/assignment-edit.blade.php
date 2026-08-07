@@ -44,7 +44,16 @@
                           placeholder="Jelaskan tugas yang harus dikerjakan siswa...">{{ old('description', $assignment->description) }}</textarea>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Pengumpulan <span class="text-red-500">*</span></label>
+                    <select name="assignment_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="file" {{ old('assignment_type', $assignment->assignment_type) === 'file' ? 'selected' : '' }}>Upload File</option>
+                        <option value="text" {{ old('assignment_type', $assignment->assignment_type) === 'text' ? 'selected' : '' }}>Teks</option>
+                        <option value="file_text" {{ old('assignment_type', $assignment->assignment_type) === 'file_text' ? 'selected' : '' }}>File + Teks</option>
+                        <option value="link" {{ old('assignment_type', $assignment->assignment_type) === 'link' ? 'selected' : '' }}>Link URL</option>
+                    </select>
+                </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
                     <input type="datetime-local" name="due_date"

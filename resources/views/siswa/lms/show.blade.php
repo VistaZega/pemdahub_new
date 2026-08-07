@@ -94,6 +94,20 @@ if (!function_exists('balanceHtmlTags')) {
     $availableQuizzes = $course->quizzes->filter(fn($q) => $q->isAvailable())->count();
 @endphp
 <div class="space-y-6" x-data="{ tab: '{{ request('tab', 'modules') }}' }">
+    @if(session('success'))
+    <div class="bg-emerald-50 border-2 border-emerald-500 text-emerald-800 p-4 rounded-2xl flex items-center gap-3 shadow-md">
+        <i class="fas fa-check-circle text-emerald-600 text-xl flex-shrink-0"></i>
+        <div class="font-bold text-sm">{{ session('success') }}</div>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="bg-rose-50 border-2 border-rose-500 text-rose-800 p-4 rounded-2xl flex items-center gap-3 shadow-md">
+        <i class="fas fa-exclamation-triangle text-rose-600 text-xl flex-shrink-0"></i>
+        <div class="font-bold text-sm">{{ session('error') }}</div>
+    </div>
+    @endif
+
     {{-- Active Video Conference Banner --}}
     @if($course->meeting_active)
     <div class="bg-gradient-to-r from-rose-500 via-pink-600 to-rose-600 rounded-2xl shadow-xl p-0.5 overflow-hidden animate-pulse">
@@ -836,18 +850,54 @@ if (!function_exists('balanceHtmlTags')) {
                 </summary>
                 <form action="{{ route('siswa.lms.assignments.submit', $assignment->id) }}" method="POST" enctype="multipart/form-data" class="mt-4 p-5 rounded-2xl space-y-4 border-2 shadow-sm {{ $hasModule ? 'bg-white/15 border-white/10 text-white' : 'bg-blue-50 border-blue-100 text-gray-800' }}">
                     @csrf
-                    @if(in_array($assignment->assignment_type, ['text', 'file_text']))
-                    <textarea name="submission_text" rows="4" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-4 focus:ring-blue-500/20 outline-none text-gray-800 math-support" placeholder="Ketik jawaban Anda di sini..."></textarea>
-                    @endif
-                    @if(in_array($assignment->assignment_type, ['file', 'file_text']))
-                    <div class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:bg-gray-50 transition-colors">
-                        <input type="file" name="file" class="w-full text-sm cursor-pointer {{ $hasModule ? 'text-white/80 file:bg-white/20 file:text-white hover:file:bg-white/30' : 'text-gray-600 file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 file:px-4 file:py-2 file:border-none file:rounded-lg file:font-bold file:mr-4' }}">
-                        <p class="text-[10px] text-gray-400 mt-2 font-medium">Format: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG. Maks 5MB.</p>
+                    @php
+                        $aType = $assignment->assignment_type ?? 'file_text';
+                    @endphp
+                    <div class="p-3.5 rounded-xl text-xs font-bold flex items-center gap-2 border shadow-sm {{ $hasModule ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-blue-200 text-blue-900' }}">
+                        <i class="fas fa-info-circle text-base text-amber-400"></i>
+                        <span>Ketentuan Pengumpulan: 
+                            @if($aType === 'file')
+                                <strong class="underline decoration-rose-400">Wajib Unggah File</strong>
+                            @elseif($aType === 'text')
+                                <strong class="underline decoration-rose-400">Wajib Mengisi Teks Jawaban</strong>
+                            @elseif($aType === 'link')
+                                <strong class="underline decoration-rose-400">Wajib Memasukkan Link URL / Teks</strong>
+                            @else
+                                <strong class="underline decoration-rose-400">Wajib Upload File DAN Mengisi Teks Jawaban</strong>
+                            @endif
+                        </span>
+                    </div>
+
+                    @if(in_array($aType, ['text', 'file_text']))
+                    <div>
+                        <label class="block text-xs font-bold mb-1 {{ $hasModule ? 'text-white' : 'text-gray-700' }}">
+                            Teks Jawaban @if(in_array($aType, ['text', 'file_text'])) <span class="text-rose-500 font-extrabold">* (Wajib)</span> @endif
+                        </label>
+                        <textarea name="submission_text" rows="4" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-4 focus:ring-blue-500/20 outline-none text-gray-800 math-support" placeholder="Ketik jawaban Anda di sini..." {{ in_array($aType, ['text', 'file_text']) ? 'required' : '' }}></textarea>
                     </div>
                     @endif
-                    @if($assignment->assignment_type === 'link')
-                    <input type="url" name="submission_text" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-4 focus:ring-blue-500/20 outline-none text-gray-800" placeholder="Paste link / URL di sini...">
+
+                    @if(in_array($aType, ['file', 'file_text']))
+                    <div>
+                        <label class="block text-xs font-bold mb-1 {{ $hasModule ? 'text-white' : 'text-gray-700' }}">
+                            Berkas File @if(in_array($aType, ['file', 'file_text']) && !($sub && $sub->file_path)) <span class="text-rose-500 font-extrabold">* (Wajib)</span> @endif
+                        </label>
+                        <div class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:bg-gray-50 transition-colors">
+                            <input type="file" name="file" class="w-full text-sm cursor-pointer {{ $hasModule ? 'text-white/80 file:bg-white/20 file:text-white hover:file:bg-white/30' : 'text-gray-600 file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 file:px-4 file:py-2 file:border-none file:rounded-lg file:font-bold file:mr-4' }}" {{ (in_array($aType, ['file', 'file_text']) && !($sub && $sub->file_path)) ? 'required' : '' }}>
+                            <p class="text-[10px] text-gray-400 mt-2 font-medium">Format: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG. Maks 5MB.</p>
+                        </div>
+                    </div>
                     @endif
+
+                    @if($aType === 'link')
+                    <div>
+                        <label class="block text-xs font-bold mb-1 {{ $hasModule ? 'text-white' : 'text-gray-700' }}">
+                            Link URL Jawaban <span class="text-rose-500 font-extrabold">* (Wajib)</span>
+                        </label>
+                        <input type="url" name="submission_text" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-4 focus:ring-blue-500/20 outline-none text-gray-800" placeholder="https://..." required>
+                    </div>
+                    @endif
+
                     <button type="submit" class="w-full py-3.5 rounded-xl text-base font-extrabold uppercase tracking-widest transition-all shadow-md {{ $hasModule ? 'bg-white text-' . $qModColor . '-700 hover:bg-gray-50' : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg' }}">
                         <i class="fas fa-paper-plane mr-2 text-lg"></i> Kirim Jawaban
                     </button>
