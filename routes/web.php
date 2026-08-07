@@ -960,6 +960,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/chat', [App\Http\Controllers\AlumniMessageController::class, 'index'])->name('chat.index');
         Route::get('/chat/{contact}', [App\Http\Controllers\AlumniMessageController::class, 'show'])->name('chat.show');
         Route::post('/chat/{contact}', [App\Http\Controllers\AlumniMessageController::class, 'store'])->name('chat.store');
+
+        // Kontribusi Alumni & Rekening Yayasan
+        Route::get('/kontribusi', [App\Http\Controllers\AlumniController::class, 'kontribusi'])->name('kontribusi');
     });
 
     // Reputation & Hall of Fame

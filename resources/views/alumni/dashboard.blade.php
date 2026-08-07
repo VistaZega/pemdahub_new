@@ -77,18 +77,18 @@
                     </div>
                 </a>
                 
-                <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition group relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-emerald-50 rounded-full group-hover:scale-150 transition duration-500 ease-in-out"></div>
+                <a href="{{ route('alumni.kontribusi') }}" class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition group relative overflow-hidden block">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-rose-50 rounded-full group-hover:scale-150 transition duration-500 ease-in-out"></div>
                     <div class="relative z-10 flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                        <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
                             <i class="fas fa-hand-holding-heart text-xl"></i>
                         </div>
                         <div>
-                            <h4 class="font-bold text-gray-900 mb-1">Kontribusi Nyata</h4>
-                            <p class="text-xs text-gray-500 leading-relaxed">Berikan kritik & saran pembangunan sekolah melalui form Tracer, atau buka lowongan kerja untuk adik kelas.</p>
+                            <h4 class="font-bold text-gray-900 mb-1">Kontribusi & Rekening Yayasan</h4>
+                            <p class="text-xs text-gray-500 leading-relaxed">Dukung pengembangan almamater melalui donasi pendidikan, rekening resmi yayasan, atau hibah peralatan.</p>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <!-- Job Board Widget -->

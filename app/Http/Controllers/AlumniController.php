@@ -104,6 +104,12 @@ class AlumniController extends Controller
         return redirect()->route('alumni.tracer.form')->with('success', 'Data Tracer Study berhasil diperbarui.');
     }
 
+    public function kontribusi()
+    {
+        $alumni = $this->getAlumni();
+        return view('alumni.kontribusi', compact('alumni'));
+    }
+
     public function jobsIndex()
     {
         $jobs = JobPosting::where('is_active', true)->latest()->get();

@@ -20,11 +20,12 @@ class AlumniForum extends Model
     ];
 
     public const CATEGORIES = [
-        'kenangan' => '🕰️ Kenangan Masa Lalu',
-        'ide_kreatif' => '💡 Ide Kreatif',
-        'bisnis' => '💼 Bisnis',
-        'lowongan' => '📢 Lowongan Kerja',
-        'acara' => '🎉 Buat Acara',
+        'umum' => '💬 Cuap-cuap & Ruang Umum',
+        'angkatan' => '🎓 Diskusi Per Angkatan',
+        'ide_kreatif' => '💡 Ide & Gagasan Alumni',
+        'kontribusi' => '🤝 Kontribusi & Alumni Care',
+        'lowongan' => '📢 Lapangan Kerja & Karir',
+        'kenangan' => '🕰️ Kenangan & Nostalgia',
     ];
 
     public function user()

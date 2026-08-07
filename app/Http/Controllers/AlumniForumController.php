@@ -8,14 +8,24 @@ use Illuminate\Http\Request;
 
 class AlumniForumController extends Controller
 {
-    public function index(Request $request)
+    private function resolveSchoolId(): int
     {
         $user = auth()->user();
-        $schoolId = $user->alumniDirectory->school_id ?? null;
+        $schoolId = $user->school_id 
+            ?? $user->alumniDirectory?->school_id 
+            ?? $user->student?->school_id 
+            ?? $user->alumniProfile?->school_id;
 
         if (!$schoolId) {
-            abort(403, 'Akses ditolak. Anda belum melengkapi data sekolah.');
+            $schoolId = \App\Models\School::where('type', '!=', 'yayasan')->first()?->id ?? 1;
         }
+
+        return $schoolId;
+    }
+
+    public function index(Request $request)
+    {
+        $schoolId = $this->resolveSchoolId();
 
         $category = $request->get('category');
         $search = $request->get('search');
@@ -56,11 +66,7 @@ class AlumniForumController extends Controller
         ]);
 
         $user = auth()->user();
-        $schoolId = $user->alumniDirectory->school_id ?? null;
-
-        if (!$schoolId) {
-            abort(403, 'Akses ditolak.');
-        }
+        $schoolId = $this->resolveSchoolId();
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -76,18 +82,11 @@ class AlumniForumController extends Controller
             'image_path' => $imagePath,
         ]);
 
-        return redirect()->route('alumni.forum.index')->with('success', 'Topik berhasil dibuat!');
+        return redirect()->route('alumni.forum.index')->with('success', 'Topik diskusi berhasil diterbitkan!');
     }
 
     public function show(AlumniForum $forum)
     {
-        $user = auth()->user();
-        $schoolId = $user->alumniDirectory->school_id ?? null;
-
-        if ($forum->school_id !== $schoolId) {
-            abort(403, 'Akses ditolak. Ini forum dari unit sekolah lain.');
-        }
-
         $forum->increment('views_count');
         $forum->load(['user', 'replies.user']);
 
@@ -98,19 +97,12 @@ class AlumniForumController extends Controller
     {
         $request->validate(['content' => 'required']);
 
-        $user = auth()->user();
-        $schoolId = $user->alumniDirectory->school_id ?? null;
-
-        if ($forum->school_id !== $schoolId) {
-            abort(403, 'Akses ditolak.');
-        }
-
         AlumniForumReply::create([
             'alumni_forum_id' => $forum->id,
-            'user_id' => $user->id,
+            'user_id' => auth()->id(),
             'content' => $request->content,
         ]);
 
-        return back()->with('success', 'Balasan berhasil dikirim!');
+        return back()->with('success', 'Tanggapan berhasil dikirim!');
     }
 }
