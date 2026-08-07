@@ -265,6 +265,16 @@ async function connectScanner() {
         return;
     }
     try {
+        // Lepas port lama jika ada
+        if (port) {
+            try {
+                readLoopRunning = false;
+                if (reader) { await reader.cancel(); reader = null; }
+                await port.close();
+            } catch (e) {}
+            port = null;
+        }
+
         port = await navigator.serial.requestPort();
         await port.open({ baudRate: 115200 });
 
@@ -287,6 +297,7 @@ async function disconnectScanner() {
         if (reader) { await reader.cancel(); reader = null; }
         if (port) { await port.close(); port = null; }
     } catch(e) {}
+    port = null;
     setStatus('disconnected', 'Koneksi Diputus');
     document.getElementById('btn-connect').classList.remove('hidden');
     document.getElementById('btn-disconnect').classList.add('hidden');
