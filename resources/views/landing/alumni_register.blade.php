@@ -112,20 +112,62 @@
                         <p class="text-sm text-gold font-bold uppercase tracking-widest mt-1">Yayasan Perguruan PEMBDA Nias</p>
                     </div>
                 </div>
+
+                <!-- Invitation Banner -->
+                <div class="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-lg mb-6 border border-indigo-800/80">
+                    <span class="inline-block px-3 py-1 bg-amber-400/20 text-amber-300 text-xs font-bold rounded-full mb-3 border border-amber-300/30">
+                        <i class="fas fa-heart text-pink-400 mr-1"></i> AJAKAN BERGABUNG KELUARGA ALUMNI
+                    </span>
+                    <h2 class="text-xl font-bold text-white mb-2">Mari Terhubung Kembali dengan Almamater Tercinta!</h2>
+                    <p class="text-xs text-indigo-200 leading-relaxed">
+                        Di manapun Anda berada saat ini, Anda adalah bagian tak terpisahkan dari Perguruan Pembda Nias. Mari bergabung di wadah resmi **IKATAN ALUMNI (IKA)** untuk saling menyapa, berbagi manfaat, dan membangun almamater bersama.
+                    </p>
+                </div>
                 
-                <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-6">
-                    Mari berembuk, berbagi cerita perjalanan hidup Anda, memberikan masukan, serta motivasi bagi adik-adik dan almamater tercinta. Daftarkan diri Anda dan bergabunglah di <strong class="text-indigo-900">Pembda Space</strong>.
-                </p>
-                
+                <!-- 4 Main Pillars Benefits -->
+                <div class="space-y-3 mb-6">
+                    <h3 class="text-xs font-extrabold text-indigo-950 uppercase tracking-wider">Manfaat Utama Bergabung:</h3>
+                    
+                    <div class="flex items-start gap-3 bg-white/80 p-3 rounded-2xl border border-indigo-100 shadow-2xs">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-xs">Ruang Forum & Cuap-cuap Alumni</h4>
+                            <p class="text-[11px] text-slate-600 mt-0.5">Berkomunikasi bebas, bernostalgia, & berdiskusi per angkatan maupun lintas angkatan.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 bg-white/80 p-3 rounded-2xl border border-amber-100 shadow-2xs">
+                        <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-xs">Info Lapangan Kerja & Karir</h4>
+                            <p class="text-[11px] text-slate-600 mt-0.5">Akses dan bagikan info lowongan pekerjaan, peluang magang, dan jaringan profesional.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 bg-white/80 p-3 rounded-2xl border border-rose-100 shadow-2xs">
+                        <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                            <i class="fas fa-hand-holding-heart"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-xs">Wadah Kontribusi & Rekening Yayasan</h4>
+                            <p class="text-[11px] text-slate-600 mt-0.5">Dukung sarana sekolah, beasiswa siswa, & donasi melalui rekening resmi yayasan.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <a href="{{ route('login') }}" class="inline-flex items-center gap-2 bg-white text-indigo-700 px-6 py-3 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all border border-indigo-100 hover:bg-indigo-50">
-                    <i class="fa-solid fa-right-to-bracket"></i> Sudah Punya Akun? Login
+                    <i class="fa-solid fa-right-to-bracket"></i> Sudah Punya Akun? Login di Sini
                 </a>
             </div>
 
             <!-- Smart Report Widget -->
             <div class="bg-gradient-to-r from-indigo-50 to-white border border-indigo-100 rounded-2xl p-5 shadow-sm mb-8 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl"></div>
-                <h3 class="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-4"><i class="fas fa-chart-pie mr-1 text-indigo-500"></i> Statistik Alumni</h3>
+                <h3 class="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-4"><i class="fas fa-chart-pie mr-1 text-indigo-500"></i> Statistik Alumni Terdata</h3>
                 <div class="grid grid-cols-3 gap-3">
                     <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 text-center">
                         <span class="block text-[10px] font-bold text-slate-500 mb-1">Total Terdata</span>
@@ -209,9 +251,29 @@
                     </div>
                 @endif
 
-                <div class="mb-8 border-b border-indigo-100 pb-4 relative z-10">
-                    <h2 class="text-2xl font-bold text-indigo-900">Formulir Pendaftaran</h2>
-                    <p class="text-sm text-slate-500 mt-1">Lengkapi data di bawah ini untuk membuat Akun Portal Alumni Anda.</p>
+                <!-- Step-by-Step Guide Header -->
+                <div class="mb-6 bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white p-6 rounded-2xl shadow-sm relative z-10 border border-indigo-800">
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-2 mb-1">
+                        <i class="fas fa-user-plus text-amber-400"></i> Formulir Pendaftaran Akun Alumni
+                    </h2>
+                    <p class="text-xs text-indigo-200 leading-relaxed mb-4">
+                        Isi formulir di bawah ini. Akun Anda akan **langsung aktif secara otomatis** setelah pendaftaran selesai!
+                    </p>
+                    
+                    <div class="grid grid-cols-3 gap-2 pt-2 border-t border-indigo-800/80 text-[11px]">
+                        <div class="flex items-center gap-1.5 text-indigo-200 font-medium">
+                            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 font-extrabold flex items-center justify-center text-[10px]">1</span>
+                            <span>Isi Form Data</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-indigo-200 font-medium">
+                            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 font-extrabold flex items-center justify-center text-[10px]">2</span>
+                            <span>Terima Akun</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-indigo-200 font-medium">
+                            <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 font-extrabold flex items-center justify-center text-[10px]">3</span>
+                            <span>Langsung Login</span>
+                        </div>
+                    </div>
                 </div>
 
                 <form action="{{ route('ika.register.submit') }}" method="POST" enctype="multipart/form-data" class="space-y-8 relative z-10">
