@@ -18,7 +18,6 @@
     }
     .fade-up {
         animation: fadeUp 0.5s ease-out forwards;
-        opacity: 0;
     }
     .gradient-text {
         background: linear-gradient(135deg, #3b82f6, #6366f1);
