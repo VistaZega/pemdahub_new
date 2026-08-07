@@ -184,7 +184,7 @@
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-[9998] hidden lg:hidden"></div>
 
     <!-- ═══════ HEADER ═══════ -->
-    <header class="bg-gradient-to-r {{ $t['header'] }} text-white shadow-lg fixed top-0 w-full z-40">
+    <header class="bg-gradient-to-r {{ $t['header'] }} text-white shadow-lg fixed top-0 w-full z-40" style="background-color: #1e1b4b;">
         <div class="flex items-center justify-between px-4 lg:px-6 h-[62px]">
             <div class="flex items-center gap-3">
                 <button id="sidebar-toggle" type="button" style="touch-action: manipulation;" class="hamburger flex flex-col justify-center items-center gap-[5px] p-2 rounded-lg hover:bg-white/10 transition is-active" aria-label="Toggle sidebar">
@@ -305,9 +305,9 @@
                         @endif
                     @endif
 
-                    <div class="hidden md:flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg text-sm">
-                        <img src="{{ auth()->user()->photo_url }}" class="w-6 h-6 rounded-full object-cover border border-white/20 flex-shrink-0" alt="Avatar">
-                        <span class="font-medium">{{ auth()->user()->name ?? 'User' }}</span>
+                    <div class="hidden md:flex items-center gap-2 bg-black/25 px-3 py-1.5 rounded-xl text-sm border border-white/10 shadow-xs">
+                        <img src="{{ auth()->user()->photo_url }}" class="w-7 h-7 rounded-full object-cover border-2 border-amber-400 flex-shrink-0" alt="Avatar">
+                        <span class="font-black text-amber-300 text-xs tracking-tight">{{ auth()->user()->name ?? 'User' }}</span>
                         @if(auth()->user()->school)
                             <span class="text-white/50">·</span>
                             <span class="text-white/70 text-xs">{{ auth()->user()->school->name }}</span>
