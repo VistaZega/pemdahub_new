@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         if (Schema::hasTable('lms_submissions')) {
             DB::statement("ALTER TABLE `lms_submissions` MODIFY COLUMN `status` VARCHAR(50) NOT NULL DEFAULT 'draft'");
         }
