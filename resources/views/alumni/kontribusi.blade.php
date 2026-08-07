@@ -58,7 +58,29 @@
 
                     <!-- Bank Account Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Account 1 -->
+                        <!-- Account 1: Official Bank Mandiri from PembdaHUB -->
+                        <div class="md:col-span-2 bg-gradient-to-r from-blue-900 to-indigo-950 rounded-2xl p-6 border-2 border-slate-900 text-white shadow-md relative overflow-hidden group">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="px-3.5 py-1.5 bg-amber-400 text-slate-900 font-black text-xs rounded-xl border border-black shadow-xs">
+                                    <i class="fas fa-university mr-1"></i> REKENING UTAMA — BANK MANDIRI
+                                </span>
+                                <span class="text-[10px] bg-emerald-400 text-slate-900 font-black px-2.5 py-1 rounded-full border border-black">UTAMA / TERVERIFIKASI</span>
+                            </div>
+                            <p class="text-xs text-indigo-200 font-extrabold uppercase tracking-wider">Atas Nama Rekening Resmi Yayasan:</p>
+                            <p class="font-black text-white text-base mb-3">PENGURUS YAYASAN PERGURUAN PEMBDA NIAS</p>
+                            
+                            <div class="flex items-center justify-between bg-white/15 backdrop-blur-md p-4 rounded-xl border-2 border-white/30">
+                                <div>
+                                    <span class="text-[10px] text-amber-300 font-bold block uppercase">Nomor Rekening Mandiri:</span>
+                                    <span class="font-mono font-black text-amber-300 text-xl tracking-widest" id="rekMandiri">1070010418269</span>
+                                </div>
+                                <button onclick="copyToClipboard('1070010418269', 'btnMandiri')" id="btnMandiri" class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-slate-900 font-black text-xs rounded-xl transition border border-black shadow-md flex items-center gap-1.5">
+                                    <i class="far fa-copy"></i> Salin No. Rekening
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Account 2: Bank Sumut -->
                         <div class="bg-slate-50 rounded-2xl p-5 border-2 border-slate-900 hover:border-indigo-600 transition relative group shadow-sm">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="px-3 py-1 bg-blue-700 text-white font-black text-xs rounded-lg border border-black">BANK SUMUT</span>
@@ -68,14 +90,14 @@
                             <p class="font-black text-slate-900 text-sm mb-3">YAYASAN PERGURUAN PEMBDA NIAS</p>
                             
                             <div class="flex items-center justify-between bg-white p-3 rounded-xl border-2 border-slate-900">
-                                <span class="font-mono font-black text-indigo-950 text-lg tracking-wider" id="rek1">100.02.04.012345-6</span>
-                                <button onclick="copyToClipboard('100.02.04.012345-6', 'btn1')" id="btn1" class="px-3.5 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-black text-xs rounded-lg transition border border-black shadow-sm">
+                                <span class="font-mono font-black text-indigo-950 text-base tracking-wider" id="rek1">100.02.04.012345-6</span>
+                                <button onclick="copyToClipboard('100.02.04.012345-6', 'btn1')" id="btn1" class="px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-black text-xs rounded-lg transition border border-black shadow-sm">
                                     <i class="far fa-copy mr-1"></i> Salin
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Account 2 -->
+                        <!-- Account 3: Bank BRI -->
                         <div class="bg-slate-50 rounded-2xl p-5 border-2 border-slate-900 hover:border-indigo-600 transition relative group shadow-sm">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="px-3 py-1 bg-blue-900 text-white font-black text-xs rounded-lg border border-black">BANK BRI</span>
@@ -85,8 +107,8 @@
                             <p class="font-black text-slate-900 text-sm mb-3">YAYASAN PERGURUAN PEMBDA NIAS</p>
                             
                             <div class="flex items-center justify-between bg-white p-3 rounded-xl border-2 border-slate-900">
-                                <span class="font-mono font-black text-indigo-950 text-lg tracking-wider" id="rek2">0054-01-002345-53-8</span>
-                                <button onclick="copyToClipboard('0054-01-002345-53-8', 'btn2')" id="btn2" class="px-3.5 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-black text-xs rounded-lg transition border border-black shadow-sm">
+                                <span class="font-mono font-black text-indigo-950 text-base tracking-wider" id="rek2">0054-01-002345-53-8</span>
+                                <button onclick="copyToClipboard('0054-01-002345-53-8', 'btn2')" id="btn2" class="px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-black text-xs rounded-lg transition border border-black shadow-sm">
                                     <i class="far fa-copy mr-1"></i> Salin
                                 </button>
                             </div>
