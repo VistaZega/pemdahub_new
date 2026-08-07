@@ -5,14 +5,27 @@
 <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Direktori Ikatan Alumni</h1>
-            <p class="text-sm text-gray-500 mt-1">Kelola data alumni yang mendaftar melalui portal IKA PEMBDA</p>
+            <h1 class="text-2xl font-bold text-gray-900">Direktori Ikatan Alumni (IKA)</h1>
+            <p class="text-sm text-gray-500 mt-1">Kelola data direktori alumni publik dan sinkronisasi lulusan sekolah</p>
         </div>
         <div>
-            <a href="{{ route('admin.alumni-directory.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium">
+            <a href="{{ route('admin.alumni-directory.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium text-sm shadow-sm">
                 <i class="fas fa-plus"></i> Tambah Data Alumni
             </a>
         </div>
+    </div>
+
+    <!-- Navigation & Quick Links -->
+    <div class="flex items-center gap-2 border-b border-gray-200 pb-3">
+        <a href="{{ route('admin.alumni.index') }}" class="px-4 py-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 font-medium rounded-xl text-sm transition">
+            <i class="fas fa-list mr-1"></i> Data Alumni Sistem
+        </a>
+        <a href="{{ route('admin.alumni-directory.index') }}" class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-xl text-sm shadow-sm">
+            <i class="fas fa-address-book mr-1"></i> Direktori Alumni (IKA)
+        </a>
+        <a href="{{ route('admin.pkl-alumni.tracer.index') }}" class="px-4 py-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 font-medium rounded-xl text-sm transition">
+            <i class="fas fa-chart-line mr-1"></i> Tracer Study (BMW)
+        </a>
     </div>
 
     @if(session('success'))

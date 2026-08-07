@@ -13,6 +13,19 @@
         </div>
     </div>
 
+    <!-- Navigation & Quick Links -->
+    <div class="flex items-center gap-2 border-b border-gray-200 pb-3">
+        <a href="{{ route('admin.alumni.index') }}" class="px-4 py-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 font-medium rounded-xl text-sm transition">
+            <i class="fas fa-list mr-1"></i> Data Alumni Sistem
+        </a>
+        <a href="{{ route('admin.alumni-directory.index') }}" class="px-4 py-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 font-medium rounded-xl text-sm transition">
+            <i class="fas fa-address-book mr-1"></i> Direktori Alumni (IKA)
+        </a>
+        <a href="{{ route('admin.pkl-alumni.tracer.index') }}" class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-xl text-sm shadow-sm">
+            <i class="fas fa-chart-line mr-1"></i> Tracer Study (BMW)
+        </a>
+    </div>
+
     {{-- Filter & Search Card --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
         <form action="{{ route('admin.pkl-alumni.tracer.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">

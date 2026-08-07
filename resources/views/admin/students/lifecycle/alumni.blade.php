@@ -17,6 +17,19 @@
         </div>
     </div>
 
+    <!-- Navigation & Quick Links -->
+    <div class="flex items-center gap-2 border-b border-gray-200 pb-3">
+        <a href="{{ route('admin.alumni.index') }}" class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-xl text-sm shadow-sm">
+            <i class="fas fa-list mr-1"></i> Data Alumni Sistem
+        </a>
+        <a href="{{ route('admin.alumni-directory.index') }}" class="px-4 py-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 font-medium rounded-xl text-sm transition">
+            <i class="fas fa-address-book mr-1"></i> Direktori Alumni (IKA)
+        </a>
+        <a href="{{ route('admin.pkl-alumni.tracer.index') }}" class="px-4 py-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 font-medium rounded-xl text-sm transition">
+            <i class="fas fa-chart-line mr-1"></i> Tracer Study (BMW)
+        </a>
+    </div>
+
     <!-- Filter -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -34,9 +47,12 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Sekolah</label>
-                <input type="text" name="school_id" value="{{ request('school_id') }}"
-                       class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm"
-                       placeholder="ID Sekolah">
+                <select name="school_id" class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm">
+                    <option value="">Semua Sekolah</option>
+                    @foreach($schools as $sch)
+                        <option value="{{ $sch->id }}" {{ request('school_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name }}</option>
+                    @endforeach
+                </select>
             </div>
             <div class="flex items-end">
                 <button type="submit" class="w-full px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium shadow-sm">

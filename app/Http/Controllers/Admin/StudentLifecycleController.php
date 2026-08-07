@@ -162,7 +162,8 @@ class StudentLifecycleController extends Controller
         }
 
         $alumni = $query->orderByDesc('graduation_year')->paginate(20)->withQueryString();
+        $schools = \App\Models\School::where('type', '!=', 'yayasan')->orderBy('name')->get();
 
-        return view('admin.students.lifecycle.alumni', compact('alumni'));
+        return view('admin.students.lifecycle.alumni', compact('alumni', 'schools'));
     }
 }

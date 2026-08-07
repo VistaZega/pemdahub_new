@@ -344,34 +344,79 @@ class Student extends Model
     }
 
     /**
-     * Auto-create alumni record when student graduates.
+     * Auto-create and sync alumni records across all tables when student graduates.
      */
-    protected function createAlumniRecordIfNeeded(): void
+    public function createAlumniRecordIfNeeded(): void
     {
-        if ($this->alumniRecord()->exists()) {
-            return;
+        $this->syncAlumniRecords();
+    }
+
+    /**
+     * Synchronize all alumni representations for this student.
+     */
+    public function syncAlumniRecords(): void
+    {
+        $currentClass = $this->currentClassroom()->first();
+        $gradYear = $this->graduation_year ?? now()->year;
+
+        // 1. Record in `alumni` table
+        if (!$this->alumniRecord()->exists()) {
+            Alumni::create([
+                'student_id' => $this->id,
+                'school_id' => $this->school_id,
+                'nisn' => $this->nisn,
+                'nis' => $this->nis,
+                'full_name' => $this->full_name,
+                'gender' => $this->gender,
+                'birth_place' => $this->birth_place,
+                'birth_date' => $this->birth_date,
+                'religion' => $this->religion,
+                'phone' => $this->phone,
+                'entry_year' => $this->entry_year,
+                'graduation_year' => $gradYear,
+                'final_class' => $currentClass?->class_name,
+                'moved_at' => now(),
+            ]);
         }
 
-        $currentClass = $this->currentClassroom()->first();
+        if (!$this->graduation_year) {
+            $this->update(['graduation_year' => $gradYear]);
+        }
 
-        Alumni::create([
-            'student_id' => $this->id,
-            'school_id' => $this->school_id,
-            'nisn' => $this->nisn,
-            'nis' => $this->nis,
-            'full_name' => $this->full_name,
-            'gender' => $this->gender,
-            'birth_place' => $this->birth_place,
-            'birth_date' => $this->birth_date,
-            'religion' => $this->religion,
-            'phone' => $this->phone,
-            'entry_year' => $this->entry_year,
-            'graduation_year' => now()->year,
-            'final_class' => $currentClass?->class_name,
-            'moved_at' => now(),
-        ]);
+        // 2. Record in `alumni_profiles` table (for Tracer Study)
+        AlumniProfile::firstOrCreate(
+            ['student_id' => $this->id],
+            [
+                'school_id' => $this->school_id,
+                'full_name' => $this->full_name,
+                'graduation_year' => $gradYear,
+                'phone' => $this->phone,
+                'email' => $this->user?->email,
+            ]
+        );
 
-        $this->update(['graduation_year' => now()->year]);
+        // 3. User Role Update
+        if ($this->user && $this->user->role === 'siswa') {
+            $this->user->update(['role' => 'alumni']);
+        }
+
+        // 4. Record in `alumni_directories` table (for IKA PEMBDA Directory)
+        if ($this->user_id) {
+            AlumniDirectory::firstOrCreate(
+                ['user_id' => $this->user_id],
+                [
+                    'full_name' => $this->full_name,
+                    'gender' => $this->gender ?? 'L',
+                    'address' => $this->address ?? '-',
+                    'phone' => $this->phone,
+                    'email' => $this->user?->email,
+                    'school_id' => $this->school_id,
+                    'graduation_year' => $gradYear,
+                    'last_class' => $currentClass?->class_name,
+                    'is_approved' => true,
+                ]
+            );
+        }
     }
 
     /**

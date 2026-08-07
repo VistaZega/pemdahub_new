@@ -1236,6 +1236,11 @@ Route::get('/run-migrations', function () {
             echo "❌ No Admin/Superadmin user found to associate as creator.<br>\n";
         }
 
+        echo "<h1>=== SYNCING ALUMNI DATA ACROSS ALL TABLES ===</h1>\n";
+        $alumniSyncExitCode = \Illuminate\Support\Facades\Artisan::call('alumni:sync');
+        echo \Illuminate\Support\Facades\Artisan::output();
+        echo "\nAlumni Sync Exit Code: " . $alumniSyncExitCode . "\n\n";
+
         echo "<b><h2 style='color:#0f0;'>✅ MIGRATION AND SYNC COMPLETED SUCCESSFULLY!</h2></b>\n";
     } catch (\Exception $e) {
         echo "<b style='color:#f00;'>ERROR: " . $e->getMessage() . "</b>\n";
