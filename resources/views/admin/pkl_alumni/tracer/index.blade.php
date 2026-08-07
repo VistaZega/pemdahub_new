@@ -84,7 +84,9 @@
             <div>
                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Cari Nama Alumni</label>
                 <div class="relative">
-                    <i class="fas fa-search absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <i class="fas fa-search text-sm"></i>
+                    </div>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama alumni..." class="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition shadow-sm">
                 </div>
             </div>
@@ -104,7 +106,9 @@
             <div>
                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tahun Lulus</label>
                 <div class="relative">
-                    <i class="fas fa-calendar-alt absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <i class="fas fa-calendar-alt text-sm"></i>
+                    </div>
                     <input type="number" name="graduation_year" value="{{ request('graduation_year') }}" placeholder="Contoh: 2026" class="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition shadow-sm">
                 </div>
             </div>
