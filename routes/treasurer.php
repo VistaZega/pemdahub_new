@@ -50,4 +50,12 @@ Route::prefix('bendahara')->name('treasurer.')->middleware('auth', 'treasurer')-
         Route::get('/slip-search', [App\Http\Controllers\Treasurer\PayrollController::class, 'slipSearch'])->name('slip-search');
         Route::get('/settings', [App\Http\Controllers\Treasurer\PayrollController::class, 'settings'])->name('settings');
     });
+
+    // Operational Expenses (Bendahara)
+    Route::prefix('operational-expenses')->name('operational-expenses.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Treasurer\OperationalExpenseController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Treasurer\OperationalExpenseController::class, 'store'])->name('store');
+        Route::put('/{operationalExpense}', [App\Http\Controllers\Treasurer\OperationalExpenseController::class, 'update'])->name('update');
+        Route::delete('/{operationalExpense}', [App\Http\Controllers\Treasurer\OperationalExpenseController::class, 'destroy'])->name('destroy');
+    });
 });

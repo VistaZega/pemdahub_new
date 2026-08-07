@@ -356,6 +356,17 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::put('/settings', [App\Http\Controllers\Admin\PayrollController::class, 'updateSettings'])->name('settings.update');
     });
 
+    // Operational Expenses (Pengeluaran Operasional Non-SDM)
+    Route::prefix('operational-expenses')->name('operational-expenses.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\OperationalExpenseController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Admin\OperationalExpenseController::class, 'store'])->name('store');
+        Route::put('/{operationalExpense}', [App\Http\Controllers\Admin\OperationalExpenseController::class, 'update'])->name('update');
+        Route::delete('/{operationalExpense}', [App\Http\Controllers\Admin\OperationalExpenseController::class, 'destroy'])->name('destroy');
+        Route::post('/categories', [App\Http\Controllers\Admin\OperationalExpenseController::class, 'storeCategory'])->name('categories.store');
+        Route::put('/categories/{category}', [App\Http\Controllers\Admin\OperationalExpenseController::class, 'updateCategory'])->name('categories.update');
+        Route::delete('/categories/{category}', [App\Http\Controllers\Admin\OperationalExpenseController::class, 'destroyCategory'])->name('categories.destroy');
+    });
+
     // CBT Management (Admin)
     Route::prefix('cbt')->name('cbt.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\CbtManagementController::class, 'index'])->name('index');

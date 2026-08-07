@@ -109,6 +109,10 @@
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white"><i class="fas fa-sliders-h text-[10px]"></i></div>
                 <span>Pengaturan Gaji</span>
             </a>
+            <a href="{{ route('treasurer.operational-expenses.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('treasurer.operational-expenses.*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-wallet text-[10px]"></i></div>
+                <span>Pengeluaran Operasional</span>
+            </a>
         </div>
     </div>
 
