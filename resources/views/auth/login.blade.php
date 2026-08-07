@@ -301,12 +301,16 @@
                 </button>
             </form>
 
-            <!-- Alumni Registration Notice -->
-            <div class="mt-6 pt-6 border-t border-gray-100 text-center">
-                <p class="text-sm font-semibold text-gray-600">
-                    Alumni Perguruan Pembda Nias? 
+            <!-- Alumni Notice & Information -->
+            <div class="mt-6 pt-6 border-t border-gray-100 space-y-2 text-center">
+                <div class="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl text-xs text-indigo-900 leading-relaxed font-medium">
+                    <i class="fas fa-info-circle text-indigo-600 mr-1"></i>
+                    <strong>Alumni Lulusan Sekolah:</strong> Anda dapat langsung login menggunakan <strong>Username / NISN & Password</strong> akun siswa Anda. Role akun otomatis aktif sebagai Alumni.
+                </div>
+                <p class="text-xs font-semibold text-gray-600 pt-1">
+                    Alumni lama yang belum punya akun? 
                     <a href="{{ route('register') }}" class="text-indigo-600 hover:text-indigo-800 font-bold underline transition-colors">
-                        <i class="fas fa-user-plus mr-1"></i> Daftar Ikatan Alumni di sini →
+                        <i class="fas fa-user-plus mr-1"></i> Daftar Ikatan Alumni (IKA) di sini →
                     </a>
                 </p>
             </div>
