@@ -96,7 +96,7 @@
     <div class="min-h-screen flex flex-col lg:flex-row w-full max-w-[1600px] mx-auto relative">
         
         <!-- Left Sidebar: Info & Photos (Sticky on Desktop) -->
-        <div class="w-full lg:w-5/12 xl:w-1/2 p-6 md:p-10 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto custom-scroll flex flex-col justify-center">
+        <div class="w-full lg:w-5/12 xl:w-1/2 px-6 md:px-10 py-8 md:py-10 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto custom-scroll flex flex-col justify-start">
             
             <div class="mb-8">
                 <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-indigo-600 font-bold hover:text-indigo-800 transition mb-6 bg-white/50 px-4 py-2 rounded-full shadow-sm border border-indigo-100">
@@ -129,6 +129,33 @@
                         <p class="text-[11px] text-indigo-200/90 leading-relaxed">
                             Data yang Anda daftarkan dijamin aman dan hanya dipergunakan untuk keperluan silaturahmi IKA, pengembangan karir alumni, dan kemajuan almamater Perguruan Pembda Nias.
                         </p>
+                    </div>
+                </div>
+
+                <!-- Panduan Akses Masuk bagi Alumni -->
+                <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-5 shadow-md mb-6 space-y-3 border border-indigo-800/80">
+                    <h3 class="text-xs font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-sign-in-alt text-amber-400"></i> PANDUAN MASUK PORTAL ALUMNI
+                    </h3>
+                    
+                    <div class="space-y-2.5 text-xs">
+                        <div class="bg-white/10 p-3 rounded-xl border border-white/10">
+                            <h4 class="font-bold text-amber-200 mb-0.5 flex items-center gap-1.5">
+                                <i class="fas fa-user-check text-emerald-400"></i> 1. Alumni Lulusan Baru (by Sistem Sekolah)
+                            </h4>
+                            <p class="text-indigo-100 text-[11px] leading-relaxed">
+                                Anda <strong>TIDAK PERLU mendaftar ulang</strong>. Silakan langsung <a href="{{ route('login') }}" class="underline text-amber-300 font-bold hover:text-white">Login di Sini</a> menggunakan <strong>Username / NISN & Password</strong> akun sekolah Anda.
+                            </p>
+                        </div>
+
+                        <div class="bg-white/10 p-3 rounded-xl border border-white/10">
+                            <h4 class="font-bold text-amber-200 mb-0.5 flex items-center gap-1.5">
+                                <i class="fas fa-user-plus text-amber-300"></i> 2. Alumni Lama / Belum Terdata
+                            </h4>
+                            <p class="text-indigo-100 text-[11px] leading-relaxed">
+                                Silakan isi <strong>Formulir Pendaftaran</strong> di sebelah kanan ini. Setelah terisi, Username & Password Anda akan diterbitkan secara instan agar bisa langsung login.
+                            </p>
+                        </div>
                     </div>
                 </div>
                 
