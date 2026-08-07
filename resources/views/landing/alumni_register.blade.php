@@ -132,49 +132,14 @@
                     </div>
                 </div>
                 
-                <!-- 4 Main Pillars Detailed Benefits -->
-                <div class="space-y-3 mb-6">
-                    <h3 class="text-xs font-extrabold text-indigo-950 uppercase tracking-wider">Layanan & Fitur yang Anda Dapatkan:</h3>
-                    
-                    <div class="flex items-start gap-3 bg-white/90 p-3.5 rounded-2xl border border-indigo-100 shadow-2xs">
-                        <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                            <i class="fas fa-comments text-sm"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-slate-900 text-xs">Ruang Forum & Cuap-cuap Alumni</h4>
-                            <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">Wadah obrolan santai, bernostalgia masa sekolah, dan berdiskusi per angkatan maupun secara umum.</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3 bg-white/90 p-3.5 rounded-2xl border border-amber-100 shadow-2xs">
-                        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                            <i class="fas fa-briefcase text-sm"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-slate-900 text-xs">Papan Lowongan Kerja & Karir</h4>
-                            <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">Tempat saling berbagi info lowongan pekerjaan, peluang magang/PKL, dan rujukan profesional sesama alumni.</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3 bg-white/90 p-3.5 rounded-2xl border border-rose-100 shadow-2xs">
-                        <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                            <i class="fas fa-hand-holding-heart text-sm"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-slate-900 text-xs">Wadah Kontribusi & Rekening Resmi Yayasan</h4>
-                            <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">Informasi transparan saluran donasi pendidikan, beasiswa siswa, & sarana sekolah langsung ke rekening resmi yayasan.</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3 bg-white/90 p-3.5 rounded-2xl border border-emerald-100 shadow-2xs">
-                        <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                            <i class="fas fa-chart-line text-sm"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-slate-900 text-xs">Pendataan Tracer Study Alumni</h4>
-                            <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">Pencatatan jejak karir alumni (bekerja/kuliah/wirausaha) guna mendukung mutu dan akreditasi almamater.</p>
-                        </div>
-                    </div>
+                <!-- Rembuk Alumni Encouraging Paragraph Card -->
+                <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 border border-indigo-100 shadow-sm mb-6 space-y-2.5">
+                    <h3 class="text-xs font-extrabold text-indigo-950 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-users text-indigo-600"></i> REMBUK ALUMNI PERGURUAN PEMBDA
+                    </h3>
+                    <p class="text-xs text-slate-700 leading-relaxed font-normal">
+                        Melalui portal resmi ini, mari jalin kembali silaturahmi kawan seangkatan di <strong>Ruang Forum & Cuap-cuap Alumni</strong>, saling membuka peluang karir di <strong>Papan Lowongan Kerja & Karir</strong>, menyalurkan kepedulian bagi almamater melalui <strong>Wadah Kontribusi & Rekening Resmi Yayasan</strong>, serta mendukung kemajuan mutu sekolah melalui <strong>Pendataan Tracer Study</strong>. Kehadiran dan peran serta Anda sangat berharga bagi masa depan Perguruan Pembda Nias.
+                    </p>
                 </div>
 
                 <div class="flex flex-col sm:flex-row items-center gap-3 mb-6">
