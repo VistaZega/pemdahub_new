@@ -35,58 +35,58 @@
         <div class="lg:col-span-2 space-y-8">
             
             <!-- Information Card Rekening Resmi Yayasan -->
-            <div class="bg-white rounded-3xl shadow-md border border-slate-200/80 overflow-hidden">
-                <div class="bg-gradient-to-r from-indigo-900 to-slate-900 p-6 text-white flex items-center justify-between">
+            <div class="bg-white rounded-3xl shadow-md border-2 border-slate-900 overflow-hidden">
+                <div class="bg-slate-900 p-6 text-white flex items-center justify-between border-b-2 border-slate-900">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-amber-400 text-lg">
+                        <div class="w-10 h-10 rounded-xl bg-amber-400 flex items-center justify-center text-slate-900 text-lg border border-black font-black">
                             <i class="fas fa-university"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-lg">Rekening Resmi Yayasan</h3>
-                            <p class="text-xs text-indigo-200">Perguruan Pembda Nias - Rekening Sumbangan Pendidikan</p>
+                            <h3 class="font-extrabold text-lg text-white">Rekening Resmi Yayasan</h3>
+                            <p class="text-xs text-amber-300 font-bold">Perguruan Pembda Nias - Rekening Sumbangan Pendidikan</p>
                         </div>
                     </div>
-                    <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-400/30">
+                    <span class="px-3 py-1 rounded-full bg-emerald-400 text-slate-900 text-xs font-black border border-black">
                         <i class="fas fa-shield-alt mr-1"></i> Terverifikasi Resmi
                     </span>
                 </div>
 
                 <div class="p-6 sm:p-8 space-y-6">
-                    <p class="text-sm text-slate-600 leading-relaxed">
+                    <p class="text-sm text-slate-900 font-bold leading-relaxed">
                         Seluruh kontribusi berupa donasi dana pendidikan, beasiswa siswa kurang mampu, dan pengembangan fasilitas laboratorium/praktik disalurkan langsung melalui rekening resmi pengurus yayasan di bawah ini:
                     </p>
 
                     <!-- Bank Account Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Account 1 -->
-                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 hover:border-indigo-300 transition relative group">
+                        <div class="bg-slate-50 rounded-2xl p-5 border-2 border-slate-900 hover:border-indigo-600 transition relative group shadow-sm">
                             <div class="flex items-center justify-between mb-3">
-                                <span class="px-3 py-1 bg-blue-600 text-white font-extrabold text-xs rounded-lg shadow-xs">BANK SUMUT</span>
-                                <i class="fas fa-credit-card text-slate-400"></i>
+                                <span class="px-3 py-1 bg-blue-700 text-white font-black text-xs rounded-lg border border-black">BANK SUMUT</span>
+                                <i class="fas fa-credit-card text-slate-900 text-base"></i>
                             </div>
-                            <p class="text-xs text-slate-500 font-medium">Atas Nama Rekening:</p>
-                            <p class="font-bold text-slate-900 text-sm mb-3">YAYASAN PERGURUAN PEMBDA NIAS</p>
+                            <p class="text-xs text-slate-700 font-extrabold uppercase tracking-wider">Atas Nama Rekening:</p>
+                            <p class="font-black text-slate-900 text-sm mb-3">YAYASAN PERGURUAN PEMBDA NIAS</p>
                             
-                            <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200">
-                                <span class="font-mono font-extrabold text-indigo-900 text-lg tracking-wider" id="rek1">100.02.04.012345-6</span>
-                                <button onclick="copyToClipboard('100.02.04.012345-6', 'btn1')" id="btn1" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white font-bold text-xs rounded-lg transition">
+                            <div class="flex items-center justify-between bg-white p-3 rounded-xl border-2 border-slate-900">
+                                <span class="font-mono font-black text-indigo-950 text-lg tracking-wider" id="rek1">100.02.04.012345-6</span>
+                                <button onclick="copyToClipboard('100.02.04.012345-6', 'btn1')" id="btn1" class="px-3.5 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-black text-xs rounded-lg transition border border-black shadow-sm">
                                     <i class="far fa-copy mr-1"></i> Salin
                                 </button>
                             </div>
                         </div>
 
                         <!-- Account 2 -->
-                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 hover:border-indigo-300 transition relative group">
+                        <div class="bg-slate-50 rounded-2xl p-5 border-2 border-slate-900 hover:border-indigo-600 transition relative group shadow-sm">
                             <div class="flex items-center justify-between mb-3">
-                                <span class="px-3 py-1 bg-blue-800 text-white font-extrabold text-xs rounded-lg shadow-xs">BANK BRI</span>
-                                <i class="fas fa-credit-card text-slate-400"></i>
+                                <span class="px-3 py-1 bg-blue-900 text-white font-black text-xs rounded-lg border border-black">BANK BRI</span>
+                                <i class="fas fa-credit-card text-slate-900 text-base"></i>
                             </div>
-                            <p class="text-xs text-slate-500 font-medium">Atas Nama Rekening:</p>
-                            <p class="font-bold text-slate-900 text-sm mb-3">YAYASAN PERGURUAN PEMBDA NIAS</p>
+                            <p class="text-xs text-slate-700 font-extrabold uppercase tracking-wider">Atas Nama Rekening:</p>
+                            <p class="font-black text-slate-900 text-sm mb-3">YAYASAN PERGURUAN PEMBDA NIAS</p>
                             
-                            <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200">
-                                <span class="font-mono font-extrabold text-indigo-900 text-lg tracking-wider" id="rek2">0054-01-002345-53-8</span>
-                                <button onclick="copyToClipboard('0054-01-002345-53-8', 'btn2')" id="btn2" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white font-bold text-xs rounded-lg transition">
+                            <div class="flex items-center justify-between bg-white p-3 rounded-xl border-2 border-slate-900">
+                                <span class="font-mono font-black text-indigo-950 text-lg tracking-wider" id="rek2">0054-01-002345-53-8</span>
+                                <button onclick="copyToClipboard('0054-01-002345-53-8', 'btn2')" id="btn2" class="px-3.5 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-black text-xs rounded-lg transition border border-black shadow-sm">
                                     <i class="far fa-copy mr-1"></i> Salin
                                 </button>
                             </div>
@@ -94,19 +94,19 @@
                     </div>
 
                     <!-- Transparency Note -->
-                    <div class="bg-amber-50 rounded-2xl p-4 border border-amber-200/80 flex items-start gap-3.5">
-                        <i class="fas fa-info-circle text-amber-600 text-lg shrink-0 mt-0.5"></i>
-                        <p class="text-xs text-amber-900 leading-relaxed">
-                            <strong>Transparansi Penyaluran:</strong> Setiap kontribusi donasi yang masuk dicatat secara resmi oleh pengurus bendahara yayasan dan digunakan khusus untuk alokasi beasiswa siswa berprestasi & perbaikan sarana belajar.
+                    <div class="bg-amber-100/90 rounded-2xl p-4 border-2 border-slate-900 flex items-start gap-3.5 shadow-sm">
+                        <i class="fas fa-info-circle text-amber-700 text-xl shrink-0 mt-0.5"></i>
+                        <p class="text-xs text-slate-900 font-bold leading-relaxed">
+                            <strong class="font-black text-indigo-950">Transparansi Penyaluran:</strong> Setiap kontribusi donasi yang masuk dicatat secara resmi oleh pengurus bendahara yayasan dan digunakan khusus untuk alokasi beasiswa siswa berprestasi & perbaikan sarana belajar.
                         </p>
                     </div>
                 </div>
             </div>
 
             <!-- Program Bentuk Kontribusi Lainnya -->
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-8 space-y-6">
-                <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                    <i class="fas fa-hands-helping text-indigo-600"></i> Bentuk Kontribusi Alumni Lainnya
+            <div class="bg-white rounded-3xl shadow-md border-2 border-slate-900 p-6 sm:p-8 space-y-6">
+                <h3 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                    <i class="fas fa-hands-helping text-indigo-700"></i> Bentuk Kontribusi Alumni Lainnya
                 </h3>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

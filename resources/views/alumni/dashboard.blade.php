@@ -66,58 +66,58 @@
             
             <!-- Quick Info Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <a href="{{ route('alumni.forum.index') }}" class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition group relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-blue-50 rounded-full group-hover:scale-150 transition duration-500 ease-in-out"></div>
+                <a href="{{ route('alumni.forum.index') }}" class="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-md hover:shadow-lg transition group relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-indigo-100 rounded-full group-hover:scale-150 transition duration-500 ease-in-out"></div>
                     <div class="relative z-10">
-                        <div class="p-3 bg-indigo-50 rounded-lg text-indigo-600 mb-3 w-fit">
+                        <div class="p-3 bg-indigo-900 text-amber-300 rounded-xl mb-3 w-fit border border-black shadow-sm">
                             <i class="fas fa-users text-xl"></i>
                         </div>
-                        <h3 class="font-bold text-gray-800 mb-1">Forum Eksklusif</h3>
-                        <p class="text-xs text-gray-500 leading-relaxed">Berkomunikasi bebas dengan alumni lain, berdiskusi proyek, dan nostalgia di forum alumni unit sekolah Anda.</p>
+                        <h3 class="font-extrabold text-slate-900 text-base mb-1">Forum Eksklusif Alumni</h3>
+                        <p class="text-xs text-slate-700 font-semibold leading-relaxed">Berkomunikasi bebas dengan kawan alumni, berdiskusi proyek, dan nostalgia per angkatan.</p>
                     </div>
                 </a>
                 
-                <a href="{{ route('alumni.kontribusi') }}" class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition group relative overflow-hidden block">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-rose-50 rounded-full group-hover:scale-150 transition duration-500 ease-in-out"></div>
+                <a href="{{ route('alumni.kontribusi') }}" class="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-md hover:shadow-lg transition group relative overflow-hidden block">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-rose-100 rounded-full group-hover:scale-150 transition duration-500 ease-in-out"></div>
                     <div class="relative z-10 flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                        <div class="w-12 h-12 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 border border-black shadow-sm">
                             <i class="fas fa-hand-holding-heart text-xl"></i>
                         </div>
                         <div>
-                            <h4 class="font-bold text-gray-900 mb-1">Wadah Kontribusi Resmi pada almamater kita</h4>
-                            <p class="text-xs text-gray-500 leading-relaxed">Dukung pengembangan almamater melalui donasi pendidikan, rekening resmi yayasan, atau hibah peralatan.</p>
+                            <h4 class="font-extrabold text-slate-900 text-sm mb-1">Wadah Kontribusi Resmi pada almamater kita</h4>
+                            <p class="text-xs text-slate-700 font-semibold leading-relaxed">Dukung pengembangan almamater melalui donasi pendidikan, rekening resmi yayasan, atau hibah peralatan.</p>
                         </div>
                     </div>
                 </a>
             </div>
 
             <!-- Job Board Widget -->
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div class="p-5 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
-                    <h3 class="font-bold text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-briefcase text-amber-500"></i> Lowongan Kerja Terbaru
+            <div class="bg-white rounded-2xl border-2 border-slate-900 shadow-md overflow-hidden">
+                <div class="p-5 border-b-2 border-slate-900 flex items-center justify-between bg-slate-900 text-white">
+                    <h3 class="font-extrabold text-white flex items-center gap-2 text-base">
+                        <i class="fas fa-briefcase text-amber-400"></i> Lowongan Kerja Terbaru
                     </h3>
-                    <a href="{{ route('alumni.jobs.index') }}" class="text-xs font-bold text-indigo-600 hover:text-indigo-800">Lihat Semua →</a>
+                    <a href="{{ route('alumni.jobs.index') }}" class="text-xs font-black text-amber-300 hover:text-white uppercase tracking-wider">Lihat Semua →</a>
                 </div>
                 <div class="p-5">
                     @if($latestJobs->count() > 0)
                         <div class="space-y-4">
                             @foreach($latestJobs as $job)
-                            <a href="{{ route('alumni.jobs.index') }}" class="block p-4 border border-gray-100 rounded-xl hover:border-indigo-300 hover:shadow-md transition group">
+                            <a href="{{ route('alumni.jobs.index') }}" class="block p-4 border border-slate-300 rounded-xl hover:border-slate-900 hover:shadow-md transition group bg-slate-50/50">
                                 <div class="flex justify-between items-start gap-3">
                                     <div>
-                                        <h4 class="font-bold text-gray-900 group-hover:text-indigo-600 transition">{{ $job->title }}</h4>
-                                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1"><i class="far fa-building mr-1"></i>{{ $job->company_name }}</p>
+                                        <h4 class="font-extrabold text-slate-900 text-base group-hover:text-indigo-700 transition">{{ $job->title }}</h4>
+                                        <p class="text-xs font-bold text-indigo-900 uppercase tracking-wider mt-1"><i class="far fa-building mr-1"></i>{{ $job->company_name }}</p>
                                     </div>
                                     @if($job->salary_range)
-                                        <span class="shrink-0 bg-emerald-50 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold"><i class="fas fa-coins mr-1"></i>{{ $job->salary_range }}</span>
+                                        <span class="shrink-0 bg-emerald-100 text-emerald-900 border border-emerald-300 px-2.5 py-1 rounded-lg text-xs font-black"><i class="fas fa-coins mr-1 text-emerald-600"></i>{{ $job->salary_range }}</span>
                                     @endif
                                 </div>
                             </a>
                             @endforeach
                         </div>
                     @else
-                        <div class="text-center py-6 text-gray-400 italic text-sm">
+                        <div class="text-center py-6 text-slate-700 font-bold italic text-sm">
                             Belum ada lowongan pekerjaan terbaru.
                         </div>
                     @endif
@@ -125,23 +125,23 @@
             </div>
 
             <!-- Recent Forum Discussions Widget -->
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
-                    <h3 class="font-bold text-gray-800 flex items-center gap-2 text-sm">
-                        <i class="fas fa-users text-indigo-500"></i> Topik Forum Alumni Terkini
+            <div class="bg-white rounded-2xl border-2 border-slate-900 shadow-md overflow-hidden">
+                <div class="p-4 border-b-2 border-slate-900 flex justify-between items-center bg-slate-900 text-white rounded-t-2xl">
+                    <h3 class="font-extrabold text-white flex items-center gap-2 text-sm">
+                        <i class="fas fa-comments text-amber-400"></i> Topik Forum Alumni Terkini
                     </h3>
-                    <a href="{{ route('alumni.forum.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">Lihat Semua &rarr;</a>
+                    <a href="{{ route('alumni.forum.index') }}" class="text-xs font-black text-amber-300 hover:text-white uppercase tracking-wider">Lihat Semua &rarr;</a>
                 </div>
                 <div class="p-5">
                     @if($latestThreads->count() > 0)
                         <div class="space-y-4">
                             @foreach($latestThreads as $thread)
-                            <a href="{{ route('forum.show', $thread->id) }}" class="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-xl transition group">
-                                <img src="https://ui-avatars.com/api/?name={{ urlencode($thread->user->name) }}&size=40&background=random" class="w-10 h-10 rounded-full border border-gray-200 shrink-0">
+                            <a href="{{ route('alumni.forum.show', $thread->id) }}" class="flex items-start gap-3 p-3 hover:bg-indigo-50/50 rounded-xl transition group border border-slate-200">
+                                <img src="https://ui-avatars.com/api/?name={{ urlencode($thread->user->name) }}&size=40&background=312e81&color=fff" class="w-10 h-10 rounded-full border-2 border-slate-900 shrink-0">
                                 <div>
-                                    <h4 class="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition line-clamp-1">{{ $thread->title }}</h4>
-                                    <div class="flex items-center gap-2 mt-1 text-[10px] text-gray-500">
-                                        <span class="font-semibold">{{ $thread->user->name }}</span>
+                                    <h4 class="text-sm font-extrabold text-slate-900 group-hover:text-indigo-700 transition line-clamp-1">{{ $thread->title }}</h4>
+                                    <div class="flex items-center gap-2 mt-1 text-xs text-slate-700 font-bold">
+                                        <span class="font-black text-indigo-900">{{ $thread->user->name }}</span>
                                         <span>&bull;</span>
                                         <span>{{ $thread->created_at->diffForHumans() }}</span>
                                     </div>
@@ -150,7 +150,7 @@
                             @endforeach
                         </div>
                     @else
-                        <div class="text-center py-6 text-gray-400 italic text-sm">
+                        <div class="text-center py-6 text-slate-700 font-bold italic text-sm">
                             Belum ada diskusi baru di forum.
                         </div>
                     @endif
@@ -163,63 +163,63 @@
         <div class="space-y-6">
             
             <!-- Alumni Identity Card -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative group">
-                <div class="h-20 bg-gradient-to-r from-slate-800 to-indigo-900"></div>
+            <div class="bg-white rounded-2xl shadow-md border-2 border-slate-900 overflow-hidden relative group">
+                <div class="h-20 bg-gradient-to-r from-slate-900 to-indigo-950"></div>
                 <div class="px-6 pb-6 relative">
-                    <img src="{{ $alumni->photo_url }}" class="w-20 h-20 rounded-xl object-cover border-4 border-white shadow-lg mx-auto -mt-10 mb-4 transform group-hover:scale-105 transition">
+                    <img src="{{ $alumni->photo_url }}" class="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-lg mx-auto -mt-10 mb-4 transform group-hover:scale-105 transition">
                     <div class="text-center">
-                        <h3 class="font-bold text-gray-900 text-lg">{{ $alumni->full_name }}</h3>
-                        <p class="text-xs font-bold text-indigo-600 tracking-widest uppercase mt-0.5">Angkatan {{ $alumni->graduation_year }}</p>
-                        @if($alumni->school)
-                            <p class="text-[10px] text-gray-400 mt-1">{{ $alumni->school->name }}</p>
+                        <h3 class="font-extrabold text-slate-900 text-lg">{{ $alumni->full_name }}</h3>
+                        <p class="text-xs font-black text-indigo-900 tracking-widest uppercase mt-0.5">Angkatan {{ $alumni->graduation_year }}</p>
+                        @if(isset($alumni->school) && $alumni->school)
+                            <p class="text-xs font-bold text-slate-700 mt-1">{{ $alumni->school->name }}</p>
                         @endif
                     </div>
                     
-                    <div class="mt-5 space-y-3 bg-gray-50 p-4 rounded-xl">
+                    <div class="mt-5 space-y-3 bg-slate-100/80 p-4 rounded-xl border border-slate-300">
                         <div class="flex justify-between items-center text-xs">
-                            <span class="text-gray-500 font-medium"><i class="fas fa-briefcase w-4 text-center mr-1"></i> Pekerjaan</span>
-                            <span class="font-bold text-gray-800 text-right">{{ $alumni->occupation ?: '-' }}</span>
+                            <span class="text-slate-700 font-bold"><i class="fas fa-briefcase w-4 text-center mr-1 text-indigo-700"></i> Pekerjaan</span>
+                            <span class="font-black text-slate-900 text-right">{{ $alumni->occupation ?: '-' }}</span>
                         </div>
                         <div class="flex justify-between items-center text-xs">
-                            <span class="text-gray-500 font-medium"><i class="far fa-building w-4 text-center mr-1"></i> Instansi</span>
-                            <span class="font-bold text-gray-800 text-right line-clamp-1">{{ $alumni->company_name ?: '-' }}</span>
+                            <span class="text-slate-700 font-bold"><i class="far fa-building w-4 text-center mr-1 text-indigo-700"></i> Instansi</span>
+                            <span class="font-black text-slate-900 text-right line-clamp-1">{{ $alumni->company_name ?: '-' }}</span>
                         </div>
                     </div>
                     
                     <div class="mt-4 text-center">
-                        <a href="{{ route('profile.settings') }}" class="text-xs font-bold text-gray-500 hover:text-indigo-600 transition"><i class="fas fa-user-edit mr-1"></i> Edit Profil</a>
+                        <a href="{{ route('profile.settings') }}" class="text-xs font-bold text-indigo-700 hover:text-indigo-900 transition"><i class="fas fa-user-edit mr-1"></i> Edit Profil Akun</a>
                     </div>
                 </div>
             </div>
 
             <!-- Panduan Penggunaan Widget -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2 text-sm uppercase tracking-wider">
-                    <i class="fas fa-compass text-teal-500"></i> Panduan Fitur
+            <div class="bg-white rounded-2xl shadow-md border-2 border-slate-900 p-5">
+                <h3 class="font-extrabold text-slate-900 mb-4 flex items-center gap-2 text-sm uppercase tracking-wider">
+                    <i class="fas fa-compass text-teal-600"></i> Panduan Fitur Alumni
                 </h3>
                 <ul class="space-y-4">
                     <li class="flex items-start gap-3">
-                        <div class="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</div>
+                        <div class="w-6 h-6 rounded-full bg-slate-900 text-amber-300 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">1</div>
                         <div>
-                            <h4 class="text-xs font-bold text-gray-900">Perbarui Data Anda</h4>
-                            <p class="text-[10px] text-gray-500 mt-0.5">Isi Tracer Study secara berkala agar sekolah tahu perkembangan karir Anda.</p>
+                            <h4 class="text-xs font-extrabold text-slate-900">Perbarui Data Anda</h4>
+                            <p class="text-xs text-slate-700 font-medium mt-0.5">Isi Tracer Study secara berkala agar sekolah tahu perkembangan karir Anda.</p>
                         </div>
                     </li>
-                    <a href="{{ route('alumni.forum.index') }}" class="flex items-center justify-between">
+                    <a href="{{ route('alumni.forum.index') }}" class="flex items-center justify-between group">
                         <div class="flex items-start gap-3">
-                            <div class="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
+                            <div class="w-6 h-6 rounded-full bg-slate-900 text-amber-300 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">2</div>
                             <div>
-                                <h4 class="font-bold text-gray-800 text-sm">Masuk Forum Alumni</h4>
-                                <p class="text-[10px] text-gray-500 mt-0.5">Berkomunikasi dengan rekan-rekan satu almamater.</p>
+                                <h4 class="font-extrabold text-slate-900 text-xs group-hover:text-indigo-700 transition">Masuk Forum Alumni</h4>
+                                <p class="text-xs text-slate-700 font-medium mt-0.5">Berkomunikasi dengan kawan almamater.</p>
                             </div>
                         </div>
-                        <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+                        <i class="fas fa-chevron-right text-slate-700 text-xs"></i>
                     </a>
                     <li class="flex items-start gap-3">
-                        <div class="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</div>
+                        <div class="w-6 h-6 rounded-full bg-slate-900 text-amber-300 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">3</div>
                         <div>
-                            <h4 class="text-xs font-bold text-gray-900">Cek Lowongan</h4>
-                            <p class="text-[10px] text-gray-500 mt-0.5">Temukan atau bagikan info loker terbaru di fitur Papan Lowongan Kerja.</p>
+                            <h4 class="text-xs font-extrabold text-slate-900">Cek Lowongan Kerja</h4>
+                            <p class="text-xs text-slate-700 font-medium mt-0.5">Temukan atau bagikan info loker terbaru di Papan Lowongan Kerja.</p>
                         </div>
                     </li>
                 </ul>
