@@ -300,5 +300,5 @@ $html = <<<HTML
 </html>
 HTML;
 
-file_put_contents('C:/xampp/htdocs/pembdahub/public/instrumen-kontrol-kepsek.html', $html);
+file_put_contents(__DIR__ . '/public/instrumen-kontrol-kepsek.html', $html);
 echo "Instrumen Kontrol rebuilt with completely filled examples.\n";

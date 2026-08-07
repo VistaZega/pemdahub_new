@@ -8,4 +8,4 @@ def debug_matrices(pdf_path):
             print(f"Text: '{text}' | CM: {cm} | TM: {tm}")
     page.extract_text(visitor_text=visitor)
 
-debug_matrices(r"c:\xampp\htdocs\pembdahub\Pembagian Tugas Semester Ganjil TP. 2025-2026.pdf")
+debug_matrices(r"d:\laragon\www\pembdahub\Pembagian Tugas Semester Ganjil TP. 2025-2026.pdf")

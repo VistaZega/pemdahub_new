@@ -22,4 +22,4 @@ def debug_headers(pdf_path):
                 print(f"X={h['x']:.1f} | {h['t']}")
             break
 
-debug_headers(r"c:\xampp\htdocs\pembdahub\Pembagian Tugas Semester Ganjil TP. 2025-2026.pdf")
+debug_headers(r"d:\laragon\www\pembdahub\Pembagian Tugas Semester Ganjil TP. 2025-2026.pdf")

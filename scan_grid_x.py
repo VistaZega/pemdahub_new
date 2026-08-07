@@ -33,4 +33,4 @@ def scan_grid_x(pdf_path):
     if row:
         print(f"Row at Y={current_y:.1f}: " + " | ".join([f"{v['x']:.1f}:{v['t']}" for v in sorted(row, key=lambda x: x['x'])]))
 
-scan_grid_x(r"c:\xampp\htdocs\pembdahub\Pembagian Tugas Semester Ganjil TP. 2025-2026.pdf")
+scan_grid_x(r"d:\laragon\www\pembdahub\Pembagian Tugas Semester Ganjil TP. 2025-2026.pdf")
