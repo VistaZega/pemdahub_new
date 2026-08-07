@@ -45,6 +45,39 @@
         </a>
     </div>
 
+    <!-- Tab Guide Info Box -->
+    <div class="bg-gradient-to-r from-indigo-900/5 via-blue-900/5 to-emerald-900/5 rounded-2xl border border-indigo-100 p-4 shadow-sm">
+        <div class="flex items-center gap-2 mb-2.5 text-indigo-950 font-bold text-xs uppercase tracking-wider">
+            <i class="fas fa-info-circle text-indigo-600 text-sm"></i> Panduan Fitur & Fungsi Tab Alumni
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="p-3.5 rounded-xl bg-white/90 border border-indigo-100 shadow-2xs">
+                <div class="font-bold text-indigo-900 flex items-center gap-1.5 mb-1 text-sm">
+                    <i class="fas fa-list text-indigo-600"></i> Data Alumni Sistem
+                </div>
+                <p class="text-slate-600 leading-relaxed">
+                    Data resmi siswa internal yang di-generate otomatis saat siswa diluluskan oleh sekolah (terikat NISN, NIS, & kelas terakhir).
+                </p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-white/90 border border-purple-100 shadow-2xs">
+                <div class="font-bold text-purple-900 flex items-center gap-1.5 mb-1 text-sm">
+                    <i class="fas fa-address-book text-purple-600"></i> Direktori Alumni (IKA)
+                </div>
+                <p class="text-slate-600 leading-relaxed">
+                    Database publik Ikatan Alumni (termasuk alumni pendaftaran mandiri) untuk profil sosial, riwayat kerja, & jejaring komunitas.
+                </p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-white/90 border border-emerald-100 shadow-2xs">
+                <div class="font-bold text-emerald-900 flex items-center gap-1.5 mb-1 text-sm">
+                    <i class="fas fa-chart-line text-emerald-600"></i> Tracer Study (BMW)
+                </div>
+                <p class="text-slate-600 leading-relaxed">
+                    Laporan survei keterserapan karir (Bekerja, Melanjutkan Kuliah, Wirausaha) untuk keperluan pelaporan dinas & akreditasi.
+                </p>
+            </div>
+        </div>
+    </div>
+
     <!-- Filter Card -->
     <div class="bg-gradient-to-b from-white to-slate-50/50 rounded-2xl shadow-sm border border-slate-200/80 p-6">
         <form action="{{ route('admin.pkl-alumni.tracer.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
