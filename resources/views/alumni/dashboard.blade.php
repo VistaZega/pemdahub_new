@@ -13,7 +13,7 @@
         
         <div class="relative z-10 md:w-2/3">
             <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold tracking-wider mb-4 border border-white/20 backdrop-blur-sm shadow-sm"><i class="fas fa-sparkles text-amber-300 mr-1"></i> PORTAL ALUMNI PEMBDA</span>
-            <h2 class="text-3xl sm:text-4xl font-extrabold mb-3 leading-tight">Selamat Datang Kembali,<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">{{ $alumni->full_name }}!</span></h2>
+            <h2 class="text-2xl sm:text-3xl font-extrabold mb-3 leading-tight text-white">Selamat Datang Kembali,<br><span class="text-amber-300 font-black tracking-tight drop-shadow-sm">{{ $alumni->full_name }}</span></h2>
             <p class="text-indigo-100 text-sm sm:text-base mb-6 leading-relaxed max-w-2xl">
                 Ini adalah rumah digital Anda. Temukan teman seangkatan, kembangkan karir Anda, dan mari bersama-sama berkontribusi untuk almamater tercinta.
             </p>
@@ -89,6 +89,31 @@
                         </div>
                     </div>
                 </a>
+            </div>
+
+            <!-- Teaser Widget: Perkembangan & Harapan Yayasan (Cuplikan Singkat) -->
+            <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-6 border-2 border-slate-900 shadow-md relative overflow-hidden space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="inline-block px-3 py-1 bg-amber-400 text-slate-900 text-[10px] font-black rounded-full border border-black uppercase tracking-wider">
+                        <i class="fas fa-landmark mr-1"></i> SEJARAH & HARAPAN YAYASAN
+                    </span>
+                    <span class="text-xs text-indigo-200 font-bold"><i class="fas fa-book-open mr-1"></i> Cuplikan Singkat</span>
+                </div>
+                
+                <h3 class="text-lg font-black text-white leading-snug">
+                    Perjalanan Perkembangan, Tantangan & Arah Perjuangan Almamater
+                </h3>
+                
+                <p class="text-xs text-indigo-100 font-medium leading-relaxed">
+                    Didirikan untuk menghadirkan akses pendidikan terbaik di Kepulauan Nias, Yayasan Perguruan PEMBDA Nias kini menaungi SD, SMP, SMA, dan SMK Swasta Pembda Nias. Mari bersama-sama menghadapi tantangan modernisasi fasilitas & memperkuat sinergi alumni demi kemajuan generasi almamater...
+                </p>
+
+                <div class="pt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span class="text-[11px] text-amber-300 font-bold">📖 Baca sepintas atau lihat informasi selengkapnya:</span>
+                    <a href="{{ route('alumni.sejarah') }}" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-black px-4 py-2 rounded-xl text-xs transition border border-black shadow-sm flex items-center justify-center gap-1.5 shrink-0">
+                        Detail Selengkapnya →
+                    </a>
+                </div>
             </div>
 
             <!-- Job Board Widget -->

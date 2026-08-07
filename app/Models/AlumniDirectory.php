@@ -59,8 +59,12 @@ class AlumniDirectory extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        if ($this->photo_path) {
+        if ($this->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->photo_path)) {
             return asset('storage/' . $this->photo_path);
+        }
+
+        if ($this->user && $this->user->avatar_url) {
+            return $this->user->avatar_url;
         }
         
         // Default avatar fallback

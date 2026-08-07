@@ -117,6 +117,11 @@ class AlumniController extends Controller
         return redirect()->route('alumni.tracer.form')->with('success', 'Data Tracer Study berhasil diperbarui.');
     }
 
+    public function sejarah()
+    {
+        return view('alumni.sejarah');
+    }
+
     public function kontribusi()
     {
         $alumni = $this->getAlumni();

@@ -46,6 +46,11 @@
         <span>Kontribusi & Donasi</span>
     </a>
 
+    <a href="{{ route('alumni.sejarah') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('alumni.sejarah') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center text-white"><i class="fas fa-landmark text-[10px]"></i></div>
+        <span>Sejarah & Perkembangan</span>
+    </a>
+
     <a href="{{ route('alumni.tracer.form') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('alumni.tracer.*') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-poll-h text-[10px]"></i></div>
         <span>Tracer Study (BMW)</span>

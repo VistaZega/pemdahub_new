@@ -20,7 +20,7 @@ class AlumniDashboardController extends Controller
             $roleLabel = ucfirst(str_replace('_', ' ', $user->role));
             $alumni = (object) [
                 'full_name' => $user->name,
-                'photo_url' => 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=312e81&color=fff',
+                'photo_url' => $user->avatar_url,
                 'graduation_year' => $roleLabel,
                 'school' => (object) ['name' => 'Yayasan Perguruan Pembda Nias'],
                 'occupation' => 'Pengurus / Pengelola',

@@ -965,6 +965,7 @@ Route::middleware('auth')->group(function () {
 
         // Kontribusi Alumni & Rekening Yayasan
         Route::get('/kontribusi', [App\Http\Controllers\AlumniController::class, 'kontribusi'])->name('kontribusi');
+        Route::get('/sejarah-yayasan', [App\Http\Controllers\AlumniController::class, 'sejarah'])->name('sejarah');
     });
 
     // Reputation & Hall of Fame
