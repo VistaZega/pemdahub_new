@@ -16,8 +16,18 @@ class AlumniDashboardController extends Controller
         $alumni = $user->alumniDirectory;
 
         if (!$alumni) {
-            return redirect()->route('landing.alumni-register')
-                ->with('error', 'Profil direktori alumni Anda tidak ditemukan.');
+            // High-priority fallback for Admin / Staff preview
+            $roleLabel = ucfirst(str_replace('_', ' ', $user->role));
+            $alumni = (object) [
+                'full_name' => $user->name,
+                'photo_url' => 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=312e81&color=fff',
+                'graduation_year' => $roleLabel,
+                'school' => (object) ['name' => 'Yayasan Perguruan Pembda Nias'],
+                'occupation' => 'Pengurus / Pengelola',
+                'company_name' => 'Yayasan Perguruan Pembda Nias',
+                'is_approved' => true,
+                'school_id' => $user->school_id ?? 1,
+            ];
         }
 
         // Cek status Tracer Study (ambil AlumniProfile yang terhubung dengan email user)

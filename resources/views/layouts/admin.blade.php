@@ -482,6 +482,10 @@
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white"><i class="fas fa-users text-[10px]"></i></div>
                 <span>Rembuk Alumni (IKA)</span>
             </a>
+            <a href="{{ route('alumni.dashboard') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('alumni.*') ? $ac : 'text-indigo-600 font-bold hover:bg-indigo-50' }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-700 flex items-center justify-center text-white"><i class="fas fa-graduation-cap text-[10px]"></i></div>
+                <span>Lihat Portal Alumni →</span>
+            </a>
             <a href="{{ route('admin.pkl-alumni.jobs.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.pkl-alumni.jobs.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white"><i class="fas fa-list text-[10px]"></i></div>
                 <span>Lowongan Kerja</span>

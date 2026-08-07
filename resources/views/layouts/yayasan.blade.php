@@ -47,6 +47,12 @@
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center text-white shadow-sm"><i class="fas fa-file-signature text-[10px]"></i></div>
                 <span>Surat Digital / Edaran</span>
             </a>
+
+            <!-- Portal Alumni -->
+            <a href="{{ route('alumni.dashboard') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('alumni.*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-700 flex items-center justify-center text-white shadow-sm"><i class="fas fa-graduation-cap text-[10px]"></i></div>
+                <span>Portal Alumni (IKA)</span>
+            </a>
         </div>
     </div>
 

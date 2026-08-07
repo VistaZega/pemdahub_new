@@ -36,6 +36,19 @@ class AlumniController extends Controller
             // Check if user is already mapped as alumni directly
             $alumni = AlumniProfile::where('email', Auth::user()->email)->first();
             if ($alumni) return $alumni;
+
+            // Allow Admin / Staff roles to preview and interact as well
+            if (in_array(Auth::user()->role, ['superadmin', 'admin_yayasan', 'admin_sekolah', 'guru'])) {
+                return AlumniProfile::firstOrCreate(
+                    ['email' => Auth::user()->email],
+                    [
+                        'school_id' => Auth::user()->school_id ?? 1,
+                        'full_name' => Auth::user()->name,
+                        'graduation_year' => now()->format('Y'),
+                        'phone' => '-',
+                    ]
+                );
+            }
             
             abort(403, 'Akses dibatasi hanya untuk alumni.');
         }
