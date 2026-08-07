@@ -91,27 +91,27 @@
                 </a>
             </div>
 
-            <!-- Teaser Widget: Perkembangan & Harapan Yayasan (Cuplikan Singkat) -->
+            <!-- Teaser Widget: Pesan Ketua Yayasan & Sejarah (Cuplikan Singkat) -->
             <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-6 border-2 border-slate-900 shadow-md relative overflow-hidden space-y-3">
                 <div class="flex items-center justify-between">
                     <span class="inline-block px-3 py-1 bg-amber-400 text-slate-900 text-[10px] font-black rounded-full border border-black uppercase tracking-wider">
-                        <i class="fas fa-landmark mr-1"></i> SEJARAH & HARAPAN YAYASAN
+                        <i class="fas fa-landmark mr-1"></i> PESAN KETUA YAYASAN (1970 - SEKARANG)
                     </span>
-                    <span class="text-xs text-indigo-200 font-bold"><i class="fas fa-book-open mr-1"></i> Cuplikan Singkat</span>
+                    <span class="text-[10px] bg-indigo-900 text-amber-300 px-2.5 py-0.5 rounded-full font-black border border-amber-400/40">KEEP MOVING FORWARD</span>
                 </div>
                 
                 <h3 class="text-lg font-black text-white leading-snug">
-                    Perjalanan Perkembangan, Tantangan & Arah Perjuangan Almamater
+                    Dari Pembda untuk Nias, Dari Alumni untuk Masa Depan
                 </h3>
                 
                 <p class="text-xs text-indigo-100 font-medium leading-relaxed">
-                    Didirikan untuk menghadirkan akses pendidikan terbaik di Kepulauan Nias, Yayasan Perguruan PEMBDA Nias kini menaungi SD, SMP, SMA, dan SMK Swasta Pembda Nias. Mari bersama-sama menghadapi tantangan modernisasi fasilitas & memperkuat sinergi alumni demi kemajuan generasi almamater...
+                    Lahir tahun 1970 dari cita-cita pendiri <em>(founding fathers)</em>, Yayasan Perguruan Pembda kini mengelola 3 unit sekolah (SMK Swasta Pembda Nias, SMAS Pembda 1, SMPS Pembda 2) melayani ~1.700 siswa dengan ~130 guru/pegawai. Lebih dari 50 tahun membentuk manusia berkualitas & berkarakter...
                 </p>
 
-                <div class="pt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <span class="text-[11px] text-amber-300 font-bold">📖 Baca sepintas atau lihat informasi selengkapnya:</span>
+                <div class="pt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-indigo-800/60 mt-2">
+                    <span class="text-[11px] text-amber-300 font-bold">📖 Baca cuplikan sepintas atau baca pesan lengkap Ketua Yayasan:</span>
                     <a href="{{ route('alumni.sejarah') }}" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-black px-4 py-2 rounded-xl text-xs transition border border-black shadow-sm flex items-center justify-center gap-1.5 shrink-0">
-                        Detail Selengkapnya →
+                        Baca Pesan Lengkap →
                     </a>
                 </div>
             </div>

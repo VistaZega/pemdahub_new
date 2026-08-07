@@ -121,11 +121,11 @@
                         <span class="inline-block px-2.5 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-extrabold rounded-full border border-amber-300/30">
                             <i class="fas fa-heart text-pink-400 mr-1"></i> REMBUK ALUMNI PEMBDA
                         </span>
-                        <span class="text-[10px] text-indigo-200/80"><i class="fas fa-shield-alt mr-1 text-emerald-400"></i> Data Terjamin Aman</span>
+                        <span class="text-[10px] text-amber-300 font-extrabold bg-indigo-900/80 px-2 py-0.5 rounded-full border border-amber-400/30">KEEP MOVING FORWARD</span>
                     </div>
 
                     <p class="text-xs text-indigo-100 leading-relaxed font-normal">
-                        Melalui portal resmi ini, mari jalin kembali silaturahmi kawan seangkatan di <strong>Ruang Forum & Cuap-cuap Alumni</strong>, saling membuka peluang karir di <strong>Papan Lowongan Kerja & Karir</strong>, menyalurkan kepedulian bagi almamater melalui <strong>Wadah Kontribusi Resmi pada almamater kita</strong>, serta mendukung kemajuan mutu sekolah melalui <strong>Pendataan Tracer Study</strong>. Kehadiran dan peran serta Anda sangat berharga bagi masa depan Perguruan Pembda Nias.
+                        <strong>"Dari Pembda untuk Nias, Dari Alumni untuk Masa Depan."</strong> Berdiri sejak tahun 1970 (50+ tahun), Yayasan Perguruan Pembda Nias menaungi 3 unit sekolah (SMK Swasta Pembda Nias, SMAS Pembda 1, SMPS Pembda 2) melayani ~1.700 siswa. Mari terhubung di <strong>Ruang Forum Alumni</strong>, berbagi loker di <strong>Papan Lowongan Kerja</strong>, serta berpartisipasi di <strong>Wadah Kontribusi Resmi pada almamater kita</strong>.
                     </p>
 
                     <!-- Compact Login Guide Notice -->
