@@ -159,7 +159,7 @@
                 </div>
 
                 <div class="bg-white p-5 rounded-2xl border-2 border-slate-900 shadow-md space-y-2">
-                    <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black text-lg border border-black">2</div>
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-black text-lg border border-black">2</div>
                     <h4 class="font-black text-slate-900 text-base">Beasiswa & Perangkat Sekolah</h4>
                     <p class="text-xs text-slate-700 font-semibold leading-relaxed">
                         Bantuan bagi siswa yang sedang bersekolah dalam bentuk <strong>Beasiswa Pendidikan</strong> serta <strong>Perangkat Sekolah</strong> (Pakaian seragam, Sepatu, Tas, perlengkapan belajar, dll).
