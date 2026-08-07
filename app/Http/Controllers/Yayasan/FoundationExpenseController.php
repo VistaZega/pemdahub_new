@@ -177,7 +177,9 @@ class FoundationExpenseController extends Controller
     {
         $data = $this->getFoundationExpenseData($request);
         $pdf = Pdf::loadView('yayasan.operational_expenses.pdf', $data);
-        return $pdf->download('Rencana_Belanja_Per_Unit_Sekolah_' . ($data['currentYear']->year ?? 'TP') . '.pdf');
+        $yearSafe = str_replace(['/', '\\'], '-', $data['currentYear']->year ?? 'TP');
+        $fileName = 'Rencana_Belanja_Per_Unit_Sekolah_' . $yearSafe . '.pdf';
+        return $pdf->download($fileName);
     }
 
     /**

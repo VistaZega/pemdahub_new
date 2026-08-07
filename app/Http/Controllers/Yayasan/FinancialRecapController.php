@@ -40,7 +40,9 @@ class FinancialRecapController extends Controller
     {
         $data = $this->getFinancialRecapData($request);
         $pdf = Pdf::loadView('yayasan.financial_recap.pdf', $data);
-        return $pdf->download('Rekapitulasi_Keuangan_Yayasan_' . ($data['currentYear']->year ?? 'TP') . '.pdf');
+        $yearSafe = str_replace(['/', '\\'], '-', $data['currentYear']->year ?? 'TP');
+        $fileName = 'Rekapitulasi_Keuangan_Yayasan_' . $yearSafe . '.pdf';
+        return $pdf->download($fileName);
     }
 
     /**
