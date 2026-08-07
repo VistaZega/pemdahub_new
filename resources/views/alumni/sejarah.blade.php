@@ -149,28 +149,36 @@
                 Perjalanan ke depan tentu tidak semakin ringan. Perkembangan teknologi, perubahan dunia kerja, tuntutan kualitas pendidikan, serta kebutuhan masyarakat menghadirkan tantangan baru yang harus kita jawab bersama. Untuk itu, kami membuka ruang seluas-luasnya bagi seluruh alumni untuk berkontribusi melalui:
             </p>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                 <div class="bg-white p-5 rounded-2xl border-2 border-slate-900 shadow-md space-y-2">
                     <div class="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-black text-lg border border-black">1</div>
-                    <h4 class="font-black text-slate-900 text-base">Dukungan Sarana & Prasarana</h4>
+                    <h4 class="font-black text-slate-900 text-base">Pengembangan Sarana & Prasarana</h4>
                     <p class="text-xs text-slate-700 font-semibold leading-relaxed">
-                        Pertumbuhan peserta didik membawa fasilitas pada kapasitas terbatas. Pengembangan gedung, ruang belajar, lab, bengkel, & fasilitas teknologi menjadi kebutuhan penting.
+                        Pengembangan gedung, ruang belajar, laboratorium, bengkel, fasilitas teknologi, dan sarana pendidikan untuk memastikan layanan pendidikan yang lebih baik.
                     </p>
                 </div>
 
                 <div class="bg-white p-5 rounded-2xl border-2 border-slate-900 shadow-md space-y-2">
-                    <div class="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-black text-lg border border-black">2</div>
-                    <h4 class="font-black text-slate-900 text-base">Informasi & Akses Dunia Kerja</h4>
+                    <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black text-lg border border-black">2</div>
+                    <h4 class="font-black text-slate-900 text-base">Beasiswa & Perangkat Sekolah</h4>
                     <p class="text-xs text-slate-700 font-semibold leading-relaxed">
-                        Dukungan informasi lowongan kerja, kesempatan magang, peluang industri, serta jejaring profesi yang dapat membuka jalan bagi lulusan dan calon lulusan Pembda.
+                        Bantuan bagi siswa yang sedang bersekolah dalam bentuk <strong>Beasiswa Pendidikan</strong> serta <strong>Perangkat Sekolah</strong> (Pakaian seragam, Sepatu, Tas, perlengkapan belajar, dll).
                     </p>
                 </div>
 
                 <div class="bg-white p-5 rounded-2xl border-2 border-slate-900 shadow-md space-y-2">
                     <div class="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-black text-lg border border-black">3</div>
+                    <h4 class="font-black text-slate-900 text-base">Akses Dunia Kerja & Magang</h4>
+                    <p class="text-xs text-slate-700 font-semibold leading-relaxed">
+                        Informasi lowongan pekerjaan, kesempatan magang, peluang industri, serta jejaring profesi yang membuka jalan bagi lulusan dan calon lulusan Pembda.
+                    </p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border-2 border-slate-900 shadow-md space-y-2">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-black text-lg border border-black">4</div>
                     <h4 class="font-black text-slate-900 text-base">Gagasan, Inovasi & Kolaborasi</h4>
                     <p class="text-xs text-slate-700 font-semibold leading-relaxed">
-                        Ide kreatif, pengalaman profesional, teknologi, jejaring industri, maupun kolaborasi lainnya akan menjadi energi penting bagi kemajuan yayasan.
+                        Ide kreatif, pengalaman profesional, teknologi, jejaring industri, maupun kolaborasi lainnya sebagai energi penting pengembangan yayasan.
                     </p>
                 </div>
             </div>

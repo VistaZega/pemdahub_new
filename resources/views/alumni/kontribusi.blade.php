@@ -139,13 +139,13 @@
                     </div>
 
                     <!-- Option 3 -->
-                    <div class="p-5 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-2">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
-                            <i class="fas fa-book"></i>
+                    <div class="p-5 rounded-2xl bg-rose-50/70 border border-rose-200 space-y-2">
+                        <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold">
+                            <i class="fas fa-tshirt"></i>
                         </div>
-                        <h4 class="font-bold text-slate-900 text-sm">Hibah Buku & Peralatan Praktik</h4>
-                        <p class="text-xs text-slate-600 leading-relaxed">
-                            Donasi buku perpustakaan, komputasi, modul praktik kejuruan, atau peralatan praktik kerja laboratorium.
+                        <h4 class="font-extrabold text-slate-900 text-sm">Beasiswa & Perangkat Sekolah Siswa</h4>
+                        <p class="text-xs text-slate-700 font-medium leading-relaxed">
+                            Dukungan Beasiswa Pendidikan serta bantuan <strong>Perangkat Sekolah</strong> bagi adik-adik yang sedang bersekolah (Pakaian seragam, Sepatu, Tas sekolah, & perlengkapan belajar).
                         </p>
                     </div>
 
