@@ -413,7 +413,12 @@
             </a>
             @endif
 
-            {{-- Rekap Beban Kerja & Penggajian, Slip Gaji, Pengaturan Gaji: Super Admin Yayasan, Bendahara --}}
+            @if($isYayasan || $isFinance || $isSA || $isAdmin)
+            <a href="{{ route('admin.operational-expenses.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.operational-expenses.*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-wallet text-[10px]"></i></div>
+                <span>Pengeluaran Operasional</span>
+            </a>
+            @endif
             @if($isYayasan || $isFinance)
             <a href="{{ route('admin.workload.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.workload.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-list-check text-[10px]"></i></div>
@@ -426,10 +431,6 @@
             <a href="{{ route('admin.payroll.settings') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.payroll.settings') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center text-white"><i class="fas fa-sliders text-[10px]"></i></div>
                 <span>Pengaturan Gaji</span>
-            </a>
-            <a href="{{ route('admin.operational-expenses.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.operational-expenses.*') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-wallet text-[10px]"></i></div>
-                <span>Pengeluaran Operasional</span>
             </a>
             @endif
         </div>
@@ -645,10 +646,13 @@
             </a>
             @endif
 
-            {{-- Laporan Rekap Tagihan: Dibuka untuk Super Admin Erwin, Super Admin Yayasan, Admin Sekolah, & Bendahara --}}
             <a href="{{ route('admin.payment_reports.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.payment_reports.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-chart-pie text-[10px]"></i></div>
                 <span>Laporan Rekap Tagihan</span>
+            </a>
+            <a href="{{ route('admin.operational-expenses.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.operational-expenses.*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-wallet text-[10px]"></i></div>
+                <span>Pengeluaran Operasional</span>
             </a>
 
             {{-- Menu khusus Super Admin Yayasan --}}
