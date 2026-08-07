@@ -165,7 +165,7 @@
                         <i class="fas fa-users text-indigo-600"></i> REMBUK ALUMNI PERGURUAN PEMBDA
                     </h3>
                     <p class="text-xs text-slate-700 leading-relaxed font-normal">
-                        Melalui portal resmi ini, mari jalin kembali silaturahmi kawan seangkatan di <strong>Ruang Forum & Cuap-cuap Alumni</strong>, saling membuka peluang karir di <strong>Papan Lowongan Kerja & Karir</strong>, menyalurkan kepedulian bagi almamater melalui <strong>Wadah Kontribusi & Rekening Resmi Yayasan</strong>, serta mendukung kemajuan mutu sekolah melalui <strong>Pendataan Tracer Study</strong>. Kehadiran dan peran serta Anda sangat berharga bagi masa depan Perguruan Pembda Nias.
+                        Melalui portal resmi ini, mari jalin kembali silaturahmi kawan seangkatan di <strong>Ruang Forum & Cuap-cuap Alumni</strong>, saling membuka peluang karir di <strong>Papan Lowongan Kerja & Karir</strong>, menyalurkan kepedulian bagi almamater melalui <strong>Wadah Kontribusi Resmi pada almamater kita</strong>, serta mendukung kemajuan mutu sekolah melalui <strong>Pendataan Tracer Study</strong>. Kehadiran dan peran serta Anda sangat berharga bagi masa depan Perguruan Pembda Nias.
                     </p>
                 </div>
 

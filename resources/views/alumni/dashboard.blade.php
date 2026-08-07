@@ -84,7 +84,7 @@
                             <i class="fas fa-hand-holding-heart text-xl"></i>
                         </div>
                         <div>
-                            <h4 class="font-bold text-gray-900 mb-1">Kontribusi & Rekening Yayasan</h4>
+                            <h4 class="font-bold text-gray-900 mb-1">Wadah Kontribusi Resmi pada almamater kita</h4>
                             <p class="text-xs text-gray-500 leading-relaxed">Dukung pengembangan almamater melalui donasi pendidikan, rekening resmi yayasan, atau hibah peralatan.</p>
                         </div>
                     </div>

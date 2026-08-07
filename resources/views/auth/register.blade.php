@@ -31,7 +31,7 @@
                     <div class="space-y-1.5 text-xs text-indigo-100">
                         <div class="flex items-center gap-2"><i class="fas fa-check-circle text-amber-400"></i> <span>Akses Forum Obrolan & Nostalgia Per Angkatan</span></div>
                         <div class="flex items-center gap-2"><i class="fas fa-check-circle text-amber-400"></i> <span>Informasi Lowongan Kerja & Karir Alumni</span></div>
-                        <div class="flex items-center gap-2"><i class="fas fa-check-circle text-amber-400"></i> <span>Wadah Kontribusi & Rekening Resmi Yayasan</span></div>
+                        <div class="flex items-center gap-2"><i class="fas fa-check-circle text-amber-400"></i> <span>Wadah Kontribusi Resmi pada almamater kita</span></div>
                     </div>
                 </div>
 
