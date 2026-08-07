@@ -769,10 +769,9 @@ class LmsController extends Controller
     /**
      * Show discussion detail
      */
-    public function showDiscussion(LmsDiscussion $discussion)
+    public function showDiscussion(LmsCourse $course, LmsDiscussion $discussion)
     {
         $student = $this->getStudent();
-        $course = $discussion->course;
         if (!$student || !$this->isEnrolled($student, $course)) {
             abort(403);
         }
@@ -788,10 +787,9 @@ class LmsController extends Controller
     /**
      * Reply to discussion
      */
-    public function replyDiscussion(Request $request, LmsDiscussion $discussion)
+    public function replyDiscussion(Request $request, LmsCourse $course, LmsDiscussion $discussion)
     {
         $student = $this->getStudent();
-        $course = $discussion->course;
         if (!$student || !$this->isEnrolled($student, $course)) {
             abort(403);
         }
@@ -813,7 +811,7 @@ class LmsController extends Controller
 
         $discussion->incrementRepliesCount();
 
-        return redirect()->route('siswa.lms.discussions.show', $discussion->id)
+        return redirect()->route('siswa.lms.discussions.show', [$course->id, $discussion->id])
             ->with('success', 'Balasan berhasil ditambahkan.');
     }
 

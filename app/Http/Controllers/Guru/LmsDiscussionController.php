@@ -75,10 +75,9 @@ class LmsDiscussionController extends Controller
     /**
      * Show discussion detail with replies
      */
-    public function show(LmsDiscussion $discussion)
+    public function show(LmsCourse $course, LmsDiscussion $discussion)
     {
         $teacher = $this->getTeacher();
-        $course = $discussion->course;
         if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
             abort(403);
         }
@@ -95,10 +94,9 @@ class LmsDiscussionController extends Controller
     /**
      * Reply to discussion
      */
-    public function reply(Request $request, LmsDiscussion $discussion)
+    public function reply(Request $request, LmsCourse $course, LmsDiscussion $discussion)
     {
         $teacher = $this->getTeacher();
-        $course = $discussion->course;
         if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
             abort(403);
         }
@@ -120,17 +118,16 @@ class LmsDiscussionController extends Controller
 
         $discussion->incrementRepliesCount();
 
-        return redirect()->route('guru.lms.discussions.show', $discussion->id)
+        return redirect()->route('guru.lms.discussions.show', [$course->id, $discussion->id])
             ->with('success', 'Balasan berhasil ditambahkan.');
     }
 
     /**
      * Toggle pin discussion
      */
-    public function togglePin(LmsDiscussion $discussion)
+    public function togglePin(LmsCourse $course, LmsDiscussion $discussion)
     {
         $teacher = $this->getTeacher();
-        $course = $discussion->course;
         if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
             abort(403);
         }
@@ -143,10 +140,9 @@ class LmsDiscussionController extends Controller
     /**
      * Toggle lock discussion
      */
-    public function toggleLock(LmsDiscussion $discussion)
+    public function toggleLock(LmsCourse $course, LmsDiscussion $discussion)
     {
         $teacher = $this->getTeacher();
-        $course = $discussion->course;
         if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
             abort(403);
         }
@@ -159,10 +155,9 @@ class LmsDiscussionController extends Controller
     /**
      * Mark reply as best answer
      */
-    public function markBestAnswer(LmsDiscussionReply $reply)
+    public function markBestAnswer(LmsCourse $course, LmsDiscussion $discussion, LmsDiscussionReply $reply)
     {
         $teacher = $this->getTeacher();
-        $course = $reply->discussion->course;
         if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
             abort(403);
         }
@@ -175,10 +170,9 @@ class LmsDiscussionController extends Controller
     /**
      * Delete discussion (soft delete)
      */
-    public function destroy(LmsDiscussion $discussion)
+    public function destroy(LmsCourse $course, LmsDiscussion $discussion)
     {
         $teacher = $this->getTeacher();
-        $course = $discussion->course;
         if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
             abort(403);
         }
