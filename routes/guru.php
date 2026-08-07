@@ -158,6 +158,8 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::get('/{course}/discussions', [App\Http\Controllers\Guru\LmsDiscussionController::class, 'index'])->name('discussions.index');
         Route::post('/{course}/discussions', [App\Http\Controllers\Guru\LmsDiscussionController::class, 'store'])->name('discussions.store');
         Route::get('/{course}/discussions/{discussion}', [App\Http\Controllers\Guru\LmsDiscussionController::class, 'show'])->name('discussions.show');
+        Route::get('/{course}/discussions/{discussion}/edit', [App\Http\Controllers\Guru\LmsDiscussionController::class, 'edit'])->name('discussions.edit');
+        Route::put('/{course}/discussions/{discussion}', [App\Http\Controllers\Guru\LmsDiscussionController::class, 'update'])->name('discussions.update');
         Route::post('/{course}/discussions/{discussion}/reply', [App\Http\Controllers\Guru\LmsDiscussionController::class, 'reply'])->name('discussions.reply');
         Route::post('/{course}/discussions/{discussion}/toggle-pin', [App\Http\Controllers\Guru\LmsDiscussionController::class, 'togglePin'])->name('discussions.togglePin');
         Route::post('/{course}/discussions/{discussion}/toggle-lock', [App\Http\Controllers\Guru\LmsDiscussionController::class, 'toggleLock'])->name('discussions.toggleLock');

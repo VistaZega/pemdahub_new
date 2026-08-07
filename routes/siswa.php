@@ -66,6 +66,8 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
         Route::get('/{course}/discussions', [App\Http\Controllers\Siswa\LmsController::class, 'discussions'])->name('discussions.index');
         Route::post('/{course}/discussions', [App\Http\Controllers\Siswa\LmsController::class, 'storeDiscussion'])->name('discussions.store');
         Route::get('/{course}/discussions/{discussion}', [App\Http\Controllers\Siswa\LmsController::class, 'showDiscussion'])->name('discussions.show');
+        Route::get('/{course}/discussions/{discussion}/edit', [App\Http\Controllers\Siswa\LmsController::class, 'editDiscussion'])->name('discussions.edit');
+        Route::put('/{course}/discussions/{discussion}', [App\Http\Controllers\Siswa\LmsController::class, 'updateDiscussion'])->name('discussions.update');
         Route::post('/{course}/discussions/{discussion}/reply', [App\Http\Controllers\Siswa\LmsController::class, 'replyDiscussion'])->name('discussions.reply');
     });
 

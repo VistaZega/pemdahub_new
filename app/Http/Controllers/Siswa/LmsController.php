@@ -785,6 +785,45 @@ class LmsController extends Controller
     }
 
     /**
+     * Edit discussion topic
+     */
+    public function editDiscussion(LmsCourse $course, LmsDiscussion $discussion)
+    {
+        $student = $this->getStudent();
+        if (!$student || !$this->isEnrolled($student, $course) || $discussion->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        return view('siswa.lms.discussions.edit', compact('student', 'course', 'discussion'));
+    }
+
+    /**
+     * Update discussion topic
+     */
+    public function updateDiscussion(Request $request, LmsCourse $course, LmsDiscussion $discussion)
+    {
+        $student = $this->getStudent();
+        if (!$student || !$this->isEnrolled($student, $course) || $discussion->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:300',
+            'content' => 'required|string',
+            'type' => 'required|in:discussion,question',
+        ]);
+
+        $discussion->update([
+            'title' => $request->title,
+            'content' => $request->content,
+            'type' => $request->type,
+        ]);
+
+        return redirect()->route('siswa.lms.discussions.show', [$course->id, $discussion->id])
+            ->with('success', 'Topik diskusi berhasil diperbarui.');
+    }
+
+    /**
      * Reply to discussion
      */
     public function replyDiscussion(Request $request, LmsCourse $course, LmsDiscussion $discussion)

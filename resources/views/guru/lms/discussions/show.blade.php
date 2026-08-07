@@ -146,6 +146,9 @@
         <div class="bg-gray-50/50 border-t border-gray-100 px-6 py-3">
             <div class="flex items-center gap-2 flex-wrap">
                 <span class="text-xs text-gray-400 font-medium tracking-wide mr-2">Moderasi:</span>
+                <a href="{{ route('guru.lms.discussions.edit', [$course->id, $discussion->id]) }}" class="mod-btn inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-full border bg-white text-blue-600 border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all">
+                    <i class="fas fa-edit"></i> Edit Topik
+                </a>
                 <form action="{{ route('guru.lms.discussions.togglePin', [$course->id, $discussion->id]) }}" method="POST" class="inline">
                     @csrf
                     <button class="mod-btn inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-full border transition-all {{ $discussion->is_pinned ? 'bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-100' : 'bg-white text-gray-600 border-gray-200 hover:border-cyan-300 hover:text-cyan-600' }}">

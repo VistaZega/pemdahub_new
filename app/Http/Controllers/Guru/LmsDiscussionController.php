@@ -92,6 +92,47 @@ class LmsDiscussionController extends Controller
     }
 
     /**
+     * Edit discussion topic
+     */
+    public function edit(LmsCourse $course, LmsDiscussion $discussion)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+        $teacher->load('school');
+
+        return view('guru.lms.discussions.edit', compact('teacher', 'course', 'discussion'));
+    }
+
+    /**
+     * Update discussion topic
+     */
+    public function update(Request $request, LmsCourse $course, LmsDiscussion $discussion)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:300',
+            'content' => 'required|string',
+            'type' => 'required|in:discussion,question,announcement',
+        ]);
+
+        $discussion->update([
+            'title' => $request->title,
+            'content' => $request->content,
+            'type' => $request->type,
+            'is_pinned' => $request->boolean('is_pinned'),
+        ]);
+
+        return redirect()->route('guru.lms.discussions.show', [$course->id, $discussion->id])
+            ->with('success', 'Topik diskusi berhasil diperbarui.');
+    }
+
+    /**
      * Reply to discussion
      */
     public function reply(Request $request, LmsCourse $course, LmsDiscussion $discussion)

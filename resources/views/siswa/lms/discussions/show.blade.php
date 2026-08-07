@@ -132,6 +132,15 @@
                 </div>
             </div>
         </div>
+        @if(Auth::id() === $discussion->user_id)
+        <div class="bg-gray-50/50 border-t border-gray-100 px-6 py-3">
+            <div class="flex items-center gap-2">
+                <a href="{{ route('siswa.lms.discussions.edit', [$course->id, $discussion->id]) }}" class="inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-full border bg-white text-blue-600 border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all">
+                    <i class="fas fa-edit"></i> Edit Topik
+                </a>
+            </div>
+        </div>
+        @endif
     </div>
 
     {{-- Replies Section --}}
