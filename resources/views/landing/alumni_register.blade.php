@@ -234,7 +234,7 @@
                     </div>
                 @endif
 
-                @if($errors->any())
+                @if(isset($errors) && $errors->any())
                     <div class="mb-8 p-4 bg-red-50 border border-red-200 text-red-800 rounded-2xl flex gap-3 items-start relative z-10 shadow-sm">
                         <i class="fa-solid fa-triangle-exclamation text-xl mt-0.5 text-red-500"></i>
                         <div>

@@ -1,4 +1,4 @@
-@extends(auth()->user()->layout)
+@extends(auth()->user()->layout ?? 'layouts.alumni')
 @section('title', 'Tracer Study Alumni')
 
 @section('content')

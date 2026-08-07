@@ -50,7 +50,7 @@
             <form action="{{ route('alumni.forum.reply', $forum->id) }}" method="POST">
                 @csrf
                 <div class="flex gap-4">
-                    <img src="{{ auth()->user()->photo_url }}" class="w-10 h-10 rounded-full object-cover shrink-0 shadow-sm hidden sm:block">
+                    <img src="{{ auth()->user()?->photo_url ?? 'https://ui-avatars.com/api/?name=User' }}" class="w-10 h-10 rounded-full object-cover shrink-0 shadow-sm hidden sm:block">
                     <div class="flex-1 space-y-3">
                         <textarea name="content" rows="3" required placeholder="Tulis balasan Anda di sini..." class="w-full border-gray-300 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm p-3"></textarea>
                         <div class="flex justify-end">

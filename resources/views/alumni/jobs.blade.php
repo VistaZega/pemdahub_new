@@ -1,4 +1,4 @@
-@extends(auth()->user()->layout)
+@extends(auth()->user()->layout ?? 'layouts.alumni')
 @section('title', 'Lowongan Kerja (Job Board)')
 
 @section('content')

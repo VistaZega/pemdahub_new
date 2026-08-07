@@ -31,7 +31,7 @@
 </div>
 @endif
 
-@if($errors->any())
+@if(isset($errors) && $errors->any())
 <div class="flash-message mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm" role="alert">
     <div class="flex items-center gap-2 mb-1">
         <i class="fas fa-exclamation-triangle flex-shrink-0"></i>
