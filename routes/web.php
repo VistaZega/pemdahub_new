@@ -913,7 +913,9 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:5,1') // Rate limit: 5 attempts per minute
         ->name('login.submit');
 
-    Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+    Route::get('/register', function() {
+        return redirect()->route('ika.register');
+    })->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
 
     Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');

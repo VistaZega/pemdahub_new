@@ -18,8 +18,24 @@
             </div>
 
             <!-- Register Form Card -->
-            <div class="bg-white rounded-lg shadow-lg p-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Buat Akun Baru</h2>
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <!-- Warm Invitation Banner -->
+                <div class="bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white p-6 rounded-2xl mb-6 shadow-md border border-indigo-800">
+                    <span class="inline-block px-3 py-1 bg-amber-400/20 text-amber-300 text-xs font-bold rounded-full mb-2 border border-amber-300/30">
+                        <i class="fas fa-heart text-pink-400 mr-1"></i> AJAKAN BERGABUNG ALUMNI
+                    </span>
+                    <h2 class="text-xl font-bold text-white mb-2">Mari Bergabung di Portal Ikatan Alumni!</h2>
+                    <p class="text-xs text-indigo-200 leading-relaxed mb-4">
+                        Pembuatan akun ini bertujuan untuk menghubungkan kembali seluruh alumni Perguruan Pembda Nias di mana pun berada.
+                    </p>
+                    <div class="space-y-1.5 text-xs text-indigo-100">
+                        <div class="flex items-center gap-2"><i class="fas fa-check-circle text-amber-400"></i> <span>Akses Forum Obrolan & Nostalgia Per Angkatan</span></div>
+                        <div class="flex items-center gap-2"><i class="fas fa-check-circle text-amber-400"></i> <span>Informasi Lowongan Kerja & Karir Alumni</span></div>
+                        <div class="flex items-center gap-2"><i class="fas fa-check-circle text-amber-400"></i> <span>Wadah Kontribusi & Rekening Resmi Yayasan</span></div>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Buat Akun Anda</h2>
 
                 @if ($errors->any())
                 <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
