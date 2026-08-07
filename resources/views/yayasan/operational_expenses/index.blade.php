@@ -1,6 +1,6 @@
 @extends('layouts.yayasan')
 
-@section('title', 'Rencana Belanja Yayasan & Perguruan (RAPBY)')
+@section('title', 'Rencana Belanja Operasional Per Unit Sekolah (RAPBY)')
 
 @push('styles')
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet">
 
 <style>
-    /* 100% SOLID COLORS - NO OPACITY TRANSPARENCY */
     .ui-ux-promax {
         font-family: 'Plus Jakarta Sans', sans-serif;
         color: #000000;
@@ -27,7 +26,6 @@
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
     }
 
-    /* MENCEGAH TEKS NOMINAL TERPISAH DENGAN Rp */
     .num-col { 
         font-variant-numeric: tabular-nums; 
         white-space: nowrap !important;
@@ -49,7 +47,7 @@
     }
     .stat-card-pro.blue::before { background-color: #1d4ed8; }
     .stat-card-pro.amber::before { background-color: #d97706; }
-    .stat-card-pro.violet::before { background-color: #6b21a8; }
+    .stat-card-pro.emerald::before { background-color: #059669; }
 
     .rapby-input-pro {
         border: 2px solid #000000 !important;
@@ -58,28 +56,21 @@
         background-color: #ffffff !important;
         opacity: 1 !important;
     }
-    .rapby-input-pro::placeholder {
-        color: #334155 !important;
-        opacity: 1 !important;
-        font-weight: 800 !important;
-    }
     .rapby-input-pro:focus {
         border-color: #1d4ed8 !important;
         box-shadow: 0 0 0 4px #93c5fd !important;
         outline: none !important;
     }
 
-    .pro-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 12px;
-        border-radius: 9999px;
-        font-size: 11px;
-        font-weight: 900;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        opacity: 1 !important;
+    .tab-btn {
+        border: 2px solid #000000;
+        transition: all 0.2s ease;
+        font-weight: 800;
+    }
+    .tab-btn.active {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
     }
 </style>
 @endpush
@@ -87,366 +78,328 @@
 @section('content')
 <div class="ui-ux-promax space-y-6">
 
-    {{-- HERO HEADER (100% SOLID CONTRAST) --}}
+    {{-- HERO HEADER --}}
     <div class="rapby-hero rounded-3xl p-6 md:p-8 text-white relative overflow-hidden">
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div class="space-y-2">
                 <div class="flex items-center gap-3">
                     <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-lg border-2 border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
-                        <i class="fas fa-file-invoice-dollar text-2xl text-black"></i>
+                        <i class="fas fa-school text-2xl text-black"></i>
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">Rencana Anggaran Belanja</h1>
-                            <span class="pro-badge border-2 border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">RAPBY v2.0</span>
+                            <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">Rencana Belanja Operasional Per Unit Sekolah</h1>
+                            <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border border-amber-400/40 bg-amber-400/20 text-amber-300">
+                                {{ $periodMode === 'annual' ? 'TAHUNAN (12 BULAN)' : 'BULANAN (1 BULAN)' }}
+                            </span>
                         </div>
-                        <p class="text-amber-400 text-sm font-black tracking-wide">Yayasan & Perguruan Pembda</p>
+                        <p class="text-sm text-gray-300 font-medium">Alokasi Rencana Belanja Rutin (Subsidi Keuangan, Otorisasi, Operasional, Tunjangan Bendahara, Operator) Dikembangkan Per Unit Sekolah</p>
                     </div>
                 </div>
-                <p class="text-white text-xs font-black max-w-xl leading-relaxed">
-                    Sistem Penyusunan Rencana Anggaran Belanja Pegawai (Otomatis Penugasan SDM) & Belanja Operasional Terpusat dengan Kontras 100% Solid & Presisi Tinggi.
-                </p>
             </div>
 
-            {{-- Controls & Period Selector --}}
-            <form method="GET" action="{{ route('yayasan.operational_expenses.index') }}" class="flex flex-wrap items-center gap-3">
-                <div class="flex flex-col">
-                    <span class="text-[11px] uppercase tracking-wider font-black text-amber-400 mb-1">Tahun Pelajaran</span>
-                    <select name="academic_year_id" onchange="this.form.submit()" class="bg-black text-white border-2 border-amber-400 rounded-xl text-xs px-3.5 py-2.5 font-black focus:ring-2 focus:ring-amber-400 min-w-[170px]">
+            {{-- TOOLBAR CONTROL --}}
+            <div class="flex flex-wrap items-center gap-3">
+                {{-- FILTER TP --}}
+                <form action="{{ route('yayasan.operational_expenses.index') }}" method="GET" class="flex items-center gap-2 bg-white/10 p-1.5 rounded-2xl border border-white/20 backdrop-blur-md">
+                    <input type="hidden" name="period_mode" value="{{ $periodMode }}">
+                    <select name="academic_year_id" onchange="this.form.submit()" class="bg-gray-900 text-white font-bold text-xs rounded-xl px-3 py-2 border border-gray-700 focus:ring-2 focus:ring-amber-400">
                         @foreach($allYears as $y)
-                            <option value="{{ $y->id }}" {{ ($currentYear->id ?? '') == $y->id ? 'selected' : '' }} class="bg-black text-white font-black">
-                                TP {{ $y->year }} {{ $y->is_active ? '✦ Aktif' : '' }}
+                            <option value="{{ $y->id }}" {{ ($currentYear->id ?? null) == $y->id ? 'selected' : '' }}>
+                                TP {{ $y->year }} {{ $y->is_active ? '(Aktif)' : '' }}
                             </option>
                         @endforeach
                     </select>
-                </div>
+                </form>
 
-                <div class="flex flex-col">
-                    <span class="text-[11px] uppercase tracking-wider font-black text-amber-400 mb-1">Mode Periode</span>
-                    <div class="bg-black p-1 rounded-xl border-2 border-slate-700 flex items-center gap-1">
-                        <a href="{{ route('yayasan.operational_expenses.index', ['academic_year_id' => $currentYear->id, 'period_mode' => 'annual']) }}"
-                           class="px-4 py-2 rounded-lg text-xs font-black transition-all" style="{{ $periodMode === 'annual' ? 'background-color: #fbbf24 !important; color: #000000 !important; border: 2px solid #000000;' : 'color: #ffffff;' }}">
-                            <i class="fas fa-calendar-days mr-1.5"></i> 12 Bulan
-                        </a>
-                        <a href="{{ route('yayasan.operational_expenses.index', ['academic_year_id' => $currentYear->id, 'period_mode' => 'monthly']) }}"
-                           class="px-4 py-2 rounded-lg text-xs font-black transition-all" style="{{ $periodMode === 'monthly' ? 'background-color: #fbbf24 !important; color: #000000 !important; border: 2px solid #000000;' : 'color: #ffffff;' }}">
-                            <i class="fas fa-calendar-day mr-1.5"></i> 1 Bulan
-                        </a>
-                    </div>
-                </div>
-
-                <div class="flex flex-col justify-end pt-5">
-                    <a href="{{ route('yayasan.operational_expenses.export_pdf', ['academic_year_id' => $currentYear->id, 'period_mode' => $periodMode]) }}" target="_blank"
-                       class="px-4 py-2.5 text-white font-black text-xs rounded-xl shadow-lg transition flex items-center gap-2 border-2 border-black" style="background-color: #059669 !important;">
-                        <i class="fas fa-file-pdf text-sm text-white"></i> Export PDF
+                {{-- TOGGLE PERIODE --}}
+                <div class="flex items-center bg-gray-900 border border-gray-700 p-1 rounded-2xl">
+                    <a href="{{ route('yayasan.operational_expenses.index', ['academic_year_id' => $currentYear->id ?? '', 'period_mode' => 'annual']) }}" 
+                       class="px-3 py-1.5 rounded-xl text-xs font-black transition {{ $periodMode === 'annual' ? 'bg-amber-400 text-black shadow-md' : 'text-gray-400 hover:text-white' }}">
+                       12 Bulan
+                    </a>
+                    <a href="{{ route('yayasan.operational_expenses.index', ['academic_year_id' => $currentYear->id ?? '', 'period_mode' => 'monthly']) }}" 
+                       class="px-3 py-1.5 rounded-xl text-xs font-black transition {{ $periodMode === 'monthly' ? 'bg-amber-400 text-black shadow-md' : 'text-gray-400 hover:text-white' }}">
+                       1 Bulan
                     </a>
                 </div>
-            </form>
-        </div>
-    </div>
 
-    @if(session('success'))
-        <div class="p-4 border-2 border-black text-black rounded-2xl text-xs font-black flex items-center gap-3 shadow-md" style="background-color: #6ee7b7 !important;">
-            <i class="fas fa-check-circle text-black text-xl"></i>
-            <span>{{ session('success') }}</span>
-        </div>
-    @endif
-
-    {{-- STATISTICAL SUMMARY CARDS (INLINE BULLETPROOF BACKGROUNDS & ICONS) --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {{-- Card 1: Belanja Pegawai --}}
-        <div class="stat-card-pro blue rapby-card-pro rounded-2xl p-5 shadow-md">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-black border-2 border-black shrink-0" style="background-color: #1e3a8a !important; color: #ffffff !important;">
-                    <i class="fas fa-users-gear text-2xl text-white"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-black font-black uppercase tracking-wider">5.1.00 — Belanja Pegawai</p>
-                    <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</p>
-                    <div class="flex items-center gap-2 mt-1.5">
-                        <span class="pro-badge border-2 border-black" style="background-color: #1e3a8a !important; color: #ffffff !important;">
-                            <i class="fas fa-building text-[10px] text-white"></i> {{ count($hierarchicalSalaryData) }} Unit
-                        </span>
-                        <span class="pro-badge border-2 border-black" style="background-color: #312e81 !important; color: #ffffff !important;">
-                            <i class="fas fa-user-check text-[10px] text-white"></i> {{ $totalPegawaiCount }} Pegawai
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card 2: Belanja Operasional --}}
-        <div class="stat-card-pro amber rapby-card-pro rounded-2xl p-5 shadow-md">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-black border-2 border-black shrink-0" style="background-color: #d97706 !important; color: #ffffff !important;">
-                    <i class="fas fa-list-check text-2xl text-white"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-black font-black uppercase tracking-wider">5.1.01–15 — Belanja Operasional</p>
-                    <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap" id="cardOpsTotal">Rp&nbsp;{{ number_format($totalOpsPeriod, 0, ',', '.') }}</p>
-                    <span class="pro-badge border-2 border-black mt-1.5" style="background-color: #fbbf24 !important; color: #000000 !important;">
-                        <i class="fas fa-pen-to-square text-[10px] text-black"></i> Dapat Diedit
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card 3: Grand Total --}}
-        <div class="stat-card-pro violet rapby-card-pro rounded-2xl p-5 shadow-md border-2 border-black" style="background-color: #f3e8ff !important;">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-black border-2 border-black shrink-0" style="background-color: #581c87 !important; color: #ffffff !important;">
-                    <i class="fas fa-calculator text-2xl text-white"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-black font-black uppercase tracking-wider">Grand Total RAPBY</p>
-                    <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap" id="cardGrandTotal">Rp&nbsp;{{ number_format($grandTotalBelanjaPeriod, 0, ',', '.') }}</p>
-                    <span class="pro-badge border-2 border-black mt-1.5" style="background-color: #581c87 !important; color: #ffffff !important;">
-                        <i class="fas fa-layer-group text-[10px] text-white"></i> Total Keseluruhan
-                    </span>
-                </div>
+                {{-- TOMBOL CETAK PDF --}}
+                <a href="{{ route('yayasan.operational_expenses.export_pdf', ['academic_year_id' => $currentYear->id ?? '', 'period_mode' => $periodMode]) }}" 
+                   target="_blank" 
+                   class="px-4 py-2.5 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 border-2 border-black transition hover:scale-105 shadow-lg"
+                   style="background-color: #ef4444 !important; color: #ffffff !important;">
+                    <i class="fas fa-file-pdf text-sm"></i>
+                    <span>Cetak PDF RAPBY</span>
+                </a>
             </div>
         </div>
     </div>
 
-    {{-- MAIN TABLE SYSTEM --}}
-    <form method="POST" action="{{ route('yayasan.operational_expenses.store') }}">
+    {{-- STATS CARDS --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="stat-card-pro blue p-5 rounded-2xl shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Belanja Pegawai (SDM)</span>
+                <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-black">
+                    <i class="fas fa-users-gear text-sm"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <div class="text-2xl font-black text-blue-900 num-col">
+                    Rp {{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}
+                </div>
+                <div class="text-xs font-bold text-gray-500 mt-1">
+                    {{ $totalPegawaiCount }} Pegawai Aktif ({{ count($allSchools) }} Unit)
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card-pro amber p-5 rounded-2xl shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Belanja Operasional (Non-SDM)</span>
+                <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-black">
+                    <i class="fas fa-wallet text-sm"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <div class="text-2xl font-black text-amber-900 num-col">
+                    Rp {{ number_format($totalOpsPerguruanPeriod, 0, ',', '.') }}
+                </div>
+                <div class="text-xs font-bold text-gray-500 mt-1">
+                    Alokasi Rutin Subsidi, Otorisasi, Operasional & Insentif
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card-pro emerald p-5 rounded-2xl shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Grand Total Belanja Perguruan</span>
+                <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black">
+                    <i class="fas fa-calculator text-sm"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <div class="text-2xl font-black text-emerald-900 num-col">
+                    Rp {{ number_format($grandTotalBelanjaPeriod, 0, ',', '.') }}
+                </div>
+                <div class="text-xs font-bold text-gray-500 mt-1">
+                    Periode {{ $periodMode === 'annual' ? '12 Bulan (1 Tahun)' : '1 Bulan' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- TABEL REKAPITULASI SUMMARY PER UNIT SEKOLAH --}}
+    <div class="rapby-card-pro p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-lg font-black text-gray-900 flex items-center gap-2">
+                    <i class="fas fa-table-columns text-blue-600"></i>
+                    <span>Rekapitulasi Total Rencana Belanja Per Unit Sekolah</span>
+                </h3>
+                <p class="text-xs text-gray-500 font-bold">Perbandingan Total Belanja Pegawai, Belanja Operasional, dan Grand Total Setiap Unit</p>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border-2 border-black">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                    <tr class="bg-gray-900 text-white font-black uppercase tracking-wider border-b-2 border-black">
+                        <th class="p-3 text-center w-12">No</th>
+                        <th class="p-3">Nama Unit Sekolah / Lembaga</th>
+                        <th class="p-3 text-center">Jumlah SDM</th>
+                        <th class="p-3 text-right">Belanja Pegawai (Rp)</th>
+                        <th class="p-3 text-right">Belanja Operasional (Rp)</th>
+                        <th class="p-3 text-right bg-blue-900 text-white">Grand Total (Rp)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y border-black font-bold">
+                    @foreach($schoolExpenseData as $sIdx => $sData)
+                        <tr class="hover:bg-blue-50/50 transition">
+                            <td class="p-3 text-center font-black">{{ $loop->iteration }}</td>
+                            <td class="p-3">
+                                <div class="font-black text-sm text-gray-900">{{ $sData['school_name'] }}</div>
+                                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded border border-black {{ $sData['school_type'] === 'yayasan' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800' }}">
+                                    {{ $sData['school_type'] }}
+                                </span>
+                            </td>
+                            <td class="p-3 text-center font-black text-blue-700">{{ $sData['employee_count'] }} Orang</td>
+                            <td class="p-3 text-right num-col text-gray-800">Rp {{ number_format($sData['total_salary_period'], 0, ',', '.') }}</td>
+                            <td class="p-3 text-right num-col text-amber-800">Rp {{ number_format($sData['total_ops_period'], 0, ',', '.') }}</td>
+                            <td class="p-3 text-right num-col font-black text-blue-900 bg-blue-50/80">Rp {{ number_format($sData['grand_total_period'], 0, ',', '.') }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    <tr class="bg-gray-900 text-white font-black text-sm border-t-2 border-black">
+                        <td colspan="2" class="p-3 text-right uppercase">TOTAL PERGURAN PEMBDA:</td>
+                        <td class="p-3 text-center text-amber-400">{{ $totalPegawaiCount }} Orang</td>
+                        <td class="p-3 text-right num-col">Rp {{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</td>
+                        <td class="p-3 text-right num-col text-amber-300">Rp {{ number_format($totalOpsPerguruanPeriod, 0, ',', '.') }}</td>
+                        <td class="p-3 text-right num-col text-emerald-400 bg-black">Rp {{ number_format($grandTotalBelanjaPeriod, 0, ',', '.') }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    {{-- FORM INPUT RENCANA BELANJA OPERASIONAL KELOMPOK PER UNIT SEKOLAH --}}
+    <form action="{{ route('yayasan.operational_expenses.store') }}" method="POST">
         @csrf
-        <input type="hidden" name="academic_year_id" value="{{ $currentYear->id }}">
+        <input type="hidden" name="academic_year_id" value="{{ $currentYear->id ?? '' }}">
 
-        <div class="rapby-card-pro rounded-3xl shadow-2xl overflow-hidden border-2 border-black">
-            {{-- Table Header Toolbar --}}
-            <div class="rapby-hero p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-black">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl flex items-center justify-center shadow-md border-2 border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
-                        <i class="fas fa-table-list text-xl text-black"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-black text-white">Rincian Anggaran Belanja RAPBY</h2>
-                        <p class="text-amber-400 text-xs font-black">Tahun Pelajaran {{ $currentYear->year ?? '-' }} • Periode {{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }}</p>
-                    </div>
+        <div class="rapby-card-pro p-6 space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-gray-200 pb-4">
+                <div>
+                    <h3 class="text-xl font-black text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-sliders text-amber-500"></i>
+                        <span>Pengaturan Rencana Belanja Operasional Per Unit Sekolah</span>
+                    </h3>
+                    <p class="text-xs text-gray-500 font-bold">Tentukan alokasi nominal Subsidi Keuangan, Otorisasi, Operasional, Tunjangan Bendahara, dan Operator untuk setiap Unit</p>
                 </div>
-                <button type="submit" class="px-6 py-3 text-black font-black text-xs rounded-xl shadow-xl transition-all flex items-center gap-2 border-2 border-black" style="background-color: #fbbf24 !important;">
-                    <i class="fas fa-save text-sm text-black"></i> Simpan Rencana Belanja
+
+                <button type="submit" class="px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-wider text-white shadow-xl border-2 border-black transition hover:scale-105 flex items-center justify-center gap-2" style="background-color: #2563eb !important;">
+                    <i class="fas fa-save text-base"></i>
+                    <span>Simpan Rencana Belanja Per Unit</span>
                 </button>
             </div>
 
-            {{-- Table View --}}
-            <div class="overflow-x-auto">
-                <table class="w-full text-xs text-left border-collapse">
-                    <thead>
-                        <tr class="bg-black text-white border-b-2 border-black">
-                            <th class="px-3 py-4 text-center w-14 text-xs uppercase font-black text-white">No</th>
-                            <th class="px-3 py-4 w-28 text-xs uppercase font-black text-white">Kode Rek.</th>
-                            <th class="px-4 py-4 text-xs uppercase font-black text-white">Nama Rekening Belanja</th>
-                            <th class="px-3 py-4 w-24 text-center text-xs uppercase font-black text-white">Jumlah</th>
-                            <th class="px-3 py-4 w-24 text-center text-xs uppercase font-black text-white">Satuan</th>
-                            <th class="px-4 py-4 text-right w-44 text-xs uppercase font-black text-white whitespace-nowrap">Tarif Satuan (Rp)</th>
-                            <th class="px-4 py-4 text-right w-44 text-xs uppercase font-black text-white whitespace-nowrap">Total / Bulan</th>
-                            <th class="px-4 py-4 text-right w-48 text-xs uppercase font-black text-white whitespace-nowrap">Total Periode</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y-2 divide-slate-400 bg-white">
-
-                        {{-- KELOMPOK 5.1.00: BELANJA PEGAWAI --}}
-                        <tr class="text-black font-black border-b-2 border-black" style="background-color: #bfdbfe !important;">
-                            <td class="px-3 py-4 text-center">
-                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-black text-white text-xs font-black border-2 border-black">5.1</span>
-                            </td>
-                            <td class="px-3 py-4 font-mono font-black text-black text-sm">5.1.00</td>
-                            <td colspan="4" class="px-4 py-4">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-users-gear text-black text-base"></i>
-                                    <span class="font-black uppercase tracking-wide text-xs text-black">Kelompok: Belanja Pegawai Perguruan</span>
-                                    <span class="pro-badge border border-black ml-2" style="background-color: #000000 !important; color: #ffffff !important;">
-                                        <i class="fas fa-lock text-[8px] text-white"></i> Otomatis Penugasan
-                                    </span>
-                                </div>
-                            </td>
-                            <td class="px-4 py-4 text-right font-black text-black num-col text-xs whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanMonthly, 0, ',', '.') }}</td>
-                            <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</td>
-                        </tr>
-
-                        @foreach($hierarchicalSalaryData as $uIdx => $uData)
-                            @php $item = $uData['items'][0] ?? null; @endphp
-                            @if($item)
-                            <tr class="hover:bg-slate-200 transition-all border-b border-slate-400" style="{{ $uData['school_type'] === 'yayasan' ? 'background-color: #f3e8ff !important;' : 'background-color: #ffffff;' }}">
-                                <td class="px-3 py-4 text-center">
-                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-black text-white text-xs font-black border border-black">
-                                        {{ $uIdx + 1 }}
-                                    </span>
-                                </td>
-                                <td class="px-3 py-4 font-mono font-black text-black text-xs">
-                                    {{ $item['code'] }}
-                                </td>
-                                <td class="px-4 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-lg bg-black text-amber-400 font-black flex items-center justify-center border border-black shrink-0">
-                                            <i class="fas {{ $item['icon'] }} text-sm text-amber-400"></i>
-                                        </div>
-                                        <span class="font-black text-black text-xs">{{ $item['name'] }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-3 py-4 text-center font-black text-black num-col text-sm">{{ $item['volume'] }}</td>
-                                <td class="px-3 py-4 text-center font-black text-black">{{ $item['unit'] }}</td>
-                                <td class="px-4 py-4 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($item['tariff'], 0, ',', '.') }}</td>
-                                <td class="px-4 py-4 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($item['amount'], 0, ',', '.') }}</td>
-                                <td class="px-4 py-4 text-right font-black text-black text-xs num-col whitespace-nowrap">
-                                    Rp&nbsp;{{ number_format($uData['total_period'], 0, ',', '.') }}
-                                </td>
-                            </tr>
-                            @endif
-                        @endforeach
-
-                        {{-- Subtotal Pegawai --}}
-                        <tr class="border-y-2 border-black" style="background-color: #93c5fd !important;">
-                            <td colspan="6" class="px-4 py-4 text-right font-black text-black uppercase text-xs tracking-wider">
-                                <i class="fas fa-sigma mr-1.5 text-black text-sm"></i> Subtotal Belanja Pegawai (5.1.00):
-                            </td>
-                            <td class="px-4 py-4 text-right font-black text-black text-xs num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanMonthly, 0, ',', '.') }}</td>
-                            <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap">Rp&nbsp;{{ number_format($totalGajiPerguruanPeriod, 0, ',', '.') }}</td>
-                        </tr>
-
-                        {{-- KELOMPOK 5.1.01+: BELANJA OPERASIONAL --}}
-                        <tr class="text-black font-black border-b-2 border-black" style="background-color: #fde68a !important;">
-                            <td class="px-3 py-4 text-center">
-                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-black text-white text-xs font-black border-2 border-black">5.1</span>
-                            </td>
-                            <td class="px-3 py-4 font-mono font-black text-black text-sm">5.1.01+</td>
-                            <td colspan="4" class="px-4 py-4">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-list-check text-black text-base"></i>
-                                    <span class="font-black uppercase tracking-wide text-xs text-black">Kelompok: Belanja Operasional Non-Gaji</span>
-                                    <span class="pro-badge border border-black ml-2" style="background-color: #000000 !important; color: #ffffff !important;">
-                                        <i class="fas fa-pen-to-square text-[8px] text-white"></i> Editable
-                                    </span>
-                                </div>
-                            </td>
-                            <td class="px-4 py-4 text-right font-black text-black num-col text-xs whitespace-nowrap" id="groupOpsMonthly">Rp&nbsp;{{ number_format($totalOpsMonthly, 0, ',', '.') }}</td>
-                            <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap" id="groupOpsPeriod">Rp&nbsp;{{ number_format($totalOpsPeriod, 0, ',', '.') }}</td>
-                        </tr>
-
-                        @php $opsNo = 1; @endphp
-                        @foreach($parsedExpenseDetails as $code => $detail)
-                            @if(!$detail['is_automatic'])
-                                @php
-                                    $vol = $detail['volume'] ?? 1;
-                                    $unit = $detail['unit'] ?? 'Paket';
-                                    $tariff = $detail['tariff'] ?? 0;
-                                    $amtMonthly = $detail['amount'] ?? 0;
-                                    $amtPeriod = $amtMonthly * $multiplier;
-                                    $safeCode = str_replace('.', '_', $code);
-                                @endphp
-                                <tr class="hover:bg-amber-200 transition-all border-b border-slate-400" style="{{ $opsNo % 2 === 0 ? 'background-color: #fef3c7 !important;' : 'background-color: #ffffff;' }}">
-                                    <td class="px-3 py-4 text-center">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-black text-white text-xs font-black">{{ $opsNo++ }}</span>
-                                    </td>
-                                    <td class="px-3 py-4">
-                                        <span class="font-mono font-black text-black px-2.5 py-1 rounded-md border-2 border-black text-xs" style="background-color: #fbbf24 !important;">{{ $code }}</span>
-                                    </td>
-                                    <td class="px-4 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-lg bg-black text-amber-400 font-black flex items-center justify-center border border-black shrink-0">
-                                                <i class="fas {{ $detail['icon'] }} text-sm text-amber-400"></i>
-                                            </div>
-                                            <span class="font-black text-black text-xs">{{ $detail['name'] }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-2 py-4 text-center">
-                                        <input type="number" name="expense_details[{{ $code }}][volume]" value="{{ $vol }}" min="1" step="1"
-                                               oninput="updateRowCalc('{{ $safeCode }}')" id="vol_{{ $safeCode }}"
-                                               class="rapby-input-pro w-full text-xs font-black text-center py-2 rounded-xl bg-white" placeholder="1">
-                                    </td>
-                                    <td class="px-2 py-4 text-center">
-                                        <input type="text" name="expense_details[{{ $code }}][unit]" value="{{ $unit }}" id="unit_{{ $safeCode }}"
-                                               class="rapby-input-pro w-full text-xs font-black text-center py-2 rounded-xl bg-white" placeholder="Bulan">
-                                    </td>
-                                    <td class="px-3 py-4 text-right">
-                                        <div class="relative">
-                                            <span class="absolute left-3 top-2.5 text-xs font-black text-black whitespace-nowrap">Rp</span>
-                                            <input type="number" name="expense_details[{{ $code }}][tariff]" value="{{ $tariff > 0 ? $tariff : '' }}"
-                                                   step="5000" min="0" oninput="updateRowCalc('{{ $safeCode }}')" id="tariff_{{ $safeCode }}"
-                                                   class="rapby-input-pro w-full text-xs font-black text-right pl-9 pr-3 py-2 rounded-xl bg-white num-col" placeholder="0">
-                                        </div>
-                                    </td>
-                                    <td class="px-4 py-4 text-right font-black text-black num-col text-xs whitespace-nowrap" id="monthly_{{ $safeCode }}">Rp&nbsp;{{ number_format($amtMonthly, 0, ',', '.') }}</td>
-                                    <td class="px-4 py-4 text-right font-black text-black num-col text-xs whitespace-nowrap" id="period_{{ $safeCode }}">Rp&nbsp;{{ number_format($amtPeriod, 0, ',', '.') }}</td>
-                                </tr>
-                            @endif
-                        @endforeach
-
-                        {{-- Subtotal Ops --}}
-                        <tr class="border-y-2 border-black" style="background-color: #fcd34d !important;">
-                            <td colspan="6" class="px-4 py-4 text-right font-black text-black uppercase text-xs tracking-wider">
-                                <i class="fas fa-sigma mr-1.5 text-black text-sm"></i> Subtotal Belanja Operasional (5.1.01–15):
-                            </td>
-                            <td class="px-4 py-4 text-right font-black text-black text-xs num-col whitespace-nowrap" id="subtotalOpsMonthly">Rp&nbsp;{{ number_format($totalOpsMonthly, 0, ',', '.') }}</td>
-                            <td class="px-4 py-4 text-right font-black text-black text-sm num-col whitespace-nowrap" id="subtotalOpsPeriod">Rp&nbsp;{{ number_format($totalOpsPeriod, 0, ',', '.') }}</td>
-                        </tr>
-                    </tbody>
-                    <tfoot>
-                        <tr class="bg-black text-white border-t-4 border-black">
-                            <td colspan="6" class="px-6 py-5 text-right uppercase tracking-widest font-black text-xs text-amber-400">
-                                Grand Total Rencana Belanja RAPBY:
-                            </td>
-                            <td class="px-4 py-5 text-right num-col whitespace-nowrap">
-                                <span class="text-amber-300 font-black text-sm whitespace-nowrap" id="footTotalMonthly">Rp&nbsp;{{ number_format($grandTotalBelanjaMonthly, 0, ',', '.') }}</span>
-                            </td>
-                            <td class="px-4 py-5 text-right num-col whitespace-nowrap">
-                                <span class="text-emerald-400 font-black text-2xl whitespace-nowrap" id="footTotalPeriod">Rp&nbsp;{{ number_format($grandTotalBelanjaPeriod, 0, ',', '.') }}</span>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
+            {{-- NAV TABS UNIT SEKOLAH --}}
+            <div class="flex flex-wrap items-center gap-2 border-b-2 border-black pb-2" id="schoolTabs">
+                @foreach($allSchools as $sIdx => $sch)
+                    <button type="button" 
+                            onclick="switchSchoolTab('school-tab-{{ $sch->id }}', this)" 
+                            class="tab-btn px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider {{ $loop->first ? 'active' : 'bg-gray-100 text-gray-800' }}">
+                        <i class="fas {{ $sch->type === 'yayasan' ? 'fa-building' : 'fa-school' }} mr-1.5"></i>
+                        <span>{{ $sch->name }}</span>
+                    </button>
+                @endforeach
             </div>
 
-            {{-- Footer Notes & Action --}}
-            <div class="p-6 border-t-2 border-black flex flex-col md:flex-row items-center justify-between gap-4" style="background-color: #cbd5e1 !important;">
-                <div class="w-full md:w-2/3">
-                    <label class="block text-xs font-black text-black mb-1.5 uppercase tracking-wider">
-                        <i class="fas fa-comment-dots mr-1 text-black"></i> Catatan Rencana Anggaran Belanja (Opsional)
-                    </label>
-                    <input type="text" name="notes" value="{{ $contribution->notes ?? '' }}"
-                           class="rapby-input-pro w-full text-xs p-3.5 rounded-2xl bg-white text-black font-black border-2 border-black" placeholder="Tambahkan catatan persetujuan rencana anggaran belanja...">
+            {{-- TAB CONTENTS --}}
+            @foreach($schoolExpenseData as $sId => $sData)
+                <div id="school-tab-{{ $sId }}" class="tab-content space-y-5 {{ $loop->first ? '' : 'hidden' }}">
+                    <div class="bg-blue-50/60 p-4 rounded-xl border-2 border-blue-200 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black">
+                                <i class="fas {{ $sData['school_type'] === 'yayasan' ? 'fa-building' : 'fa-graduation-cap' }}"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-black text-base text-gray-900">{{ $sData['school_name'] }}</h4>
+                                <p class="text-xs text-gray-600 font-bold">Total SDM: {{ $sData['employee_count'] }} Orang | Belanja Pegawai: Rp {{ number_format($sData['total_salary_period'], 0, ',', '.') }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-bold text-gray-500 uppercase block">Subtotal Belanja Operasional Unit</span>
+                            <span class="text-lg font-black text-amber-700 num-col">Rp {{ number_format($sData['total_ops_period'], 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+
+                    {{-- TABEL POS REKENING ANGGARAN --}}
+                    <div class="overflow-x-auto rounded-xl border-2 border-black">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-gray-900 text-white font-black uppercase tracking-wider border-b-2 border-black">
+                                    <th class="p-3 text-center w-12">Kode</th>
+                                    <th class="p-3">Pos Rekening / Rencana Belanja</th>
+                                    <th class="p-3 text-center w-28">Volume</th>
+                                    <th class="p-3 text-center w-28">Satuan</th>
+                                    <th class="p-3 text-right w-44">Tarif Satuan (Rp)</th>
+                                    <th class="p-3 text-right w-48 bg-amber-900 text-amber-200">Total Periode (Rp)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y border-black font-bold">
+                                {{-- 1. GAJI PEGAWAI UNIT (READONLY) --}}
+                                <tr class="bg-blue-100/70 border-b-2 border-black">
+                                    <td class="p-3 text-center font-black font-mono text-blue-900">{{ $sData['salary_item']['code'] }}</td>
+                                    <td class="p-3">
+                                        <div class="font-black text-blue-900 flex items-center gap-2">
+                                            <i class="fas fa-users text-blue-600"></i>
+                                            <span>{{ $sData['salary_item']['name'] }}</span>
+                                        </div>
+                                        <span class="text-[10px] text-blue-700 font-bold">(Otomatis Terkalkulasi dari Sistem Penugasan & Payroll)</span>
+                                    </td>
+                                    <td class="p-3 text-center font-black">{{ $sData['salary_item']['volume'] }}</td>
+                                    <td class="p-3 text-center">{{ $sData['salary_item']['unit'] }}</td>
+                                    <td class="p-3 text-right num-col">Rp {{ number_format($sData['salary_item']['tariff'], 0, ',', '.') }}</td>
+                                    <td class="p-3 text-right num-col font-black text-blue-900 bg-blue-200/60">Rp {{ number_format($sData['total_salary_period'], 0, ',', '.') }}</td>
+                                </tr>
+
+                                {{-- 2. LIST REKENING OPERASIONAL --}}
+                                @foreach($sData['ops_details'] as $code => $item)
+                                    <tr class="hover:bg-amber-50/50 transition">
+                                        <td class="p-3 text-center font-black font-mono text-gray-700">{{ $item['code'] }}</td>
+                                        <td class="p-3">
+                                            <div class="font-black text-gray-900 flex items-center gap-2">
+                                                <i class="fas {{ $item['icon'] }} text-amber-600 w-4 text-center"></i>
+                                                <span>{{ $item['name'] }}</span>
+                                            </div>
+                                            <span class="text-[10px] text-gray-500 font-bold">{{ $item['category'] }}</span>
+                                        </td>
+                                        <td class="p-3 text-center">
+                                            <input type="number" 
+                                                   step="1" 
+                                                   min="1" 
+                                                   name="expense_details[{{ $sId }}][{{ $code }}][volume]" 
+                                                   value="{{ $item['volume'] }}" 
+                                                   class="w-full text-center p-1.5 rounded-lg rapby-input-pro text-xs">
+                                        </td>
+                                        <td class="p-3 text-center">
+                                            <input type="text" 
+                                                   name="expense_details[{{ $sId }}][{{ $code }}][unit]" 
+                                                   value="{{ $item['unit'] }}" 
+                                                   class="w-full text-center p-1.5 rounded-lg rapby-input-pro text-xs">
+                                        </td>
+                                        <td class="p-3 text-right">
+                                            <input type="number" 
+                                                   step="500" 
+                                                   min="0" 
+                                                   name="expense_details[{{ $sId }}][{{ $code }}][tariff]" 
+                                                   value="{{ $item['tariff'] }}" 
+                                                   placeholder="0"
+                                                   class="w-full text-right p-1.5 rounded-lg rapby-input-pro text-xs num-col">
+                                        </td>
+                                        <td class="p-3 text-right num-col font-black text-amber-900 bg-amber-50">
+                                            Rp {{ number_format($item['amount'] * $multiplier, 0, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-gray-900 text-white font-black text-sm">
+                                    <td colspan="5" class="p-3 text-right uppercase">SUBTOTAL OPERASIONAL UNIT {{ $sData['school_name'] }}:</td>
+                                    <td class="p-3 text-right num-col text-amber-400 bg-black">Rp {{ number_format($sData['total_ops_period'], 0, ',', '.') }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
-                <button type="submit" class="px-8 py-4 text-black font-black text-xs rounded-2xl shadow-2xl transition-all flex items-center gap-2.5 border-2 border-black" style="background-color: #fbbf24 !important;">
-                    <i class="fas fa-save text-base text-black"></i> Simpan Rencana Belanja
+            @endforeach
+
+            <div class="pt-4 border-t-2 border-black flex justify-end">
+                <button type="submit" class="px-8 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-white shadow-xl border-2 border-black transition hover:scale-105 flex items-center justify-center gap-2" style="background-color: #2563eb !important;">
+                    <i class="fas fa-save text-lg"></i>
+                    <span>Simpan Rencana Belanja Per Unit Sekolah</span>
                 </button>
             </div>
         </div>
     </form>
+
 </div>
 
 @push('scripts')
 <script>
-    const totalGajiMonthly = {{ $totalGajiPerguruanMonthly }};
-    const multiplier = {{ $multiplier }};
-
-    function updateRowCalc(safeCode) {
-        const vol = parseFloat(document.getElementById('vol_' + safeCode)?.value) || 0;
-        const tariff = parseFloat(document.getElementById('tariff_' + safeCode)?.value) || 0;
-        const monthly = vol * tariff;
-        const period = monthly * multiplier;
-        const fmt = (n) => 'Rp\u00A0' + n.toLocaleString('id-ID');
-
-        document.getElementById('monthly_' + safeCode).innerText = fmt(monthly);
-        document.getElementById('period_' + safeCode).innerText = fmt(period);
-
-        let sumOps = 0;
-        document.querySelectorAll('input[id^="tariff_"]').forEach(t => {
-            const k = t.id.replace('tariff_', '');
-            const v = parseFloat(document.getElementById('vol_' + k)?.value) || 0;
-            sumOps += v * (parseFloat(t.value) || 0);
+    function switchSchoolTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(el => {
+            el.classList.remove('active');
+            el.classList.add('bg-gray-100', 'text-gray-800');
         });
 
-        const grand = totalGajiMonthly + sumOps;
-        document.getElementById('groupOpsMonthly').innerText = fmt(sumOps);
-        document.getElementById('groupOpsPeriod').innerText = fmt(sumOps * multiplier);
-        document.getElementById('subtotalOpsMonthly').innerText = fmt(sumOps);
-        document.getElementById('subtotalOpsPeriod').innerText = fmt(sumOps * multiplier);
-        document.getElementById('cardOpsTotal').innerText = fmt(sumOps * multiplier);
-        document.getElementById('cardGrandTotal').innerText = fmt(grand * multiplier);
-        document.getElementById('footTotalMonthly').innerText = fmt(grand);
-        document.getElementById('footTotalPeriod').innerText = fmt(grand * multiplier);
+        document.getElementById(tabId).classList.remove('hidden');
+        btn.classList.add('active');
+        btn.classList.remove('bg-gray-100', 'text-gray-800');
     }
 </script>
 @endpush

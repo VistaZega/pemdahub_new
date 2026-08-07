@@ -22,7 +22,7 @@ class FoundationExpenseController extends Controller
     }
 
     /**
-     * Master Rekening Belanja Operasional Non-Gaji Yayasan (RAPBY)
+     * Master Rekening Belanja Operasional Rutin Yayasan & Perguruan (RAPBY)
      */
     public const OPERATIONAL_ACCOUNTS = [
         '5.1.01' => [
@@ -100,7 +100,7 @@ class FoundationExpenseController extends Controller
     public const OPERATIONAL_EXPENSE_ACCOUNTS = self::OPERATIONAL_ACCOUNTS;
 
     /**
-     * Tampilan Halaman Rencana Belanja Operasional & Pegawai (Halaman 2)
+     * Tampilan Halaman Rencana Belanja Operasional & Pegawai Per Unit Sekolah
      */
     public function index(Request $request)
     {
@@ -109,7 +109,7 @@ class FoundationExpenseController extends Controller
     }
 
     /**
-     * Simpan / Update Rencana Belanja Operasional (Jumlah, Satuan, Tarif)
+     * Simpan / Update Rencana Belanja Operasional dikelompokkan Per Unit Sekolah
      */
     public function store(Request $request)
     {
@@ -120,80 +120,68 @@ class FoundationExpenseController extends Controller
         ]);
 
         $academicYearId = $request->input('academic_year_id');
-        $expenseDetailsRaw = $request->input('expense_details', []);
+        $expenseDetailsPerSchool = $request->input('expense_details', []);
         $notes = $request->input('notes');
 
-        $yayasanSchool = School::where('type', 'yayasan')->first()
-            ?? School::firstOrCreate(
-                ['type' => 'yayasan'],
-                ['name' => 'Yayasan Perguruan Pembda Nias', 'is_active' => true]
-            );
+        if (is_array($expenseDetailsPerSchool)) {
+            foreach ($expenseDetailsPerSchool as $schoolId => $itemsRaw) {
+                $cleanedDetails = [];
+                $calculatedSum = 0;
 
-        $cleanedExpenseDetails = [];
-        $calculatedExpenseSum = 0;
+                if (is_array($itemsRaw)) {
+                    foreach ($itemsRaw as $code => $itemData) {
+                        if (str_starts_with($code, '5.1.00')) {
+                            continue;
+                        }
 
-        if (is_array($expenseDetailsRaw)) {
-            foreach ($expenseDetailsRaw as $code => $itemData) {
-                // Abaikan sub-rekening Belanja Pegawai (5.1.00.*) karena otomatis dari Penugasan/Payroll
-                if (str_starts_with($code, '5.1.00')) {
-                    continue;
-                }
+                        if (is_array($itemData)) {
+                            $vol = (float) ($itemData['volume'] ?? 1);
+                            $unit = trim($itemData['unit'] ?? 'Bulan');
+                            $tariff = (float) ($itemData['tariff'] ?? 0);
+                            $amount = $vol * $tariff;
 
-                if (is_array($itemData)) {
-                    $vol = (float) ($itemData['volume'] ?? 1);
-                    $unit = trim($itemData['unit'] ?? 'Paket');
-                    $tariff = (float) ($itemData['tariff'] ?? 0);
-                    $amount = $vol * $tariff;
-
-                    if ($amount > 0 || $tariff > 0) {
-                        $cleanedExpenseDetails[$code] = [
-                            'volume' => $vol,
-                            'unit' => $unit,
-                            'tariff' => $tariff,
-                            'amount' => $amount,
-                        ];
-                        $calculatedExpenseSum += $amount;
+                            if ($amount > 0 || $tariff > 0) {
+                                $cleanedDetails[$code] = [
+                                    'volume' => $vol,
+                                    'unit' => $unit,
+                                    'tariff' => $tariff,
+                                    'amount' => $amount,
+                                ];
+                                $calculatedSum += $amount;
+                            }
+                        }
                     }
-                } elseif (is_numeric($itemData) && (float)$itemData > 0) {
-                    $val = (float)$itemData;
-                    $cleanedExpenseDetails[$code] = [
-                        'volume' => 1,
-                        'unit' => 'Paket',
-                        'tariff' => $val,
-                        'amount' => $val,
-                    ];
-                    $calculatedExpenseSum += $val;
                 }
+
+                SchoolContribution::updateOrCreate(
+                    [
+                        'school_id' => $schoolId,
+                        'academic_year_id' => $academicYearId,
+                    ],
+                    [
+                        'authorized_expense' => $calculatedSum,
+                        'expense_details' => $cleanedDetails,
+                        'notes' => $notes,
+                    ]
+                );
             }
         }
 
-        SchoolContribution::updateOrCreate(
-            [
-                'school_id' => $yayasanSchool->id,
-                'academic_year_id' => $academicYearId,
-            ],
-            [
-                'authorized_expense' => $calculatedExpenseSum,
-                'expense_details' => $cleanedExpenseDetails,
-                'notes' => $notes,
-            ]
-        );
-
-        return back()->with('success', 'Rencana Belanja Yayasan berhasil disimpan.');
+        return back()->with('success', 'Rencana Belanja Operasional Per Unit Sekolah berhasil disimpan!');
     }
 
     /**
-     * Export PDF Rencana Belanja Yayasan
+     * Export PDF Rencana Belanja Yayasan per Unit Sekolah
      */
     public function exportPdf(Request $request)
     {
         $data = $this->getFoundationExpenseData($request);
         $pdf = Pdf::loadView('yayasan.operational_expenses.pdf', $data);
-        return $pdf->download('Rencana_Belanja_Yayasan_' . ($data['currentYear']->year ?? 'TP') . '.pdf');
+        return $pdf->download('Rencana_Belanja_Per_Unit_Sekolah_' . ($data['currentYear']->year ?? 'TP') . '.pdf');
     }
 
     /**
-     * Kalkulasi Data Rencana Belanja Pegawai & Belanja Operasional Hierarkis
+     * Kalkulasi Data Rencana Belanja Pegawai & Belanja Operasional dikelompokkan per Unit Sekolah
      */
     public function getFoundationExpenseData(Request $request): array
     {
@@ -213,24 +201,24 @@ class FoundationExpenseController extends Controller
             ?? Semester::where('academic_year_id', $currentYear->id ?? 0)->first()
             ?? Semester::first();
 
-        // 1. Hirarki Belanja Pegawai Otomatis per Unit Pendidikan & Yayasan
+        // 1. Ambil Seluruh Unit Sekolah (SMA, SMK, SMP, Pusat Yayasan)
         $allSchools = School::where('is_active', true)
             ->orderByRaw("CASE WHEN type = 'yayasan' THEN 2 ELSE 1 END, name ASC")
             ->get();
 
-        $hierarchicalSalaryData = [];
-        $salarySubAccounts = [];
+        $schoolExpenseData = [];
         $totalGajiPerguruanMonthly = 0;
+        $totalOpsPerguruanMonthly = 0;
         $totalPegawaiCount = 0;
         $subAccountIndex = 1;
 
         foreach ($allSchools as $sch) {
+            // A. Gaji Pegawai Unit Ini
             $employees = Employee::where('school_id', $sch->id)->where('is_active', true)->get();
             $empCount = $employees->count();
             $totalPegawaiCount += $empCount;
 
-            $sumSalary = 0;
-
+            $sumSalaryMonthly = 0;
             if ($currentYear && $currentSemester) {
                 foreach ($employees as $emp) {
                     $salData = $this->assignmentService->calculateFullSalary(
@@ -240,91 +228,91 @@ class FoundationExpenseController extends Controller
                         $sch->type,
                         $sch->id
                     );
-                    $sumSalary += (float) ($salData['gross_pay'] ?? 0);
+                    $sumSalaryMonthly += (float) ($salData['gross_pay'] ?? 0);
                 }
             }
 
-            $totalGajiPerguruanMonthly += $sumSalary;
+            $totalGajiPerguruanMonthly += $sumSalaryMonthly;
 
-            $subCode = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
-            $salarySubAccounts[$subCode] = [
-                'code' => $subCode,
+            // B. Rencana Belanja Operasional Non-Gaji Unit Ini
+            $contribution = SchoolContribution::where('school_id', $sch->id)
+                ->where('academic_year_id', $currentYear->id ?? 0)
+                ->first();
+
+            $rawSavedDetails = $contribution->expense_details ?? [];
+            $parsedOpsDetails = [];
+            $sumOpsMonthly = 0;
+
+            foreach (self::OPERATIONAL_ACCOUNTS as $code => $acc) {
+                $savedItem = $rawSavedDetails[$code] ?? null;
+                if (is_array($savedItem)) {
+                    $vol = (float) ($savedItem['volume'] ?? 1);
+                    $unit = $savedItem['unit'] ?? ($acc['default_unit'] ?? 'Bulan');
+                    $tariff = (float) ($savedItem['tariff'] ?? 0);
+                    $amt = (float) ($savedItem['amount'] ?? ($vol * $tariff));
+                } elseif (is_numeric($savedItem)) {
+                    $vol = 1;
+                    $unit = $acc['default_unit'] ?? 'Bulan';
+                    $tariff = (float) $savedItem;
+                    $amt = (float) $savedItem;
+                } else {
+                    $vol = 1;
+                    $unit = $acc['default_unit'] ?? 'Bulan';
+                    $tariff = 0;
+                    $amt = 0;
+                }
+
+                $parsedOpsDetails[$code] = [
+                    'code' => $code,
+                    'name' => $acc['name'],
+                    'icon' => $acc['icon'],
+                    'category' => $acc['category'],
+                    'volume' => $vol,
+                    'unit' => $unit,
+                    'tariff' => $tariff,
+                    'amount' => $amt,
+                ];
+
+                $sumOpsMonthly += $amt;
+            }
+
+            $totalOpsPerguruanMonthly += $sumOpsMonthly;
+
+            $salarySubCode = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
+            $salaryItem = [
+                'code' => $salarySubCode,
                 'name' => 'Belanja Gaji & Tunjangan Pegawai ' . $sch->name,
                 'icon' => $sch->type === 'yayasan' ? 'fa-building' : 'fa-school',
                 'category' => 'Belanja Pegawai',
                 'volume' => $empCount,
                 'unit' => 'Orang/Bln',
-                'tariff' => $empCount > 0 ? round($sumSalary / $empCount) : 0,
-                'amount' => $sumSalary,
-                'is_automatic' => true,
+                'tariff' => $empCount > 0 ? round($sumSalaryMonthly / $empCount) : 0,
+                'amount' => $sumSalaryMonthly,
             ];
 
-            $hierarchicalSalaryData[] = [
+            $grandMonthly = $sumSalaryMonthly + $sumOpsMonthly;
+
+            $schoolExpenseData[$sch->id] = [
                 'school' => $sch,
+                'school_id' => $sch->id,
                 'school_name' => $sch->name,
                 'school_type' => $sch->type,
                 'employee_count' => $empCount,
-                'total_monthly' => $sumSalary,
-                'total_period' => $sumSalary * $multiplier,
-                'items' => [$salarySubAccounts[$subCode]],
+                'salary_item' => $salaryItem,
+                'total_salary_monthly' => $sumSalaryMonthly,
+                'total_salary_period' => $sumSalaryMonthly * $multiplier,
+                'ops_details' => $parsedOpsDetails,
+                'total_ops_monthly' => $sumOpsMonthly,
+                'total_ops_period' => $sumOpsMonthly * $multiplier,
+                'grand_total_monthly' => $grandMonthly,
+                'grand_total_period' => $grandMonthly * $multiplier,
+                'contribution' => $contribution,
             ];
         }
 
         $totalGajiPerguruanPeriod = $totalGajiPerguruanMonthly * $multiplier;
-
-        // 2. Sub-Rekening Belanja Operasional Non-Gaji (5.1.01 s/d 5.1.15)
-        $yayasanSchool = School::where('type', 'yayasan')->first();
-        $contribution = $yayasanSchool
-            ? SchoolContribution::where('school_id', $yayasanSchool->id)->where('academic_year_id', $currentYear->id ?? 0)->first()
-            : null;
-
-        $rawSavedDetails = $contribution->expense_details ?? [];
-
-        $parsedExpenseDetails = [];
-        $totalOpsMonthly = 0;
-
-        // Masukkan Rincian Belanja Pegawai (5.1.00.01 dst)
-        foreach ($salarySubAccounts as $subCode => $salItem) {
-            $parsedExpenseDetails[$subCode] = $salItem;
-        }
-
-        // Masukkan Belanja Operasional (5.1.01 s/d 5.1.15)
-        foreach (self::OPERATIONAL_ACCOUNTS as $code => $acc) {
-            $savedItem = $rawSavedDetails[$code] ?? null;
-            if (is_array($savedItem)) {
-                $vol = (float) ($savedItem['volume'] ?? 1);
-                $unit = $savedItem['unit'] ?? ($acc['default_unit'] ?? 'Paket');
-                $tariff = (float) ($savedItem['tariff'] ?? 0);
-                $amt = (float) ($savedItem['amount'] ?? ($vol * $tariff));
-            } elseif (is_numeric($savedItem)) {
-                $vol = 1;
-                $unit = $acc['default_unit'] ?? 'Paket';
-                $tariff = (float) $savedItem;
-                $amt = (float) $savedItem;
-            } else {
-                $vol = 1;
-                $unit = $acc['default_unit'] ?? 'Paket';
-                $tariff = 0;
-                $amt = 0;
-            }
-
-            $parsedExpenseDetails[$code] = [
-                'code' => $code,
-                'name' => $acc['name'],
-                'icon' => $acc['icon'],
-                'category' => $acc['category'],
-                'volume' => $vol,
-                'unit' => $unit,
-                'tariff' => $tariff,
-                'amount' => $amt,
-                'is_automatic' => false,
-            ];
-
-            $totalOpsMonthly += $amt;
-        }
-
-        $totalOpsPeriod = $totalOpsMonthly * $multiplier;
-        $grandTotalBelanjaMonthly = $totalGajiPerguruanMonthly + $totalOpsMonthly;
+        $totalOpsPerguruanPeriod = $totalOpsPerguruanMonthly * $multiplier;
+        $grandTotalBelanjaMonthly = $totalGajiPerguruanMonthly + $totalOpsPerguruanMonthly;
         $grandTotalBelanjaPeriod = $grandTotalBelanjaMonthly * $multiplier;
 
         return [
@@ -332,16 +320,13 @@ class FoundationExpenseController extends Controller
             'allYears' => $allYears,
             'periodMode' => $periodMode,
             'multiplier' => $multiplier,
-            'yayasanSchool' => $yayasanSchool,
-            'contribution' => $contribution,
+            'allSchools' => $allSchools,
+            'schoolExpenseData' => $schoolExpenseData,
             'totalPegawaiCount' => $totalPegawaiCount,
             'totalGajiPerguruanMonthly' => $totalGajiPerguruanMonthly,
             'totalGajiPerguruanPeriod' => $totalGajiPerguruanPeriod,
-            'hierarchicalSalaryData' => $hierarchicalSalaryData,
-            'salarySubAccounts' => $salarySubAccounts,
-            'parsedExpenseDetails' => $parsedExpenseDetails,
-            'totalOpsMonthly' => $totalOpsMonthly,
-            'totalOpsPeriod' => $totalOpsPeriod,
+            'totalOpsPerguruanMonthly' => $totalOpsPerguruanMonthly,
+            'totalOpsPerguruanPeriod' => $totalOpsPerguruanPeriod,
             'grandTotalBelanjaMonthly' => $grandTotalBelanjaMonthly,
             'grandTotalBelanjaPeriod' => $grandTotalBelanjaPeriod,
         ];
