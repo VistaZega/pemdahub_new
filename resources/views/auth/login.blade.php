@@ -301,8 +301,18 @@
                 </button>
             </form>
 
+            <!-- Alumni Registration Notice -->
+            <div class="mt-6 pt-6 border-t border-gray-100 text-center">
+                <p class="text-sm font-semibold text-gray-600">
+                    Alumni Perguruan Pembda Nias? 
+                    <a href="{{ route('register') }}" class="text-indigo-600 hover:text-indigo-800 font-bold underline transition-colors">
+                        <i class="fas fa-user-plus mr-1"></i> Daftar Ikatan Alumni di sini →
+                    </a>
+                </p>
+            </div>
+
             <!-- Mobile Footer -->
-            <div class="mt-12 text-center text-gray-400 text-sm font-medium md:hidden">
+            <div class="mt-8 text-center text-gray-400 text-sm font-medium md:hidden">
                 &copy; {{ date('Y') }} PembdaHUB.
             </div>
 
