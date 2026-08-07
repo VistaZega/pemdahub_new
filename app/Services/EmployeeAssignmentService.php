@@ -123,11 +123,21 @@ class EmployeeAssignmentService
         // Determine jam_wajib and honor_per_jam based on employment status & employee type
         $statusLower = strtolower($employmentStatus);
 
-        // PTY / Non-Guru / Pegawai Yayasan (seperti Ketua Yayasan) tidak memiliki kewajiban jam wajib mengajar (jam_wajib = 0)
+        // PTY / Non-Guru / Pegawai Yayasan (seperti Ketua Yayasan) atau Kepala Sekolah tidak memiliki kewajiban jam wajib mengajar (jam_wajib = 0).
+        // Semua jam mengajar Kepala Sekolah dihitung full 100% sebagai jam honorarium.
         $isNonGuruStaff = $employee && (
             $employee->employee_type !== 'guru' ||
             $employee->isYayasanStaff() ||
-            $employee->positions()->where('position_name', 'LIKE', '%Ketua%')->exists()
+            $employee->isKepalaSekolah() ||
+            $employee->positions()->where(function ($q) {
+                $q->where('position_name', 'LIKE', '%Ketua%')
+                  ->orWhere('position_name', 'LIKE', '%Kepala Sekolah%')
+                  ->orWhere('position_name', 'LIKE', '%Kepala SMA%')
+                  ->orWhere('position_name', 'LIKE', '%Kepala SMK%')
+                  ->orWhere('position_name', 'LIKE', '%Kepala SMP%')
+                  ->orWhere('position_code', 'LIKE', '%KEPSEK%')
+                  ->orWhere('position_code', 'LIKE', '%KS%');
+            })->exists()
         );
 
         $hasJamWajib = !$isNonGuruStaff && in_array($employmentStatus, self::JAM_WAJIB_ELIGIBLE);

@@ -241,6 +241,31 @@ class Employee extends Model
             ->sum('days_count');
     }
 
+    /**
+     * Check if this employee is a Kepala Sekolah (Principal).
+     */
+    public function isKepalaSekolah(): bool
+    {
+        if ($this->user && $this->user->isKepalaSekolah()) {
+            return true;
+        }
+
+        if ($this->teacher && School::where('principal_id', $this->teacher->id)->exists()) {
+            return true;
+        }
+
+        return $this->positions()
+            ->where(function ($q) {
+                $q->where('position_name', 'LIKE', '%Kepala Sekolah%')
+                  ->orWhere('position_name', 'LIKE', '%Kepala SMA%')
+                  ->orWhere('position_name', 'LIKE', '%Kepala SMK%')
+                  ->orWhere('position_name', 'LIKE', '%Kepala SMP%')
+                  ->orWhere('position_code', 'LIKE', '%KEPSEK%')
+                  ->orWhere('position_code', 'LIKE', '%KS%');
+            })
+            ->exists();
+    }
+
     // ====== Scopes ======
 
     public function scopeActive($query)
