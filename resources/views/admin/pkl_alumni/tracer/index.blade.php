@@ -3,164 +3,178 @@
 
 @section('content')
 <div class="space-y-6">
-    {{-- Header Bar --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-4">
-        <div>
-            <h1 class="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-graduation-cap text-indigo-500"></i> Tracer Study Alumni (BMW)
-            </h1>
-            <p class="text-xs text-gray-500 mt-0.5">Penelusuran keterserapan kerja dan umpan balik lulusan Yayasan Perguruan Pembda Nias</p>
+    <!-- Hero Header Banner -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-8 text-white shadow-xl border border-indigo-900/50">
+        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute right-1/3 -top-10 w-48 h-48 bg-blue-600/15 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="flex items-center gap-5">
+                <div class="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 via-blue-500 to-emerald-500 shadow-lg shadow-indigo-500/30 ring-4 ring-white/10">
+                    <i class="fas fa-chart-line text-white text-3xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 backdrop-blur-sm">
+                            <i class="fas fa-briefcase mr-1"></i> Career & Study Analytics
+                        </span>
+                    </div>
+                    <h1 class="text-3xl font-extrabold tracking-tight text-white drop-shadow-sm">Tracer Study Alumni (BMW)</h1>
+                    <p class="text-indigo-200/80 text-sm mt-1">Penelusuran keterserapan kerja (Bekerja, Melanjutkan, Wirausaha) lulusan Pembda Nias</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span class="px-4 py-2 rounded-xl bg-white/10 text-white font-semibold text-xs border border-white/10 backdrop-blur-md">
+                    <i class="fas fa-poll mr-1.5 text-emerald-400"></i> {{ $tracers->total() }} Responden Tracer
+                </span>
+            </div>
         </div>
     </div>
 
-    <!-- Navigation & Quick Links -->
-    <div class="flex items-center gap-2 border-b border-gray-200 pb-3">
-        <a href="{{ route('admin.alumni.index') }}" class="px-4 py-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 font-medium rounded-xl text-sm transition">
-            <i class="fas fa-list mr-1"></i> Data Alumni Sistem
+    <!-- Navigation Pills -->
+    <div class="flex items-center gap-2 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/80 w-fit">
+        <a href="{{ route('admin.alumni.index') }}" class="px-5 py-2.5 text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold rounded-xl text-sm transition flex items-center gap-2">
+            <i class="fas fa-list text-slate-400"></i> Data Alumni Sistem
         </a>
-        <a href="{{ route('admin.alumni-directory.index') }}" class="px-4 py-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 font-medium rounded-xl text-sm transition">
-            <i class="fas fa-address-book mr-1"></i> Direktori Alumni (IKA)
+        <a href="{{ route('admin.alumni-directory.index') }}" class="px-5 py-2.5 text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold rounded-xl text-sm transition flex items-center gap-2">
+            <i class="fas fa-address-book text-slate-400"></i> Direktori Alumni (IKA)
         </a>
-        <a href="{{ route('admin.pkl-alumni.tracer.index') }}" class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-xl text-sm shadow-sm">
-            <i class="fas fa-chart-line mr-1"></i> Tracer Study (BMW)
+        <a href="{{ route('admin.pkl-alumni.tracer.index') }}" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-xl text-sm shadow-md shadow-indigo-500/20 flex items-center gap-2">
+            <i class="fas fa-chart-line"></i> Tracer Study (BMW)
         </a>
     </div>
 
-    {{-- Filter & Search Card --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-        <form action="{{ route('admin.pkl-alumni.tracer.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-            {{-- Search --}}
-            <div class="md:col-span-2 relative">
-                <i class="fas fa-search absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama alumni..." class="w-full bg-gray-50 border border-gray-100 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
+    <!-- Filter Card -->
+    <div class="bg-gradient-to-b from-white to-slate-50/50 rounded-2xl shadow-sm border border-slate-200/80 p-6">
+        <form action="{{ route('admin.pkl-alumni.tracer.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Cari Nama Alumni</label>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama alumni..." class="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition shadow-sm">
+                </div>
             </div>
 
-            {{-- Status filter --}}
             <div>
-                <select name="status" onchange="this.form.submit()" class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
-                    <option value="">Semua Status BMW...</option>
-                    <option value="kerja" {{ request('status') === 'kerja' ? 'selected' : '' }}>Bekerja</option>
-                    <option value="kuliah" {{ request('status') === 'kuliah' ? 'selected' : '' }}>Kuliah</option>
-                    <option value="wirausaha" {{ request('status') === 'wirausaha' ? 'selected' : '' }}>Wirausaha</option>
-                    <option value="mencari_kerja" {{ request('status') === 'mencari_kerja' ? 'selected' : '' }}>Mencari Kerja</option>
-                    <option value="lainnya" {{ request('status') === 'lainnya' ? 'selected' : '' }}>Lainnya</option>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Status BMW</label>
+                <select name="status" onchange="this.form.submit()" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition shadow-sm">
+                    <option value="">Semua Status (Kerja/Kuliah/Wirausaha)</option>
+                    <option value="kerja" {{ request('status') === 'kerja' ? 'selected' : '' }}>💼 Bekerja</option>
+                    <option value="kuliah" {{ request('status') === 'kuliah' ? 'selected' : '' }}>🎓 Melanjutkan Kuliah</option>
+                    <option value="wirausaha" {{ request('status') === 'wirausaha' ? 'selected' : '' }}>🏬 Wirausaha</option>
+                    <option value="mencari_kerja" {{ request('status') === 'mencari_kerja' ? 'selected' : '' }}>🔍 Mencari Kerja</option>
+                    <option value="lainnya" {{ request('status') === 'lainnya' ? 'selected' : '' }}>📌 Lainnya</option>
                 </select>
             </div>
 
-            {{-- Graduation Year filter --}}
             <div>
-                <input type="number" name="graduation_year" value="{{ request('graduation_year') }}" placeholder="Tahun Lulus (Contoh: 2024)" class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tahun Lulus</label>
+                <div class="relative">
+                    <i class="fas fa-calendar-alt absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                    <input type="number" name="graduation_year" value="{{ request('graduation_year') }}" placeholder="Contoh: 2026" class="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition shadow-sm">
+                </div>
             </div>
 
-            {{-- School filter (Superadmin only) --}}
-            @if($isSA)
-                <div>
-                    <select name="school_id" onchange="this.form.submit()" class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
-                        <option value="">Semua Sekolah SMK...</option>
-                        @foreach($schools as $school)
-                            <option value="{{ $school->id }}" {{ request('school_id') == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            @endif
-
-            {{-- Actions --}}
-            <div class="md:col-span-5 flex justify-end gap-2">
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs shadow transition">
-                    Terapkan Filter
+            <div class="flex items-end gap-2">
+                <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold py-2.5 px-5 rounded-xl text-sm shadow-md shadow-indigo-500/20 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-filter"></i> Filter Tracer
                 </button>
                 @if(request()->anyFilled(['search', 'status', 'graduation_year', 'school_id']))
-                    <a href="{{ route('admin.pkl-alumni.tracer.index') }}" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-5 py-2.5 rounded-xl text-xs transition flex items-center justify-center">
-                        Reset
+                    <a href="{{ route('admin.pkl-alumni.tracer.index') }}" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-medium text-sm transition flex items-center justify-center" title="Reset Filter">
+                        <i class="fas fa-undo"></i>
                     </a>
                 @endif
             </div>
         </form>
     </div>
 
-    {{-- Tracer List Table Card --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <!-- Tracer Table -->
+    <div class="bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left">
-                    <tr>
-                        <th class="py-3.5 pl-5">Alumni & Sekolah</th>
-                        <th class="py-3.5 text-center">Tahun Lulus</th>
-                        <th class="py-3.5 text-center">Status</th>
-                        <th class="py-3.5">Detail Pekerjaan / Pendidikan</th>
-                        <th class="py-3.5">Tanggal Survey</th>
-                        <th class="py-3.5 pr-5">Masukan Untuk Sekolah</th>
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr class="bg-slate-900 text-slate-200 text-xs uppercase tracking-wider font-bold">
+                        <th class="px-6 py-4">Alumni & Sekolah</th>
+                        <th class="px-6 py-4 text-center">Tahun Lulus</th>
+                        <th class="px-6 py-4 text-center">Status BMW</th>
+                        <th class="px-6 py-4">Rincian Karir / Studi</th>
+                        <th class="px-6 py-4">Tgl Survei</th>
+                        <th class="px-6 py-4">Umpan Balik Sekolah</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50 text-xs text-gray-700">
+                <tbody class="divide-y divide-slate-100">
                     @forelse($tracers as $t)
-                        <tr class="hover:bg-gray-50/50 transition">
-                            <td class="py-4 pl-5">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-9 h-9 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-sm flex-shrink-0">
-                                        <img src="{{ $t->alumni->student->photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($t->alumni->full_name) }}" class="w-full h-full object-cover" alt="Foto">
+                        <tr class="hover:bg-indigo-50/30 transition">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3.5">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-blue-500 text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-indigo-100 flex-shrink-0">
+                                        {{ strtoupper(substr($t->alumni->full_name ?? 'A', 0, 1)) }}
                                     </div>
                                     <div>
-                                        <p class="font-bold text-gray-800 text-sm leading-tight">{{ $t->alumni->full_name }}</p>
-                                        <p class="text-[10px] text-gray-400 mt-0.5">{{ $t->alumni->school->name ?? '' }}</p>
+                                        <p class="font-bold text-slate-900 text-base leading-tight">{{ $t->alumni->full_name }}</p>
+                                        <p class="text-xs text-slate-500 font-medium mt-0.5"><i class="fas fa-school text-indigo-400 mr-1"></i>{{ $t->alumni->school->name ?? '-' }}</p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="py-4 text-center font-bold text-gray-700">
-                                {{ $t->alumni->graduation_year }}
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-800 font-mono font-bold text-xs border border-slate-200">
+                                    {{ $t->alumni->graduation_year }}
+                                </span>
                             </td>
-                            <td class="py-4 text-center">
+                            <td class="px-6 py-4 text-center">
                                 @php
-                                    $statusClass = match($t->employment_status) {
-                                        'kerja' => 'bg-emerald-50 text-emerald-700 border-emerald-250',
-                                        'kuliah' => 'bg-blue-50 text-blue-700 border-blue-250',
-                                        'wirausaha' => 'bg-amber-50 text-amber-700 border-amber-250',
-                                        'mencari_kerja' => 'bg-rose-50 text-rose-700 border-rose-250',
-                                        default => 'bg-gray-150 text-gray-600 border-gray-300'
+                                    $badgeStyle = match($t->employment_status) {
+                                        'kerja' => 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                                        'kuliah' => 'bg-blue-100 text-blue-800 border-blue-200',
+                                        'wirausaha' => 'bg-amber-100 text-amber-800 border-amber-200',
+                                        'mencari_kerja' => 'bg-rose-100 text-rose-800 border-rose-200',
+                                        default => 'bg-slate-100 text-slate-700 border-slate-200'
                                     };
                                     $statusText = match($t->employment_status) {
-                                        'kerja' => 'Bekerja',
-                                        'kuliah' => 'Kuliah',
-                                        'wirausaha' => 'Wirausaha',
-                                        'mencari_kerja' => 'Mencari Kerja',
-                                        default => 'Lainnya'
+                                        'kerja' => '💼 Bekerja',
+                                        'kuliah' => '🎓 Kuliah',
+                                        'wirausaha' => '🏬 Wirausaha',
+                                        'mencari_kerja' => '🔍 Mencari Kerja',
+                                        default => '📌 Lainnya'
                                     };
                                 @endphp
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border {{ $statusClass }}">
+                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border shadow-sm {{ $badgeStyle }}">
                                     {{ $statusText }}
                                 </span>
                             </td>
-                            <td class="py-4">
+                            <td class="px-6 py-4">
                                 @if($t->employment_status === 'kerja')
-                                    <p class="font-bold text-gray-850">{{ $t->job_title }}</p>
-                                    <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-building mr-1 text-gray-400"></i>{{ $t->company_name }}</p>
+                                    <p class="font-bold text-slate-900">{{ $t->job_title }}</p>
+                                    <p class="text-xs text-slate-500 font-medium mt-0.5"><i class="fas fa-building text-slate-400 mr-1"></i>{{ $t->company_name }}</p>
                                     @if($t->salary_range)
-                                        <p class="text-[9px] text-emerald-600 font-semibold mt-0.5">{{ $t->salary_range }}</p>
+                                        <p class="text-xs text-emerald-600 font-bold mt-0.5"><i class="fas fa-money-bill-wave mr-1"></i>{{ $t->salary_range }}</p>
                                     @endif
                                 @elseif($t->employment_status === 'kuliah')
-                                    <p class="font-bold text-gray-850">{{ $t->major }}</p>
-                                    <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-university mr-1 text-gray-400"></i>{{ $t->university_name }}</p>
+                                    <p class="font-bold text-slate-900">{{ $t->major }}</p>
+                                    <p class="text-xs text-slate-500 font-medium mt-0.5"><i class="fas fa-university text-slate-400 mr-1"></i>{{ $t->university_name }}</p>
                                 @elseif($t->employment_status === 'wirausaha')
-                                    <p class="font-bold text-gray-850">Wirausaha</p>
-                                    <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-store mr-1 text-gray-400"></i>Bidang: {{ $t->wirausaha_field }}</p>
+                                    <p class="font-bold text-slate-900">Wirausaha</p>
+                                    <p class="text-xs text-slate-500 font-medium mt-0.5"><i class="fas fa-store text-slate-400 mr-1"></i>Bidang: {{ $t->wirausaha_field }}</p>
                                 @else
-                                    <span class="text-gray-450 italic text-[10px]">Tidak ada rincian data</span>
+                                    <span class="text-slate-400 italic text-xs">Belum ada rincian</span>
                                 @endif
                             </td>
-                            <td class="py-4 text-gray-600">
-                                {{ $t->survey_date->translatedFormat('d M Y') }}
+                            <td class="px-6 py-4 text-slate-600 font-medium text-xs">
+                                {{ $t->survey_date ? $t->survey_date->translatedFormat('d M Y') : '-' }}
                             </td>
-                            <td class="py-4 pr-5 max-w-[250px] truncate" title="{{ $t->feedback_for_school }}">
-                                <span class="text-gray-600 italic">"{{ $t->feedback_for_school ?? '-' }}"</span>
+                            <td class="px-6 py-4 max-w-[220px] truncate" title="{{ $t->feedback_for_school }}">
+                                <span class="text-slate-600 italic text-xs">"{{ $t->feedback_for_school ?? '-' }}"</span>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-12 text-center text-gray-400 italic">
-                                <div class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <i class="fas fa-graduation-cap text-lg text-gray-300"></i>
+                            <td colspan="6" class="px-6 py-16 text-center text-slate-400 bg-slate-50/50">
+                                <div class="w-16 h-16 rounded-full bg-slate-200/60 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-chart-line text-3xl"></i>
                                 </div>
-                                Belum ada data respon survey Tracer Study.
+                                <p class="font-bold text-slate-700 text-base">Belum Ada Data Tracer Study</p>
+                                <p class="text-xs text-slate-500 mt-1">Hasil pengisian survei oleh alumni akan tampil di sini.</p>
                             </td>
                         </tr>
                     @endforelse
@@ -168,7 +182,7 @@
             </table>
         </div>
         @if($tracers->hasPages())
-            <div class="px-5 py-4 border-t border-gray-100">
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200">
                 {{ $tracers->links() }}
             </div>
         @endif
