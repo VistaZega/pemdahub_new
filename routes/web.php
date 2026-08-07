@@ -632,7 +632,7 @@ Route::get('/', function () {
     $totalDudi = \App\Models\Dudi::count();
 
     // === TOP HALL OF FAME PEMBDA ELITE FOR HOMEPAGE ===
-    $topStudentsElite = \App\Models\Reputation::with(['user.student.classroom', 'user.badges'])
+    $topStudentsElite = \App\Models\Reputation::with(['user.student.classroom.school', 'user.student.school', 'user.school', 'user.badges'])
         ->whereHas('user', function($q) {
             $q->where('role', 'siswa');
         })

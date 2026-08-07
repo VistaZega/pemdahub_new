@@ -37,6 +37,23 @@
 
                 <div style="display: flex; flex-direction: column; gap: 14px;">
                     @forelse($topStudentsElite as $index => $std)
+                    @php
+                        $stdSchoolName = $std->user->student->school->name 
+                            ?? $std->user->student->classroom->school->name 
+                            ?? $std->user->school->name 
+                            ?? null;
+                        $stdClassName = $std->user->student->classroom->class_name ?? null;
+
+                        if ($stdSchoolName && $stdClassName) {
+                            $stdSubInfo = $stdSchoolName . ' • Kelas ' . $stdClassName;
+                        } elseif ($stdSchoolName) {
+                            $stdSubInfo = $stdSchoolName;
+                        } elseif ($stdClassName) {
+                            $stdSubInfo = 'Kelas ' . $stdClassName;
+                        } else {
+                            $stdSubInfo = 'Siswa Pembda';
+                        }
+                    @endphp
                     <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border: 2px solid #000000; border-radius: 18px; padding: 14px; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
                         <div style="display: flex; align-items: center; gap: 14px; min-width: 0;">
                             <div style="width: 32px; height: 32px; background: {{ $index == 0 ? '#fbbf24' : '#000000' }}; color: {{ $index == 0 ? '#000000' : '#ffffff' }}; font-weight: 900; font-size: 13px; border-radius: 10px; border: 1.5px solid #000000; display: flex; align-items: center; justify-content: center; shrink: 0;">
@@ -44,11 +61,11 @@
                             </div>
                             <img src="{{ $std->user->photo_url }}" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #000000; object-fit: cover; background: #fff;" />
                             <div style="min-width: 0;">
-                                <div style="font-size: 13px; font-weight: 900; color: #000000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                <div style="font-size: 13px; font-weight: 900; color: #000000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $std->user->name }}">
                                     {{ $std->user->name }}
                                 </div>
-                                <div style="font-size: 11px; font-weight: 700; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    {{ $std->user->student->classroom->class_name ?? 'Siswa Pembda' }}
+                                <div style="font-size: 11px; font-weight: 700; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $stdSubInfo }}">
+                                    {{ $stdSubInfo }}
                                 </div>
                             </div>
                         </div>

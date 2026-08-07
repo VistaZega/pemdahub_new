@@ -26,7 +26,9 @@ class LeaderboardController extends Controller
         }
 
         $topStudents = Reputation::with([
-            'user.student.classroom', 
+            'user.student.classroom.school', 
+            'user.student.school',
+            'user.school',
             'user.badges', 
             'user.reputationLogs' => fn($q) => $q->orderBy('id', 'desc')->take(5)
         ])

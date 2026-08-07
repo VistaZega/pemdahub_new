@@ -57,6 +57,24 @@
             </div>
 
             @php
+                $getStudentSubInfo = function($reputation) {
+                    if (!$reputation || !$reputation->user) return 'Siswa Pembda';
+                    $schoolName = $reputation->user->student->school->name 
+                        ?? $reputation->user->student->classroom->school->name 
+                        ?? $reputation->user->school->name 
+                        ?? null;
+                    $className = $reputation->user->student->classroom->class_name ?? null;
+
+                    if ($schoolName && $className) {
+                        return $schoolName . ' • Kelas ' . $className;
+                    } elseif ($schoolName) {
+                        return $schoolName;
+                    } elseif ($className) {
+                        return 'Kelas ' . $className;
+                    }
+                    return 'Siswa Pembda';
+                };
+
                 $std1 = $topStudents->get(0);
                 $std2 = $topStudents->get(1);
                 $std3 = $topStudents->get(2);
@@ -67,10 +85,11 @@
             <div class="grid grid-cols-3 gap-3 items-end pt-2 pb-2">
                 {{-- Rank 2 --}}
                 @if($std2)
+                @php $std2Info = $getStudentSubInfo($std2); @endphp
                 <div class="flex flex-col items-center cursor-pointer transition hover:-translate-y-1"
                      @mouseenter="showTooltip($event, {{ json_encode([
                          'name' => $std2->user->name,
-                         'role' => 'Siswa - ' . ($std2->user->student->classroom->class_name ?? 'Siswa'),
+                         'role' => 'Siswa - ' . $std2Info,
                          'photo' => $std2->user->photo_url,
                          'points' => $std2->total_points,
                          'level' => $std2->level_name,
@@ -83,7 +102,7 @@
                     <div class="w-full bg-slate-100 border-2 border-black rounded-2xl p-3 text-center space-y-1 shadow-sm">
                         <span class="inline-block bg-black text-white text-[10px] font-black px-2 py-0.5 rounded-md border border-black">#2</span>
                         <div class="text-xs font-black text-black truncate w-full" title="{{ $std2->user->name }}">{{ Str::words($std2->user->name, 2, '') }}</div>
-                        <div class="text-[10px] font-extrabold text-slate-700 truncate">{{ $std2->user->student->classroom->class_name ?? 'Siswa' }}</div>
+                        <div class="text-[10px] font-extrabold text-slate-700 truncate" title="{{ $std2Info }}">{{ $std2Info }}</div>
                         <div class="inline-block bg-black text-amber-300 text-[11px] font-black px-2.5 py-0.5 rounded-lg border border-black shadow-xs">{{ number_format($std2->total_points) }} pts</div>
                     </div>
                 </div>
@@ -91,10 +110,11 @@
 
                 {{-- Rank 1 (Champion) --}}
                 @if($std1)
+                @php $std1Info = $getStudentSubInfo($std1); @endphp
                 <div class="flex flex-col items-center cursor-pointer transition hover:-translate-y-1"
                      @mouseenter="showTooltip($event, {{ json_encode([
                          'name' => $std1->user->name,
-                         'role' => 'Siswa - ' . ($std1->user->student->classroom->class_name ?? 'Siswa'),
+                         'role' => 'Siswa - ' . $std1Info,
                          'photo' => $std1->user->photo_url,
                          'points' => $std1->total_points,
                          'level' => $std1->level_name,
@@ -108,7 +128,7 @@
                     <div class="w-full bg-amber-300 border-2 border-black rounded-2xl p-4 text-center space-y-1 shadow-md">
                         <span class="inline-block bg-black text-amber-300 text-[10px] font-black px-2.5 py-0.5 rounded-md border border-black">#1 JUARA</span>
                         <div class="text-xs md:text-sm font-black text-black truncate w-full" title="{{ $std1->user->name }}">{{ Str::words($std1->user->name, 2, '') }}</div>
-                        <div class="text-[10px] font-extrabold text-black truncate">{{ $std1->user->student->classroom->class_name ?? 'Siswa' }}</div>
+                        <div class="text-[10px] font-extrabold text-black truncate" title="{{ $std1Info }}">{{ $std1Info }}</div>
                         <div class="inline-block bg-black text-emerald-400 text-xs font-black px-3 py-1 rounded-lg border border-black shadow-xs">{{ number_format($std1->total_points) }} pts</div>
                     </div>
                 </div>
@@ -116,10 +136,11 @@
 
                 {{-- Rank 3 --}}
                 @if($std3)
+                @php $std3Info = $getStudentSubInfo($std3); @endphp
                 <div class="flex flex-col items-center cursor-pointer transition hover:-translate-y-1"
                      @mouseenter="showTooltip($event, {{ json_encode([
                          'name' => $std3->user->name,
-                         'role' => 'Siswa - ' . ($std3->user->student->classroom->class_name ?? 'Siswa'),
+                         'role' => 'Siswa - ' . $std3Info,
                          'photo' => $std3->user->photo_url,
                          'points' => $std3->total_points,
                          'level' => $std3->level_name,
@@ -132,7 +153,7 @@
                     <div class="w-full bg-amber-100 border-2 border-black rounded-2xl p-3 text-center space-y-1 shadow-sm">
                         <span class="inline-block bg-black text-amber-400 text-[10px] font-black px-2 py-0.5 rounded-md border border-black">#3</span>
                         <div class="text-xs font-black text-black truncate w-full" title="{{ $std3->user->name }}">{{ Str::words($std3->user->name, 2, '') }}</div>
-                        <div class="text-[10px] font-extrabold text-amber-950 truncate">{{ $std3->user->student->classroom->class_name ?? 'Siswa' }}</div>
+                        <div class="text-[10px] font-extrabold text-amber-950 truncate" title="{{ $std3Info }}">{{ $std3Info }}</div>
                         <div class="inline-block bg-black text-amber-300 text-[11px] font-black px-2.5 py-0.5 rounded-lg border border-black shadow-xs">{{ number_format($std3->total_points) }} pts</div>
                     </div>
                 </div>
@@ -143,10 +164,11 @@
             <div class="space-y-2.5 pt-2">
                 <div class="text-xs font-black text-black uppercase tracking-wider px-1">Peringkat Selanjutnya:</div>
                 @foreach($stdRest as $index => $std)
+                @php $stdItemInfo = $getStudentSubInfo($std); @endphp
                 <div class="flex items-center justify-between p-3 bg-slate-50 hover:bg-amber-100 rounded-2xl border-2 border-black transition cursor-pointer shadow-xs"
                      @mouseenter="showTooltip($event, {{ json_encode([
                          'name' => $std->user->name,
-                         'role' => 'Siswa - ' . ($std->user->student->classroom->class_name ?? 'Siswa'),
+                         'role' => 'Siswa - ' . $stdItemInfo,
                          'photo' => $std->user->photo_url,
                          'points' => $std->total_points,
                          'level' => $std->level_name,
@@ -158,7 +180,7 @@
                         <img src="{{ $std->user->photo_url }}" class="w-11 h-11 rounded-full border-2 border-black object-cover shrink-0" />
                         <div class="min-w-0">
                             <div class="text-xs font-black text-black truncate">{{ $std->user->name }}</div>
-                            <div class="text-[11px] font-bold text-slate-600 truncate">{{ $std->user->student->classroom->class_name ?? 'Siswa' }}</div>
+                            <div class="text-[11px] font-bold text-slate-600 truncate" title="{{ $stdItemInfo }}">{{ $stdItemInfo }}</div>
                         </div>
                     </div>
                     <div class="text-right shrink-0 ml-2">
