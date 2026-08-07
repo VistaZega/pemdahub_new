@@ -77,16 +77,18 @@
             box-shadow: 0 10px 20px -10px rgba(49, 46, 129, 0.5);
         }
         
-        /* Custom Scrollbar for Right Side */
-        .custom-scroll::-webkit-scrollbar {
-            width: 8px;
+        /* Marquee Running Text Animation */
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
         }
-        .custom-scroll::-webkit-scrollbar-track {
-            background: transparent;
+        .animate-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 25s linear infinite;
         }
-        .custom-scroll::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 20px;
+        .animate-marquee:hover {
+            animation-play-state: paused;
         }
     </style>
 </head>
@@ -113,67 +115,50 @@
                     </div>
                 </div>
 
-                <!-- Invitation & Detailed Information Banner -->
-                <div class="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl mb-6 border border-indigo-800/80">
-                    <span class="inline-block px-3 py-1 bg-amber-400/20 text-amber-300 text-xs font-bold rounded-full mb-3 border border-amber-300/30">
-                        <i class="fas fa-heart text-pink-400 mr-1"></i> RESMI IKATAN ALUMNI (IKA) PEMBDA
-                    </span>
-                    <h2 class="text-xl font-bold text-white mb-2 leading-snug">Mari Terhubung Kembali dengan Almamater Tercinta!</h2>
-                    <p class="text-xs text-indigo-200 leading-relaxed mb-4">
-                        Di manapun Anda berdomisili dan berkarya saat ini, Anda adalah bagian tak terpisahkan dari keluarga besar Perguruan Pembda Nias. Portal ini dihadirkan sebagai **rumah digital resmi** untuk menghimpun seluruh alumni dari semua angkatan di seluruh dunia.
-                    </p>
-                    <div class="bg-indigo-950/80 p-3.5 rounded-2xl border border-indigo-700/50 text-[11px] text-indigo-100 space-y-1.5">
-                        <div class="flex items-center gap-2 text-amber-300 font-bold mb-1">
-                            <i class="fas fa-shield-alt"></i> Jaminan Kerahasiaan Data:
-                        </div>
-                        <p class="text-[11px] text-indigo-200/90 leading-relaxed">
-                            Data yang Anda daftarkan dijamin aman dan hanya dipergunakan untuk keperluan silaturahmi IKA, pengembangan karir alumni, dan kemajuan almamater Perguruan Pembda Nias.
-                        </p>
+                <!-- Compact Card & Rembuk Alumni Encouraging Paragraph -->
+                <div class="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 text-white rounded-2xl p-5 shadow-lg mb-4 border border-indigo-800/80 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="inline-block px-2.5 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-extrabold rounded-full border border-amber-300/30">
+                            <i class="fas fa-heart text-pink-400 mr-1"></i> REMBUK ALUMNI PEMBDA
+                        </span>
+                        <span class="text-[10px] text-indigo-200/80"><i class="fas fa-shield-alt mr-1 text-emerald-400"></i> Data Terjamin Aman</span>
                     </div>
-                </div>
 
-                <!-- Panduan Akses Masuk bagi Alumni -->
-                <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-5 shadow-md mb-6 space-y-3 border border-indigo-800/80">
-                    <h3 class="text-xs font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fas fa-sign-in-alt text-amber-400"></i> PANDUAN MASUK PORTAL ALUMNI
-                    </h3>
-                    
-                    <div class="space-y-2.5 text-xs">
-                        <div class="bg-white/10 p-3 rounded-xl border border-white/10">
-                            <h4 class="font-bold text-amber-200 mb-0.5 flex items-center gap-1.5">
-                                <i class="fas fa-user-check text-emerald-400"></i> 1. Alumni Lulusan Baru (by Sistem Sekolah)
-                            </h4>
-                            <p class="text-indigo-100 text-[11px] leading-relaxed">
-                                Anda <strong>TIDAK PERLU mendaftar ulang</strong>. Silakan langsung <a href="{{ route('login') }}" class="underline text-amber-300 font-bold hover:text-white">Login di Sini</a> menggunakan <strong>Username / NISN & Password</strong> akun sekolah Anda.
-                            </p>
-                        </div>
-
-                        <div class="bg-white/10 p-3 rounded-xl border border-white/10">
-                            <h4 class="font-bold text-amber-200 mb-0.5 flex items-center gap-1.5">
-                                <i class="fas fa-user-plus text-amber-300"></i> 2. Alumni Lama / Belum Terdata
-                            </h4>
-                            <p class="text-indigo-100 text-[11px] leading-relaxed">
-                                Silakan isi <strong>Formulir Pendaftaran</strong> di sebelah kanan ini. Setelah terisi, Username & Password Anda akan diterbitkan secara instan agar bisa langsung login.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Rembuk Alumni Encouraging Paragraph Card -->
-                <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 border border-indigo-100 shadow-sm mb-6 space-y-2.5">
-                    <h3 class="text-xs font-extrabold text-indigo-950 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fas fa-users text-indigo-600"></i> REMBUK ALUMNI PERGURUAN PEMBDA
-                    </h3>
-                    <p class="text-xs text-slate-700 leading-relaxed font-normal">
+                    <p class="text-xs text-indigo-100 leading-relaxed font-normal">
                         Melalui portal resmi ini, mari jalin kembali silaturahmi kawan seangkatan di <strong>Ruang Forum & Cuap-cuap Alumni</strong>, saling membuka peluang karir di <strong>Papan Lowongan Kerja & Karir</strong>, menyalurkan kepedulian bagi almamater melalui <strong>Wadah Kontribusi Resmi pada almamater kita</strong>, serta mendukung kemajuan mutu sekolah melalui <strong>Pendataan Tracer Study</strong>. Kehadiran dan peran serta Anda sangat berharga bagi masa depan Perguruan Pembda Nias.
                     </p>
+
+                    <!-- Compact Login Guide Notice -->
+                    <div class="bg-white/10 p-2.5 rounded-xl border border-white/10 text-[11px] text-indigo-100 flex items-center justify-between gap-2">
+                        <div>
+                            <strong class="text-amber-300 font-bold">💡 Alumni Lulusan Baru (Sistem)?</strong> Langsung login dengan Username/NISN & Password sekolah Anda.
+                        </div>
+                        <a href="{{ route('login') }}" class="shrink-0 bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold px-3 py-1 rounded-lg text-xs transition shadow-sm">
+                            Login →
+                        </a>
+                    </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-center gap-3 mb-6">
-                    <a href="{{ route('login') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-indigo-700 px-6 py-3 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all border border-indigo-100 hover:bg-indigo-50">
-                        <i class="fa-solid fa-right-to-bracket"></i> Sudah Punya Akun? Login
-                    </a>
+                <!-- Teks Berjalan Running Text: Pesan & Kesan Alumni yang Sudah Mendaftar -->
+                @if(isset($approvedAlumni) && $approvedAlumni->count() > 0)
+                <div class="bg-indigo-950 text-white rounded-xl p-2.5 shadow-md border border-indigo-800/80 mb-4 overflow-hidden relative">
+                    <div class="flex items-center gap-2 mb-1 px-1">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping shrink-0"></span>
+                        <span class="text-[10px] font-extrabold tracking-wider text-amber-300 uppercase"><i class="fas fa-bullhorn mr-1"></i> Pesan & Kesan Alumni yang Telah Bergabung</span>
+                    </div>
+                    
+                    <div class="overflow-hidden whitespace-nowrap relative w-full bg-indigo-900/50 py-1.5 px-2 rounded-lg border border-indigo-800/50">
+                        <div class="animate-marquee space-x-6 text-xs text-indigo-100 font-medium inline-block">
+                            @foreach($approvedAlumni as $alumnus)
+                                <span class="inline-flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/10">
+                                    <strong class="text-amber-300 font-bold">{{ $alumnus->alias_name ?: $alumnus->full_name }} ('{{ $alumnus->graduation_year }}):</strong>
+                                    <span class="italic text-slate-200">"{{ $alumnus->message ?: 'Bangga menjadi bagian dari keluarga Perguruan Pembda Nias!' }}"</span>
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
+                @endif
             </div>
 
             <!-- Smart Report Widget -->
