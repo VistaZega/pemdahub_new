@@ -119,6 +119,9 @@ Route::get('/rfid/scan-buffer', function (Request $request) {
 });
 
 // ==== ROUTING RUNNING TEXT (LED DISPLAY / ESP32 / HD-WF2) ====
+Route::get('/running-text/live', [\App\Http\Controllers\Api\RunningTextController::class, 'getLiveFeed']);
+Route::get('/running-text/live/raw', [\App\Http\Controllers\Api\RunningTextController::class, 'getLiveFeed']);
 Route::get('/running-text/alumni', [\App\Http\Controllers\Api\RunningTextController::class, 'getAlumniMessages']);
 Route::get('/running-text/alumni/raw', [\App\Http\Controllers\Api\RunningTextController::class, 'getAlumniMessages']);
+
 
