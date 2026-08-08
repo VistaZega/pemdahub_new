@@ -69,6 +69,9 @@ return new class extends Migration
             'registration_waves',
             'admission_fees',
             'admission_tests',
+            'grade_weights',
+            'operational_expenses',
+            'teacher_schools',
         ];
 
         foreach ($canonicalSpecs as $spec) {
@@ -111,10 +114,18 @@ return new class extends Migration
                 $duplicateIds = $matchingSchools->pluck('id')->reject(fn($id) => $id == $canonicalId)->all();
 
                 if (!empty($duplicateIds)) {
-                    // Re-link relasi school_id di seluruh tabel ke sekolah utama
+                    // Re-link relasi school_id di seluruh tabel ke sekolah utama (dengan try-catch untuk bentrokan unique constraint)
                     foreach ($tablesWithSchoolId as $tbl) {
                         if (Schema::hasTable($tbl) && Schema::hasColumn($tbl, 'school_id')) {
-                            DB::table($tbl)->whereIn('school_id', $duplicateIds)->update(['school_id' => $canonicalId]);
+                            $rows = DB::table($tbl)->whereIn('school_id', $duplicateIds)->get();
+                            foreach ($rows as $row) {
+                                try {
+                                    DB::table($tbl)->where('id', $row->id)->update(['school_id' => $canonicalId]);
+                                } catch (\Throwable $e) {
+                                    // Jika terjadi bentrokan unique constraint (1062), hapus baris duplikat karena data canonical sudah ada
+                                    DB::table($tbl)->where('id', $row->id)->delete();
+                                }
+                            }
                         }
                     }
 
