@@ -117,3 +117,8 @@ Route::get('/rfid/scan-buffer', function (Request $request) {
     }
     return response()->json(['uid' => $data['uid'] ?? null]);
 });
+
+// ==== ROUTING RUNNING TEXT (LED DISPLAY / ESP32 / HD-WF2) ====
+Route::get('/running-text/alumni', [\App\Http\Controllers\Api\RunningTextController::class, 'getAlumniMessages']);
+Route::get('/running-text/alumni/raw', [\App\Http\Controllers\Api\RunningTextController::class, 'getAlumniMessages']);
+
