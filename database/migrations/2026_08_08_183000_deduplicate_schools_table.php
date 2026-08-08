@@ -50,46 +50,43 @@ return new class extends Migration
             ],
         ];
 
-        // Tabel-tabel yang terhubung dengan school_id
-        $tablesWithSchoolId = [
-            'users',
-            'students',
-            'classrooms',
-            'teachers',
-            'employees',
-            'subjects',
-            'majors',
-            'schedules',
-            'alumni_directories',
-            'alumni_profiles',
-            'alumni',
-            'alumni_forums',
-            'lms_courses',
-            'school_contributions',
-            'registration_waves',
-            'admission_fees',
-            'admission_tests',
-            'grade_weights',
-            'operational_expenses',
-            'teacher_schools',
-        ];
+        // Cari SEMUA tabel di database yang memiliki kolom school_id secara dinamis
+        $allTables = [];
+        try {
+            $databaseName = DB::getDatabaseName();
+            $rows = DB::select("SELECT DISTINCT TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'school_id' AND TABLE_SCHEMA = ?", [$databaseName]);
+            foreach ($rows as $r) {
+                $tblName = $r->TABLE_NAME ?? $r->table_name ?? null;
+                if ($tblName && $tblName !== 'schools') {
+                    $allTables[] = $tblName;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fallback untuk driver seperti SQLite
+            $tables = Schema::getTableListing();
+            foreach ($tables as $t) {
+                if ($t !== 'schools' && Schema::hasColumn($t, 'school_id')) {
+                    $allTables[] = $t;
+                }
+            }
+        }
 
         foreach ($canonicalSpecs as $spec) {
-            // Cari sekolah yang cocok dengan pattern
-            $query = DB::table('schools')->where('type', '!=', 'yayasan')->where(function($q) use ($spec) {
-                foreach ($spec['patterns'] as $idx => $pattern) {
-                    if ($idx === 0) {
-                        $q->where('name', 'LIKE', $pattern);
-                    } else {
-                        $q->orWhere('name', 'LIKE', $pattern);
+            // Cari sekolah yang cocok dengan pattern (abaikan tipe yayasan)
+            $matchingSchools = DB::table('schools')
+                ->where('type', '!=', 'yayasan')
+                ->where(function($q) use ($spec) {
+                    foreach ($spec['patterns'] as $idx => $pattern) {
+                        if ($idx === 0) {
+                            $q->where('name', 'LIKE', $pattern);
+                        } else {
+                            $q->orWhere('name', 'LIKE', $pattern);
+                        }
                     }
-                }
-            });
-
-            $matchingSchools = $query->get();
+                })->get();
 
             if ($matchingSchools->isEmpty()) {
-                // Buat record baru jika belum ada sama sekali
+                // Insert sekolah canonical baru jika belum ada
                 DB::table('schools')->insert([
                     'name' => $spec['canonical_name'],
                     'type' => $spec['type'],
@@ -99,7 +96,7 @@ return new class extends Migration
                     'province' => 'Sumatera Utara',
                 ]);
             } else {
-                // Pilih 1 record utama (canonical)
+                // Tentukan 1 record canonical utama
                 $canonicalRecord = $matchingSchools->firstWhere('name', $spec['canonical_name']) ?? $matchingSchools->first();
                 $canonicalId = $canonicalRecord->id;
 
@@ -110,27 +107,35 @@ return new class extends Migration
                     'is_active' => $spec['is_active'],
                 ]);
 
-                // Identifikasi ID duplikat
+                // Ambil daftar ID duplikat
                 $duplicateIds = $matchingSchools->pluck('id')->reject(fn($id) => $id == $canonicalId)->all();
 
                 if (!empty($duplicateIds)) {
-                    // Re-link relasi school_id di seluruh tabel ke sekolah utama (dengan try-catch untuk bentrokan unique constraint)
-                    foreach ($tablesWithSchoolId as $tbl) {
+                    // 1. Re-link kolom school_id pada SELURUH tabel secara dinamis & aman
+                    foreach ($allTables as $tbl) {
                         if (Schema::hasTable($tbl) && Schema::hasColumn($tbl, 'school_id')) {
                             $rows = DB::table($tbl)->whereIn('school_id', $duplicateIds)->get();
                             foreach ($rows as $row) {
                                 try {
                                     DB::table($tbl)->where('id', $row->id)->update(['school_id' => $canonicalId]);
                                 } catch (\Throwable $e) {
-                                    // Jika terjadi bentrokan unique constraint (1062), hapus baris duplikat karena data canonical sudah ada
+                                    // Jika terjadi bentrokan unique key (1062), hapus baris duplikat karena data canonical sudah ada
                                     DB::table($tbl)->where('id', $row->id)->delete();
                                 }
                             }
                         }
                     }
 
-                    // Hapus record duplikat dari tabel schools
+                    // 2. Hapus record duplikat dari tabel schools dengan mengabaikan foreign key checks sementara (cegah error 1451)
+                    try {
+                        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+                    } catch (\Throwable $e) {}
+
                     DB::table('schools')->whereIn('id', $duplicateIds)->delete();
+
+                    try {
+                        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+                    } catch (\Throwable $e) {}
                 }
             }
         }
