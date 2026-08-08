@@ -85,6 +85,49 @@
     </div>
     @endif
 
+    <!-- Admin Filter & Search Bar -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <form action="{{ route('admin.alumni-directory.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Filter Unit Sekolah / IKA</label>
+                <select name="school_id" class="w-full rounded-xl border-slate-300 text-xs font-medium focus:ring-purple-500 focus:border-purple-500" onchange="this.form.submit()">
+                    <option value="">-- Semua Unit Sekolah --</option>
+                    @foreach($schools as $sch)
+                        <option value="{{ $sch->id }}" {{ request('school_id') == $sch->id ? 'selected' : '' }}>
+                            IKA {{ $sch->name }} {{ !$sch->is_active ? '(Sekolah Merger)' : '' }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Filter Tahun Kelulusan</label>
+                <select name="graduation_year" class="w-full rounded-xl border-slate-300 text-xs font-medium focus:ring-purple-500 focus:border-purple-500" onchange="this.form.submit()">
+                    <option value="">-- Semua Angkatan --</option>
+                    @foreach($years as $yr)
+                        <option value="{{ $yr }}" {{ request('graduation_year') == $yr ? 'selected' : '' }}>Angkatan {{ $yr }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Pencarian Nama / HP / Profesi</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, hp, pekerjaan..." class="w-full rounded-xl border-slate-300 text-xs font-medium focus:ring-purple-500 focus:border-purple-500">
+            </div>
+
+            <div class="flex items-end gap-2">
+                <button type="submit" class="w-full px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fas fa-search"></i> Cari Data
+                </button>
+                @if(request()->anyFilled(['school_id', 'graduation_year', 'search']))
+                    <a href="{{ route('admin.alumni-directory.index') }}" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition border border-slate-300" title="Reset Filter">
+                        <i class="fas fa-undo"></i>
+                    </a>
+                @endif
+            </div>
+        </form>
+    </div>
+
     <!-- Alumni Directory Table -->
     <div class="bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden">
         <div class="overflow-x-auto">
@@ -114,7 +157,14 @@
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <p class="text-slate-900 font-bold">{{ $dir->school->name ?? '-' }}</p>
+                            <p class="text-slate-900 font-bold">
+                                IKA {{ $dir->school->name ?? '-' }}
+                                @if(isset($dir->school) && !$dir->school->is_active)
+                                    <span class="inline-block px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black rounded-full uppercase ml-1">
+                                        Unit Merger
+                                    </span>
+                                @endif
+                            </p>
                             <div class="flex items-center gap-2 mt-1">
                                 <span class="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold text-xs border border-purple-200">
                                     Lulus: {{ $dir->graduation_year }}

@@ -109,10 +109,17 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Unit Sekolah <span class="text-red-500">*</span></label>
                         <select id="school-select" name="school_id" required class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm text-sm" onchange="toggleJurusan()">
-                            <option value="">-- Pilih Sekolah --</option>
-                            @foreach($schools as $school)
-                                <option value="{{ $school->id }}" data-type="{{ $school->type }}" {{ old('school_id', $directory->school_id) == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
-                            @endforeach
+                            <option value="">-- Pilih Unit Sekolah / IKA --</option>
+                            <optgroup label="Unit Sekolah Aktif">
+                                @foreach($schools->where('is_active', true) as $school)
+                                    <option value="{{ $school->id }}" data-type="{{ $school->type }}" {{ old('school_id', $directory->school_id) == $school->id ? 'selected' : '' }}>IKA {{ $school->name }}</option>
+                                @endforeach
+                            </optgroup>
+                            <optgroup label="Unit Sekolah Merger / Historis">
+                                @foreach($schools->where('is_active', false) as $school)
+                                    <option value="{{ $school->id }}" data-type="{{ $school->type }}" {{ old('school_id', $directory->school_id) == $school->id ? 'selected' : '' }}>IKA {{ $school->name }} (Sekolah Merger)</option>
+                                @endforeach
+                            </optgroup>
                         </select>
                     </div>
 

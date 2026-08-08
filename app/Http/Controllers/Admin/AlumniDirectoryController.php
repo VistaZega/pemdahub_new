@@ -16,6 +16,9 @@ class AlumniDirectoryController extends Controller
      */
     public function index(Request $request)
     {
+        $schools = School::where('type', '!=', 'yayasan')->orderBy('name')->get();
+        $years = range(now()->year, 1970);
+
         $query = AlumniDirectory::with('school')->latest();
 
         if ($request->filled('school_id')) {
@@ -26,9 +29,20 @@ class AlumniDirectoryController extends Controller
             $query->where('graduation_year', $request->graduation_year);
         }
 
-        $directories = $query->paginate(20);
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('full_name', 'like', "%{$search}%")
+                  ->orWhere('alias_name', 'like', "%{$search}%")
+                  ->orWhere('occupation', 'like', "%{$search}%")
+                  ->orWhere('company_name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
 
-        return view('admin.pkl_alumni.directory.index', compact('directories'));
+        $directories = $query->paginate(20)->withQueryString();
+
+        return view('admin.pkl_alumni.directory.index', compact('directories', 'schools', 'years'));
     }
 
     /**
