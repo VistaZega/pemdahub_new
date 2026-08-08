@@ -22,25 +22,25 @@
                         $iconClass = 'fa-solid fa-graduation-cap';
                         $pillBg = 'var(--blue-bg)';
                         $pillColor = 'var(--blue)';
-                        $defaultDesc = 'Menyiapkan siswa untuk jenjang perguruan tinggi dengan kurikulum komprehensif dan bermutu.';
+                        $defaultDesc = 'Pusat Keunggulan Akademik Berakreditasi A yang membentuk generasi muda unggul, berkarakter mulia, berwawasan global, dan siap menembus Perguruan Tinggi Negeri (PTN) terfavorit di Indonesia.';
                     } elseif ($isSMP) {
                         $bgHeader = 'linear-gradient(135deg, #059669, #34d399)';
                         $iconClass = 'fa-solid fa-school';
                         $pillBg = 'var(--emerald-bg)';
                         $pillColor = 'var(--emerald)';
-                        $defaultDesc = 'Membangun fondasi akademik dan karakter siswa untuk jenjang pendidikan selanjutnya.';
+                        $defaultDesc = 'Membangun fondasi karakter yang kokoh, disiplin, dan keunggulan potensi akademik serta minat bakat siswa secara holistik menuju jenjang pendidikan menengah atas terdepan.';
                     } elseif ($isSMK) {
                         $bgHeader = 'linear-gradient(135deg, #d97706, #fbbf24)';
                         $iconClass = 'fa-solid fa-gears';
                         $pillBg = 'var(--amber-bg)';
                         $pillColor = 'var(--amber)';
-                        $defaultDesc = 'Mencetak lulusan terampil, kompeten, dan berdaya saing tinggi di dunia industri modern.';
+                        $defaultDesc = 'Pusat Pendidikan Vokasi Kejuruan & Teknologi Industri Modern yang mencetak lulusan terampil, kompeten, siap kerja di DUDI mitra, serta berjiwa kewirausahaan yang tangguh.';
                     } else {
                         $bgHeader = 'linear-gradient(135deg, #8b5cf6, #c4b5fd)';
                         $iconClass = 'fa-solid fa-school-flag';
                         $pillBg = 'var(--violet-bg)';
                         $pillColor = 'var(--violet)';
-                        $defaultDesc = 'Pusat pendidikan berkualitas tinggi.';
+                        $defaultDesc = 'Pusat pendidikan bermutu tinggi yang membentuk generasi penerus berkualitas dan berkarakter.';
                     }
                 @endphp
                 
