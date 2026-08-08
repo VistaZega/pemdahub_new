@@ -35,6 +35,43 @@ class PublicAlumniController extends Controller
     }
 
     /**
+     * Display public directory of Alumni with filters per Ikatan Alumni unit school.
+     */
+    public function directory(Request $request)
+    {
+        $schools = School::where('type', '!=', 'yayasan')->orderBy('name')->get();
+        $years = range(now()->year, 1970);
+
+        $query = AlumniDirectory::with('school')->where('is_approved', true)->latest();
+
+        if ($request->filled('school_id')) {
+            $query->where('school_id', $request->school_id);
+        }
+
+        if ($request->filled('graduation_year')) {
+            $query->where('graduation_year', $request->graduation_year);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('full_name', 'like', "%{$search}%")
+                  ->orWhere('alias_name', 'like', "%{$search}%")
+                  ->orWhere('occupation', 'like', "%{$search}%")
+                  ->orWhere('company_name', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%");
+            });
+        }
+
+        $alumnis = $query->paginate(16)->withQueryString();
+
+        $totalAlumni = AlumniDirectory::count();
+        $selectedSchool = $request->filled('school_id') ? School::find($request->school_id) : null;
+
+        return view('landing.alumni_directory', compact('alumnis', 'schools', 'years', 'totalAlumni', 'selectedSchool'));
+    }
+
+    /**
      * Handle the registration submission.
      */
     public function registerSubmit(Request $request)

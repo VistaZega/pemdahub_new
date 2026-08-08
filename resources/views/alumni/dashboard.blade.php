@@ -196,7 +196,18 @@
                         <h3 class="font-extrabold text-slate-900 text-lg">{{ $alumni->full_name }}</h3>
                         <p class="text-xs font-black text-indigo-900 tracking-widest uppercase mt-0.5">Angkatan {{ $alumni->graduation_year }}</p>
                         @if(isset($alumni->school) && $alumni->school)
-                            <p class="text-xs font-bold text-slate-700 mt-1">{{ $alumni->school->name }}</p>
+                            <div class="mt-1 space-y-1">
+                                <span class="inline-block px-3 py-1 bg-indigo-900 text-amber-300 font-extrabold text-xs rounded-full border border-black shadow-sm">
+                                    IKA {{ $alumni->school->name }}
+                                </span>
+                                @if(!$alumni->school->is_active)
+                                    <div>
+                                        <span class="inline-block px-2.5 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold rounded-full uppercase">
+                                            <i class="fas fa-landmark mr-1"></i> Unit Merger / Historis
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
                         @endif
                     </div>
                     

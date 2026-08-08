@@ -101,9 +101,14 @@
         <div class="w-full lg:w-5/12 xl:w-1/2 px-6 md:px-10 py-8 md:py-10 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto custom-scroll flex flex-col justify-start">
             
             <div class="mb-8">
-                <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-indigo-600 font-bold hover:text-indigo-800 transition mb-6 bg-white/50 px-4 py-2 rounded-full shadow-sm border border-indigo-100">
-                    <i class="fa-solid fa-arrow-left"></i> Beranda
-                </a>
+                <div class="flex flex-wrap items-center gap-2 mb-6">
+                    <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-indigo-600 font-bold hover:text-indigo-800 transition bg-white/70 px-4 py-2 rounded-full shadow-sm border border-indigo-100 text-xs">
+                        <i class="fa-solid fa-arrow-left"></i> Beranda
+                    </a>
+                    <a href="{{ route('ika.directory') }}" class="inline-flex items-center gap-2 text-slate-800 font-extrabold hover:text-indigo-900 transition bg-amber-400 hover:bg-amber-500 px-4 py-2 rounded-full shadow-sm border border-black text-xs">
+                        <i class="fas fa-address-book"></i> Lihat Direktori Alumni →
+                    </a>
+                </div>
                 
                 <div class="flex items-center gap-4 mb-6">
                     <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo PEMBDA" class="h-16 w-auto object-contain">
@@ -359,12 +364,23 @@
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Lulusan Dari <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Lulusan Dari / Almamater <span class="text-red-500">*</span></label>
                                 <select id="school-select" name="school_id" required class="form-input">
-                                    <option value="">-- Pilih Sekolah --</option>
-                                    @foreach($schools as $school)
-                                        <option value="{{ $school->id }}" data-type="{{ $school->type }}" {{ old('school_id') == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
-                                    @endforeach
+                                    <option value="">-- Pilih Unit Sekolah / IKA --</option>
+                                    <optgroup label="Unit Sekolah Aktif">
+                                        @foreach($schools->where('is_active', true) as $school)
+                                            <option value="{{ $school->id }}" data-type="{{ $school->type }}" {{ old('school_id') == $school->id ? 'selected' : '' }}>
+                                                IKA {{ $school->name }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                    <optgroup label="Unit Sekolah Merger / Historis">
+                                        @foreach($schools->where('is_active', false) as $school)
+                                            <option value="{{ $school->id }}" data-type="{{ $school->type }}" {{ old('school_id') == $school->id ? 'selected' : '' }}>
+                                                IKA {{ $school->name }} (Sekolah Merger)
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
                                 </select>
                             </div>
 

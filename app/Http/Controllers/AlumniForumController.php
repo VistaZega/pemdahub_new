@@ -29,9 +29,13 @@ class AlumniForumController extends Controller
 
         $category = $request->get('category');
         $search = $request->get('search');
+        $scope = $request->get('scope', 'my_ika');
 
-        $query = AlumniForum::with(['user', 'replies'])
-            ->where('school_id', $schoolId);
+        $query = AlumniForum::with(['user', 'replies', 'school']);
+
+        if ($scope === 'my_ika' && $schoolId) {
+            $query->where('school_id', $schoolId);
+        }
 
         if ($category) {
             $query->where('category', $category);
@@ -44,10 +48,11 @@ class AlumniForumController extends Controller
             });
         }
 
-        $threads = $query->latest()->paginate(15);
+        $threads = $query->latest()->paginate(15)->withQueryString();
         $categories = AlumniForum::CATEGORIES;
+        $userSchool = \App\Models\School::find($schoolId);
 
-        return view('alumni.forum.index', compact('threads', 'category', 'search', 'categories'));
+        return view('alumni.forum.index', compact('threads', 'category', 'search', 'scope', 'categories', 'userSchool'));
     }
 
     public function create()

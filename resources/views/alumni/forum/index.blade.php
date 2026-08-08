@@ -20,13 +20,23 @@
         </div>
     </div>
 
+    <!-- Scope Filter Tabs: IKA Saya vs Semua Alumni -->
+    <div class="bg-white p-2 rounded-2xl border-2 border-slate-900 shadow-sm flex items-center gap-2">
+        <a href="{{ route('alumni.forum.index', array_merge(request()->query(), ['scope' => 'my_ika'])) }}" class="flex-1 text-center py-2 px-3 rounded-xl text-xs font-black transition border-2 {{ ($scope ?? 'my_ika') === 'my_ika' ? 'bg-indigo-900 text-amber-300 border-black shadow-sm' : 'bg-slate-50 text-slate-700 border-transparent hover:bg-slate-100' }}">
+            <i class="fas fa-school mr-1"></i> Forum {{ $userSchool ? 'IKA ' . $userSchool->name : 'IKATAN ALUMNI SAYA' }}
+        </a>
+        <a href="{{ route('alumni.forum.index', array_merge(request()->query(), ['scope' => 'all_ika'])) }}" class="flex-1 text-center py-2 px-3 rounded-xl text-xs font-black transition border-2 {{ ($scope ?? 'my_ika') === 'all_ika' ? 'bg-indigo-900 text-amber-300 border-black shadow-sm' : 'bg-slate-50 text-slate-700 border-transparent hover:bg-slate-100' }}">
+            <i class="fas fa-globe mr-1"></i> Forum Semua Ikatan Alumni Pembda
+        </a>
+    </div>
+
     <!-- Filter Categories -->
     <div class="flex overflow-x-auto pb-2 gap-2 hide-scrollbar">
-        <a href="{{ route('alumni.forum.index') }}" class="px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-slate-900 {{ !$category ? 'bg-slate-900 text-amber-300 shadow-md' : 'bg-white text-slate-900 hover:bg-slate-100' }}">
+        <a href="{{ route('alumni.forum.index', array_merge(request()->query(), ['category' => null])) }}" class="px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-slate-900 {{ !$category ? 'bg-slate-900 text-amber-300 shadow-md' : 'bg-white text-slate-900 hover:bg-slate-100' }}">
             Semua Topik
         </a>
         @foreach($categories as $key => $label)
-            <a href="{{ route('alumni.forum.index', ['category' => $key]) }}" class="px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-slate-900 {{ $category === $key ? 'bg-slate-900 text-amber-300 shadow-md' : 'bg-white text-slate-900 hover:bg-slate-100' }}">
+            <a href="{{ route('alumni.forum.index', array_merge(request()->query(), ['category' => $key])) }}" class="px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-slate-900 {{ $category === $key ? 'bg-slate-900 text-amber-300 shadow-md' : 'bg-white text-slate-900 hover:bg-slate-100' }}">
                 {{ $label }}
             </a>
         @endforeach

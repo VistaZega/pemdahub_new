@@ -867,8 +867,10 @@ Route::prefix('live')->name('live.')->group(function () {
 Route::get('/api/program-keahlian/{schoolId}', [App\Http\Controllers\PublicRegistrationController::class, 'getProgramKeahlian'])->name('api.program');
 Route::get('/api/konsentrasi-keahlian/{programId}', [App\Http\Controllers\PublicRegistrationController::class, 'getKonsentrasiKeahlian'])->name('api.konsentrasi');
 
-// IKA PEMBDA - Public Alumni Registration
+// IKA PEMBDA - Public Alumni Registration & Directory
 Route::prefix('ika-pembda')->name('ika.')->group(function () {
+    Route::get('/', [App\Http\Controllers\PublicAlumniController::class, 'directory'])->name('index');
+    Route::get('/direktori', [App\Http\Controllers\PublicAlumniController::class, 'directory'])->name('directory');
     Route::get('/daftar', [App\Http\Controllers\PublicAlumniController::class, 'registerForm'])->name('register');
     Route::post('/daftar', [App\Http\Controllers\PublicAlumniController::class, 'registerSubmit'])->name('register.submit');
 });
