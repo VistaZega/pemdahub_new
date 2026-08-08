@@ -124,7 +124,7 @@
                 <div class="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 text-white rounded-2xl p-5 shadow-lg mb-4 border border-indigo-800/80 space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="inline-block px-2.5 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-extrabold rounded-full border border-amber-300/30">
-                            <i class="fas fa-heart text-pink-400 mr-1"></i> REMBUK ALUMNI PEMBDA
+                            <i class="fas fa-heart text-pink-400 mr-1"></i> IKA PEMBDA & IKASPEN (STM/SMK)
                         </span>
                         <span class="text-[10px] text-amber-300 font-extrabold bg-indigo-900/80 px-2 py-0.5 rounded-full border border-amber-400/30">KEEP MOVING FORWARD</span>
                     </div>

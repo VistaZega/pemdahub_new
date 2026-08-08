@@ -53,13 +53,13 @@ class School extends Model
     ];
 
     /**
-     * Get label for Alumni dropdowns & displays (includes historical aliases like STM).
+     * Get label for Alumni dropdowns & displays (includes official association names like IKASPEN and historical aliases like STM).
      */
     public function getAlumniLabelAttribute(): string
     {
         $name = $this->name;
         if (str_contains(strtoupper($name), 'SMK')) {
-            return "IKA {$name} (d/h STM Pembda)";
+            return "IKASPEN (IKA SMK Swasta Pembda Nias / d/h STM Pembda)";
         }
         return "IKA {$name}";
     }
