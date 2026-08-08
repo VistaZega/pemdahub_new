@@ -219,7 +219,7 @@
                                     </button>
                                 </form>
                             @endif
-                            @if($currentRole !== 'ketua_yayasan')
+                            @if(auth()->user()->canAccessYayasan() && $currentRole !== 'ketua_yayasan')
                                 <form action="{{ route('switch-role') }}" method="POST" class="m-0 p-0">
                                     @csrf
                                     <input type="hidden" name="role" value="ketua_yayasan">

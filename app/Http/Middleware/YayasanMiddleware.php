@@ -20,11 +20,8 @@ class YayasanMiddleware
             return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
         }
 
-        $activeRole = session('active_role') ?? auth()->user()->role;
-        $isYayasanMode = $activeRole === 'ketua_yayasan';
-        $isSuperAdmin = auth()->user()->isSuperAdmin();
-
-        if (!$isYayasanMode && !$isSuperAdmin && auth()->user()->role !== 'ketua_yayasan') {
+        $user = auth()->user();
+        if (!$user->canAccessYayasan()) {
             abort(403, 'Unauthorized. Hanya Ketua Yayasan yang dapat mengakses halaman ini.');
         }
 

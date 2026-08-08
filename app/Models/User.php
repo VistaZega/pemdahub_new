@@ -237,10 +237,28 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is eligible to access/switch to Yayasan mode.
+     * Khusus Yayasan (misal Yulianus Zega / role ketua_yayasan).
+     */
+    public function canAccessYayasan(): bool
+    {
+        if ($this->email === 'erwinsm@pembdahub.com') {
+            return false;
+        }
+        return $this->role === 'ketua_yayasan' 
+            || $this->username === 'yulzega' 
+            || str_contains(strtolower($this->email), 'yulianus')
+            || str_contains(strtolower($this->email), 'yulzega');
+    }
+
+    /**
      * Check if user is Ketua Yayasan (Foundation Chairman)
      */
     public function isKetuaYayasan(): bool
     {
+        if (!$this->canAccessYayasan()) {
+            return false;
+        }
         return $this->hasRole('ketua_yayasan') || session('active_role') === 'ketua_yayasan' || $this->username === 'yulzega';
     }
 
