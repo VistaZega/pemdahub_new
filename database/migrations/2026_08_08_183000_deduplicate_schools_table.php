@@ -18,7 +18,7 @@ return new class extends Migration
                 'type' => 'SMK',
                 'is_active' => true,
                 'psb_is_active' => true,
-                'patterns' => ['%SMK%Swasta%Pembda%', '%SMKS%Pembda%'],
+                'patterns' => ['%SMK%Swasta%Pembda%', '%SMKS%Pembda%', '%STM%Pembda%', '%STM%'],
             ],
             [
                 'canonical_name' => 'SMAS Pembda 1 Gunungsitoli',

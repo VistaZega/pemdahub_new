@@ -53,6 +53,18 @@ class School extends Model
     ];
 
     /**
+     * Get label for Alumni dropdowns & displays (includes historical aliases like STM).
+     */
+    public function getAlumniLabelAttribute(): string
+    {
+        $name = $this->name;
+        if (str_contains(strtoupper($name), 'SMK')) {
+            return "IKA {$name} (d/h STM Pembda)";
+        }
+        return "IKA {$name}";
+    }
+
+    /**
      * Cache key untuk list sekolah aktif
      */
     const CACHE_KEY_ACTIVE = 'schools.active';

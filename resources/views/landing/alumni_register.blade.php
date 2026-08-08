@@ -370,14 +370,14 @@
                                     <optgroup label="Unit Sekolah Aktif">
                                         @foreach($schools->where('is_active', true) as $school)
                                             <option value="{{ $school->id }}" data-type="{{ $school->type }}" {{ old('school_id') == $school->id ? 'selected' : '' }}>
-                                                IKA {{ $school->name }}
+                                                {{ $school->alumni_label }}
                                             </option>
                                         @endforeach
                                     </optgroup>
                                     <optgroup label="Unit Sekolah Merger / Historis">
                                         @foreach($schools->where('is_active', false) as $school)
                                             <option value="{{ $school->id }}" data-type="{{ $school->type }}" {{ old('school_id') == $school->id ? 'selected' : '' }}>
-                                                IKA {{ $school->name }} (Sekolah Merger)
+                                                {{ $school->alumni_label }} (Sekolah Merger)
                                             </option>
                                         @endforeach
                                     </optgroup>

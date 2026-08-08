@@ -94,7 +94,7 @@
                     <option value="">-- Semua Unit Sekolah --</option>
                     @foreach($schools as $sch)
                         <option value="{{ $sch->id }}" {{ request('school_id') == $sch->id ? 'selected' : '' }}>
-                            IKA {{ $sch->name }} {{ !$sch->is_active ? '(Sekolah Merger)' : '' }}
+                            {{ $sch->alumni_label }} {{ !$sch->is_active ? '(Sekolah Merger)' : '' }}
                         </option>
                     @endforeach
                 </select>
@@ -158,7 +158,7 @@
                         </td>
                         <td class="px-6 py-4">
                             <p class="text-slate-900 font-bold">
-                                IKA {{ $dir->school->name ?? '-' }}
+                                {{ $dir->school->alumni_label ?? '-' }}
                                 @if(isset($dir->school) && !$dir->school->is_active)
                                     <span class="inline-block px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black rounded-full uppercase ml-1">
                                         Unit Merger

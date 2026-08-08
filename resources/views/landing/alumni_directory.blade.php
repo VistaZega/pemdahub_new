@@ -161,7 +161,7 @@
                             <option value="">-- Semua Unit / Ikatan Alumni --</option>
                             @foreach($schools as $sch)
                                 <option value="{{ $sch->id }}" {{ request('school_id') == $sch->id ? 'selected' : '' }}>
-                                    IKA {{ $sch->name }} {{ !$sch->is_active ? '(Unit Merger / Historis)' : '' }}
+                                    {{ $sch->alumni_label }} {{ !$sch->is_active ? '(Unit Merger / Historis)' : '' }}
                                 </option>
                             @endforeach
                         </select>
@@ -201,7 +201,7 @@
                             $isMerged = !$sch->is_active;
                         @endphp
                         <a href="{{ route('ika.directory', ['school_id' => $sch->id]) }}" class="px-3 py-1 rounded-full border text-xs font-bold transition {{ request('school_id') == $sch->id ? 'bg-indigo-900 text-white border-indigo-900' : ($isMerged ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100') }}">
-                            IKA {{ $sch->name }} @if($isMerged) <span class="text-[10px] bg-amber-200 text-amber-900 px-1 rounded ml-1">Merger</span> @endif
+                            {{ $sch->alumni_label }} @if($isMerged) <span class="text-[10px] bg-amber-200 text-amber-900 px-1 rounded ml-1">Merger</span> @endif
                         </a>
                     @endforeach
                 </div>
@@ -301,8 +301,8 @@
 
                         <!-- Card Footer -->
                         <div class="bg-slate-900 text-white px-5 py-2.5 text-[11px] font-bold flex items-center justify-between border-t-2 border-slate-900">
-                            <span class="text-amber-300">IKA {{ Str::limit($alumnus->school?->name, 22) }}</span>
-                            <span class="text-slate-300"><i class="fas fa-id-badge mr-1"></i> Terverifikasi</span>
+                            <span class="text-amber-300 font-bold truncate">{{ $alumnus->school?->alumni_label }}</span>
+                            <span class="text-slate-300 shrink-0"><i class="fas fa-id-badge mr-1"></i> Terverifikasi</span>
                         </div>
 
                     </div>

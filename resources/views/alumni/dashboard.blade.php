@@ -198,7 +198,7 @@
                         @if(isset($alumni->school) && $alumni->school)
                             <div class="mt-1 space-y-1">
                                 <span class="inline-block px-3 py-1 bg-indigo-900 text-amber-300 font-extrabold text-xs rounded-full border border-black shadow-sm">
-                                    IKA {{ $alumni->school->name }}
+                                    {{ $alumni->school->alumni_label }}
                                 </span>
                                 @if(!$alumni->school->is_active)
                                     <div>
