@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\EmployeePosition;
 use App\Models\TeachingAssignment;
 use App\Models\EmployeeWorkloadSummary;
+use App\Models\Teacher;
 use App\Models\AcademicYear;
 use App\Models\Semester;
 use App\Models\Setting;
