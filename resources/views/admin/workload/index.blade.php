@@ -268,8 +268,11 @@
 
                                     @if($totalPkl > 0)
                                         <div class="mt-1.5 pt-1.5 border-t border-purple-100">
-                                            <span class="text-xs font-bold text-purple-700 tabular-nums">Rp&nbsp;{{ number_format($totalPkl, 0, ',', '.') }}</span>
-                                            <p class="text-[10px] text-purple-600 font-semibold mt-0.5">PKL: {{ $summary->pkl_supervisor_hours }} JP x Rp 43.000</p>
+                                            <div class="flex justify-between items-center gap-3 text-[11px]">
+                                                <span class="text-purple-600 font-bold">Pembimbing PKL</span>
+                                                <span class="text-purple-700 font-bold tabular-nums">{{ number_format($totalPkl, 0, ',', '.') }}</span>
+                                            </div>
+                                            <p class="text-[9px] text-purple-400 text-right font-medium mt-0.5">{{ $summary->pkl_supervisor_hours }} JP x Rp 43.000</p>
                                         </div>
                                     @endif
                                 </div>
