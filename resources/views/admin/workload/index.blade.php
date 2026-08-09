@@ -226,8 +226,9 @@
                         </td>
 
                         {{-- Honor Mengajar --}}
-                        @if(!$isYayasanFilter && !$isYayasanEmp)
+                        @if(!$isYayasanFilter)
                         <td class="px-4 py-5 text-right align-bottom">
+                            @if(!$isYayasanEmp || ($summary->total_teaching_allowance ?? 0) > 0 || ($summary->honor_pkl ?? 0) > 0 || $teachingHours > 0)
                             <div>
                                 <span class="text-sm font-bold text-gray-800">Rp&nbsp;{{ number_format($summary->total_teaching_allowance ?? 0, 0, ',', '.') }}</span>
                                 @php
@@ -235,7 +236,8 @@
                                         $teachingHours,
                                         $employee->employment_status ?? 'yayasan',
                                         $employee->school?->type ?? 'SMA',
-                                        $employee->school_id ?? null
+                                        $employee->school_id ?? null,
+                                        $employee
                                     );
                                 @endphp
                                 <p class="text-[10px] text-gray-500 group-hover:text-gray-800 font-semibold mt-1 mb-1 transition-colors">
@@ -250,6 +252,9 @@
                                 </div>
                                 @endif
                             </div>
+                            @else
+                            <span class="text-[11px] text-gray-300 italic">—</span>
+                            @endif
                         </td>
                         @endif
 
