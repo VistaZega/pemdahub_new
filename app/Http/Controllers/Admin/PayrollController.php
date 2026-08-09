@@ -100,6 +100,9 @@ class PayrollController extends Controller
             'honor_honorer_smk' => $savedSettings['honor_honorer_smk'] ?? $jamHonorDefaults['SMK']['honor_honorer'],
             'honor_percobaan_smk' => $savedSettings['honor_percobaan_smk'] ?? $jamHonorDefaults['SMK']['honor_percobaan'],
 
+            // Honor Pembimbing PKL
+            'pkl_honor_rate' => $savedSettings['pkl_honor_rate'] ?? EmployeeAssignmentService::DEFAULT_PKL_HONOR_RATE,
+
             // Potongan BPJS
             'bpjs_kesehatan_persen' => $savedSettings['bpjs_kesehatan_persen'] ?? 1.0,
             'bpjs_ketenagakerjaan_persen' => $savedSettings['bpjs_ketenagakerjaan_persen'] ?? 2.0,
@@ -140,6 +143,9 @@ class PayrollController extends Controller
             'honor_tetap_smk' => 'required|numeric|min:0',
             'honor_honorer_smk' => 'required|numeric|min:0',
             'honor_percobaan_smk' => 'required|numeric|min:0',
+
+            // Honor PKL
+            'pkl_honor_rate' => 'required|numeric|min:0',
 
             // Potongan
             'bpjs_kesehatan_persen' => 'required|numeric|min:0|max:100',

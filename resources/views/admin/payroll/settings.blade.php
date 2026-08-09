@@ -176,6 +176,39 @@
         </div>
         @endforeach
 
+        {{-- Section 2b: Honor Pembimbing PKL --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
+            <div class="bg-gradient-to-r from-purple-500 to-fuchsia-600 px-6 py-4">
+                <h3 class="text-white font-bold flex items-center gap-2">
+                    <i class="fas fa-user-tie"></i> Honor Pembimbing PKL
+                </h3>
+                <p class="text-white/70 text-xs mt-1">Tarif honor per jam pelajaran untuk pembimbing Praktik Kerja Lapangan (PKL)</p>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-money-bill text-purple-500 mr-1"></i> Honor/JP Pembimbing PKL
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">Rp</span>
+                            <input type="number" name="pkl_honor_rate" value="{{ old('pkl_honor_rate', $settings['pkl_honor_rate']) }}" min="0"
+                                class="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Tarif per jam pelajaran (JP)</p>
+                        @error('pkl_honor_rate') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="flex items-center">
+                        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 text-sm text-purple-800 w-full">
+                            <i class="fas fa-lightbulb mr-1"></i> <strong>Rumus:</strong>
+                            Honor PKL = <code class="bg-purple-100 px-1 rounded">Jumlah JP</code> × <code class="bg-purple-100 px-1 rounded">Rp {{ number_format($settings['pkl_honor_rate'], 0, ',', '.') }}</code>
+                            <p class="text-xs text-purple-600 mt-1">Jumlah JP diatur per pegawai melalui Penugasan Jabatan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- Section 3: Potongan Wajib --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
             <div class="bg-gradient-to-r from-red-500 to-rose-600 px-6 py-4">

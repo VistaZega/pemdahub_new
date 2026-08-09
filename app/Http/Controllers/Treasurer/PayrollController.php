@@ -100,6 +100,9 @@ class PayrollController extends Controller
             'honor_honorer_smk' => $savedSettings['honor_honorer_smk'] ?? $jamHonorDefaults['SMK']['honor_honorer'],
             'honor_percobaan_smk' => $savedSettings['honor_percobaan_smk'] ?? $jamHonorDefaults['SMK']['honor_percobaan'],
 
+            // Honor Pembimbing PKL
+            'pkl_honor_rate' => $savedSettings['pkl_honor_rate'] ?? EmployeeAssignmentService::DEFAULT_PKL_HONOR_RATE,
+
             // Potongan BPJS
             'bpjs_kesehatan_persen' => $savedSettings['bpjs_kesehatan_persen'] ?? 1.0,
             'bpjs_ketenagakerjaan_persen' => $savedSettings['bpjs_ketenagakerjaan_persen'] ?? 2.0,
