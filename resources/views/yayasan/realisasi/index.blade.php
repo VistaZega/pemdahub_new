@@ -90,10 +90,10 @@
             <!-- Actions & Filters -->
             <form method="GET" action="{{ route('yayasan.realisasi.index') }}" class="flex flex-wrap items-center gap-3">
                 <div class="flex flex-col">
-                    <span class="text-[11px] uppercase tracking-wider font-black text-amber-400 mb-1">Tahun Pelajaran</span>
-                    <select name="academic_year_id" onchange="this.form.submit()" class="bg-black text-white border-2 border-amber-400 rounded-xl text-xs px-3.5 py-2.5 font-black focus:ring-2 focus:ring-amber-400 min-w-[170px]">
+                    <span class="text-[11px] uppercase tracking-wider font-black mb-1" style="color: #fbbf24 !important;">Tahun Pelajaran</span>
+                    <select name="academic_year_id" onchange="this.form.submit()" class="border-2 border-black rounded-xl text-xs px-3.5 py-2 font-black shadow-sm cursor-pointer" style="background-color: #ffffff !important; color: #000000 !important;">
                         @foreach($academicYears as $y)
-                            <option value="{{ $y->id }}" class="bg-black text-white font-black" {{ ($activeYear->id ?? null) == $y->id ? 'selected' : '' }}>
+                            <option value="{{ $y->id }}" style="background-color: #ffffff !important; color: #000000 !important;" {{ ($activeYear->id ?? null) == $y->id ? 'selected' : '' }}>
                                 TP {{ $y->year }} {{ $y->is_active ? '✦ Aktif' : '' }}
                             </option>
                         @endforeach
@@ -101,7 +101,7 @@
                 </div>
 
                 <div class="flex flex-col">
-                    <span class="text-[11px] uppercase tracking-wider font-black text-amber-400 mb-1">Mode Periode</span>
+                    <span class="text-[11px] uppercase tracking-wider font-black mb-1" style="color: #fbbf24 !important;">Mode Periode</span>
                     <div class="bg-black p-1 rounded-xl border-2 border-slate-700 flex items-center gap-1">
                         <a href="{{ route('yayasan.realisasi.index', ['academic_year_id' => $activeYear->id ?? null, 'period_mode' => 'annual']) }}"
                            class="px-4 py-2 rounded-lg text-xs font-black transition-all" style="{{ $periodMode === 'annual' ? 'background-color: #fbbf24 !important; color: #000000 !important; border: 2px solid #000000;' : 'color: #ffffff;' }}">
