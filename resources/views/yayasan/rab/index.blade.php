@@ -2,358 +2,494 @@
 
 @section('title', 'Rencana Anggaran Belanja (RAB) Yayasan')
 
+@push('styles')
+<style>
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #f3f4f6;
+    }
+    .dark-hero {
+        background-color: #090d16;
+        border: 2px solid #000000;
+    }
+    .pro-card {
+        background-color: #ffffff;
+        border: 2px solid #000000;
+        box-shadow: 4px 4px 0px #000000;
+        border-radius: 8px;
+    }
+    .pro-table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        border: 2px solid #000000;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .pro-table th {
+        background-color: #000000;
+        color: #ffffff;
+        font-weight: 900;
+        text-transform: uppercase;
+        padding: 12px 16px;
+        border-bottom: 2px solid #000000;
+        border-right: 2px solid #333333;
+    }
+    .pro-table th:last-child {
+        border-right: none;
+    }
+    .pro-table td {
+        background-color: #ffffff;
+        color: #000000;
+        font-weight: 900;
+        padding: 12px 16px;
+        border-bottom: 2px solid #000000;
+        border-right: 2px solid #000000;
+    }
+    .pro-table td:last-child {
+        border-right: none;
+    }
+    .pro-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .pro-table tbody tr:hover td {
+        background-color: #fef3c7; /* hover:bg-amber-100 */
+    }
+    .pro-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border: 2px solid #000000;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 900;
+        color: #000000;
+        box-shadow: 2px 2px 0px #000000;
+    }
+    .badge-yellow { background-color: #fbbf24; }
+    .badge-green { background-color: #34d399; }
+    .badge-blue { background-color: #60a5fa; }
+    .badge-red { background-color: #f87171; }
+    .badge-purple { background-color: #c084fc; }
+
+    .num-col {
+        text-align: right;
+        font-family: 'Plus Jakarta Sans', monospace;
+    }
+    .tab-btn {
+        border: 2px solid #000000;
+        background-color: #ffffff;
+        color: #000000;
+        font-weight: 900;
+        padding: 8px 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .tab-btn.active {
+        background-color: #fbbf24;
+        box-shadow: 3px 3px 0px #000000;
+        transform: translate(-3px, -3px);
+    }
+    .pro-input {
+        border: 2px solid #000000;
+        background-color: #ffffff;
+        color: #000000;
+        font-weight: 900;
+        border-radius: 4px;
+        padding: 8px 12px;
+        width: 100%;
+        box-shadow: inset 2px 2px 0px rgba(0,0,0,0.05);
+    }
+    .pro-input:focus {
+        outline: none;
+        background-color: #fef3c7;
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="space-y-6">
-    <!-- Header Banner -->
-    <div class="bg-gradient-to-r from-purple-700 via-indigo-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="space-y-8">
+    <!-- Hero Banner -->
+    <div class="dark-hero rounded-xl p-8 text-white relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-medium text-purple-200 mb-3">
-                    <i class="fas fa-calculator text-amber-300"></i> Perencanaan Keuangan Yayasan & Unit Sekolah
-                </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Rencana Anggaran Belanja (RAB) Yayasan</h1>
-                <p class="text-purple-200 text-sm mt-1 max-w-2xl">
-                    Rencana Pendapatan SPP Siswa, Rencana Belanja Gaji/Honor Pegawai, dan 8 Item Belanja Operasional Unit Sekolah & Yayasan.
+                <h1 class="text-3xl font-black uppercase mb-2">Rencana Anggaran Belanja (RAB) Yayasan</h1>
+                <p class="text-gray-300 font-bold text-sm">
+                    Rekapitulasi Pendapatan, Belanja Gaji, dan Belanja Operasional Unit.
                 </p>
             </div>
-            <div class="flex flex-wrap items-center gap-3">
-                <a href="{{ route('yayasan.rab.export_pdf', ['academic_year_id' => $activeYear->id ?? '', 'period_mode' => $periodMode]) }}" 
+            
+            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-4 bg-white/10 p-4 border-2 border-white rounded-lg">
+                <form method="GET" action="{{ route('yayasan.rab.index') }}" class="flex items-center gap-3">
+                    <div>
+                        <label class="block text-xs font-black text-white mb-1 uppercase">Tahun Pelajaran</label>
+                        <select name="academic_year_id" onchange="this.form.submit()" class="text-black font-black border-2 border-black rounded px-3 py-1 text-sm bg-white cursor-pointer">
+                            @foreach($allYears as $year)
+                                <option value="{{ $year->id }}" {{ ($currentYear->id ?? null) == $year->id ? 'selected' : '' }}>
+                                    TP {{ $year->year }} {{ $year->is_active ? '(Aktif)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black text-white mb-1 uppercase">Periode</label>
+                        <select name="period_mode" onchange="this.form.submit()" class="text-black font-black border-2 border-black rounded px-3 py-1 text-sm bg-white cursor-pointer">
+                            <option value="annual" {{ $periodMode == 'annual' ? 'selected' : '' }}>12 Bulan (Tahunan)</option>
+                            <option value="monthly" {{ $periodMode == 'monthly' ? 'selected' : '' }}>1 Bulan (Bulanan)</option>
+                        </select>
+                    </div>
+                </form>
+                
+                <a href="{{ route('yayasan.rab.export_pdf', ['academic_year_id' => $currentYear->id ?? '', 'period_mode' => $periodMode]) }}" 
                    target="_blank"
-                   class="inline-flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg transition transform hover:-translate-y-0.5">
-                    <i class="fas fa-file-pdf"></i> Export PDF RAB
+                   class="bg-[#ff0000] text-white font-black px-4 py-2 border-2 border-white hover:bg-white hover:text-[#ff0000] hover:border-[#ff0000] transition-colors rounded text-sm uppercase">
+                    <i class="fas fa-file-pdf mr-1"></i> Export PDF
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Filter & Mode Switcher -->
-    <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <form method="GET" action="{{ route('yayasan.rab.index') }}" class="flex flex-wrap items-center gap-3">
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Tahun Pelajaran</label>
-                <select name="academic_year_id" onchange="this.form.submit()" class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
-                    @foreach($academicYears as $year)
-                        <option value="{{ $year->id }}" {{ ($activeYear->id ?? null) == $year->id ? 'selected' : '' }}>
-                            TP {{ $year->year }} {{ $year->is_active ? '(Aktif)' : '' }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Mode Periode</label>
-                <div class="inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200">
-                    <a href="{{ route('yayasan.rab.index', ['academic_year_id' => $activeYear->id ?? '', 'period_mode' => 'annual']) }}" 
-                       class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $periodMode === 'annual' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
-                        Tahunan (12 Bulan)
-                    </a>
-                    <a href="{{ route('yayasan.rab.index', ['academic_year_id' => $activeYear->id ?? '', 'period_mode' => 'monthly']) }}" 
-                       class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $periodMode === 'monthly' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
-                        Bulanan (1 Bulan)
-                    </a>
-                </div>
-            </div>
-        </form>
-
-        <div class="text-xs text-gray-500 font-medium flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Mode Tampilan: <strong class="text-gray-800">{{ $periodMode === 'annual' ? 'Rencana 1 Tahun Pelajaran (12 Bulan)' : 'Rencana 1 Bulan' }}</strong>
+    <!-- Summary Stat Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="pro-card p-6 border-b-8 border-b-green-500">
+            <div class="text-xs font-black text-gray-500 uppercase mb-2">Total Pendapatan</div>
+            <div class="text-3xl font-black text-black">Rp {{ number_format($summary['total_income'], 0, ',', '.') }}</div>
+        </div>
+        <div class="pro-card p-6 border-b-8 border-b-red-500">
+            <div class="text-xs font-black text-gray-500 uppercase mb-2">Total Belanja (Gaji + Ops)</div>
+            <div class="text-3xl font-black text-black">Rp {{ number_format($summary['total_expense'], 0, ',', '.') }}</div>
+        </div>
+        <div class="pro-card p-6 border-b-8 {{ $summary['total_balance'] >= 0 ? 'border-b-blue-500' : 'border-b-red-500' }}">
+            <div class="text-xs font-black text-gray-500 uppercase mb-2">Saldo / Balance</div>
+            <div class="text-3xl font-black text-black">Rp {{ number_format($summary['total_balance'], 0, ',', '.') }}</div>
         </div>
     </div>
 
-    <!-- Ringkasan Konsolidasi Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <!-- Total Rencana Pendapatan -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative overflow-hidden group hover:border-emerald-200 transition">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Pendapatan SPP</span>
-                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold">
-                    <i class="fas fa-coins"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <div class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
-                    Rp {{ number_format($summary['total_income'], 0, ',', '.') }}
-                </div>
-                <div class="text-xs text-emerald-600 font-medium mt-1">
-                    Total Siswa Aktif: {{ number_format($summary['total_students'], 0, ',', '.') }} orang
-                </div>
-            </div>
-        </div>
-
-        <!-- Total Rencana Belanja Gaji -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative overflow-hidden group hover:border-indigo-200 transition">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Rencana Gaji & Honor</span>
-                <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-bold">
-                    <i class="fas fa-user-tie"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <div class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
-                    Rp {{ number_format($summary['total_salary'], 0, ',', '.') }}
-                </div>
-                <div class="text-xs text-gray-400 font-medium mt-1">Honor Mengajar & Tunjangan Jabatan</div>
-            </div>
-        </div>
-
-        <!-- Total Rencana Operasional -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative overflow-hidden group hover:border-amber-200 transition">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Belanja Operasional (8 Item)</span>
-                <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-bold">
-                    <i class="fas fa-boxes-packing"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <div class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
-                    Rp {{ number_format($summary['total_operational'], 0, ',', '.') }}
-                </div>
-                <div class="text-xs text-amber-600 font-medium mt-1">Otorisasi, BPJS, Admin, dll.</div>
-            </div>
-        </div>
-
-        <!-- Saldo Rencana -->
-        <div class="bg-gradient-to-br {{ $summary['total_balance'] >= 0 ? 'from-purple-900 to-indigo-900' : 'from-rose-900 to-red-900' }} text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-white/70 uppercase tracking-wider">Saldo Rencana {{ $periodMode === 'annual' ? '(Tahunan)' : '(Bulanan)' }}</span>
-                <div class="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center text-sm font-bold">
-                    <i class="fas fa-scale-balanced"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <div class="text-xl sm:text-2xl font-black tracking-tight">
-                    Rp {{ number_format($summary['total_balance'], 0, ',', '.') }}
-                </div>
-                <div class="text-xs text-white/70 font-medium mt-1">
-                    {{ $summary['total_balance'] >= 0 ? 'Surplus Rencana Anggaran' : 'Defisit Rencana Anggaran' }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tabel Rencana Anggaran Belanja (RAB) Per Unit Sekolah -->
-    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-6 py-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/50">
-            <div>
-                <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fas fa-table text-purple-600"></i> Matriks RAB Masing-Masing Unit Sekolah & Yayasan
-                </h3>
-                <p class="text-xs text-gray-500 mt-0.5">Rincian pendapatan SPP, beban kerja/gaji, dan 8 item belanja operasional per unit sekolah</p>
-            </div>
-        </div>
-
+    <!-- 1. Per-school SPP income table -->
+    <div class="pro-card p-6">
+        <h2 class="text-xl font-black uppercase mb-4 flex items-center justify-between">
+            <span><i class="fas fa-coins text-yellow-500 mr-2"></i> Rencana Pendapatan SPP</span>
+            <span class="pro-badge badge-green text-sm">TOTAL: Rp {{ number_format($summary['total_income'], 0, ',', '.') }}</span>
+        </h2>
+        
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+            <table class="pro-table">
                 <thead>
-                    <tr class="bg-gray-100/70 text-gray-700 font-bold uppercase tracking-wider border-b border-gray-200">
-                        <th class="py-3.5 px-4 min-w-[180px]">Unit Sekolah / Lembaga</th>
-                        <th class="py-3.5 px-4 text-center">Siswa Aktif</th>
-                        <th class="py-3.5 px-4 text-right">Tarif SPP/Bulan</th>
-                        <th class="py-3.5 px-4 text-right bg-emerald-50/50 text-emerald-900">A. Pendapatan SPP</th>
-                        <th class="py-3.5 px-4 text-right">1. Honor & Tunjangan</th>
-                        <th class="py-3.5 px-4 text-right">2. Operasional Unit</th>
-                        <th class="py-3.5 px-4 text-right bg-rose-50/50 text-rose-900">B. Total Belanja</th>
-                        <th class="py-3.5 px-4 text-right bg-purple-50/50 text-purple-900">C. Saldo Rencana</th>
-                        <th class="py-3.5 px-4 text-center">Aksi / Setting</th>
+                    <tr>
+                        <th>Unit Sekolah</th>
+                        <th>Jenjang/Tingkat</th>
+                        <th class="text-center">Siswa Aktif</th>
+                        <th class="text-right">Tarif SPP/Bulan</th>
+                        <th class="text-right">Total ({{ $periodMode == 'annual' ? '12 Bln' : '1 Bln' }})</th>
+                        <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @foreach($schoolRabList as $item)
-                        <tr class="hover:bg-purple-50/30 transition">
-                            <td class="py-4 px-4 font-bold text-gray-900">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-black text-xs shadow-sm">
-                                        {{ strtoupper(substr($item['school']->type ?? $item['school']->name, 0, 3)) }}
-                                    </div>
-                                    <div>
-                                        <div class="text-xs font-bold text-gray-900">{{ $item['school']->name }}</div>
-                                        <div class="text-[10px] text-gray-400 font-normal">Jenjang: {{ strtoupper($item['school']->type ?? '-') }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-4 px-4 text-center font-semibold text-gray-700">
-                                {{ number_format($item['student_count'], 0, ',', '.') }} orang
-                            </td>
-                            <td class="py-4 px-4 text-right font-medium text-gray-600">
-                                Rp {{ number_format($item['spp_monthly_rate'], 0, ',', '.') }}
-                            </td>
-                            <td class="py-4 px-4 text-right font-bold text-emerald-700 bg-emerald-50/30">
-                                Rp {{ number_format($item['rab_income_period'], 0, ',', '.') }}
-                            </td>
-                            <td class="py-4 px-4 text-right font-semibold text-gray-700">
-                                Rp {{ number_format($item['rab_salary_period'], 0, ',', '.') }}
-                            </td>
-                            <td class="py-4 px-4 text-right font-semibold text-amber-700">
-                                Rp {{ number_format($item['rab_operational_period'], 0, ',', '.') }}
-                            </td>
-                            <td class="py-4 px-4 text-right font-bold text-rose-700 bg-rose-50/30">
-                                Rp {{ number_format($item['rab_total_expense_period'], 0, ',', '.') }}
-                            </td>
-                            <td class="py-4 px-4 text-right font-black {{ $item['rab_balance_period'] >= 0 ? 'text-purple-800 bg-purple-50/40' : 'text-rose-800 bg-rose-100/50' }}">
-                                Rp {{ number_format($item['rab_balance_period'], 0, ',', '.') }}
-                            </td>
-                            <td class="py-4 px-4 text-center">
-                                <button type="button" 
-                                        onclick="openSettingModal({{ $item['school']->id }}, '{{ addslashes($item['school']->name) }}', '{{ strtolower($item['school']->type ?? 'smk') }}', {{ $item['spp_monthly_rate'] }}, {{ json_encode($item['itemised_monthly']) }})"
-                                        class="inline-flex items-center gap-1.5 bg-purple-100 hover:bg-purple-200 text-purple-800 text-[11px] font-bold px-3 py-1.5 rounded-lg transition">
-                                    <i class="fas fa-sliders text-[10px]"></i> Edit Setting
-                                </button>
+                <tbody>
+                    @foreach($incomeData as $schoolId => $data)
+                        @foreach($data['levels'] as $index => $lvl)
+                            <tr>
+                                @if($index == 0)
+                                    <td rowspan="{{ count($data['levels']) + 1 }}" class="align-top">
+                                        <div class="font-black text-lg">{{ $data['school']->name }}</div>
+                                        <div class="text-xs text-gray-500 mt-1 uppercase">{{ $data['school']->type }}</div>
+                                    </td>
+                                @endif
+                                <td>Kelas {{ $lvl['level'] }}</td>
+                                <td class="text-center">{{ $lvl['student_count'] }}</td>
+                                <td class="num-col">Rp&nbsp;{{ number_format($lvl['spp_monthly_rate'], 0, ',', '.') }}</td>
+                                <td class="num-col text-green-700 bg-green-50">Rp&nbsp;{{ number_format($lvl['income_period'], 0, ',', '.') }}</td>
+                                @if($index == 0)
+                                    <td rowspan="{{ count($data['levels']) + 1 }}" class="text-center align-middle">
+                                        <button type="button" 
+                                                onclick="openSppModal({{ $schoolId }}, '{{ addslashes($data['school']->name) }}', {{ json_encode($data['levels']) }})"
+                                                class="pro-badge badge-yellow cursor-pointer hover:bg-yellow-300">
+                                            <i class="fas fa-edit mr-1"></i> Edit SPP
+                                        </button>
+                                    </td>
+                                @endif
+                            </tr>
+                        @endforeach
+                        <tr style="background-color: #d1fae5; border-top: 2px solid #000;">
+                            <td class="uppercase font-black text-right" colspan="2">TOTAL {{ $data['school']->name }}</td>
+                            <td class="num-col font-black text-green-800">Rp&nbsp;{{ number_format($data['total_income_period'], 0, ',', '.') }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 2. Per-school expense table -->
+    <div class="pro-card p-6">
+        <h2 class="text-xl font-black uppercase mb-4 flex items-center justify-between">
+            <span><i class="fas fa-money-check-dollar text-red-500 mr-2"></i> Rencana Belanja (Gaji & Operasional)</span>
+            <span class="pro-badge badge-red text-sm">TOTAL: Rp {{ number_format($summary['total_expense'], 0, ',', '.') }}</span>
+        </h2>
+
+        <div class="flex flex-wrap gap-2 mb-4 border-b-2 border-black pb-2" id="expense-tabs">
+            @foreach($expenseData as $schoolId => $data)
+                <button class="tab-btn {{ $loop->first ? 'active' : '' }}" onclick="switchExpenseTab({{ $schoolId }})" id="tab-btn-{{ $schoolId }}">
+                    {{ $data['school']->name }}
+                </button>
+            @endforeach
+        </div>
+
+        @foreach($expenseData as $schoolId => $data)
+            <div id="tab-content-{{ $schoolId }}" class="expense-tab-content {{ $loop->first ? 'block' : 'hidden' }}">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="font-black text-lg uppercase bg-black text-white inline-block px-3 py-1">
+                        {{ $data['school']->name }}
+                    </div>
+                    <button type="button" 
+                            onclick="openOpsModal({{ $schoolId }}, '{{ addslashes($data['school']->name) }}', {{ json_encode($data['ops_details']) }})"
+                            class="pro-badge badge-purple cursor-pointer hover:bg-purple-300 text-sm">
+                        <i class="fas fa-edit mr-1"></i> Edit Operasional
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="pro-table">
+                        <thead>
+                            <tr>
+                                <th class="w-16 text-center">KODE</th>
+                                <th>URAIAN BELANJA</th>
+                                <th class="text-center">VOL</th>
+                                <th class="text-center">SATUAN</th>
+                                <th class="text-right">TARIF</th>
+                                <th class="text-right">JUMLAH ({{ $periodMode == 'annual' ? '12 Bln' : '1 Bln' }})</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Gaji -->
+                            <tr class="bg-gray-100">
+                                <td colspan="6" class="uppercase font-black text-sm">A. BELANJA PEGAWAI (AUTO)</td>
+                            </tr>
+                            <tr>
+                                <td class="text-center font-bold text-gray-500">{{ $data['salary_item']['code'] }}</td>
+                                <td>
+                                    <i class="fas {{ $data['salary_item']['icon'] }} mr-2 text-gray-500"></i>
+                                    {{ $data['salary_item']['name'] }}
+                                </td>
+                                <td class="text-center">{{ $data['salary_item']['volume'] }}</td>
+                                <td class="text-center">{{ $data['salary_item']['unit'] }}</td>
+                                <td class="num-col">Rp&nbsp;{{ number_format($data['salary_item']['tariff'], 0, ',', '.') }}</td>
+                                <td class="num-col text-red-700 bg-red-50">Rp&nbsp;{{ number_format($data['total_salary_period'], 0, ',', '.') }}</td>
+                            </tr>
+
+                            <!-- Operasional -->
+                            <tr class="bg-gray-100">
+                                <td colspan="6" class="uppercase font-black text-sm">B. BELANJA OPERASIONAL</td>
+                            </tr>
+                            @foreach($data['ops_details'] as $code => $detail)
+                                <tr>
+                                    <td class="text-center font-bold text-gray-500">{{ $code }}</td>
+                                    <td>
+                                        <i class="fas {{ $detail['icon'] }} mr-2 text-gray-500"></i>
+                                        {{ $detail['name'] }}
+                                    </td>
+                                    <td class="text-center">{{ $detail['volume'] }}</td>
+                                    <td class="text-center">{{ $detail['unit'] }}</td>
+                                    <td class="num-col">Rp&nbsp;{{ number_format($detail['tariff'], 0, ',', '.') }}</td>
+                                    <td class="num-col text-red-700 bg-red-50">Rp&nbsp;{{ number_format($detail['amount'] * $multiplier, 0, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                            
+                            <!-- Subtotal -->
+                            <tr style="background-color: #fee2e2; border-top: 2px solid #000;">
+                                <td colspan="5" class="uppercase font-black text-right text-red-900">TOTAL BELANJA {{ $data['school']->name }}</td>
+                                <td class="num-col font-black text-red-900">Rp&nbsp;{{ number_format($data['grand_total_period'], 0, ',', '.') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endforeach
+    </div>
+
+    <!-- 3. Grand total recap table -->
+    <div class="pro-card p-6">
+        <h2 class="text-xl font-black uppercase mb-4 flex items-center justify-between">
+            <span><i class="fas fa-scale-balanced text-blue-500 mr-2"></i> Rekapitulasi Akhir (Surplus/Defisit)</span>
+        </h2>
+        
+        <div class="overflow-x-auto">
+            <table class="pro-table">
+                <thead>
+                    <tr>
+                        <th>UNIT SEKOLAH</th>
+                        <th class="text-right">TOTAL PENDAPATAN</th>
+                        <th class="text-right">TOTAL BELANJA</th>
+                        <th class="text-right">SALDO / BALANCE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($allSchools as $sch)
+                        @php
+                            $inc = isset($incomeData[$sch->id]) ? $incomeData[$sch->id]['total_income_period'] : 0;
+                            $exp = isset($expenseData[$sch->id]) ? $expenseData[$sch->id]['grand_total_period'] : 0;
+                            $bal = $inc - $exp;
+                        @endphp
+                        <tr>
+                            <td class="font-black uppercase">{{ $sch->name }}</td>
+                            <td class="num-col text-green-700">Rp&nbsp;{{ number_format($inc, 0, ',', '.') }}</td>
+                            <td class="num-col text-red-700">Rp&nbsp;{{ number_format($exp, 0, ',', '.') }}</td>
+                            <td class="num-col font-black {{ $bal >= 0 ? 'text-blue-700 bg-blue-50' : 'text-red-700 bg-red-50' }}">
+                                Rp&nbsp;{{ number_format($bal, 0, ',', '.') }}
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
                 <tfoot>
-                    <tr class="bg-gradient-to-r from-purple-900 to-indigo-900 text-white font-black text-xs border-t-2 border-purple-950">
-                        <td class="py-4 px-4">TOTAL KONSOLIDASI YAYASAN</td>
-                        <td class="py-4 px-4 text-center">{{ number_format($summary['total_students'], 0, ',', '.') }}</td>
-                        <td class="py-4 px-4 text-right">—</td>
-                        <td class="py-4 px-4 text-right text-emerald-300">Rp {{ number_format($summary['total_income'], 0, ',', '.') }}</td>
-                        <td class="py-4 px-4 text-right text-indigo-200">Rp {{ number_format($summary['total_salary'], 0, ',', '.') }}</td>
-                        <td class="py-4 px-4 text-right text-amber-300">Rp {{ number_format($summary['total_operational'], 0, ',', '.') }}</td>
-                        <td class="py-4 px-4 text-right text-rose-300">Rp {{ number_format($summary['total_expense'], 0, ',', '.') }}</td>
-                        <td class="py-4 px-4 text-right text-amber-200 text-sm">Rp {{ number_format($summary['total_balance'], 0, ',', '.') }}</td>
-                        <td class="py-4 px-4 text-center">—</td>
+                    <tr style="background-color: #000; color: #fff; border-top: 4px solid #fff;">
+                        <td class="font-black uppercase">GRAND TOTAL YAYASAN</td>
+                        <td class="num-col font-black text-green-400">Rp&nbsp;{{ number_format($summary['total_income'], 0, ',', '.') }}</td>
+                        <td class="num-col font-black text-red-400">Rp&nbsp;{{ number_format($summary['total_expense'], 0, ',', '.') }}</td>
+                        <td class="num-col font-black text-yellow-400 text-lg">Rp&nbsp;{{ number_format($summary['total_balance'], 0, ',', '.') }}</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </div>
-
-    <!-- Rincian 8 Item Belanja Operasional Per Unit Sekolah -->
-    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-        <h3 class="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <i class="fas fa-list-check text-amber-500"></i> Breakdown 8 Item Belanja Operasional Per Unit Sekolah
-        </h3>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            @foreach($operationalItems as $itemKey => $itemInfo)
-                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-200 hover:border-amber-300 transition">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
-                            <i class="fas {{ $itemInfo['icon'] }}"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs font-bold text-gray-800">{{ $itemInfo['name'] }}</div>
-                            <div class="text-[10px] text-gray-400">{{ $itemInfo['desc'] }}</div>
-                        </div>
-                    </div>
-                    <div class="mt-3 space-y-1.5 text-xs border-t border-gray-200 pt-2">
-                        @foreach($schoolRabList as $sItem)
-                            <div class="flex items-center justify-between text-gray-600">
-                                <span>{{ $sItem['school']->name }}:</span>
-                                <span class="font-bold text-gray-800">
-                                    Rp {{ number_format(($sItem['itemised_monthly'][$itemKey] ?? 0) * $multiplier, 0, ',', '.') }}
-                                </span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
 </div>
 
-<!-- Modal Edit Setting RAB & 8 Item Operasional -->
-<div id="settingModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalContainer">
-        <div class="bg-gradient-to-r from-purple-700 to-indigo-800 px-6 py-4 text-white flex items-center justify-between">
-            <h3 class="font-bold text-base flex items-center gap-2">
-                <i class="fas fa-sliders text-amber-300"></i> Setting RAB Unit: <span id="modalSchoolName" class="text-amber-200"></span>
-            </h3>
-            <button type="button" onclick="closeSettingModal()" class="text-white/70 hover:text-white text-lg"><i class="fas fa-xmark"></i></button>
+<!-- Modal SPP -->
+<div id="sppModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden">
+    <div class="pro-card max-w-lg w-full m-4">
+        <div class="bg-black text-white px-6 py-4 flex justify-between items-center border-b-2 border-black">
+            <h3 class="font-black uppercase">Setting SPP: <span id="sppSchoolName" class="text-yellow-400"></span></h3>
+            <button onclick="closeSppModal()" class="text-white hover:text-red-500 font-black text-xl">&times;</button>
         </div>
-
-        <form action="{{ route('yayasan.rab.store') }}" method="POST" class="p-6 space-y-5">
+        <form action="{{ route('yayasan.rab.store') }}" method="POST" class="p-6">
             @csrf
-            <input type="hidden" name="school_id" id="modalSchoolId">
-            <input type="hidden" name="academic_year_id" value="{{ $activeYear->id ?? '' }}">
-
-            <!-- Tarif SPP Per Siswa -->
-            <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">
-                    <i class="fas fa-money-bill text-emerald-600 mr-1"></i> Tarif SPP (Uang Sekolah) Per Siswa / Bulan
-                </label>
-                <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">Rp</span>
-                    <input type="number" name="spp_rates[smk]" id="modalSppRate" min="0" step="1000"
-                           class="w-full bg-gray-50 border border-gray-300 rounded-xl pl-9 pr-4 py-2 text-xs font-bold text-gray-800 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                </div>
-                <p class="text-[10px] text-gray-400 mt-1">Tarif ini dikalikan jumlah siswa aktif untuk menghitung Rencana Pendapatan SPP.</p>
+            <input type="hidden" name="school_id" id="sppSchoolId">
+            <input type="hidden" name="academic_year_id" value="{{ $currentYear->id ?? '' }}">
+            
+            <div id="sppLevelsContainer" class="space-y-4 mb-6">
+                <!-- Injected via JS -->
             </div>
 
-            <!-- 8 Item Belanja Operasional Unit -->
-            <div class="border-t border-gray-100 pt-4">
-                <h4 class="text-xs font-extrabold text-gray-800 mb-3 flex items-center gap-1.5">
-                    <i class="fas fa-boxes-packing text-amber-500"></i> Setting Nominal 8 Item Belanja Operasional / Bulan
-                </h4>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    @foreach($operationalItems as $itemKey => $itemInfo)
-                        <div>
-                            <label class="block text-[11px] font-semibold text-gray-600 mb-1 flex items-center gap-1">
-                                <i class="fas {{ $itemInfo['icon'] }} text-amber-500 text-[10px]"></i> {{ $itemInfo['name'] }}
-                            </label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-[11px]">Rp</span>
-                                <input type="number" name="expense_details[{{ $itemKey }}]" id="modalItem_{{ $itemKey }}" min="0" step="5000"
-                                       class="w-full bg-gray-50 border border-gray-300 rounded-xl pl-8 pr-3 py-1.5 text-xs font-semibold text-gray-800 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- Buttons -->
-            <div class="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
-                <button type="button" onclick="closeSettingModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition">
-                    Batal
-                </button>
-                <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md transition">
-                    Simpan RAB Unit
-                </button>
+            <div class="flex justify-end gap-3 pt-4 border-t-2 border-black">
+                <button type="button" onclick="closeSppModal()" class="px-4 py-2 border-2 border-black font-black uppercase hover:bg-gray-100">Batal</button>
+                <button type="submit" class="px-4 py-2 bg-yellow-400 border-2 border-black font-black uppercase hover:bg-yellow-500">Simpan</button>
             </div>
         </form>
     </div>
 </div>
 
+<!-- Modal Operasional -->
+<div id="opsModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden overflow-y-auto py-10">
+    <div class="pro-card max-w-3xl w-full m-4">
+        <div class="bg-black text-white px-6 py-4 flex justify-between items-center border-b-2 border-black">
+            <h3 class="font-black uppercase">Setting Operasional: <span id="opsSchoolName" class="text-purple-400"></span></h3>
+            <button onclick="closeOpsModal()" class="text-white hover:text-red-500 font-black text-xl">&times;</button>
+        </div>
+        <form action="{{ route('yayasan.rab.store') }}" method="POST" class="p-6">
+            @csrf
+            <input type="hidden" name="school_id" id="opsSchoolId">
+            <input type="hidden" name="academic_year_id" value="{{ $currentYear->id ?? '' }}">
+            
+            <div class="overflow-x-auto mb-6 border-2 border-black">
+                <table class="w-full text-left" style="border-collapse: collapse;">
+                    <thead>
+                        <tr class="bg-gray-100 border-b-2 border-black">
+                            <th class="p-2 border-r-2 border-black font-black uppercase text-xs">Uraian</th>
+                            <th class="p-2 border-r-2 border-black font-black uppercase text-xs w-20">Volume</th>
+                            <th class="p-2 border-r-2 border-black font-black uppercase text-xs w-24">Satuan</th>
+                            <th class="p-2 font-black uppercase text-xs w-40">Tarif (Rp)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="opsItemsContainer">
+                        <!-- Injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t-2 border-black">
+                <button type="button" onclick="closeOpsModal()" class="px-4 py-2 border-2 border-black font-black uppercase hover:bg-gray-100">Batal</button>
+                <button type="submit" class="px-4 py-2 bg-purple-400 border-2 border-black font-black uppercase hover:bg-purple-500">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@endsection
+
+@push('scripts')
 <script>
-    function openSettingModal(schoolId, schoolName, schoolType, sppRate, itemised) {
-        document.getElementById('modalSchoolId').value = schoolId;
-        document.getElementById('modalSchoolName').innerText = schoolName;
-
-        const sppInput = document.getElementById('modalSppRate');
-        sppInput.name = `spp_rates[${schoolType}]`;
-        sppInput.value = sppRate;
-
-        // Set 8 items
-        for (const [key, val] of Object.entries(itemised || {})) {
-            const input = document.getElementById(`modalItem_${key}`);
-            if (input) {
-                input.value = val;
-            }
-        }
-
-        const backdrop = document.getElementById('settingModal');
-        const container = document.getElementById('modalContainer');
-
-        backdrop.classList.remove('hidden');
-        setTimeout(() => {
-            container.classList.remove('scale-95', 'opacity-0');
-            container.classList.add('scale-100', 'opacity-100');
-        }, 10);
+    // Tab Switching for Expenses
+    function switchExpenseTab(schoolId) {
+        document.querySelectorAll('.expense-tab-content').forEach(el => {
+            el.classList.remove('block');
+            el.classList.add('hidden');
+        });
+        document.querySelectorAll('.tab-btn').forEach(el => {
+            el.classList.remove('active');
+        });
+        
+        document.getElementById('tab-content-' + schoolId).classList.remove('hidden');
+        document.getElementById('tab-content-' + schoolId).classList.add('block');
+        document.getElementById('tab-btn-' + schoolId).classList.add('active');
     }
 
-    function closeSettingModal() {
-        const backdrop = document.getElementById('settingModal');
-        const container = document.getElementById('modalContainer');
+    // SPP Modal
+    function openSppModal(schoolId, schoolName, levelsData) {
+        document.getElementById('sppSchoolId').value = schoolId;
+        document.getElementById('sppSchoolName').innerText = schoolName;
+        
+        let html = '';
+        levelsData.forEach(lvl => {
+            html += `
+                <div>
+                    <label class="block text-sm font-black uppercase mb-1">Tarif SPP Kelas ${lvl.level}</label>
+                    <div class="flex items-center">
+                        <span class="border-y-2 border-l-2 border-black bg-gray-100 px-3 py-2 font-black">Rp</span>
+                        <input type="number" name="spp_rates[${lvl.level}]" value="${lvl.spp_monthly_rate}" 
+                               class="pro-input flex-1 !border-l-0" style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                    </div>
+                </div>
+            `;
+        });
+        
+        document.getElementById('sppLevelsContainer').innerHTML = html;
+        document.getElementById('sppModal').classList.remove('hidden');
+    }
 
-        container.classList.remove('scale-100', 'opacity-100');
-        container.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            backdrop.classList.add('hidden');
-        }, 200);
+    function closeSppModal() {
+        document.getElementById('sppModal').classList.add('hidden');
+    }
+
+    // Ops Modal
+    function openOpsModal(schoolId, schoolName, opsDetails) {
+        document.getElementById('opsSchoolId').value = schoolId;
+        document.getElementById('opsSchoolName').innerText = schoolName;
+        
+        let html = '';
+        Object.entries(opsDetails).forEach(([code, detail]) => {
+            html += `
+                <tr class="border-b-2 border-black">
+                    <td class="p-2 border-r-2 border-black">
+                        <div class="font-black text-sm">${detail.name}</div>
+                        <div class="text-xs text-gray-500">${code}</div>
+                    </td>
+                    <td class="p-2 border-r-2 border-black">
+                        <input type="number" step="0.01" name="expense_details[${code}][volume]" value="${detail.volume}" class="pro-input !p-1 text-center text-sm">
+                    </td>
+                    <td class="p-2 border-r-2 border-black">
+                        <input type="text" name="expense_details[${code}][unit]" value="${detail.unit}" class="pro-input !p-1 text-center text-sm">
+                    </td>
+                    <td class="p-2">
+                        <input type="number" name="expense_details[${code}][tariff]" value="${detail.tariff}" class="pro-input !p-1 text-right text-sm">
+                    </td>
+                </tr>
+            `;
+        });
+        
+        document.getElementById('opsItemsContainer').innerHTML = html;
+        document.getElementById('opsModal').classList.remove('hidden');
+    }
+
+    function closeOpsModal() {
+        document.getElementById('opsModal').classList.add('hidden');
     }
 </script>
-@endsection
+@endpush

@@ -7,7 +7,8 @@ use App\Models\School;
 use App\Models\AcademicYear;
 use App\Models\Semester;
 use App\Models\Student;
-use App\Models\StudentStatusHistory;
+use App\Models\StudentClass;
+use App\Models\Classroom;
 use App\Models\Employee;
 use App\Models\PaymentType;
 use App\Models\SchoolContribution;
@@ -24,109 +25,144 @@ class FoundationRabController extends Controller
         $this->assignmentService = $assignmentService;
     }
 
-    /**
-     * 8 Item Belanja Operasional Sekolah resmi
-     */
-    public const OPERATIONAL_ITEMS = [
-        'otorisasi' => [
-            'key' => 'otorisasi',
-            'name' => 'Otorisasi',
-            'icon' => 'fa-stamp',
-            'desc' => 'Belanja Otorisasi Yayasan untuk Unit Sekolah',
-        ],
-        'subsidi_bendahara' => [
-            'key' => 'subsidi_bendahara',
-            'name' => 'Subsidi Tugas Tambahan Bendahara',
+    public const OPERATIONAL_ACCOUNTS = [
+        '5.1.01' => [
+            'code' => '5.1.01',
+            'name' => 'Subsidi Keuangan',
             'icon' => 'fa-hand-holding-dollar',
-            'desc' => 'Subsidi insentif tugas tambahan bendahara unit',
+            'category' => 'Subsidi & Bantuan',
+            'default_unit' => 'Bulan',
         ],
-        'honor_admin' => [
-            'key' => 'honor_admin',
-            'name' => 'Honor Administrator',
-            'icon' => 'fa-user-gear',
-            'desc' => 'Honorarium administrator sistem & IT unit',
+        '5.1.02' => [
+            'code' => '5.1.02',
+            'name' => 'Otorisasi',
+            'icon' => 'fa-shield-halved',
+            'category' => 'Otorisasi & Kebijakan',
+            'default_unit' => 'Bulan',
         ],
-        'honor_pj_usaha' => [
-            'key' => 'honor_pj_usaha',
-            'name' => 'Honor Penanggungjawab Unit Usaha',
-            'icon' => 'fa-store',
-            'desc' => 'Honor pengelola / penanggungjawab unit usaha',
+        '5.1.03' => [
+            'code' => '5.1.03',
+            'name' => 'Operasional',
+            'icon' => 'fa-boxes-packing',
+            'category' => 'Operasional Utama',
+            'default_unit' => 'Bulan',
         ],
-        'dana_sosial' => [
-            'key' => 'dana_sosial',
-            'name' => 'Dana Sosial',
-            'icon' => 'fa-ribbon',
-            'desc' => 'Dana sosial, keagamaan, kemanusiaan & duka',
+        '5.1.04' => [
+            'code' => '5.1.04',
+            'name' => 'Tunjangan Bendahara Sekolah',
+            'icon' => 'fa-wallet',
+            'category' => 'Tunjangan Operasional',
+            'default_unit' => 'Bulan',
         ],
-        'iuran_internet' => [
-            'key' => 'iuran_internet',
-            'name' => 'Iuran Internet',
+        '5.1.05' => [
+            'code' => '5.1.05',
+            'name' => 'Operator PembdaHUB',
+            'icon' => 'fa-laptop-code',
+            'category' => 'Insentif Operator & Sistem',
+            'default_unit' => 'Bulan',
+        ],
+        '5.1.06' => [
+            'code' => '5.1.06',
+            'name' => 'Belanja Jasa Internet & Telekomunikasi',
             'icon' => 'fa-wifi',
-            'desc' => 'Biaya langganan jaringan internet & telekomunikasi',
+            'category' => 'Layanan Utama',
+            'default_unit' => 'Bulan',
         ],
-        'honor_kontrak_khusus' => [
-            'key' => 'honor_kontrak_khusus',
-            'name' => 'Honor Tenaga Kontrak Khusus',
-            'icon' => 'fa-file-signature',
-            'desc' => 'Honorarium tenaga pendukung / profesional khusus',
+        '5.1.07' => [
+            'code' => '5.1.07',
+            'name' => 'Belanja Jasa Listrik (PLN)',
+            'icon' => 'fa-bolt',
+            'category' => 'Layanan Utama',
+            'default_unit' => 'Bulan',
         ],
-        'iuran_bpjs' => [
-            'key' => 'iuran_bpjs',
-            'name' => 'Iuran BPJS',
-            'icon' => 'fa-shield-heart',
-            'desc' => 'Subsidi / Iuran BPJS Kesehatan & Ketenagakerjaan',
+        '5.1.08' => [
+            'code' => '5.1.08',
+            'name' => 'Belanja Jasa Air (PDAM / Sumur)',
+            'icon' => 'fa-faucet-drip',
+            'category' => 'Layanan Utama',
+            'default_unit' => 'Bulan',
+        ],
+        '5.1.09' => [
+            'code' => '5.1.09',
+            'name' => 'Belanja Pemeliharaan Sarpras & Perbaikan',
+            'icon' => 'fa-screwdriver-wrench',
+            'category' => 'Pemeliharaan',
+            'default_unit' => 'Kegiatan',
+        ],
+        '5.1.10' => [
+            'code' => '5.1.10',
+            'name' => 'Belanja Barang, ATK & Cetak Dokumen',
+            'icon' => 'fa-box-archive',
+            'category' => 'Barang & Jasa',
+            'default_unit' => 'Paket',
         ],
     ];
 
-    /**
-     * Tampilkan Halaman Rencana Anggaran Belanja (RAB) Yayasan
-     */
     public function index(Request $request)
     {
-        $academicYearId = $request->input('academic_year_id');
-        $periodMode = $request->input('period_mode', 'annual'); // 'annual' (12 bulan) atau 'monthly' (1 bulan)
-
-        $data = $this->getRabData($academicYearId, $periodMode);
-
+        $data = $this->getRabData($request);
         return view('yayasan.rab.index', $data);
     }
 
-    /**
-     * Simpan / Update Pengaturan RAB (Tarif SPP & 8 Item Belanja Operasional Unit)
-     */
     public function store(Request $request)
     {
         $request->validate([
             'school_id' => 'required|exists:schools,id',
             'academic_year_id' => 'required|exists:academic_years,id',
             'spp_rates' => 'nullable|array',
-            'spp_rates.*' => 'nullable|numeric|min:0',
             'expense_details' => 'nullable|array',
-            'expense_details.*' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:500',
         ]);
 
         $schoolId = $request->input('school_id');
         $academicYearId = $request->input('academic_year_id');
         $sppRates = $request->input('spp_rates', []);
-        $expenseDetails = $request->input('expense_details', []);
+        $expenseDetailsRaw = $request->input('expense_details', []);
         $notes = $request->input('notes');
 
         $cleanedSpp = [];
         if (is_array($sppRates)) {
             foreach ($sppRates as $key => $rate) {
-                $cleanedSpp[$key] = (float) $rate;
+                if (is_numeric($rate) && $rate >= 0) {
+                    $cleanedSpp[$key] = (float) $rate;
+                }
             }
         }
 
         $cleanedExpenseDetails = [];
         $totalOperationalSum = 0;
-        if (is_array($expenseDetails)) {
-            foreach (self::OPERATIONAL_ITEMS as $itemKey => $itemInfo) {
-                $val = (float) ($expenseDetails[$itemKey] ?? 0);
-                if ($val >= 0) {
-                    $cleanedExpenseDetails[$itemKey] = $val;
-                    $totalOperationalSum += $val;
+
+        if (is_array($expenseDetailsRaw)) {
+            foreach ($expenseDetailsRaw as $code => $itemData) {
+                if (is_array($itemData)) {
+                    $vol = (float) ($itemData['volume'] ?? 1);
+                    $unit = trim($itemData['unit'] ?? 'Bulan');
+                    $tariff = (float) ($itemData['tariff'] ?? 0);
+                    $amount = $vol * $tariff;
+
+                    if ($amount > 0 || $tariff > 0) {
+                        $cleanedExpenseDetails[$code] = [
+                            'volume' => $vol,
+                            'unit' => $unit,
+                            'tariff' => $tariff,
+                            'amount' => $amount,
+                        ];
+                        $totalOperationalSum += $amount;
+                    }
+                } elseif (is_numeric($itemData)) {
+                    $vol = 1;
+                    $unit = self::OPERATIONAL_ACCOUNTS[$code]['default_unit'] ?? 'Bulan';
+                    $tariff = (float) $itemData;
+                    $amount = $tariff;
+                    if ($amount > 0) {
+                        $cleanedExpenseDetails[$code] = [
+                            'volume' => $vol,
+                            'unit' => $unit,
+                            'tariff' => $tariff,
+                            'amount' => $amount,
+                        ];
+                        $totalOperationalSum += $amount;
+                    }
                 }
             }
         }
@@ -147,158 +183,233 @@ class FoundationRabController extends Controller
         return back()->with('success', 'Rencana Anggaran Belanja (RAB) unit berhasil diperbarui.');
     }
 
-    /**
-     * Export RAB Yayasan ke PDF
-     */
     public function exportPdf(Request $request)
     {
-        $academicYearId = $request->input('academic_year_id');
-        $periodMode = $request->input('period_mode', 'annual');
-
-        $data = $this->getRabData($academicYearId, $periodMode);
-
+        $data = $this->getRabData($request);
         $pdf = Pdf::loadView('yayasan.rab.pdf', $data);
         $pdf->setPaper('A4', 'landscape');
-
-        $yearName = $data['activeYear']->year ?? 'Tahun-Aktif';
+        
+        $yearName = $data['currentYear']->year ?? 'Tahun-Aktif';
         $fileName = 'RAB-Yayasan-Pembda-' . str_replace('/', '-', $yearName) . '.pdf';
 
         return $pdf->stream($fileName);
     }
 
-    /**
-     * Helper untuk menghimpun data RAB seluruh unit sekolah & yayasan
-     */
-    private function getRabData(?int $academicYearId = null, string $periodMode = 'annual'): array
+    private function getRabData(Request $request): array
     {
-        $academicYears = AcademicYear::orderBy('year', 'desc')->get();
-        $activeYear = $academicYearId 
-            ? AcademicYear::find($academicYearId) 
+        $allYears = AcademicYear::orderBy('year', 'desc')->get();
+        $selectedYearId = $request->query('academic_year_id');
+
+        $currentYear = $selectedYearId 
+            ? AcademicYear::find($selectedYearId) 
             : AcademicYear::where('is_active', true)->first();
 
-        if (!$activeYear && $academicYears->count() > 0) {
-            $activeYear = $academicYears->first();
+        if (!$currentYear && $allYears->count() > 0) {
+            $currentYear = $allYears->first();
         }
 
-        $activeSemester = Semester::where('is_active', true)->first();
-        if (!$activeSemester) {
-            $activeSemester = Semester::first();
-        }
+        $currentSemester = Semester::where('academic_year_id', $currentYear->id ?? 0)
+            ->where('is_active', true)
+            ->first()
+            ?? Semester::where('academic_year_id', $currentYear->id ?? 0)->first()
+            ?? Semester::first();
 
-        $schools = School::where('is_active', true)->orderBy('name', 'asc')->get();
+        $periodMode = $request->query('period_mode', 'annual');
         $multiplier = ($periodMode === 'monthly') ? 1 : 12;
 
-        $items = self::OPERATIONAL_ITEMS;
-        $schoolRabList = [];
-
+        // A. PENDAPATAN SPP (from schoolsOnly)
+        $learningSchools = School::schoolsOnly()->where('is_active', true)->get();
+        $incomeData = [];
         $totalConsolidatedIncome = 0;
-        $totalConsolidatedSalary = 0;
-        $totalConsolidatedOperational = 0;
-        $totalConsolidatedExpense = 0;
-        $totalConsolidatedBalance = 0;
-        $totalConsolidatedStudents = 0;
 
-        // Ambil nominal SPP default dari Master PaymentType (SPP)
-        $masterSppType = PaymentType::where('type_code', 'SPP')
-            ->orWhere('type_name', 'LIKE', '%SPP%')
-            ->orWhere('type_name', 'LIKE', '%Uang Sekolah%')
-            ->first();
-        $masterSppAmount = (float) ($masterSppType->amount ?? 350000);
-
-        foreach ($schools as $school) {
+        foreach ($learningSchools as $school) {
             $contribution = SchoolContribution::where('school_id', $school->id)
-                ->where('academic_year_id', $activeYear->id ?? 0)
+                ->where('academic_year_id', $currentYear->id ?? 0)
                 ->first();
 
             $savedSppRates = $contribution->spp_rates ?? [];
-            $savedExpenseDetails = $contribution->expense_details ?? [];
-
-            // 1. SISWA AKTIF & RENCANA PENDAPATAN SPP
-            $studentCount = Student::where('school_id', $school->id)
-                ->whereIn('status', StudentStatusHistory::ACTIVE_STATUSES)
-                ->count();
-            $totalConsolidatedStudents += $studentCount;
-
-            $levelKey = strtolower($school->type ?? 'smk');
-            $sppMonthlyRate = isset($savedSppRates[$levelKey]) && $savedSppRates[$levelKey] > 0
-                ? (float) $savedSppRates[$levelKey]
-                : $masterSppAmount;
-
-            $rabIncomeMonthly = $studentCount * $sppMonthlyRate;
-            $rabIncomePeriod = $rabIncomeMonthly * $multiplier;
-            $totalConsolidatedIncome += $rabIncomePeriod;
-
-            // 2. RENCANA BELANJA GAJI & BEBAN KERJA (HONOR + TUNJANGAN JABATAN)
-            $employees = Employee::with(['activePositions', 'teacher', 'school'])
+            
+            $masterSppType = PaymentType::where('school_id', $school->id)
+                ->where('type_code', 'SPP')
                 ->where('is_active', true)
-                ->where(function ($q) use ($school, $activeYear) {
-                    $q->where('school_id', $school->id)
-                      ->orWhereHas('activePositions', function ($posQ) use ($school, $activeYear) {
-                          $posQ->where('positions.school_id', $school->id)
-                               ->where('employee_positions.academic_year_id', $activeYear->id);
-                      })
-                      ->orWhereHas('teacher.teachingAssignments', function ($teachQ) use ($school, $activeYear) {
-                          $teachQ->where('academic_year_id', $activeYear->id)
-                                 ->where('is_active', true)
-                                 ->whereHas('classroom', fn($cQ) => $cQ->where('school_id', $school->id));
-                      });
-                })
-                ->get();
-
-            $schoolSalaryMonthly = 0;
-            foreach ($employees as $emp) {
-                $sal = $this->assignmentService->calculateFullSalary($emp, $activeYear, $activeSemester, $school->type, $school->id);
-                $schoolSalaryMonthly += ($sal['thp'] ?? 0);
+                ->first();
+                
+            $defaultSppRate = $masterSppType->yayasan_share_amount ?? $masterSppType->amount ?? 0;
+            
+            $gradeLevels = $school->getGradeLevels();
+            
+            $levelsData = [];
+            $schoolTotalIncomeMonthly = 0;
+            $schoolTotalStudents = 0;
+            
+            foreach ($gradeLevels as $level) {
+                $classroomIds = Classroom::where('school_id', $school->id)
+                    ->where('grade_level', $level)
+                    ->pluck('id');
+                    
+                $studentIds = StudentClass::whereIn('classroom_id', $classroomIds)
+                    ->where('academic_year_id', $currentYear->id ?? 0)
+                    ->distinct('student_id')
+                    ->pluck('student_id')
+                    ->toArray();
+                    
+                $studentCount = count($studentIds);
+                
+                $rate = $savedSppRates[(string)$level] ?? $defaultSppRate;
+                $sppMonthlyRate = (float) $rate;
+                $incomeMonthly = $studentCount * $sppMonthlyRate;
+                
+                $sppSource = isset($savedSppRates[(string)$level]) ? 'Disimpan Khusus' : 'Master Pembayaran';
+                
+                $levelsData[] = [
+                    'level' => $level,
+                    'student_count' => $studentCount,
+                    'spp_monthly_rate' => $sppMonthlyRate,
+                    'income_monthly' => $incomeMonthly,
+                    'income_period' => $incomeMonthly * $multiplier,
+                    'spp_source' => $sppSource,
+                ];
+                
+                $schoolTotalIncomeMonthly += $incomeMonthly;
+                $schoolTotalStudents += $studentCount;
             }
-            $rabSalaryPeriod = $schoolSalaryMonthly * $multiplier;
-            $totalConsolidatedSalary += $rabSalaryPeriod;
-
-            // 3. RENCANA BELANJA OPERASIONAL (8 ITEMS)
-            $itemisedMonthly = [];
-            $schoolOperationalMonthly = 0;
-            foreach ($items as $itemKey => $itemInfo) {
-                $val = (float) ($savedExpenseDetails[$itemKey] ?? 0);
-                $itemisedMonthly[$itemKey] = $val;
-                $schoolOperationalMonthly += $val;
-            }
-            $rabOperationalPeriod = $schoolOperationalMonthly * $multiplier;
-            $totalConsolidatedOperational += $rabOperationalPeriod;
-
-            // TOTAL RENCANA BELANJA & SALDO RENCANA
-            $rabTotalExpensePeriod = $rabSalaryPeriod + $rabOperationalPeriod;
-            $totalConsolidatedExpense += $rabTotalExpensePeriod;
-
-            $rabBalancePeriod = $rabIncomePeriod - $rabTotalExpensePeriod;
-            $totalConsolidatedBalance += $rabBalancePeriod;
-
-            $schoolRabList[] = [
+            
+            $schoolTotalIncomePeriod = $schoolTotalIncomeMonthly * $multiplier;
+            $totalConsolidatedIncome += $schoolTotalIncomePeriod;
+            
+            $incomeData[$school->id] = [
                 'school' => $school,
+                'levels' => $levelsData,
+                'total_students' => $schoolTotalStudents,
+                'total_income_monthly' => $schoolTotalIncomeMonthly,
+                'total_income_period' => $schoolTotalIncomePeriod,
                 'contribution' => $contribution,
-                'student_count' => $studentCount,
-                'spp_monthly_rate' => $sppMonthlyRate,
-                'rab_income_monthly' => $rabIncomeMonthly,
-                'rab_income_period' => $rabIncomePeriod,
-                'rab_salary_monthly' => $schoolSalaryMonthly,
-                'rab_salary_period' => $rabSalaryPeriod,
-                'itemised_monthly' => $itemisedMonthly,
-                'rab_operational_monthly' => $schoolOperationalMonthly,
-                'rab_operational_period' => $rabOperationalPeriod,
-                'rab_total_expense_period' => $rabTotalExpensePeriod,
-                'rab_balance_period' => $rabBalancePeriod,
             ];
         }
 
+        // B & C. BELANJA PEGAWAI & OPERASIONAL (All schools including yayasan)
+        $allSchools = School::where('is_active', true)
+            ->orderByRaw("CASE WHEN type = 'yayasan' THEN 2 ELSE 1 END, name ASC")
+            ->get();
+            
+        $expenseData = [];
+        $totalConsolidatedSalary = 0;
+        $totalConsolidatedOperational = 0;
+        $totalConsolidatedExpense = 0;
+        
+        $subAccountIndex = 1;
+
+        foreach ($allSchools as $sch) {
+            // B. Gaji Pegawai
+            $employees = Employee::where('school_id', $sch->id)->where('is_active', true)->get();
+            $empCount = $employees->count();
+            
+            $sumSalaryMonthly = 0;
+            if ($currentYear && $currentSemester) {
+                foreach ($employees as $emp) {
+                    $salData = $this->assignmentService->calculateFullSalary(
+                        $emp,
+                        $currentYear,
+                        $currentSemester,
+                        $sch->type,
+                        $sch->id
+                    );
+                    $sumSalaryMonthly += (float) ($salData['gross_pay'] ?? 0);
+                }
+            }
+            
+            $totalSalaryPeriod = $sumSalaryMonthly * $multiplier;
+            $totalConsolidatedSalary += $totalSalaryPeriod;
+            
+            $salarySubCode = '5.1.00.' . sprintf('%02d', $subAccountIndex++);
+            $salaryItem = [
+                'code' => $salarySubCode,
+                'name' => 'Belanja Gaji & Tunjangan Pegawai ' . $sch->name,
+                'icon' => $sch->type === 'yayasan' ? 'fa-building' : 'fa-school',
+                'category' => 'Belanja Pegawai',
+                'volume' => $empCount,
+                'unit' => 'Orang/Bln',
+                'tariff' => $empCount > 0 ? round($sumSalaryMonthly / max(1, $empCount)) : 0,
+                'amount' => $sumSalaryMonthly,
+            ];
+
+            // C. Operasional
+            $contribution = SchoolContribution::where('school_id', $sch->id)
+                ->where('academic_year_id', $currentYear->id ?? 0)
+                ->first();
+                
+            $rawSavedDetails = $contribution->expense_details ?? [];
+            $parsedOpsDetails = [];
+            $sumOpsMonthly = 0;
+            
+            foreach (self::OPERATIONAL_ACCOUNTS as $code => $acc) {
+                $savedItem = $rawSavedDetails[$code] ?? null;
+                if (is_array($savedItem)) {
+                    $vol = (float) ($savedItem['volume'] ?? 1);
+                    $unit = $savedItem['unit'] ?? ($acc['default_unit'] ?? 'Bulan');
+                    $tariff = (float) ($savedItem['tariff'] ?? 0);
+                    $amt = (float) ($savedItem['amount'] ?? ($vol * $tariff));
+                } elseif (is_numeric($savedItem)) {
+                    $vol = 1;
+                    $unit = $acc['default_unit'] ?? 'Bulan';
+                    $tariff = (float) $savedItem;
+                    $amt = (float) $savedItem;
+                } else {
+                    $vol = 1;
+                    $unit = $acc['default_unit'] ?? 'Bulan';
+                    $tariff = 0;
+                    $amt = 0;
+                }
+
+                $parsedOpsDetails[$code] = [
+                    'code' => $code,
+                    'name' => $acc['name'],
+                    'icon' => $acc['icon'],
+                    'category' => $acc['category'],
+                    'volume' => $vol,
+                    'unit' => $unit,
+                    'tariff' => $tariff,
+                    'amount' => $amt,
+                ];
+
+                $sumOpsMonthly += $amt;
+            }
+            
+            $totalOpsPeriod = $sumOpsMonthly * $multiplier;
+            $totalConsolidatedOperational += $totalOpsPeriod;
+            
+            $schoolGrandMonthly = $sumSalaryMonthly + $sumOpsMonthly;
+            $schoolGrandPeriod = $schoolGrandMonthly * $multiplier;
+            $totalConsolidatedExpense += $schoolGrandPeriod;
+            
+            $expenseData[$sch->id] = [
+                'school' => $sch,
+                'employee_count' => $empCount,
+                'salary_item' => $salaryItem,
+                'total_salary_monthly' => $sumSalaryMonthly,
+                'total_salary_period' => $totalSalaryPeriod,
+                'ops_details' => $parsedOpsDetails,
+                'total_ops_monthly' => $sumOpsMonthly,
+                'total_ops_period' => $totalOpsPeriod,
+                'grand_total_monthly' => $schoolGrandMonthly,
+                'grand_total_period' => $schoolGrandPeriod,
+                'contribution' => $contribution,
+            ];
+        }
+        
+        $totalConsolidatedBalance = $totalConsolidatedIncome - $totalConsolidatedExpense;
+
         return [
-            'academicYears' => $academicYears,
-            'activeYear' => $activeYear,
-            'activeSemester' => $activeSemester,
+            'allYears' => $allYears,
+            'currentYear' => $currentYear,
             'periodMode' => $periodMode,
             'multiplier' => $multiplier,
-            'operationalItems' => $items,
-            'schoolRabList' => $schoolRabList,
-            'masterSppAmount' => $masterSppAmount,
+            'learningSchools' => $learningSchools,
+            'allSchools' => $allSchools,
+            'incomeData' => $incomeData,
+            'expenseData' => $expenseData,
+            'operationalAccounts' => self::OPERATIONAL_ACCOUNTS,
             'summary' => [
-                'total_students' => $totalConsolidatedStudents,
                 'total_income' => $totalConsolidatedIncome,
                 'total_salary' => $totalConsolidatedSalary,
                 'total_operational' => $totalConsolidatedOperational,
