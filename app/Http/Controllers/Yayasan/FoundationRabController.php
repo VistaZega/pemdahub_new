@@ -247,29 +247,12 @@ class FoundationRabController extends Controller
             $schoolTotalStudents = 0;
             
             foreach ($gradeLevels as $level) {
-                // Untuk SMK, tarif dan data siswa yang digunakan adalah khusus kelas reguler
-                $classroomQuery = Classroom::where('school_id', $school->id)
-                    ->where('grade_level', $level);
-
-                if (strtolower($school->type) === 'smk' || str_contains(strtolower($school->name), 'smk')) {
-                    $hasReguler = (clone $classroomQuery)->where(function($q) {
-                        $q->where('class_type', 'reguler')
-                          ->orWhereNull('class_type')
-                          ->orWhere('class_type', '');
-                    })->exists();
-
-                    if ($hasReguler) {
-                        $classroomQuery->where(function($q) {
-                            $q->where('class_type', 'reguler')
-                              ->orWhereNull('class_type')
-                              ->orWhere('class_type', '');
-                        });
-                    }
-                }
-
-                $classroomIds = $classroomQuery->pluck('id');
+                // 1. Ambil SEMUA ID kelas (Reguler + Industri) untuk jenjang ini untuk menghitung SELURUH siswa aktif
+                $allClassroomIds = Classroom::where('school_id', $school->id)
+                    ->where('grade_level', $level)
+                    ->pluck('id');
                     
-                $studentIds = StudentClass::whereIn('classroom_id', $classroomIds)
+                $allStudentIds = StudentClass::whereIn('classroom_id', $allClassroomIds)
                     ->where('academic_year_id', $currentYear->id ?? 0)
                     ->whereHas('student', function ($q) {
                         $q->whereIn('status', StudentStatusHistory::ACTIVE_STATUSES);
@@ -278,14 +261,30 @@ class FoundationRabController extends Controller
                     ->pluck('student_id')
                     ->toArray();
                     
-                $studentCount = count($studentIds);
+                $studentCount = count($allStudentIds); // Total SELURUH siswa (Reguler + Industri)
                 
-                // Tarif SPP diambil dari nominal tagihan SPP resmi yang dibuat oleh Bendahara (Bilangan Bulat)
+                // 2. Tentukan Tarif SPP Reguler sebagai acuan (Kelebihan biaya di kelas Industri tidak masuk laporan Yayasan)
+                $regulerClassroomIds = Classroom::where('school_id', $school->id)
+                    ->where('grade_level', $level)
+                    ->where(function($q) {
+                        $q->where('class_type', 'reguler')
+                          ->orWhereNull('class_type')
+                          ->orWhere('class_type', '')
+                          ->orWhere('class_type', '!=', 'industri');
+                    })
+                    ->pluck('id');
+
+                $regulerStudentIds = StudentClass::whereIn('classroom_id', $regulerClassroomIds)
+                    ->where('academic_year_id', $currentYear->id ?? 0)
+                    ->distinct('student_id')
+                    ->pluck('student_id')
+                    ->toArray();
+
                 $sppMonthlyRate = round($defaultSppRate);
                 $sppSource = $masterSppType ? 'Master SPP Bendahara' : 'Belum Set';
 
-                if (!empty($studentIds) && $masterSppType) {
-                    $mostCommonBill = StudentBill::whereIn('student_id', $studentIds)
+                if (!empty($regulerStudentIds) && $masterSppType) {
+                    $regulerBill = StudentBill::whereIn('student_id', $regulerStudentIds)
                         ->where('academic_year_id', $currentYear->id ?? 0)
                         ->where('payment_type_id', $masterSppType->id)
                         ->selectRaw('amount, COUNT(*) as cnt')
@@ -293,9 +292,19 @@ class FoundationRabController extends Controller
                         ->orderBy('cnt', 'desc')
                         ->value('amount');
 
-                    if ($mostCommonBill && $mostCommonBill > 0) {
-                        $sppMonthlyRate = round((float) $mostCommonBill);
-                        $sppSource = 'Tagihan SPP Bendahara (Reguler)';
+                    if ($regulerBill && $regulerBill > 0) {
+                        $sppMonthlyRate = round((float) $regulerBill);
+                        $sppSource = 'Tarif SPP Reguler';
+                    }
+                } elseif (!empty($allStudentIds) && $masterSppType) {
+                    $minBill = StudentBill::whereIn('student_id', $allStudentIds)
+                        ->where('academic_year_id', $currentYear->id ?? 0)
+                        ->where('payment_type_id', $masterSppType->id)
+                        ->min('amount');
+
+                    if ($minBill && $minBill > 0) {
+                        $sppMonthlyRate = round((float) $minBill);
+                        $sppSource = 'Tarif SPP Reguler';
                     }
                 }
 
