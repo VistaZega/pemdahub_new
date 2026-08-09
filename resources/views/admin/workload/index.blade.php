@@ -249,7 +249,7 @@
                                 <div>
                                     <span class="text-sm font-bold text-gray-800 tabular-nums">Rp&nbsp;{{ number_format($totalHonorColumn, 0, ',', '.') }}</span>
                                     
-                                    @if($teachingHours > 0 || $totalTeaching > 0)
+                                    @if($teachingHours > 0)
                                         @php
                                             $honorData = app(\App\Services\EmployeeAssignmentService::class)->calculateTeachingHonor(
                                                 $teachingHours,
