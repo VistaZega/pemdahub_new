@@ -35,27 +35,36 @@ Route::prefix('yayasan')->name('yayasan.')->middleware('auth', 'yayasan')->group
         Route::delete('/{id}', [App\Http\Controllers\Admin\PerformanceContractController::class, 'destroy'])->name('destroy');
     });
 
-    // 1. Saldo Kontribusi Unit Sekolah (Halaman 1)
+    // 1. Rencana Anggaran Belanja (RAB) Yayasan (Sub-Menu Baru 1)
+    Route::prefix('rab')->name('rab.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Yayasan\FoundationRabController::class, 'index'])->name('index');
+        Route::post('/store', [App\Http\Controllers\Yayasan\FoundationRabController::class, 'store'])->name('store');
+        Route::get('/export-pdf', [App\Http\Controllers\Yayasan\FoundationRabController::class, 'exportPdf'])->name('export_pdf');
+    });
+
+    // 2. Realisasi Anggaran Belanja Yayasan (Sub-Menu Baru 2)
+    Route::prefix('realisasi')->name('realisasi.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Yayasan\FoundationRealisasiController::class, 'index'])->name('index');
+        Route::get('/export-pdf', [App\Http\Controllers\Yayasan\FoundationRealisasiController::class, 'exportPdf'])->name('export_pdf');
+    });
+
+    // Redirect / Alias route lama ke sub-menu baru (mencegah error 404)
     Route::prefix('saldo-kontribusi')->name('contribution_balance.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Yayasan\ContributionBalanceController::class, 'index'])->name('index');
-        Route::post('/save', [App\Http\Controllers\Yayasan\ContributionBalanceController::class, 'store'])->name('store');
-        Route::get('/export-pdf', [App\Http\Controllers\Yayasan\ContributionBalanceController::class, 'exportPdf'])->name('export_pdf');
+        Route::get('/', function() { return redirect()->route('yayasan.rab.index'); })->name('index');
+        Route::get('/export-pdf', function() { return redirect()->route('yayasan.rab.export_pdf'); })->name('export_pdf');
     });
 
-    // 2. Rencana Belanja Operasional Yayasan (Halaman 2)
     Route::prefix('belanja-operasional')->name('operational_expenses.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Yayasan\FoundationExpenseController::class, 'index'])->name('index');
-        Route::post('/save', [App\Http\Controllers\Yayasan\FoundationExpenseController::class, 'store'])->name('store');
-        Route::get('/export-pdf', [App\Http\Controllers\Yayasan\FoundationExpenseController::class, 'exportPdf'])->name('export_pdf');
+        Route::get('/', function() { return redirect()->route('yayasan.rab.index'); })->name('index');
+        Route::get('/export-pdf', function() { return redirect()->route('yayasan.rab.export_pdf'); })->name('export_pdf');
     });
 
-    // 3. Rekapitulasi Pendapatan dan Belanja Yayasan (Halaman 3)
     Route::prefix('rekapitulasi-keuangan')->name('financial_recap.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Yayasan\FinancialRecapController::class, 'index'])->name('index');
-        Route::get('/export-pdf', [App\Http\Controllers\Yayasan\FinancialRecapController::class, 'exportPdf'])->name('export_pdf');
+        Route::get('/', function() { return redirect()->route('yayasan.realisasi.index'); })->name('index');
+        Route::get('/export-pdf', function() { return redirect()->route('yayasan.realisasi.export_pdf'); })->name('export_pdf');
     });
 
-    // 4. Laporan Konsolidasi (Laporan Bulanan Bendahara)
+    // 3. Laporan Konsolidasi (Laporan Bulanan Bendahara)
     Route::get('/konsolidasi', [App\Http\Controllers\Yayasan\ConsolidationReportController::class, 'index'])->name('consolidation.index');
 
     // Evaluasi Perjanjian Kinerja Akhir Semester (Satu Controller dengan Admin)

@@ -135,17 +135,13 @@
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-chart-pie text-[10px]"></i></div>
                 <span>Laporan Rekap Tagihan</span>
             </a>
-            <a href="{{ route('yayasan.operational_expenses.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.operational_expenses.*') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center text-white shadow-sm"><i class="fas fa-list-check text-[10px]"></i></div>
-                <span>Rencana Belanja Operasional</span>
+            <a href="{{ route('yayasan.rab.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.rab.*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center text-white shadow-sm"><i class="fas fa-calculator text-[10px]"></i></div>
+                <span>Rencana Anggaran Belanja (RAB)</span>
             </a>
-            <a href="{{ route('yayasan.financial_recap.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.financial_recap.*') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-purple-800 flex items-center justify-center text-white shadow-sm"><i class="fas fa-chart-line text-[10px]"></i></div>
-                <span>Rekapitulasi Keuangan Yayasan</span>
-            </a>
-            <a href="{{ route('yayasan.contribution_balance.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.contribution_balance.*') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white shadow-sm"><i class="fas fa-school text-[10px]"></i></div>
-                <span>Kontribusi Unit Sekolah</span>
+            <a href="{{ route('yayasan.realisasi.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.realisasi.*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white shadow-sm"><i class="fas fa-receipt text-[10px]"></i></div>
+                <span>Realisasi Anggaran Belanja</span>
             </a>
         </div>
     </div>
@@ -663,13 +659,13 @@
 
             {{-- Menu khusus Super Admin Yayasan --}}
             @if($isYayasan)
-            <a href="{{ route('yayasan.operational_expenses.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.operational_expenses.*') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center text-white"><i class="fas fa-list-check text-[10px]"></i></div>
-                <span>Rencana Belanja Operasional</span>
+            <a href="{{ route('yayasan.rab.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.rab.*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center text-white"><i class="fas fa-calculator text-[10px]"></i></div>
+                <span>Rencana Anggaran Belanja (RAB)</span>
             </a>
-            <a href="{{ route('yayasan.financial_recap.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.financial_recap.*') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-purple-800 flex items-center justify-center text-white"><i class="fas fa-chart-line text-[10px]"></i></div>
-                <span>Rekapitulasi Keuangan Yayasan</span>
+            <a href="{{ route('yayasan.realisasi.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.realisasi.*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white"><i class="fas fa-receipt text-[10px]"></i></div>
+                <span>Realisasi Anggaran Belanja</span>
             </a>
             @endif
 
