@@ -311,6 +311,24 @@ class EmployeeAssignmentService
 
         // 3. Honor Mengajar
         $teacherModel = $employee->teacher;
+        if (!$teacherModel) {
+            $cleanName = explode(',', $employee->full_name)[0];
+            $teacherModel = Teacher::where('employee_id', $employee->id)
+                ->orWhere(function($q) use ($employee, $cleanName) {
+                    if ($employee->employee_code) {
+                        $q->where('teacher_code', $employee->employee_code);
+                    }
+                    $q->orWhere('full_name', $employee->full_name)
+                      ->orWhere('full_name', 'LIKE', '%' . trim($cleanName) . '%');
+                })->first();
+
+            if ($teacherModel && !$teacherModel->employee_id) {
+                try {
+                    $teacherModel->update(['employee_id' => $employee->id]);
+                } catch (\Exception $e) {}
+            }
+        }
+
         $totalJamMengajar = 0;
         if ($teacherModel) {
             // Fetch all assignments for this teacher
