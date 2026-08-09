@@ -105,12 +105,13 @@ class FoundationRealisasiController extends Controller
             $savedExpenseDetails = $contribution->expense_details ?? [];
 
             // 1. REALISASI PENDAPATAN SPP (Pembayaran Aktual Lunas dari Siswa)
-            $realIncomeQuery = StudentBill::where('school_id', $school->id)
-                ->whereIn('status', ['paid', 'lunas', 'terbayar']);
+            $realIncomeQuery = StudentBill::whereHas('student', function ($sQ) use ($school) {
+                $sQ->where('school_id', $school->id);
+            })->whereIn('status', ['paid', 'lunas', 'terbayar']);
 
             if ($periodMode === 'monthly') {
-                $realIncomeQuery->whereMonth('paid_at', $month)
-                    ->whereYear('paid_at', $year);
+                $realIncomeQuery->where('month', $month)
+                    ->where('year', $year);
             } else {
                 $realIncomeQuery->where('academic_year_id', $activeYear->id ?? 0);
             }
