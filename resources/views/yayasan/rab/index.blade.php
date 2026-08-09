@@ -55,6 +55,23 @@
     .pro-table tbody tr:hover td {
         background-color: #fef3c7; /* hover:bg-amber-100 */
     }
+    /* Footer & inline-styled rows must override default td colors */
+    .pro-table tfoot tr td {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    .pro-table .subtotal-row td {
+        background-color: inherit !important;
+        color: inherit !important;
+    }
+    .pro-table .subtotal-green td {
+        background-color: #d1fae5 !important;
+        color: #000000 !important;
+    }
+    .pro-table .subtotal-red td {
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+    }
     .pro-badge {
         display: inline-block;
         padding: 4px 8px;
@@ -209,9 +226,9 @@
                                 @endif
                             </tr>
                         @endforeach
-                        <tr style="background-color: #d1fae5; border-top: 2px solid #000;">
+                        <tr class="subtotal-green" style="border-top: 2px solid #000;">
                             <td class="uppercase font-black text-right" colspan="2">TOTAL {{ $data['school']->name }}</td>
-                            <td class="num-col font-black text-green-800">Rp&nbsp;{{ number_format($data['total_income_period'], 0, ',', '.') }}</td>
+                            <td class="num-col font-black" style="color: #166534 !important;">Rp&nbsp;{{ number_format($data['total_income_period'], 0, ',', '.') }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -295,9 +312,9 @@
                             @endforeach
                             
                             <!-- Subtotal -->
-                            <tr style="background-color: #fee2e2; border-top: 2px solid #000;">
-                                <td colspan="5" class="uppercase font-black text-right text-red-900">TOTAL BELANJA {{ $data['school']->name }}</td>
-                                <td class="num-col font-black text-red-900">Rp&nbsp;{{ number_format($data['grand_total_period'], 0, ',', '.') }}</td>
+                            <tr class="subtotal-red" style="border-top: 2px solid #000;">
+                                <td colspan="5" class="uppercase font-black text-right">TOTAL BELANJA {{ $data['school']->name }}</td>
+                                <td class="num-col font-black">Rp&nbsp;{{ number_format($data['grand_total_period'], 0, ',', '.') }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -340,11 +357,11 @@
                     @endforeach
                 </tbody>
                 <tfoot>
-                    <tr style="background-color: #000; color: #fff; border-top: 4px solid #fff;">
-                        <td class="font-black uppercase">GRAND TOTAL YAYASAN</td>
-                        <td class="num-col font-black text-green-400">Rp&nbsp;{{ number_format($summary['total_income'], 0, ',', '.') }}</td>
-                        <td class="num-col font-black text-red-400">Rp&nbsp;{{ number_format($summary['total_expense'], 0, ',', '.') }}</td>
-                        <td class="num-col font-black text-yellow-400 text-lg">Rp&nbsp;{{ number_format($summary['total_balance'], 0, ',', '.') }}</td>
+                    <tr>
+                        <td class="font-black uppercase" style="background-color: #000 !important; color: #fbbf24 !important;">GRAND TOTAL YAYASAN</td>
+                        <td class="num-col font-black" style="background-color: #000 !important; color: #34d399 !important;">Rp&nbsp;{{ number_format($summary['total_income'], 0, ',', '.') }}</td>
+                        <td class="num-col font-black" style="background-color: #000 !important; color: #f87171 !important;">Rp&nbsp;{{ number_format($summary['total_expense'], 0, ',', '.') }}</td>
+                        <td class="num-col font-black text-lg" style="background-color: #000 !important; color: #fbbf24 !important;">Rp&nbsp;{{ number_format($summary['total_balance'], 0, ',', '.') }}</td>
                     </tr>
                 </tfoot>
             </table>
