@@ -59,7 +59,7 @@ class WorkloadSummaryController extends Controller
             ->select('employee_workload_summaries.*')
             ->addSelect([
                 'emp_type_rank' => function ($q) {
-                    $q->selectRaw("CASE WHEN employee_type = 'guru' THEN 1 ELSE 2 END")
+                    $q->selectRaw("CASE WHEN employee_type = 'guru' OR EXISTS(SELECT 1 FROM teachers WHERE teachers.employee_id = employees.id) THEN 1 ELSE 2 END")
                         ->from('employees')
                         ->whereColumn('id', 'employee_workload_summaries.employee_id');
                 },
@@ -73,15 +73,12 @@ class WorkloadSummaryController extends Controller
                 },
                 'position_name_rank' => function ($q) use ($yearId) {
                     $q->selectRaw("COALESCE(MIN(CASE 
-                        WHEN positions.position_name LIKE 'Ketua Yayasan%' THEN 1
-                        WHEN positions.position_name LIKE 'Kepala Sekolah%' OR positions.position_name LIKE 'Kepsek%' THEN 2
-                        WHEN positions.position_name LIKE 'Wakil Kepala Sekolah%' OR positions.position_name LIKE 'Wakasek%' THEN 3
-                        WHEN positions.position_name LIKE 'Pembantu Kepala Sekolah%' OR positions.position_name LIKE 'PKS%' THEN 4
-                        WHEN positions.position_name LIKE 'Kepala Tata Usaha%' OR positions.position_name LIKE 'KTU%' THEN 5
-                        WHEN positions.position_name LIKE 'Bendahara%' THEN 6
-                        WHEN positions.position_name LIKE 'Kapro%' OR positions.position_name LIKE 'Kaprog%' THEN 7
-                        WHEN positions.position_name LIKE 'Koordinator%' THEN 8
-                        WHEN positions.position_name LIKE 'Wali Kelas%' THEN 9
+                        WHEN positions.position_name LIKE '%Kepala Sekolah%' OR positions.position_name LIKE '%Kepsek%' OR positions.position_code LIKE '%KEPSEK%' OR positions.position_code LIKE '%KS%' THEN 1
+                        WHEN positions.position_name LIKE '%Pembantu Kepala Sekolah%' OR positions.position_name LIKE '%PKS%' OR positions.position_name LIKE '%Wakil Kepala%' OR positions.position_name LIKE '%Wakasek%' THEN 2
+                        WHEN positions.position_name LIKE '%Kapro%' OR positions.position_name LIKE '%Kaprog%' OR positions.position_name LIKE '%Ketua Program%' THEN 3
+                        WHEN positions.position_name LIKE '%Wali Kelas%' THEN 4
+                        WHEN positions.position_name LIKE '%Kepala Tata Usaha%' OR positions.position_name LIKE '%KTU%' THEN 5
+                        WHEN positions.position_name LIKE '%Bendahara%' THEN 6
                         ELSE 999 END), 999)")
                         ->from('employee_positions')
                         ->join('positions', 'employee_positions.position_id', '=', 'positions.id')
@@ -96,13 +93,12 @@ class WorkloadSummaryController extends Controller
                 },
                 'emp_status_rank' => function ($q) {
                     $q->selectRaw("CASE 
-                        WHEN LOWER(employment_status) = 'pns' THEN 1 
-                        WHEN LOWER(employment_status) = 'gty' THEN 2 
-                        WHEN LOWER(employment_status) = 'yayasan' THEN 3
+                        WHEN LOWER(employment_status) IN ('yayasan', 'gty', 'pty', 'tetap') THEN 1 
+                        WHEN LOWER(employment_status) = 'pns' THEN 2 
+                        WHEN LOWER(employment_status) = 'honorer' THEN 3 
                         WHEN LOWER(employment_status) = 'percobaan' THEN 4 
-                        WHEN LOWER(employment_status) = 'honorer' THEN 5 
-                        WHEN LOWER(employment_status) = 'kontrak' THEN 6 
-                        ELSE 7 END")
+                        WHEN LOWER(employment_status) = 'kontrak' THEN 5 
+                        ELSE 6 END")
                         ->from('employees')
                         ->whereColumn('id', 'employee_workload_summaries.employee_id');
                 }
@@ -125,11 +121,11 @@ class WorkloadSummaryController extends Controller
             });
         }
 
-        $summaries = $query->orderBy('position_name_rank', 'asc')
-            ->orderBy('total_compensation', 'desc')
-            ->orderBy('total_position_allowance', 'desc')
-            ->orderBy('total_allowance', 'desc')
+        $summaries = $query
+            ->orderBy('emp_type_rank', 'asc')
+            ->orderBy('position_name_rank', 'asc')
             ->orderBy('emp_status_rank', 'asc')
+            ->orderBy('total_compensation', 'desc')
             ->orderBy('employee_name', 'asc')
             ->paginate(50)->withQueryString();
 
