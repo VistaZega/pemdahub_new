@@ -202,21 +202,22 @@
                                     if (!$schoolId) return true;
                                     return $pos->school_id == $schoolId || is_null($pos->school_id);
                                 });
+                                // Hanya tampilkan jabatan yang memiliki tunjangan > 0
+                                $displayPositions = $filteredPositions->filter(function($pos) {
+                                    $amount = $pos->pivot->position_allowance > 0 
+                                        ? $pos->pivot->position_allowance 
+                                        : $pos->allowance_amount;
+                                    return $amount > 0;
+                                });
                                 $totalPosAllowance = $summary->total_position_allowance ?? 0;
                             @endphp
-                            @if($filteredPositions->count() > 0)
+                            @if($displayPositions->count() > 0)
                                 <div>
                                     <div class="text-right">
-                                        <span class="text-sm font-bold text-gray-800 tabular-nums">
-                                            @if($totalPosAllowance > 0)
-                                                Rp&nbsp;{{ number_format($totalPosAllowance, 0, ',', '.') }}
-                                            @else
-                                                Rp&nbsp;0
-                                            @endif
-                                        </span>
+                                        <span class="text-sm font-bold text-gray-800 tabular-nums">Rp&nbsp;{{ number_format($totalPosAllowance, 0, ',', '.') }}</span>
                                     </div>
                                     <div class="space-y-1 mt-1.5 border-t border-gray-100 pt-1.5">
-                                        @foreach($filteredPositions as $pos)
+                                        @foreach($displayPositions as $pos)
                                             @php 
                                                 $posAmount = $pos->pivot->position_allowance > 0 
                                                     ? $pos->pivot->position_allowance 
