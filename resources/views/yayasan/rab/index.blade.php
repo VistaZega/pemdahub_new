@@ -451,72 +451,77 @@
     </div>
 
     <!-- 5. SECTION 3: Matriks Rekapitulasi Konsolidasi Seluruh Unit -->
-    <div class="contrib-card-pro rounded-3xl shadow-2xl overflow-hidden border-2 border-black mt-8">
-        <div class="contrib-hero p-5 flex items-center justify-between border-b-2 border-black">
+    <div class="contrib-card-pro rounded-3xl shadow-xl overflow-hidden border-2 border-black mt-8">
+        <div class="p-5 border-b-2 border-black flex flex-col md:flex-row md:items-center justify-between gap-4" style="background-color: #f1f5f9 !important;">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #fbbf24 !important; color: #000000 !important;">
-                    <i class="fas fa-table-list text-xl text-black"></i>
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm border-2 border-black shrink-0" style="background-color: #000000 !important; color: #fbbf24 !important;">
+                    <i class="fas fa-table-list text-amber-400 text-lg"></i>
                 </div>
                 <div>
-                    <h2 class="text-lg font-black text-white">Matriks Rekapitulasi RAB Seluruh Unit Sekolah & Yayasan</h2>
-                    <p class="text-amber-400 text-xs font-black">Perbandingan Rencana Pendapatan, Belanja, dan Saldo (Surplus/Defisit) Periode {{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }}</p>
+                    <h2 class="text-base font-black text-black">Matriks Rekapitulasi RAB Seluruh Unit Sekolah & Yayasan</h2>
+                    <p class="text-xs font-black text-black mt-0.5">Perbandingan Rencana Pendapatan, Belanja, dan Saldo (Surplus/Defisit) Periode {{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }}</p>
                 </div>
             </div>
+            <span class="pro-badge border-2 border-black" style="background-color: #000000 !important; color: #ffffff !important;">
+                Rekapitulasi Konsolidasi
+            </span>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left border-collapse">
-                <thead>
-                    <tr class="bg-black text-white border-b-2 border-black">
-                        <th class="px-4 py-4 text-center w-14 text-xs uppercase font-black text-white">No</th>
-                        <th class="px-4 py-4 text-xs uppercase font-black text-white">Nama Unit Sekolah / Lembaga</th>
-                        <th class="px-4 py-4 text-right text-xs uppercase font-black text-white bg-emerald-950">A. Pendapatan SPP</th>
-                        <th class="px-4 py-4 text-right text-xs uppercase font-black text-white">1. Gaji Pegawai</th>
-                        <th class="px-4 py-4 text-right text-xs uppercase font-black text-white">2. Operasional Unit</th>
-                        <th class="px-4 py-4 text-right text-xs uppercase font-black text-white bg-rose-950">B. Total Belanja</th>
-                        <th class="px-4 py-4 text-right text-xs uppercase font-black text-white bg-blue-950">C. Saldo Rencana</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y-2 divide-slate-300 bg-white font-black text-black">
-                    @foreach($allSchools as $idx => $sch)
-                        @php
-                            $inc = isset($incomeData[$sch->id]) ? $incomeData[$sch->id]['total_income_period'] : 0;
-                            $exp = isset($expenseData[$sch->id]) ? $expenseData[$sch->id]['grand_total_period'] : 0;
-                            $sal = isset($expenseData[$sch->id]) ? $expenseData[$sch->id]['total_salary_period'] : 0;
-                            $ops = isset($expenseData[$sch->id]) ? $expenseData[$sch->id]['total_ops_period'] : 0;
-                            $bal = $inc - $exp;
-                        @endphp
-                        <tr class="hover:bg-amber-100 transition-all border-b border-slate-300">
-                            <td class="px-4 py-4 text-center font-black text-black">
-                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-black text-white text-xs font-black">{{ $idx + 1 }}</span>
-                            </td>
-                            <td class="px-4 py-4 font-black text-black">
-                                <div class="flex items-center gap-2">
-                                    <span>{{ $sch->name }}</span>
-                                    <span class="pro-badge border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
-                                        {{ $sch->type }}
-                                    </span>
-                                </div>
-                            </td>
-                            <td class="px-4 py-4 text-right font-black text-emerald-700 bg-emerald-50 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($inc, 0, ',', '.') }}</td>
-                            <td class="px-4 py-4 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($sal, 0, ',', '.') }}</td>
-                            <td class="px-4 py-4 text-right font-black text-amber-700 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($ops, 0, ',', '.') }}</td>
-                            <td class="px-4 py-4 text-right font-black text-rose-700 bg-rose-50 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($exp, 0, ',', '.') }}</td>
-                            <td class="px-4 py-4 text-right font-black {{ $bal >= 0 ? 'text-blue-700 bg-blue-50' : 'text-rose-700 bg-rose-50' }} num-col whitespace-nowrap text-sm">Rp&nbsp;{{ number_format($bal, 0, ',', '.') }}</td>
+        <div class="p-4 overflow-x-auto">
+            <div class="overflow-x-auto rounded-2xl border-2 border-black">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead>
+                        <tr class="bg-black text-white border-b-2 border-black">
+                            <th class="px-4 py-3.5 text-center w-14 text-xs uppercase font-black text-white">No</th>
+                            <th class="px-4 py-3.5 text-xs uppercase font-black text-white">Nama Unit Sekolah / Lembaga</th>
+                            <th class="px-4 py-3.5 text-right text-xs uppercase font-black text-white bg-emerald-950">A. Pendapatan SPP</th>
+                            <th class="px-4 py-3.5 text-right text-xs uppercase font-black text-white">1. Gaji Pegawai</th>
+                            <th class="px-4 py-3.5 text-right text-xs uppercase font-black text-white">2. Operasional Unit</th>
+                            <th class="px-4 py-3.5 text-right text-xs uppercase font-black text-white bg-rose-950">B. Total Belanja</th>
+                            <th class="px-4 py-3.5 text-right text-xs uppercase font-black text-white bg-blue-950">C. Saldo Rencana</th>
                         </tr>
-                    @endforeach
-                </tbody>
-                <tfoot>
-                    <tr class="bg-black text-white font-black border-t-4 border-black text-sm">
-                        <td colspan="2" class="px-6 py-5 text-right uppercase tracking-widest font-black text-amber-400">GRAND TOTAL YAYASAN:</td>
-                        <td class="px-4 py-5 text-right num-col whitespace-nowrap text-emerald-400 font-black">Rp&nbsp;{{ number_format($summary['total_income'], 0, ',', '.') }}</td>
-                        <td class="px-4 py-5 text-right num-col whitespace-nowrap text-white font-black">Rp&nbsp;{{ number_format($summary['total_salary'], 0, ',', '.') }}</td>
-                        <td class="px-4 py-5 text-right num-col whitespace-nowrap text-amber-300 font-black">Rp&nbsp;{{ number_format($summary['total_operational'], 0, ',', '.') }}</td>
-                        <td class="px-4 py-5 text-right num-col whitespace-nowrap text-rose-400 font-black">Rp&nbsp;{{ number_format($summary['total_expense'], 0, ',', '.') }}</td>
-                        <td class="px-4 py-5 text-right num-col whitespace-nowrap text-blue-400 font-black text-xl">Rp&nbsp;{{ number_format($summary['total_balance'], 0, ',', '.') }}</td>
-                    </tr>
-                </tfoot>
-            </table>
+                    </thead>
+                    <tbody class="divide-y-2 divide-slate-300 bg-white font-black text-black">
+                        @foreach($allSchools as $idx => $sch)
+                            @php
+                                $inc = isset($incomeData[$sch->id]) ? $incomeData[$sch->id]['total_income_period'] : 0;
+                                $exp = isset($expenseData[$sch->id]) ? $expenseData[$sch->id]['grand_total_period'] : 0;
+                                $sal = isset($expenseData[$sch->id]) ? $expenseData[$sch->id]['total_salary_period'] : 0;
+                                $ops = isset($expenseData[$sch->id]) ? $expenseData[$sch->id]['total_ops_period'] : 0;
+                                $bal = $inc - $exp;
+                            @endphp
+                            <tr class="hover:bg-amber-100 transition-all border-b border-slate-300">
+                                <td class="px-4 py-3.5 text-center font-black text-black">
+                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-black text-white text-xs font-black">{{ $idx + 1 }}</span>
+                                </td>
+                                <td class="px-4 py-3.5 font-black text-black">
+                                    <div class="flex items-center gap-2">
+                                        <span>{{ $sch->name }}</span>
+                                        <span class="pro-badge border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                                            {{ strtoupper($sch->type) }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3.5 text-right font-black text-emerald-700 bg-emerald-50 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($inc, 0, ',', '.') }}</td>
+                                <td class="px-4 py-3.5 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($sal, 0, ',', '.') }}</td>
+                                <td class="px-4 py-3.5 text-right font-black text-amber-700 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($ops, 0, ',', '.') }}</td>
+                                <td class="px-4 py-3.5 text-right font-black text-rose-700 bg-rose-50 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($exp, 0, ',', '.') }}</td>
+                                <td class="px-4 py-3.5 text-right font-black {{ $bal >= 0 ? 'text-blue-700 bg-blue-50' : 'text-rose-700 bg-rose-50' }} num-col whitespace-nowrap text-sm">Rp&nbsp;{{ number_format($bal, 0, ',', '.') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-black text-white font-black border-t-4 border-black text-sm">
+                            <td colspan="2" class="px-6 py-4 text-right uppercase tracking-widest font-black text-amber-400">GRAND TOTAL YAYASAN:</td>
+                            <td class="px-4 py-4 text-right num-col whitespace-nowrap text-emerald-400 font-black">Rp&nbsp;{{ number_format($summary['total_income'], 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right num-col whitespace-nowrap text-white font-black">Rp&nbsp;{{ number_format($summary['total_salary'], 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right num-col whitespace-nowrap text-amber-300 font-black">Rp&nbsp;{{ number_format($summary['total_operational'], 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right num-col whitespace-nowrap text-rose-400 font-black">Rp&nbsp;{{ number_format($summary['total_expense'], 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right num-col whitespace-nowrap text-blue-400 font-black text-xl">Rp&nbsp;{{ number_format($summary['total_balance'], 0, ',', '.') }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
     </div>
 
