@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Yayasan;
 
 use App\Http\Controllers\Controller;
+use App\Models\StudentStatusHistory;
+use App\Models\StudentBill;
 use App\Models\School;
 use App\Models\AcademicYear;
 use App\Models\Semester;
@@ -227,14 +229,16 @@ class FoundationRabController extends Controller
                 ->where('academic_year_id', $currentYear->id ?? 0)
                 ->first();
 
-            $savedSppRates = $contribution->spp_rates ?? [];
-            
             $masterSppType = PaymentType::where('school_id', $school->id)
-                ->where('type_code', 'SPP')
+                ->where(function ($q) {
+                    $q->where('type_code', 'SPP')
+                      ->orWhere('type_name', 'LIKE', '%SPP%')
+                      ->orWhere('type_name', 'LIKE', '%Uang Sekolah%');
+                })
                 ->where('is_active', true)
                 ->first();
                 
-            $defaultSppRate = $masterSppType->yayasan_share_amount ?? $masterSppType->amount ?? 0;
+            $defaultSppRate = (float) ($masterSppType->yayasan_share_amount ?? $masterSppType->amount ?? 0);
             
             $gradeLevels = $school->getGradeLevels();
             
@@ -243,23 +247,35 @@ class FoundationRabController extends Controller
             $schoolTotalStudents = 0;
             
             foreach ($gradeLevels as $level) {
+                // Hanya mengambil data siswa yang diinput, aktif, dan sudah punya kelas pada tahun pelajaran ini
                 $classroomIds = Classroom::where('school_id', $school->id)
                     ->where('grade_level', $level)
                     ->pluck('id');
                     
                 $studentIds = StudentClass::whereIn('classroom_id', $classroomIds)
                     ->where('academic_year_id', $currentYear->id ?? 0)
+                    ->whereHas('student', function ($q) {
+                        $q->whereIn('status', StudentStatusHistory::ACTIVE_STATUSES);
+                    })
                     ->distinct('student_id')
                     ->pluck('student_id')
                     ->toArray();
                     
                 $studentCount = count($studentIds);
                 
-                $rate = $savedSppRates[(string)$level] ?? $defaultSppRate;
-                $sppMonthlyRate = (float) $rate;
+                // Tarif SPP diambil dari tagihan SPP yang dibuat oleh Bendahara
+                $billRate = null;
+                if (!empty($studentIds) && $masterSppType) {
+                    $billRate = StudentBill::whereIn('student_id', $studentIds)
+                        ->where('academic_year_id', $currentYear->id ?? 0)
+                        ->where('payment_type_id', $masterSppType->id)
+                        ->avg('amount');
+                }
+
+                $sppMonthlyRate = ($billRate && $billRate > 0) ? (float) $billRate : $defaultSppRate;
+                $sppSource = ($billRate && $billRate > 0) ? 'Tagihan SPP Bendahara' : ($masterSppType ? 'Master SPP Bendahara' : 'Belum Set');
+
                 $incomeMonthly = $studentCount * $sppMonthlyRate;
-                
-                $sppSource = isset($savedSppRates[(string)$level]) ? 'Disimpan Khusus' : 'Master Pembayaran';
                 
                 $levelsData[] = [
                     'level' => $level,

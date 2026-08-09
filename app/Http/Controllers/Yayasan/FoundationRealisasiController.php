@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Yayasan;
 
 use App\Http\Controllers\Controller;
+use App\Models\StudentStatusHistory;
+use App\Models\StudentBill;
 use App\Models\School;
 use App\Models\AcademicYear;
 use App\Models\Semester;
@@ -101,10 +103,12 @@ class FoundationRealisasiController extends Controller
                 ->where('academic_year_id', $activeYear->id ?? 0)
                 ->first();
 
-            $savedSppRates = $contribution->spp_rates ?? [];
-
             $defaultSppType = PaymentType::where('school_id', $school->id)
-                ->where('type_code', 'SPP')
+                ->where(function ($q) {
+                    $q->where('type_code', 'SPP')
+                      ->orWhere('type_name', 'LIKE', '%SPP%')
+                      ->orWhere('type_name', 'LIKE', '%Uang Sekolah%');
+                })
                 ->where('is_active', true)
                 ->first();
 
@@ -116,25 +120,33 @@ class FoundationRealisasiController extends Controller
             $schoolTotalStudents = 0;
 
             foreach ($levels as $level) {
+                // Hanya mengambil data siswa yang diinput, aktif, dan sudah punya kelas pada tahun pelajaran ini
                 $classroomIds = Classroom::where('school_id', $school->id)
                     ->where('grade_level', $level)
                     ->pluck('id');
 
                 $studentIds = StudentClass::whereIn('classroom_id', $classroomIds)
                     ->where('academic_year_id', $activeYear->id ?? 0)
+                    ->whereHas('student', function ($q) {
+                        $q->whereIn('status', StudentStatusHistory::ACTIVE_STATUSES);
+                    })
                     ->distinct('student_id')
                     ->pluck('student_id')
                     ->toArray();
 
                 $studentCount = count($studentIds);
 
-                if (isset($savedSppRates[(string)$level]) && $savedSppRates[(string)$level] > 0) {
-                    $sppMonthly = (float)$savedSppRates[(string)$level];
-                    $sppSource = 'Setting Tarif Yayasan';
-                } else {
-                    $sppMonthly = $masterSppAmount;
-                    $sppSource = 'Master SPP';
+                // Tarif SPP diambil dari tagihan SPP yang dibuat oleh Bendahara
+                $billRate = null;
+                if (!empty($studentIds) && $defaultSppType) {
+                    $billRate = StudentBill::whereIn('student_id', $studentIds)
+                        ->where('academic_year_id', $activeYear->id ?? 0)
+                        ->where('payment_type_id', $defaultSppType->id)
+                        ->avg('amount');
                 }
+
+                $sppMonthly = ($billRate && $billRate > 0) ? (float) $billRate : $masterSppAmount;
+                $sppSource = ($billRate && $billRate > 0) ? 'Tagihan SPP Bendahara' : ($defaultSppType ? 'Master SPP Bendahara' : 'Belum Set');
 
                 $incomeMonthly = $studentCount * $sppMonthly;
                 $incomeTotal = $incomeMonthly * $multiplier;

@@ -268,13 +268,6 @@
                                 Rp&nbsp;{{ number_format($item['total_income_period'], 0, ',', '.') }}
                             </span>
                         </div>
-
-                        <button type="button" 
-                                onclick="openSppModal({{ $s->id }}, '{{ addslashes($s->name) }}', {{ json_encode($item['levels']) }})"
-                                class="px-4 py-2.5 rounded-xl text-black border-2 border-black font-black text-xs transition flex items-center gap-2 shadow-md"
-                                style="background-color: #fbbf24 !important;">
-                            <i class="fas fa-pen-to-square text-xs text-black"></i> Edit Tarif SPP Unit
-                        </button>
                     </div>
                 </div>
 
@@ -511,43 +504,6 @@
 
 </div>
 
-<!-- Modal Input / Edit Tarif SPP -->
-<div id="sppModal" class="fixed inset-0 z-50 bg-black/80 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border-2 border-black transform transition-all scale-95 opacity-0 modal-card flex flex-col">
-        <div class="flex items-center justify-between pb-4 border-b-2 border-black">
-            <div>
-                <h3 class="text-base font-black text-black" id="sppSchoolName">Edit Tarif SPP</h3>
-                <p class="text-xs font-black text-black mt-0.5">Penetapan Tarif SPP per Tingkat Kelas Unit Sekolah</p>
-            </div>
-            <button onclick="closeSppModal()" class="w-8 h-8 rounded-xl bg-black text-white hover:bg-amber-400 hover:text-black flex items-center justify-center font-black">
-                <i class="fas fa-times text-xs"></i>
-            </button>
-        </div>
-
-        <form method="POST" action="{{ route('yayasan.rab.store') }}" class="mt-4 space-y-4">
-            @csrf
-            <input type="hidden" name="school_id" id="sppSchoolId">
-            <input type="hidden" name="academic_year_id" value="{{ $currentYear->id ?? '' }}">
-
-            <div>
-                <label class="block text-xs font-black text-black mb-2 uppercase tracking-wider">Tarif SPP Siswa (Per Bulan)</label>
-                <div id="sppLevelsContainer" class="space-y-3 max-h-60 overflow-y-auto pr-1">
-                    <!-- Dynamic inputs injected via Javascript -->
-                </div>
-            </div>
-
-            <div class="pt-3 border-t-2 border-black flex items-center justify-end gap-3">
-                <button type="button" onclick="closeSppModal()" class="px-5 py-2.5 text-xs font-black text-black hover:bg-slate-200 rounded-xl border-2 border-black">
-                    Batal
-                </button>
-                <button type="submit" class="px-6 py-2.5 text-xs font-black text-black rounded-xl shadow-md transition flex items-center gap-2 border-2 border-black" style="background-color: #fbbf24 !important;">
-                    <i class="fas fa-save text-black"></i> Simpan Tarif SPP
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <!-- Modal Input / Edit Belanja Operasional -->
 <div id="opsModal" class="fixed inset-0 z-50 bg-black/80 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border-2 border-black transform transition-all scale-95 opacity-0 modal-card flex flex-col my-8">
@@ -610,51 +566,6 @@
         
         const btn = document.getElementById('tab-btn-' + schoolId);
         if (btn) btn.classList.add('active');
-    }
-
-    // SPP Modal
-    function openSppModal(schoolId, schoolName, levelsData) {
-        document.getElementById('sppSchoolId').value = schoolId;
-        document.getElementById('sppSchoolName').innerText = 'Edit Tarif SPP — ' + schoolName;
-        
-        const sppContainer = document.getElementById('sppLevelsContainer');
-        sppContainer.innerHTML = '';
-
-        if (levelsData && levelsData.length > 0) {
-            levelsData.forEach(function(lvl) {
-                const div = document.createElement('div');
-                div.className = 'flex items-center justify-between gap-3 bg-amber-50 p-3 rounded-2xl border-2 border-black';
-                div.innerHTML = `
-                    <span class="text-xs font-black text-black">Kelas ${lvl.level} (${lvl.student_count} siswa):</span>
-                    <div class="relative w-48">
-                        <span class="absolute left-3 top-2.5 text-xs font-black text-black">Rp</span>
-                        <input type="number" name="spp_rates[${lvl.level}]" value="${lvl.spp_monthly_rate}" step="1000" min="0"
-                               class="rapby-input-pro w-full text-xs font-black pl-9 pr-3 py-2 rounded-xl bg-white text-black num-col">
-                    </div>
-                `;
-                sppContainer.appendChild(div);
-            });
-        } else {
-            sppContainer.innerHTML = '<p class="text-xs text-black font-black italic p-3 bg-slate-100 rounded-xl border-2 border-black">Belum ada kelas terdaftar pada unit ini.</p>';
-        }
-
-        const modal = document.getElementById('sppModal');
-        const card = modal.querySelector('.modal-card');
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            card.classList.remove('scale-95', 'opacity-0');
-            card.classList.add('scale-100', 'opacity-100');
-        }, 10);
-    }
-
-    function closeSppModal() {
-        const modal = document.getElementById('sppModal');
-        const card = modal.querySelector('.modal-card');
-        card.classList.remove('scale-100', 'opacity-100');
-        card.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 150);
     }
 
     // Ops Modal
