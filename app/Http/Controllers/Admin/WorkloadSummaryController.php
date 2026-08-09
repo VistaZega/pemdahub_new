@@ -158,6 +158,9 @@ class WorkloadSummaryController extends Controller
                     $summary->pkl_honor_rate = $freshSalary['pkl_honor_rate'];
                     $summary->total_allowance = $freshSalary['tunjangan_jabatan'] + $freshSalary['honor_mengajar'] + $freshSalary['honor_pkl'] + $freshSalary['tunjangan_keluarga'] + $freshSalary['tunjangan_anak'] + $freshSalary['tunjangan_beras'];
                     $summary->total_compensation = $freshSalary['thp'];
+                    
+                    // Save to database so SQL totals query matches live values
+                    $summary->save();
                 }
             }
         }
