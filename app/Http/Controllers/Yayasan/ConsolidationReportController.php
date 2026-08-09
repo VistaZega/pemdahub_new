@@ -124,8 +124,9 @@ class ConsolidationReportController extends Controller
         $salaryTotal = 0;
         $salaryDetails = [
             'Guru (Tugas Mengajar)' => 0,
-            'Staf/Struktural' => 0,
-            'Tunjangan & Lainnya' => 0,
+            'Staf / Struktural' => 0,
+            'Fungsional' => 0,
+            'Support' => 0,
         ];
 
         if ($activeYear && $activeSemester) {
@@ -142,11 +143,8 @@ class ConsolidationReportController extends Controller
                 $salaryTotal += $thp;
                 
                 // Categorize for report
-                if ($emp->employee_type === 'guru') {
-                    $salaryDetails['Guru (Tugas Mengajar)'] += $thp;
-                } else {
-                    $salaryDetails['Staf/Struktural'] += $thp;
-                }
+                $cat = $this->categorizeEmployee($emp);
+                $salaryDetails[$cat] = ($salaryDetails[$cat] ?? 0) + $thp;
             }
         }
 
@@ -179,5 +177,42 @@ class ConsolidationReportController extends Controller
             'netBalance',
             'unpaidBills'
         ));
+    }
+
+    /**
+     * Categorize employee salary for consolidation report
+     */
+    private function categorizeEmployee(Employee $emp): string
+    {
+        $type = strtolower($emp->employee_type ?? '');
+
+        // 1. Support (Keamanan, Kebersihan, Sopir, Pendukung)
+        if (in_array($type, ['security', 'cleaning_service', 'driver'])) {
+            return 'Support';
+        }
+
+        $positions = $emp->activePositions;
+        $posNames = strtolower($positions->pluck('position_name')->join(' '));
+        $posCategories = strtolower($positions->pluck('position_category')->join(' '));
+
+        if (preg_match('/(satpam|security|kebersihan|cleaning|driver|sopir|penjaga|janitor|taman)/i', $posNames)) {
+            return 'Support';
+        }
+
+        // 2. Fungsional (Wali Kelas, Pembimbing PKL, Kepala Lab, Kepala Perpus, BK, Koordinator, Konselor, Piket)
+        if (str_contains($posCategories, 'fungsional') || 
+            preg_match('/(pembimbing|pkl|kepala lab|laboratorium|kepala perpus|perpustakaan|bimbingan konseling|\bbk\b|koordinator|konselor|piket)/i', $posNames)) {
+            return 'Fungsional';
+        }
+
+        // 3. Staf / Struktural (Kepsek, Wakasek, KTU, Bendahara, Staff TU, Kasubag, Kaprog, PKS)
+        if ($type !== 'guru' || 
+            str_contains($posCategories, 'struktural') || 
+            preg_match('/(kepala sekolah|kepsek|wakil kepala|wakasek|ktu|tata usaha|bendahara|kaprog|kasubag|pks)/i', $posNames)) {
+            return 'Staf / Struktural';
+        }
+
+        // 4. Default: Guru (Tugas Mengajar)
+        return 'Guru (Tugas Mengajar)';
     }
 }

@@ -96,12 +96,10 @@
                             <td class="py-2 px-4 font-semibold text-gray-700" colspan="2">A. Pengeluaran Gaji & Honor</td>
                         </tr>
                         @foreach($salaryDetails as $category => $amount)
-                        @if($amount > 0)
                         <tr class="hover:bg-gray-50">
                             <td class="py-3 px-4 pl-8 text-gray-600"><i class="fas fa-caret-right text-gray-400 mr-2 text-[10px]"></i> {{ $category }}</td>
                             <td class="py-3 px-4 text-right font-medium text-gray-900">Rp {{ number_format($amount, 0, ',', '.') }}</td>
                         </tr>
-                        @endif
                         @endforeach
                         
                         <!-- Bagi Hasil Sekolah -->
