@@ -138,7 +138,7 @@
             <div class="flex flex-col sm:flex-row items-end sm:items-center gap-4 bg-white/10 p-4 border-2 border-white rounded-lg">
                 <form method="GET" action="{{ route('yayasan.rab.index') }}" class="flex items-center gap-3">
                     <div>
-                        <label class="block text-xs font-black text-white mb-1 uppercase">Tahun Pelajaran</label>
+                        <label class="block text-xs font-black mb-1 uppercase" style="color: #fbbf24 !important;">Tahun Pelajaran</label>
                         <select name="academic_year_id" onchange="this.form.submit()" class="text-black font-black border-2 border-black rounded px-3 py-1 text-sm bg-white cursor-pointer">
                             @foreach($allYears as $year)
                                 <option value="{{ $year->id }}" {{ ($currentYear->id ?? null) == $year->id ? 'selected' : '' }}>
@@ -149,7 +149,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-black text-white mb-1 uppercase">Periode</label>
+                        <label class="block text-xs font-black mb-1 uppercase" style="color: #fbbf24 !important;">Periode</label>
                         <select name="period_mode" onchange="this.form.submit()" class="text-black font-black border-2 border-black rounded px-3 py-1 text-sm bg-white cursor-pointer">
                             <option value="annual" {{ $periodMode == 'annual' ? 'selected' : '' }}>12 Bulan (Tahunan)</option>
                             <option value="monthly" {{ $periodMode == 'monthly' ? 'selected' : '' }}>1 Bulan (Bulanan)</option>
