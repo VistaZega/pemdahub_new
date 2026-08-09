@@ -173,12 +173,12 @@
                     @endphp
                     <tr class="table-row-hover group border-b border-gray-50 transition-all duration-200">
                         {{-- No --}}
-                        <td class="px-4 py-5 text-center align-bottom">
-                            <span class="text-xs font-bold text-gray-400 group-hover:text-gray-700 transition-colors">{{ $summaries->firstItem() + $index }}</span>
+                        <td class="px-4 py-5 text-center align-top">
+                            <span class="text-xs font-bold text-gray-400 group-hover:text-gray-700 transition-colors pt-0.5 inline-block">{{ $summaries->firstItem() + $index }}</span>
                         </td>
 
                         {{-- Employee Info --}}
-                        <td class="px-5 py-5 align-bottom">
+                        <td class="px-5 py-5 align-top">
                             <div class="flex items-start gap-3">
                                 <div>
                                     <p class="text-sm font-bold text-gray-900 group-hover:text-indigo-900 leading-tight transition-colors">{{ $employee->full_name ?? '-' }}</p>
@@ -191,127 +191,152 @@
                         </td>
 
                         {{-- Gaji Pokok --}}
-                        <td class="px-4 py-5 text-right align-bottom">
-                            <span class="text-sm font-bold text-gray-800">Rp&nbsp;{{ number_format($summary->basic_salary ?? 0, 0, ',', '.') }}</span>
+                        <td class="px-4 py-5 text-right align-top">
+                            <span class="text-sm font-bold text-gray-800 tabular-nums">Rp&nbsp;{{ number_format($summary->basic_salary ?? 0, 0, ',', '.') }}</span>
                         </td>
 
                         {{-- Tunjangan Jabatan --}}
-                        <td class="px-5 py-5 align-bottom">
-                            <div class="space-y-1.5">
-                                @php
-                                    $filteredPositions = collect($employee->activePositions ?? [])->filter(function($pos) use ($schoolId) {
-                                        if (!$schoolId) return true;
-                                        return $pos->school_id == $schoolId || is_null($pos->school_id);
-                                    });
-                                @endphp
-                                @forelse($filteredPositions as $pos)
-                                    @php 
-                                        $posAmount = $pos->pivot->position_allowance > 0 
-                                            ? $pos->pivot->position_allowance 
-                                            : $pos->allowance_amount;
-                                    @endphp
-                                    <div class="flex justify-between items-center gap-3">
-                                        <span class="text-[11px] text-gray-600 group-hover:text-gray-900 group-hover:font-bold font-medium truncate max-w-[120px] transition-all" title="{{ $pos->position_name }}">{{ $pos->position_name }}</span>
-                                        <span class="text-[11px] text-gray-900 font-bold whitespace-nowrap tabular-nums">{{ number_format($posAmount, 0, ',', '.') }}</span>
+                        <td class="px-5 py-5 align-top">
+                            @php
+                                $filteredPositions = collect($employee->activePositions ?? [])->filter(function($pos) use ($schoolId) {
+                                    if (!$schoolId) return true;
+                                    return $pos->school_id == $schoolId || is_null($pos->school_id);
+                                });
+                                $totalPosAllowance = $summary->total_position_allowance ?? 0;
+                            @endphp
+                            @if($filteredPositions->count() > 0)
+                                <div>
+                                    <div class="text-right">
+                                        <span class="text-sm font-bold text-gray-800 tabular-nums">
+                                            @if($totalPosAllowance > 0)
+                                                Rp&nbsp;{{ number_format($totalPosAllowance, 0, ',', '.') }}
+                                            @else
+                                                Rp&nbsp;0
+                                            @endif
+                                        </span>
                                     </div>
-                                @empty
-                                    <span class="text-[11px] text-gray-300 italic">Tidak ada</span>
-                                @endforelse
-                                @if($filteredPositions->count() > 0)
-                                <div class="flex justify-end pt-1.5 mt-1 border-t border-gray-100">
-                                    <span class="text-xs font-bold text-indigo-600 tabular-nums">Rp&nbsp;{{ number_format($summary->total_position_allowance ?? 0, 0, ',', '.') }}</span>
+                                    <div class="space-y-1 mt-1.5 border-t border-gray-100 pt-1.5">
+                                        @foreach($filteredPositions as $pos)
+                                            @php 
+                                                $posAmount = $pos->pivot->position_allowance > 0 
+                                                    ? $pos->pivot->position_allowance 
+                                                    : $pos->allowance_amount;
+                                            @endphp
+                                            <div class="flex justify-between items-center gap-3 text-[11px]">
+                                                <span class="text-gray-500 group-hover:text-gray-900 font-medium truncate max-w-[120px] transition-all" title="{{ $pos->position_name }}">{{ $pos->position_name }}</span>
+                                                <span class="text-gray-900 font-bold whitespace-nowrap tabular-nums">{{ number_format($posAmount, 0, ',', '.') }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
                                 </div>
-                                @endif
-                            </div>
+                            @else
+                                <div class="text-right">
+                                    <span class="text-[11px] text-gray-300 italic">—</span>
+                                </div>
+                            @endif
                         </td>
 
                         {{-- Honor Mengajar --}}
                         @if(!$isYayasanFilter)
-                        <td class="px-4 py-5 text-right align-bottom">
-                            @if(!$isYayasanEmp || ($summary->total_teaching_allowance ?? 0) > 0 || ($summary->honor_pkl ?? 0) > 0 || $teachingHours > 0)
-                            <div>
-                                <span class="text-sm font-bold text-gray-800">Rp&nbsp;{{ number_format($summary->total_teaching_allowance ?? 0, 0, ',', '.') }}</span>
-                                @php
-                                    $honorData = app(\App\Services\EmployeeAssignmentService::class)->calculateTeachingHonor(
-                                        $teachingHours,
-                                        $employee->employment_status ?? 'yayasan',
-                                        $employee->school?->type ?? 'SMA',
-                                        $employee->school_id ?? null,
-                                        $employee
-                                    );
-                                @endphp
-                                <p class="text-[10px] text-gray-500 group-hover:text-gray-800 font-semibold mt-1 mb-1 transition-colors">
-                                    {{ $honorData['jam_mengajar'] }} | {{ $honorData['jam_wajib'] }} | {{ $honorData['jam_honor'] }} | {{ $honorData['jam_honor'] }} x Rp&nbsp;{{ number_format($honorData['honor_per_jam'], 0, ',', '.') }}
-                                </p>
-                                <p class="text-[9px] text-gray-400 group-hover:text-gray-600 font-medium transition-colors">Jam Tugas | Wajib | Lebih | Perhitungan</p>
-                                
-                                @if(isset($summary->honor_pkl) && $summary->honor_pkl > 0)
-                                <div class="mt-2 pt-2 border-t border-gray-100">
-                                    <span class="text-xs font-bold text-gray-800">Rp&nbsp;{{ number_format($summary->honor_pkl, 0, ',', '.') }}</span>
-                                    <p class="text-[10px] text-purple-600 font-semibold mt-0.5">PKL: {{ $summary->pkl_supervisor_hours }} JP x Rp 43.000</p>
+                        <td class="px-4 py-5 text-right align-top">
+                            @php
+                                $totalTeaching = $summary->total_teaching_allowance ?? 0;
+                                $totalPkl = $summary->honor_pkl ?? 0;
+                                $totalHonorColumn = $totalTeaching + $totalPkl;
+                            @endphp
+                            @if(!$isYayasanEmp || $totalHonorColumn > 0 || $teachingHours > 0)
+                                <div>
+                                    <span class="text-sm font-bold text-gray-800 tabular-nums">Rp&nbsp;{{ number_format($totalHonorColumn, 0, ',', '.') }}</span>
+                                    
+                                    @if($teachingHours > 0 || $totalTeaching > 0)
+                                        @php
+                                            $honorData = app(\App\Services\EmployeeAssignmentService::class)->calculateTeachingHonor(
+                                                $teachingHours,
+                                                $employee->employment_status ?? 'yayasan',
+                                                $employee->school?->type ?? 'SMA',
+                                                $employee->school_id ?? null,
+                                                $employee
+                                            );
+                                        @endphp
+                                        <div class="mt-1.5 border-t border-gray-100 pt-1.5">
+                                            <p class="text-[10px] text-gray-500 group-hover:text-gray-800 font-semibold transition-colors">
+                                                {{ $honorData['jam_mengajar'] }} | {{ $honorData['jam_wajib'] }} | {{ $honorData['jam_honor'] }} | {{ $honorData['jam_honor'] }} x Rp&nbsp;{{ number_format($honorData['honor_per_jam'], 0, ',', '.') }}
+                                            </p>
+                                            <p class="text-[9px] text-gray-400 group-hover:text-gray-600 font-medium transition-colors">Jam Tugas | Wajib | Lebih | Perhitungan</p>
+                                        </div>
+                                    @endif
+
+                                    @if($totalPkl > 0)
+                                        <div class="mt-1.5 pt-1.5 border-t border-purple-100">
+                                            <span class="text-xs font-bold text-purple-700 tabular-nums">Rp&nbsp;{{ number_format($totalPkl, 0, ',', '.') }}</span>
+                                            <p class="text-[10px] text-purple-600 font-semibold mt-0.5">PKL: {{ $summary->pkl_supervisor_hours }} JP x Rp 43.000</p>
+                                        </div>
+                                    @endif
                                 </div>
-                                @endif
-                            </div>
                             @else
-                            <span class="text-[11px] text-gray-300 italic">—</span>
+                                <div class="text-right">
+                                    <span class="text-[11px] text-gray-300 italic">—</span>
+                                </div>
                             @endif
                         </td>
                         @endif
 
                         {{-- Tunjangan Yayasan --}}
-                        <td class="px-5 py-5 align-bottom">
+                        <td class="px-5 py-5 align-top">
                             @php 
                                 $totalYayasan = ($summary->family_allowance + $summary->child_allowance + $summary->rice_allowance); 
                                 $tunjMeta = $employee ? app(\App\Services\EmployeeAssignmentService::class)->calculateTunjangan($employee, $employee->school_id) : ['meta' => ['keluarga_persen'=>0, 'gaji_pokok'=>0, 'anak_persen'=>0, 'jumlah_anak'=>0, 'beras_nominal'=>0]];
                                 $meta = $tunjMeta['meta'];
                             @endphp
                             @if($totalYayasan > 0)
-                            <div class="space-y-1.5">
-                                @if($summary->family_allowance > 0)
                                 <div>
-                                    <div class="flex justify-between items-center gap-3">
-                                        <span class="text-[11px] text-pink-600 group-hover:text-pink-700 font-bold transition-colors">Keluarga</span>
-                                        <span class="text-[11px] text-gray-800 font-bold tabular-nums">{{ number_format($summary->family_allowance, 0, ',', '.') }}</span>
+                                    <div class="text-right">
+                                        <span class="text-sm font-bold text-emerald-600 tabular-nums">Rp&nbsp;{{ number_format($totalYayasan, 0, ',', '.') }}</span>
                                     </div>
-                                    <p class="text-[9px] text-gray-400 group-hover:text-gray-600 font-medium mt-0.5 transition-colors">{{ $meta['keluarga_persen'] }}% x {{ number_format($meta['gaji_pokok'], 0, ',', '.') }}</p>
-                                </div>
-                                @endif
-                                @if($summary->child_allowance > 0)
-                                <div>
-                                    <div class="flex justify-between items-center gap-3">
-                                        <span class="text-[11px] text-blue-600 group-hover:text-blue-700 font-bold transition-colors">Anak</span>
-                                        <span class="text-[11px] text-gray-800 font-bold tabular-nums">{{ number_format($summary->child_allowance, 0, ',', '.') }}</span>
+                                    <div class="space-y-1.5 mt-1.5 border-t border-gray-100 pt-1.5">
+                                        @if($summary->family_allowance > 0)
+                                        <div>
+                                            <div class="flex justify-between items-center gap-3 text-[11px]">
+                                                <span class="text-pink-600 group-hover:text-pink-700 font-bold transition-colors">Keluarga</span>
+                                                <span class="text-gray-800 font-bold tabular-nums">{{ number_format($summary->family_allowance, 0, ',', '.') }}</span>
+                                            </div>
+                                            <p class="text-[9px] text-gray-400 text-right group-hover:text-gray-600 font-medium mt-0.5 transition-colors">{{ $meta['keluarga_persen'] }}% x {{ number_format($meta['gaji_pokok'], 0, ',', '.') }}</p>
+                                        </div>
+                                        @endif
+                                        @if($summary->child_allowance > 0)
+                                        <div>
+                                            <div class="flex justify-between items-center gap-3 text-[11px]">
+                                                <span class="text-blue-600 group-hover:text-blue-700 font-bold transition-colors">Anak</span>
+                                                <span class="text-gray-800 font-bold tabular-nums">{{ number_format($summary->child_allowance, 0, ',', '.') }}</span>
+                                            </div>
+                                            <p class="text-[9px] text-gray-400 text-right group-hover:text-gray-600 font-medium mt-0.5 transition-colors">{{ $meta['anak_persen'] }}% x {{ number_format($meta['gaji_pokok'], 0, ',', '.') }} x {{ $meta['jumlah_anak'] }}</p>
+                                        </div>
+                                        @endif
+                                        @if($summary->rice_allowance > 0)
+                                        <div>
+                                            <div class="flex justify-between items-center gap-3 text-[11px]">
+                                                <span class="text-amber-600 group-hover:text-amber-700 font-bold transition-colors">Beras</span>
+                                                <span class="text-gray-800 font-bold tabular-nums">{{ number_format($summary->rice_allowance, 0, ',', '.') }}</span>
+                                            </div>
+                                            <p class="text-[9px] text-gray-400 text-right group-hover:text-gray-600 font-medium mt-0.5 transition-colors">{{ number_format($meta['beras_nominal'], 0, ',', '.') }} x {{ 1 + $meta['jumlah_anak'] }} org</p>
+                                        </div>
+                                        @endif
                                     </div>
-                                    <p class="text-[9px] text-gray-400 group-hover:text-gray-600 font-medium mt-0.5 transition-colors">{{ $meta['anak_persen'] }}% x {{ number_format($meta['gaji_pokok'], 0, ',', '.') }} x {{ $meta['jumlah_anak'] }}</p>
                                 </div>
-                                @endif
-                                @if($summary->rice_allowance > 0)
-                                <div>
-                                    <div class="flex justify-between items-center gap-3">
-                                        <span class="text-[11px] text-amber-600 group-hover:text-amber-700 font-bold transition-colors">Beras</span>
-                                        <span class="text-[11px] text-gray-800 font-bold tabular-nums">{{ number_format($summary->rice_allowance, 0, ',', '.') }}</span>
-                                    </div>
-                                    <p class="text-[9px] text-gray-400 group-hover:text-gray-600 font-medium mt-0.5 transition-colors">{{ number_format($meta['beras_nominal'], 0, ',', '.') }} x {{ 1 + $meta['jumlah_anak'] }} org</p>
-                                </div>
-                                @endif
-                                <div class="flex justify-end pt-1.5 mt-1 border-t border-gray-100">
-                                    <span class="text-xs font-bold text-emerald-600 tabular-nums">Rp&nbsp;{{ number_format($totalYayasan, 0, ',', '.') }}</span>
-                                </div>
-                            </div>
                             @else
-                            <span class="text-[11px] text-gray-300 italic">—</span>
+                                <div class="text-right">
+                                    <span class="text-[11px] text-gray-300 italic">—</span>
+                                </div>
                             @endif
                         </td>
 
                         {{-- THP --}}
-                        <td class="px-5 py-5 text-right align-bottom">
+                        <td class="px-5 py-5 text-right align-top">
                             <span class="text-base font-bold text-indigo-700 tabular-nums">Rp&nbsp;{{ number_format($summary->total_compensation ?? 0, 0, ',', '.') }}</span>
                         </td>
 
-
-
                         {{-- Aksi --}}
-                        <td class="px-4 py-5 align-bottom">
+                        <td class="px-4 py-5 align-top">
                             <div class="flex items-center justify-center gap-1.5">
                                 {{-- Detail --}}
                                 <a href="{{ route('admin.workload.salary-detail', $employee) }}" 
