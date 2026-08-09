@@ -402,22 +402,24 @@
                                 <td class="p-3.5 text-right num-col font-black text-blue-900" style="background-color: #bfdbfe !important;">Rp&nbsp;{{ number_format($data['total_salary_period'], 0, ',', '.') }}</td>
                             </tr>
 
-                            <!-- LIST REKENING OPERASIONAL -->
+                            <!-- LIST REKENING OPERASIONAL (HANYA DITAMPILKAN YANG ADA NILAI RENCANA > 0) -->
                             @foreach($data['ops_details'] as $code => $item)
-                                <tr class="hover:bg-amber-100 transition-all border-b border-slate-300">
-                                    <td class="p-3.5 text-center font-mono text-black">{{ $item['code'] }}</td>
-                                    <td class="p-3.5">
-                                        <div class="font-black text-black flex items-center gap-2">
-                                            <i class="fas {{ $item['icon'] }} text-amber-600 w-4 text-center"></i>
-                                            <span>{{ $item['name'] }}</span>
-                                        </div>
-                                        <span class="text-[10px] text-gray-600 font-bold">{{ $item['category'] }}</span>
-                                    </td>
-                                    <td class="p-3.5 text-center">{{ $item['volume'] }}</td>
-                                    <td class="p-3.5 text-center">{{ $item['unit'] }}</td>
-                                    <td class="p-3.5 text-right num-col">Rp&nbsp;{{ number_format($item['tariff'], 0, ',', '.') }}</td>
-                                    <td class="p-3.5 text-right num-col font-black text-black">Rp&nbsp;{{ number_format($item['amount'] * $multiplier, 0, ',', '.') }}</td>
-                                </tr>
+                                @if(($item['amount'] ?? 0) > 0 || ($item['tariff'] ?? 0) > 0)
+                                    <tr class="hover:bg-amber-100 transition-all border-b border-slate-300">
+                                        <td class="p-3.5 text-center font-mono text-black">{{ $item['code'] }}</td>
+                                        <td class="p-3.5">
+                                            <div class="font-black text-black flex items-center gap-2">
+                                                <i class="fas {{ $item['icon'] }} text-amber-600 w-4 text-center"></i>
+                                                <span>{{ $item['name'] }}</span>
+                                            </div>
+                                            <span class="text-[10px] text-gray-600 font-bold">{{ $item['category'] }}</span>
+                                        </td>
+                                        <td class="p-3.5 text-center">{{ $item['volume'] }}</td>
+                                        <td class="p-3.5 text-center">{{ $item['unit'] }}</td>
+                                        <td class="p-3.5 text-right num-col">Rp&nbsp;{{ number_format($item['tariff'], 0, ',', '.') }}</td>
+                                        <td class="p-3.5 text-right num-col font-black text-black">Rp&nbsp;{{ number_format($item['amount'] * $multiplier, 0, ',', '.') }}</td>
+                                    </tr>
+                                @endif
                             @endforeach
                         </tbody>
                         <tfoot>
