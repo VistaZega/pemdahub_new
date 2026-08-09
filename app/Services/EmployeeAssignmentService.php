@@ -33,8 +33,8 @@ class EmployeeAssignmentService
      */
     public const DEFAULT_JAM_HONOR = [
         'SMP' => ['jam_wajib_tetap' => 22, 'jam_wajib_honor' => 0, 'honor_tetap' => 65000, 'honor_honorer' => 65000, 'honor_percobaan' => 50000],
-        'SMA' => ['jam_wajib_tetap' => 22, 'jam_wajib_honor' => 0, 'honor_tetap' => 70000, 'honor_honorer' => 50000, 'honor_percobaan' => 50000],
-        'SMK' => ['jam_wajib_tetap' => 22, 'jam_wajib_honor' => 0, 'honor_tetap' => 70000, 'honor_honorer' => 50000, 'honor_percobaan' => 50000],
+        'SMA' => ['jam_wajib_tetap' => 22, 'jam_wajib_honor' => 0, 'honor_tetap' => 65000, 'honor_honorer' => 65000, 'honor_percobaan' => 50000],
+        'SMK' => ['jam_wajib_tetap' => 22, 'jam_wajib_honor' => 0, 'honor_tetap' => 65000, 'honor_honorer' => 65000, 'honor_percobaan' => 50000],
     ];
 
     /**
@@ -83,8 +83,16 @@ class EmployeeAssignmentService
      */
     public function getJamHonorRules(?string $schoolLevel = null, ?int $schoolId = null): array
     {
-        $level = $schoolLevel ?? 'SMA';
-        $defaults = self::DEFAULT_JAM_HONOR[$level] ?? self::DEFAULT_JAM_HONOR['SMA'];
+        $level = $schoolLevel;
+        if (!$level && $schoolId) {
+            $sch = School::find($schoolId);
+            $level = $sch ? $sch->type : null;
+        }
+        if (!$level || strtoupper($level) === 'YAYASAN') {
+            $level = 'SMK';
+        }
+        $level = strtoupper($level);
+        $defaults = self::DEFAULT_JAM_HONOR[$level] ?? self::DEFAULT_JAM_HONOR['SMK'];
         $lk = strtolower($level);
 
         // Check for DB overrides
