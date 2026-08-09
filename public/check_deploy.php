@@ -81,6 +81,102 @@ if (isset($_GET['seed_proposal']) && $_GET['seed_proposal'] === 'yes') {
     }
 }
 
+if (isset($_GET['list_cross']) && $_GET['list_cross'] === 'yes') {
+    try {
+        $smk = \App\Models\School::where('type', 'LIKE', '%SMK%')->orWhere('name', 'LIKE', '%SMK%')->first();
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+        $service = app(\App\Services\EmployeeAssignmentService::class);
+
+        $allEmployees = \App\Models\Employee::with(['activePositions', 'teacher', 'school'])
+            ->where('is_active', true)
+            ->where(function ($q) use ($smk, $activeYear) {
+                $q->where('school_id', $smk->id)
+                  ->orWhereHas('activePositions', function ($posQ) use ($smk, $activeYear) {
+                      $posQ->where('positions.school_id', $smk->id)
+                           ->where('employee_positions.academic_year_id', $activeYear->id);
+                  })
+                  ->orWhereHas('teacher.teachingAssignments', function ($teachQ) use ($smk, $activeYear) {
+                      $teachQ->where('academic_year_id', $activeYear->id)
+                             ->where('is_active', true)
+                             ->whereHas('classroom', fn($cQ) => $cQ->where('school_id', $smk->id));
+                  });
+            })
+            ->get();
+
+        $rows = "";
+        $totalCrossThp = 0;
+        $idx = 1;
+
+        foreach ($allEmployees as $emp) {
+            if ($emp->school_id != $smk->id) {
+                $sal = $service->calculateFullSalary($emp, $activeYear, $activeSemester, 'SMK', $smk->id);
+                $thp = $sal['thp'] ?? 0;
+                $totalCrossThp += $thp;
+
+                $homeName = $emp->school ? $emp->school->name : 'Yayasan / Unit Lain';
+                $smkPositions = $emp->activePositions()
+                    ->where('positions.school_id', $smk->id)
+                    ->get()
+                    ->pluck('position_name')
+                    ->join(', ');
+
+                $teachingHours = 0;
+                if ($emp->teacher) {
+                    $assignments = \App\Models\TeachingAssignment::where('teacher_id', $emp->teacher->id)
+                        ->where('academic_year_id', $activeYear->id)
+                        ->where('is_active', true)
+                        ->whereHas('classroom', fn($cQ) => $cQ->where('school_id', $smk->id))
+                        ->get();
+                    $teachingHours = $assignments->sum('hours_per_week');
+                }
+
+                $hm = number_format($sal['honor_mengajar'] ?? 0, 0, ',', '.');
+                $tj = number_format($sal['tunjangan_jabatan'] ?? 0, 0, ',', '.');
+                $hp = number_format($sal['honor_pkl'] ?? 0, 0, ',', '.');
+                $t = number_format($thp, 0, ',', '.');
+
+                $rows .= "<tr>
+                    <td style='padding:8px;border:1px solid #444;'>{$idx}</td>
+                    <td style='padding:8px;border:1px solid #444;'><b>" . htmlspecialchars($emp->full_name) . "</b><br><small>(" . htmlspecialchars($emp->employee_code ?? '-') . " / " . htmlspecialchars($emp->employment_status) . ")</small></td>
+                    <td style='padding:8px;border:1px solid #444;'><span style='background:#1e88e5;color:#fff;padding:2px 6px;border-radius:4px;'>" . htmlspecialchars($homeName) . "</span></td>
+                    <td style='padding:8px;border:1px solid #444;'>" . htmlspecialchars($smkPositions ?: '-') . "</td>
+                    <td style='padding:8px;border:1px solid #444;'>{$teachingHours} JP</td>
+                    <td style='padding:8px;border:1px solid #444;'>Rp {$hm}</td>
+                    <td style='padding:8px;border:1px solid #444;'>Rp {$tj}</td>
+                    <td style='padding:8px;border:1px solid #444;'>Rp {$hp}</td>
+                    <td style='padding:8px;border:1px solid #444;'><b>Rp {$t}</b></td>
+                </tr>";
+                $idx++;
+            }
+        }
+
+        $totStr = number_format($totalCrossThp, 0, ',', '.');
+        $fixMessage = "<div style='background:#1565c0;color:#fff;padding:15px;border-radius:8px;margin-bottom:20px;'>
+            <h3>📋 DAFTAR PEGAWAI PERBANTAN DI SMK</h3>
+            <table style='width:100%;border-collapse:collapse;color:#fff;'>
+                <thead>
+                    <tr style='background:#0d47a1;'>
+                        <th style='padding:8px;border:1px solid #444;'>No</th>
+                        <th style='padding:8px;border:1px solid #444;'>Nama</th>
+                        <th style='padding:8px;border:1px solid #444;'>Unit Asal</th>
+                        <th style='padding:8px;border:1px solid #444;'>Jabatan SMK</th>
+                        <th style='padding:8px;border:1px solid #444;'>Jam Mengajar</th>
+                        <th style='padding:8px;border:1px solid #444;'>Honor Mengajar</th>
+                        <th style='padding:8px;border:1px solid #444;'>Tunj. Jabatan</th>
+                        <th style='padding:8px;border:1px solid #444;'>Honor PKL</th>
+                        <th style='padding:8px;border:1px solid #444;'>Total THP</th>
+                    </tr>
+                </thead>
+                <tbody>{$rows}</tbody>
+            </table>
+            <h4 style='text-align:right;margin-top:15px;'>TOTAL THP PERBANTAN: Rp {$totStr}</h4>
+        </div>";
+    } catch (\Exception $e) {
+        $fixMessage = "<div style='background:#b71c1c;color:#fff;padding:15px;'>Error: " . htmlspecialchars($e->getMessage()) . "</div>";
+    }
+}
+
 if (isset($_GET['seed_abraham']) && $_GET['seed_abraham'] === 'yes') {
     try {
         $ay = \App\Models\AcademicYear::where('is_active', true)->first();
