@@ -33,7 +33,7 @@
         text-transform: uppercase;
         padding: 12px 16px;
         border-bottom: 2px solid #000000;
-        border-right: 2px solid #333333;
+        border-right: 2px solid #000000;
     }
     .pro-table th:last-child {
         border-right: none;
@@ -227,7 +227,7 @@
                             </tr>
                         @endforeach
                         <tr class="subtotal-green" style="border-top: 2px solid #000;">
-                            <td class="uppercase font-black text-right" colspan="2">TOTAL {{ $data['school']->name }}</td>
+                            <td class="uppercase font-black text-right" colspan="3">TOTAL {{ $data['school']->name }}</td>
                             <td class="num-col font-black" style="color: #166534 !important;">Rp&nbsp;{{ number_format($data['total_income_period'], 0, ',', '.') }}</td>
                         </tr>
                     @endforeach
