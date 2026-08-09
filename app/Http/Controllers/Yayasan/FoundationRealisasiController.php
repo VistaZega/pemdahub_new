@@ -120,10 +120,27 @@ class FoundationRealisasiController extends Controller
             $schoolTotalStudents = 0;
 
             foreach ($levels as $level) {
-                // Hanya mengambil data siswa yang diinput, aktif, dan sudah punya kelas pada tahun pelajaran ini
-                $classroomIds = Classroom::where('school_id', $school->id)
-                    ->where('grade_level', $level)
-                    ->pluck('id');
+                // Untuk SMK, tarif dan data siswa yang digunakan adalah khusus kelas reguler
+                $classroomQuery = Classroom::where('school_id', $school->id)
+                    ->where('grade_level', $level);
+
+                if (strtolower($school->type) === 'smk' || str_contains(strtolower($school->name), 'smk')) {
+                    $hasReguler = (clone $classroomQuery)->where(function($q) {
+                        $q->where('class_type', 'reguler')
+                          ->orWhereNull('class_type')
+                          ->orWhere('class_type', '');
+                    })->exists();
+
+                    if ($hasReguler) {
+                        $classroomQuery->where(function($q) {
+                            $q->where('class_type', 'reguler')
+                              ->orWhereNull('class_type')
+                              ->orWhere('class_type', '');
+                        });
+                    }
+                }
+
+                $classroomIds = $classroomQuery->pluck('id');
 
                 $studentIds = StudentClass::whereIn('classroom_id', $classroomIds)
                     ->where('academic_year_id', $activeYear->id ?? 0)
@@ -151,7 +168,7 @@ class FoundationRealisasiController extends Controller
 
                     if ($mostCommonBill && $mostCommonBill > 0) {
                         $sppMonthly = round((float) $mostCommonBill);
-                        $sppSource = 'Tagihan SPP Bendahara';
+                        $sppSource = 'Tagihan SPP Bendahara (Reguler)';
                     }
                 }
 
