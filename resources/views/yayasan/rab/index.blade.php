@@ -11,12 +11,18 @@
     .ui-ux-promax {
         font-family: 'Plus Jakarta Sans', sans-serif;
         color: #000000;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
     }
 
     .contrib-hero {
         background-color: #090d16;
         border: 2px solid #000000;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .contrib-card-pro {
@@ -24,6 +30,11 @@
         border: 2px solid #000000;
         border-radius: 1.25rem;
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .num-col { 
