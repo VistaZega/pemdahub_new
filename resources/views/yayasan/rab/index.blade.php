@@ -3,510 +3,715 @@
 @section('title', 'Rencana Anggaran Belanja (RAB) Yayasan')
 
 @push('styles')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+
 <style>
-    body {
+    .ui-ux-promax {
         font-family: 'Plus Jakarta Sans', sans-serif;
-        background-color: #f3f4f6;
+        color: #000000;
     }
-    .dark-hero {
+
+    .contrib-hero {
         background-color: #090d16;
         border: 2px solid #000000;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     }
-    .pro-card {
-        background-color: #ffffff;
-        border: 2px solid #000000;
-        box-shadow: 4px 4px 0px #000000;
-        border-radius: 8px;
-    }
-    .pro-table {
-        border-collapse: separate;
-        border-spacing: 0;
-        width: 100%;
-        border: 2px solid #000000;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-    .pro-table th {
-        background-color: #000000;
-        color: #ffffff;
-        font-weight: 900;
-        text-transform: uppercase;
-        padding: 12px 16px;
-        border-bottom: 2px solid #000000;
-        border-right: 2px solid #000000;
-    }
-    .pro-table th:last-child {
-        border-right: none;
-    }
-    .pro-table td {
-        background-color: #ffffff;
-        color: #000000;
-        font-weight: 900;
-        padding: 12px 16px;
-        border-bottom: 2px solid #000000;
-        border-right: 2px solid #000000;
-    }
-    .pro-table td:last-child {
-        border-right: none;
-    }
-    .pro-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-    .pro-table tbody tr:hover td {
-        background-color: #fef3c7; /* hover:bg-amber-100 */
-    }
-    /* Footer & inline-styled rows must override default td colors */
-    .pro-table tfoot tr td {
-        background-color: #000000 !important;
-        color: #ffffff !important;
-    }
-    .pro-table .subtotal-row td {
-        background-color: inherit !important;
-        color: inherit !important;
-    }
-    .pro-table .subtotal-green td {
-        background-color: #d1fae5 !important;
-        color: #000000 !important;
-    }
-    .pro-table .subtotal-red td {
-        background-color: #fee2e2 !important;
-        color: #991b1b !important;
-    }
-    .pro-badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border: 2px solid #000000;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 900;
-        color: #000000;
-        box-shadow: 2px 2px 0px #000000;
-    }
-    .badge-yellow { background-color: #fbbf24; }
-    .badge-green { background-color: #34d399; }
-    .badge-blue { background-color: #60a5fa; }
-    .badge-red { background-color: #f87171; }
-    .badge-purple { background-color: #c084fc; }
 
-    .num-col {
-        text-align: right;
-        font-family: 'Plus Jakarta Sans', monospace;
+    .contrib-card-pro {
+        background-color: #ffffff;
+        border: 2px solid #000000;
+        border-radius: 1.25rem;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
     }
+
+    .num-col { 
+        font-variant-numeric: tabular-nums; 
+        white-space: nowrap !important;
+    }
+
+    .stat-card-pro {
+        position: relative;
+        overflow: hidden;
+        border: 2px solid #000000;
+        background-color: #ffffff;
+    }
+    .stat-card-pro::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+    }
+    .stat-card-pro.green::before { background-color: #059669; }
+    .stat-card-pro.blue::before { background-color: #1d4ed8; }
+    .stat-card-pro.red::before { background-color: #dc2626; }
+    .stat-card-pro.violet::before { background-color: #7c3aed; }
+
+    .rapby-input-pro {
+        border: 2px solid #000000 !important;
+        color: #000000 !important;
+        font-weight: 900 !important;
+        background-color: #ffffff !important;
+        opacity: 1 !important;
+    }
+    .rapby-input-pro:focus {
+        border-color: #1d4ed8 !important;
+        box-shadow: 0 0 0 4px #93c5fd !important;
+        outline: none !important;
+    }
+
+    .pro-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        opacity: 1 !important;
+    }
+
     .tab-btn {
         border: 2px solid #000000;
-        background-color: #ffffff;
+        background-color: #f1f5f9;
         color: #000000;
         font-weight: 900;
         padding: 8px 16px;
+        border-radius: 12px;
         cursor: pointer;
         transition: all 0.2s;
     }
     .tab-btn.active {
-        background-color: #fbbf24;
-        box-shadow: 3px 3px 0px #000000;
-        transform: translate(-3px, -3px);
-    }
-    .pro-input {
+        background-color: #fbbf24 !important;
+        color: #000000 !important;
         border: 2px solid #000000;
-        background-color: #ffffff;
-        color: #000000;
-        font-weight: 900;
-        border-radius: 4px;
-        padding: 8px 12px;
-        width: 100%;
-        box-shadow: inset 2px 2px 0px rgba(0,0,0,0.05);
-    }
-    .pro-input:focus {
-        outline: none;
-        background-color: #fef3c7;
+        box-shadow: 2px 2px 0px #000000;
     }
 </style>
 @endpush
 
 @section('content')
-<div class="space-y-8">
-    <!-- Hero Banner -->
-    <div class="dark-hero rounded-xl p-8 text-white relative overflow-hidden">
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-                <h1 class="text-3xl font-black uppercase mb-2">Rencana Anggaran Belanja (RAB) Yayasan</h1>
-                <p class="text-gray-300 font-bold text-sm">
-                    Rekapitulasi Pendapatan, Belanja Gaji, dan Belanja Operasional Unit.
+<div class="ui-ux-promax space-y-6">
+
+    <!-- Flash Message -->
+    @if(session('success'))
+        <div class="p-4 rounded-2xl border-2 border-black text-black flex items-center justify-between shadow-md" style="background-color: #6ee7b7 !important;">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black border-2 border-black shrink-0" style="background-color: #000000 !important; color: #ffffff !important;">
+                    <i class="fas fa-check text-white"></i>
+                </div>
+                <div>
+                    <h4 class="font-black text-sm text-black">Berhasil!</h4>
+                    <p class="text-xs font-black text-black">{{ session('success') }}</p>
+                </div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-black hover:text-red-600 font-black">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+    @endif
+
+    <!-- 1. Header Banner & Filter -->
+    <div class="contrib-hero rounded-3xl p-6 md:p-8 text-white relative overflow-hidden">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div class="space-y-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-lg border-2 border-black shrink-0" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                        <i class="fas fa-calculator text-2xl text-black"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">Rencana Anggaran Belanja (RAB) Yayasan</h1>
+                        </div>
+                        <p class="text-amber-400 text-sm font-black tracking-wide">Pendapatan SPP, Belanja Gaji, dan Belanja Operasional Per Unit Sekolah</p>
+                    </div>
+                </div>
+                <p class="text-white text-xs font-black max-w-xl leading-relaxed">
+                    Perencanaan Rencana Anggaran Belanja (RAB) Berdasarkan Potensi SPP Siswa, Beban Gaji SDM, serta Alokasi Belanja Operasional Sekolah.
                 </p>
             </div>
             
-            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-4 bg-white/10 p-4 border-2 border-white rounded-lg">
-                <form method="GET" action="{{ route('yayasan.rab.index') }}" class="flex items-center gap-3">
-                    <div>
-                        <label class="block text-xs font-black mb-1 uppercase" style="color: #fbbf24 !important;">Tahun Pelajaran</label>
-                        <select name="academic_year_id" onchange="this.form.submit()" class="border-2 border-black rounded px-3 py-1.5 text-xs font-black cursor-pointer shadow-sm" style="background-color: #ffffff !important; color: #000000 !important;">
-                            @foreach($allYears as $year)
-                                <option value="{{ $year->id }}" style="background-color: #ffffff !important; color: #000000 !important;" {{ ($currentYear->id ?? null) == $year->id ? 'selected' : '' }}>
-                                    TP {{ $year->year }} {{ $year->is_active ? '(Aktif)' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+            <!-- Actions & Filters -->
+            <form method="GET" action="{{ route('yayasan.rab.index') }}" class="flex flex-wrap items-center gap-3">
+                <div class="flex flex-col">
+                    <span class="text-[11px] uppercase tracking-wider font-black mb-1" style="color: #fbbf24 !important;">Tahun Pelajaran</span>
+                    <select name="academic_year_id" onchange="this.form.submit()" class="border-2 border-black rounded-xl text-xs px-3.5 py-2 font-black shadow-sm cursor-pointer" style="background-color: #ffffff !important; color: #000000 !important;">
+                        @foreach($allYears as $y)
+                            <option value="{{ $y->id }}" style="background-color: #ffffff !important; color: #000000 !important;" {{ ($currentYear->id ?? null) == $y->id ? 'selected' : '' }}>
+                                TP {{ $y->year }} {{ $y->is_active ? '✦ Aktif' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
-                    <div>
-                        <label class="block text-xs font-black mb-1 uppercase" style="color: #fbbf24 !important;">Periode</label>
-                        <select name="period_mode" onchange="this.form.submit()" class="border-2 border-black rounded px-3 py-1.5 text-xs font-black cursor-pointer shadow-sm" style="background-color: #ffffff !important; color: #000000 !important;">
-                            <option value="annual" style="background-color: #ffffff !important; color: #000000 !important;" {{ $periodMode == 'annual' ? 'selected' : '' }}>12 Bulan (Tahunan)</option>
-                            <option value="monthly" style="background-color: #ffffff !important; color: #000000 !important;" {{ $periodMode == 'monthly' ? 'selected' : '' }}>1 Bulan (Bulanan)</option>
-                        </select>
+                <div class="flex flex-col">
+                    <span class="text-[11px] uppercase tracking-wider font-black mb-1" style="color: #fbbf24 !important;">Mode Periode</span>
+                    <div class="bg-black p-1 rounded-xl border-2 border-slate-700 flex items-center gap-1">
+                        <a href="{{ route('yayasan.rab.index', ['academic_year_id' => $currentYear->id ?? null, 'period_mode' => 'annual']) }}"
+                           class="px-4 py-2 rounded-lg text-xs font-black transition-all" style="{{ $periodMode === 'annual' ? 'background-color: #fbbf24 !important; color: #000000 !important; border: 2px solid #000000;' : 'color: #ffffff;' }}">
+                            <i class="fas fa-calendar-days mr-1.5"></i> 12 Bulan
+                        </a>
+                        <a href="{{ route('yayasan.rab.index', ['academic_year_id' => $currentYear->id ?? null, 'period_mode' => 'monthly']) }}"
+                           class="px-4 py-2 rounded-lg text-xs font-black transition-all" style="{{ $periodMode === 'monthly' ? 'background-color: #fbbf24 !important; color: #000000 !important; border: 2px solid #000000;' : 'color: #ffffff;' }}">
+                            <i class="fas fa-calendar-day mr-1.5"></i> 1 Bulan
+                        </a>
                     </div>
-                </form>
-                
-                <a href="{{ route('yayasan.rab.export_pdf', ['academic_year_id' => $currentYear->id ?? '', 'period_mode' => $periodMode]) }}" 
-                   target="_blank"
-                   class="bg-[#ff0000] text-white font-black px-4 py-2 border-2 border-white hover:bg-white hover:text-[#ff0000] hover:border-[#ff0000] transition-colors rounded text-sm uppercase">
-                    <i class="fas fa-file-pdf mr-1"></i> Export PDF
-                </a>
+                </div>
+
+                <div class="flex flex-col justify-end pt-5">
+                    <a href="{{ route('yayasan.rab.export_pdf', ['academic_year_id' => $currentYear->id ?? null, 'period_mode' => $periodMode]) }}" 
+                       target="_blank"
+                       class="px-4 py-2.5 text-white font-black text-xs rounded-xl shadow-lg transition flex items-center gap-2 border-2 border-black" style="background-color: #ef4444 !important;">
+                        <i class="fas fa-file-pdf text-sm text-white"></i> Cetak PDF RAB
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Summary Metrics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <!-- Card 1: Total Pendapatan SPP -->
+        <div class="stat-card-pro green contrib-card-pro rounded-2xl p-5 shadow-md">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-black border-2 border-black shrink-0" style="background-color: #059669 !important; color: #ffffff !important;">
+                    <i class="fas fa-wallet text-2xl text-white"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-black font-black uppercase tracking-wider">Total Pendapatan SPP</p>
+                    <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($summary['total_income'], 0, ',', '.') }}</p>
+                    <span class="pro-badge border-2 border-black mt-1" style="background-color: #059669 !important; color: #ffffff !important;">
+                        <i class="fas fa-coins text-[10px] text-white"></i> Rencana SPP Siswa
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Total Belanja -->
+        <div class="stat-card-pro red contrib-card-pro rounded-2xl p-5 shadow-md">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-black border-2 border-black shrink-0" style="background-color: #dc2626 !important; color: #ffffff !important;">
+                    <i class="fas fa-money-bill-transfer text-2xl text-white"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-black font-black uppercase tracking-wider">Total Belanja (SDM + Ops)</p>
+                    <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($summary['total_expense'], 0, ',', '.') }}</p>
+                    <span class="pro-badge border-2 border-black mt-1" style="background-color: #dc2626 !important; color: #ffffff !important;">
+                        <i class="fas fa-arrow-up text-[10px] text-white"></i> Gaji & Operasional
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Saldo Rencana -->
+        <div class="stat-card-pro blue contrib-card-pro rounded-2xl p-5 shadow-md">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-black border-2 border-black shrink-0" style="background-color: #1d4ed8 !important; color: #ffffff !important;">
+                    <i class="fas fa-scale-balanced text-2xl text-white"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-black font-black uppercase tracking-wider">Saldo Rencana Anggaran</p>
+                    <p class="text-2xl font-black text-black mt-0.5 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($summary['total_balance'], 0, ',', '.') }}</p>
+                    <span class="pro-badge border-2 border-black mt-1" style="background-color: {{ $summary['total_balance'] >= 0 ? '#1d4ed8' : '#dc2626' }} !important; color: #ffffff !important;">
+                        <i class="fas fa-check-double text-[10px] text-white"></i> {{ $summary['total_balance'] >= 0 ? 'Surplus Rencana' : 'Defisit Rencana' }}
+                    </span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Summary Stat Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="pro-card p-6 border-b-8 border-b-green-500">
-            <div class="text-xs font-black text-gray-500 uppercase mb-2">Total Pendapatan</div>
-            <div class="text-3xl font-black text-black">Rp {{ number_format($summary['total_income'], 0, ',', '.') }}</div>
-        </div>
-        <div class="pro-card p-6 border-b-8 border-b-red-500">
-            <div class="text-xs font-black text-gray-500 uppercase mb-2">Total Belanja (Gaji + Ops)</div>
-            <div class="text-3xl font-black text-black">Rp {{ number_format($summary['total_expense'], 0, ',', '.') }}</div>
-        </div>
-        <div class="pro-card p-6 border-b-8 {{ $summary['total_balance'] >= 0 ? 'border-b-blue-500' : 'border-b-red-500' }}">
-            <div class="text-xs font-black text-gray-500 uppercase mb-2">Saldo / Balance</div>
-            <div class="text-3xl font-black text-black">Rp {{ number_format($summary['total_balance'], 0, ',', '.') }}</div>
-        </div>
-    </div>
-
-    <!-- 1. Per-school SPP income table -->
-    <div class="pro-card p-6">
-        <h2 class="text-xl font-black uppercase mb-4 flex items-center justify-between">
-            <span><i class="fas fa-coins text-yellow-500 mr-2"></i> Rencana Pendapatan SPP</span>
-            <span class="pro-badge badge-green text-sm">TOTAL: Rp {{ number_format($summary['total_income'], 0, ',', '.') }}</span>
-        </h2>
-        
-        <div class="overflow-x-auto">
-            <table class="pro-table">
-                <thead>
-                    <tr>
-                        <th>Unit Sekolah</th>
-                        <th>Jenjang/Tingkat</th>
-                        <th class="text-center">Siswa Aktif</th>
-                        <th class="text-right">Tarif SPP/Bulan</th>
-                        <th class="text-right">Total ({{ $periodMode == 'annual' ? '12 Bln' : '1 Bln' }})</th>
-                        <th class="text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($incomeData as $schoolId => $data)
-                        @foreach($data['levels'] as $index => $lvl)
-                            <tr>
-                                @if($index == 0)
-                                    <td rowspan="{{ count($data['levels']) + 1 }}" class="align-top">
-                                        <div class="font-black text-lg">{{ $data['school']->name }}</div>
-                                        <div class="text-xs text-gray-500 mt-1 uppercase">{{ $data['school']->type }}</div>
-                                    </td>
-                                @endif
-                                <td>Kelas {{ $lvl['level'] }}</td>
-                                <td class="text-center">{{ $lvl['student_count'] }}</td>
-                                <td class="num-col">Rp&nbsp;{{ number_format($lvl['spp_monthly_rate'], 0, ',', '.') }}</td>
-                                <td class="num-col text-green-700 bg-green-50">Rp&nbsp;{{ number_format($lvl['income_period'], 0, ',', '.') }}</td>
-                                @if($index == 0)
-                                    <td rowspan="{{ count($data['levels']) + 1 }}" class="text-center align-middle">
-                                        <button type="button" 
-                                                onclick="openSppModal({{ $schoolId }}, '{{ addslashes($data['school']->name) }}', {{ json_encode($data['levels']) }})"
-                                                class="pro-badge badge-yellow cursor-pointer hover:bg-yellow-300">
-                                            <i class="fas fa-edit mr-1"></i> Edit SPP
-                                        </button>
-                                    </td>
-                                @endif
-                            </tr>
-                        @endforeach
-                        <tr class="subtotal-green" style="border-top: 2px solid #000;">
-                            <td class="uppercase font-black text-right" colspan="3">TOTAL {{ $data['school']->name }}</td>
-                            <td class="num-col font-black" style="color: #166534 !important;">Rp&nbsp;{{ number_format($data['total_income_period'], 0, ',', '.') }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 2. Per-school expense table -->
-    <div class="pro-card p-6">
-        <h2 class="text-xl font-black uppercase mb-4 flex items-center justify-between">
-            <span><i class="fas fa-money-check-dollar text-red-500 mr-2"></i> Rencana Belanja (Gaji & Operasional)</span>
-            <span class="pro-badge badge-red text-sm">TOTAL: Rp {{ number_format($summary['total_expense'], 0, ',', '.') }}</span>
-        </h2>
-
-        <div class="flex flex-wrap gap-2 mb-4 border-b-2 border-black pb-2" id="expense-tabs">
-            @foreach($expenseData as $schoolId => $data)
-                <button class="tab-btn {{ $loop->first ? 'active' : '' }}" onclick="switchExpenseTab({{ $schoolId }})" id="tab-btn-{{ $schoolId }}">
-                    {{ $data['school']->name }}
-                </button>
-            @endforeach
+    <!-- 3. SECTION 1: Rincian Pendapatan SPP per Unit Sekolah -->
+    <div class="space-y-6">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-black text-black flex items-center gap-2">
+                <i class="fas fa-building-columns text-black"></i> Rincian Rencana Pendapatan SPP per Unit Sekolah
+            </h2>
+            <span class="pro-badge border-2 border-black" style="background-color: #000000 !important; color: #ffffff !important;">
+                TP {{ $currentYear->year ?? '-' }} • {{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }}
+            </span>
         </div>
 
-        @foreach($expenseData as $schoolId => $data)
-            <div id="tab-content-{{ $schoolId }}" class="expense-tab-content {{ $loop->first ? 'block' : 'hidden' }}">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="font-black text-lg uppercase bg-black text-white inline-block px-3 py-1">
-                        {{ $data['school']->name }}
+        @foreach($incomeData as $schoolId => $item)
+            @php
+                $s = $item['school'];
+                $c = $item['contribution'];
+            @endphp
+            <div class="contrib-card-pro rounded-3xl shadow-xl overflow-hidden border-2 border-black">
+                <!-- Unit Header Bar -->
+                <div class="p-5 border-b-2 border-black flex flex-col md:flex-row md:items-center justify-between gap-4" style="background-color: #f1f5f9 !important;">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm border-2 border-black shrink-0" style="background-color: #000000 !important; color: #fbbf24 !important;">
+                            <i class="fas fa-school text-amber-400 text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-base font-black text-black">{{ $s->name }}</h3>
+                                <span class="pro-badge border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                                    {{ strtoupper($s->type) }}
+                                </span>
+                            </div>
+                            <p class="text-xs font-black text-black mt-0.5">
+                                Total Siswa: <strong class="text-black">{{ $item['total_students'] }}</strong> Orang Siswa Terdaftar
+                            </p>
+                        </div>
                     </div>
-                    <button type="button" 
-                            onclick="openOpsModal({{ $schoolId }}, '{{ addslashes($data['school']->name) }}', {{ json_encode($data['ops_details']) }})"
-                            class="pro-badge badge-purple cursor-pointer hover:bg-purple-300 text-sm">
-                        <i class="fas fa-edit mr-1"></i> Edit Operasional
-                    </button>
+
+                    <div class="flex items-center gap-4">
+                        <div class="text-right">
+                            <span class="text-[10px] text-black font-black uppercase block tracking-wider">Total Pendapatan Unit</span>
+                            <span class="text-lg font-black text-emerald-950 num-col whitespace-nowrap">
+                                Rp&nbsp;{{ number_format($item['total_income_period'], 0, ',', '.') }}
+                            </span>
+                        </div>
+
+                        <button type="button" 
+                                onclick="openSppModal({{ $s->id }}, '{{ addslashes($s->name) }}', {{ json_encode($item['levels']) }})"
+                                class="px-4 py-2.5 rounded-xl text-black border-2 border-black font-black text-xs transition flex items-center gap-2 shadow-md"
+                                style="background-color: #fbbf24 !important;">
+                            <i class="fas fa-pen-to-square text-xs text-black"></i> Edit Tarif SPP Unit
+                        </button>
+                    </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="pro-table">
+                <!-- Unit Content Table -->
+                <div class="p-4 overflow-x-auto">
+                    <table class="w-full text-xs text-left border-collapse">
                         <thead>
-                            <tr>
-                                <th class="w-16 text-center">KODE</th>
-                                <th>URAIAN BELANJA</th>
-                                <th class="text-center">VOL</th>
-                                <th class="text-center">SATUAN</th>
-                                <th class="text-right">TARIF</th>
-                                <th class="text-right">JUMLAH ({{ $periodMode == 'annual' ? '12 Bln' : '1 Bln' }})</th>
+                            <tr class="bg-black text-white border-b-2 border-black">
+                                <th class="px-4 py-3.5 text-xs uppercase font-black text-white">Tingkat Kelas</th>
+                                <th class="px-4 py-3.5 text-center w-36 text-xs uppercase font-black text-white">Jumlah Siswa</th>
+                                <th class="px-4 py-3.5 text-right w-44 text-xs uppercase font-black text-white whitespace-nowrap">Tarif SPP / Siswa (Bln)</th>
+                                <th class="px-4 py-3.5 text-center w-48 text-xs uppercase font-black text-white">Sumber Tarif</th>
+                                <th class="px-4 py-3.5 text-right w-48 text-xs uppercase font-black text-white whitespace-nowrap">Pendapatan Per Bulan</th>
+                                <th class="px-4 py-3.5 text-right w-52 text-xs uppercase font-black text-white whitespace-nowrap">Subtotal ({{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }})</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Gaji -->
-                            <tr class="bg-gray-100">
-                                <td colspan="6" class="uppercase font-black text-sm">A. BELANJA PEGAWAI (AUTO)</td>
-                            </tr>
-                            <tr>
-                                <td class="text-center font-bold text-gray-500">{{ $data['salary_item']['code'] }}</td>
-                                <td>
-                                    <i class="fas {{ $data['salary_item']['icon'] }} mr-2 text-gray-500"></i>
-                                    {{ $data['salary_item']['name'] }}
-                                </td>
-                                <td class="text-center">{{ $data['salary_item']['volume'] }}</td>
-                                <td class="text-center">{{ $data['salary_item']['unit'] }}</td>
-                                <td class="num-col">Rp&nbsp;{{ number_format($data['salary_item']['tariff'], 0, ',', '.') }}</td>
-                                <td class="num-col text-red-700 bg-red-50">Rp&nbsp;{{ number_format($data['total_salary_period'], 0, ',', '.') }}</td>
-                            </tr>
-
-                            <!-- Operasional -->
-                            <tr class="bg-gray-100">
-                                <td colspan="6" class="uppercase font-black text-sm">B. BELANJA OPERASIONAL</td>
-                            </tr>
-                            @foreach($data['ops_details'] as $code => $detail)
-                                <tr>
-                                    <td class="text-center font-bold text-gray-500">{{ $code }}</td>
-                                    <td>
-                                        <i class="fas {{ $detail['icon'] }} mr-2 text-gray-500"></i>
-                                        {{ $detail['name'] }}
+                        <tbody class="divide-y-2 divide-slate-300 bg-white">
+                            @forelse($item['levels'] as $lvl)
+                                <tr class="hover:bg-amber-100 transition-all border-b border-slate-300">
+                                    <td class="px-4 py-3.5 font-black text-black">Kelas {{ $lvl['level'] }}</td>
+                                    <td class="px-4 py-3.5 text-center font-black text-black num-col">{{ $lvl['student_count'] }} Siswa</td>
+                                    <td class="px-4 py-3.5 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($lvl['spp_monthly_rate'], 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3.5 text-center">
+                                        <span class="pro-badge border border-black" style="background-color: #e2e8f0 !important; color: #000000 !important;">
+                                            {{ $lvl['spp_source'] }}
+                                        </span>
                                     </td>
-                                    <td class="text-center">{{ $detail['volume'] }}</td>
-                                    <td class="text-center">{{ $detail['unit'] }}</td>
-                                    <td class="num-col">Rp&nbsp;{{ number_format($detail['tariff'], 0, ',', '.') }}</td>
-                                    <td class="num-col text-red-700 bg-red-50">Rp&nbsp;{{ number_format($detail['amount'] * $multiplier, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3.5 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($lvl['income_monthly'], 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3.5 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($lvl['income_period'], 0, ',', '.') }}</td>
                                 </tr>
-                            @endforeach
-                            
-                            <!-- Subtotal -->
-                            <tr class="subtotal-red" style="border-top: 2px solid #000;">
-                                <td colspan="5" class="uppercase font-black text-right">TOTAL BELANJA {{ $data['school']->name }}</td>
-                                <td class="num-col font-black">Rp&nbsp;{{ number_format($data['grand_total_period'], 0, ',', '.') }}</td>
-                            </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-4 py-4 text-center font-black text-black italic">Belum ada tingkat kelas/siswa terdaftar.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
+                        <tfoot>
+                            <tr class="border-t-2 border-black font-black" style="background-color: #a7f3d0 !important;">
+                                <td class="px-4 py-4 text-black uppercase font-black">TOTAL PENDAPATAN {{ strtoupper($s->name) }}</td>
+                                <td class="px-4 py-4 text-center text-black font-black">{{ $item['total_students'] }} Siswa</td>
+                                <td colspan="2" class="px-4 py-4 text-right text-black font-black">-</td>
+                                <td class="px-4 py-4 text-right text-black font-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($item['total_income_monthly'], 0, ',', '.') }}</td>
+                                <td class="px-4 py-4 text-right text-black font-black text-sm num-col whitespace-nowrap">Rp&nbsp;{{ number_format($item['total_income_period'], 0, ',', '.') }}</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
         @endforeach
     </div>
 
-    <!-- 3. Grand total recap table -->
-    <div class="pro-card p-6">
-        <h2 class="text-xl font-black uppercase mb-4 flex items-center justify-between">
-            <span><i class="fas fa-scale-balanced text-blue-500 mr-2"></i> Rekapitulasi Akhir (Surplus/Defisit)</span>
-        </h2>
-        
+    <!-- 4. SECTION 2: Rencana Belanja Pegawai & Operasional per Unit Sekolah -->
+    <div class="contrib-card-pro rounded-3xl shadow-xl overflow-hidden border-2 border-black mt-8 p-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-black pb-4 mb-6">
+            <div>
+                <h2 class="text-lg font-black text-black flex items-center gap-2">
+                    <i class="fas fa-sliders text-amber-500"></i> Rencana Belanja Operasional & Gaji per Unit Sekolah
+                </h2>
+                <p class="text-xs text-black font-bold mt-0.5">Alokasi Rencana Belanja SDM dan 10 Pos Rekening Operasional Sekolah</p>
+            </div>
+        </div>
+
+        <!-- NAV TABS UNIT SEKOLAH -->
+        <div class="flex flex-wrap items-center gap-2 border-b-2 border-black pb-3 mb-6">
+            @foreach($expenseData as $schoolId => $data)
+                <button type="button" 
+                        onclick="switchExpenseTab({{ $schoolId }})" 
+                        id="tab-btn-{{ $schoolId }}"
+                        class="tab-btn {{ $loop->first ? 'active' : '' }}">
+                    <i class="fas {{ $data['school']->type === 'yayasan' ? 'fa-building' : 'fa-school' }} mr-1.5"></i>
+                    <span>{{ $data['school']->name }}</span>
+                </button>
+            @endforeach
+        </div>
+
+        <!-- TAB CONTENTS -->
+        @foreach($expenseData as $schoolId => $data)
+            <div id="tab-content-{{ $schoolId }}" class="expense-tab-content {{ $loop->first ? '' : 'hidden' }} space-y-4">
+                <div class="p-4 rounded-2xl border-2 border-black flex flex-col md:flex-row md:items-center justify-between gap-4" style="background-color: #f1f5f9 !important;">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-black text-amber-400 flex items-center justify-center font-black border-2 border-black">
+                            <i class="fas {{ $data['school']->type === 'yayasan' ? 'fa-building' : 'fa-graduation-cap' }}"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-black text-base text-black">{{ $data['school']->name }}</h4>
+                            <p class="text-xs text-black font-bold">Total SDM: {{ $data['employee_count'] }} Orang | Belanja Gaji: Rp&nbsp;{{ number_format($data['total_salary_period'], 0, ',', '.') }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <div class="text-right">
+                            <span class="text-xs font-black text-black uppercase block">Subtotal Belanja Operasional Unit</span>
+                            <span class="text-lg font-black text-amber-700 num-col">Rp&nbsp;{{ number_format($data['total_ops_period'], 0, ',', '.') }}</span>
+                        </div>
+
+                        <button type="button" 
+                                onclick="openOpsModal({{ $schoolId }}, '{{ addslashes($data['school']->name) }}', {{ json_encode($data['ops_details']) }})"
+                                class="px-4 py-2.5 rounded-xl text-black border-2 border-black font-black text-xs transition flex items-center gap-2 shadow-md"
+                                style="background-color: #c084fc !important;">
+                            <i class="fas fa-pen-to-square text-xs text-black"></i> Edit Belanja Operasional
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TABEL POS REKENING ANGGARAN -->
+                <div class="overflow-x-auto rounded-2xl border-2 border-black">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-black text-white font-black uppercase border-b-2 border-black">
+                                <th class="p-3.5 text-center w-24 text-white">Kode</th>
+                                <th class="p-3.5 text-white">Pos Rekening / Rencana Belanja</th>
+                                <th class="p-3.5 text-center w-24 text-white">Volume</th>
+                                <th class="p-3.5 text-center w-28 text-white">Satuan</th>
+                                <th class="p-3.5 text-right w-44 text-white">Tarif Satuan (Rp)</th>
+                                <th class="p-3.5 text-right w-52 text-white">Total Periode (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y-2 divide-slate-300 bg-white font-black text-black">
+                            <!-- GAJI PEGAWAI UNIT (READONLY) -->
+                            <tr class="border-b-2 border-black" style="background-color: #dbeafe !important;">
+                                <td class="p-3.5 text-center font-mono text-black">{{ $data['salary_item']['code'] }}</td>
+                                <td class="p-3.5">
+                                    <div class="font-black text-black flex items-center gap-2">
+                                        <i class="fas fa-users text-blue-700"></i>
+                                        <span>{{ $data['salary_item']['name'] }}</span>
+                                    </div>
+                                    <span class="text-[10px] text-black font-bold">(Otomatis Terkalkulasi dari Penugasan & Payroll)</span>
+                                </td>
+                                <td class="p-3.5 text-center">{{ $data['salary_item']['volume'] }}</td>
+                                <td class="p-3.5 text-center">{{ $data['salary_item']['unit'] }}</td>
+                                <td class="p-3.5 text-right num-col">Rp&nbsp;{{ number_format($data['salary_item']['tariff'], 0, ',', '.') }}</td>
+                                <td class="p-3.5 text-right num-col font-black text-blue-900" style="background-color: #bfdbfe !important;">Rp&nbsp;{{ number_format($data['total_salary_period'], 0, ',', '.') }}</td>
+                            </tr>
+
+                            <!-- LIST REKENING OPERASIONAL -->
+                            @foreach($data['ops_details'] as $code => $item)
+                                <tr class="hover:bg-amber-100 transition-all border-b border-slate-300">
+                                    <td class="p-3.5 text-center font-mono text-black">{{ $item['code'] }}</td>
+                                    <td class="p-3.5">
+                                        <div class="font-black text-black flex items-center gap-2">
+                                            <i class="fas {{ $item['icon'] }} text-amber-600 w-4 text-center"></i>
+                                            <span>{{ $item['name'] }}</span>
+                                        </div>
+                                        <span class="text-[10px] text-gray-600 font-bold">{{ $item['category'] }}</span>
+                                    </td>
+                                    <td class="p-3.5 text-center">{{ $item['volume'] }}</td>
+                                    <td class="p-3.5 text-center">{{ $item['unit'] }}</td>
+                                    <td class="p-3.5 text-right num-col">Rp&nbsp;{{ number_format($item['tariff'], 0, ',', '.') }}</td>
+                                    <td class="p-3.5 text-right num-col font-black text-black">Rp&nbsp;{{ number_format($item['amount'] * $multiplier, 0, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr class="border-t-2 border-black font-black" style="background-color: #fed7aa !important;">
+                                <td colspan="5" class="p-4 text-right uppercase text-black">TOTAL BELANJA {{ strtoupper($data['school']->name) }}</td>
+                                <td class="p-4 text-right num-col text-sm text-black whitespace-nowrap">Rp&nbsp;{{ number_format($data['grand_total_period'], 0, ',', '.') }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        @endforeach
+    </div>
+
+    <!-- 5. SECTION 3: Matriks Rekapitulasi Konsolidasi Seluruh Unit -->
+    <div class="contrib-card-pro rounded-3xl shadow-2xl overflow-hidden border-2 border-black mt-8">
+        <div class="contrib-hero p-5 flex items-center justify-between border-b-2 border-black">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                    <i class="fas fa-table-list text-xl text-black"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-black text-white">Matriks Rekapitulasi RAB Seluruh Unit Sekolah & Yayasan</h2>
+                    <p class="text-amber-400 text-xs font-black">Perbandingan Rencana Pendapatan, Belanja, dan Saldo (Surplus/Defisit) Periode {{ $periodMode === 'annual' ? '12 Bulan' : '1 Bulan' }}</p>
+                </div>
+            </div>
+        </div>
+
         <div class="overflow-x-auto">
-            <table class="pro-table">
+            <table class="w-full text-xs text-left border-collapse">
                 <thead>
-                    <tr>
-                        <th>UNIT SEKOLAH</th>
-                        <th class="text-right">TOTAL PENDAPATAN</th>
-                        <th class="text-right">TOTAL BELANJA</th>
-                        <th class="text-right">SALDO / BALANCE</th>
+                    <tr class="bg-black text-white border-b-2 border-black">
+                        <th class="px-4 py-4 text-center w-14 text-xs uppercase font-black text-white">No</th>
+                        <th class="px-4 py-4 text-xs uppercase font-black text-white">Nama Unit Sekolah / Lembaga</th>
+                        <th class="px-4 py-4 text-right text-xs uppercase font-black text-white bg-emerald-950">A. Pendapatan SPP</th>
+                        <th class="px-4 py-4 text-right text-xs uppercase font-black text-white">1. Gaji Pegawai</th>
+                        <th class="px-4 py-4 text-right text-xs uppercase font-black text-white">2. Operasional Unit</th>
+                        <th class="px-4 py-4 text-right text-xs uppercase font-black text-white bg-rose-950">B. Total Belanja</th>
+                        <th class="px-4 py-4 text-right text-xs uppercase font-black text-white bg-blue-950">C. Saldo Rencana</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach($allSchools as $sch)
+                <tbody class="divide-y-2 divide-slate-300 bg-white font-black text-black">
+                    @foreach($allSchools as $idx => $sch)
                         @php
                             $inc = isset($incomeData[$sch->id]) ? $incomeData[$sch->id]['total_income_period'] : 0;
                             $exp = isset($expenseData[$sch->id]) ? $expenseData[$sch->id]['grand_total_period'] : 0;
+                            $sal = isset($expenseData[$sch->id]) ? $expenseData[$sch->id]['total_salary_period'] : 0;
+                            $ops = isset($expenseData[$sch->id]) ? $expenseData[$sch->id]['total_ops_period'] : 0;
                             $bal = $inc - $exp;
                         @endphp
-                        <tr>
-                            <td class="font-black uppercase">{{ $sch->name }}</td>
-                            <td class="num-col text-green-700">Rp&nbsp;{{ number_format($inc, 0, ',', '.') }}</td>
-                            <td class="num-col text-red-700">Rp&nbsp;{{ number_format($exp, 0, ',', '.') }}</td>
-                            <td class="num-col font-black {{ $bal >= 0 ? 'text-blue-700 bg-blue-50' : 'text-red-700 bg-red-50' }}">
-                                Rp&nbsp;{{ number_format($bal, 0, ',', '.') }}
+                        <tr class="hover:bg-amber-100 transition-all border-b border-slate-300">
+                            <td class="px-4 py-4 text-center font-black text-black">
+                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-black text-white text-xs font-black">{{ $idx + 1 }}</span>
                             </td>
+                            <td class="px-4 py-4 font-black text-black">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ $sch->name }}</span>
+                                    <span class="pro-badge border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                                        {{ $sch->type }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-4 text-right font-black text-emerald-700 bg-emerald-50 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($inc, 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right font-black text-black num-col whitespace-nowrap">Rp&nbsp;{{ number_format($sal, 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right font-black text-amber-700 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($ops, 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right font-black text-rose-700 bg-rose-50 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($exp, 0, ',', '.') }}</td>
+                            <td class="px-4 py-4 text-right font-black {{ $bal >= 0 ? 'text-blue-700 bg-blue-50' : 'text-rose-700 bg-rose-50' }} num-col whitespace-nowrap text-sm">Rp&nbsp;{{ number_format($bal, 0, ',', '.') }}</td>
                         </tr>
                     @endforeach
                 </tbody>
                 <tfoot>
-                    <tr>
-                        <td class="font-black uppercase" style="background-color: #000 !important; color: #fbbf24 !important;">GRAND TOTAL YAYASAN</td>
-                        <td class="num-col font-black" style="background-color: #000 !important; color: #34d399 !important;">Rp&nbsp;{{ number_format($summary['total_income'], 0, ',', '.') }}</td>
-                        <td class="num-col font-black" style="background-color: #000 !important; color: #f87171 !important;">Rp&nbsp;{{ number_format($summary['total_expense'], 0, ',', '.') }}</td>
-                        <td class="num-col font-black text-lg" style="background-color: #000 !important; color: #fbbf24 !important;">Rp&nbsp;{{ number_format($summary['total_balance'], 0, ',', '.') }}</td>
+                    <tr class="bg-black text-white font-black border-t-4 border-black text-sm">
+                        <td colspan="2" class="px-6 py-5 text-right uppercase tracking-widest font-black text-amber-400">GRAND TOTAL YAYASAN:</td>
+                        <td class="px-4 py-5 text-right num-col whitespace-nowrap text-emerald-400 font-black">Rp&nbsp;{{ number_format($summary['total_income'], 0, ',', '.') }}</td>
+                        <td class="px-4 py-5 text-right num-col whitespace-nowrap text-white font-black">Rp&nbsp;{{ number_format($summary['total_salary'], 0, ',', '.') }}</td>
+                        <td class="px-4 py-5 text-right num-col whitespace-nowrap text-amber-300 font-black">Rp&nbsp;{{ number_format($summary['total_operational'], 0, ',', '.') }}</td>
+                        <td class="px-4 py-5 text-right num-col whitespace-nowrap text-rose-400 font-black">Rp&nbsp;{{ number_format($summary['total_expense'], 0, ',', '.') }}</td>
+                        <td class="px-4 py-5 text-right num-col whitespace-nowrap text-blue-400 font-black text-xl">Rp&nbsp;{{ number_format($summary['total_balance'], 0, ',', '.') }}</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </div>
+
 </div>
 
-<!-- Modal SPP -->
-<div id="sppModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden">
-    <div class="pro-card max-w-lg w-full m-4">
-        <div class="bg-black text-white px-6 py-4 flex justify-between items-center border-b-2 border-black">
-            <h3 class="font-black uppercase">Setting SPP: <span id="sppSchoolName" class="text-yellow-400"></span></h3>
-            <button onclick="closeSppModal()" class="text-white hover:text-red-500 font-black text-xl">&times;</button>
+<!-- Modal Input / Edit Tarif SPP -->
+<div id="sppModal" class="fixed inset-0 z-50 bg-black/80 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border-2 border-black transform transition-all scale-95 opacity-0 modal-card flex flex-col">
+        <div class="flex items-center justify-between pb-4 border-b-2 border-black">
+            <div>
+                <h3 class="text-base font-black text-black" id="sppSchoolName">Edit Tarif SPP</h3>
+                <p class="text-xs font-black text-black mt-0.5">Penetapan Tarif SPP per Tingkat Kelas Unit Sekolah</p>
+            </div>
+            <button onclick="closeSppModal()" class="w-8 h-8 rounded-xl bg-black text-white hover:bg-amber-400 hover:text-black flex items-center justify-center font-black">
+                <i class="fas fa-times text-xs"></i>
+            </button>
         </div>
-        <form action="{{ route('yayasan.rab.store') }}" method="POST" class="p-6">
+
+        <form method="POST" action="{{ route('yayasan.rab.store') }}" class="mt-4 space-y-4">
             @csrf
             <input type="hidden" name="school_id" id="sppSchoolId">
             <input type="hidden" name="academic_year_id" value="{{ $currentYear->id ?? '' }}">
-            
-            <div id="sppLevelsContainer" class="space-y-4 mb-6">
-                <!-- Injected via JS -->
+
+            <div>
+                <label class="block text-xs font-black text-black mb-2 uppercase tracking-wider">Tarif SPP Siswa (Per Bulan)</label>
+                <div id="sppLevelsContainer" class="space-y-3 max-h-60 overflow-y-auto pr-1">
+                    <!-- Dynamic inputs injected via Javascript -->
+                </div>
             </div>
 
-            <div class="flex justify-end gap-3 pt-4 border-t-2 border-black">
-                <button type="button" onclick="closeSppModal()" class="px-4 py-2 border-2 border-black font-black uppercase hover:bg-gray-100">Batal</button>
-                <button type="submit" class="px-4 py-2 bg-yellow-400 border-2 border-black font-black uppercase hover:bg-yellow-500">Simpan</button>
+            <div class="pt-3 border-t-2 border-black flex items-center justify-end gap-3">
+                <button type="button" onclick="closeSppModal()" class="px-5 py-2.5 text-xs font-black text-black hover:bg-slate-200 rounded-xl border-2 border-black">
+                    Batal
+                </button>
+                <button type="submit" class="px-6 py-2.5 text-xs font-black text-black rounded-xl shadow-md transition flex items-center gap-2 border-2 border-black" style="background-color: #fbbf24 !important;">
+                    <i class="fas fa-save text-black"></i> Simpan Tarif SPP
+                </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal Operasional -->
-<div id="opsModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden overflow-y-auto py-10">
-    <div class="pro-card max-w-3xl w-full m-4">
-        <div class="bg-black text-white px-6 py-4 flex justify-between items-center border-b-2 border-black">
-            <h3 class="font-black uppercase">Setting Operasional: <span id="opsSchoolName" class="text-purple-400"></span></h3>
-            <button onclick="closeOpsModal()" class="text-white hover:text-red-500 font-black text-xl">&times;</button>
+<!-- Modal Input / Edit Belanja Operasional -->
+<div id="opsModal" class="fixed inset-0 z-50 bg-black/80 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border-2 border-black transform transition-all scale-95 opacity-0 modal-card flex flex-col my-8">
+        <div class="flex items-center justify-between pb-4 border-b-2 border-black">
+            <div>
+                <h3 class="text-base font-black text-black" id="opsSchoolName">Edit Belanja Operasional</h3>
+                <p class="text-xs font-black text-black mt-0.5">Penetapan Alokasi 10 Pos Rekening Belanja Operasional Unit</p>
+            </div>
+            <button onclick="closeOpsModal()" class="w-8 h-8 rounded-xl bg-black text-white hover:bg-amber-400 hover:text-black flex items-center justify-center font-black">
+                <i class="fas fa-times text-xs"></i>
+            </button>
         </div>
-        <form action="{{ route('yayasan.rab.store') }}" method="POST" class="p-6">
+
+        <form method="POST" action="{{ route('yayasan.rab.store') }}" class="mt-4 space-y-4">
             @csrf
             <input type="hidden" name="school_id" id="opsSchoolId">
             <input type="hidden" name="academic_year_id" value="{{ $currentYear->id ?? '' }}">
-            
-            <div class="overflow-x-auto mb-6 border-2 border-black">
-                <table class="w-full text-left" style="border-collapse: collapse;">
+
+            <div class="overflow-x-auto rounded-2xl border-2 border-black">
+                <table class="w-full text-xs text-left border-collapse">
                     <thead>
-                        <tr class="bg-gray-100 border-b-2 border-black">
-                            <th class="p-2 border-r-2 border-black font-black uppercase text-xs">Uraian</th>
-                            <th class="p-2 border-r-2 border-black font-black uppercase text-xs w-20">Volume</th>
-                            <th class="p-2 border-r-2 border-black font-black uppercase text-xs w-24">Satuan</th>
-                            <th class="p-2 font-black uppercase text-xs w-40">Tarif (Rp)</th>
+                        <tr class="bg-black text-white font-black uppercase border-b-2 border-black">
+                            <th class="p-3">Pos Rekening / Uraian</th>
+                            <th class="p-3 text-center w-24">Volume</th>
+                            <th class="p-3 text-center w-28">Satuan</th>
+                            <th class="p-3 text-right w-44">Tarif (Rp)</th>
                         </tr>
                     </thead>
-                    <tbody id="opsItemsContainer">
-                        <!-- Injected via JS -->
+                    <tbody id="opsItemsContainer" class="divide-y-2 divide-slate-300 bg-white font-black text-black">
+                        <!-- Dynamic inputs injected via Javascript -->
                     </tbody>
                 </table>
             </div>
 
-            <div class="flex justify-end gap-3 pt-4 border-t-2 border-black">
-                <button type="button" onclick="closeOpsModal()" class="px-4 py-2 border-2 border-black font-black uppercase hover:bg-gray-100">Batal</button>
-                <button type="submit" class="px-4 py-2 bg-purple-400 border-2 border-black font-black uppercase hover:bg-purple-500">Simpan</button>
+            <div class="pt-3 border-t-2 border-black flex items-center justify-end gap-3">
+                <button type="button" onclick="closeOpsModal()" class="px-5 py-2.5 text-xs font-black text-black hover:bg-slate-200 rounded-xl border-2 border-black">
+                    Batal
+                </button>
+                <button type="submit" class="px-6 py-2.5 text-xs font-black text-black rounded-xl shadow-md transition flex items-center gap-2 border-2 border-black" style="background-color: #c084fc !important;">
+                    <i class="fas fa-save text-black"></i> Simpan Belanja Operasional
+                </button>
             </div>
         </form>
     </div>
 </div>
-
-@endsection
 
 @push('scripts')
 <script>
     // Tab Switching for Expenses
     function switchExpenseTab(schoolId) {
         document.querySelectorAll('.expense-tab-content').forEach(el => {
-            el.classList.remove('block');
             el.classList.add('hidden');
         });
         document.querySelectorAll('.tab-btn').forEach(el => {
             el.classList.remove('active');
         });
         
-        document.getElementById('tab-content-' + schoolId).classList.remove('hidden');
-        document.getElementById('tab-content-' + schoolId).classList.add('block');
-        document.getElementById('tab-btn-' + schoolId).classList.add('active');
+        const content = document.getElementById('tab-content-' + schoolId);
+        if (content) content.classList.remove('hidden');
+        
+        const btn = document.getElementById('tab-btn-' + schoolId);
+        if (btn) btn.classList.add('active');
     }
 
     // SPP Modal
     function openSppModal(schoolId, schoolName, levelsData) {
         document.getElementById('sppSchoolId').value = schoolId;
-        document.getElementById('sppSchoolName').innerText = schoolName;
+        document.getElementById('sppSchoolName').innerText = 'Edit Tarif SPP — ' + schoolName;
         
-        let html = '';
-        levelsData.forEach(lvl => {
-            html += `
-                <div>
-                    <label class="block text-sm font-black uppercase mb-1">Tarif SPP Kelas ${lvl.level}</label>
-                    <div class="flex items-center">
-                        <span class="border-y-2 border-l-2 border-black bg-gray-100 px-3 py-2 font-black">Rp</span>
-                        <input type="number" name="spp_rates[${lvl.level}]" value="${lvl.spp_monthly_rate}" 
-                               class="pro-input flex-1 !border-l-0" style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+        const sppContainer = document.getElementById('sppLevelsContainer');
+        sppContainer.innerHTML = '';
+
+        if (levelsData && levelsData.length > 0) {
+            levelsData.forEach(function(lvl) {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between gap-3 bg-amber-50 p-3 rounded-2xl border-2 border-black';
+                div.innerHTML = `
+                    <span class="text-xs font-black text-black">Kelas ${lvl.level} (${lvl.student_count} siswa):</span>
+                    <div class="relative w-48">
+                        <span class="absolute left-3 top-2.5 text-xs font-black text-black">Rp</span>
+                        <input type="number" name="spp_rates[${lvl.level}]" value="${lvl.spp_monthly_rate}" step="1000" min="0"
+                               class="rapby-input-pro w-full text-xs font-black pl-9 pr-3 py-2 rounded-xl bg-white text-black num-col">
                     </div>
-                </div>
-            `;
-        });
-        
-        document.getElementById('sppLevelsContainer').innerHTML = html;
-        document.getElementById('sppModal').classList.remove('hidden');
+                `;
+                sppContainer.appendChild(div);
+            });
+        } else {
+            sppContainer.innerHTML = '<p class="text-xs text-black font-black italic p-3 bg-slate-100 rounded-xl border-2 border-black">Belum ada kelas terdaftar pada unit ini.</p>';
+        }
+
+        const modal = document.getElementById('sppModal');
+        const card = modal.querySelector('.modal-card');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            card.classList.remove('scale-95', 'opacity-0');
+            card.classList.add('scale-100', 'opacity-100');
+        }, 10);
     }
 
     function closeSppModal() {
-        document.getElementById('sppModal').classList.add('hidden');
+        const modal = document.getElementById('sppModal');
+        const card = modal.querySelector('.modal-card');
+        card.classList.remove('scale-100', 'opacity-100');
+        card.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 150);
     }
 
     // Ops Modal
     function openOpsModal(schoolId, schoolName, opsDetails) {
         document.getElementById('opsSchoolId').value = schoolId;
-        document.getElementById('opsSchoolName').innerText = schoolName;
+        document.getElementById('opsSchoolName').innerText = 'Edit Belanja Operasional — ' + schoolName;
         
-        let html = '';
-        Object.entries(opsDetails).forEach(([code, detail]) => {
-            html += `
-                <tr class="border-b-2 border-black">
-                    <td class="p-2 border-r-2 border-black">
-                        <div class="font-black text-sm">${detail.name}</div>
-                        <div class="text-xs text-gray-500">${code}</div>
+        const container = document.getElementById('opsItemsContainer');
+        container.innerHTML = '';
+
+        if (opsDetails) {
+            Object.entries(opsDetails).forEach(([code, detail]) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-amber-100 transition-all border-b border-slate-300';
+                tr.innerHTML = `
+                    <td class="p-3">
+                        <div class="font-black text-black">${detail.name}</div>
+                        <div class="text-[10px] text-gray-500 font-mono">${code}</div>
                     </td>
-                    <td class="p-2 border-r-2 border-black">
-                        <input type="number" step="0.01" name="expense_details[${code}][volume]" value="${detail.volume}" class="pro-input !p-1 text-center text-sm">
+                    <td class="p-3 text-center">
+                        <input type="number" step="0.01" min="0" name="expense_details[${code}][volume]" value="${detail.volume}" 
+                               class="rapby-input-pro w-20 text-center text-xs p-1.5 rounded-xl">
                     </td>
-                    <td class="p-2 border-r-2 border-black">
-                        <input type="text" name="expense_details[${code}][unit]" value="${detail.unit}" class="pro-input !p-1 text-center text-sm">
+                    <td class="p-3 text-center">
+                        <input type="text" name="expense_details[${code}][unit]" value="${detail.unit}" 
+                               class="rapby-input-pro w-24 text-center text-xs p-1.5 rounded-xl">
                     </td>
-                    <td class="p-2">
-                        <input type="number" name="expense_details[${code}][tariff]" value="${detail.tariff}" class="pro-input !p-1 text-right text-sm">
+                    <td class="p-3 text-right">
+                        <div class="relative">
+                            <span class="absolute left-2.5 top-2 text-xs font-black text-black">Rp</span>
+                            <input type="number" name="expense_details[${code}][tariff]" value="${detail.tariff}" step="1000" min="0"
+                                   class="rapby-input-pro w-36 text-right text-xs pl-8 pr-2 py-1.5 rounded-xl num-col">
+                        </div>
                     </td>
-                </tr>
-            `;
-        });
-        
-        document.getElementById('opsItemsContainer').innerHTML = html;
-        document.getElementById('opsModal').classList.remove('hidden');
+                `;
+                container.appendChild(tr);
+            });
+        }
+
+        const modal = document.getElementById('opsModal');
+        const card = modal.querySelector('.modal-card');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            card.classList.remove('scale-95', 'opacity-0');
+            card.classList.add('scale-100', 'opacity-100');
+        }, 10);
     }
 
     function closeOpsModal() {
-        document.getElementById('opsModal').classList.add('hidden');
+        const modal = document.getElementById('opsModal');
+        const card = modal.querySelector('.modal-card');
+        card.classList.remove('scale-100', 'opacity-100');
+        card.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 150);
     }
 </script>
 @endpush
+@endsection
