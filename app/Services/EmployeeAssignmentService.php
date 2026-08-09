@@ -141,7 +141,7 @@ class EmployeeAssignmentService
                 'honor_per_jam' => 0,
                 'honor_total' => 2500000,
                 'is_fixed' => true,
-                'note' => 'Honor Tetap Kesepakatan',
+                'note' => '',
             ];
         }
 

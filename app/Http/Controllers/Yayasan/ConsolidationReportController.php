@@ -203,6 +203,11 @@ class ConsolidationReportController extends Controller
     {
         $type = strtolower($emp->employee_type ?? '');
 
+        // Khusus Yulianus Zega atau Pegawai yang bertugas mengajar di kelas (dikategori Guru)
+        if ($emp->employee_code === 'PTY-001' || str_contains(strtolower($emp->full_name), 'yulianus zega')) {
+            return 'Guru (Tugas Mengajar)';
+        }
+
         // 1. Support (Keamanan, Kebersihan, Sopir, Pendukung)
         if (in_array($type, ['security', 'cleaning_service', 'driver'])) {
             return 'Support';
