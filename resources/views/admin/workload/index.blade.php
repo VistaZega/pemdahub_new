@@ -263,17 +263,15 @@
                                             <p class="text-[10px] text-gray-500 group-hover:text-gray-800 font-semibold transition-colors">
                                                 {{ $honorData['jam_mengajar'] }} | {{ $honorData['jam_wajib'] }} | {{ $honorData['jam_honor'] }} | {{ $honorData['jam_honor'] }} x Rp&nbsp;{{ number_format($honorData['honor_per_jam'], 0, ',', '.') }}
                                             </p>
-                                            <p class="text-[9px] text-gray-400 group-hover:text-gray-600 font-medium transition-colors">Jam Tugas | Wajib | Lebih | Perhitungan</p>
+                                            <p class="text-[9px] text-gray-400 group-hover:text-gray-600 font-medium transition-colors">Jam Tugas | Wajib | Lebih</p>
                                         </div>
                                     @endif
 
                                     @if($totalPkl > 0)
                                         <div class="mt-1.5 pt-1.5 border-t border-purple-100">
-                                            <div class="flex justify-between items-center gap-3 text-[11px]">
-                                                <span class="text-purple-600 font-bold">Pembimbing PKL</span>
-                                                <span class="text-purple-700 font-bold tabular-nums">{{ number_format($totalPkl, 0, ',', '.') }}</span>
-                                            </div>
-                                            <p class="text-[9px] text-purple-400 text-right font-medium mt-0.5">{{ $summary->pkl_supervisor_hours }} JP x Rp 43.000</p>
+                                            <span class="text-sm font-bold text-gray-800 tabular-nums">Rp&nbsp;{{ number_format($totalPkl, 0, ',', '.') }}</span>
+                                            <p class="text-[10px] text-purple-600 group-hover:text-purple-800 font-semibold mt-1 transition-colors">{{ $summary->pkl_supervisor_hours }} JP x Rp 43.000</p>
+                                            <p class="text-[9px] text-purple-400 group-hover:text-purple-600 font-medium transition-colors">Pemb. PKL</p>
                                         </div>
                                     @endif
                                 </div>
