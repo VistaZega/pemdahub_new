@@ -268,9 +268,12 @@
                                     @endif
 
                                     @if($totalPkl > 0)
+                                        @php
+                                            $effectivePklRate = (float) ($summary->pkl_honor_rate ?? \App\Models\Setting::where('group', 'salary_formula')->where('key', 'pkl_honor_rate')->value('value') ?? 43000);
+                                        @endphp
                                         <div class="mt-1.5 pt-1.5 border-t border-purple-100">
                                             <span class="text-sm font-bold text-gray-800 tabular-nums">Rp&nbsp;{{ number_format($totalPkl, 0, ',', '.') }}</span>
-                                            <p class="text-[10px] text-purple-600 group-hover:text-purple-800 font-semibold mt-1 transition-colors">{{ $summary->pkl_supervisor_hours }} JP x Rp 43.000</p>
+                                            <p class="text-[10px] text-purple-600 group-hover:text-purple-800 font-semibold mt-1 transition-colors">{{ $summary->pkl_supervisor_hours }} JP x Rp&nbsp;{{ number_format($effectivePklRate, 0, ',', '.') }}</p>
                                             <p class="text-[9px] text-purple-400 group-hover:text-purple-600 font-medium transition-colors">Pemb. PKL</p>
                                         </div>
                                     @endif

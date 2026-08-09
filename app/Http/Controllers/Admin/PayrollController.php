@@ -156,7 +156,22 @@ class PayrollController extends Controller
             Setting::setValue($key, $value, is_int($value) ? 'integer' : 'string', 'salary_formula');
         }
 
-        return back()->with('success', 'Pengaturan gaji berhasil disimpan.');
+        // Recalculate workload summaries for active employees in active academic year & semester
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+        if ($activeYear && $activeSemester) {
+            $assignmentService = app(\App\Services\EmployeeAssignmentService::class);
+            $employees = \App\Models\Employee::where('is_active', true)->get();
+            foreach ($employees as $emp) {
+                try {
+                    $assignmentService->calculateWorkload($emp, $activeYear, $activeSemester);
+                } catch (\Exception $e) {
+                    // Ignore individual failures so settings save completes
+                }
+            }
+        }
+
+        return back()->with('success', 'Pengaturan gaji berhasil disimpan dan beban kerja telah diperbarui.');
     }
 }
 

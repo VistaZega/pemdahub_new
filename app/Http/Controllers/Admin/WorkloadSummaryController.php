@@ -153,7 +153,10 @@ class WorkloadSummaryController extends Controller
                     $summary->child_allowance = $freshSalary['tunjangan_anak'];
                     $summary->rice_allowance = $freshSalary['tunjangan_beras'];
                     $summary->total_teaching_allowance = $freshSalary['honor_mengajar'];
-                    $summary->total_allowance = $freshSalary['tunjangan_jabatan'] + $freshSalary['honor_mengajar'] + $freshSalary['tunjangan_keluarga'] + $freshSalary['tunjangan_anak'] + $freshSalary['tunjangan_beras'];
+                    $summary->honor_pkl = $freshSalary['honor_pkl'];
+                    $summary->pkl_supervisor_hours = $freshSalary['pkl_supervisor_hours'];
+                    $summary->pkl_honor_rate = $freshSalary['pkl_honor_rate'];
+                    $summary->total_allowance = $freshSalary['tunjangan_jabatan'] + $freshSalary['honor_mengajar'] + $freshSalary['honor_pkl'] + $freshSalary['tunjangan_keluarga'] + $freshSalary['tunjangan_anak'] + $freshSalary['tunjangan_beras'];
                     $summary->total_compensation = $freshSalary['thp'];
                 }
             }
