@@ -199,9 +199,9 @@ class FoundationRabController extends Controller
         $totalConsolidatedStudents = 0;
 
         // Ambil nominal SPP default dari Master PaymentType (SPP)
-        $masterSppType = PaymentType::where('code', 'SPP')
-            ->orWhere('name', 'LIKE', '%SPP%')
-            ->orWhere('name', 'LIKE', '%Uang Sekolah%')
+        $masterSppType = PaymentType::where('type_code', 'SPP')
+            ->orWhere('type_name', 'LIKE', '%SPP%')
+            ->orWhere('type_name', 'LIKE', '%Uang Sekolah%')
             ->first();
         $masterSppAmount = (float) ($masterSppType->amount ?? 350000);
 
