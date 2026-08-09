@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Script Diagnostik Pegawai Perbantuan SMK
+ * Script Diagnostik Komparasi Rekap Beban Kerja vs Consolidation SMK
  * Akses: https://perguruanpembda.com/list_cross_smk.php?secret=pembda99
  */
 
@@ -17,6 +17,7 @@ use App\Models\Employee;
 use App\Models\School;
 use App\Models\AcademicYear;
 use App\Models\Semester;
+use App\Models\EmployeeWorkloadSummary;
 use App\Services\EmployeeAssignmentService;
 
 $smk = School::where('type', 'LIKE', '%SMK%')->orWhere('name', 'LIKE', '%SMK%')->first();
@@ -24,76 +25,76 @@ $activeYear = AcademicYear::where('is_active', true)->first();
 $activeSemester = Semester::where('is_active', true)->first();
 $service = app(EmployeeAssignmentService::class);
 
-$allEmployees = Employee::with(['activePositions', 'teacher', 'school'])
-    ->where('is_active', true)
-    ->where(function ($q) use ($smk, $activeYear) {
-        $q->where('school_id', $smk->id)
-          ->orWhereHas('activePositions', function ($posQ) use ($smk, $activeYear) {
-              $posQ->where('positions.school_id', $smk->id)
-                   ->where('employee_positions.academic_year_id', $activeYear->id);
-          })
-          ->orWhereHas('teacher.teachingAssignments', function ($teachQ) use ($smk, $activeYear) {
-              $teachQ->where('academic_year_id', $activeYear->id)
-                     ->where('is_active', true)
-                     ->whereHas('classroom', fn($cQ) => $cQ->where('school_id', $smk->id));
-          });
-    })
-    ->get();
+// 1. Simulasikan Query Rekap Beban Kerja untuk SMK (seperti di WorkloadSummaryController)
+$query = EmployeeWorkloadSummary::with(['employee.school', 'employee.activePositions', 'employee.teacher'])
+    ->where('academic_year_id', $activeYear->id)
+    ->where('semester_id', $activeSemester->id);
 
-$crossEmployees = [];
+$schoolId = $smk->id;
+$query->where(function ($q) use ($schoolId, $activeYear) {
+    $q->whereHas('employee', fn($empQ) => $empQ->where('school_id', $schoolId))
+      ->orWhereHas('employee.activePositions', function ($posQ) use ($schoolId, $activeYear) {
+          $posQ->where('positions.school_id', $schoolId)
+               ->where('employee_positions.academic_year_id', $activeYear->id);
+      })
+      ->orWhereHas('employee.teacher.teachingAssignments', function ($teachQ) use ($schoolId, $activeYear) {
+          $teachQ->where('academic_year_id', $activeYear->id)
+                 ->where('is_active', true)
+                 ->whereHas('classroom', fn($cQ) => $cQ->where('school_id', $schoolId));
+      });
+});
+
+$workloadSummaries = $query->get();
+
+$homeSmkSummaries = [];
+$crossSmkSummaries = [];
+
+$totalWorkloadThp = 0;
+$totalHomeThp = 0;
 $totalCrossThp = 0;
 
-foreach ($allEmployees as $emp) {
-    if ($emp->school_id != $smk->id) {
-        $sal = $service->calculateFullSalary($emp, $activeYear, $activeSemester, 'SMK', $smk->id);
-        $thp = $sal['thp'] ?? 0;
+foreach ($workloadSummaries as $s) {
+    $emp = $s->employee;
+    if (!$emp) continue;
+
+    $freshSalary = $service->calculateFullSalary($emp, $activeYear, $activeSemester, 'SMK', $smk->id);
+    $thp = $freshSalary['thp'] ?? 0;
+    $totalWorkloadThp += $thp;
+
+    $item = [
+        'employee_id' => $emp->id,
+        'name' => $emp->full_name,
+        'code' => $emp->employee_code ?? '-',
+        'home_unit' => $emp->school ? $emp->school->name : 'Yayasan / Unit Lain',
+        'employment_status' => $emp->employment_status,
+        'employee_type' => $emp->employee_type,
+        'thp' => $thp,
+        'formatted_thp' => 'Rp ' . number_format($thp, 0, ',', '.'),
+        'gaji_pokok' => $freshSalary['gaji_pokok'] ?? 0,
+        'tunjangan_jabatan' => $freshSalary['tunjangan_jabatan'] ?? 0,
+        'honor_mengajar' => $freshSalary['honor_mengajar'] ?? 0,
+        'honor_pkl' => $freshSalary['honor_pkl'] ?? 0,
+    ];
+
+    if ($emp->school_id == $smk->id) {
+        $homeSmkSummaries[] = $item;
+        $totalHomeThp += $thp;
+    } else {
+        $crossSmkSummaries[] = $item;
         $totalCrossThp += $thp;
-
-        $homeName = $emp->school ? $emp->school->name : 'Yayasan / Unit Lain';
-
-        $smkPositions = $emp->activePositions()
-            ->where('positions.school_id', $smk->id)
-            ->get()
-            ->pluck('position_name')
-            ->join(', ');
-
-        $teachingHours = 0;
-        if ($emp->teacher) {
-            $assignments = \App\Models\TeachingAssignment::where('teacher_id', $emp->teacher->id)
-                ->where('academic_year_id', $activeYear->id)
-                ->where('is_active', true)
-                ->whereHas('classroom', fn($cQ) => $cQ->where('school_id', $smk->id))
-                ->get();
-            $teachingHours = $assignments->sum('hours_per_week');
-        }
-
-        $crossEmployees[] = [
-            'name' => $emp->full_name,
-            'code' => $emp->employee_code ?? '-',
-            'status' => $emp->employment_status,
-            'type' => $emp->employee_type,
-            'home_unit' => $homeName,
-            'smk_positions' => $smkPositions ?: '-',
-            'teaching_hours' => $teachingHours,
-            'honor_mengajar' => $sal['honor_mengajar'] ?? 0,
-            'tunjangan_jabatan' => $sal['tunjangan_jabatan'] ?? 0,
-            'honor_pkl' => $sal['honor_pkl'] ?? 0,
-            'thp' => $thp,
-        ];
     }
 }
 
-// Check also pure home employees who have assignments in other schools or vice versa
-$pureEmployeesCount = Employee::where('school_id', $smk->id)->where('is_active', true)->count();
-
 header('Content-Type: application/json');
 echo json_encode([
-    'school_smk_id' => $smk->id,
-    'school_smk_name' => $smk->name,
-    'academic_year' => $activeYear->year,
-    'semester' => $activeSemester->semester_name,
-    'pure_smk_employees_count' => $pureEmployeesCount,
-    'cross_employees_count' => count($crossEmployees),
-    'total_cross_thp' => $totalCrossThp,
-    'cross_employees' => $crossEmployees,
+    'active_year' => $activeYear->year,
+    'active_semester' => $activeSemester->semester_name,
+    'school_smk' => $smk->name,
+    'rekap_beban_kerja_total_thp' => 'Rp ' . number_format($totalWorkloadThp, 0, ',', '.'),
+    'pegawai_murni_smk_total_thp' => 'Rp ' . number_format($totalHomeThp, 0, ',', '.'),
+    'pegawai_perbantuan_total_thp' => 'Rp ' . number_format($totalCrossThp, 0, ',', '.'),
+    'total_pegawai_rekap_smk' => count($workloadSummaries),
+    'jumlah_pegawai_murni_smk' => count($homeSmkSummaries),
+    'jumlah_pegawai_perbantuan' => count($crossSmkSummaries),
+    'daftar_pegawai_perbantuan' => $crossSmkSummaries,
 ], JSON_PRETTY_PRINT);
