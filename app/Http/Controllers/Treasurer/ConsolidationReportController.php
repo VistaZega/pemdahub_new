@@ -115,10 +115,27 @@ class ConsolidationReportController extends Controller
         }
 
         // 2. PENGELUARAN GAJI
-        $employees = Employee::with(['activePositions', 'teacher'])
-            ->where('school_id', $schoolId)
-            ->where('is_active', true)
-            ->get();
+        $employeeQuery = Employee::with(['activePositions', 'teacher'])
+            ->where('is_active', true);
+
+        if ($schoolId) {
+            $employeeQuery->where(function ($q) use ($schoolId, $activeYear) {
+                $q->where('school_id', $schoolId);
+                if ($activeYear) {
+                    $q->orWhereHas('activePositions', function ($posQ) use ($schoolId, $activeYear) {
+                        $posQ->where('positions.school_id', $schoolId)
+                             ->where('employee_positions.academic_year_id', $activeYear->id);
+                    })
+                    ->orWhereHas('teacher.teachingAssignments', function ($teachQ) use ($schoolId, $activeYear) {
+                        $teachQ->where('academic_year_id', $activeYear->id)
+                               ->where('is_active', true)
+                               ->whereHas('classroom', fn($cQ) => $cQ->where('school_id', $schoolId));
+                    });
+                }
+            });
+        }
+
+        $employees = $employeeQuery->get();
 
         $salaryTotal = 0;
         $salaryDetails = [
