@@ -102,15 +102,19 @@
             width: 0; min-width: 0; opacity: 0; overflow: hidden;
         }
         
-        /* ── Desktop (768px and above) ── */
-        @media (min-width: 768px) {
+        /* ── Desktop & Laptop (640px and above) ── */
+        @media (min-width: 640px) {
             #{{ $sidebarId }} {
                 height: calc(100vh - 62px);
                 position: sticky;
                 top: 62px;
             }
         }
-        #main-content { transition: all .3s ease; }
+        #main-content { 
+            transition: all .3s ease;
+            min-width: 0;
+            flex: 1;
+        }
 
         /* ── Menu Group Toggle Headers ── */
         .menu-group-toggle {
@@ -147,8 +151,8 @@
         .menu-group-toggle .chevron { transition: transform .2s ease; }
         .menu-group-toggle.open .chevron { transform: rotate(90deg); }
 
-        /* ── Mobile (Below 768px) ── */
-        @media (max-width: 767px) {
+        /* ── Mobile (Below 640px) ── */
+        @media (max-width: 639px) {
             #{{ $sidebarId }} {
                 position: fixed !important; left: -320px; top: 0 !important; bottom: 0 !important; z-index: 9999;
                 width: 280px !important; min-width: 280px !important;
@@ -357,7 +361,7 @@
             (function() {
                 const sidebarId  = '{{ $sidebarId }}';
                 const storageKey = '{{ $storageKey }}';
-                if (window.innerWidth >= 768 && localStorage.getItem(storageKey) === 'false') {
+                if (window.innerWidth >= 640 && localStorage.getItem(storageKey) === 'false') {
                     const btn = document.getElementById('sidebar-toggle');
                     const sb = document.getElementById(sidebarId);
                     if (btn && sb) {
@@ -394,7 +398,7 @@
         const backdrop = document.getElementById('sidebar-backdrop');
         if (!toggle || !sidebar) return;
 
-        const isMobile = () => window.innerWidth < 768;
+        const isMobile = () => window.innerWidth < 640;
 
         toggle.addEventListener('click', function (e) {
             e.preventDefault();

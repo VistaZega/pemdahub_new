@@ -315,68 +315,61 @@
                 </tbody>
             </table>
         </div>
-    </div>
-
-    <!-- 5. Grand total recap table -->
-    <div class="contrib-card-pro rounded-3xl shadow-xl overflow-hidden border-2 border-black mt-8">
-        <div class="p-5 border-b-2 border-black flex flex-col md:flex-row md:items-center justify-between gap-4" style="background-color: #f1f5f9 !important;">
-            <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm border-2 border-black shrink-0" style="background-color: #000000 !important; color: #fbbf24 !important;">
-                    <i class="fas fa-table-list text-amber-400 text-lg"></i>
-                </div>
-                <div>
-                    <h2 class="text-base font-black text-black">Matriks Rekapitulasi Realisasi Seluruh Unit Sekolah</h2>
-                    <p class="text-xs font-black text-black mt-0.5">Rangkuman Pendapatan, Belanja, dan Saldo Realisasi</p>
-                </div>
+    </div>    <!-- 5. Grand total recap table -->
+    <div class="contrib-card-pro rounded-3xl shadow-xl overflow-hidden border-2 border-black mt-8 p-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-black pb-4 mb-6">
+            <div>
+                <h2 class="text-lg font-black text-black flex items-center gap-2">
+                    <i class="fas fa-table-list text-amber-500"></i> Matriks Rekapitulasi Realisasi Seluruh Unit Sekolah
+                </h2>
+                <p class="text-xs text-black font-bold mt-0.5">Rangkuman Pendapatan, Belanja, dan Saldo Realisasi</p>
             </div>
             <span class="pro-badge border-2 border-black" style="background-color: #000000 !important; color: #ffffff !important;">
                 Rekapitulasi Realisasi
             </span>
         </div>
 
-        <div class="p-4 overflow-x-auto">
-            <div class="overflow-x-auto rounded-2xl border-2 border-black">
-                <table class="w-full text-xs text-left border-collapse">
-                    <thead>
-                        <tr class="bg-black text-white border-b-2 border-black">
-                            <th class="px-4 py-3.5 text-xs uppercase font-black text-white">Nama Unit Sekolah</th>
-                            <th class="px-4 py-3.5 text-center w-24 text-xs uppercase font-black text-white">Siswa Aktif</th>
-                            <th class="px-4 py-3.5 text-right text-xs uppercase font-black text-white bg-emerald-950">A. Realisasi SPP</th>
-                            <th class="px-4 py-3.5 text-right text-xs uppercase font-black text-white bg-rose-950">B. Total Belanja</th>
-                            <th class="px-4 py-3.5 text-right text-xs uppercase font-black text-white bg-blue-950">C. Saldo Realisasi</th>
+        <div class="overflow-x-auto rounded-2xl border-2 border-black">
+            <table class="w-full text-xs text-left border-collapse">
+                <thead>
+                    <tr class="bg-black text-white border-b-2 border-black">
+                        <th class="px-4 py-3.5 text-xs uppercase font-black text-white">Nama Unit Sekolah</th>
+                        <th class="px-4 py-3.5 text-center w-24 text-xs uppercase font-black text-white">Siswa Aktif</th>
+                        <th class="px-4 py-3.5 text-right text-xs uppercase font-black text-white bg-emerald-950">A. Realisasi SPP</th>
+                        <th class="px-4 py-3.5 text-right text-xs uppercase font-black text-white bg-rose-950">B. Total Belanja</th>
+                        <th class="px-4 py-3.5 text-right text-xs uppercase font-black text-white bg-blue-950">C. Saldo Realisasi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y-2 divide-slate-300 bg-white font-black text-black">
+                    @foreach($expenseData as $idx => $row)
+                        <tr class="hover:bg-amber-100 transition-all border-b border-slate-300">
+                            <td class="px-4 py-3.5 font-black text-black">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ $row['school']->name }}</span>
+                                    <span class="pro-badge border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                                        {{ strtoupper($row['school']->type) }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3.5 text-center font-black text-black num-col">{{ $row['student_count'] }}</td>
+                            <td class="px-4 py-3.5 text-right font-black text-emerald-700 bg-emerald-50 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($row['income'], 0, ',', '.') }}</td>
+                            <td class="px-4 py-3.5 text-right font-black text-rose-700 bg-rose-50 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($row['total_expense'], 0, ',', '.') }}</td>
+                            <td class="px-4 py-3.5 text-right font-black {{ $row['balance'] >= 0 ? 'text-blue-700 bg-blue-50' : 'text-rose-700 bg-rose-50' }} num-col whitespace-nowrap text-sm">Rp&nbsp;{{ number_format($row['balance'], 0, ',', '.') }}</td>
                         </tr>
-                    </thead>
-                    <tbody class="divide-y-2 divide-slate-300 bg-white font-black text-black">
-                        @foreach($expenseData as $idx => $row)
-                            <tr class="hover:bg-amber-100 transition-all border-b border-slate-300">
-                                <td class="px-4 py-3.5 font-black text-black">
-                                    <div class="flex items-center gap-2">
-                                        <span>{{ $row['school']->name }}</span>
-                                        <span class="pro-badge border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
-                                            {{ strtoupper($row['school']->type) }}
-                                        </span>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3.5 text-center font-black text-black num-col">{{ $row['student_count'] }}</td>
-                                <td class="px-4 py-3.5 text-right font-black text-emerald-700 bg-emerald-50 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($row['income'], 0, ',', '.') }}</td>
-                                <td class="px-4 py-3.5 text-right font-black text-rose-700 bg-rose-50 num-col whitespace-nowrap">Rp&nbsp;{{ number_format($row['total_expense'], 0, ',', '.') }}</td>
-                                <td class="px-4 py-3.5 text-right font-black {{ $row['balance'] >= 0 ? 'text-blue-700 bg-blue-50' : 'text-rose-700 bg-rose-50' }} num-col whitespace-nowrap text-sm">Rp&nbsp;{{ number_format($row['balance'], 0, ',', '.') }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr class="bg-black text-white font-black border-t-4 border-black text-sm">
-                            <td class="px-6 py-4 text-right uppercase tracking-widest font-black text-amber-400">GRAND TOTAL:</td>
-                            <td class="px-4 py-4 text-center text-white font-black">{{ $totalStudentsAll }}</td>
-                            <td class="px-4 py-4 text-right num-col whitespace-nowrap text-emerald-400 font-black">Rp&nbsp;{{ number_format($grandTotalIncome, 0, ',', '.') }}</td>
-                            <td class="px-4 py-4 text-right num-col whitespace-nowrap text-rose-400 font-black">Rp&nbsp;{{ number_format($grandTotalExpense, 0, ',', '.') }}</td>
-                            <td class="px-4 py-4 text-right num-col whitespace-nowrap text-blue-400 font-black text-xl">Rp&nbsp;{{ number_format($grandTotalBalance, 0, ',', '.') }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    <tr class="bg-black text-white font-black border-t-4 border-black text-sm">
+                        <td class="px-6 py-4 text-right uppercase tracking-widest font-black text-amber-400">GRAND TOTAL:</td>
+                        <td class="px-4 py-4 text-center text-white font-black">{{ $totalStudentsAll }}</td>
+                        <td class="px-4 py-4 text-right num-col whitespace-nowrap text-emerald-400 font-black">Rp&nbsp;{{ number_format($grandTotalIncome, 0, ',', '.') }}</td>
+                        <td class="px-4 py-4 text-right num-col whitespace-nowrap text-rose-400 font-black">Rp&nbsp;{{ number_format($grandTotalExpense, 0, ',', '.') }}</td>
+                        <td class="px-4 py-4 text-right num-col whitespace-nowrap text-blue-400 font-black text-xl">Rp&nbsp;{{ number_format($grandTotalBalance, 0, ',', '.') }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     </div>
-</div>
 
 </div>
 @endsection
