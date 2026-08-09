@@ -386,24 +386,8 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y-2 divide-slate-300 bg-white font-black text-black">
-                            <!-- GAJI PEGAWAI UNIT (READONLY) -->
-                            <tr class="border-b-2 border-black" style="background-color: #dbeafe !important;">
-                                <td class="p-3.5 text-center font-mono text-black">{{ $data['salary_item']['code'] }}</td>
-                                <td class="p-3.5">
-                                    <div class="font-black text-black flex items-center gap-2">
-                                        <i class="fas fa-users text-blue-700"></i>
-                                        <span>{{ $data['salary_item']['name'] }}</span>
-                                    </div>
-                                    <span class="text-[10px] text-black font-bold">(Otomatis Terkalkulasi dari Penugasan & Payroll)</span>
-                                </td>
-                                <td class="p-3.5 text-center">{{ $data['salary_item']['volume'] }}</td>
-                                <td class="p-3.5 text-center">{{ $data['salary_item']['unit'] }}</td>
-                                <td class="p-3.5 text-right num-col">Rp&nbsp;{{ number_format($data['salary_item']['tariff'], 0, ',', '.') }}</td>
-                                <td class="p-3.5 text-right num-col font-black text-blue-900" style="background-color: #bfdbfe !important;">Rp&nbsp;{{ number_format($data['total_salary_period'], 0, ',', '.') }}</td>
-                            </tr>
-
                             <!-- LIST REKENING OPERASIONAL (HANYA DITAMPILKAN YANG ADA NILAI RENCANA > 0) -->
-                            @foreach($data['ops_details'] as $code => $item)
+                            @forelse($data['ops_details'] as $code => $item)
                                 @if(($item['amount'] ?? 0) > 0 || ($item['tariff'] ?? 0) > 0)
                                     <tr class="hover:bg-amber-100 transition-all border-b border-slate-300">
                                         <td class="p-3.5 text-center font-mono text-black">{{ $item['code'] }}</td>
@@ -420,15 +404,36 @@
                                         <td class="p-3.5 text-right num-col font-black text-black">Rp&nbsp;{{ number_format($item['amount'] * $multiplier, 0, ',', '.') }}</td>
                                     </tr>
                                 @endif
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="p-4 text-center font-black italic text-gray-500">Belum ada alokasi belanja operasional yang diinput.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
-                        <tfoot>
-                            <tr class="border-t-2 border-black font-black" style="background-color: #fed7aa !important;">
-                                <td colspan="5" class="p-4 text-right uppercase text-black">TOTAL BELANJA {{ strtoupper($data['school']->name) }}</td>
-                                <td class="p-4 text-right num-col text-sm text-black whitespace-nowrap">Rp&nbsp;{{ number_format($data['grand_total_period'], 0, ',', '.') }}</td>
-                            </tr>
-                        </tfoot>
                     </table>
+                </div>
+
+                <!-- RINGKASAN REKAPITULASI BELANJA UNIT (SDM + OPERASIONAL) -->
+                <div class="p-4 rounded-2xl border-2 border-black space-y-2 mt-4" style="background-color: #f8fafc !important;">
+                    <div class="flex items-center justify-between text-xs font-black text-black">
+                        <span class="flex items-center gap-2">
+                            <i class="fas fa-users text-blue-600"></i>
+                            A. Total Belanja Pegawai (Gaji & Tunjangan {{ $data['employee_count'] }} SDM):
+                        </span>
+                        <span class="num-col text-blue-700">Rp&nbsp;{{ number_format($data['total_salary_period'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs font-black text-black">
+                        <span class="flex items-center gap-2">
+                            <i class="fas fa-wallet text-amber-600"></i>
+                            B. Total Belanja Operasional Unit:
+                        </span>
+                        <span class="num-col text-amber-700">Rp&nbsp;{{ number_format($data['total_ops_period'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm font-black text-black pt-2 border-t-2 border-black">
+                        <span class="uppercase">TOTAL BELANJA {{ strtoupper($data['school']->name) }} (SDM + OPERASIONAL):</span>
+                        <span class="num-col text-red-700 text-base font-black">Rp&nbsp;{{ number_format($data['grand_total_period'], 0, ',', '.') }}</span>
+                    </div>
+                </div>
                 </div>
             </div>
         @endforeach
