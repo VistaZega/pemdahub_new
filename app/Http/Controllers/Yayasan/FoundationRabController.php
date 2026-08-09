@@ -263,19 +263,26 @@ class FoundationRabController extends Controller
                     
                 $studentCount = count($studentIds);
                 
-                // Tarif SPP diambil dari tagihan SPP yang dibuat oleh Bendahara
-                $billRate = null;
+                // Tarif SPP diambil dari nominal tagihan SPP resmi yang dibuat oleh Bendahara (Bilangan Bulat)
+                $sppMonthlyRate = round($defaultSppRate);
+                $sppSource = $masterSppType ? 'Master SPP Bendahara' : 'Belum Set';
+
                 if (!empty($studentIds) && $masterSppType) {
-                    $billRate = StudentBill::whereIn('student_id', $studentIds)
+                    $mostCommonBill = StudentBill::whereIn('student_id', $studentIds)
                         ->where('academic_year_id', $currentYear->id ?? 0)
                         ->where('payment_type_id', $masterSppType->id)
-                        ->avg('amount');
+                        ->selectRaw('amount, COUNT(*) as cnt')
+                        ->groupBy('amount')
+                        ->orderBy('cnt', 'desc')
+                        ->value('amount');
+
+                    if ($mostCommonBill && $mostCommonBill > 0) {
+                        $sppMonthlyRate = round((float) $mostCommonBill);
+                        $sppSource = 'Tagihan SPP Bendahara';
+                    }
                 }
 
-                $sppMonthlyRate = ($billRate && $billRate > 0) ? (float) $billRate : $defaultSppRate;
-                $sppSource = ($billRate && $billRate > 0) ? 'Tagihan SPP Bendahara' : ($masterSppType ? 'Master SPP Bendahara' : 'Belum Set');
-
-                $incomeMonthly = $studentCount * $sppMonthlyRate;
+                $incomeMonthly = round($studentCount * $sppMonthlyRate);
                 
                 $levelsData[] = [
                     'level' => $level,
