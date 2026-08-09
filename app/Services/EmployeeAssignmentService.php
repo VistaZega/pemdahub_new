@@ -301,9 +301,9 @@ class EmployeeAssignmentService
         foreach ($positions as $position) {
             $pklHours = (int) ($position->pivot->pkl_supervisor_hours ?? 0);
             if ($pklHours > 0) {
-                // Gunakan rate override per assignment jika ada, fallback ke setting global
+                // Gunakan rate override per assignment jika ada (dan bukan default 43000), fallback ke setting global
                 $rateForThisPos = (float) ($position->pivot->pkl_honor_rate ?? 0);
-                $effectiveRate = ($rateForThisPos > 0) ? $rateForThisPos : $pklHonorRate;
+                $effectiveRate = ($rateForThisPos > 0 && $rateForThisPos != self::DEFAULT_PKL_HONOR_RATE) ? $rateForThisPos : $pklHonorRate;
                 $pklSupervisorHours += $pklHours;
                 $honorPkl += $pklHours * $effectiveRate;
             }
