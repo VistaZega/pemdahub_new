@@ -2,10 +2,10 @@
 
 /**
  * Script Diagnostik Pegawai Perbantuan SMK
- * Akses: https://perguruanpembda.com/list_cross_smk.php?token=pembda2026check
+ * Akses: https://perguruanpembda.com/list_cross_smk.php?secret=pembda99
  */
 
-if (($_GET['token'] ?? '') !== 'pembda2026check' && ($_GET['secret'] ?? '') !== 'pembda99') {
+if (($_GET['secret'] ?? '') !== 'pembda99') {
     die('Access Denied');
 }
 
@@ -23,10 +23,6 @@ $smk = School::where('type', 'LIKE', '%SMK%')->orWhere('name', 'LIKE', '%SMK%')-
 $activeYear = AcademicYear::where('is_active', true)->first();
 $activeSemester = Semester::where('is_active', true)->first();
 $service = app(EmployeeAssignmentService::class);
-
-if (!$smk || !$activeYear || !$activeSemester) {
-    die('Data sekolah SMK atau Tahun Pelajaran / Semester Aktif tidak ditemukan.');
-}
 
 $allEmployees = Employee::with(['activePositions', 'teacher', 'school'])
     ->where('is_active', true)
@@ -55,14 +51,12 @@ foreach ($allEmployees as $emp) {
 
         $homeName = $emp->school ? $emp->school->name : 'Yayasan / Unit Lain';
 
-        // Check positions in SMK
         $smkPositions = $emp->activePositions()
             ->where('positions.school_id', $smk->id)
             ->get()
             ->pluck('position_name')
             ->join(', ');
 
-        // Check teaching assignments in SMK
         $teachingHours = 0;
         if ($emp->teacher) {
             $assignments = \App\Models\TeachingAssignment::where('teacher_id', $emp->teacher->id)
@@ -76,10 +70,10 @@ foreach ($allEmployees as $emp) {
         $crossEmployees[] = [
             'name' => $emp->full_name,
             'code' => $emp->employee_code ?? '-',
-            'type' => $emp->employee_type,
             'status' => $emp->employment_status,
+            'type' => $emp->employee_type,
             'home_unit' => $homeName,
-            'smk_position' => $smkPositions ?: '-',
+            'smk_positions' => $smkPositions ?: '-',
             'teaching_hours' => $teachingHours,
             'honor_mengajar' => $sal['honor_mengajar'] ?? 0,
             'tunjangan_jabatan' => $sal['tunjangan_jabatan'] ?? 0,
@@ -89,12 +83,17 @@ foreach ($allEmployees as $emp) {
     }
 }
 
+// Check also pure home employees who have assignments in other schools or vice versa
+$pureEmployeesCount = Employee::where('school_id', $smk->id)->where('is_active', true)->count();
+
 header('Content-Type: application/json');
 echo json_encode([
-    'school' => $smk->name,
+    'school_smk_id' => $smk->id,
+    'school_smk_name' => $smk->name,
     'academic_year' => $activeYear->year,
     'semester' => $activeSemester->semester_name,
+    'pure_smk_employees_count' => $pureEmployeesCount,
     'cross_employees_count' => count($crossEmployees),
     'total_cross_thp' => $totalCrossThp,
-    'employees' => $crossEmployees,
+    'cross_employees' => $crossEmployees,
 ], JSON_PRETTY_PRINT);
