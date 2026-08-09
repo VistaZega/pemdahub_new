@@ -102,8 +102,8 @@
             width: 0; min-width: 0; opacity: 0; overflow: hidden;
         }
         
-        /* ── Desktop ── */
-        @media (min-width: 1024px) {
+        /* ── Desktop (768px and above) ── */
+        @media (min-width: 768px) {
             #{{ $sidebarId }} {
                 height: calc(100vh - 62px);
                 position: sticky;
@@ -147,8 +147,8 @@
         .menu-group-toggle .chevron { transition: transform .2s ease; }
         .menu-group-toggle.open .chevron { transform: rotate(90deg); }
 
-        /* ── Mobile ── */
-        @media (max-width: 1023px) {
+        /* ── Mobile (Below 768px) ── */
+        @media (max-width: 767px) {
             #{{ $sidebarId }} {
                 position: fixed !important; left: -320px; top: 0 !important; bottom: 0 !important; z-index: 9999;
                 width: 280px !important; min-width: 280px !important;
@@ -343,7 +343,7 @@
         <aside id="{{ $sidebarId }}" class="bg-white border-r border-gray-200 flex-shrink-0 collapsed">
             <div class="p-4 space-y-1">
                 <!-- Mobile Close Button -->
-                <button type="button" class="lg:hidden w-full flex items-center justify-between px-3 py-2 bg-gray-100 rounded-xl text-gray-600 mb-4 font-bold" onclick="document.getElementById('sidebar-toggle').click()">
+                <button type="button" class="md:hidden w-full flex items-center justify-between px-3 py-2 bg-gray-100 rounded-xl text-gray-600 mb-4 font-bold" onclick="document.getElementById('sidebar-toggle').click()">
                     <span>Tutup Menu</span>
                     <i class="fas fa-times"></i>
                 </button>
@@ -357,7 +357,7 @@
             (function() {
                 const sidebarId  = '{{ $sidebarId }}';
                 const storageKey = '{{ $storageKey }}';
-                if (window.innerWidth >= 1024 && localStorage.getItem(storageKey) === 'false') {
+                if (window.innerWidth >= 768 && localStorage.getItem(storageKey) === 'false') {
                     const btn = document.getElementById('sidebar-toggle');
                     const sb = document.getElementById(sidebarId);
                     if (btn && sb) {
@@ -394,7 +394,7 @@
         const backdrop = document.getElementById('sidebar-backdrop');
         if (!toggle || !sidebar) return;
 
-        const isMobile = () => window.innerWidth < 1024;
+        const isMobile = () => window.innerWidth < 768;
 
         toggle.addEventListener('click', function (e) {
             e.preventDefault();
@@ -407,6 +407,9 @@
                 sidebar.classList.toggle('collapsed');
                 toggle.classList.toggle('is-active');
                 localStorage.setItem(storageKey, sidebar.classList.contains('collapsed'));
+                setTimeout(() => {
+                    window.dispatchEvent(new Event('resize'));
+                }, 150);
             }
         });
 
