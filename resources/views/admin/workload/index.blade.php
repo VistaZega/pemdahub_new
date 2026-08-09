@@ -260,10 +260,17 @@
                                             );
                                         @endphp
                                         <div class="mt-1.5 border-t border-gray-100 pt-1.5">
-                                            <p class="text-[10px] text-gray-500 group-hover:text-gray-800 font-semibold transition-colors">
-                                                {{ $honorData['jam_mengajar'] }} | {{ $honorData['jam_wajib'] }} | {{ $honorData['jam_honor'] }} | {{ $honorData['jam_honor'] }} x Rp&nbsp;{{ number_format($honorData['honor_per_jam'], 0, ',', '.') }}
-                                            </p>
-                                            <p class="text-[9px] text-gray-400 group-hover:text-gray-600 font-medium transition-colors">Jam Tugas | Wajib | Lebih</p>
+                                            @if($honorData['is_fixed'] ?? false)
+                                                <p class="text-[10px] text-purple-600 font-bold transition-colors">
+                                                    Honor Tetap Kesepakatan
+                                                </p>
+                                                <p class="text-[9px] text-gray-400 font-medium transition-colors">{{ $honorData['jam_mengajar'] }} JP | Rp {{ number_format($honorData['honor_total'], 0, ',', '.') }}</p>
+                                            @else
+                                                <p class="text-[10px] text-gray-500 group-hover:text-gray-800 font-semibold transition-colors">
+                                                    {{ $honorData['jam_mengajar'] }} | {{ $honorData['jam_wajib'] }} | {{ $honorData['jam_honor'] }} | {{ $honorData['jam_honor'] }} x Rp&nbsp;{{ number_format($honorData['honor_per_jam'], 0, ',', '.') }}
+                                                </p>
+                                                <p class="text-[9px] text-gray-400 group-hover:text-gray-600 font-medium transition-colors">Jam Tugas | Wajib | Lebih</p>
+                                            @endif
                                         </div>
                                     @endif
 

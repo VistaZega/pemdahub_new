@@ -127,6 +127,24 @@ class EmployeeAssignmentService
         ?int $schoolId = null,
         ?Employee $employee = null
     ): array {
+        // Aturan Khusus untuk Yulianus Zega (PTY-001): Honor Mengajar bersifat Honor Tetap Kesepakatan Rp 2.500.000
+        $isYulianusZega = $employee && (
+            $employee->employee_code === 'PTY-001' || 
+            str_contains(strtolower($employee->full_name), 'yulianus zega')
+        );
+
+        if ($isYulianusZega) {
+            return [
+                'jam_mengajar' => $totalJamMengajar,
+                'jam_wajib' => 0,
+                'jam_honor' => $totalJamMengajar,
+                'honor_per_jam' => 0,
+                'honor_total' => 2500000,
+                'is_fixed' => true,
+                'note' => 'Honor Tetap Kesepakatan',
+            ];
+        }
+
         $rules = $this->getJamHonorRules($schoolLevel, $schoolId);
 
         // Determine jam_wajib and honor_per_jam based on employment status & employee type
