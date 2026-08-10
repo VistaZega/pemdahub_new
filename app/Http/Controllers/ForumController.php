@@ -1192,7 +1192,7 @@ class ForumController extends Controller
     public function resetPuzzle(Request $request)
     {
         $user = Auth::user();
-        if (!$user || $user->role !== 'admin') {
+        if (!$user || (!$user->isAdmin() && !$user->isSuperAdmin() && $user->role !== 'admin')) {
             return response()->json(['success' => false, 'message' => 'Hanya admin yang bisa mereset puzzle']);
         }
 

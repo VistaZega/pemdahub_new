@@ -322,39 +322,34 @@
                             <!-- Right: Board -->
                             <div class="w-full md:w-2/3 bg-slate-100 rounded-xl border border-slate-200 p-3 flex flex-col items-center justify-center relative overflow-hidden">
                                 <div class="w-full flex items-center justify-between mb-3">
-                                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5" x-text="`${puzzle.title} (${puzzle.progress.percentage}%)`"></h3>
-                                    <button @click="showReference = !showReference" 
-                                            class="text-[11px] font-bold px-2.5 py-1 rounded-lg border transition flex items-center gap-1"
-                                            :class="showReference ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'">
-                                        <i class="ph-bold ph-eye"></i>
-                                        <span x-text="showReference ? 'Sembunyikan Petunjuk' : 'Intip Bayangan'"></span>
+                                    <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5" x-text="`${puzzle.title} (${puzzle.progress.percentage}%)`"></h3>
+                                    <button @click="showTargetModal = true" 
+                                            class="text-[11px] font-bold px-2.5 py-1 rounded-lg border border-indigo-200 bg-white text-indigo-600 hover:bg-indigo-50 transition flex items-center gap-1 shadow-sm">
+                                        <i class="ph-bold ph-image"></i>
+                                        <span>Lihat Gambar Kunci</span>
                                     </button>
                                 </div>
                                 
-                                <div class="w-full max-w-[500px] relative shadow-md bg-white border border-slate-300 rounded-xl overflow-hidden">
+                                <div class="w-full max-w-[500px] relative shadow-md bg-slate-200 border border-slate-300 rounded-xl overflow-hidden">
                                     <!-- Aspect ratio hack -->
                                     <div :style="`padding-bottom: ${(puzzle.grid_y / puzzle.grid_x) * 100}%;`"></div>
                                     
-                                    <!-- Faint Background Overlay Reference Image -->
-                                    <div class="absolute inset-0 bg-cover bg-no-repeat transition-opacity duration-300 pointer-events-none"
-                                         :class="showReference ? 'opacity-40' : 'opacity-20'"
-                                         :style="`background-image: url(${puzzle.image_url});`"></div>
-
-                                    <div class="absolute inset-0"
+                                    <div class="absolute inset-0 bg-slate-200"
                                          :style="`display: grid; grid-template-columns: repeat(${puzzle.grid_x}, 1fr); grid-template-rows: repeat(${puzzle.grid_y}, 1fr);`">
                                         <template x-for="(piece, i) in board" :key="'board-'+i">
-                                        <div class="w-full h-full border-[0.5px] border-slate-300/40 relative group cursor-pointer"
+                                        <div class="w-full h-full border-[0.5px] border-slate-300 relative group cursor-pointer"
                                              @click="placeAt(i)">
                                              
                                             <!-- Empty Slot -->
                                             <div x-show="!piece" 
-                                                 class="absolute inset-0 hover:bg-indigo-500/25 transition flex items-center justify-center"
-                                                 :class="selectedPiece !== null ? 'hover:ring-2 hover:ring-indigo-500 z-10' : ''">
-                                                <i x-show="selectedPiece !== null" class="ph-bold ph-plus text-indigo-600 text-xs drop-shadow-sm"></i>
+                                                 class="absolute inset-0 bg-slate-100 hover:bg-indigo-100/70 transition flex flex-col items-center justify-center"
+                                                 :class="selectedPiece !== null ? 'hover:ring-2 hover:ring-indigo-500 hover:bg-indigo-100 z-10' : ''">
+                                                <span class="text-[9px] font-bold text-slate-300 select-none" x-text="i + 1"></span>
+                                                <i x-show="selectedPiece !== null" class="ph-bold ph-plus text-indigo-600 text-xs drop-shadow-sm mt-0.5"></i>
                                             </div>
                                             
                                             <!-- Placed Piece -->
-                                            <div x-show="piece" class="absolute inset-0 shadow-[inset_0_0_2px_rgba(0,0,0,0.2)]"
+                                            <div x-show="piece" class="absolute inset-0 shadow-[inset_0_0_1px_rgba(0,0,0,0.3)] z-10"
                                                  :style="`background-image: url(${puzzle.image_url}); background-size: ${puzzle.grid_x * 100}% ${puzzle.grid_y * 100}%; background-position: ${getBgPos(i)};`">
                                             </div>
                                             
@@ -375,6 +370,25 @@
                             <span>Sedang memuat puzzle...</span>
                         </div>
                     </template>
+                </div>
+
+                <!-- Target Image Modal -->
+                <div x-show="showTargetModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
+                    <div @click.away="showTargetModal = false" class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <h3 class="forum-hdr text-base font-bold text-slate-800 flex items-center gap-2">
+                                <i class="ph-bold ph-image text-indigo-500"></i>
+                                Gambar Kunci Puzzle (Hasil Akhir)
+                            </h3>
+                            <button @click="showTargetModal = false" class="text-slate-400 hover:text-slate-700 p-1"><i class="ph-bold ph-x text-lg"></i></button>
+                        </div>
+                        <div class="p-4 flex flex-col items-center gap-3">
+                            <template x-if="puzzle">
+                                <img :src="puzzle.image_url" :alt="puzzle.title" class="max-h-[350px] w-auto object-contain rounded-xl border border-slate-200 shadow-md">
+                            </template>
+                            <p class="text-xs text-slate-500 text-center font-medium">Ini adalah gambar utuh yang sedang disusun bersama. Cocokkan kepingan yang ada di daftar dengan bagian gambar ini!</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Guide Modal -->
@@ -731,6 +745,7 @@ function pembdaColabs() {
         pieces: [],
         hasPlacedToday: false,
         showGuide: false,
+        showTargetModal: false,
         showReference: true,
         isCollapsed: false,
         selectedPiece: null, 
