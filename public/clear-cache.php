@@ -100,6 +100,17 @@ try {
             echo "<span class='ok'>✅ LMS Video Links (YouTube ID) Auto-Repaired successfully</span>\n";
         }
 
+        // Auto-migrate & seed Pembda Tower (Menara Prestasi)
+        if (!\Illuminate\Support\Facades\Schema::hasTable('pembda_tower_bricks')) {
+            try {
+                $output = new \Symfony\Component\Console\Output\BufferedOutput();
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true], $output);
+                echo "<span class='ok'>🏰 Pembda Tower Tables Migrated successfully</span>\n";
+            } catch (\Exception $e) {
+                echo "<span class='warn'>⚠️ Tower Migration Warning: " . $e->getMessage() . "</span>\n";
+            }
+        }
+
         if (\Illuminate\Support\Facades\Schema::hasTable('puzzles') && \Illuminate\Support\Facades\Schema::hasTable('puzzle_pieces')) {
             $latestPuzzle = \App\Models\Puzzle::latest()->first();
             if (!$latestPuzzle) {

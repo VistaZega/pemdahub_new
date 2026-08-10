@@ -245,6 +245,198 @@
 
 
 
+            <!-- Pembda Tower (Menara Prestasi) Widget -->
+            <div class="mb-6 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm" x-data="pembdaTower()">
+                <!-- Header Bar -->
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-amber-500/10 via-indigo-50/50 to-purple-50/50 cursor-pointer hover:bg-amber-50/50 transition" @click="toggleCollapse()">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 flex items-center justify-center shadow-md shadow-amber-200 text-white font-black text-xl">
+                            🧱
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="forum-hdr text-lg font-bold text-slate-800 tracking-tight leading-tight">Menara Prestasi Pembda</h2>
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1">
+                                    <span>Tinggi:</span> <span x-text="stats.total_height + ' Lantai'"></span>
+                                </span>
+                            </div>
+                            <span class="text-xs text-slate-500 hidden sm:inline">Bersama membangun menara motivasi & cita-cita Perguruan Pembda. 1 Bata / Hari.</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2" @click.stop>
+                        <button @click="showBuildModal = true" 
+                                class="text-xs font-extrabold px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md shadow-amber-200 hover:shadow-lg transition flex items-center gap-1.5 active:scale-95">
+                            <i class="ph-bold ph-plus-circle text-sm"></i>
+                            <span>Pasang Bata Saya</span>
+                        </button>
+                        <button @click="toggleCollapse()" class="text-slate-400 hover:text-slate-700 transition p-1.5 bg-slate-100 rounded-lg">
+                            <i class="ph-bold ph-caret-down transition-transform duration-300" :class="isCollapsed ? '' : 'rotate-180'"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Body / Tower Wall -->
+                <div x-show="!isCollapsed" x-transition.opacity.duration.300ms class="p-4 bg-slate-50/80">
+                    <!-- Status Banner -->
+                    <div x-show="statusMessage" x-transition.opacity
+                         class="mb-4 p-3 rounded-xl text-sm font-semibold flex items-center justify-between shadow-sm bg-emerald-50 border border-emerald-200 text-emerald-800">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-check-circle text-emerald-600 text-lg"></i>
+                            <span x-text="statusMessage"></span>
+                        </div>
+                        <button @click="statusMessage = ''" class="text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
+                    </div>
+
+                    <!-- Daily Status Banner -->
+                    <div x-show="hasPlacedToday" class="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs font-bold text-indigo-800 flex items-center justify-between shadow-sm">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-seal-check text-indigo-600 text-lg"></i>
+                            <span>Bata motivasi Anda telah terpasang hari ini di Menara Prestasi! (+10 Poin Tambahan)</span>
+                        </div>
+                        <span class="text-[10px] bg-indigo-200/80 text-indigo-900 px-2 py-0.5 rounded-full font-extrabold">Jatah Hari Ini Selesai</span>
+                    </div>
+
+                    <!-- Tower Wall Masonry Display -->
+                    <div class="relative max-h-[380px] overflow-y-auto no-scrollbar p-3 bg-gradient-to-b from-slate-100 to-slate-200/80 rounded-2xl border border-slate-200/80 shadow-inner flex flex-col-reverse gap-2">
+                        <!-- Top Tower Cap / Spire Badge -->
+                        <div class="text-center py-2 bg-amber-500/10 border border-amber-300/40 rounded-xl mb-1">
+                            <span class="text-xs font-black text-amber-700 flex items-center justify-center gap-1.5 uppercase tracking-wider">
+                                👑 Puncak Menara Prestasi Pembda 👑
+                            </span>
+                        </div>
+
+                        <!-- Bricks Grid (3 bricks per row, stacked vertically) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                            <template x-for="b in bricks" :key="'brick-'+b.id">
+                                <div @click="selectedBrick = b"
+                                     class="p-3.5 rounded-xl border transition-all duration-200 cursor-pointer relative shadow-sm hover:shadow-md hover:-translate-y-0.5 group"
+                                     :class="{
+                                         'bg-gradient-to-r from-indigo-600 to-indigo-700 border-indigo-500 text-white': b.color === 'indigo',
+                                         'bg-gradient-to-r from-emerald-600 to-teal-700 border-emerald-500 text-white': b.color === 'emerald',
+                                         'bg-gradient-to-r from-amber-500 to-orange-600 border-amber-400 text-white': b.color === 'amber',
+                                         'bg-gradient-to-r from-rose-600 to-pink-700 border-rose-500 text-white': b.color === 'rose',
+                                         'bg-gradient-to-r from-purple-600 to-violet-700 border-purple-500 text-white': b.color === 'purple',
+                                         'bg-gradient-to-r from-cyan-600 to-blue-700 border-cyan-500 text-white': b.color === 'cyan'
+                                     }">
+                                    
+                                    <!-- Brick Header -->
+                                    <div class="flex items-center justify-between mb-1.5 text-[11px] opacity-90">
+                                        <span class="font-black px-1.5 py-0.5 bg-black/20 rounded text-[10px]" x-text="'#' + b.brick_number"></span>
+                                        <span class="font-bold truncate max-w-[120px]" x-text="b.user_name"></span>
+                                    </div>
+
+                                    <!-- Message Quote -->
+                                    <p class="text-xs font-semibold line-clamp-2 leading-relaxed mb-2" x-text="`“${b.message}”`"></p>
+
+                                    <!-- Brick Footer -->
+                                    <div class="flex items-center justify-between text-[10px] opacity-80 pt-1.5 border-t border-white/20">
+                                        <span class="font-medium" x-text="b.school_name"></span>
+                                        <button @click.stop="toggleLike(b)" 
+                                                class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/20 hover:bg-black/30 transition text-white"
+                                                :class="b.is_liked ? 'text-rose-200 font-bold' : ''">
+                                            <i class="ph-bold ph-heart" :class="b.is_liked ? 'text-rose-300 fill-current' : ''"></i>
+                                            <span x-text="b.likes_count"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Build Brick Modal -->
+                <div x-show="showBuildModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
+                    <div @click.away="showBuildModal = false" class="bg-white border border-slate-200 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-amber-50 to-orange-50">
+                            <h3 class="forum-hdr text-base font-bold text-slate-800 flex items-center gap-2">
+                                <span>🧱</span>
+                                <span>Pasang Bata Motivasi Saya</span>
+                            </h3>
+                            <button @click="showBuildModal = false" class="text-slate-400 hover:text-slate-700 p-1"><i class="ph-bold ph-x text-lg"></i></button>
+                        </div>
+
+                        <div class="p-5 space-y-4 text-sm text-slate-700">
+                            <div x-show="hasPlacedToday" class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs font-bold text-amber-900 text-center">
+                                ⚠️ Anda sudah meletakkan bata hari ini. Setiap pengguna memiliki 1 jatah bata per hari.
+                            </div>
+
+                            <div :class="hasPlacedToday ? 'opacity-50 pointer-events-none' : ''">
+                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Pesan Motivasi & Harapan (Maks 140 Karakter):</label>
+                                <textarea x-model="formMessage" 
+                                          maxlength="140" 
+                                          rows="3" 
+                                          placeholder="Contoh: Semangat belajar untuk angkatan 2026! Perguruan Pembda Nias Jaya selalu."
+                                          class="w-full p-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition resize-none"></textarea>
+                                <div class="text-right text-[10px] text-slate-400 mt-1" x-text="formMessage.length + ' / 140 karakter'"></div>
+                            </div>
+
+                            <div :class="hasPlacedToday ? 'opacity-50 pointer-events-none' : ''">
+                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Pilih Warna Bata Anda:</label>
+                                <div class="grid grid-cols-6 gap-2">
+                                    <template x-for="c in ['indigo', 'emerald', 'amber', 'rose', 'purple', 'cyan']">
+                                        <button @click="formColor = c" 
+                                                type="button" 
+                                                class="h-9 rounded-lg border-2 transition transform active:scale-95 flex items-center justify-center text-white"
+                                                :class="{
+                                                    'ring-2 ring-offset-1 ring-slate-800 scale-105': formColor === c,
+                                                    'bg-indigo-600 border-indigo-700': c === 'indigo',
+                                                    'bg-emerald-600 border-emerald-700': c === 'emerald',
+                                                    'bg-amber-500 border-amber-600': c === 'amber',
+                                                    'bg-rose-600 border-rose-700': c === 'rose',
+                                                    'bg-purple-600 border-purple-700': c === 'purple',
+                                                    'bg-cyan-600 border-cyan-700': c === 'cyan'
+                                                }">
+                                            <i x-show="formColor === c" class="ph-bold ph-check text-sm"></i>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                                <button @click="showBuildModal = false" type="button" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700">Batal</button>
+                                <button @click="submitBrick()" 
+                                        type="button" 
+                                        :disabled="hasPlacedToday || isSubmitting || !formMessage.trim()"
+                                        class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-xs shadow-md disabled:opacity-50 transition flex items-center gap-1.5">
+                                    <i x-show="isSubmitting" class="ph-bold ph-spinner animate-spin"></i>
+                                    <span>🧱 Pasang Bata ke Puncak</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detail Brick Modal -->
+                <div x-show="selectedBrick" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
+                    <div @click.away="selectedBrick = null" class="bg-white border border-slate-200 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <span class="text-xs font-extrabold text-slate-500" x-text="selectedBrick ? ('Bata #' + selectedBrick.brick_number) : ''"></span>
+                            <button @click="selectedBrick = null" class="text-slate-400 hover:text-slate-700 p-1"><i class="ph-bold ph-x text-lg"></i></button>
+                        </div>
+                        <div class="p-5 flex flex-col items-center text-center gap-3" x-if="selectedBrick">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md"
+                                 :class="{
+                                     'bg-indigo-600': selectedBrick.color === 'indigo',
+                                     'bg-emerald-600': selectedBrick.color === 'emerald',
+                                     'bg-amber-500': selectedBrick.color === 'amber',
+                                     'bg-rose-600': selectedBrick.color === 'rose',
+                                     'bg-purple-600': selectedBrick.color === 'purple',
+                                     'bg-cyan-600': selectedBrick.color === 'cyan'
+                                 }">🧱</div>
+                            
+                            <p class="text-sm font-bold text-slate-800 italic" x-text="`“${selectedBrick.message}”`"></p>
+
+                            <div class="pt-3 border-t border-slate-100 w-full text-xs text-slate-500">
+                                <div>Diletakkan oleh: <strong class="text-slate-800" x-text="selectedBrick.user_name"></strong></div>
+                                <div>Unit: <span class="font-semibold text-indigo-600" x-text="selectedBrick.school_name"></span></div>
+                                <div class="text-[10px] text-slate-400 mt-1" x-text="selectedBrick.time_ago"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Feed List -->
             <div class="space-y-4 pb-10">
                 @forelse($threads as $thread)
@@ -779,6 +971,117 @@ function triggerPwaInstall() {
         });
     } else {
         document.getElementById('pwaGuideModal').style.display = 'flex';
+    }
+}
+
+function pembdaTower() {
+    return {
+        stats: { total_bricks: 0, total_height: 0 },
+        bricks: [],
+        hasPlacedToday: false,
+        isCollapsed: false,
+        showBuildModal: false,
+        selectedBrick: null,
+        statusMessage: '',
+        statusType: 'info',
+        
+        // Form data
+        formMessage: '',
+        formColor: 'indigo',
+        isSubmitting: false,
+
+        async init() {
+            const savedState = localStorage.getItem('pembdaTowerCollapsed');
+            if (savedState !== null) this.isCollapsed = savedState === 'true';
+            
+            await this.fetchState();
+            setInterval(() => {
+                if (!this.isCollapsed) this.fetchState();
+            }, 6000);
+        },
+
+        setStatus(msg, type = 'info') {
+            this.statusMessage = msg;
+            this.statusType = type;
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    if (this.statusMessage === msg) this.statusMessage = '';
+                }, 6000);
+            }
+        },
+
+        async fetchState() {
+            try {
+                const res = await fetch('{{ route("forum.tower.state") }}?_t=' + Date.now());
+                const data = await res.json();
+                if (data.success) {
+                    this.stats = data.stats;
+                    this.bricks = data.bricks || [];
+                    this.hasPlacedToday = !!data.has_placed_today;
+                }
+            } catch(e) {}
+        },
+
+        toggleCollapse() {
+            this.isCollapsed = !this.isCollapsed;
+            localStorage.setItem('pembdaTowerCollapsed', this.isCollapsed);
+            if (!this.isCollapsed) this.fetchState();
+        },
+
+        async submitBrick() {
+            if (!this.formMessage.trim()) {
+                alert("Silakan tulis pesan motivasi singkat Anda.");
+                return;
+            }
+
+            this.isSubmitting = true;
+            try {
+                const res = await fetch('{{ route("forum.tower.place") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-XSRF-TOKEN': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        message: this.formMessage,
+                        color: this.formColor
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    this.formMessage = '';
+                    this.showBuildModal = false;
+                    this.setStatus(data.message, 'success');
+                    await this.fetchState();
+                } else {
+                    alert(data.message);
+                }
+            } catch(e) {
+                alert("Terjadi kesalahan koneksi saat memasang bata.");
+            } finally {
+                this.isSubmitting = false;
+            }
+        },
+
+        async toggleLike(brick) {
+            try {
+                const res = await fetch('/forum/tower/like/' + brick.id, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-XSRF-TOKEN': getCsrfToken()
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    brick.is_liked = data.liked;
+                    brick.likes_count = data.likes_count;
+                }
+            } catch(e) {}
+        }
     }
 }
 </script>

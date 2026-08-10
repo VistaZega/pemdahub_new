@@ -979,13 +979,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', [App\Http\Controllers\ForumController::class, 'create'])->name('create');
         Route::post('/store', [App\Http\Controllers\ForumController::class, 'store'])->name('store');
         
-        // Pembda Place & Colabs (MUST BE BEFORE /{thread})
-        Route::get('/place/canvas', [App\Http\Controllers\ForumController::class, 'getPlaceCanvas'])->name('place.canvas');
-        Route::post('/place/draw', [App\Http\Controllers\ForumController::class, 'drawPlacePixel'])->name('place.draw');
-        Route::get('/place/updates', [App\Http\Controllers\ForumController::class, 'getPlaceUpdates'])->name('place.updates');
-        Route::get('/puzzle', [App\Http\Controllers\ForumController::class, 'getPuzzleState'])->name('puzzle.state');
-        Route::post('/puzzle/place', [App\Http\Controllers\ForumController::class, 'placePuzzlePiece'])->name('puzzle.place');
-        Route::post('/puzzle/reset', [App\Http\Controllers\ForumController::class, 'resetPuzzle'])->name('puzzle.reset');
+        // Pembda Tower (Menara Prestasi)
+        Route::get('/tower/state', [App\Http\Controllers\TowerController::class, 'getState'])->name('tower.state');
+        Route::post('/tower/brick', [App\Http\Controllers\TowerController::class, 'placeBrick'])->name('tower.place');
+        Route::post('/tower/like/{id}', [App\Http\Controllers\TowerController::class, 'likeBrick'])->name('tower.like');
         Route::get('/{thread}', [App\Http\Controllers\ForumController::class, 'show'])->name('show');
         Route::post('/{thread}/reply', [App\Http\Controllers\ForumController::class, 'reply'])->name('reply');
         Route::post('/{thread}/like', [App\Http\Controllers\ForumController::class, 'like'])->name('like');
