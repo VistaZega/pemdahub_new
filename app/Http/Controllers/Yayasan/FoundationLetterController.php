@@ -108,10 +108,16 @@ class FoundationLetterController extends Controller
             <li>Kepala Sekolah bertanggung jawab penuh atas rekapitulasi kehadiran fisik serta ketertiban barisan unit sekolah masing-masing.</li>
         </ul>
     </li>
+
+    <li><strong>PERSIAPAN UNIT SEKOLAH (SMP, SMA, SMK)</strong>
+        <ul>
+            <li>Masing-masing Kepala Sekolah beserta seluruh jajaran unit sekolah (SMP Swasta Pembda 2, SMA Swasta Pembda 1, dan SMK Swasta Pembda Nias) diwajibkan untuk segera melakukan persiapan internal secara optimal sesuai dengan seluruh petunjuk dalam Surat Edaran ini (termasuk koordinasi latihan Paskibraka, latihan Paduan Suara, latihan Marchingband, kerapian seragam siswa, serta kesiapan perangkat presensi digital).</li>
+        </ul>
+    </li>
 </ol>
 
 <p><strong>PENUTUP:</strong><br>
-Mengingat pentingnya acara ini sebagai wujud penghormatan, jiwa nasionalisme, dan rasa syukur atas kemerdekaan Bangsa Indonesia, kehadiran Bapak/Ibu serta seluruh siswa/siswi sekalian tepat pada waktunya sangat diharapkan. Atas perhatian, kehadiran, dan kerja sama yang baik, kami ucapkan terima kasih.</p>
+Mengingat pentingnya acara ini sebagai wujud penghormatan, jiwa nasionalisme, dan rasa syukur atas kemerdekaan Bangsa Indonesia, kehadiran dan persiapan matang seluruh unit sekolah tepat pada waktunya sangat diharapkan. Atas perhatian, kehadiran, dan kerja sama yang baik, kami ucapkan terima kasih.</p>
 
 <p><em>Merdeka! Merdeka! Merdeka!</em></p>';
         } elseif ($preset === 'standar_input') {
