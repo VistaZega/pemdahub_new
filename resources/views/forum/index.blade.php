@@ -742,15 +742,13 @@ async function toggleLike(btn, url) {
 function pembdaColabs() {
     return {
         puzzle: null,
-        pieces: [],
+        board: [],
+        inventory: [],
         hasPlacedToday: false,
+        selectedPiece: null,
         showGuide: false,
         showTargetModal: false,
-        showReference: true,
         isCollapsed: false,
-        selectedPiece: null, 
-        inventory: [], 
-        board: [],
         statusMessage: '',
         statusType: 'info',
         
@@ -760,7 +758,7 @@ function pembdaColabs() {
             
             await this.fetchState();
             setInterval(() => {
-                if(!this.isCollapsed) this.fetchState();
+                if (!this.isCollapsed) this.fetchState();
             }, 5000);
         },
 
@@ -778,47 +776,25 @@ function pembdaColabs() {
             try {
                 const res = await fetch('{{ route("forum.puzzle.state") }}?_t=' + Date.now());
                 const data = await res.json();
-                if(data.success) {
+                if (data.success) {
                     this.puzzle = data.puzzle;
-                    this.hasPlacedToday = data.has_placed_today;
-                    this.pieces = data.pieces;
-                    this.rebuildBoard();
+                    this.board = data.board || [];
+                    this.inventory = data.inventory || [];
+                    this.hasPlacedToday = !!data.has_placed_today;
                 } else if (data.message) {
                     this.setStatus(data.message, 'error');
                 }
             } catch(e) {}
         },
         
-        rebuildBoard() {
-            if(!this.puzzle) return;
-            const total = this.puzzle.grid_x * this.puzzle.grid_y;
-            let newBoard = new Array(total).fill(null);
-            let placedIndices = new Set();
-            
-            (this.pieces || []).forEach(p => {
-                const isPlaced = p.is_placed === true || p.is_placed === 1 || p.is_placed === '1';
-                if(isPlaced) {
-                    newBoard[p.index] = p;
-                    placedIndices.add(p.index);
-                }
-            });
-            this.board = newBoard;
-            
-            let newInv = [];
-            for(let i=0; i<total; i++) {
-                if(!placedIndices.has(i)) newInv.push(i);
-            }
-            this.inventory = newInv.sort((a, b) => a - b);
-        },
-        
         toggleCollapse() {
             this.isCollapsed = !this.isCollapsed;
             localStorage.setItem('pembdaColabsCollapsed', this.isCollapsed);
-            if(!this.isCollapsed) this.fetchState();
+            if (!this.isCollapsed) this.fetchState();
         },
         
         getBgPos(index) {
-            if(!this.puzzle) return '0 0';
+            if (!this.puzzle) return '0 0';
             const col = index % this.puzzle.grid_x;
             const row = Math.floor(index / this.puzzle.grid_x);
             const x = this.puzzle.grid_x > 1 ? (col / (this.puzzle.grid_x - 1)) * 100 : 0;
@@ -827,7 +803,7 @@ function pembdaColabs() {
         },
         
         selectPiece(index) {
-            if(this.hasPlacedToday) {
+            if (this.hasPlacedToday) {
                 this.setStatus("Anda sudah meletakkan kepingan hari ini! Kembali lagi besok.", 'info');
                 return;
             }
@@ -840,7 +816,7 @@ function pembdaColabs() {
         },
         
         async placeAt(targetIndex) {
-            if(this.selectedPiece === null) {
+            if (this.selectedPiece === null) {
                 this.setStatus("Pilih kepingan dari daftar sebelah kiri terlebih dahulu!", 'info');
                 return;
             }
@@ -863,13 +839,12 @@ function pembdaColabs() {
                 });
                 
                 const data = await res.json();
-                if(data.success) {
+                if (data.success) {
                     this.selectedPiece = null;
                     this.hasPlacedToday = true;
                     this.setStatus(data.message, 'success');
-                    this.fetchState();
+                    await this.fetchState();
                 } else {
-                    // Position wrong: keep selectedPiece active so user can retry another slot easily!
                     this.setStatus(data.message, 'error');
                 }
             } catch(e) {
@@ -878,7 +853,7 @@ function pembdaColabs() {
         },
 
         async resetPuzzleAdmin() {
-            if(!confirm("Reset semua keping puzzle dan beri 10 keping acak awal dari sistem?")) return;
+            if (!confirm("Reset semua keping puzzle dan beri 10 keping acak awal dari sistem?")) return;
             try {
                 const res = await fetch('{{ route("forum.puzzle.reset") }}', {
                     method: 'POST',
@@ -889,10 +864,10 @@ function pembdaColabs() {
                     }
                 });
                 const data = await res.json();
-                if(data.success) {
+                if (data.success) {
                     this.selectedPiece = null;
                     this.setStatus(data.message, 'success');
-                    this.fetchState();
+                    await this.fetchState();
                 } else {
                     this.setStatus(data.message, 'error');
                 }

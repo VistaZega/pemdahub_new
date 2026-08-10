@@ -1053,13 +1053,13 @@ class ForumController extends Controller
     }
 
     // ==========================================
-    // PEMBDA COLABS (PUZZLE)
+    // PEMBDA COLABS (PUZZLE) - REBUILT CLEANLY
     // ==========================================
     public function getPuzzleState()
     {
+        // 1. Dapatkan puzzle aktif, jika belum ada buat puzzle default baru
         $puzzle = \App\Models\Puzzle::where('is_active', true)->latest()->first();
         if (!$puzzle) {
-            // Auto-create default active puzzle if none exists
             $puzzle = \App\Models\Puzzle::create([
                 'title' => 'Esports Championship (Minggu 1)',
                 'image_path' => 'puzzles/pembda_puzzle_1.png',
@@ -1067,11 +1067,20 @@ class ForumController extends Controller
                 'grid_y' => 5,
                 'is_active' => true,
             ]);
+        }
 
-            $totalPieces = $puzzle->grid_x * $puzzle->grid_y;
-            $piecesData = [];
+        // Nonaktifkan puzzle lain agar hanya 1 puzzle aktif di DB
+        \App\Models\Puzzle::where('id', '!=', $puzzle->id)->where('is_active', true)->update(['is_active' => false]);
+
+        $totalPieces = $puzzle->grid_x * $puzzle->grid_y;
+
+        // 2. Cek apakah kepingan sudah di-generate di DB (harus tepat 50 keping), jika tidak buat baru
+        $piecesCount = \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)->count();
+        if ($piecesCount !== $totalPieces) {
+            \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)->delete();
+            $newPieces = [];
             for ($i = 0; $i < $totalPieces; $i++) {
-                $piecesData[] = [
+                $newPieces[] = [
                     'puzzle_id' => $puzzle->id,
                     'piece_index' => $i,
                     'is_placed' => false,
@@ -1081,9 +1090,9 @@ class ForumController extends Controller
                     'updated_at' => now(),
                 ];
             }
-            \App\Models\PuzzlePiece::insert($piecesData);
+            \App\Models\PuzzlePiece::insert($newPieces);
 
-            // Give 10 random initial bonus pieces placed by System
+            // Beri 10 keping bonus awal dari sistem
             $bonusIds = \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)
                 ->inRandomOrder()
                 ->limit(10)
@@ -1095,20 +1104,33 @@ class ForumController extends Controller
             ]);
         }
 
-        $pieces = \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)
-                    ->with('user:id,name')
-                    ->get()
-                    ->map(function ($p) {
-                        return [
-                            'id' => (int) $p->id,
-                            'index' => (int) $p->piece_index,
-                            'is_placed' => (bool) ($p->is_placed == 1 || $p->is_placed === true || $p->is_placed === '1'),
-                            'placed_by' => $p->user ? $p->user->name : null,
-                            'placed_at' => $p->placed_at ? $p->placed_at->diffForHumans() : null,
-                        ];
-                    });
+        // 3. Ambil semua kepingan dari DB
+        $allPieces = \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)
+            ->with('user:id,name')
+            ->orderBy('piece_index', 'asc')
+            ->get();
 
-        // Check if current user has placed a piece today
+        // 4. Hitung dan susun array board & inventory langsung dari PHP Backend
+        $board = array_fill(0, $totalPieces, null);
+        $inventory = [];
+        $placedCount = 0;
+
+        foreach ($allPieces as $piece) {
+            $isPlaced = (bool) ($piece->is_placed == 1 || $piece->is_placed === true || $piece->is_placed === '1');
+            if ($isPlaced && $piece->piece_index >= 0 && $piece->piece_index < $totalPieces) {
+                $board[$piece->piece_index] = [
+                    'id' => (int) $piece->id,
+                    'index' => (int) $piece->piece_index,
+                    'placed_by' => $piece->user ? $piece->user->name : 'Sistem (Bonus)',
+                    'placed_at' => $piece->placed_at ? $piece->placed_at->diffForHumans() : null,
+                ];
+                $placedCount++;
+            } else {
+                $inventory[] = (int) $piece->piece_index;
+            }
+        }
+
+        // Cek apakah user saat ini sudah menaruh kepingan hari ini
         $user = Auth::user();
         $hasPlacedToday = false;
         if ($user) {
@@ -1118,18 +1140,23 @@ class ForumController extends Controller
                 ->exists();
         }
 
+        $percentage = $totalPieces > 0 ? round(($placedCount / $totalPieces) * 100) : 0;
+
         return response()->json([
             'success' => true,
             'puzzle' => [
-                'id' => $puzzle->id,
-                'title' => $puzzle->title,
+                'id' => (int) $puzzle->id,
+                'title' => (string) $puzzle->title,
                 'image_url' => asset('storage/' . $puzzle->image_path),
-                'grid_x' => $puzzle->grid_x,
-                'grid_y' => $puzzle->grid_y,
-                'progress' => $puzzle->progress,
+                'grid_x' => (int) $puzzle->grid_x,
+                'grid_y' => (int) $puzzle->grid_y,
+                'total_pieces' => $totalPieces,
+                'placed_pieces' => $placedCount,
+                'percentage' => $percentage,
             ],
-            'pieces' => $pieces,
-            'has_placed_today' => $hasPlacedToday,
+            'board' => $board,
+            'inventory' => $inventory,
+            'has_placed_today' => (bool) $hasPlacedToday,
         ])->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
           ->header('Pragma', 'no-cache')
           ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
@@ -1139,31 +1166,42 @@ class ForumController extends Controller
     {
         $user = Auth::user();
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Anda harus login']);
+            return response()->json(['success' => false, 'message' => 'Anda harus login untuk bermain']);
         }
 
         $validated = $request->validate([
-            'puzzle_id' => 'required|exists:puzzles,id',
+            'puzzle_id' => 'required|integer',
             'piece_index' => 'required|integer',
             'target_index' => 'required|integer',
         ]);
 
-        // Check if placed on correct index
-        if ($validated['piece_index'] !== $validated['target_index']) {
-            return response()->json(['success' => false, 'message' => 'Posisi salah! Coba letakkan di tempat yang benar. (Jatah harian Anda masih aman)']);
+        $puzzle = \App\Models\Puzzle::find($validated['puzzle_id']);
+        if (!$puzzle || !$puzzle->is_active) {
+            return response()->json(['success' => false, 'message' => 'Puzzle tidak aktif']);
         }
 
-        // Check if user already placed today
-        $hasPlacedToday = \App\Models\PuzzlePiece::where('puzzle_id', $validated['puzzle_id'])
+        // Cek apakah posisi meletakkan sudah benar
+        if ($validated['piece_index'] !== $validated['target_index']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Posisi kurang tepat! Coba letakkan kepingan ini di kotak yang sesuai (Jatah harian Anda masih aman).'
+            ]);
+        }
+
+        // Cek apakah user sudah meletakkan kepingan hari ini
+        $hasPlacedToday = \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)
             ->where('placed_by_user_id', $user->id)
             ->whereDate('placed_at', \Carbon\Carbon::today())
             ->exists();
 
         if ($hasPlacedToday) {
-            return response()->json(['success' => false, 'message' => 'Anda sudah meletakkan kepingan hari ini. Kembali lagi besok!']);
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda sudah meletakkan kepingan hari ini! Kembali lagi besok.'
+            ]);
         }
 
-        $piece = \App\Models\PuzzlePiece::where('puzzle_id', $validated['puzzle_id'])
+        $piece = \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)
             ->where('piece_index', $validated['piece_index'])
             ->first();
 
@@ -1181,16 +1219,17 @@ class ForumController extends Controller
             'placed_at' => now(),
         ]);
 
-        // Gamification
-        \App\Models\ReputationLog::log($user->id, 10, 'forum', 'Meletakkan kepingan Pembda Colabs');
+        // Beri poin reputasi (+10)
+        try {
+            \App\Models\ReputationLog::log($user->id, 10, 'forum', 'Meletakkan kepingan Pembda Colabs');
+        } catch (\Exception $e) {}
 
-        return response()->json(['success' => true, 'message' => 'Kepingan berhasil diletakkan! (+10 Poin)']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Mantap! Kepingan berhasil diletakkan (+10 Poin Reputasi)!'
+        ]);
     }
 
-    /**
-     * Reset papan puzzle ke awal (hanya 10 keping acak dari Sistem).
-     * Hanya bisa diakses oleh admin.
-     */
     public function resetPuzzle(Request $request)
     {
         $user = Auth::user();
@@ -1198,29 +1237,40 @@ class ForumController extends Controller
             return response()->json(['success' => false, 'message' => 'Hanya admin yang bisa mereset puzzle']);
         }
 
-        // Ambil puzzle aktif terbaru
-        $puzzle = \App\Models\Puzzle::where('is_active', true)->latest()->first();
+        $puzzle = \App\Models\Puzzle::latest()->first();
         if (!$puzzle) {
-            $puzzle = \App\Models\Puzzle::latest()->first();
+            $puzzle = \App\Models\Puzzle::create([
+                'title' => 'Esports Championship (Minggu 1)',
+                'image_path' => 'puzzles/pembda_puzzle_1.png',
+                'grid_x' => 10,
+                'grid_y' => 5,
+                'is_active' => true,
+            ]);
         }
 
-        if (!$puzzle) {
-            return response()->json(['success' => false, 'message' => 'Tidak ada puzzle aktif']);
-        }
-
-        // Deactive puzzle lain agar hanya 1 yang aktif
+        // Matikan puzzle lain & aktifkan puzzle ini
         \App\Models\Puzzle::where('id', '!=', $puzzle->id)->update(['is_active' => false]);
         $puzzle->update(['is_active' => true]);
 
-        // Reset semua kepingan di seluruh puzzle
-        $allPuzzleIds = \App\Models\Puzzle::pluck('id');
-        \App\Models\PuzzlePiece::whereIn('puzzle_id', $allPuzzleIds)->update([
-            'is_placed' => false,
-            'placed_by_user_id' => null,
-            'placed_at' => null,
-        ]);
+        // Bersihkan dan set ulang kepingan menjadi 50 keping bersih
+        \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)->delete();
 
-        // Pasang 10 keping acak sebagai bonus awal dari Sistem untuk puzzle aktif ini
+        $totalPieces = $puzzle->grid_x * $puzzle->grid_y;
+        $piecesData = [];
+        for ($i = 0; $i < $totalPieces; $i++) {
+            $piecesData[] = [
+                'puzzle_id' => $puzzle->id,
+                'piece_index' => $i,
+                'is_placed' => false,
+                'placed_by_user_id' => null,
+                'placed_at' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+        \App\Models\PuzzlePiece::insert($piecesData);
+
+        // Pasang 10 keping acak sebagai bonus awal dari Sistem (20% selesai)
         $bonusIds = \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)
             ->inRandomOrder()
             ->limit(10)
@@ -1232,8 +1282,8 @@ class ForumController extends Controller
         ]);
 
         return response()->json([
-            'success' => true, 
-            'message' => 'Puzzle berhasil direset! 10 keping acak telah dipasang oleh Sistem.'
+            'success' => true,
+            'message' => 'Puzzle berhasil direset! 10 keping acak awal (20%) telah dipasang oleh Sistem.'
         ]);
     }
 }
