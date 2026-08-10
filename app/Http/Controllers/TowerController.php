@@ -80,7 +80,7 @@ class TowerController extends Controller
                     'total_bricks' => $totalBricks,
                     'total_height' => ceil($totalBricks / 3),
                 ],
-                'bricks' => $bricks,
+                'bricks' => $bricks->values()->toArray(),
                 'has_placed_today' => $hasPlacedToday,
             ])->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
               ->header('Pragma', 'no-cache')
