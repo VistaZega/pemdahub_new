@@ -528,7 +528,7 @@
 <script>
     const quizQuestionsMap = {
         @foreach($quiz->questions as $q)
-            {{ $q->id }}: @json([
+            {{ $q->id }}: {!! json_encode([
                 'id' => $q->id,
                 'question' => $q->question,
                 'question_type' => $q->question_type,
@@ -538,7 +538,7 @@
                 'video_url' => $q->video_url ?? '',
                 'image_path' => $q->image_path ?? '',
                 'action' => route('guru.lms.questions.update', $q->id),
-            ]),
+            ]) !!},
         @endforeach
     };
 
