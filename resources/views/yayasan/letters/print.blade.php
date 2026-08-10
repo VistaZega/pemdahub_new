@@ -9,7 +9,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 15mm 25mm 15mm 25mm;
+            margin: 12mm 15mm 12mm 15mm;
         }
         body {
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -22,7 +22,7 @@
             background: #ffffff;
             width: 210mm;
             min-height: 297mm;
-            padding: 15mm 25mm;
+            padding: 12mm 15mm;
             margin: 10px auto;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             box-sizing: border-box;
