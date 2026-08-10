@@ -277,7 +277,7 @@
                 </div>
 
                 <!-- Body / Tower Wall -->
-                <div x-show="!isCollapsed" x-transition.opacity.duration.300ms class="p-4 bg-slate-50/80">
+                <div x-show="!isCollapsed" x-transition.opacity.duration.300ms class="p-4 bg-gradient-to-b from-sky-100 via-sky-50 to-amber-50/50">
                     <!-- Status Banner -->
                     <div x-show="statusMessage" x-transition.opacity
                          class="mb-4 p-3 rounded-xl text-sm font-semibold flex items-center justify-between shadow-sm bg-emerald-50 border border-emerald-200 text-emerald-800">
@@ -297,51 +297,71 @@
                         <span class="text-[10px] bg-indigo-200/80 text-indigo-900 px-2 py-0.5 rounded-full font-extrabold">Jatah Hari Ini Selesai</span>
                     </div>
 
-                    <!-- Tower Wall Masonry Display -->
-                    <div class="relative max-h-[380px] overflow-y-auto no-scrollbar p-3 bg-gradient-to-b from-slate-100 to-slate-200/80 rounded-2xl border border-slate-200/80 shadow-inner flex flex-col-reverse gap-2">
-                        <!-- Top Tower Cap / Spire Badge -->
-                        <div class="text-center py-2 bg-amber-500/10 border border-amber-300/40 rounded-xl mb-1">
-                            <span class="text-xs font-black text-amber-700 flex items-center justify-center gap-1.5 uppercase tracking-wider">
-                                👑 Puncak Menara Prestasi Pembda 👑
-                            </span>
+                    <!-- ============ TOWER VISUAL ============ -->
+                    <div class="flex flex-col items-center">
+
+                        <!-- 🏗️ Tower Spire / Crown -->
+                        <div class="w-0 h-0 border-l-[40px] border-r-[40px] border-b-[30px] border-l-transparent border-r-transparent border-b-amber-500 mb-0 drop-shadow-md"></div>
+                        <div class="bg-gradient-to-b from-amber-500 to-amber-600 text-white text-[10px] font-black uppercase tracking-[0.2em] text-center py-1.5 px-6 rounded-t-none shadow-md" style="width: min(100%, 560px);">
+                            👑 Puncak Menara Prestasi Pembda 👑
                         </div>
 
-                        <!-- Bricks Grid (3 bricks per row, stacked vertically) -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                            <template x-for="(b, bIdx) in bricks" :key="bIdx">
-                                <div @click="selectedBrick = b"
-                                     class="p-3.5 rounded-xl border transition-all duration-200 cursor-pointer relative shadow-sm hover:shadow-md hover:-translate-y-0.5 group"
-                                     :class="{
-                                         'bg-gradient-to-r from-indigo-600 to-indigo-700 border-indigo-500 text-white': b.color === 'indigo',
-                                         'bg-gradient-to-r from-emerald-600 to-teal-700 border-emerald-500 text-white': b.color === 'emerald',
-                                         'bg-gradient-to-r from-amber-500 to-orange-600 border-amber-400 text-white': b.color === 'amber',
-                                         'bg-gradient-to-r from-rose-600 to-pink-700 border-rose-500 text-white': b.color === 'rose',
-                                         'bg-gradient-to-r from-purple-600 to-violet-700 border-purple-500 text-white': b.color === 'purple',
-                                         'bg-gradient-to-r from-cyan-600 to-blue-700 border-cyan-500 text-white': b.color === 'cyan'
-                                     }">
-                                    
-                                    <!-- Brick Header -->
-                                    <div class="flex items-center justify-between mb-1.5 text-[11px] opacity-90">
-                                        <span class="font-black px-1.5 py-0.5 bg-black/20 rounded text-[10px]" x-text="'#' + b.brick_number"></span>
-                                        <span class="font-bold truncate max-w-[120px]" x-text="b.user_name"></span>
+                        <!-- 🧱 Tower Wall — Bricks stacked bottom-to-top -->
+                        <div class="relative overflow-hidden shadow-inner border-x-4 border-amber-800/30 bg-amber-900/10" style="width: min(100%, 560px); max-height: 400px; overflow-y: auto;">
+                            <!-- Brick Rows — flex-col-reverse so newest brick appears at top -->
+                            <div class="flex flex-col-reverse">
+                                <template x-for="(b, bIdx) in bricks" :key="bIdx">
+                                    <div @click="selectedBrick = b"
+                                         class="relative cursor-pointer transition-all duration-200 hover:brightness-110 hover:scale-[1.02] group"
+                                         :class="{
+                                             'border-b-2 border-amber-900/20': true
+                                         }">
+                                        <!-- Brick body -->
+                                        <div class="flex items-stretch"
+                                             :class="{
+                                                 'bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700': b.color === 'indigo',
+                                                 'bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700': b.color === 'emerald',
+                                                 'bg-gradient-to-r from-amber-400 via-amber-500 to-orange-600': b.color === 'amber',
+                                                 'bg-gradient-to-r from-rose-500 via-rose-600 to-pink-700': b.color === 'rose',
+                                                 'bg-gradient-to-r from-purple-500 via-purple-600 to-violet-700': b.color === 'purple',
+                                                 'bg-gradient-to-r from-cyan-500 via-cyan-600 to-blue-700': b.color === 'cyan'
+                                             }">
+                                            <!-- Brick number tab -->
+                                            <div class="flex-shrink-0 w-10 flex items-center justify-center bg-black/20 text-white font-black text-[11px] border-r border-white/10">
+                                                <span x-text="'#' + b.brick_number"></span>
+                                            </div>
+                                            <!-- Brick content -->
+                                            <div class="flex-1 px-3 py-2.5 text-white min-w-0">
+                                                <p class="text-xs font-semibold leading-snug line-clamp-1" x-text="b.message"></p>
+                                                <div class="flex items-center justify-between mt-1 text-[10px] opacity-80">
+                                                    <span class="font-bold truncate" x-text="b.user_name + ' · ' + b.school_name"></span>
+                                                    <button @click.stop="toggleLike(b)" 
+                                                            class="flex items-center gap-0.5 ml-2 flex-shrink-0 hover:opacity-100 transition"
+                                                            :class="b.is_liked ? 'opacity-100' : 'opacity-70'">
+                                                        <i class="ph-bold ph-heart text-[11px]" :class="b.is_liked ? 'text-rose-300' : ''"></i>
+                                                        <span x-text="b.likes_count"></span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Mortar line (cement between bricks) -->
+                                        <div class="h-[3px] bg-gradient-to-r from-amber-200 via-amber-300 to-amber-200"></div>
                                     </div>
+                                </template>
+                            </div>
 
-                                    <!-- Message Quote -->
-                                    <p class="text-xs font-semibold line-clamp-2 leading-relaxed mb-2" x-text="`“${b.message}”`"></p>
-
-                                    <!-- Brick Footer -->
-                                    <div class="flex items-center justify-between text-[10px] opacity-80 pt-1.5 border-t border-white/20">
-                                        <span class="font-medium" x-text="b.school_name"></span>
-                                        <button @click.stop="toggleLike(b)" 
-                                                class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/20 hover:bg-black/30 transition text-white"
-                                                :class="b.is_liked ? 'text-rose-200 font-bold' : ''">
-                                            <i class="ph-bold ph-heart" :class="b.is_liked ? 'text-rose-300 fill-current' : ''"></i>
-                                            <span x-text="b.likes_count"></span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </template>
+                            <!-- Empty state -->
+                            <div x-show="bricks.length === 0" class="text-center py-10 text-slate-400">
+                                <i class="ph-bold ph-wall text-4xl mb-2"></i>
+                                <p class="text-xs font-bold">Menara masih kosong. Jadilah yang pertama memasang bata!</p>
+                            </div>
                         </div>
+
+                        <!-- 🏗️ Tower Foundation -->
+                        <div class="bg-gradient-to-b from-amber-800 to-amber-950 text-amber-200 text-[10px] font-black uppercase tracking-[0.15em] text-center py-2 px-6 rounded-b-xl shadow-lg" style="width: min(100%, 580px);">
+                            🏗️ Fondasi Menara · <span x-text="stats.total_bricks"></span> Bata · Tinggi <span x-text="stats.total_height"></span> Lantai
+                        </div>
+
                     </div>
                 </div>
 
