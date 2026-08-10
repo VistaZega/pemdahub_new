@@ -20,16 +20,7 @@ class FoundationLetterHutRiSeeder extends Seeder
 
         $user = User::where('role', 'superadmin')->first() ?? User::first();
 
-        $content = '<div style="border-left: 4px solid #dc2626; padding-left: 14px; margin-bottom: 20px; background-color: #fef2f2; padding-top: 10px; padding-bottom: 10px; border-radius: 0 8px 8px 0;">
-    <p style="margin: 0; font-weight: bold; color: #991b1b; text-transform: uppercase; font-size: 13px; letter-spacing: 0.05em;">
-        EDISI KHUSUS PERINGATAN HUT KE-81 KEMERDEKAAN REPUBLIK INDONESIA
-    </p>
-    <p style="margin: 2px 0 0 0; font-style: italic; color: #b91c1c; font-size: 12px;">
-        Tema Nasional: "Nusantara Baru, Indonesia Maju"
-    </p>
-</div>
-
-<p>Dengan hormat,</p>
+        $content = '<p>Dengan hormat,</p>
 <p>Dalam rangka menyambut dan memeriahkan <strong>Hari Ulang Tahun (HUT) Ke-81 Kemerdekaan Republik Indonesia Tahun 2026</strong>, Pengurus Yayasan Perguruan PEMBDA Nias dengan ini <strong>MENGUNDANG DENGAN HORMAT</strong> Bapak/Ibu Pengurus Yayasan, Kepala Sekolah, Bapak/Ibu Guru, Staf Pegawai, serta Seluruh Siswa/Siswi di lingkungan Perguruan PEMBDA Nias (SMP Swasta Pembda 2 Gunungsitoli, SMA Swasta Pembda 1 Gunungsitoli, dan SMK Swasta Pembda Nias) untuk hadir dan berpartisipasi aktif dalam <strong>Upacara Bendera Peringatan HUT Ke-81 RI</strong> yang akan dilaksanakan dengan ketentuan sebagai berikut:</p>
 
 <ol style="list-style-type: decimal; padding-left: 24px; margin-top: 15px; margin-bottom: 20px; line-height: 1.8;">
