@@ -1676,12 +1676,20 @@ if (!function_exists('balanceHtmlTags')) {
                     {{-- 8. SEQUENCE PLAYER --}}
                     {{-- ══════════════════════════════ --}}
                     <div x-show="game.type === 'sequence' && !loading && !completed" class="w-full max-w-3xl mx-auto flex flex-col items-center" style="display: none;">
+                        {{-- Counter + Progress if totalItems > 1 --}}
+                        <div x-show="totalItems > 1" class="mb-4 w-full flex items-center justify-between">
+                            <span class="text-cyan-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                <i class="fas fa-layer-group"></i> Kelompok Urutan
+                            </span>
+                            <span class="text-white font-black text-sm"><span x-text="currentIndex + 1"></span> / <span x-text="totalItems"></span></span>
+                        </div>
+
                         <div class="w-full mb-6 p-4 rounded-2xl text-center" style="background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.3)">
-                            <h2 class="text-xl sm:text-2xl font-black mb-1" style="color: #22d3ee; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Susun Sesuai Urutan!</h2>
+                            <h2 class="text-xl sm:text-2xl font-black mb-1" style="color: #22d3ee; text-shadow: 0 1px 3px rgba(0,0,0,0.5);" x-text="currentSequenceGroupTitle || 'Susun Sesuai Urutan!'"></h2>
                             <p class="text-sm font-bold" style="color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Geser (Drag & Drop) atau gunakan panah atas/bawah pada kotak-kotak di bawah ini ke urutan yang benar dari atas ke bawah.</p>
                         </div>
 
-                        <div class="w-full max-w-xl mb-8 relative p-4 rounded-3xl" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1)">
+                        <div class="w-full max-w-xl mb-6 relative p-4 rounded-3xl" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1)">
                             <div class="space-y-3 min-h-[250px]" x-sort="handleSequenceSort">
                                 <template x-for="(item, idx) in shuffledSequence" :key="item.id">
                                     <div x-sort:item="item.id" class="w-full p-3 sm:p-4 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 sm:gap-4 cursor-grab active:cursor-grabbing hover:scale-[1.01] bg-white group" style="color: #0f172a; box-shadow: 0 4px 15px rgba(0,0,0,0.1)">
@@ -1700,6 +1708,11 @@ if (!function_exists('balanceHtmlTags')) {
                             </div>
                         </div>
 
+                        <!-- Action Button -->
+                        <div class="flex gap-4 items-center">
+                            <button @click="checkSequence()" :disabled="isCorrect" class="px-8 py-3 rounded-2xl font-black text-white text-base transition-all hover:scale-105 hover:shadow-[0_0_25px_#06b6d4] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2" style="background: linear-gradient(135deg, #0891b2, #06b6d4);">
+                                <i class="fas fa-check-circle"></i> <span x-text="isCorrect ? 'Urutan Benar!' : 'Periksa Urutan'"></span>
+                            </button>
                         </div>
                     </div>
 
@@ -1888,6 +1901,8 @@ function gamePlayer() {
         selectedLetters: [],
         
         // Sequence State
+        sequenceGroups: [],
+        currentSequenceGroupTitle: '',
         shuffledSequence: [],
         userSequence: [],
         
@@ -1897,6 +1912,10 @@ function gamePlayer() {
             if (this.game.type === 'true_false') return this.game.data.statements?.length || 0;
             if (this.game.type === 'word_guess') return this.game.data.words?.length || 0;
             if (this.game.type === 'scramble') return this.game.data.words?.length || 0;
+            if (this.game.type === 'sequence') {
+                if (this.sequenceGroups && this.sequenceGroups.length > 0) return this.sequenceGroups.length;
+                return 1;
+            }
             return this.game.data.items?.length || 0;
         },
         
@@ -1949,6 +1968,8 @@ function gamePlayer() {
             this.isGameOver = false;
             this.scrambledLetters = [];
             this.selectedLetters = [];
+            this.sequenceGroups = [];
+            this.currentSequenceGroupTitle = '';
             this.shuffledSequence = [];
             this.userSequence = [];
             this.correctAnswers = 0;
@@ -1997,15 +2018,17 @@ function gamePlayer() {
             if (this.game.type === 'scramble') {
                 this.initScramble();
             }
-            if (this.game.type === 'sequence' && this.game.data.items) {
-                // Shuffle sequence items
-                let items = [...this.game.data.items].map((p, i) => ({...p, originalIndex: i, id: i}));
-                for (let i = items.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [items[i], items[j]] = [items[j], items[i]];
+            if (this.game.type === 'sequence') {
+                let gd = this.game.data || {};
+                if (gd.groups && gd.groups.length > 0) {
+                    this.sequenceGroups = JSON.parse(JSON.stringify(gd.groups));
+                } else if (gd.items && gd.items.length > 0) {
+                    this.sequenceGroups = [{ title: 'Kelompok 1', items: JSON.parse(JSON.stringify(gd.items)) }];
+                } else {
+                    this.sequenceGroups = [];
                 }
-                this.shuffledSequence = items;
-                this.userSequence = [];
+                this.currentIndex = 0;
+                this.initSequenceGroup(0);
             }
             if (this.game.type === 'image_hotspot' && this.game.data.hotspots) {
                 this.currentIndex = 0;
@@ -2069,7 +2092,18 @@ function gamePlayer() {
                 if(!this.isGameOver) { this.isCorrect = true; setTimeout(() => { this.nextScramble(); }, 1500); }
             } else if (this.game.type === 'sequence') {
                 this.checkLife(true);
-                if(!this.isGameOver) { this.isCorrect = true; setTimeout(() => { this.finishGame(); }, 1500); }
+                if(!this.isGameOver) { 
+                    this.isCorrect = true; 
+                    if (this.currentIndex < this.totalItems - 1) {
+                        setTimeout(() => { 
+                            this.currentIndex++; 
+                            this.initSequenceGroup(this.currentIndex);
+                            this.startTimer();
+                        }, 1500);
+                    } else {
+                        setTimeout(() => { this.finishGame(); }, 1500);
+                    }
+                }
             }
         },
         
@@ -2317,6 +2351,18 @@ function gamePlayer() {
         },
 
         // --- Sequence Logic ---
+        initSequenceGroup(groupIndex) {
+            if (!this.sequenceGroups[groupIndex]) return;
+            let group = this.sequenceGroups[groupIndex];
+            let items = [...(group.items || [])].map((p, i) => ({...p, originalIndex: i, id: i}));
+            for (let i = items.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [items[i], items[j]] = [items[j], items[i]];
+            }
+            this.shuffledSequence = items;
+            this.currentSequenceGroupTitle = group.title || ('Kelompok ' + (groupIndex + 1));
+            this.isCorrect = false;
+        },
         moveSequenceUp(idx) {
             if (idx <= 0 || this.isGameOver) return;
             const movedItem = this.shuffledSequence[idx];
@@ -2338,7 +2384,7 @@ function gamePlayer() {
             this.shuffledSequence.splice(position, 0, item);
         },
         checkSequence() {
-            if (this.isGameOver) return;
+            if (this.isGameOver || this.isCorrect) return;
             
             let isWin = true;
             for(let i = 0; i < this.shuffledSequence.length; i++) {
@@ -2351,9 +2397,20 @@ function gamePlayer() {
                 this.isCorrect = true;
                 this.checkLife(false);
                 spawnConfetti();
-                this.totalAnswered = 1;
-                this.correctAnswers = 1;
-                setTimeout(() => { this.finishGame(); }, 1500);
+                
+                if (this.currentIndex < this.totalItems - 1) {
+                    this.totalAnswered++;
+                    this.correctAnswers++;
+                    setTimeout(() => {
+                        this.currentIndex++;
+                        this.initSequenceGroup(this.currentIndex);
+                        this.startTimer();
+                    }, 1200);
+                } else {
+                    this.totalAnswered = this.totalItems;
+                    this.correctAnswers = this.totalItems;
+                    setTimeout(() => { this.finishGame(); }, 1200);
+                }
             } else {
                 let alive = this.checkLife(true);
                 if(alive) {

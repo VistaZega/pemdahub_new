@@ -1065,7 +1065,7 @@ if (!function_exists('balanceHtmlTags')) {
         tfStatements: [{ statement: '', is_true: true }],
         guessWords: [{ word: '', hint: '' }],
         scrambleWords: [{ word: '', hint: '' }],
-        sequenceItems: [{ item: '' }],
+        sequenceGroups: [{ title: 'Kelompok 1', items: [{ item: '' }, { item: '' }] }],
         hotspots: [{ x: 50, y: 50, label: '' }],
         chemEquations: [{ equation: '', answers: '' }],
         mathConfig: { operation: 'mixed', difficulty: 'easy' },
@@ -1081,8 +1081,10 @@ if (!function_exists('balanceHtmlTags')) {
         removeGuessWord(index) { this.guessWords.splice(index, 1) },
         addScrambleWord() { this.scrambleWords.push({ word: '', hint: '' }) },
         removeScrambleWord(index) { this.scrambleWords.splice(index, 1) },
-        addSequenceItem() { this.sequenceItems.push({ item: '' }) },
-        removeSequenceItem(index) { this.sequenceItems.splice(index, 1) },
+        addSequenceGroup() { this.sequenceGroups.push({ title: 'Kelompok ' + (this.sequenceGroups.length + 1), items: [{ item: '' }, { item: '' }] }) },
+        removeSequenceGroup(gIndex) { if (this.sequenceGroups.length > 1) this.sequenceGroups.splice(gIndex, 1) },
+        addSequenceItem(gIndex) { if (this.sequenceGroups[gIndex]) this.sequenceGroups[gIndex].items.push({ item: '' }) },
+        removeSequenceItem(gIndex, iIndex) { if (this.sequenceGroups[gIndex]) this.sequenceGroups[gIndex].items.splice(iIndex, 1) },
         addHotspot() { this.hotspots.push({ x: 50, y: 50, label: '' }) },
         removeHotspot(index) { this.hotspots.splice(index, 1) },
         addChemEquation() { this.chemEquations.push({ equation: '', answers: '' }) },
@@ -1093,7 +1095,14 @@ if (!function_exists('balanceHtmlTags')) {
             if (this.gameType === 'true_false') return JSON.stringify({ statements: this.tfStatements.filter(s => s.statement.trim() !== '') });
             if (this.gameType === 'word_guess') return JSON.stringify({ words: this.guessWords.filter(w => w.word.trim() !== '') });
             if (this.gameType === 'scramble') return JSON.stringify({ words: this.scrambleWords.filter(w => w.word.trim() !== '') });
-            if (this.gameType === 'sequence') return JSON.stringify({ items: this.sequenceItems.filter(i => i.item.trim() !== '') });
+            if (this.gameType === 'sequence') {
+                let validGroups = this.sequenceGroups.map(g => ({
+                    title: g.title ? g.title.trim() : '',
+                    items: (g.items || []).filter(i => i.item && i.item.trim() !== '')
+                })).filter(g => g.items.length > 0);
+                let firstItems = validGroups.length > 0 ? validGroups[0].items : [];
+                return JSON.stringify({ groups: validGroups, items: firstItems });
+            }
             if (this.gameType === 'image_hotspot') return JSON.stringify({ hotspots: this.hotspots.filter(h => h.label.trim() !== '') });
             if (this.gameType === 'chem_balancer') return JSON.stringify({ equations: this.chemEquations.filter(e => e.equation.trim() !== '') });
             if (this.gameType === 'math_ninja') return JSON.stringify({ config: this.mathConfig });
@@ -1114,7 +1123,7 @@ if (!function_exists('balanceHtmlTags')) {
             this.tfStatements = [{ statement: '', is_true: true }];
             this.guessWords = [{ word: '', hint: '' }];
             this.scrambleWords = [{ word: '', hint: '' }];
-            this.sequenceItems = [{ item: '' }];
+            this.sequenceGroups = [{ title: 'Kelompok 1', items: [{ item: '' }, { item: '' }] }];
             this.hotspots = [{ x: 50, y: 50, label: '' }];
             this.chemEquations = [{ equation: '', answers: '' }];
             this.mathConfig = { operation: 'mixed', difficulty: 'easy' };
@@ -1160,9 +1169,13 @@ if (!function_exists('balanceHtmlTags')) {
                     ? JSON.parse(JSON.stringify(gd.words))
                     : [{ word: '', hint: '' }];
             } else if (this.gameType === 'sequence') {
-                this.sequenceItems = gd.items && gd.items.length > 0 
-                    ? JSON.parse(JSON.stringify(gd.items))
-                    : [{ item: '' }];
+                if (gd.groups && gd.groups.length > 0) {
+                    this.sequenceGroups = JSON.parse(JSON.stringify(gd.groups));
+                } else if (gd.items && gd.items.length > 0) {
+                    this.sequenceGroups = [{ title: 'Kelompok 1', items: JSON.parse(JSON.stringify(gd.items)) }];
+                } else {
+                    this.sequenceGroups = [{ title: 'Kelompok 1', items: [{ item: '' }, { item: '' }] }];
+                }
             } else if (this.gameType === 'image_hotspot') {
                 this.hotspots = gd.hotspots && gd.hotspots.length > 0 
                     ? JSON.parse(JSON.stringify(gd.hotspots))
@@ -1449,16 +1462,44 @@ if (!function_exists('balanceHtmlTags')) {
                         {{-- Editor: Urutkan (Sequence) --}}
                         <div x-show="gameType === 'sequence'" style="display: none;">
                             <div class="flex items-center justify-between mb-3">
-                                <h4 class="text-sm font-bold text-gray-800">Langkah / Urutan Benar</h4>
-                                <button type="button" @click="addSequenceItem()" class="text-xs bg-cyan-100 text-cyan-600 px-2 py-1 rounded-lg font-bold hover:bg-cyan-200 transition"><i class="fas fa-plus"></i> Tambah Urutan</button>
+                                <div>
+                                    <h4 class="text-sm font-bold text-gray-800">Kelompok Urutan (Sequence Groups)</h4>
+                                    <p class="text-xs text-gray-500"><i class="fas fa-info-circle text-cyan-500"></i> Buat 1 atau lebih kelompok pengurutan. Masukkan langkah dari urutan PERTAMA (atas) ke TERAKHIR (bawah).</p>
+                                </div>
+                                <button type="button" @click="addSequenceGroup()" class="text-xs bg-cyan-100 text-cyan-600 px-3 py-1.5 rounded-xl font-bold hover:bg-cyan-200 transition shadow-sm flex items-center gap-1 shrink-0 ml-2">
+                                    <i class="fas fa-plus"></i> Tambah Kelompok
+                                </button>
                             </div>
-                            <p class="text-xs text-gray-500 mb-3"><i class="fas fa-info-circle text-cyan-500"></i> Masukkan daftar langkah dari urutan PERTAMA (atas) hingga TERAKHIR (bawah). Sistem akan mengacaknya otomatis saat dimainkan.</p>
-                            <div class="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-                                <template x-for="(seq, index) in sequenceItems" :key="index">
-                                    <div class="flex gap-2 items-center bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
-                                        <div class="w-8 h-8 rounded-lg bg-cyan-50 flex items-center justify-center text-cyan-500 font-bold text-xs" x-text="index + 1"></div>
-                                        <input type="text" x-model="sequenceItems[index].item" placeholder="Contoh: Panaskan air hingga mendidih" class="flex-1 rounded-lg border-gray-200 text-sm focus:border-cyan-500 focus:ring-cyan-500">
-                                        <button type="button" @click="removeSequenceItem(index)" class="w-8 h-8 rounded-lg flex items-center justify-center text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition"><i class="fas fa-times"></i></button>
+                            
+                            <div class="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                                <template x-for="(g, gIdx) in sequenceGroups" :key="gIdx">
+                                    <div class="bg-white p-3.5 rounded-2xl border border-cyan-100 shadow-sm relative space-y-3">
+                                        <div class="flex items-center justify-between gap-2 border-b border-gray-100 pb-2">
+                                            <div class="flex items-center gap-2 flex-1">
+                                                <span class="w-6 h-6 rounded-lg bg-cyan-50 text-cyan-600 font-black text-xs flex items-center justify-center shrink-0" x-text="gIdx + 1"></span>
+                                                <input type="text" x-model="sequenceGroups[gIdx].title" :placeholder="'Judul / Petunjuk Kelompok ' + (gIdx + 1) + ' (misal: Siklus Air)'" class="flex-1 rounded-xl border-gray-200 text-xs font-bold focus:border-cyan-500 focus:ring-cyan-500">
+                                            </div>
+                                            <button type="button" x-show="sequenceGroups.length > 1" @click="removeSequenceGroup(gIdx)" class="text-rose-400 hover:text-rose-600 p-1 transition shrink-0" title="Hapus Kelompok">
+                                                <i class="fas fa-trash-alt text-xs"></i>
+                                            </button>
+                                        </div>
+
+                                        <div class="space-y-2">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Langkah Urutan Benar:</span>
+                                                <button type="button" @click="addSequenceItem(gIdx)" class="text-[11px] bg-cyan-50 text-cyan-600 hover:bg-cyan-100 px-2 py-0.5 rounded font-bold flex items-center gap-1">
+                                                    <i class="fas fa-plus text-[10px]"></i> Tambah Langkah
+                                                </button>
+                                            </div>
+
+                                            <template x-for="(item, iIdx) in g.items" :key="iIdx">
+                                                <div class="flex gap-2 items-center bg-gray-50 p-2 rounded-xl border border-gray-200">
+                                                    <div class="w-6 h-6 rounded-md bg-white border border-gray-200 flex items-center justify-center text-cyan-600 font-bold text-[11px] shrink-0" x-text="iIdx + 1"></div>
+                                                    <input type="text" x-model="sequenceGroups[gIdx].items[iIdx].item" placeholder="Contoh: Panaskan air hingga mendidih" class="flex-1 rounded-lg border-gray-200 text-xs focus:border-cyan-500 focus:ring-cyan-500">
+                                                    <button type="button" x-show="g.items.length > 1" @click="removeSequenceItem(gIdx, iIdx)" class="w-6 h-6 rounded flex items-center justify-center text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition shrink-0"><i class="fas fa-times text-xs"></i></button>
+                                                </div>
+                                            </template>
+                                        </div>
                                     </div>
                                 </template>
                             </div>

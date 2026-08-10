@@ -39,7 +39,7 @@ class LmsGameController extends Controller
         if ($request->game_type === 'quiz' && !empty($gameData['questions'])) $hasItems = true;
         if ($request->game_type === 'true_false' && !empty($gameData['statements'])) $hasItems = true;
         if (in_array($request->game_type, ['word_guess', 'scramble']) && !empty($gameData['words'])) $hasItems = true;
-        if ($request->game_type === 'sequence' && !empty($gameData['items'])) $hasItems = true;
+        if ($request->game_type === 'sequence' && (!empty($gameData['items']) || !empty($gameData['groups']))) $hasItems = true;
         if ($request->game_type === 'image_hotspot' && !empty($gameData['image_url']) && !empty($gameData['hotspots'])) $hasItems = true;
         if ($request->game_type === 'chem_balancer' && !empty($gameData['equations'])) $hasItems = true;
         if ($request->game_type === 'math_ninja' && !empty($gameData['config'])) $hasItems = true;
@@ -99,7 +99,7 @@ class LmsGameController extends Controller
         if ($request->game_type === 'quiz' && !empty($gameData['questions'])) $hasItems = true;
         if ($request->game_type === 'true_false' && !empty($gameData['statements'])) $hasItems = true;
         if (in_array($request->game_type, ['word_guess', 'scramble']) && !empty($gameData['words'])) $hasItems = true;
-        if ($request->game_type === 'sequence' && !empty($gameData['items'])) $hasItems = true;
+        if ($request->game_type === 'sequence' && (!empty($gameData['items']) || !empty($gameData['groups']))) $hasItems = true;
         if ($request->game_type === 'image_hotspot' && !empty($gameData['image_url']) && !empty($gameData['hotspots'])) $hasItems = true;
         if ($request->game_type === 'chem_balancer' && !empty($gameData['equations'])) $hasItems = true;
         if ($request->game_type === 'math_ninja' && !empty($gameData['config'])) $hasItems = true;
