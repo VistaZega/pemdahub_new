@@ -51,22 +51,22 @@ class FoundationLetterHutRiSeeder extends Seeder
 
     <li style="margin-bottom: 14px;">
         <strong style="color: #991b1b; text-transform: uppercase;">PETUGAS PELAKSANA UPACARA BENDERA</strong>
-        <ol style="list-style-type: decimal; padding-left: 20px; margin-top: 6px;">
-            <li><strong>Petugas & Perangkat Upacara:</strong> Paskibraka Sekolah</li>
-            <li><strong>Pembina Upacara:</strong> Ketua Yayasan Perguruan PEMBDA Nias</li>
-            <li><strong>Pemimpin Upacara:</strong> Guru</li>
-            <li><strong>Pembaca Teks Proklamasi:</strong> Guru Senior</li>
-            <li><strong>Paduan Suara:</strong> Gabungan Bapak/Ibu Guru dari ke-3 Unit Sekolah</li>
-            <li><strong>Perangkat Upacara Lainnya:</strong> Siswa</li>
+        <ol style="list-style-type: decimal; padding-left: 20px; margin-top: 6px; line-height: 1.2;">
+            <li style="margin-bottom: 3px;"><strong>Pengibar Bendera:</strong> Paskibraka Sekolah</li>
+            <li style="margin-bottom: 3px;"><strong>Pembina Upacara:</strong> Ketua Yayasan Perguruan PEMBDA Nias</li>
+            <li style="margin-bottom: 3px;"><strong>Pemimpin Upacara:</strong> Guru</li>
+            <li style="margin-bottom: 3px;"><strong>Pembaca Teks Proklamasi:</strong> Guru Senior</li>
+            <li style="margin-bottom: 3px;"><strong>Paduan Suara:</strong> Gabungan Bapak/Ibu Guru dari ke-3 Unit Sekolah</li>
+            <li style="margin-bottom: 3px;"><strong>Perangkat Upacara Lainnya:</strong> Siswa</li>
         </ol>
     </li>
 
     <li style="margin-bottom: 14px;">
         <strong style="color: #991b1b; text-transform: uppercase;">RANGKAIAN ACARA SETELAH UPACARA BENDERA</strong>
-        <ol style="list-style-type: decimal; padding-left: 20px; margin-top: 6px;">
-            <li>Penampilan Atraksi Marchingband Perguruan PEMBDA Nias</li>
-            <li>Ramah Tamah & Syukuran Kemerdekaan</li>
-            <li>Sesi Foto Bersama Seluruh Keluarga Besar Perguruan PEMBDA Nias</li>
+        <ol style="list-style-type: decimal; padding-left: 20px; margin-top: 6px; line-height: 1.2;">
+            <li style="margin-bottom: 3px;">Penampilan Atraksi Marchingband Perguruan PEMBDA Nias</li>
+            <li style="margin-bottom: 3px;">Ramah Tamah & Syukuran Kemerdekaan</li>
+            <li style="margin-bottom: 3px;">Sesi Foto Bersama Seluruh Keluarga Besar Perguruan PEMBDA Nias</li>
         </ol>
     </li>
 
