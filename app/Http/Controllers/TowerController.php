@@ -159,20 +159,17 @@ class TowerController extends Controller
             ['msg' => 'Bersama Perguruan Pembda, kita pasti bisa menggapai cita-cita tinggi!', 'color' => 'cyan'],
         ];
 
-        // Dapatkan user valid di database (Super Admin / User Pertama)
-        $systemUser = \App\Models\User::whereIn('role', ['superadmin', 'admin_yayasan', 'admin', 'guru'])->first() 
-            ?? \App\Models\User::first();
+        // Dapatkan user ID pertama dari database
+        $firstUser = \Illuminate\Support\Facades\DB::table('users')->first();
+        if (!$firstUser) return;
 
-        if (!$systemUser) return;
+        $pastDate = Carbon::now()->subDays(2)->format('Y-m-d H:i:s');
 
-        $systemUserId = $systemUser->id;
-        $schoolId = $systemUser->school_id;
-        $pastDate = Carbon::now()->subDays(2); // Set 2 hari lalu agar jatah harian pengguna hari ini tetap 100% gratis
-
+        // Gunakan DB::table()->insert() agar bypass mass-assignment $fillable
         foreach ($samples as $idx => $s) {
-            PembdaTowerBrick::create([
-                'user_id' => $systemUserId,
-                'school_id' => $schoolId,
+            \Illuminate\Support\Facades\DB::table('pembda_tower_bricks')->insert([
+                'user_id' => $firstUser->id,
+                'school_id' => $firstUser->school_id ?? null,
                 'message' => $s['msg'],
                 'color' => $s['color'],
                 'brick_number' => $idx + 1,
