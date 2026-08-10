@@ -230,9 +230,9 @@ class DashboardController extends Controller
         if ($weeklyScheduleCount === 0) {
             $weeklyScheduleCount = (int) TeachingAssignment::where('teacher_id', $teacher->id)
                 ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-                ->when($isMultiSchool && $effectiveSchoolId, fn($q) => $q->where('school_id', $effectiveSchoolId))
+                ->when($isMultiSchool && $effectiveSchoolId, fn($q) => $q->whereHas('classroom', fn($cq) => $cq->where('school_id', $effectiveSchoolId)))
                 ->where('is_active', true)
-                ->sum('total_hours');
+                ->sum('hours_per_week');
         }
 
         // Reputation & Elite standing
