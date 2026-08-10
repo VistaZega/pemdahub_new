@@ -16,52 +16,85 @@ class TowerController extends Controller
      */
     public function getState()
     {
-        // Auto-seed sample bricks jika menara masih kosong
-        $totalBricks = PembdaTowerBrick::count();
-        if ($totalBricks === 0) {
-            $this->seedInitialBricks();
+        try {
+            // Auto-seed sample bricks jika menara masih kosong
             $totalBricks = PembdaTowerBrick::count();
-        }
+            if ($totalBricks === 0) {
+                $this->seedInitialBricks();
+                $totalBricks = PembdaTowerBrick::count();
+            }
 
-        $user = Auth::user();
-        $hasPlacedToday = false;
-        if ($user) {
-            $hasPlacedToday = PembdaTowerBrick::where('user_id', $user->id)
-                ->whereDate('created_at', Carbon::today())
-                ->exists();
-        }
+            $user = Auth::user();
+            $hasPlacedToday = false;
+            if ($user) {
+                $hasPlacedToday = PembdaTowerBrick::where('user_id', $user->id)
+                    ->whereDate('created_at', Carbon::today())
+                    ->exists();
+            }
 
-        // Ambil bata terbaru (sampai 100 bata paling atas)
-        $bricks = PembdaTowerBrick::with(['user:id,name,role,school_id', 'user.school:id,name,short_name'])
-            ->orderBy('brick_number', 'desc')
-            ->take(100)
-            ->get()
-            ->map(function ($brick) use ($user) {
+            // Ambil bata terbaru (sampai 100 bata paling atas) — gunakan join langsung agar lebih robust
+            $bricksRaw = \Illuminate\Support\Facades\DB::table('pembda_tower_bricks')
+                ->leftJoin('users', 'pembda_tower_bricks.user_id', '=', 'users.id')
+                ->leftJoin('schools', 'users.school_id', '=', 'schools.id')
+                ->select(
+                    'pembda_tower_bricks.id',
+                    'pembda_tower_bricks.brick_number',
+                    'pembda_tower_bricks.message',
+                    'pembda_tower_bricks.color',
+                    'pembda_tower_bricks.likes_count',
+                    'pembda_tower_bricks.user_id',
+                    'pembda_tower_bricks.created_at',
+                    'users.name as user_name',
+                    'users.role as user_role',
+                    'schools.short_name as school_short_name',
+                    'schools.name as school_name'
+                )
+                ->orderBy('pembda_tower_bricks.brick_number', 'desc')
+                ->limit(100)
+                ->get();
+
+            $bricks = $bricksRaw->map(function ($b) use ($user) {
+                $isLiked = false;
+                if ($user) {
+                    $isLiked = \Illuminate\Support\Facades\DB::table('pembda_tower_brick_likes')
+                        ->where('brick_id', $b->id)
+                        ->where('user_id', $user->id)
+                        ->exists();
+                }
                 return [
-                    'id' => $brick->id,
-                    'brick_number' => $brick->brick_number,
-                    'message' => $brick->message,
-                    'color' => $brick->color,
-                    'likes_count' => $brick->likes_count,
-                    'is_liked' => $user ? $brick->isLikedBy($user) : false,
-                    'user_name' => $brick->user ? $brick->user->name : 'Komunitas Pembda',
-                    'user_role' => $brick->user ? $brick->user->role_label : 'Siswa',
-                    'school_name' => $brick->user && $brick->user->school ? ($brick->user->school->short_name ?? $brick->user->school->name) : 'Yayasan',
-                    'time_ago' => $brick->created_at ? $brick->created_at->diffForHumans() : null,
+                    'id' => $b->id,
+                    'brick_number' => $b->brick_number,
+                    'message' => $b->message,
+                    'color' => $b->color,
+                    'likes_count' => $b->likes_count ?? 0,
+                    'is_liked' => $isLiked,
+                    'user_name' => $b->user_name ?? 'Komunitas Pembda',
+                    'user_role' => $b->user_role ?? 'siswa',
+                    'school_name' => $b->school_short_name ?? $b->school_name ?? 'Yayasan',
+                    'time_ago' => $b->created_at ? Carbon::parse($b->created_at)->diffForHumans() : null,
                 ];
             });
 
-        return response()->json([
-            'success' => true,
-            'stats' => [
-                'total_bricks' => $totalBricks,
-                'total_height' => ceil($totalBricks / 3), // 3 bata per tingkat lantai
-            ],
-            'bricks' => $bricks,
-            'has_placed_today' => $hasPlacedToday,
-        ])->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
-          ->header('Pragma', 'no-cache')
-          ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+            return response()->json([
+                'success' => true,
+                'stats' => [
+                    'total_bricks' => $totalBricks,
+                    'total_height' => ceil($totalBricks / 3),
+                ],
+                'bricks' => $bricks,
+                'has_placed_today' => $hasPlacedToday,
+            ])->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+              ->header('Pragma', 'no-cache')
+              ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'stats' => ['total_bricks' => 0, 'total_height' => 0],
+                'bricks' => [],
+                'has_placed_today' => false,
+            ], 200);
+        }
     }
 
     /**

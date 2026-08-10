@@ -1018,12 +1018,17 @@ function pembdaTower() {
             try {
                 const res = await fetch('{{ route("forum.tower.state") }}?_t=' + Date.now());
                 const data = await res.json();
+                console.log('[Menara] API response:', data);
                 if (data.success) {
                     this.stats = data.stats;
                     this.bricks = data.bricks || [];
                     this.hasPlacedToday = !!data.has_placed_today;
+                } else if (data.error) {
+                    console.error('[Menara] Server error:', data.error);
                 }
-            } catch(e) {}
+            } catch(e) {
+                console.error('[Menara] Fetch error:', e);
+            }
         },
 
         toggleCollapse() {
