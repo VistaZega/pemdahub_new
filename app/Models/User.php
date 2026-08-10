@@ -150,6 +150,10 @@ class User extends Authenticatable
         }
         
         // Cek jabatan dinamis
+        if (in_array('admin_sekolah', $roles) && $this->isAdminSekolah()) {
+            return true;
+        }
+
         if (in_array('kepala_sekolah', $roles) && $this->isKepalaSekolah()) {
             return true;
         }
@@ -190,7 +194,34 @@ class User extends Authenticatable
      */
     public function isAdminSekolah(): bool
     {
-        return $this->hasRole('admin_sekolah') || session('active_role') === 'admin_sekolah';
+        return $this->hasRole('admin_sekolah') || session('active_role') === 'admin_sekolah' || $this->isSecondaryAdminSekolah();
+    }
+
+    /**
+     * Check if user has secondary role/duty as Admin Sekolah
+     */
+    public function isSecondaryAdminSekolah(): bool
+    {
+        if ($this->hasRole('admin_sekolah')) {
+            return true;
+        }
+
+        // Cek tugas tambahan di employee_positions / special duties (misal Operator, Admin, TU)
+        if ($this->hasSpecialDuty(['ADMIN', 'OPERATOR', 'OPS', 'TU', 'ADMINISTRATOR'])) {
+            return true;
+        }
+
+        // Cek posisi di tabel teachers / employees
+        if ($this->teacher && $this->teacher->position && preg_match('/(admin|operator|tu|tata usaha)/i', $this->teacher->position)) {
+            return true;
+        }
+
+        $employee = $this->employee ?? $this->teacher?->employee;
+        if ($employee && $employee->position && preg_match('/(admin|operator|tu|tata usaha)/i', $employee->position)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

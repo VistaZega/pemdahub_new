@@ -263,6 +263,25 @@
                                 </button>
                             @endif
                         </form>
+                    @elseif(auth()->user()->isAdminSekolah() && (auth()->user()->teacher || auth()->user()->employee || auth()->user()->hasRole('guru') || auth()->user()->hasRole('pegawai') || auth()->user()->isSecondaryAdminSekolah()))
+                        <form action="{{ route('switch-role') }}" method="POST" class="inline">
+                            @csrf
+                            @if($currentRole === 'admin_sekolah')
+                                <input type="hidden" name="role" value="{{ auth()->user()->teacher ? 'guru' : 'pegawai' }}">
+                                <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 shadow border border-emerald-400/30">
+                                    <i class="fas fa-chalkboard-teacher text-xs"></i>
+                                    <span class="hidden sm:inline">Masuk Mode {{ auth()->user()->teacher ? 'Guru' : 'Pegawai' }}</span>
+                                    <span class="sm:hidden">Mode {{ auth()->user()->teacher ? 'Guru' : 'Pegawai' }}</span>
+                                </button>
+                            @else
+                                <input type="hidden" name="role" value="admin_sekolah">
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 shadow border border-indigo-500/30">
+                                    <i class="fas fa-user-shield text-xs"></i>
+                                    <span class="hidden sm:inline">Masuk Mode Admin Sekolah</span>
+                                    <span class="sm:hidden">Mode Admin</span>
+                                </button>
+                            @endif
+                        </form>
                     @endif
 
                     {{-- School Switcher untuk guru yang mengajar di beberapa unit --}}

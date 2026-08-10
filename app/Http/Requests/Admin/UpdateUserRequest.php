@@ -26,7 +26,7 @@ class UpdateUserRequest extends FormRequest
         $userId = $this->route('user')->id;
 
         $roles = 'superadmin,admin_sekolah,kepala_sekolah,guru,siswa,orang_tua,bendahara,ketua_yayasan,pegawai';
-        if ($this->user()->role === 'admin_sekolah') {
+        if ($this->user()->isAdminSekolah() && !$this->user()->isSuperAdmin()) {
             $roles = 'siswa,guru,pegawai,kepala_sekolah';
         }
 

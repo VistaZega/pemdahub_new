@@ -14,7 +14,7 @@ class StudentPolicy
     public function viewAny(User $user): bool
     {
         // SuperAdmin, Admin Sekolah, Guru, dan Kepala Sekolah dapat melihat daftar siswa
-        return in_array($user->role, ['superadmin', 'admin_sekolah', 'kepala_sekolah', 'guru']);
+        return $user->hasAnyRole(['superadmin', 'admin_sekolah', 'kepala_sekolah', 'guru']);
     }
 
     /**
@@ -23,17 +23,17 @@ class StudentPolicy
     public function view(User $user, Student $student): bool
     {
         // SuperAdmin, Admin Sekolah, Kepala Sekolah, Guru dapat melihat detail siswa
-        if (in_array($user->role, ['superadmin', 'admin_sekolah', 'kepala_sekolah', 'guru'])) {
+        if ($user->hasAnyRole(['superadmin', 'admin_sekolah', 'kepala_sekolah', 'guru'])) {
             return true;
         }
 
         // Siswa hanya bisa melihat data dirinya sendiri
-        if ($user->role === 'siswa') {
+        if ($user->isSiswa()) {
             return $student->user_id === $user->id;
         }
 
         // Orang tua bisa melihat data anaknya
-        if ($user->role === 'orang_tua') {
+        if ($user->isOrangTua()) {
             return $student->parents()->where('user_id', $user->id)->exists();
         }
 
@@ -46,7 +46,7 @@ class StudentPolicy
     public function create(User $user): bool
     {
         // SuperAdmin dan Admin Sekolah bisa menambah siswa
-        return in_array($user->role, ['superadmin', 'admin_sekolah']);
+        return $user->hasAnyRole(['superadmin', 'admin_sekolah']);
     }
 
     /**
@@ -55,12 +55,12 @@ class StudentPolicy
     public function update(User $user, Student $student): bool
     {
         // SuperAdmin dan Admin Sekolah bisa update semua siswa
-        if (in_array($user->role, ['superadmin', 'admin_sekolah'])) {
+        if ($user->hasAnyRole(['superadmin', 'admin_sekolah'])) {
             return true;
         }
 
         // Siswa bisa update data dirinya sendiri (terbatas)
-        if ($user->role === 'siswa') {
+        if ($user->isSiswa()) {
             return $student->user_id === $user->id;
         }
 
@@ -72,12 +72,12 @@ class StudentPolicy
      */
     public function delete(User $user, Student $student): bool
     {
-        if ($user->role === 'superadmin') {
+        if ($user->isSuperAdmin()) {
             return true;
         }
 
         // Admin Sekolah bisa menghapus siswa dari sekolahnya sendiri
-        if ($user->role === 'admin_sekolah') {
+        if ($user->isAdminSekolah()) {
             return $user->school_id === $student->school_id;
         }
 
