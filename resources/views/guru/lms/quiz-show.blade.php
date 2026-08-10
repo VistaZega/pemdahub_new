@@ -223,27 +223,20 @@
                     @endif
                 </div>
                 <div class="flex items-center gap-3">
-                    <button type="button" class="text-amber-500 hover:text-amber-700 transition"
-                            data-id="{{ $q->id }}"
-                            data-question="{{ $q->question }}"
-                            data-type="{{ $q->question_type }}"
-                            data-score="{{ $q->score }}"
-                            data-correct="{{ $q->correct_answer }}"
-                            data-options="{{ json_encode($q->options ?? []) }}"
-                            data-video-url="{{ $q->video_url }}"
-                            data-image-path="{{ $q->image_path }}"
-                            data-action="{{ route('guru.lms.questions.update', $q->id) }}"
-                            @click="$dispatch('edit-question', {
-                                id: $el.dataset.id,
-                                question: $el.dataset.question,
-                                question_type: $el.dataset.type,
-                                score: $el.dataset.score,
-                                correct_answer: $el.dataset.correct,
-                                options: $el.dataset.options,
-                                video_url: $el.dataset.videoUrl,
-                                image_path: $el.dataset.imagePath,
-                                action: $el.dataset.action
-                             })">
+                    <button type="button" 
+                            class="p-1.5 text-amber-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition"
+                            title="Edit Soal"
+                            @click="$dispatch('edit-question', {{ json_encode([
+                                'id' => $q->id,
+                                'question' => $q->question,
+                                'question_type' => $q->question_type,
+                                'score' => $q->score,
+                                'correct_answer' => (string)($q->correct_answer ?? ''),
+                                'options' => $q->options ?? [],
+                                'video_url' => $q->video_url ?? '',
+                                'image_path' => $q->image_path ?? '',
+                                'action' => route('guru.lms.questions.update', $q->id),
+                            ]) }})">
                         <i class="fas fa-edit"></i>
                     </button>
                     <form action="{{ route('guru.lms.questions.destroy', $q->id) }}" method="POST" onsubmit="return confirm('Hapus soal?')">
