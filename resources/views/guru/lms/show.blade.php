@@ -495,9 +495,12 @@ if (!function_exists('balanceHtmlTags')) {
                                 </button>
                             </form>
                             @endif
+                            <button type="button" @click="$dispatch('open-edit-game-modal', {{ json_encode($game) }})" class="w-9 h-9 rounded-xl flex items-center justify-center bg-white text-black hover:bg-amber-400 transition-colors border-2 border-black shadow-sm" title="Edit Judul, Soal & Jawaban Game">
+                                <i class="fas fa-edit text-xs"></i>
+                            </button>
                             <form action="{{ route('guru.lms.games.destroy', $game->id) }}" method="POST" onsubmit="return confirm('Hapus game ini?')" class="inline">
                                 @csrf @method('DELETE')
-                                <button class="w-9 h-9 rounded-xl flex items-center justify-center bg-white text-black hover:bg-rose-600 hover:text-white transition-colors border-2 border-black shadow-sm"><i class="fas fa-trash text-xs"></i></button>
+                                <button class="w-9 h-9 rounded-xl flex items-center justify-center bg-white text-black hover:bg-rose-600 hover:text-white transition-colors border-2 border-black shadow-sm" title="Hapus Game"><i class="fas fa-trash text-xs"></i></button>
                             </form>
                         </div>
                     </div>
@@ -1048,6 +1051,13 @@ if (!function_exists('balanceHtmlTags')) {
 {{-- ═══════════════════════════════════════════════ --}}
 <div x-data="{ 
         open: false, 
+        isEdit: false,
+        gameId: null,
+        moduleId: '',
+        title: '',
+        rewardPoints: 50,
+        timeLimit: '',
+        livesCount: '',
         gameType: 'quiz',
         pairs: [{term: '', definition: ''}],
         wheelItems: ['Hadiah 1', 'Hadiah 2', 'Zonk', 'Jackpot'],
@@ -1088,9 +1098,88 @@ if (!function_exists('balanceHtmlTags')) {
             if (this.gameType === 'chem_balancer') return JSON.stringify({ equations: this.chemEquations.filter(e => e.equation.trim() !== '') });
             if (this.gameType === 'math_ninja') return JSON.stringify({ config: this.mathConfig });
             return JSON.stringify({ pairs: this.pairs.filter(p => p.term.trim() !== '' && p.definition.trim() !== '') });
+        },
+        resetForm() {
+            this.isEdit = false;
+            this.gameId = null;
+            this.moduleId = '';
+            this.title = '';
+            this.rewardPoints = 50;
+            this.timeLimit = '';
+            this.livesCount = '';
+            this.gameType = 'quiz';
+            this.pairs = [{term: '', definition: ''}];
+            this.wheelItems = ['Hadiah 1', 'Hadiah 2', 'Zonk', 'Jackpot'];
+            this.quizQuestions = [{ question: '', options: ['', '', '', ''], answer: 0 }];
+            this.tfStatements = [{ statement: '', is_true: true }];
+            this.guessWords = [{ word: '', hint: '' }];
+            this.scrambleWords = [{ word: '', hint: '' }];
+            this.sequenceItems = [{ item: '' }];
+            this.hotspots = [{ x: 50, y: 50, label: '' }];
+            this.chemEquations = [{ equation: '', answers: '' }];
+            this.mathConfig = { operation: 'mixed', difficulty: 'easy' };
+            this.open = true;
+        },
+        loadGame(game) {
+            this.isEdit = true;
+            this.gameId = game.id;
+            this.moduleId = game.module_id || '';
+            this.title = game.title || '';
+            this.rewardPoints = game.reward_points || 50;
+            this.timeLimit = game.time_limit || '';
+            this.livesCount = game.lives_count || '';
+            this.gameType = game.game_type || 'quiz';
+
+            let gd = game.game_data || {};
+            if (typeof gd === 'string') {
+                try { gd = JSON.parse(gd); } catch(e) { gd = {}; }
+            }
+
+            if (this.gameType === 'quiz') {
+                this.quizQuestions = gd.questions && gd.questions.length > 0 
+                    ? JSON.parse(JSON.stringify(gd.questions))
+                    : [{ question: '', options: ['', '', '', ''], answer: 0 }];
+            } else if (this.gameType === 'true_false') {
+                this.tfStatements = gd.statements && gd.statements.length > 0 
+                    ? JSON.parse(JSON.stringify(gd.statements))
+                    : [{ statement: '', is_true: true }];
+            } else if (this.gameType === 'spin_wheel') {
+                this.wheelItems = gd.items && gd.items.length > 0 
+                    ? JSON.parse(JSON.stringify(gd.items))
+                    : ['Hadiah 1', 'Hadiah 2'];
+            } else if (this.gameType === 'flashcard' || this.gameType === 'match') {
+                this.pairs = gd.pairs && gd.pairs.length > 0 
+                    ? JSON.parse(JSON.stringify(gd.pairs))
+                    : [{term: '', definition: ''}];
+            } else if (this.gameType === 'word_guess') {
+                this.guessWords = gd.words && gd.words.length > 0 
+                    ? JSON.parse(JSON.stringify(gd.words))
+                    : [{ word: '', hint: '' }];
+            } else if (this.gameType === 'scramble') {
+                this.scrambleWords = gd.words && gd.words.length > 0 
+                    ? JSON.parse(JSON.stringify(gd.words))
+                    : [{ word: '', hint: '' }];
+            } else if (this.gameType === 'sequence') {
+                this.sequenceItems = gd.items && gd.items.length > 0 
+                    ? JSON.parse(JSON.stringify(gd.items))
+                    : [{ item: '' }];
+            } else if (this.gameType === 'image_hotspot') {
+                this.hotspots = gd.hotspots && gd.hotspots.length > 0 
+                    ? JSON.parse(JSON.stringify(gd.hotspots))
+                    : [{ x: 50, y: 50, label: '' }];
+            } else if (this.gameType === 'chem_balancer') {
+                this.chemEquations = gd.equations && gd.equations.length > 0 
+                    ? JSON.parse(JSON.stringify(gd.equations))
+                    : [{ equation: '', answers: '' }];
+            } else if (this.gameType === 'math_ninja') {
+                this.mathConfig = gd.config ? JSON.parse(JSON.stringify(gd.config)) : { operation: 'mixed', difficulty: 'easy' };
+            }
+
+            this.open = true;
         }
     }" 
-    @open-game-modal.window="open = true" 
+    @open-game-modal.window="resetForm()" 
+    @open-edit-game-modal.window="loadGame($event.detail)" 
     x-show="open" 
     class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
     
@@ -1099,12 +1188,15 @@ if (!function_exists('balanceHtmlTags')) {
 
         <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-2xl w-full relative border-2 border-black" style="z-index: 100000 !important;">
             <div class="px-6 py-4 flex items-center justify-between border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
-                <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-sm uppercase"><i class="fas fa-gamepad text-amber-400"></i> Game Builder Studio (Interaktif)</h3>
+                <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-sm uppercase"><i class="fas fa-gamepad text-amber-400"></i> <span x-text="isEdit ? 'Edit Game Pembelajaran' : 'Game Builder Studio (Interaktif)'"></span></h3>
                 <button @click="open = false" class="text-white/80 hover:text-white transition-colors bg-slate-800 border border-slate-700 w-8 h-8 rounded-xl flex items-center justify-center font-black"><i class="fas fa-times"></i></button>
             </div>
             
-            <form action="{{ route('guru.lms.games.store') }}" method="POST" enctype="multipart/form-data" class="p-6">
+            <form :action="isEdit ? '{{ url('/guru/lms/games') }}/' + gameId : '{{ route('guru.lms.games.store') }}'" method="POST" enctype="multipart/form-data" class="p-6">
                 @csrf
+                <template x-if="isEdit">
+                    <input type="hidden" name="_method" value="PUT">
+                </template>
                 <input type="hidden" name="course_id" value="{{ $course->id }}">
                 <input type="hidden" name="game_data" :value="getGameData()">
 
@@ -1112,7 +1204,7 @@ if (!function_exists('balanceHtmlTags')) {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">Pilih Modul</label>
-                            <select name="module_id" class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <select name="module_id" x-model="moduleId" class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                                 <option value="">-- Pilih Modul --</option>
                                 @foreach($course->modules as $mod)
                                     <option value="{{ $mod->id }}">{{ $mod->getCode() }} - {{ $mod->title }}</option>
@@ -1121,13 +1213,13 @@ if (!function_exists('balanceHtmlTags')) {
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">EXP Reward (Poin)</label>
-                            <input type="number" name="reward_points" value="50" min="0" max="1000" class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <input type="number" name="reward_points" x-model="rewardPoints" value="50" min="0" max="1000" class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-1">Judul Game</label>
-                        <input type="text" name="title" class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Contoh: Kuis Cepat Modul 1" required>
+                        <input type="text" name="title" x-model="title" class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Contoh: Kuis Cepat Modul 1" required>
                     </div>
 
                     <div class="p-4 bg-red-50 border border-red-100 rounded-2xl" x-show="['quiz', 'true_false', 'word_guess', 'scramble', 'sequence'].includes(gameType)">
@@ -1135,12 +1227,12 @@ if (!function_exists('balanceHtmlTags')) {
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Batas Waktu (Detik)</label>
-                                <input type="number" name="time_limit" min="5" max="300" placeholder="Kosongkan jika tak terbatas" class="w-full rounded-xl border-red-200 bg-white text-sm focus:border-red-500 focus:ring-red-500 placeholder-gray-400">
+                                <input type="number" name="time_limit" x-model="timeLimit" min="5" max="300" placeholder="Kosongkan jika tak terbatas" class="w-full rounded-xl border-red-200 bg-white text-sm focus:border-red-500 focus:ring-red-500 placeholder-gray-400">
                                 <p class="text-[10px] text-gray-500 mt-1">Siswa akan gagal otomatis jika waktu habis.</p>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Batas Nyawa</label>
-                                <input type="number" name="lives_count" min="1" max="10" placeholder="Kosongkan jika tak terbatas" class="w-full rounded-xl border-red-200 bg-white text-sm focus:border-red-500 focus:ring-red-500 placeholder-gray-400">
+                                <input type="number" name="lives_count" x-model="livesCount" min="1" max="10" placeholder="Kosongkan jika tak terbatas" class="w-full rounded-xl border-red-200 bg-white text-sm focus:border-red-500 focus:ring-red-500 placeholder-gray-400">
                                 <p class="text-[10px] text-gray-500 mt-1">Siswa Game Over jika nyawa habis. Khusus Tebak Kata selalu 5 nyawa.</p>
                             </div>
                         </div>
@@ -1445,7 +1537,7 @@ if (!function_exists('balanceHtmlTags')) {
                 <div class="mt-6 flex justify-end gap-3">
                     <button type="button" @click="open = false" class="px-5 py-2.5 rounded-xl text-gray-600 font-bold text-sm hover:bg-gray-100 transition">Batal</button>
                     <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm shadow-md hover:bg-indigo-700 hover:shadow-lg transition flex items-center gap-2">
-                        <i class="fas fa-save"></i> Buat Game
+                        <i class="fas fa-save"></i> <span x-text="isEdit ? 'Simpan Perubahan Game' : 'Buat Game'"></span>
                     </button>
                 </div>
             </form>

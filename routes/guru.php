@@ -178,6 +178,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
 
         // Arcade (Games)
         Route::post('/games', [App\Http\Controllers\Guru\LmsGameController::class, 'store'])->name('games.store');
+        Route::put('/games/{lms_game}', [App\Http\Controllers\Guru\LmsGameController::class, 'update'])->name('games.update');
         Route::delete('/games/{lms_game}', [App\Http\Controllers\Guru\LmsGameController::class, 'destroy'])->name('games.destroy');
         
         // Live Game (Kahoot/Mentimeter Clone)
