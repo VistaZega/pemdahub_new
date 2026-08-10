@@ -308,8 +308,8 @@
 
                         <!-- 🧱 Tower Wall — Bata tersusun piramida (bawah lebar, atas sempit) -->
                         <div class="w-full flex flex-col items-center" style="max-height: 420px; overflow-y: auto;">
-                            <!-- flex-col-reverse: bata terbaru (brick_number tinggi) muncul di atas -->
-                            <div class="w-full flex flex-col-reverse items-center">
+                            <!-- flex-col: bata terbaru (bIdx = 0, sempit 55%) di atas, bata lama (bIdx max, lebar 100%) di bawah -->
+                            <div class="w-full flex flex-col items-center">
                                 <template x-for="(b, bIdx) in bricks" :key="bIdx">
                                     <div @click="selectedBrick = b"
                                          class="cursor-pointer transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5 group"
