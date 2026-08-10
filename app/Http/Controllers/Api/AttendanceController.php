@@ -449,7 +449,7 @@ class AttendanceController extends Controller
         
         $schoolLat = (float) ($school->latitude ?? 0); 
         $schoolLong = (float) ($school->longitude ?? 0);
-        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 1000); // Default 1000m (1km) tolerance
+        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 100); // Default 100 meter radius
         $hasValidSchoolCoords = ($schoolLat != 0.0 && $schoolLong != 0.0);
 
         $today = \Carbon\Carbon::now('Asia/Jakarta')->toDateString();
