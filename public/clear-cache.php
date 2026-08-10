@@ -99,6 +99,63 @@ try {
             \Illuminate\Support\Facades\DB::table('lms_materials')->where('file_url', 'like', '%p901k_lmn_xyz%')->orWhere('content', 'like', '%p901k_lmn_xyz%')->update(['file_url' => 'https://www.youtube.com/watch?v=cnL6ekiZXEc', 'content' => 'Simak eksperimen gerak parabola di laboratorium fisika berikut ini.']);
             echo "<span class='ok'>✅ LMS Video Links (YouTube ID) Auto-Repaired successfully</span>\n";
         }
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('puzzles') && \Illuminate\Support\Facades\Schema::hasTable('puzzle_pieces')) {
+            $latestPuzzle = \App\Models\Puzzle::latest()->first();
+            if (!$latestPuzzle) {
+                $latestPuzzle = \App\Models\Puzzle::create([
+                    'title' => 'Esports Championship (Minggu 1)',
+                    'image_path' => 'puzzles/pembda_puzzle_1.png',
+                    'grid_x' => 10,
+                    'grid_y' => 5,
+                    'is_active' => true,
+                ]);
+            }
+
+            // Non-aktifkan puzzle lain agar hanya 1 puzzle yang aktif
+            \App\Models\Puzzle::where('id', '!=', $latestPuzzle->id)->update(['is_active' => false]);
+            $latestPuzzle->update(['is_active' => true]);
+
+            // Bersihkan kepingan jika terjadi duplikasi
+            $pieceCount = \App\Models\PuzzlePiece::where('puzzle_id', $latestPuzzle->id)->count();
+            if ($pieceCount !== 50) {
+                \App\Models\PuzzlePiece::where('puzzle_id', $latestPuzzle->id)->delete();
+                $piecesData = [];
+                for ($i = 0; $i < 50; $i++) {
+                    $piecesData[] = [
+                        'puzzle_id' => $latestPuzzle->id,
+                        'piece_index' => $i,
+                        'is_placed' => false,
+                        'placed_by_user_id' => null,
+                        'placed_at' => null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+                \App\Models\PuzzlePiece::insert($piecesData);
+            }
+
+            // Reset kepingan agar 10 keping terpasang (bonus) dan 40 keping belum terpasang
+            \App\Models\PuzzlePiece::where('puzzle_id', $latestPuzzle->id)->update([
+                'is_placed' => false,
+                'placed_by_user_id' => null,
+                'placed_at' => null,
+            ]);
+
+            $bonusIds = \App\Models\PuzzlePiece::where('puzzle_id', $latestPuzzle->id)
+                ->inRandomOrder()
+                ->limit(10)
+                ->pluck('id');
+
+            \App\Models\PuzzlePiece::whereIn('id', $bonusIds)->update([
+                'is_placed' => true,
+                'placed_at' => now(),
+            ]);
+
+            $placedNow = \App\Models\PuzzlePiece::where('puzzle_id', $latestPuzzle->id)->where('is_placed', true)->count();
+            $unplacedNow = \App\Models\PuzzlePiece::where('puzzle_id', $latestPuzzle->id)->where('is_placed', false)->count();
+            echo "<span class='ok'>🧩 Puzzle Auto-Repair OK: '{$latestPuzzle->title}' (Terpasang: {$placedNow}, Tersedia di Kiri: {$unplacedNow})</span>\n";
+        }
     } catch (\Exception $e) {
         // ignore if table not ready
     }
