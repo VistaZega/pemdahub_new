@@ -983,6 +983,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/tower/state', [App\Http\Controllers\TowerController::class, 'getState'])->name('tower.state');
         Route::post('/tower/brick', [App\Http\Controllers\TowerController::class, 'placeBrick'])->name('tower.place');
         Route::post('/tower/like/{id}', [App\Http\Controllers\TowerController::class, 'likeBrick'])->name('tower.like');
+
+        // Legacy fallback puzzle routes to prevent stale view cache crashes
+        Route::get('/puzzle', function() { return response()->json(['success' => false]); })->name('puzzle.state');
+        Route::post('/puzzle/place', function() { return response()->json(['success' => false]); })->name('puzzle.place');
+        Route::post('/puzzle/reset', function() { return response()->json(['success' => false]); })->name('puzzle.reset');
         Route::get('/{thread}', [App\Http\Controllers\ForumController::class, 'show'])->name('show');
         Route::post('/{thread}/reply', [App\Http\Controllers\ForumController::class, 'reply'])->name('reply');
         Route::post('/{thread}/like', [App\Http\Controllers\ForumController::class, 'like'])->name('like');
