@@ -22,7 +22,7 @@ class FoundationLetterHutRiSeeder extends Seeder
 
         $content = '<div style="border-left: 4px solid #dc2626; padding-left: 14px; margin-bottom: 20px; background-color: #fef2f2; padding-top: 10px; padding-bottom: 10px; border-radius: 0 8px 8px 0;">
     <p style="margin: 0; font-weight: bold; color: #991b1b; text-transform: uppercase; font-size: 13px; letter-spacing: 0.05em;">
-        🇮🇩 EDISI KHUSUS PERINGATAN HUT KE-81 KEMERDEKAAN REPUBLIK INDONESIA
+        EDISI KHUSUS PERINGATAN HUT KE-81 KEMERDEKAAN REPUBLIK INDONESIA
     </p>
     <p style="margin: 2px 0 0 0; font-style: italic; color: #b91c1c; font-size: 12px;">
         Tema Nasional: "Nusantara Baru, Indonesia Maju"
@@ -91,7 +91,7 @@ Mengingat pentingnya acara ini sebagai wujud penghormatan, jiwa nasionalisme, da
 
 <div style="margin-top: 18px; padding: 12px; text-align: center; border-top: 2px dashed #ef4444; border-bottom: 2px dashed #ef4444; background-color: #fafafa; border-radius: 6px;">
     <p style="margin: 0; font-weight: bold; color: #b91c1c; font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em;">
-        🇮🇩 DIRGAHAYU REPUBLIK INDONESIA KE-81! 🇮🇩
+        DIRGAHAYU REPUBLIK INDONESIA KE-81
     </p>
     <p style="margin: 4px 0 0 0; font-weight: 800; color: #111827; font-size: 13px;">
         <em>MERDEKA! MERDEKA! MERDEKA!</em>
@@ -100,31 +100,51 @@ Mengingat pentingnya acara ini sebagai wujud penghormatan, jiwa nasionalisme, da
 
         $hash = FoundationLetter::generateHash($letterNumber, $title, $effectiveDate);
 
-        FoundationLetter::updateOrCreate(
-            ['letter_number' => $letterNumber],
-            [
-                'title'              => $title,
-                'category'           => 'undangan',
-                'content'            => $content,
-                'effective_date'     => $effectiveDate,
-                'deadline_date'      => $deadlineDate,
-                'recipients'         => [
-                    'target_keys'   => ['kepala_sekolah', 'guru_pegawai', 'siswa', 'pengurus'],
-                    'target_labels' => [
-                        'Kepala Sekolah se-Perguruan Pembda Nias',
-                        'Bapak/Ibu Guru dan Pegawai se-Perguruan Pembda Nias',
-                        'Siswa/Siswi se-Perguruan Pembda Nias',
-                        'Pengurus Yayasan Perguruan Pembda Nias'
-                    ],
-                    'unit_ids'      => [1, 2, 3],
+        // Find existing letter about HUT RI or with old letter numbers to UPDATE rather than create duplicates
+        $existingLetter = FoundationLetter::where('title', 'like', '%Hari Kemerdekaan%')
+            ->orWhere('title', 'like', '%HUT%RI%')
+            ->orWhere('letter_number', '08/SE/YP-PEMBDA/VIII/2026')
+            ->orWhere('letter_number', '06/SE/YP-PEMBDA/VIII/2026')
+            ->first();
+
+        $data = [
+            'letter_number'      => $letterNumber,
+            'title'              => $title,
+            'category'           => 'undangan',
+            'content'            => $content,
+            'effective_date'     => $effectiveDate,
+            'deadline_date'      => $deadlineDate,
+            'recipients'         => [
+                'target_keys'   => ['kepala_sekolah', 'guru_pegawai', 'siswa', 'pengurus'],
+                'target_labels' => [
+                    'Kepala Sekolah se-Perguruan Pembda Nias',
+                    'Bapak/Ibu Guru dan Pegawai se-Perguruan Pembda Nias',
+                    'Siswa/Siswi se-Perguruan Pembda Nias',
+                    'Pengurus Yayasan Perguruan Pembda Nias'
                 ],
-                'signatory_name'     => $signatoryName,
-                'signatory_position' => $signatoryPosition,
-                'signature_hash'     => $hash,
-                'signed_at'          => now(),
-                'signed_by_user_id'  => $user ? $user->id : null,
-                'status'             => 'published',
-            ]
-        );
+                'unit_ids'      => [1, 2, 3],
+            ],
+            'signatory_name'     => $signatoryName,
+            'signatory_position' => $signatoryPosition,
+            'signature_hash'     => $hash,
+            'signed_at'          => now(),
+            'signed_by_user_id'  => $user ? $user->id : null,
+            'status'             => 'published',
+        ];
+
+        if ($existingLetter) {
+            $existingLetter->update($data);
+            $targetId = $existingLetter->id;
+        } else {
+            $created = FoundationLetter::create($data);
+            $targetId = $created->id;
+        }
+
+        // Cleanup any other duplicate HUT RI letters if exist
+        FoundationLetter::where('id', '!=', $targetId)
+            ->where(function($q) {
+                $q->where('letter_number', '08/SE/YP-PEMBDA/VIII/2026')
+                  ->orWhere('title', 'like', '%Hari Kemerdekaan%');
+            })->delete();
     }
 }
