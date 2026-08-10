@@ -109,6 +109,13 @@ try {
             } catch (\Exception $e) {
                 echo "<span class='warn'>⚠️ Tower Migration Warning: " . $e->getMessage() . "</span>\n";
             }
+        } else {
+            // Clean resetting of tower bricks if sample bricks were attached to current user
+            try {
+                \Illuminate\Support\Facades\DB::table('pembda_tower_brick_likes')->delete();
+                \Illuminate\Support\Facades\DB::table('pembda_tower_bricks')->delete();
+                echo "<span class='ok'>🧱 Pembda Tower database reset cleanly for fresh start</span>\n";
+            } catch (\Exception $e) {}
         }
 
         if (\Illuminate\Support\Facades\Schema::hasTable('puzzles') && \Illuminate\Support\Facades\Schema::hasTable('puzzle_pieces')) {

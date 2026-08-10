@@ -373,23 +373,25 @@
 
                             <div :class="hasPlacedToday ? 'opacity-50 pointer-events-none' : ''">
                                 <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Pilih Warna Bata Anda:</label>
-                                <div class="grid grid-cols-6 gap-2">
-                                    <template x-for="c in ['indigo', 'emerald', 'amber', 'rose', 'purple', 'cyan']">
-                                        <button @click="formColor = c" 
-                                                type="button" 
-                                                class="h-9 rounded-lg border-2 transition transform active:scale-95 flex items-center justify-center text-white"
-                                                :class="{
-                                                    'ring-2 ring-offset-1 ring-slate-800 scale-105': formColor === c,
-                                                    'bg-indigo-600 border-indigo-700': c === 'indigo',
-                                                    'bg-emerald-600 border-emerald-700': c === 'emerald',
-                                                    'bg-amber-500 border-amber-600': c === 'amber',
-                                                    'bg-rose-600 border-rose-700': c === 'rose',
-                                                    'bg-purple-600 border-purple-700': c === 'purple',
-                                                    'bg-cyan-600 border-cyan-700': c === 'cyan'
-                                                }">
-                                            <i x-show="formColor === c" class="ph-bold ph-check text-sm"></i>
-                                        </button>
-                                    </template>
+                                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                    <button @click="formColor = 'indigo'" type="button" class="py-2 px-1 rounded-lg font-bold text-[11px] transition text-white bg-indigo-600 border border-indigo-700 flex items-center justify-center gap-1" :class="formColor === 'indigo' ? 'ring-2 ring-indigo-900 shadow-md font-black' : 'opacity-80 hover:opacity-100'">
+                                        <i x-show="formColor === 'indigo'" class="ph-bold ph-check"></i> Nila
+                                    </button>
+                                    <button @click="formColor = 'emerald'" type="button" class="py-2 px-1 rounded-lg font-bold text-[11px] transition text-white bg-emerald-600 border border-emerald-700 flex items-center justify-center gap-1" :class="formColor === 'emerald' ? 'ring-2 ring-emerald-900 shadow-md font-black' : 'opacity-80 hover:opacity-100'">
+                                        <i x-show="formColor === 'emerald'" class="ph-bold ph-check"></i> Hijau
+                                    </button>
+                                    <button @click="formColor = 'amber'" type="button" class="py-2 px-1 rounded-lg font-bold text-[11px] transition text-white bg-amber-500 border border-amber-600 flex items-center justify-center gap-1" :class="formColor === 'amber' ? 'ring-2 ring-amber-900 shadow-md font-black' : 'opacity-80 hover:opacity-100'">
+                                        <i x-show="formColor === 'amber'" class="ph-bold ph-check"></i> Emas
+                                    </button>
+                                    <button @click="formColor = 'rose'" type="button" class="py-2 px-1 rounded-lg font-bold text-[11px] transition text-white bg-rose-600 border border-rose-700 flex items-center justify-center gap-1" :class="formColor === 'rose' ? 'ring-2 ring-rose-900 shadow-md font-black' : 'opacity-80 hover:opacity-100'">
+                                        <i x-show="formColor === 'rose'" class="ph-bold ph-check"></i> Merah
+                                    </button>
+                                    <button @click="formColor = 'purple'" type="button" class="py-2 px-1 rounded-lg font-bold text-[11px] transition text-white bg-purple-600 border border-purple-700 flex items-center justify-center gap-1" :class="formColor === 'purple' ? 'ring-2 ring-purple-900 shadow-md font-black' : 'opacity-80 hover:opacity-100'">
+                                        <i x-show="formColor === 'purple'" class="ph-bold ph-check"></i> Ungu
+                                    </button>
+                                    <button @click="formColor = 'cyan'" type="button" class="py-2 px-1 rounded-lg font-bold text-[11px] transition text-white bg-cyan-600 border border-cyan-700 flex items-center justify-center gap-1" :class="formColor === 'cyan' ? 'ring-2 ring-cyan-900 shadow-md font-black' : 'opacity-80 hover:opacity-100'">
+                                        <i x-show="formColor === 'cyan'" class="ph-bold ph-check"></i> Biru
+                                    </button>
                                 </div>
                             </div>
 
@@ -414,25 +416,27 @@
                             <span class="text-xs font-extrabold text-slate-500" x-text="selectedBrick ? ('Bata #' + selectedBrick.brick_number) : ''"></span>
                             <button @click="selectedBrick = null" class="text-slate-400 hover:text-slate-700 p-1"><i class="ph-bold ph-x text-lg"></i></button>
                         </div>
-                        <div class="p-5 flex flex-col items-center text-center gap-3" x-if="selectedBrick">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md"
-                                 :class="{
-                                     'bg-indigo-600': selectedBrick.color === 'indigo',
-                                     'bg-emerald-600': selectedBrick.color === 'emerald',
-                                     'bg-amber-500': selectedBrick.color === 'amber',
-                                     'bg-rose-600': selectedBrick.color === 'rose',
-                                     'bg-purple-600': selectedBrick.color === 'purple',
-                                     'bg-cyan-600': selectedBrick.color === 'cyan'
-                                 }">🧱</div>
-                            
-                            <p class="text-sm font-bold text-slate-800 italic" x-text="`“${selectedBrick.message}”`"></p>
+                        <template x-if="selectedBrick">
+                            <div class="p-5 flex flex-col items-center text-center gap-3">
+                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md"
+                                     :class="{
+                                         'bg-indigo-600': selectedBrick.color === 'indigo',
+                                         'bg-emerald-600': selectedBrick.color === 'emerald',
+                                         'bg-amber-500': selectedBrick.color === 'amber',
+                                         'bg-rose-600': selectedBrick.color === 'rose',
+                                         'bg-purple-600': selectedBrick.color === 'purple',
+                                         'bg-cyan-600': selectedBrick.color === 'cyan'
+                                     }">🧱</div>
+                                
+                                <p class="text-sm font-bold text-slate-800 italic" x-text="`“${selectedBrick.message}”`"></p>
 
-                            <div class="pt-3 border-t border-slate-100 w-full text-xs text-slate-500">
-                                <div>Diletakkan oleh: <strong class="text-slate-800" x-text="selectedBrick.user_name"></strong></div>
-                                <div>Unit: <span class="font-semibold text-indigo-600" x-text="selectedBrick.school_name"></span></div>
-                                <div class="text-[10px] text-slate-400 mt-1" x-text="selectedBrick.time_ago"></div>
+                                <div class="pt-3 border-t border-slate-100 w-full text-xs text-slate-500">
+                                    <div>Diletakkan oleh: <strong class="text-slate-800" x-text="selectedBrick.user_name"></strong></div>
+                                    <div>Unit: <span class="font-semibold text-indigo-600" x-text="selectedBrick.school_name"></span></div>
+                                    <div class="text-[10px] text-slate-400 mt-1" x-text="selectedBrick.time_ago"></div>
+                                </div>
                             </div>
-                        </div>
+                        </template>
                     </div>
                 </div>
             </div>
