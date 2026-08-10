@@ -308,7 +308,7 @@
 
                         <!-- Bricks Grid (3 bricks per row, stacked vertically) -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                            <template x-for="b in bricks" :key="'brick-'+b.id">
+                            <template x-for="(b, bIdx) in bricks" :key="bIdx">
                                 <div @click="selectedBrick = b"
                                      class="p-3.5 rounded-xl border transition-all duration-200 cursor-pointer relative shadow-sm hover:shadow-md hover:-translate-y-0.5 group"
                                      :class="{
@@ -1021,7 +1021,12 @@ function pembdaTower() {
                 console.log('[Menara] API response:', data);
                 if (data.success) {
                     this.stats = data.stats;
-                    this.bricks = data.bricks || [];
+                    // Force convert ke plain JS array — handle object, array, atau apapun
+                    let rawBricks = data.bricks || [];
+                    if (!Array.isArray(rawBricks)) {
+                        rawBricks = Object.values(rawBricks);
+                    }
+                    this.bricks = JSON.parse(JSON.stringify(rawBricks));
                     this.hasPlacedToday = !!data.has_placed_today;
                 } else if (data.error) {
                     console.error('[Menara] Server error:', data.error);
