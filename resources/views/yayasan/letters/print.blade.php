@@ -9,24 +9,29 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 15mm 25mm 15mm 25mm;
+            margin: 15mm 20mm 15mm 20mm;
         }
         body {
-            font-family: 'Times New Roman', Times, serif;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: #111827;
             background-color: #f3f4f6;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
         .paper {
             background: #ffffff;
             width: 210mm;
             min-height: 297mm;
-            padding: 20mm 25mm;
+            padding: 15mm 20mm;
             margin: 10px auto;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-sizing: border-box;
         }
         @media print {
             body {
                 background: none;
+                margin: 0;
+                padding: 0;
             }
             .paper {
                 box-shadow: none;
@@ -42,10 +47,14 @@
         .kop-border {
             border-bottom: 4px double #000;
         }
-        .letter-content ol { list-style-type: decimal !important; padding-left: 1.75rem !important; margin-top: 0.5rem !important; margin-bottom: 0.75rem !important; }
-        .letter-content ol li { margin-bottom: 0.5rem !important; }
-        .letter-content ul { list-style-type: disc !important; padding-left: 1.5rem !important; margin-top: 0.25rem !important; margin-bottom: 0.5rem !important; }
-        .letter-content ul li { margin-bottom: 0.25rem !important; }
+        .letter-content {
+            font-size: 0.875rem !important;
+            line-height: 1.35 !important;
+        }
+        .letter-content ol { list-style-type: decimal !important; padding-left: 1.5rem !important; margin-top: 0.35rem !important; margin-bottom: 0.5rem !important; line-height: 1.25 !important; }
+        .letter-content ol li { margin-bottom: 0.2rem !important; }
+        .letter-content ul { list-style-type: disc !important; padding-left: 1.25rem !important; margin-top: 0.2rem !important; margin-bottom: 0.35rem !important; line-height: 1.25 !important; }
+        .letter-content ul li { margin-bottom: 0.15rem !important; }
     </style>
 </head>
 <body>
@@ -81,7 +90,7 @@
         </div>
 
         {{-- Nomor & Judul Surat --}}
-        <div class="text-center mb-6">
+        <div class="text-center mb-5">
             <h2 class="text-base font-bold uppercase underline tracking-wider">
                 {{ $categories[$letter->category] ?? strtoupper($letter->category) }}
             </h2>
@@ -94,7 +103,7 @@
                 ? $letter->recipients['target_labels'] 
                 : [(is_array($letter->recipients) && isset($letter->recipients['target_label']) ? $letter->recipients['target_label'] : 'Kepala Sekolah se-Perguruan Pembda Nias')];
         @endphp
-        <div class="mb-6 text-sm">
+        <div class="mb-5 text-sm">
             <table class="text-sm w-full">
                 <tr>
                     <td class="w-28 font-semibold align-top">Perihal</td>
@@ -125,12 +134,12 @@
         </div>
 
         {{-- Isi Surat --}}
-        <div class="text-sm text-justify leading-relaxed mb-10 space-y-3 font-serif letter-content">
+        <div class="text-sm text-justify leading-relaxed mb-8 space-y-3 letter-content">
             {!! $letter->content !!}
         </div>
 
         {{-- Tanda Tangan & QR Code Verifikasi --}}
-        <div class="flex justify-between items-end pt-4">
+        <div class="flex justify-between items-end pt-4 border-t border-gray-200">
             {{-- Left QR Box --}}
             <div class="border border-gray-400 p-2 rounded flex items-center gap-3 bg-gray-50 max-w-sm">
                 <img src="{{ $letter->qr_code_url }}" alt="QR Code Verification" class="w-20 h-20 bg-white p-0.5 border border-gray-300">
@@ -145,7 +154,7 @@
             <div class="text-right">
                 <p class="text-xs">Gunungsitoli, {{ \Carbon\Carbon::parse($letter->effective_date)->translatedFormat('d F Y') }}</p>
                 <p class="text-xs font-bold uppercase mt-1">{{ $letter->signatory_position }}</p>
-                <div class="my-4 py-1 flex justify-end">
+                <div class="my-3 py-1 flex justify-end">
                     <span class="border border-emerald-600 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
                         ✔ Signed Digital
                     </span>
