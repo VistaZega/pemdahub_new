@@ -776,7 +776,7 @@ function pembdaColabs() {
         
         async fetchState() {
             try {
-                const res = await fetch('{{ route("forum.puzzle.state") }}');
+                const res = await fetch('{{ route("forum.puzzle.state") }}?_t=' + Date.now());
                 const data = await res.json();
                 if(data.success) {
                     this.puzzle = data.puzzle;
