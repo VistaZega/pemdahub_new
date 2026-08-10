@@ -10,7 +10,7 @@ class FoundationLetterHutRiSeeder extends Seeder
 {
     public function run(): void
     {
-        $letterNumber = '08/SE/YP-PEMBDA/VIII/2026';
+        $letterNumber = '06/SE/YP-PEMBDA/VIII/2026';
         $title = 'Undangan & Pelaksanaan Peringatan Hari Kemerdekaan Republik Indonesia Ke-81 Tahun 2026 di Lingkungan Yayasan Perguruan Pembda Nias';
         $effectiveDate = '2026-08-10';
         $deadlineDate = '2026-08-17';

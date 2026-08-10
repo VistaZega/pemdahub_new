@@ -58,7 +58,7 @@ class FoundationLetterController extends Controller
 
         $defaultContent = '';
         if ($preset === 'hut_ri' || $preset === 'peringatan_hut_ri') {
-            $defaultNumber = '08/SE/YP-PEMBDA/VIII/' . date('Y');
+            $defaultNumber = '06/SE/YP-PEMBDA/VIII/' . date('Y');
             $defaultTitle = 'Undangan & Pelaksanaan Peringatan Hari Kemerdekaan Republik Indonesia Ke-81 Tahun 2026 di Lingkungan Yayasan Perguruan Pembda Nias';
             $defaultEffectiveDate = date('Y-m-d');
             $defaultDeadlineDate = date('Y-08-17');
