@@ -259,6 +259,11 @@
                         <button @click.stop="showGuide = true" class="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition">
                             <i class="ph-bold ph-book-open mr-1"></i> Panduan
                         </button>
+                        @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->isSuperAdmin()))
+                        <button @click.stop="resetPuzzleAdmin()" class="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2.5 py-1.5 rounded-lg hover:bg-rose-100 transition" title="Reset Puzzle (Admin)">
+                            <i class="ph-bold ph-arrows-counter-clockwise mr-1"></i> Reset
+                        </button>
+                        @endif
                         <button class="text-slate-400 hover:text-slate-700 transition p-1.5 bg-slate-100 rounded-lg">
                             <i class="ph-bold ph-caret-down transition-transform duration-300" :class="isCollapsed ? '' : 'rotate-180'"></i>
                         </button>
@@ -266,57 +271,96 @@
                 </div>
                 
                 <div x-show="!isCollapsed" x-transition.opacity.duration.300ms class="p-4">
+                    <!-- Status Banner / Message Alert -->
+                    <div x-show="statusMessage" x-transition.opacity
+                         class="mb-4 p-3 rounded-xl text-sm font-semibold flex items-center justify-between shadow-sm"
+                         :class="statusType === 'success' ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : (statusType === 'error' ? 'bg-rose-50 border border-rose-200 text-rose-800' : 'bg-indigo-50 border border-indigo-200 text-indigo-800')">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold" :class="statusType === 'success' ? 'ph-check-circle text-emerald-600 text-lg' : (statusType === 'error' ? 'ph-warning-circle text-rose-600 text-lg' : 'ph-info text-indigo-600 text-lg')"></i>
+                            <span x-text="statusMessage"></span>
+                        </div>
+                        <button @click="statusMessage = ''" class="text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
+                    </div>
+
                     <template x-if="puzzle">
                         <div class="flex flex-col md:flex-row gap-4">
                             <!-- Left: Inventory (Available Pieces) -->
                             <div class="w-full md:w-1/3 bg-slate-50 rounded-xl border border-slate-200 p-3">
-                                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Kepingan Tersedia</h3>
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kepingan Tersedia</h3>
+                                    <span class="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full" x-text="inventory.length + ' keping'"></span>
+                                </div>
                                 
-                                <div x-show="hasPlacedToday" class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-600 mb-3 text-center">
+                                <div x-show="hasPlacedToday" class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs font-bold text-blue-700 mb-3 text-center">
                                     <i class="ph-bold ph-check-circle text-2xl mb-1 block text-blue-500"></i>
                                     Kamu sudah menaruh kepingan hari ini! Kembali besok.
                                 </div>
                                 
-                                <div class="flex flex-wrap gap-1 max-h-[300px] overflow-y-auto no-scrollbar justify-center" :class="hasPlacedToday ? 'opacity-50 pointer-events-none' : ''">
+                                <div x-show="selectedPiece !== null && !hasPlacedToday" class="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs font-bold text-amber-800 mb-3 flex items-center justify-between">
+                                    <span class="flex items-center gap-1.5">
+                                        <i class="ph-bold ph-hand-tap text-amber-600 text-sm"></i>
+                                        Kepingan dipilih! Klik kotak kosong di papan.
+                                    </span>
+                                    <button @click="selectedPiece = null" class="text-amber-600 hover:text-amber-800 underline text-[10px]">Batal</button>
+                                </div>
+
+                                <div class="flex flex-wrap gap-1.5 max-h-[320px] overflow-y-auto no-scrollbar justify-center p-1" :class="hasPlacedToday ? 'opacity-50 pointer-events-none' : ''">
                                     <template x-for="idx in inventory" :key="'inv-'+idx">
                                         <button @click="selectPiece(idx)" 
-                                                class="w-10 h-10 sm:w-12 sm:h-12 border-2 transition-all duration-200"
-                                                :class="selectedPiece === idx ? 'border-indigo-500 scale-110 z-10 shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'border-slate-200 hover:border-indigo-400 hover:scale-105'"
-                                                :style="`background-image: url(${puzzle.image_url}); background-size: ${puzzle.grid_x * 100}% ${puzzle.grid_y * 100}%; background-position: ${getBgPos(idx)};`">
+                                                class="w-11 h-11 sm:w-12 sm:h-12 rounded-lg border-2 transition-all duration-200 relative overflow-hidden group shadow-sm"
+                                                :class="selectedPiece === idx ? 'border-indigo-600 scale-110 z-10 ring-4 ring-indigo-200 shadow-md' : 'border-slate-200 hover:border-indigo-400 hover:scale-105'"
+                                                :style="`background-image: url(${puzzle.image_url}); background-size: ${puzzle.grid_x * 100}% ${puzzle.grid_y * 100}%; background-position: ${getBgPos(idx)};`"
+                                                :title="'Keping #' + (idx + 1)">
                                         </button>
                                     </template>
-                                    <div x-show="inventory.length === 0" class="text-sm text-emerald-600 font-bold p-4 text-center w-full">
-                                        Puzzle Selesai! 🎉
+                                    <div x-show="inventory.length === 0" class="text-sm text-emerald-600 font-bold p-6 text-center w-full">
+                                        🎉 Selamat! Puzzle Telah Selesai Disusun! 🎉
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- Right: Board -->
                             <div class="w-full md:w-2/3 bg-slate-100 rounded-xl border border-slate-200 p-3 flex flex-col items-center justify-center relative overflow-hidden">
-                                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 w-full text-left" x-text="`${puzzle.title} (${puzzle.progress.percentage}%)`"></h3>
+                                <div class="w-full flex items-center justify-between mb-3">
+                                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5" x-text="`${puzzle.title} (${puzzle.progress.percentage}%)`"></h3>
+                                    <button @click="showReference = !showReference" 
+                                            class="text-[11px] font-bold px-2.5 py-1 rounded-lg border transition flex items-center gap-1"
+                                            :class="showReference ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'">
+                                        <i class="ph-bold ph-eye"></i>
+                                        <span x-text="showReference ? 'Sembunyikan Petunjuk' : 'Intip Bayangan'"></span>
+                                    </button>
+                                </div>
                                 
-                                <div class="w-full max-w-[500px] relative shadow-lg bg-white border border-slate-200">
+                                <div class="w-full max-w-[500px] relative shadow-md bg-white border border-slate-300 rounded-xl overflow-hidden">
                                     <!-- Aspect ratio hack -->
                                     <div :style="`padding-bottom: ${(puzzle.grid_y / puzzle.grid_x) * 100}%;`"></div>
+                                    
+                                    <!-- Faint Background Overlay Reference Image -->
+                                    <div class="absolute inset-0 bg-cover bg-no-repeat transition-opacity duration-300 pointer-events-none"
+                                         :class="showReference ? 'opacity-40' : 'opacity-20'"
+                                         :style="`background-image: url(${puzzle.image_url});`"></div>
+
                                     <div class="absolute inset-0"
                                          :style="`display: grid; grid-template-columns: repeat(${puzzle.grid_x}, 1fr); grid-template-rows: repeat(${puzzle.grid_y}, 1fr);`">
                                         <template x-for="(piece, i) in board" :key="'board-'+i">
-                                        <div class="w-full h-full border-[0.5px] border-slate-200 relative group cursor-pointer bg-slate-50"
+                                        <div class="w-full h-full border-[0.5px] border-slate-300/40 relative group cursor-pointer"
                                              @click="placeAt(i)">
                                              
                                             <!-- Empty Slot -->
-                                            <div x-show="!piece" class="absolute inset-0 hover:bg-indigo-50 transition flex items-center justify-center">
-                                                <i x-show="selectedPiece !== null" class="ph-bold ph-plus text-white/50"></i>
+                                            <div x-show="!piece" 
+                                                 class="absolute inset-0 hover:bg-indigo-500/25 transition flex items-center justify-center"
+                                                 :class="selectedPiece !== null ? 'hover:ring-2 hover:ring-indigo-500 z-10' : ''">
+                                                <i x-show="selectedPiece !== null" class="ph-bold ph-plus text-indigo-600 text-xs drop-shadow-sm"></i>
                                             </div>
                                             
                                             <!-- Placed Piece -->
-                                            <div x-show="piece" class="absolute inset-0"
+                                            <div x-show="piece" class="absolute inset-0 shadow-[inset_0_0_2px_rgba(0,0,0,0.2)]"
                                                  :style="`background-image: url(${puzzle.image_url}); background-size: ${puzzle.grid_x * 100}% ${puzzle.grid_y * 100}%; background-position: ${getBgPos(i)};`">
                                             </div>
                                             
                                             <!-- Tooltip -->
-                                            <div x-show="piece" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded pointer-events-none opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-50">
-                                                Oleh <span class="font-bold text-blue-400" x-text="piece ? (piece.placed_by || 'Sistem (Bonus)') : ''"></span>
+                                            <div x-show="piece" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded shadow-lg pointer-events-none opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-50">
+                                                Oleh <span class="font-bold text-blue-300" x-text="piece ? (piece.placed_by || 'Sistem (Bonus)') : ''"></span>
                                             </div>
                                         </div>
                                     </template>
@@ -326,7 +370,10 @@
                         </div>
                     </template>
                     <template x-if="!puzzle">
-                        <div class="text-center p-8 text-slate-400">Sedang memuat puzzle...</div>
+                        <div class="text-center p-8 text-slate-400 flex flex-col items-center gap-2">
+                            <i class="ph-bold ph-spinner animate-spin text-2xl text-indigo-500"></i>
+                            <span>Sedang memuat puzzle...</span>
+                        </div>
                     </template>
                 </div>
 
@@ -684,10 +731,13 @@ function pembdaColabs() {
         pieces: [],
         hasPlacedToday: false,
         showGuide: false,
+        showReference: true,
         isCollapsed: false,
         selectedPiece: null, 
         inventory: [], 
         board: [],
+        statusMessage: '',
+        statusType: 'info',
         
         async init() {
             const savedState = localStorage.getItem('pembdaColabsCollapsed');
@@ -697,6 +747,16 @@ function pembdaColabs() {
             setInterval(() => {
                 if(!this.isCollapsed) this.fetchState();
             }, 5000);
+        },
+
+        setStatus(msg, type = 'info') {
+            this.statusMessage = msg;
+            this.statusType = type;
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    if (this.statusMessage === msg) this.statusMessage = '';
+                }, 6000);
+            }
         },
         
         async fetchState() {
@@ -708,6 +768,8 @@ function pembdaColabs() {
                     this.hasPlacedToday = data.has_placed_today;
                     this.pieces = data.pieces;
                     this.rebuildBoard();
+                } else if (data.message) {
+                    this.setStatus(data.message, 'error');
                 }
             } catch(e) {}
         },
@@ -752,17 +814,24 @@ function pembdaColabs() {
         
         selectPiece(index) {
             if(this.hasPlacedToday) {
-                alert("Anda sudah meletakkan kepingan hari ini! Tunggu besok.");
+                this.setStatus("Anda sudah meletakkan kepingan hari ini! Kembali lagi besok.", 'info');
                 return;
             }
-            this.selectedPiece = index;
+            if (this.selectedPiece === index) {
+                this.selectedPiece = null;
+            } else {
+                this.selectedPiece = index;
+                this.setStatus("Kepingan dipilih! Sekarang klik kotak kosong di papan yang sesuai.", 'info');
+            }
         },
         
         async placeAt(targetIndex) {
-            if(this.selectedPiece === null) return;
+            if(this.selectedPiece === null) {
+                this.setStatus("Pilih kepingan dari daftar sebelah kiri terlebih dahulu!", 'info');
+                return;
+            }
             
             const pieceIdx = this.selectedPiece;
-            this.selectedPiece = null; 
             
             try {
                 const res = await fetch('{{ route("forum.puzzle.place") }}', {
@@ -781,14 +850,40 @@ function pembdaColabs() {
                 
                 const data = await res.json();
                 if(data.success) {
-                    alert(data.message);
+                    this.selectedPiece = null;
                     this.hasPlacedToday = true;
+                    this.setStatus(data.message, 'success');
                     this.fetchState();
                 } else {
-                    alert(data.message);
+                    // Position wrong: keep selectedPiece active so user can retry another slot easily!
+                    this.setStatus(data.message, 'error');
                 }
             } catch(e) {
-                alert("Error koneksi saat meletakkan puzzle.");
+                this.setStatus("Error koneksi saat meletakkan puzzle.", 'error');
+            }
+        },
+
+        async resetPuzzleAdmin() {
+            if(!confirm("Reset semua keping puzzle dan beri 10 keping acak awal dari sistem?")) return;
+            try {
+                const res = await fetch('{{ route("forum.puzzle.reset") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-XSRF-TOKEN': getCsrfToken()
+                    }
+                });
+                const data = await res.json();
+                if(data.success) {
+                    this.selectedPiece = null;
+                    this.setStatus(data.message, 'success');
+                    this.fetchState();
+                } else {
+                    this.setStatus(data.message, 'error');
+                }
+            } catch(e) {
+                this.setStatus("Gagal mereset puzzle.", 'error');
             }
         }
     }

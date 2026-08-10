@@ -1059,7 +1059,40 @@ class ForumController extends Controller
     {
         $puzzle = \App\Models\Puzzle::where('is_active', true)->latest()->first();
         if (!$puzzle) {
-            return response()->json(['success' => false, 'message' => 'Tidak ada puzzle aktif']);
+            // Auto-create default active puzzle if none exists
+            $puzzle = \App\Models\Puzzle::create([
+                'title' => 'Esports Championship (Minggu 1)',
+                'image_path' => 'puzzles/pembda_puzzle_1.png',
+                'grid_x' => 10,
+                'grid_y' => 5,
+                'is_active' => true,
+            ]);
+
+            $totalPieces = $puzzle->grid_x * $puzzle->grid_y;
+            $piecesData = [];
+            for ($i = 0; $i < $totalPieces; $i++) {
+                $piecesData[] = [
+                    'puzzle_id' => $puzzle->id,
+                    'piece_index' => $i,
+                    'is_placed' => false,
+                    'placed_by_user_id' => null,
+                    'placed_at' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            \App\Models\PuzzlePiece::insert($piecesData);
+
+            // Give 10 random initial bonus pieces placed by System
+            $bonusIds = \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)
+                ->inRandomOrder()
+                ->limit(10)
+                ->pluck('id');
+
+            \App\Models\PuzzlePiece::whereIn('id', $bonusIds)->update([
+                'is_placed' => true,
+                'placed_at' => now(),
+            ]);
         }
 
         $pieces = \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)
