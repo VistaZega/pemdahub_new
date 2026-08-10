@@ -82,22 +82,15 @@ class LmsCourseController extends Controller
         $activeSemester = $this->getActiveSemester();
         $activeYear = AcademicYear::where('is_active', true)->first();
 
-        // Ambil mata pelajaran dari Teaching Assignment + kompetensi guru (tanpa fallback ke semua mapel)
-        $subjectIds = collect();
-
-        // Dari teaching assignments
+        // Ambil mata pelajaran HANYA dari Teaching Assignment aktif
         $teachingSubjectIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
             ->where('is_active', true)
             ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-            ->pluck('subject_id');
-        $subjectIds = $subjectIds->merge($teachingSubjectIds);
+            ->pluck('subject_id')
+            ->unique();
 
-        // Dari kompetensi guru
-        $competentSubjectIds = $teacher->competentSubjects()->pluck('subjects.id');
-        $subjectIds = $subjectIds->merge($competentSubjectIds);
-
-        // Hanya tampilkan mapel yang terkait dengan guru
-        $subjects = \App\Models\Subject::whereIn('id', $subjectIds->unique())
+        // Hanya tampilkan mapel yang ada penugasan aktif
+        $subjects = \App\Models\Subject::whereIn('id', $teachingSubjectIds)
             ->where('is_active', true)
             ->orderBy('subject_name')
             ->get();
