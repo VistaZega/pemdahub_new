@@ -21,42 +21,45 @@ class FoundationLetterHutRiSeeder extends Seeder
         $user = User::where('role', 'superadmin')->first() ?? User::first();
 
         $content = '<p>Dengan hormat,</p>
-<p>Dalam rangka menyambut dan memeriahkan <strong>Hari Ulang Tahun (HUT) Ke-81 Kemerdekaan Republik Indonesia Tahun 2026</strong> dengan tema nasional <em>"Nusantara Baru, Indonesia Maju"</em>, Pengurus Yayasan Perguruan PEMBDA Nias menyampaikan beberapa poin penting yang wajib dipedomani dan dilaksanakan oleh seluruh jajaran unit sekolah (SMP Swasta Pembda 2 Gunungsitoli, SMA Swasta Pembda 1 Gunungsitoli, dan SMK Swasta Pembda Nias):</p>
+<p>Dalam rangka menyambut dan memeriahkan <strong>Hari Ulang Tahun (HUT) Ke-81 Kemerdekaan Republik Indonesia Tahun 2026</strong> dengan tema nasional <em>"Nusantara Baru, Indonesia Maju"</em>, Pengurus Yayasan Perguruan PEMBDA Nias menyampaikan ketentuan pelaksanaan Peringatan HUT Ke-81 RI yang wajib dipedomani dan dilaksanakan oleh seluruh jajaran unit sekolah (SMP Swasta Pembda 2 Gunungsitoli, SMA Swasta Pembda 1 Gunungsitoli, dan SMK Swasta Pembda Nias):</p>
 
 <ol style="margin-left: 20px; line-height: 1.8;">
     <li><strong>PELAKSANAAN UPACARA BENDERA PERINGATAN HUT KE-81 RI</strong>
         <ul>
             <li><strong>Hari/Tanggal:</strong> Senin, 17 Agustus 2026</li>
             <li><strong>Waktu:</strong> Pukul 07.30 WIB (Seluruh peserta upacara wajib hadir di lokasi paling lambat pukul 07.00 WIB)</li>
-            <li><strong>Tempat:</strong> Lapangan Utama Yayasan Perguruan Pembda Nias, Jl. Pelita No. 09 Gunungsitoli</li>
+            <li><strong>Tempat:</strong> Lapangan Yayasan Perguruan Pembda Nias, Jl. Pelita No. 09 Gunungsitoli</li>
             <li><strong>Peserta Upacara:</strong> Seluruh Pengurus Yayasan, Kepala Sekolah, Bapak/Ibu Guru, Staf Pegawai, serta Seluruh Siswa/Siswi SMP, SMA, dan SMK Swasta Pembda Nias.</li>
             <li><strong>Ketentuan Pakaian:</strong>
                 <ul>
-                    <li><strong>Pengurus Yayasan, Kepala Sekolah, Guru & Pegawai:</strong> Pakaian Adat Nias / Seragam Batik Resmi Yayasan Perguruan Pembda Nias.</li>
-                    <li><strong>Siswa/Siswi:</strong> Seragam OSIS Lengkap dengan Atribut (Topi & Dasi) dan Sepatu Hitam.</li>
+                    <li><strong>Pengurus, Kepala Sekolah, Guru & Pegawai:</strong> Pakaian Nuansa Adat Nasional</li>
+                    <li><strong>Siswa/Siswi:</strong> Seragam Lengkap dengan Atribut (Topi & Dasi) dan Sepatu Hitam</li>
                 </ul>
             </li>
         </ul>
     </li>
 
-    <li><strong>KEWAJIBAN PENGIBARAN BENDERA MERAH PUTIH & DEKORASI LINGKUNGAN</strong>
-        <ul>
-            <li>Masing-masing unit sekolah WAJIB mengibarkan Bendera Merah Putih di halaman gedung sekolah mulai tanggal 1 s.d. 31 Agustus 2026.</li>
-            <li>Memasang umbul-umbul, spanduk ucapan HUT Ke-81 RI, dan dekorasi bernuansa Merah-Putih di setiap ruang kelas dan lingkungan sekolah.</li>
-        </ul>
+    <li><strong>PETUGAS PELAKSANA UPACARA</strong>
+        <ol type="1">
+            <li><strong>Petugas dan Perangkat Upacara:</strong> Paskibraka Sekolah</li>
+            <li><strong>Pembina Upacara:</strong> Ketua Yayasan</li>
+            <li><strong>Pemimpin Upacara:</strong> Guru</li>
+            <li><strong>Pembaca Teks Proklamasi:</strong> Guru Senior</li>
+            <li><strong>Paduan Suara:</strong> Gabungan Bapak/Ibu Guru dari ke-3 Unit Sekolah</li>
+        </ol>
     </li>
 
-    <li><strong>RANGKAIAN LOMBA & SEMARAK KEMERDEKAAN (14 - 16 AGUSTUS 2026)</strong>
-        <ul>
-            <li><strong>Lomba Kebersihan & Estetika Perhiasan Kelas:</strong> Penilaian oleh Tim Juri Yayasan pada Jumat, 14 Agustus 2026.</li>
-            <li><strong>Lomba Pidato Kebangsaan & Olahraga Tradisional:</strong> Dilaksanakan Sabtu, 15 Agustus 2026 antar unit sekolah.</li>
-            <li><strong>Pengumuman & Penyerahan Hadiah Pemenang Lomba:</strong> Dilaksanakan secara khidmat seusai pelaksanaan Upacara Bendera pada 17 Agustus 2026.</li>
-        </ul>
+    <li><strong>KEGIATAN SETELAH UPACARA</strong>
+        <ol type="1">
+            <li>Penampilan Marchingband Perguruan Pembda Nias</li>
+            <li>Ramah Tamah</li>
+            <li>Foto Bersama</li>
+        </ol>
     </li>
 
     <li><strong>KEDISIPLINAN & PRESENSI DIGITAL PEMBDAHUB</strong>
         <ul>
-            <li>Seluruh Guru & Pegawai WAJIB melakukan Presensi Masuk Upacara melalui sistem Presensi Digital PembdaHUB / TAP Kartu RFID di lokasi upacara.</li>
+            <li>Seluruh Guru & Pegawai <strong>WAJIB</strong> melakukan Presensi Masuk Upacara melalui sistem Presensi Digital PembdaHUB / TAP Kartu RFID di lokasi upacara.</li>
             <li>Kepala Sekolah bertanggung jawab penuh atas rekapitulasi kehadiran fisik serta ketertiban barisan unit sekolah masing-masing.</li>
         </ul>
     </li>
