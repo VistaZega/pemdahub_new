@@ -83,6 +83,7 @@
             <i class="fas fa-check-circle text-gray-800 text-xl"></i>
             <p class="text-gray-800 font-semibold text-xs tracking-wide">Quiz Aktif & Terbit — Siswa dapat langsung mengerjakan quiz ini.</p>
         </div>
+        @endif
         @if($quiz->question_sample_count || $quiz->points_per_question)
         <div class="mb-5 bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4 flex items-center gap-4 shadow-xs">
             <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-sm">
@@ -122,7 +123,6 @@
                 <div>
                     <label class="block text-xs font-semibold text-gray-800 tracking-wide mb-1">Durasi Waktu (Menit)</label>
                     <input type="number" name="time_limit" value="{{ old('time_limit', $quiz->time_limit) }}" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 font-semibold focus:ring-4 focus:ring-black/20 outline-none">
-                </div>
                 </div>
                 <div>
                     <label class="text-xs text-gray-500">Passing Score (%)</label>
