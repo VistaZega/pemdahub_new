@@ -403,10 +403,14 @@ class DashboardController extends Controller
         $teacher = $this->getTeacher();
         $teacher->load('school');
         $activeYear = $this->getActiveYear();
-        $classrooms = $this->getTeacherClassrooms($teacher, $activeYear);
+        $effectiveSchoolId = $this->getEffectiveSchoolId($teacher);
+        $isMultiSchool = $this->hasMultiSchoolAccess();
+
+        $classrooms = $this->getTeacherClassrooms($teacher, $activeYear, $isMultiSchool ? $effectiveSchoolId : null);
 
         // Kelas wali kelas
         $homeroomClassroom = Classroom::where('homeroom_teacher_id', $teacher->id)
+            ->when($isMultiSchool && $effectiveSchoolId, fn($q) => $q->where('school_id', $effectiveSchoolId))
             ->where('is_active', true)
             ->first();
 
@@ -469,8 +473,11 @@ class DashboardController extends Controller
                 : ($semesters->first()?->id ?? null);
         }
 
-        // Get classrooms taught by the teacher
-        $classrooms = $this->getTeacherClassrooms($teacher, $activeYear);
+        $effectiveSchoolId = $this->getEffectiveSchoolId($teacher);
+        $isMultiSchool = $this->hasMultiSchoolAccess();
+
+        // Get classrooms taught by the teacher (filtered by effective school)
+        $classrooms = $this->getTeacherClassrooms($teacher, $activeYear, $isMultiSchool ? $effectiveSchoolId : null);
 
         // Get classroom filter
         $selectedClassroomId = $request->get('classroom_id');
@@ -632,7 +639,10 @@ class DashboardController extends Controller
     {
         $teacher = $this->getTeacher();
         $activeYear = $this->getActiveYear();
-        $classrooms = $this->getTeacherClassrooms($teacher, $activeYear);
+        $effectiveSchoolId = $this->getEffectiveSchoolId($teacher);
+        $isMultiSchool = $this->hasMultiSchoolAccess();
+
+        $classrooms = $this->getTeacherClassrooms($teacher, $activeYear, $isMultiSchool ? $effectiveSchoolId : null);
 
         $selectedClassroomId = $request->get('classroom_id');
         $selectedMonth = (int) $request->get('month', date('n'));

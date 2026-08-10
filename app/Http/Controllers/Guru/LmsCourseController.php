@@ -56,10 +56,19 @@ class LmsCourseController extends Controller
             return redirect()->route('guru.dashboard')->with('error', 'Data guru tidak ditemukan.');
         }
         $teacher->load('school');
+        $effectiveSchoolId = $this->getEffectiveSchoolId($teacher);
+        $isMultiSchool = $this->hasMultiSchoolAccess();
 
         $activeSemester = $this->getActiveSemester();
 
         $courses = LmsCourse::where('teacher_id', $teacher->id)
+            ->when($isMultiSchool && $effectiveSchoolId, function($q) use ($effectiveSchoolId) {
+                $q->where(function($sq) use ($effectiveSchoolId) {
+                    $sq->whereHas('classes', fn($cq) => $cq->where('school_id', $effectiveSchoolId))
+                       ->orWhereHas('classroom', fn($crq) => $crq->where('school_id', $effectiveSchoolId))
+                       ->orWhere('school_id', $effectiveSchoolId);
+                });
+            })
             ->with(['subject', 'semester', 'classroom', 'lmsClasses.classroom'])
             ->withCount(['materials', 'assignments', 'quizzes'])
             ->orderByDesc('created_at')
