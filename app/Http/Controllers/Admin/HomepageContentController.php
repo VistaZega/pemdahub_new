@@ -18,9 +18,9 @@ class HomepageContentController extends Controller
             'stat_program' => Setting::getValue('stat_program', '5'),
             
             // Sambutan Ketua
-            'ketua_nama' => Setting::getValue('ketua_nama', "Yulianus Zega, S.Kom"),
+            'ketua_nama' => Setting::getValue('ketua_nama', "Yulianus Zega, S.Kom, M.Pd.T"),
             'ketua_jabatan' => Setting::getValue('ketua_jabatan', "Ketua Yayasan Perguruan PEMBDA Nias"),
-            'ketua_quote' => Setting::getValue('ketua_quote', "Salam sejahtera, Ya'ahowu! Sebagai garda terdepan pendidikan di Kepulauan Nias, Yayasan Perguruan PEMBDA berkomitmen penuh melahirkan generasi emas yang tangguh, berkarakter mulia, dan unggul secara teknologi. Selaras dengan motto abadi kami: 'Keep Moving Forward / Maju Terus Pantang Mundur', kami terus berinovasi tanpa henti melalui PembdaHUB untuk menciptakan ekosistem pembelajaran digital terbaik. Bersama, kita langkah demi langkah melangkah pasti menjawab tantangan zaman demi masa depan Nias yang gemilang!"),
+            'ketua_quote' => Setting::getValue('ketua_quote', "Selamat datang di PembdaHUB, platform ekosistem pendidikan digital masa depan Yayasan Perguruan PEMBDA Nias. Perguruan PEMBDA berkomitmen penuh melahirkan generasi emas Kepulauan Nias yang tidak hanya tangguh dan cerdas secara akademis, tetapi juga memiliki integritas karakter yang mulia serta menguasai teknologi modern secara profesional.\n\nSelaras dengan motto abadi perjuangan kami: 'Keep Moving Forward / Maju Terus Pantang Mundur', kami terus berinovasi tanpa henti membangun lingkungan belajar berbasis teknologi digital terkini untuk menjawab tantangan era globalisasi.\n\nMari bersama-sama kita bergandengan tangan—pendidik, siswa, orang tua, dan alumni—melangkah pasti mewujudkan masa depan Nias yang gemilang, berdaya saing tinggi, dan berintegritas!"),
             
             // PSB / Pendaftaran
             'psb_tp' => Setting::getValue('psb_tp', '2026/2027'),
