@@ -621,11 +621,10 @@ class LmsController extends Controller
                 $studentAnswer = trim($answer ?? '');
                 $correctAnswer = trim($question->correct_answer);
 
-                // For multiple choice, resolve index-based answers to actual option text
-                // This handles both formats:
-                // 1. Associative: options=[{key:'A',text:'...'}, ...], correct_answer='A', answer='A'
-                // 2. Non-associative: options=['text1','text2',...], correct_answer='0', answer='0'
-                if ($question->question_type === 'multiple_choice' && $question->options) {
+                if ($studentAnswer === '') {
+                    // Student left answer blank -> mark wrong with 0 score
+                    $isCorrect = false;
+                } elseif ($question->question_type === 'multiple_choice' && $question->options) {
                     $options = $question->options;
                     $firstOpt = $options[0] ?? null;
                     $isAssoc = is_array($firstOpt) && isset($firstOpt['key']);
@@ -684,9 +683,18 @@ class LmsController extends Controller
                             }
                         }
                     }
+                } elseif ($question->question_type === 'true_false') {
+                    // Normalisasi true_false: true/1/t/b/benar => 'true' | false/0/f/s/salah => 'false'
+                    $normalizeTf = function($val) {
+                        $v = strtolower(trim($val));
+                        if (in_array($v, ['true', '1', 't', 'b', 'benar', 'yes', 'y'])) return 'true';
+                        if (in_array($v, ['false', '0', 'f', 's', 'salah', 'no', 'n'])) return 'false';
+                        return $v;
+                    };
+                    $isCorrect = $normalizeTf($studentAnswer) === $normalizeTf($correctAnswer);
                 } else {
-                    // true_false or other: direct string comparison
-                    $isCorrect = strtolower($studentAnswer) === strtolower($correctAnswer);
+                    // short_answer or other text: case-insensitive & trimmed comparison
+                    $isCorrect = strtolower(trim($studentAnswer)) === strtolower(trim($correctAnswer));
                 }
 
                 $questionScore = $isCorrect ? $question->score : 0;

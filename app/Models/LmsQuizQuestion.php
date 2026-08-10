@@ -41,7 +41,7 @@ class LmsQuizQuestion extends Model
 
     public function isAutoGradable()
     {
-        return in_array($this->question_type, ['multiple_choice', 'true_false']);
+        return in_array($this->question_type, ['multiple_choice', 'true_false', 'short_answer']);
     }
 
     /**
