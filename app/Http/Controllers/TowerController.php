@@ -46,7 +46,6 @@ class TowerController extends Controller
                     'pembda_tower_bricks.created_at',
                     'users.name as user_name',
                     'users.role as user_role',
-                    'schools.short_name as school_short_name',
                     'schools.name as school_name'
                 )
                 ->orderBy('pembda_tower_bricks.brick_number', 'desc')
@@ -70,7 +69,7 @@ class TowerController extends Controller
                     'is_liked' => $isLiked,
                     'user_name' => $b->user_name ?? 'Komunitas Pembda',
                     'user_role' => $b->user_role ?? 'siswa',
-                    'school_name' => $b->school_short_name ?? $b->school_name ?? 'Yayasan',
+                    'school_name' => $b->school_name ?? 'Yayasan',
                     'time_ago' => $b->created_at ? Carbon::parse($b->created_at)->diffForHumans() : null,
                 ];
             });
