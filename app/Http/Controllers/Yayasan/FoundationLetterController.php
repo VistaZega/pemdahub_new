@@ -59,19 +59,19 @@ class FoundationLetterController extends Controller
         $defaultContent = '';
         if ($preset === 'hut_ri' || $preset === 'peringatan_hut_ri') {
             $defaultNumber = '08/SE/YP-PEMBDA/VIII/' . date('Y');
-            $defaultTitle = 'Pelaksanaan Peringatan Hari Kemerdekaan Republik Indonesia Ke-81 Tahun 2026 di Lingkungan Yayasan Perguruan Pembda Nias';
+            $defaultTitle = 'Undangan & Pelaksanaan Peringatan Hari Kemerdekaan Republik Indonesia Ke-81 Tahun 2026 di Lingkungan Yayasan Perguruan Pembda Nias';
             $defaultEffectiveDate = date('Y-m-d');
             $defaultDeadlineDate = date('Y-08-17');
-            $defaultCategory = 'edaran';
+            $defaultCategory = 'undangan';
             $defaultTargets = ['kepala_sekolah', 'guru_pegawai', 'siswa', 'pengurus'];
             $defaultContent = '<p>Dengan hormat,</p>
-<p>Dalam rangka menyambut dan memeriahkan <strong>Hari Ulang Tahun (HUT) Ke-81 Kemerdekaan Republik Indonesia Tahun 2026</strong> dengan tema nasional <em>"Nusantara Baru, Indonesia Maju"</em>, Pengurus Yayasan Perguruan PEMBDA Nias menyampaikan ketentuan pelaksanaan Peringatan HUT Ke-81 RI yang wajib dipedomani dan dilaksanakan oleh seluruh jajaran unit sekolah (SMP Swasta Pembda 2 Gunungsitoli, SMA Swasta Pembda 1 Gunungsitoli, dan SMK Swasta Pembda Nias):</p>
+<p>Dalam rangka menyambut dan memeriahkan <strong>Hari Ulang Tahun (HUT) Ke-81 Kemerdekaan Republik Indonesia Tahun 2026</strong> dengan tema nasional <em>"Nusantara Baru, Indonesia Maju"</em>, Pengurus Yayasan Perguruan PEMBDA Nias dengan ini <strong>MENGUNDANG DENGAN HORMAT</strong> Bapak/Ibu Pengurus Yayasan, Kepala Sekolah, Bapak/Ibu Guru, Staf Pegawai, serta Seluruh Siswa/Siswi di lingkungan Perguruan PEMBDA Nias (SMP Swasta Pembda 2 Gunungsitoli, SMA Swasta Pembda 1 Gunungsitoli, dan SMK Swasta Pembda Nias) untuk hadir dan berpartisipasi aktif dalam Peringatan HUT Ke-81 RI yang akan dilaksanakan dengan ketentuan sebagai berikut:</p>
 
 <ol style="margin-left: 20px; line-height: 1.8;">
     <li><strong>PELAKSANAAN UPACARA BENDERA PERINGATAN HUT KE-81 RI</strong>
         <ul>
             <li><strong>Hari/Tanggal:</strong> Senin, 17 Agustus 2026</li>
-            <li><strong>Waktu:</strong> Pukul 07.30 WIB (Seluruh peserta upacara wajib hadir di lokasi paling lambat pukul 07.00 WIB)</li>
+            <li><strong>Waktu:</strong> Pukul 07.00 WIB (Seluruh peserta upacara wajib hadir di lokasi paling lambat pukul 06.45 WIB)</li>
             <li><strong>Tempat:</strong> Lapangan Yayasan Perguruan Pembda Nias, Jl. Pelita No. 09 Gunungsitoli</li>
             <li><strong>Peserta Upacara:</strong> Seluruh Pengurus Yayasan, Kepala Sekolah, Bapak/Ibu Guru, Staf Pegawai, serta Seluruh Siswa/Siswi SMP, SMA, dan SMK Swasta Pembda Nias.</li>
             <li><strong>Ketentuan Pakaian:</strong>
@@ -90,6 +90,7 @@ class FoundationLetterController extends Controller
             <li><strong>Pemimpin Upacara:</strong> Guru</li>
             <li><strong>Pembaca Teks Proklamasi:</strong> Guru Senior</li>
             <li><strong>Paduan Suara:</strong> Gabungan Bapak/Ibu Guru dari ke-3 Unit Sekolah</li>
+            <li><strong>Perangkat Upacara Lainnya:</strong> Siswa</li>
         </ol>
     </li>
 
@@ -110,7 +111,7 @@ class FoundationLetterController extends Controller
 </ol>
 
 <p><strong>PENUTUP:</strong><br>
-Demikian Surat Edaran ini disampaikan untuk dilaksanakan dengan penuh semangat nasionalisme, jiwa gotong royong, serta rasa tanggung jawab. Atas perhatian dan kerja sama Bapak/Ibu Kepala Sekolah, Guru, Pegawai, serta siswa/siswi sekalian, kami ucapkan terima kasih.</p>
+Mengingat pentingnya acara ini sebagai wujud penghormatan, jiwa nasionalisme, dan rasa syukur atas kemerdekaan Bangsa Indonesia, kehadiran Bapak/Ibu serta seluruh siswa/siswi sekalian tepat pada waktunya sangat diharapkan. Atas perhatian, kehadiran, dan kerja sama yang baik, kami ucapkan terima kasih.</p>
 
 <p><em>Merdeka! Merdeka! Merdeka!</em></p>';
         } elseif ($preset === 'standar_input') {
