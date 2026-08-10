@@ -524,15 +524,15 @@
         <div class="menu-group-body closed mt-1 space-y-0.5">
             <a href="{{ route('admin.attendances.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.attendances.index') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-list-check text-[10px]"></i></div>
-                <span>Daftar Absensi</span>
+                <span>Absensi Siswa</span>
             </a>
             <a href="{{ route('admin.attendances.bulk') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.attendances.bulk') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-users-viewfinder text-[10px]"></i></div>
-                <span>Input Absensi Kelas</span>
+                <span>Input Absensi Siswa</span>
             </a>
             <a href="{{ route('admin.attendances.monitoring') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.attendances.monitoring') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white"><i class="fas fa-chart-line text-[10px]"></i></div>
-                <span>Monitoring Absensi</span>
+                <span>Monitoring Absensi Siswa</span>
             </a>
             <a href="{{ route('admin.grades.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.grades.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center text-white"><i class="fas fa-pen-to-square text-[10px]"></i></div>
