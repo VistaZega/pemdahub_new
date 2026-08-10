@@ -224,19 +224,9 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <button type="button" 
-                            class="p-1.5 text-amber-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition"
-                            title="Edit Soal"
-                            @click="$dispatch('edit-question', {{ json_encode([
-                                'id' => $q->id,
-                                'question' => $q->question,
-                                'question_type' => $q->question_type,
-                                'score' => $q->score,
-                                'correct_answer' => (string)($q->correct_answer ?? ''),
-                                'options' => $q->options ?? [],
-                                'video_url' => $q->video_url ?? '',
-                                'image_path' => $q->image_path ?? '',
-                                'action' => route('guru.lms.questions.update', $q->id),
-                            ]) }})">
+                            onclick="openEditQuestionModal({{ $q->id }})"
+                            class="p-1.5 text-amber-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                            title="Edit Soal">
                         <i class="fas fa-edit"></i>
                     </button>
                     <form action="{{ route('guru.lms.questions.destroy', $q->id) }}" method="POST" onsubmit="return confirm('Hapus soal?')">
@@ -430,8 +420,8 @@
         }
      "
      x-show="open" 
-     class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-gray-900/50"
-     style="display: none;">
+     class="fixed inset-0 overflow-y-auto flex items-center justify-center p-4 bg-gray-900/60"
+     style="display: none; z-index: 99999 !important;">
     
     <div class="bg-white rounded-xl shadow-lg border border-gray-100 max-w-lg w-full p-6 space-y-4" @click.away="open = false">
         <div class="flex justify-between items-center pb-2 border-b">
@@ -534,6 +524,33 @@
         </form>
     </div>
 </div>
+
+<script>
+    const quizQuestionsMap = {
+        @foreach($quiz->questions as $q)
+            {{ $q->id }}: @json([
+                'id' => $q->id,
+                'question' => $q->question,
+                'question_type' => $q->question_type,
+                'score' => $q->score,
+                'correct_answer' => (string)($q->correct_answer ?? ''),
+                'options' => $q->options ?? [],
+                'video_url' => $q->video_url ?? '',
+                'image_path' => $q->image_path ?? '',
+                'action' => route('guru.lms.questions.update', $q->id),
+            ]),
+        @endforeach
+    };
+
+    function openEditQuestionModal(questionId) {
+        const qData = quizQuestionsMap[questionId];
+        if (qData) {
+            window.dispatchEvent(new CustomEvent('edit-question', { detail: qData }));
+        } else {
+            console.error('Data soal tidak ditemukan untuk ID:', questionId);
+        }
+    }
+</script>
 @endsection
 
 
