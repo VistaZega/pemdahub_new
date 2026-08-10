@@ -1082,6 +1082,11 @@ Route::get('/run-migrations', function () {
         echo \Illuminate\Support\Facades\Artisan::output();
         echo "\nPKL Supervisor Seeder Exit Code: " . $pklSeederExitCode . "\n\n";
 
+        echo "<h1>=== RUNNING SURAT EDARAN HUT RI SEEDER ===</h1>\n";
+        $hutRiSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'FoundationLetterHutRiSeeder', '--force' => true]);
+        echo \Illuminate\Support\Facades\Artisan::output();
+        echo "\nSurat Edaran HUT RI Seeder Exit Code: " . $hutRiSeederExitCode . "\n\n";
+
         echo "<h1>=== SYNCING EMPLOYEE ACCOUNTS ===</h1>\n";
         $syncExitCode = \Illuminate\Support\Facades\Artisan::call('employees:sync-accounts');
         echo \Illuminate\Support\Facades\Artisan::output();

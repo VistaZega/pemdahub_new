@@ -120,9 +120,12 @@
                     <label for="content" class="block text-xs font-bold text-gray-700 uppercase">
                         Isi Surat Resmi <span class="text-rose-500">*</span>
                     </label>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-xs text-gray-500">Template Cepat:</span>
-                        <a href="{{ route('yayasan.letters.create', ['preset' => 'standar_input']) }}" class="text-xs font-semibold text-violet-700 hover:underline bg-violet-50 px-2 py-1 rounded">
+                        <a href="{{ route('yayasan.letters.create', ['preset' => 'hut_ri']) }}" class="text-xs font-semibold text-rose-700 hover:underline bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg">
+                            <i class="fas fa-flag mr-1"></i> Peringatan HUT Ke-81 RI (17 Agt 2026)
+                        </a>
+                        <a href="{{ route('yayasan.letters.create', ['preset' => 'standar_input']) }}" class="text-xs font-semibold text-violet-700 hover:underline bg-violet-50 border border-violet-200 px-2.5 py-1 rounded-lg">
                             <i class="fas fa-file-invoice mr-1"></i> Standar Input Data (3 Agt 2026)
                         </a>
                     </div>
