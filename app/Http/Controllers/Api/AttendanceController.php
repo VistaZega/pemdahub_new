@@ -445,12 +445,12 @@ class AttendanceController extends Controller
         }
 
         // ==== KEAMANAN 2: GEOFENCING (GPS Radius Validasi) ====
-        // Kita hitung jarak Koordinat HP (request) vs Koordinat Sekolah
         $school = $student->school;
         
-        // Asumsi data koordinat sekolah tersimpan di DB, atau kita mock sementara jika belum ada
-        $schoolLat = $school->latitude ?? -0.000000; 
-        $schoolLong = $school->longitude ?? 0.000000;
+        $schoolLat = (float) ($school->latitude ?? 0); 
+        $schoolLong = (float) ($school->longitude ?? 0);
+        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 1000); // Default 1000m (1km) tolerance
+        $hasValidSchoolCoords = ($schoolLat != 0.0 && $schoolLong != 0.0);
 
         $today = \Carbon\Carbon::now('Asia/Jakarta')->toDateString();
 
@@ -477,11 +477,11 @@ class AttendanceController extends Controller
         // Rumus Penghitungan Jarak (Haversine Formula via SQL atau hitung di PHP)
         $distance = $this->calculateDistance($request->latitude, $request->longitude, $schoolLat, $schoolLong);
 
-        // Jika tidak sedang PKL aktif, maka terapkan aturan radius 100 meter
-        if (!$isPklActive && $distance > $maxRadiusMeters && $schoolLat != 0) { //(&& != 0 adalah bypass sementara jika kordinat sekolah belum di set)
+        // Jika ada koordinat sekolah yang valid dan tidak sedang PKL aktif, terapkan batas radius
+        if ($hasValidSchoolCoords && !$isPklActive && $distance > $maxRadiusMeters) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal! Lokasi Anda berada di luar jangkauan area sekolah (' . round($distance) . ' meter dari sekolah).'
+                'message' => 'Gagal! Lokasi Anda berada di luar jangkauan area sekolah (' . round($distance) . ' meter dari sekolah. Maksimal ' . $maxRadiusMeters . ' meter).'
             ], 403);
         }
 
