@@ -848,7 +848,7 @@ if (!function_exists('balanceHtmlTags')) {
                     @endif
                     <i class="fas fa-chevron-down text-xs ml-auto group-open/submit:rotate-180 transition-transform {{ $hasModule ? 'text-white/60' : 'text-gray-300' }}"></i>
                 </summary>
-                <form action="{{ route('siswa.lms.assignments.submit', $assignment->id) }}" method="POST" enctype="multipart/form-data" class="mt-4 p-5 rounded-2xl space-y-4 border-2 shadow-sm {{ $hasModule ? 'bg-white/15 border-white/10 text-white' : 'bg-blue-50 border-blue-100 text-gray-800' }}">
+                <form action="{{ route('siswa.lms.assignments.submit', $assignment->id) }}" method="POST" enctype="multipart/form-data" onsubmit="return handleLmsAssignmentSubmit(this)" class="mt-4 p-5 rounded-2xl space-y-4 border-2 shadow-sm {{ $hasModule ? 'bg-white/15 border-white/10 text-white' : 'bg-blue-50 border-blue-100 text-gray-800' }}">
                     @csrf
                     @php
                         $aType = $assignment->assignment_type ?? 'file_text';
@@ -883,8 +883,8 @@ if (!function_exists('balanceHtmlTags')) {
                             Berkas File @if(in_array($aType, ['file', 'file_text']) && !($sub && $sub->file_path)) <span class="text-rose-500 font-extrabold">* (Wajib)</span> @endif
                         </label>
                         <div class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:bg-gray-50 transition-colors">
-                            <input type="file" name="file" class="w-full text-sm cursor-pointer {{ $hasModule ? 'text-white/80 file:bg-white/20 file:text-white hover:file:bg-white/30' : 'text-gray-600 file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 file:px-4 file:py-2 file:border-none file:rounded-lg file:font-bold file:mr-4' }}" {{ (in_array($aType, ['file', 'file_text']) && !($sub && $sub->file_path)) ? 'required' : '' }}>
-                            <p class="text-[10px] text-gray-400 mt-2 font-medium">Format: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG. Maks 5MB.</p>
+                            <input type="file" name="file" onchange="validateLmsFileSize(this)" class="w-full text-sm cursor-pointer {{ $hasModule ? 'text-white/80 file:bg-white/20 file:text-white hover:file:bg-white/30' : 'text-gray-600 file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 file:px-4 file:py-2 file:border-none file:rounded-lg file:font-bold file:mr-4' }}" {{ (in_array($aType, ['file', 'file_text']) && !($sub && $sub->file_path)) ? 'required' : '' }}>
+                            <p class="text-[10px] text-gray-400 mt-2 font-medium">Format: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG. Maksimal 10MB.</p>
                         </div>
                     </div>
                     @endif
@@ -2626,6 +2626,39 @@ function reactMaterial(materialId, type, event) {
             setTimeout(() => btn.classList.remove('ring-4', 'ring-blue-200', 'scale-105'), 300);
         }
     });
+}
+
+function validateLmsFileSize(input) {
+    if (input && input.files && input.files[0]) {
+        const file = input.files[0];
+        const maxBytes = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxBytes) {
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+            alert('⚠️ PERHATIAN: Ukuran berkas "' + file.name + '" (' + sizeMB + ' MB) melebihi batas maksimal 10 MB.\n\nSilakan pilih berkas lain atau kompres berkas Anda terlebih dahulu agar pengiriman berhasil.');
+            input.value = '';
+            return false;
+        }
+    }
+}
+
+function handleLmsAssignmentSubmit(form) {
+    const fileInput = form.querySelector('input[type="file"][name="file"]');
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const maxBytes = 10 * 1024 * 1024;
+        if (file.size > maxBytes) {
+            alert('⚠️ Berkas terlalu besar (' + (file.size / (1024 * 1024)).toFixed(1) + ' MB). Batas maksimal pengungahan adalah 10 MB.');
+            return false;
+        }
+    }
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mengunggah & Mengirim Jawaban... Mohon Tunggu';
+        submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+    }
+    return true;
 }
 </script>
 @endpush

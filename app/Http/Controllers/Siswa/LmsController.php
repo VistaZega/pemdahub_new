@@ -422,10 +422,15 @@ class LmsController extends Controller
             abort(403);
         }
 
-        $request->validate([
-            'submission_text' => 'nullable|string',
-            'file' => 'nullable|file|max:10240',
-        ]);
+        try {
+            $request->validate([
+                'submission_text' => 'nullable|string',
+                'file' => 'nullable|file|max:10240',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = implode(' ', \Illuminate\Support\Arr::flatten($e->errors()));
+            return redirect()->back()->with('error', 'Gagal mengumpulkan tugas: ' . $errors)->withInput();
+        }
 
         // Check if resubmission
         $existing = LmsSubmission::where('assignment_id', $assignment->id)
@@ -480,8 +485,13 @@ class LmsController extends Controller
         $filePath = null;
         $fileSize = null;
         if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('lms/submissions', 'public');
-            $fileSize = $request->file('file')->getSize();
+            try {
+                $filePath = $request->file('file')->store('lms/submissions', 'public');
+                $fileSize = $request->file('file')->getSize();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('LMS assignment file upload failed: ' . $e->getMessage());
+                return redirect()->back()->with('error', 'Gagal mengunggah file jawaban. Pastikan ukuran file tidak melebihi 10MB dan jaringan Anda stabil.')->withInput();
+            }
         }
 
         $isLate = $assignment->deadline && now()->isAfter($assignment->deadline);

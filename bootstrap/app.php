@@ -57,6 +57,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\ForcePasswordChange::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Ukuran berkas yang diunggah melebihi batas maksimal server.'], 413);
+            }
+            return redirect()->back()->with('error', 'Ukuran berkas yang diunggah terlalu besar. Batas maksimal pengungahan adalah 10MB.');
+        });
+
         // Render custom error pages for HTTP exceptions
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) {
             $status = $e->getStatusCode();
