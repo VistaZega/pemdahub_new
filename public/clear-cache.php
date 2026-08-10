@@ -54,6 +54,16 @@ foreach ($cacheFiles as $file) {
 }
 echo "</pre>";
 
+$viewDir = __DIR__.'/../storage/framework/views/';
+if (is_dir($viewDir)) {
+    $viewFiles = glob($viewDir . '*.php');
+    $vDeleted = 0;
+    foreach ($viewFiles as $vFile) {
+        if (@unlink($vFile)) $vDeleted++;
+    }
+    echo "<span class='ok'>✅ Cleared {$vDeleted} compiled Blade view files in storage/framework/views/</span>\n";
+}
+
 // Step 2: Bootstrap Laravel properly
 echo "<h2>2. Bootstrap Laravel & Clear Cache</h2><pre>";
 try {
