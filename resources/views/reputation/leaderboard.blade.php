@@ -368,6 +368,86 @@
                     Belum ada riwayat transaksi poin.
                 </div>
             </template>
+    {{-- ═══════════════════ PANDUAN BUKU ATURAN PENILAIAN POIN ═══════════════════ --}}
+    <div class="bg-white rounded-3xl border-2 border-black p-6 md:p-8 shadow-xl space-y-6">
+        <div class="flex items-center justify-between border-b-2 border-black pb-4">
+            <h2 class="text-lg md:text-2xl font-black text-black flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg border-2 border-black shadow-xs">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                Panduan Sistem Penilaian Poin (Reputasi Hall of Fame)
+            </h2>
+            <span class="bg-amber-300 text-black border-2 border-black text-xs font-black px-3 py-1 rounded-xl uppercase">Sistem Objektif</span>
+        </div>
+
+        <p class="text-xs md:text-sm font-semibold text-slate-700 leading-relaxed">
+            Setiap keaktifan belajar, kehadiran, dan kontribusi Anda di PembdaHub secara otomatis dihitung oleh sistem untuk menentukan peringkat di <strong>Hall of Fame</strong>. Berikut adalah rincian perolehan poin:
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-4 rounded-2xl bg-indigo-50 border-2 border-black space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-indigo-900 uppercase">Tugas LMS</span>
+                    <span class="px-2 py-0.5 bg-emerald-500 text-white rounded-lg font-black text-xs border border-black">+15 Pts</span>
+                </div>
+                <p class="text-[11px] text-slate-600 font-medium">Mengumpulkan tugas pembelajaran LMS secara tepat waktu.</p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-amber-50 border-2 border-black space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-amber-900 uppercase">Kuis & Ujian LMS</span>
+                    <span class="px-2 py-0.5 bg-emerald-500 text-white rounded-lg font-black text-xs border border-black">+10 - 50 Pts</span>
+                </div>
+                <p class="text-[11px] text-slate-600 font-medium">Menyelesaikan kuis/evaluasi LMS (poin proporsional nilai).</p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-purple-50 border-2 border-black space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-purple-900 uppercase">Post Pembda Space</span>
+                    <span class="px-2 py-0.5 bg-emerald-500 text-white rounded-lg font-black text-xs border border-black">+15 Pts</span>
+                </div>
+                <p class="text-[11px] text-slate-600 font-medium">Membuat postingan obrolan, karya seni, atau ide di saluran.</p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-emerald-50 border-2 border-black space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-emerald-900 uppercase">Absensi Kehadiran</span>
+                    <span class="px-2 py-0.5 bg-emerald-500 text-white rounded-lg font-black text-xs border border-black">+5 Pts</span>
+                </div>
+                <p class="text-[11px] text-slate-600 font-medium">Hadir tepat waktu di kelas sesuai catatan guru.</p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-pink-50 border-2 border-black space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-pink-900 uppercase">Diskusi & Komentar</span>
+                    <span class="px-2 py-0.5 bg-emerald-500 text-white rounded-lg font-black text-xs border border-black">+5 Pts</span>
+                </div>
+                <p class="text-[11px] text-slate-600 font-medium">Menjawab dan berpartisipasi aktif pada obrolan teman.</p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-cyan-50 border-2 border-black space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-cyan-900 uppercase">Jawaban Terbaik</span>
+                    <span class="px-2 py-0.5 bg-emerald-500 text-white rounded-lg font-black text-xs border border-black">+15 Pts</span>
+                </div>
+                <p class="text-[11px] text-slate-600 font-medium">Komentar terpilih sebagai solusi / jawaban terbaik.</p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-blue-50 border-2 border-black space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-blue-900 uppercase">Pembda Colabs</span>
+                    <span class="px-2 py-0.5 bg-emerald-500 text-white rounded-lg font-black text-xs border border-black">+10 Pts</span>
+                </div>
+                <p class="text-[11px] text-slate-600 font-medium">Meletakkan kepingan puzzle bersama angkatan (1x/hari).</p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-rose-50 border-2 border-black space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-rose-900 uppercase">Upvote & Apresiasi</span>
+                    <span class="px-2 py-0.5 bg-emerald-500 text-white rounded-lg font-black text-xs border border-black">+2 - 10 Pts</span>
+                </div>
+                <p class="text-[11px] text-slate-600 font-medium">Memberikan atau menerima upvote positif dari sesama pengguna.</p>
+            </div>
         </div>
     </div>
 

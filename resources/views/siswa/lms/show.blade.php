@@ -453,7 +453,7 @@ if (!function_exists('balanceHtmlTags')) {
                                         <i class="fas fa-download"></i> Unduh Gambar
                                     </a>
                                 </div>
-                            @elseif($material->material_type === 'pdf' || ($material->material_type === 'document' && str_ends_with(strtolower($material->file_name ?? $material->file_path ?? ''), '.pdf')) || str_contains(strtolower($material->title ?? ''), '[pdf]'))
+                            @elseif(($material->material_type === 'pdf' || str_ends_with(strtolower($material->file_name ?? $material->file_path ?? ''), '.pdf') || str_contains(strtolower($material->title ?? ''), '[pdf]')) && strtolower(pathinfo($material->file_name ?? $material->file_path ?? '', PATHINFO_EXTENSION)) === 'pdf')
                                 <!-- Embed PDF Viewer -->
                                 <div class="w-full rounded-xl overflow-hidden shadow-md border border-gray-200 bg-white mb-4" style="height: 600px;">
                                     <iframe src="{{ $material->file_path ? route('siswa.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" class="w-full h-full" frameborder="0"></iframe>
@@ -787,13 +787,13 @@ if (!function_exists('balanceHtmlTags')) {
                         </div>
                     </div>
                 </div>
-                @if($sub && $sub->status === 'graded')
+                @if($sub && ($sub->status === 'graded' || $sub->score !== null))
                 <div class="text-center ml-4 flex-shrink-0 bg-emerald-50 rounded-2xl p-4 border-2 border-emerald-100 shadow-sm">
-                    <div class="text-3xl font-extrabold leading-none {{ $hasModule ? 'text-white' : 'text-emerald-600' }}">{{ $sub->score }}</div>
-                    <div class="text-[11px] font-extrabold mt-1.5 uppercase tracking-widest {{ $hasModule ? 'text-white/70' : 'text-emerald-800/60' }}">NILAI ANDA</div>
+                    <div class="text-3xl font-extrabold leading-none text-emerald-600">{{ $sub->score }}</div>
+                    <div class="text-[11px] font-extrabold mt-1.5 uppercase tracking-widest text-emerald-800/80">NILAI ANDA</div>
                 </div>
                 @elseif($sub && $sub->status !== 'draft')
-                <span class="px-4 py-2 rounded-xl text-xs font-extrabold border-2 uppercase tracking-widest ml-4 flex-shrink-0 shadow-sm {{ $hasModule ? 'bg-white/20 text-white border-white/10' : 'bg-blue-50 text-blue-700 border-blue-200' }}">{{ $sub->getStatusLabel() }}</span>
+                <span class="px-4 py-2 rounded-xl text-xs font-extrabold border-2 uppercase tracking-widest ml-4 flex-shrink-0 shadow-sm bg-blue-50 text-blue-700 border-blue-200">{{ $sub->getStatusLabel() }}</span>
                 @endif
             </div>
 

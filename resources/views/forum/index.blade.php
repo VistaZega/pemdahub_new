@@ -213,7 +213,7 @@
         </div>
 
         <!-- MAIN FEED (Center) -->
-        <div class="flex-1 flex flex-col min-w-0 bg-forum-base p-4 sm:p-6 lg:p-8 max-h-[85vh] overflow-y-auto">
+        <div class="flex-1 flex flex-col min-w-[300px] w-full bg-forum-base p-4 sm:p-6 lg:p-8 max-h-[85vh] overflow-y-auto">
             <!-- Header & Search -->
             <div class="forum-topbar p-4 mb-6 sticky top-0 z-30 flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <form method="GET" action="{{ route('forum.index') }}" class="w-full sm:max-w-md relative">
@@ -547,7 +547,7 @@
         </div>
 
         <!-- SIDEBAR WIDGETS (Right) -->
-        <div class="hidden lg:flex flex-col w-72 flex-shrink-0 bg-white border-l border-slate-100 p-5 gap-5 max-h-[85vh] overflow-y-auto no-scrollbar">
+        <div class="hidden xl:flex flex-col w-72 flex-shrink-0 bg-white border-l border-slate-100 p-5 gap-5 max-h-[85vh] overflow-y-auto no-scrollbar">
             <!-- User Profile Card -->
             @php
                 $user = auth()->user();

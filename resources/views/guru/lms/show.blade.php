@@ -380,7 +380,7 @@ if (!function_exists('balanceHtmlTags')) {
                                             <i class="fas fa-download text-amber-400"></i> Unduh Berkas Gambar
                                         </a>
                                     </div>
-                                @elseif($material->material_type === 'pdf' || ($material->material_type === 'document' && str_ends_with(strtolower($material->file_name ?? $material->file_path ?? ''), '.pdf')) || str_contains(strtolower($material->title ?? ''), '[pdf]'))
+                                @elseif(($material->material_type === 'pdf' || str_ends_with(strtolower($material->file_name ?? $material->file_path ?? ''), '.pdf') || str_contains(strtolower($material->title ?? ''), '[pdf]')) && strtolower(pathinfo($material->file_name ?? $material->file_path ?? '', PATHINFO_EXTENSION)) === 'pdf')
                                     <div class="w-full rounded-2xl overflow-hidden shadow-md border-2 border-black bg-white mb-4" style="height: 650px;">
                                         <iframe src="{{ $material->file_path ? route('guru.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" class="w-full h-full" frameborder="0"></iframe>
                                     </div>

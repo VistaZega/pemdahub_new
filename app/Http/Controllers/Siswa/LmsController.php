@@ -487,7 +487,7 @@ class LmsController extends Controller
         $isLate = $assignment->deadline && now()->isAfter($assignment->deadline);
         $attemptNumber = $existing ? $existing->attempt_number + ($existing->status !== 'draft' ? 1 : 0) : 1;
 
-        LmsSubmission::updateOrCreate(
+        $sub = LmsSubmission::updateOrCreate(
             ['assignment_id' => $assignment->id, 'student_id' => $student->id],
             [
                 'submission_text' => $request->submission_text,
@@ -502,6 +502,21 @@ class LmsController extends Controller
                 'attempt_number' => $attemptNumber,
             ]
         );
+
+        // Reputation Points Gamification
+        if ($student->user_id) {
+            try {
+                \App\Models\ReputationLog::log(
+                    $student->user_id,
+                    15,
+                    'lms_assignment',
+                    'Mengumpulkan Tugas LMS: ' . $assignment->title,
+                    $sub
+                );
+            } catch (\Exception $e) {
+                \Log::warning('LMS submission reputation log failed: ' . $e->getMessage());
+            }
+        }
 
         $msg = 'Tugas berhasil dikumpulkan';
         if ($attemptNumber > 1) $msg = 'Tugas berhasil dikumpulkan ulang (percobaan ke-' . $attemptNumber . ')';

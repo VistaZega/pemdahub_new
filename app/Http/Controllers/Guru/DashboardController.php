@@ -620,7 +620,21 @@ class DashboardController extends Controller
         $classrooms = $this->getTeacherClassrooms($teacher, $activeYear);
 
         $selectedClassroomId = $request->get('classroom_id');
+        $selectedMonth = (int) $request->get('month', date('n'));
+        $selectedYear = (int) $request->get('year', date('Y'));
+        
+        $monthsList = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
         $attendances = collect();
+        $classroomStudents = collect();
+        $matrixMap = [];
+        $studentStats = [];
+        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $selectedMonth, $selectedYear);
+
         $summary = [
             'present' => 0, 'sick' => 0, 'permission' => 0,
             'absent' => 0, 'total' => 0, 'percentage' => 0,
@@ -630,20 +644,54 @@ class DashboardController extends Controller
         if ($selectedClassroomId) {
             $selectedClassroom = $classrooms->firstWhere('id', $selectedClassroomId);
             if ($selectedClassroom) {
-                $effectiveStartDate = $activeYear && $activeYear->start_date->gt(now()) ? now() : ($activeYear ? $activeYear->start_date : null);
+                // Fetch active students in class
+                $studentsQuery = $selectedClassroom->students()->wherePivot('status', 'aktif');
+                if ($activeYear) {
+                    $studentsQuery->wherePivot('academic_year_id', $activeYear->id);
+                }
+                $classroomStudents = $studentsQuery->orderBy('full_name')->get();
+
+                // Fetch monthly attendances for matrix grid
+                $monthlyAttendances = Attendance::where('classroom_id', $selectedClassroomId)
+                    ->whereYear('date', $selectedYear)
+                    ->whereMonth('date', $selectedMonth)
+                    ->get();
+
+                foreach ($monthlyAttendances as $att) {
+                    $dayNum = (int) \Carbon\Carbon::parse($att->date)->format('j');
+                    $matrixMap[$att->student_id][$dayNum] = $att->status;
+                }
+
+                // Calculate per-student totals for the month
+                foreach ($classroomStudents as $st) {
+                    $stAtts = $monthlyAttendances->where('student_id', $st->id);
+                    $h = $stAtts->where('status', 'hadir')->count();
+                    $s = $stAtts->where('status', 'sakit')->count();
+                    $i = $stAtts->where('status', 'izin')->count();
+                    $a = $stAtts->where('status', 'alpha')->count();
+                    $tot = $stAtts->count();
+                    $pct = $tot > 0 ? round(($h / $tot) * 100, 1) : 0;
+
+                    $studentStats[$st->id] = [
+                        'hadir' => $h, 'sakit' => $s, 'izin' => $i, 'alpha' => $a,
+                        'total' => $tot, 'percentage' => $pct
+                    ];
+                }
+
+                // Recent attendance log list
                 $attendances = Attendance::where('classroom_id', $selectedClassroomId)
-                    ->when($activeYear, fn($q) => $q->whereBetween('date', [$effectiveStartDate->format('Y-m-d'), $activeYear->end_date->format('Y-m-d')]))
+                    ->whereYear('date', $selectedYear)
+                    ->whereMonth('date', $selectedMonth)
                     ->with('student')
                     ->orderByDesc('date')
-                    ->limit(200)
                     ->get();
 
                 $summary = [
-                    'present' => $attendances->where('status', 'hadir')->count(),
-                    'sick' => $attendances->where('status', 'sakit')->count(),
-                    'permission' => $attendances->where('status', 'izin')->count(),
-                    'absent' => $attendances->where('status', 'alpha')->count(),
-                    'total' => $attendances->count(),
+                    'present' => $monthlyAttendances->where('status', 'hadir')->count(),
+                    'sick' => $monthlyAttendances->where('status', 'sakit')->count(),
+                    'permission' => $monthlyAttendances->where('status', 'izin')->count(),
+                    'absent' => $monthlyAttendances->where('status', 'alpha')->count(),
+                    'total' => $monthlyAttendances->count(),
                 ];
                 $summary['percentage'] = $summary['total'] > 0
                     ? round(($summary['present'] / $summary['total']) * 100, 1) : 0;
@@ -652,7 +700,9 @@ class DashboardController extends Controller
 
         return view('guru.absensi', compact(
             'teacher', 'classrooms', 'selectedClassroomId',
-            'selectedClassroom', 'attendances', 'summary', 'activeYear'
+            'selectedClassroom', 'attendances', 'summary', 'activeYear',
+            'selectedMonth', 'selectedYear', 'monthsList', 'daysInMonth',
+            'classroomStudents', 'matrixMap', 'studentStats'
         ));
     }
 

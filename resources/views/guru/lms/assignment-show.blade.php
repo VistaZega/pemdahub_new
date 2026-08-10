@@ -338,10 +338,10 @@
                                                           text-emerald-700 text-sm font-semibold hover:bg-emerald-50 transition shadow-sm">
                                                     <i class="fas fa-external-link-alt"></i> Buka Berkas Penuh
                                                 </a>
-                                                <a href="{{ Storage::url($sub->file_path) }}" download
-                                                   class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 border border-gray-300
-                                                          text-gray-700 text-xs font-semibold hover:bg-gray-200 transition">
-                                                    <i class="fas fa-download"></i> Unduh
+                                                <a href="{{ route('guru.lms.submissions.download', $sub->id) }}"
+                                                   class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-600 border border-emerald-700
+                                                          text-white text-xs font-bold hover:bg-emerald-700 transition shadow-sm">
+                                                    <i class="fas fa-download"></i> Unduh File Tugas
                                                 </a>
                                             </div>
                                         @endif

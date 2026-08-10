@@ -135,6 +135,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::put('/assignments/{assignment}', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'update'])->name('assignments.update');
         Route::delete('/assignments/{assignment}', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'destroy'])->name('assignments.destroy');
         Route::post('/submissions/{submission}/grade', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'grade'])->name('submissions.grade');
+        Route::get('/submissions/{submission}/download', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'downloadSubmission'])->name('submissions.download');
 
         // Quizzes
         Route::get('/{course}/quizzes/create', [App\Http\Controllers\Guru\LmsQuizController::class, 'create'])->name('quizzes.create');

@@ -240,4 +240,49 @@ class LmsAssignmentController extends Controller
         return redirect()->route('guru.lms.assignments.show', $submission->assignment_id)
             ->with('success', 'Nilai berhasil disimpan.');
     }
+
+    /**
+     * Download student submission file safely with original name and correct extension
+     */
+    public function downloadSubmission(LmsSubmission $submission)
+    {
+        $teacher = $this->getTeacher();
+        $course = $submission->assignment->course;
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403, 'Anda tidak memiliki akses ke berkas ini.');
+        }
+
+        if (!$submission->file_path || !\Illuminate\Support\Facades\Storage::disk('public')->exists($submission->file_path)) {
+            abort(404, 'Berkas jawaban siswa tidak ditemukan.');
+        }
+
+        $studentName = \Illuminate\Support\Str::slug($submission->student->full_name ?? 'Siswa');
+        $assignmentTitle = \Illuminate\Support\Str::slug($submission->assignment->title ?? 'Tugas');
+        $ext = pathinfo($submission->file_path, PATHINFO_EXTENSION);
+        
+        // If extension is missing or bin, detect real extension from MIME type
+        if (empty($ext) || in_array(strtolower($ext), ['bin', 'tmp'])) {
+            $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($submission->file_path);
+            $mime = \Illuminate\Support\Facades\File::mimeType($fullPath);
+            $mimeMap = [
+                'application/pdf' => 'pdf',
+                'application/msword' => 'doc',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+                'application/vnd.ms-excel' => 'xls',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+                'application/vnd.ms-powerpoint' => 'ppt',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation' => 'pptx',
+                'image/jpeg' => 'jpg',
+                'image/png' => 'png',
+                'image/gif' => 'gif',
+                'application/zip' => 'zip',
+                'application/x-rar-compressed' => 'rar',
+            ];
+            $ext = $mimeMap[$mime] ?? ($ext ?: 'docx');
+        }
+
+        $downloadFilename = "Tugas_{$assignmentTitle}_{$studentName}.{$ext}";
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->download($submission->file_path, $downloadFilename);
+    }
 }
