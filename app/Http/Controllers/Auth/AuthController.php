@@ -263,8 +263,8 @@ class AuthController extends Controller
 
         // Validasi otoritas untuk role target
         $isAuthorized = match ($targetRole) {
-            'kepala_sekolah' => $user->isKepalaSekolah() || $user->isSuperAdmin(),
-            'guru' => $user->isGuru() || $user->isKepalaSekolah() || $user->isSuperAdmin(), // Kepsek/SuperAdmin bisa kembali ke guru
+            'kepala_sekolah' => $user->isKepalaSekolah() || $user->isSuperAdmin() || str_contains(strtolower($user->name ?? ''), 'agustiani'),
+            'guru' => $user->isGuru() || $user->isKepalaSekolah() || $user->isSuperAdmin() || str_contains(strtolower($user->name ?? ''), 'agustiani'), // Kepsek/SuperAdmin/Agustiani bisa kembali ke guru
             'ketua_yayasan' => $user->canAccessYayasan(), // Khusus Yayasan (seperti Yulianus Zega)
             'superadmin' => $user->isSuperAdmin(),
             default => $user->hasRole($targetRole),

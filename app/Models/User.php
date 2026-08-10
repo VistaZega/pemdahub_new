@@ -203,10 +203,33 @@ class User extends Authenticatable
             return true;
         }
 
+        // Cek 1: Apakah user ini Ibu Agustiani (Kepala SMKS Swasta Pembda Nias)
+        $name = strtolower($this->name ?? '');
+        $username = strtolower($this->username ?? '');
+        $email = strtolower($this->email ?? '');
+        if (str_contains($name, 'agustiani') || str_contains($username, 'agustiani') || str_contains($email, 'agustiani')) {
+            return true;
+        }
+
+        // Cek 2: Apakah principal_id di tabel schools menunjuk ke guru ini
         if ($this->teacher) {
-            return School::where('principal_id', $this->teacher->id)
-                         ->where('type', '!=', 'YAYASAN')
-                         ->exists();
+            if (School::where('principal_id', $this->teacher->id)->where('type', '!=', 'YAYASAN')->exists()) {
+                return true;
+            }
+
+            // Cek 3: Posisi di tabel teachers
+            $pos = strtolower($this->teacher->position ?? '');
+            if (str_contains($pos, 'kepala sekolah') || str_contains($pos, 'kepsek') || str_contains($pos, 'kasek') || str_contains($pos, 'principal')) {
+                return true;
+            }
+        }
+
+        // Cek 4: Posisi di tabel employees
+        if ($this->employee) {
+            $empPos = strtolower($this->employee->position ?? '');
+            if (str_contains($empPos, 'kepala sekolah') || str_contains($empPos, 'kepsek') || str_contains($empPos, 'kasek') || str_contains($empPos, 'principal')) {
+                return true;
+            }
         }
 
         return false;

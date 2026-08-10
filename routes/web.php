@@ -1159,6 +1159,22 @@ Route::get('/run-migrations', function () {
             }
         }
 
+        // Auto-fix Kepala Sekolah SMKS Swasta Pembda (Ibu Agustiani)
+        $agustianiTeacher = \App\Models\Teacher::where('full_name', 'like', '%Agustiani%')->first();
+        if ($agustianiTeacher) {
+            $smkSchool = \App\Models\School::where('type', 'SMK')
+                ->orWhere('name', 'like', '%SMK%')
+                ->first();
+            if ($smkSchool) {
+                $smkSchool->principal_id = $agustianiTeacher->id;
+                $smkSchool->save();
+                echo "✅ Sukses: SMKS Swasta Pembda (School ID: {$smkSchool->id}) principal_id diset ke Ibu Agustiani (Teacher ID: {$agustianiTeacher->id})!<br>\n";
+            }
+            if ($agustianiTeacher->user) {
+                echo "✅ Akun User Ibu Agustiani (User ID: {$agustianiTeacher->user->id}) siap switch role Kepala Sekolah & Guru!<br>\n";
+            }
+        }
+
         echo "<h1>=== DEBUGGING SMAS PRINCIPAL ===</h1>\n";
         $smas = \App\Models\School::where('name', 'like', '%SMAS Pembda 1%')->first();
         if ($smas) {

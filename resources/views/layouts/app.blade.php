@@ -258,8 +258,8 @@
                                 <input type="hidden" name="role" value="kepala_sekolah">
                                 <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 shadow border border-indigo-500/30">
                                     <i class="fas fa-user-shield text-xs"></i>
-                                    <span class="hidden sm:inline">Masuk Mode Admin</span>
-                                    <span class="sm:hidden">Mode Admin</span>
+                                    <span class="hidden sm:inline">Masuk Mode Kepsek</span>
+                                    <span class="sm:hidden">Mode Kepsek</span>
                                 </button>
                             @endif
                         </form>
