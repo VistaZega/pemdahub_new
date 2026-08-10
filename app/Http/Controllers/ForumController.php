@@ -1100,9 +1100,9 @@ class ForumController extends Controller
                     ->get()
                     ->map(function ($p) {
                         return [
-                            'id' => $p->id,
-                            'index' => $p->piece_index,
-                            'is_placed' => $p->is_placed,
+                            'id' => (int) $p->id,
+                            'index' => (int) $p->piece_index,
+                            'is_placed' => (bool) ($p->is_placed == 1 || $p->is_placed === true || $p->is_placed === '1'),
                             'placed_by' => $p->user ? $p->user->name : null,
                             'placed_at' => $p->placed_at ? $p->placed_at->diffForHumans() : null,
                         ];
