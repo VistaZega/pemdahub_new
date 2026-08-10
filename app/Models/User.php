@@ -576,18 +576,14 @@ class User extends Authenticatable
      */
     public function canAccessSchool($schoolId): bool
     {
+        if (!$schoolId) return false;
+
         // Ketua Yayasan / SuperAdmin → akses semua
         if ($this->isKetuaYayasan() || $this->isSuperAdmin()) {
             return true;
         }
 
-        // Cek dari teacher
-        if ($this->teacher) {
-            return $this->teacher->canAccessSchool($schoolId);
-        }
-
-        // Fallback: hanya sekolah sendiri
-        return $this->school_id == $schoolId;
+        return $this->getAvailableSchools()->contains('id', (int) $schoolId);
     }
 
     /**

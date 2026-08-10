@@ -212,26 +212,94 @@ class Teacher extends Model
     }
 
     /**
-     * Helper: Dapatkan semua sekolah tempat guru mengajar (sekolah utama + tambahan)
+     * Helper: Dapatkan semua sekolah tempat guru mengajar (sekolah utama + tambahan + dari penugasan/LMS/jadwal)
      */
     public function allSchools()
     {
         $schools = collect();
 
-        // Sekolah utama dari kolom school_id
+        // 1. Sekolah utama dari kolom school_id
         if ($this->school) {
             $schools->push($this->school);
         }
 
-        // Sekolah tambahan dari pivot
-        $additional = $this->additionalSchools()->get();
-        foreach ($additional as $addSchool) {
-            if (!$schools->contains('id', $addSchool->id)) {
-                $schools->push($addSchool);
-            }
+        // 2. Sekolah dari user
+        if ($this->user && $this->user->school && !$schools->contains('id', $this->user->school_id)) {
+            $schools->push($this->user->school);
         }
 
-        return $schools;
+        // 3. Sekolah tambahan dari pivot teacher_schools
+        try {
+            $additional = $this->additionalSchools()->get();
+            foreach ($additional as $addSchool) {
+                if (!$schools->contains('id', $addSchool->id)) {
+                    $schools->push($addSchool);
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 4. Sekolah dari Teaching Assignments (Pembagian Tugas Mengajar)
+        try {
+            $taSchools = TeachingAssignment::where('teacher_id', $this->id)
+                ->where('is_active', true)
+                ->whereHas('classroom.school')
+                ->with('classroom.school')
+                ->get()
+                ->pluck('classroom.school')
+                ->filter();
+            foreach ($taSchools as $taSchool) {
+                if (!$schools->contains('id', $taSchool->id)) {
+                    $schools->push($taSchool);
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 5. Sekolah dari Schedules (Jadwal Mengajar Harian)
+        try {
+            $schedSchools = Schedule::where('teacher_id', $this->id)
+                ->whereHas('school')
+                ->with('school')
+                ->get()
+                ->pluck('school')
+                ->filter();
+            foreach ($schedSchools as $sSchool) {
+                if (!$schools->contains('id', $sSchool->id)) {
+                    $schools->push($sSchool);
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 6. Sekolah dari LMS Courses & LMS Classes
+        try {
+            $lmsSchools = LmsCourse::where('teacher_id', $this->id)
+                ->with('classes.school')
+                ->get()
+                ->flatMap->classes
+                ->pluck('school')
+                ->filter();
+            foreach ($lmsSchools as $lmsSchool) {
+                if (!$schools->contains('id', $lmsSchool->id)) {
+                    $schools->push($lmsSchool);
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 7. Sekolah dari Wali Kelas (Homeroom Classroom)
+        try {
+            $hrSchools = Classroom::where('homeroom_teacher_id', $this->id)
+                ->whereHas('school')
+                ->with('school')
+                ->get()
+                ->pluck('school')
+                ->filter();
+            foreach ($hrSchools as $hrSchool) {
+                if (!$schools->contains('id', $hrSchool->id)) {
+                    $schools->push($hrSchool);
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        return $schools->sortBy('name')->values();
     }
 
     /**
@@ -239,13 +307,8 @@ class Teacher extends Model
      */
     public function canAccessSchool($schoolId): bool
     {
-        // Sekolah utama
-        if ($this->school_id == $schoolId) {
-            return true;
-        }
-
-        // Sekolah tambahan
-        return $this->additionalSchools()->where('schools.id', $schoolId)->exists();
+        if (!$schoolId) return false;
+        return $this->allSchools()->contains('id', (int) $schoolId);
     }
 }
 
