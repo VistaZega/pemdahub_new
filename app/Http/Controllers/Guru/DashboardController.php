@@ -84,18 +84,25 @@ class DashboardController extends Controller
         if (!$activeYear) return collect();
 
         return Classroom::where('is_active', true)
-            ->where('academic_year_id', $activeYear->id)
+            ->where(function ($yearQ) use ($activeYear) {
+                $yearQ->where('academic_year_id', $activeYear->id)
+                      ->orWhereNull('academic_year_id');
+            })
             ->where(function ($q) use ($teacher, $activeYear) {
-                $q->whereHas('schedules', function ($sq) use ($teacher, $activeYear) {
-                    $sq->where('teacher_id', $teacher->id)
-                       ->where('academic_year_id', $activeYear->id);
+                $q->whereHas('schedules', function ($sq) use ($teacher) {
+                    $sq->where('teacher_id', $teacher->id);
                 })
-                ->orWhereHas('teachingAssignments', function ($tq) use ($teacher, $activeYear) {
+                ->orWhereHas('teachingAssignments', function ($tq) use ($teacher) {
                     $tq->where('teacher_id', $teacher->id)
-                       ->where('academic_year_id', $activeYear->id)
                        ->where('is_active', true);
                 })
-                ->orWhere('homeroom_teacher_id', $teacher->id);
+                ->orWhere('homeroom_teacher_id', $teacher->id)
+                ->orWhereHas('lmsClasses', function ($lq) use ($teacher) {
+                    $lq->where('status', 'active')
+                       ->whereHas('course', function ($cq) use ($teacher) {
+                           $cq->where('teacher_id', $teacher->id);
+                       });
+                });
             })
             ->with('school')
             ->withCount(['students' => function ($q) use ($activeYear) {
@@ -214,11 +221,19 @@ class DashboardController extends Controller
             ];
         }
 
-        // Total jadwal per minggu
+        // Total jadwal per minggu (fallback ke Pembagian Tugas Mengajar jika jam belum diplot ke tabel jadwal harian)
         $weeklyScheduleCount = Schedule::where('teacher_id', $teacher->id)
             ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->when($isMultiSchool && $effectiveSchoolId, fn($q) => $q->where('school_id', $effectiveSchoolId))
             ->count();
+
+        if ($weeklyScheduleCount === 0) {
+            $weeklyScheduleCount = (int) TeachingAssignment::where('teacher_id', $teacher->id)
+                ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                ->when($isMultiSchool && $effectiveSchoolId, fn($q) => $q->where('school_id', $effectiveSchoolId))
+                ->where('is_active', true)
+                ->sum('total_hours');
+        }
 
         // Reputation & Elite standing
         $reputation = $teacher->user->reputation ?? \App\Models\Reputation::firstOrCreate(

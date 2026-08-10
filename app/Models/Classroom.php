@@ -124,6 +124,14 @@ class Classroom extends Model
     }
 
     /**
+     * Classroom has many LMS classes
+     */
+    public function lmsClasses()
+    {
+        return $this->hasMany(LmsClass::class, 'classroom_id');
+    }
+
+    /**
      * Get avatar configuration for the classroom.
      * Returns gradient, ring, icon, initials, and name.
      */
