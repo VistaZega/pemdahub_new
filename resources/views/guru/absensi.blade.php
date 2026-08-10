@@ -123,7 +123,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            @forelse($classroomStudents as="idx => $st)
+                            @forelse($classroomStudents as $idx => $st)
                                 @php
                                     $stStat = $studentStats[$st->id] ?? ['hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0, 'percentage' => 0];
                                 @endphp
