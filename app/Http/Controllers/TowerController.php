@@ -159,21 +159,26 @@ class TowerController extends Controller
             ['msg' => 'Bersama Perguruan Pembda, kita pasti bisa menggapai cita-cita tinggi!', 'color' => 'cyan'],
         ];
 
-        // Gunakan user ID sistem / pertama agar tidak memotong jatah harian pengguna saat ini
-        $systemUser = \App\Models\User::where('role', 'superadmin')->first() ?? \App\Models\User::first();
-        $systemUserId = $systemUser ? $systemUser->id : 1;
-        $yesterday = Carbon::yesterday();
+        // Dapatkan user valid di database (Super Admin / User Pertama)
+        $systemUser = \App\Models\User::whereIn('role', ['superadmin', 'admin_yayasan', 'admin', 'guru'])->first() 
+            ?? \App\Models\User::first();
+
+        if (!$systemUser) return;
+
+        $systemUserId = $systemUser->id;
+        $schoolId = $systemUser->school_id;
+        $pastDate = Carbon::now()->subDays(2); // Set 2 hari lalu agar jatah harian pengguna hari ini tetap 100% gratis
 
         foreach ($samples as $idx => $s) {
             PembdaTowerBrick::create([
                 'user_id' => $systemUserId,
-                'school_id' => $systemUser ? $systemUser->school_id : null,
+                'school_id' => $schoolId,
                 'message' => $s['msg'],
                 'color' => $s['color'],
                 'brick_number' => $idx + 1,
                 'likes_count' => rand(3, 12),
-                'created_at' => $yesterday,
-                'updated_at' => $yesterday,
+                'created_at' => $pastDate,
+                'updated_at' => $pastDate,
             ]);
         }
     }

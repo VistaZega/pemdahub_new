@@ -110,12 +110,39 @@ try {
                 echo "<span class='warn'>⚠️ Tower Migration Warning: " . $e->getMessage() . "</span>\n";
             }
         } else {
-            // Clean resetting of tower bricks if sample bricks were attached to current user
+            // Clean resetting of tower bricks and seed fresh sample bricks
             try {
                 \Illuminate\Support\Facades\DB::table('pembda_tower_brick_likes')->delete();
                 \Illuminate\Support\Facades\DB::table('pembda_tower_bricks')->delete();
-                echo "<span class='ok'>🧱 Pembda Tower database reset cleanly for fresh start</span>\n";
-            } catch (\Exception $e) {}
+
+                $sysUser = \App\Models\User::whereIn('role', ['superadmin', 'admin_yayasan', 'admin', 'guru'])->first() ?? \App\Models\User::first();
+                if ($sysUser) {
+                    $pastDate = \Carbon\Carbon::now()->subDays(2);
+                    $samples = [
+                        ['msg' => 'Selamat Datang di Menara Prestasi Pembda! Mari bersatu membangun masa depan.', 'color' => 'indigo'],
+                        ['msg' => 'Semangat belajar untuk seluruh siswa SD, SMP, SMA, dan SMK Pembda!', 'color' => 'amber'],
+                        ['msg' => 'Salam hormat untuk Bapak/Ibu Guru dan Pengurus Yayasan Perguruan Pembda Nias.', 'color' => 'emerald'],
+                        ['msg' => 'Inovasi, Integritas, dan Prestasi Tanpa Batas!', 'color' => 'purple'],
+                        ['msg' => 'Sukses untuk ujian dan kegiatan belajar mengajar minggu ini!', 'color' => 'rose'],
+                        ['msg' => 'Bersama Perguruan Pembda, kita pasti bisa menggapai cita-cita tinggi!', 'color' => 'cyan'],
+                    ];
+                    foreach ($samples as $idx => $s) {
+                        \App\Models\PembdaTowerBrick::create([
+                            'user_id' => $sysUser->id,
+                            'school_id' => $sysUser->school_id,
+                            'message' => $s['msg'],
+                            'color' => $s['color'],
+                            'brick_number' => $idx + 1,
+                            'likes_count' => rand(3, 12),
+                            'created_at' => $pastDate,
+                            'updated_at' => $pastDate,
+                        ]);
+                    }
+                }
+                echo "<span class='ok'>🧱 Pembda Tower database reset & 6 sample bricks seeded successfully</span>\n";
+            } catch (\Exception $e) {
+                echo "<span class='warn'>⚠️ Tower Reset Error: " . htmlspecialchars($e->getMessage()) . "</span>\n";
+            }
         }
 
         if (\Illuminate\Support\Facades\Schema::hasTable('puzzles') && \Illuminate\Support\Facades\Schema::hasTable('puzzle_pieces')) {
