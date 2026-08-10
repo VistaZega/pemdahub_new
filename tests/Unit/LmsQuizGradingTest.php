@@ -80,4 +80,46 @@ class LmsQuizGradingTest extends TestCase
         ]);
         $this->assertEquals(5.0, $quizFallback->getEffectivePointsPerQuestion(20));
     }
+
+    /** @test */
+    public function test_quiz_level_score_accumulation_for_sampled_questions()
+    {
+        $quiz = new \App\Models\LmsQuiz([
+            'question_sample_count' => 25,
+            'total_score' => 100,
+        ]);
+
+        $effectivePoints = $quiz->getEffectivePointsPerQuestion();
+        $this->assertEquals(4.0, $effectivePoints);
+
+        $correctCount = 20; // 20 out of 25 answered correctly
+        $totalRawScore = $correctCount * $effectivePoints; // 20 * 4 = 80
+        $maxPossibleScore = 25 * $effectivePoints; // 25 * 4 = 100
+        $scorePercentage = ($totalRawScore / $maxPossibleScore) * 100;
+
+        $this->assertEquals(80.0, $totalRawScore);
+        $this->assertEquals(100.0, $maxPossibleScore);
+        $this->assertEquals(80.0, $scorePercentage);
+    }
+
+    /** @test */
+    public function test_quiz_manual_points_per_question_scoring()
+    {
+        $quiz = new \App\Models\LmsQuiz([
+            'question_sample_count' => 20,
+            'points_per_question' => 5.0,
+            'total_score' => 100,
+        ]);
+
+        $effectivePoints = $quiz->getEffectivePointsPerQuestion();
+        $this->assertEquals(5.0, $effectivePoints);
+
+        $correctCount = 18; // 18 out of 20 answered correctly
+        $totalRawScore = $correctCount * $effectivePoints; // 18 * 5 = 90
+        $maxPossibleScore = 20 * $effectivePoints; // 20 * 5 = 100
+        $scorePercentage = ($totalRawScore / $maxPossibleScore) * 100;
+
+        $this->assertEquals(90.0, $totalRawScore);
+        $this->assertEquals(90.0, $scorePercentage);
+    }
 }
