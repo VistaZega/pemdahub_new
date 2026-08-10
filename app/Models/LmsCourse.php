@@ -139,6 +139,14 @@ class LmsCourse extends Model
     }
 
     /**
+     * Alias for lmsClasses relationship
+     */
+    public function classes()
+    {
+        return $this->lmsClasses();
+    }
+
+    /**
      * Relationship: Course has many modules
      */
     public function modules()

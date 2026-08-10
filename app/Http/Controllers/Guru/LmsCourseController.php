@@ -64,7 +64,7 @@ class LmsCourseController extends Controller
         $courses = LmsCourse::where('teacher_id', $teacher->id)
             ->when($isMultiSchool && $effectiveSchoolId, function($q) use ($effectiveSchoolId) {
                 $q->where(function($sq) use ($effectiveSchoolId) {
-                    $sq->whereHas('classes', fn($cq) => $cq->where('school_id', $effectiveSchoolId))
+                    $sq->whereHas('lmsClasses', fn($cq) => $cq->where('school_id', $effectiveSchoolId))
                        ->orWhereHas('classroom', fn($crq) => $crq->where('school_id', $effectiveSchoolId))
                        ->orWhere('school_id', $effectiveSchoolId);
                 });
