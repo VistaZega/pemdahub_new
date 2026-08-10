@@ -395,7 +395,6 @@ class AuthController extends Controller
 
         $this->logActivity($user, 'switch_school', "Beralih ke unit sekolah: {$school->name}");
 
-        return redirect()->route('guru.dashboard')
-            ->with('success', "Berhasil beralih ke unit {$school->name}");
+        return back()->with('success', "Berhasil beralih ke unit {$school->name}");
     }
 }

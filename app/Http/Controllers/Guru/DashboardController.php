@@ -79,16 +79,17 @@ class DashboardController extends Controller
     /**
      * Get classrooms the teacher is assigned to (via schedules or teaching assignments).
      */
-    private function getTeacherClassrooms(Teacher $teacher, ?AcademicYear $activeYear)
+    private function getTeacherClassrooms(Teacher $teacher, ?AcademicYear $activeYear, ?int $schoolId = null)
     {
         if (!$activeYear) return collect();
 
         return Classroom::where('is_active', true)
+            ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
             ->where(function ($yearQ) use ($activeYear) {
                 $yearQ->where('academic_year_id', $activeYear->id)
                       ->orWhereNull('academic_year_id');
             })
-            ->where(function ($q) use ($teacher, $activeYear) {
+            ->where(function ($q) use ($teacher) {
                 $q->whereHas('schedules', function ($sq) use ($teacher) {
                     $sq->where('teacher_id', $teacher->id);
                 })
