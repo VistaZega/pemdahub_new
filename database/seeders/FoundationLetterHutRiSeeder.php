@@ -20,16 +20,25 @@ class FoundationLetterHutRiSeeder extends Seeder
 
         $user = User::where('role', 'superadmin')->first() ?? User::first();
 
-        $content = '<p>Dengan hormat,</p>
-<p>Dalam rangka menyambut dan memeriahkan <strong>Hari Ulang Tahun (HUT) Ke-81 Kemerdekaan Republik Indonesia Tahun 2026</strong> dengan tema nasional <em>"Nusantara Baru, Indonesia Maju"</em>, Pengurus Yayasan Perguruan PEMBDA Nias dengan ini <strong>MENGUNDANG DENGAN HORMAT</strong> Bapak/Ibu Pengurus Yayasan, Kepala Sekolah, Bapak/Ibu Guru, Staf Pegawai, serta Seluruh Siswa/Siswi di lingkungan Perguruan PEMBDA Nias (SMP Swasta Pembda 2 Gunungsitoli, SMA Swasta Pembda 1 Gunungsitoli, dan SMK Swasta Pembda Nias) untuk hadir dan berpartisipasi aktif dalam Peringatan HUT Ke-81 RI yang akan dilaksanakan dengan ketentuan sebagai berikut:</p>
+        $content = '<div style="border-left: 4px solid #dc2626; padding-left: 14px; margin-bottom: 20px; background-color: #fef2f2; padding-top: 10px; padding-bottom: 10px; border-radius: 0 8px 8px 0;">
+    <p style="margin: 0; font-weight: bold; color: #991b1b; text-transform: uppercase; font-size: 13px; letter-spacing: 0.05em;">
+        🇮🇩 EDISI KHUSUS PERINGATAN HUT KE-81 KEMERDEKAAN REPUBLIK INDONESIA
+    </p>
+    <p style="margin: 2px 0 0 0; font-style: italic; color: #b91c1c; font-size: 12px;">
+        Tema Nasional: "Nusantara Baru, Indonesia Maju"
+    </p>
+</div>
 
-<ol style="list-style-type: decimal; padding-left: 24px; margin-top: 10px; margin-bottom: 15px; line-height: 1.8;">
-    <li style="margin-bottom: 12px;">
-        <strong>PELAKSANAAN UPACARA BENDERA PERINGATAN HUT KE-81 RI</strong>
+<p>Dengan hormat,</p>
+<p>Dalam rangka menyambut dan memeriahkan <strong>Hari Ulang Tahun (HUT) Ke-81 Kemerdekaan Republik Indonesia Tahun 2026</strong>, Pengurus Yayasan Perguruan PEMBDA Nias dengan ini <strong>MENGUNDANG DENGAN HORMAT</strong> Bapak/Ibu Pengurus Yayasan, Kepala Sekolah, Bapak/Ibu Guru, Staf Pegawai, serta Seluruh Siswa/Siswi di lingkungan Perguruan PEMBDA Nias (SMP Swasta Pembda 2 Gunungsitoli, SMA Swasta Pembda 1 Gunungsitoli, dan SMK Swasta Pembda Nias) untuk hadir dan berpartisipasi aktif dalam <strong>Upacara Bendera Peringatan HUT Ke-81 RI</strong> yang akan dilaksanakan dengan ketentuan sebagai berikut:</p>
+
+<ol style="list-style-type: decimal; padding-left: 24px; margin-top: 15px; margin-bottom: 20px; line-height: 1.8;">
+    <li style="margin-bottom: 14px;">
+        <strong style="color: #991b1b; text-transform: uppercase;">PELAKSANAAN UPACARA BENDERA PERINGATAN HUT KE-81 RI</strong>
         <ul style="list-style-type: disc; padding-left: 20px; margin-top: 6px;">
-            <li><strong>Hari/Tanggal:</strong> Senin, 17 Agustus 2026</li>
-            <li><strong>Waktu:</strong> Pukul 07.00 WIB (Seluruh peserta upacara wajib hadir di lokasi paling lambat pukul 06.45 WIB)</li>
-            <li><strong>Tempat:</strong> Lapangan Yayasan Perguruan Pembda Nias, Jl. Pelita No. 09 Gunungsitoli</li>
+            <li><strong>Hari / Tanggal:</strong> Senin, 17 Agustus 2026</li>
+            <li><strong>Waktu:</strong> Pukul 07.00 WIB <em>(Seluruh peserta upacara wajib hadir di lokasi paling lambat pukul 06.45 WIB)</em></li>
+            <li><strong>Tempat:</strong> Lapangan Upacara Yayasan Perguruan Pembda Nias, Jl. Pelita No. 09 Gunungsitoli</li>
             <li><strong>Peserta Upacara:</strong> Seluruh Pengurus Yayasan, Kepala Sekolah, Bapak/Ibu Guru, Staf Pegawai, serta Seluruh Siswa/Siswi SMP, SMA, dan SMK Swasta Pembda Nias.</li>
             <li><strong>Ketentuan Pakaian:</strong>
                 <ul style="list-style-type: circle; padding-left: 20px; margin-top: 4px;">
@@ -40,11 +49,11 @@ class FoundationLetterHutRiSeeder extends Seeder
         </ul>
     </li>
 
-    <li style="margin-bottom: 12px;">
-        <strong>PETUGAS PELAKSANA UPACARA</strong>
+    <li style="margin-bottom: 14px;">
+        <strong style="color: #991b1b; text-transform: uppercase;">PETUGAS PELAKSANA UPACARA BENDERA</strong>
         <ol style="list-style-type: decimal; padding-left: 20px; margin-top: 6px;">
-            <li><strong>Petugas dan Perangkat Upacara:</strong> Paskibraka Sekolah</li>
-            <li><strong>Pembina Upacara:</strong> Ketua Yayasan</li>
+            <li><strong>Petugas & Perangkat Upacara:</strong> Paskibraka Sekolah</li>
+            <li><strong>Pembina Upacara:</strong> Ketua Yayasan Perguruan PEMBDA Nias</li>
             <li><strong>Pemimpin Upacara:</strong> Guru</li>
             <li><strong>Pembaca Teks Proklamasi:</strong> Guru Senior</li>
             <li><strong>Paduan Suara:</strong> Gabungan Bapak/Ibu Guru dari ke-3 Unit Sekolah</li>
@@ -52,35 +61,42 @@ class FoundationLetterHutRiSeeder extends Seeder
         </ol>
     </li>
 
-    <li style="margin-bottom: 12px;">
-        <strong>KEGIATAN SETELAH UPACARA</strong>
+    <li style="margin-bottom: 14px;">
+        <strong style="color: #991b1b; text-transform: uppercase;">RANGKAIAN ACARA SETELAH UPACARA BENDERA</strong>
         <ol style="list-style-type: decimal; padding-left: 20px; margin-top: 6px;">
-            <li>Penampilan Marchingband Perguruan Pembda Nias</li>
-            <li>Ramah Tamah</li>
-            <li>Foto Bersama</li>
+            <li>Penampilan Atraksi Marchingband Perguruan PEMBDA Nias</li>
+            <li>Ramah Tamah & Syukuran Kemerdekaan</li>
+            <li>Sesi Foto Bersama Seluruh Keluarga Besar Perguruan PEMBDA Nias</li>
         </ol>
     </li>
 
-    <li style="margin-bottom: 12px;">
-        <strong>KEDISIPLINAN & PRESENSI DIGITAL PEMBDAHUB</strong>
+    <li style="margin-bottom: 14px;">
+        <strong style="color: #991b1b; text-transform: uppercase;">KEDISIPLINAN & PRESENSI DIGITAL PEMBDAHUB</strong>
         <ul style="list-style-type: disc; padding-left: 20px; margin-top: 6px;">
             <li>Seluruh Guru & Pegawai <strong>WAJIB</strong> melakukan Presensi Masuk Upacara melalui sistem Presensi Digital PembdaHUB / TAP Kartu RFID di lokasi upacara.</li>
             <li>Kepala Sekolah bertanggung jawab penuh atas rekapitulasi kehadiran fisik serta ketertiban barisan unit sekolah masing-masing.</li>
         </ul>
     </li>
 
-    <li style="margin-bottom: 12px;">
-        <strong>PERSIAPAN UNIT SEKOLAH (SMP, SMA, SMK)</strong>
+    <li style="margin-bottom: 14px;">
+        <strong style="color: #991b1b; text-transform: uppercase;">PERSIAPAN UNIT SEKOLAH (SMP, SMA, SMK)</strong>
         <ul style="list-style-type: disc; padding-left: 20px; margin-top: 6px;">
-            <li>Masing-masing Kepala Sekolah beserta seluruh jajaran unit sekolah (SMP Swasta Pembda 2, SMA Swasta Pembda 1, dan SMK Swasta Pembda Nias) diwajibkan untuk segera melakukan persiapan internal secara optimal sesuai dengan seluruh petunjuk dalam Surat Edaran ini (termasuk koordinasi latihan Paskibraka, latihan Paduan Suara, latihan Marchingband, kerapian seragam siswa, serta kesiapan perangkat presensi digital).</li>
+            <li>Masing-masing Kepala Sekolah beserta seluruh jajaran unit sekolah diwajibkan untuk segera melakukan persiapan internal secara optimal (termasuk koordinasi gladi bersih Paskibraka, latihan Paduan Suara, latihan Marchingband, kerapian seragam siswa, serta kesiapan perangkat presensi digital).</li>
         </ul>
     </li>
 </ol>
 
-<p style="margin-top: 15px;"><strong>PENUTUP:</strong><br>
+<p style="margin-top: 18px;"><strong>PENUTUP:</strong><br>
 Mengingat pentingnya acara ini sebagai wujud penghormatan, jiwa nasionalisme, dan rasa syukur atas kemerdekaan Bangsa Indonesia, kehadiran dan persiapan matang seluruh unit sekolah tepat pada waktunya sangat diharapkan. Atas perhatian, kehadiran, dan kerja sama yang baik, kami ucapkan terima kasih.</p>
 
-<p style="margin-top: 10px;"><em>Merdeka! Merdeka! Merdeka!</em></p>';
+<div style="margin-top: 18px; padding: 12px; text-align: center; border-top: 2px dashed #ef4444; border-bottom: 2px dashed #ef4444; background-color: #fafafa; border-radius: 6px;">
+    <p style="margin: 0; font-weight: bold; color: #b91c1c; font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em;">
+        🇮🇩 DIRGAHAYU REPUBLIK INDONESIA KE-81! 🇮🇩
+    </p>
+    <p style="margin: 4px 0 0 0; font-weight: 800; color: #111827; font-size: 13px;">
+        <em>MERDEKA! MERDEKA! MERDEKA!</em>
+    </p>
+</div>';
 
         $hash = FoundationLetter::generateHash($letterNumber, $title, $effectiveDate);
 
