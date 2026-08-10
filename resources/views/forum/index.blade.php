@@ -6,7 +6,7 @@
 <!-- Dynamic Google Fonts & Phosphor Icons -->
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;650;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js" defer></script>
+{{-- Alpine.js sudah dimuat oleh layout parent (layouts/app.blade.php) — JANGAN duplikat di sini --}}
 
 <!-- PWA Manifest & App Shell Meta Tags -->
 <link rel="manifest" href="/manifest.json">
