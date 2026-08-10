@@ -32,7 +32,7 @@
         </div>
 
         {{-- Paper Container --}}
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-300/80 p-6 md:p-12 lg:p-16 space-y-8 relative overflow-hidden">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-300/80 p-6 md:px-16 md:py-12 lg:px-24 space-y-8 relative overflow-hidden">
             
             {{-- Kop Surat Resmi Yayasan --}}
             <div class="border-b-4 border-double border-gray-900 pb-6 text-center relative">

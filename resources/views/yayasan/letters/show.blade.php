@@ -47,7 +47,7 @@
     @endif
 
     {{-- Main Letter Preview Container --}}
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 md:p-12 relative overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 md:px-16 md:py-12 lg:px-20 relative overflow-hidden">
         {{-- Kop Surat Preview --}}
         <div class="border-b-4 border-double border-gray-900 pb-6 mb-8 text-center relative">
             <div class="flex flex-col md:flex-row items-center justify-center gap-4">

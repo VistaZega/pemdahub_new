@@ -9,7 +9,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 15mm 20mm 15mm 20mm;
+            margin: 15mm 25mm 15mm 25mm;
         }
         body {
             font-family: 'Times New Roman', Times, serif;
@@ -20,7 +20,7 @@
             background: #ffffff;
             width: 210mm;
             min-height: 297mm;
-            padding: 20mm;
+            padding: 20mm 25mm;
             margin: 10px auto;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
