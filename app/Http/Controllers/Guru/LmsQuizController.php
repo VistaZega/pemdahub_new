@@ -61,10 +61,12 @@ class LmsQuizController extends Controller
         $quiz = $course->quizzes()->create([
             'module_id' => $request->module_id,
             'question_package_id' => $request->question_package_id,
+            'question_sample_count' => $request->question_sample_count ?: null,
+            'points_per_question' => $request->points_per_question ?: null,
             'title' => $request->title,
             'description' => $request->description,
             'time_limit' => $request->time_limit,
-            'total_score' => 100,
+            'total_score' => $request->total_score ?? 100,
             'passing_score' => $request->passing_score,
             'max_attempts' => $request->max_attempts ?? 1,
             'shuffle_questions' => $request->boolean('shuffle_questions'),
@@ -156,6 +158,8 @@ class LmsQuizController extends Controller
         $quiz->update([
             'module_id' => $request->has('module_id') ? $request->module_id : $quiz->module_id,
             'question_package_id' => $request->has('question_package_id') ? ($request->question_package_id ?: null) : $quiz->question_package_id,
+            'question_sample_count' => $request->has('question_sample_count') ? ($request->question_sample_count ?: null) : $quiz->question_sample_count,
+            'points_per_question' => $request->has('points_per_question') ? ($request->points_per_question ?: null) : $quiz->points_per_question,
             'title' => $request->title,
             'description' => $request->description,
             'time_limit' => $request->time_limit,
@@ -168,7 +172,7 @@ class LmsQuizController extends Controller
             // Empty string from datetime-local input must be converted to null to clear the constraint
             'start_time' => $request->has('start_time') ? ($request->start_time ?: null) : $quiz->start_time,
             'end_time' => $request->has('end_time') ? ($request->end_time ?: null) : $quiz->end_time,
-            'total_score' => $quiz->questions()->sum('score'),
+            'total_score' => $request->has('total_score') && $request->total_score ? $request->total_score : ($quiz->points_per_question || $quiz->question_sample_count ? $quiz->total_score : ($quiz->questions()->sum('score') ?: 100)),
         ]);
 
         if (!$wasPublished && $quiz->fresh()->is_published) {

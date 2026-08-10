@@ -58,6 +58,27 @@
                 <p class="text-xs text-gray-400 mt-1">Pilih bank soal untuk menghubungkan quiz ini. Gunakan tombol "Sinkron dari Bank Soal" di halaman kelola quiz untuk mengimpor soal.</p>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 bg-purple-50/70 border border-purple-200 rounded-xl p-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1">
+                        <i class="fas fa-dice text-purple-600 mr-1"></i> Jumlah Soal Diambil Acak (Sampling)
+                    </label>
+                    <input type="number" name="question_sample_count" value="{{ old('question_sample_count', $quiz->question_sample_count) }}" min="1"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-purple-500 bg-white"
+                           placeholder="Misal: 20 (Kosongkan jika tampilkan semua)">
+                    <p class="text-[11px] text-gray-500 mt-1">Sistem akan mengambil N soal acak secara unik per siswa dari Bank Soal.</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1">
+                        <i class="fas fa-calculator text-purple-600 mr-1"></i> Poin Per Soal (Opsional)
+                    </label>
+                    <input type="number" step="0.01" name="points_per_question" value="{{ old('points_per_question', $quiz->points_per_question) }}" min="0.1"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-purple-500 bg-white"
+                           placeholder="Misal: 5.0 (Kosongkan untuk otomatis 100/N)">
+                    <p class="text-[11px] text-gray-500 mt-1">Jika dikosongkan, bobot soal dihitung otomatis dari Total Skor / Jumlah Soal.</p>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Batas Waktu (menit)</label>

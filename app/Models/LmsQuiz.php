@@ -16,6 +16,8 @@ class LmsQuiz extends Model
         'course_id',
         'module_id',
         'question_package_id',
+        'question_sample_count',
+        'points_per_question',
         'title',
         'description',
         'start_time',
@@ -34,9 +36,11 @@ class LmsQuiz extends Model
         'end_time' => 'datetime',
         'is_published' => 'boolean',
         'total_score' => 'float',
+        'points_per_question' => 'float',
         'passing_score' => 'integer',
         'time_limit' => 'integer',
         'max_attempts' => 'integer',
+        'question_sample_count' => 'integer',
         'shuffle_questions' => 'boolean',
         'show_result' => 'boolean',
         'question_package_id' => 'integer',
@@ -118,5 +122,22 @@ class LmsQuiz extends Model
             ->where('student_id', $studentId)
             ->whereNotNull('finished_at')
             ->max('score');
+    }
+
+    /**
+     * Calculate effective points per question for this quiz
+     */
+    public function getEffectivePointsPerQuestion(int $questionsCount = 0): float
+    {
+        if ($this->points_per_question !== null && $this->points_per_question > 0) {
+            return (float) $this->points_per_question;
+        }
+
+        $effectiveCount = $this->question_sample_count ?: $questionsCount;
+        if ($effectiveCount > 0 && $this->total_score > 0) {
+            return round((float) $this->total_score / $effectiveCount, 2);
+        }
+
+        return 1.0;
     }
 }

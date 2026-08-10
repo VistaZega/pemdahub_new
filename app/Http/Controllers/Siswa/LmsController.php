@@ -572,13 +572,18 @@ class LmsController extends Controller
             ]);
         }
 
-        // Load questions (optionally shuffled)
+        // Load questions (optionally shuffled or sampled randomly)
         $questionsQuery = $quiz->questions();
-        if ($quiz->shuffle_questions) {
+        if ($quiz->shuffle_questions || ($quiz->question_sample_count && $quiz->question_sample_count > 0)) {
             $questionsQuery->inRandomOrder($attempt->id);
         } else {
             $questionsQuery->orderBy('order_number');
         }
+
+        if ($quiz->question_sample_count && $quiz->question_sample_count > 0) {
+            $questionsQuery->take($quiz->question_sample_count);
+        }
+
         $questions = $questionsQuery->get();
 
         // Get existing answers
@@ -605,12 +610,29 @@ class LmsController extends Controller
         }
 
         $quiz = $attempt->quiz;
-        $quiz->load('questions');
+
+        $questionsQuery = $quiz->questions();
+        if ($quiz->shuffle_questions || ($quiz->question_sample_count && $quiz->question_sample_count > 0)) {
+            $questionsQuery->inRandomOrder($attempt->id);
+        } else {
+            $questionsQuery->orderBy('order_number');
+        }
+
+        if ($quiz->question_sample_count && $quiz->question_sample_count > 0) {
+            $questionsQuery->take($quiz->question_sample_count);
+        }
+
+        $questions = $questionsQuery->get();
+
+        $effectivePointsPerQuestion = $quiz->getEffectivePointsPerQuestion($questions->count());
+        $isQuizLevelScoring = ($quiz->points_per_question !== null || $quiz->question_sample_count !== null);
 
         $totalScore = 0;
-        $maxScore = $quiz->questions->sum('score');
+        $maxScore = $isQuizLevelScoring
+            ? ($questions->count() * $effectivePointsPerQuestion)
+            : $questions->sum('score');
 
-        foreach ($quiz->questions as $question) {
+        foreach ($questions as $question) {
             $answer = $request->input("answers.{$question->id}");
             $finalAnswer = $answer;
 
@@ -697,7 +719,8 @@ class LmsController extends Controller
                     $isCorrect = strtolower(trim($studentAnswer)) === strtolower(trim($correctAnswer));
                 }
 
-                $questionScore = $isCorrect ? $question->score : 0;
+                $pointVal = $isQuizLevelScoring ? $effectivePointsPerQuestion : $question->score;
+                $questionScore = $isCorrect ? $pointVal : 0;
                 $totalScore += $questionScore;
             }
 

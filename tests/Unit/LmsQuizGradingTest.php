@@ -58,4 +58,26 @@ class LmsQuizGradingTest extends TestCase
         $isCorrect = strtolower(trim($studentAnswer)) === strtolower(trim($correctAnswer));
         $this->assertTrue($isCorrect);
     }
+
+    /** @test */
+    public function test_effective_points_per_question_calculation()
+    {
+        $quizAuto = new \App\Models\LmsQuiz([
+            'question_sample_count' => 25,
+            'total_score' => 100,
+        ]);
+        $this->assertEquals(4.0, $quizAuto->getEffectivePointsPerQuestion());
+
+        $quizManual = new \App\Models\LmsQuiz([
+            'question_sample_count' => 20,
+            'points_per_question' => 5.0,
+            'total_score' => 100,
+        ]);
+        $this->assertEquals(5.0, $quizManual->getEffectivePointsPerQuestion());
+
+        $quizFallback = new \App\Models\LmsQuiz([
+            'total_score' => 100,
+        ]);
+        $this->assertEquals(5.0, $quizFallback->getEffectivePointsPerQuestion(20));
+    }
 }

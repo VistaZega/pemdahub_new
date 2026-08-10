@@ -83,6 +83,21 @@
             <i class="fas fa-check-circle text-gray-800 text-xl"></i>
             <p class="text-gray-800 font-semibold text-xs tracking-wide">Quiz Aktif & Terbit — Siswa dapat langsung mengerjakan quiz ini.</p>
         </div>
+        @if($quiz->question_sample_count || $quiz->points_per_question)
+        <div class="mb-5 bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4 flex items-center gap-4 shadow-xs">
+            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-sm">
+                🎲
+            </div>
+            <div class="flex-1">
+                <p class="text-indigo-950 font-black text-sm uppercase tracking-wide">Pengaturan Sampling Acak & Poin Dinamis Aktif</p>
+                <div class="text-xs text-indigo-900 font-bold mt-1 flex flex-wrap gap-4">
+                    @if($quiz->question_sample_count)
+                        <span><i class="fas fa-dice text-indigo-600 mr-1"></i> Soal Diambil: <strong>{{ $quiz->question_sample_count }} Soal</strong> (dari total {{ $quiz->questions->count() }} soal di Bank)</span>
+                    @endif
+                    <span><i class="fas fa-calculator text-indigo-600 mr-1"></i> Bobot Poin: <strong>{{ $quiz->getEffectivePointsPerQuestion($quiz->questions->count()) }} Poin / Soal</strong> (Total Target: {{ $quiz->total_score }})</span>
+                </div>
+            </div>
+        </div>
         @endif
 
         {{-- Validation Errors --}}

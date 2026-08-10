@@ -64,6 +64,27 @@
                     </select>
                 </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 bg-emerald-50/60 border-2 border-black rounded-2xl p-4 shadow-xs">
+                    <div>
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1">
+                            <i class="fas fa-dice text-emerald-600 mr-1"></i> Jumlah Soal Diambil Acak (Sampling)
+                        </label>
+                        <input type="number" name="question_sample_count" value="{{ old('question_sample_count') }}" min="1"
+                               class="w-full border-2 border-black rounded-xl px-4 py-2 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white"
+                               placeholder="Misal: 20 (Kosongkan jika tampilkan semua)">
+                        <p class="text-[11px] text-slate-600 font-bold mt-1">Sistem akan mengambil N soal acak secara unik per siswa dari Bank Soal.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1">
+                            <i class="fas fa-calculator text-emerald-600 mr-1"></i> Poin Per Soal (Opsional)
+                        </label>
+                        <input type="number" step="0.01" name="points_per_question" value="{{ old('points_per_question') }}" min="0.1"
+                               class="w-full border-2 border-black rounded-xl px-4 py-2 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white"
+                               placeholder="Misal: 5.0 (Kosongkan untuk otomatis 100/N)">
+                        <p class="text-[11px] text-slate-600 font-bold mt-1">Jika dikosongkan, bobot soal dihitung otomatis dari Total Skor / Jumlah Soal.</p>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">Deskripsi / Petunjuk Pengerjaan</label>
                     <textarea name="description" rows="3"
