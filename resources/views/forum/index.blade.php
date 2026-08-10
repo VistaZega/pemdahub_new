@@ -297,27 +297,25 @@
                         <span class="text-[10px] bg-indigo-200/80 text-indigo-900 px-2 py-0.5 rounded-full font-extrabold">Jatah Hari Ini Selesai</span>
                     </div>
 
-                    <!-- ============ TOWER VISUAL ============ -->
-                    <div class="flex flex-col items-center">
+                    <!-- ============ TOWER VISUAL (Piramida — lebar bawah, mengecil ke atas) ============ -->
+                    <div class="flex flex-col items-center py-2">
 
-                        <!-- 🏗️ Tower Spire / Crown -->
-                        <div class="w-0 h-0 border-l-[40px] border-r-[40px] border-b-[30px] border-l-transparent border-r-transparent border-b-amber-500 mb-0 drop-shadow-md"></div>
-                        <div class="bg-gradient-to-b from-amber-500 to-amber-600 text-white text-[10px] font-black uppercase tracking-[0.2em] text-center py-1.5 px-6 rounded-t-none shadow-md" style="width: min(100%, 560px);">
-                            👑 Puncak Menara Prestasi Pembda 👑
+                        <!-- 🔺 Tower Spire / Puncak Segitiga -->
+                        <div class="w-0 h-0 border-l-[30px] border-r-[30px] border-b-[24px] border-l-transparent border-r-transparent border-b-amber-500 drop-shadow-md"></div>
+                        <div class="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[9px] font-black uppercase tracking-[0.15em] text-center py-1 shadow-md" style="width: 50%;">
+                            👑 PUNCAK MENARA 👑
                         </div>
 
-                        <!-- 🧱 Tower Wall — Bricks stacked bottom-to-top -->
-                        <div class="relative overflow-hidden shadow-inner border-x-4 border-amber-800/30 bg-amber-900/10" style="width: min(100%, 560px); max-height: 400px; overflow-y: auto;">
-                            <!-- Brick Rows — flex-col-reverse so newest brick appears at top -->
-                            <div class="flex flex-col-reverse">
+                        <!-- 🧱 Tower Wall — Bata tersusun piramida (bawah lebar, atas sempit) -->
+                        <div class="w-full flex flex-col items-center" style="max-height: 420px; overflow-y: auto;">
+                            <!-- flex-col-reverse: bata terbaru (brick_number tinggi) muncul di atas -->
+                            <div class="w-full flex flex-col-reverse items-center">
                                 <template x-for="(b, bIdx) in bricks" :key="bIdx">
                                     <div @click="selectedBrick = b"
-                                         class="relative cursor-pointer transition-all duration-200 hover:brightness-110 hover:scale-[1.02] group"
-                                         :class="{
-                                             'border-b-2 border-amber-900/20': true
-                                         }">
+                                         class="cursor-pointer transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5 group"
+                                         :style="'width:' + (55 + 45 * (bIdx / Math.max(bricks.length - 1, 1))) + '%; margin: 0 auto;'">
                                         <!-- Brick body -->
-                                        <div class="flex items-stretch"
+                                        <div class="flex items-stretch rounded-sm shadow-sm border border-white/10"
                                              :class="{
                                                  'bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700': b.color === 'indigo',
                                                  'bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700': b.color === 'emerald',
@@ -326,26 +324,26 @@
                                                  'bg-gradient-to-r from-purple-500 via-purple-600 to-violet-700': b.color === 'purple',
                                                  'bg-gradient-to-r from-cyan-500 via-cyan-600 to-blue-700': b.color === 'cyan'
                                              }">
-                                            <!-- Brick number tab -->
-                                            <div class="flex-shrink-0 w-10 flex items-center justify-center bg-black/20 text-white font-black text-[11px] border-r border-white/10">
+                                            <!-- Brick number -->
+                                            <div class="flex-shrink-0 w-8 flex items-center justify-center bg-black/25 text-white font-black text-[10px]">
                                                 <span x-text="'#' + b.brick_number"></span>
                                             </div>
                                             <!-- Brick content -->
-                                            <div class="flex-1 px-3 py-2.5 text-white min-w-0">
-                                                <p class="text-xs font-semibold leading-snug line-clamp-1" x-text="b.message"></p>
-                                                <div class="flex items-center justify-between mt-1 text-[10px] opacity-80">
+                                            <div class="flex-1 px-2.5 py-2 text-white min-w-0">
+                                                <p class="text-[11px] font-semibold leading-snug line-clamp-1" x-text="b.message"></p>
+                                                <div class="flex items-center justify-between mt-0.5 text-[9px] opacity-75">
                                                     <span class="font-bold truncate" x-text="b.user_name + ' · ' + b.school_name"></span>
                                                     <button @click.stop="toggleLike(b)" 
-                                                            class="flex items-center gap-0.5 ml-2 flex-shrink-0 hover:opacity-100 transition"
-                                                            :class="b.is_liked ? 'opacity-100' : 'opacity-70'">
-                                                        <i class="ph-bold ph-heart text-[11px]" :class="b.is_liked ? 'text-rose-300' : ''"></i>
+                                                            class="flex items-center gap-0.5 ml-1 flex-shrink-0"
+                                                            :class="b.is_liked ? 'opacity-100' : 'opacity-60'">
+                                                        <i class="ph-bold ph-heart text-[10px]" :class="b.is_liked ? 'text-rose-300' : ''"></i>
                                                         <span x-text="b.likes_count"></span>
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Mortar line (cement between bricks) -->
-                                        <div class="h-[3px] bg-gradient-to-r from-amber-200 via-amber-300 to-amber-200"></div>
+                                        <!-- Mortar / Semen -->
+                                        <div class="h-[2px] bg-gradient-to-r from-transparent via-amber-300/60 to-transparent mx-auto" :style="'width:' + (55 + 45 * (bIdx / Math.max(bricks.length - 1, 1))) + '%;'"></div>
                                     </div>
                                 </template>
                             </div>
@@ -357,9 +355,9 @@
                             </div>
                         </div>
 
-                        <!-- 🏗️ Tower Foundation -->
-                        <div class="bg-gradient-to-b from-amber-800 to-amber-950 text-amber-200 text-[10px] font-black uppercase tracking-[0.15em] text-center py-2 px-6 rounded-b-xl shadow-lg" style="width: min(100%, 580px);">
-                            🏗️ Fondasi Menara · <span x-text="stats.total_bricks"></span> Bata · Tinggi <span x-text="stats.total_height"></span> Lantai
+                        <!-- 🏗️ Tower Foundation / Fondasi -->
+                        <div class="bg-gradient-to-b from-amber-700 via-amber-800 to-amber-950 text-amber-200 text-[10px] font-black uppercase tracking-[0.12em] text-center py-2.5 px-6 rounded-b-xl shadow-lg border-t-4 border-amber-600" style="width: 100%;">
+                            🏗️ Fondasi Menara · <span x-text="stats.total_bricks"></span> Bata Terpasang · Tinggi <span x-text="stats.total_height"></span> Lantai
                         </div>
 
                     </div>
