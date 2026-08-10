@@ -1196,19 +1196,29 @@ class ForumController extends Controller
             return response()->json(['success' => false, 'message' => 'Hanya admin yang bisa mereset puzzle']);
         }
 
+        // Ambil puzzle aktif terbaru
         $puzzle = \App\Models\Puzzle::where('is_active', true)->latest()->first();
+        if (!$puzzle) {
+            $puzzle = \App\Models\Puzzle::latest()->first();
+        }
+
         if (!$puzzle) {
             return response()->json(['success' => false, 'message' => 'Tidak ada puzzle aktif']);
         }
 
-        // Reset semua keping ke belum terpasang
-        \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)->update([
+        // Deactive puzzle lain agar hanya 1 yang aktif
+        \App\Models\Puzzle::where('id', '!=', $puzzle->id)->update(['is_active' => false]);
+        $puzzle->update(['is_active' => true]);
+
+        // Reset semua kepingan di seluruh puzzle
+        $allPuzzleIds = \App\Models\Puzzle::pluck('id');
+        \App\Models\PuzzlePiece::whereIn('puzzle_id', $allPuzzleIds)->update([
             'is_placed' => false,
             'placed_by_user_id' => null,
             'placed_at' => null,
         ]);
 
-        // Pasang 10 keping acak sebagai bonus awal dari Sistem
+        // Pasang 10 keping acak sebagai bonus awal dari Sistem untuk puzzle aktif ini
         $bonusIds = \App\Models\PuzzlePiece::where('puzzle_id', $puzzle->id)
             ->inRandomOrder()
             ->limit(10)
@@ -1217,7 +1227,6 @@ class ForumController extends Controller
         \App\Models\PuzzlePiece::whereIn('id', $bonusIds)->update([
             'is_placed' => true,
             'placed_at' => now(),
-            // placed_by_user_id tetap null = Sistem (Bonus)
         ]);
 
         return response()->json([

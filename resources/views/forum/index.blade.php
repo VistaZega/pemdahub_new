@@ -807,7 +807,9 @@ function pembdaColabs() {
             for(let i=0; i<total; i++) {
                 if(!placedIndices.has(i)) newInv.push(i);
             }
-            if(this.inventory.length !== newInv.length) {
+            const oldInvSet = new Set(this.inventory);
+            const isDifferent = newInv.length !== this.inventory.length || newInv.some(id => !oldInvSet.has(id));
+            if (isDifferent || this.inventory.length === 0) {
                 this.inventory = newInv.sort(() => Math.random() - 0.5);
             }
         },
