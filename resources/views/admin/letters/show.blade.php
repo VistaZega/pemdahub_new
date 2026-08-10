@@ -13,8 +13,8 @@
         </a>
     </div>
 
-    {{-- Main Letter View Card --}}
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 md:px-16 md:py-12 lg:px-20">
+    {{-- Main Letter View Card (A4: 210mm, Margin Kiri-Kanan 25mm) --}}
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 md:p-10 lg:px-[25mm] lg:py-[15mm] max-w-[210mm] w-full mx-auto">
         {{-- Kop --}}
         <div class="border-b-4 border-double border-gray-900 pb-6 mb-8 text-center">
             <div class="flex flex-col md:flex-row items-center justify-center gap-4">

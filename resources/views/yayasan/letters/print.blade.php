@@ -9,7 +9,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 15mm 20mm 15mm 20mm;
+            margin: 15mm 25mm 15mm 25mm;
         }
         body {
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -22,7 +22,7 @@
             background: #ffffff;
             width: 210mm;
             min-height: 297mm;
-            padding: 15mm 20mm;
+            padding: 15mm 25mm;
             margin: 10px auto;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             box-sizing: border-box;
@@ -61,7 +61,7 @@
     {{-- Print Control Bar --}}
     <div class="no-print bg-gray-900 text-white p-4 sticky top-0 z-50 flex items-center justify-between shadow-lg">
         <div class="flex items-center gap-3">
-            <span class="bg-violet-600 px-3 py-1 rounded text-xs font-bold uppercase">Pratinjau Cetak Surat Digital</span>
+            <span class="bg-violet-600 px-3 py-1 rounded text-xs font-bold uppercase">Pratinjau Cetak Surat Digital (A4)</span>
             <span class="text-sm font-mono text-gray-300">{{ $letter->letter_number }}</span>
         </div>
         <div class="flex items-center gap-2">
