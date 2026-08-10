@@ -90,7 +90,13 @@
             </div>
 
             {{-- Naskah Isi Surat Lengkap (Rendered Clean HTML) --}}
-            <div class="prose max-w-none text-xs md:text-sm text-gray-800 leading-relaxed font-sans pt-2 border-t border-gray-100">
+            <style>
+                .letter-content ol { list-style-type: decimal !important; padding-left: 1.75rem !important; margin-top: 0.5rem !important; margin-bottom: 0.75rem !important; }
+                .letter-content ol li { margin-bottom: 0.5rem !important; }
+                .letter-content ul { list-style-type: disc !important; padding-left: 1.5rem !important; margin-top: 0.25rem !important; margin-bottom: 0.5rem !important; }
+                .letter-content ul li { margin-bottom: 0.25rem !important; }
+            </style>
+            <div class="prose max-w-none text-xs md:text-sm text-gray-800 leading-relaxed font-sans pt-2 border-t border-gray-100 letter-content">
                 {!! $letter->content !!}
             </div>
 

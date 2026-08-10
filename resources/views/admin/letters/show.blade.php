@@ -54,7 +54,13 @@
         </div>
 
         {{-- Content --}}
-        <div class="prose max-w-none text-sm text-gray-800 leading-relaxed mb-12 space-y-4 font-serif">
+        <style>
+            .letter-content ol { list-style-type: decimal !important; padding-left: 1.75rem !important; margin-top: 0.5rem !important; margin-bottom: 0.75rem !important; }
+            .letter-content ol li { margin-bottom: 0.5rem !important; }
+            .letter-content ul { list-style-type: disc !important; padding-left: 1.5rem !important; margin-top: 0.25rem !important; margin-bottom: 0.5rem !important; }
+            .letter-content ul li { margin-bottom: 0.25rem !important; }
+        </style>
+        <div class="prose max-w-none text-sm text-gray-800 leading-relaxed mb-12 space-y-4 font-serif letter-content">
             {!! $letter->content !!}
         </div>
 

@@ -67,15 +67,16 @@ class FoundationLetterController extends Controller
             $defaultContent = '<p>Dengan hormat,</p>
 <p>Dalam rangka menyambut dan memeriahkan <strong>Hari Ulang Tahun (HUT) Ke-81 Kemerdekaan Republik Indonesia Tahun 2026</strong> dengan tema nasional <em>"Nusantara Baru, Indonesia Maju"</em>, Pengurus Yayasan Perguruan PEMBDA Nias dengan ini <strong>MENGUNDANG DENGAN HORMAT</strong> Bapak/Ibu Pengurus Yayasan, Kepala Sekolah, Bapak/Ibu Guru, Staf Pegawai, serta Seluruh Siswa/Siswi di lingkungan Perguruan PEMBDA Nias (SMP Swasta Pembda 2 Gunungsitoli, SMA Swasta Pembda 1 Gunungsitoli, dan SMK Swasta Pembda Nias) untuk hadir dan berpartisipasi aktif dalam Peringatan HUT Ke-81 RI yang akan dilaksanakan dengan ketentuan sebagai berikut:</p>
 
-<ol style="margin-left: 20px; line-height: 1.8;">
-    <li><strong>PELAKSANAAN UPACARA BENDERA PERINGATAN HUT KE-81 RI</strong>
-        <ul>
+<ol style="list-style-type: decimal; padding-left: 24px; margin-top: 10px; margin-bottom: 15px; line-height: 1.8;">
+    <li style="margin-bottom: 12px;">
+        <strong>PELAKSANAAN UPACARA BENDERA PERINGATAN HUT KE-81 RI</strong>
+        <ul style="list-style-type: disc; padding-left: 20px; margin-top: 6px;">
             <li><strong>Hari/Tanggal:</strong> Senin, 17 Agustus 2026</li>
             <li><strong>Waktu:</strong> Pukul 07.00 WIB (Seluruh peserta upacara wajib hadir di lokasi paling lambat pukul 06.45 WIB)</li>
             <li><strong>Tempat:</strong> Lapangan Yayasan Perguruan Pembda Nias, Jl. Pelita No. 09 Gunungsitoli</li>
             <li><strong>Peserta Upacara:</strong> Seluruh Pengurus Yayasan, Kepala Sekolah, Bapak/Ibu Guru, Staf Pegawai, serta Seluruh Siswa/Siswi SMP, SMA, dan SMK Swasta Pembda Nias.</li>
             <li><strong>Ketentuan Pakaian:</strong>
-                <ul>
+                <ul style="list-style-type: circle; padding-left: 20px; margin-top: 4px;">
                     <li><strong>Pengurus, Kepala Sekolah, Guru & Pegawai:</strong> Pakaian Nuansa Adat Nasional</li>
                     <li><strong>Siswa/Siswi:</strong> Seragam Lengkap dengan Atribut (Topi & Dasi) dan Sepatu Hitam</li>
                 </ul>
@@ -83,8 +84,9 @@ class FoundationLetterController extends Controller
         </ul>
     </li>
 
-    <li><strong>PETUGAS PELAKSANA UPACARA</strong>
-        <ol type="1">
+    <li style="margin-bottom: 12px;">
+        <strong>PETUGAS PELAKSANA UPACARA</strong>
+        <ol style="list-style-type: decimal; padding-left: 20px; margin-top: 6px;">
             <li><strong>Petugas dan Perangkat Upacara:</strong> Paskibraka Sekolah</li>
             <li><strong>Pembina Upacara:</strong> Ketua Yayasan</li>
             <li><strong>Pemimpin Upacara:</strong> Guru</li>
@@ -94,32 +96,35 @@ class FoundationLetterController extends Controller
         </ol>
     </li>
 
-    <li><strong>KEGIATAN SETELAH UPACARA</strong>
-        <ol type="1">
+    <li style="margin-bottom: 12px;">
+        <strong>KEGIATAN SETELAH UPACARA</strong>
+        <ol style="list-style-type: decimal; padding-left: 20px; margin-top: 6px;">
             <li>Penampilan Marchingband Perguruan Pembda Nias</li>
             <li>Ramah Tamah</li>
             <li>Foto Bersama</li>
         </ol>
     </li>
 
-    <li><strong>KEDISIPLINAN & PRESENSI DIGITAL PEMBDAHUB</strong>
-        <ul>
+    <li style="margin-bottom: 12px;">
+        <strong>KEDISIPLINAN & PRESENSI DIGITAL PEMBDAHUB</strong>
+        <ul style="list-style-type: disc; padding-left: 20px; margin-top: 6px;">
             <li>Seluruh Guru & Pegawai <strong>WAJIB</strong> melakukan Presensi Masuk Upacara melalui sistem Presensi Digital PembdaHUB / TAP Kartu RFID di lokasi upacara.</li>
             <li>Kepala Sekolah bertanggung jawab penuh atas rekapitulasi kehadiran fisik serta ketertiban barisan unit sekolah masing-masing.</li>
         </ul>
     </li>
 
-    <li><strong>PERSIAPAN UNIT SEKOLAH (SMP, SMA, SMK)</strong>
-        <ul>
+    <li style="margin-bottom: 12px;">
+        <strong>PERSIAPAN UNIT SEKOLAH (SMP, SMA, SMK)</strong>
+        <ul style="list-style-type: disc; padding-left: 20px; margin-top: 6px;">
             <li>Masing-masing Kepala Sekolah beserta seluruh jajaran unit sekolah (SMP Swasta Pembda 2, SMA Swasta Pembda 1, dan SMK Swasta Pembda Nias) diwajibkan untuk segera melakukan persiapan internal secara optimal sesuai dengan seluruh petunjuk dalam Surat Edaran ini (termasuk koordinasi latihan Paskibraka, latihan Paduan Suara, latihan Marchingband, kerapian seragam siswa, serta kesiapan perangkat presensi digital).</li>
         </ul>
     </li>
 </ol>
 
-<p><strong>PENUTUP:</strong><br>
+<p style="margin-top: 15px;"><strong>PENUTUP:</strong><br>
 Mengingat pentingnya acara ini sebagai wujud penghormatan, jiwa nasionalisme, dan rasa syukur atas kemerdekaan Bangsa Indonesia, kehadiran dan persiapan matang seluruh unit sekolah tepat pada waktunya sangat diharapkan. Atas perhatian, kehadiran, dan kerja sama yang baik, kami ucapkan terima kasih.</p>
 
-<p><em>Merdeka! Merdeka! Merdeka!</em></p>';
+<p style="margin-top: 10px;"><em>Merdeka! Merdeka! Merdeka!</em></p>';
         } elseif ($preset === 'standar_input') {
             $defaultContent = '<p>Dengan hormat,</p>
 <p>Sehubungan dengan dimulainya Tahun Ajaran 2026/2027 serta dalam rangka optimalisasi digitalisasi tata kelola sekolah berbasis sistem PembdaHUB, Yayasan Perguruan PEMBDA Nias menetapkan Standar Minimal Progress Input Data yang wajib dipenuhi oleh setiap unit sekolah paling lambat pada:</p>
