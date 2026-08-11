@@ -22,7 +22,11 @@ class AlumniDashboardController extends Controller
                 'full_name' => $user->name,
                 'photo_url' => $user->avatar_url,
                 'graduation_year' => $roleLabel,
-                'school' => (object) ['name' => 'Yayasan Perguruan Pembda Nias'],
+                'school' => (object) [
+                    'name'        => 'Yayasan Perguruan Pembda Nias',
+                    'alumni_label' => 'IKA Yayasan Perguruan Pembda Nias',
+                    'is_active'   => true,
+                ],
                 'occupation' => 'Pengurus / Pengelola',
                 'company_name' => 'Yayasan Perguruan Pembda Nias',
                 'is_approved' => true,
