@@ -28,26 +28,60 @@ function getCandidates(string $rawUid): array {
     $uid = strtoupper(trim($rawUid));
     $candidates = [$uid];
 
-    if (preg_match('/^\d+$/', $uid) && strlen($uid) >= 6 && strlen($uid) <= 12) {
-        $num = (float)$uid;
-        if ($num > 0 && $num <= 4294967295) {
-            $hex = strtoupper(str_pad(dechex((int)$num), 8, '0', STR_PAD_LEFT));
-            $candidates[] = $hex;
-            if (strlen($hex) === 8) {
-                $revHex = $hex[6].$hex[7].$hex[4].$hex[5].$hex[2].$hex[3].$hex[0].$hex[1];
-                $candidates[] = $revHex;
-                $candidates[] = (string) hexdec($revHex);
+    $cleanUid = preg_replace('/[^A-F0-9]/i', '', $uid);
+    if ($cleanUid && $cleanUid !== $uid) {
+        $candidates[] = $cleanUid;
+    }
+
+    $ltrimUid = ltrim($cleanUid ?: $uid, '0');
+    if ($ltrimUid && $ltrimUid !== $uid) {
+        $candidates[] = $ltrimUid;
+    }
+
+    $testDecs = array_unique(array_filter([$uid, $cleanUid, $ltrimUid]));
+    foreach ($testDecs as $decStr) {
+        if (preg_match('/^\d+$/', $decStr) && strlen($decStr) >= 5 && strlen($decStr) <= 12) {
+            $num = (float)$decStr;
+            if ($num > 0 && $num <= 4294967295) {
+                $hex = strtoupper(str_pad(dechex((int)$num), 8, '0', STR_PAD_LEFT));
+                $candidates[] = $hex;
+                
+                if (strlen($hex) === 8) {
+                    $revHex = $hex[6].$hex[7].$hex[4].$hex[5].$hex[2].$hex[3].$hex[0].$hex[1];
+                    $candidates[] = $revHex;
+                    $revDec = (string) hexdec($revHex);
+                    $candidates[] = $revDec;
+                    $candidates[] = str_pad($revDec, 10, '0', STR_PAD_LEFT);
+
+                    $sub3Hex = substr($hex, 2);
+                    $candidates[] = $sub3Hex;
+                    $candidates[] = (string) hexdec($sub3Hex);
+                }
             }
         }
     }
 
-    if (ctype_xdigit($uid)) {
-        $dec = (string) hexdec($uid);
-        $candidates[] = $dec;
-        if (strlen($uid) === 8) {
-            $revHex = $uid[6].$uid[7].$uid[4].$uid[5].$uid[2].$uid[3].$uid[0].$uid[1];
-            $candidates[] = $revHex;
-            $candidates[] = (string) hexdec($revHex);
+    $testHexs = array_unique(array_filter([$uid, $cleanUid, $ltrimUid]));
+    foreach ($testHexs as $hexStr) {
+        if (ctype_xdigit($hexStr)) {
+            $padHex = str_pad($hexStr, 8, '0', STR_PAD_LEFT);
+            $candidates[] = $padHex;
+
+            $dec = (string) hexdec($padHex);
+            $candidates[] = $dec;
+            $candidates[] = str_pad($dec, 10, '0', STR_PAD_LEFT);
+
+            if (strlen($padHex) === 8) {
+                $revHex = $padHex[6].$padHex[7].$padHex[4].$padHex[5].$padHex[2].$padHex[3].$padHex[0].$padHex[1];
+                $candidates[] = $revHex;
+                $revDec = (string) hexdec($revHex);
+                $candidates[] = $revDec;
+                $candidates[] = str_pad($revDec, 10, '0', STR_PAD_LEFT);
+
+                $sub3Hex = substr($padHex, 2);
+                $candidates[] = $sub3Hex;
+                $candidates[] = (string) hexdec($sub3Hex);
+            }
         }
     }
 

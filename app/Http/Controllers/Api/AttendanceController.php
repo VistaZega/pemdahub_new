@@ -562,46 +562,83 @@ class AttendanceController extends Controller
     }
 
     /**
-     * Hasilkan semua variasi format UID (Hex, Reversed Hex, Decimal, Reversed Decimal)
-     * agar cocok dengan berbagai macam jenis hardware kiosk/scanner.
+     * Hasilkan semua variasi format UID (Hex, Reversed Hex, Decimal, Reversed Decimal, Wiegand, Zero-Padded)
+     * agar cocok dengan berbagai macam jenis hardware kiosk/scanner RFID di seluruh dunia.
      */
     private function getUidCandidates(string $rawUid): array
     {
         $uid = strtoupper(trim($rawUid));
         $candidates = [$uid];
 
-        // 1. Jika berupa angka desimal (misal: 1942267419 atau 50012561)
-        if (preg_match('/^\d+$/', $uid) && strlen($uid) >= 6 && strlen($uid) <= 12) {
-            $num = (float)$uid;
-            if ($num > 0 && $num <= 4294967295) {
-                $hex = strtoupper(str_pad(dechex((int)$num), 8, '0', STR_PAD_LEFT));
-                $candidates[] = $hex;
-                
-                // Tambahkan reversed byte hex dari desimal ini
-                if (strlen($hex) === 8) {
-                    $revHex = $hex[6].$hex[7].$hex[4].$hex[5].$hex[2].$hex[3].$hex[0].$hex[1];
-                    $candidates[] = $revHex;
-                    $candidates[] = (string) hexdec($revHex);
+        // Normalisasi 1: Bersihkan karakter non-alphanumerik (titik, koma, strip, spasi)
+        $cleanUid = preg_replace('/[^A-F0-9]/i', '', $uid);
+        if ($cleanUid && $cleanUid !== $uid) {
+            $candidates[] = $cleanUid;
+        }
+
+        // Normalisasi 2: Hapus zero padding di depan (misal: "0459723891" -> "459723891")
+        $ltrimUid = ltrim($cleanUid ?: $uid, '0');
+        if ($ltrimUid && $ltrimUid !== $uid) {
+            $candidates[] = $ltrimUid;
+        }
+
+        // 1. Jika berupa angka desimal murni
+        $testDecs = array_unique(array_filter([$uid, $cleanUid, $ltrimUid]));
+        foreach ($testDecs as $decStr) {
+            if (preg_match('/^\d+$/', $decStr) && strlen($decStr) >= 5 && strlen($decStr) <= 12) {
+                $num = (float)$decStr;
+                if ($num > 0 && $num <= 4294967295) {
+                    $hex = strtoupper(str_pad(dechex((int)$num), 8, '0', STR_PAD_LEFT));
+                    $candidates[] = $hex;
+                    
+                    if (strlen($hex) === 8) {
+                        // Reversed byte hex (Little Endian)
+                        $revHex = $hex[6].$hex[7].$hex[4].$hex[5].$hex[2].$hex[3].$hex[0].$hex[1];
+                        $candidates[] = $revHex;
+                        $revDec = (string) hexdec($revHex);
+                        $candidates[] = $revDec;
+                        $candidates[] = str_pad($revDec, 10, '0', STR_PAD_LEFT);
+
+                        // Wiegand 26 Truncation (3 bytes terakhir)
+                        $sub3Hex = substr($hex, 2);
+                        $candidates[] = $sub3Hex;
+                        $candidates[] = (string) hexdec($sub3Hex);
+                    }
                 }
             }
         }
 
-        // 2. Jika berupa string Hex (misal: 73C4661B atau 1B66C473)
-        if (ctype_xdigit($uid)) {
-            // Konversi Hex ke Desimal
-            $dec = (string) hexdec($uid);
-            $candidates[] = $dec;
+        // 2. Jika berupa string Hex (4-byte / 8-char hex)
+        $testHexs = array_unique(array_filter([$uid, $cleanUid, $ltrimUid]));
+        foreach ($testHexs as $hexStr) {
+            if (ctype_xdigit($hexStr)) {
+                // Pad to 8 chars if 7 chars
+                $padHex = str_pad($hexStr, 8, '0', STR_PAD_LEFT);
+                $candidates[] = $padHex;
 
-            // Jika 8 Karakter Hex, coba balikkan endianness (Byte Reversal)
-            if (strlen($uid) === 8) {
-                $revHex = $uid[6].$uid[7].$uid[4].$uid[5].$uid[2].$uid[3].$uid[0].$uid[1];
-                $candidates[] = $revHex;
-                $candidates[] = (string) hexdec($revHex);
+                $dec = (string) hexdec($padHex);
+                $candidates[] = $dec;
+                $candidates[] = str_pad($dec, 10, '0', STR_PAD_LEFT);
+
+                if (strlen($padHex) === 8) {
+                    // Reversed Byte Hex
+                    $revHex = $padHex[6].$padHex[7].$padHex[4].$padHex[5].$padHex[2].$padHex[3].$padHex[0].$padHex[1];
+                    $candidates[] = $revHex;
+                    $revDec = (string) hexdec($revHex);
+                    $candidates[] = $revDec;
+                    $candidates[] = str_pad($revDec, 10, '0', STR_PAD_LEFT);
+
+                    // Wiegand 26 (3 bytes terakhir)
+                    $sub3Hex = substr($padHex, 2);
+                    $candidates[] = $sub3Hex;
+                    $candidates[] = (string) hexdec($sub3Hex);
+                }
             }
         }
 
         return array_values(array_unique(array_filter($candidates)));
     }
 }
+
 
 
