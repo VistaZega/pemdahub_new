@@ -940,10 +940,18 @@ class ScheduleGridController extends Controller
                     }
 
                     if ($incomingBlockType === 'all' && $existingBlockType === 'all') {
+                        // Jika guru berbeda atau group_code sama, izinkan paralel di dalam Kelompok A (Multi-Subkelompok A)
+                        if ($schedule->teacher_id != $teacherId || ($groupCode && $schedule->group_code === $groupCode)) {
+                            continue;
+                        }
                         return "Kelompok A sudah memiliki jadwal lain di waktu bersinggungan ($slotName).";
                     }
 
                     if ($incomingBlockType === 'split' && $existingBlockType === 'split') {
+                        // Jika guru berbeda atau group_code sama, izinkan paralel di dalam Kelompok B (Multi-Subkelompok B / Kejuruan SMK)
+                        if ($schedule->teacher_id != $teacherId || ($groupCode && $schedule->group_code === $groupCode)) {
+                            continue;
+                        }
                         return "Kelompok B sudah memiliki jadwal lain di waktu bersinggungan ($slotName).";
                     }
                     
