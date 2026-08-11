@@ -183,6 +183,16 @@
                             })->unique(function($slot) {
                                 return trim($slot->slot_name) . '_' . trim($slot->start_time);
                             });
+
+                            // FALLBACK: If this day has 0 specific slots in DB, use master slots from the school
+                            if ($daySlots->isEmpty() && $timeSlots->isNotEmpty()) {
+                                $daySlots = $timeSlots->unique(function($slot) {
+                                    return trim($slot->slot_name) . '_' . trim($slot->start_time);
+                                })->sortBy(function($slot) {
+                                    return ($slot->start_time ?? '00:00') . '_' . sprintf('%04d', $slot->slot_order ?? 0);
+                                });
+                            }
+
                             $slotCount = $daySlots->count();
                         @endphp
 
@@ -200,9 +210,16 @@
                                 </td>
                                 @foreach($classrooms as $classroom)
                                     @php
-                                        $k1 = strtolower($dayKey) . '_' . $slot->id . '_' . $classroom->id;
-                                        $k2 = strtolower($slot->day_of_week) . '_' . $slot->id . '_' . $classroom->id;
-                                        $cellSchedules = $scheduleGrid[$k1] ?? $scheduleGrid[$k2] ?? [];
+                                        // Robust matching: find schedules for this day, slot, and classroom
+                                        $cellSchedules = $schedules->filter(function($sched) use ($dayKey, $dayLabel, $slot, $classroom) {
+                                            $sDay = strtolower(trim($sched->day_of_week ?? ''));
+                                            $dayMatches = ($sDay === strtolower($dayKey) || $sDay === strtolower($dayLabel));
+                                            $classMatches = ($sched->classroom_id == $classroom->id);
+                                            $slotMatches = ($sched->time_slot_id == $slot->id || (
+                                                $sched->timeSlot && $sched->timeSlot->slot_name === $slot->slot_name
+                                            ));
+                                            return $dayMatches && $classMatches && $slotMatches;
+                                        });
                                     @endphp
                                     <td class="p-0.5 border-r border-slate-400 text-center align-middle">
                                         @if(!$slot->is_teaching_slot)
