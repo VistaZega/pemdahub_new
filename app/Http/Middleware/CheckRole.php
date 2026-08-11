@@ -71,8 +71,8 @@ class CheckRole
                     $allowed = true;
                 }
                 
-                // Panitia PKL
-                if ($user->isPanitiaPkl() && (
+                // Panitia PKL (Hanya modul PKL & DUDI, tidak termasuk Direktori Alumni)
+                if ($user->isPanitiaPkl() && !str_contains($path, 'alumni-directory') && !str_contains($routeName, 'alumni-directory') && (
                     str_starts_with($routeName, 'admin.pkl-alumni.') || str_starts_with($path, 'admin/pkl-alumni') ||
                     str_starts_with($routeName, 'admin.dudis.') || str_starts_with($path, 'admin/dudis')
                 )) {

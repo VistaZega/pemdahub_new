@@ -316,7 +316,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::get('/', [App\Http\Controllers\Admin\StudentLifecycleController::class, 'promotionIndex'])->name('index');
         Route::post('/', [App\Http\Controllers\Admin\StudentLifecycleController::class, 'promotionStore'])->name('store');
     });
-    Route::get('alumni', [App\Http\Controllers\Admin\StudentLifecycleController::class, 'alumniIndex'])->name('alumni.index');
+    Route::get('alumni', [App\Http\Controllers\Admin\StudentLifecycleController::class, 'alumniIndex'])->middleware('role:superadmin,admin_yayasan,ketua_yayasan,kepala_sekolah,admin_sekolah')->name('alumni.index');
 
     // Student Counseling (Bimbingan Konseling)
     Route::prefix('counseling')->name('counseling.')->group(function () {
@@ -449,8 +449,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::get('monitorings/{teacher}', [App\Http\Controllers\Admin\PklMonitoringReportController::class, 'show'])->name('monitorings.show');
     });
 
-    // Direktori Ikatan Alumni (Legacy Alumni) - moved outside pkl-alumni. name group so it resolves to admin.alumni-directory.*
-    Route::prefix('pkl-alumni')->group(function () {
+    // Direktori Ikatan Alumni (Legacy Alumni) - dibatasi khusus untuk Superadmin, Yayasan, Kepsek, & Admin Sekolah
+    Route::prefix('pkl-alumni')->middleware('role:superadmin,admin_yayasan,ketua_yayasan,kepala_sekolah,admin_sekolah')->group(function () {
         Route::get('alumni-directory', [App\Http\Controllers\Admin\AlumniDirectoryController::class, 'index'])->name('alumni-directory.index');
         Route::get('alumni-directory/create', [App\Http\Controllers\Admin\AlumniDirectoryController::class, 'create'])->name('alumni-directory.create');
         Route::post('alumni-directory', [App\Http\Controllers\Admin\AlumniDirectoryController::class, 'store'])->name('alumni-directory.store');
