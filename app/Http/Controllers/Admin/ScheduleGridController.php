@@ -749,7 +749,12 @@ class ScheduleGridController extends Controller
             ->orderBy('slot_order')
             ->get();
 
-        $schedules = Schedule::where('school_id', $selectedSchoolId)
+        $schedules = Schedule::where(function($q) use ($selectedSchoolId) {
+                $q->where('school_id', $selectedSchoolId)
+                  ->orWhereHas('classroom', function($cq) use ($selectedSchoolId) {
+                      $cq->where('school_id', $selectedSchoolId);
+                  });
+            })
             ->where('academic_year_id', $selectedYearId)
             ->where('semester', $semester)
             ->with([
