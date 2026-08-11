@@ -3,7 +3,33 @@
 @section('title', 'Course Management - ' . $course->name)
 
 @push('styles')
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
 <style>
+    .ql-toolbar.ql-snow {
+        border: 2px solid #000 !important;
+        border-top-left-radius: 1rem;
+        border-top-right-radius: 1rem;
+        background-color: #f8fafc;
+    }
+    .ql-container.ql-snow {
+        border: 2px solid #000 !important;
+        border-top: none !important;
+        border-bottom-left-radius: 1rem;
+        border-bottom-right-radius: 1rem;
+        font-family: inherit;
+        background-color: #fff;
+    }
+    .ql-editor {
+        min-height: 140px;
+        max-height: 350px;
+        font-size: 0.875rem;
+    }
+    .ql-editor img {
+        max-width: 100%;
+        border-radius: 0.5rem;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
     .tab-content { animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .hero-pattern {
@@ -1682,7 +1708,11 @@ if (!function_exists('balanceHtmlTags')) {
 
                     <div>
                         <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Isi Konten Teks / Keterangan (Opsional)</label>
-                        <textarea name="content" rows="3" placeholder="Tuliskan petunjuk atau rangkuman materi..." class="w-full border-2 border-black rounded-2xl p-4 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none"></textarea>
+                        <input type="hidden" name="content" id="quill-create-input">
+                        <div id="quill-create-editor"></div>
+                        <p class="text-[11px] text-gray-500 font-bold mt-1.5 flex items-center gap-1">
+                            <i class="fas fa-info-circle text-blue-500"></i> Format teks &amp; klik ikon <i class="fas fa-image text-emerald-600 px-0.5"></i> di toolbar editor untuk mengunggah/menyelipkan gambar.
+                        </p>
                     </div>
 
                     <div class="pt-4 flex gap-3">
@@ -1698,7 +1728,7 @@ if (!function_exists('balanceHtmlTags')) {
 {{-- ═══════════════════════════════════════════════ --}}
 {{-- MATERIAL EDIT MODAL --}}
 {{-- ═══════════════════════════════════════════════ --}}
-<div x-data="{ open: false, mat: {} }" @open-edit-material-modal.window="mat = $event.detail; open = true" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
+<div x-data="{ open: false, mat: {} }" @open-edit-material-modal.window="mat = $event.detail; open = true; $nextTick(() => setQuillEditContent(mat.content))" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
     <div class="flex items-center justify-center min-h-screen p-4" style="z-index: 99999 !important;">
         <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
 
@@ -1728,7 +1758,11 @@ if (!function_exists('balanceHtmlTags')) {
 
                     <div>
                         <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Isi Konten Teks / Keterangan</label>
-                        <textarea name="content" x-model="mat.content" rows="4" placeholder="Keterangan materi atau instruksi..." class="w-full border-2 border-black rounded-2xl p-4 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none"></textarea>
+                        <input type="hidden" name="content" id="quill-edit-input" :value="mat.content">
+                        <div id="quill-edit-editor"></div>
+                        <p class="text-[11px] text-gray-500 font-bold mt-1.5 flex items-center gap-1">
+                            <i class="fas fa-info-circle text-blue-500"></i> Format teks &amp; sisipkan gambar langsung menggunakan toolbar editor di atas.
+                        </p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -1907,5 +1941,100 @@ if (!function_exists('balanceHtmlTags')) {
             });
         }
     });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script>
+    let quillCreate = null;
+    let quillEdit = null;
+
+    function imageHandler(quillInstance) {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+
+        input.onchange = async () => {
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const res = await fetch('{{ route("guru.lms.upload-editor-image") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (data.success && data.url) {
+                    const range = quillInstance.getSelection(true) || { index: quillInstance.getLength() };
+                    quillInstance.insertEmbed(range.index, 'image', data.url);
+                    quillInstance.setSelection(range.index + 1);
+                } else {
+                    alert(data.message || 'Gagal mengunggah gambar.');
+                }
+            } catch (e) {
+                alert('Gagal mengunggah gambar: ' + e.message);
+            }
+        };
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const toolbarOptions = [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'align': [] }],
+            ['link', 'image', 'video'],
+            ['clean']
+        ];
+
+        // Init Create Editor
+        const createEditorEl = document.getElementById('quill-create-editor');
+        if (createEditorEl) {
+            quillCreate = new Quill('#quill-create-editor', {
+                theme: 'snow',
+                placeholder: 'Tuliskan petunjuk atau rangkuman materi...',
+                modules: { toolbar: toolbarOptions }
+            });
+            quillCreate.getModule('toolbar').addHandler('image', function() {
+                imageHandler(quillCreate);
+            });
+            quillCreate.on('text-change', function() {
+                const input = document.getElementById('quill-create-input');
+                if (input) input.value = quillCreate.root.innerHTML === '<p><br></p>' ? '' : quillCreate.root.innerHTML;
+            });
+        }
+
+        // Init Edit Editor
+        const editEditorEl = document.getElementById('quill-edit-editor');
+        if (editEditorEl) {
+            quillEdit = new Quill('#quill-edit-editor', {
+                theme: 'snow',
+                placeholder: 'Keterangan materi atau instruksi...',
+                modules: { toolbar: toolbarOptions }
+            });
+            quillEdit.getModule('toolbar').addHandler('image', function() {
+                imageHandler(quillEdit);
+            });
+            quillEdit.on('text-change', function() {
+                const input = document.getElementById('quill-edit-input');
+                if (input) input.value = quillEdit.root.innerHTML === '<p><br></p>' ? '' : quillEdit.root.innerHTML;
+            });
+        }
+    });
+
+    function setQuillEditContent(content) {
+        if (quillEdit) {
+            quillEdit.root.innerHTML = content || '';
+            const input = document.getElementById('quill-edit-input');
+            if (input) input.value = content || '';
+        }
+    }
 </script>
 @endpush

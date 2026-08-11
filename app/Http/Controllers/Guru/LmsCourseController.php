@@ -1128,4 +1128,36 @@ class LmsCourseController extends Controller
 
         return view('guru.lms.attendance-report', compact('teacher', 'course', 'sessions'));
     }
+
+    /**
+     * Upload gambar dari WYSIWYG Rich Text Editor (Quill.js) materi LMS
+     */
+    public function uploadEditorImage(Request $request)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+        ], [
+            'image.required' => 'File gambar wajib diunggah.',
+            'image.image'    => 'File harus berupa gambar.',
+            'image.max'      => 'Ukuran gambar maksimal 5 MB.',
+        ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('lms/editor', 'public');
+            $url = asset('storage/' . $path);
+
+            return response()->json([
+                'success' => true,
+                'url'     => $url,
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Gagal mengunggah gambar.'], 400);
+    }
 }
+

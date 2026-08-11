@@ -22,6 +22,7 @@ if (!function_exists('balanceHtmlTags')) {
 
 @push('styles')
 <style>
+    .prose img { max-width: 100%; height: auto; border-radius: 0.75rem; margin: 0.75rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
     .tab-content { animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .hero-pattern {
