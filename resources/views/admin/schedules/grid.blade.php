@@ -80,90 +80,172 @@
         background: #7c3aed; cursor: pointer; box-shadow: 0 0 0 3px rgba(124,58,237,0.2);
     }
 
-    /* === GRID TABLE === */
-    #scheduleTable { border-collapse: separate !important; border-spacing: 0 !important; }
-    #scheduleTable thead tr th { padding:0; }
+    /* === GRID TABLE CONTAINER (DUAL SCROLL STRUCTURE) === */
+    #scheduleContainer {
+        max-height: calc(100vh - 210px);
+        min-height: 480px;
+        overflow: auto;
+        position: relative;
+        border-radius: 16px;
+        background: white;
+    }
 
-    /* Day header column */
-    .th-day { padding: 10px 12px; text-align:center; font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; border-right: 1px solid rgba(255,255,255,0.15); position:sticky;left:0;z-index:20; white-space:nowrap; background: #1e1b4b; color:white; }
-    .th-time { padding: 10px 8px; text-align:center; font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; border-right: 1px solid rgba(255,255,255,0.15); width:88px; min-width:88px; background: #312e81; color:white; }
-    .th-class { padding: 12px 6px; text-align:center; font-size:13px; font-weight:900; border-right: 1px solid rgba(255,255,255,0.25); white-space:nowrap; background: linear-gradient(135deg, #1e1b4b, #312e81); color:#f8fafc; letter-spacing:.04em; min-width: 150px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-    thead tr { background: linear-gradient(135deg,#6d28d9,#db2777); }
+    #scheduleTable {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        width: max-content;
+        min-width: 100%;
+    }
 
-    /* Day cell */
-    .day-colors { Senin:'#4f46e5'; }
+    /* === STICKY HEADERS (TOP & LEFT) === */
+    #scheduleTable thead tr {
+        position: sticky;
+        top: 0;
+        z-index: 35;
+    }
+
+    #scheduleTable thead th {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+    }
+
+    /* Top-Left Sticky Corner (Hari Header) */
+    .th-day {
+        position: sticky !important;
+        top: 0 !important;
+        left: 0 !important;
+        z-index: 45 !important;
+        background: #0f172a !important;
+        color: #ffffff;
+        padding: 12px 10px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        width: 48px;
+        min-width: 48px;
+        border-right: 2px solid #475569 !important;
+        border-bottom: 3px solid #334155 !important;
+    }
+
+    /* Top-Left Sticky Corner (Waktu Header) */
+    .th-time {
+        position: sticky !important;
+        top: 0 !important;
+        left: 48px !important;
+        z-index: 40 !important;
+        background: #1e293b !important;
+        color: #ffffff;
+        padding: 12px 8px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        width: 95px;
+        min-width: 95px;
+        border-right: 2px solid #475569 !important;
+        border-bottom: 3px solid #334155 !important;
+    }
+
+    /* Header Kelas Column */
+    .th-class {
+        padding: 12px 8px;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 900;
+        border-right: 1px solid rgba(255,255,255,0.2);
+        border-bottom: 3px solid #334155;
+        white-space: nowrap;
+        background: linear-gradient(135deg, #1e1b4b, #312e81);
+        color: #f8fafc;
+        min-width: 165px;
+        letter-spacing: .03em;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+    /* === STICKY LEFT COLUMNS === */
     .cell-day {
-        padding: 8px 12px;
-        font-size: 16px; font-weight: 900; letter-spacing:.08em; text-transform:uppercase;
-        border-right: 1px solid #e9d5ff;
+        position: sticky !important;
+        left: 0 !important;
+        z-index: 25 !important;
+        padding: 8px 6px;
+        font-size: 15px; font-weight: 900; letter-spacing:.08em; text-transform:uppercase;
         align-content: center; vertical-align: middle; text-align: center;
-        position: sticky; left: 0; z-index: 10;
         white-space: nowrap;
         writing-mode: vertical-rl; text-orientation: mixed;
         transform: rotate(180deg);
-        min-width: 44px;
+        min-width: 48px; width: 48px;
+        border-right: 2px solid #475569 !important;
+        box-shadow: 3px 0 6px rgba(0,0,0,0.06);
     }
-    .day-senin  { background: linear-gradient(180deg,#ede9fe,#ddd6fe); color:#4c1d95; border-right:2px solid #7c3aed; }
-    .day-selasa { background: linear-gradient(180deg,#fce7f3,#fbcfe8); color:#831843; border-right:2px solid #db2777; }
-    .day-rabu   { background: linear-gradient(180deg,#d1fae5,#a7f3d0); color:#064e3b; border-right:2px solid #059669; }
-    .day-kamis  { background: linear-gradient(180deg,#fef3c7,#fde68a); color:#78350f; border-right:2px solid #d97706; }
-    .day-jumat  { background: linear-gradient(180deg,#dbeafe,#bfdbfe); color:#1e3a8a; border-right:2px solid #2563eb; }
-    .day-sabtu  { background: linear-gradient(180deg,#fae8ff,#f5d0fe); color:#701a75; border-right:2px solid #d946ef; }
 
-    /* Time cell */
+    .day-senin  { background: linear-gradient(180deg,#ede9fe,#ddd6fe); color:#4c1d95; border-right:2px solid #7c3aed !important; }
+    .day-selasa { background: linear-gradient(180deg,#fce7f3,#fbcfe8); color:#831843; border-right:2px solid #db2777 !important; }
+    .day-rabu   { background: linear-gradient(180deg,#d1fae5,#a7f3d0); color:#064e3b; border-right:2px solid #059669 !important; }
+    .day-kamis  { background: linear-gradient(180deg,#fef3c7,#fde68a); color:#78350f; border-right:2px solid #d97706 !important; }
+    .day-jumat  { background: linear-gradient(180deg,#dbeafe,#bfdbfe); color:#1e3a8a; border-right:2px solid #2563eb !important; }
+    .day-sabtu  { background: linear-gradient(180deg,#fae8ff,#f5d0fe); color:#701a75; border-right:2px solid #d946ef !important; }
+
+    /* Sticky Time Cell */
     .cell-time {
+        position: sticky !important;
+        left: 48px !important;
+        z-index: 20 !important;
         padding: 6px 8px; vertical-align: middle; text-align: center;
-        border-right: 1px solid #f0e6ff;
-        background: #faf5ff;
-        width: 88px; min-width: 88px;
+        background: #f8fafc;
+        width: 95px; min-width: 95px;
+        border-right: 2px solid #64748b !important;
+        border-bottom: 1px solid #cbd5e1 !important;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.04);
     }
-    .cell-time .slot-name { font-size:13px; font-weight:800; color: #4c1d95; }
-    .cell-time .slot-time { font-size:11px; font-weight:700; color:#6b7280; margin-top:2px; }
+    .cell-time .slot-name { font-size:12px; font-weight:900; color: #0f172a; background: #e2e8f0; padding: 2px 6px; border-radius: 6px; display: inline-block; border: 1px solid #cbd5e1; }
+    .cell-time .slot-time { font-size:11px; font-weight:700; color:#475569; margin-top:3px; }
 
-    /* Schedule row */
-    .schedule-row { border-bottom: 1px solid #f3e8ff; transition: background 0.15s; }
-    .row-senin td.cell-empty { background-color: rgba(79, 70, 229, 0.04); }
-    .row-selasa td.cell-empty { background-color: rgba(219, 39, 119, 0.04); }
-    .row-rabu td.cell-empty { background-color: rgba(5, 150, 105, 0.04); }
-    .row-kamis td.cell-empty { background-color: rgba(217, 119, 6, 0.04); }
-    .row-jumat td.cell-empty { background-color: rgba(37, 99, 235, 0.04); }
-    .row-sabtu td.cell-empty { background-color: rgba(217, 70, 239, 0.04); }
-    .schedule-row:hover td.cell-empty { background: #fdf4ff !important; }
-    .day-separator td { border-bottom: 2px solid #c4b5fd !important; }
+    /* === DISTINCT BORDERS & LES ZEBRA STRIPING === */
+    .schedule-row { border-bottom: 1px solid #cbd5e1; transition: background 0.15s; }
+    .schedule-row:nth-child(odd) .cell-content { background-color: #ffffff; }
+    .schedule-row:nth-child(even) .cell-content { background-color: #f1f5f9; }
 
-    /* Content cell */
-    .cell-content { padding: 3px; border-right: 1px solid #f0e6ff; height: 60px; vertical-align: middle; min-width: 150px; }
-    .cell-empty { cursor: pointer; background: transparent; transition: background 0.15s; }
-    .cell-empty:hover { background: #fdf4ff; }
+    .schedule-row:hover .cell-content { background-color: #e0f2fe !important; }
+    .day-separator td { border-bottom: 3px solid #334155 !important; }
+
+    /* Content Cell & Crisp Borders */
+    .cell-content { padding: 4px; border-right: 1px solid #cbd5e1 !important; border-bottom: 1px solid #cbd5e1 !important; height: 65px; vertical-align: top; min-width: 165px; }
+    .cell-empty { cursor: pointer; transition: background 0.15s; }
+    .cell-empty:hover { background: #e0f2fe !important; }
     .cell-plus {
         display:flex; align-items:center; justify-content:center; height:100%;
-        color:#d8b4fe; font-size:18px; opacity:0; transition: opacity 0.2s;
+        color:#94a3b8; font-size:18px; opacity:0; transition: opacity 0.2s;
     }
-    .cell-content:hover .cell-plus { opacity:1; }
+    .cell-content:hover .cell-plus { opacity:1; color:#0284c7; }
 
     /* Non-teaching cell */
-    .cell-break { background: repeating-linear-gradient(45deg, rgba(0,0,0,0.01), rgba(0,0,0,0.01) 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px); }
+    .cell-break { background: repeating-linear-gradient(45deg, #f8fafc, #f8fafc 10px, #f1f5f9 10px, #f1f5f9 20px) !important; }
 
     /* === SCHEDULE CARD === */
     .scard {
         display: flex; flex-direction: row; align-items: stretch;
-        border-radius: 12px; overflow: hidden;
+        border-radius: 10px; overflow: hidden;
         height: calc(100% - 0px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
         position: relative; z-index: 1;
-        border: 1.5px solid;
+        border: 1.5px solid #cbd5e1;
     }
-    .scard:hover { transform: scale(1.12) translateY(-2px); z-index: 50; box-shadow: 0 12px 32px rgba(0,0,0,0.18); }
+    .scard:hover { transform: scale(1.08) translateY(-2px); z-index: 50; box-shadow: 0 10px 24px rgba(0,0,0,0.16); }
 
     /* Photo side */
-    .scard-photo { width: 40px; flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    .scard-photo { width: 36px; flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
     .scard-photo img { width:100%; height:100%; object-fit:cover; }
-    .scard-initials { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:white; letter-spacing:-.5px; }
+    .scard-initials { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:white; letter-spacing:-.5px; }
 
     /* Info side */
     .scard-info { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding: 3px 4px; min-width:0; }
-    .scard-code { font-size:26px; font-weight:900; line-height:1; letter-spacing:-1.5px; truncate:ellipsis; max-width:100%; overflow:hidden; white-space:nowrap; color: #111827 !important; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
+    .scard-code { font-size:24px; font-weight:900; line-height:1; letter-spacing:-1.5px; truncate:ellipsis; max-width:100%; overflow:hidden; white-space:nowrap; color: #111827 !important; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
     .scard-jam  { font-size:10px; font-weight:700; color: #374151; margin-top:3px; display:inline-block; }
 
     /* Compact Mode */
@@ -171,15 +253,15 @@
     .compact-mode .scard-initials { font-size: 8px; }
     .compact-mode .scard-code  { font-size: 10px; }
     .compact-mode .scard-jam   { font-size: 7px; padding: 0 3px; }
-    .compact-mode .cell-content { height: 40px; }
+    .compact-mode .cell-content { height: 44px; }
     .compact-mode .cell-time .slot-name { font-size: 9px; }
     .compact-mode .cell-time .slot-time { font-size: 8px; }
 
-    /* Scrollbar */
-    #scheduleContainer::-webkit-scrollbar { height: 6px; width: 6px; }
-    #scheduleContainer::-webkit-scrollbar-track { background: #f3f4f6; }
-    #scheduleContainer::-webkit-scrollbar-thumb { background: #c4b5fd; border-radius: 3px; }
-    #scheduleContainer::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+    /* Custom Scrollbar for Dual Scroll */
+    #scheduleContainer::-webkit-scrollbar { height: 10px; width: 10px; }
+    #scheduleContainer::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 5px; }
+    #scheduleContainer::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 5px; border: 2px solid #f1f5f9; }
+    #scheduleContainer::-webkit-scrollbar-thumb:hover { background: #0284c7; }
 </style>
 
 <div class="schedule-page">
