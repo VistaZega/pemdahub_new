@@ -80,16 +80,17 @@
         background: #7c3aed; cursor: pointer; box-shadow: 0 0 0 3px rgba(124,58,237,0.2);
     }
 
-    /* === GRID TABLE CONTAINER (DUAL SCROLL STRUCTURE) === */
+    /* === GRID TABLE CONTAINER (UI/UX PRO MAX BRIGHT & COLORFUL DUAL SCROLL) === */
     #scheduleContainer {
         height: calc(100vh - 210px);
-        max-height: 800px;
-        min-height: 500px;
+        max-height: 820px;
+        min-height: 520px;
         overflow: auto !important;
         position: relative;
-        border-radius: 16px;
-        background: white;
-        border: 2px solid #475569;
+        border-radius: 20px;
+        background: #ffffff;
+        border: 2px solid #cbd5e1;
+        box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.12);
     }
 
     #scheduleTable {
@@ -110,15 +111,15 @@
         position: sticky !important;
         top: 0 !important;
         z-index: 60 !important;
-        background: #0f172a !important;
+        background: linear-gradient(135deg, #312e81 0%, #4338ca 35%, #6d28d9 70%, #9d174d 100%) !important;
     }
 
     #scheduleTable thead th {
         position: sticky !important;
         top: 0 !important;
         z-index: 60 !important;
-        background: #0f172a !important;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+        background: linear-gradient(135deg, #312e81 0%, #4338ca 35%, #6d28d9 70%, #9d174d 100%) !important;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.25);
     }
 
     /* Top-Left Sticky Corner (Hari Header) */
@@ -126,8 +127,8 @@
         position: sticky !important;
         top: 0 !important;
         left: 0 !important;
-        z-index: 70 !important;
-        background: #090d16 !important;
+        z-index: 75 !important;
+        background: linear-gradient(135deg, #1e1b4b, #312e81) !important;
         color: #ffffff;
         padding: 14px 10px;
         text-align: center;
@@ -135,19 +136,19 @@
         font-weight: 900;
         letter-spacing: .06em;
         text-transform: uppercase;
-        width: 52px;
-        min-width: 52px;
-        border-right: 3px solid #64748b !important;
-        border-bottom: 3px solid #64748b !important;
+        width: 54px;
+        min-width: 54px;
+        border-right: 3px solid #6366f1 !important;
+        border-bottom: 3px solid #6366f1 !important;
     }
 
     /* Top-Left Sticky Corner (Waktu Header) */
     .th-time {
         position: sticky !important;
         top: 0 !important;
-        left: 52px !important;
-        z-index: 65 !important;
-        background: #0f172a !important;
+        left: 54px !important;
+        z-index: 70 !important;
+        background: linear-gradient(135deg, #312e81, #4338ca) !important;
         color: #ffffff;
         padding: 14px 8px;
         text-align: center;
@@ -155,10 +156,10 @@
         font-weight: 900;
         letter-spacing: .06em;
         text-transform: uppercase;
-        width: 100px;
-        min-width: 100px;
-        border-right: 3px solid #64748b !important;
-        border-bottom: 3px solid #64748b !important;
+        width: 105px;
+        min-width: 105px;
+        border-right: 3px solid #6366f1 !important;
+        border-bottom: 3px solid #6366f1 !important;
     }
 
     /* Header Kelas Column */
@@ -170,17 +171,16 @@
         text-align: center;
         font-size: 14px;
         font-weight: 900;
-        border-right: 2px solid #475569 !important;
-        border-bottom: 3px solid #64748b !important;
+        border-right: 2px solid rgba(255,255,255,0.2) !important;
+        border-bottom: 3px solid #6366f1 !important;
         white-space: nowrap;
-        background: linear-gradient(180deg, #1e1b4b 0%, #0f172a 100%) !important;
         color: #ffffff;
-        min-width: 170px;
+        min-width: 175px;
         letter-spacing: .03em;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
 
-    /* === STICKY LEFT COLUMNS === */
+    /* === VIBRANT COLORFUL STICKY LEFT COLUMNS === */
     .cell-day {
         position: sticky !important;
         left: 0 !important;
@@ -191,67 +191,69 @@
         white-space: nowrap;
         writing-mode: vertical-rl; text-orientation: mixed;
         transform: rotate(180deg);
-        min-width: 52px; width: 52px;
-        border-right: 3px solid #334155 !important;
-        border-bottom: 2px solid #475569 !important;
-        box-shadow: 4px 0 8px rgba(0,0,0,0.12);
+        min-width: 54px; width: 54px;
+        border-right: 3px solid #4338ca !important;
+        border-bottom: 2px solid #64748b !important;
+        box-shadow: 4px 0 10px rgba(0,0,0,0.15);
+        color: white !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.4);
     }
 
-    .day-senin  { background: linear-gradient(180deg,#ede9fe,#ddd6fe); color:#4c1d95; border-right:3px solid #7c3aed !important; }
-    .day-selasa { background: linear-gradient(180deg,#fce7f3,#fbcfe8); color:#831843; border-right:3px solid #db2777 !important; }
-    .day-rabu   { background: linear-gradient(180deg,#d1fae5,#a7f3d0); color:#064e3b; border-right:3px solid #059669 !important; }
-    .day-kamis  { background: linear-gradient(180deg,#fef3c7,#fde68a); color:#78350f; border-right:3px solid #d97706 !important; }
-    .day-jumat  { background: linear-gradient(180deg,#dbeafe,#bfdbfe); color:#1e3a8a; border-right:3px solid #2563eb !important; }
-    .day-sabtu  { background: linear-gradient(180deg,#fae8ff,#f5d0fe); color:#701a75; border-right:3px solid #d946ef !important; }
+    .day-senin  { background: linear-gradient(180deg,#6366f1,#4338ca) !important; border-right:3px solid #312e81 !important; }
+    .day-selasa { background: linear-gradient(180deg,#ec4899,#be185d) !important; border-right:3px solid #831843 !important; }
+    .day-rabu   { background: linear-gradient(180deg,#10b981,#047857) !important; border-right:3px solid #064e3b !important; }
+    .day-kamis  { background: linear-gradient(180deg,#f59e0b,#b45309) !important; border-right:3px solid #78350f !important; }
+    .day-jumat  { background: linear-gradient(180deg,#3b82f6,#1d4ed8) !important; border-right:3px solid #1e3a8a !important; }
+    .day-sabtu  { background: linear-gradient(180deg,#d946ef,#a21caf) !important; border-right:3px solid #701a75 !important; }
 
     /* Sticky Time Cell */
     .cell-time {
         position: sticky !important;
-        left: 52px !important;
+        left: 54px !important;
         z-index: 30 !important;
         padding: 6px 8px; vertical-align: middle; text-align: center;
-        background: #e2e8f0 !important;
-        width: 100px; min-width: 100px;
-        border-right: 3px solid #334155 !important;
-        border-bottom: 2px solid #475569 !important;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9) !important;
+        width: 105px; min-width: 105px;
+        border-right: 3px solid #475569 !important;
+        border-bottom: 2px solid #64748b !important;
         box-shadow: 3px 0 6px rgba(0,0,0,0.08);
     }
-    .cell-time .slot-name { font-size:12px; font-weight:900; color: #ffffff; background: #0f172a; padding: 3px 8px; border-radius: 6px; display: inline-block; border: 1px solid #334155; }
-    .cell-time .slot-time { font-size:11px; font-weight:800; color:#1e293b; margin-top:4px; }
+    .cell-time .slot-name { font-size:12px; font-weight:900; color: #ffffff; background: linear-gradient(135deg, #312e81, #4338ca); padding: 3px 8px; border-radius: 8px; display: inline-block; border: 1px solid #4338ca; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+    .cell-time .slot-time { font-size:11px; font-weight:800; color:#334155; margin-top:4px; }
 
     /* === PINK MUDA & KUNING MUDA ZEBRA STRIPING WITH STRONG HOVER === */
-    .schedule-row { border-bottom: 2px solid #475569 !important; transition: background 0.15s; }
+    .schedule-row { border-bottom: 2px solid #64748b !important; transition: background 0.2s; }
 
-    /* Odd Les Rows: PINK MUDA (#fce7f3) */
+    /* Odd Les Rows: PINK MUDA CERAH (#fce7f3) */
     .schedule-row:nth-child(odd) .cell-content {
         background-color: #fce7f3 !important;
     }
-    /* Odd Les Rows Hover: PINK LEBIH PEKAT & STRONG (#f472b6) */
+    /* Odd Les Hover: PINK PEKAT & VIBRANT HIGHLIGHT (#f472b6) */
     .schedule-row:nth-child(odd):hover .cell-content,
     .schedule-row:nth-child(odd) .cell-content:hover {
         background-color: #f472b6 !important;
     }
 
-    /* Even Les Rows: KUNING MUDA (#fef9c3) */
+    /* Even Les Rows: KUNING MUDA CERAH (#fef9c3) */
     .schedule-row:nth-child(even) .cell-content {
         background-color: #fef9c3 !important;
     }
-    /* Even Les Rows Hover: KUNING LEBIH PEKAT & STRONG (#facc15) */
+    /* Even Les Hover: KUNING EMAS PEKAT & VIBRANT HIGHLIGHT (#facc15) */
     .schedule-row:nth-child(even):hover .cell-content,
     .schedule-row:nth-child(even) .cell-content:hover {
         background-color: #facc15 !important;
     }
 
-    .day-separator td { border-bottom: 4px solid #0f172a !important; }
+    .day-separator td { border-bottom: 4px solid #1e1b4b !important; }
 
-    /* Content Cell & Crisp Sharp Dark Borders */
+    /* Content Cell Crisp Sharp Dark Borders */
     .cell-content {
-        padding: 4px;
-        border-right: 2px solid #475569 !important;
-        border-bottom: 2px solid #475569 !important;
-        height: 68px;
+        padding: 5px;
+        border-right: 2px solid #64748b !important;
+        border-bottom: 2px solid #64748b !important;
+        height: 72px;
         vertical-align: top;
-        min-width: 170px;
+        min-width: 175px;
     }
     .cell-empty { cursor: pointer; transition: background 0.15s; }
     .cell-plus {
@@ -467,18 +469,20 @@
                             'Sabtu' => 'saturday'
                         ];
                         
-                        // Clean uniform style for all subjects to avoid color clutter
-                        $scol = [
-                            'from' => 'white', 
-                            'to' => 'gray-50', 
-                            'border' => 'indigo-400', 
-                            'text' => 'gray-800', 
-                            'badge' => 'indigo-600'
-                        ];
-                        
-                        // Function to get color for subject
-                        $getSubjectColor = function($subjectId) use ($scol) {
-                            return $scol;
+                        // Function to get bright & vibrant colors for subjects (UI/UX Pro Max)
+                        $getSubjectColor = function($subjectId) {
+                            $palettes = [
+                                ['from' => 'blue-500', 'to' => 'indigo-600', 'border' => 'blue-700', 'text' => 'white', 'badge' => 'blue-900'],
+                                ['from' => 'purple-500', 'to' => 'pink-600', 'border' => 'purple-700', 'text' => 'white', 'badge' => 'purple-900'],
+                                ['from' => 'emerald-500', 'to' => 'teal-600', 'border' => 'emerald-700', 'text' => 'white', 'badge' => 'emerald-900'],
+                                ['from' => 'amber-500', 'to' => 'orange-600', 'border' => 'amber-700', 'text' => 'white', 'badge' => 'amber-900'],
+                                ['from' => 'rose-500', 'to' => 'red-600', 'border' => 'rose-700', 'text' => 'white', 'badge' => 'rose-900'],
+                                ['from' => 'cyan-500', 'to' => 'blue-600', 'border' => 'cyan-700', 'text' => 'white', 'badge' => 'cyan-900'],
+                                ['from' => 'violet-500', 'to' => 'purple-600', 'border' => 'violet-700', 'text' => 'white', 'badge' => 'violet-900'],
+                                ['from' => 'fuchsia-500', 'to' => 'pink-600', 'border' => 'fuchsia-700', 'text' => 'white', 'badge' => 'fuchsia-900'],
+                            ];
+                            $idx = abs((int)$subjectId) % count($palettes);
+                            return $palettes[$idx];
                         };
 
                         // NEW: Helper for non-teaching slot styles
