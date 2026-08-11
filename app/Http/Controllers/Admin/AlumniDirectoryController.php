@@ -181,7 +181,7 @@ class AlumniDirectoryController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage and associated user account.
+     * Remove the specified resource from storage and associated user account + forum posts.
      */
     public function destroy(AlumniDirectory $directory)
     {
@@ -192,23 +192,27 @@ class AlumniDirectoryController extends Controller
         if ($directory->user_id) {
             $user = \App\Models\User::find($directory->user_id);
             if ($user && $user->role === 'alumni') {
+                \App\Models\ForumThread::where('user_id', $user->id)->delete();
+                \App\Models\ForumReply::where('user_id', $user->id)->delete();
+                \App\Models\ForumMember::where('user_id', $user->id)->delete();
                 $user->delete();
             }
         }
         
         $directory->delete();
 
-        return redirect()->route('admin.alumni-directory.index')->with('success', 'Data alumni dan akun terkait berhasil dihapus.');
+        return redirect()->route('admin.alumni-directory.index')->with('success', 'Data alumni, pesan, dan akun terkait berhasil dihapus sepenuhnya.');
     }
 
     /**
-     * Purge spam registrations (unapproved alumni matching sensitive terms or spam URLs).
+     * Purge spam registrations (both approved & unapproved matching sensitive terms or spam URLs).
      */
     public function purgeSpam(Request $request)
     {
         $forbiddenKeywords = ['admin', 'administrator', 'bantuan', 'support', 'helpdesk', 'operator', 'yayasan', 'official', 'moderator', 'mod', 'pembda', 'customer service', 'cs', 'slot', 'gacor', 'judol'];
         
-        $query = AlumniDirectory::where('is_approved', false);
+        // Search ALL records (approved or unapproved) matching spam patterns
+        $query = AlumniDirectory::query();
 
         $query->where(function($q) use ($forbiddenKeywords) {
             foreach ($forbiddenKeywords as $word) {
@@ -230,6 +234,9 @@ class AlumniDirectoryController extends Controller
             if ($rec->user_id) {
                 $user = \App\Models\User::find($rec->user_id);
                 if ($user && $user->role === 'alumni') {
+                    \App\Models\ForumThread::where('user_id', $user->id)->delete();
+                    \App\Models\ForumReply::where('user_id', $user->id)->delete();
+                    \App\Models\ForumMember::where('user_id', $user->id)->delete();
                     $user->delete();
                 }
             }
@@ -240,6 +247,23 @@ class AlumniDirectoryController extends Controller
             $count++;
         }
 
-        return back()->with('success', "Pembersihan selesai! {$count} data alumni spam & akun palsu yang menggantung telah berhasil dihapus.");
+        // Also sweep orphaned user accounts created for spam alumni with forbidden names
+        $orphanedSpamUsers = \App\Models\User::where('role', 'alumni')
+            ->where(function($q) use ($forbiddenKeywords) {
+                foreach ($forbiddenKeywords as $word) {
+                    $q->orWhere('name', 'like', "%{$word}%")
+                      ->orWhere('username', 'like', "%{$word}%");
+                }
+            })->get();
+
+        foreach ($orphanedSpamUsers as $u) {
+            \App\Models\ForumThread::where('user_id', $u->id)->delete();
+            \App\Models\ForumReply::where('user_id', $u->id)->delete();
+            \App\Models\ForumMember::where('user_id', $u->id)->delete();
+            $u->delete();
+            $count++;
+        }
+
+        return back()->with('success', "Pembersihan selesai! {$count} data alumni spam, pesan, postingan, & akun palsu telah berhasil dihapus secara menyeluruh.");
     }
 }
