@@ -335,11 +335,29 @@ class DashboardController extends Controller
         $timetable = [];
         $occupied = []; // Track which cells are occupied by a multi-slot schedule
 
-        // Group schedules by day and then by time key for faster lookup
+        // Group schedules by day and then by time key for faster lookup & aggregate combined classrooms
         $schedulesByDayAndTime = [];
+        $combinedClassesMap = [];
         foreach ($allSchedules as $s) {
             $timeKey = ($s->timeSlot->start_time ?? $s->start_time) . '-' . ($s->timeSlot->end_time ?? $s->end_time);
-            $schedulesByDayAndTime[$s->day_of_week][$timeKey] = $s;
+            $className = $s->classroom->class_name ?? '';
+            
+            if (!isset($schedulesByDayAndTime[$s->day_of_week][$timeKey])) {
+                $schedulesByDayAndTime[$s->day_of_week][$timeKey] = $s;
+                $combinedClassesMap[$s->day_of_week][$timeKey] = collect();
+            }
+            
+            if ($className && !$combinedClassesMap[$s->day_of_week][$timeKey]->contains($className)) {
+                $combinedClassesMap[$s->day_of_week][$timeKey]->push($className);
+            }
+        }
+
+        foreach ($schedulesByDayAndTime as $day => $times) {
+            foreach ($times as $timeKey => $sched) {
+                if (isset($combinedClassesMap[$day][$timeKey]) && $combinedClassesMap[$day][$timeKey]->count() > 0) {
+                    $sched->classroom_name_display = $combinedClassesMap[$day][$timeKey]->implode(', ');
+                }
+            }
         }
 
         foreach ($timeSlots as $slot) {

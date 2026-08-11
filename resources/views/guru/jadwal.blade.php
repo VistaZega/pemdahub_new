@@ -105,7 +105,7 @@
                                             <div class="rounded-2xl p-3 bg-amber-100 border-2 border-black shadow-xs hover:shadow-md transition-all duration-200 cursor-default h-full flex flex-col justify-between min-h-[65px]">
                                                 <div class="mb-1">
                                                     <p class="text-[10px] font-black uppercase tracking-wider text-black bg-white px-2 py-0.5 rounded-lg border border-black inline-block mb-1">
-                                                        {{ $schedule->classroom->class_name ?? '-' }}
+                                                        {{ $schedule->classroom_name_display ?? $schedule->classroom->class_name ?? '-' }}
                                                     </p>
                                                     <p class="text-xs font-black text-black leading-tight uppercase" title="{{ $schedule->subject->subject_name ?? $schedule->subject->name ?? '-' }}">
                                                         {{ $schedule->subject->subject_name ?? $schedule->subject->name ?? '-' }}

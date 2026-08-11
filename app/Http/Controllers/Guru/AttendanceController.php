@@ -109,20 +109,50 @@ class AttendanceController extends Controller
         if ($selectedClassroomId) {
             $selectedClassroom = $classrooms->firstWhere('id', (int) $selectedClassroomId);
             if ($selectedClassroom) {
-                $studentsQuery = $selectedClassroom->students()
-                    ->wherePivot('status', 'aktif');
+                // Check if this classroom has a combined group_code for this teacher
+                $groupCode = Schedule::where('teacher_id', $teacher->id)
+                    ->where('classroom_id', $selectedClassroomId)
+                    ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                    ->whereNotNull('group_code')
+                    ->value('group_code');
 
-                if ($activeYear) {
-                    $studentsQuery->wherePivot('academic_year_id', $activeYear->id);
+                if ($groupCode) {
+                    $allClassroomIds = Schedule::where('teacher_id', $teacher->id)
+                        ->where('group_code', $groupCode)
+                        ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                        ->pluck('classroom_id')
+                        ->unique()
+                        ->toArray();
+
+                    $students = \App\Models\Student::whereHas('classrooms', function($q) use ($allClassroomIds, $activeYear) {
+                            $q->whereIn('classrooms.id', $allClassroomIds)
+                              ->wherePivot('status', 'aktif')
+                              ->when($activeYear, fn($p) => $p->wherePivot('academic_year_id', $activeYear->id));
+                        })
+                        ->with(['classrooms' => fn($q) => $q->whereIn('classrooms.id', $allClassroomIds)])
+                        ->orderBy('full_name')
+                        ->get();
+
+                    $existingAttendances = Attendance::whereIn('classroom_id', $allClassroomIds)
+                        ->where('date', $selectedDate)
+                        ->get()
+                        ->keyBy('student_id');
+                } else {
+                    $studentsQuery = $selectedClassroom->students()
+                        ->wherePivot('status', 'aktif');
+
+                    if ($activeYear) {
+                        $studentsQuery->wherePivot('academic_year_id', $activeYear->id);
+                    }
+
+                    $students = $studentsQuery->orderBy('full_name')->get();
+
+                    // Load existing attendance for this date + classroom (for edit/update)
+                    $existingAttendances = Attendance::where('classroom_id', $selectedClassroomId)
+                        ->where('date', $selectedDate)
+                        ->get()
+                        ->keyBy('student_id');
                 }
-
-                $students = $studentsQuery->orderBy('full_name')->get();
-
-                // Load existing attendance for this date + classroom (for edit/update)
-                $existingAttendances = Attendance::where('classroom_id', $selectedClassroomId)
-                    ->where('date', $selectedDate)
-                    ->get()
-                    ->keyBy('student_id');
             }
         }
 
