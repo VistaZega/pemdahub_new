@@ -409,6 +409,17 @@ class StudentController extends Controller
 
         $uid = strtoupper(trim($request->rfid_uid));
 
+        // --- NORMALISASI FORMAT UID (sama seperti di AttendanceController) ---
+        // Jika UID berupa angka desimal murni (hardware lama, misal: 50012561)
+        // konversi ke format Hex (misal: 02FB2191) agar konsisten dengan proses absensi.
+        if (preg_match('/^\d+$/', $uid) && strlen($uid) >= 6 && strlen($uid) <= 12) {
+            $num = (int)$uid;
+            if ($num > 0 && $num <= 4294967295) {
+                $hexUid = strtoupper(dechex($num));
+                $uid = str_pad($hexUid, 8, '0', STR_PAD_LEFT);
+            }
+        }
+
         // Cek apakah UID sudah dipakai entitas lain
         $existingStudent = Student::where('rfid_uid', $uid)
             ->where('id', '!=', $request->student_id)
