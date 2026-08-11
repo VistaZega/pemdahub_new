@@ -182,7 +182,7 @@ class AttendanceController extends Controller
                     'time_in'      => $currentTime,
                     'status'       => $status,
                     'recorded_via' => $type === 'qr' ? 'qr_gps' : 'rfid',
-                    'device_id'    => $request->input('device_id', 'KIOSK-' . substr($uid, -4)), 
+                    'device_id'    => $request->input('device_id', 'KIOSK-' . substr($rawUid, -4)), 
                 ]);
 
                 if ($student->user_id) {
