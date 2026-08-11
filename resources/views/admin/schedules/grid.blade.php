@@ -219,21 +219,30 @@
     .cell-time .slot-name { font-size:12px; font-weight:900; color: #ffffff; background: #0f172a; padding: 3px 8px; border-radius: 6px; display: inline-block; border: 1px solid #334155; }
     .cell-time .slot-time { font-size:11px; font-weight:800; color:#1e293b; margin-top:4px; }
 
-    /* === HIGH CONTRAST ZEBRA STRIPING & CRISP BORDERS === */
+    /* === PINK MUDA & KUNING MUDA ZEBRA STRIPING WITH STRONG HOVER === */
     .schedule-row { border-bottom: 2px solid #475569 !important; transition: background 0.15s; }
 
-    /* Odd Les Rows: BRIGHT PURE WHITE (#ffffff) */
+    /* Odd Les Rows: PINK MUDA (#fce7f3) */
     .schedule-row:nth-child(odd) .cell-content {
-        background-color: #ffffff !important;
+        background-color: #fce7f3 !important;
+    }
+    /* Odd Les Rows Hover: PINK LEBIH PEKAT & STRONG (#f472b6) */
+    .schedule-row:nth-child(odd):hover .cell-content,
+    .schedule-row:nth-child(odd) .cell-content:hover {
+        background-color: #f472b6 !important;
     }
 
-    /* Even Les Rows: HIGH CONTRAST SOFT SLATE BLUE (#dbeafe) */
+    /* Even Les Rows: KUNING MUDA (#fef9c3) */
     .schedule-row:nth-child(even) .cell-content {
-        background-color: #dbeafe !important;
+        background-color: #fef9c3 !important;
+    }
+    /* Even Les Rows Hover: KUNING LEBIH PEKAT & STRONG (#facc15) */
+    .schedule-row:nth-child(even):hover .cell-content,
+    .schedule-row:nth-child(even) .cell-content:hover {
+        background-color: #facc15 !important;
     }
 
-    .schedule-row:hover .cell-content { background-color: #7dd3fc !important; }
-    .day-separator td { border-bottom: 4px solid #0284c7 !important; }
+    .day-separator td { border-bottom: 4px solid #0f172a !important; }
 
     /* Content Cell & Crisp Sharp Dark Borders */
     .cell-content {
@@ -245,15 +254,14 @@
         min-width: 170px;
     }
     .cell-empty { cursor: pointer; transition: background 0.15s; }
-    .cell-empty:hover { background: #7dd3fc !important; }
     .cell-plus {
         display:flex; align-items:center; justify-content:center; height:100%;
-        color:#64748b; font-size:18px; opacity:0; transition: opacity 0.2s;
+        color:#475569; font-size:18px; opacity:0; transition: opacity 0.2s;
     }
-    .cell-content:hover .cell-plus { opacity:1; color:#0284c7; }
+    .cell-content:hover .cell-plus { opacity:1; color:#0f172a; font-weight:900; }
 
     /* Non-teaching cell */
-    .cell-break { background: repeating-linear-gradient(45deg, #cbd5e1, #cbd5e1 10px, #94a3b8 10px, #94a3b8 20px) !important; }
+    .cell-break { background: repeating-linear-gradient(45deg, #e2e8f0, #e2e8f0 10px, #cbd5e1 10px, #cbd5e1 20px) !important; }
 
     /* === SCHEDULE CARD === */
     .scard {
@@ -432,13 +440,13 @@
     </div>
 
     <!-- Schedule Grid -->
-    <div class="bg-white border border-gray-100 rounded-2xl shadow-lg overflow-hidden">
-        <div class="overflow-x-auto" id="scheduleContainer">
+    <div class="bg-white border-2 border-slate-700 rounded-2xl shadow-xl">
+        <div id="scheduleContainer">
             <div id="scheduleWrapper" style="transform-origin: top left; transition: transform 0.3s ease;">
                 <table class="w-full" id="scheduleTable">
-                <thead class="bg-gray-50 border-b border-gray-100">
+                <thead class="bg-slate-900 border-b-2 border-slate-700">
                     <tr>
-                        <th class="th-day sticky left-0 z-20">Hari</th>
+                        <th class="th-day">Hari</th>
                         <th class="th-time">Waktu</th>
                         @foreach($classrooms as $classroom)
                             <th class="th-class">
