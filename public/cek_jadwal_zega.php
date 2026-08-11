@@ -45,6 +45,8 @@ echo "<style>
     .bg-sky { background: #e0f2fe; color: #0369a1; }
     .box { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .filter-bar { background: #e0f2fe; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #bae6fd; color: #0369a1; }
+    .alert-danger { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
+    .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
 </style></head><body>";
 
 echo "<h1>📊 Diagnostik Data Mengajar & Jadwal Pelajaran</h1>";
@@ -142,46 +144,81 @@ foreach ($teachers as $teacher) {
             echo "<td>" . ($s->group_code ?: '-') . "</td>";
             echo "</tr>";
 
-            // CHECK WHY SCHEDULE MIGHT BE HIDDEN IN GRID:
-            echo "<tr><td colspan='9' style='background:#f8fafc; padding:10px 16px; border-bottom:2px solid #cbd5e1;'>";
-            echo "🔍 <b>Analisis Kompatibilitas Grid Untuk Schedule #{$s->id}:</b><br>";
-            
-            // Check A: Is Academic Year active?
-            if ($s->academic_year_id != ($activeYear->id ?? null)) {
-                echo "<span style='color:red;'>❌ MISMATCH TAHUN AJARAN:</span> Schedule disimpan di TP ID <b>{$s->academic_year_id}</b>, sedangkan Tahun Ajaran Aktif Sistem saat ini adalah TP ID <b>" . ($activeYear->id ?? 'null') . "</b> (" . ($activeYear->year ?? '-') . "). Jika di Grid memilih TP Aktif, jadwal ini akan tersembunyi!<br>";
+            // EXHAUSTIVE DEEP AUDIT OF GRID QUERY MATCHING FOR THIS SCHEDULE:
+            echo "<tr><td colspan='9' style='background:#f8fafc; padding:15px 20px; border-bottom:3px solid #cbd5e1;'>";
+            echo "🔬 <b>AUDIT MENGAPA SCHEDULE #{$s->id} DITAMPILKAN ATAU TERSEMBUNYI DI GRID JADWAL:</b><br><br>";
+
+            $issuesFound = 0;
+
+            // 1. School ID Check
+            if ($s->school_id != $teacher->school_id) {
+                echo "<div class='alert-danger'>❌ <b>MISMATCH SCHOOL ID</b>: Schedule school_id ({$s->school_id}) beda dengan Teacher school_id ({$teacher->school_id}).</div>";
+                $issuesFound++;
             } else {
-                echo "<span style='color:green;'>✅ MATCH TAHUN AJARAN:</span> Sesuai dengan TP Aktif Sistem (ID: {$s->academic_year_id}).<br>";
+                echo "<div class='alert-success'>✅ <b>School ID Match</b>: {$s->school_id}</div>";
             }
 
-            // Check B: Classroom is_active & School ID
+            // 2. Academic Year Active Check
+            if ($activeYear && $s->academic_year_id != $activeYear->id) {
+                echo "<div class='alert-danger'>❌ <b>MISMATCH TAHUN AJARAN AKTIF</b>: Schedule tersimpan di TP ID <b>{$s->academic_year_id}</b>, tapi Sistem Aktif saat ini TP ID <b>{$activeYear->id}</b> ({$activeYear->year}). Jika Admin buka Grid tanpa filter TP, jadwal ini TERSEMBUNYI!</div>";
+                $issuesFound++;
+            } else {
+                echo "<div class='alert-success'>✅ <b>Tahun Ajaran Match</b>: TP ID {$s->academic_year_id}</div>";
+            }
+
+            // 3. Classroom Active & Query Check
             if ($s->classroom) {
                 if (!$s->classroom->is_active) {
-                    echo "<span style='color:red;'>❌ KELAS NON-AKTIF:</span> Kelas {$s->classroom->class_name} (ID: {$s->classroom_id}) berstatus <code>is_active = 0</code>!<br>";
-                }
-                if ($s->classroom->academic_year_id != $s->academic_year_id) {
-                    echo "<span style='color:red;'>❌ MISMATCH TP KELAS:</span> Kelas ID {$s->classroom_id} terdaftar untuk TP ID <b>{$s->classroom->academic_year_id}</b>, sedangkan Schedule terdaftar untuk TP ID <b>{$s->academic_year_id}</b>!<br>";
+                    echo "<div class='alert-danger'>❌ <b>KELAS NON-AKTIF</b>: Kelas {$s->classroom->class_name} (ID: {$s->classroom_id}) berstatus <code>is_active = 0</code>! Query Grid memfilter <code>where('is_active', 1)</code> sehingga kelas ini DAN SELURUH JADWALNYA HIDDEN!</div>";
+                    $issuesFound++;
                 } else {
-                    echo "<span style='color:green;'>✅ MATCH TP KELAS:</span> Kelas dan Schedule berada di TP ID yang sama ({$s->academic_year_id}).<br>";
+                    echo "<div class='alert-success'>✅ <b>Kelas Aktif</b>: {$s->classroom->class_name} (ID: {$s->classroom_id}, Grade: {$s->classroom->grade_level}, Shift: '{$s->classroom->shift}')</div>";
+                }
+
+                if ($s->classroom->school_id != $s->school_id) {
+                    echo "<div class='alert-danger'>❌ <b>MISMATCH SCHOOL KELAS</b>: Classroom school_id ({$s->classroom->school_id}) != Schedule school_id ({$s->school_id}).</div>";
+                    $issuesFound++;
+                }
+
+                if ($s->classroom->academic_year_id != $s->academic_year_id) {
+                    echo "<div class='alert-danger'>❌ <b>MISMATCH TP KELAS</b>: Classroom academic_year_id ({$s->classroom->academic_year_id}) != Schedule academic_year_id ({$s->academic_year_id}). Grid memfilter classroom berdasarkan TP, sehingga kelas ini tersembunyi jika TP tidak sama!</div>";
+                    $issuesFound++;
                 }
             } else {
-                echo "<span style='color:red;'>❌ KELAS TIDAK DITEMUKAN!</span><br>";
+                echo "<div class='alert-danger'>❌ <b>KELAS TIDAK DITEMUKAN!</b> Classroom ID {$s->classroom_id} tidak ada di DB.</div>";
+                $issuesFound++;
             }
 
-            // Check C: TimeSlot is_active & Academic Year
+            // 4. TimeSlot Active & Teaching Slot Check
             if ($s->timeSlot) {
-                if (!$s->timeSlot->is_teaching_slot) {
-                    echo "<span style='color:red;'>❌ BUKAN JAM MENGAJAR:</span> TimeSlot ID {$s->time_slot_id} berstatus <code>is_teaching_slot = 0</code> (Jam Istirahat/Upacara).<br>";
-                }
                 if (!$s->timeSlot->is_active) {
-                    echo "<span style='color:red;'>❌ TIMESLOT NON-AKTIF:</span> TimeSlot ID {$s->time_slot_id} berstatus <code>is_active = 0</code>!<br>";
+                    echo "<div class='alert-danger'>❌ <b>TIMESLOT NON-AKTIF</b>: TimeSlot ID {$s->time_slot_id} berstatus <code>is_active = 0</code>! Query Grid memfilter <code>where('is_active', 1)</code> sehingga jam ini HIDDEN!</div>";
+                    $issuesFound++;
                 }
-                if ($s->timeSlot->academic_year_id != $s->academic_year_id) {
-                    echo "<span style='color:red;'>❌ MISMATCH TP TIMESLOT:</span> TimeSlot ID {$s->time_slot_id} terdaftar untuk TP ID <b>{$s->timeSlot->academic_year_id}</b>, sedangkan Schedule terdaftar untuk TP ID <b>{$s->academic_year_id}</b>!<br>";
+                if (!$s->timeSlot->is_teaching_slot) {
+                    echo "<div class='alert-danger'>❌ <b>TIMESLOT BUKAN JAM MENGAJAR</b>: TimeSlot ID {$s->time_slot_id} berstatus <code>is_teaching_slot = 0</code> (Istirahat/Upacara). Grid hanya menampilkan <code>is_teaching_slot = 1</code>!</div>";
+                    $issuesFound++;
                 } else {
-                    echo "<span style='color:green;'>✅ MATCH TP TIMESLOT:</span> TimeSlot dan Schedule berada di TP ID yang sama ({$s->academic_year_id}).<br>";
+                    echo "<div class='alert-success'>✅ <b>TimeSlot Valid</b>: {$s->timeSlot->slot_name} ({$s->timeSlot->start_time} - {$s->timeSlot->end_time}) | is_teaching_slot = 1</div>";
+                }
+
+                if ($s->timeSlot->academic_year_id != $s->academic_year_id) {
+                    echo "<div class='alert-danger'>❌ <b>MISMATCH TP TIMESLOT</b>: TimeSlot academic_year_id ({$s->timeSlot->academic_year_id}) != Schedule academic_year_id ({$s->academic_year_id}). Query Grid memfilter timeSlot berdasarkan TP, sehingga jam ini tersembunyi!</div>";
+                    $issuesFound++;
                 }
             } else {
-                echo "<span style='color:red;'>❌ TIMESLOT TIDAK DITEMUKAN!</span><br>";
+                echo "<div class='alert-danger'>❌ <b>TIMESLOT TIDAK DITEMUKAN!</b> TimeSlot ID {$s->time_slot_id} tidak ada di DB.</div>";
+                $issuesFound++;
+            }
+
+            // 5. Semester Check
+            echo "<div class='alert-success'>ℹ️ <b>Semester Schedule</b>: '{$s->semester}' (Jika di Grid memilih semester beda, jadwal ini hidden).</div>";
+
+            if ($issuesFound === 0) {
+                echo "<div class='alert-success'>🎉 <b>SELURUH FILTER DATABASE PERFECT MATCH (100% VALID)!</b><br>";
+                echo "Jika jadwal #{$s->id} ini masih belum muncul di layar browser Admin saat membuka Grid, penyebabnya pasti salah satu dari 2 hal ini:<br>";
+                echo "1. <b>Filter Dropdown di Layar Grid</b>: Dropdown <i>Grade Level</i> (misal diset ke Kelas X) atau Dropdown <i>Semester</i> (diset ke Genap) di bagian atas layar Grid Admin sedang aktif.<br>";
+                echo "2. <b>Browser Cache</b>: Browser Chrome Admin masih menampilkan HTML simpanan lama. Tekan <b>Ctrl + F5</b> di keyboard pada halaman Grid Jadwal Admin.</div>";
             }
 
             echo "</td></tr>";
