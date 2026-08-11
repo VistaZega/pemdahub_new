@@ -368,6 +368,8 @@ class ScheduleGridController extends Controller
             Schedule::create($data);
         }
         
+        $this->flushAllTimeSlotCache($teacher->school_id, $validated['academic_year_id']);
+
         $msg = count($schedulesToInsert) > 1 ? 'Jadwal multi-kelas berhasil ditambahkan!' : 'Jadwal berhasil ditambahkan!';
         return back()->with('success', $msg);
     }
@@ -454,6 +456,7 @@ class ScheduleGridController extends Controller
         }
         
         $schedule->update($validated);
+        $this->flushAllTimeSlotCache($schedule->school_id, $schedule->academic_year_id);
         
         return back()->with('success', 'Jadwal berhasil diupdate!');
     }
@@ -467,7 +470,11 @@ class ScheduleGridController extends Controller
             abort(403, 'Unauthorized');
         }
         
+        $schoolId = $schedule->school_id;
+        $academicYearId = $schedule->academic_year_id;
+
         $schedule->delete();
+        $this->flushAllTimeSlotCache($schoolId, $academicYearId);
         
         return back()->with('success', 'Jadwal berhasil dihapus!');
     }
@@ -964,16 +971,35 @@ class ScheduleGridController extends Controller
     }
 
     /**
+     * Helper to thoroughly clear all variations of time slot cache
+     */
+    private function flushAllTimeSlotCache($schoolId, $academicYearId = null)
+    {
+        cache()->forget("timeslots_school_{$schoolId}");
+        cache()->forget("teachers_modal_{$schoolId}");
+        cache()->forget("subjects_modal_{$schoolId}");
+
+        $shifts = ['all', 'pagi', 'siang'];
+        $years = $academicYearId ? [$academicYearId] : \App\Models\AcademicYear::pluck('id')->toArray();
+
+        foreach ($years as $ayId) {
+            cache()->forget("timeslots_school_{$schoolId}_year_{$ayId}");
+            foreach ($shifts as $shift) {
+                cache()->forget("timeslots_school_{$schoolId}_year_{$ayId}_shift_{$shift}");
+            }
+        }
+    }
+
+    /**
      * Clear cache for time slots and modal data
      */
     public function clearCache(Request $request)
     {
         $user = auth()->user();
         $schoolId = $request->get('school_id', $user->school_id);
+        $academicYearId = $request->get('academic_year_id');
 
-        cache()->forget("timeslots_school_{$schoolId}");
-        cache()->forget("teachers_modal_{$schoolId}");
-        cache()->forget("subjects_modal_{$schoolId}");
+        $this->flushAllTimeSlotCache($schoolId, $academicYearId);
 
         return response()->json(['message' => 'Cache cleared successfully']);
     }
