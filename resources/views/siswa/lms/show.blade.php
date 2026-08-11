@@ -22,7 +22,8 @@ if (!function_exists('balanceHtmlTags')) {
 
 @push('styles')
 <style>
-    .prose img { max-width: 100%; height: auto; border-radius: 0.75rem; margin: 0.75rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .prose img { display: block !important; max-width: 100% !important; height: auto !important; margin: 1.25rem auto !important; border-radius: 0.75rem !important; box-shadow: 0 4px 14px rgba(0,0,0,0.12) !important; clear: both !important; }
+    .prose p { margin-bottom: 0.75rem !important; line-height: 1.75 !important; }
     .tab-content { animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .hero-pattern {
@@ -532,7 +533,7 @@ if (!function_exists('balanceHtmlTags')) {
 
                         {{-- Text Content --}}
                         @if($material->content)
-                        <div class="prose prose-sm max-w-none text-gray-600 mt-3 mb-4">{!! strip_tags($material->content) !== $material->content ? $material->content : nl2br(e($material->content)) !!}</div>
+                        <div class="prose prose-sm max-w-none text-gray-600 mt-3 mb-4">{!! formatLmsContent($material->content) !!}</div>
                         @endif
                         
                         {{-- Material Reaction --}}

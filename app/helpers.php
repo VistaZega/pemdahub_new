@@ -22,3 +22,27 @@ if (!function_exists('balanceHtmlTags')) {
         }
     }
 }
+
+if (!function_exists('formatLmsContent')) {
+    /**
+     * Format LMS material content preserving HTML tags & newlines properly.
+     *
+     * @param string|null $content
+     * @return string
+     */
+    function formatLmsContent($content) {
+        if (empty(trim($content ?? ''))) return '';
+
+        // Check if content already contains HTML block structure tags
+        $hasBlockTags = (bool) preg_match('/<(p|div|br|h[1-6]|ul|ol|li|table|blockquote)\b/i', $content);
+
+        if (!$hasBlockTags) {
+            // It's either plain text or plain text + inline tags like <img> without block elements
+            // Convert newlines (\n) to <br> so paragraphs/linebreaks are preserved
+            $content = nl2br($content);
+        }
+
+        return balanceHtmlTags($content);
+    }
+}
+

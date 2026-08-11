@@ -24,11 +24,18 @@
         max-height: 350px;
         font-size: 0.875rem;
     }
-    .ql-editor img {
-        max-width: 100%;
-        border-radius: 0.5rem;
-        margin: 0.5rem 0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    .ql-editor img, .prose img {
+        display: block !important;
+        max-width: 100% !important;
+        height: auto !important;
+        margin: 1.25rem auto !important;
+        border-radius: 0.75rem !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.12) !important;
+        clear: both !important;
+    }
+    .prose p {
+        margin-bottom: 0.75rem !important;
+        line-height: 1.75 !important;
     }
     .tab-content { animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -483,7 +490,7 @@ if (!function_exists('balanceHtmlTags')) {
 
                             {{-- Text Content --}}
                             @if($material->content)
-                            <div class="prose prose-sm max-w-none text-slate-800 mt-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">{!! strip_tags($material->content) !== $material->content ? balanceHtmlTags($material->content) : balanceHtmlTags(nl2br(e($material->content))) !!}</div>
+                            <div class="prose prose-sm max-w-none text-slate-800 mt-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">{!! formatLmsContent($material->content) !!}</div>
                             @endif
                         </div>
                     </div>
@@ -2030,11 +2037,14 @@ if (!function_exists('balanceHtmlTags')) {
     });
 
     function setQuillEditContent(content) {
-        if (quillEdit) {
-            quillEdit.root.innerHTML = content || '';
-            const input = document.getElementById('quill-edit-input');
-            if (input) input.value = content || '';
+        if (!quillEdit) return;
+        let html = content || '';
+        if (html && !/<(p|div|br|h[1-6]|ul|ol|li|table|blockquote)\b/i.test(html)) {
+            html = html.split('\n').map(line => line.trim() ? `<p>${line}</p>` : '<p><br></p>').join('');
         }
+        quillEdit.root.innerHTML = html;
+        const input = document.getElementById('quill-edit-input');
+        if (input) input.value = html;
     }
 </script>
 @endpush
