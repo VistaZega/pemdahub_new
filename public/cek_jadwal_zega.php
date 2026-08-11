@@ -20,11 +20,11 @@ use App\Models\Schedule;
 use App\Models\TeachingAssignment;
 use App\Models\Classroom;
 use App\Models\AcademicYear;
+use App\Models\TimeSlot;
 
 $guruQuery = $_GET['guru'] ?? 'Yulianus Zega';
 $selectedAyId = $_GET['academic_year_id'] ?? null;
 
-// Fetch all Academic Years in system
 $allAcademicYears = AcademicYear::orderBy('id', 'desc')->get();
 $activeYear = AcademicYear::where('is_active', 1)->first();
 
@@ -41,6 +41,7 @@ echo "<style>
     .bg-blue { background: #dbeafe; color: #1e40af; }
     .bg-purple { background: #f3e8ff; color: #6b21a8; }
     .bg-amber { background: #fef3c7; color: #92400e; }
+    .bg-red { background: #fee2e2; color: #991b1b; }
     .bg-sky { background: #e0f2fe; color: #0369a1; }
     .box { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .filter-bar { background: #e0f2fe; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #bae6fd; color: #0369a1; }
@@ -49,11 +50,13 @@ echo "<style>
 echo "<h1>📊 Diagnostik Data Mengajar & Jadwal Pelajaran</h1>";
 
 echo "<div class='filter-bar'>";
-echo "<b>📅 Tahun Ajaran Tersedia di Database:</b><br>";
+echo "<b>📌 Status Tahun Ajaran Aktif (is_active = 1) di System:</b> ";
+echo $activeYear ? "<span class='badge bg-green'>ID: {$activeYear->id} — {$activeYear->year}</span>" : "<span class='badge bg-red'>TIDAK ADA TP AKTIF!</span>";
+echo "<br><br><b>📅 Filter Tahun Ajaran Yang Dipilih di Halaman Ini:</b><br>";
 echo "<ul style='margin:8px 0 0 20px; padding:0;'>";
 foreach ($allAcademicYears as $ay) {
-    $activeTag = $ay->is_active ? " <span class='badge bg-green'>AKTIF</span>" : "";
-    $selectedTag = ($selectedAyId == $ay->id) ? " <b>[DIFILTER]</b>" : "";
+    $activeTag = $ay->is_active ? " <span class='badge bg-green'>SISTEM AKTIF</span>" : "";
+    $selectedTag = ($selectedAyId == $ay->id) ? " <b>[DIFILTER SAAT INI]</b>" : "";
     $link = "?secret=pembda99&guru=" . urlencode($guruQuery) . "&academic_year_id={$ay->id}";
     echo "<li>ID: <b>{$ay->id}</b> — Name: <b>{$ay->year}</b> {$activeTag} {$selectedTag} | <a href='{$link}' style='color:#0284c7;'>Filter TP Ini</a></li>";
 }
@@ -62,19 +65,12 @@ echo "<li><a href='{$linkAll}' style='color:#0284c7; font-weight:bold;'>TAMPILKA
 echo "</ul>";
 echo "</div>";
 
-// 1. Cari Data Guru
+// 1. Data Guru
 $teachers = Teacher::where('full_name', 'like', "%{$guruQuery}%")->get();
-
-if ($teachers->isEmpty()) {
-    echo "<div class='box' style='color:red;'>❌ Guru dengan nama '{$guruQuery}' tidak ditemukan di database.</div>";
-    echo "</body></html>";
-    exit;
-}
-
 foreach ($teachers as $teacher) {
     echo "<div class='box'>";
     echo "<h2>👨‍🏫 Guru: {$teacher->full_name} (ID: {$teacher->id})</h2>";
-    echo "<p>Sekolah ID: {$teacher->school_id} | Email/Kode: {$teacher->teacher_code}</p>";
+    echo "<p>Sekolah ID: {$teacher->school_id} | Kode: {$teacher->teacher_code}</p>";
     echo "</div>";
 
     // 2. Data Penugasan Mengajar (Teaching Assignments)
@@ -85,9 +81,7 @@ foreach ($teachers as $teacher) {
     $assignments = $assignmentsQuery->with(['subject', 'classroom', 'academicYear'])->get();
 
     echo "<h3>1. Penugasan Mengajar (Teaching Assignments) — Total: " . $assignments->count() . " Record</h3>";
-    if ($assignments->isEmpty()) {
-        echo "<div class='box' style='border-left:4px solid #f59e0b; color:#b45309;'>⚠️ Belum ada Penugasan Mengajar diisi untuk guru ini pada filter tahun ajaran ini.</div>";
-    } else {
+    if ($assignments->isNotEmpty()) {
         echo "<table>";
         echo "<tr><th>ID</th><th>Mata Pelajaran</th><th>Kelas Target</th><th>Jumlah JP</th><th>Jenis Blok</th><th>Tahun Ajaran</th><th>Group Code</th></tr>";
         foreach ($assignments as $a) {
@@ -118,11 +112,9 @@ foreach ($teachers as $teacher) {
         ->get();
 
     echo "<h3>2. Data Jadwal Pelajaran Yang Sudah Di-Plot (Schedules) — Total: " . $schedules->count() . " Record</h3>";
-    if ($schedules->isEmpty()) {
-        echo "<div class='box' style='border-left:4px solid #ef4444; color:#b91c1c;'>⚠️ <b>BELUM ADA JADWAL TER-PLOT DI TABEL SCHEDULES</b> untuk guru ini pada filter tahun ajaran ini.</div>";
-    } else {
+    if ($schedules->isNotEmpty()) {
         echo "<table>";
-        echo "<tr><th>Schedule ID</th><th>Hari (Day)</th><th>Kelas Target</th><th>Mata Pelajaran</th><th>Time Slot / Jam Ke</th><th>Durasi (JP)</th><th>Tahun Ajaran</th><th>Semester</th><th>Group Code</th><th>Tanggal Dibuat</th></tr>";
+        echo "<tr><th>Schedule ID</th><th>Hari (Day)</th><th>Kelas Target</th><th>Mata Pelajaran</th><th>Time Slot / Jam Ke</th><th>Durasi (JP)</th><th>Tahun Ajaran</th><th>Semester</th><th>Group Code</th></tr>";
         
         $dayMap = [
             'monday' => 'Senin', 'tuesday' => 'Selasa', 'wednesday' => 'Rabu',
@@ -148,44 +140,54 @@ foreach ($teachers as $teacher) {
             echo "<td><span class='badge bg-sky'>{$ay}</span> (ID: {$s->academic_year_id})</td>";
             echo "<td><span class='badge bg-purple'>{$s->semester}</span></td>";
             echo "<td>" . ($s->group_code ?: '-') . "</td>";
-            echo "<td>{$s->created_at}</td>";
             echo "</tr>";
+
+            // CHECK WHY SCHEDULE MIGHT BE HIDDEN IN GRID:
+            echo "<tr><td colspan='9' style='background:#f8fafc; padding:10px 16px; border-bottom:2px solid #cbd5e1;'>";
+            echo "🔍 <b>Analisis Kompatibilitas Grid Untuk Schedule #{$s->id}:</b><br>";
+            
+            // Check A: Is Academic Year active?
+            if ($s->academic_year_id != ($activeYear->id ?? null)) {
+                echo "<span style='color:red;'>❌ MISMATCH TAHUN AJARAN:</span> Schedule disimpan di TP ID <b>{$s->academic_year_id}</b>, sedangkan Tahun Ajaran Aktif Sistem saat ini adalah TP ID <b>" . ($activeYear->id ?? 'null') . "</b> (" . ($activeYear->year ?? '-') . "). Jika di Grid memilih TP Aktif, jadwal ini akan tersembunyi!<br>";
+            } else {
+                echo "<span style='color:green;'>✅ MATCH TAHUN AJARAN:</span> Sesuai dengan TP Aktif Sistem (ID: {$s->academic_year_id}).<br>";
+            }
+
+            // Check B: Classroom is_active & School ID
+            if ($s->classroom) {
+                if (!$s->classroom->is_active) {
+                    echo "<span style='color:red;'>❌ KELAS NON-AKTIF:</span> Kelas {$s->classroom->class_name} (ID: {$s->classroom_id}) berstatus <code>is_active = 0</code>!<br>";
+                }
+                if ($s->classroom->academic_year_id != $s->academic_year_id) {
+                    echo "<span style='color:red;'>❌ MISMATCH TP KELAS:</span> Kelas ID {$s->classroom_id} terdaftar untuk TP ID <b>{$s->classroom->academic_year_id}</b>, sedangkan Schedule terdaftar untuk TP ID <b>{$s->academic_year_id}</b>!<br>";
+                } else {
+                    echo "<span style='color:green;'>✅ MATCH TP KELAS:</span> Kelas dan Schedule berada di TP ID yang sama ({$s->academic_year_id}).<br>";
+                }
+            } else {
+                echo "<span style='color:red;'>❌ KELAS TIDAK DITEMUKAN!</span><br>";
+            }
+
+            // Check C: TimeSlot is_active & Academic Year
+            if ($s->timeSlot) {
+                if (!$s->timeSlot->is_teaching_slot) {
+                    echo "<span style='color:red;'>❌ BUKAN JAM MENGAJAR:</span> TimeSlot ID {$s->time_slot_id} berstatus <code>is_teaching_slot = 0</code> (Jam Istirahat/Upacara).<br>";
+                }
+                if (!$s->timeSlot->is_active) {
+                    echo "<span style='color:red;'>❌ TIMESLOT NON-AKTIF:</span> TimeSlot ID {$s->time_slot_id} berstatus <code>is_active = 0</code>!<br>";
+                }
+                if ($s->timeSlot->academic_year_id != $s->academic_year_id) {
+                    echo "<span style='color:red;'>❌ MISMATCH TP TIMESLOT:</span> TimeSlot ID {$s->time_slot_id} terdaftar untuk TP ID <b>{$s->timeSlot->academic_year_id}</b>, sedangkan Schedule terdaftar untuk TP ID <b>{$s->academic_year_id}</b>!<br>";
+                } else {
+                    echo "<span style='color:green;'>✅ MATCH TP TIMESLOT:</span> TimeSlot dan Schedule berada di TP ID yang sama ({$s->academic_year_id}).<br>";
+                }
+            } else {
+                echo "<span style='color:red;'>❌ TIMESLOT TIDAK DITEMUKAN!</span><br>";
+            }
+
+            echo "</td></tr>";
         }
         echo "</table>";
     }
-}
-
-// 4. Cek Semua Kelas 'Teknik Rekayasa'
-echo "<h2>🏫 Diagnostik Seluruh Kelas Yang Mengandung Kata 'Teknik Rekayasa' / 'Rekayasa'</h2>";
-$rekayasaClassesQuery = Classroom::where(function($q) {
-    $q->where('class_name', 'like', '%Rekayasa%')
-      ->orWhere('class_name', 'like', '%Teknik%');
-});
-
-if ($selectedAyId) {
-    $rekayasaClassesQuery->where('academic_year_id', $selectedAyId);
-}
-
-$rekayasaClasses = $rekayasaClassesQuery->with('academicYear')->get();
-
-if ($rekayasaClasses->isEmpty()) {
-    echo "<p style='color:orange;'>Tidak ditemukan kelas dengan kata 'Rekayasa' / 'Teknik'.</p>";
-} else {
-    echo "<table>";
-    echo "<tr><th>ID Kelas</th><th>Nama Kelas</th><th>Tingkat / Grade</th><th>Shift</th><th>Tahun Ajaran</th><th>Total Jadwal Ter-plot</th></tr>";
-    foreach ($rekayasaClasses as $c) {
-        $ay = $c->academicYear->year ?? "ID: {$c->academic_year_id}";
-        $schedCount = Schedule::where('classroom_id', $c->id)->count();
-        echo "<tr>";
-        echo "<td><b>{$c->id}</b></td>";
-        echo "<td><span class='badge bg-blue'>{$c->class_name}</span></td>";
-        echo "<td>Grade {$c->grade_level}</td>";
-        echo "<td>{$c->shift}</td>";
-        echo "<td><span class='badge bg-sky'>{$ay}</span> (ID: {$c->academic_year_id})</td>";
-        echo "<td><b>{$schedCount} Jadwal</b></td>";
-        echo "</tr>";
-    }
-    echo "</table>";
 }
 
 echo "</body></html>";
