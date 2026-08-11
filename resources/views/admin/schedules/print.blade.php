@@ -175,7 +175,10 @@
                 <tbody>
                     @foreach($days as $dayKey => $dayLabel)
                         @php
-                            $daySlots = $timeSlots->where('day_of_week', $dayKey)->sortBy('slot_order');
+                            $daySlots = $timeSlots->filter(function($slot) use ($dayKey, $dayLabel) {
+                                $d = strtolower(trim($slot->day_of_week ?? ''));
+                                return $d === strtolower($dayKey) || $d === strtolower($dayLabel);
+                            })->sortBy('slot_order');
                             $slotCount = $daySlots->count();
                         @endphp
 
@@ -193,8 +196,9 @@
                                 </td>
                                 @foreach($classrooms as $classroom)
                                     @php
-                                        $key = $dayKey . '_' . $slot->id . '_' . $classroom->id;
-                                        $cellSchedules = $scheduleGrid[$key] ?? [];
+                                        $k1 = strtolower($dayKey) . '_' . $slot->id . '_' . $classroom->id;
+                                        $k2 = strtolower($slot->day_of_week) . '_' . $slot->id . '_' . $classroom->id;
+                                        $cellSchedules = $scheduleGrid[$k1] ?? $scheduleGrid[$k2] ?? [];
                                     @endphp
                                     <td class="p-0.5 border-r border-slate-400 text-center align-middle">
                                         @if(!$slot->is_teaching_slot)

@@ -749,6 +749,13 @@ class ScheduleGridController extends Controller
             ->orderBy('slot_order')
             ->get();
 
+        if ($timeSlots->isEmpty()) {
+            $timeSlots = TimeSlot::where('school_id', $selectedSchoolId)
+                ->where('is_active', 1)
+                ->orderBy('slot_order')
+                ->get();
+        }
+
         $schedules = Schedule::where(function($q) use ($selectedSchoolId) {
                 $q->where('school_id', $selectedSchoolId)
                   ->orWhereHas('classroom', function($cq) use ($selectedSchoolId) {
