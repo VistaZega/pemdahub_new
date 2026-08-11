@@ -746,13 +746,15 @@ class ScheduleGridController extends Controller
         }
 
         $timeSlots = $timeSlotsQuery->select('id', 'school_id', 'academic_year_id', 'day_of_week', 'slot_name', 'shift', 'start_time', 'end_time', 'slot_order', 'is_teaching_slot')
-            ->orderBy('slot_order')
+            ->orderBy('start_time', 'asc')
+            ->orderBy('slot_order', 'asc')
             ->get();
 
         if ($timeSlots->isEmpty()) {
             $timeSlots = TimeSlot::where('school_id', $selectedSchoolId)
                 ->where('is_active', 1)
-                ->orderBy('slot_order')
+                ->orderBy('start_time', 'asc')
+                ->orderBy('slot_order', 'asc')
                 ->get();
         }
 

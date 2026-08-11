@@ -178,7 +178,11 @@
                             $daySlots = $timeSlots->filter(function($slot) use ($dayKey, $dayLabel) {
                                 $d = strtolower(trim($slot->day_of_week ?? ''));
                                 return $d === strtolower($dayKey) || $d === strtolower($dayLabel);
-                            })->sortBy('slot_order');
+                            })->sortBy(function($slot) {
+                                return ($slot->start_time ?? '00:00') . '_' . sprintf('%04d', $slot->slot_order ?? 0);
+                            })->unique(function($slot) {
+                                return trim($slot->slot_name) . '_' . trim($slot->start_time);
+                            });
                             $slotCount = $daySlots->count();
                         @endphp
 
