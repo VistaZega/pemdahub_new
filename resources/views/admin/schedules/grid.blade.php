@@ -82,12 +82,14 @@
 
     /* === GRID TABLE CONTAINER (DUAL SCROLL STRUCTURE) === */
     #scheduleContainer {
-        max-height: calc(100vh - 210px);
-        min-height: 480px;
-        overflow: auto;
+        height: calc(100vh - 210px);
+        max-height: 800px;
+        min-height: 500px;
+        overflow: auto !important;
         position: relative;
         border-radius: 16px;
         background: white;
+        border: 2px solid #475569;
     }
 
     #scheduleTable {
@@ -98,17 +100,25 @@
     }
 
     /* === STICKY HEADERS (TOP & LEFT) === */
+    #scheduleTable thead {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 60 !important;
+    }
+
     #scheduleTable thead tr {
-        position: sticky;
-        top: 0;
-        z-index: 35;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 60 !important;
+        background: #0f172a !important;
     }
 
     #scheduleTable thead th {
-        position: sticky;
-        top: 0;
-        z-index: 30;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 60 !important;
+        background: #0f172a !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.25);
     }
 
     /* Top-Left Sticky Corner (Hari Header) */
@@ -116,115 +126,134 @@
         position: sticky !important;
         top: 0 !important;
         left: 0 !important;
-        z-index: 45 !important;
-        background: #0f172a !important;
+        z-index: 70 !important;
+        background: #090d16 !important;
         color: #ffffff;
-        padding: 12px 10px;
+        padding: 14px 10px;
         text-align: center;
-        font-size: 12px;
-        font-weight: 800;
+        font-size: 13px;
+        font-weight: 900;
         letter-spacing: .06em;
         text-transform: uppercase;
-        width: 48px;
-        min-width: 48px;
-        border-right: 2px solid #475569 !important;
-        border-bottom: 3px solid #334155 !important;
+        width: 52px;
+        min-width: 52px;
+        border-right: 3px solid #64748b !important;
+        border-bottom: 3px solid #64748b !important;
     }
 
     /* Top-Left Sticky Corner (Waktu Header) */
     .th-time {
         position: sticky !important;
         top: 0 !important;
-        left: 48px !important;
-        z-index: 40 !important;
-        background: #1e293b !important;
+        left: 52px !important;
+        z-index: 65 !important;
+        background: #0f172a !important;
         color: #ffffff;
-        padding: 12px 8px;
+        padding: 14px 8px;
         text-align: center;
-        font-size: 12px;
-        font-weight: 800;
+        font-size: 13px;
+        font-weight: 900;
         letter-spacing: .06em;
         text-transform: uppercase;
-        width: 95px;
-        min-width: 95px;
-        border-right: 2px solid #475569 !important;
-        border-bottom: 3px solid #334155 !important;
+        width: 100px;
+        min-width: 100px;
+        border-right: 3px solid #64748b !important;
+        border-bottom: 3px solid #64748b !important;
     }
 
     /* Header Kelas Column */
     .th-class {
-        padding: 12px 8px;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 60 !important;
+        padding: 14px 10px;
         text-align: center;
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 900;
-        border-right: 1px solid rgba(255,255,255,0.2);
-        border-bottom: 3px solid #334155;
+        border-right: 2px solid #475569 !important;
+        border-bottom: 3px solid #64748b !important;
         white-space: nowrap;
-        background: linear-gradient(135deg, #1e1b4b, #312e81);
-        color: #f8fafc;
-        min-width: 165px;
+        background: linear-gradient(180deg, #1e1b4b 0%, #0f172a 100%) !important;
+        color: #ffffff;
+        min-width: 170px;
         letter-spacing: .03em;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
     }
 
     /* === STICKY LEFT COLUMNS === */
     .cell-day {
         position: sticky !important;
         left: 0 !important;
-        z-index: 25 !important;
+        z-index: 35 !important;
         padding: 8px 6px;
         font-size: 15px; font-weight: 900; letter-spacing:.08em; text-transform:uppercase;
         align-content: center; vertical-align: middle; text-align: center;
         white-space: nowrap;
         writing-mode: vertical-rl; text-orientation: mixed;
         transform: rotate(180deg);
-        min-width: 48px; width: 48px;
-        border-right: 2px solid #475569 !important;
-        box-shadow: 3px 0 6px rgba(0,0,0,0.06);
+        min-width: 52px; width: 52px;
+        border-right: 3px solid #334155 !important;
+        border-bottom: 2px solid #475569 !important;
+        box-shadow: 4px 0 8px rgba(0,0,0,0.12);
     }
 
-    .day-senin  { background: linear-gradient(180deg,#ede9fe,#ddd6fe); color:#4c1d95; border-right:2px solid #7c3aed !important; }
-    .day-selasa { background: linear-gradient(180deg,#fce7f3,#fbcfe8); color:#831843; border-right:2px solid #db2777 !important; }
-    .day-rabu   { background: linear-gradient(180deg,#d1fae5,#a7f3d0); color:#064e3b; border-right:2px solid #059669 !important; }
-    .day-kamis  { background: linear-gradient(180deg,#fef3c7,#fde68a); color:#78350f; border-right:2px solid #d97706 !important; }
-    .day-jumat  { background: linear-gradient(180deg,#dbeafe,#bfdbfe); color:#1e3a8a; border-right:2px solid #2563eb !important; }
-    .day-sabtu  { background: linear-gradient(180deg,#fae8ff,#f5d0fe); color:#701a75; border-right:2px solid #d946ef !important; }
+    .day-senin  { background: linear-gradient(180deg,#ede9fe,#ddd6fe); color:#4c1d95; border-right:3px solid #7c3aed !important; }
+    .day-selasa { background: linear-gradient(180deg,#fce7f3,#fbcfe8); color:#831843; border-right:3px solid #db2777 !important; }
+    .day-rabu   { background: linear-gradient(180deg,#d1fae5,#a7f3d0); color:#064e3b; border-right:3px solid #059669 !important; }
+    .day-kamis  { background: linear-gradient(180deg,#fef3c7,#fde68a); color:#78350f; border-right:3px solid #d97706 !important; }
+    .day-jumat  { background: linear-gradient(180deg,#dbeafe,#bfdbfe); color:#1e3a8a; border-right:3px solid #2563eb !important; }
+    .day-sabtu  { background: linear-gradient(180deg,#fae8ff,#f5d0fe); color:#701a75; border-right:3px solid #d946ef !important; }
 
     /* Sticky Time Cell */
     .cell-time {
         position: sticky !important;
-        left: 48px !important;
-        z-index: 20 !important;
+        left: 52px !important;
+        z-index: 30 !important;
         padding: 6px 8px; vertical-align: middle; text-align: center;
-        background: #f8fafc;
-        width: 95px; min-width: 95px;
-        border-right: 2px solid #64748b !important;
-        border-bottom: 1px solid #cbd5e1 !important;
-        box-shadow: 2px 0 5px rgba(0,0,0,0.04);
+        background: #e2e8f0 !important;
+        width: 100px; min-width: 100px;
+        border-right: 3px solid #334155 !important;
+        border-bottom: 2px solid #475569 !important;
+        box-shadow: 3px 0 6px rgba(0,0,0,0.08);
     }
-    .cell-time .slot-name { font-size:12px; font-weight:900; color: #0f172a; background: #e2e8f0; padding: 2px 6px; border-radius: 6px; display: inline-block; border: 1px solid #cbd5e1; }
-    .cell-time .slot-time { font-size:11px; font-weight:700; color:#475569; margin-top:3px; }
+    .cell-time .slot-name { font-size:12px; font-weight:900; color: #ffffff; background: #0f172a; padding: 3px 8px; border-radius: 6px; display: inline-block; border: 1px solid #334155; }
+    .cell-time .slot-time { font-size:11px; font-weight:800; color:#1e293b; margin-top:4px; }
 
-    /* === DISTINCT BORDERS & LES ZEBRA STRIPING === */
-    .schedule-row { border-bottom: 1px solid #cbd5e1; transition: background 0.15s; }
-    .schedule-row:nth-child(odd) .cell-content { background-color: #ffffff; }
-    .schedule-row:nth-child(even) .cell-content { background-color: #f1f5f9; }
+    /* === HIGH CONTRAST ZEBRA STRIPING & CRISP BORDERS === */
+    .schedule-row { border-bottom: 2px solid #475569 !important; transition: background 0.15s; }
 
-    .schedule-row:hover .cell-content { background-color: #e0f2fe !important; }
-    .day-separator td { border-bottom: 3px solid #334155 !important; }
+    /* Odd Les Rows: BRIGHT PURE WHITE (#ffffff) */
+    .schedule-row:nth-child(odd) .cell-content {
+        background-color: #ffffff !important;
+    }
 
-    /* Content Cell & Crisp Borders */
-    .cell-content { padding: 4px; border-right: 1px solid #cbd5e1 !important; border-bottom: 1px solid #cbd5e1 !important; height: 65px; vertical-align: top; min-width: 165px; }
+    /* Even Les Rows: HIGH CONTRAST SOFT SLATE BLUE (#dbeafe) */
+    .schedule-row:nth-child(even) .cell-content {
+        background-color: #dbeafe !important;
+    }
+
+    .schedule-row:hover .cell-content { background-color: #7dd3fc !important; }
+    .day-separator td { border-bottom: 4px solid #0284c7 !important; }
+
+    /* Content Cell & Crisp Sharp Dark Borders */
+    .cell-content {
+        padding: 4px;
+        border-right: 2px solid #475569 !important;
+        border-bottom: 2px solid #475569 !important;
+        height: 68px;
+        vertical-align: top;
+        min-width: 170px;
+    }
     .cell-empty { cursor: pointer; transition: background 0.15s; }
-    .cell-empty:hover { background: #e0f2fe !important; }
+    .cell-empty:hover { background: #7dd3fc !important; }
     .cell-plus {
         display:flex; align-items:center; justify-content:center; height:100%;
-        color:#94a3b8; font-size:18px; opacity:0; transition: opacity 0.2s;
+        color:#64748b; font-size:18px; opacity:0; transition: opacity 0.2s;
     }
     .cell-content:hover .cell-plus { opacity:1; color:#0284c7; }
 
     /* Non-teaching cell */
-    .cell-break { background: repeating-linear-gradient(45deg, #f8fafc, #f8fafc 10px, #f1f5f9 10px, #f1f5f9 20px) !important; }
+    .cell-break { background: repeating-linear-gradient(45deg, #cbd5e1, #cbd5e1 10px, #94a3b8 10px, #94a3b8 20px) !important; }
 
     /* === SCHEDULE CARD === */
     .scard {
@@ -1412,8 +1441,13 @@ if (zoomSlider && scheduleWrapper) {
 
 function applyZoom(zoomLevel) {
     const scale = zoomLevel / 100;
-    scheduleWrapper.style.transform = `scale(${scale})`;
-    scheduleWrapper.style.marginBottom = scale < 1 ? `-${(1 - scale) * scheduleWrapper.offsetHeight}px` : '0';
+    if (parseFloat(zoomLevel) >= 100) {
+        scheduleWrapper.style.transform = 'none';
+        scheduleWrapper.style.marginBottom = '0';
+    } else {
+        scheduleWrapper.style.transform = `scale(${scale})`;
+        scheduleWrapper.style.marginBottom = scale < 1 ? `-${(1 - scale) * scheduleWrapper.offsetHeight}px` : '0';
+    }
     zoomValue.textContent = zoomLevel + '%';
     // Update slider gradient track
     zoomSlider.style.setProperty('--zoom-pct', zoomLevel + '%');
