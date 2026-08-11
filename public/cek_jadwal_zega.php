@@ -19,26 +19,42 @@ use App\Models\Teacher;
 use App\Models\Schedule;
 use App\Models\TeachingAssignment;
 use App\Models\Classroom;
+use App\Models\AcademicYear;
 
 $guruQuery = $_GET['guru'] ?? 'Yulianus Zega';
+$tpFilter = $_GET['tp'] ?? '2026/2027';
 
-echo "<!DOCTYPE html><html><head><title>Diagnostik Jadwal Guru</title>";
+// Find Academic Year ID for 2026/2027
+$targetAcademicYear = AcademicYear::where('year', 'like', "%2026/2027%")
+    ->orWhere('year', 'like', "%2026%")
+    ->first();
+
+$targetYearId = $targetAcademicYear ? $targetAcademicYear->id : null;
+
+echo "<!DOCTYPE html><html><head><title>Diagnostik Jadwal Guru TP 2026/2027</title>";
 echo "<style>
     body { font-family: system-ui, sans-serif; margin: 20px; background: #f8fafc; color: #1e293b; }
-    h1, h2 { color: #0f172a; }
+    h1, h2, h3 { color: #0f172a; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 25px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
     th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
-    th { background: #3b82f6; color: white; font-weight: 600; }
+    th { background: #0284c7; color: white; font-weight: 600; }
     tr:hover { background: #f1f5f9; }
     .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
     .bg-green { background: #dcfce7; color: #166534; }
     .bg-blue { background: #dbeafe; color: #1e40af; }
     .bg-purple { background: #f3e8ff; color: #6b21a8; }
     .bg-amber { background: #fef3c7; color: #92400e; }
+    .bg-sky { background: #e0f2fe; color: #0369a1; }
     .box { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .filter-bar { background: #e0f2fe; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #bae6fd; font-weight: bold; color: #0369a1; }
 </style></head><body>";
 
-echo "<h1>📊 Diagnostik Jadwal Pelajaran — Guru: " . htmlspecialchars($guruQuery) . "</h1>";
+echo "<h1>📊 Diagnostik Jadwal Pelajaran (TP 2026/2027)</h1>";
+
+echo "<div class='filter-bar'>";
+echo "📌 Filter Aktif: <b>TP 2026/2027</b> " . ($targetAcademicYear ? "(Academic Year ID: {$targetAcademicYear->id}, Nama: {$targetAcademicYear->year})" : "<span style='color:red;'>(ID 2026/2027 tidak ditemukan, menampilkan semua TP)</span>");
+echo " | Guru: <b>" . htmlspecialchars($guruQuery) . "</b>";
+echo "</div>";
 
 // 1. Cari Data Guru
 $teachers = Teacher::where('full_name', 'like', "%{$guruQuery}%")->get();
@@ -55,47 +71,52 @@ foreach ($teachers as $teacher) {
     echo "<p>Sekolah ID: {$teacher->school_id} | Email/Kode: {$teacher->teacher_code}</p>";
     echo "</div>";
 
-    // 2. Data Penugasan Mengajar (Teaching Assignments)
-    $assignments = TeachingAssignment::where('teacher_id', $teacher->id)
-        ->with(['subject', 'classroom', 'academicYear'])
-        ->get();
+    // 2. Data Penugasan Mengajar (Teaching Assignments) khusus TP 2026/2027
+    $assignmentsQuery = TeachingAssignment::where('teacher_id', $teacher->id);
+    if ($targetYearId) {
+        $assignmentsQuery->where('academic_year_id', $targetYearId);
+    }
+    $assignments = $assignmentsQuery->with(['subject', 'classroom', 'academicYear'])->get();
 
-    echo "<h3>1. Penugasan Mengajar (Teaching Assignments) — Total: " . $assignments->count() . "</h3>";
+    echo "<h3>1. Penugasan Mengajar (Teaching Assignments) TP 2026/2027 — Total: " . $assignments->count() . " Record</h3>";
     if ($assignments->isEmpty()) {
-        echo "<p style='color:orange;'>Belum ada Penugasan Mengajar untuk guru ini.</p>";
+        echo "<div class='box' style='border-left:4px solid #f59e0b; color:#b45309;'>⚠️ Belum ada Penugasan Mengajar diisi untuk TP 2026/2027 bagi guru ini.</div>";
     } else {
         echo "<table>";
         echo "<tr><th>ID</th><th>Mata Pelajaran</th><th>Kelas</th><th>Jumlah JP</th><th>Jenis Blok</th><th>Tahun Ajaran</th><th>Group Code</th></tr>";
         foreach ($assignments as $a) {
             $sub = $a->subject->subject_name ?? $a->subject->name ?? '-';
             $cName = $a->classroom->class_name ?? '-';
-            $ay = $a->academicYear->year ?? '-';
+            $ay = $a->academicYear->year ?? "ID: {$a->academic_year_id}";
             echo "<tr>";
             echo "<td>{$a->id}</td>";
             echo "<td><b>{$sub}</b></td>";
             echo "<td><span class='badge bg-blue'>{$cName}</span></td>";
             echo "<td><b>{$a->hours_per_week} JP</b></td>";
             echo "<td><span class='badge bg-purple'>{$a->block_type}</span></td>";
-            echo "<td>{$ay}</td>";
+            echo "<td><span class='badge bg-sky'>{$ay}</span></td>";
             echo "<td>" . ($a->group_code ?: '-') . "</td>";
             echo "</tr>";
         }
         echo "</table>";
     }
 
-    // 3. Data Jadwal Pelajaran Ter-Plot (Schedules)
-    $schedules = Schedule::where('teacher_id', $teacher->id)
-        ->with(['subject', 'classroom', 'timeSlot', 'academicYear'])
+    // 3. Data Jadwal Pelajaran Ter-Plot (Schedules) khusus TP 2026/2027
+    $schedulesQuery = Schedule::where('teacher_id', $teacher->id);
+    if ($targetYearId) {
+        $schedulesQuery->where('academic_year_id', $targetYearId);
+    }
+    $schedules = $schedulesQuery->with(['subject', 'classroom', 'timeSlot', 'academicYear'])
         ->orderBy('day_of_week')
         ->orderBy('time_slot_id')
         ->get();
 
-    echo "<h3>2. Data Jadwal Pelajaran Yang Sudah Di-Plot (Schedules) — Total: " . $schedules->count() . " Record</h3>";
+    echo "<h3>2. Data Jadwal Pelajaran Yang Sudah Di-Plot (Schedules) TP 2026/2027 — Total: " . $schedules->count() . " Record</h3>";
     if ($schedules->isEmpty()) {
-        echo "<div class='box' style='border-left:4px solid #ef4444; color:#b91c1c;'>⚠️ <b>BELUM ADA JADWAL TER-PLOT</b> untuk guru ini di tabel <code>schedules</code>.</div>";
+        echo "<div class='box' style='border-left:4px solid #ef4444; color:#b91c1c;'>⚠️ <b>BELUM ADA JADWAL TER-PLOT DI TABEL SCHEDULES UNTUK TP 2026/2027</b> bagi guru ini.</div>";
     } else {
         echo "<table>";
-        echo "<tr><th>Schedule ID</th><th>Hari (Day)</th><th>Kelas Target</th><th>Mata Pelajaran</th><th>Time Slot / Jam Ke</th><th>Durasi (JP)</th><th>Tahun Ajaran ID</th><th>Semester</th><th>Group Code</th><th>Tanggal Dibuat</th></tr>";
+        echo "<tr><th>Schedule ID</th><th>Hari (Day)</th><th>Kelas Target</th><th>Mata Pelajaran</th><th>Time Slot / Jam Ke</th><th>Durasi (JP)</th><th>Tahun Ajaran</th><th>Semester</th><th>Group Code</th><th>Tanggal Dibuat</th></tr>";
         
         $dayMap = [
             'monday' => 'Senin', 'tuesday' => 'Selasa', 'wednesday' => 'Rabu',
@@ -118,7 +139,7 @@ foreach ($teachers as $teacher) {
             echo "<td><b>{$sub}</b></td>";
             echo "<td>{$tsName}</td>";
             echo "<td><b>{$s->duration_slots} JP</b></td>";
-            echo "<td>{$ay}</td>";
+            echo "<td><span class='badge bg-sky'>{$ay}</span></td>";
             echo "<td><span class='badge bg-purple'>{$s->semester}</span></td>";
             echo "<td>" . ($s->group_code ?: '-') . "</td>";
             echo "<td>{$s->created_at}</td>";
@@ -128,24 +149,33 @@ foreach ($teachers as $teacher) {
     }
 }
 
-// 4. Cek Semua Jadwal Khusus di Kelas "XI Teknik Rekayasa"
-echo "<h2>🏫 Diagnostik Khusus Kelas 'XI Teknik Rekayasa'</h2>";
-$rekayasaClasses = Classroom::where('class_name', 'like', '%XI%Teknik%Rekayasa%')
-    ->orWhere('class_name', 'like', '%XI%Teknik Rekayasa%')
-    ->get();
+// 4. Cek Semua Jadwal Khusus di Kelas "XI Teknik Rekayasa" TP 2026/2027
+echo "<h2>🏫 Diagnostik Khusus Kelas 'XI Teknik Rekayasa' (TP 2026/2027)</h2>";
+$rekayasaClassesQuery = Classroom::where(function($q) {
+    $q->where('class_name', 'like', '%XI%Teknik%Rekayasa%')
+      ->orWhere('class_name', 'like', '%XI%Teknik Rekayasa%');
+});
+
+if ($targetYearId) {
+    $rekayasaClassesQuery->where('academic_year_id', $targetYearId);
+}
+
+$rekayasaClasses = $rekayasaClassesQuery->get();
 
 if ($rekayasaClasses->isEmpty()) {
-    echo "<p style='color:orange;'>Tidak ditemukan kelas dengan nama 'XI Teknik Rekayasa'</p>";
+    echo "<p style='color:orange;'>Tidak ditemukan kelas 'XI Teknik Rekayasa' untuk TP 2026/2027.</p>";
 } else {
     foreach ($rekayasaClasses as $c) {
         echo "<div class='box'>";
         echo "<h4>Nama Kelas: {$c->class_name} (ID: {$c->id}) | Tingkat/Grade: {$c->grade_level} | Shift: {$c->shift} | Tahun Ajaran ID: {$c->academic_year_id}</h4>";
         
-        $classSchedules = Schedule::where('classroom_id', $c->id)
-            ->with(['teacher', 'subject', 'timeSlot'])
-            ->get();
+        $classSchedulesQuery = Schedule::where('classroom_id', $c->id);
+        if ($targetYearId) {
+            $classSchedulesQuery->where('academic_year_id', $targetYearId);
+        }
+        $classSchedules = $classSchedulesQuery->with(['teacher', 'subject', 'timeSlot'])->get();
             
-        echo "<p>Total Jadwal Ter-plot di Kelas Ini: <b>" . $classSchedules->count() . "</b></p>";
+        echo "<p>Total Jadwal Ter-plot di Kelas Ini (TP 2026/2027): <b>" . $classSchedules->count() . " Record</b></p>";
         if ($classSchedules->isNotEmpty()) {
             echo "<table>";
             echo "<tr><th>Schedule ID</th><th>Hari</th><th>Mata Pelajaran</th><th>Guru Mengajar</th><th>Jam Ke / TimeSlot</th><th>Durasi</th><th>Semester</th></tr>";
@@ -164,6 +194,8 @@ if ($rekayasaClasses->isEmpty()) {
                 echo "</tr>";
             }
             echo "</table>";
+        } else {
+            echo "<p style='color:orange;'>Belum ada jadwal ter-plot sama sekali untuk kelas ini di TP 2026/2027.</p>";
         }
         echo "</div>";
     }
