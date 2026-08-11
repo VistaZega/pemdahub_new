@@ -95,8 +95,13 @@ class ScheduleGridController extends Controller
                 ->get();
         });
         
-        // Get all schedules for this school, year, and semester (optimized)
-        $schedules = Schedule::where('school_id', $selectedSchoolId)
+        // Get all schedules for this school, year, and semester (supports cross-school / multi-unit teachers)
+        $schedules = Schedule::where(function($q) use ($selectedSchoolId) {
+                $q->where('school_id', $selectedSchoolId)
+                  ->orWhereHas('classroom', function($cq) use ($selectedSchoolId) {
+                      $cq->where('school_id', $selectedSchoolId);
+                  });
+            })
             ->where('academic_year_id', $selectedYearId)
             ->where('semester', $semester)
             ->select('id', 'teacher_id', 'subject_id', 'classroom_id', 'time_slot_id', 'day_of_week', 'duration_slots', 'school_id', 'academic_year_id', 'semester', 'group_code', 'teaching_assignment_id')
@@ -348,8 +353,11 @@ class ScheduleGridController extends Controller
                 return back()->with('error', "Bentrok pada {$classroomName}: {$conflictError}")->withInput();
             }
 
+            $targetClassObj = \App\Models\Classroom::find($classId);
+            $targetSchoolId = $targetClassObj->school_id ?? $teacher->school_id;
+
             $schedulesToInsert[] = [
-                'school_id' => $teacher->school_id,
+                'school_id' => $targetSchoolId,
                 'teacher_id' => $validated['teacher_id'],
                 'subject_id' => $validated['subject_id'],
                 'classroom_id' => $classId,
