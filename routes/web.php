@@ -872,7 +872,7 @@ Route::prefix('ika-pembda')->name('ika.')->group(function () {
     Route::get('/', [App\Http\Controllers\PublicAlumniController::class, 'directory'])->name('index');
     Route::get('/direktori', [App\Http\Controllers\PublicAlumniController::class, 'directory'])->name('directory');
     Route::get('/daftar', [App\Http\Controllers\PublicAlumniController::class, 'registerForm'])->name('register');
-    Route::post('/daftar', [App\Http\Controllers\PublicAlumniController::class, 'registerSubmit'])->name('register.submit');
+    Route::post('/daftar', [App\Http\Controllers\PublicAlumniController::class, 'registerSubmit'])->middleware('throttle:5,1')->name('register.submit');
 });
 
 // PSB Testing & Simulation Routes (protected - admin only)

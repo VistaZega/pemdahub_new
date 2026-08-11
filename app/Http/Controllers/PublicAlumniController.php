@@ -20,16 +20,17 @@ class PublicAlumniController extends Controller
         // Array of years from 1970 to current year
         $years = range(now()->year, 1970);
         
-        // Fetch alumni for gallery preview (no approval needed)
+        // Fetch alumni for gallery preview (approved only)
         $approvedAlumni = AlumniDirectory::with('school')
+                            ->where('is_approved', true)
                             ->latest()
                             ->take(12)
                             ->get();
                             
         // Smart Report Data
-        $oldestAlumni = AlumniDirectory::min('graduation_year');
-        $youngestAlumni = AlumniDirectory::max('graduation_year');
-        $totalRegistered = AlumniDirectory::count();
+        $oldestAlumni = AlumniDirectory::where('is_approved', true)->min('graduation_year');
+        $youngestAlumni = AlumniDirectory::where('is_approved', true)->max('graduation_year');
+        $totalRegistered = AlumniDirectory::where('is_approved', true)->count();
         
         return view('landing.alumni_register', compact('schools', 'years', 'approvedAlumni', 'oldestAlumni', 'youngestAlumni', 'totalRegistered'));
     }
@@ -65,7 +66,7 @@ class PublicAlumniController extends Controller
 
         $alumnis = $query->paginate(16)->withQueryString();
 
-        $totalAlumni = AlumniDirectory::count();
+        $totalAlumni = AlumniDirectory::where('is_approved', true)->count();
         $selectedSchool = $request->filled('school_id') ? School::find($request->school_id) : null;
 
         return view('landing.alumni_directory', compact('alumnis', 'schools', 'years', 'totalAlumni', 'selectedSchool'));
@@ -76,6 +77,11 @@ class PublicAlumniController extends Controller
      */
     public function registerSubmit(Request $request)
     {
+        // 1. Honeypot check - silently discard bot submissions
+        if ($request->filled('website_url_hp')) {
+            return redirect()->back()->with('success', 'Terima kasih! Data pendaftaran Anda telah dikirim dan sedang dalam proses verifikasi oleh Admin.');
+        }
+
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
             'alias_name' => 'nullable|string|max:255',
@@ -95,6 +101,25 @@ class PublicAlumniController extends Controller
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:4096', // max 4MB
         ]);
 
+        // 2. Anti-impersonation check for sensitive names
+        $forbiddenKeywords = ['admin', 'administrator', 'bantuan', 'support', 'helpdesk', 'operator', 'yayasan', 'official', 'moderator', 'mod', 'pembda', 'customer service', 'cs', 'slot', 'gacor', 'judol'];
+        $checkString = strtolower($validated['full_name'] . ' ' . ($validated['alias_name'] ?? ''));
+        foreach ($forbiddenKeywords as $keyword) {
+            if (preg_match('/\b' . preg_quote($keyword, '/') . '\b/i', $checkString)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['full_name' => "Nama pendaftar tidak diperbolehkan menggunakan kata terlarang/nama resmi institusi ('{$keyword}')."]);
+            }
+        }
+
+        // 3. Spam URL check in text fields
+        $textCheck = strtolower(($validated['message'] ?? '') . ' ' . ($validated['company_name'] ?? ''));
+        if (preg_match('/(http:\/\/|https:\/\/|t\.me\/|wa\.me\/|\.xyz|\.top|\.click)/i', $textCheck)) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['message' => 'Isi pesan/perusahaan tidak diperbolehkan mencantumkan link URL luar.']);
+        }
+
         $photoPath = null;
         if ($request->hasFile('photo')) {
             $file = $request->file('photo');
@@ -102,9 +127,8 @@ class PublicAlumniController extends Controller
             $photoPath = $file->storeAs('alumni_photos', $filename, 'public');
         }
 
-        // Create User account for alumni
+        // Create User account for alumni (inactive until approved)
         $email = $validated['email'] ?? null;
-        // Check if email exists in users table to prevent unique constraint violation
         if ($email && \App\Models\User::where('email', $email)->exists()) {
             $email = 'alumni_' . uniqid() . '@pembda.local';
         } elseif (!$email) {
@@ -133,7 +157,7 @@ class PublicAlumniController extends Controller
             'password' => \Illuminate\Support\Facades\Hash::make($defaultPassword),
             'role' => 'alumni',
             'school_id' => $validated['school_id'],
-            'is_active' => true,
+            'is_active' => false, // Active only after admin approval
         ]);
 
         AlumniDirectory::create([
@@ -154,9 +178,9 @@ class PublicAlumniController extends Controller
             'last_class' => $validated['last_class'] ?? null,
             'message' => $validated['message'] ?? null,
             'photo_path' => $photoPath,
-            'is_approved' => true, // Auto approved as requested
+            'is_approved' => false, // Requires admin approval
         ]);
 
-        return redirect()->back()->with('success', 'Terima kasih! Data Anda telah ditambahkan ke Direktori Alumni. Sistem telah membuatkan akun untuk Anda mengakses Pembda Space. Username Anda: <strong>' . $username . '</strong> dan Password: <strong>' . $defaultPassword . '</strong>. Silakan catat dan gunakan untuk Login.');
+        return redirect()->back()->with('success', 'Terima kasih! Data pendaftaran Anda telah berhasil dikirim ke Direktori Alumni. Demi keamanan, data & akun Anda sedang dalam <strong>proses verifikasi oleh Admin</strong> dan akan dipublikasikan setelah disetujui.');
     }
 }

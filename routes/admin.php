@@ -457,6 +457,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::get('alumni-directory/{directory}', [App\Http\Controllers\Admin\AlumniDirectoryController::class, 'show'])->name('alumni-directory.show');
         Route::get('alumni-directory/{directory}/edit', [App\Http\Controllers\Admin\AlumniDirectoryController::class, 'edit'])->name('alumni-directory.edit');
         Route::put('alumni-directory/{directory}', [App\Http\Controllers\Admin\AlumniDirectoryController::class, 'update'])->name('alumni-directory.update');
+        Route::post('alumni-directory/purge-spam', [App\Http\Controllers\Admin\AlumniDirectoryController::class, 'purgeSpam'])->name('alumni-directory.purge-spam');
         Route::post('alumni-directory/{directory}/toggle-approval', [App\Http\Controllers\Admin\AlumniDirectoryController::class, 'toggleApproval'])->name('alumni-directory.toggle-approval');
         Route::delete('alumni-directory/{directory}', [App\Http\Controllers\Admin\AlumniDirectoryController::class, 'destroy'])->name('alumni-directory.destroy');
     });

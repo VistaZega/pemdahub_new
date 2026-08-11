@@ -259,7 +259,7 @@
                         <i class="fas fa-user-plus text-amber-400"></i> Formulir Pendaftaran Akun Alumni
                     </h2>
                     <p class="text-xs text-indigo-200 leading-relaxed mb-4">
-                        Isi formulir di bawah ini. Akun Anda akan **langsung aktif secara otomatis** setelah pendaftaran selesai!
+                        Isi formulir di bawah ini. Demi keamanan dan keabsahan data, pendaftaran Anda akan **diverifikasi terlebih dahulu oleh Admin** sebelum akun & profil Anda aktif di publik.
                     </p>
                     
                     <div class="grid grid-cols-3 gap-2 pt-2 border-t border-indigo-800/80 text-[11px]">
@@ -269,17 +269,23 @@
                         </div>
                         <div class="flex items-center gap-1.5 text-indigo-200 font-medium">
                             <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 font-extrabold flex items-center justify-center text-[10px]">2</span>
-                            <span>Terima Akun</span>
+                            <span>Verifikasi Admin</span>
                         </div>
                         <div class="flex items-center gap-1.5 text-indigo-200 font-medium">
                             <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 font-extrabold flex items-center justify-center text-[10px]">3</span>
-                            <span>Langsung Login</span>
+                            <span>Akun & Profil Aktif</span>
                         </div>
                     </div>
                 </div>
 
                 <form action="{{ route('ika.register.submit') }}" method="POST" enctype="multipart/form-data" class="space-y-8 relative z-10">
                     @csrf
+
+                    {{-- Honeypot Anti-Bot Field --}}
+                    <div style="display:none !important;" aria-hidden="true">
+                        <label for="website_url_hp">Leave this field blank</label>
+                        <input type="text" name="website_url_hp" id="website_url_hp" tabindex="-1" autocomplete="off">
+                    </div>
 
                     <!-- Section: Data Pribadi -->
                     <div>

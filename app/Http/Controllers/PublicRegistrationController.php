@@ -38,8 +38,9 @@ class PublicRegistrationController extends Controller
             // Get active academic year for registration
             $academicYear = AcademicYear::where('is_active', true)->orderBy('id', 'desc')->first();
             
-            // Fetch recent alumni for the home page showcase (limit to 5)
+            // Fetch recent alumni for the home page showcase (limit to 5, approved only)
             $recentAlumni = \App\Models\AlumniDirectory::with('school')
+                                ->where('is_approved', true)
                                 ->whereNotNull('message')
                                 ->latest()
                                 ->take(5)

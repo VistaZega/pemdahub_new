@@ -24,7 +24,13 @@
                 </div>
             </div>
 
-            <div>
+            <div class="flex items-center gap-2">
+                <form action="{{ route('admin.alumni-directory.purge-spam') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus semua pendaftaran alumni spam/mencurigakan yang belum disetujui (nama terlarang / link spam)?');">
+                    @csrf
+                    <button type="submit" class="px-4 py-3 bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/40 rounded-xl font-bold text-xs transition flex items-center gap-2" title="Hapus pendaftaran palsu dengan nama admin / link spam">
+                        <i class="fas fa-broom"></i> Bersihkan Spam (1-Klik)
+                    </button>
+                </form>
                 <a href="{{ route('admin.alumni-directory.create') }}" class="px-5 py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-purple-500/25 flex items-center gap-2">
                     <i class="fas fa-plus-circle"></i> Tambah Data Alumni
                 </a>
@@ -32,17 +38,36 @@
         </div>
     </div>
 
-    <!-- Navigation Pills -->
-    <div class="flex items-center gap-2 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/80 w-fit">
-        <a href="{{ route('admin.alumni.index') }}" class="px-5 py-2.5 text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold rounded-xl text-sm transition flex items-center gap-2">
-            <i class="fas fa-list text-slate-400"></i> Data Alumni Sistem
-        </a>
-        <a href="{{ route('admin.alumni-directory.index') }}" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl text-sm shadow-md shadow-purple-500/20 flex items-center gap-2">
-            <i class="fas fa-address-book"></i> Direktori Alumni (IKA)
-        </a>
-        <a href="{{ route('admin.pkl-alumni.tracer.index') }}" class="px-5 py-2.5 text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold rounded-xl text-sm transition flex items-center gap-2">
-            <i class="fas fa-chart-line text-slate-400"></i> Tracer Study (BMW)
-        </a>
+    <!-- Navigation Pills & Quick Status Filters -->
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-2 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/80 w-fit">
+            <a href="{{ route('admin.alumni.index') }}" class="px-5 py-2.5 text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold rounded-xl text-sm transition flex items-center gap-2">
+                <i class="fas fa-list text-slate-400"></i> Data Alumni Sistem
+            </a>
+            <a href="{{ route('admin.alumni-directory.index') }}" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl text-sm shadow-md shadow-purple-500/20 flex items-center gap-2">
+                <i class="fas fa-address-book"></i> Direktori Alumni (IKA)
+            </a>
+            <a href="{{ route('admin.pkl-alumni.tracer.index') }}" class="px-5 py-2.5 text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold rounded-xl text-sm transition flex items-center gap-2">
+                <i class="fas fa-chart-line text-slate-400"></i> Tracer Study (BMW)
+            </a>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <a href="{{ route('admin.alumni-directory.index', array_merge(request()->query(), ['status' => 'pending'])) }}" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {{ request('status') === 'pending' ? 'bg-amber-500 text-white shadow-md' : 'bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300' }}">
+                <i class="fas fa-clock"></i> Menunggu Persetujuan
+                @if(isset($pendingCount) && $pendingCount > 0)
+                    <span class="px-2 py-0.5 rounded-full bg-amber-900 text-amber-100 text-[10px] font-black">{{ $pendingCount }}</span>
+                @endif
+            </a>
+            <a href="{{ route('admin.alumni-directory.index', array_merge(request()->query(), ['status' => 'approved'])) }}" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {{ request('status') === 'approved' ? 'bg-emerald-600 text-white shadow-md' : 'bg-emerald-100 text-emerald-900 hover:bg-emerald-200 border border-emerald-300' }}">
+                <i class="fas fa-check-circle"></i> Disetujui
+            </a>
+            @if(request('status'))
+            <a href="{{ route('admin.alumni-directory.index', request()->except('status')) }}" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">
+                Semua Status
+            </a>
+            @endif
+        </div>
     </div>
 
     <!-- Tab Guide Info Box -->
@@ -81,13 +106,34 @@
     @if(session('success'))
     <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 px-5 py-4 rounded-2xl flex items-center gap-3 shadow-sm">
         <i class="fas fa-check-circle text-emerald-600 text-xl"></i>
-        <span class="font-medium text-sm">{{ session('success') }}</span>
+        <span class="font-medium text-sm">{!! session('success') !!}</span>
+    </div>
+    @endif
+
+    @if(isset($pendingCount) && $pendingCount > 0 && !request('status'))
+    <div class="bg-amber-500/10 border border-amber-500/30 text-amber-900 px-5 py-4 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-exclamation-triangle text-amber-600 text-xl"></i>
+            <span class="font-medium text-sm">Terdapat <strong>{{ $pendingCount }}</strong> pendaftaran alumni baru yang membutuhkan verifikasi & persetujuan Anda.</span>
+        </div>
+        <a href="{{ route('admin.alumni-directory.index', ['status' => 'pending']) }}" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs transition shrink-0">
+            Tinjau Pendaftaran →
+        </a>
     </div>
     @endif
 
     <!-- Admin Filter & Search Bar -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
-        <form action="{{ route('admin.alumni-directory.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form action="{{ route('admin.alumni-directory.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Status Publik</label>
+                <select name="status" class="w-full rounded-xl border-slate-300 text-xs font-medium focus:ring-purple-500 focus:border-purple-500" onchange="this.form.submit()">
+                    <option value="">-- Semua Status --</option>
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu Persetujuan</option>
+                    <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Disetujui</option>
+                </select>
+            </div>
+
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Filter Unit Sekolah / IKA</label>
                 <select name="school_id" class="w-full rounded-xl border-slate-300 text-xs font-medium focus:ring-purple-500 focus:border-purple-500" onchange="this.form.submit()">
@@ -119,7 +165,7 @@
                 <button type="submit" class="w-full px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
                     <i class="fas fa-search"></i> Cari Data
                 </button>
-                @if(request()->anyFilled(['school_id', 'graduation_year', 'search']))
+                @if(request()->anyFilled(['status', 'school_id', 'graduation_year', 'search']))
                     <a href="{{ route('admin.alumni-directory.index') }}" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition border border-slate-300" title="Reset Filter">
                         <i class="fas fa-undo"></i>
                     </a>
