@@ -143,13 +143,14 @@ function getCandidates(string $rawUid): array {
   <?php if (count($students) > 0): ?>
     <table>
       <thead>
-        <tr><th>ID</th><th>Nama Siswa</th><th>NIS</th><th>RFID UID di DB</th><th>Status</th><th>Evaluasi Absen</th></tr>
+        <tr><th>ID</th><th>Nama Siswa</th><th>NIS</th><th>RFID UID di DB</th><th>Status</th><th>Evaluasi RFID</th><th>Absen Hari Ini (<?= date('d/m/Y') ?>)</th></tr>
       </thead>
       <tbody>
         <?php foreach ($students as $s): ?>
           <?php
             $isActive = in_array(strtolower($s->status), ['calon', 'aktif', 'naik']);
             $matchDirect = in_array(strtoupper($s->rfid_uid ?? ''), $candidates);
+            $todayAtt = DB::table('attendances')->where('student_id', $s->id)->where('date', date('Y-m-d'))->first();
           ?>
           <tr>
             <td><?= $s->id ?></td>
@@ -159,11 +160,19 @@ function getCandidates(string $rawUid): array {
             <td><span class="badge <?= $isActive ? 'badge-active' : 'badge-inactive' ?>"><?= strtoupper($s->status) ?></span></td>
             <td>
               <?php if ($matchDirect && $isActive): ?>
-                <span style="color:#16a34a;font-weight:700">✅ Terdaftar & Aktif (BISA ABSEN)</span>
+                <span style="color:#16a34a;font-weight:700">✅ Terdaftar &amp; Aktif (BISA ABSEN)</span>
               <?php elseif ($matchDirect && !$isActive): ?>
                 <span style="color:#dc2626;font-weight:700">❌ Terdaftar tapi Status Non-Aktif</span>
               <?php else: ?>
                 <span style="color:#eab308;font-weight:700">⚠️ Ditemukan dari pencarian nama (RFID DB beda)</span>
+              <?php endif; ?>
+            </td>
+            <td>
+              <?php if ($todayAtt): ?>
+                <span style="color:#16a34a;font-weight:700">🎉 Sudah Absen Masuk (<?= substr($todayAtt->time_in, 0, 5) ?>)</span>
+                <?= $todayAtt->time_out ? "<br><span style='color:#2563eb'>Pulang: " . substr($todayAtt->time_out, 0, 5) . "</span>" : "" ?>
+              <?php else: ?>
+                <span style="color:#64748b">Belum Absen Hari Ini</span>
               <?php endif; ?>
             </td>
           </tr>
