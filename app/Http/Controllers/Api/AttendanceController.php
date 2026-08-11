@@ -30,24 +30,16 @@ class AttendanceController extends Controller
             }
 
             $request->validate(['uid' => 'required|string']);
-            $uid = strtoupper(trim($request->uid));
+            $rawUid = strtoupper(trim($request->uid));
             
-            // --- HACK UNTUK STATION LAMA (BACKWARD COMPATIBILITY) ---
-            // Jika UID dari hardware lama masih berupa angka desimal murni (misal: 50012561)
-            // Kita ubah otomatis ke format Hex USB Scanner (misal: 02FB2191)
-            if (preg_match('/^\d+$/', $uid) && strlen($uid) >= 6 && strlen($uid) <= 12) {
-                $num = (int)$uid;
-                if ($num > 0 && $num <= 4294967295) {
-                    $hexUid = strtoupper(dechex($num));
-                    $uid = str_pad($hexUid, 8, '0', STR_PAD_LEFT);
-                }
-            }
+            // Generate semua variasi UID (Hex, Reversed Hex, Decimal, Reversed Decimal)
+            $candidates = $this->getUidCandidates($rawUid);
 
             $type = $request->input('type'); // Opsional: 'rfid' atau 'qr'
 
             // Tulis UID ke scan-buffer agar browser (modal registrasi RFID) bisa mengambilnya
             $bufferFile = storage_path('app/rfid_scan_buffer.json');
-            file_put_contents($bufferFile, json_encode(['uid' => strtoupper($uid), 'time' => time()]));
+            file_put_contents($bufferFile, json_encode(['uid' => $rawUid, 'candidates' => $candidates, 'time' => time()]));
             
             $today = now()->format('Y-m-d');
             $currentTime = now()->format('H:i:s');
@@ -57,56 +49,68 @@ class AttendanceController extends Controller
             $tefaEmployee = null;
 
             // 2. IDENTIFIKASI (RFID vs QR untuk Siswa/Guru)
-            // Jika tipe adalah rfid, atau tidak dikirim (kita asumsikan coba cari rfid dulu)
             if (!$type || $type === 'rfid') {
-                // Cari di Siswa berdasarkan RFID
-                $student = \App\Models\Student::where('rfid_uid', $uid)
+                // Cari di Siswa berdasarkan RFID (mencakup semua variasi candidates)
+                $student = \App\Models\Student::whereIn('rfid_uid', $candidates)
                     ->whereIn('status', \App\Models\StudentStatusHistory::ACTIVE_STATUSES)
                     ->first();
 
-                // Jika tidak ketemu di Siswa, cari di Pegawai/Guru berdasarkan RFID
+                // Jika tidak ketemu di Siswa aktif, cari di Pegawai/Guru berdasarkan RFID
                 if (!$student) {
-                    $employee = \App\Models\Employee::where('rfid_uid', $uid)
+                    $employee = \App\Models\Employee::whereIn('rfid_uid', $candidates)
                         ->where('is_active', true)
                         ->first();
                 }
 
                 // Jika tidak ketemu di Pegawai, cari di Karyawan TEFA berdasarkan RFID
                 if (!$student && !$employee) {
-                    $tefaEmployee = \App\Models\TefaEmployee::where('rfid_uid', $uid)
+                    $tefaEmployee = \App\Models\TefaEmployee::whereIn('rfid_uid', $candidates)
                         ->where('is_active', true)
                         ->first();
                 }
             }
 
             // Jika masih belum ketemu (mungkin input QR Code berisi NIS/NIP) atau jika tipe eksplisit 'qr'
-            if (!$student && !$employee) {
+            if (!$student && !$employee && !$tefaEmployee) {
                 // Cari di Siswa berdasarkan NIS atau NISN (QR Code Kertas)
-                $student = \App\Models\Student::where(function($q) use ($uid) {
-                        $q->where('nis', $uid)->orWhere('nisn', $uid);
+                $student = \App\Models\Student::where(function($q) use ($candidates) {
+                        $q->whereIn('nis', $candidates)->orWhereIn('nisn', $candidates);
                     })
                     ->whereIn('status', \App\Models\StudentStatusHistory::ACTIVE_STATUSES)
                     ->first();
 
                 // Jika tidak ketemu di Siswa, cari di Pegawai/Guru berdasarkan NIP atau Kode Pegawai
                 if (!$student) {
-                    $employee = \App\Models\Employee::where(function($q) use ($uid) {
-                            $q->where('nip', $uid)->orWhere('employee_code', $uid);
+                    $employee = \App\Models\Employee::where(function($q) use ($candidates) {
+                            $q->whereIn('nip', $candidates)->orWhereIn('employee_code', $candidates);
                         })
                         ->where('is_active', true)
                         ->first();
                 }
             }
 
-            // 3. JIKA TIDAK DITEMUKAN → Kartu Baru, simpan di scan-buffer
+            // 3. JIKA TIDAK DITEMUKAN → Cek diagnosa status non-aktif sebelum melempar "KARTU BARU"
             if (!$student && !$employee && !$tefaEmployee) {
+                // Cek apakah ada siswa dengan RFID ini tapi statusnya tidak termasuk ACTIVE_STATUSES
+                $inactiveStudent = \App\Models\Student::whereIn('rfid_uid', $candidates)->first();
+                if ($inactiveStudent) {
+                    return response()->json([
+                        'status' => 'error',
+                        'nama' => substr($inactiveStudent->full_name, 0, 16),
+                        'message' => 'Status: ' . strtoupper($inactiveStudent->status ?? 'NON-AKTIF'),
+                        'action_code' => 'INACTIVE_STUDENT',
+                        'uid' => $rawUid,
+                        'waktu' => date('H:i'),
+                    ], 200);
+                }
+
                 return response()->json([
                     'status' => 'info',
                     'nama' => 'KARTU BARU',
-                    'kelas' => 'UID: ' . strtoupper($uid),
+                    'kelas' => 'UID: ' . $rawUid,
                     'message' => 'Daftarkan di Admin',
                     'action_code' => 'NEW_CARD',
-                    'uid' => strtoupper($uid),
+                    'uid' => $rawUid,
                     'waktu' => date('H:i'),
                 ], 200);
             }
@@ -556,5 +560,48 @@ class AttendanceController extends Controller
 
         return $d;
     }
+
+    /**
+     * Hasilkan semua variasi format UID (Hex, Reversed Hex, Decimal, Reversed Decimal)
+     * agar cocok dengan berbagai macam jenis hardware kiosk/scanner.
+     */
+    private function getUidCandidates(string $rawUid): array
+    {
+        $uid = strtoupper(trim($rawUid));
+        $candidates = [$uid];
+
+        // 1. Jika berupa angka desimal (misal: 1942267419 atau 50012561)
+        if (preg_match('/^\d+$/', $uid) && strlen($uid) >= 6 && strlen($uid) <= 12) {
+            $num = (float)$uid;
+            if ($num > 0 && $num <= 4294967295) {
+                $hex = strtoupper(str_pad(dechex((int)$num), 8, '0', STR_PAD_LEFT));
+                $candidates[] = $hex;
+                
+                // Tambahkan reversed byte hex dari desimal ini
+                if (strlen($hex) === 8) {
+                    $revHex = $hex[6].$hex[7].$hex[4].$hex[5].$hex[2].$hex[3].$hex[0].$hex[1];
+                    $candidates[] = $revHex;
+                    $candidates[] = (string) hexdec($revHex);
+                }
+            }
+        }
+
+        // 2. Jika berupa string Hex (misal: 73C4661B atau 1B66C473)
+        if (ctype_xdigit($uid)) {
+            // Konversi Hex ke Desimal
+            $dec = (string) hexdec($uid);
+            $candidates[] = $dec;
+
+            // Jika 8 Karakter Hex, coba balikkan endianness (Byte Reversal)
+            if (strlen($uid) === 8) {
+                $revHex = $uid[6].$uid[7].$uid[4].$uid[5].$uid[2].$uid[3].$uid[0].$uid[1];
+                $candidates[] = $revHex;
+                $candidates[] = (string) hexdec($revHex);
+            }
+        }
+
+        return array_values(array_unique(array_filter($candidates)));
+    }
 }
+
 
