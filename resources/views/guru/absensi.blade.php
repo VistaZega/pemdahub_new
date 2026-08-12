@@ -324,7 +324,7 @@
                                                     };
                                                 }
                                             @endphp
-                                            <td class="px-1 py-1.5 text-center border-r border-gray-100 {{ $isInputCol ? 'bg-amber-50/80 border-x-2 border-amber-300' : '' }} {{ !$isWajib && !$stStatus ? 'bg-gray-100/50' : '' }}">
+                                            <td class="px-1 py-1.5 text-center border-r border-gray-100 {{ $isInputCol ? 'bg-amber-50/80 border-x-2 border-amber-300' : '' }} {{ !$isWajib && !$stStatus ? 'bg-red-100/50' : '' }}">
                                                 @if($isInputCol && $isWajib)
                                                     {{-- Mode Edit (editMode = true): Tampilkan Toggle Buttons --}}
                                                     @php
@@ -368,10 +368,7 @@
                                                 @elseif($stStatus)
                                                     <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black {{ $stBadge }}">{{ $stChar }}</span>
                                                 @elseif(!$isWajib)
-                                                    <span class="fa-stack" style="font-size: 0.55em; vertical-align: middle;" title="Tidak Wajib Hadir (Beda Kelompok/Mata Pelajaran)">
-                                                        <i class="fas fa-hand-paper fa-stack-1x text-amber-500"></i>
-                                                        <i class="fas fa-ban fa-stack-2x text-red-600"></i>
-                                                    </span>
+                                                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black bg-red-500 text-white shadow-xs" title="Tidak Wajib Hadir / Beda Kelompok Blok">✕</span>
                                                 @else
                                                     <span class="text-gray-200">.</span>
                                                 @endif
