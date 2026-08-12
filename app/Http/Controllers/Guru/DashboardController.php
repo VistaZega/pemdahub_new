@@ -795,6 +795,7 @@ class DashboardController extends Controller
                 $scheduledDays = $schedulesQuery->pluck('day_of_week')->map(fn($day) => strtolower(trim($day)))->unique()->toArray();
                 
                 $calculatedDates = [];
+                $scheduledFullDates = [];
                 
                 if (!empty($scheduledDays)) {
                     $startOfMonth = \Carbon\Carbon::createFromDate($selectedYear, $selectedMonth, 1);
@@ -804,14 +805,34 @@ class DashboardController extends Controller
                         $dayNameStr = strtolower($date->format('l'));
                         if (in_array($dayNameStr, $scheduledDays)) {
                             $calculatedDates[] = $date->day;
+                            $scheduledFullDates[] = $date->format('Y-m-d');
                         }
                     }
                 }
                 
-                $selectedInputDate = $request->input('input_date', date('Y-m-d'));
+                // Smart Default Selected Input Date based on Teacher Schedule
+                if ($request->has('input_date')) {
+                    $selectedInputDate = $request->input('input_date');
+                } else {
+                    $todayStr = date('Y-m-d');
+                    if (in_array($todayStr, $scheduledFullDates)) {
+                        $selectedInputDate = $todayStr;
+                    } elseif (!empty($scheduledFullDates)) {
+                        // Cari tanggal jadwal mengajar terakhir yang <= hari ini, atau tanggal mengajar pertama
+                        $pastOrTodayScheduled = array_filter($scheduledFullDates, fn($d) => $d <= $todayStr);
+                        if (!empty($pastOrTodayScheduled)) {
+                            $selectedInputDate = end($pastOrTodayScheduled);
+                        } else {
+                            $selectedInputDate = $scheduledFullDates[0];
+                        }
+                    } else {
+                        $selectedInputDate = $todayStr;
+                    }
+                }
+
                 $inputCarbon = \Carbon\Carbon::parse($selectedInputDate);
                 
-                // If input_date is in the selected month and year, ensure its day is in $lessonDates
+                // Jika input_date di bulan & tahun yang sama, pastikan tanggal tersebut ada di $lessonDates
                 if ((int)$inputCarbon->format('n') === (int)$selectedMonth && (int)$inputCarbon->format('Y') === (int)$selectedYear) {
                     $calculatedDates[] = (int)$inputCarbon->format('j');
                 }
