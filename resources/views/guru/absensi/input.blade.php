@@ -1,5 +1,5 @@
 @extends('layouts.guru')
-@section('title', 'Input Absensi Kelas - Portal Guru')
+@section('title', 'Input Absen Pelajaran - Portal Guru')
 
 @section('content')
 <div class="space-y-6">
@@ -7,11 +7,10 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
             <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-clipboard-check text-purple-500"></i> Input Absensi Kelas
+                <i class="fas fa-clipboard-check text-purple-500"></i> Input Absen Pelajaran Saya
             </h1>
-            <p class="text-sm text-gray-500 mt-0.5">
-                Catat kehadiran siswa saat kegiatan belajar mengajar (KBM) berlangsung.
-                @if($activeYear) · {{ $activeYear->year }} @endif
+            <p class="text-gray-500 text-sm mt-1">
+                Catat kehadiran siswa khusus pada mata pelajaran yang Bapak/Ibu ampu. Absensi ini tidak mengubah absen harian sekolah. &middot; TP. {{ $activeYear->name ?? '-' }}
             </p>
         </div>
         <a href="{{ route('guru.absensi') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium transition">

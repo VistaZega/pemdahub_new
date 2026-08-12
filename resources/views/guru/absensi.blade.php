@@ -19,7 +19,7 @@
             </div>
             <div class="flex items-center gap-2 flex-wrap">
                 <a href="{{ route('guru.absensi.input') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-2xl text-xs font-black uppercase tracking-wider shadow-md transition">
-                    <i class="fas fa-plus-circle text-black"></i> Input Absensi
+                    <i class="fas fa-plus-circle text-black"></i> Input Absen Pelajaran
                 </a>
                 <form method="GET" class="flex items-center gap-2 flex-wrap">
                     <select name="classroom_id" onchange="this.form.submit()" class="text-xs font-black border-2 border-black rounded-2xl px-4 py-2.5 shadow-sm outline-none cursor-pointer" style="color: #000000 !important; background-color: #ffffff !important;">

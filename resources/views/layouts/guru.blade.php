@@ -174,7 +174,7 @@
             <i class="fas fa-eye mr-1.5 text-[10px]"></i>Rekap Absensi
         </a>
         <a href="{{ route('guru.absensi.input') }}" class="block text-xs px-3 py-1.5 rounded-lg transition {{ request()->routeIs('guru.absensi.input') ? 'bg-emerald-100 text-emerald-950 font-black border border-black' : 'text-slate-700 font-bold hover:text-black hover:bg-slate-100' }}">
-            <i class="fas fa-edit mr-1.5 text-[10px]"></i>Input Absensi
+            <i class="fas fa-edit mr-1.5 text-[10px]"></i>Input Absen Pelajaran
         </a>
     </div>
     @endif
