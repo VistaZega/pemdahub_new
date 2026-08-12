@@ -63,6 +63,11 @@ try {
     $outputClear = new \Symfony\Component\Console\Output\BufferedOutput();
     \Illuminate\Support\Facades\Artisan::call('view:clear', [], $outputClear);
     echo "View Clear Result: " . trim($outputClear->fetch()) . "\n";
+
+    // Truncate Menara Prestasi bricks to trigger new realistic seed
+    \Illuminate\Support\Facades\DB::table('pembda_tower_bricks')->truncate();
+    \Illuminate\Support\Facades\DB::table('pembda_tower_brick_likes')->truncate();
+    echo "Menara Prestasi reset successfully.\n";
 } catch (\Exception $e) {
     echo "Migration Notice: " . $e->getMessage() . "\n";
 }
