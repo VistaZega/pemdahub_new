@@ -768,14 +768,29 @@ class DashboardController extends Controller
                 if ($assignments->isNotEmpty()) {
                     $filterService = app(\App\Services\TeachingAssignmentStudentFilterService::class);
                     $allWajibIds = collect();
+                    $infoList = [];
                     foreach ($assignments as $assignment) {
                         $wajibStudents = $filterService->getStudentsForAssignment($assignment);
                         $allWajibIds = $allWajibIds->merge($wajibStudents->pluck('id'));
+
+                        $subjName = $assignment->subject->name ?? 'Mata Pelajaran';
+                        $blockLabel = \App\Models\TeachingAssignment::BLOCK_TYPES[$assignment->block_type] ?? 'Reguler';
+                        $infoList[] = "$subjName ($blockLabel)";
                     }
                     $wajibStudentIds = $allWajibIds->intersect($classroomStudents->pluck('id'))->unique()->toArray();
+                    $assignmentInfo = implode(' | ', $infoList);
                 } else {
                     $wajibStudentIds = $classroomStudents->pluck('id')->toArray();
+                    $assignmentInfo = 'Reguler';
                 }
+
+                // Get dynamic dates for lesson matrix
+                $lessonDates = $attendances->pluck('date')
+                    ->map(fn($d) => (int)\Carbon\Carbon::parse($d)->format('j'))
+                    ->unique()
+                    ->sort()
+                    ->values()
+                    ->toArray();
 
                 $summary = [
                     'present' => $monthlyAttendances->where('status', 'hadir')->count(),
@@ -794,7 +809,8 @@ class DashboardController extends Controller
             'selectedClassroom', 'attendances', 'summary', 'activeYear',
             'selectedMonth', 'selectedYear', 'monthsList', 'daysInMonth',
             'classroomStudents', 'matrixMap', 'studentStats',
-            'lessonMatrixMap', 'lessonStudentStats', 'wajibStudentIds'
+            'lessonMatrixMap', 'lessonStudentStats', 'wajibStudentIds',
+            'assignmentInfo', 'lessonDates'
         ));
     }
 
