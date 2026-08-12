@@ -97,7 +97,7 @@
         </div>
 
         {{-- Tab Controls & Action --}}
-        <div x-data="{ viewMode: '{{ request('viewMode', request('input_date') ? 'log' : 'matrix') }}' }" class="space-y-4">
+        <div x-data="{ viewMode: '{{ request('viewMode', request('input_date') ? 'log' : 'matrix') }}', editMode: false }" class="space-y-4">
             <div class="flex items-center justify-between gap-4 flex-wrap bg-white p-2 rounded-2xl border border-gray-100 shadow-sm print-hide">
                 <div class="flex items-center gap-2">
                     <button @click="viewMode = 'matrix'" :class="viewMode === 'matrix' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 border border-black">
@@ -197,10 +197,24 @@
                     @csrf
                     <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
 
-                    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-purple-50/50">
-                        <h2 class="font-bold text-purple-900 flex items-center gap-2">
-                            <i class="fas fa-chalkboard-teacher text-purple-500"></i> Rekap & Input Kehadiran Pelajaran Saya
-                        </h2>
+                    <div class="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3 bg-purple-50/50">
+                        <div>
+                            <h2 class="font-bold text-purple-900 flex items-center gap-2">
+                                <i class="fas fa-chalkboard-teacher text-purple-500"></i> Rekap & Input Kehadiran Pelajaran Saya
+                            </h2>
+                            <div class="mt-1">
+                                <button type="button" @click="editMode = !editMode" 
+                                    :class="editMode ? 'bg-amber-400 hover:bg-amber-300 text-black border-2 border-black' : 'bg-gray-900 hover:bg-gray-800 text-white border-2 border-black'"
+                                    class="px-3.5 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-2 shadow-sm print-hide">
+                                    <template x-if="!editMode">
+                                        <span class="flex items-center gap-1.5"><i class="fas fa-lock text-amber-400"></i> Mode Terkunci (Klik untuk Buka Mode Edit)</span>
+                                    </template>
+                                    <template x-if="editMode">
+                                        <span class="flex items-center gap-1.5"><i class="fas fa-unlock text-black"></i> Mode Edit Aktif (Klik untuk Kunci Kembali)</span>
+                                    </template>
+                                </button>
+                            </div>
+                        </div>
                         <div class="text-right">
                             <div class="text-sm md:text-base font-black text-purple-900 bg-purple-100/90 border border-purple-200 px-4 py-1.5 rounded-xl mb-1 inline-block shadow-sm">
                                 {{ $selectedClassroom->class_name }} ({{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }})
@@ -213,13 +227,13 @@
                         </div>
                     </div>
 
-                    {{-- Toolbar Form Input --}}
+                    {{-- Toolbar Form Input (Hanya Muncul saat editMode = true) --}}
                     @php
                         $inputDay = (int)\Carbon\Carbon::parse($selectedInputDate)->format('j');
                         $inputMonth = (int)\Carbon\Carbon::parse($selectedInputDate)->format('n');
                         $inputYear = (int)\Carbon\Carbon::parse($selectedInputDate)->format('Y');
                     @endphp
-                    <div class="px-5 py-3 bg-purple-100/60 border-b border-purple-200 flex flex-wrap items-center justify-between gap-3 print-hide">
+                    <div x-show="editMode" x-transition class="px-5 py-3 bg-purple-100/60 border-b border-purple-200 flex flex-wrap items-center justify-between gap-3 print-hide">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-xs font-black text-purple-950 uppercase tracking-wider flex items-center gap-1.5">
                                 <i class="fas fa-edit text-purple-600"></i> Tanggal Absensi:
@@ -312,11 +326,11 @@
                                             @endphp
                                             <td class="px-1 py-1.5 text-center border-r border-gray-100 {{ $isInputCol ? 'bg-amber-50/80 border-x-2 border-amber-300' : '' }} {{ !$isWajib && !$stStatus ? 'bg-gray-100/50' : '' }}">
                                                 @if($isInputCol && $isWajib)
-                                                    {{-- Alpine.js Interactive Control untuk Tanggal Input --}}
+                                                    {{-- Mode Edit (editMode = true): Tampilkan Toggle Buttons --}}
                                                     @php
                                                         $currVal = $stStatus ?? 'hadir';
                                                     @endphp
-                                                    <div x-data="{ status: '{{ $currVal }}' }" @mark-all-hadir.window="status = 'hadir'" class="inline-flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-purple-200 shadow-sm print-hide">
+                                                    <div x-show="editMode" x-transition x-data="{ status: '{{ $currVal }}' }" @mark-all-hadir.window="status = 'hadir'" class="inline-flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-purple-200 shadow-sm print-hide">
                                                         <input type="hidden" name="statuses[{{ $st->id }}]" :value="status">
                                                         
                                                         <button type="button" @click="status = 'hadir'" 
@@ -343,10 +357,14 @@
                                                             A
                                                         </button>
                                                     </div>
-                                                    {{-- Fallback badge untuk cetakan/print --}}
-                                                    <span class="hidden print-inline-block font-bold text-[10px]">
-                                                        {{ strtoupper(substr($currVal, 0, 1)) }}
-                                                    </span>
+                                                    {{-- Mode Terkunci (editMode = false) --}}
+                                                    <div x-show="!editMode">
+                                                        @if($stStatus)
+                                                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black {{ $stBadge }}">{{ $stChar }}</span>
+                                                        @else
+                                                            <span class="text-gray-200">.</span>
+                                                        @endif
+                                                    </div>
                                                 @elseif($stStatus)
                                                     <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black {{ $stBadge }}">{{ $stChar }}</span>
                                                 @elseif(!$isWajib)
