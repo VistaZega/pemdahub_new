@@ -190,12 +190,7 @@ class TowerController extends Controller
     private function seedInitialBricks()
     {
         $samples = [
-            ['msg' => 'Selamat Datang di Menara Prestasi Pembda! Mari bersatu membangun masa depan.', 'color' => 'indigo'],
-            ['msg' => 'Semangat belajar untuk seluruh siswa SD, SMP, SMA, dan SMK Pembda!', 'color' => 'amber'],
-            ['msg' => 'Salam hormat untuk Bapak/Ibu Guru dan Pengurus Yayasan Perguruan Pembda Nias.', 'color' => 'emerald'],
-            ['msg' => 'Inovasi, Integritas, dan Prestasi Tanpa Batas!', 'color' => 'purple'],
-            ['msg' => 'Sukses untuk ujian dan kegiatan belajar mengajar minggu ini!', 'color' => 'rose'],
-            ['msg' => 'Bersama Perguruan Pembda, kita pasti bisa menggapai cita-cita tinggi!', 'color' => 'cyan'],
+            ['msg' => 'Mari bersatu membangun masa depan dan meraih prestasi di Perguruan Pembda!', 'color' => 'indigo'],
         ];
 
         // Dapatkan user ID pertama dari database

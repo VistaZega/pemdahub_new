@@ -354,7 +354,7 @@
                                     <div class="flex justify-center gap-[3px]">
                                         <template x-for="(b, bIdx) in row" :key="bIdx">
                                             <div @click="selectedBrick = b"
-                                                 class="h-6 w-9 sm:h-7 sm:w-12 md:h-8 md:w-14 cursor-pointer hover:-translate-y-1 hover:scale-110 hover:z-10 transition-all shadow-md border border-white/30 rounded-sm relative group flex items-center justify-center"
+                                                 class="h-7 w-10 sm:h-9 sm:w-16 md:h-10 md:w-20 lg:h-12 lg:w-24 cursor-pointer hover:-translate-y-1 hover:scale-110 hover:z-10 transition-all shadow-md border border-white/30 rounded-sm relative group flex items-center justify-center"
                                                  :class="{
                                                      'bg-gradient-to-br from-indigo-500 to-indigo-700': b.color === 'indigo',
                                                      'bg-gradient-to-br from-emerald-500 to-teal-700': b.color === 'emerald',
