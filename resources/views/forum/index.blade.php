@@ -337,6 +337,19 @@
                         <span class="text-[10px] bg-indigo-200/80 text-indigo-900 px-2 py-0.5 rounded-full font-extrabold">Jatah Hari Ini Selesai</span>
                     </div>
 
+                    <!-- Pesan Terakhir -->
+                    <template x-if="bricks.length > 0">
+                        <div class="mb-6 mx-auto w-full max-w-3xl bg-white border border-slate-200 rounded-xl p-4 shadow-sm text-center relative overflow-hidden">
+                            <!-- Background decoration -->
+                            <div class="absolute top-0 right-0 -mt-2 -mr-2 text-indigo-100 opacity-50">
+                                <i class="ph-fill ph-quotes text-6xl"></i>
+                            </div>
+                            <p class="text-[10px] text-indigo-500 font-black mb-1.5 uppercase tracking-widest relative z-10">🌟 Motivasi Terakhir Dipasang</p>
+                            <p class="text-sm sm:text-base font-medium italic text-slate-800 relative z-10" x-text="`&quot;${bricks[bricks.length - 1].msg}&quot;`"></p>
+                            <p class="text-[11px] text-slate-500 mt-2 font-semibold relative z-10" x-text="`- ${bricks[bricks.length - 1].user_name} (${bricks[bricks.length - 1].user_unit})`"></p>
+                        </div>
+                    </template>
+
                     <!-- ============ TOWER VISUAL (Piramida — lebar bawah, mengecil ke atas) ============ -->
                     <div class="flex flex-col items-center py-2">
 
