@@ -202,11 +202,11 @@
                             <i class="fas fa-chalkboard-teacher text-purple-500"></i> Rekap & Input Kehadiran Pelajaran Saya
                         </h2>
                         <div class="text-right">
-                            <div class="text-xs font-semibold text-purple-600 bg-purple-100 px-3 py-1 rounded-full mb-1 inline-block">
+                            <div class="text-sm md:text-base font-black text-purple-900 bg-purple-100/90 border border-purple-200 px-4 py-1.5 rounded-xl mb-1 inline-block shadow-sm">
                                 {{ $selectedClassroom->class_name }} ({{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }})
                             </div>
                             @if(isset($assignmentInfo))
-                            <div class="text-[10px] font-bold text-purple-800">
+                            <div class="text-xs md:text-sm font-black text-purple-900 mt-0.5">
                                 {{ $assignmentInfo }}
                             </div>
                             @endif
