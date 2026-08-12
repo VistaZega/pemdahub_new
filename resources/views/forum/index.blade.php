@@ -66,8 +66,8 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
     .forum-thread-card:hover {
-        border-color: #c7d2fe;
-        box-shadow: 0 4px 20px rgba(99,102,241,0.08);
+        border-color: #fecdd3;
+        box-shadow: 0 4px 20px rgba(225,29,72,0.08);
         transform: translateY(-1px);
     }
 
@@ -78,16 +78,16 @@
         color: #1e293b !important;
     }
     .forum-search:focus {
-        border-color: #6366f1 !important;
+        border-color: #e11d48 !important;
         background: #fff !important;
-        box-shadow: 0 0 0 3px rgba(99,102,241,0.1) !important;
+        box-shadow: 0 0 0 3px rgba(225,29,72,0.1) !important;
     }
     .forum-search::placeholder { color: #94a3b8 !important; }
 
     /* Sidebar active channel */
     .channel-active {
-        background: linear-gradient(135deg, #eef2ff, #f5f3ff) !important;
-        color: #4f46e5 !important;
+        background: linear-gradient(135deg, #fef2f2, #fff1f2) !important;
+        color: #dc2626 !important;
         font-weight: 700 !important;
     }
     .channel-hover:hover {
@@ -127,12 +127,12 @@
         <!-- Mobile Header & Toggle -->
         <div class="md:hidden flex items-center justify-between bg-white p-4 border-b border-slate-100">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 shadow-md shadow-indigo-500/30 flex items-center justify-center flex-shrink-0">
-                    <i class="ph-bold ph-lightning text-white text-xl"></i>
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-600 via-red-500 to-red-700 shadow-md shadow-red-600/30 flex items-center justify-center flex-shrink-0">
+                    <i class="ph-bold ph-flag-banner text-white text-xl"></i>
                 </div>
                 <div class="flex flex-col justify-center">
                     <h1 class="forum-hdr text-xl font-bold text-slate-900 tracking-tight leading-tight m-0 p-0">Pembda Space</h1>
-                    <span class="text-[10px] text-slate-900 font-black uppercase tracking-widest leading-none -mt-0.5">COMMUNITY</span>
+                    <span class="text-[10px] text-red-600 font-black uppercase tracking-widest leading-none -mt-0.5">EDISI KEMERDEKAAN 🇮🇩</span>
                 </div>
             </div>
             <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="p-2 bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition">
@@ -146,12 +146,12 @@
             <div class="p-5 h-full flex flex-col gap-6 max-h-[85vh] overflow-y-auto no-scrollbar">
                 <!-- Logo (Desktop) -->
                 <div class="hidden md:flex items-center gap-3 px-2 mb-2">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 shadow-md shadow-indigo-500/30 flex items-center justify-center flex-shrink-0">
-                        <i class="ph-bold ph-lightning text-white text-2xl"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-600 via-red-500 to-red-700 shadow-md shadow-red-600/30 flex items-center justify-center flex-shrink-0">
+                        <i class="ph-bold ph-flag-banner text-white text-2xl"></i>
                     </div>
                     <div class="flex flex-col justify-center min-w-0">
                         <h1 class="forum-hdr text-xl font-bold text-slate-900 tracking-tight leading-tight m-0 p-0">Pembda Space</h1>
-                        <span class="text-[10px] text-slate-900 font-black uppercase tracking-widest leading-none -mt-0.5">COMMUNITY</span>
+                        <span class="text-[10px] text-red-600 font-black uppercase tracking-widest leading-none -mt-0.5">EDISI KEMERDEKAAN 🇮🇩</span>
                     </div>
                 </div>
 
@@ -161,7 +161,7 @@
                         <a href="{{ route('forum.index', array_filter(['search' => $search])) }}" 
                            class="flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 {{ !$category ? 'channel-active' : 'text-slate-900 font-semibold channel-hover' }}">
                             <div class="flex items-center gap-3">
-                                <i class="ph-bold ph-compass text-lg {{ !$category ? 'text-indigo-500' : '' }}"></i>
+                                <i class="ph-bold ph-compass text-lg {{ !$category ? 'text-red-600' : '' }}"></i>
                                 <span class="text-sm font-bold">Semua Saluran</span>
                             </div>
                         </a>
@@ -190,7 +190,7 @@
                                         <span class="text-sm truncate">{{ $cleanLabel }}</span>
                                     </div>
                                     @if($count > 0)
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $isActive ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-900' }}">{{ $count }}</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $isActive ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-900' }}">{{ $count }}</span>
                                     @endif
                                 </a>
                             @endforeach
@@ -237,7 +237,7 @@
                         <i class="ph-bold ph-cellphone-charging text-lg text-white"></i> <span class="text-white font-extrabold">Install APK</span>
                     </button>
                     <a href="{{ route('forum.create') }}" 
-                       class="flex px-6 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-extrabold text-sm shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-600/40 hover:scale-105 transition-all duration-200 items-center gap-2 whitespace-nowrap">
+                       class="flex px-6 py-2.5 rounded-full bg-gradient-to-r from-red-600 via-red-500 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-extrabold text-sm shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-600/40 hover:scale-105 transition-all duration-200 items-center gap-2 whitespace-nowrap">
                         <i class="ph-bold ph-plus text-base text-white"></i> <span class="text-white font-extrabold">Buat Post</span>
                     </a>
                 </div>
@@ -464,19 +464,19 @@
                 <div class="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <!-- Postingan Terbaru -->
                     @if(isset($latestHighlight))
-                        <a href="{{ route('forum.show', $latestHighlight) }}" class="block bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-indigo-300 transition group relative overflow-hidden">
+                        <a href="{{ route('forum.show', $latestHighlight) }}" class="block bg-gradient-to-br from-red-50 to-white border border-red-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-red-300 transition group relative overflow-hidden">
                             <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
-                                <i class="ph-bold ph-sparkle text-6xl text-indigo-600"></i>
+                                <i class="ph-bold ph-sparkle text-6xl text-red-600"></i>
                             </div>
                             <div class="flex items-center gap-2 mb-2">
-                                <span class="bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md flex items-center gap-1">
+                                <span class="bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md flex items-center gap-1">
                                     <i class="ph-bold ph-sparkle"></i> Terbaru
                                 </span>
                                 <span class="text-xs font-semibold text-slate-500">{{ $latestHighlight->created_at->diffForHumans() }}</span>
                             </div>
-                            <h3 class="font-bold text-slate-900 text-base md:text-lg leading-tight mb-2 group-hover:text-indigo-600 transition">{{ $latestHighlight->title }}</h3>
+                            <h3 class="font-bold text-slate-900 text-base md:text-lg leading-tight mb-2 group-hover:text-red-600 transition">{{ $latestHighlight->title }}</h3>
                             <div class="flex items-center gap-2 mt-auto pt-2">
-                                <img src="{{ $latestHighlight->user->avatar_url }}" class="w-6 h-6 rounded-full border border-indigo-200">
+                                <img src="{{ $latestHighlight->user->avatar_url }}" class="w-6 h-6 rounded-full border border-red-200">
                                 <span class="text-xs font-bold text-slate-700">{{ $latestHighlight->user->name }}</span>
                             </div>
                         </a>
@@ -484,19 +484,19 @@
 
                     <!-- Postingan Ter-rame (Trending) -->
                     @if(isset($trendingHighlight))
-                        <a href="{{ route('forum.show', $trendingHighlight) }}" class="block bg-gradient-to-br from-orange-50 to-white border border-orange-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-orange-300 transition group relative overflow-hidden">
+                        <a href="{{ route('forum.show', $trendingHighlight) }}" class="block bg-gradient-to-br from-rose-50 to-white border border-rose-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-rose-300 transition group relative overflow-hidden">
                             <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
-                                <i class="ph-bold ph-fire text-6xl text-orange-600"></i>
+                                <i class="ph-bold ph-fire text-6xl text-rose-600"></i>
                             </div>
                             <div class="flex items-center gap-2 mb-2">
-                                <span class="bg-orange-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md flex items-center gap-1">
+                                <span class="bg-rose-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md flex items-center gap-1">
                                     <i class="ph-bold ph-fire"></i> Sedang Hangat
                                 </span>
-                                <span class="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded">{{ $trendingHighlight->replies_count + $trendingHighlight->likes_count }} Interaksi</span>
+                                <span class="text-xs font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded">{{ $trendingHighlight->replies_count + $trendingHighlight->likes_count }} Interaksi</span>
                             </div>
-                            <h3 class="font-bold text-slate-900 text-base md:text-lg leading-tight mb-2 group-hover:text-orange-600 transition">{{ $trendingHighlight->title }}</h3>
+                            <h3 class="font-bold text-slate-900 text-base md:text-lg leading-tight mb-2 group-hover:text-rose-600 transition">{{ $trendingHighlight->title }}</h3>
                             <div class="flex items-center gap-2 mt-auto pt-2">
-                                <img src="{{ $trendingHighlight->user->avatar_url }}" class="w-6 h-6 rounded-full border border-orange-200">
+                                <img src="{{ $trendingHighlight->user->avatar_url }}" class="w-6 h-6 rounded-full border border-rose-200">
                                 <span class="text-xs font-bold text-slate-700">{{ $trendingHighlight->user->name }}</span>
                             </div>
                         </a>
@@ -1165,7 +1165,7 @@ function pembdaTower() {
 
 <!-- Mobile Floating Action Button (Buat Status / Post) -->
 <a href="{{ route('forum.create') }}" 
-   class="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-tr from-indigo-500 to-fuchsia-500 text-white rounded-full flex items-center justify-center shadow-xl shadow-indigo-500/40 hover:scale-110 active:scale-95 transition-all"
+   class="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-tr from-red-600 to-red-500 text-white rounded-full flex items-center justify-center shadow-xl shadow-red-500/40 hover:scale-110 active:scale-95 transition-all"
    title="Buat Status Baru">
     <i class="ph-bold ph-plus text-2xl"></i>
 </a>
