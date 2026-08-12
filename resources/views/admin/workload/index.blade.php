@@ -23,6 +23,9 @@
         to { opacity: 1; transform: translateY(0); }
     }
     .animate-in { animation: fadeInUp 0.5s ease-out; }
+    .workload-table th, .workload-table td {
+        border: 1px solid #cbd5e1;
+    }
 </style>
 @endpush
 
@@ -135,7 +138,7 @@
     {{-- ═══════════ WORKLOAD TABLE ═══════════ --}}
     <div class="bg-white border border-gray-100 rounded-2xl shadow-lg rounded-2xl shadow-lg overflow-hidden">
         <div class="overflow-x-auto custom-scrollbar">
-            <table class="w-full min-w-[1000px]">
+            <table class="w-full min-w-[1000px] workload-table">
                 <thead class="bg-gray-50 border-b border-gray-100">
                     @php
                         $selectedSchoolObj = isset($schools) && isset($schoolId) ? $schools->firstWhere('id', $schoolId) : null;
@@ -171,7 +174,7 @@
                         ];
                         $empStatusColor = $statusClasses[$employee->employment_status ?? ''] ?? 'bg-gray-100 text-gray-500';
                     @endphp
-                    <tr class="table-row-hover group border-b border-gray-50 transition-all duration-200">
+                    <tr class="table-row-hover group {{ $index % 2 == 0 ? 'bg-white' : 'bg-slate-100' }} transition-all duration-200">
                         {{-- No --}}
                         <td class="px-4 py-5 text-center align-top">
                             <span class="text-xs font-bold text-gray-400 group-hover:text-gray-700 transition-colors pt-0.5 inline-block">{{ $summaries->firstItem() + $index }}</span>
