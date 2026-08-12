@@ -186,7 +186,10 @@ class User extends Authenticatable
      */
     public function isSuperAdmin(): bool
     {
-        return $this->hasRole('superadmin') || session('active_role') === 'superadmin';
+        if (session()->has('active_role')) {
+            return session('active_role') === 'superadmin';
+        }
+        return $this->hasRole('superadmin');
     }
 
     /**
