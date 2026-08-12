@@ -92,7 +92,7 @@
 </style>
 
 <!-- App Window Wrapper -->
-<div class="w-full bg-forum-base text-forum-title font-['Inter'] rounded-3xl border border-forum mx-auto flex flex-col pt-4 pb-32 px-4 sm:px-6 relative shadow-sm" style="min-height: 85vh;" x-data="forumChat()">
+<div class="w-full bg-forum-base text-forum-title font-['Inter'] rounded-3xl border border-forum mx-auto flex flex-col pt-4 pb-32 px-4 sm:px-6 relative shadow-sm" style="min-height: 85vh; background-image: radial-gradient(rgba(220,38,38,0.03) 2px, transparent 2px); background-size: 24px 24px;" x-data="forumChat()">
     
     <!-- Top Nav Bar -->
     <div class="flex items-center justify-between bg-white/95 backdrop-blur-xl p-4 rounded-2xl border border-slate-200 mb-6 sticky top-4 z-40 shadow-sm">
@@ -101,7 +101,7 @@
                 <i class="ph-bold ph-arrow-left text-xl"></i>
             </a>
             <div class="min-w-0">
-                <div class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">{{ $thread->category_label }}</div>
+                <div class="text-[10px] font-bold text-red-600 uppercase tracking-wider">{{ $thread->category_label }}</div>
                 <h1 class="forum-hdr text-base sm:text-lg font-bold text-slate-800 line-clamp-1">{{ $thread->title }}</h1>
             </div>
         </div>
@@ -132,6 +132,19 @@
     </div>
     @endif
 
+    <!-- Small HUT KEMRI Banner -->
+    <div class="mb-6 w-full max-w-5xl mx-auto rounded-2xl overflow-hidden shadow-sm border border-red-200 relative bg-gradient-to-r from-red-600 to-red-700 p-4 flex items-center justify-between">
+        <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, #000 0, #000 2px, transparent 2px, transparent 10px);"></div>
+        <div class="relative flex items-center gap-3">
+            <span class="text-3xl">🇮🇩</span>
+            <div>
+                <h3 class="text-white font-bold text-sm">Semarak Kemerdekaan RI ke-81</h3>
+                <p class="text-red-100 text-xs font-medium hidden sm:block">Perguruan Pembda Nias Jaya Berprestasi dan Berkarya untuk Negeri</p>
+            </div>
+        </div>
+        <div class="relative text-white font-black text-2xl italic tracking-tighter opacity-50 pr-4">81 TH</div>
+    </div>
+
     <!-- CHAT AREA -->
     <div class="space-y-6 flex-1 flex flex-col max-w-5xl mx-auto w-full">
         
@@ -148,7 +161,9 @@
                 </div>
                 
                 <!-- Bubble -->
-                <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-5 sm:p-6 shadow-sm w-full max-w-3xl">
+                <div class="bg-white border border-red-100 rounded-2xl rounded-tl-none p-5 sm:p-6 shadow-sm shadow-red-100 w-full max-w-3xl relative">
+                    <!-- Subtle red accent line at the top -->
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-red-500 rounded-tr-2xl"></div>
                     <h2 class="forum-hdr text-xl sm:text-2xl font-bold text-slate-800 mb-4">{{ $thread->title }}</h2>
                     <div class="prose prose-slate prose-sm sm:prose-base max-w-none text-slate-700 leading-relaxed">
                         {!! nl2br(e($thread->content)) !!}
@@ -161,8 +176,8 @@
                     @endif
 
                     @if($thread->attachment_path)
-                        <a href="{{ asset('storage/' . $thread->attachment_path) }}" download class="mt-4 flex items-center gap-3 p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 rounded-xl transition max-w-sm">
-                            <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                        <a href="{{ asset('storage/' . $thread->attachment_path) }}" download class="mt-4 flex items-center gap-3 p-3 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-xl transition max-w-sm">
+                            <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
                                 <i class="ph-bold ph-file-arrow-down text-xl"></i>
                             </div>
                             <div class="min-w-0 flex-1">
@@ -253,21 +268,21 @@
 
         <!-- COLLAB PANEL (if active) -->
         @if(in_array($thread->category, ['project_idea', 'committee']) && $thread->status !== 'completed')
-            <div class="max-w-3xl ml-14 sm:ml-16 bg-white border border-blue-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
+            <div class="max-w-3xl ml-14 sm:ml-16 bg-white border border-rose-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1.5 h-full bg-rose-500"></div>
                 <h3 class="forum-hdr text-sm font-bold text-slate-800 flex items-center gap-2 mb-3">
-                    <i class="ph-bold ph-handshake text-blue-600"></i> Rekrutmen Tim
+                    <i class="ph-bold ph-handshake text-rose-600"></i> Rekrutmen Tim
                 </h3>
                 @if(auth()->id() !== $thread->user_id && $thread->status === 'seeking_members')
                     @php $hasApplied = $thread->members()->where('user_id', auth()->id())->exists(); @endphp
                     @if(!$hasApplied)
                         <form action="{{ route('forum.join', $thread) }}" method="POST" class="flex gap-2">
                             @csrf
-                            <input type="text" name="notes" placeholder="Pesan singkat (opsional)..." class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-blue-500 outline-none">
-                            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition shadow-sm">Gabung</button>
+                            <input type="text" name="notes" placeholder="Pesan singkat (opsional)..." class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-rose-500 outline-none">
+                            <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-lg transition shadow-sm">Gabung</button>
                         </form>
                     @else
-                        <div class="text-sm font-bold text-blue-600">Kamu sudah mendaftar. Menunggu persetujuan.</div>
+                        <div class="text-sm font-bold text-rose-600">Kamu sudah mendaftar. Menunggu persetujuan.</div>
                     @endif
                 @endif
             </div>
@@ -275,8 +290,8 @@
 
         <!-- POLL PANEL (if exists) -->
         @if($thread->poll)
-            <div class="max-w-3xl ml-14 sm:ml-16 bg-white border border-indigo-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
+            <div class="max-w-3xl ml-14 sm:ml-16 bg-white border border-red-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1.5 h-full bg-red-500"></div>
                 <h3 class="forum-hdr text-base font-bold text-slate-800 mb-4">{{ $thread->poll->question }}</h3>
                 <div class="space-y-3" id="poll-options-container">
                     @foreach($thread->poll->options as $option)
@@ -284,16 +299,16 @@
                             $pct = $option->percentage(); 
                             $hasVoted = $thread->poll->votes()->where('user_id', auth()->id())->where('forum_poll_option_id', $option->id)->exists();
                         @endphp
-                        <button onclick="votePoll({{ $option->id }})" class="w-full relative overflow-hidden rounded-xl border {{ $hasVoted ? 'border-indigo-500 bg-indigo-50/80' : 'border-slate-200 bg-slate-50 hover:bg-slate-100' }} p-3 text-left transition group">
+                        <button onclick="votePoll({{ $option->id }})" class="w-full relative overflow-hidden rounded-xl border {{ $hasVoted ? 'border-red-500 bg-red-50/80' : 'border-slate-200 bg-slate-50 hover:bg-slate-100' }} p-3 text-left transition group">
                             <!-- Progress Bar -->
-                            <div class="absolute top-0 left-0 h-full bg-indigo-200/50 transition-all duration-1000" style="width: {{ $pct }}%" id="poll-bg-{{ $option->id }}"></div>
+                            <div class="absolute top-0 left-0 h-full bg-red-200/50 transition-all duration-1000" style="width: {{ $pct }}%" id="poll-bg-{{ $option->id }}"></div>
                             
                             <div class="relative z-10 flex justify-between items-center text-sm font-bold">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-4 h-4 rounded-full border-2 {{ $hasVoted ? 'border-indigo-600 bg-indigo-600' : 'border-slate-400' }} flex items-center justify-center">
+                                    <div class="w-4 h-4 rounded-full border-2 {{ $hasVoted ? 'border-red-600 bg-red-600' : 'border-slate-400' }} flex items-center justify-center">
                                         @if($hasVoted)<div class="w-2 h-2 rounded-full bg-white"></div>@endif
                                     </div>
-                                    <span class="{{ $hasVoted ? 'text-indigo-900' : 'text-slate-700' }}">{{ $option->option_text }}</span>
+                                    <span class="{{ $hasVoted ? 'text-red-900' : 'text-slate-700' }}">{{ $option->option_text }}</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-slate-500">
                                     <span id="poll-pct-{{ $option->id }}">{{ $pct }}%</span>
@@ -419,9 +434,9 @@
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 py-3">
         <!-- Quote Preview Area -->
         <div id="quote-preview" class="hidden mb-2 ml-14 sm:ml-16 mr-14">
-            <div class="bg-slate-100 border-l-2 border-indigo-500 rounded-lg p-2.5 flex justify-between items-start gap-4">
+            <div class="bg-slate-100 border-l-2 border-red-500 rounded-lg p-2.5 flex justify-between items-start gap-4">
                 <div class="min-w-0">
-                    <div class="text-xs font-bold text-indigo-600 mb-0.5" id="quote-user"></div>
+                    <div class="text-xs font-bold text-red-600 mb-0.5" id="quote-user"></div>
                     <div class="text-xs text-slate-600 line-clamp-1" id="quote-text"></div>
                 </div>
                 <button type="button" onclick="cancelQuote()" class="text-slate-400 hover:text-slate-700 p-1">
@@ -456,7 +471,7 @@
                 </div>
             </div>
 
-            <div class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden focus-within:border-indigo-500 focus-within:bg-white transition-colors flex flex-col justify-center min-h-[48px]">
+            <div class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden focus-within:border-red-500 focus-within:bg-white transition-colors flex flex-col justify-center min-h-[48px]">
                 
                 <!-- Voice Note Preview -->
                 <div id="vn-preview" class="w-full bg-transparent text-slate-800 px-4 py-2 flex items-center gap-3" style="display: none;">
@@ -477,7 +492,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-fuchsia-500 flex items-center justify-center text-white shadow-md shadow-indigo-200 hover:scale-105 transition flex-shrink-0 mb-1">
+            <button type="submit" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-r from-red-600 to-red-500 flex items-center justify-center text-white shadow-md shadow-red-200 hover:scale-105 transition flex-shrink-0 mb-1">
                 <i class="ph-bold ph-paper-plane-right text-xl"></i>
             </button>
         </form>
