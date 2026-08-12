@@ -354,13 +354,16 @@
                     <div class="flex flex-col items-center py-2">
 
                         <!-- 🔺 Tower Spire / Puncak Segitiga (Edisi Kemerdekaan) -->
-                        <div class="relative flex flex-col items-center w-full">
-                            <div class="absolute -top-12 z-10 text-4xl animate-bounce hover:scale-125 transition-all cursor-pointer" title="Merdeka!">
-                                🇮🇩
+                        <div class="flex flex-col items-center w-full mt-2">
+                            <!-- Bendera Indonesia CSS Murni -->
+                            <div class="flex flex-col border border-slate-400 shadow-sm animate-bounce hover:scale-125 transition-all cursor-pointer mb-1 z-10" style="width: 36px; height: 24px;" title="Dirgahayu Kemerdekaan RI!">
+                                <div style="height: 50%; width: 100%; background-color: #dc2626;"></div>
+                                <div style="height: 50%; width: 100%; background-color: #ffffff;"></div>
                             </div>
-                            <div class="w-0 h-0 border-l-[30px] border-r-[30px] border-b-[30px] border-l-transparent border-r-transparent border-b-red-600 drop-shadow-md mt-4"></div>
+                            <!-- Puncak -->
+                            <div class="w-0 h-0 border-l-[30px] border-r-[30px] border-b-[30px] border-l-transparent border-r-transparent border-b-red-600 drop-shadow-md"></div>
                             <div class="bg-white border-b-2 border-red-600 text-red-600 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-center py-1.5 shadow-md w-full max-w-[250px] rounded-b">
-                                🇮🇩 PUNCAK KEMERDEKAAN 🇮🇩
+                                ⋆ PUNCAK KEMERDEKAAN ⋆
                             </div>
                         </div>
 
