@@ -808,6 +808,14 @@ class DashboardController extends Controller
                     }
                 }
                 
+                $selectedInputDate = $request->input('input_date', date('Y-m-d'));
+                $inputCarbon = \Carbon\Carbon::parse($selectedInputDate);
+                
+                // If input_date is in the selected month and year, ensure its day is in $lessonDates
+                if ((int)$inputCarbon->format('n') === (int)$selectedMonth && (int)$inputCarbon->format('Y') === (int)$selectedYear) {
+                    $calculatedDates[] = (int)$inputCarbon->format('j');
+                }
+                
                 $attendanceDates = $attendances->pluck('date')
                     ->map(fn($d) => (int)\Carbon\Carbon::parse($d)->format('j'))
                     ->toArray();
@@ -828,6 +836,8 @@ class DashboardController extends Controller
                 $summary['percentage'] = $summary['total'] > 0
                     ? round(($summary['present'] / $summary['total']) * 100, 1) : 0;
             }
+        } else {
+            $selectedInputDate = date('Y-m-d');
         }
 
         return view('guru.absensi', compact(
@@ -836,7 +846,7 @@ class DashboardController extends Controller
             'selectedMonth', 'selectedYear', 'monthsList', 'daysInMonth',
             'classroomStudents', 'matrixMap', 'studentStats',
             'lessonMatrixMap', 'lessonStudentStats', 'wajibStudentIds',
-            'assignmentInfo', 'lessonDates'
+            'assignmentInfo', 'lessonDates', 'selectedInputDate'
         ));
     }
 
