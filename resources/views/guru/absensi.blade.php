@@ -324,7 +324,7 @@
                                                     };
                                                 }
                                             @endphp
-                                            <td class="px-1 py-1.5 text-center border-r border-gray-100 {{ $isInputCol && $isWajib ? 'bg-amber-50/80 border-x-2 border-amber-300' : '' }} {{ !$isWajib && !$stStatus ? 'bg-red-200/90 border-red-300/40' : '' }}">
+                                            <td class="px-1 py-1.5 text-center border-r border-gray-100 {{ $isInputCol && $isWajib ? 'bg-amber-50/80 border-x-2 border-amber-300' : '' }} {{ !$isWajib && !$stStatus ? 'bg-red-600 border-r border-red-700 text-white' : '' }}">
                                                 @if($isInputCol && $isWajib)
                                                     {{-- Mode Edit (editMode = true): Tampilkan Toggle Buttons --}}
                                                     @php
@@ -368,7 +368,7 @@
                                                 @elseif($stStatus)
                                                     <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black {{ $stBadge }}">{{ $stChar }}</span>
                                                 @elseif(!$isWajib)
-                                                    <span class="text-red-400 font-bold text-xs select-none" title="Beda Kelompok / Tidak Ada Jadwal Blok">-</span>
+                                                    <span class="text-white font-black text-xs select-none" title="Beda Kelompok Blok / Tidak Wajib Hadir">&nbsp;</span>
                                                 @else
                                                     <span class="text-gray-200">.</span>
                                                 @endif
