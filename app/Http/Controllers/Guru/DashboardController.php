@@ -728,37 +728,7 @@ class DashboardController extends Controller
                     ];
                 }
 
-                // Recent attendance log list (Teacher's Class Attendance)
-                $attendances = Attendance::where('classroom_id', $selectedClassroomId)
-                    ->whereYear('date', $selectedYear)
-                    ->whereMonth('date', $selectedMonth)
-                    ->where('created_by', Auth::id())
-                    ->with('student')
-                    ->orderByDesc('date')
-                    ->get();
-
-                // Calculate Lesson Matrix & Stats
-                foreach ($attendances as $att) {
-                    $dayNum = (int) \Carbon\Carbon::parse($att->date)->format('j');
-                    $lessonMatrixMap[$att->student_id][$dayNum] = $att->status;
-                }
-                
-                foreach ($classroomStudents as $st) {
-                    $stAtts = $attendances->where('student_id', $st->id);
-                    $h = $stAtts->where('status', 'hadir')->count();
-                    $s = $stAtts->where('status', 'sakit')->count();
-                    $i = $stAtts->where('status', 'izin')->count();
-                    $a = $stAtts->where('status', 'alpha')->count();
-                    $tot = $stAtts->count();
-                    $pct = $tot > 0 ? round(($h / $tot) * 100, 1) : 0;
-
-                    $lessonStudentStats[$st->id] = [
-                        'hadir' => $h, 'sakit' => $s, 'izin' => $i, 'alpha' => $a,
-                        'total' => $tot, 'percentage' => $pct
-                    ];
-                }
-
-                // Determine "Wajib" Students for Teacher in this Classroom
+                // Determine "Wajib" Students for Teacher in this Classroom FIRST
                 $assignments = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
                     ->whereHas('schedules', function($q) use ($selectedClassroomId, $activeYear) {
                         $q->where('classroom_id', $selectedClassroomId);
@@ -784,6 +754,44 @@ class DashboardController extends Controller
                 } else {
                     $wajibStudentIds = $classroomStudents->pluck('id')->toArray();
                     $assignmentInfo = 'Reguler';
+                }
+
+                // Recent attendance log list (Teacher's Class Attendance)
+                $attendances = Attendance::where('classroom_id', $selectedClassroomId)
+                    ->whereYear('date', $selectedYear)
+                    ->whereMonth('date', $selectedMonth)
+                    ->where('created_by', Auth::id())
+                    ->with('student')
+                    ->orderByDesc('date')
+                    ->get();
+
+                // Calculate Lesson Matrix & Stats (KHUSUS SISWA WAJIB HADIR)
+                foreach ($attendances as $att) {
+                    $dayNum = (int) \Carbon\Carbon::parse($att->date)->format('j');
+                    $lessonMatrixMap[$att->student_id][$dayNum] = $att->status;
+                }
+                
+                foreach ($classroomStudents as $st) {
+                    $isWajib = in_array($st->id, $wajibStudentIds);
+                    if ($isWajib) {
+                        $stAtts = $attendances->where('student_id', $st->id);
+                        $h = $stAtts->where('status', 'hadir')->count();
+                        $s = $stAtts->where('status', 'sakit')->count();
+                        $i = $stAtts->where('status', 'izin')->count();
+                        $a = $stAtts->where('status', 'alpha')->count();
+                        $tot = $stAtts->count();
+                        $pct = $tot > 0 ? round(($h / $tot) * 100, 1) : 0;
+
+                        $lessonStudentStats[$st->id] = [
+                            'hadir' => $h, 'sakit' => $s, 'izin' => $i, 'alpha' => $a,
+                            'total' => $tot, 'percentage' => $pct
+                        ];
+                    } else {
+                        $lessonStudentStats[$st->id] = [
+                            'hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0,
+                            'total' => 0, 'percentage' => 0
+                        ];
+                    }
                 }
 
                 // Get dynamic dates: Scheduled dates + any dates with actual attendance
@@ -849,12 +857,14 @@ class DashboardController extends Controller
 
                 $isTodayScheduled = in_array(date('Y-m-d'), $scheduledFullDates);
 
+                // Filter Ringkasan Kartu Atas (Summary) KHUSUS untuk Siswa Wajib Hadir
+                $wajibAttendances = $attendances->whereIn('student_id', $wajibStudentIds);
                 $summary = [
-                    'present' => $monthlyAttendances->where('status', 'hadir')->count(),
-                    'sick' => $monthlyAttendances->where('status', 'sakit')->count(),
-                    'permission' => $monthlyAttendances->where('status', 'izin')->count(),
-                    'absent' => $monthlyAttendances->where('status', 'alpha')->count(),
-                    'total' => $monthlyAttendances->count(),
+                    'present' => $wajibAttendances->where('status', 'hadir')->count(),
+                    'sick' => $wajibAttendances->where('status', 'sakit')->count(),
+                    'permission' => $wajibAttendances->where('status', 'izin')->count(),
+                    'absent' => $wajibAttendances->where('status', 'alpha')->count(),
+                    'total' => $wajibAttendances->count(),
                 ];
                 $summary['percentage'] = $summary['total'] > 0
                     ? round(($summary['present'] / $summary['total']) * 100, 1) : 0;
