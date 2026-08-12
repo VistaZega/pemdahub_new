@@ -193,22 +193,18 @@
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left">
-                        <thead class="text-xs text-purple-900 uppercase bg-purple-100/50">
-                            <tr>
-                                <th class="px-4 py-3 rounded-tl-lg text-center" rowspan="2">No</th>
-                                <th class="px-4 py-3" rowspan="2">Nama Siswa</th>
-                                <th colspan="{{ $daysInMonth }}" class="px-4 py-2 text-center border-b border-purple-200">Tanggal</th>
-                                <th colspan="5" class="px-4 py-2 text-center border-b border-purple-200 bg-purple-200/50">Total</th>
-                            </tr>
-                            <tr>
+                        <thead>
+                            <tr class="bg-slate-900 text-white font-bold text-xs">
+                                <th class="px-3 py-3 text-center border-r border-slate-700 w-10">No</th>
+                                <th class="px-4 py-3 text-left border-r border-slate-700 min-w-[180px]">Nama Siswa</th>
                                 @for($d = 1; $d <= $daysInMonth; $d++)
-                                    <th class="px-1 py-1 text-center font-bold text-[10px] w-7">{{ $d }}</th>
+                                    <th class="px-1 py-2 text-center border-r border-slate-700 min-w-[24px]">{{ $d }}</th>
                                 @endfor
-                                <th class="px-2 py-1 text-center font-bold text-[10px] w-8 text-green-700 bg-green-100/50">H</th>
-                                <th class="px-2 py-1 text-center font-bold text-[10px] w-8 text-yellow-700 bg-yellow-100/50">S</th>
-                                <th class="px-2 py-1 text-center font-bold text-[10px] w-8 text-blue-700 bg-blue-100/50">I</th>
-                                <th class="px-2 py-1 text-center font-bold text-[10px] w-8 text-red-700 bg-red-100/50">A</th>
-                                <th class="px-2 py-1 text-center font-bold text-[10px] w-12 text-purple-700 bg-purple-100/50">%</th>
+                                <th class="px-2 py-2 text-center border-r border-slate-700 bg-green-900/60">H</th>
+                                <th class="px-2 py-2 text-center border-r border-slate-700 bg-yellow-900/60">S</th>
+                                <th class="px-2 py-2 text-center border-r border-slate-700 bg-blue-900/60">I</th>
+                                <th class="px-2 py-2 text-center border-r border-slate-700 bg-red-900/60">A</th>
+                                <th class="px-2 py-2 text-center bg-purple-900/60">%</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">

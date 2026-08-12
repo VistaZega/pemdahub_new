@@ -168,13 +168,7 @@
         <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #9333ea !important; color: #ffffff !important;"><i class="fas fa-user-check text-[10px] text-white"></i></div>
         <span>Absensi Siswa</span>
     </a>
-    @if(request()->routeIs('guru.absensi*') && !request()->routeIs('guru.absensi.saya'))
-    <div class="ml-11 -mt-0.5 mb-1 space-y-0.5">
-        <a href="{{ route('guru.absensi') }}" class="block text-xs px-3 py-1.5 rounded-lg transition {{ request()->routeIs('guru.absensi') && !request()->routeIs('guru.absensi.*') ? 'bg-emerald-100 text-emerald-950 font-black border border-black' : 'text-slate-700 font-bold hover:text-black hover:bg-slate-100' }}">
-            <i class="fas fa-eye mr-1.5 text-[10px]"></i>Rekap Absensi
-        </a>
-    </div>
-    @endif
+
 
     @if(\App\Models\Setting::getValue('pegawai_view_attendance_recap', true))
     <!-- Absensi Saya -->

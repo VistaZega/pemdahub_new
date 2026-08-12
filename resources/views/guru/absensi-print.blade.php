@@ -206,20 +206,7 @@
         </tbody>
     </table>
 
-    <div class="ttd-container">
-        <table class="ttd-table">
-            <tr>
-                <td width="70%"></td>
-                <td width="30%">
-                    Gunungsitoli, {{ date('d') }} {{ $monthsList[(int)date('n')] }} {{ date('Y') }}<br>
-                    <strong>Wali Kelas</strong>
-                    <div class="ttd-space"></div>
-                    <u><strong>{{ $selectedClassroom->homeroomTeacher->name ?? '.........................................' }}</strong></u><br>
-                    NIP/NUPTK: {{ $selectedClassroom->homeroomTeacher->employee->nip ?? '-' }}
-                </td>
-            </tr>
-        </table>
-    </div>
+
 
     <!-- HALAMAN 2: KEHADIRAN PELAJARAN SAYA -->
     <div class="page-break"></div>
@@ -320,26 +307,7 @@
         </tbody>
     </table>
 
-    <div class="ttd-container">
-        <table class="ttd-table">
-            <tr>
-                <td width="70%">
-                    <br>
-                    <strong>Mengetahui,<br>Kepala Sekolah</strong>
-                    <div class="ttd-space"></div>
-                    <u><strong>{{ $sekolah->principal_name ?? '.........................................' }}</strong></u><br>
-                    NIP/NUPTK: {{ $sekolah->principal_nip ?? '-' }}
-                </td>
-                <td width="30%">
-                    Gunungsitoli, {{ date('d') }} {{ $monthsList[(int)date('n')] }} {{ date('Y') }}<br>
-                    <strong>Guru Mata Pelajaran</strong>
-                    <div class="ttd-space"></div>
-                    <u><strong>{{ $teacher->name }}</strong></u><br>
-                    NIP/NUPTK: {{ $teacher->employee->nip ?? '-' }}
-                </td>
-            </tr>
-        </table>
-    </div>
+
 
     <script>
         // Otomatis muncul dialog print saat halaman dibuka (opsional)
