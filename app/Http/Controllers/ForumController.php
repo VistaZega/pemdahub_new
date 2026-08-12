@@ -80,10 +80,18 @@ class ForumController extends Controller
             $onlineCount = 0;
         }
 
+        // Fetch latest and trending highlights for the top banner
+        $latestHighlight = ForumThread::with(['user', 'replies'])->latest()->first();
+        
+        $trendingHighlight = ForumThread::with(['user', 'replies'])
+            ->withCount(['replies', 'likes'])
+            ->orderByRaw('(replies_count + likes_count) DESC')
+            ->first();
+
         return view('forum.index', compact(
             'threads', 'counts', 'category', 'search', 
             'topStudents', 'activeCollabs', 'channelGroups',
-            'totalThreads', 'onlineCount'
+            'totalThreads', 'onlineCount', 'latestHighlight', 'trendingHighlight'
         ));
     }
 
@@ -291,6 +299,32 @@ class ForumController extends Controller
             // Gamification hook: +5 points for replying
             ReputationLog::log($user->id, 5, 'forum', "Mengomentari diskusi: {$thread->title}", $reply);
 
+            // Notification: Send to thread author or parent reply author
+            $targetUserId = null;
+            $notifTitle = '';
+            
+            if ($reply->parent_reply_id) {
+                $parentReply = ForumReply::find($reply->parent_reply_id);
+                if ($parentReply && $parentReply->user_id !== $user->id) {
+                    $targetUserId = $parentReply->user_id;
+                    $notifTitle = "{$user->name} membalas komentar Anda";
+                }
+            } elseif ($thread->user_id !== $user->id) {
+                $targetUserId = $thread->user_id;
+                $notifTitle = "{$user->name} mengomentari postingan Anda";
+            }
+
+            if ($targetUserId) {
+                \App\Models\Notification::create([
+                    'user_id' => $targetUserId,
+                    'title' => $notifTitle,
+                    'message' => "Ada balasan baru di topik: {$thread->title}",
+                    'type' => 'forum',
+                    'related_model' => ForumThread::class,
+                    'related_id' => $thread->id,
+                ]);
+            }
+
             DB::commit();
 
             return back()->with('success', 'Komentar ditambahkan! (+5 Poin Reputasi)');
@@ -337,6 +371,15 @@ class ForumController extends Controller
                 // Author gets +10 points (if not liking own thread)
                 if ($author->id !== $user->id) {
                     ReputationLog::log($author->id, 10, 'forum_upvote', "Mendapat upvote pada topik: {$thread->title}", $thread);
+                    
+                    \App\Models\Notification::create([
+                        'user_id' => $author->id,
+                        'title' => "{$user->name} menyukai postingan Anda",
+                        'message' => "Postingan Anda mendapat upvote: {$thread->title}",
+                        'type' => 'forum',
+                        'related_model' => ForumThread::class,
+                        'related_id' => $thread->id,
+                    ]);
                 }
 
                 $isLiked = true;
@@ -796,6 +839,18 @@ class ForumController extends Controller
                     'forum_reply_id' => null,
                     'emoji' => $alias,
                 ]);
+                
+                if ($thread->user_id !== $user->id) {
+                    \App\Models\Notification::create([
+                        'user_id' => $thread->user_id,
+                        'title' => "{$user->name} memberikan reaksi pada postingan Anda",
+                        'message' => "Postingan Anda mendapat reaksi {$validated['emoji']}: {$thread->title}",
+                        'type' => 'forum',
+                        'related_model' => ForumThread::class,
+                        'related_id' => $thread->id,
+                    ]);
+                }
+                
                 $reacted = true;
             } catch (\Illuminate\Database\QueryException $e) {
                 // If it's a unique constraint violation, it means it was created concurrently.
@@ -850,6 +905,18 @@ class ForumController extends Controller
                     'forum_reply_id' => $reply->id,
                     'emoji' => $alias,
                 ]);
+
+                if ($reply->user_id !== $user->id) {
+                    \App\Models\Notification::create([
+                        'user_id' => $reply->user_id,
+                        'title' => "{$user->name} memberikan reaksi pada komentar Anda",
+                        'message' => "Komentar Anda mendapat reaksi {$validated['emoji']}",
+                        'type' => 'forum',
+                        'related_model' => ForumThread::class,
+                        'related_id' => $reply->forum_thread_id,
+                    ]);
+                }
+
                 $reacted = true;
             } catch (\Illuminate\Database\QueryException $e) {
                 if ($e->getCode() == 23000) {

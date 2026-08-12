@@ -459,6 +459,51 @@
                 </div>
             </div>
 
+            <!-- HIGHLIGHT SECTION -->
+            @if(isset($latestHighlight) || isset($trendingHighlight))
+                <div class="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <!-- Postingan Terbaru -->
+                    @if(isset($latestHighlight))
+                        <a href="{{ route('forum.show', $latestHighlight) }}" class="block bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-indigo-300 transition group relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
+                                <i class="ph-bold ph-sparkle text-6xl text-indigo-600"></i>
+                            </div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md flex items-center gap-1">
+                                    <i class="ph-bold ph-sparkle"></i> Terbaru
+                                </span>
+                                <span class="text-xs font-semibold text-slate-500">{{ $latestHighlight->created_at->diffForHumans() }}</span>
+                            </div>
+                            <h3 class="font-bold text-slate-900 text-base md:text-lg leading-tight mb-2 group-hover:text-indigo-600 transition">{{ $latestHighlight->title }}</h3>
+                            <div class="flex items-center gap-2 mt-auto pt-2">
+                                <img src="{{ $latestHighlight->user->avatar_url }}" class="w-6 h-6 rounded-full border border-indigo-200">
+                                <span class="text-xs font-bold text-slate-700">{{ $latestHighlight->user->name }}</span>
+                            </div>
+                        </a>
+                    @endif
+
+                    <!-- Postingan Ter-rame (Trending) -->
+                    @if(isset($trendingHighlight))
+                        <a href="{{ route('forum.show', $trendingHighlight) }}" class="block bg-gradient-to-br from-orange-50 to-white border border-orange-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-orange-300 transition group relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
+                                <i class="ph-bold ph-fire text-6xl text-orange-600"></i>
+                            </div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="bg-orange-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md flex items-center gap-1">
+                                    <i class="ph-bold ph-fire"></i> Sedang Hangat
+                                </span>
+                                <span class="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded">{{ $trendingHighlight->replies_count + $trendingHighlight->likes_count }} Interaksi</span>
+                            </div>
+                            <h3 class="font-bold text-slate-900 text-base md:text-lg leading-tight mb-2 group-hover:text-orange-600 transition">{{ $trendingHighlight->title }}</h3>
+                            <div class="flex items-center gap-2 mt-auto pt-2">
+                                <img src="{{ $trendingHighlight->user->avatar_url }}" class="w-6 h-6 rounded-full border border-orange-200">
+                                <span class="text-xs font-bold text-slate-700">{{ $trendingHighlight->user->name }}</span>
+                            </div>
+                        </a>
+                    @endif
+                </div>
+            @endif
+
             <!-- Feed List -->
             <div class="space-y-4 pb-10">
                 @forelse($threads as $thread)

@@ -38,6 +38,7 @@ class Notification extends Model
         'bill' => 'Tagihan',
         'assignment' => 'Tugas',
         'attendance' => 'Kehadiran',
+        'forum' => 'Pembda Space',
     ];
 
     /**
