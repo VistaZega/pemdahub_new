@@ -96,7 +96,7 @@
                         <i class="fas fa-list-ul"></i> Kehadiran Pelajaran Saya
                     </button>
                 </div>
-                <a href="{{ route('absensi.print', request()->all()) }}" target="_blank" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition flex items-center gap-2 border border-purple-800">
+                <a href="{{ route('guru.absensi.print', request()->all()) }}" target="_blank" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition flex items-center gap-2 border border-purple-800">
                     <i class="fas fa-print"></i> Cetak Rekap
                 </a>
             </div>
