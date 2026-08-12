@@ -353,16 +353,21 @@
                     <!-- ============ TOWER VISUAL (Piramida — lebar bawah, mengecil ke atas) ============ -->
                     <div class="flex flex-col items-center py-2">
 
-                        <!-- 🔺 Tower Spire / Puncak Segitiga -->
-                        <div class="w-0 h-0 border-l-[30px] border-r-[30px] border-b-[24px] border-l-transparent border-r-transparent border-b-amber-500 drop-shadow-md"></div>
-                        <div class="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[9px] font-black uppercase tracking-[0.15em] text-center py-1 shadow-md" style="width: 50%;">
-                            👑 PUNCAK MENARA 👑
+                        <!-- 🔺 Tower Spire / Puncak Segitiga (Edisi Kemerdekaan) -->
+                        <div class="relative flex flex-col items-center w-full">
+                            <div class="absolute -top-12 z-10 text-4xl animate-bounce hover:scale-125 transition-all cursor-pointer" title="Merdeka!">
+                                🇮🇩
+                            </div>
+                            <div class="w-0 h-0 border-l-[30px] border-r-[30px] border-b-[30px] border-l-transparent border-r-transparent border-b-red-600 drop-shadow-md mt-4"></div>
+                            <div class="bg-white border-b-2 border-red-600 text-red-600 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-center py-1.5 shadow-md w-full max-w-[250px] rounded-b">
+                                🇮🇩 PUNCAK KEMERDEKAAN 🇮🇩
+                            </div>
                         </div>
 
                         <!-- 🧱 Tower Wall — Bata tersusun piramida (bawah lebar, atas sempit) -->
                         <div class="w-full flex flex-col items-center" style="max-height: 420px; overflow-y: auto;">
                             <!-- flex-col: susun baris dari atas ke bawah -->
-                            <div class="w-full max-w-[800px] flex flex-col items-center gap-[2px] sm:gap-[3px] py-4 mx-auto">
+                            <div class="w-full max-w-[550px] flex flex-col items-center gap-[2px] sm:gap-[3px] py-4 mx-auto">
                                 <template x-for="(row, rowIdx) in pyramidRows" :key="rowIdx">
                                     <div class="flex justify-center gap-[2px] sm:gap-[3px] mx-auto" :style="'width: ' + (row.length * 10) + '%;'">
                                         <template x-for="(b, bIdx) in row" :key="bIdx">
@@ -370,7 +375,7 @@
                                                 <!-- Bata Terisi -->
                                                 <template x-if="b">
                                                     <div @click="selectedBrick = b"
-                                                         class="w-full h-5 sm:h-7 md:h-9 lg:h-11 cursor-pointer hover:-translate-y-1 hover:scale-110 hover:z-10 transition-all shadow-md border border-white/30 rounded-[3px] relative group flex items-center justify-center"
+                                                         class="w-full h-6 sm:h-8 md:h-10 lg:h-12 cursor-pointer hover:-translate-y-1 hover:scale-110 hover:z-10 transition-all shadow-md border border-white/30 rounded-[3px] relative group flex items-center justify-center"
                                                          :class="{
                                                              'bg-gradient-to-br from-indigo-500 to-indigo-700': b.color === 'indigo',
                                                              'bg-gradient-to-br from-emerald-500 to-teal-700': b.color === 'emerald',
@@ -385,7 +390,7 @@
                                                 </template>
                                                 <!-- Bata Kosong -->
                                                 <template x-if="!b">
-                                                    <div class="w-full h-5 sm:h-7 md:h-9 lg:h-11 border border-dashed border-slate-300 bg-white/40 rounded-[3px]"></div>
+                                                    <div class="w-full h-6 sm:h-8 md:h-10 lg:h-12 border border-dashed border-slate-300 bg-white/40 rounded-[3px]"></div>
                                                 </template>
                                             </div>
                                         </template>
