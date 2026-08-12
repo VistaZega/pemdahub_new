@@ -687,6 +687,8 @@ class DashboardController extends Controller
             'absent' => 0, 'total' => 0, 'percentage' => 0,
         ];
         $selectedClassroom = null;
+        $assignmentInfo = null;
+        $lessonDates = [];
 
         if ($selectedClassroomId) {
             $selectedClassroom = $classrooms->firstWhere('id', $selectedClassroomId);
