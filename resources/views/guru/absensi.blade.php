@@ -204,13 +204,16 @@
                             <tr class="bg-slate-900 text-white font-bold text-xs">
                                 <th class="px-3 py-3 text-center border-r border-slate-700 w-10 border-b border-slate-700" rowspan="2">No</th>
                                 <th class="px-4 py-3 text-left border-r border-slate-700 min-w-[180px] border-b border-slate-700" rowspan="2">Nama Siswa</th>
-                                <th class="px-1 py-2 text-center border-r border-slate-700 border-b border-slate-700" colspan="{{ $daysInMonth }}">Tanggal</th>
+                                @php $dateCount = count($lessonDates ?? []); @endphp
+                                <th class="px-1 py-2 text-center border-r border-slate-700 border-b border-slate-700" colspan="{{ $dateCount > 0 ? $dateCount : 1 }}">Tanggal</th>
                                 <th class="px-2 py-2 text-center bg-slate-800 border-b border-slate-700" colspan="5">Total</th>
                             </tr>
                             <tr class="bg-slate-900 text-white font-bold text-xs">
-                                @for($d = 1; $d <= $daysInMonth; $d++)
+                                @forelse($lessonDates ?? [] as $d)
                                     <th class="px-1 py-2 text-center border-r border-slate-700 min-w-[24px]">{{ $d }}</th>
-                                @endfor
+                                @empty
+                                    <th class="px-3 py-2 text-center border-r border-slate-700 text-gray-400 font-normal italic">Belum ada absen</th>
+                                @endforelse
                                 <th class="px-2 py-2 text-center border-r border-slate-700 bg-green-900/60">H</th>
                                 <th class="px-2 py-2 text-center border-r border-slate-700 bg-yellow-900/60">S</th>
                                 <th class="px-2 py-2 text-center border-r border-slate-700 bg-blue-900/60">I</th>
@@ -238,7 +241,7 @@
                                             @endif
                                         </div>
                                     </td>
-                                    @for($d = 1; $d <= $daysInMonth; $d++)
+                                    @forelse($lessonDates ?? [] as $d)
                                         @php
                                             $stStatus = $lessonMatrixMap[$st->id][$d] ?? null;
                                             if ($stStatus) {
@@ -267,7 +270,9 @@
                                                 <span class="text-gray-200">.</span>
                                             @endif
                                         </td>
-                                    @endfor
+                                    @empty
+                                        <td class="px-3 py-1.5 text-center border-r border-gray-100 text-gray-300">-</td>
+                                    @endforelse
                                     <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-green-700 bg-green-50/50' : 'text-gray-400 bg-gray-100/50' }} border-r border-gray-100">{{ $stStat['hadir'] > 0 ? $stStat['hadir'] : '-' }}</td>
                                     <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-yellow-700 bg-yellow-50/50' : 'text-gray-400 bg-gray-100/50' }} border-r border-gray-100">{{ $stStat['sakit'] > 0 ? $stStat['sakit'] : '-' }}</td>
                                     <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-blue-700 bg-blue-50/50' : 'text-gray-400 bg-gray-100/50' }} border-r border-gray-100">{{ $stStat['izin'] > 0 ? $stStat['izin'] : '-' }}</td>
