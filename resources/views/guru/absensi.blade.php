@@ -229,7 +229,10 @@
                                         <div class="text-[9px] {{ !$isWajib ? 'text-gray-300' : 'text-gray-400' }} font-normal">
                                             NISN: {{ $st->nisn ?? '-' }} 
                                             @if(!$isWajib)
-                                                <span class="ml-1 text-gray-400 font-bold bg-gray-200 px-1 rounded text-[8px]">TIDAK WAJIB</span>
+                                                <span class="ml-1 relative inline-block text-gray-400" title="Tidak Wajib Hadir" style="width: 14px; height: 14px; vertical-align: middle;">
+                                                    <i class="fas fa-hand-paper absolute inset-0 text-[10px] text-gray-300" style="top: 2px;"></i>
+                                                    <i class="fas fa-ban absolute inset-0 text-[14px] text-red-500/80 -left-[1px]"></i>
+                                                </span>
                                             @endif
                                         </div>
                                     </td>
