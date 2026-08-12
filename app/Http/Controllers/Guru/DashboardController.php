@@ -677,6 +677,9 @@ class DashboardController extends Controller
         $classroomStudents = collect();
         $matrixMap = [];
         $studentStats = [];
+        $lessonMatrixMap = [];
+        $lessonStudentStats = [];
+        $wajibStudentIds = [];
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $selectedMonth, $selectedYear);
 
         $summary = [
@@ -732,6 +735,48 @@ class DashboardController extends Controller
                     ->orderByDesc('date')
                     ->get();
 
+                // Calculate Lesson Matrix & Stats
+                foreach ($attendances as $att) {
+                    $dayNum = (int) \Carbon\Carbon::parse($att->date)->format('j');
+                    $lessonMatrixMap[$att->student_id][$dayNum] = $att->status;
+                }
+                
+                foreach ($classroomStudents as $st) {
+                    $stAtts = $attendances->where('student_id', $st->id);
+                    $h = $stAtts->where('status', 'hadir')->count();
+                    $s = $stAtts->where('status', 'sakit')->count();
+                    $i = $stAtts->where('status', 'izin')->count();
+                    $a = $stAtts->where('status', 'alpha')->count();
+                    $tot = $stAtts->count();
+                    $pct = $tot > 0 ? round(($h / $tot) * 100, 1) : 0;
+
+                    $lessonStudentStats[$st->id] = [
+                        'hadir' => $h, 'sakit' => $s, 'izin' => $i, 'alpha' => $a,
+                        'total' => $tot, 'percentage' => $pct
+                    ];
+                }
+
+                // Determine "Wajib" Students for Teacher in this Classroom
+                $assignments = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+                    ->whereHas('schedules', function($q) use ($selectedClassroomId, $activeYear) {
+                        $q->where('classroom_id', $selectedClassroomId);
+                        if ($activeYear) {
+                            $q->where('academic_year_id', $activeYear->id);
+                        }
+                    })->get();
+
+                if ($assignments->isNotEmpty()) {
+                    $filterService = app(\App\Services\TeachingAssignmentStudentFilterService::class);
+                    $allWajibIds = collect();
+                    foreach ($assignments as $assignment) {
+                        $wajibStudents = $filterService->getStudentsForAssignment($assignment);
+                        $allWajibIds = $allWajibIds->merge($wajibStudents->pluck('id'));
+                    }
+                    $wajibStudentIds = $allWajibIds->intersect($classroomStudents->pluck('id'))->unique()->toArray();
+                } else {
+                    $wajibStudentIds = $classroomStudents->pluck('id')->toArray();
+                }
+
                 $summary = [
                     'present' => $monthlyAttendances->where('status', 'hadir')->count(),
                     'sick' => $monthlyAttendances->where('status', 'sakit')->count(),
@@ -748,8 +793,21 @@ class DashboardController extends Controller
             'teacher', 'classrooms', 'selectedClassroomId',
             'selectedClassroom', 'attendances', 'summary', 'activeYear',
             'selectedMonth', 'selectedYear', 'monthsList', 'daysInMonth',
-            'classroomStudents', 'matrixMap', 'studentStats'
+            'classroomStudents', 'matrixMap', 'studentStats',
+            'lessonMatrixMap', 'lessonStudentStats', 'wajibStudentIds'
         ));
+    }
+
+    /**
+     * Cetak Rekap Absensi Siswa
+     */
+    public function printRekap(Request $request)
+    {
+        // Panggil method absensi() untuk mendapatkan semua data yang sama
+        $view = $this->absensi($request);
+        
+        // Render menggunakan view khusus cetak
+        return view('guru.absensi-print', $view->getData());
     }
 
     /**

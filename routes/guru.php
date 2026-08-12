@@ -31,6 +31,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
     Route::delete('/nilai/{grade}', [App\Http\Controllers\Guru\NilaiController::class, 'destroy'])->name('nilai.destroy');
     
     Route::get('/absensi', [App\Http\Controllers\Guru\DashboardController::class, 'absensi'])->name('absensi');
+    Route::get('/absensi/print', [App\Http\Controllers\Guru\DashboardController::class, 'printRekap'])->name('absensi.print');
     Route::get('/absensi/input', [App\Http\Controllers\Guru\AttendanceController::class, 'create'])->name('absensi.input');
     Route::post('/absensi/store', [App\Http\Controllers\Guru\AttendanceController::class, 'store'])->name('absensi.store');
     Route::get('/absensi/saya', [App\Http\Controllers\Guru\DashboardController::class, 'absensiSaya'])->name('absensi.saya')->middleware('feature:pegawai_view_attendance_recap');

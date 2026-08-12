@@ -2,22 +2,9 @@
 @section('title', 'Absensi Siswa - Portal Guru')
 
 @section('content')
-<style>
-    @media print {
-        .print-force-show { display: block !important; }
-        .print-hide { display: none !important; }
-        .print-page-break { page-break-before: always; margin-top: 2rem; }
-        .print-no-bg { background: white !important; box-shadow: none !important; border: 1px solid #ccc !important; }
-        /* Teks putih menjadi hitam saat dicetak */
-        .print-text-black { color: black !important; }
-    }
-</style>
+
+
 <div class="space-y-6">
-    {{-- Header Khusus Cetak --}}
-    <div class="hidden print-force-show mb-6 text-center">
-        <h2 class="text-2xl font-bold text-black">Laporan Rekapitulasi Kehadiran Siswa</h2>
-        <p class="text-lg text-black">Kelas: {{ $selectedClassroom->class_name ?? '-' }} &middot; Bulan: {{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }}</p>
-    </div>
 
     {{-- Header Banner (Neo-Brutalism) --}}
     <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black print-hide" style="background: linear-gradient(135deg, #090d16 0%, #311b92 50%, #4a148c 100%) !important;">
@@ -109,9 +96,9 @@
                         <i class="fas fa-list-ul"></i> Kehadiran Pelajaran Saya
                     </button>
                 </div>
-                <button onclick="window.print()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition flex items-center gap-2">
+                <a href="{{ route('absensi.print', request()->all()) }}" target="_blank" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition flex items-center gap-2 border border-purple-800">
                     <i class="fas fa-print"></i> Cetak Rekap
-                </button>
+                </a>
             </div>
 
             {{-- 1. TAB MATRIKS BULANAN --}}
@@ -195,55 +182,98 @@
 
             {{-- 2. TAB RIWAYAT LOG ABSENSI --}}
             <div x-show="viewMode === 'log'" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print-force-show print-no-bg print-page-break">
-                <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="font-bold text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-history text-purple-500"></i> Log Kehadiran Pelajaran Saya - {{ $selectedClassroom->class_name }} ({{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }})
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-purple-50/50">
+                    <h2 class="font-bold text-purple-900 flex items-center gap-2">
+                        <i class="fas fa-chalkboard-teacher text-purple-500"></i> Rekap Kehadiran Pelajaran Saya
                     </h2>
+                    <div class="text-xs font-semibold text-purple-600 bg-purple-100 px-3 py-1 rounded-full">
+                        {{ $selectedClassroom->class_name }} ({{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }})
+                    </div>
                 </div>
-                @if($attendances->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-gray-50 border-b border-gray-100">
-                                <tr>
-                                    <th class="px-5 py-3 text-left font-semibold">Tanggal</th>
-                                    <th class="px-5 py-3 text-left font-semibold">Siswa</th>
-                                    <th class="px-5 py-3 text-center font-semibold">Status</th>
-                                    <th class="px-5 py-3 text-left font-semibold">Catatan</th>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-purple-900 uppercase bg-purple-100/50">
+                            <tr>
+                                <th class="px-4 py-3 rounded-tl-lg text-center" rowspan="2">No</th>
+                                <th class="px-4 py-3" rowspan="2">Nama Siswa</th>
+                                <th colspan="{{ $daysInMonth }}" class="px-4 py-2 text-center border-b border-purple-200">Tanggal</th>
+                                <th colspan="5" class="px-4 py-2 text-center border-b border-purple-200 bg-purple-200/50">Total</th>
+                            </tr>
+                            <tr>
+                                @for($d = 1; $d <= $daysInMonth; $d++)
+                                    <th class="px-1 py-1 text-center font-bold text-[10px] w-7">{{ $d }}</th>
+                                @endfor
+                                <th class="px-2 py-1 text-center font-bold text-[10px] w-8 text-green-700 bg-green-100/50">H</th>
+                                <th class="px-2 py-1 text-center font-bold text-[10px] w-8 text-yellow-700 bg-yellow-100/50">S</th>
+                                <th class="px-2 py-1 text-center font-bold text-[10px] w-8 text-blue-700 bg-blue-100/50">I</th>
+                                <th class="px-2 py-1 text-center font-bold text-[10px] w-8 text-red-700 bg-red-100/50">A</th>
+                                <th class="px-2 py-1 text-center font-bold text-[10px] w-12 text-purple-700 bg-purple-100/50">%</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @forelse($classroomStudents as $idx => $st)
+                                @php
+                                    $stStat = $lessonStudentStats[$st->id] ?? ['hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0, 'percentage' => 0];
+                                    $isWajib = in_array($st->id, $wajibStudentIds);
+                                @endphp
+                                <tr class="hover:bg-purple-50/30 transition {{ !$isWajib ? 'bg-gray-50/50' : '' }}">
+                                    <td class="px-3 py-2.5 text-center font-bold {{ !$isWajib ? 'text-gray-300' : 'text-gray-500' }} border-r border-gray-100">{{ $idx + 1 }}</td>
+                                    <td class="px-4 py-2.5 font-bold border-r border-gray-100 truncate max-w-[200px] {{ !$isWajib ? 'text-gray-400' : 'text-gray-900' }}" title="{{ $st->full_name }}">
+                                        {{ $st->full_name }}
+                                        <div class="text-[9px] {{ !$isWajib ? 'text-gray-300' : 'text-gray-400' }} font-normal">
+                                            NISN: {{ $st->nisn ?? '-' }} 
+                                            @if(!$isWajib)
+                                                <span class="ml-1 text-gray-400 font-bold bg-gray-200 px-1 rounded text-[8px]">TIDAK WAJIB</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    @for($d = 1; $d <= $daysInMonth; $d++)
+                                        @php
+                                            $stStatus = $lessonMatrixMap[$st->id][$d] ?? null;
+                                            if ($stStatus) {
+                                                $stBadge = match($stStatus) {
+                                                    'hadir' => 'bg-green-500 text-white',
+                                                    'sakit' => 'bg-yellow-400 text-black',
+                                                    'izin' => 'bg-blue-500 text-white',
+                                                    'alpha' => 'bg-red-500 text-white',
+                                                    default => 'text-gray-300'
+                                                };
+                                                $stChar = match($stStatus) {
+                                                    'hadir' => 'H',
+                                                    'sakit' => 'S',
+                                                    'izin' => 'I',
+                                                    'alpha' => 'A',
+                                                    default => '?'
+                                                };
+                                            }
+                                        @endphp
+                                        <td class="px-1 py-1.5 text-center border-r border-gray-100">
+                                            @if($stStatus)
+                                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black {{ $stBadge }}">{{ $stChar }}</span>
+                                            @elseif(!$isWajib)
+                                                <span class="text-gray-300">-</span>
+                                            @else
+                                                <span class="text-gray-200">.</span>
+                                            @endif
+                                        </td>
+                                    @endfor
+                                    <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-green-700 bg-green-50/50' : 'text-gray-400 bg-gray-100/50' }} border-r border-gray-100">{{ $stStat['hadir'] > 0 ? $stStat['hadir'] : '-' }}</td>
+                                    <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-yellow-700 bg-yellow-50/50' : 'text-gray-400 bg-gray-100/50' }} border-r border-gray-100">{{ $stStat['sakit'] > 0 ? $stStat['sakit'] : '-' }}</td>
+                                    <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-blue-700 bg-blue-50/50' : 'text-gray-400 bg-gray-100/50' }} border-r border-gray-100">{{ $stStat['izin'] > 0 ? $stStat['izin'] : '-' }}</td>
+                                    <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-red-700 bg-red-50/50' : 'text-gray-400 bg-gray-100/50' }} border-r border-gray-100">{{ $stStat['alpha'] > 0 ? $stStat['alpha'] : '-' }}</td>
+                                    <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-purple-700 bg-purple-50/50' : 'text-gray-400 bg-gray-100/50' }}">{{ $stStat['percentage'] > 0 ? $stStat['percentage'].'%' : '-' }}</td>
                                 </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-50">
-                                @foreach($attendances as $att)
-                                    @php
-                                        $statusMap = [
-                                            'hadir' => ['Hadir', 'bg-green-100 text-green-700', 'check-circle'],
-                                            'sakit' => ['Sakit', 'bg-yellow-100 text-yellow-700', 'briefcase-medical'],
-                                            'izin' => ['Izin', 'bg-blue-100 text-blue-700', 'envelope'],
-                                            'alpha' => ['Alpha', 'bg-red-100 text-red-700', 'times-circle'],
-                                        ];
-                                        $s = $statusMap[$att->status] ?? ['Unknown', 'bg-gray-100 text-gray-700', 'question-circle'];
-                                    @endphp
-                                    <tr class="hover:bg-gray-50 transition">
-                                        <td class="px-5 py-3 text-gray-800">
-                                            {{ \Carbon\Carbon::parse($att->date)->translatedFormat('d M Y') }}
-                                        </td>
-                                        <td class="px-5 py-3 font-medium text-gray-800">{{ $att->student->full_name ?? '-' }}</td>
-                                        <td class="px-5 py-3 text-center">
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold {{ $s[1] }}">
-                                                <i class="fas fa-{{ $s[2] }}"></i> {{ $s[0] }}
-                                            </span>
-                                        </td>
-                                        <td class="px-5 py-3 text-xs text-gray-500">{{ $att->notes ?? '-' }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="p-10 text-center text-gray-400">
-                        <i class="fas fa-clipboard-check text-4xl mb-3"></i>
-                        <p class="text-sm">Belum ada data absensi untuk bulan {{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }}.</p>
-                    </div>
-                @endif
+                            @empty
+                                <tr>
+                                    <td colspan="{{ $daysInMonth + 7 }}" class="p-8 text-center text-gray-400">
+                                        Tidak ada data siswa aktif pada kelas ini.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     @endif
