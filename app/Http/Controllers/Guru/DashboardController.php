@@ -847,6 +847,8 @@ class DashboardController extends Controller
                     ->values()
                     ->toArray();
 
+                $isTodayScheduled = in_array(date('Y-m-d'), $scheduledFullDates);
+
                 $summary = [
                     'present' => $monthlyAttendances->where('status', 'hadir')->count(),
                     'sick' => $monthlyAttendances->where('status', 'sakit')->count(),
@@ -859,6 +861,7 @@ class DashboardController extends Controller
             }
         } else {
             $selectedInputDate = date('Y-m-d');
+            $isTodayScheduled = false;
         }
 
         return view('guru.absensi', compact(
@@ -867,7 +870,7 @@ class DashboardController extends Controller
             'selectedMonth', 'selectedYear', 'monthsList', 'daysInMonth',
             'classroomStudents', 'matrixMap', 'studentStats',
             'lessonMatrixMap', 'lessonStudentStats', 'wajibStudentIds',
-            'assignmentInfo', 'lessonDates', 'selectedInputDate'
+            'assignmentInfo', 'lessonDates', 'selectedInputDate', 'isTodayScheduled'
         ));
     }
 

@@ -97,7 +97,7 @@
         </div>
 
         {{-- Tab Controls & Action --}}
-        <div x-data="{ viewMode: '{{ request('viewMode', request('input_date') ? 'log' : 'matrix') }}', editMode: false }" class="space-y-4">
+        <div x-data="{ viewMode: '{{ request('viewMode', request('input_date') ? 'log' : 'matrix') }}', editMode: {{ ($isTodayScheduled ?? false) ? 'true' : 'false' }} }" class="space-y-4">
             <div class="flex items-center justify-between gap-4 flex-wrap bg-white p-2 rounded-2xl border border-gray-100 shadow-sm print-hide">
                 <div class="flex items-center gap-2">
                     <button @click="viewMode = 'matrix'" :class="viewMode === 'matrix' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 border border-black">
