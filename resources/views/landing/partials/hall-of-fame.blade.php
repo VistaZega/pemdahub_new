@@ -1,5 +1,5 @@
 <section class="section" id="hall-of-fame-section" style="background: var(--bg); padding: 70px 0;">
-    <div style="max-width: 1280px; margin: 0 auto; padding: 0 24px;">
+    <div style="max-width: 1680px; margin: 0 auto; padding: 0 32px;">
 
         {{-- Section Header --}}
         <div style="text-align: center; max-width: 700px; margin: 0 auto 48px;" data-aos="fade-up">

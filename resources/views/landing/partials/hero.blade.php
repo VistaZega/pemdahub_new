@@ -148,7 +148,7 @@
         </div>
 
         {{-- Hero Feature Cards - Vibrant Solid Colors --}}
-        <div class="hero-cards-grid" data-aos="fade-up" data-aos-delay="250" style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; max-width:1100px; margin:0 auto;">
+        <div class="hero-cards-grid" data-aos="fade-up" data-aos-delay="250" style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; max-width:1680px; margin:0 auto;">
 
             {{-- Card 1: Multi-Akses --}}
             <div class="hero-card hero-card-blue shimmer-card">

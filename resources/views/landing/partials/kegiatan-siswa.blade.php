@@ -10,7 +10,7 @@
             <p class="body-lg" style="max-width:640px; margin:0 auto;">Mengembangkan potensi, kreativitas, kepemimpinan, dan kecakapan digital siswa di luar kelas.</p>
         </div>
 
-        <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap: 16px; max-width: 1100px; margin: 0 auto;" data-aos="fade-up" data-aos-delay="100" class="kegiatan-grid">
+        <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap: 16px; max-width: 1680px; margin: 0 auto;" data-aos="fade-up" data-aos-delay="100" class="kegiatan-grid">
             
             {{-- Renang --}}
             <div class="bcard hover-glow" style="padding:28px 16px; text-align:center; display:flex; flex-direction:column; align-items:center;">

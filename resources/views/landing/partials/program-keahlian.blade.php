@@ -1,6 +1,6 @@
 {{-- PROGRAM KEAHLIAN — Full-Width Screen Enlarged Edition --}}
 <section id="program" class="section" style="background: var(--bg); padding: 80px 0; width: 100%;">
-    <div style="width: 100%; max-width: 1560px; margin: 0 auto; padding: 0 36px;">
+    <div style="width: 100%; max-width: 1680px; margin: 0 auto; padding: 0 32px;">
         
         {{-- Section Header --}}
         <div style="text-align: center; max-width: 800px; margin: 0 auto 56px;" data-aos="fade-up">

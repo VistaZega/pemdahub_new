@@ -45,7 +45,7 @@
         </div>
 
         {{-- Three Pillars --}}
-        <div class="bento bento-3" style="max-width:960px; margin:0 auto;" data-aos="fade-up" data-aos-delay="100">
+        <div class="bento bento-3" style="max-width:1680px; margin:0 auto;" data-aos="fade-up" data-aos-delay="100">
             {{-- Pillar 1: Administrasi --}}
             <div class="bcard" style="text-align:center; padding:36px 28px;">
                 <div class="icon-circle pillar-icon" style="background:var(--blue-bg); color:var(--blue);">

@@ -3,7 +3,7 @@
 .alumni-section { padding: 5rem 1rem; background: linear-gradient(135deg, #f8fafc, #ffffff, #eef2ff); position: relative; overflow: hidden; }
 .alumni-bg-blob1 { position: absolute; top: -10rem; right: -10rem; width: 30rem; height: 30rem; border-radius: 50%; background: #e0e7ff; filter: blur(3rem); opacity: 0.5; z-index: 0; pointer-events: none;}
 .alumni-bg-blob2 { position: absolute; top: 10rem; left: -5rem; width: 20rem; height: 20rem; border-radius: 50%; background: #ede9fe; filter: blur(3rem); opacity: 0.5; z-index: 0; pointer-events: none;}
-.alumni-container { max-width: 80rem; margin: 0 auto; position: relative; z-index: 10; padding: 0 1rem; }
+.alumni-container { max-width: 105rem; margin: 0 auto; position: relative; z-index: 10; padding: 0 2rem; }
 .alumni-header-text { text-align: center; margin-bottom: 4rem; }
 .alumni-subtitle { color: #4f46e5; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.875rem; display: block; margin-bottom: 0.5rem; }
 .alumni-title { font-size: 2.5rem; font-weight: 800; color: #0f172a; margin: 0 0 1rem 0; line-height: 1.2; }

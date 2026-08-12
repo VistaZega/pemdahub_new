@@ -99,7 +99,7 @@
         html { scroll-behavior: smooth; }
 
         /* Full-width container */
-        .fw { width: 100%; padding: 0 40px; }
+        .fw { width: 100%; max-width: 1680px; margin: 0 auto; padding: 0 32px; }
         @media (max-width: 768px) { .fw { padding: 0 20px; } }
 
         /* Section spacing */
