@@ -252,15 +252,13 @@
                 <th rowspan="2" width="30">No</th>
                 <th rowspan="2" width="200">Nama Siswa</th>
                 <th rowspan="2" width="80">NISN</th>
-                <th colspan="{{ count($lessonDates ?? []) > 0 ? count($lessonDates) : 1 }}">Tanggal</th>
+                <th colspan="{{ $daysInMonth }}">Tanggal</th>
                 <th colspan="4">Total</th>
             </tr>
             <tr>
-                @forelse($lessonDates ?? [] as $d)
+                @for($d = 1; $d <= $daysInMonth; $d++)
                     <th width="15" style="font-size:10px">{{ $d }}</th>
-                @empty
-                    <th style="font-size:10px">-</th>
-                @endforelse
+                @endfor
                 <th width="20">H</th>
                 <th width="20">S</th>
                 <th width="20">I</th>
@@ -280,7 +278,7 @@
                         @if(!$isWajib) <span class="badge">[TDK WAJIB]</span> @endif
                     </td>
                     <td class="text-center {{ !$isWajib ? 'badge' : '' }}">{{ $st->nisn ?? '-' }}</td>
-                    @forelse($lessonDates ?? [] as $d)
+                    @for($d = 1; $d <= $daysInMonth; $d++)
                         @php
                             $stStatus = $lessonMatrixMap[$st->id][$d] ?? null;
                             if ($stStatus) {
@@ -300,9 +298,7 @@
                                 -
                             @endif
                         </td>
-                    @empty
-                        <td class="text-center">-</td>
-                    @endforelse
+                    @endfor
                     <td class="text-center font-bold {{ !$isWajib ? 'badge' : '' }}">{{ $stStat['hadir'] > 0 ? $stStat['hadir'] : '-' }}</td>
                     <td class="text-center font-bold {{ !$isWajib ? 'badge' : '' }}">{{ $stStat['sakit'] > 0 ? $stStat['sakit'] : '-' }}</td>
                     <td class="text-center font-bold {{ !$isWajib ? 'badge' : '' }}">{{ $stStat['izin'] > 0 ? $stStat['izin'] : '-' }}</td>
@@ -310,7 +306,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ count($lessonDates ?? []) + 7 }}" class="text-center" style="padding: 20px;">
+                    <td colspan="{{ $daysInMonth + 7 }}" class="text-center" style="padding: 20px;">
                         Tidak ada data siswa.
                     </td>
                 </tr>
