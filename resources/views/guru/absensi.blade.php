@@ -309,27 +309,36 @@
                                             @endphp
                                             <td class="px-1 py-1.5 text-center border-r border-gray-100 {{ $isInputCol ? 'bg-amber-50/80 border-x-2 border-amber-300' : '' }} {{ !$isWajib && !$stStatus ? 'bg-gray-100/50' : '' }}">
                                                 @if($isInputCol && $isWajib)
-                                                    {{-- Form Control Radio Interaktif untuk Tanggal Input --}}
+                                                    {{-- Alpine.js Interactive Control untuk Tanggal Input --}}
                                                     @php
                                                         $currVal = $stStatus ?? 'hadir';
                                                     @endphp
-                                                    <div class="inline-flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-purple-200 shadow-sm print-hide">
-                                                        <label class="cursor-pointer" title="Hadir">
-                                                            <input type="radio" name="statuses[{{ $st->id }}]" value="hadir" {{ $currVal === 'hadir' ? 'checked' : '' }} class="peer sr-only wajib-radio-hadir">
-                                                            <span class="w-4 h-4 flex items-center justify-center rounded text-[9px] font-black text-gray-400 peer-checked:bg-green-500 peer-checked:text-white hover:bg-gray-100 transition">H</span>
-                                                        </label>
-                                                        <label class="cursor-pointer" title="Sakit">
-                                                            <input type="radio" name="statuses[{{ $st->id }}]" value="sakit" {{ $currVal === 'sakit' ? 'checked' : '' }} class="peer sr-only">
-                                                            <span class="w-4 h-4 flex items-center justify-center rounded text-[9px] font-black text-gray-400 peer-checked:bg-yellow-400 peer-checked:text-black hover:bg-gray-100 transition">S</span>
-                                                        </label>
-                                                        <label class="cursor-pointer" title="Izin">
-                                                            <input type="radio" name="statuses[{{ $st->id }}]" value="izin" {{ $currVal === 'izin' ? 'checked' : '' }} class="peer sr-only">
-                                                            <span class="w-4 h-4 flex items-center justify-center rounded text-[9px] font-black text-gray-400 peer-checked:bg-blue-500 peer-checked:text-white hover:bg-gray-100 transition">I</span>
-                                                        </label>
-                                                        <label class="cursor-pointer" title="Alpha">
-                                                            <input type="radio" name="statuses[{{ $st->id }}]" value="alpha" {{ $currVal === 'alpha' ? 'checked' : '' }} class="peer sr-only">
-                                                            <span class="w-4 h-4 flex items-center justify-center rounded text-[9px] font-black text-gray-400 peer-checked:bg-red-500 peer-checked:text-white hover:bg-gray-100 transition">A</span>
-                                                        </label>
+                                                    <div x-data="{ status: '{{ $currVal }}' }" @mark-all-hadir.window="status = 'hadir'" class="inline-flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-purple-200 shadow-sm print-hide">
+                                                        <input type="hidden" name="statuses[{{ $st->id }}]" :value="status">
+                                                        
+                                                        <button type="button" @click="status = 'hadir'" 
+                                                            :class="status === 'hadir' ? 'bg-green-500 text-white font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" 
+                                                            class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Hadir">
+                                                            H
+                                                        </button>
+                                                        
+                                                        <button type="button" @click="status = 'sakit'" 
+                                                            :class="status === 'sakit' ? 'bg-yellow-400 text-black font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" 
+                                                            class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Sakit">
+                                                            S
+                                                        </button>
+                                                        
+                                                        <button type="button" @click="status = 'izin'" 
+                                                            :class="status === 'izin' ? 'bg-blue-500 text-white font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" 
+                                                            class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Izin">
+                                                            I
+                                                        </button>
+                                                        
+                                                        <button type="button" @click="status = 'alpha'" 
+                                                            :class="status === 'alpha' ? 'bg-red-500 text-white font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" 
+                                                            class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Alpha">
+                                                            A
+                                                        </button>
                                                     </div>
                                                     {{-- Fallback badge untuk cetakan/print --}}
                                                     <span class="hidden print-inline-block font-bold text-[10px]">
@@ -373,9 +382,7 @@
 
 <script>
 function markAllWajibHadir() {
-    document.querySelectorAll('.wajib-radio-hadir').forEach(radio => {
-        radio.checked = true;
-    });
+    window.dispatchEvent(new CustomEvent('mark-all-hadir'));
 }
 </script>
 @endsection

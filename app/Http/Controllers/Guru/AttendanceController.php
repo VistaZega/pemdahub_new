@@ -245,8 +245,14 @@ class AttendanceController extends Controller
                 null // Reference ID could be classroom + date hash if needed
             );
 
-            return redirect()->route('guru.absensi')
-                ->with('success', "Absensi berhasil disimpan untuk {$count} siswa.");
+            $dateCarbon = \Carbon\Carbon::parse($request->date);
+            return redirect()->route('guru.absensi', [
+                'classroom_id' => $request->classroom_id,
+                'input_date' => $request->date,
+                'month' => $dateCarbon->format('n'),
+                'year' => $dateCarbon->format('Y'),
+                'viewMode' => 'log',
+            ])->with('success', "Absensi berhasil disimpan untuk {$count} siswa.");
         } catch (\Exception $e) {
             Log::error('Guru gagal menyimpan absensi: ' . $e->getMessage());
             return back()->withErrors(['attendance' => 'Gagal menyimpan absensi. Silakan coba lagi.'])->withInput();
