@@ -121,8 +121,8 @@ class ForumController extends Controller
         }
 
         $rules = [
-            'title' => 'required|string|min:15|max:255',
-            'content' => 'required|string|min:30',
+            'title' => 'required|string|min:10|max:255',
+            'content' => 'required|string|min:10',
             'category' => 'required|string|in:' . implode(',', $allowedCategories),
             'image' => 'nullable|image|max:5120', // 5MB limit
             'attachment' => 'nullable|file|max:10240', // 10MB limit
@@ -136,8 +136,8 @@ class ForumController extends Controller
         ];
 
         $messages = [
-            'title.min' => 'Judul topik terlalu singkat. Masukkan minimal 15 karakter agar lebih informatif.',
-            'content.min' => 'Isi topik terlalu singkat. Masukkan minimal 30 karakter agar diskusi lebih jelas dan mencegah spam.',
+            'title.min' => 'Judul topik terlalu singkat. Masukkan minimal 10 karakter.',
+            'content.min' => 'Isi topik terlalu singkat. Masukkan minimal 10 karakter.',
         ];
 
         $validated = $request->validate($rules, $messages);
@@ -255,12 +255,12 @@ class ForumController extends Controller
         }
 
         $rules = [
-            'content' => 'required_without:voice_note|string|min:20|max:5000|nullable',
+            'content' => 'required_without:voice_note|string|min:10|max:5000|nullable',
             'voice_note' => 'nullable|file|mimes:webm,mp3,mp4,m4a,ogg,wav|max:5120',
             'parent_reply_id' => 'nullable|exists:forum_replies,id',
         ];
         $messages = [
-            'content.min' => 'Balasan terlalu singkat. Masukkan minimal 20 karakter untuk mencegah spam (atau gunakan Voice Note).',
+            'content.min' => 'Balasan terlalu singkat. Masukkan minimal 10 karakter untuk mencegah spam (atau gunakan Voice Note).',
         ];
 
         $validated = $request->validate($rules, $messages);
@@ -611,8 +611,8 @@ class ForumController extends Controller
         }
 
         $rules = [
-            'title' => 'required|string|min:15|max:255',
-            'content' => 'required|string|min:30',
+            'title' => 'required|string|min:10|max:255',
+            'content' => 'required|string|min:10',
             'category' => 'required|string|in:' . implode(',', $allowedCategories),
             'image' => 'nullable|image|max:5120', // 5MB limit
             'attachment' => 'nullable|file|max:10240', // 10MB limit
@@ -626,8 +626,8 @@ class ForumController extends Controller
         ];
 
         $messages = [
-            'title.min' => 'Judul topik terlalu singkat. Masukkan minimal 15 karakter.',
-            'content.min' => 'Isi topik terlalu singkat. Masukkan minimal 30 karakter.',
+            'title.min' => 'Judul topik terlalu singkat. Masukkan minimal 10 karakter.',
+            'content.min' => 'Isi topik terlalu singkat. Masukkan minimal 10 karakter.',
         ];
 
         $validated = $request->validate($rules, $messages);
