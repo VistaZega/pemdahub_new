@@ -188,7 +188,7 @@
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-[9998] hidden lg:hidden"></div>
 
     <!-- ═══════ HEADER ═══════ -->
-    <header class="bg-gradient-to-r {{ $t['header'] }} text-white shadow-lg fixed top-0 w-full z-40" style="background-color: #1e1b4b;">
+    <header class="bg-gradient-to-r {{ $t['header'] }} text-white shadow-lg fixed top-0 w-full z-40 print:hidden" style="background-color: #1e1b4b;">
         <div class="flex items-center justify-between px-4 lg:px-6 h-[62px]">
             <div class="flex items-center gap-3">
                 <button id="sidebar-toggle" type="button" style="touch-action: manipulation;" class="hamburger flex flex-col justify-center items-center gap-[5px] p-2 rounded-lg hover:bg-white/10 transition is-active" aria-label="Toggle sidebar">
@@ -363,7 +363,7 @@
     <div class="flex flex-1" style="padding-top: 62px;">
         <!-- ═══════ SIDEBAR ═══════ -->
         @if(!request()->has('embed'))
-        <aside id="{{ $sidebarId }}" class="bg-white border-r border-gray-200 flex-shrink-0 collapsed">
+        <aside id="{{ $sidebarId }}" class="bg-white border-r border-gray-200 flex-shrink-0 collapsed print:hidden">
             <div class="p-4 space-y-1">
                 <!-- Mobile Close Button -->
                 <button type="button" class="md:hidden w-full flex items-center justify-between px-3 py-2 bg-gray-100 rounded-xl text-gray-600 mb-4 font-bold" onclick="document.getElementById('sidebar-toggle').click()">
@@ -393,7 +393,7 @@
         @endif
 
         <!-- ═══════ MAIN CONTENT ═══════ -->
-        <main id="main-content" class="flex-1 min-w-0 {{ request()->has('embed') ? 'p-0 bg-slate-900' : 'p-4 lg:p-6' }}">
+        <main id="main-content" class="flex-1 min-w-0 print:p-0 print:m-0 print:block {{ request()->has('embed') ? 'p-0 bg-slate-900' : 'p-4 lg:p-6' }}">
             @if(!request()->has('embed'))
                 @include('partials.flash-messages')
             @endif
@@ -403,7 +403,7 @@
 
     <!-- ═══════ FOOTER ═══════ -->
     @if(!request()->has('embed'))
-    <footer class="bg-gray-800 text-gray-400 text-center py-3 text-xs">
+    <footer class="bg-gray-800 text-gray-400 text-center py-3 text-xs print:hidden">
         &copy; {{ date('Y') }} Pembda<span class="text-red-400">HUB</span> &mdash; Yayasan Perguruan PEMBDA Nias
     </footer>
     @endif

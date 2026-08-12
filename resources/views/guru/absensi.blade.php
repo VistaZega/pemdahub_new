@@ -2,9 +2,25 @@
 @section('title', 'Absensi Siswa - Portal Guru')
 
 @section('content')
+<style>
+    @media print {
+        .print-force-show { display: block !important; }
+        .print-hide { display: none !important; }
+        .print-page-break { page-break-before: always; margin-top: 2rem; }
+        .print-no-bg { background: white !important; box-shadow: none !important; border: 1px solid #ccc !important; }
+        /* Teks putih menjadi hitam saat dicetak */
+        .print-text-black { color: black !important; }
+    }
+</style>
 <div class="space-y-6">
+    {{-- Header Khusus Cetak --}}
+    <div class="hidden print-force-show mb-6 text-center">
+        <h2 class="text-2xl font-bold text-black">Laporan Rekapitulasi Kehadiran Siswa</h2>
+        <p class="text-lg text-black">Kelas: {{ $selectedClassroom->class_name ?? '-' }} &middot; Bulan: {{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }}</p>
+    </div>
+
     {{-- Header Banner (Neo-Brutalism) --}}
-    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #311b92 50%, #4a148c 100%) !important;">
+    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black print-hide" style="background: linear-gradient(135deg, #090d16 0%, #311b92 50%, #4a148c 100%) !important;">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
@@ -72,7 +88,7 @@
                 ];
             @endphp
             @foreach($items as $item)
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center print-no-bg">
                     <div class="w-8 h-8 bg-{{ $item['color'] }}-100 rounded-lg flex items-center justify-center mx-auto mb-2">
                         <i class="fas fa-{{ $item['icon'] }} text-{{ $item['color'] }}-600 text-sm"></i>
                     </div>
@@ -84,7 +100,7 @@
 
         {{-- Tab Controls & Action --}}
         <div x-data="{ viewMode: 'matrix' }" class="space-y-4">
-            <div class="flex items-center justify-between gap-4 flex-wrap bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
+            <div class="flex items-center justify-between gap-4 flex-wrap bg-white p-2 rounded-2xl border border-gray-100 shadow-sm print-hide">
                 <div class="flex items-center gap-2">
                     <button @click="viewMode = 'matrix'" :class="viewMode === 'matrix' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 border border-black">
                         <i class="fas fa-table"></i> Kehadiran Harian (Sekolah)
@@ -99,7 +115,7 @@
             </div>
 
             {{-- 1. TAB MATRIKS BULANAN --}}
-            <div x-show="viewMode === 'matrix'" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div x-show="viewMode === 'matrix'" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print-force-show print-no-bg">
                 <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h2 class="font-bold text-gray-800 flex items-center gap-2 text-sm md:text-base">
                         <i class="fas fa-calendar-check text-purple-600"></i> Matriks Kehadiran Harian (Sekolah) — Bulan {{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }} ({{ $selectedClassroom->class_name }})
@@ -178,7 +194,7 @@
             </div>
 
             {{-- 2. TAB RIWAYAT LOG ABSENSI --}}
-            <div x-show="viewMode === 'log'" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div x-show="viewMode === 'log'" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print-force-show print-no-bg print-page-break">
                 <div class="px-5 py-4 border-b border-gray-100">
                     <h2 class="font-bold text-gray-800 flex items-center gap-2">
                         <i class="fas fa-history text-purple-500"></i> Log Kehadiran Pelajaran Saya - {{ $selectedClassroom->class_name }} ({{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }})
