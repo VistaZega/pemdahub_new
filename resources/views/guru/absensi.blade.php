@@ -62,6 +62,8 @@
             @endforeach
         </div>
     @endif
+
+    @if(!$selectedClassroomId)
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center">
             <i class="fas fa-hand-pointer text-4xl text-gray-300 mb-3"></i>
             <p class="text-gray-500 font-bold">Pilih kelas terlebih dahulu untuk melihat rekap absensi.</p>
