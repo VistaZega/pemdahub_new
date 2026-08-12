@@ -349,32 +349,35 @@
                         <!-- 🧱 Tower Wall — Bata tersusun piramida (bawah lebar, atas sempit) -->
                         <div class="w-full flex flex-col items-center" style="max-height: 420px; overflow-y: auto;">
                             <!-- flex-col: susun baris dari atas ke bawah -->
-                            <div class="w-full flex flex-col items-center gap-[3px] py-2">
+                            <div class="w-full max-w-[800px] flex flex-col items-center gap-[2px] sm:gap-[3px] py-4 mx-auto">
                                 <template x-for="(row, rowIdx) in pyramidRows" :key="rowIdx">
-                                    <div class="flex justify-center gap-[3px]">
+                                    <div class="flex justify-center gap-[2px] sm:gap-[3px] mx-auto" :style="'width: ' + (row.length * 10) + '%;'">
                                         <template x-for="(b, bIdx) in row" :key="bIdx">
-                                            <div @click="selectedBrick = b"
-                                                 class="h-7 w-10 sm:h-9 sm:w-16 md:h-10 md:w-20 lg:h-12 lg:w-24 cursor-pointer hover:-translate-y-1 hover:scale-110 hover:z-10 transition-all shadow-md border border-white/30 rounded-sm relative group flex items-center justify-center"
-                                                 :class="{
-                                                     'bg-gradient-to-br from-indigo-500 to-indigo-700': b.color === 'indigo',
-                                                     'bg-gradient-to-br from-emerald-500 to-teal-700': b.color === 'emerald',
-                                                     'bg-gradient-to-br from-amber-400 to-orange-600': b.color === 'amber',
-                                                     'bg-gradient-to-br from-rose-500 to-pink-700': b.color === 'rose',
-                                                     'bg-gradient-to-br from-purple-500 to-violet-700': b.color === 'purple',
-                                                     'bg-gradient-to-br from-cyan-500 to-blue-700': b.color === 'cyan'
-                                                 }"
-                                                 title="Klik untuk melihat pesan">
-                                                <span class="text-[8px] sm:text-[9px] font-black text-white/60 select-none" x-text="b.brick_number"></span>
+                                            <div class="flex-1">
+                                                <!-- Bata Terisi -->
+                                                <template x-if="b">
+                                                    <div @click="selectedBrick = b"
+                                                         class="w-full aspect-[5/2] cursor-pointer hover:-translate-y-1 hover:scale-110 hover:z-10 transition-all shadow-md border border-white/30 rounded-[3px] relative group flex items-center justify-center"
+                                                         :class="{
+                                                             'bg-gradient-to-br from-indigo-500 to-indigo-700': b.color === 'indigo',
+                                                             'bg-gradient-to-br from-emerald-500 to-teal-700': b.color === 'emerald',
+                                                             'bg-gradient-to-br from-amber-400 to-orange-600': b.color === 'amber',
+                                                             'bg-gradient-to-br from-rose-500 to-pink-700': b.color === 'rose',
+                                                             'bg-gradient-to-br from-purple-500 to-violet-700': b.color === 'purple',
+                                                             'bg-gradient-to-br from-cyan-500 to-blue-700': b.color === 'cyan'
+                                                         }"
+                                                         title="Klik untuk melihat pesan">
+                                                        <span class="text-[7px] sm:text-[9px] font-black text-white/60 select-none" x-text="b.brick_number"></span>
+                                                    </div>
+                                                </template>
+                                                <!-- Bata Kosong -->
+                                                <template x-if="!b">
+                                                    <div class="w-full aspect-[5/2] border border-dashed border-slate-300 bg-white/40 rounded-[3px]"></div>
+                                                </template>
                                             </div>
                                         </template>
                                     </div>
                                 </template>
-                            </div>
-
-                            <!-- Empty state -->
-                            <div x-show="bricks.length === 0" class="text-center py-10 text-slate-400">
-                                <i class="ph-bold ph-wall text-4xl mb-2"></i>
-                                <p class="text-xs font-bold">Menara masih kosong. Jadilah yang pertama memasang bata!</p>
                             </div>
                         </div>
 
@@ -1126,11 +1129,11 @@ function pembdaTower() {
                             if (currentBrickIdx < this.bricks.length) {
                                 rowBricks.push(this.bricks[currentBrickIdx]);
                                 currentBrickIdx++;
+                            } else {
+                                rowBricks.push(null);
                             }
                         }
-                        if (rowBricks.length > 0) {
-                            rows.push(rowBricks); // Baris bawah masuk pertama
-                        }
+                        rows.push(rowBricks);
                     }
                     rows.reverse(); // Balik array agar render dari tingkat atas ke bawah
                     this.pyramidRows = rows;
