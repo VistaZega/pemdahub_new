@@ -688,17 +688,18 @@ class DashboardController extends Controller
         if ($selectedClassroomId) {
             $selectedClassroom = $classrooms->firstWhere('id', $selectedClassroomId);
             if ($selectedClassroom) {
-                // Fetch active students in class
+                // Fetch active students in class for the daily matrix (applies to all students)
                 $studentsQuery = $selectedClassroom->students()->wherePivot('status', 'aktif');
                 if ($activeYear) {
                     $studentsQuery->wherePivot('academic_year_id', $activeYear->id);
                 }
                 $classroomStudents = $studentsQuery->orderBy('full_name')->get();
 
-                // Fetch monthly attendances for matrix grid
+                // Fetch monthly attendances for matrix grid (Daily School Attendance ONLY)
                 $monthlyAttendances = Attendance::where('classroom_id', $selectedClassroomId)
                     ->whereYear('date', $selectedYear)
                     ->whereMonth('date', $selectedMonth)
+                    ->whereNull('schedule_id')
                     ->get();
 
                 foreach ($monthlyAttendances as $att) {
@@ -722,10 +723,11 @@ class DashboardController extends Controller
                     ];
                 }
 
-                // Recent attendance log list
+                // Recent attendance log list (Teacher's Class Attendance)
                 $attendances = Attendance::where('classroom_id', $selectedClassroomId)
                     ->whereYear('date', $selectedYear)
                     ->whereMonth('date', $selectedMonth)
+                    ->where('created_by', Auth::id())
                     ->with('student')
                     ->orderByDesc('date')
                     ->get();

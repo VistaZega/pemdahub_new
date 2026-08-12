@@ -7,6 +7,8 @@ use App\Models\AcademicYear;
 use App\Models\Attendance;
 use App\Models\Classroom;
 use App\Models\Teacher;
+use App\Models\Schedule;
+use App\Services\TeachingAssignmentStudentFilterService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -109,52 +111,50 @@ class AttendanceController extends Controller
         if ($selectedClassroomId) {
             $selectedClassroom = $classrooms->firstWhere('id', (int) $selectedClassroomId);
             if ($selectedClassroom) {
-                // Check if this classroom has a combined group_code for this teacher
-                $groupCode = Schedule::where('teacher_id', $teacher->id)
+                
+                // Find the best matching schedule for this date
+                $dayOfWeek = strtolower(\Carbon\Carbon::parse($selectedDate)->format('l'));
+                $schedule = Schedule::with('teachingAssignment')
+                    ->where('teacher_id', $teacher->id)
                     ->where('classroom_id', $selectedClassroomId)
                     ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-                    ->whereNotNull('group_code')
-                    ->value('group_code');
-
-                if ($groupCode) {
-                    $allClassroomIds = Schedule::where('teacher_id', $teacher->id)
-                        ->where('group_code', $groupCode)
+                    ->where('day_of_week', $dayOfWeek)
+                    ->first();
+                    
+                if (!$schedule) {
+                     $schedule = Schedule::with('teachingAssignment')
+                        ->where('teacher_id', $teacher->id)
+                        ->where('classroom_id', $selectedClassroomId)
                         ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-                        ->pluck('classroom_id')
-                        ->unique()
-                        ->toArray();
+                        ->first();
+                }
 
-                    $students = \App\Models\Student::whereHas('classrooms', function($q) use ($allClassroomIds, $activeYear) {
-                            $q->whereIn('classrooms.id', $allClassroomIds)
-                              ->wherePivot('status', 'aktif')
-                              ->when($activeYear, fn($p) => $p->wherePivot('academic_year_id', $activeYear->id));
-                        })
-                        ->with(['classrooms' => fn($q) => $q->whereIn('classrooms.id', $allClassroomIds)])
-                        ->orderBy('full_name')
-                        ->get();
+                $filterService = app(TeachingAssignmentStudentFilterService::class);
+                $allClassroomIds = [$selectedClassroomId];
 
-                    $existingAttendances = Attendance::whereIn('classroom_id', $allClassroomIds)
-                        ->where('date', $selectedDate)
-                        ->where('created_by', Auth::id())
-                        ->get()
-                        ->keyBy('student_id');
+                if ($schedule && $schedule->teachingAssignment) {
+                    $students = $filterService->getStudentsForAssignment($schedule->teachingAssignment);
+                    if (!empty($schedule->teachingAssignment->group_code)) {
+                        $allClassroomIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+                            ->where('academic_year_id', $activeYear->id)
+                            ->where('group_code', $schedule->teachingAssignment->group_code)
+                            ->pluck('classroom_id')
+                            ->unique()
+                            ->toArray();
+                    }
                 } else {
-                    $studentsQuery = $selectedClassroom->students()
-                        ->wherePivot('status', 'aktif');
-
+                    $studentsQuery = $selectedClassroom->students()->wherePivot('status', 'aktif');
                     if ($activeYear) {
                         $studentsQuery->wherePivot('academic_year_id', $activeYear->id);
                     }
-
                     $students = $studentsQuery->orderBy('full_name')->get();
-
-                    // Load existing attendance for this date + classroom (for edit/update)
-                    $existingAttendances = Attendance::where('classroom_id', $selectedClassroomId)
-                        ->where('date', $selectedDate)
-                        ->where('created_by', Auth::id())
-                        ->get()
-                        ->keyBy('student_id');
                 }
+
+                $existingAttendances = Attendance::whereIn('classroom_id', $allClassroomIds)
+                    ->where('date', $selectedDate)
+                    ->where('created_by', Auth::id())
+                    ->get()
+                    ->keyBy('student_id');
             }
         }
 

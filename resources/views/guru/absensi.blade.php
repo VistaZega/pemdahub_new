@@ -87,10 +87,10 @@
             <div class="flex items-center justify-between gap-4 flex-wrap bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
                 <div class="flex items-center gap-2">
                     <button @click="viewMode = 'matrix'" :class="viewMode === 'matrix' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 border border-black">
-                        <i class="fas fa-table"></i> Matriks Rekap Bulanan (1-{{ $daysInMonth }})
+                        <i class="fas fa-table"></i> Kehadiran Harian (Sekolah)
                     </button>
                     <button @click="viewMode = 'log'" :class="viewMode === 'log' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 border border-black">
-                        <i class="fas fa-list-ul"></i> Riwayat Log Absensi
+                        <i class="fas fa-list-ul"></i> Kehadiran Pelajaran Saya
                     </button>
                 </div>
                 <button onclick="window.print()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition flex items-center gap-2">
@@ -102,7 +102,7 @@
             <div x-show="viewMode === 'matrix'" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h2 class="font-bold text-gray-800 flex items-center gap-2 text-sm md:text-base">
-                        <i class="fas fa-calendar-check text-purple-600"></i> Matriks Kehadiran Siswa — Bulan {{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }} ({{ $selectedClassroom->class_name }})
+                        <i class="fas fa-calendar-check text-purple-600"></i> Matriks Kehadiran Harian (Sekolah) — Bulan {{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }} ({{ $selectedClassroom->class_name }})
                     </h2>
                     <span class="text-xs text-gray-500 font-semibold hidden md:inline">H: Hadir | S: Sakit | I: Izin | A: Alpha</span>
                 </div>
@@ -181,7 +181,7 @@
             <div x-show="viewMode === 'log'" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100">
                     <h2 class="font-bold text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-history text-purple-500"></i> Riwayat Log Absensi - {{ $selectedClassroom->class_name }} ({{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }})
+                        <i class="fas fa-history text-purple-500"></i> Log Kehadiran Pelajaran Saya - {{ $selectedClassroom->class_name }} ({{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }})
                     </h2>
                 </div>
                 @if($attendances->count() > 0)
