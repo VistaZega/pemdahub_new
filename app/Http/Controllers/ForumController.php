@@ -121,8 +121,8 @@ class ForumController extends Controller
         }
 
         $rules = [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'title' => 'required|string|min:15|max:255',
+            'content' => 'required|string|min:30',
             'category' => 'required|string|in:' . implode(',', $allowedCategories),
             'image' => 'nullable|image|max:5120', // 5MB limit
             'attachment' => 'nullable|file|max:10240', // 10MB limit
@@ -135,10 +135,21 @@ class ForumController extends Controller
             'reference_id' => 'nullable|integer',
         ];
 
-        $validated = $request->validate($rules);
+        $messages = [
+            'title.min' => 'Judul topik terlalu singkat. Masukkan minimal 15 karakter agar lebih informatif.',
+            'content.min' => 'Isi topik terlalu singkat. Masukkan minimal 30 karakter agar diskusi lebih jelas dan mencegah spam.',
+        ];
+
+        $validated = $request->validate($rules, $messages);
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts('forum_post:' . $user->id, 1)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn('forum_post:' . $user->id);
+            return back()->withInput()->with('error', "Anda membuat topik terlalu cepat. Harap tunggu {$seconds} detik lagi untuk mencegah spam.");
+        }
 
         DB::beginTransaction();
         try {
+            \Illuminate\Support\Facades\RateLimiter::hit('forum_post:' . $user->id, 300); // 5 menit cooldown
             $threadData = [
                 'user_id' => $user->id,
                 'title' => $validated['title'],
@@ -243,17 +254,30 @@ class ForumController extends Controller
             return back()->with('error', 'Topik diskusi ini dikunci.');
         }
 
-        $validated = $request->validate([
-            'content' => 'required_without:voice_note|string|max:5000|nullable',
+        $rules = [
+            'content' => 'required_without:voice_note|string|min:20|max:5000|nullable',
             'voice_note' => 'nullable|file|mimes:webm,mp3,mp4,m4a,ogg,wav|max:5120',
             'parent_reply_id' => 'nullable|exists:forum_replies,id',
-        ]);
+        ];
+        $messages = [
+            'content.min' => 'Balasan terlalu singkat. Masukkan minimal 20 karakter untuk mencegah spam (atau gunakan Voice Note).',
+        ];
+
+        $validated = $request->validate($rules, $messages);
+
+        // Hanya limit balasan berupa teks biasa (jika voice note tidak apa-apa lebih cepat)
+        if (!$request->hasFile('voice_note') && \Illuminate\Support\Facades\RateLimiter::tooManyAttempts('forum_reply:' . $user->id, 1)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn('forum_reply:' . $user->id);
+            return back()->withInput()->with('error', "Anda membalas terlalu cepat. Harap tunggu {$seconds} detik lagi.");
+        }
 
         DB::beginTransaction();
         try {
             $voiceNotePath = null;
             if ($request->hasFile('voice_note')) {
                 $voiceNotePath = $request->file('voice_note')->store('forum_voice_notes', 'public');
+            } else {
+                \Illuminate\Support\Facades\RateLimiter::hit('forum_reply:' . $user->id, 60); // 1 menit cooldown
             }
 
             $reply = ForumReply::create([
@@ -587,8 +611,8 @@ class ForumController extends Controller
         }
 
         $rules = [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'title' => 'required|string|min:15|max:255',
+            'content' => 'required|string|min:30',
             'category' => 'required|string|in:' . implode(',', $allowedCategories),
             'image' => 'nullable|image|max:5120', // 5MB limit
             'attachment' => 'nullable|file|max:10240', // 10MB limit
@@ -601,7 +625,12 @@ class ForumController extends Controller
             'reference_id' => 'nullable|integer',
         ];
 
-        $validated = $request->validate($rules);
+        $messages = [
+            'title.min' => 'Judul topik terlalu singkat. Masukkan minimal 15 karakter.',
+            'content.min' => 'Isi topik terlalu singkat. Masukkan minimal 30 karakter.',
+        ];
+
+        $validated = $request->validate($rules, $messages);
 
         DB::beginTransaction();
         try {
