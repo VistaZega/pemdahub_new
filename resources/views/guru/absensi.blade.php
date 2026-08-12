@@ -231,12 +231,15 @@
                                 Kolom Tgl {{ $inputDay }} Siap Diisi
                             </span>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <button type="button" onclick="markAllWajibHadir()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800">
                                 <i class="fas fa-check-double"></i> Hadirkan Semua Wajib
                             </button>
                             <button type="submit" class="px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-1.5">
                                 <i class="fas fa-save text-black"></i> Simpan Absensi
+                            </button>
+                            <button type="button" onclick="confirmDeleteSelectedDate()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-rose-800" title="Hapus seluruh absensi pada tanggal terpilih">
+                                <i class="fas fa-trash-alt"></i> Hapus Absen Tgl Ini
                             </button>
                         </div>
                     </div>
@@ -380,9 +383,23 @@
     @endif
 </div>
 
+<form id="formDeleteSelectedDate" action="{{ route('guru.absensi.destroyDate') }}" method="POST" class="hidden">
+    @csrf
+    @method('DELETE')
+    <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
+    <input type="hidden" name="date" value="{{ $selectedInputDate }}">
+</form>
+
 <script>
 function markAllWajibHadir() {
     window.dispatchEvent(new CustomEvent('mark-all-hadir'));
+}
+
+function confirmDeleteSelectedDate() {
+    let formattedDate = '{{ \Carbon\Carbon::parse($selectedInputDate)->format('d/m/Y') }}';
+    if (confirm('Apakah Anda yakin ingin MENGHAPUS SELURUH absensi pada tanggal ' + formattedDate + '?\n\nSemua data absensi pada tanggal ini akan dibersihkan dan kolom tanggal akan otomatis hilang jika tidak ada absensi tersimpan.')) {
+        document.getElementById('formDeleteSelectedDate').submit();
+    }
 }
 </script>
 @endsection

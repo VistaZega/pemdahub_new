@@ -258,4 +258,41 @@ class AttendanceController extends Controller
             return back()->withErrors(['attendance' => 'Gagal menyimpan absensi. Silakan coba lagi.'])->withInput();
         }
     }
+
+    /**
+     * Hapus seluruh data absensi pada tanggal tertentu yang diinput oleh guru ini.
+     */
+    public function destroyDate(Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'classroom_id' => 'required|exists:classrooms,id',
+        ]);
+
+        $teacher = $this->getTeacher();
+        $classrooms = $this->getTeacherClassrooms($teacher, $this->getActiveYear());
+
+        if (!$classrooms->contains('id', (int) $request->classroom_id)) {
+            return back()->withErrors(['classroom_id' => 'Anda tidak memiliki akses ke kelas ini.']);
+        }
+
+        try {
+            $deletedCount = Attendance::where('classroom_id', $request->classroom_id)
+                ->where('date', $request->date)
+                ->where('created_by', Auth::id())
+                ->delete();
+
+            $dateCarbon = \Carbon\Carbon::parse($request->date);
+
+            return redirect()->route('guru.absensi', [
+                'classroom_id' => $request->classroom_id,
+                'month' => $dateCarbon->format('n'),
+                'year' => $dateCarbon->format('Y'),
+                'viewMode' => 'log',
+            ])->with('success', "Data absensi tanggal " . $dateCarbon->format('d/m/Y') . " ({$deletedCount} siswa) berhasil dibersihkan/dihapus.");
+        } catch (\Exception $e) {
+            Log::error('Gagal menghapus absensi tanggal: ' . $e->getMessage());
+            return back()->withErrors(['attendance' => 'Gagal menghapus absensi tanggal tersebut.']);
+        }
+    }
 }
