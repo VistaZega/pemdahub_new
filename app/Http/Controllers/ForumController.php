@@ -342,7 +342,7 @@ class ForumController extends Controller
         $thread = $reply->thread;
 
         // Verify authority: only thread author or Admin/Teacher can accept
-        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isGuru()) {
+        if ($user->id !== $thread->user_id && !$user->isSuperAdmin()) {
             abort(403, 'Unauthorized');
         }
 
@@ -423,7 +423,7 @@ class ForumController extends Controller
         $thread = $member->thread;
 
         // Author or teacher/admin can approve
-        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isGuru()) {
+        if ($user->id !== $thread->user_id && !$user->isSuperAdmin()) {
             abort(403, 'Unauthorized');
         }
 
@@ -452,7 +452,7 @@ class ForumController extends Controller
         $user = Auth::user();
         $thread = $member->thread;
 
-        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isGuru()) {
+        if ($user->id !== $thread->user_id && !$user->isSuperAdmin()) {
             abort(403, 'Unauthorized');
         }
 
@@ -480,7 +480,7 @@ class ForumController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isGuru()) {
+        if ($user->id !== $thread->user_id && !$user->isSuperAdmin()) {
             abort(403, 'Unauthorized');
         }
 
@@ -552,7 +552,7 @@ class ForumController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isAdminSekolah() && !$user->isGuru()) {
+        if ($user->id !== $thread->user_id && !$user->isSuperAdmin()) {
             abort(403, 'Unauthorized');
         }
 
@@ -577,7 +577,7 @@ class ForumController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isAdminSekolah() && !$user->isGuru()) {
+        if ($user->id !== $thread->user_id && !$user->isSuperAdmin()) {
             abort(403, 'Unauthorized');
         }
 
@@ -696,7 +696,7 @@ class ForumController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isAdminSekolah() && !$user->isGuru()) {
+        if ($user->id !== $thread->user_id && !$user->isSuperAdmin()) {
             abort(403, 'Unauthorized');
         }
 
@@ -851,7 +851,7 @@ class ForumController extends Controller
         $user = Auth::user();
 
         // Only thread author or admin/teacher can create poll
-        if ($user->id !== $thread->user_id && !$user->isSuperAdmin() && !$user->isGuru()) {
+        if ($user->id !== $thread->user_id && !$user->isSuperAdmin()) {
             abort(403, 'Unauthorized');
         }
 

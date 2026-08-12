@@ -233,6 +233,19 @@ class LmsAssignmentController extends Controller
             \Log::warning('LMS submission sync failed: ' . $e->getMessage());
         }
 
+        // Reputation Hook for Teacher (+10 Points per Grading)
+        try {
+            \App\Models\ReputationLog::log(
+                \Auth::id(),
+                10,
+                'grading',
+                "Menilai tugas LMS: " . ($course->title ?? 'Tugas'),
+                $submission
+            );
+        } catch (\Exception $e) {
+            \Log::warning('LMS grading reputation failed: ' . $e->getMessage());
+        }
+
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Nilai berhasil disimpan.', 'submission' => $submission]);
         }

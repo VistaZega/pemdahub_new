@@ -532,7 +532,7 @@
                                 </div>
 
                                 <!-- Quick Actions (Author / Admin) -->
-                                @if(auth()->id() === $thread->user_id || auth()->user()->isSuperAdmin() || auth()->user()->isAdminSekolah() || auth()->user()->isGuru())
+                                @if(auth()->id() === $thread->user_id || auth()->user()->isSuperAdmin())
                                     <div class="flex items-center gap-1 flex-shrink-0" onclick="event.stopPropagation()">
                                         <a href="{{ route('forum.edit', $thread) }}" class="p-2 text-slate-700 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition" title="Edit Status">
                                             <i class="ph-bold ph-pencil-simple text-lg"></i>

@@ -207,7 +207,7 @@
                                                     <span class="bg-rose-55 text-rose-750 px-1.5 py-0.5 rounded text-[9px] font-bold border border-rose-100 uppercase tracking-wider flex items-center gap-1"><i class="fas fa-exclamation-circle text-[9px] animate-pulse"></i> Belum Tuntas</span>
                                                 @endif
                                             @endif
-                                            <span class="text-xs text-gray-400 font-medium">· Detail Sumber</span>
+                                            <span class="text-[10px] text-blue-500 font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 flex items-center gap-1"><i class="fas fa-hand-pointer animate-pulse"></i> Klik lihat rincian Kuis & Tugas</span>
                                         </div>
                                     </div>
                                 </div>
@@ -286,7 +286,7 @@
                                     {{-- Tugas Group --}}
                                     <div class="space-y-3">
                                         <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider border-b pb-2 flex items-center justify-between">
-                                            <span>Tugas & Harian</span>
+                                            <span>Tugas & Kuis</span>
                                             <span class="bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">{{ $sg['tugas_grades']->count() }}</span>
                                         </h4>
                                         <div class="space-y-2">
