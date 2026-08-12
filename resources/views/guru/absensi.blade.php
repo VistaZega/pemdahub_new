@@ -202,12 +202,17 @@
                     <table class="w-full text-sm text-left">
                         <thead>
                             <tr class="bg-slate-900 text-white font-bold text-xs">
-                                <th class="px-3 py-3 text-center border-r border-slate-700 w-10">No</th>
-                                <th class="px-4 py-3 text-left border-r border-slate-700 min-w-[180px]">Nama Siswa</th>
+                                <th class="px-3 py-3 text-center border-r border-slate-700 w-10 border-b border-slate-700" rowspan="2">No</th>
+                                <th class="px-4 py-3 text-left border-r border-slate-700 min-w-[180px] border-b border-slate-700" rowspan="2">Nama Siswa</th>
+                                @php $dateCount = count($lessonDates ?? []); @endphp
+                                <th class="px-1 py-2 text-center border-r border-slate-700 border-b border-slate-700" colspan="{{ $dateCount > 0 ? $dateCount : 1 }}">Tanggal</th>
+                                <th class="px-2 py-2 text-center bg-slate-800 border-b border-slate-700" colspan="5">Total</th>
+                            </tr>
+                            <tr class="bg-slate-900 text-white font-bold text-xs">
                                 @forelse($lessonDates ?? [] as $d)
                                     <th class="px-1 py-2 text-center border-r border-slate-700 min-w-[24px]">{{ $d }}</th>
                                 @empty
-                                    <th class="px-3 py-2 text-center border-r border-slate-700 text-gray-400 font-normal italic">Belum ada absen bulan ini</th>
+                                    <th class="px-3 py-2 text-center border-r border-slate-700 text-gray-400 font-normal italic">Belum ada absen</th>
                                 @endforelse
                                 <th class="px-2 py-2 text-center border-r border-slate-700 bg-green-900/60">H</th>
                                 <th class="px-2 py-2 text-center border-r border-slate-700 bg-yellow-900/60">S</th>
@@ -229,9 +234,9 @@
                                         <div class="text-[9px] {{ !$isWajib ? 'text-gray-300' : 'text-gray-400' }} font-normal">
                                             NISN: {{ $st->nisn ?? '-' }} 
                                             @if(!$isWajib)
-                                                <span class="ml-1 relative inline-block text-gray-400" title="Tidak Wajib Hadir" style="width: 14px; height: 14px; vertical-align: middle;">
-                                                    <i class="fas fa-hand-paper absolute inset-0 text-[10px] text-gray-300" style="top: 2px;"></i>
-                                                    <i class="fas fa-ban absolute inset-0 text-[14px] text-red-500/80 -left-[1px]"></i>
+                                                <span class="fa-stack ml-1" style="font-size: 0.5em; vertical-align: middle; margin-top: -2px;" title="Tidak Wajib Hadir (Beda Grup/Jurusan)">
+                                                    <i class="fas fa-hand-paper fa-stack-1x text-gray-400"></i>
+                                                    <i class="fas fa-ban fa-stack-2x text-red-500"></i>
                                                 </span>
                                             @endif
                                         </div>
