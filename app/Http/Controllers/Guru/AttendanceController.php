@@ -135,6 +135,7 @@ class AttendanceController extends Controller
 
                     $existingAttendances = Attendance::whereIn('classroom_id', $allClassroomIds)
                         ->where('date', $selectedDate)
+                        ->where('created_by', Auth::id())
                         ->get()
                         ->keyBy('student_id');
                 } else {
@@ -150,6 +151,7 @@ class AttendanceController extends Controller
                     // Load existing attendance for this date + classroom (for edit/update)
                     $existingAttendances = Attendance::where('classroom_id', $selectedClassroomId)
                         ->where('date', $selectedDate)
+                        ->where('created_by', Auth::id())
                         ->get()
                         ->keyBy('student_id');
                 }
@@ -188,6 +190,20 @@ class AttendanceController extends Controller
             $classroom = Classroom::find($request->classroom_id);
             $classroomName = $classroom ? $classroom->class_name : 'Kelas';
 
+            // Cari schedule_id yang paling sesuai untuk guru & kelas ini
+            $dayOfWeek = strtolower(\Carbon\Carbon::parse($request->date)->format('l'));
+            $schedule = \App\Models\Schedule::where('teacher_id', $teacher->id)
+                ->where('classroom_id', $request->classroom_id)
+                ->where('day_of_week', $dayOfWeek)
+                ->first();
+                
+            if (!$schedule) {
+                 $schedule = \App\Models\Schedule::where('teacher_id', $teacher->id)
+                    ->where('classroom_id', $request->classroom_id)
+                    ->first();
+            }
+            $scheduleId = $schedule ? $schedule->id : null;
+
             foreach ($request->statuses as $studentId => $status) {
                 $note = $request->notes[$studentId] ?? null;
                 $attendance = Attendance::updateOrCreate(
@@ -195,12 +211,13 @@ class AttendanceController extends Controller
                         'student_id' => $studentId,
                         'classroom_id' => $request->classroom_id,
                         'date' => $request->date,
+                        'created_by' => Auth::id(), // Pisahkan absensi milik guru ini dari absensi hadir harian
                     ],
                     [
+                        'schedule_id' => $scheduleId,
                         'status' => $status,
                         'notes' => $note,
                         'recorded_via' => 'manual',
-                        'created_by' => Auth::id(),
                     ]
                 );
 

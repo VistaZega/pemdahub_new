@@ -10,7 +10,7 @@
                 <i class="fas fa-clipboard-check text-purple-500"></i> Input Absensi Kelas
             </h1>
             <p class="text-sm text-gray-500 mt-0.5">
-                Catat kehadiran seluruh siswa sekaligus
+                Catat kehadiran siswa saat kegiatan belajar mengajar (KBM) berlangsung.
                 @if($activeYear) · {{ $activeYear->year }} @endif
             </p>
         </div>
@@ -21,10 +21,11 @@
 
     {{-- Select Classroom & Date --}}
     <form method="GET" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="bg-gradient-to-r from-purple-500 to-indigo-600 px-5 py-3">
+        <div class="bg-gradient-to-r from-purple-500 to-indigo-600 px-5 py-3 flex justify-between items-center">
             <h2 class="text-base font-bold text-white flex items-center gap-2">
                 <i class="fas fa-search"></i> Pilih Kelas & Tanggal
             </h2>
+            <span class="text-xs bg-white/20 text-white px-2 py-1 rounded font-medium">Khusus Kehadiran Kelas/Pelajaran</span>
         </div>
         <div class="p-5 space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -70,6 +71,10 @@
                     <span class="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full">
                         {{ $students->count() }} siswa
                     </span>
+                </div>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 m-4 text-sm text-blue-700 rounded-r-lg">
+                    <i class="fas fa-info-circle mr-1"></i> <strong>Informasi:</strong> Form ini adalah untuk mencatat <b>Absensi Belajar (KBM)</b>. Data yang Anda simpan di sini berdiri sendiri (terikat pada jadwal Anda) dan <b>tidak akan menimpa</b> data Absensi Hadir Sekolah (dari mesin tap RFID/Gerbang).
                 </div>
 
                 {{-- Quick Actions --}}
