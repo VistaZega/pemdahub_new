@@ -345,8 +345,8 @@
                                 <i class="ph-fill ph-quotes text-6xl"></i>
                             </div>
                             <p class="text-[10px] text-indigo-500 font-black mb-1.5 uppercase tracking-widest relative z-10">🌟 Motivasi Terakhir Dipasang</p>
-                            <p class="text-sm sm:text-base font-medium italic text-slate-800 relative z-10" x-text="`&quot;${bricks[bricks.length - 1].msg}&quot;`"></p>
-                            <p class="text-[11px] text-slate-500 mt-2 font-semibold relative z-10" x-text="`- ${bricks[bricks.length - 1].user_name} (${bricks[bricks.length - 1].user_unit})`"></p>
+                            <p class="text-sm sm:text-base font-medium italic text-slate-800 relative z-10" x-text="`&quot;${bricks[bricks.length - 1].message}&quot;`"></p>
+                            <p class="text-[11px] text-slate-500 mt-2 font-semibold relative z-10" x-text="`- ${bricks[bricks.length - 1].user_name} (${bricks[bricks.length - 1].school_name})`"></p>
                         </div>
                     </template>
 
@@ -370,7 +370,7 @@
                                                 <!-- Bata Terisi -->
                                                 <template x-if="b">
                                                     <div @click="selectedBrick = b"
-                                                         class="w-full aspect-[5/2] cursor-pointer hover:-translate-y-1 hover:scale-110 hover:z-10 transition-all shadow-md border border-white/30 rounded-[3px] relative group flex items-center justify-center"
+                                                         class="w-full h-5 sm:h-7 md:h-9 lg:h-11 cursor-pointer hover:-translate-y-1 hover:scale-110 hover:z-10 transition-all shadow-md border border-white/30 rounded-[3px] relative group flex items-center justify-center"
                                                          :class="{
                                                              'bg-gradient-to-br from-indigo-500 to-indigo-700': b.color === 'indigo',
                                                              'bg-gradient-to-br from-emerald-500 to-teal-700': b.color === 'emerald',
@@ -385,7 +385,7 @@
                                                 </template>
                                                 <!-- Bata Kosong -->
                                                 <template x-if="!b">
-                                                    <div class="w-full aspect-[5/2] border border-dashed border-slate-300 bg-white/40 rounded-[3px]"></div>
+                                                    <div class="w-full h-5 sm:h-7 md:h-9 lg:h-11 border border-dashed border-slate-300 bg-white/40 rounded-[3px]"></div>
                                                 </template>
                                             </div>
                                         </template>
