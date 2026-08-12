@@ -48,8 +48,8 @@ class TowerController extends Controller
                     'users.role as user_role',
                     'schools.name as school_name'
                 )
-                ->orderBy('pembda_tower_bricks.brick_number', 'desc')
-                ->limit(100)
+                ->orderBy('pembda_tower_bricks.brick_number', 'asc')
+                ->limit(55)
                 ->get();
 
             $bricks = $bricksRaw->map(function ($b) use ($user) {
@@ -78,7 +78,7 @@ class TowerController extends Controller
                 'success' => true,
                 'stats' => [
                     'total_bricks' => $totalBricks,
-                    'total_height' => ceil($totalBricks / 3),
+                    'total_height' => ceil((-1 + sqrt(1 + 8 * $totalBricks)) / 2),
                 ],
                 'bricks' => $bricks->values()->toArray(),
                 'has_placed_today' => $hasPlacedToday,
@@ -121,6 +121,13 @@ class TowerController extends Controller
                 'success' => false,
                 'message' => 'Anda sudah meletakkan bata motivasi hari ini! Kembali lagi besok.'
             ]);
+        }
+
+        // Auto reset jika sudah 55 bata (10 tingkat piramida penuh)
+        $totalCurrent = PembdaTowerBrick::count();
+        if ($totalCurrent >= 55) {
+            \Illuminate\Support\Facades\DB::table('pembda_tower_brick_likes')->delete();
+            \Illuminate\Support\Facades\DB::table('pembda_tower_bricks')->delete();
         }
 
         $nextBrickNumber = (PembdaTowerBrick::max('brick_number') ?? 0) + 1;

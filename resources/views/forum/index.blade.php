@@ -348,42 +348,25 @@
 
                         <!-- 🧱 Tower Wall — Bata tersusun piramida (bawah lebar, atas sempit) -->
                         <div class="w-full flex flex-col items-center" style="max-height: 420px; overflow-y: auto;">
-                            <!-- flex-col: bata terbaru (bIdx = 0, sempit 55%) di atas, bata lama (bIdx max, lebar 100%) di bawah -->
-                            <div class="w-full flex flex-col items-center">
-                                <template x-for="(b, bIdx) in bricks" :key="bIdx">
-                                    <div @click="selectedBrick = b"
-                                         class="cursor-pointer transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5 group"
-                                         :style="'width:' + (55 + 45 * (bIdx / Math.max(bricks.length - 1, 1))) + '%; margin: 0 auto;'">
-                                        <!-- Brick body -->
-                                        <div class="flex items-stretch rounded-sm shadow-sm border border-white/10"
-                                             :class="{
-                                                 'bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700': b.color === 'indigo',
-                                                 'bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700': b.color === 'emerald',
-                                                 'bg-gradient-to-r from-amber-400 via-amber-500 to-orange-600': b.color === 'amber',
-                                                 'bg-gradient-to-r from-rose-500 via-rose-600 to-pink-700': b.color === 'rose',
-                                                 'bg-gradient-to-r from-purple-500 via-purple-600 to-violet-700': b.color === 'purple',
-                                                 'bg-gradient-to-r from-cyan-500 via-cyan-600 to-blue-700': b.color === 'cyan'
-                                             }">
-                                            <!-- Brick number -->
-                                            <div class="flex-shrink-0 w-8 flex items-center justify-center bg-black/25 text-white font-black text-[10px]">
-                                                <span x-text="'#' + b.brick_number"></span>
+                            <!-- flex-col: susun baris dari atas ke bawah -->
+                            <div class="w-full flex flex-col items-center gap-[3px] py-2">
+                                <template x-for="(row, rowIdx) in pyramidRows" :key="rowIdx">
+                                    <div class="flex justify-center gap-[3px]">
+                                        <template x-for="(b, bIdx) in row" :key="bIdx">
+                                            <div @click="selectedBrick = b"
+                                                 class="h-6 w-9 sm:h-7 sm:w-12 md:h-8 md:w-14 cursor-pointer hover:-translate-y-1 hover:scale-110 hover:z-10 transition-all shadow-md border border-white/30 rounded-sm relative group flex items-center justify-center"
+                                                 :class="{
+                                                     'bg-gradient-to-br from-indigo-500 to-indigo-700': b.color === 'indigo',
+                                                     'bg-gradient-to-br from-emerald-500 to-teal-700': b.color === 'emerald',
+                                                     'bg-gradient-to-br from-amber-400 to-orange-600': b.color === 'amber',
+                                                     'bg-gradient-to-br from-rose-500 to-pink-700': b.color === 'rose',
+                                                     'bg-gradient-to-br from-purple-500 to-violet-700': b.color === 'purple',
+                                                     'bg-gradient-to-br from-cyan-500 to-blue-700': b.color === 'cyan'
+                                                 }"
+                                                 title="Klik untuk melihat pesan">
+                                                <span class="text-[8px] sm:text-[9px] font-black text-white/60 select-none" x-text="b.brick_number"></span>
                                             </div>
-                                            <!-- Brick content -->
-                                            <div class="flex-1 px-2.5 py-2 text-white min-w-0">
-                                                <p class="text-[11px] font-semibold leading-snug line-clamp-1" x-text="b.message"></p>
-                                                <div class="flex items-center justify-between mt-0.5 text-[9px] opacity-75">
-                                                    <span class="font-bold truncate" x-text="b.user_name + ' · ' + b.school_name"></span>
-                                                    <button @click.stop="toggleLike(b)" 
-                                                            class="flex items-center gap-0.5 ml-1 flex-shrink-0"
-                                                            :class="b.is_liked ? 'opacity-100' : 'opacity-60'">
-                                                        <i class="ph-bold ph-heart text-[10px]" :class="b.is_liked ? 'text-rose-300' : ''"></i>
-                                                        <span x-text="b.likes_count"></span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- Mortar / Semen -->
-                                        <div class="h-[2px] bg-gradient-to-r from-transparent via-amber-300/60 to-transparent mx-auto" :style="'width:' + (55 + 45 * (bIdx / Math.max(bricks.length - 1, 1))) + '%;'"></div>
+                                        </template>
                                     </div>
                                 </template>
                             </div>
@@ -1085,6 +1068,7 @@ function pembdaTower() {
     return {
         stats: { total_bricks: 0, total_height: 0 },
         bricks: [],
+        pyramidRows: [],
         hasPlacedToday: false,
         isCollapsed: false,
         showBuildModal: false,
@@ -1130,6 +1114,27 @@ function pembdaTower() {
                         rawBricks = Object.values(rawBricks);
                     }
                     this.bricks = JSON.parse(JSON.stringify(rawBricks));
+                    
+                    // Bangun piramida
+                    let rows = [];
+                    let capacities = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // 10 tingkat (total 55)
+                    let currentBrickIdx = 0;
+                    for (let i = 9; i >= 0; i--) { // mulai isi dari bawah (kapasitas 10)
+                        let rowCap = capacities[i];
+                        let rowBricks = [];
+                        for (let c = 0; c < rowCap; c++) {
+                            if (currentBrickIdx < this.bricks.length) {
+                                rowBricks.push(this.bricks[currentBrickIdx]);
+                                currentBrickIdx++;
+                            }
+                        }
+                        if (rowBricks.length > 0) {
+                            rows.push(rowBricks); // Baris bawah masuk pertama
+                        }
+                    }
+                    rows.reverse(); // Balik array agar render dari tingkat atas ke bawah
+                    this.pyramidRows = rows;
+
                     this.hasPlacedToday = !!data.has_placed_today;
                 } else if (data.error) {
                     console.error('[Menara] Server error:', data.error);
