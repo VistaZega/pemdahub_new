@@ -306,8 +306,8 @@
 
                     <div class="flex items-center gap-2" @click.stop>
                         <button @click="showBuildModal = true" 
-                                class="text-xs font-extrabold px-3.5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-md shadow-red-200 hover:shadow-lg transition flex items-center gap-1.5 active:scale-95">
-                            <i class="ph-bold ph-plus-circle text-sm"></i>
+                                class="text-xs font-extrabold px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-md shadow-red-200 hover:shadow-lg transition flex items-center gap-2 active:scale-95 whitespace-nowrap">
+                            <i class="ph-bold ph-plus-circle text-base"></i>
                             <span>Pasang Bata Saya</span>
                         </button>
                         <button @click="toggleCollapse()" class="text-slate-400 hover:text-slate-700 transition p-1.5 bg-slate-100 rounded-lg">
