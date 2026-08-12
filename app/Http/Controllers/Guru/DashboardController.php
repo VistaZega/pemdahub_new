@@ -786,9 +786,33 @@ class DashboardController extends Controller
                     $assignmentInfo = 'Reguler';
                 }
 
-                // Get dynamic dates for lesson matrix
-                $lessonDates = $attendances->pluck('date')
+                // Get dynamic dates: Scheduled dates + any dates with actual attendance
+                $schedulesQuery = \App\Models\Schedule::where('teacher_id', $teacher->id)
+                    ->where('classroom_id', $selectedClassroomId);
+                if ($activeYear) {
+                    $schedulesQuery->where('academic_year_id', $activeYear->id);
+                }
+                $scheduledDays = $schedulesQuery->pluck('day_of_week')->map(fn($day) => strtolower(trim($day)))->unique()->toArray();
+                
+                $calculatedDates = [];
+                
+                if (!empty($scheduledDays)) {
+                    $startOfMonth = \Carbon\Carbon::createFromDate($selectedYear, $selectedMonth, 1);
+                    $endOfMonth = $startOfMonth->copy()->endOfMonth();
+                    
+                    for ($date = $startOfMonth; $date->lte($endOfMonth); $date->addDay()) {
+                        $dayNameStr = strtolower($date->format('l'));
+                        if (in_array($dayNameStr, $scheduledDays)) {
+                            $calculatedDates[] = $date->day;
+                        }
+                    }
+                }
+                
+                $attendanceDates = $attendances->pluck('date')
                     ->map(fn($d) => (int)\Carbon\Carbon::parse($d)->format('j'))
+                    ->toArray();
+                
+                $lessonDates = collect(array_merge($calculatedDates, $attendanceDates))
                     ->unique()
                     ->sort()
                     ->values()

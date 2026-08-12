@@ -277,7 +277,6 @@
                     <td class="text-center {{ !$isWajib ? 'badge' : '' }}">{{ $idx + 1 }}</td>
                     <td class="{{ !$isWajib ? 'badge' : '' }}">
                         {{ $st->full_name }}
-                        @if(!$isWajib) <span class="badge">[TDK WAJIB]</span> @endif
                     </td>
                     <td class="text-center {{ !$isWajib ? 'badge' : '' }}">{{ $st->nisn ?? '-' }}</td>
                     @forelse($lessonDates ?? [] as $d)
@@ -293,11 +292,11 @@
                                 };
                             }
                         @endphp
-                        <td class="text-center" style="font-size:10px; {{ !$isWajib && !$stStatus ? 'background-color: #f5f5f5;' : '' }}">
+                        <td class="text-center" style="font-size:10px; {{ !$isWajib && !$stStatus ? 'background-color: #f5f5f5; color: #999;' : '' }}">
                             @if($stStatus)
                                 {{ $stChar }}
                             @elseif(!$isWajib)
-                                -
+                                x
                             @endif
                         </td>
                     @empty

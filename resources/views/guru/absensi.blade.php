@@ -233,12 +233,6 @@
                                         {{ $st->full_name }}
                                         <div class="text-[9px] {{ !$isWajib ? 'text-gray-300' : 'text-gray-400' }} font-normal">
                                             NISN: {{ $st->nisn ?? '-' }} 
-                                            @if(!$isWajib)
-                                                <span class="fa-stack ml-1" style="font-size: 0.5em; vertical-align: middle; margin-top: -2px;" title="Tidak Wajib Hadir (Beda Grup/Jurusan)">
-                                                    <i class="fas fa-hand-paper fa-stack-1x text-gray-400"></i>
-                                                    <i class="fas fa-ban fa-stack-2x text-red-500"></i>
-                                                </span>
-                                            @endif
                                         </div>
                                     </td>
                                     @forelse($lessonDates ?? [] as $d)
@@ -261,11 +255,14 @@
                                                 };
                                             }
                                         @endphp
-                                        <td class="px-1 py-1.5 text-center border-r border-gray-100">
+                                        <td class="px-1 py-1.5 text-center border-r border-gray-100 {{ !$isWajib && !$stStatus ? 'bg-gray-100/50' : '' }}">
                                             @if($stStatus)
                                                 <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black {{ $stBadge }}">{{ $stChar }}</span>
                                             @elseif(!$isWajib)
-                                                <span class="text-gray-300">-</span>
+                                                <span class="fa-stack" style="font-size: 0.5em; vertical-align: middle;" title="Tidak Wajib Hadir">
+                                                    <i class="fas fa-hand-paper fa-stack-1x text-gray-400"></i>
+                                                    <i class="fas fa-ban fa-stack-2x text-red-500/80"></i>
+                                                </span>
                                             @else
                                                 <span class="text-gray-200">.</span>
                                             @endif
