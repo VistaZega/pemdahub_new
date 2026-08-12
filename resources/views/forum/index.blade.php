@@ -213,7 +213,47 @@
         </div>
 
         <!-- MAIN FEED (Center) -->
-        <div class="flex-1 flex flex-col min-w-[300px] w-full bg-forum-base p-4 sm:p-6 lg:p-8 max-h-[85vh] overflow-y-auto">
+        <div class="flex-1 flex flex-col min-w-[300px] w-full bg-forum-base p-4 sm:p-6 lg:p-8 max-h-[85vh] overflow-y-auto" style="background-image: radial-gradient(rgba(220,38,38,0.03) 2px, transparent 2px); background-size: 24px 24px;">
+            
+            <!-- HERO BANNER KEMERDEKAAN -->
+            <div class="mb-6 relative rounded-3xl overflow-hidden shadow-xl border border-red-200">
+                <!-- Red & White Gradient Background -->
+                <div class="absolute inset-0 bg-gradient-to-r from-red-600 via-red-500 to-red-600 opacity-95"></div>
+                <!-- Subtle pattern -->
+                <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, #000 0, #000 2px, transparent 2px, transparent 10px);"></div>
+                <!-- Sunburst Effect (CSS purely) -->
+                <div class="absolute -top-40 -left-40 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl mix-blend-overlay"></div>
+                <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-white opacity-20 rounded-full blur-3xl mix-blend-overlay"></div>
+                
+                <div class="relative p-6 sm:p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div class="flex-1 text-center md:text-left">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-black tracking-widest mb-4 border border-white/30 shadow-sm">
+                            <i class="ph-bold ph-flag"></i> HUT KEMRI KE-81
+                        </div>
+                        <h2 class="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight leading-tight" style="font-family: 'Space Grotesk', sans-serif; text-shadow: 0 4px 12px rgba(220,38,38,0.4);">
+                            Dirgahayu <span class="text-white italic relative inline-block"><span class="relative z-10">Indonesia!</span><span class="absolute bottom-1 left-0 w-full h-3 bg-red-800/50 -z-0 rounded-full"></span></span>
+                        </h2>
+                        <p class="text-red-50 text-sm md:text-base max-w-xl font-medium leading-relaxed">
+                            Mari kobarkan semangat belajar dan gotong royong di Perguruan Pembda untuk menyongsong Indonesia yang lebih maju. Berkarya untuk negeri! 🇮🇩
+                        </p>
+                    </div>
+                    
+                    <!-- Decorative Element 81 Years -->
+                    <div class="hidden md:flex flex-shrink-0 relative group">
+                        <div class="w-36 h-36 rounded-full border-8 border-white flex items-center justify-center bg-red-600 shadow-2xl group-hover:scale-105 transition-transform duration-500">
+                            <span class="text-7xl font-black text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">81</span>
+                        </div>
+                        <div class="absolute -bottom-2 -right-2 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg border border-red-100 rotate-12 group-hover:rotate-0 transition-transform duration-500">
+                            <span class="text-2xl font-black text-red-600">TH</span>
+                        </div>
+                        
+                        <!-- Floating ribbons -->
+                        <div class="absolute -top-4 -left-4 text-white text-4xl animate-pulse">🎊</div>
+                        <div class="absolute -top-2 -right-8 text-white text-3xl animate-bounce" style="animation-delay: 500ms;">🎈</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Header & Search -->
             <div class="forum-topbar p-4 mb-6 sticky top-0 z-30 flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <form method="GET" action="{{ route('forum.index') }}" class="w-full sm:max-w-md relative">
@@ -248,15 +288,15 @@
             <!-- Pembda Tower (Menara Prestasi) Widget -->
             <div class="mb-6 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm" x-data="pembdaTower()">
                 <!-- Header Bar -->
-                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-amber-500/10 via-indigo-50/50 to-purple-50/50 cursor-pointer hover:bg-amber-50/50 transition" @click="toggleCollapse()">
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-red-500/10 via-rose-50/50 to-white cursor-pointer hover:bg-red-50/50 transition" @click="toggleCollapse()">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 flex items-center justify-center shadow-md shadow-amber-200 text-white font-black text-xl">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 via-red-500 to-rose-600 flex items-center justify-center shadow-md shadow-red-200 text-white font-black text-xl">
                             🧱
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
                                 <h2 class="forum-hdr text-lg font-bold text-slate-800 tracking-tight leading-tight">Menara Prestasi Pembda</h2>
-                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1">
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-200 flex items-center gap-1">
                                     <span>Tinggi:</span> <span x-text="stats.total_height + ' Lantai'"></span>
                                 </span>
                             </div>
@@ -266,7 +306,7 @@
 
                     <div class="flex items-center gap-2" @click.stop>
                         <button @click="showBuildModal = true" 
-                                class="text-xs font-extrabold px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md shadow-amber-200 hover:shadow-lg transition flex items-center gap-1.5 active:scale-95">
+                                class="text-xs font-extrabold px-3.5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-md shadow-red-200 hover:shadow-lg transition flex items-center gap-1.5 active:scale-95">
                             <i class="ph-bold ph-plus-circle text-sm"></i>
                             <span>Pasang Bata Saya</span>
                         </button>
