@@ -1,3 +1,23 @@
+<style>
+    .program-grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+    @media (max-width: 1024px) {
+        .program-grid-4 {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+    }
+    @media (max-width: 640px) {
+        .program-grid-4 {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+    }
+</style>
+
 {{-- PROGRAM KEAHLIAN — Full-Width Screen Enlarged Edition --}}
 <section id="program" class="section" style="background: var(--bg); padding: 80px 0; width: 100%;">
     <div style="width: 100%; max-width: 1680px; margin: 0 auto; padding: 0 32px;">
@@ -16,10 +36,10 @@
         </div>
 
         {{-- Full-Width Grid Showcase (Enlarged Cards) --}}
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px;" data-aos="fade-up" data-aos-delay="100">
+        <div class="program-grid-4" data-aos="fade-up" data-aos-delay="100">
             
             {{-- 1. Teknik Otomotif (Vibrant Rose Red) --}}
-            <div style="background: linear-gradient(135deg, #e11d48, #be123c); border: 3.5px solid #000000; border-radius: 32px; padding: 34px; color: #ffffff; box-shadow: 10px 10px 0 #000000; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between;" 
+            <div style="background: linear-gradient(135deg, #e11d48, #be123c); border: 3.5px solid #000000; border-radius: 32px; padding: 26px 20px; color: #ffffff; box-shadow: 10px 10px 0 #000000; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between;" 
                  onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='14px 14px 0 #000000';" 
                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='10px 10px 0 #000000';">
                 
@@ -61,7 +81,7 @@
             </div>
 
             {{-- 2. Teknik Elektronika (Vibrant Indigo Purple) --}}
-            <div style="background: linear-gradient(135deg, #4f46e5, #3730a3); border: 3.5px solid #000000; border-radius: 32px; padding: 34px; color: #ffffff; box-shadow: 10px 10px 0 #000000; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between;" 
+            <div style="background: linear-gradient(135deg, #4f46e5, #3730a3); border: 3.5px solid #000000; border-radius: 32px; padding: 26px 20px; color: #ffffff; box-shadow: 10px 10px 0 #000000; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between;" 
                  onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='14px 14px 0 #000000';" 
                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='10px 10px 0 #000000';">
                 
@@ -93,7 +113,7 @@
             </div>
 
             {{-- 3. Teknik Jaringan (Vibrant Teal Emerald) --}}
-            <div style="background: linear-gradient(135deg, #0d9488, #0f766e); border: 3.5px solid #000000; border-radius: 32px; padding: 34px; color: #ffffff; box-shadow: 10px 10px 0 #000000; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between;" 
+            <div style="background: linear-gradient(135deg, #0d9488, #0f766e); border: 3.5px solid #000000; border-radius: 32px; padding: 26px 20px; color: #ffffff; box-shadow: 10px 10px 0 #000000; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between;" 
                  onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='14px 14px 0 #000000';" 
                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='10px 10px 0 #000000';">
                 
@@ -125,7 +145,7 @@
             </div>
 
             {{-- 4. Teknik Konstruksi & DPIB (Vibrant Golden Amber) --}}
-            <div style="background: linear-gradient(135deg, #fbbf24, #d97706); border: 3.5px solid #000000; border-radius: 32px; padding: 34px; color: #000000; box-shadow: 10px 10px 0 #000000; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between;" 
+            <div style="background: linear-gradient(135deg, #fbbf24, #d97706); border: 3.5px solid #000000; border-radius: 32px; padding: 26px 20px; color: #000000; box-shadow: 10px 10px 0 #000000; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between;" 
                  onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='14px 14px 0 #000000';" 
                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='10px 10px 0 #000000';">
                 
