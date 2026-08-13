@@ -418,29 +418,80 @@ class MobileTeacherController extends Controller
         $teacher = $this->getTeacher();
         $user = Auth::user();
 
-        $classrooms = collect();
+        $homeroomClasses = collect();
+        $teachingClasses = collect();
+        $homeroomStudents = collect();
+        $taughtStudents = collect();
+
         if ($teacher) {
-            $classrooms = Classroom::where('is_active', true)
+            // 1. Kelas Perwalian (Wali Kelas)
+            $homeroomClasses = Classroom::where('is_active', true)
+                ->where('homeroom_teacher_id', $teacher->id)
+                ->with(['students.user', 'major'])
+                ->withCount('students')
+                ->orderBy('class_name')
+                ->get();
+
+            foreach ($homeroomClasses as $cls) {
+                foreach ($cls->students as $std) {
+                    $std->classroom_name = $cls->class_name;
+                    $std->role_tag = 'Anak Wali (' . $cls->class_name . ')';
+                    $homeroomStudents->push($std);
+                }
+            }
+
+            // 2. Kelas Mengajar (Guru Mata Pelajaran)
+            $teachingClasses = Classroom::where('is_active', true)
                 ->where(function ($q) use ($teacher) {
-                    $q->where('homeroom_teacher_id', $teacher->id)
-                      ->orWhereHas('schedules', fn($sq) => $sq->where('teacher_id', $teacher->id))
+                    $q->whereHas('schedules', fn($sq) => $sq->where('teacher_id', $teacher->id))
                       ->orWhereHas('teachingAssignments', fn($tq) => $tq->where('teacher_id', $teacher->id));
                 })
+                ->with(['students.user', 'major'])
                 ->withCount('students')
                 ->orderBy('class_name')
                 ->get();
+
+            foreach ($teachingClasses as $cls) {
+                foreach ($cls->students as $std) {
+                    $std->classroom_name = $cls->class_name;
+                    $std->role_tag = 'Siswa Ajar (' . $cls->class_name . ')';
+                    $taughtStudents->push($std);
+                }
+            }
         }
 
-        if ($classrooms->isEmpty()) {
+        // Fallback jika belum terdaftar penugasan mengajar khusus
+        if ($homeroomClasses->isEmpty() && $teachingClasses->isEmpty()) {
             $schoolId = $teacher?->school_id ?? $user->school_id;
-            $classrooms = Classroom::where('is_active', true)
+            $teachingClasses = Classroom::where('is_active', true)
                 ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                ->with(['students.user'])
                 ->withCount('students')
                 ->orderBy('class_name')
                 ->get();
+
+            foreach ($teachingClasses as $cls) {
+                foreach ($cls->students as $std) {
+                    $std->classroom_name = $cls->class_name;
+                    $std->role_tag = 'Siswa (' . $cls->class_name . ')';
+                    $taughtStudents->push($std);
+                }
+            }
         }
 
-        return view('mobile.teacher.kelas', compact('teacher', 'classrooms'));
+        // Remove duplicates by student ID
+        $homeroomStudents = $homeroomStudents->unique('id')->values();
+        $taughtStudents = $taughtStudents->unique('id')->values();
+        $allClassrooms = $homeroomClasses->merge($teachingClasses)->unique('id')->values();
+
+        return view('mobile.teacher.kelas', compact(
+            'teacher', 
+            'homeroomClasses', 
+            'teachingClasses', 
+            'allClassrooms',
+            'homeroomStudents', 
+            'taughtStudents'
+        ));
     }
 
     /**
