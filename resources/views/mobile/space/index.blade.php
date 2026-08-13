@@ -1,84 +1,84 @@
 @extends('mobile.layouts.app')
 
-@section('title', 'Pembda Space - Mobile Pro')
+@section('title', 'Pembda Space 3D - Mobile Pro')
 
 @section('content')
 <div class="space-y-4">
     <!-- Header Title & Create Button -->
     <div class="flex items-center justify-between">
         <div>
-            <h2 class="text-lg font-black text-slate-900">Pembda Space</h2>
-            <p class="text-[11px] text-slate-500 font-medium">Forum Diskusi & Kolaborasi Siswa</p>
+            <h2 class="text-xl font-black text-slate-900">Pembda Space 💬</h2>
+            <p class="text-[11px] text-slate-500 font-bold">Forum Diskusi & Kolaborasi Siswa</p>
         </div>
         <a href="{{ route('mobile.space.create') }}" 
-           class="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-xs font-black shadow-md shadow-indigo-500/25 flex items-center gap-1.5 hover:from-indigo-500 hover:to-indigo-400 transition">
+           class="clay-btn px-4 py-2.5 text-white text-xs font-black flex items-center gap-1.5 shadow-md">
             <i class="fa-solid fa-plus text-xs"></i> Post Baru
         </a>
     </div>
 
-    <!-- Search Input -->
+    <!-- Search Input (Clay Search Box) -->
     <form action="{{ route('mobile.space.index') }}" method="GET" class="relative">
         @if($channel)<input type="hidden" name="channel" value="{{ $channel }}">@endif
         <div class="relative">
             <input type="text" name="search" value="{{ $search ?? '' }}" 
                    placeholder="Cari topik diskusi..." 
-                   class="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-slate-900 text-xs placeholder-slate-400 font-medium focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 shadow-sm transition">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                   class="w-full pl-10 pr-4 py-3 bg-white border-2 border-slate-200/90 rounded-2xl text-slate-900 text-xs placeholder-slate-400 font-bold focus:outline-none focus:border-blue-500 shadow-sm transition">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
         </div>
     </form>
 
-    <!-- Channel Filter Pills -->
+    <!-- Channel Filter Pills (Clay Pills) -->
     <div class="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
         <a href="{{ route('mobile.space.index') }}" 
-           class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition {{ !$channel ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25' : 'bg-white text-slate-600 border border-slate-200 hover:text-slate-900' }}">
+           class="px-4 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ !$channel ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
             🔥 Semua
         </a>
         <a href="{{ route('mobile.space.index', ['channel' => 'diskusi']) }}" 
-           class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition {{ $channel === 'diskusi' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25' : 'bg-white text-slate-600 border border-slate-200 hover:text-slate-900' }}">
+           class="px-4 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ $channel === 'diskusi' ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
             💬 Obrolan
         </a>
         <a href="{{ route('mobile.space.index', ['channel' => 'tanya_jawab']) }}" 
-           class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition {{ $channel === 'tanya_jawab' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25' : 'bg-white text-slate-600 border border-slate-200 hover:text-slate-900' }}">
+           class="px-4 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ $channel === 'tanya_jawab' ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
             📚 Akademik
         </a>
         <a href="{{ route('mobile.space.index', ['channel' => 'project_idea']) }}" 
-           class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition {{ $channel === 'project_idea' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25' : 'bg-white text-slate-600 border border-slate-200 hover:text-slate-900' }}">
+           class="px-4 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ $channel === 'project_idea' ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
             🤝 Kolaborasi
         </a>
         <a href="{{ route('mobile.space.index', ['channel' => 'gaming']) }}" 
-           class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition {{ $channel === 'gaming' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25' : 'bg-white text-slate-600 border border-slate-200 hover:text-slate-900' }}">
+           class="px-4 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ $channel === 'gaming' ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
             🎮 Hangout
         </a>
     </div>
 
-    <!-- Threads Feed -->
+    <!-- Threads Feed (Clay Cards) -->
     <div class="space-y-3">
         @forelse($threads as $thread)
-            <div class="pro-card rounded-2xl p-4 transition relative hover:border-indigo-300">
+            <div class="clay-card p-4.5 transition relative hover:border-purple-300">
                 @if($thread->is_pinned)
-                    <div class="absolute top-3 right-3 text-amber-500 text-xs flex items-center gap-1 font-extrabold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                        <i class="fa-solid fa-thumbtack"></i> Pinned
+                    <div class="absolute top-3.5 right-3.5 text-amber-900 text-xs flex items-center gap-1 font-black clay-yellow px-2.5 py-0.5 rounded-full border border-white">
+                        <i class="fa-solid fa-thumbtack text-[10px]"></i> Pinned
                     </div>
                 @endif
 
-                <div class="flex items-center space-x-2.5 mb-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow">
+                <div class="flex items-center space-x-3 mb-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white font-black text-xs shadow-md border border-white">
                         {{ strtoupper(substr($thread->user->name ?? 'A', 0, 1)) }}
                     </div>
                     <div>
                         <h4 class="text-xs font-black text-slate-900 leading-none">{{ $thread->user->name ?? 'Pengguna' }}</h4>
-                        <span class="text-[10px] text-slate-400 font-medium">{{ $thread->created_at ? $thread->created_at->diffForHumans() : '' }}</span>
+                        <span class="text-[10px] text-slate-400 font-bold">{{ $thread->created_at ? $thread->created_at->diffForHumans() : '' }}</span>
                     </div>
                 </div>
 
                 <a href="{{ route('mobile.space.show', $thread->id) }}" class="block">
-                    <h3 class="text-sm font-black text-slate-900 mb-1 leading-snug hover:text-indigo-600 transition">{{ $thread->title }}</h3>
-                    <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-3 font-medium">{{ strip_tags($thread->content) }}</p>
+                    <h3 class="text-sm font-black text-slate-900 mb-1 leading-snug hover:text-purple-600 transition">{{ $thread->title }}</h3>
+                    <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-3 font-bold">{{ strip_tags($thread->content) }}</p>
                 </a>
 
                 <!-- Footer Actions -->
-                <div class="flex items-center justify-between pt-2.5 border-t border-slate-100 text-xs font-bold text-slate-500">
-                    <span class="px-2.5 py-0.5 rounded-md bg-indigo-50 text-[10px] text-indigo-700 font-extrabold border border-indigo-200">
+                <div class="flex items-center justify-between pt-2.5 border-t border-slate-100 text-xs font-black text-slate-500">
+                    <span class="px-3 py-0.5 rounded-full bg-purple-100 text-[10px] text-purple-800 font-black border border-purple-200">
                         #{{ $thread->category_label ?? $thread->category ?? 'diskusi' }}
                     </span>
 
@@ -91,7 +91,7 @@
                             </button>
                         </form>
 
-                        <a href="{{ route('mobile.space.show', $thread->id) }}" class="flex items-center space-x-1 hover:text-indigo-600 transition">
+                        <a href="{{ route('mobile.space.show', $thread->id) }}" class="flex items-center space-x-1 hover:text-purple-600 transition">
                             <i class="fa-regular fa-comment text-sm"></i>
                             <span class="text-xs">{{ $thread->replies_count ?? 0 }}</span>
                         </a>
@@ -99,10 +99,10 @@
                 </div>
             </div>
         @empty
-            <div class="pro-card rounded-2xl p-8 text-center text-slate-500">
-                <i class="fa-solid fa-comments text-3xl mb-2 text-indigo-400"></i>
-                <p class="text-xs font-bold text-slate-700">Belum ada diskusi di topik ini.</p>
-                <a href="{{ route('mobile.space.create') }}" class="inline-block mt-3 px-4 py-2 bg-indigo-600 text-white text-xs font-black rounded-xl shadow-md">Mulai Diskusi Baru</a>
+            <div class="clay-card p-8 text-center text-slate-500 font-bold">
+                <i class="fa-solid fa-comments text-4xl mb-2 text-purple-400"></i>
+                <p class="text-xs font-black text-slate-700">Belum ada diskusi di topik ini.</p>
+                <a href="{{ route('mobile.space.create') }}" class="clay-btn inline-block mt-3 px-5 py-2.5 text-white text-xs font-black shadow-md">Mulai Diskusi Baru</a>
             </div>
         @endforelse
 

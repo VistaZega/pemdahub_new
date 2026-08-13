@@ -1,59 +1,59 @@
 @extends('mobile.layouts.app')
 
-@section('title', 'Nilai Tugas Siswa - Guru Mobile')
+@section('title', 'Nilai Tugas 3D - Guru Mobile')
 
 @section('content')
 <div class="space-y-4">
     <div>
-        <h2 class="text-lg font-extrabold text-white">Kelola & Nilai Tugas Siswa</h2>
-        <p class="text-[11px] text-slate-400">Pemeriksaan Submission Tugas dari HP</p>
+        <h2 class="text-xl font-black text-slate-900">Kelola & Nilai Tugas Siswa 📝</h2>
+        <p class="text-[11px] text-slate-500 font-bold">Pemeriksaan Submission Tugas dari HP</p>
     </div>
 
     <div class="space-y-3">
         @forelse($assignments as $assignment)
-            <div class="glass-card rounded-2xl p-4 space-y-3" x-data="{ openSubmissions: false }">
+            <div class="clay-card p-4.5 space-y-3" x-data="{ openSubmissions: false }">
                 <div class="flex items-start justify-between">
                     <div>
-                        <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                        <span class="px-3 py-0.5 rounded-full text-[9px] font-black bg-purple-100 text-purple-800 border border-purple-200 uppercase">
                             {{ $assignment->course->course_name ?? 'Mata Pelajaran' }}
                         </span>
-                        <h3 class="text-sm font-extrabold text-white mt-1">{{ $assignment->title }}</h3>
-                        <p class="text-xs text-slate-400"><i class="fa-regular fa-clock mr-1"></i>Batas Waktu: {{ $assignment->due_date ?? '-' }}</p>
+                        <h3 class="text-sm font-black text-slate-900 mt-1.5">{{ $assignment->title }}</h3>
+                        <p class="text-xs text-slate-500 font-bold"><i class="fa-regular fa-clock mr-1 text-purple-600"></i>Batas Waktu: {{ $assignment->due_date ?? '-' }}</p>
                     </div>
                 </div>
 
-                <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-xs text-slate-400 font-medium">Terkumpul: {{ count($assignment->submissions ?? []) }} Tugas</span>
-                    <button @click="openSubmissions = !openSubmissions" class="px-3 py-1.5 bg-slate-800 text-purple-300 text-xs font-bold rounded-xl border border-slate-700">
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-xs text-slate-500 font-black">Terkumpul: {{ count($assignment->submissions ?? []) }} Tugas</span>
+                    <button @click="openSubmissions = !openSubmissions" class="px-3.5 py-1.5 bg-purple-50 text-purple-700 text-xs font-black rounded-xl border border-purple-200">
                         <span x-text="openSubmissions ? 'Sembunyikan' : 'Lihat & Nilai'"></span>
                     </button>
                 </div>
 
                 <!-- Submissions List Inside Card -->
-                <div x-show="openSubmissions" class="space-y-2 pt-2 border-t border-slate-800">
+                <div x-show="openSubmissions" class="space-y-2 pt-2.5 border-t border-slate-100">
                     @forelse($assignment->submissions as $sub)
-                        <div class="p-3 bg-slate-900/90 rounded-xl space-y-2 border border-slate-800">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="font-bold text-white">{{ $sub->student->full_name ?? 'Siswa' }}</span>
-                                <span class="text-[10px] text-slate-400">{{ $sub->created_at ? $sub->created_at->diffForHumans() : '' }}</span>
+                        <div class="p-3.5 bg-[#f4f7fc] rounded-2xl space-y-2 border-2 border-slate-200/80">
+                            <div class="flex items-center justify-between text-xs font-bold">
+                                <span class="font-black text-slate-900">{{ $sub->student->full_name ?? 'Siswa' }}</span>
+                                <span class="text-[10px] text-slate-400 font-bold">{{ $sub->created_at ? $sub->created_at->diffForHumans() : '' }}</span>
                             </div>
 
                             <form action="{{ route('mobile.guru.tugas.grade', $sub->id) }}" method="POST" class="flex items-center gap-2">
                                 @csrf
                                 <input type="number" name="score" value="{{ $sub->score }}" placeholder="Nilai (0-100)" required min="0" max="100"
-                                       class="w-24 px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-xs">
-                                <button type="submit" class="px-3 py-1.5 bg-purple-600 text-white font-bold text-xs rounded-lg shadow">
+                                       class="w-24 px-3 py-2 bg-white border-2 border-slate-300 rounded-xl text-slate-900 text-xs font-black">
+                                <button type="submit" class="clay-btn px-4 py-2 text-white font-black text-xs">
                                     Simpan Nilai
                                 </button>
                             </form>
                         </div>
                     @empty
-                        <p class="text-xs text-slate-500 italic">Belum ada siswa yang mengumpulkan tugas ini.</p>
+                        <p class="text-xs text-slate-500 italic font-bold">Belum ada siswa yang mengumpulkan tugas ini.</p>
                     @endforelse
                 </div>
             </div>
         @empty
-            <div class="glass-card rounded-2xl p-6 text-center text-slate-500 text-xs">
+            <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold">
                 Belum ada tugas yang dibuat.
             </div>
         @endforelse
