@@ -1,17 +1,17 @@
 @extends('mobile.layouts.app')
 
-@section('title', 'Absensi Mobile - PembdaHUB')
+@section('title', 'Absensi Mobile Pro - PembdaHUB')
 
 @section('content')
 <div class="space-y-4">
     <!-- Header Title -->
     <div>
-        <h2 class="text-lg font-extrabold text-white">Absensi & Presensi</h2>
-        <p class="text-[11px] text-slate-400">Presensi Mandiri GPS & Catatan Kehadiran</p>
+        <h2 class="text-lg font-black text-slate-900">Absensi & Presensi</h2>
+        <p class="text-[11px] text-slate-500 font-medium">Presensi Mandiri GPS & Catatan Kehadiran</p>
     </div>
 
-    <!-- GPS Presensi Card -->
-    <div class="glass-card rounded-3xl p-5 relative overflow-hidden bg-gradient-to-br from-emerald-950/80 via-slate-900 to-slate-950 border border-emerald-500/30 text-center"
+    <!-- GPS Presensi Card (UI/UX Pro Max Emerald Gradient Card) -->
+    <div class="bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 rounded-3xl p-5 text-white shadow-lg shadow-emerald-500/25 text-center relative overflow-hidden"
          x-data="{ 
             loading: false, 
             statusMsg: '',
@@ -56,26 +56,26 @@
                 );
             }
          }">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-2xl mb-3 shadow-lg shadow-emerald-500/20">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/20 text-white text-2xl mb-3 shadow-md border border-white/30 backdrop-blur-md">
             <i class="fa-solid fa-location-dot"></i>
         </div>
 
-        <h3 class="text-base font-extrabold text-white mb-1">Presensi Mandiri GPS</h3>
-        <p class="text-xs text-slate-400 mb-4 max-w-xs mx-auto">Pastikan Anda berada di area lokasi sekolah sebelum menekan tombol di bawah.</p>
+        <h3 class="text-base font-black text-white mb-1">Presensi Mandiri GPS</h3>
+        <p class="text-xs text-emerald-100 mb-4 max-w-xs mx-auto font-medium">Pastikan Anda berada di area lokasi sekolah sebelum menekan tombol di bawah.</p>
 
         @if($todayAttendance)
-            <div class="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold inline-flex items-center gap-2 mb-2">
-                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+            <div class="p-3.5 rounded-2xl bg-white/20 border border-white/30 text-white text-xs font-black inline-flex items-center gap-2 mb-1 backdrop-blur-md shadow">
+                <i class="fa-solid fa-circle-check text-emerald-300 text-sm"></i>
                 <span>Sudah Absen Masuk: {{ $todayAttendance->time_in }} ({{ strtoupper($todayAttendance->status) }})</span>
             </div>
         @else
             <button @click="doGpsScan()" :disabled="loading"
-                    class="w-full py-3.5 px-6 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-600/30 hover:from-emerald-500 hover:to-emerald-400 transition transform active:scale-95 flex items-center justify-center gap-2">
+                    class="w-full py-3.5 px-6 bg-white text-emerald-800 font-black text-xs rounded-2xl shadow-xl hover:bg-emerald-50 transition transform active:scale-95 flex items-center justify-center gap-2">
                 <template x-if="loading">
-                    <i class="fa-solid fa-spinner animate-spin"></i>
+                    <i class="fa-solid fa-spinner animate-spin text-sm"></i>
                 </template>
                 <template x-if="!loading">
-                    <i class="fa-solid fa-fingerprint text-base"></i>
+                    <i class="fa-solid fa-fingerprint text-base text-emerald-600"></i>
                 </template>
                 <span x-text="loading ? statusMsg : 'KIRIM PRESENSI GPS SEKARANG'"></span>
             </button>
@@ -84,15 +84,15 @@
 
     <!-- Attendance History List -->
     <div class="space-y-3">
-        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Riwayat Kehadiran (30 Hari Terakhir)</h3>
+        <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider px-1">Riwayat Kehadiran (30 Hari Terakhir)</h3>
 
         @forelse($attendances as $att)
-            <div class="glass-card rounded-2xl p-3.5 flex items-center justify-between">
+            <div class="pro-card rounded-2xl p-3.5 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold
-                        {{ strtolower($att->status) === 'hadir' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : '' }}
-                        {{ strtolower($att->status) === 'terlambat' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : '' }}
-                        {{ in_array(strtolower($att->status), ['sakit', 'izin', 'alpha']) ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : '' }}">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black
+                        {{ strtolower($att->status) === 'hadir' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : '' }}
+                        {{ strtolower($att->status) === 'terlambat' ? 'bg-amber-100 text-amber-700 border border-amber-200' : '' }}
+                        {{ in_array(strtolower($att->status), ['sakit', 'izin', 'alpha']) ? 'bg-rose-100 text-rose-700 border border-rose-200' : '' }}">
                         <i class="fa-solid 
                             {{ strtolower($att->status) === 'hadir' ? 'fa-check' : '' }}
                             {{ strtolower($att->status) === 'terlambat' ? 'fa-clock' : '' }}
@@ -100,20 +100,20 @@
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-bold text-white">{{ \Carbon\Carbon::parse($att->date)->translatedFormat('l, d M Y') }}</h4>
-                        <span class="text-[10px] text-slate-400">Masuk: {{ $att->time_in ?? '-' }} | Keluar: {{ $att->time_out ?? '-' }}</span>
+                        <h4 class="text-xs font-black text-slate-900">{{ \Carbon\Carbon::parse($att->date)->translatedFormat('l, d M Y') }}</h4>
+                        <span class="text-[10px] text-slate-500 font-medium">Masuk: {{ $att->time_in ?? '-' }} | Keluar: {{ $att->time_out ?? '-' }}</span>
                     </div>
                 </div>
 
-                <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase
-                    {{ strtolower($att->status) === 'hadir' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : '' }}
-                    {{ strtolower($att->status) === 'terlambat' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : '' }}
-                    {{ in_array(strtolower($att->status), ['sakit', 'izin', 'alpha']) ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : '' }}">
+                <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase
+                    {{ strtolower($att->status) === 'hadir' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : '' }}
+                    {{ strtolower($att->status) === 'terlambat' ? 'bg-amber-100 text-amber-800 border border-amber-200' : '' }}
+                    {{ in_array(strtolower($att->status), ['sakit', 'izin', 'alpha']) ? 'bg-rose-100 text-rose-800 border border-rose-200' : '' }}">
                     {{ $att->status }}
                 </span>
             </div>
         @empty
-            <div class="glass-card rounded-2xl p-6 text-center text-slate-500 text-xs">
+            <div class="pro-card rounded-2xl p-6 text-center text-slate-500 text-xs font-medium">
                 Belum ada catatan riwayat kehadiran.
             </div>
         @endforelse
