@@ -4,14 +4,24 @@
 
 @if($theme !== 'regular')
     <style>
+        .event-theme-banner {
+            height: 38px;
+            max-height: 38px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            z-index: 60;
+        }
         @keyframes marquee-running {
             0% { transform: translateX(0%); }
             100% { transform: translateX(-50%); }
         }
         .animate-marquee-running {
             display: inline-flex;
+            align-items: center;
             white-space: nowrap;
-            animation: marquee-running 22s linear infinite;
+            animation: marquee-running 25s linear infinite;
             will-change: transform;
         }
         .event-theme-banner:hover .animate-marquee-running {
@@ -21,33 +31,33 @@
 
     {{-- EVENT THEME TOP BANNER & CUSTOM THEME STYLES --}}
     @if($theme === 'kemerdekaan')
-        <div class="event-theme-banner bg-gradient-to-r from-red-800 via-red-600 to-red-800 text-white py-2.5 px-4 border-b-2 border-amber-300 shadow-md relative z-[60] overflow-hidden">
-            <div class="animate-marquee-running items-center gap-8 text-xs sm:text-sm font-extrabold tracking-wide uppercase">
+        <div class="event-theme-banner bg-gradient-to-r from-red-800 via-red-600 to-red-800 text-white px-4 border-b-2 border-amber-300 shadow-md">
+            <div class="animate-marquee-running gap-8 text-xs sm:text-sm font-extrabold tracking-wide uppercase">
                 <span class="flex items-center gap-2">
-                    <svg class="w-5 h-3.5 inline-block rounded shadow-xs border border-white/40" viewBox="0 0 3 2"><rect width="3" height="1" fill="#ef4444"/><rect y="1" width="3" height="1" fill="#ffffff"/></svg>
+                    <i class="fas fa-flag text-amber-300"></i>
                     <span>Dirgahayu Republik Indonesia! ~ "Nusantara Baru, Indonesia Maju"</span>
-                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[11px] font-black border border-amber-300">17 Agustus</span>
-                    <svg class="w-5 h-3.5 inline-block rounded shadow-xs border border-white/40" viewBox="0 0 3 2"><rect width="3" height="1" fill="#ef4444"/><rect y="1" width="3" height="1" fill="#ffffff"/></svg>
+                    <span class="bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black border border-amber-300">17 Agustus</span>
+                    <i class="fas fa-flag text-amber-300"></i>
                 </span>
                 <span class="text-amber-300">★</span>
                 <span class="flex items-center gap-2">
                     <i class="fas fa-award text-amber-300"></i>
-                    <span>Perguruan PEMBDA Nias Mengucapkan Selamat Hari Kemerdekaan RI Ke-81!</span>
-                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[11px] font-black border border-amber-300">Merdeka!</span>
+                    <span>Perguruan PEMBDA Nias Mengucapkan Selamat Hari Kemerdekaan RI!</span>
+                    <span class="bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black border border-amber-300">Merdeka!</span>
                     <i class="fas fa-award text-amber-300"></i>
                 </span>
                 <span class="text-amber-300">★</span>
                 <span class="flex items-center gap-2">
-                    <svg class="w-5 h-3.5 inline-block rounded shadow-xs border border-white/40" viewBox="0 0 3 2"><rect width="3" height="1" fill="#ef4444"/><rect y="1" width="3" height="1" fill="#ffffff"/></svg>
+                    <i class="fas fa-flag text-amber-300"></i>
                     <span>Dirgahayu Republik Indonesia! ~ "Nusantara Baru, Indonesia Maju"</span>
-                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[11px] font-black border border-amber-300">17 Agustus</span>
-                    <svg class="w-5 h-3.5 inline-block rounded shadow-xs border border-white/40" viewBox="0 0 3 2"><rect width="3" height="1" fill="#ef4444"/><rect y="1" width="3" height="1" fill="#ffffff"/></svg>
+                    <span class="bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black border border-amber-300">17 Agustus</span>
+                    <i class="fas fa-flag text-amber-300"></i>
                 </span>
                 <span class="text-amber-300">★</span>
                 <span class="flex items-center gap-2">
                     <i class="fas fa-award text-amber-300"></i>
-                    <span>Perguruan PEMBDA Nias Mengucapkan Selamat Hari Kemerdekaan RI Ke-81!</span>
-                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[11px] font-black border border-amber-300">Merdeka!</span>
+                    <span>Perguruan PEMBDA Nias Mengucapkan Selamat Hari Kemerdekaan RI!</span>
+                    <span class="bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black border border-amber-300">Merdeka!</span>
                     <i class="fas fa-award text-amber-300"></i>
                 </span>
             </div>
@@ -154,19 +164,19 @@
         </style>
 
     @elseif($theme === 'paskah')
-        <div class="event-theme-banner bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-950 text-amber-200 py-2.5 px-4 border-b-2 border-amber-400 shadow-md relative z-[60] overflow-hidden">
-            <div class="animate-marquee-running items-center gap-8 text-xs sm:text-sm font-extrabold tracking-wide uppercase">
+        <div class="event-theme-banner bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-950 text-amber-200 px-4 border-b-2 border-amber-400 shadow-md">
+            <div class="animate-marquee-running gap-8 text-xs sm:text-sm font-extrabold tracking-wide uppercase">
                 <span class="flex items-center gap-2">
                     <i class="fas fa-cross text-amber-300"></i>
                     <span>Selamat Hari Raya Paskah! ~ "Terang Kebangkitan &amp; Harapan Bagi Sesama"</span>
-                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[11px] font-black border border-amber-300">Hari Paskah</span>
+                    <span class="bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black border border-amber-300">Hari Paskah</span>
                     <i class="fas fa-cross text-amber-300"></i>
                 </span>
                 <span class="text-amber-300">★</span>
                 <span class="flex items-center gap-2">
                     <i class="fas fa-cross text-amber-300"></i>
                     <span>Selamat Hari Raya Paskah! ~ "Terang Kebangkitan &amp; Harapan Bagi Sesama"</span>
-                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[11px] font-black border border-amber-300">Hari Paskah</span>
+                    <span class="bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black border border-amber-300">Hari Paskah</span>
                     <i class="fas fa-cross text-amber-300"></i>
                 </span>
             </div>
@@ -190,19 +200,19 @@
         </style>
 
     @elseif($theme === 'natal')
-        <div class="event-theme-banner bg-gradient-to-r from-emerald-800 via-rose-800 to-emerald-950 text-amber-200 py-2.5 px-4 border-b-2 border-amber-400 shadow-md relative z-[60] overflow-hidden">
-            <div class="animate-marquee-running items-center gap-8 text-xs sm:text-sm font-extrabold tracking-wide uppercase">
+        <div class="event-theme-banner bg-gradient-to-r from-emerald-800 via-rose-800 to-emerald-950 text-amber-200 px-4 border-b-2 border-amber-400 shadow-md">
+            <div class="animate-marquee-running gap-8 text-xs sm:text-sm font-extrabold tracking-wide uppercase">
                 <span class="flex items-center gap-2">
                     <i class="fas fa-tree text-emerald-300"></i>
                     <span>Selamat Hari Natal &amp; Tahun Baru! ~ "Damai Suka Cita &amp; Berkah Bagi Kita Semua"</span>
-                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[11px] font-black border border-amber-300">Natal &amp; Tahun Baru</span>
+                    <span class="bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black border border-amber-300">Natal &amp; Tahun Baru</span>
                     <i class="fas fa-snowflake text-sky-200"></i>
                 </span>
                 <span class="text-amber-300">★</span>
                 <span class="flex items-center gap-2">
                     <i class="fas fa-tree text-emerald-300"></i>
                     <span>Selamat Hari Natal &amp; Tahun Baru! ~ "Damai Suka Cita &amp; Berkah Bagi Kita Semua"</span>
-                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[11px] font-black border border-amber-300">Natal &amp; Tahun Baru</span>
+                    <span class="bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black border border-amber-300">Natal &amp; Tahun Baru</span>
                     <i class="fas fa-snowflake text-sky-200"></i>
                 </span>
             </div>
@@ -226,19 +236,19 @@
         </style>
 
     @elseif($theme === 'pahlawan')
-        <div class="event-theme-banner bg-gradient-to-r from-rose-950 via-amber-900 to-slate-950 text-amber-300 py-2.5 px-4 border-b-2 border-amber-500 shadow-md relative z-[60] overflow-hidden">
-            <div class="animate-marquee-running items-center gap-8 text-xs sm:text-sm font-extrabold tracking-wide uppercase">
+        <div class="event-theme-banner bg-gradient-to-r from-rose-950 via-amber-900 to-slate-950 text-amber-300 px-4 border-b-2 border-amber-500 shadow-md">
+            <div class="animate-marquee-running gap-8 text-xs sm:text-sm font-extrabold tracking-wide uppercase">
                 <span class="flex items-center gap-2">
                     <i class="fas fa-medal text-amber-300"></i>
                     <span>Selamat Hari Pahlawan (10 November)! ~ "Kobarkan Semangat Perjuangan &amp; Integritas Bangsa"</span>
-                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[11px] font-black border border-amber-300">10 November</span>
+                    <span class="bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black border border-amber-300">10 November</span>
                     <i class="fas fa-medal text-amber-300"></i>
                 </span>
                 <span class="text-amber-300">★</span>
                 <span class="flex items-center gap-2">
                     <i class="fas fa-medal text-amber-300"></i>
                     <span>Selamat Hari Pahlawan (10 November)! ~ "Kobarkan Semangat Perjuangan &amp; Integritas Bangsa"</span>
-                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[11px] font-black border border-amber-300">10 November</span>
+                    <span class="bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black border border-amber-300">10 November</span>
                     <i class="fas fa-medal text-amber-300"></i>
                 </span>
             </div>
@@ -262,19 +272,19 @@
         </style>
 
     @elseif($theme === 'pendidikan')
-        <div class="event-theme-banner bg-gradient-to-r from-sky-900 via-blue-900 to-indigo-950 text-amber-300 py-2.5 px-4 border-b-2 border-amber-400 shadow-md relative z-[60] overflow-hidden">
-            <div class="animate-marquee-running items-center gap-8 text-xs sm:text-sm font-extrabold tracking-wide uppercase">
+        <div class="event-theme-banner bg-gradient-to-r from-sky-900 via-blue-900 to-indigo-950 text-amber-300 px-4 border-b-2 border-amber-400 shadow-md">
+            <div class="animate-marquee-running gap-8 text-xs sm:text-sm font-extrabold tracking-wide uppercase">
                 <span class="flex items-center gap-2">
                     <i class="fas fa-graduation-cap text-amber-300"></i>
                     <span>Selamat Hari Pendidikan Nasional! ~ "Tut Wuri Handayani — Ing Ngarso Sung Tulodo"</span>
-                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[11px] font-black border border-amber-300">2 Mei (Hardiknas)</span>
+                    <span class="bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black border border-amber-300">2 Mei (Hardiknas)</span>
                     <i class="fas fa-book-open text-amber-300"></i>
                 </span>
                 <span class="text-amber-300">★</span>
                 <span class="flex items-center gap-2">
                     <i class="fas fa-graduation-cap text-amber-300"></i>
                     <span>Selamat Hari Pendidikan Nasional! ~ "Tut Wuri Handayani — Ing Ngarso Sung Tulodo"</span>
-                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[11px] font-black border border-amber-300">2 Mei (Hardiknas)</span>
+                    <span class="bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black border border-amber-300">2 Mei (Hardiknas)</span>
                     <i class="fas fa-book-open text-amber-300"></i>
                 </span>
             </div>
