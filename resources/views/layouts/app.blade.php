@@ -211,7 +211,7 @@
                         $currentRole = session('active_role') ?? auth()->user()->role;
                     @endphp
                     
-                    @if(auth()->user()->isSuperAdmin())
+                    @if(auth()->user()->isOwnerOrSuperAdmin())
                         <div class="hidden sm:flex items-center gap-1.5 bg-black/20 p-1 rounded-xl border border-white/10">
                             @if($currentRole !== 'superadmin')
                                 <form action="{{ route('switch-role') }}" method="POST" class="m-0 p-0">

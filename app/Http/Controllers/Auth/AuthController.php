@@ -263,12 +263,12 @@ class AuthController extends Controller
 
         // Validasi otoritas untuk role target
         $isAuthorized = match ($targetRole) {
-            'kepala_sekolah' => $user->isKepalaSekolah() || $user->isSuperAdmin() || str_contains(strtolower($user->name ?? ''), 'agustiani'),
-            'guru' => $user->isGuru() || $user->isKepalaSekolah() || $user->isSuperAdmin() || str_contains(strtolower($user->name ?? ''), 'agustiani') || $user->isAdminSekolah(),
-            'pegawai' => $user->hasRole('pegawai') || $user->employee !== null || $user->isAdminSekolah() || $user->isSuperAdmin(),
-            'admin_sekolah' => $user->isAdminSekolah() || $user->isSuperAdmin(),
-            'ketua_yayasan' => $user->canAccessYayasan(), // Khusus Yayasan (seperti Yulianus Zega)
-            'superadmin' => $user->isSuperAdmin(),
+            'superadmin' => $user->isOwnerOrSuperAdmin(),
+            'ketua_yayasan' => $user->isOwnerOrSuperAdmin(),
+            'guru' => $user->isOwnerOrSuperAdmin() || $user->isGuru() || $user->isKepalaSekolah() || $user->isAdminSekolah(),
+            'kepala_sekolah' => $user->isKepalaSekolah() || $user->isOwnerOrSuperAdmin(),
+            'pegawai' => $user->hasRole('pegawai') || $user->employee !== null || $user->isAdminSekolah() || $user->isOwnerOrSuperAdmin(),
+            'admin_sekolah' => $user->isAdminSekolah(),
             default => $user->hasRole($targetRole),
         };
 

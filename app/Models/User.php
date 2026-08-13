@@ -182,6 +182,17 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is SuperAdmin or Owner (Bapak Yulianus Zega / Pembuat Aplikasi / Ketua Yayasan)
+     */
+    public function isOwnerOrSuperAdmin(): bool
+    {
+        return $this->role === 'superadmin' 
+            || $this->role === 'ketua_yayasan'
+            || $this->canAccessYayasan() 
+            || $this->username === 'yulzega';
+    }
+
+    /**
      * Check if user is SuperAdmin
      */
     public function isSuperAdmin(): bool
@@ -189,7 +200,7 @@ class User extends Authenticatable
         if (session()->has('active_role')) {
             return session('active_role') === 'superadmin';
         }
-        return $this->hasRole('superadmin');
+        return $this->hasRole('superadmin') || $this->isOwnerOrSuperAdmin();
     }
 
     /**
@@ -197,6 +208,9 @@ class User extends Authenticatable
      */
     public function isAdminSekolah(): bool
     {
+        if ($this->isOwnerOrSuperAdmin()) {
+            return false;
+        }
         return $this->hasRole('admin_sekolah') || session('active_role') === 'admin_sekolah' || $this->isSecondaryAdminSekolah();
     }
 
