@@ -101,12 +101,58 @@ class MobileTeacherController extends Controller
 
         $students = collect();
         $existingAttendances = [];
+        $assignmentRuleInfo = null;
 
         if ($selectedClassroomId) {
             $classroom = Classroom::find($selectedClassroomId);
             if ($classroom) {
-                $students = $classroom->students()->orderBy('full_name')->get();
-                $attendances = Attendance::where('classroom_id', $classroom->id)
+                $dayOfWeek = strtolower(\Carbon\Carbon::parse($date)->format('l'));
+                $schedule = Schedule::with('teachingAssignment.subject')
+                    ->where('teacher_id', $teacher?->id ?? 0)
+                    ->where('classroom_id', $selectedClassroomId)
+                    ->where('day_of_week', $dayOfWeek)
+                    ->first();
+
+                if (!$schedule) {
+                    $schedule = Schedule::with('teachingAssignment.subject')
+                        ->where('teacher_id', $teacher?->id ?? 0)
+                        ->where('classroom_id', $selectedClassroomId)
+                        ->first();
+                }
+
+                $filterService = app(\App\Services\TeachingAssignmentStudentFilterService::class);
+                $allClassroomIds = [$selectedClassroomId];
+
+                if ($schedule && $schedule->teachingAssignment) {
+                    $assignment = $schedule->teachingAssignment;
+                    $students = $filterService->getStudentsForAssignment($assignment);
+
+                    $rules = [];
+                    if (!empty($assignment->group_code)) {
+                        $rules[] = 'Gabungan (Kelompok ' . $assignment->group_code . ')';
+                        if ($teacher) {
+                            $allClassroomIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+                                ->where('group_code', $assignment->group_code)
+                                ->pluck('classroom_id')
+                                ->unique()
+                                ->toArray();
+                        }
+                    }
+                    if ($assignment->block_type === 'parallel') {
+                        $rules[] = 'Paralel Agama (' . ($assignment->subject->name ?? 'Agama') . ')';
+                    } elseif ($assignment->block_type === 'all') {
+                        $rules[] = 'Sistem Blok SMK (Grup A)';
+                    } elseif ($assignment->block_type === 'split') {
+                        $rules[] = 'Sistem Blok SMK (Grup B)';
+                    }
+
+                    $assignmentRuleInfo = !empty($rules) ? implode(' • ', $rules) : 'Reguler';
+                } else {
+                    $students = $classroom->students()->orderBy('full_name')->get();
+                    $assignmentRuleInfo = 'Reguler';
+                }
+
+                $attendances = Attendance::whereIn('classroom_id', $allClassroomIds)
                     ->where('date', $date)
                     ->get();
                 foreach ($attendances as $att) {
@@ -115,7 +161,7 @@ class MobileTeacherController extends Controller
             }
         }
 
-        return view('mobile.teacher.absensi_input', compact('teacher', 'classrooms', 'selectedClassroomId', 'date', 'students', 'existingAttendances'));
+        return view('mobile.teacher.absensi_input', compact('teacher', 'classrooms', 'selectedClassroomId', 'date', 'students', 'existingAttendances', 'assignmentRuleInfo'));
     }
 
     /**

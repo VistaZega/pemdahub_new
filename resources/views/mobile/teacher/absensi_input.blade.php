@@ -64,6 +64,13 @@
                 </button>
             </div>
 
+            @if($assignmentRuleInfo)
+            <div class="bg-amber-100/90 border border-amber-300 text-amber-900 rounded-xl px-3 py-1.5 text-[11px] font-black flex items-center gap-1.5">
+                <i class="fa-solid fa-layer-group text-amber-600"></i>
+                <span>Aturan Siswa: <strong>{{ $assignmentRuleInfo }}</strong></span>
+            </div>
+            @endif
+
             <div class="flex items-center justify-between pt-1">
                 <button type="button" onclick="markAllHadir()" 
                         class="px-3.5 py-2 bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md border-2 border-white flex items-center gap-1 hover:bg-emerald-600 transition">
