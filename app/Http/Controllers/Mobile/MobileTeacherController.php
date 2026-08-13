@@ -267,35 +267,146 @@ class MobileTeacherController extends Controller
             $employee = \App\Models\Employee::where('school_id', $user->school_id)->first();
         }
 
-        $attendances = collect();
-        $todayAttendance = null;
-        $stats = ['hadir' => 0, 'terlambat' => 0, 'izin' => 0, 'alpha' => 0];
+        $month = (int) $request->get('month', now()->month);
+        $year = (int) $request->get('year', now()->year);
+        $daysInMonth = \Carbon\Carbon::create($year, $month)->daysInMonth;
 
+        $activeYearObj = \App\Models\AcademicYear::where('is_active', true)->first();
+        $teachingDays = [];
+        if ($teacher) {
+            $teachingDays = $teacher->schedules()
+                ->when($activeYearObj, fn($q) => $q->where('academic_year_id', $activeYearObj->id))
+                ->pluck('day_of_week')
+                ->unique()
+                ->toArray();
+        }
+
+        $employeeAttendances = collect();
         if ($employee) {
-            $attendances = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
-                ->whereYear('date', now()->year)
-                ->whereMonth('date', now()->month)
-                ->orderBy('date', 'desc')
-                ->get();
+            $employeeAttendances = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
+                ->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->get()
+                ->keyBy(fn($att) => \Carbon\Carbon::parse($att->date)->day);
+        }
 
+        $todayAttendance = null;
+        if ($employee) {
             $todayAttendance = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
                 ->where('date', now()->format('Y-m-d'))
                 ->first();
+        }
 
-            foreach ($attendances as $att) {
-                $status = strtolower($att->status ?? 'hadir');
-                if (str_contains($status, 'hadir') || $status === 'present') {
-                    $stats['hadir']++;
-                } elseif (str_contains($status, 'lambat') || $status === 'late') {
-                    $stats['terlambat']++;
-                } elseif (in_array($status, ['izin', 'sakit', 'cuti'])) {
-                    $stats['izin']++;
-                } else {
-                    $stats['alpha']++;
+        $totals = [
+            'hadir_mengajar' => 0,
+            'tugas_khusus' => 0,
+            'sakit' => 0,
+            'izin' => 0,
+            'alpha' => 0,
+            'total_scheduled' => 0,
+            'present_on_scheduled' => 0,
+        ];
+
+        $calendarData = [];
+
+        // Holidays from calendar
+        $holidays = [];
+        if ($activeYearObj && $teacher) {
+            $holidayEvents = \App\Models\EducationalCalendar::where('academic_year_id', $activeYearObj->id)
+                ->where('is_holiday', true)
+                ->where(function ($query) use ($teacher) {
+                    $query->where('level', 'yayasan')
+                          ->orWhere(function ($q) use ($teacher) {
+                              $q->where('level', 'school')
+                                ->where('school_id', $teacher->school_id);
+                          });
+                })
+                ->get();
+
+            foreach ($holidayEvents as $event) {
+                $start = \Carbon\Carbon::parse($event->start_date);
+                $end = \Carbon\Carbon::parse($event->end_date);
+                while ($start->lte($end)) {
+                    if ($start->month == $month && $start->year == $year) {
+                        $holidays[] = $start->day;
+                    }
+                    $start->addDay();
                 }
             }
         }
+        $holidays = array_unique($holidays);
 
-        return view('mobile.teacher.absensi_saya', compact('teacher', 'employee', 'attendances', 'todayAttendance', 'stats'));
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $dateObj = \Carbon\Carbon::create($year, $month, $d);
+            $dayName = strtolower($dateObj->format('l'));
+            $isScheduled = in_array($dayName, $teachingDays);
+            $isHoliday = in_array($d, $holidays) || $dateObj->isSunday();
+            $att = $employeeAttendances->get($d);
+
+            $status = '-';
+            $statusLabel = 'Bebas Tugas';
+            $colorClass = 'bg-slate-50 border-slate-200 text-slate-400';
+
+            if ($att) {
+                $attStatus = strtolower($att->status ?? 'hadir');
+                if (in_array($attStatus, ['hadir', 'present'])) {
+                    if ($isScheduled) {
+                        $status = 'HM';
+                        $statusLabel = 'Hadir Mengajar';
+                        $colorClass = 'bg-emerald-50 border-emerald-300 text-emerald-900';
+                        $totals['hadir_mengajar']++;
+                        $totals['present_on_scheduled']++;
+                    } else {
+                        $status = 'TK';
+                        $statusLabel = 'Tugas Khusus';
+                        $colorClass = 'bg-indigo-50 border-indigo-300 text-indigo-900';
+                        $totals['tugas_khusus']++;
+                    }
+                } elseif (in_array($attStatus, ['izin', 'sakit', 'cuti'])) {
+                    $status = strtoupper(substr($attStatus, 0, 1));
+                    $statusLabel = ucfirst($attStatus);
+                    $colorClass = 'bg-amber-50 border-amber-300 text-amber-900';
+                    $totals['izin']++;
+                } else {
+                    $status = 'A';
+                    $statusLabel = 'Alpha';
+                    $colorClass = 'bg-rose-50 border-rose-300 text-rose-900';
+                    $totals['alpha']++;
+                }
+            } else {
+                if ($isScheduled && !$isHoliday && $dateObj->isPast()) {
+                    $status = 'A';
+                    $statusLabel = 'Alpha (Terjadwal)';
+                    $colorClass = 'bg-rose-50 border-rose-300 text-rose-900';
+                    $totals['alpha']++;
+                } elseif ($isHoliday) {
+                    $status = 'H';
+                    $statusLabel = 'Libur Sekolah';
+                    $colorClass = 'bg-slate-100 border-slate-200 text-slate-500';
+                }
+            }
+
+            if ($isScheduled && !$isHoliday) {
+                $totals['total_scheduled']++;
+            }
+
+            $calendarData[$d] = [
+                'day' => $d,
+                'date' => $dateObj,
+                'status' => $status,
+                'status_label' => $statusLabel,
+                'color_class' => $colorClass,
+                'attendance' => $att,
+            ];
+        }
+
+        $pct = $totals['total_scheduled'] > 0
+            ? round(($totals['present_on_scheduled'] / $totals['total_scheduled']) * 100, 1)
+            : 100;
+        $reputationPoints = $totals['tugas_khusus'] * 15;
+
+        return view('mobile.teacher.absensi_saya', compact(
+            'teacher', 'employee', 'todayAttendance', 'totals', 'calendarData', 'pct', 'reputationPoints', 'month', 'year', 'daysInMonth'
+        ));
     }
 }
