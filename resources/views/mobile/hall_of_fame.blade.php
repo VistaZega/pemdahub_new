@@ -36,12 +36,30 @@
         </h3>
 
         @forelse($topStudents as $index => $std)
+            @php
+                $studentPhoto = $std->photo_url ?? null;
+                if (!$studentPhoto || str_contains($studentPhoto, 'default-student.jpg') || str_contains($studentPhoto, 'default-avatar')) {
+                    if (isset($std->user->avatar_url) && $std->user->avatar_url) {
+                        $studentPhoto = $std->user->avatar_url;
+                    } else {
+                        $studentPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($std->full_name) . '&background=f59e0b&color=fff&bold=true';
+                    }
+                }
+            @endphp
             <div class="clay-card p-4 flex items-center justify-between bg-white border-2 border-slate-200">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm text-white shadow-md border border-white/30 shrink-0
-                        {{ $index == 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-slate-900' : ($index == 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500 text-slate-900' : ($index == 2 ? 'bg-gradient-to-br from-amber-700 to-amber-900' : 'bg-gradient-to-br from-blue-500 to-indigo-600')) }}">
-                        {{ $index == 0 ? '🥇' : ($index == 1 ? '🥈' : ($index == 2 ? '🥉' : '#' . ($index + 1))) }}
+                <div class="flex items-center space-x-3.5">
+                    <!-- Photo Profile Avatar & Rank Badge -->
+                    <div class="relative shrink-0">
+                        <img src="{{ $studentPhoto }}" alt="{{ $std->full_name }}"
+                             onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($std->full_name) }}&background=f59e0b&color=fff&bold=true';"
+                             class="w-12 h-12 rounded-2xl object-cover border-2 {{ $index == 0 ? 'border-amber-400 ring-2 ring-amber-300' : ($index == 1 ? 'border-slate-400' : ($index == 2 ? 'border-amber-700' : 'border-slate-300')) }} shadow-md">
+                        
+                        <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-md border border-white
+                            {{ $index == 0 ? 'bg-amber-500' : ($index == 1 ? 'bg-slate-400' : ($index == 2 ? 'bg-amber-700' : 'bg-blue-600')) }}">
+                            {{ $index == 0 ? '🥇' : ($index == 1 ? '🥈' : ($index == 2 ? '🥉' : '#' . ($index + 1))) }}
+                        </span>
                     </div>
+
                     <div>
                         <h4 class="text-xs font-black text-slate-900 uppercase leading-snug">{{ $std->full_name }}</h4>
                         <span class="text-[10px] font-bold text-slate-500 block">
@@ -69,12 +87,30 @@
         </h3>
 
         @forelse($topTeachers as $index => $tcher)
+            @php
+                $teacherPhoto = $tcher->photo_url ?? null;
+                if (!$teacherPhoto || str_contains($teacherPhoto, 'default-teacher.jpg') || str_contains($teacherPhoto, 'default-avatar')) {
+                    if (isset($tcher->user->avatar_url) && $tcher->user->avatar_url) {
+                        $teacherPhoto = $tcher->user->avatar_url;
+                    } else {
+                        $teacherPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($tcher->full_name) . '&background=9333ea&color=fff&bold=true';
+                    }
+                }
+            @endphp
             <div class="clay-card p-4 flex items-center justify-between bg-white border-2 border-slate-200">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm text-white shadow-md border border-white/30 shrink-0
-                        {{ $index == 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-slate-900' : ($index == 1 ? 'bg-gradient-to-br from-purple-400 to-purple-600' : ($index == 2 ? 'bg-gradient-to-br from-indigo-500 to-indigo-700' : 'bg-gradient-to-br from-slate-600 to-slate-800')) }}">
-                        {{ $index == 0 ? '🥇' : ($index == 1 ? '🥈' : ($index == 2 ? '🥉' : '#' . ($index + 1))) }}
+                <div class="flex items-center space-x-3.5">
+                    <!-- Photo Profile Avatar & Rank Badge -->
+                    <div class="relative shrink-0">
+                        <img src="{{ $teacherPhoto }}" alt="{{ $tcher->full_name }}"
+                             onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($tcher->full_name) }}&background=9333ea&color=fff&bold=true';"
+                             class="w-12 h-12 rounded-2xl object-cover border-2 {{ $index == 0 ? 'border-amber-400 ring-2 ring-amber-300' : ($index == 1 ? 'border-purple-400' : ($index == 2 ? 'border-indigo-400' : 'border-slate-300')) }} shadow-md">
+                        
+                        <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-md border border-white
+                            {{ $index == 0 ? 'bg-amber-500' : ($index == 1 ? 'bg-purple-600' : ($index == 2 ? 'bg-indigo-600' : 'bg-slate-700')) }}">
+                            {{ $index == 0 ? '🥇' : ($index == 1 ? '🥈' : ($index == 2 ? '🥉' : '#' . ($index + 1))) }}
+                        </span>
                     </div>
+
                     <div>
                         <h4 class="text-xs font-black text-slate-900 uppercase leading-snug">{{ $tcher->full_name }}</h4>
                         <span class="text-[10px] font-bold text-purple-600 block">
