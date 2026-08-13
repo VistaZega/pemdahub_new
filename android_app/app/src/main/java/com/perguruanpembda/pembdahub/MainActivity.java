@@ -16,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
     private WebView webView;
     private ValueCallback<Uri[]> filePathCallback;
     private static final int FILE_CHOOSER_REQUEST_CODE = 100;
-    private static final String APP_URL = "https://perguruanpembda.com";
+    private static final String APP_URL = "https://perguruanpembda.com/m/";
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override

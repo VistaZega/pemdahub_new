@@ -3,12 +3,12 @@
   "name": "PembdaHUB - Mobile App System",
   "short_name": "PembdaHUB",
   "description": "Aplikasi Official Mobile System Yayasan Perguruan PEMBDA Nias",
-  "start_url": "/",
+  "start_url": "/m/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#4f46e5",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "prefer_related_applications": false,
   "icons": [
     {

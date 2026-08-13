@@ -1,6 +1,10 @@
-const CACHE_NAME = 'pembdaspace-app-v3';
+const CACHE_NAME = 'pembdahub-mobile-v1';
 const urlsToCache = [
-  '/forum',
+  '/m/',
+  '/m/dashboard',
+  '/m/space',
+  '/m/lms',
+  '/m/absensi',
   '/manifest.json',
   '/images/icons/icon-192x192.png',
   '/images/icons/icon-512x512.png'

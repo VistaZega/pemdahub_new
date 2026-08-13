@@ -29,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 require __DIR__.'/../routes/treasurer.php';
                 require __DIR__.'/../routes/orangtua.php';
                 require __DIR__.'/../routes/yayasan.php';
+                require __DIR__.'/../routes/mobile.php';
             });
         },
     )
