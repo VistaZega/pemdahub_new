@@ -60,7 +60,7 @@ class MobileTeacherController extends Controller
     public function absensiInput(Request $request)
     {
         $teacher = $this->getTeacher();
-        $classrooms = Classroom::orderBy('name')->get();
+        $classrooms = Classroom::where('is_active', true)->orderBy('class_name')->get();
         $selectedClassroomId = $request->input('classroom_id');
         $date = $request->input('date', now()->format('Y-m-d'));
 
@@ -70,7 +70,7 @@ class MobileTeacherController extends Controller
         if ($selectedClassroomId) {
             $classroom = Classroom::find($selectedClassroomId);
             if ($classroom) {
-                $students = $classroom->students()->where('is_active', true)->orderBy('full_name')->get();
+                $students = $classroom->students()->orderBy('full_name')->get();
                 $attendances = Attendance::where('classroom_id', $classroom->id)
                     ->where('date', $date)
                     ->get();
