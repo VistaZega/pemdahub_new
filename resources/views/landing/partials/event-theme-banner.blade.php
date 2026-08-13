@@ -10,8 +10,18 @@
             display: flex;
             align-items: center;
             overflow: hidden;
-            position: relative;
-            z-index: 60;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 101;
+        }
+        /* Offset navbar & hero padding saat event banner aktif */
+        [data-theme]:not([data-theme="regular"]) .navbar:not(.scrolled) {
+            top: 38px !important;
+        }
+        [data-theme]:not([data-theme="regular"]) .hero-section {
+            padding-top: 138px !important;
         }
         @keyframes marquee-running {
             0% { transform: translateX(0%); }
