@@ -212,7 +212,19 @@ class MobileLmsController extends Controller
                 ->groupBy('quiz_id');
         }
 
-        return view('mobile.lms.show', compact('course', 'student', 'submissionMap', 'attemptMap'));
+        $user = Auth::user();
+        $teacher = \App\Models\Teacher::where('user_id', $user->id)->first() ?? $user->teacher;
+
+        $questionBanks = collect();
+        if ($teacher && class_exists('\App\Models\CbtQuestionBank')) {
+            $questionBanks = \App\Models\CbtQuestionBank::where('teacher_id', $teacher->id)
+                ->orWhere('is_shared', true)
+                ->when($teacher->school_id, fn($q) => $q->orWhere('school_id', $teacher->school_id))
+                ->latest()
+                ->get();
+        }
+
+        return view('mobile.lms.show', compact('course', 'student', 'submissionMap', 'attemptMap', 'questionBanks'));
     }
 
     public function material($id)
@@ -516,6 +528,7 @@ class MobileLmsController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'time_limit' => 'required|integer|min:1',
+            'question_package_id' => 'nullable|exists:cbt_question_banks,id',
         ]);
 
         LmsQuiz::create([
@@ -523,6 +536,7 @@ class MobileLmsController extends Controller
             'title' => $request->input('title'),
             'description' => $request->input('description'),
             'time_limit' => $request->input('time_limit'),
+            'question_package_id' => $request->input('question_package_id'),
             'is_published' => true,
         ]);
 
