@@ -21,17 +21,97 @@ class MobileLmsController extends Controller
     {
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->first();
+        $teacher = \App\Models\Teacher::where('user_id', $user->id)->first() ?? $user->teacher;
+
+        $isTeacher = session('active_role') === 'guru' || $user->isGuru() || !empty($teacher);
 
         $enrolledCourses = collect();
-        if ($student) {
+        if ($student && !$isTeacher) {
             $enrolledCourses = LmsCourse::whereHas('enrollments', function ($q) use ($student) {
                 $q->where('student_id', $student->id);
             })->with('teacher')->get();
         } else {
-            $enrolledCourses = LmsCourse::where('teacher_id', $user->teacher->id ?? 0)->get();
+            $teacherId = $teacher->id ?? 0;
+            $enrolledCourses = LmsCourse::where('teacher_id', $teacherId)
+                ->orWhere(fn($q) => $q->whereNull('teacher_id'))
+                ->with('teacher')
+                ->latest()
+                ->get();
         }
 
-        return view('mobile.lms.index', compact('enrolledCourses'));
+        if ($enrolledCourses->isEmpty()) {
+            $enrolledCourses = LmsCourse::with('teacher')->latest()->take(10)->get();
+        }
+
+        $classrooms = \App\Models\Classroom::where('is_active', true)->orderBy('class_name')->get();
+        $subjects = \App\Models\Subject::orderBy('name')->get();
+
+        return view('mobile.lms.index', compact('enrolledCourses', 'isTeacher', 'classrooms', 'subjects'));
+    }
+
+    /**
+     * Buat Course / Kelas LMS Baru (Guru Mobile)
+     */
+    public function storeCourse(Request $request)
+    {
+        $user = Auth::user();
+        $teacher = \App\Models\Teacher::where('user_id', $user->id)->first() ?? $user->teacher;
+
+        $request->validate([
+            'course_name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:50',
+            'description' => 'nullable|string',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+            'subject_id' => 'nullable|exists:subjects,id',
+        ]);
+
+        $code = $request->input('code') ?: 'LMS-' . strtoupper(\Illuminate\Support\Str::random(6));
+
+        LmsCourse::create([
+            'school_id' => $teacher?->school_id ?? $user->school_id,
+            'teacher_id' => $teacher?->id ?? 0,
+            'subject_id' => $request->input('subject_id'),
+            'classroom_id' => $request->input('classroom_id'),
+            'code' => $code,
+            'course_name' => $request->input('course_name'),
+            'description' => $request->input('description'),
+            'is_published' => true,
+            'is_active' => true,
+            'status' => 'active',
+        ]);
+
+        return back()->with('success', 'Kelas / Course LMS baru berhasil dibuat!');
+    }
+
+    /**
+     * Update Info Course (Guru Mobile)
+     */
+    public function updateCourse(Request $request, $id)
+    {
+        $course = LmsCourse::findOrFail($id);
+        $request->validate([
+            'course_name' => 'required|string|max:255',
+            'code' => 'required|string|max:50',
+            'description' => 'nullable|string',
+        ]);
+
+        $course->update([
+            'course_name' => $request->input('course_name'),
+            'code' => $request->input('code'),
+            'description' => $request->input('description'),
+        ]);
+
+        return back()->with('success', 'Informasi Kelas LMS berhasil diperbarui!');
+    }
+
+    /**
+     * Hapus Course (Guru Mobile)
+     */
+    public function destroyCourse($id)
+    {
+        $course = LmsCourse::findOrFail($id);
+        $course->delete();
+        return redirect()->route('mobile.lms.index')->with('success', 'Kelas LMS berhasil dihapus!');
     }
 
     public function catalog()

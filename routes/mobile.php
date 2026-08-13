@@ -85,7 +85,11 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::get('/quiz/attempt/{attempt}/result', [MobileLmsController::class, 'quizResult'])->name('quiz.result');
             Route::get('/{course}', [MobileLmsController::class, 'show'])->name('show');
 
-            // Teacher Maker Actions (Create & Delete)
+            // Teacher Maker Actions (Course, Module, Material, Assignment, Quiz CRUD)
+            Route::post('/course', [MobileLmsController::class, 'storeCourse'])->name('course.store');
+            Route::put('/course/{course}', [MobileLmsController::class, 'updateCourse'])->name('course.update');
+            Route::delete('/course/{course}', [MobileLmsController::class, 'destroyCourse'])->name('course.destroy');
+
             Route::post('/{course}/module', [MobileLmsController::class, 'storeModule'])->name('module.store');
             Route::post('/{course}/material', [MobileLmsController::class, 'storeMaterial'])->name('material.store');
             Route::post('/{course}/assignment', [MobileLmsController::class, 'storeAssignment'])->name('assignment.store');
