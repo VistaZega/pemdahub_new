@@ -75,7 +75,7 @@ class MobileSpaceController extends Controller
         $thread->increment('views_count');
 
         $isLiked = ForumLike::where('user_id', Auth::id())
-            ->where('thread_id', $thread->id)
+            ->where('forum_thread_id', $thread->id)
             ->exists();
 
         return view('mobile.space.show', compact('thread', 'isLiked'));
@@ -90,7 +90,7 @@ class MobileSpaceController extends Controller
         $thread = ForumThread::findOrFail($id);
 
         ForumReply::create([
-            'thread_id' => $thread->id,
+            'forum_thread_id' => $thread->id,
             'user_id' => Auth::id(),
             'content' => $request->input('content'),
         ]);
@@ -101,7 +101,7 @@ class MobileSpaceController extends Controller
     public function like($id)
     {
         $userId = Auth::id();
-        $like = ForumLike::where('user_id', $userId)->where('thread_id', $id)->first();
+        $like = ForumLike::where('user_id', $userId)->where('forum_thread_id', $id)->first();
 
         if ($like) {
             $like->delete();
@@ -109,7 +109,7 @@ class MobileSpaceController extends Controller
         } else {
             ForumLike::create([
                 'user_id' => $userId,
-                'thread_id' => $id,
+                'forum_thread_id' => $id,
             ]);
             $liked = true;
         }
