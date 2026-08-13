@@ -20,7 +20,18 @@ class MobileStudentController extends Controller
 {
     private function getStudent()
     {
-        return Student::where('user_id', Auth::id())->with('school')->first();
+        $student = Student::where('user_id', Auth::id())->with('school')->first();
+        if ($student) return $student;
+
+        // Fallback for Super Admin / Testers switching role to Siswa
+        $user = Auth::user();
+        if ($user) {
+            $student = Student::when($user->school_id, fn($q) => $q->where('school_id', $user->school_id))
+                ->with('school')
+                ->first();
+        }
+
+        return $student;
     }
 
     /**

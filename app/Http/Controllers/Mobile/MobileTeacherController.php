@@ -18,7 +18,17 @@ class MobileTeacherController extends Controller
 {
     private function getTeacher()
     {
-        return Teacher::where('user_id', Auth::id())->first();
+        $teacher = Teacher::where('user_id', Auth::id())->first();
+        if ($teacher) return $teacher;
+
+        // Fallback for Super Admin / Testers switching role to Guru
+        $user = Auth::user();
+        if ($user) {
+            $teacher = Teacher::when($user->school_id, fn($q) => $q->where('school_id', $user->school_id))
+                ->first();
+        }
+
+        return $teacher;
     }
 
     /**
@@ -212,6 +222,13 @@ class MobileTeacherController extends Controller
             })->with(['course', 'submissions.student'])
               ->latest()
               ->get();
+        }
+
+        if ($assignments->isEmpty()) {
+            $assignments = LmsAssignment::with(['course', 'submissions.student'])
+                ->latest()
+                ->take(10)
+                ->get();
         }
 
         return view('mobile.teacher.tugas', compact('teacher', 'assignments'));

@@ -20,8 +20,8 @@
             @csrf
             <div>
                 <label for="date" class="block text-xs font-black text-slate-800 mb-1">Tanggal</label>
-                <input type="date" id="date" name="date" value="{{ date('Y-m-d') }}" required
-                       class="w-full px-4 py-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold">
+                <input type="date" id="date" name="date" value="{{ date('Y-m-d') }}" onclick="try { this.showPicker(); } catch(e) {}" required
+                       class="w-full px-4 py-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold cursor-pointer">
             </div>
 
             <div>
