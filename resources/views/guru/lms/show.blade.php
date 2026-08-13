@@ -508,7 +508,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     <div class="w-full rounded-2xl overflow-hidden shadow-md border-2 border-black bg-white mb-4 p-3">
                                         {!! $material->file_url !!}
                                     </div>
-                                @elseif($material->file_path || $material->material_type === 'document')
+                                @elseif($material->file_path)
                                     <div class="p-4 rounded-2xl border-2 border-black flex items-center justify-between gap-4 mb-4" style="background-color: #e0f2fe !important;">
                                         <div class="flex items-center gap-3.5">
                                             <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #0284c7 !important; color: #ffffff !important;">

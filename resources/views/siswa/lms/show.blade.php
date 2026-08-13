@@ -506,7 +506,7 @@ if (!function_exists('balanceHtmlTags')) {
                                         <i class="fas fa-external-link-alt"></i> Buka Layar Penuh
                                     </a>
                                 </div>
-                            @elseif($material->file_path || $material->material_type === 'document')
+                            @elseif($material->file_path)
                                 <div class="p-4 rounded-xl border border-blue-100 bg-blue-50/30 flex items-center justify-between gap-4 mb-4">
                                     <div class="flex items-center gap-3">
                                         <div class="w-12 h-12 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-md">
