@@ -283,9 +283,19 @@
                         <textarea name="description" rows="3" placeholder="Kerjakan soal berikut..." class="w-full p-2.5 bg-white border-2 border-amber-200 rounded-xl text-xs font-bold text-slate-900 outline-none resize-none"></textarea>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-slate-700 uppercase">Batas Waktu Pengumpulan (Deadline)</label>
-                        <input type="datetime-local" name="due_date" 
-                               class="w-full p-2.5 bg-white border-2 border-amber-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
+                        <label class="block text-[10px] font-black text-slate-700 uppercase mb-1">Batas Waktu Pengumpulan (Deadline)</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <span class="text-[9px] font-bold text-slate-500 block mb-0.5">Tanggal</span>
+                                <input type="date" name="due_date_only" required value="{{ date('Y-m-d') }}"
+                                       class="w-full p-2.5 bg-white border-2 border-amber-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
+                            </div>
+                            <div>
+                                <span class="text-[9px] font-bold text-slate-500 block mb-0.5">Jam</span>
+                                <input type="time" name="due_time_only" required value="23:59"
+                                       class="w-full p-2.5 bg-white border-2 border-amber-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
+                            </div>
+                        </div>
                     </div>
                     <button type="submit" class="w-full py-2.5 bg-amber-600 text-white font-black text-xs rounded-xl shadow-sm hover:bg-amber-700 transition">
                         Simpan Tugas
@@ -301,7 +311,7 @@
                     <div>
                         <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black clay-yellow">Tugas</span>
                         <h4 class="text-xs font-black text-slate-900 mt-1">{{ $assignment->title }}</h4>
-                        <p class="text-[10px] text-slate-500 font-bold mt-0.5"><i class="fa-regular fa-clock text-yellow-600 mr-1"></i>Batas Waktu: {{ $assignment->due_date ?? '-' }}</p>
+                        <p class="text-[10px] text-slate-500 font-bold mt-0.5"><i class="fa-regular fa-clock text-yellow-600 mr-1"></i>Batas Waktu: {{ $assignment->deadline ? \Carbon\Carbon::parse($assignment->deadline)->translatedFormat('d M Y H:i') : ($assignment->due_date ?? '-') }}</p>
                     </div>
 
                     <!-- Submission Status Badge for Student / Maker Badge for Teacher -->

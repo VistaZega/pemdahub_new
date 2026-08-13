@@ -22,6 +22,7 @@ class LmsAssignment extends Model
         'assignment_type',
         'file_path',
         'deadline',
+        'due_date',
         'max_score',
         'is_published',
         'allow_resubmit',

@@ -509,14 +509,34 @@ class MobileLmsController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'due_date' => 'nullable|date',
+            'due_date' => 'nullable',
+            'due_date_only' => 'nullable',
+            'due_time_only' => 'nullable',
         ]);
+
+        $deadline = null;
+        if ($request->filled('due_date')) {
+            $rawDate = str_replace('T', ' ', $request->input('due_date'));
+            try {
+                $deadline = \Carbon\Carbon::parse($rawDate)->format('Y-m-d H:i:s');
+            } catch (\Throwable $e) {
+                $deadline = $rawDate;
+            }
+        } elseif ($request->filled('due_date_only')) {
+            $timePart = $request->input('due_time_only') ?: '23:59:00';
+            if (strlen($timePart) === 5) {
+                $timePart .= ':00';
+            }
+            $deadline = $request->input('due_date_only') . ' ' . $timePart;
+        }
 
         LmsAssignment::create([
             'course_id' => $courseId,
             'title' => $request->input('title'),
             'description' => $request->input('description'),
-            'due_date' => $request->input('due_date'),
+            'deadline' => $deadline,
+            'due_date' => $deadline,
+            'is_published' => true,
         ]);
 
         return redirect()->route('mobile.lms.show', ['course' => $courseId, 'tab' => 'tugas'])
