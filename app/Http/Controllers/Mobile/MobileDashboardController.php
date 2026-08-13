@@ -18,6 +18,7 @@ class MobileDashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $activeRole = session('active_role', $user->role);
         $student = null;
         $teacher = null;
         $attendanceStats = ['hadir' => 0, 'terlambat' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0];
@@ -25,7 +26,7 @@ class MobileDashboardController extends Controller
         $activeCourses = [];
         $todaySchedule = [];
 
-        if ($user->role === 'siswa') {
+        if ($activeRole === 'siswa') {
             $student = Student::where('user_id', $user->id)->with('school')->first();
             
             if ($student) {

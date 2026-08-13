@@ -4,30 +4,31 @@
 
 @section('content')
 <div class="space-y-5 pt-2">
-    <!-- User Greeting Banner -->
-    <div class="glass-card rounded-3xl p-5 relative overflow-hidden bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-950 border border-indigo-500/20 shadow-xl">
-        <div class="absolute -right-6 -top-6 w-28 h-28 bg-indigo-500/20 rounded-full blur-xl"></div>
+    <!-- User Greeting Banner (Vibrant Card) -->
+    <div class="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 rounded-3xl p-5 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden">
+        <div class="absolute -right-6 -top-6 w-28 h-28 bg-white/10 rounded-full blur-xl"></div>
 
         <div class="flex items-center space-x-3.5 relative z-10">
             @if($student && $student->photo_url)
-                <img src="{{ $student->photo_url }}" alt="{{ $user->name }}" class="w-14 h-14 rounded-2xl object-cover border-2 border-indigo-400/40 shadow-md">
+                <img src="{{ $student->photo_url }}" alt="{{ $user->name }}" class="w-14 h-14 rounded-2xl object-cover border-2 border-white/40 shadow-md">
             @else
-                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-extrabold text-xl shadow-md border border-indigo-400/30">
+                <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white font-extrabold text-xl border border-white/30 shadow-md">
                     {{ strtoupper(substr($user->name, 0, 2)) }}
                 </div>
             @endif
 
             <div class="flex-1 min-w-0">
                 <div class="flex items-center space-x-2">
-                    <span class="px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 text-[10px] font-bold tracking-wide uppercase border border-indigo-500/30">
-                        {{ strtoupper($user->role) }}
+                    @php $activeRole = session('active_role', $user->role); @endphp
+                    <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-extrabold tracking-wide uppercase border border-white/30">
+                        {{ strtoupper($activeRole) }}
                     </span>
                     @if($student && $student->school)
-                        <span class="text-[10px] text-slate-400 truncate">{{ $student->school->name }}</span>
+                        <span class="text-[10px] text-indigo-200 truncate font-medium">{{ $student->school->name }}</span>
                     @endif
                 </div>
                 <h2 class="text-lg font-extrabold text-white truncate mt-1 leading-tight">{{ $user->name }}</h2>
-                <p class="text-xs text-slate-400 mt-0.5 truncate">
+                <p class="text-xs text-indigo-100/90 mt-0.5 truncate font-medium">
                     @if($student)
                         NISN: {{ $student->nisn ?? $student->nis ?? '-' }}
                     @elseif($teacher)
@@ -40,137 +41,138 @@
         </div>
     </div>
 
-    <!-- Quick Access Grid (Role-Based Features) -->
+    <!-- Quick Access Grid (Vibrant Colorful Icons) -->
     <div>
-        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5 px-1">Menu Utama</h3>
+        <h3 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-2.5 px-1">Menu Utama</h3>
         
-        @if($user->role === 'siswa')
+        @php $activeRole = session('active_role', $user->role); @endphp
+        @if($activeRole === 'siswa')
         <div class="grid grid-cols-4 gap-2.5">
             <!-- Jadwal -->
-            <a href="{{ route('mobile.jadwal') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+            <a href="{{ route('mobile.jadwal') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-50 transition flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500 text-white flex items-center justify-center text-xl mb-1.5 shadow-md shadow-blue-500/20 group-hover:scale-110 transition">
                     <i class="fa-solid fa-calendar-days"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">Jadwal</span>
+                <span class="text-[11px] font-bold text-slate-800">Jadwal</span>
             </a>
 
             <!-- Nilai -->
-            <a href="{{ route('mobile.nilai') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+            <a href="{{ route('mobile.nilai') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-50 transition flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-xl mb-1.5 shadow-md shadow-emerald-500/20 group-hover:scale-110 transition">
                     <i class="fa-solid fa-chart-line"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">Nilai</span>
+                <span class="text-[11px] font-bold text-slate-800">Nilai</span>
             </a>
 
             <!-- Tagihan SPP -->
-            <a href="{{ route('mobile.tagihan') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+            <a href="{{ route('mobile.tagihan') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-50 transition flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl mb-1.5 shadow-md shadow-amber-500/20 group-hover:scale-110 transition">
                     <i class="fa-solid fa-wallet"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">Tagihan</span>
+                <span class="text-[11px] font-bold text-slate-800">Tagihan</span>
             </a>
 
             <!-- CBT Ujian -->
-            <a href="{{ route('mobile.cbt') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+            <a href="{{ route('mobile.cbt') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-50 transition flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-2xl bg-rose-500 text-white flex items-center justify-center text-xl mb-1.5 shadow-md shadow-rose-500/20 group-hover:scale-110 transition">
                     <i class="fa-solid fa-laptop-code"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">CBT Ujian</span>
+                <span class="text-[11px] font-bold text-slate-800">CBT Ujian</span>
             </a>
 
             <!-- PKL / Tugas Akhir -->
-            <a href="{{ route('mobile.pkl') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+            <a href="{{ route('mobile.pkl') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-50 transition flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-2xl bg-teal-500 text-white flex items-center justify-center text-xl mb-1.5 shadow-md shadow-teal-500/20 group-hover:scale-110 transition">
                     <i class="fa-solid fa-briefcase"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">PKL</span>
+                <span class="text-[11px] font-bold text-slate-800">PKL</span>
             </a>
 
             <!-- Pembda Space -->
-            <a href="{{ route('mobile.space.index') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+            <a href="{{ route('mobile.space.index') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-50 transition flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl mb-1.5 shadow-md shadow-indigo-600/20 group-hover:scale-110 transition">
                     <i class="fa-solid fa-comments"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">Space</span>
+                <span class="text-[11px] font-bold text-slate-800">Space</span>
             </a>
 
             <!-- LMS -->
-            <a href="{{ route('mobile.lms.index') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+            <a href="{{ route('mobile.lms.index') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-50 transition flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-xl mb-1.5 shadow-md shadow-purple-600/20 group-hover:scale-110 transition">
                     <i class="fa-solid fa-book-open"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">LMS</span>
+                <span class="text-[11px] font-bold text-slate-800">LMS</span>
             </a>
 
             <!-- Absensi -->
-            <a href="{{ route('mobile.absensi.index') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+            <a href="{{ route('mobile.absensi.index') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-50 transition flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-600 text-white flex items-center justify-center text-xl mb-1.5 shadow-md shadow-cyan-600/20 group-hover:scale-110 transition">
                     <i class="fa-solid fa-fingerprint"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">Absensi</span>
+                <span class="text-[11px] font-bold text-slate-800">Absensi</span>
             </a>
         </div>
         @else
         <!-- Menu Guru / Pegawai -->
         <div class="grid grid-cols-4 gap-2.5">
             <!-- Jadwal Mengajar -->
-            <a href="{{ route('mobile.guru.jadwal') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+            <a href="{{ route('mobile.guru.jadwal') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-50 transition flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-xl mb-1.5 shadow-md shadow-purple-600/20 group-hover:scale-110 transition">
                     <i class="fa-solid fa-chalkboard-user"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">Jadwal</span>
+                <span class="text-[11px] font-bold text-slate-800">Jadwal</span>
             </a>
 
             <!-- Input Absensi Kelas -->
-            <a href="{{ route('mobile.guru.absensi.input') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+            <a href="{{ route('mobile.guru.absensi.input') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-50 transition flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl mb-1.5 shadow-md shadow-emerald-600/20 group-hover:scale-110 transition">
                     <i class="fa-solid fa-clipboard-user"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">Absen Kelas</span>
+                <span class="text-[11px] font-bold text-slate-800">Absen Kelas</span>
             </a>
 
             <!-- Periksa Tugas -->
-            <a href="{{ route('mobile.guru.tugas') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+            <a href="{{ route('mobile.guru.tugas') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-50 transition flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl mb-1.5 shadow-md shadow-amber-500/20 group-hover:scale-110 transition">
                     <i class="fa-solid fa-file-signature"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">Nilai Tugas</span>
+                <span class="text-[11px] font-bold text-slate-800">Nilai Tugas</span>
             </a>
 
             <!-- Space -->
-            <a href="{{ route('mobile.space.index') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+            <a href="{{ route('mobile.space.index') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-50 transition flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl mb-1.5 shadow-md shadow-indigo-600/20 group-hover:scale-110 transition">
                     <i class="fa-solid fa-comments"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">Space</span>
+                <span class="text-[11px] font-bold text-slate-800">Space</span>
             </a>
         </div>
         @endif
     </div>
 
     <!-- Attendance Summary Widget (If student) -->
-    @if($user->role === 'siswa')
-    <div class="glass-card rounded-2xl p-4">
+    @if($activeRole === 'siswa')
+    <div class="glass-card rounded-3xl p-4">
         <div class="flex items-center justify-between mb-3">
             <div class="flex items-center space-x-2">
-                <div class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
-                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Rekap Kehadiran Bulan Ini</h3>
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
+                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Kehadiran Bulan Ini</h3>
             </div>
-            <a href="{{ route('mobile.absensi.index') }}" class="text-[11px] font-medium text-indigo-400 hover:text-indigo-300">Detail <i class="fa-solid fa-chevron-right text-[9px]"></i></a>
+            <a href="{{ route('mobile.absensi.index') }}" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700">Detail <i class="fa-solid fa-chevron-right text-[9px]"></i></a>
         </div>
 
         <div class="grid grid-cols-3 gap-2">
-            <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-2.5 text-center">
-                <span class="text-lg font-black text-emerald-400">{{ $attendanceStats['hadir'] }}</span>
-                <span class="block text-[10px] text-emerald-300/80 font-medium">Hadir</span>
+            <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-center">
+                <span class="text-xl font-black text-emerald-600">{{ $attendanceStats['hadir'] }}</span>
+                <span class="block text-[10px] text-emerald-700 font-bold">Hadir</span>
             </div>
-            <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 text-center">
-                <span class="text-lg font-black text-amber-400">{{ $attendanceStats['terlambat'] }}</span>
-                <span class="block text-[10px] text-amber-300/80 font-medium">Terlambat</span>
+            <div class="bg-amber-50 border border-amber-100 rounded-2xl p-3 text-center">
+                <span class="text-xl font-black text-amber-600">{{ $attendanceStats['terlambat'] }}</span>
+                <span class="block text-[10px] text-amber-700 font-bold">Terlambat</span>
             </div>
-            <div class="bg-rose-500/10 border border-rose-500/20 rounded-xl p-2.5 text-center">
-                <span class="text-lg font-black text-rose-400">{{ $attendanceStats['sakit'] + $attendanceStats['izin'] + $attendanceStats['alpha'] }}</span>
-                <span class="block text-[10px] text-rose-300/80 font-medium">Izin/Alpha</span>
+            <div class="bg-rose-50 border border-rose-100 rounded-2xl p-3 text-center">
+                <span class="text-xl font-black text-rose-600">{{ $attendanceStats['sakit'] + $attendanceStats['izin'] + $attendanceStats['alpha'] }}</span>
+                <span class="block text-[10px] text-rose-700 font-bold">Izin/Alpha</span>
             </div>
         </div>
     </div>
@@ -179,24 +181,24 @@
     <!-- Pembda Space Recent Feed Widget -->
     <div>
         <div class="flex items-center justify-between mb-2.5 px-1">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pembda Space Terbaru</h3>
-            <a href="{{ route('mobile.space.index') }}" class="text-[11px] font-medium text-indigo-400 hover:text-indigo-300">Lihat Semua <i class="fa-solid fa-arrow-right text-[9px]"></i></a>
+            <h3 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Pembda Space Terbaru</h3>
+            <a href="{{ route('mobile.space.index') }}" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700">Lihat Semua <i class="fa-solid fa-arrow-right text-[9px]"></i></a>
         </div>
 
         <div class="space-y-2.5">
             @forelse($recentDiscussions as $thread)
-                <a href="{{ route('mobile.space.show', $thread->id) }}" class="glass-card rounded-2xl p-3.5 block hover:border-indigo-500/40 transition">
+                <a href="{{ route('mobile.space.show', $thread->id) }}" class="glass-card rounded-2xl p-4 block hover:border-indigo-300 transition">
                     <div class="flex items-start justify-between gap-2">
                         <div class="flex-1 min-w-0">
-                            <span class="inline-block px-2 py-0.5 text-[9px] font-bold rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 mb-1">
+                            <span class="inline-block px-2.5 py-0.5 text-[9px] font-extrabold rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 mb-1.5">
                                 #{{ $thread->category_label ?? $thread->category ?? 'diskusi' }}
                             </span>
-                            <h4 class="text-xs font-bold text-white truncate leading-snug">{{ $thread->title }}</h4>
-                            <p class="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{{ Str::limit(strip_tags($thread->content), 70) }}</p>
+                            <h4 class="text-xs font-extrabold text-slate-900 truncate leading-snug">{{ $thread->title }}</h4>
+                            <p class="text-[11px] text-slate-600 line-clamp-1 mt-0.5 font-medium">{{ Str::limit(strip_tags($thread->content), 70) }}</p>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between text-[10px] text-slate-500 mt-2.5 pt-2 border-t border-slate-800/80">
-                        <span class="font-medium text-slate-400"><i class="fa-regular fa-user mr-1"></i>{{ $thread->user->name ?? 'Anonim' }}</span>
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 mt-3 pt-2.5 border-t border-slate-100 font-semibold">
+                        <span class="text-slate-700"><i class="fa-regular fa-user mr-1 text-indigo-600"></i>{{ $thread->user->name ?? 'Anonim' }}</span>
                         <div class="flex items-center space-x-3">
                             <span><i class="fa-regular fa-comment mr-1"></i>{{ $thread->replies_count ?? 0 }}</span>
                             <span><i class="fa-regular fa-heart mr-1"></i>{{ $thread->likes_count ?? 0 }}</span>

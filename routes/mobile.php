@@ -35,6 +35,7 @@ Route::prefix('m')->name('mobile.')->group(function () {
     // Authenticated Mobile Routes
     Route::middleware(['auth'])->group(function () {
         Route::post('/logout', [MobileAuthController::class, 'logout'])->name('logout');
+        Route::post('/switch-role', [MobileAuthController::class, 'switchRole'])->name('switch-role');
 
         // Dashboard
         Route::get('/dashboard', [MobileDashboardController::class, 'index'])->name('dashboard');

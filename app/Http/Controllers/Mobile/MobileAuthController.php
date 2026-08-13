@@ -102,4 +102,64 @@ class MobileAuthController extends Controller
 
         return redirect()->route('mobile.login');
     }
+
+    /**
+     * Switch active role for users with multiple roles in Mobile
+     */
+    public function switchRole(Request $request)
+    {
+        $user = Auth::user();
+        $targetRole = $request->input('role');
+
+        $isAuthorized = match ($targetRole) {
+            'superadmin' => $user->isOwnerOrSuperAdmin(),
+            'ketua_yayasan' => $user->isOwnerOrSuperAdmin(),
+            'guru' => $user->isOwnerOrSuperAdmin() || $user->isGuru() || $user->isKepalaSekolah() || $user->isAdminSekolah(),
+            'kepala_sekolah' => $user->isKepalaSekolah() || $user->isOwnerOrSuperAdmin(),
+            'pegawai' => $user->hasRole('pegawai') || $user->employee !== null || $user->isAdminSekolah() || $user->isOwnerOrSuperAdmin(),
+            'admin_sekolah' => $user->isAdminSekolah(),
+            'siswa' => $user->isOwnerOrSuperAdmin() || $user->hasRole('siswa'),
+            default => $user->hasRole($targetRole),
+        };
+
+        if (!$isAuthorized) {
+            return back()->with('error', 'Anda tidak memiliki akses ke role tersebut.');
+        }
+
+        session(['active_role' => $targetRole]);
+
+        // Auto-create teacher profile if missing for Super Admin
+        if ($targetRole === 'guru') {
+            $teacherExists = \App\Models\Teacher::where('user_id', $user->id)->exists();
+            if (!$teacherExists) {
+                $schoolId = $user->school_id ?? \App\Models\School::first()->id ?? 1;
+                $employee = \App\Models\Employee::firstOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'school_id' => $schoolId,
+                        'employee_code' => 'EMP-YYS-' . $user->id,
+                        'full_name' => $user->name,
+                        'gender' => 'L',
+                        'employee_type' => 'guru',
+                        'employment_status' => 'yayasan',
+                        'tmt_date' => now()->format('Y-m-d'),
+                        'is_active' => true,
+                    ]
+                );
+
+                \App\Models\Teacher::create([
+                    'employee_id' => $employee->id,
+                    'user_id' => $user->id,
+                    'school_id' => $schoolId,
+                    'teacher_code' => 'YYS-' . $user->id,
+                    'full_name' => $user->name,
+                    'gender' => 'L',
+                    'position' => 'Yayasan / Super Admin',
+                    'is_active' => true,
+                ]);
+            }
+        }
+
+        return redirect()->route('mobile.dashboard')->with('success', 'Berhasil beralih ke role: ' . ucwords(str_replace('_', ' ', $targetRole)));
+    }
 }
