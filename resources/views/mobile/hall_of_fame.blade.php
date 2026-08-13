@@ -27,7 +27,7 @@
                     </div>
                 </div>
                 <div class="text-right">
-                    <span class="text-xs font-black text-amber-600 block">+{{ $std->reputation_points ?? 0 }} Pts</span>
+                    <span class="text-xs font-black text-amber-600 block">+{{ $std->user->reputation->total_points ?? $std->reputation_points ?? 0 }} Pts</span>
                     <span class="text-[9px] font-bold text-slate-400">Poin Siswa</span>
                 </div>
             </div>

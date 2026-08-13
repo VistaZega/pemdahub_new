@@ -526,13 +526,36 @@ class MobileTeacherController extends Controller
      */
     public function hallOfFame()
     {
-        $topStudents = Student::orderBy('reputation_points', 'desc')
-            ->take(15)
-            ->get();
+        $topStudents = collect();
+        $topTeachers = collect();
 
-        $topTeachers = Teacher::orderBy('reputation_points', 'desc')
-            ->take(10)
-            ->get();
+        if (class_exists('\App\Models\Reputation')) {
+            $topStudents = \App\Models\Reputation::whereHas('user.student')
+                ->with(['user.student'])
+                ->orderBy('total_points', 'desc')
+                ->take(15)
+                ->get()
+                ->pluck('user.student')
+                ->filter()
+                ->values();
+
+            $topTeachers = \App\Models\Reputation::whereHas('user.teacher')
+                ->with(['user.teacher'])
+                ->orderBy('total_points', 'desc')
+                ->take(10)
+                ->get()
+                ->pluck('user.teacher')
+                ->filter()
+                ->values();
+        }
+
+        if ($topStudents->isEmpty()) {
+            $topStudents = Student::with('user.reputation')->latest()->take(15)->get();
+        }
+
+        if ($topTeachers->isEmpty()) {
+            $topTeachers = Teacher::with('user.reputation')->latest()->take(10)->get();
+        }
 
         return view('mobile.hall_of_fame', compact('topStudents', 'topTeachers'));
     }
