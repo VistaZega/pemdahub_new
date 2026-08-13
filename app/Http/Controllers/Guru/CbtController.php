@@ -41,12 +41,23 @@ class CbtController extends Controller
     }
 
     /**
-     * Verify the teacher owns a question bank
+     * Verify the teacher has access to a question bank
      */
     private function authorizeBank(CbtQuestionBank $bank, ?Teacher $teacher = null): Teacher
     {
         $teacher = $teacher ?? $this->resolveTeacher();
-        abort_unless($bank->teacher_id === $teacher->id, 403, 'Anda tidak memiliki akses ke bank soal ini.');
+
+        $user = Auth::user();
+        $isAdmin = $user && (
+            (method_exists($user, 'hasRole') && $user->hasRole(['admin', 'superadmin', 'kurikulum'])) 
+            || in_array($user->role ?? '', ['admin', 'superadmin', 'kurikulum', 'operator'])
+        );
+
+        $isOwner = $bank->teacher_id === $teacher->id;
+        $isSchoolMatch = $bank->school_id && $teacher->school_id && ($bank->school_id == $teacher->school_id);
+        $isShared = (bool) $bank->is_shared;
+
+        abort_unless($isOwner || $isShared || $isSchoolMatch || $isAdmin, 403, 'Anda tidak memiliki akses ke bank soal ini.');
         return $teacher;
     }
 
@@ -56,7 +67,17 @@ class CbtController extends Controller
     private function authorizeExam(CbtExam $exam, ?Teacher $teacher = null): Teacher
     {
         $teacher = $teacher ?? $this->resolveTeacher();
-        abort_unless($exam->teacher_id === $teacher->id, 403, 'Anda tidak memiliki akses ke ujian ini.');
+
+        $user = Auth::user();
+        $isAdmin = $user && (
+            (method_exists($user, 'hasRole') && $user->hasRole(['admin', 'superadmin', 'kurikulum'])) 
+            || in_array($user->role ?? '', ['admin', 'superadmin', 'kurikulum', 'operator'])
+        );
+
+        $isOwner = $exam->teacher_id === $teacher->id;
+        $isSchoolMatch = $exam->school_id && $teacher->school_id && ($exam->school_id == $teacher->school_id);
+
+        abort_unless($isOwner || $isSchoolMatch || $isAdmin, 403, 'Anda tidak memiliki akses ke ujian ini.');
         return $teacher;
     }
 
