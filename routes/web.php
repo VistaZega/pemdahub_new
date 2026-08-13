@@ -648,6 +648,9 @@ Route::get('/', function () {
         ->take(4)
         ->get();
 
+    // Tema Beranda Hari Besar (Event Theme)
+    $homepageTheme = \App\Models\Setting::getValue('homepage_theme', 'regular');
+
     // Pastikan halaman beranda tidak dicache oleh server (LiteSpeed) maupun browser
     // agar status tombol "Login" vs "Dashboard" selalu ter-update secara real-time.
     return response(view('index', compact(
@@ -658,7 +661,7 @@ Route::get('/', function () {
         'schools', 'activeWave', 'totalApplicants',
         'recentAlumnis',
         'pklShowcase', 'totalApprovedLogs', 'totalMonitorings', 'totalDudi',
-        'topStudentsElite', 'topTeachersElite'
+        'topStudentsElite', 'topTeachersElite', 'homepageTheme'
     )))
         ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
         ->header('Pragma', 'no-cache')

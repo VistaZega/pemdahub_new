@@ -797,7 +797,8 @@
     </style>
 </head>
 
-<body>
+<body data-theme="{{ $homepageTheme ?? 'regular' }}">
+    @include('landing.partials.event-theme-banner')
     @include('landing.partials.navigation')
     @include('landing.partials.hero')
     @include('landing.partials.platform-overview')

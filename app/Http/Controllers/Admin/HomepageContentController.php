@@ -26,6 +26,9 @@ class HomepageContentController extends Controller
             'psb_tp' => Setting::getValue('psb_tp', '2026/2027'),
             'psb_periode' => Setting::getValue('psb_periode', '1 Feb – 30 Jun 2026'),
             'psb_status' => Setting::getValue('psb_status', 'Dibuka'),
+
+            // Tema Beranda Hari Besar (Event Theme)
+            'homepage_theme' => Setting::getValue('homepage_theme', 'regular'),
         ];
 
         return view('admin.homepage.content', compact('settings'));
@@ -49,6 +52,9 @@ class HomepageContentController extends Controller
             'psb_tp' => 'required|string|max:50',
             'psb_periode' => 'required|string|max:100',
             'psb_status' => 'required|string|max:50',
+
+            // Tema Beranda
+            'homepage_theme' => 'required|string|in:regular,kemerdekaan,paskah,natal,pahlawan,pendidikan',
         ]);
 
         foreach ($validated as $key => $value) {
