@@ -517,7 +517,8 @@ class MobileLmsController extends Controller
             'due_date' => $request->input('due_date'),
         ]);
 
-        return back()->with('success', 'Tugas berhasil ditambahkan!');
+        return redirect()->route('mobile.lms.show', ['course' => $courseId, 'tab' => 'tugas'])
+            ->with('success', 'Tugas berhasil ditambahkan!');
     }
 
     /**
@@ -526,8 +527,16 @@ class MobileLmsController extends Controller
     public function destroyAssignment($id)
     {
         $assignment = LmsAssignment::findOrFail($id);
+        $courseId = $assignment->course_id;
+
+        try {
+            $assignment->submissions()->delete();
+        } catch (\Throwable $e) {}
+
         $assignment->delete();
-        return back()->with('success', 'Tugas berhasil dihapus!');
+
+        return redirect()->route('mobile.lms.show', ['course' => $courseId, 'tab' => 'tugas'])
+            ->with('success', 'Tugas berhasil dihapus!');
     }
 
     /**
@@ -551,7 +560,8 @@ class MobileLmsController extends Controller
             'is_published' => true,
         ]);
 
-        return back()->with('success', 'Kuis berhasil ditambahkan!');
+        return redirect()->route('mobile.lms.show', ['course' => $courseId, 'tab' => 'kuis'])
+            ->with('success', 'Kuis berhasil ditambahkan!');
     }
 
     /**
@@ -560,8 +570,16 @@ class MobileLmsController extends Controller
     public function destroyQuiz($id)
     {
         $quiz = LmsQuiz::findOrFail($id);
+        $courseId = $quiz->course_id;
+
+        try {
+            $quiz->attempts()->delete();
+        } catch (\Throwable $e) {}
+
         $quiz->delete();
-        return back()->with('success', 'Kuis berhasil dihapus!');
+
+        return redirect()->route('mobile.lms.show', ['course' => $courseId, 'tab' => 'kuis'])
+            ->with('success', 'Kuis berhasil dihapus!');
     }
 
     /**
