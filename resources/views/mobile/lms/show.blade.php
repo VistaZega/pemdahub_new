@@ -3,6 +3,11 @@
 @section('title', $course->course_name . ' - LMS PembdaHUB Mobile')
 
 @section('content')
+@php
+    $isTeacher = session('active_role') === 'guru' || 
+                 auth()->user()?->isGuru() || 
+                 ($course->teacher_id == auth()->id());
+@endphp
 <div class="space-y-4" x-data="{ tab: 'modul' }">
     <!-- Back Link -->
     <a href="{{ route('mobile.lms.index') }}" class="inline-flex items-center gap-1.5 text-xs font-black text-slate-500 hover:text-slate-900 transition">
@@ -20,7 +25,12 @@
                     {{ $course->code }}
                 </span>
                 <h2 class="text-base font-black text-white mt-1 leading-snug tracking-tight">{{ $course->course_name }}</h2>
-                <p class="text-xs text-purple-100 mt-0.5 font-bold"><i class="fa-regular fa-user mr-1"></i>{{ $course->teacher->full_name ?? 'Pengajar' }}</p>
+                <p class="text-xs text-purple-100 mt-0.5 font-bold">
+                    <i class="fa-regular fa-user mr-1"></i>{{ $course->teacher->full_name ?? 'Pengajar' }}
+                    @if($isTeacher)
+                        <span class="ml-1.5 px-2 py-0.5 rounded-md bg-white/20 text-white text-[9px] font-black uppercase">Pengajar (Maker)</span>
+                    @endif
+                </p>
             </div>
         </div>
     </div>
@@ -137,7 +147,7 @@
         @endforelse
     </div>
 
-    <!-- Tab 2: Assignments (Interactive Submission Form) -->
+    <!-- Tab 2: Assignments (Interactive Submission Form for Student vs Teacher Maker View) -->
     <div x-show="tab === 'tugas'" class="space-y-3">
         @forelse($course->assignments as $assignment)
             @php $sub = $submissionMap[$assignment->id] ?? null; @endphp
@@ -149,16 +159,22 @@
                         <p class="text-[10px] text-slate-500 font-bold mt-0.5"><i class="fa-regular fa-clock text-yellow-600 mr-1"></i>Batas Waktu: {{ $assignment->due_date ?? '-' }}</p>
                     </div>
 
-                    <!-- Submission Status Badge -->
-                    @if($sub)
-                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase
-                            {{ $sub->status === 'graded' ? 'clay-green' : ($sub->status === 'late' ? 'clay-pink' : 'clay-blue') }}">
-                            {{ $sub->status === 'graded' ? 'Nilai: ' . $sub->score : ($sub->status === 'late' ? 'Terlambat' : 'Terkumpul') }}
+                    <!-- Submission Status Badge for Student / Maker Badge for Teacher -->
+                    @if($isTeacher)
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-purple-100 text-purple-800 border border-purple-200">
+                            Pengajar (Maker)
                         </span>
                     @else
-                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-slate-100 text-slate-600 border border-slate-200">
-                            Belum Ada
-                        </span>
+                        @if($sub)
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase
+                                {{ $sub->status === 'graded' ? 'clay-green' : ($sub->status === 'late' ? 'clay-pink' : 'clay-blue') }}">
+                                {{ $sub->status === 'graded' ? 'Nilai: ' . $sub->score : ($sub->status === 'late' ? 'Terlambat' : 'Terkumpul') }}
+                            </span>
+                        @else
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                                Belum Ada
+                            </span>
+                        @endif
                     @endif
                 </div>
 
@@ -168,8 +184,8 @@
                     </div>
                 @endif
 
-                <!-- Submission Details / Feedback if graded -->
-                @if($sub && $sub->score !== null)
+                <!-- Submission Details / Feedback if graded for Student -->
+                @if(!$isTeacher && $sub && $sub->score !== null)
                     <div class="p-3 bg-emerald-50 rounded-2xl border-2 border-emerald-200 text-xs space-y-1">
                         <span class="font-black text-emerald-900 block">✨ Nilai Tugas: {{ $sub->score }}/100</span>
                         @if($sub->feedback)
@@ -178,37 +194,49 @@
                     </div>
                 @endif
 
-                <!-- Toggle Submit Form Button -->
-                <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <span class="text-[10px] text-slate-500 font-bold">
-                        {{ $sub ? 'Terkumpul: ' . \Carbon\Carbon::parse($sub->submitted_at)->diffForHumans() : 'Belum dikirim' }}
-                    </span>
-                    <button @click="openForm = !openForm" class="clay-btn py-2 px-3.5 text-xs font-black text-white shadow-sm">
-                        <span x-text="openForm ? 'Tutup Form' : '{{ $sub ? '📤 Kumpul Ulang' : '✏️ Kirim Jawaban' }}'"></span>
-                    </button>
-                </div>
-
-                <!-- SUBMISSION FORM -->
-                <div x-show="openForm" x-transition class="pt-3 border-t-2 border-purple-100 space-y-3">
-                    <form action="{{ route('mobile.lms.assignment.submit', $assignment->id) }}" method="POST" enctype="multipart/form-data" class="space-y-3">
-                        @csrf
-                        <div>
-                            <label class="block text-xs font-black text-slate-800 mb-1">Teks Jawaban / Link URL</label>
-                            <textarea name="submission_text" rows="3" placeholder="Ketik penjelasan jawaban atau sertakan link Google Drive / URL tugas Anda..."
-                                      class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-xs font-bold text-slate-900 outline-none focus:border-purple-500 transition resize-none">{{ $sub->submission_text ?? '' }}</textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-black text-slate-800 mb-1">Unggah Lampiran Berkas (Opsional, Max 10MB)</label>
-                            <input type="file" name="file" 
-                                   class="w-full text-xs font-bold text-slate-600 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl p-2.5 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-purple-600 file:text-white">
-                        </div>
-
-                        <button type="submit" class="clay-btn w-full py-3.5 text-white font-black text-xs uppercase tracking-wider shadow-md">
-                            <i class="fa-solid fa-paper-plane mr-1"></i> Kirim Jawaban Sekarang
+                <!-- Action Button for Teacher vs Student -->
+                @if($isTeacher)
+                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-[10px] text-purple-700 font-extrabold flex items-center gap-1">
+                            <i class="fa-solid fa-user-shield"></i> Mode Pengajar / Pembuat Tugas
+                        </span>
+                        <a href="{{ route('mobile.guru.tugas') }}" class="clay-btn py-2 px-3.5 text-xs font-black text-white shadow-sm">
+                            <i class="fa-solid fa-list-check mr-1"></i> Periksa & Nilai Tugas Siswa
+                        </a>
+                    </div>
+                @else
+                    <!-- Toggle Submit Form Button for Student -->
+                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-[10px] text-slate-500 font-bold">
+                            {{ $sub ? 'Terkumpul: ' . \Carbon\Carbon::parse($sub->submitted_at)->diffForHumans() : 'Belum dikirim' }}
+                        </span>
+                        <button @click="openForm = !openForm" class="clay-btn py-2 px-3.5 text-xs font-black text-white shadow-sm">
+                            <span x-text="openForm ? 'Tutup Form' : '{{ $sub ? '📤 Kumpul Ulang' : '✏️ Kirim Jawaban' }}'"></span>
                         </button>
-                    </form>
-                </div>
+                    </div>
+
+                    <!-- SUBMISSION FORM FOR STUDENT -->
+                    <div x-show="openForm" x-transition class="pt-3 border-t-2 border-purple-100 space-y-3">
+                        <form action="{{ route('mobile.lms.assignment.submit', $assignment->id) }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                            @csrf
+                            <div>
+                                <label class="block text-xs font-black text-slate-800 mb-1">Teks Jawaban / Link URL</label>
+                                <textarea name="submission_text" rows="3" placeholder="Ketik penjelasan jawaban atau sertakan link Google Drive / URL tugas Anda..."
+                                          class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-xs font-bold text-slate-900 outline-none focus:border-purple-500 transition resize-none">{{ $sub->submission_text ?? '' }}</textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-black text-slate-800 mb-1">Unggah Lampiran Berkas (Opsional, Max 10MB)</label>
+                                <input type="file" name="file" 
+                                       class="w-full text-xs font-bold text-slate-600 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl p-2.5 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-purple-600 file:text-white">
+                            </div>
+
+                            <button type="submit" class="clay-btn w-full py-3.5 text-white font-black text-xs uppercase tracking-wider shadow-md">
+                                <i class="fa-solid fa-paper-plane mr-1"></i> Kirim Jawaban Sekarang
+                            </button>
+                        </form>
+                    </div>
+                @endif
             </div>
         @empty
             <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold">
@@ -217,7 +245,7 @@
         @endforelse
     </div>
 
-    <!-- Tab 3: Quizzes (Interactive Quiz Start & Result) -->
+    <!-- Tab 3: Quizzes (Interactive Quiz for Student vs Teacher Maker View) -->
     <div x-show="tab === 'kuis'" class="space-y-3">
         @forelse($course->quizzes as $quiz)
             @php 
@@ -232,26 +260,45 @@
                         <p class="text-[10px] text-slate-500 font-bold mt-0.5"><i class="fa-regular fa-clock text-pink-600 mr-1"></i>Durasi: {{ $quiz->time_limit ?? 30 }} menit</p>
                     </div>
 
-                    @if($latestFinished)
-                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase {{ $latestFinished->is_passed ? 'clay-green' : 'clay-pink' }}">
-                            {{ number_format($latestFinished->score, 1) }}%
+                    @if($isTeacher)
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-purple-100 text-purple-800 border border-purple-200">
+                            Pengajar (Maker)
                         </span>
-                    @endif
-                </div>
-
-                <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                    @if($latestFinished)
-                        <a href="{{ route('mobile.lms.quiz.result', $latestFinished->id) }}" class="px-3 py-2 bg-slate-100 text-slate-800 text-xs font-black rounded-xl border border-slate-200">
-                            📊 Lihat Hasil
-                        </a>
                     @else
-                        <span class="text-[10px] text-slate-500 font-bold">Belum dikerjakan</span>
+                        @if($latestFinished)
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase {{ $latestFinished->is_passed ? 'clay-green' : 'clay-pink' }}">
+                                {{ number_format($latestFinished->score, 1) }}%
+                            </span>
+                        @endif
                     @endif
-
-                    <a href="{{ route('mobile.lms.quiz.start', $quiz->id) }}" class="clay-btn py-2.5 px-4 text-xs font-black text-white shadow-md">
-                        <i class="fa-solid fa-pen-nib mr-1"></i> {{ $latestFinished ? 'Ulangi Kuis' : 'Mulai Kerjakan Kuis' }}
-                    </a>
                 </div>
+
+                @if($isTeacher)
+                    <!-- Teacher Maker Action View -->
+                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <span class="text-[10px] text-purple-700 font-extrabold flex items-center gap-1">
+                            <i class="fa-solid fa-user-shield"></i> Mode Pengajar / Pembuat Kuis
+                        </span>
+                        <a href="{{ route('mobile.guru.cbt') }}" class="clay-btn py-2.5 px-4 text-xs font-black text-white shadow-md">
+                            <i class="fa-solid fa-chart-line mr-1"></i> Kelola & Lihat Hasil CBT
+                        </a>
+                    </div>
+                @else
+                    <!-- Student Action View -->
+                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                        @if($latestFinished)
+                            <a href="{{ route('mobile.lms.quiz.result', $latestFinished->id) }}" class="px-3 py-2 bg-slate-100 text-slate-800 text-xs font-black rounded-xl border border-slate-200">
+                                📊 Lihat Hasil
+                            </a>
+                        @else
+                            <span class="text-[10px] text-slate-500 font-bold">Belum dikerjakan</span>
+                        @endif
+
+                        <a href="{{ route('mobile.lms.quiz.start', $quiz->id) }}" class="clay-btn py-2.5 px-4 text-xs font-black text-white shadow-md">
+                            <i class="fa-solid fa-pen-nib mr-1"></i> {{ $latestFinished ? 'Ulangi Kuis' : 'Mulai Kerjakan Kuis' }}
+                        </a>
+                    </div>
+                @endif
             </div>
         @empty
             <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold">

@@ -123,14 +123,37 @@
         </div>
     @endif
 
-    <!-- Complete Status Indicator -->
-    <div class="clay-card p-4 flex items-center justify-between bg-emerald-50 border-2 border-emerald-200">
-        <span class="text-xs font-black text-emerald-900 flex items-center gap-2">
-            <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i> Status Selesai Dibaca
-        </span>
-        <span class="px-3 py-1 bg-emerald-600 text-white font-black text-[10px] rounded-xl shadow-sm">
-            Tersimpan
-        </span>
-    </div>
+    <!-- Complete Status Indicator for Student vs Maker Badge for Teacher -->
+    @php
+        $isTeacher = session('active_role') === 'guru' || 
+                     auth()->user()?->isGuru() || 
+                     (isset($material->course) && $material->course->teacher_id == auth()->id());
+    @endphp
+
+    @if($isTeacher)
+        <div class="clay-card p-4 flex items-center justify-between bg-purple-50 border-2 border-purple-200">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-base font-black shadow-sm">
+                    👨‍🏫
+                </div>
+                <div>
+                    <span class="text-xs font-black text-purple-900 block leading-tight">Mode Pengajar / Pembuat Materi</span>
+                    <span class="text-[10px] font-extrabold text-purple-600 mt-0.5 block">Anda adalah pemilik & penyusun materi ini.</span>
+                </div>
+            </div>
+            <a href="{{ route('mobile.lms.show', $material->course_id) }}" class="px-3 py-2 bg-purple-600 text-white font-black text-[10px] rounded-xl shadow-sm hover:bg-purple-700 transition">
+                📚 Kelola Kursus
+            </a>
+        </div>
+    @else
+        <div class="clay-card p-4 flex items-center justify-between bg-emerald-50 border-2 border-emerald-200">
+            <span class="text-xs font-black text-emerald-900 flex items-center gap-2">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i> Status Selesai Dibaca
+            </span>
+            <span class="px-3 py-1 bg-emerald-600 text-white font-black text-[10px] rounded-xl shadow-sm">
+                Tersimpan
+            </span>
+        </div>
+    @endif
 </div>
 @endsection
