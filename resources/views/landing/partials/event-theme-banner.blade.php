@@ -115,6 +115,22 @@
                 box-shadow: 0 0 12px rgba(255, 255, 255, 0.9) !important;
             }
 
+            /* === TOMBOL EKSPLORASI EKOSISTEM AGAR TERBACA JELAS PADA LATAR PUTIH === */
+            [data-theme="kemerdekaan"] .btn-ghost-white {
+                background: linear-gradient(135deg, #7f1d1d, #991b1b) !important;
+                color: #ffffff !important;
+                border: 2px solid #b91c1c !important;
+                font-weight: 800 !important;
+                box-shadow: 0 6px 18px rgba(127, 29, 29, 0.35) !important;
+            }
+            [data-theme="kemerdekaan"] .btn-ghost-white:hover {
+                background: linear-gradient(135deg, #991b1b, #dc2626) !important;
+                color: #ffffff !important;
+                border-color: #ef4444 !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 10px 24px rgba(220, 38, 38, 0.45) !important;
+            }
+
             /* Stat Item & Tombol di Area Bawah yang Putih */
             [data-theme="kemerdekaan"] .live-stat-item {
                 background: linear-gradient(135deg, #b91c1c, #dc2626) !important;
