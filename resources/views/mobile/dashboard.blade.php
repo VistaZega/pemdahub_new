@@ -1,16 +1,16 @@
 @extends('mobile.layouts.app')
 
-@section('title', 'Beranda Serene - PembdaHUB Mobile')
+@section('title', 'Beranda Playful - PembdaHUB Mobile Pro')
 
 @section('content')
 <div class="space-y-5 pt-2">
-    <!-- Serene Hero Greeting Banner (Lavender & Mint Soft Wave Card) -->
-    <div class="bg-gradient-to-r from-[#e5deff] via-[#d8e8d8] to-[#fde5d4] rounded-[2rem] p-6 text-slate-800 shadow-[0_10px_30px_rgba(180,170,210,0.25)] border border-white relative overflow-hidden">
+    <!-- Hero Banner Card (Playful 3D Clay Banner) -->
+    <div class="clay-blue p-6 relative overflow-hidden">
         <div class="flex items-center space-x-4 relative z-10">
             @if($student && $student->photo_url)
-                <img src="{{ $student->photo_url }}" alt="{{ $user->name }}" class="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-md">
+                <img src="{{ $student->photo_url }}" alt="{{ $user->name }}" class="w-16 h-16 rounded-2xl object-cover border-4 border-white/60 shadow-md">
             @else
-                <div class="w-16 h-16 rounded-2xl bg-white/80 backdrop-blur-md flex items-center justify-center text-purple-900 font-extrabold text-xl border border-white shadow-md">
+                <div class="w-16 h-16 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-white font-black text-2xl border-2 border-white shadow-md">
                     {{ strtoupper(substr($user->name, 0, 2)) }}
                 </div>
             @endif
@@ -18,15 +18,15 @@
             <div class="flex-1 min-w-0">
                 <div class="flex items-center space-x-2 mb-1">
                     @php $activeRole = session('active_role', $user->role); @endphp
-                    <span class="px-3 py-0.5 rounded-full bg-white/70 text-purple-900 text-[10px] font-extrabold tracking-wide uppercase shadow-sm border border-white">
+                    <span class="px-3 py-0.5 rounded-full bg-white/30 text-white text-[10px] font-black tracking-wide uppercase border border-white/40 shadow-sm backdrop-blur-sm">
                         {{ strtoupper($activeRole) }}
                     </span>
                     @if($student && $student->school)
-                        <span class="text-[10px] text-slate-700 font-semibold truncate">{{ $student->school->name }}</span>
+                        <span class="text-[10px] text-blue-100 font-extrabold truncate">{{ $student->school->name }}</span>
                     @endif
                 </div>
-                <h2 class="text-xl font-serif font-bold text-slate-900 truncate leading-tight">Selamat Datang, {{ strtok($user->name, ' ') }}! 🌿</h2>
-                <p class="text-xs text-slate-700 mt-1 font-medium truncate">
+                <h2 class="text-xl font-black text-white truncate leading-tight tracking-tight">Halo, {{ strtok($user->name, ' ') }}! 🚀</h2>
+                <p class="text-xs text-blue-100/90 mt-1 font-bold truncate">
                     @if($student)
                         NISN: {{ $student->nisn ?? $student->nis ?? '-' }}
                     @elseif($teacher)
@@ -39,141 +39,164 @@
         </div>
     </div>
 
-    <!-- Quick Access Grid (Soft Pastel Serene Cards) -->
+    <!-- Progress Tracking Demo Card (Clay Progress Bar) -->
+    @if($activeRole === 'siswa')
+    <div class="clay-card p-5 space-y-3">
+        <div class="flex items-center justify-between">
+            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-rocket text-orange-500"></i> Progres Belajar & Kehadiran
+            </h3>
+            <span class="text-xs font-black text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">75% Selesai</span>
+        </div>
+
+        <!-- 3D Clay Progress Bar -->
+        <div class="w-full bg-slate-100 rounded-full h-5 p-1 shadow-inner relative overflow-hidden border border-slate-200">
+            <div class="bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 h-full rounded-full transition-all duration-500 shadow-md relative" style="width: 75%">
+                <div class="absolute right-1 top-0 bottom-0 flex items-center">
+                    <span class="text-[9px] font-black text-white px-1">🚀</span>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-[11px] font-bold text-slate-600">Semangat terus! Kamu sudah menyelesaikan sebagian besar target minggu ini! 🌟</p>
+    </div>
+    @endif
+
+    <!-- Quick Access Grid (Playful 3D Claymorphism Buttons) -->
     <div>
         <div class="flex items-center justify-between mb-3 px-1">
-            <h3 class="text-sm font-serif font-bold text-slate-800">Layanan PembdaHUB</h3>
-            <span class="text-[11px] font-semibold text-purple-700">Akses Cepat</span>
+            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Modul PembdaHUB</h3>
+            <span class="text-[10px] font-black text-blue-600">Akses Cepat 3D</span>
         </div>
         
         @php $activeRole = session('active_role', $user->role); @endphp
         @if($activeRole === 'siswa')
         <div class="grid grid-cols-4 gap-3">
-            <!-- Jadwal (Lavender) -->
-            <a href="{{ route('mobile.jadwal') }}" class="bg-[#e5deff]/60 border border-[#d3c7ff] rounded-3xl p-3 text-center transition hover:bg-[#e5deff] flex flex-col items-center group shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-white text-purple-700 flex items-center justify-center text-xl mb-1.5 shadow-sm group-hover:scale-105 transition">
-                    <i class="fa-solid fa-calendar-days"></i>
+            <!-- Jadwal (Clay Blue) -->
+            <a href="{{ route('mobile.jadwal') }}" class="clay-blue p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    📅
                 </div>
-                <span class="text-[11px] font-bold text-slate-800">Jadwal</span>
+                <span class="text-[11px] font-black">Jadwal</span>
             </a>
 
-            <!-- Nilai (Mint Sage) -->
-            <a href="{{ route('mobile.nilai') }}" class="bg-[#d8e8d8]/60 border border-[#bce0bc] rounded-3xl p-3 text-center transition hover:bg-[#d8e8d8] flex flex-col items-center group shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-white text-emerald-700 flex items-center justify-center text-xl mb-1.5 shadow-sm group-hover:scale-105 transition">
-                    <i class="fa-solid fa-chart-line"></i>
+            <!-- Nilai (Clay Green) -->
+            <a href="{{ route('mobile.nilai') }}" class="clay-green p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    📈
                 </div>
-                <span class="text-[11px] font-bold text-slate-800">Nilai</span>
+                <span class="text-[11px] font-black">Nilai</span>
             </a>
 
-            <!-- Tagihan SPP (Soft Peach) -->
-            <a href="{{ route('mobile.tagihan') }}" class="bg-[#fde5d4]/60 border border-[#fbd4b6] rounded-3xl p-3 text-center transition hover:bg-[#fde5d4] flex flex-col items-center group shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-white text-amber-700 flex items-center justify-center text-xl mb-1.5 shadow-sm group-hover:scale-105 transition">
-                    <i class="fa-solid fa-wallet"></i>
+            <!-- Tagihan SPP (Clay Yellow) -->
+            <a href="{{ route('mobile.tagihan') }}" class="clay-yellow p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    💳
                 </div>
-                <span class="text-[11px] font-bold text-slate-800">Tagihan</span>
+                <span class="text-[11px] font-black">Tagihan</span>
             </a>
 
-            <!-- CBT Ujian (Rose Blush) -->
-            <a href="{{ route('mobile.cbt') }}" class="bg-[#ffd6db]/60 border border-[#ffb8c2] rounded-3xl p-3 text-center transition hover:bg-[#ffd6db] flex flex-col items-center group shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-white text-rose-700 flex items-center justify-center text-xl mb-1.5 shadow-sm group-hover:scale-105 transition">
-                    <i class="fa-solid fa-laptop-code"></i>
+            <!-- CBT Ujian (Clay Pink) -->
+            <a href="{{ route('mobile.cbt') }}" class="clay-pink p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    💻
                 </div>
-                <span class="text-[11px] font-bold text-slate-800">CBT Ujian</span>
+                <span class="text-[11px] font-black">CBT</span>
             </a>
 
-            <!-- PKL / Tugas Akhir (Warm Sand) -->
-            <a href="{{ route('mobile.pkl') }}" class="bg-[#f5edd6]/60 border border-[#ebdcb1] rounded-3xl p-3 text-center transition hover:bg-[#f5edd6] flex flex-col items-center group shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-white text-amber-800 flex items-center justify-center text-xl mb-1.5 shadow-sm group-hover:scale-105 transition">
-                    <i class="fa-solid fa-briefcase"></i>
+            <!-- PKL / Tugas Akhir (Clay Orange) -->
+            <a href="{{ route('mobile.pkl') }}" class="clay-orange p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    💼
                 </div>
-                <span class="text-[11px] font-bold text-slate-800">PKL</span>
+                <span class="text-[11px] font-black">PKL</span>
             </a>
 
-            <!-- Pembda Space (Soft Violet) -->
-            <a href="{{ route('mobile.space.index') }}" class="bg-[#ebdcf7]/60 border border-[#dac1f2] rounded-3xl p-3 text-center transition hover:bg-[#ebdcf7] flex flex-col items-center group shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-white text-purple-800 flex items-center justify-center text-xl mb-1.5 shadow-sm group-hover:scale-105 transition">
-                    <i class="fa-solid fa-comments"></i>
+            <!-- Pembda Space (Clay Purple) -->
+            <a href="{{ route('mobile.space.index') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    💬
                 </div>
-                <span class="text-[11px] font-bold text-slate-800">Space</span>
+                <span class="text-[11px] font-black">Space</span>
             </a>
 
-            <!-- LMS (Cool Sky) -->
-            <a href="{{ route('mobile.lms.index') }}" class="bg-[#d9ecf9]/60 border border-[#badbf5] rounded-3xl p-3 text-center transition hover:bg-[#d9ecf9] flex flex-col items-center group shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-white text-blue-700 flex items-center justify-center text-xl mb-1.5 shadow-sm group-hover:scale-105 transition">
-                    <i class="fa-solid fa-book-open"></i>
+            <!-- LMS (Clay Blue) -->
+            <a href="{{ route('mobile.lms.index') }}" class="clay-blue p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    📚
                 </div>
-                <span class="text-[11px] font-bold text-slate-800">LMS</span>
+                <span class="text-[11px] font-black">LMS</span>
             </a>
 
-            <!-- Absensi (Soft Cyan) -->
-            <a href="{{ route('mobile.absensi.index') }}" class="bg-[#cbe6d5]/60 border border-[#a8d6b7] rounded-3xl p-3 text-center transition hover:bg-[#cbe6d5] flex flex-col items-center group shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-white text-teal-800 flex items-center justify-center text-xl mb-1.5 shadow-sm group-hover:scale-105 transition">
-                    <i class="fa-solid fa-fingerprint"></i>
+            <!-- Absensi (Clay Cyan) -->
+            <a href="{{ route('mobile.absensi.index') }}" class="clay-cyan p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    📌
                 </div>
-                <span class="text-[11px] font-bold text-slate-800">Absensi</span>
+                <span class="text-[11px] font-black">Absensi</span>
             </a>
         </div>
         @else
-        <!-- Menu Guru / Pegawai (Serene Pastels) -->
+        <!-- Menu Guru (Clay Cards) -->
         <div class="grid grid-cols-4 gap-3">
             <!-- Jadwal Mengajar -->
-            <a href="{{ route('mobile.guru.jadwal') }}" class="bg-[#e5deff]/60 border border-[#d3c7ff] rounded-3xl p-3 text-center transition hover:bg-[#e5deff] flex flex-col items-center group shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-white text-purple-700 flex items-center justify-center text-xl mb-1.5 shadow-sm group-hover:scale-105 transition">
-                    <i class="fa-solid fa-chalkboard-user"></i>
+            <a href="{{ route('mobile.guru.jadwal') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    👨‍🏫
                 </div>
-                <span class="text-[11px] font-bold text-slate-800">Jadwal</span>
+                <span class="text-[11px] font-black">Jadwal</span>
             </a>
 
             <!-- Input Absensi Kelas -->
-            <a href="{{ route('mobile.guru.absensi.input') }}" class="bg-[#d8e8d8]/60 border border-[#bce0bc] rounded-3xl p-3 text-center transition hover:bg-[#d8e8d8] flex flex-col items-center group shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-white text-emerald-700 flex items-center justify-center text-xl mb-1.5 shadow-sm group-hover:scale-105 transition">
-                    <i class="fa-solid fa-clipboard-user"></i>
+            <a href="{{ route('mobile.guru.absensi.input') }}" class="clay-green p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    📋
                 </div>
-                <span class="text-[11px] font-bold text-slate-800">Absen Kelas</span>
+                <span class="text-[11px] font-black">Absen</span>
             </a>
 
             <!-- Periksa Tugas -->
-            <a href="{{ route('mobile.guru.tugas') }}" class="bg-[#fde5d4]/60 border border-[#fbd4b6] rounded-3xl p-3 text-center transition hover:bg-[#fde5d4] flex flex-col items-center group shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-white text-amber-700 flex items-center justify-center text-xl mb-1.5 shadow-sm group-hover:scale-105 transition">
-                    <i class="fa-solid fa-file-signature"></i>
+            <a href="{{ route('mobile.guru.tugas') }}" class="clay-yellow p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    📝
                 </div>
-                <span class="text-[11px] font-bold text-slate-800">Nilai Tugas</span>
+                <span class="text-[11px] font-black">Nilai</span>
             </a>
 
             <!-- Space -->
-            <a href="{{ route('mobile.space.index') }}" class="bg-[#ebdcf7]/60 border border-[#dac1f2] rounded-3xl p-3 text-center transition hover:bg-[#ebdcf7] flex flex-col items-center group shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-white text-purple-800 flex items-center justify-center text-xl mb-1.5 shadow-sm group-hover:scale-105 transition">
-                    <i class="fa-solid fa-comments"></i>
+            <a href="{{ route('mobile.space.index') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    💬
                 </div>
-                <span class="text-[11px] font-bold text-slate-800">Space</span>
+                <span class="text-[11px] font-black">Space</span>
             </a>
         </div>
         @endif
     </div>
 
-    <!-- Attendance Summary Widget (Serene Card) -->
+    <!-- Attendance Summary Widget (Clay Cards) -->
     @if($activeRole === 'siswa')
-    <div class="serene-card rounded-3xl p-5 space-y-3">
+    <div class="clay-card p-5 space-y-3">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
-                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
-                <h3 class="text-sm font-serif font-bold text-slate-900">Kehadiran Bulan Ini</h3>
+                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
+                <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Rekap Absensi Bulan Ini</h3>
             </div>
-            <a href="{{ route('mobile.absensi.index') }}" class="text-[11px] font-bold text-purple-700 hover:text-purple-900">Detail <i class="fa-solid fa-chevron-right text-[9px]"></i></a>
+            <a href="{{ route('mobile.absensi.index') }}" class="text-[11px] font-black text-blue-600 hover:text-blue-700">Detail <i class="fa-solid fa-chevron-right text-[9px]"></i></a>
         </div>
 
-        <div class="grid grid-cols-3 gap-3">
-            <div class="bg-[#d8e8d8]/50 border border-[#c3dec3] rounded-2xl p-3 text-center">
-                <span class="text-2xl font-black text-emerald-800 leading-none">{{ $attendanceStats['hadir'] }}</span>
-                <span class="block text-[10px] text-emerald-900 font-extrabold mt-1">Hadir</span>
+        <div class="grid grid-cols-3 gap-2.5">
+            <div class="clay-green p-3 text-center">
+                <span class="text-2xl font-black leading-none">{{ $attendanceStats['hadir'] }}</span>
+                <span class="block text-[10px] font-black uppercase mt-1">Hadir</span>
             </div>
-            <div class="bg-[#fde5d4]/50 border border-[#f9d2b5] rounded-2xl p-3 text-center">
-                <span class="text-2xl font-black text-amber-800 leading-none">{{ $attendanceStats['terlambat'] }}</span>
-                <span class="block text-[10px] text-amber-900 font-extrabold mt-1">Terlambat</span>
+            <div class="clay-yellow p-3 text-center">
+                <span class="text-2xl font-black leading-none">{{ $attendanceStats['terlambat'] }}</span>
+                <span class="block text-[10px] font-black uppercase mt-1">Terlambat</span>
             </div>
-            <div class="bg-[#ffd6db]/50 border border-[#fbb8c1] rounded-2xl p-3 text-center">
-                <span class="text-2xl font-black text-rose-800 leading-none">{{ $attendanceStats['sakit'] + $attendanceStats['izin'] + $attendanceStats['alpha'] }}</span>
-                <span class="block text-[10px] text-rose-900 font-extrabold mt-1">Izin/Alpha</span>
+            <div class="clay-pink p-3 text-center">
+                <span class="text-2xl font-black leading-none">{{ $attendanceStats['sakit'] + $attendanceStats['izin'] + $attendanceStats['alpha'] }}</span>
+                <span class="block text-[10px] font-black uppercase mt-1">Izin/Alpha</span>
             </div>
         </div>
     </div>
@@ -182,25 +205,25 @@
     <!-- Pembda Space Recent Feed Widget -->
     <div>
         <div class="flex items-center justify-between mb-3 px-1">
-            <h3 class="text-sm font-serif font-bold text-slate-800">Pembda Space Terbaru</h3>
-            <a href="{{ route('mobile.space.index') }}" class="text-[11px] font-bold text-purple-700 hover:text-purple-900">Lihat Semua <i class="fa-solid fa-arrow-right text-[9px]"></i></a>
+            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Pembda Space Terbaru</h3>
+            <a href="{{ route('mobile.space.index') }}" class="text-[11px] font-black text-blue-600 hover:text-blue-700">Lihat Semua <i class="fa-solid fa-arrow-right text-[9px]"></i></a>
         </div>
 
         <div class="space-y-3">
             @forelse($recentDiscussions as $thread)
-                <a href="{{ route('mobile.space.show', $thread->id) }}" class="serene-card rounded-2xl p-4.5 block hover:border-purple-300 transition">
+                <a href="{{ route('mobile.space.show', $thread->id) }}" class="clay-card p-4.5 block hover:border-blue-300 transition">
                     <div class="flex items-start justify-between gap-2">
                         <div class="flex-1 min-w-0">
-                            <span class="inline-block px-3 py-0.5 text-[9px] font-extrabold rounded-full bg-[#e5deff] text-purple-900 border border-[#d3c7ff] mb-2">
+                            <span class="inline-block px-3 py-0.5 text-[9px] font-black rounded-full bg-blue-100 text-blue-700 border border-blue-200 mb-1.5">
                                 #{{ $thread->category_label ?? $thread->category ?? 'diskusi' }}
                             </span>
                             <h4 class="text-xs font-black text-slate-900 truncate leading-snug">{{ $thread->title }}</h4>
-                            <p class="text-[11px] text-slate-600 line-clamp-1 mt-1 font-medium leading-relaxed">{{ Str::limit(strip_tags($thread->content), 70) }}</p>
+                            <p class="text-[11px] text-slate-600 line-clamp-1 mt-0.5 font-bold">{{ Str::limit(strip_tags($thread->content), 70) }}</p>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between text-[10px] text-slate-500 mt-3 pt-2.5 border-t border-stone-100 font-semibold">
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 mt-3 pt-2.5 border-t border-slate-100 font-extrabold">
                         <span class="text-slate-700 flex items-center gap-1.5">
-                            <i class="fa-regular fa-user text-purple-600"></i> {{ $thread->user->name ?? 'Anonim' }}
+                            <i class="fa-regular fa-user text-blue-600"></i> {{ $thread->user->name ?? 'Anonim' }}
                         </span>
                         <div class="flex items-center space-x-3 text-slate-400">
                             <span><i class="fa-regular fa-comment mr-1"></i>{{ $thread->replies_count ?? 0 }}</span>
@@ -209,7 +232,7 @@
                     </div>
                 </a>
             @empty
-                <div class="serene-card rounded-2xl p-6 text-center text-slate-500 text-xs font-medium">
+                <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold">
                     Belum ada diskusi di Pembda Space.
                 </div>
             @endforelse
