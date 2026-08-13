@@ -412,11 +412,23 @@ class MobileTeacherController extends Controller
 
     /**
      * My Class / Kelas Saya (Guru Mobile)
+     * Hanya menampilkan Siswa di Tahun Pelajaran Aktif
+     * dan User/Guru yang memiliki Penugasan Jabatan (Wali Kelas) atau Penugasan Mengajar pada Tahun Pelajaran Aktif.
      */
     public function kelas()
     {
         $teacher = $this->getTeacher();
         $user = Auth::user();
+
+        // Get Active Academic Year
+        $activeAY = null;
+        if (class_exists('\App\Models\AcademicYear')) {
+            $activeAY = \App\Models\AcademicYear::where('is_active', true)
+                ->orWhere('status', 'active')
+                ->orderBy('is_active', 'desc')
+                ->first();
+        }
+        $activeAYId = $activeAY?->id;
 
         $homeroomClasses = collect();
         $teachingClasses = collect();
@@ -424,68 +436,113 @@ class MobileTeacherController extends Controller
         $taughtStudents = collect();
 
         if ($teacher) {
-            // 1. Kelas Perwalian (Wali Kelas)
+            // 1. KELAS PERWALIAN (Wali Kelas) di TP Aktif
             $homeroomClasses = Classroom::where('is_active', true)
                 ->where('homeroom_teacher_id', $teacher->id)
-                ->with(['students.user', 'major'])
+                ->when($activeAYId, function ($q) use ($activeAYId) {
+                    $q->where(function ($sub) use ($activeAYId) {
+                        $sub->where('academic_year_id', $activeAYId)
+                            ->orWhereNull('academic_year_id');
+                    });
+                })
+                ->with(['students' => function ($sq) use ($activeAYId) {
+                    $sq->where('students.status', 'active')
+                       ->when($activeAYId, function ($pivotQ) use ($activeAYId) {
+                           $pivotQ->where(function ($subPivot) use ($activeAYId) {
+                               $subPivot->where('student_classes.academic_year_id', $activeAYId)
+                                        ->orWhereNull('student_classes.academic_year_id');
+                           });
+                       });
+                }, 'students.user', 'major'])
                 ->withCount('students')
                 ->orderBy('class_name')
                 ->get();
 
             foreach ($homeroomClasses as $cls) {
                 foreach ($cls->students as $std) {
-                    $std->classroom_name = $cls->class_name;
-                    $std->role_tag = 'Anak Wali (' . $cls->class_name . ')';
-                    $homeroomStudents->push($std);
+                    if ($std->status === 'active') {
+                        $std->classroom_name = $cls->class_name;
+                        $std->role_tag = 'Anak Wali (' . $cls->class_name . ')';
+                        $homeroomStudents->push($std);
+                    }
                 }
             }
 
-            // 2. Kelas Mengajar (Guru Mata Pelajaran)
+            // 2. KELAS MENGAJAR (Penugasan Mengajar / Schedules) di TP Aktif
             $teachingClasses = Classroom::where('is_active', true)
-                ->where(function ($q) use ($teacher) {
-                    $q->whereHas('schedules', fn($sq) => $sq->where('teacher_id', $teacher->id))
-                      ->orWhereHas('teachingAssignments', fn($tq) => $tq->where('teacher_id', $teacher->id));
+                ->where(function ($q) use ($teacher, $activeAYId) {
+                    $q->whereHas('schedules', function ($sq) use ($teacher, $activeAYId) {
+                        $sq->where('teacher_id', $teacher->id)
+                           ->when($activeAYId, fn($ayq) => $ayq->where(fn($sub) => $sub->where('academic_year_id', $activeAYId)->orWhereNull('academic_year_id')));
+                    })
+                    ->orWhereHas('teachingAssignments', function ($tq) use ($teacher, $activeAYId) {
+                        $tq->where('teacher_id', $teacher->id)
+                           ->where('is_active', true)
+                           ->when($activeAYId, fn($ayq) => $ayq->where(fn($sub) => $sub->where('academic_year_id', $activeAYId)->orWhereNull('academic_year_id')));
+                    });
                 })
-                ->with(['students.user', 'major'])
+                ->when($activeAYId, function ($q) use ($activeAYId) {
+                    $q->where(function ($sub) use ($activeAYId) {
+                        $sub->where('academic_year_id', $activeAYId)
+                            ->orWhereNull('academic_year_id');
+                    });
+                })
+                ->with(['students' => function ($sq) use ($activeAYId) {
+                    $sq->where('students.status', 'active')
+                       ->when($activeAYId, function ($pivotQ) use ($activeAYId) {
+                           $pivotQ->where(function ($subPivot) use ($activeAYId) {
+                               $subPivot->where('student_classes.academic_year_id', $activeAYId)
+                                        ->orWhereNull('student_classes.academic_year_id');
+                           });
+                       });
+                }, 'students.user', 'major'])
                 ->withCount('students')
                 ->orderBy('class_name')
                 ->get();
 
             foreach ($teachingClasses as $cls) {
                 foreach ($cls->students as $std) {
-                    $std->classroom_name = $cls->class_name;
-                    $std->role_tag = 'Siswa Ajar (' . $cls->class_name . ')';
-                    $taughtStudents->push($std);
+                    if ($std->status === 'active') {
+                        $std->classroom_name = $cls->class_name;
+                        $std->role_tag = 'Siswa Ajar (' . $cls->class_name . ')';
+                        $taughtStudents->push($std);
+                    }
                 }
             }
         }
 
-        // Fallback jika belum terdaftar penugasan mengajar khusus
+        // Fallback jika belum ada penugasan khusus tercatat
         if ($homeroomClasses->isEmpty() && $teachingClasses->isEmpty()) {
             $schoolId = $teacher?->school_id ?? $user->school_id;
             $teachingClasses = Classroom::where('is_active', true)
                 ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
-                ->with(['students.user'])
+                ->when($activeAYId, fn($q) => $q->where(fn($sub) => $sub->where('academic_year_id', $activeAYId)->orWhereNull('academic_year_id')))
+                ->with(['students' => function ($sq) {
+                    $sq->where('students.status', 'active');
+                }, 'students.user'])
                 ->withCount('students')
                 ->orderBy('class_name')
                 ->get();
 
             foreach ($teachingClasses as $cls) {
                 foreach ($cls->students as $std) {
-                    $std->classroom_name = $cls->class_name;
-                    $std->role_tag = 'Siswa (' . $cls->class_name . ')';
-                    $taughtStudents->push($std);
+                    if ($std->status === 'active') {
+                        $std->classroom_name = $cls->class_name;
+                        $std->role_tag = 'Siswa (' . $cls->class_name . ')';
+                        $taughtStudents->push($std);
+                    }
                 }
             }
         }
 
-        // Remove duplicates by student ID
-        $homeroomStudents = $homeroomStudents->unique('id')->values();
-        $taughtStudents = $taughtStudents->unique('id')->values();
+        // Filter unik per siswa ID & urutkan nama
+        $homeroomStudents = $homeroomStudents->unique('id')->sortBy('full_name')->values();
+        $taughtStudents = $taughtStudents->unique('id')->sortBy('full_name')->values();
         $allClassrooms = $homeroomClasses->merge($teachingClasses)->unique('id')->values();
 
         return view('mobile.teacher.kelas', compact(
             'teacher', 
+            'activeAY',
             'homeroomClasses', 
             'teachingClasses', 
             'allClassrooms',

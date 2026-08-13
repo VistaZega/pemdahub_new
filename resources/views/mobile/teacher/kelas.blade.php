@@ -7,10 +7,17 @@
     <!-- Header Title -->
     <div class="flex items-center justify-between">
         <div>
-            <h2 class="text-xl font-black text-slate-900">Kelas & Siswa Saya (My Class) 🏫</h2>
-            <p class="text-[11px] text-slate-500 font-bold">Daftar Siswa Yang Saya Ajar & Anak Perwalian</p>
+            <div class="flex items-center gap-2">
+                <h2 class="text-xl font-black text-slate-900">Kelas & Siswa Saya 🏫</h2>
+                @if(isset($activeAY) && $activeAY)
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-300">
+                        TP {{ $activeAY->name ?? $activeAY->year }}
+                    </span>
+                @endif
+            </div>
+            <p class="text-[11px] text-slate-500 font-bold">Daftar Siswa Ajar & Perwalian (Tahun Pelajaran Aktif)</p>
         </div>
-        <div class="w-10 h-10 rounded-2xl clay-blue flex items-center justify-center text-xl font-black text-white">
+        <div class="w-10 h-10 rounded-2xl clay-blue flex items-center justify-center text-xl font-black text-white shrink-0">
             👨‍🏫
         </div>
     </div>
