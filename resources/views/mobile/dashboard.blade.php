@@ -205,23 +205,29 @@
 
         <div class="space-y-3">
             @forelse($recentDiscussions as $thread)
-                <a href="{{ route('mobile.space.show', $thread->id) }}" class="clay-card p-4.5 block hover:border-blue-300 transition">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="flex-1 min-w-0">
-                            <span class="inline-block px-3 py-0.5 text-[9px] font-black rounded-full bg-blue-100 text-blue-700 border border-blue-200 mb-1.5">
-                                #{{ $thread->category_label ?? $thread->category ?? 'diskusi' }}
-                            </span>
-                            <h4 class="text-xs font-black text-slate-900 truncate leading-snug">{{ $thread->title }}</h4>
-                            <p class="text-[11px] text-slate-600 line-clamp-1 mt-0.5 font-bold">{{ Str::limit(strip_tags($thread->content), 70) }}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-[10px] text-slate-500 mt-3 pt-2.5 border-t border-slate-100 font-extrabold">
-                        <span class="text-slate-700 flex items-center gap-1.5">
-                            <i class="fa-regular fa-user text-blue-600"></i> {{ $thread->user->name ?? 'Anonim' }}
+                <a href="{{ route('mobile.space.show', $thread->id) }}" class="clay-card p-5 block hover:border-blue-300 transition space-y-2.5">
+                    <!-- Top Category Badge -->
+                    <div>
+                        <span class="inline-flex items-center gap-1 px-3 py-1 text-[10px] font-black rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                            #💬 {{ $thread->category_label ?? $thread->category ?? 'Lobi Utama' }}
                         </span>
-                        <div class="flex items-center space-x-3 text-slate-400">
-                            <span><i class="fa-regular fa-comment mr-1"></i>{{ $thread->replies_count ?? 0 }}</span>
-                            <span><i class="fa-regular fa-heart mr-1"></i>{{ $thread->likes_count ?? 0 }}</span>
+                    </div>
+
+                    <!-- Post Title & Content -->
+                    <div class="space-y-1">
+                        <h4 class="text-xs font-black text-slate-900 leading-snug">{{ $thread->title }}</h4>
+                        <p class="text-[11px] text-slate-600 line-clamp-2 leading-relaxed font-semibold">{{ Str::limit(strip_tags($thread->content), 80) }}</p>
+                    </div>
+
+                    <!-- Footer: Author & Stats -->
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 pt-3 border-t border-slate-100 font-extrabold">
+                        <span class="text-slate-700 flex items-center gap-1.5 min-w-0 truncate">
+                            <i class="fa-regular fa-user text-blue-600 text-xs"></i> 
+                            <span class="truncate font-black text-slate-800 uppercase tracking-tight text-[10px]">{{ $thread->user->name ?? 'Anonim' }}</span>
+                        </span>
+                        <div class="flex items-center space-x-3.5 text-slate-500 shrink-0 text-[11px]">
+                            <span class="flex items-center gap-1"><i class="fa-regular fa-comment text-blue-500"></i>{{ $thread->replies_count ?? 0 }}</span>
+                            <span class="flex items-center gap-1"><i class="fa-regular fa-heart text-rose-500"></i>{{ $thread->likes_count ?? 0 }}</span>
                         </div>
                     </div>
                 </a>

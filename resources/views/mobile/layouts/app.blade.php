@@ -48,7 +48,8 @@
         /* 3D Claymorphism Utility Classes */
         .clay-card {
             background: #ffffff;
-            border-radius: 2rem;
+            border-radius: 1.5rem;
+            padding: 1.25rem;
             box-shadow: 
                 8px 12px 24px rgba(15, 23, 42, 0.06), 
                 -4px -4px 12px rgba(255, 255, 255, 0.9), 
@@ -56,6 +57,7 @@
                 inset -2px -2px 4px rgba(15, 23, 42, 0.03);
             border: 2px solid rgba(255, 255, 255, 0.8);
             transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
         }
         .clay-card:active {
             transform: scale(0.96);

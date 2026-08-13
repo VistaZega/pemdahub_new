@@ -54,46 +54,46 @@
     <!-- Threads Feed (Clay Cards) -->
     <div class="space-y-3">
         @forelse($threads as $thread)
-            <div class="clay-card p-4.5 transition relative hover:border-purple-300">
+            <div class="clay-card p-5 transition relative hover:border-purple-300 space-y-3">
                 @if($thread->is_pinned)
-                    <div class="absolute top-3.5 right-3.5 text-amber-900 text-xs flex items-center gap-1 font-black clay-yellow px-2.5 py-0.5 rounded-full border border-white">
+                    <div class="absolute top-4 right-4 text-amber-900 text-xs flex items-center gap-1 font-black clay-yellow px-2.5 py-0.5 rounded-full border border-white">
                         <i class="fa-solid fa-thumbtack text-[10px]"></i> Pinned
                     </div>
                 @endif
 
-                <div class="flex items-center space-x-3 mb-2.5">
-                    <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white font-black text-xs shadow-md border border-white">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white font-black text-xs shadow-md border-2 border-white shrink-0">
                         {{ strtoupper(substr($thread->user->name ?? 'A', 0, 1)) }}
                     </div>
-                    <div>
-                        <h4 class="text-xs font-black text-slate-900 leading-none">{{ $thread->user->name ?? 'Pengguna' }}</h4>
-                        <span class="text-[10px] text-slate-400 font-bold">{{ $thread->created_at ? $thread->created_at->diffForHumans() : '' }}</span>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-black text-slate-900 leading-snug truncate">{{ $thread->user->name ?? 'Pengguna' }}</h4>
+                        <span class="text-[10px] text-slate-400 font-bold block">{{ $thread->created_at ? $thread->created_at->diffForHumans() : '' }}</span>
                     </div>
                 </div>
 
-                <a href="{{ route('mobile.space.show', $thread->id) }}" class="block">
-                    <h3 class="text-sm font-black text-slate-900 mb-1 leading-snug hover:text-purple-600 transition">{{ $thread->title }}</h3>
-                    <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-3 font-bold">{{ strip_tags($thread->content) }}</p>
+                <a href="{{ route('mobile.space.show', $thread->id) }}" class="block space-y-1">
+                    <h3 class="text-sm font-black text-slate-900 leading-snug hover:text-purple-600 transition">{{ $thread->title }}</h3>
+                    <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed font-semibold">{{ strip_tags($thread->content) }}</p>
                 </a>
 
                 <!-- Footer Actions -->
-                <div class="flex items-center justify-between pt-2.5 border-t border-slate-100 text-xs font-black text-slate-500">
-                    <span class="px-3 py-0.5 rounded-full bg-purple-100 text-[10px] text-purple-800 font-black border border-purple-200">
-                        #{{ $thread->category_label ?? $thread->category ?? 'diskusi' }}
+                <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs font-black text-slate-500">
+                    <span class="px-3 py-1 rounded-full bg-purple-100 text-[10px] text-purple-800 font-black border border-purple-200">
+                        #💬 {{ $thread->category_label ?? $thread->category ?? 'Lobi Utama' }}
                     </span>
 
                     <div class="flex items-center space-x-4">
                         <form action="{{ route('mobile.space.like', $thread->id) }}" method="POST" class="inline">
                             @csrf
-                            <button type="submit" class="flex items-center space-x-1 hover:text-rose-600 transition">
+                            <button type="submit" class="flex items-center space-x-1 hover:text-rose-600 transition text-rose-500">
                                 <i class="fa-regular fa-heart text-sm"></i>
-                                <span class="text-xs">{{ $thread->likes_count ?? 0 }}</span>
+                                <span class="text-xs font-black">{{ $thread->likes_count ?? 0 }}</span>
                             </button>
                         </form>
 
-                        <a href="{{ route('mobile.space.show', $thread->id) }}" class="flex items-center space-x-1 hover:text-purple-600 transition">
+                        <a href="{{ route('mobile.space.show', $thread->id) }}" class="flex items-center space-x-1 hover:text-purple-600 transition text-purple-500">
                             <i class="fa-regular fa-comment text-sm"></i>
-                            <span class="text-xs">{{ $thread->replies_count ?? 0 }}</span>
+                            <span class="text-xs font-black">{{ $thread->replies_count ?? 0 }}</span>
                         </a>
                     </div>
                 </div>
