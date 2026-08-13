@@ -1,7 +1,7 @@
 @extends('layouts.guru')
 @section('title', $bank->bank_name)
 @section('content')
-<div class="space-y-8" x-data="{ showModal: false }">
+<div class="space-y-8" x-data="{ showModal: false, showLmsModal: false }">
     {{-- Hero Header --}}
     <div class="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 rounded-2xl p-8 text-white">
         <div class="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
@@ -17,6 +17,10 @@
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-3">
+                <button type="button" @click="showLmsModal = true" 
+                        class="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-900 rounded-xl font-black text-base border-2 border-black transition flex items-center gap-2 shadow-md cursor-pointer">
+                    <i class="fas fa-rocket text-black"></i><span>🚀 Jadikan Kuis LMS</span>
+                </button>
                 <button type="button" @click="showModal = true" 
                         class="px-5 py-2.5 bg-white/15 hover:bg-white/25 text-white rounded-xl font-bold text-base border border-white/20 transition flex items-center gap-2 shadow-sm cursor-pointer">
                     <i class="fas fa-file-import"></i><span>Import Soal</span>
@@ -202,6 +206,68 @@
                     <button type="button" @click="showModal = false" class="px-5 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-700 font-bold hover:bg-gray-100 transition text-sm">Batal</button>
                     <button type="submit" id="importQSubmitBtn" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-bold hover:shadow-md transition text-sm flex items-center gap-2 cursor-pointer">
                         <i class="fas fa-file-import"></i> Mulai Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- MODAL TAUTKAN KE KUIS LMS KELAS --}}
+    <div x-show="showLmsModal" x-cloak style="display: none;"
+         class="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="showLmsModal = false"></div>
+
+        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden z-10 border-2 border-black text-left"
+             @click.stop>
+            <div class="bg-slate-900 px-6 py-4 text-white flex justify-between items-center border-b-2 border-black">
+                <h3 class="text-base font-black flex items-center gap-2 text-amber-400">
+                    <i class="fas fa-rocket"></i> Tautkan Bank Soal ke Kuis Kelas LMS
+                </h3>
+                <button type="button" @click="showLmsModal = false" class="text-white hover:text-gray-300">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <form action="{{ route('guru.cbt.banks.assign-to-lms', $bank) }}" method="POST" class="p-6 space-y-4">
+                @csrf
+                <div class="p-4 bg-amber-50 rounded-2xl border-2 border-amber-200">
+                    <p class="text-xs font-black text-amber-900">📦 Bank Soal Terpilih:</p>
+                    <p class="text-sm font-black text-slate-900 mt-0.5">{{ $bank->bank_name }} ({{ $bank->questions->count() }} Soal)</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-900 uppercase tracking-wider mb-1">Pilih Kelas / Mata Pelajaran LMS Target <span class="text-rose-600">*</span></label>
+                    <select name="course_id" required class="w-full border-2 border-black rounded-2xl p-3 text-xs font-black bg-white outline-none">
+                        <option value="">-- Pilih Kelas LMS --</option>
+                        @foreach($courses as $c)
+                            <option value="{{ $c->id }}">{{ $c->course_name }} ({{ $c->code }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-900 uppercase tracking-wider mb-1">Judul Kuis LMS Baru <span class="text-rose-600">*</span></label>
+                    <input type="text" name="title" value="Kuis - {{ $bank->bank_name }}" required 
+                           class="w-full border-2 border-black rounded-2xl p-3 text-xs font-black bg-white outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-900 uppercase tracking-wider mb-1">Durasi Pengerjaan (Menit) <span class="text-rose-600">*</span></label>
+                    <input type="number" name="time_limit" value="30" min="1" required 
+                           class="w-full border-2 border-black rounded-2xl p-3 text-xs font-black bg-white outline-none">
+                </div>
+
+                <div class="pt-3 border-t-2 border-black flex gap-3">
+                    <button type="button" @click="showLmsModal = false" class="flex-1 py-3 bg-slate-200 text-slate-900 border-2 border-black rounded-2xl font-black text-xs">Batal</button>
+                    <button type="submit" class="flex-[2] py-3 bg-emerald-600 text-white border-2 border-black rounded-2xl font-black text-xs shadow-md hover:bg-emerald-700 transition">
+                        <i class="fas fa-paper-plane mr-1"></i> Tautkan & Buat Kuis Sekarang
                     </button>
                 </div>
             </form>

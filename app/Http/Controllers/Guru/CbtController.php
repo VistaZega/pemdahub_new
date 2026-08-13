@@ -263,9 +263,50 @@ class CbtController extends Controller
 
     public function bankShow(CbtQuestionBank $bank)
     {
-        $this->authorizeBank($bank);
+        $teacher = $this->authorizeBank($bank);
         $bank->load(['questions.options', 'subject']);
-        return view('guru.cbt.banks.show', compact('bank'));
+
+        $courses = \App\Models\LmsCourse::where('teacher_id', $teacher->id)
+            ->orWhere(fn($q) => $q->whereNull('teacher_id'))
+            ->latest()
+            ->get();
+
+        if ($courses->isEmpty()) {
+            $courses = \App\Models\LmsCourse::latest()->take(20)->get();
+        }
+
+        return view('guru.cbt.banks.show', compact('bank', 'courses'));
+    }
+
+    /**
+     * Tautkan Bank Soal CBT ini secara langsung menjadi Kuis di Kelas LMS
+     */
+    public function assignToLms(Request $request, CbtQuestionBank $bank)
+    {
+        $teacher = $this->authorizeBank($bank);
+
+        $request->validate([
+            'course_id' => 'required|exists:lms_courses,id',
+            'title' => 'required|string|max:255',
+            'time_limit' => 'required|integer|min:1',
+        ]);
+
+        $quiz = \App\Models\LmsQuiz::create([
+            'course_id' => $request->input('course_id'),
+            'question_package_id' => $bank->id,
+            'title' => $request->input('title'),
+            'description' => $request->input('description') ?: ('Kuis dari Bank Soal: ' . $bank->bank_name),
+            'time_limit' => $request->input('time_limit'),
+            'is_published' => true,
+        ]);
+
+        if (request()->wantsJson() || str_contains(request()->url(), '/m/')) {
+            return redirect()->route('mobile.lms.show', $request->input('course_id'))
+                ->with('success', "Bank Soal '{$bank->bank_name}' berhasil ditautkan sebagai Kuis LMS!");
+        }
+
+        return redirect()->route('guru.lms.show', $request->input('course_id'))
+            ->with('success', "Bank Soal '{$bank->bank_name}' berhasil ditautkan sebagai Kuis LMS!");
     }
 
     public function bankEdit(CbtQuestionBank $bank)

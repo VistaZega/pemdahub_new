@@ -60,6 +60,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::get('/banks/import-template', [App\Http\Controllers\Guru\CbtController::class, 'downloadImportTemplate'])->name('banks.import-template');
         Route::post('/banks/import', [App\Http\Controllers\Guru\CbtController::class, 'importBank'])->name('banks.import');
         Route::get('/banks/{bank}', [App\Http\Controllers\Guru\CbtController::class, 'bankShow'])->name('banks.show');
+        Route::post('/banks/{bank}/assign-to-lms', [App\Http\Controllers\Guru\CbtController::class, 'assignToLms'])->name('banks.assign-to-lms');
         Route::get('/banks/{bank}/edit', [App\Http\Controllers\Guru\CbtController::class, 'bankEdit'])->name('banks.edit');
         Route::put('/banks/{bank}', [App\Http\Controllers\Guru\CbtController::class, 'bankUpdate'])->name('banks.update');
         Route::delete('/banks/{bank}', [App\Http\Controllers\Guru\CbtController::class, 'bankDestroy'])->name('banks.destroy');

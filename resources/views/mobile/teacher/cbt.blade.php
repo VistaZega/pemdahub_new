@@ -37,7 +37,9 @@
                 <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-500">
                     <span>Dibuat: {{ \Carbon\Carbon::parse($bank->created_at)->translatedFormat('d M Y') }}</span>
                     @if(Route::has('guru.cbt.banks.show'))
-                        <a href="{{ route('guru.cbt.banks.show', $bank->id) }}" class="text-purple-600 font-black hover:underline">Detail Soal <i class="fa-solid fa-chevron-right text-[8px]"></i></a>
+                        <a href="{{ route('guru.cbt.banks.show', $bank->id) }}" class="px-3 py-1 bg-amber-400 text-slate-900 font-black rounded-xl border border-black hover:bg-amber-300 transition flex items-center gap-1 shadow-xs">
+                            <i class="fa-solid fa-eye"></i> Lihat & Tautkan ke LMS
+                        </a>
                     @endif
                 </div>
             </div>
