@@ -22,35 +22,66 @@
                 --indigo-bg: #fef2f2 !important;
             }
 
-            /* === HERO BACKGROUND BENDERA MERAH PUTIH BERKIBAR === */
+            /* === HERO BACKGROUND BENDERA MERAH PUTIH (ATAS MERAH, BAWAH PUTIH) === */
             [data-theme="kemerdekaan"] .hero-section {
                 background: 
-                    linear-gradient(160deg, rgba(127, 29, 29, 0.88) 0%, rgba(185, 28, 28, 0.82) 45%, rgba(15, 23, 42, 0.94) 100%),
-                    url('https://images.unsplash.com/photo-1590059530491-03204a9e5b5d?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat !important;
+                    linear-gradient(180deg, 
+                        #b91c1c 0%, 
+                        #dc2626 36%, 
+                        #ef4444 46%, 
+                        #ffffff 54%, 
+                        #f8fafc 100%
+                    ) !important;
                 position: relative;
             }
+
+            /* Lipatan Kain Bendera & Efek Berkibar */
             [data-theme="kemerdekaan"] .hero-section::before {
                 content: '';
                 position: absolute;
                 inset: 0;
-                background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(15, 23, 42, 0.6) 100%);
-                mix-blend-mode: overlay;
+                background: 
+                    repeating-linear-gradient(
+                        -45deg,
+                        rgba(0, 0, 0, 0.05) 0px,
+                        rgba(0, 0, 0, 0.05) 50px,
+                        rgba(255, 255, 255, 0.05) 50px,
+                        rgba(255, 255, 255, 0.05) 100px
+                    ),
+                    radial-gradient(ellipse at 50% 30%, rgba(255,255,255,0.2) 0%, transparent 70%);
                 pointer-events: none;
                 z-index: 1;
             }
+
+            /* Particle Merah Putih */
             [data-theme="kemerdekaan"] .particle:nth-child(even) {
-                background: rgba(239, 68, 68, 0.8) !important;
-                box-shadow: 0 0 12px rgba(239, 68, 68, 0.9) !important;
+                background: rgba(239, 68, 68, 0.9) !important;
+                box-shadow: 0 0 12px rgba(239, 68, 68, 0.8) !important;
             }
             [data-theme="kemerdekaan"] .particle:nth-child(odd) {
-                background: rgba(255, 255, 255, 0.9) !important;
+                background: rgba(255, 255, 255, 0.95) !important;
                 box-shadow: 0 0 12px rgba(255, 255, 255, 0.9) !important;
             }
+
+            /* Stat Item & Tombol di Area Bawah yang Putih */
+            [data-theme="kemerdekaan"] .live-stat-item {
+                background: linear-gradient(135deg, #b91c1c, #dc2626) !important;
+                border: 2px solid #fca5a5 !important;
+                color: #ffffff !important;
+                box-shadow: 0 8px 24px rgba(185, 28, 28, 0.25) !important;
+            }
+            [data-theme="kemerdekaan"] .live-stat-val {
+                color: #fef08a !important;
+            }
+            [data-theme="kemerdekaan"] .live-stat-label {
+                color: #ffffff !important;
+            }
+
             [data-theme="kemerdekaan"] .hero-glow-1 {
-                background: radial-gradient(circle, rgba(239, 68, 68, 0.5) 0%, transparent 70%) !important;
+                background: radial-gradient(circle, rgba(239, 68, 68, 0.4) 0%, transparent 70%) !important;
             }
             [data-theme="kemerdekaan"] .hero-glow-2 {
-                background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%) !important;
+                background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 70%) !important;
             }
         </style>
 
