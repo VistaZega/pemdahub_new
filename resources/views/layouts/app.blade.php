@@ -195,8 +195,8 @@
                     <span></span><span></span><span></span>
                 </button>
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                        <i class="{{ $portalIcon }} text-sm"></i>
+                    <span class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center p-1">
+                        <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Pembda" class="w-full h-full object-contain">
                     </span>
                     <div>
                         <h1 class="text-lg font-bold leading-tight">{!! str_replace('HUB', '<span class="text-red-400">HUB</span>', $portalName) !!}</h1>
