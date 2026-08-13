@@ -16,8 +16,9 @@
         $user = auth()->user();
         $activeRole = session('active_role');
         
+        $isOwner = $user ? $user->isOwnerOrSuperAdmin() : false;
         $isYayasan = $user ? ($user->isKetuaYayasan() || $user->hasRole('ketua_yayasan')) : false;
-        $isSA = $user ? $user->isSuperAdmin() : false;
+        $isSA = $user ? ($user->isSuperAdmin() || $isOwner) : false;
         
         // Prioritaskan session active_role jika di-set secara eksplisit
         if ($activeRole === 'superadmin') {
@@ -25,10 +26,6 @@
             $isSA = true;
         } elseif ($activeRole === 'ketua_yayasan') {
             $isYayasan = true;
-            $isSA = false;
-        } else {
-            // Default: Yayasan override Super Admin untuk sidebar ini
-            $isSA = $isSA && !$isYayasan;
         }
 
         $isAdmin = $user ? ($user->isAdminSekolah() && !$isYayasan) : false;
@@ -74,6 +71,10 @@
             <a href="{{ route('yayasan.letters.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('yayasan.letters.*') || request()->routeIs('admin.letters.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center text-white shadow-sm"><i class="fas fa-file-signature text-[10px]"></i></div>
                 <span>Surat Digital / Edaran</span>
+            </a>
+            <a href="{{ route('admin.homepage-content.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->is('admin/homepage-content*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-palette text-[10px]"></i></div>
+                <span>Tema &amp; Konten Beranda</span>
             </a>
         </div>
     </div>
@@ -728,16 +729,28 @@
     @endif
 
     <!-- ════════════════ GROUP: PENGATURAN & OTORISASI ════════════════ -->
-    @if($isSA || $isAdmin)
+    @if($isSA || $isAdmin || $isYayasan || $isOwner)
     <div class="pt-3 border-t border-gray-100" data-menu-group="settings_auth">
-        <button class="menu-group-toggle w-full flex items-center justify-between px-3 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-gray-600" onclick="toggleGroup(this)">
-            <span class="flex items-center gap-2"><i class="fas fa-sliders-h text-[10px]"></i> Pengaturan & Otorisasi</span>
+        <button class="menu-group-toggle open w-full flex items-center justify-between px-3 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-gray-600" onclick="toggleGroup(this)">
+            <span class="flex items-center gap-2"><i class="fas fa-sliders-h text-[10px]"></i> Pengaturan &amp; Otorisasi</span>
             <i class="fas fa-chevron-right text-[9px] chevron"></i>
         </button>
-        <div class="menu-group-body closed mt-1 space-y-0.5">
+        <div class="menu-group-body mt-1 space-y-0.5">
+            <a href="{{ route('admin.homepage-content.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->is('admin/homepage-content*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white"><i class="fas fa-palette text-[10px]"></i></div>
+                <span>Tema &amp; Konten Beranda</span>
+            </a>
             <a href="{{ route('admin.settings.features') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.settings.features') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white"><i class="fas fa-shield-halved text-[10px]"></i></div>
                 <span>Otorisasi Fitur</span>
+            </a>
+            <a href="{{ route('admin.settings.late-fees') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.settings.late-fees*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center text-white"><i class="fas fa-percent text-[10px]"></i></div>
+                <span>Pengaturan Denda &amp; Biaya</span>
+            </a>
+            <a href="{{ route('admin.settings.report-cards') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.settings.report-cards*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white"><i class="fas fa-cog text-[10px]"></i></div>
+                <span>Pengaturan Rapor</span>
             </a>
         </div>
     </div>
