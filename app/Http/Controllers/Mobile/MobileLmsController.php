@@ -115,11 +115,15 @@ class MobileLmsController extends Controller
 
         $code = $request->input('code') ?: 'LMS-' . strtoupper(\Illuminate\Support\Str::random(6));
 
+        $activeSemester = \App\Models\Semester::where('is_active', true)->first()
+            ?? \App\Models\Semester::latest()->first();
+
         LmsCourse::create([
             'school_id' => $teacher?->school_id ?? $user->school_id,
             'teacher_id' => $teacher?->id ?? 0,
             'subject_id' => $request->input('subject_id'),
             'classroom_id' => $request->input('classroom_id'),
+            'semester_id' => $activeSemester?->id ?? 1,
             'code' => $code,
             'course_name' => $request->input('course_name'),
             'description' => $request->input('description'),
