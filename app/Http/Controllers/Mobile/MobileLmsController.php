@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Mobile;
 use App\Http\Controllers\Controller;
 use App\Models\LmsCourse;
 use App\Models\LmsEnrollment;
+use App\Models\LmsMaterial;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,8 +38,6 @@ class MobileLmsController extends Controller
 
         return view('mobile.lms.catalog', compact('courses'));
     }
-
-    use App\Models\LmsMaterial;
 
     public function show($id)
     {
