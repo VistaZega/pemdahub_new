@@ -64,44 +64,36 @@ class MobileTeacherController extends Controller
         $teacher = $this->getTeacher();
         $activeYear = AcademicYear::where('is_active', true)->first();
 
-        // High precision classroom filter for Teacher
-        if ($user->isOwnerOrSuperAdmin() || $user->isAdminSekolah()) {
+        // Priority 1: Filter to assigned classrooms for this teacher (schedules, teaching assignments, or homeroom)
+        $classrooms = collect();
+        if ($teacher) {
             $classrooms = Classroom::where('is_active', true)
-                ->when($user->school_id && !$user->isOwnerOrSuperAdmin(), function ($q) use ($user) {
-                    $q->where('school_id', $user->school_id);
+                ->where(function ($q) use ($teacher, $activeYear) {
+                    $q->whereHas('schedules', function ($sq) use ($teacher, $activeYear) {
+                        $sq->where('teacher_id', $teacher->id);
+                        if ($activeYear) {
+                            $sq->where('academic_year_id', $activeYear->id);
+                        }
+                    })
+                    ->orWhereHas('teachingAssignments', function ($tq) use ($teacher, $activeYear) {
+                        $tq->where('teacher_id', $teacher->id);
+                        if ($activeYear) {
+                            $tq->where('academic_year_id', $activeYear->id);
+                        }
+                    })
+                    ->orWhere('homeroom_teacher_id', $teacher->id);
                 })
                 ->orderBy('class_name')
                 ->get();
-        } else {
-            // For Guru: filter to assigned classrooms (schedules, teaching assignments, or homeroom)
-            $classrooms = collect();
-            if ($teacher) {
-                $classrooms = Classroom::where('is_active', true)
-                    ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-                    ->where(function ($q) use ($teacher, $activeYear) {
-                        $q->whereHas('schedules', function ($sq) use ($teacher, $activeYear) {
-                            $sq->where('teacher_id', $teacher->id)
-                               ->when($activeYear, fn($ay) => $ay->where('academic_year_id', $activeYear->id));
-                        })
-                        ->orWhereHas('teachingAssignments', function ($tq) use ($teacher, $activeYear) {
-                            $tq->where('teacher_id', $teacher->id)
-                               ->when($activeYear, fn($ay) => $ay->where('academic_year_id', $activeYear->id))
-                               ->where('is_active', true);
-                        })
-                        ->orWhere('homeroom_teacher_id', $teacher->id);
-                    })
-                    ->orderBy('class_name')
-                    ->get();
-            }
+        }
 
-            // Fallback to active classrooms in teacher's school if no specific assignment found
-            if ($classrooms->isEmpty()) {
-                $schoolId = $teacher?->school_id ?? $user->school_id ?? 1;
-                $classrooms = Classroom::where('is_active', true)
-                    ->where('school_id', $schoolId)
-                    ->orderBy('class_name')
-                    ->get();
-            }
+        // Priority 2 (Fallback): If teacher has no specific assignments yet, get active classrooms in teacher/user school
+        if ($classrooms->isEmpty()) {
+            $schoolId = $teacher?->school_id ?? $user->school_id;
+            $classrooms = Classroom::where('is_active', true)
+                ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                ->orderBy('class_name')
+                ->get();
         }
 
         $selectedClassroomId = $request->input('classroom_id');
