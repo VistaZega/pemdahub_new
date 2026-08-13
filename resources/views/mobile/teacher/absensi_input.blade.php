@@ -42,8 +42,10 @@
 
             <div>
                 <label for="date" class="block text-xs font-black text-slate-800 mb-1">Tanggal Absensi</label>
-                <input type="date" id="date" name="date" value="{{ $date }}" onchange="this.form.submit()" required
-                       class="w-full px-4 py-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-black focus:outline-none focus:border-purple-500 transition">
+                <input type="date" id="date" name="date" value="{{ $date }}" 
+                       onclick="try { this.showPicker(); } catch(e) {}"
+                       onchange="this.form.submit()" required
+                       class="w-full px-4 py-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-black focus:outline-none focus:border-purple-500 transition cursor-pointer">
             </div>
         </form>
     </div>
@@ -71,15 +73,20 @@
             </div>
             @endif
 
-            <div class="flex items-center justify-between pt-1">
+            <div class="flex items-center justify-between pt-1 gap-2">
                 <button type="button" onclick="markAllHadir()" 
                         class="px-3.5 py-2 bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md border-2 border-white flex items-center gap-1 hover:bg-emerald-600 transition">
                     <i class="fa-solid fa-check-double"></i> Hadirkan Semua
                 </button>
 
-                <span class="text-[10px] text-purple-900 font-bold bg-white px-2.5 py-1 rounded-lg border border-purple-200">
-                    {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d M Y') }}
-                </span>
+                <!-- Interactive Date Selector inside Edit Mode Toolbar -->
+                <div class="flex items-center gap-1">
+                    <span class="text-[10px] font-bold text-purple-800">Tgl:</span>
+                    <input type="date" value="{{ $date }}" 
+                           onclick="try { this.showPicker(); } catch(e) {}"
+                           onchange="document.getElementById('date').value = this.value; document.getElementById('filterForm').submit();"
+                           class="px-2.5 py-1.5 bg-white border-2 border-purple-300 rounded-xl text-purple-950 text-xs font-black shadow-sm outline-none cursor-pointer focus:border-purple-600">
+                </div>
             </div>
         </div>
 
