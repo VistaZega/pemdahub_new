@@ -226,8 +226,11 @@
            ============================================================ */
         .navbar {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            transition: all 0.35s ease; padding: 18px 0;
+            transition: background 0.35s ease, padding 0.35s ease, box-shadow 0.35s ease; padding: 18px 0;
             background: rgba(30,27,75,0.0); /* transparent initially, same indigo bg as hero */
+        }
+        body.has-event-banner .hero-section {
+            padding-top: 138px !important;
         }
         .navbar.scrolled {
             background: rgba(30, 27, 75, 0.96);
@@ -797,7 +800,7 @@
     </style>
 </head>
 
-<body data-theme="{{ $homepageTheme ?? 'regular' }}">
+<body data-theme="{{ $homepageTheme ?? 'regular' }}" class="{{ isset($homepageTheme) && $homepageTheme !== 'regular' ? 'has-event-banner' : '' }}">
     @include('landing.partials.event-theme-banner')
     @include('landing.partials.navigation')
     @include('landing.partials.hero')
@@ -929,10 +932,27 @@
     <script>
         AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });
 
-        // Navbar
+        // Navbar & Event Theme Banner Scroll Handler
         const navbar = document.getElementById('navbar');
-        const onScroll = () => navbar.classList.toggle('scrolled', window.scrollY > 60);
-        window.addEventListener('scroll', onScroll); onScroll();
+        const eventBanner = document.querySelector('.event-theme-banner');
+
+        const updateNavbarPosition = () => {
+            if (!navbar) return;
+            const bannerHeight = eventBanner ? (eventBanner.offsetHeight || 38) : 0;
+            const scrollY = window.scrollY || document.documentElement.scrollTop;
+
+            if (bannerHeight > 0 && scrollY < bannerHeight) {
+                navbar.style.top = (bannerHeight - scrollY) + 'px';
+                navbar.classList.remove('scrolled');
+            } else {
+                navbar.style.top = '0px';
+                navbar.classList.toggle('scrolled', scrollY > (bannerHeight + 20));
+            }
+        };
+
+        window.addEventListener('scroll', updateNavbarPosition, { passive: true });
+        window.addEventListener('resize', updateNavbarPosition, { passive: true });
+        updateNavbarPosition();
 
         // Mobile menu
         const mBtn = document.getElementById('mobile-menu-btn');
