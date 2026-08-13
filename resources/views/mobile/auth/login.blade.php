@@ -6,7 +6,7 @@
 <div class="min-h-[80vh] flex flex-col justify-center py-6">
     <!-- Hero Branding -->
     <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-white p-3 shadow-xl shadow-blue-500/20 mb-4 border-4 border-white transform rotate-3">
+        <div class="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-white p-3 shadow-xl shadow-blue-500/20 mb-4 border-4 border-white">
             <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Pembda" class="w-full h-full object-contain">
         </div>
         <h2 class="text-3xl font-black text-slate-900 tracking-tight">PembdaHUB</h2>
