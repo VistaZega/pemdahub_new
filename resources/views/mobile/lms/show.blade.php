@@ -314,7 +314,7 @@
 
         @forelse($course->assignments as $assignment)
             @php $sub = $submissionMap[$assignment->id] ?? null; @endphp
-            <div class="clay-card p-5 space-y-3" x-data="{ openForm: false }">
+            <div class="clay-card p-5 space-y-3" x-data="{ openForm: false, showEdit: false }">
                 <div class="flex items-start justify-between">
                     <div>
                         <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black clay-yellow">Tugas</span>
@@ -325,14 +325,15 @@
                     <!-- Submission Status Badge for Student / Maker Badge for Teacher -->
                     @if($isTeacher)
                         <div class="flex items-center gap-1.5">
+                            <button type="button" @click="showEdit = !showEdit" 
+                                    class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 text-[10px] font-black border border-amber-300 hover:bg-amber-100 transition flex items-center gap-1">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                            </button>
                             <a href="{{ route('mobile.lms.assignment.delete', $assignment->id) }}" 
                                onclick="return confirm('Hapus tugas ini secara permanen?')"
                                class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-[10px] font-black border border-rose-200 hover:bg-rose-100 transition flex items-center gap-1">
                                 <i class="fa-solid fa-trash-can"></i> Hapus
                             </a>
-                            <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-purple-100 text-purple-800 border border-purple-200">
-                                Maker
-                            </span>
                         </div>
                     @else
                         @if($sub)
@@ -373,6 +374,51 @@
                         <a href="{{ route('mobile.guru.tugas') }}" class="clay-btn py-2 px-3.5 text-xs font-black text-white shadow-sm">
                             <i class="fa-solid fa-list-check mr-1"></i> Periksa & Nilai Tugas Siswa
                         </a>
+                    </div>
+
+                    <!-- FORM EDIT TUGAS UNTUK GURU -->
+                    <div x-show="showEdit" x-transition class="pt-3 border-t-2 border-amber-300 space-y-3 bg-amber-50/90 p-4 rounded-2xl border border-amber-200">
+                        <h4 class="text-xs font-black text-amber-900">✏️ Edit Tugas LMS</h4>
+                        <form action="{{ route('mobile.lms.assignment.update', $assignment->id) }}" method="POST" class="space-y-2.5">
+                            @csrf
+                            @method('PUT')
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-700 uppercase">Judul Tugas</label>
+                                <input type="text" name="title" value="{{ $assignment->title }}" required 
+                                       class="w-full p-2.5 bg-white border-2 border-amber-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-700 uppercase">Petunjuk & Instruksi Tugas</label>
+                                <textarea name="description" rows="3" class="w-full p-2.5 bg-white border-2 border-amber-200 rounded-xl text-xs font-bold text-slate-900 outline-none resize-none">{{ $assignment->description }}</textarea>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-700 uppercase">Metode Pengumpulan Jawaban Siswa</label>
+                                <select name="assignment_type" class="w-full p-2.5 bg-white border-2 border-amber-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
+                                    <option value="file_text" {{ ($assignment->assignment_type ?? 'file_text') === 'file_text' ? 'selected' : '' }}>📝 Teks + 📁 Upload File / Foto (Fleksibel - Rekomendasi)</option>
+                                    <option value="text" {{ $assignment->assignment_type === 'text' ? 'selected' : '' }}>✍️ Hanya Teks / Essay</option>
+                                    <option value="file" {{ $assignment->assignment_type === 'file' ? 'selected' : '' }}>📁 Hanya Upload File / Foto Lembar Jawaban</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-700 uppercase mb-1">Batas Waktu Pengumpulan (Deadline)</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <span class="text-[9px] font-bold text-slate-500 block mb-0.5">Tanggal</span>
+                                        <input type="date" name="due_date_only" value="{{ $assignment->deadline ? \Carbon\Carbon::parse($assignment->deadline)->format('Y-m-d') : date('Y-m-d') }}"
+                                               class="w-full p-2.5 bg-white border-2 border-amber-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
+                                    </div>
+                                    <div>
+                                        <span class="text-[9px] font-bold text-slate-500 block mb-0.5">Jam</span>
+                                        <input type="time" name="due_time_only" value="{{ $assignment->deadline ? \Carbon\Carbon::parse($assignment->deadline)->format('H:i') : '23:59' }}"
+                                               class="w-full p-2.5 bg-white border-2 border-amber-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 pt-1">
+                                <button type="button" @click="showEdit = false" class="flex-1 py-2 bg-slate-200 text-slate-700 font-black text-xs rounded-xl">Batal</button>
+                                <button type="submit" class="flex-[2] py-2 bg-amber-600 text-white font-black text-xs rounded-xl shadow-xs hover:bg-amber-700 transition">Simpan Perubahan</button>
+                            </div>
+                        </form>
                     </div>
                 @else
                     <!-- Toggle Submit Form Button for Student -->
@@ -464,7 +510,7 @@
                 $attempts = $attemptMap[$quiz->id] ?? collect(); 
                 $latestFinished = $attempts->whereNotNull('finished_at')->sortByDesc('finished_at')->first();
             @endphp
-            <div class="clay-card p-5 space-y-3">
+            <div class="clay-card p-5 space-y-3" x-data="{ showEditQuiz: false }">
                 <div class="flex items-start justify-between">
                     <div>
                         <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black clay-pink">Kuis LMS</span>
@@ -474,14 +520,15 @@
 
                     @if($isTeacher)
                         <div class="flex items-center gap-1.5">
+                            <button type="button" @click="showEditQuiz = !showEditQuiz" 
+                                    class="px-2.5 py-1 rounded-lg bg-pink-50 text-pink-800 text-[10px] font-black border border-pink-300 hover:bg-pink-100 transition flex items-center gap-1">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                            </button>
                             <a href="{{ route('mobile.lms.quiz.delete', $quiz->id) }}" 
                                onclick="return confirm('Hapus kuis ini secara permanen?')"
                                class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-[10px] font-black border border-rose-200 hover:bg-rose-100 transition flex items-center gap-1">
                                 <i class="fa-solid fa-trash-can"></i> Hapus
                             </a>
-                            <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-purple-100 text-purple-800 border border-purple-200">
-                                Maker
-                            </span>
                         </div>
                     @else
                         @if($latestFinished)
@@ -501,6 +548,34 @@
                         <a href="{{ route('mobile.guru.cbt') }}" class="clay-btn py-2.5 px-4 text-xs font-black text-white shadow-md">
                             <i class="fa-solid fa-chart-line mr-1"></i> Kelola & Lihat Hasil CBT
                         </a>
+                    </div>
+
+                    <!-- FORM EDIT KUIS UNTUK GURU -->
+                    <div x-show="showEditQuiz" x-transition class="pt-3 border-t-2 border-pink-300 space-y-3 bg-pink-50/90 p-4 rounded-2xl border border-pink-200">
+                        <h4 class="text-xs font-black text-pink-900">✏️ Edit Kuis LMS</h4>
+                        <form action="{{ route('mobile.lms.quiz.update', $quiz->id) }}" method="POST" class="space-y-2.5">
+                            @csrf
+                            @method('PUT')
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-700 uppercase">Judul Kuis</label>
+                                <input type="text" name="title" value="{{ $quiz->title }}" required 
+                                       class="w-full p-2.5 bg-white border-2 border-pink-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-700 uppercase">Petunjuk Kuis</label>
+                                <input type="text" name="description" value="{{ $quiz->description }}" 
+                                       class="w-full p-2.5 bg-white border-2 border-pink-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-700 uppercase">Durasi Pengerjaan (Menit)</label>
+                                <input type="number" name="time_limit" value="{{ $quiz->time_limit ?? 30 }}" min="1" required 
+                                       class="w-full p-2.5 bg-white border-2 border-pink-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
+                            </div>
+                            <div class="flex gap-2 pt-1">
+                                <button type="button" @click="showEditQuiz = false" class="flex-1 py-2 bg-slate-200 text-slate-700 font-black text-xs rounded-xl">Batal</button>
+                                <button type="submit" class="flex-[2] py-2 bg-pink-600 text-white font-black text-xs rounded-xl shadow-xs hover:bg-pink-700 transition">Simpan Perubahan</button>
+                            </div>
+                        </form>
                     </div>
                 @else
                     <!-- Student Action View -->

@@ -99,10 +99,14 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::get('/material/{material}/delete', [MobileLmsController::class, 'destroyMaterial'])->name('material.delete');
 
             Route::post('/{course}/assignment', [MobileLmsController::class, 'storeAssignment'])->name('assignment.store');
+            Route::put('/assignment/{assignment}', [MobileLmsController::class, 'updateAssignment'])->name('assignment.update');
+            Route::post('/assignment/{assignment}/update', [MobileLmsController::class, 'updateAssignment'])->name('assignment.update.post');
             Route::delete('/assignment/{assignment}', [MobileLmsController::class, 'destroyAssignment'])->name('assignment.destroy');
             Route::get('/assignment/{assignment}/delete', [MobileLmsController::class, 'destroyAssignment'])->name('assignment.delete');
 
             Route::post('/{course}/quiz', [MobileLmsController::class, 'storeQuiz'])->name('quiz.store');
+            Route::put('/quiz/{quiz}', [MobileLmsController::class, 'updateQuiz'])->name('quiz.update');
+            Route::post('/quiz/{quiz}/update', [MobileLmsController::class, 'updateQuiz'])->name('quiz.update.post');
             Route::delete('/quiz/{quiz}', [MobileLmsController::class, 'destroyQuiz'])->name('quiz.destroy');
             Route::get('/quiz/{quiz}/delete', [MobileLmsController::class, 'destroyQuiz'])->name('quiz.delete');
         });

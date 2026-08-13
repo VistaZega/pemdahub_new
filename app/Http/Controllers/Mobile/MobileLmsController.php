@@ -545,6 +545,51 @@ class MobileLmsController extends Controller
     }
 
     /**
+     * Update/Edit Tugas (Guru Mobile)
+     */
+    public function updateAssignment(Request $request, $id)
+    {
+        $assignment = LmsAssignment::findOrFail($id);
+        $courseId = $assignment->course_id;
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'assignment_type' => 'nullable|string',
+            'due_date' => 'nullable',
+            'due_date_only' => 'nullable',
+            'due_time_only' => 'nullable',
+        ]);
+
+        $deadline = $assignment->deadline;
+        if ($request->filled('due_date')) {
+            $rawDate = str_replace('T', ' ', $request->input('due_date'));
+            try {
+                $deadline = \Carbon\Carbon::parse($rawDate)->format('Y-m-d H:i:s');
+            } catch (\Throwable $e) {
+                $deadline = $rawDate;
+            }
+        } elseif ($request->filled('due_date_only')) {
+            $timePart = $request->input('due_time_only') ?: '23:59:00';
+            if (strlen($timePart) === 5) {
+                $timePart .= ':00';
+            }
+            $deadline = $request->input('due_date_only') . ' ' . $timePart;
+        }
+
+        $assignment->update([
+            'title' => $request->input('title'),
+            'description' => $request->input('description'),
+            'assignment_type' => $request->input('assignment_type', $assignment->assignment_type ?: 'file_text'),
+            'deadline' => $deadline,
+            'due_date' => $deadline,
+        ]);
+
+        return redirect()->route('mobile.lms.show', ['course' => $courseId, 'tab' => 'tugas'])
+            ->with('success', 'Tugas berhasil diperbarui!');
+    }
+
+    /**
      * Hapus Tugas (Guru Mobile)
      */
     public function destroyAssignment($id)
@@ -585,6 +630,30 @@ class MobileLmsController extends Controller
 
         return redirect()->route('mobile.lms.show', ['course' => $courseId, 'tab' => 'kuis'])
             ->with('success', 'Kuis berhasil ditambahkan!');
+    }
+
+    /**
+     * Update/Edit Kuis (Guru Mobile)
+     */
+    public function updateQuiz(Request $request, $id)
+    {
+        $quiz = LmsQuiz::findOrFail($id);
+        $courseId = $quiz->course_id;
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'time_limit' => 'required|integer|min:1',
+        ]);
+
+        $quiz->update([
+            'title' => $request->input('title'),
+            'description' => $request->input('description'),
+            'time_limit' => $request->input('time_limit'),
+        ]);
+
+        return redirect()->route('mobile.lms.show', ['course' => $courseId, 'tab' => 'kuis'])
+            ->with('success', 'Kuis berhasil diperbarui!');
     }
 
     /**
