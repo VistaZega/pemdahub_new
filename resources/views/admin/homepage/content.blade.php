@@ -87,8 +87,8 @@
             </div>
 
             <!-- Tema Beranda Hari Besar (Event Themes) -->
-            <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 space-y-5 border-2 border-indigo-100">
-                <div class="flex items-center justify-between">
+            <div x-data="{ selectedTheme: '{{ $settings['homepage_theme'] ?? 'regular' }}' }" class="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 space-y-5 border-2 border-indigo-100">
+                <div class="flex items-center justify-between flex-wrap gap-2">
                     <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
                         <i class="fas fa-palette text-indigo-600"></i> Tema Beranda Hari Besar &amp; Perayaan (Event Theme)
                     </h3>
@@ -100,16 +100,34 @@
                     Pilih suasana &amp; tema visual untuk halaman depan PembdaHUB pada momen hari besar tertentu. Tampilan beranda akan menyesuaikan banner sambutan, aksen warna, dan perhiasan animasi tanpa merubah struktur layout.
                 </p>
                 
+                <!-- Dropdown Form Selector (Fail-safe) -->
+                <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900">Pilihan Tema Aktif Beranda:</label>
+                        <p class="text-xs text-gray-500">Klik salah satu kartu di bawah atau pilih langsung dari menu di sebelah kanan.</p>
+                    </div>
+                    <select name="homepage_theme" x-model="selectedTheme" class="px-4 py-2.5 border-2 border-indigo-300 rounded-xl font-bold text-sm bg-white text-gray-900 focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer min-w-[240px]">
+                        <option value="regular">🌟 Tema Reguler (Default PembdaHUB)</option>
+                        <option value="kemerdekaan">🇮🇩 Hari Kemerdekaan RI (17 Agt)</option>
+                        <option value="paskah">✝️ Hari Paskah</option>
+                        <option value="natal">🎄 Hari Natal &amp; Tahun Baru</option>
+                        <option value="pahlawan">🎖️ Hari Pahlawan (10 Nov)</option>
+                        <option value="pendidikan">📚 Hari Pendidikan Nasional (2 Mei)</option>
+                    </select>
+                </div>
+
+                <!-- Visual Interactive Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
                     <!-- Tema Reguler -->
-                    <label class="relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all hover:shadow-md border-gray-200 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/40">
-                        <input type="radio" name="homepage_theme" value="regular" {{ ($settings['homepage_theme'] ?? 'regular') === 'regular' ? 'checked' : '' }} class="sr-only">
+                    <div @click="selectedTheme = 'regular'" 
+                         :class="selectedTheme === 'regular' ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-500 shadow-md' : 'border-gray-200 hover:border-indigo-300 bg-white'"
+                         class="relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <span class="text-sm font-extrabold text-gray-900 flex items-center gap-2">
                                 <span>🌟</span> <span>Tema Reguler</span>
                             </span>
-                            <span class="w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center">
-                                <span class="w-2 h-2 rounded-full bg-indigo-600 hidden"></span>
+                            <span :class="selectedTheme === 'regular' ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-gray-300 bg-white'" class="w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-bold">
+                                <i x-show="selectedTheme === 'regular'" class="fas fa-check"></i>
                             </span>
                         </div>
                         <p class="text-xs text-gray-500 mb-3">Tampilan standar PembdaHUB (Modern Indigo Premium).</p>
@@ -118,17 +136,18 @@
                             <span class="w-5 h-5 rounded-md bg-slate-900 inline-block"></span>
                             <span class="w-5 h-5 rounded-md bg-amber-400 inline-block"></span>
                         </div>
-                    </label>
+                    </div>
 
                     <!-- Tema Hari Kemerdekaan -->
-                    <label class="relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all hover:shadow-md border-gray-200 has-[:checked]:border-red-600 has-[:checked]:bg-red-50/40">
-                        <input type="radio" name="homepage_theme" value="kemerdekaan" {{ ($settings['homepage_theme'] ?? '') === 'kemerdekaan' ? 'checked' : '' }} class="sr-only">
+                    <div @click="selectedTheme = 'kemerdekaan'" 
+                         :class="selectedTheme === 'kemerdekaan' ? 'border-red-600 bg-red-50/60 ring-2 ring-red-500 shadow-md' : 'border-gray-200 hover:border-red-300 bg-white'"
+                         class="relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <span class="text-sm font-extrabold text-gray-900 flex items-center gap-2">
                                 <span>🇮🇩</span> <span>Hari Kemerdekaan RI</span>
                             </span>
-                            <span class="w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center">
-                                <span class="w-2 h-2 rounded-full bg-red-600 hidden"></span>
+                            <span :class="selectedTheme === 'kemerdekaan' ? 'bg-red-600 border-red-600 text-white' : 'border-gray-300 bg-white'" class="w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-bold">
+                                <i x-show="selectedTheme === 'kemerdekaan'" class="fas fa-check"></i>
                             </span>
                         </div>
                         <p class="text-xs text-gray-500 mb-3">Nuansa Merah-Putih, Banner Dirgahayu RI &amp; pita melayang.</p>
@@ -137,17 +156,18 @@
                             <span class="w-5 h-5 rounded-md bg-white border border-gray-300 inline-block"></span>
                             <span class="w-5 h-5 rounded-md bg-amber-400 inline-block"></span>
                         </div>
-                    </label>
+                    </div>
 
                     <!-- Tema Hari Paskah -->
-                    <label class="relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all hover:shadow-md border-gray-200 has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50/40">
-                        <input type="radio" name="homepage_theme" value="paskah" {{ ($settings['homepage_theme'] ?? '') === 'paskah' ? 'checked' : '' }} class="sr-only">
+                    <div @click="selectedTheme = 'paskah'" 
+                         :class="selectedTheme === 'paskah' ? 'border-purple-600 bg-purple-50/60 ring-2 ring-purple-500 shadow-md' : 'border-gray-200 hover:border-purple-300 bg-white'"
+                         class="relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <span class="text-sm font-extrabold text-gray-900 flex items-center gap-2">
                                 <span>✝️</span> <span>Hari Paskah</span>
                             </span>
-                            <span class="w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center">
-                                <span class="w-2 h-2 rounded-full bg-purple-600 hidden"></span>
+                            <span :class="selectedTheme === 'paskah' ? 'bg-purple-600 border-purple-600 text-white' : 'border-gray-300 bg-white'" class="w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-bold">
+                                <i x-show="selectedTheme === 'paskah'" class="fas fa-check"></i>
                             </span>
                         </div>
                         <p class="text-xs text-gray-500 mb-3">Nuansa Ungu Paskah &amp; Emas Harapan Kebangkitan.</p>
@@ -156,17 +176,18 @@
                             <span class="w-5 h-5 rounded-md bg-amber-300 inline-block"></span>
                             <span class="w-5 h-5 rounded-md bg-indigo-900 inline-block"></span>
                         </div>
-                    </label>
+                    </div>
 
                     <!-- Tema Hari Natal -->
-                    <label class="relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all hover:shadow-md border-gray-200 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/40">
-                        <input type="radio" name="homepage_theme" value="natal" {{ ($settings['homepage_theme'] ?? '') === 'natal' ? 'checked' : '' }} class="sr-only">
+                    <div @click="selectedTheme = 'natal'" 
+                         :class="selectedTheme === 'natal' ? 'border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-500 shadow-md' : 'border-gray-200 hover:border-emerald-300 bg-white'"
+                         class="relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <span class="text-sm font-extrabold text-gray-900 flex items-center gap-2">
                                 <span>🎄</span> <span>Hari Natal &amp; Tahun Baru</span>
                             </span>
-                            <span class="w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center">
-                                <span class="w-2 h-2 rounded-full bg-emerald-600 hidden"></span>
+                            <span :class="selectedTheme === 'natal' ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-gray-300 bg-white'" class="w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-bold">
+                                <i x-show="selectedTheme === 'natal'" class="fas fa-check"></i>
                             </span>
                         </div>
                         <p class="text-xs text-gray-500 mb-3">Nuansa Hijau Zamrud, Merah Crimson &amp; Hujan Salju.</p>
@@ -175,17 +196,18 @@
                             <span class="w-5 h-5 rounded-md bg-rose-600 inline-block"></span>
                             <span class="w-5 h-5 rounded-md bg-amber-300 inline-block"></span>
                         </div>
-                    </label>
+                    </div>
 
                     <!-- Tema Hari Pahlawan -->
-                    <label class="relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all hover:shadow-md border-gray-200 has-[:checked]:border-amber-700 has-[:checked]:bg-amber-50/40">
-                        <input type="radio" name="homepage_theme" value="pahlawan" {{ ($settings['homepage_theme'] ?? '') === 'pahlawan' ? 'checked' : '' }} class="sr-only">
+                    <div @click="selectedTheme = 'pahlawan'" 
+                         :class="selectedTheme === 'pahlawan' ? 'border-amber-700 bg-amber-50/60 ring-2 ring-amber-600 shadow-md' : 'border-gray-200 hover:border-amber-300 bg-white'"
+                         class="relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <span class="text-sm font-extrabold text-gray-900 flex items-center gap-2">
                                 <span>🎖️</span> <span>Hari Pahlawan (10 Nov)</span>
                             </span>
-                            <span class="w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center">
-                                <span class="w-2 h-2 rounded-full bg-amber-700 hidden"></span>
+                            <span :class="selectedTheme === 'pahlawan' ? 'bg-amber-700 border-amber-700 text-white' : 'border-gray-300 bg-white'" class="w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-bold">
+                                <i x-show="selectedTheme === 'pahlawan'" class="fas fa-check"></i>
                             </span>
                         </div>
                         <p class="text-xs text-gray-500 mb-3">Nuansa Merah Marun &amp; Emas Semangat Perjuangan.</p>
@@ -194,17 +216,18 @@
                             <span class="w-5 h-5 rounded-md bg-amber-500 inline-block"></span>
                             <span class="w-5 h-5 rounded-md bg-amber-800 inline-block"></span>
                         </div>
-                    </label>
+                    </div>
 
                     <!-- Tema Hari Pendidikan -->
-                    <label class="relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all hover:shadow-md border-gray-200 has-[:checked]:border-sky-600 has-[:checked]:bg-sky-50/40">
-                        <input type="radio" name="homepage_theme" value="pendidikan" {{ ($settings['homepage_theme'] ?? '') === 'pendidikan' ? 'checked' : '' }} class="sr-only">
+                    <div @click="selectedTheme = 'pendidikan'" 
+                         :class="selectedTheme === 'pendidikan' ? 'border-sky-600 bg-sky-50/60 ring-2 ring-sky-500 shadow-md' : 'border-gray-200 hover:border-sky-300 bg-white'"
+                         class="relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <span class="text-sm font-extrabold text-gray-900 flex items-center gap-2">
                                 <span>📚</span> <span>Hari Pendidikan (2 Mei)</span>
                             </span>
-                            <span class="w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center">
-                                <span class="w-2 h-2 rounded-full bg-sky-600 hidden"></span>
+                            <span :class="selectedTheme === 'pendidikan' ? 'bg-sky-600 border-sky-600 text-white' : 'border-gray-300 bg-white'" class="w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-bold">
+                                <i x-show="selectedTheme === 'pendidikan'" class="fas fa-check"></i>
                             </span>
                         </div>
                         <p class="text-xs text-gray-500 mb-3">Nuansa Biru Tut Wuri Handayani &amp; Emas Akademis.</p>
@@ -213,7 +236,7 @@
                             <span class="w-5 h-5 rounded-md bg-amber-400 inline-block"></span>
                             <span class="w-5 h-5 rounded-md bg-blue-950 inline-block"></span>
                         </div>
-                    </label>
+                    </div>
                 </div>
             </div>
 
