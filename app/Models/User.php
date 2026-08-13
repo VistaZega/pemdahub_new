@@ -557,22 +557,33 @@ class User extends Authenticatable
      */
     public function getAvatarUrlAttribute(): string
     {
-        if ($this->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->photo)) {
-            return asset('storage/' . $this->photo);
+        $photos = [
+            $this->photo,
+            $this->teacher?->photo,
+            $this->employee?->photo,
+            $this->student?->photo,
+            $this->alumniDirectory?->photo_path,
+        ];
+
+        foreach ($photos as $p) {
+            if (!empty($p)) {
+                if (\Illuminate\Support\Str::startsWith($p, ['http://', 'https://'])) {
+                    return $p;
+                }
+                if (\Illuminate\Support\Str::startsWith($p, ['storage/', '/storage/'])) {
+                    return asset(ltrim($p, '/'));
+                }
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($p)) {
+                    return asset('storage/' . $p);
+                }
+                if (file_exists(public_path($p))) {
+                    return asset($p);
+                }
+                return asset('storage/' . $p);
+            }
         }
-        if ($this->student && $this->student->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->student->photo)) {
-            return asset('storage/' . $this->student->photo);
-        }
-        if ($this->teacher && $this->teacher->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->teacher->photo)) {
-            return asset('storage/' . $this->teacher->photo);
-        }
-        if ($this->employee && $this->employee->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->employee->photo)) {
-            return asset('storage/' . $this->employee->photo);
-        }
-        if ($this->alumniDirectory && $this->alumniDirectory->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->alumniDirectory->photo_path)) {
-            return asset('storage/' . $this->alumniDirectory->photo_path);
-        }
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=6366f1&color=ffffff&bold=true';
+
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=3b82f6&color=ffffff&bold=true';
     }
 
     public function getPhotoUrlAttribute(): string

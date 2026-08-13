@@ -7,13 +7,7 @@
     <!-- Profile Hero Card (Clay Blue Card) -->
     <div class="clay-blue p-6 text-center text-white relative overflow-hidden">
         <div class="inline-block relative mb-3">
-            @if($student && $student->photo_url)
-                <img src="{{ $student->photo_url }}" alt="{{ $user->name }}" class="w-20 h-20 rounded-3xl object-cover border-4 border-white/60 shadow-xl mx-auto">
-            @else
-                <div class="w-20 h-20 rounded-3xl bg-white/30 backdrop-blur-md flex items-center justify-center text-white font-black text-2xl shadow-xl border-4 border-white mx-auto">
-                    {{ strtoupper(substr($user->name, 0, 2)) }}
-                </div>
-            @endif
+            <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-20 h-20 rounded-3xl object-cover border-4 border-white/60 shadow-xl mx-auto bg-white">
             <span class="absolute bottom-0 right-0 w-4.5 h-4.5 rounded-full bg-emerald-400 border-2 border-blue-700"></span>
         </div>
 
@@ -44,6 +38,11 @@
                 <button type="submit" name="role" value="superadmin" 
                         class="p-3 rounded-2xl border-2 text-xs font-black transition flex items-center justify-center gap-1.5 {{ $activeRole === 'superadmin' ? 'clay-blue text-white shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' }}">
                     <span>👑 Admin</span>
+                </button>
+
+                <button type="submit" name="role" value="ketua_yayasan" 
+                        class="p-3 rounded-2xl border-2 text-xs font-black transition flex items-center justify-center gap-1.5 {{ $activeRole === 'ketua_yayasan' ? 'clay-purple text-white shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' }}">
+                    <span>🏛️ Yayasan</span>
                 </button>
             @endif
 

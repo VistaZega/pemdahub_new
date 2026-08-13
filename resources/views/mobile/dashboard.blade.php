@@ -7,13 +7,7 @@
     <!-- Hero Banner Card (Playful 3D Clay Banner) -->
     <div class="clay-blue p-6 relative overflow-hidden">
         <div class="flex items-center space-x-4 relative z-10">
-            @if($student && $student->photo_url)
-                <img src="{{ $student->photo_url }}" alt="{{ $user->name }}" class="w-16 h-16 rounded-2xl object-cover border-4 border-white/60 shadow-md">
-            @else
-                <div class="w-16 h-16 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-white font-black text-2xl border-2 border-white shadow-md">
-                    {{ strtoupper(substr($user->name, 0, 2)) }}
-                </div>
-            @endif
+            <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-16 h-16 rounded-2xl object-cover border-4 border-white/60 shadow-md bg-white">
 
             <div class="flex-1 min-w-0">
                 <div class="flex items-center space-x-2 mb-1">

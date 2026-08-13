@@ -229,8 +229,13 @@
                     @csrf
                     @if(auth()->user()->isOwnerOrSuperAdmin())
                         <button type="submit" name="role" value="superadmin" class="w-full text-left p-3.5 rounded-2xl bg-white border-2 border-slate-200 text-xs font-black hover:bg-blue-50 hover:border-blue-300 transition flex items-center justify-between shadow-sm">
-                            <span>👑 Super Admin / Yayasan</span>
+                            <span>👑 Super Admin</span>
                             @if($currentRole === 'superadmin')<i class="fa-solid fa-circle-check text-blue-600 text-base"></i>@endif
+                        </button>
+
+                        <button type="submit" name="role" value="ketua_yayasan" class="w-full text-left p-3.5 rounded-2xl bg-white border-2 border-slate-200 text-xs font-black hover:bg-purple-50 hover:border-purple-300 transition flex items-center justify-between shadow-sm">
+                            <span>🏛️ Ketua Yayasan</span>
+                            @if($currentRole === 'ketua_yayasan')<i class="fa-solid fa-circle-check text-purple-600 text-base"></i>@endif
                         </button>
                     @endif
 
