@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Teacher;
 use App\Models\Schedule;
 use App\Models\Classroom;
+use App\Models\AcademicYear;
 use App\Models\Student;
 use App\Models\Attendance;
 use App\Models\LmsAssignment;
