@@ -37,7 +37,7 @@
                     </div>
                     <input type="text" id="login" name="login" value="{{ old('login') }}" required autofocus
                            placeholder="Masukkan Email/NIS..." 
-                           class="w-full pl-11 pr-4 py-3 bg.f4f7fc border-2 border-slate-200/90 rounded-2xl text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition font-bold">
+                           class="w-full pl-11 pr-4 py-3 bg-[#f4f7fc] border-2 border-slate-200/90 rounded-2xl text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition font-bold">
                 </div>
             </div>
 
