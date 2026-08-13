@@ -38,15 +38,40 @@ class MobileLmsController extends Controller
         return view('mobile.lms.catalog', compact('courses'));
     }
 
+    use App\Models\LmsMaterial;
+
     public function show($id)
     {
         $course = LmsCourse::with([
             'teacher',
+            'materials',
             'modules.materials',
-            'assignments',
+            'assignments.submissions',
             'quizzes'
         ])->findOrFail($id);
 
         return view('mobile.lms.show', compact('course'));
+    }
+
+    public function material($id)
+    {
+        $material = LmsMaterial::with(['course', 'module'])->findOrFail($id);
+
+        $user = Auth::user();
+        $student = Student::where('user_id', $user->id)->first();
+        if ($student) {
+            \App\Models\LmsMaterialProgress::updateOrCreate(
+                [
+                    'student_id' => $student->id,
+                    'material_id' => $material->id,
+                ],
+                [
+                    'status' => 'completed',
+                    'completed_at' => now(),
+                ]
+            );
+        }
+
+        return view('mobile.lms.material', compact('material'));
     }
 }

@@ -71,6 +71,7 @@ Route::prefix('m')->name('mobile.')->group(function () {
         Route::prefix('lms')->name('lms.')->group(function () {
             Route::get('/', [MobileLmsController::class, 'index'])->name('index');
             Route::get('/catalog', [MobileLmsController::class, 'catalog'])->name('catalog');
+            Route::get('/material/{material}', [MobileLmsController::class, 'material'])->name('material');
             Route::get('/{course}', [MobileLmsController::class, 'show'])->name('show');
         });
 
