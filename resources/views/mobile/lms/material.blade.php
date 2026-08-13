@@ -73,20 +73,20 @@
                     <i class="fa-solid fa-file-pdf text-red-600 text-base"></i> Berkas PDF / Dokumen
                 </h3>
                 @if($material->file_path || $material->file_url)
-                    <a href="{{ asset($material->file_path ?? $material->file_url) }}" target="_blank" download class="px-3 py-1.5 bg-purple-600 text-white font-black text-[10px] rounded-xl shadow-sm border border-purple-800 flex items-center gap-1">
+                    <a href="{{ $material->getFileDownloadUrl() }}" target="_blank" download class="px-3 py-1.5 bg-purple-600 text-white font-black text-[10px] rounded-xl shadow-sm border border-purple-800 flex items-center gap-1">
                         <i class="fa-solid fa-download"></i> Unduh Berkas
                     </a>
                 @endif
             </div>
 
-            @if(!empty($material->file_path) && str_ends_with(strtolower($material->file_path), '.pdf'))
+            @if(!empty($material->file_path))
                 <div class="w-full rounded-2xl overflow-hidden border-2 border-slate-200 shadow-inner bg-slate-100" style="height: 500px;">
-                    <iframe src="{{ asset($material->file_path) }}" class="w-full h-full" frameborder="0"></iframe>
+                    <iframe src="{{ $material->getFileAssetUrl() }}" class="w-full h-full" frameborder="0"></iframe>
                 </div>
             @else
                 <div class="p-4 bg-slate-50 rounded-2xl border-2 border-slate-200 text-center space-y-2">
                     <p class="text-xs font-bold text-slate-700">Berkas Dokumen Pembelajaran Siap Dibuka:</p>
-                    <a href="{{ asset($material->file_path ?? $material->file_url) }}" target="_blank" class="clay-btn inline-block py-2.5 px-4 text-xs font-black text-white">
+                    <a href="{{ $material->getFileDownloadUrl() }}" target="_blank" class="clay-btn inline-block py-2.5 px-4 text-xs font-black text-white">
                         <i class="fa-solid fa-file-arrow-down mr-1"></i> Buka / Unduh Dokumen
                     </a>
                 </div>

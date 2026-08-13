@@ -78,6 +78,8 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::get('/', [MobileLmsController::class, 'index'])->name('index');
             Route::get('/catalog', [MobileLmsController::class, 'catalog'])->name('catalog');
             Route::get('/material/{material}', [MobileLmsController::class, 'material'])->name('material');
+            Route::get('/material/{material}/stream', [MobileLmsController::class, 'streamMaterial'])->name('material.stream');
+            Route::get('/material/{material}/download', [MobileLmsController::class, 'downloadMaterial'])->name('material.download');
             Route::delete('/material/{material}', [MobileLmsController::class, 'destroyMaterial'])->name('material.destroy');
             Route::post('/assignment/{assignment}/submit', [MobileLmsController::class, 'submitAssignment'])->name('assignment.submit');
             Route::get('/quiz/{quiz}/start', [MobileLmsController::class, 'startQuiz'])->name('quiz.start');

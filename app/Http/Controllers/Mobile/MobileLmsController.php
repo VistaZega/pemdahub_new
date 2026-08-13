@@ -538,4 +538,66 @@ class MobileLmsController extends Controller
         $quiz->delete();
         return back()->with('success', 'Kuis berhasil dihapus!');
     }
+
+    /**
+     * Stream PDF / File Video Materi LMS langsung dari storage (Buka di browser)
+     */
+    public function streamMaterial($id)
+    {
+        $material = LmsMaterial::findOrFail($id);
+        $filePath = $material->file_path;
+
+        if (!$filePath) {
+            return redirect($material->file_url ?: '#');
+        }
+
+        $cleanPath = str_replace('storage/', '', $filePath);
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($cleanPath)) {
+            $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($cleanPath);
+            $mimeType = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($cleanPath) ?: 'application/pdf';
+
+            return response()->file($fullPath, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"',
+            ]);
+        }
+
+        if (\Illuminate\Support\Facades\Storage::exists($cleanPath)) {
+            $fullPath = \Illuminate\Support\Facades\Storage::path($cleanPath);
+            $mimeType = \Illuminate\Support\Facades\Storage::mimeType($cleanPath) ?: 'application/pdf';
+
+            return response()->file($fullPath, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"',
+            ]);
+        }
+
+        return back()->with('error', 'Berkas materi PDF/Dokumen tidak ditemukan di server.');
+    }
+
+    /**
+     * Unduh File Materi LMS (Download attachment)
+     */
+    public function downloadMaterial($id)
+    {
+        $material = LmsMaterial::findOrFail($id);
+        $filePath = $material->file_path;
+
+        if (!$filePath) {
+            return redirect($material->file_url ?: '#');
+        }
+
+        $cleanPath = str_replace('storage/', '', $filePath);
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($cleanPath)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->download($cleanPath, $material->title . '.' . pathinfo($cleanPath, PATHINFO_EXTENSION));
+        }
+
+        if (\Illuminate\Support\Facades\Storage::exists($cleanPath)) {
+            return \Illuminate\Support\Facades\Storage::download($cleanPath, $material->title . '.' . pathinfo($cleanPath, PATHINFO_EXTENSION));
+        }
+
+        return back()->with('error', 'Berkas materi PDF/Dokumen tidak ditemukan di server.');
+    }
 }

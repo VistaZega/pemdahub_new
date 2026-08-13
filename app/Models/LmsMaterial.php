@@ -101,6 +101,41 @@ class LmsMaterial extends Model
     }
 
     /**
+     * Get accessible URL for file (Asset / Public Storage or Direct Stream Route)
+     */
+    public function getFileAssetUrl()
+    {
+        if (\Illuminate\Support\Facades\Route::has('mobile.lms.material.stream') && !empty($this->file_path)) {
+            return route('mobile.lms.material.stream', $this->id);
+        }
+
+        $path = $this->file_path ?: $this->file_url;
+        if (!$path) return '#';
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        if (str_starts_with($path, 'storage/')) {
+            return asset($path);
+        }
+
+        return asset('storage/' . ltrim($path, '/'));
+    }
+
+    /**
+     * Get direct download URL for file
+     */
+    public function getFileDownloadUrl()
+    {
+        if (\Illuminate\Support\Facades\Route::has('mobile.lms.material.download') && !empty($this->file_path)) {
+            return route('mobile.lms.material.download', $this->id);
+        }
+
+        return $this->getFileAssetUrl();
+    }
+
+    /**
      * Scope: Get active/published materials
      */
     public function scopeActive($query)
