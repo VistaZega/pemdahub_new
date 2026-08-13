@@ -77,14 +77,21 @@ class MobileLmsController extends Controller
 
         $subjects = collect();
         if ($teacher) {
-            $subjects = \App\Models\Subject::whereHas('schedules', fn($q) => $q->where('teacher_id', $teacher->id))
-                ->orWhereHas('teachingAssignments', fn($q) => $q->where('teacher_id', $teacher->id))
-                ->orderBy('name')
-                ->get();
+            $subjFromSchedules = \App\Models\Schedule::where('teacher_id', $teacher->id)->pluck('subject_id');
+            $subjFromAssignments = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)->pluck('subject_id');
+            $allSubjectIds = $subjFromSchedules->concat($subjFromAssignments)->filter()->unique();
+
+            if ($allSubjectIds->isNotEmpty()) {
+                $subjects = \App\Models\Subject::whereIn('id', $allSubjectIds)->orderBy('name')->get();
+            }
         }
 
         if ($subjects->isEmpty()) {
-            $subjects = \App\Models\Subject::orderBy('name')->get();
+            $schoolId = $teacher?->school_id ?? $user->school_id;
+            $subjects = \App\Models\Subject::where('is_active', true)
+                ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                ->orderBy('name')
+                ->get();
         }
 
         return view('mobile.lms.index', compact('enrolledCourses', 'isTeacher', 'classrooms', 'subjects'));
