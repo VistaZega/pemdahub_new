@@ -176,13 +176,11 @@
                             </div>
                             <div class="flex items-center gap-2 shrink-0 self-end sm:self-center pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 w-full sm:w-auto justify-between sm:justify-end">
                                 @if($isTeacher)
-                                    <form action="{{ route('mobile.lms.material.destroy', $mat->id) }}" method="POST" onsubmit="return confirm('Hapus materi ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-black hover:bg-rose-100 transition">
-                                            <i class="fa-solid fa-trash-can mr-1"></i> Hapus
-                                        </button>
-                                    </form>
+                                    <a href="{{ route('mobile.lms.material.delete', $mat->id) }}" 
+                                       onclick="return confirm('Hapus materi ini?')"
+                                       class="px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-black hover:bg-rose-100 transition flex items-center gap-1">
+                                        <i class="fa-solid fa-trash-can mr-1"></i> Hapus
+                                    </a>
                                 @endif
                                 <a href="{{ route('mobile.lms.material', $mat->id) }}" class="clay-btn py-2 px-3 text-[11px] font-black text-white whitespace-nowrap shadow-sm">
                                     <i class="fa-solid fa-book-open mr-1"></i> Buka Materi
@@ -232,13 +230,11 @@
                                 </div>
                                 <div class="flex items-center gap-2 shrink-0 self-end sm:self-center pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 w-full sm:w-auto justify-between sm:justify-end">
                                     @if($isTeacher)
-                                        <form action="{{ route('mobile.lms.material.destroy', $mat->id) }}" method="POST" onsubmit="return confirm('Hapus materi ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-black hover:bg-rose-100 transition">
-                                                <i class="fa-solid fa-trash-can mr-1"></i> Hapus
-                                            </button>
-                                        </form>
+                                        <a href="{{ route('mobile.lms.material.delete', $mat->id) }}" 
+                                           onclick="return confirm('Hapus materi ini?')"
+                                           class="px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-black hover:bg-rose-100 transition flex items-center gap-1">
+                                            <i class="fa-solid fa-trash-can mr-1"></i> Hapus
+                                        </a>
                                     @endif
                                     <a href="{{ route('mobile.lms.material', $mat->id) }}" class="clay-btn py-2 px-3 text-[11px] font-black text-white whitespace-nowrap shadow-sm">
                                         <i class="fa-solid fa-book-open mr-1"></i> Buka Materi
@@ -311,13 +307,11 @@
                     <!-- Submission Status Badge for Student / Maker Badge for Teacher -->
                     @if($isTeacher)
                         <div class="flex items-center gap-1.5">
-                            <form action="{{ route('mobile.lms.assignment.destroy', $assignment->id) }}" method="POST" onsubmit="return confirm('Hapus tugas ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="px-2 py-1 bg-rose-50 text-rose-700 rounded-lg text-[10px] font-black border border-rose-200">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </form>
+                            <a href="{{ route('mobile.lms.assignment.delete', $assignment->id) }}" 
+                               onclick="return confirm('Hapus tugas ini secara permanen?')"
+                               class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-[10px] font-black border border-rose-200 hover:bg-rose-100 transition flex items-center gap-1">
+                                <i class="fa-solid fa-trash-can"></i> Hapus
+                            </a>
                             <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-purple-100 text-purple-800 border border-purple-200">
                                 Maker
                             </span>
@@ -468,13 +462,11 @@
 
                     @if($isTeacher)
                         <div class="flex items-center gap-1.5">
-                            <form action="{{ route('mobile.lms.quiz.destroy', $quiz->id) }}" method="POST" onsubmit="return confirm('Hapus kuis ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="px-2 py-1 bg-rose-50 text-rose-700 rounded-lg text-[10px] font-black border border-rose-200">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </form>
+                            <a href="{{ route('mobile.lms.quiz.delete', $quiz->id) }}" 
+                               onclick="return confirm('Hapus kuis ini secara permanen?')"
+                               class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-[10px] font-black border border-rose-200 hover:bg-rose-100 transition flex items-center gap-1">
+                                <i class="fa-solid fa-trash-can"></i> Hapus
+                            </a>
                             <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-purple-100 text-purple-800 border border-purple-200">
                                 Maker
                             </span>

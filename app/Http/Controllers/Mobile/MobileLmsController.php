@@ -495,8 +495,10 @@ class MobileLmsController extends Controller
     public function destroyMaterial($id)
     {
         $material = LmsMaterial::findOrFail($id);
+        $courseId = $material->course_id;
         $material->delete();
-        return back()->with('success', 'Materi berhasil dihapus!');
+        return redirect()->route('mobile.lms.show', ['course' => $courseId, 'tab' => 'materi'])
+            ->with('success', 'Materi berhasil dihapus!');
     }
 
     /**

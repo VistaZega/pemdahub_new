@@ -99,13 +99,11 @@
                     </a>
 
                     @if($isTeacher)
-                        <form action="{{ route('mobile.lms.course.destroy', $course->id) }}" method="POST" onsubmit="return confirm('Hapus seluruh kelas LMS ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="px-2.5 py-1.5 bg-rose-50 text-rose-700 rounded-xl text-[10px] font-black border border-rose-200 hover:bg-rose-100 transition">
-                                <i class="fa-solid fa-trash-can"></i> Hapus
-                            </button>
-                        </form>
+                        <a href="{{ route('mobile.lms.course.delete', $course->id) }}" 
+                           onclick="return confirm('Hapus seluruh kelas LMS ini?')"
+                           class="px-2.5 py-1.5 bg-rose-50 text-rose-700 rounded-xl text-[10px] font-black border border-rose-200 hover:bg-rose-100 transition flex items-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i> Hapus
+                        </a>
                     @endif
                 </div>
 
