@@ -59,6 +59,7 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::get('/kelas', [MobileTeacherController::class, 'kelas'])->name('kelas');
             Route::get('/edaran', [MobileTeacherController::class, 'edaran'])->name('edaran');
             Route::get('/cbt', [MobileTeacherController::class, 'cbt'])->name('cbt');
+            Route::get('/cbt/banks/{bank}', [MobileTeacherController::class, 'cbtBankShow'])->name('cbt.bank.show');
             Route::get('/raport', [MobileTeacherController::class, 'raport'])->name('raport');
             Route::get('/hall-of-fame', [MobileTeacherController::class, 'hallOfFame'])->name('hall-of-fame');
         });

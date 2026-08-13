@@ -536,4 +536,24 @@ class MobileTeacherController extends Controller
 
         return view('mobile.hall_of_fame', compact('topStudents', 'topTeachers'));
     }
+
+    /**
+     * Detail Bank Soal CBT & Tautkan ke LMS (Guru Mobile 3D View)
+     */
+    public function cbtBankShow($bankId)
+    {
+        $teacher = $this->getTeacher();
+        $bank = \App\Models\CbtQuestionBank::with(['questions.options', 'subject'])->findOrFail($bankId);
+
+        $courses = \App\Models\LmsCourse::where('teacher_id', $teacher->id ?? 0)
+            ->orWhere(fn($q) => $q->whereNull('teacher_id'))
+            ->latest()
+            ->get();
+
+        if ($courses->isEmpty()) {
+            $courses = \App\Models\LmsCourse::latest()->take(20)->get();
+        }
+
+        return view('mobile.teacher.cbt_bank_show', compact('bank', 'courses', 'teacher'));
+    }
 }
