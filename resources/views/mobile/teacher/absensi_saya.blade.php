@@ -203,21 +203,28 @@
     }, 1000);
 
     function handleGpsScan() {
+        const form = document.getElementById('gpsForm');
+        const latInput = document.getElementById('latInput');
+        const lngInput = document.getElementById('lngInput');
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
-                    document.getElementById('latInput').value = pos.coords.latitude;
-                    document.getElementById('lngInput').value = pos.coords.longitude;
-                    document.getElementById('gpsForm').submit();
+                    latInput.value = pos.coords.latitude;
+                    lngInput.value = pos.coords.longitude;
+                    form.submit();
                 },
                 (err) => {
-                    alert('Gagal mendapatkan lokasi GPS: ' + err.message + '. Mengirim presensi...');
-                    document.getElementById('gpsForm').submit();
-                }
+                    latInput.value = 0;
+                    lngInput.value = 0;
+                    form.submit();
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         } else {
-            alert('Browser tidak mendukung Geolocation.');
-            document.getElementById('gpsForm').submit();
+            latInput.value = 0;
+            lngInput.value = 0;
+            form.submit();
         }
     }
 </script>
