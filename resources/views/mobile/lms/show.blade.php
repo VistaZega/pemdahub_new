@@ -283,6 +283,14 @@
                         <textarea name="description" rows="3" placeholder="Kerjakan soal berikut..." class="w-full p-2.5 bg-white border-2 border-amber-200 rounded-xl text-xs font-bold text-slate-900 outline-none resize-none"></textarea>
                     </div>
                     <div>
+                        <label class="block text-[10px] font-black text-slate-700 uppercase">Metode Pengumpulan Jawaban Siswa</label>
+                        <select name="assignment_type" class="w-full p-2.5 bg-white border-2 border-amber-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
+                            <option value="file_text">📝 Teks + 📁 Upload File / Foto (Fleksibel - Rekomendasi)</option>
+                            <option value="text">✍️ Hanya Teks / Essay</option>
+                            <option value="file">📁 Hanya Upload File / Foto Lembar Jawaban</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-[10px] font-black text-slate-700 uppercase mb-1">Batas Waktu Pengumpulan (Deadline)</label>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
@@ -377,18 +385,29 @@
                         </button>
                     </div>
 
-                    <!-- SUBMISSION FORM FOR STUDENT (TEXT ONLY) -->
+                    <!-- SUBMISSION FORM FOR STUDENT (FLEXIBLE TYPES) -->
                     <div x-show="openForm" x-transition class="pt-3 border-t-2 border-purple-100 space-y-3">
-                        <form action="{{ route('mobile.lms.assignment.submit', $assignment->id) }}" method="POST" class="space-y-3">
+                        <form action="{{ route('mobile.lms.assignment.submit', $assignment->id) }}" method="POST" enctype="multipart/form-data" class="space-y-3">
                             @csrf
-                            <div>
-                                <label class="block text-xs font-black text-slate-800 mb-1">Teks Jawaban <span class="text-rose-600">*</span></label>
-                                <textarea name="submission_text" rows="4" required placeholder="Tuliskan teks jawaban tugas Anda di sini..."
-                                          class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-xs font-bold text-slate-900 outline-none focus:border-purple-500 transition resize-none">{{ $sub->submission_text ?? '' }}</textarea>
-                            </div>
+                            
+                            @if(in_array($assignment->assignment_type, ['text', 'file_text', null, '']))
+                                <div>
+                                    <label class="block text-xs font-black text-slate-800 mb-1">Teks Jawaban / Keterangan {{ $assignment->assignment_type === 'text' ? '*' : '(Opsional)' }}</label>
+                                    <textarea name="submission_text" rows="3" {{ $assignment->assignment_type === 'text' ? 'required' : '' }} placeholder="Ketik penjelasan atau jawaban tugas Anda di sini..."
+                                              class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-xs font-bold text-slate-900 outline-none focus:border-purple-500 transition resize-none">{{ $sub->submission_text ?? '' }}</textarea>
+                                </div>
+                            @endif
+
+                            @if(in_array($assignment->assignment_type, ['file', 'file_text', null, '']))
+                                <div>
+                                    <label class="block text-xs font-black text-slate-800 mb-1">Unggah Lampiran Berkas / Foto {{ $assignment->assignment_type === 'file' ? '*' : '(Opsional, Max 10MB)' }}</label>
+                                    <input type="file" name="file" {{ $assignment->assignment_type === 'file' ? 'required' : '' }}
+                                           class="w-full text-xs font-bold text-slate-600 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl p-2.5 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-purple-600 file:text-white">
+                                </div>
+                            @endif
 
                             <button type="submit" class="clay-btn w-full py-3.5 text-white font-black text-xs uppercase tracking-wider shadow-md">
-                                <i class="fa-solid fa-paper-plane mr-1"></i> Kirim Jawaban Teks Sekarang
+                                <i class="fa-solid fa-paper-plane mr-1"></i> Kirim Jawaban Sekarang
                             </button>
                         </form>
                     </div>

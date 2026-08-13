@@ -534,7 +534,7 @@ class MobileLmsController extends Controller
             'course_id' => $courseId,
             'title' => $request->input('title'),
             'description' => $request->input('description'),
-            'assignment_type' => 'text',
+            'assignment_type' => $request->input('assignment_type', 'file_text'),
             'deadline' => $deadline,
             'due_date' => $deadline,
             'is_published' => true,
