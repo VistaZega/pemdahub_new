@@ -377,24 +377,18 @@
                         </button>
                     </div>
 
-                    <!-- SUBMISSION FORM FOR STUDENT -->
+                    <!-- SUBMISSION FORM FOR STUDENT (TEXT ONLY) -->
                     <div x-show="openForm" x-transition class="pt-3 border-t-2 border-purple-100 space-y-3">
-                        <form action="{{ route('mobile.lms.assignment.submit', $assignment->id) }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                        <form action="{{ route('mobile.lms.assignment.submit', $assignment->id) }}" method="POST" class="space-y-3">
                             @csrf
                             <div>
-                                <label class="block text-xs font-black text-slate-800 mb-1">Teks Jawaban / Link URL</label>
-                                <textarea name="submission_text" rows="3" placeholder="Ketik penjelasan jawaban atau sertakan link Google Drive / URL tugas Anda..."
+                                <label class="block text-xs font-black text-slate-800 mb-1">Teks Jawaban <span class="text-rose-600">*</span></label>
+                                <textarea name="submission_text" rows="4" required placeholder="Tuliskan teks jawaban tugas Anda di sini..."
                                           class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-xs font-bold text-slate-900 outline-none focus:border-purple-500 transition resize-none">{{ $sub->submission_text ?? '' }}</textarea>
                             </div>
 
-                            <div>
-                                <label class="block text-xs font-black text-slate-800 mb-1">Unggah Lampiran Berkas (Opsional, Max 10MB)</label>
-                                <input type="file" name="file" 
-                                       class="w-full text-xs font-bold text-slate-600 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl p-2.5 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-purple-600 file:text-white">
-                            </div>
-
                             <button type="submit" class="clay-btn w-full py-3.5 text-white font-black text-xs uppercase tracking-wider shadow-md">
-                                <i class="fa-solid fa-paper-plane mr-1"></i> Kirim Jawaban Sekarang
+                                <i class="fa-solid fa-paper-plane mr-1"></i> Kirim Jawaban Teks Sekarang
                             </button>
                         </form>
                     </div>
