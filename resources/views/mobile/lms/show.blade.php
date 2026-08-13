@@ -30,7 +30,7 @@
         <button @click="tab = 'modul'" 
                 :class="tab === 'modul' ? 'clay-purple text-white shadow-md scale-105 font-black' : 'bg-white text-slate-600 border-2 border-slate-200 font-bold'"
                 class="flex-1 py-2.5 px-3 rounded-2xl text-xs transition text-center">
-            📚 Modul & Materi
+            📚 Modul
         </button>
         <button @click="tab = 'tugas'" 
                 :class="tab === 'tugas' ? 'clay-purple text-white shadow-md scale-105 font-black' : 'bg-white text-slate-600 border-2 border-slate-200 font-bold'"
@@ -46,7 +46,7 @@
 
     <!-- Tab 1: Modules & Materials -->
     <div x-show="tab === 'modul'" class="space-y-3">
-        <!-- 1. Standalone / Direct Materials (without module) -->
+        <!-- Direct Materials -->
         @php
             $directMaterials = $course->materials->whereNull('module_id');
         @endphp
@@ -83,7 +83,7 @@
             </div>
         @endif
 
-        <!-- 2. Module Grouped Materials -->
+        <!-- Module Grouped Materials -->
         @forelse($course->modules as $module)
             <div class="clay-card p-4.5 space-y-3">
                 <div class="flex items-center space-x-2.5">
@@ -137,20 +137,78 @@
         @endforelse
     </div>
 
-    <!-- Tab 2: Assignments -->
+    <!-- Tab 2: Assignments (Interactive Submission Form) -->
     <div x-show="tab === 'tugas'" class="space-y-3">
         @forelse($course->assignments as $assignment)
-            <div class="clay-card p-4.5 space-y-2">
+            @php $sub = $submissionMap[$assignment->id] ?? null; @endphp
+            <div class="clay-card p-5 space-y-3" x-data="{ openForm: false }">
                 <div class="flex items-start justify-between">
                     <div>
-                        <h4 class="text-xs font-black text-slate-900">{{ $assignment->title }}</h4>
-                        <p class="text-[11px] text-slate-500 font-bold mt-0.5">Batas waktu: {{ $assignment->due_date ?? '-' }}</p>
+                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black clay-yellow">Tugas</span>
+                        <h4 class="text-xs font-black text-slate-900 mt-1">{{ $assignment->title }}</h4>
+                        <p class="text-[10px] text-slate-500 font-bold mt-0.5"><i class="fa-regular fa-clock text-yellow-600 mr-1"></i>Batas Waktu: {{ $assignment->due_date ?? '-' }}</p>
                     </div>
-                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black clay-yellow">Tugas</span>
+
+                    <!-- Submission Status Badge -->
+                    @if($sub)
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase
+                            {{ $sub->status === 'graded' ? 'clay-green' : ($sub->status === 'late' ? 'clay-pink' : 'clay-blue') }}">
+                            {{ $sub->status === 'graded' ? 'Nilai: ' . $sub->score : ($sub->status === 'late' ? 'Terlambat' : 'Terkumpul') }}
+                        </span>
+                    @else
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                            Belum Ada
+                        </span>
+                    @endif
                 </div>
+
                 @if($assignment->description)
-                    <p class="text-[11px] text-slate-700 font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-200">{!! $assignment->description !!}</p>
+                    <div class="text-[11px] text-slate-700 font-medium bg-slate-50 p-3 rounded-2xl border border-slate-200 leading-relaxed">
+                        {!! $assignment->description !!}
+                    </div>
                 @endif
+
+                <!-- Submission Details / Feedback if graded -->
+                @if($sub && $sub->score !== null)
+                    <div class="p-3 bg-emerald-50 rounded-2xl border-2 border-emerald-200 text-xs space-y-1">
+                        <span class="font-black text-emerald-900 block">✨ Nilai Tugas: {{ $sub->score }}/100</span>
+                        @if($sub->feedback)
+                            <p class="text-[11px] text-emerald-800 font-bold">Catatan Guru: "{{ $sub->feedback }}"</p>
+                        @endif
+                    </div>
+                @endif
+
+                <!-- Toggle Submit Form Button -->
+                <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-[10px] text-slate-500 font-bold">
+                        {{ $sub ? 'Terkumpul: ' . \Carbon\Carbon::parse($sub->submitted_at)->diffForHumans() : 'Belum dikirim' }}
+                    </span>
+                    <button @click="openForm = !openForm" class="clay-btn py-2 px-3.5 text-xs font-black text-white shadow-sm">
+                        <span x-text="openForm ? 'Tutup Form' : '{{ $sub ? '📤 Kumpul Ulang' : '✏️ Kirim Jawaban' }}'"></span>
+                    </button>
+                </div>
+
+                <!-- SUBMISSION FORM -->
+                <div x-show="openForm" x-transition class="pt-3 border-t-2 border-purple-100 space-y-3">
+                    <form action="{{ route('mobile.lms.assignment.submit', $assignment->id) }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                        @csrf
+                        <div>
+                            <label class="block text-xs font-black text-slate-800 mb-1">Teks Jawaban / Link URL</label>
+                            <textarea name="submission_text" rows="3" placeholder="Ketik penjelasan jawaban atau sertakan link Google Drive / URL tugas Anda..."
+                                      class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-xs font-bold text-slate-900 outline-none focus:border-purple-500 transition resize-none">{{ $sub->submission_text ?? '' }}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black text-slate-800 mb-1">Unggah Lampiran Berkas (Opsional, Max 10MB)</label>
+                            <input type="file" name="file" 
+                                   class="w-full text-xs font-bold text-slate-600 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl p-2.5 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-purple-600 file:text-white">
+                        </div>
+
+                        <button type="submit" class="clay-btn w-full py-3.5 text-white font-black text-xs uppercase tracking-wider shadow-md">
+                            <i class="fa-solid fa-paper-plane mr-1"></i> Kirim Jawaban Sekarang
+                        </button>
+                    </form>
+                </div>
             </div>
         @empty
             <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold">
@@ -159,16 +217,40 @@
         @endforelse
     </div>
 
-    <!-- Tab 3: Quizzes -->
+    <!-- Tab 3: Quizzes (Interactive Quiz Start & Result) -->
     <div x-show="tab === 'kuis'" class="space-y-3">
         @forelse($course->quizzes as $quiz)
-            <div class="clay-card p-4.5 space-y-2">
+            @php 
+                $attempts = $attemptMap[$quiz->id] ?? collect(); 
+                $latestFinished = $attempts->whereNotNull('finished_at')->sortByDesc('finished_at')->first();
+            @endphp
+            <div class="clay-card p-5 space-y-3">
                 <div class="flex items-start justify-between">
                     <div>
-                        <h4 class="text-xs font-black text-slate-900">{{ $quiz->title }}</h4>
-                        <p class="text-[11px] text-slate-500 font-bold mt-0.5">Durasi: {{ $quiz->time_limit ?? 30 }} menit</p>
+                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black clay-pink">Kuis LMS</span>
+                        <h4 class="text-xs font-black text-slate-900 mt-1">{{ $quiz->title }}</h4>
+                        <p class="text-[10px] text-slate-500 font-bold mt-0.5"><i class="fa-regular fa-clock text-pink-600 mr-1"></i>Durasi: {{ $quiz->time_limit ?? 30 }} menit</p>
                     </div>
-                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black clay-pink">Kuis</span>
+
+                    @if($latestFinished)
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase {{ $latestFinished->is_passed ? 'clay-green' : 'clay-pink' }}">
+                            {{ number_format($latestFinished->score, 1) }}%
+                        </span>
+                    @endif
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                    @if($latestFinished)
+                        <a href="{{ route('mobile.lms.quiz.result', $latestFinished->id) }}" class="px-3 py-2 bg-slate-100 text-slate-800 text-xs font-black rounded-xl border border-slate-200">
+                            📊 Lihat Hasil
+                        </a>
+                    @else
+                        <span class="text-[10px] text-slate-500 font-bold">Belum dikerjakan</span>
+                    @endif
+
+                    <a href="{{ route('mobile.lms.quiz.start', $quiz->id) }}" class="clay-btn py-2.5 px-4 text-xs font-black text-white shadow-md">
+                        <i class="fa-solid fa-pen-nib mr-1"></i> {{ $latestFinished ? 'Ulangi Kuis' : 'Mulai Kerjakan Kuis' }}
+                    </a>
                 </div>
             </div>
         @empty

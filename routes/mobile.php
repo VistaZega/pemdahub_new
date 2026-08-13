@@ -72,6 +72,10 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::get('/', [MobileLmsController::class, 'index'])->name('index');
             Route::get('/catalog', [MobileLmsController::class, 'catalog'])->name('catalog');
             Route::get('/material/{material}', [MobileLmsController::class, 'material'])->name('material');
+            Route::post('/assignment/{assignment}/submit', [MobileLmsController::class, 'submitAssignment'])->name('assignment.submit');
+            Route::get('/quiz/{quiz}/start', [MobileLmsController::class, 'startQuiz'])->name('quiz.start');
+            Route::post('/quiz/attempt/{attempt}/submit', [MobileLmsController::class, 'submitQuiz'])->name('quiz.submit');
+            Route::get('/quiz/attempt/{attempt}/result', [MobileLmsController::class, 'quizResult'])->name('quiz.result');
             Route::get('/{course}', [MobileLmsController::class, 'show'])->name('show');
         });
 
