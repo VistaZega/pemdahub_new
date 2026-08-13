@@ -58,10 +58,19 @@ class MobileDashboardController extends Controller
             $activeCourses = LmsCourse::where('teacher_id', $teacher->id ?? 0)->take(3)->get();
         }
 
-        // Recent Forum discussions (Pembda Space)
+        // Recent Forum discussions (Pembda Space Terbaru)
         $recentDiscussions = ForumThread::with(['user'])
+            ->withCount(['replies', 'likes'])
             ->latest()
-            ->take(4)
+            ->take(5)
+            ->get();
+
+        // Popular Forum discussions (Pembda Space Paling Rame)
+        $popularDiscussions = ForumThread::with(['user'])
+            ->withCount(['replies', 'likes'])
+            ->orderByRaw('(replies_count + likes_count) DESC')
+            ->latest()
+            ->take(5)
             ->get();
 
         return view('mobile.dashboard', compact(
@@ -70,6 +79,7 @@ class MobileDashboardController extends Controller
             'teacher',
             'attendanceStats',
             'recentDiscussions',
+            'popularDiscussions',
             'activeCourses'
         ));
     }

@@ -260,44 +260,112 @@
     </div>
     @endif
 
-    <!-- Pembda Space Recent Feed Widget -->
-    <div>
-        <div class="flex items-center justify-between mb-3 px-1">
-            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Pembda Space Terbaru</h3>
-            <a href="{{ route('mobile.space.index') }}" class="text-[11px] font-black text-blue-600 hover:text-blue-700">Lihat Semua <i class="fa-solid fa-arrow-right text-[9px]"></i></a>
+    <!-- Pembda Space Widget (Terbaru & Paling Rame) -->
+    <div x-data="{ spaceTab: 'terbaru' }">
+        <div class="flex items-center justify-between mb-2.5 px-1">
+            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                💬 Pembda Space
+            </h3>
+            <a href="{{ route('mobile.space.index') }}" class="text-[11px] font-black text-blue-600 hover:text-blue-700">
+                Lihat Semua <i class="fa-solid fa-arrow-right text-[9px]"></i>
+            </a>
         </div>
 
-        <div class="space-y-3">
+        <!-- Tab Pills (Terbaru vs Paling Rame) -->
+        <div class="grid grid-cols-2 gap-2 p-1.5 bg-slate-200/70 rounded-2xl border-2 border-slate-300 mb-3">
+            <button @click="spaceTab = 'terbaru'"
+                    :class="spaceTab === 'terbaru' ? 'bg-blue-600 text-white border-2 border-black shadow-md font-black' : 'text-slate-600 font-extrabold hover:text-slate-900'"
+                    class="py-2 px-2 text-[11px] transition flex items-center justify-center gap-1">
+                ✨ Postingan Terbaru
+            </button>
+            <button @click="spaceTab = 'rame'"
+                    :class="spaceTab === 'rame' ? 'bg-rose-600 text-white border-2 border-black shadow-md font-black' : 'text-slate-600 font-extrabold hover:text-slate-900'"
+                    class="py-2 px-2 text-[11px] transition flex items-center justify-center gap-1">
+                🔥 Paling Rame
+            </button>
+        </div>
+
+        <!-- TAB 1: POSTINGAN TERBARU -->
+        <div x-show="spaceTab === 'terbaru'" x-transition class="space-y-3">
             @forelse($recentDiscussions as $thread)
-                <a href="{{ route('mobile.space.show', $thread->id) }}" class="clay-card p-5 block hover:border-blue-300 transition space-y-2.5">
-                    <!-- Top Category Badge -->
-                    <div>
-                        <span class="inline-flex items-center gap-1 px-3 py-1 text-[10px] font-black rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                <a href="{{ route('mobile.space.show', $thread->id) }}" class="clay-card p-4.5 block hover:border-blue-300 transition space-y-2 bg-white border-2 border-slate-200">
+                    <!-- Top Category & Time Badge -->
+                    <div class="flex items-center justify-between">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-black rounded-full bg-blue-100 text-blue-800 border border-blue-200">
                             #💬 {{ $thread->category_label ?? $thread->category ?? 'Lobi Utama' }}
+                        </span>
+                        <span class="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                            <i class="fa-regular fa-clock text-blue-500"></i>
+                            {{ $thread->created_at ? $thread->created_at->diffForHumans() : '-' }}
                         </span>
                     </div>
 
-                    <!-- Post Title & Content -->
+                    <!-- Post Title & Content Preview -->
                     <div class="space-y-1">
                         <h4 class="text-xs font-black text-slate-900 leading-snug">{{ $thread->title }}</h4>
                         <p class="text-[11px] text-slate-600 line-clamp-2 leading-relaxed font-semibold">{{ Str::limit(strip_tags($thread->content), 80) }}</p>
                     </div>
 
                     <!-- Footer: Author & Stats -->
-                    <div class="flex items-center justify-between text-[10px] text-slate-500 pt-3 border-t border-slate-100 font-extrabold">
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 pt-2.5 border-t border-slate-100 font-extrabold">
                         <span class="text-slate-700 flex items-center gap-1.5 min-w-0 truncate">
-                            <i class="fa-regular fa-user text-blue-600 text-xs"></i> 
+                            <i class="fa-regular fa-circle-user text-blue-600 text-xs"></i> 
                             <span class="truncate font-black text-slate-800 uppercase tracking-tight text-[10px]">{{ $thread->user->name ?? 'Anonim' }}</span>
                         </span>
-                        <div class="flex items-center space-x-3.5 text-slate-500 shrink-0 text-[11px]">
-                            <span class="flex items-center gap-1"><i class="fa-regular fa-comment text-blue-500"></i>{{ $thread->replies_count ?? 0 }}</span>
-                            <span class="flex items-center gap-1"><i class="fa-regular fa-heart text-rose-500"></i>{{ $thread->likes_count ?? 0 }}</span>
+                        <div class="flex items-center space-x-3 text-slate-500 shrink-0 text-[10px] font-black">
+                            <span class="flex items-center gap-1 text-blue-600"><i class="fa-regular fa-comment"></i>{{ $thread->replies_count ?? count($thread->replies ?? []) }}</span>
+                            <span class="flex items-center gap-1 text-rose-600"><i class="fa-regular fa-heart"></i>{{ $thread->likes_count ?? count($thread->likes ?? []) }}</span>
                         </div>
                     </div>
                 </a>
             @empty
                 <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold">
-                    Belum ada diskusi di Pembda Space.
+                    Belum ada postingan terbaru di Pembda Space.
+                </div>
+            @endforelse
+        </div>
+
+        <!-- TAB 2: POSTINGAN PALING RAME -->
+        <div x-show="spaceTab === 'rame'" x-transition class="space-y-3">
+            @forelse($popularDiscussions as $thread)
+                <a href="{{ route('mobile.space.show', $thread->id) }}" class="clay-card p-4.5 block hover:border-rose-300 transition space-y-2 bg-white border-2 border-rose-100">
+                    <!-- Top Category, Hot Badge & Time -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-black rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                                🔥 Paling Rame
+                            </span>
+                            <span class="text-[9px] font-extrabold text-slate-500">
+                                #{{ $thread->category_label ?? $thread->category ?? 'Diskusi' }}
+                            </span>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                            <i class="fa-regular fa-clock text-rose-500"></i>
+                            {{ $thread->created_at ? $thread->created_at->diffForHumans() : '-' }}
+                        </span>
+                    </div>
+
+                    <!-- Post Title & Content Preview -->
+                    <div class="space-y-1">
+                        <h4 class="text-xs font-black text-slate-900 leading-snug">{{ $thread->title }}</h4>
+                        <p class="text-[11px] text-slate-600 line-clamp-2 leading-relaxed font-semibold">{{ Str::limit(strip_tags($thread->content), 80) }}</p>
+                    </div>
+
+                    <!-- Footer: Author & Stats -->
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 pt-2.5 border-t border-slate-100 font-extrabold">
+                        <span class="text-slate-700 flex items-center gap-1.5 min-w-0 truncate">
+                            <i class="fa-regular fa-circle-user text-rose-600 text-xs"></i> 
+                            <span class="truncate font-black text-slate-800 uppercase tracking-tight text-[10px]">{{ $thread->user->name ?? 'Anonim' }}</span>
+                        </span>
+                        <div class="flex items-center space-x-3 text-slate-500 shrink-0 text-[10px] font-black">
+                            <span class="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200"><i class="fa-regular fa-comment"></i> {{ $thread->replies_count ?? count($thread->replies ?? []) }} Komentar</span>
+                            <span class="flex items-center gap-1 text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200"><i class="fa-regular fa-heart"></i> {{ $thread->likes_count ?? count($thread->likes ?? []) }} Suka</span>
+                        </div>
+                    </div>
+                </a>
+            @empty
+                <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold">
+                    Belum ada postingan ramai di Pembda Space.
                 </div>
             @endforelse
         </div>
