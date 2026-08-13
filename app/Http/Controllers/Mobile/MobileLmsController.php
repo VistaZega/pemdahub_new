@@ -274,4 +274,136 @@ class MobileLmsController extends Controller
         $attempt = LmsQuizAttempt::with(['quiz.questions', 'answers.question'])->findOrFail($attemptId);
         return view('mobile.lms.quiz_result', compact('attempt'));
     }
+
+    /**
+     * Tambah Modul Baru (Guru Mobile)
+     */
+    public function storeModule(Request $request, $courseId)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        if (class_exists('\App\Models\LmsModule')) {
+            \App\Models\LmsModule::create([
+                'course_id' => $courseId,
+                'title' => $request->input('title'),
+                'name' => $request->input('title'),
+                'description' => $request->input('description'),
+                'order_number' => 1,
+            ]);
+        }
+
+        return back()->with('success', 'Modul berhasil ditambahkan!');
+    }
+
+    /**
+     * Unggah / Tambah Materi Baru (Guru Mobile)
+     */
+    public function storeMaterial(Request $request, $courseId)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'material_type' => 'required|string',
+            'module_id' => 'nullable|exists:lms_modules,id',
+            'content' => 'nullable|string',
+            'file_url' => 'nullable|string',
+            'file' => 'nullable|file|max:20480',
+        ]);
+
+        $filePath = null;
+        $fileSize = null;
+        if ($request->hasFile('file')) {
+            $filePath = $request->file('file')->store('lms/materials', 'public');
+            $fileSize = $request->file('file')->getSize();
+        }
+
+        LmsMaterial::create([
+            'course_id' => $courseId,
+            'module_id' => $request->input('module_id'),
+            'title' => $request->input('title'),
+            'material_type' => $request->input('material_type'),
+            'content' => $request->input('content'),
+            'file_url' => $request->input('file_url'),
+            'file_path' => $filePath,
+            'file_size' => $fileSize,
+            'is_published' => true,
+        ]);
+
+        return back()->with('success', 'Materi berhasil ditambahkan!');
+    }
+
+    /**
+     * Hapus Materi (Guru Mobile)
+     */
+    public function destroyMaterial($id)
+    {
+        $material = LmsMaterial::findOrFail($id);
+        $material->delete();
+        return back()->with('success', 'Materi berhasil dihapus!');
+    }
+
+    /**
+     * Tambah Tugas Baru (Guru Mobile)
+     */
+    public function storeAssignment(Request $request, $courseId)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
+        ]);
+
+        LmsAssignment::create([
+            'course_id' => $courseId,
+            'title' => $request->input('title'),
+            'description' => $request->input('description'),
+            'due_date' => $request->input('due_date'),
+        ]);
+
+        return back()->with('success', 'Tugas berhasil ditambahkan!');
+    }
+
+    /**
+     * Hapus Tugas (Guru Mobile)
+     */
+    public function destroyAssignment($id)
+    {
+        $assignment = LmsAssignment::findOrFail($id);
+        $assignment->delete();
+        return back()->with('success', 'Tugas berhasil dihapus!');
+    }
+
+    /**
+     * Tambah Kuis Baru (Guru Mobile)
+     */
+    public function storeQuiz(Request $request, $courseId)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'time_limit' => 'required|integer|min:1',
+        ]);
+
+        LmsQuiz::create([
+            'course_id' => $courseId,
+            'title' => $request->input('title'),
+            'description' => $request->input('description'),
+            'time_limit' => $request->input('time_limit'),
+            'is_published' => true,
+        ]);
+
+        return back()->with('success', 'Kuis berhasil ditambahkan!');
+    }
+
+    /**
+     * Hapus Kuis (Guru Mobile)
+     */
+    public function destroyQuiz($id)
+    {
+        $quiz = LmsQuiz::findOrFail($id);
+        $quiz->delete();
+        return back()->with('success', 'Kuis berhasil dihapus!');
+    }
 }
