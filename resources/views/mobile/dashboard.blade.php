@@ -119,7 +119,7 @@
                     <div class="flex items-start justify-between gap-2">
                         <div class="flex-1 min-w-0">
                             <span class="inline-block px-2 py-0.5 text-[9px] font-bold rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 mb-1">
-                                #{{ $thread->channel_group ?? 'diskusi' }}
+                                #{{ $thread->category_label ?? $thread->category ?? 'diskusi' }}
                             </span>
                             <h4 class="text-xs font-bold text-white truncate leading-snug">{{ $thread->title }}</h4>
                             <p class="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{{ Str::limit(strip_tags($thread->content), 70) }}</p>

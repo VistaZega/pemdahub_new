@@ -18,15 +18,15 @@ class MobileSpaceController extends Controller
         $category = $request->input('category');
         $search = $request->input('search');
 
-        $query = ForumThread::with(['user', 'category', 'replies'])
+        $query = ForumThread::with(['user', 'replies'])
             ->withCount('replies', 'likes');
 
         if ($channel) {
-            $query->where('channel_group', $channel);
+            $query->where('category', $channel);
         }
 
         if ($category) {
-            $query->where('category_id', $category);
+            $query->where('category', $category);
         }
 
         if ($search) {
@@ -53,7 +53,7 @@ class MobileSpaceController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'category_slug' => 'nullable|string',
+            'category' => 'nullable|string',
             'channel_group' => 'nullable|string',
         ]);
 
@@ -61,8 +61,7 @@ class MobileSpaceController extends Controller
             'user_id' => Auth::id(),
             'title' => $validated['title'],
             'content' => $validated['content'],
-            'channel_group' => $validated['channel_group'] ?? 'diskusi',
-            'category_slug' => $validated['category_slug'] ?? 'diskusi',
+            'category' => $validated['category'] ?? $validated['channel_group'] ?? 'diskusi',
             'views_count' => 0,
         ]);
 

@@ -79,7 +79,7 @@
                 <!-- Footer Actions -->
                 <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs text-slate-400">
                     <span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] text-slate-300 font-medium">
-                        #{{ $thread->channel_group ?? 'diskusi' }}
+                        #{{ $thread->category_label ?? $thread->category ?? 'diskusi' }}
                     </span>
 
                     <div class="flex items-center space-x-4">

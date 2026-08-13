@@ -58,7 +58,7 @@ class MobileDashboardController extends Controller
         }
 
         // Recent Forum discussions (Pembda Space)
-        $recentDiscussions = ForumThread::with(['user', 'category'])
+        $recentDiscussions = ForumThread::with(['user'])
             ->latest()
             ->take(4)
             ->get();

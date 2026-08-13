@@ -23,7 +23,7 @@
                 </div>
             </div>
             <span class="px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30">
-                #{{ $thread->channel_group ?? 'diskusi' }}
+                #{{ $thread->category_label ?? $thread->category ?? 'diskusi' }}
             </span>
         </div>
 
