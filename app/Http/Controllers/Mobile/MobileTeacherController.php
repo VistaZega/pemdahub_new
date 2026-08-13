@@ -473,8 +473,7 @@ class MobileTeacherController extends Controller
 
         $banks = collect();
         if ($teacher && class_exists('\App\Models\CbtQuestionBank')) {
-            $banks = \App\Models\CbtQuestionBank::where('created_by', $teacher->id)
-                ->orWhere('teacher_id', $teacher->id)
+            $banks = \App\Models\CbtQuestionBank::where('teacher_id', $teacher->id)
                 ->withCount('questions')
                 ->latest()
                 ->get();
