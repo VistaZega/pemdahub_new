@@ -19,20 +19,20 @@
     <div class="grid grid-cols-2 gap-2 p-1.5 bg-slate-200/70 rounded-2xl border-2 border-slate-300">
         <button @click="activeTab = 'siswa'"
                 :class="activeTab === 'siswa' ? 'bg-amber-400 text-slate-900 border-2 border-black shadow-md font-black' : 'text-slate-600 font-extrabold hover:text-slate-900'"
-                class="py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
-            🎓 Siswa Terbaik
+                class="py-2.5 px-2 text-[11px] sm:text-xs transition flex items-center justify-center gap-1">
+            🎓 Top Elite Students
         </button>
         <button @click="activeTab = 'guru'"
                 :class="activeTab === 'guru' ? 'bg-purple-600 text-white border-2 border-black shadow-md font-black' : 'text-slate-600 font-extrabold hover:text-slate-900'"
-                class="py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
-            👨‍🏫 Guru Terbaik
+                class="py-2.5 px-2 text-[11px] sm:text-xs transition flex items-center justify-center gap-1">
+            ✨ Inspirational Teachers
         </button>
     </div>
 
     <!-- Tab 1: Top Siswa -->
     <div x-show="activeTab === 'siswa'" x-transition class="space-y-3">
         <h3 class="text-xs font-black text-slate-600 uppercase tracking-wider px-1 flex items-center gap-1.5">
-            <i class="fa-solid fa-graduation-cap text-amber-500"></i> Peringkat Reputasi Siswa
+            <i class="fa-solid fa-graduation-cap text-amber-500"></i> Peringkat Top Elite Students
         </h3>
 
         @forelse($topStudents as $index => $std)
@@ -65,7 +65,7 @@
     <!-- Tab 2: Top Guru -->
     <div x-show="activeTab === 'guru'" x-transition class="space-y-3">
         <h3 class="text-xs font-black text-slate-600 uppercase tracking-wider px-1 flex items-center gap-1.5">
-            <i class="fa-solid fa-chalkboard-user text-purple-600"></i> Peringkat Reputasi Guru
+            <i class="fa-solid fa-chalkboard-user text-purple-600"></i> Peringkat Inspirational Teachers
         </h3>
 
         @forelse($topTeachers as $index => $tcher)
