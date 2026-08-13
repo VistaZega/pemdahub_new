@@ -49,8 +49,8 @@ class CbtController extends Controller
 
         $user = Auth::user();
         $isAdmin = $user && (
-            (method_exists($user, 'hasRole') && $user->hasRole(['admin', 'superadmin', 'kurikulum'])) 
-            || in_array($user->role ?? '', ['admin', 'superadmin', 'kurikulum', 'operator'])
+            (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'superadmin', 'kurikulum', 'admin_sekolah'])) 
+            || in_array($user->role ?? '', ['admin', 'superadmin', 'kurikulum', 'operator', 'admin_sekolah'])
         );
 
         $isOwner = $bank->teacher_id === $teacher->id;
@@ -70,8 +70,8 @@ class CbtController extends Controller
 
         $user = Auth::user();
         $isAdmin = $user && (
-            (method_exists($user, 'hasRole') && $user->hasRole(['admin', 'superadmin', 'kurikulum'])) 
-            || in_array($user->role ?? '', ['admin', 'superadmin', 'kurikulum', 'operator'])
+            (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'superadmin', 'kurikulum', 'admin_sekolah'])) 
+            || in_array($user->role ?? '', ['admin', 'superadmin', 'kurikulum', 'operator', 'admin_sekolah'])
         );
 
         $isOwner = $exam->teacher_id === $teacher->id;
