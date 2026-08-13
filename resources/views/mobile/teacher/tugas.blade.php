@@ -32,10 +32,29 @@
                 <!-- Submissions List Inside Card -->
                 <div x-show="openSubmissions" class="space-y-2 pt-2.5 border-t border-slate-100">
                     @forelse($assignment->submissions as $sub)
+                        @php
+                            $subStudent = $sub->student ?? null;
+                            $studentPhoto = $subStudent?->photo_url ?? null;
+                            if (!$studentPhoto || str_contains($studentPhoto, 'default-student.jpg') || str_contains($studentPhoto, 'default-avatar')) {
+                                if (isset($subStudent->user->avatar_url) && $subStudent->user->avatar_url) {
+                                    $studentPhoto = $subStudent->user->avatar_url;
+                                } else {
+                                    $studentPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($subStudent?->full_name ?? 'Siswa') . '&background=7c3aed&color=fff&bold=true';
+                                }
+                            }
+                        @endphp
                         <div class="p-3.5 bg-[#f4f7fc] rounded-2xl space-y-2 border-2 border-slate-200/80">
                             <div class="flex items-center justify-between text-xs font-bold">
-                                <span class="font-black text-slate-900">{{ $sub->student->full_name ?? 'Siswa' }}</span>
-                                <span class="text-[10px] text-slate-400 font-bold">{{ $sub->created_at ? $sub->created_at->diffForHumans() : '' }}</span>
+                                <div class="flex items-center space-x-2.5">
+                                    <img src="{{ $studentPhoto }}" alt="{{ $subStudent?->full_name ?? 'Siswa' }}"
+                                         onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($subStudent?->full_name ?? 'Siswa') }}&background=7c3aed&color=fff&bold=true';"
+                                         class="w-8 h-8 rounded-xl object-cover border border-purple-300 shadow-xs shrink-0">
+                                    <div>
+                                        <span class="font-black text-slate-900 block leading-snug">{{ $subStudent?->full_name ?? 'Siswa' }}</span>
+                                        <span class="text-[9px] text-slate-500 font-bold">NIS: {{ $subStudent?->nis ?? '-' }}</span>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] text-slate-400 font-bold shrink-0">{{ $sub->created_at ? $sub->created_at->diffForHumans() : '' }}</span>
                             </div>
 
                             <form action="{{ route('mobile.guru.tugas.grade', $sub->id) }}" method="POST" class="flex items-center gap-2">

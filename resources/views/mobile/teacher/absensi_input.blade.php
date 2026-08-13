@@ -107,14 +107,29 @@
 
             <div class="space-y-2.5">
                 @foreach($students as $st)
-                    @php $currentStatus = $existingAttendances[$st->id] ?? 'hadir'; @endphp
+                    @php 
+                        $currentStatus = $existingAttendances[$st->id] ?? 'hadir';
+                        $studentPhoto = $st->photo_url ?? null;
+                        if (!$studentPhoto || str_contains($studentPhoto, 'default-student.jpg') || str_contains($studentPhoto, 'default-avatar')) {
+                            if (isset($st->user->avatar_url) && $st->user->avatar_url) {
+                                $studentPhoto = $st->user->avatar_url;
+                            } else {
+                                $studentPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($st->full_name) . '&background=7c3aed&color=fff&bold=true';
+                            }
+                        }
+                    @endphp
                     <div class="clay-card p-4 space-y-2.5" x-data="{ status: '{{ $currentStatus }}' }" @mark-all-hadir.window="status = 'hadir'">
                         <input type="hidden" name="attendances[{{ $st->id }}]" :value="status">
                         
                         <div class="flex items-center justify-between">
-                            <div>
-                                <h4 class="text-xs font-black text-slate-900">{{ $st->full_name }}</h4>
-                                <span class="text-[10px] text-slate-500 font-bold">NISN: {{ $st->nisn ?? '-' }}</span>
+                            <div class="flex items-center space-x-3">
+                                <img src="{{ $studentPhoto }}" alt="{{ $st->full_name }}"
+                                     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($st->full_name) }}&background=7c3aed&color=fff&bold=true';"
+                                     class="w-10 h-10 rounded-2xl object-cover border-2 border-purple-200 shadow-sm shrink-0">
+                                <div>
+                                    <h4 class="text-xs font-black text-slate-900 leading-snug">{{ $st->full_name }}</h4>
+                                    <span class="text-[10px] text-slate-500 font-bold">NISN: {{ $st->nisn ?? '-' }}</span>
+                                </div>
                             </div>
                             <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full"
                                   :class="{
@@ -187,11 +202,26 @@
 
                 <div class="space-y-2">
                     @foreach($students as $st)
-                        @php $stStatus = $existingAttendances[$st->id] ?? 'hadir'; @endphp
+                        @php 
+                            $stStatus = $existingAttendances[$st->id] ?? 'hadir';
+                            $studentPhoto = $st->photo_url ?? null;
+                            if (!$studentPhoto || str_contains($studentPhoto, 'default-student.jpg') || str_contains($studentPhoto, 'default-avatar')) {
+                                if (isset($st->user->avatar_url) && $st->user->avatar_url) {
+                                    $studentPhoto = $st->user->avatar_url;
+                                } else {
+                                    $studentPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($st->full_name) . '&background=7c3aed&color=fff&bold=true';
+                                }
+                            }
+                        @endphp
                         <div class="p-3 rounded-2xl bg-[#f4f7fc] border-2 border-slate-200/80 flex items-center justify-between text-xs">
-                            <div>
-                                <h4 class="font-black text-slate-900">{{ $st->full_name }}</h4>
-                                <span class="text-[10px] text-slate-500 font-bold">NISN: {{ $st->nisn ?? '-' }}</span>
+                            <div class="flex items-center space-x-3">
+                                <img src="{{ $studentPhoto }}" alt="{{ $st->full_name }}"
+                                     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($st->full_name) }}&background=7c3aed&color=fff&bold=true';"
+                                     class="w-9 h-9 rounded-xl object-cover border border-purple-200 shadow-xs shrink-0">
+                                <div>
+                                    <h4 class="font-black text-slate-900 leading-snug">{{ $st->full_name }}</h4>
+                                    <span class="text-[10px] text-slate-500 font-bold">NISN: {{ $st->nisn ?? '-' }}</span>
+                                </div>
                             </div>
                             <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase
                                 {{ $stStatus === 'hadir' ? 'clay-green' : '' }}
