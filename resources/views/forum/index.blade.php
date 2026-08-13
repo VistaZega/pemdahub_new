@@ -403,8 +403,16 @@
                         </div>
 
                         <!-- 🏗️ Tower Foundation / Fondasi -->
-                        <div class="bg-gradient-to-b from-amber-700 via-amber-800 to-amber-950 text-amber-200 text-[10px] font-black uppercase tracking-[0.12em] text-center py-2.5 px-6 rounded-b-xl shadow-lg border-t-4 border-amber-600" style="width: 100%;">
-                            🏗️ Fondasi Menara · <span x-text="stats.total_bricks"></span> Bata Terpasang · Tinggi <span x-text="stats.total_height"></span> Lantai
+                        <div class="bg-gradient-to-r from-amber-950 via-amber-900 to-slate-900 text-white text-xs sm:text-sm font-black uppercase tracking-wider text-center py-3 px-6 rounded-b-2xl shadow-xl border-t-4 border-amber-400 flex flex-wrap items-center justify-center gap-2 sm:gap-3" style="width: 100%;">
+                            <span class="text-white drop-shadow-sm flex items-center gap-1"><span>🏗️</span> <span>Fondasi Menara</span></span>
+                            <span class="text-amber-400 font-black">·</span>
+                            <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg border border-amber-300 font-extrabold shadow-sm">
+                                <span x-text="stats.total_bricks"></span> Bata Terpasang
+                            </span>
+                            <span class="text-amber-400 font-black">·</span>
+                            <span class="bg-amber-300 text-black px-2.5 py-0.5 rounded-lg border border-amber-200 font-extrabold shadow-sm">
+                                Tinggi <span x-text="stats.total_height"></span> Lantai
+                            </span>
                         </div>
 
                     </div>
