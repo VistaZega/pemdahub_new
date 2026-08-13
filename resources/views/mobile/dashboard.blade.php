@@ -131,9 +131,9 @@
             </a>
         </div>
         @else
-        <!-- Menu Guru (Clay Cards) -->
-        <div class="grid grid-cols-5 gap-2">
-            <!-- Jadwal Mengajar -->
+        <!-- Menu Guru (Clay Cards Grid) -->
+        <div class="grid grid-cols-4 sm:grid-cols-5 gap-2.5">
+            <!-- 1. Jadwal Mengajar -->
             <a href="{{ route('mobile.guru.jadwal') }}" class="clay-purple p-3 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     👨‍🏫
@@ -141,7 +141,7 @@
                 <span class="text-[10px] font-black">Jadwal</span>
             </a>
 
-            <!-- Input Absensi Siswa (Kelas) -->
+            <!-- 2. Input Absensi Siswa -->
             <a href="{{ route('mobile.guru.absensi.input') }}" class="clay-green p-3 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     📋
@@ -149,7 +149,7 @@
                 <span class="text-[10px] font-black">Absen Siswa</span>
             </a>
 
-            <!-- Presensi Guru Mandiri (Absen Saya) -->
+            <!-- 3. Presensi Guru Mandiri (Absen Saya) -->
             <a href="{{ route('mobile.guru.absensi.saya') }}" class="clay-cyan p-3 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     📌
@@ -157,7 +157,7 @@
                 <span class="text-[10px] font-black">Absen Saya</span>
             </a>
 
-            <!-- Periksa Tugas -->
+            <!-- 4. Periksa Tugas & Nilai -->
             <a href="{{ route('mobile.guru.tugas') }}" class="clay-yellow p-3 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     📝
@@ -165,12 +165,60 @@
                 <span class="text-[10px] font-black">Nilai</span>
             </a>
 
-            <!-- Space -->
+            <!-- 5. My Class (Kelas Saya) -->
+            <a href="{{ route('guru.kelas') }}" class="clay-blue p-3 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    🏫
+                </div>
+                <span class="text-[10px] font-black">My Class</span>
+            </a>
+
+            <!-- 6. Surat Edaran -->
+            <a href="{{ route('guru.knowledge.index') }}" class="clay-orange p-3 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    📜
+                </div>
+                <span class="text-[10px] font-black">Edaran</span>
+            </a>
+
+            <!-- 7. CBT Ujian -->
+            <a href="{{ Route::has('guru.cbt.banks.index') ? route('guru.cbt.banks.index') : route('mobile.cbt') }}" class="clay-pink p-3 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    💻
+                </div>
+                <span class="text-[10px] font-black">CBT</span>
+            </a>
+
+            <!-- 8. Raport Digital -->
+            <a href="{{ route('guru.raport.index') }}" class="clay-green p-3 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    📊
+                </div>
+                <span class="text-[10px] font-black">Raport</span>
+            </a>
+
+            <!-- 9. Hall Of Fame -->
+            <a href="{{ route('reputation.leaderboard') }}" class="clay-yellow p-3 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    🏆
+                </div>
+                <span class="text-[10px] font-black">Hall of Fame</span>
+            </a>
+
+            <!-- 10. Pembda Space -->
             <a href="{{ route('mobile.space.index') }}" class="clay-purple p-3 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     💬
                 </div>
                 <span class="text-[10px] font-black">Space</span>
+            </a>
+
+            <!-- 11. Profile Saya -->
+            <a href="{{ route('mobile.profile') }}" class="clay-cyan p-3 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    👤
+                </div>
+                <span class="text-[10px] font-black">Profile</span>
             </a>
         </div>
         @endif
