@@ -409,4 +409,132 @@ class MobileTeacherController extends Controller
             'teacher', 'employee', 'todayAttendance', 'totals', 'calendarData', 'pct', 'reputationPoints', 'month', 'year', 'daysInMonth'
         ));
     }
+
+    /**
+     * My Class / Kelas Saya (Guru Mobile)
+     */
+    public function kelas()
+    {
+        $teacher = $this->getTeacher();
+        $user = Auth::user();
+
+        $classrooms = collect();
+        if ($teacher) {
+            $classrooms = Classroom::where('is_active', true)
+                ->where(function ($q) use ($teacher) {
+                    $q->where('homeroom_teacher_id', $teacher->id)
+                      ->orWhereHas('schedules', fn($sq) => $sq->where('teacher_id', $teacher->id))
+                      ->orWhereHas('teachingAssignments', fn($tq) => $tq->where('teacher_id', $teacher->id));
+                })
+                ->withCount('students')
+                ->orderBy('class_name')
+                ->get();
+        }
+
+        if ($classrooms->isEmpty()) {
+            $schoolId = $teacher?->school_id ?? $user->school_id;
+            $classrooms = Classroom::where('is_active', true)
+                ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                ->withCount('students')
+                ->orderBy('class_name')
+                ->get();
+        }
+
+        return view('mobile.teacher.kelas', compact('teacher', 'classrooms'));
+    }
+
+    /**
+     * Surat Edaran & Informasi Sekolah (Guru Mobile)
+     */
+    public function edaran()
+    {
+        $teacher = $this->getTeacher();
+        $user = Auth::user();
+
+        $mediaList = collect();
+        if (class_exists('\App\Models\KnowledgeMedia')) {
+            $mediaList = \App\Models\KnowledgeMedia::latest()->take(20)->get();
+        }
+
+        $announcements = collect();
+        if (class_exists('\App\Models\Announcement')) {
+            $announcements = \App\Models\Announcement::latest()->take(20)->get();
+        }
+
+        return view('mobile.teacher.edaran', compact('teacher', 'mediaList', 'announcements'));
+    }
+
+    /**
+     * CBT Ujian & Bank Soal (Guru Mobile)
+     */
+    public function cbt()
+    {
+        $teacher = $this->getTeacher();
+
+        $banks = collect();
+        if ($teacher && class_exists('\App\Models\CbtQuestionBank')) {
+            $banks = \App\Models\CbtQuestionBank::where('created_by', $teacher->id)
+                ->orWhere('teacher_id', $teacher->id)
+                ->withCount('questions')
+                ->latest()
+                ->get();
+        }
+
+        if ($banks->isEmpty() && class_exists('\App\Models\CbtQuestionBank')) {
+            $banks = \App\Models\CbtQuestionBank::withCount('questions')
+                ->latest()
+                ->take(10)
+                ->get();
+        }
+
+        $exams = collect();
+        if (class_exists('\App\Models\CbtExam')) {
+            $exams = \App\Models\CbtExam::latest()->take(10)->get();
+        }
+
+        return view('mobile.teacher.cbt', compact('teacher', 'banks', 'exams'));
+    }
+
+    /**
+     * Raport Digital Wali Kelas (Guru Mobile)
+     */
+    public function raport()
+    {
+        $teacher = $this->getTeacher();
+        $user = Auth::user();
+
+        $homeroomClasses = collect();
+        if ($teacher) {
+            $homeroomClasses = Classroom::where('homeroom_teacher_id', $teacher->id)
+                ->where('is_active', true)
+                ->with('students')
+                ->get();
+        }
+
+        $reportCards = collect();
+        if (class_exists('\App\Models\ReportCard')) {
+            $reportCards = \App\Models\ReportCard::with(['student', 'classroom'])
+                ->latest()
+                ->take(20)
+                ->get();
+        }
+
+        return view('mobile.teacher.raport', compact('teacher', 'homeroomClasses', 'reportCards'));
+    }
+
+    /**
+     * Hall of Fame & Leaderboard (Guru Mobile)
+     */
+    public function hallOfFame()
+    {
+        $topStudents = Student::orderBy('reputation_points', 'desc')
+            ->take(15)
+            ->get();
+
+        $topTeachers = Teacher::orderBy('reputation_points', 'desc')
+            ->take(10)
+            ->get();
+
+        return view('mobile.hall_of_fame', compact('topStudents', 'topTeachers'));
+    }
 }

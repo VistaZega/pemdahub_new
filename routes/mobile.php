@@ -56,6 +56,11 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::post('/absensi-store', [MobileTeacherController::class, 'storeAbsensi'])->name('absensi.store');
             Route::get('/tugas', [MobileTeacherController::class, 'tugas'])->name('tugas');
             Route::post('/tugas/{submission}/grade', [MobileTeacherController::class, 'gradeSubmission'])->name('tugas.grade');
+            Route::get('/kelas', [MobileTeacherController::class, 'kelas'])->name('kelas');
+            Route::get('/edaran', [MobileTeacherController::class, 'edaran'])->name('edaran');
+            Route::get('/cbt', [MobileTeacherController::class, 'cbt'])->name('cbt');
+            Route::get('/raport', [MobileTeacherController::class, 'raport'])->name('raport');
+            Route::get('/hall-of-fame', [MobileTeacherController::class, 'hallOfFame'])->name('hall-of-fame');
         });
 
         // Pembda Space (Forum)
