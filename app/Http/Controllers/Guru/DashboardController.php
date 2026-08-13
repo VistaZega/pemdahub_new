@@ -689,6 +689,8 @@ class DashboardController extends Controller
         $selectedClassroom = null;
         $assignmentInfo = null;
         $lessonDates = [];
+        $selectedInputDate = $request->input('input_date', date('Y-m-d'));
+        $isTodayScheduled = false;
 
         if ($selectedClassroomId) {
             $selectedClassroom = $classrooms->firstWhere('id', $selectedClassroomId);
