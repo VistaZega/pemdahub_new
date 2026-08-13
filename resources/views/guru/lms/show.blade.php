@@ -340,17 +340,36 @@ if (!function_exists('balanceHtmlTags')) {
                             <div class="flex items-center gap-4">
                                 @php
                                     $bgMat = match($material->material_type) {
+                                        'text' => '#4f46e5',
                                         'pdf' => '#dc2626',
                                         'video' => '#2563eb',
                                         'image' => '#059669',
                                         'link' => '#9333ea',
-                                        'interactive' => '#4f46e5',
+                                        'interactive' => '#0284c7',
                                         'document' => '#ea580c',
+                                        'canva' => '#00c4cc',
+                                        'googledocs' => '#ea4335',
+                                        'audio' => '#d97706',
+                                        'embed' => '#0f172a',
                                         default => '#475569',
+                                    };
+                                    $iconMat = match($material->material_type) {
+                                        'text' => 'fa-book-open',
+                                        'pdf' => 'fa-file-pdf',
+                                        'video' => 'fa-video',
+                                        'image' => 'fa-image',
+                                        'link' => 'fa-link',
+                                        'interactive' => 'fa-gamepad',
+                                        'document' => 'fa-file-word',
+                                        'canva' => 'fa-palette',
+                                        'googledocs' => 'fa-file-alt',
+                                        'audio' => 'fa-volume-up',
+                                        'embed' => 'fa-code',
+                                        default => 'fa-file',
                                     };
                                 @endphp
                                 <span class="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-black shadow-md border-2 border-black flex-shrink-0 mr-2" style="background-color: {{ $bgMat }} !important; color: #ffffff !important;">
-                                    <i class="fas {{ $material->material_type === 'pdf' ? 'fa-file-pdf' : ($material->material_type === 'video' ? 'fa-video' : ($material->material_type === 'image' ? 'fa-image' : ($material->material_type === 'link' ? 'fa-link' : ($material->material_type === 'interactive' ? 'fa-gamepad' : ($material->material_type === 'document' ? 'fa-file-alt' : 'fa-file'))))) }} text-lg"></i>
+                                    <i class="fas {{ $iconMat }} text-lg"></i>
                                 </span>
                                 <div class="space-y-1">
                                     <div class="font-black text-black text-sm flex flex-wrap items-center gap-2">
@@ -367,7 +386,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     'module_id' => $material->module_id,
                                     'title' => preg_replace('/^\d+\.\d+\s*/', '', $material->title),
                                     'material_type' => $material->material_type,
-                                    'content' => trim(strip_tags(str_replace(['<br>', '<br/>', '<br />', '</p>', '</h1>', '</h2>', '</h3>'], "\n", $material->content))),
+                                    'content' => $material->content ?? '',
                                     'file_url' => $material->file_url,
                                     'update_url' => route('guru.lms.materials.update', $material->id)
                                 ]) }})" class="w-8 h-8 rounded-xl flex items-center justify-center bg-white text-black hover:bg-amber-300 transition-colors border border-black shadow-sm" title="Edit Materi"><i class="fas fa-edit text-xs"></i></button>
@@ -463,6 +482,32 @@ if (!function_exists('balanceHtmlTags')) {
                                             <i class="fas fa-external-link-alt text-amber-400"></i> Buka Game di Tab Baru
                                         </a>
                                     </div>
+                                @elseif($material->material_type === 'canva' || str_contains($material->file_url ?? '', 'canva.com'))
+                                    <div class="w-full rounded-2xl overflow-hidden shadow-md border-2 border-black bg-white mb-4" style="height: 550px;">
+                                        <iframe src="{{ str_contains($material->file_url, '/view') ? str_replace('/view', '/view?embed', $material->file_url) : $material->file_url }}" class="w-full h-full" allowfullscreen="allowfullscreen" allow="fullscreen" frameborder="0"></iframe>
+                                    </div>
+                                @elseif($material->material_type === 'googledocs' || str_contains($material->file_url ?? '', 'docs.google.com'))
+                                    <div class="w-full rounded-2xl overflow-hidden shadow-md border-2 border-black bg-white mb-4" style="height: 600px;">
+                                        <iframe src="{{ str_contains($material->file_url, '/pub') ? $material->file_url : str_replace('/edit', '/preview', $material->file_url) }}" class="w-full h-full" frameborder="0"></iframe>
+                                    </div>
+                                @elseif($material->material_type === 'audio')
+                                    <div class="p-4 rounded-2xl border-2 border-black mb-4 flex flex-col gap-3 shadow-md" style="background-color: #fef3c7 !important;">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black border border-black"><i class="fas fa-volume-up text-lg"></i></div>
+                                            <div>
+                                                <p class="font-black text-black text-xs uppercase">Pemutar Rekaman Suara / Audio Materi</p>
+                                                <p class="text-[11px] text-slate-700 font-bold">Dengarkan materi pembelajaran audio di bawah ini.</p>
+                                            </div>
+                                        </div>
+                                        <audio controls class="w-full rounded-xl">
+                                            <source src="{{ $material->file_path ? route('guru.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" type="audio/mpeg">
+                                            Browser Anda tidak mendukung pemutar audio.
+                                        </audio>
+                                    </div>
+                                @elseif($material->material_type === 'embed')
+                                    <div class="w-full rounded-2xl overflow-hidden shadow-md border-2 border-black bg-white mb-4 p-3">
+                                        {!! $material->file_url !!}
+                                    </div>
                                 @elseif($material->file_path || $material->material_type === 'document')
                                     <div class="p-4 rounded-2xl border-2 border-black flex items-center justify-between gap-4 mb-4" style="background-color: #e0f2fe !important;">
                                         <div class="flex items-center gap-3.5">
@@ -488,9 +533,27 @@ if (!function_exists('balanceHtmlTags')) {
                                 @endif
                             </div>
 
-                            {{-- Text Content --}}
+                            {{-- Text Content / Artikel Ajar Teks --}}
                             @if($material->content)
-                            <div class="prose prose-sm max-w-none text-slate-800 mt-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">{!! formatLmsContent($material->content) !!}</div>
+                            <div class="mt-4 rounded-2xl border-2 border-black bg-slate-50 overflow-hidden shadow-md">
+                                <div class="px-5 py-3 border-b-2 border-black flex items-center justify-between flex-wrap gap-2" style="background-color: #0f172a !important; color: #ffffff !important;">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-book-open text-amber-400 text-sm"></i>
+                                        <span class="text-xs font-black uppercase text-white tracking-wider">Artikel Pembelajaran Teks (Modul Ajar)</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] bg-slate-800 text-amber-300 font-bold px-2 py-0.5 rounded-lg border border-slate-700">
+                                            <i class="far fa-clock mr-1"></i> ~{{ max(1, ceil(str_word_count(strip_tags($material->content)) / 180)) }} Menit Baca
+                                        </span>
+                                        <button type="button" @click.stop="$dispatch('open-article-reader', { title: '{{ addslashes($material->title) }}', content: {{ json_encode($material->content) }} })" class="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-black font-black text-[11px] rounded-lg transition border border-black flex items-center gap-1 shadow-xs">
+                                            <i class="fas fa-expand text-[10px]"></i> Mode Baca Artikel
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="p-6 bg-white prose prose-sm max-w-none text-slate-900 leading-relaxed font-sans">
+                                    {!! formatLmsContent($material->content) !!}
+                                </div>
+                            </div>
                             @endif
                         </div>
                     </div>
@@ -1622,104 +1685,120 @@ if (!function_exists('balanceHtmlTags')) {
 {{-- ═══════════════════════════════════════════════ --}}
 {{-- MATERIAL UPLOAD MODAL --}}
 {{-- ═══════════════════════════════════════════════ --}}
-<div x-data="{ open: false, type: 'document', file_url: '', material_title: '' }" @open-material-modal.window="open = true" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
+<div x-data="{ open: false, type: 'text', file_url: '', material_title: '' }" @open-material-modal.window="open = true; type = 'text'" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
     <div class="flex items-center justify-center min-h-screen p-4" style="z-index: 99999 !important;">
         <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
 
-        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-lg w-full relative border-2 border-black" style="z-index: 100000 !important;">
+        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-3xl w-full relative border-2 border-black" style="z-index: 100000 !important;">
             <div class="px-6 py-4 flex items-center justify-between border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
-                <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-sm uppercase"><i class="fas fa-upload text-amber-400"></i> Upload Materi Pembelajaran Baru</h3>
+                <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-sm uppercase"><i class="fas fa-edit text-amber-400"></i> Buat Materi Pembelajaran Baru</h3>
                 <button @click="open = false" class="text-white/80 hover:text-white transition-colors bg-slate-800 border border-slate-700 w-8 h-8 rounded-xl flex items-center justify-center font-black"><i class="fas fa-times"></i></button>
             </div>
             
             <form action="{{ route('guru.lms.materials.store', $course->id) }}" method="POST" enctype="multipart/form-data" class="p-6">
                 @csrf
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Modul Target <span class="text-red-600">*</span></label>
-                        <select name="module_id" required class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white">
-                            <option value="">-- Pilih Modul --</option>
-                            @foreach($course->modules as $mod)
-                            <option value="{{ $mod->id }}">Modul {{ $mod->sequence }}: {{ $mod->title }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Judul Materi <span class="text-red-600">*</span></label>
-                        <input type="text" name="title" x-model="material_title" required placeholder="Contoh: Pengantar Algoritma Pemrograman..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Tipe Materi</label>
-                            <select name="material_type" required x-model="type" class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white">
-                                <option value="document">Dokumen Word/PPT</option>
-                                <option value="pdf">PDF</option>
-                                <option value="video">Video</option>
-                                <option value="image">Gambar</option>
-                                <option value="link">Link Eksternal</option>
-                                <option value="interactive">Game / Simulator Interaktif (Embed)</option>
+                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Modul Target <span class="text-red-600">*</span></label>
+                            <select name="module_id" required class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white">
+                                <option value="">-- Pilih Modul --</option>
+                                @foreach($course->modules as $mod)
+                                <option value="{{ $mod->id }}">Modul {{ $mod->sequence }}: {{ $mod->title }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">File (Maks. 10 MB)</label>
-                            <input type="file" name="file" class="w-full text-xs text-black font-bold file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-2 file:border-black file:text-xs file:font-black file:bg-amber-300 file:text-black hover:file:bg-black hover:file:text-white cursor-pointer">
+                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Format / Tipe Materi <span class="text-red-600">*</span></label>
+                            <select name="material_type" required x-model="type" class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-amber-50">
+                                <option value="text">📝 Artikel / Modul Teks Langsung (Disarankan)</option>
+                                <option value="pdf">📄 Berkas PDF</option>
+                                <option value="document">📁 Dokumen Word / PPT</option>
+                                <option value="video">🎥 Pemutar Video / YouTube</option>
+                                <option value="image">🖼️ Gambar / Diagram</option>
+                                <option value="canva">🎨 Embed Canva Presentation</option>
+                                <option value="googledocs">📊 Embed Google Docs / Slides / Form</option>
+                                <option value="audio">🎙️ Rekaman Audio / Podcast</option>
+                                <option value="interactive">🎮 Simulator Interaktif (PhET, SimLab, GeoGebra)</option>
+                                <option value="link">🔗 Link Eksternal</option>
+                                <option value="embed">💻 Kode Embed HTML (Iframe Custom)</option>
+                            </select>
                         </div>
                     </div>
 
-                    <!-- Info Batasan Video & File -->
-                    <div x-show="type === 'video'" class="bg-sky-100 border-2 border-black rounded-2xl p-4 text-xs text-black space-y-1.5" style="display: none">
-                        <p class="font-black uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fas fa-info-circle text-sky-600 text-sm"></i> Petunjuk Upload Video:
-                        </p>
-                        <ul class="list-disc list-inside space-y-1 text-black font-bold text-xs">
-                            <li>Format MP4 disarankan untuk pemutaran langsung di browser.</li>
-                            <li>Batas file upload langsung: <strong>10 MB</strong>.</li>
-                            <li><strong>Rekomendasi Terbaik:</strong> Untuk video &gt;10 MB, upload ke <strong>YouTube</strong> lalu tempelkan link URL-nya pada kolom di bawah.</li>
-                        </ul>
+                    <div>
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Judul Materi Pembelajaran <span class="text-red-600">*</span></label>
+                        <input type="text" name="title" x-model="material_title" required placeholder="Contoh: Bab 1 - Pengantar Algoritma & Struktur Data..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                     </div>
 
-                    <!-- Simulator & Game 1-Click Quick Selector -->
+                    <!-- Quill Editor Area -->
+                    <div class="border-2 border-black rounded-2xl p-4 bg-slate-50 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-slate-200 pb-2">
+                            <label class="block text-xs font-black text-black uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fas fa-newspaper text-indigo-600 text-sm"></i> Isi Artikel &amp; Modul Teks Pembelajaran
+                            </label>
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <button type="button" onclick="generateAiContent('create', '{{ addslashes($course->name ?? '') }}')" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1 border border-black">
+                                    <i class="fas fa-magic text-amber-300"></i> ✨ Generate Artikel via AI
+                                </button>
+                                <div class="hidden sm:inline-block text-[11px] font-bold text-slate-500">| Template:</div>
+                                <button type="button" onclick="insertTemplate('create', 'summary')" class="px-2.5 py-1 bg-amber-200 hover:bg-amber-300 text-black rounded-lg text-[11px] font-black border border-black transition">
+                                    📘 Ringkasan Bab
+                                </button>
+                                <button type="button" onclick="insertTemplate('create', 'lab')" class="px-2.5 py-1 bg-emerald-200 hover:bg-emerald-300 text-black rounded-lg text-[11px] font-black border border-black transition">
+                                    🧪 Praktikum
+                                </button>
+                                <button type="button" onclick="insertTemplate('create', 'case')" class="px-2.5 py-1 bg-sky-200 hover:bg-sky-300 text-black rounded-lg text-[11px] font-black border border-black transition">
+                                    💡 Studi Kasus
+                                </button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="content" id="quill-create-input">
+                        <div id="quill-create-editor" class="bg-white min-h-[220px] rounded-xl border border-slate-300"></div>
+                        <p class="text-[11px] text-slate-600 font-bold flex items-center gap-1">
+                            <i class="fas fa-info-circle text-sky-600"></i> Format teks HTML (Heading, tebal, list, gambar inline, tabel) tersimpan sempurna tanpa hilang saat diedit.
+                        </p>
+                    </div>
+
+                    <!-- Conditional File Upload -->
+                    <div x-show="type !== 'text' && type !== 'link' && type !== 'embed' && type !== 'canva' && type !== 'googledocs'" class="bg-amber-50 p-4 border-2 border-black rounded-2xl">
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Unggah Berkas Lampiran (PDF / Doc / Video / Gambar / Audio - Maks. 10 MB)</label>
+                        <input type="file" name="file" class="w-full text-xs text-black font-bold file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-2 file:border-black file:text-xs file:font-black file:bg-amber-300 file:text-black hover:file:bg-black hover:file:text-white cursor-pointer">
+                    </div>
+
+                    <!-- URL / Embed Field -->
+                    <div x-show="type !== 'text'" class="bg-slate-50 p-4 border-2 border-black rounded-2xl space-y-2">
+                        <label class="block text-xs font-black text-black uppercase tracking-wider">URL / Tautan / Kode Embed Eksternal</label>
+                        <input type="text" name="file_url" x-model="file_url" placeholder="https://canva.com/design/... atau https://docs.google.com/presentation/d/... atau https://youtube.com/..." class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-xs text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white">
+                        <p class="text-[11px] text-slate-500 font-bold">Masukkan URL Canva, Google Docs, YouTube, Audio link, atau Kode Embed Iframe HTML.</p>
+                    </div>
+
+                    <!-- Simulator Quick Selector -->
                     <div x-show="type === 'interactive'" class="bg-purple-100 border-2 border-black rounded-2xl p-4 text-xs text-black space-y-2.5" style="display: none">
                         <p class="font-black uppercase tracking-wider flex items-center gap-1.5 text-xs">
-                            <i class="fas fa-gamepad text-purple-700 text-sm"></i> Pilih Simulator Interaktif 1-Klik (Rekomendasi):
+                            <i class="fas fa-gamepad text-purple-700 text-sm"></i> Pilih Simulator Interaktif 1-Klik:
                         </p>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            <button type="button" @click="file_url = '{{ route('simlab.index') }}'; if(!material_title) material_title = 'Simulasi Mikrokontroler PembdaHUB SimLab'" class="p-2.5 bg-emerald-300 border-2 border-black rounded-xl text-left hover:bg-emerald-400 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
-                                <i class="fas fa-microchip text-emerald-900 text-sm"></i> PembdaHUB SimLab (TE/TAV)
+                            <button type="button" @click="file_url = '{{ route('simlab.index') }}'; if(!material_title) material_title = 'Simulasi Mikrokontroler PembdaHUB SimLab'" class="p-2 bg-emerald-300 border border-black rounded-xl text-left hover:bg-emerald-400 text-xs font-black text-black flex items-center gap-1.5">
+                                <i class="fas fa-microchip text-emerald-900"></i> PembdaHUB SimLab
                             </button>
-                            <button type="button" @click="file_url = 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html'; if(!material_title) material_title = 'Simulasi Rangkaian Listrik PhET'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
+                            <button type="button" @click="file_url = 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html'; if(!material_title) material_title = 'Simulasi Rangkaian Listrik PhET'" class="p-2 bg-white border border-black rounded-xl text-left hover:bg-amber-300 text-xs font-black text-black flex items-center gap-1.5">
                                 <i class="fas fa-bolt text-sky-600"></i> PhET (IPA/TE)
                             </button>
-                            <button type="button" @click="file_url = 'https://www.geogebra.org/classic'; if(!material_title) material_title = 'Simulasi Geometri GeoGebra'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
-                                <i class="fas fa-shapes text-indigo-600"></i> GeoGebra (MTK)
+                            <button type="button" @click="file_url = 'https://www.geogebra.org/classic'; if(!material_title) material_title = 'Simulasi Geometri GeoGebra'" class="p-2 bg-white border border-black rounded-xl text-left hover:bg-amber-300 text-xs font-black text-black flex items-center gap-1.5">
+                                <i class="fas fa-shapes text-indigo-600"></i> GeoGebra
                             </button>
-                            <button type="button" @click="file_url = 'https://molview.org'; if(!material_title) material_title = 'Simulasi Molekul Kimia 3D'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
-                                <i class="fas fa-atom text-rose-600"></i> MolView (Kimia)
+                            <button type="button" @click="file_url = 'https://molview.org'; if(!material_title) material_title = 'Simulasi Molekul Kimia 3D'" class="p-2 bg-white border border-black rounded-xl text-left hover:bg-amber-300 text-xs font-black text-black flex items-center gap-1.5">
+                                <i class="fas fa-atom text-rose-600"></i> MolView 3D
                             </button>
-                            <button type="button" @click="file_url = 'https://bellard.org/jslinux/'; if(!material_title) material_title = 'Simulasi Terminal Linux Server'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
-                                <i class="fas fa-terminal text-slate-800"></i> JS-Linux (TKJ)
+                            <button type="button" @click="file_url = 'https://bellard.org/jslinux/'; if(!material_title) material_title = 'Simulasi Terminal Linux Server'" class="p-2 bg-white border border-black rounded-xl text-left hover:bg-amber-300 text-xs font-black text-black flex items-center gap-1.5">
+                                <i class="fas fa-terminal text-slate-800"></i> JS-Linux
                             </button>
-                            <button type="button" @click="file_url = 'https://quizizz.com'; if(!material_title) material_title = 'Game Edukasi Quizizz'" class="p-2.5 bg-white border-2 border-black rounded-xl text-left hover:bg-amber-300 transition-all text-xs font-black text-black shadow-sm flex items-center gap-2">
-                                <i class="fas fa-puzzle-piece text-purple-600"></i> Quizizz / Custom
+                            <button type="button" @click="file_url = 'https://quizizz.com'; if(!material_title) material_title = 'Game Edukasi Quizizz'" class="p-2 bg-white border border-black rounded-xl text-left hover:bg-amber-300 text-xs font-black text-black flex items-center gap-1.5">
+                                <i class="fas fa-puzzle-piece text-purple-600"></i> Quizizz
                             </button>
                         </div>
-                        <p class="text-[11px] font-bold text-black italic mt-1">Atau tempelkan link URL simulator/game eksternal pilihan Anda pada kolom URL di bawah.</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">URL / Link Pembelajaran (Opsional)</label>
-                        <input type="url" name="file_url" x-model="file_url" placeholder="https://..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Isi Konten Teks / Keterangan (Opsional)</label>
-                        <input type="hidden" name="content" id="quill-create-input">
-                        <div id="quill-create-editor"></div>
-                        <p class="text-[11px] text-gray-500 font-bold mt-1.5 flex items-center gap-1">
-                            <i class="fas fa-info-circle text-blue-500"></i> Format teks &amp; klik ikon <i class="fas fa-image text-emerald-600 px-0.5"></i> di toolbar editor untuk mengunggah/menyelipkan gambar.
-                        </p>
                     </div>
 
                     <div class="pt-4 flex gap-3">
@@ -1739,7 +1818,7 @@ if (!function_exists('balanceHtmlTags')) {
     <div class="flex items-center justify-center min-h-screen p-4" style="z-index: 99999 !important;">
         <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
 
-        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-lg w-full relative border-2 border-black" style="z-index: 100000 !important;">
+        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-3xl w-full relative border-2 border-black" style="z-index: 100000 !important;">
             <div class="px-6 py-4 flex items-center justify-between border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
                 <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-sm uppercase"><i class="fas fa-edit text-amber-400"></i> Edit Materi Pembelajaran</h3>
                 <button @click="open = false" class="text-white/80 hover:text-white transition-colors bg-slate-800 border border-slate-700 w-8 h-8 rounded-xl flex items-center justify-center font-black"><i class="fas fa-times"></i></button>
@@ -1749,50 +1828,74 @@ if (!function_exists('balanceHtmlTags')) {
                 @csrf
                 @method('PUT')
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Modul Target</label>
-                        <select name="module_id" x-model="mat.module_id" required class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white">
-                            @foreach($course->modules as $mod)
-                            <option value="{{ $mod->id }}">Modul {{ $mod->sequence }}: {{ $mod->title }}</option>
-                            @endforeach
-                        </select>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Modul Target</label>
+                            <select name="module_id" x-model="mat.module_id" required class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white">
+                                @foreach($course->modules as $mod)
+                                <option value="{{ $mod->id }}">Modul {{ $mod->sequence }}: {{ $mod->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Format / Tipe Materi</label>
+                            <select name="material_type" x-model="mat.material_type" required class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-amber-50">
+                                <option value="text">📝 Artikel / Modul Teks Langsung (Disarankan)</option>
+                                <option value="pdf">📄 Berkas PDF</option>
+                                <option value="document">📁 Dokumen Word / PPT</option>
+                                <option value="video">🎥 Pemutar Video / YouTube</option>
+                                <option value="image">🖼️ Gambar / Diagram</option>
+                                <option value="canva">🎨 Embed Canva Presentation</option>
+                                <option value="googledocs">📊 Embed Google Docs / Slides / Form</option>
+                                <option value="audio">🎙️ Rekaman Audio / Podcast</option>
+                                <option value="interactive">🎮 Simulator Interaktif (PhET, SimLab, GeoGebra)</option>
+                                <option value="link">🔗 Link Eksternal</option>
+                                <option value="embed">💻 Kode Embed HTML (Iframe Custom)</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Judul Materi</label>
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Judul Materi Pembelajaran</label>
                         <input type="text" name="title" x-model="mat.title" required placeholder="Judul Materi..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Isi Konten Teks / Keterangan</label>
+                    <!-- Quill Edit Editor Area -->
+                    <div class="border-2 border-black rounded-2xl p-4 bg-slate-50 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-slate-200 pb-2">
+                            <label class="block text-xs font-black text-black uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fas fa-newspaper text-indigo-600 text-sm"></i> Isi Artikel &amp; Modul Teks Pembelajaran
+                            </label>
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <button type="button" onclick="generateAiContent('edit', '{{ addslashes($course->name ?? '') }}')" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1 border border-black">
+                                    <i class="fas fa-magic text-amber-300"></i> ✨ Tulis Ulang via AI
+                                </button>
+                                <div class="hidden sm:inline-block text-[11px] font-bold text-slate-500">| Template:</div>
+                                <button type="button" onclick="insertTemplate('edit', 'summary')" class="px-2.5 py-1 bg-amber-200 hover:bg-amber-300 text-black rounded-lg text-[11px] font-black border border-black transition">
+                                    📘 Ringkasan Bab
+                                </button>
+                                <button type="button" onclick="insertTemplate('edit', 'lab')" class="px-2.5 py-1 bg-emerald-200 hover:bg-emerald-300 text-black rounded-lg text-[11px] font-black border border-black transition">
+                                    🧪 Praktikum
+                                </button>
+                                <button type="button" onclick="insertTemplate('edit', 'case')" class="px-2.5 py-1 bg-sky-200 hover:bg-sky-300 text-black rounded-lg text-[11px] font-black border border-black transition">
+                                    💡 Studi Kasus
+                                </button>
+                            </div>
+                        </div>
+
                         <input type="hidden" name="content" id="quill-edit-input" :value="mat.content">
-                        <div id="quill-edit-editor"></div>
-                        <p class="text-[11px] text-gray-500 font-bold mt-1.5 flex items-center gap-1">
-                            <i class="fas fa-info-circle text-blue-500"></i> Format teks &amp; sisipkan gambar langsung menggunakan toolbar editor di atas.
-                        </p>
+                        <div id="quill-edit-editor" class="bg-white min-h-[220px] rounded-xl border border-slate-300"></div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Tipe Materi</label>
-                            <select name="material_type" x-model="mat.material_type" required class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white">
-                                <option value="document">Dokumen Word/PPT</option>
-                                <option value="pdf">PDF</option>
-                                <option value="video">Video</option>
-                                <option value="image">Gambar</option>
-                                <option value="link">Link Eksternal</option>
-                                <option value="interactive">Game / Interaktif (Embed)</option>
-                            </select>
+                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">URL / Tautan Pembelajaran (Opsional)</label>
+                            <input type="text" name="file_url" x-model="mat.file_url" placeholder="https://..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Ganti File (Maks. 10 MB)</label>
                             <input type="file" name="file" class="w-full text-xs text-black font-bold file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-2 file:border-black file:text-xs file:font-black file:bg-amber-300 file:text-black hover:file:bg-black hover:file:text-white cursor-pointer">
                         </div>
-                    </div>
-
-                    <div x-show="mat.material_type === 'video' || mat.material_type === 'link' || mat.material_type === 'interactive'" style="display: none;">
-                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">URL / Link Pembelajaran</label>
-                        <input type="url" name="file_url" x-model="mat.file_url" placeholder="https://..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                     </div>
 
                     <div class="pt-4 flex gap-3">
@@ -1801,6 +1904,35 @@ if (!function_exists('balanceHtmlTags')) {
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+{{-- ═══════════════════════════════════════════════ --}}
+{{-- FULL ARTICLE READER PREVIEW MODAL (FOR GURU) --}}
+{{-- ═══════════════════════════════════════════════ --}}
+<div x-data="{ open: false, title: '', content: '' }" @open-article-reader.window="title = $event.detail.title; content = $event.detail.content; open = true" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
+    <div class="flex items-center justify-center min-h-screen p-4 md:p-8" style="z-index: 99999 !important;">
+        <div x-show="open" x-transition class="fixed inset-0 bg-slate-900/90 backdrop-blur-md transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
+
+        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-4xl w-full relative border-2 border-black flex flex-col max-h-[90vh]" style="z-index: 100000 !important;">
+            <div class="px-6 py-4 flex items-center justify-between border-b-2 border-black shrink-0" style="background-color: #0f172a !important; color: #ffffff !important;">
+                <div class="flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-xl bg-amber-400 text-black flex items-center justify-center font-black border border-black"><i class="fas fa-book-open"></i></span>
+                    <div>
+                        <span class="text-[10px] font-black uppercase text-amber-400 tracking-widest block">Pratinjau Mode Baca Artikel Pembelajaran</span>
+                        <h3 class="text-white font-black tracking-wide text-sm sm:text-base leading-tight" x-text="title"></h3>
+                    </div>
+                </div>
+                <button @click="open = false" class="text-white/80 hover:text-white transition-colors bg-slate-800 border border-slate-700 w-8 h-8 rounded-xl flex items-center justify-center font-black"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="p-6 md:p-10 overflow-y-auto flex-1 bg-white prose prose-lg max-w-none text-slate-900 leading-relaxed font-sans" x-html="content">
+            </div>
+
+            <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex justify-end shrink-0">
+                <button type="button" @click="open = false" class="px-5 py-2 rounded-xl font-black bg-black text-white text-xs border border-black hover:bg-slate-800">Tutup Pratinjau</button>
+            </div>
         </div>
     </div>
 </div>
@@ -2035,6 +2167,79 @@ if (!function_exists('balanceHtmlTags')) {
             });
         }
     });
+
+    async function generateAiContent(editorType, courseSubject) {
+        const titleInput = editorType === 'create' 
+            ? document.querySelector('#open-material-modal input[name="title"]')
+            : document.querySelector('#open-edit-material-modal input[name="title"]');
+        
+        const topic = titleInput ? titleInput.value.trim() : '';
+        if (!topic) {
+            alert('Silakan isi "Judul Materi" terlebih dahulu sebagai topik utama pembuatan artikel AI.');
+            if (titleInput) titleInput.focus();
+            return;
+        }
+
+        const btn = event.currentTarget;
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Menyusun Materi AI...';
+
+        try {
+            const res = await fetch("{{ route('guru.lms.materials.generate-ai') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    topic: topic,
+                    subject: courseSubject || 'Mata Pelajaran'
+                })
+            });
+
+            const data = await res.json();
+            if (data.success && data.content) {
+                if (editorType === 'create' && quillCreate) {
+                    quillCreate.root.innerHTML = data.content;
+                    const input = document.getElementById('quill-create-input');
+                    if (input) input.value = data.content;
+                } else if (editorType === 'edit' && quillEdit) {
+                    quillEdit.root.innerHTML = data.content;
+                    const input = document.getElementById('quill-edit-input');
+                    if (input) input.value = data.content;
+                }
+            } else {
+                alert(data.message || 'Gagal menghasilkan materi dengan AI.');
+            }
+        } catch (err) {
+            alert('Terjadi kesalahan sistem AI: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    function insertTemplate(editorType, templateType) {
+        let html = '';
+        if (templateType === 'summary') {
+            html = `<h2>📌 Ringkasan Bab: [Nama Topik]</h2><p>Penjelasan pendahuluan mengenai topik yang dipelajari siswa...</p><h3>💡 1. Konsep Utama</h3><ul><li>Poin penting 1...</li><li>Poin penting 2...</li></ul><h3>⚡ 2. Hal Yang Wajib Diingat</h3><blockquote style="border-left: 4px solid #f59e0b; padding-left: 12px; font-style: italic; color: #4b5563;">Rangkuman poin inti dalam 1-2 kalimat pemungkas.</blockquote>`;
+        } else if (templateType === 'lab') {
+            html = `<h2>🧪 Panduan Praktikum &amp; Laboratorium</h2><p><strong>Tujuan Praktikum:</strong> Siswa mampu memahami dan mempraktikkan...</p><h3>🛠️ Alat &amp; Bahan</h3><ul><li>Alat/Bahan 1...</li><li>Alat/Bahan 2...</li></ul><h3>📝 Langkah Kerja</h3><ol><li>Langkah 1: Siapkan peralatan...</li><li>Langkah 2: Operasikan...</li></ol>`;
+        } else if (templateType === 'case') {
+            html = `<h2>💡 Studi Kasus &amp; Diskusi Terbuka</h2><blockquote style="border-left: 4px solid #3b82f6; padding-left: 12px; background-color: #eff6ff; padding: 10px; border-radius: 8px;"><strong>Deskripsi Kasus:</strong> Jelaskan studi kasus nyata di dunia kerja/lapangan...</blockquote><h3>🎯 Tugas Refleksi Siswa:</h3><ol><li>Identifikasi penyebab utama masalah di atas.</li><li>Tuliskan 2 usulan solusi terbaik.</li></ol>`;
+        }
+
+        if (editorType === 'create' && quillCreate) {
+            quillCreate.root.innerHTML = html;
+            const input = document.getElementById('quill-create-input');
+            if (input) input.value = html;
+        } else if (editorType === 'edit' && quillEdit) {
+            quillEdit.root.innerHTML = html;
+            const input = document.getElementById('quill-edit-input');
+            if (input) input.value = html;
+        }
+    }
 
     function setQuillEditContent(content) {
         if (!quillEdit) return;

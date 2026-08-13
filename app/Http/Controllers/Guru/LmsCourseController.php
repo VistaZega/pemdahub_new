@@ -515,6 +515,72 @@ class LmsCourseController extends Controller
     // MATERIAL MANAGEMENT (Materials linked directly to course)
     // ================================================================
 
+    public function generateAiMaterial(Request $request)
+    {
+        $request->validate([
+            'topic' => 'required|string|max:255',
+            'subject' => 'nullable|string|max:255',
+            'level' => 'nullable|string|max:100',
+        ]);
+
+        $topic = $request->topic;
+        $subject = $request->subject ?? 'Mata Pelajaran';
+        $level = $request->level ?? 'SMK/SMA';
+
+        $prompt = "Anda adalah seorang pakar pendidik dan pembuat kurikulum pembelajaran. Buatkan artikel materi pembelajaran yang lengkap, terstruktur, rapi, menarik, dan mudah dipahami oleh siswa tingkat {$level} untuk mata pelajaran '{$subject}' dengan topik '{$topic}'.
+
+Format keluaran HARUS berupa HTML rapi (gunakan tag <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, blockquote). JANGAN gunakan tag <html> atau <body>.
+
+Struktur materi yang harus dibuat:
+1. <h2>📌 Pendahuluan & Tujuan Pembelajaran</h2>
+<p>Jelaskan konsep dasar secara singkat & motivasi belajar.</p>
+
+2. <h2>💡 Pembahasan Utama & Konsep Kunci</h2>
+<p>Gunakan sub-judul <h3>, poin-poin <ul>/<li>, dan cetak tebal <strong> untuk konsep penting.</p>
+
+3. <h2>🧪 Contoh Penerapan / Studi Kasus Praktis</h2>
+<p>Berikan contoh nyata dalam kehidupan sehari-hari atau dunia kerja / industri.</p>
+
+4. <h2>⚡ Ringkasan Poin Penting (Key Takeaways)</h2>
+<blockquote>Rangkum 3-4 poin kunci yang wajib diingat siswa.</blockquote>
+
+5. <h2>🔍 Pertanyaan Refleksi Siswa</h2>
+<ol>
+  <li>Pertanyaan pemantik 1...</li>
+  <li>Pertanyaan pemantik 2...</li>
+</ol>
+
+Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
+
+        try {
+            $gemini = app(\App\Services\GeminiService::class);
+            $htmlContent = $gemini->generateText($prompt);
+
+            // Clean markdown code block wrapper if present
+            $htmlContent = trim($htmlContent);
+            if (str_starts_with($htmlContent, '```html')) {
+                $htmlContent = substr($htmlContent, 7);
+            }
+            if (str_starts_with($htmlContent, '```')) {
+                $htmlContent = substr($htmlContent, 3);
+            }
+            if (str_ends_with($htmlContent, '```')) {
+                $htmlContent = substr($htmlContent, 0, -3);
+            }
+            $htmlContent = trim($htmlContent);
+
+            return response()->json([
+                'success' => true,
+                'content' => $htmlContent
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghasilkan materi via AI: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function storeMaterial(StoreLmsMaterialRequest $request, LmsCourse $course)
     {
         $teacher = $this->getTeacher();

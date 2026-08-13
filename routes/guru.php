@@ -124,6 +124,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
 
         // Materials (linked directly to course)
         Route::post('/upload-editor-image', [App\Http\Controllers\Guru\LmsCourseController::class, 'uploadEditorImage'])->name('upload-editor-image');
+        Route::post('/materials/generate-ai', [App\Http\Controllers\Guru\LmsCourseController::class, 'generateAiMaterial'])->name('materials.generate-ai');
         Route::post('/{course}/materials', [App\Http\Controllers\Guru\LmsCourseController::class, 'storeMaterial'])->name('materials.store');
         Route::delete('/materials/{material}', [App\Http\Controllers\Guru\LmsCourseController::class, 'destroyMaterial'])->name('materials.destroy');
         Route::put('/materials/{material}', [App\Http\Controllers\Guru\LmsCourseController::class, 'updateMaterial'])->name('materials.update');

@@ -16,9 +16,9 @@ class StoreLmsMaterialRequest extends FormRequest
         return [
             'module_id' => 'nullable|exists:lms_modules,id',
             'title' => 'required|string|max:255',
-            'material_type' => 'required|in:pdf,document,video,text,image,link,interactive',
+            'material_type' => 'required|in:pdf,document,video,text,image,link,interactive,audio,embed,canva,googledocs',
             'content' => 'nullable|string',
-            'file_url' => 'nullable|url',
+            'file_url' => 'nullable|string',
             'file' => 'nullable|file|max:10240',
         ];
     }
