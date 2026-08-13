@@ -132,37 +132,45 @@
         </div>
         @else
         <!-- Menu Guru (Clay Cards) -->
-        <div class="grid grid-cols-4 gap-3">
+        <div class="grid grid-cols-5 gap-2">
             <!-- Jadwal Mengajar -->
-            <a href="{{ route('mobile.guru.jadwal') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <a href="{{ route('mobile.guru.jadwal') }}" class="clay-purple p-3 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     👨‍🏫
                 </div>
-                <span class="text-[11px] font-black">Jadwal</span>
+                <span class="text-[10px] font-black">Jadwal</span>
             </a>
 
-            <!-- Input Absensi Kelas -->
-            <a href="{{ route('mobile.guru.absensi.input') }}" class="clay-green p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <!-- Input Absensi Siswa (Kelas) -->
+            <a href="{{ route('mobile.guru.absensi.input') }}" class="clay-green p-3 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     📋
                 </div>
-                <span class="text-[11px] font-black">Absen</span>
+                <span class="text-[10px] font-black">Absen Siswa</span>
+            </a>
+
+            <!-- Presensi Guru Mandiri (Absen Saya) -->
+            <a href="{{ route('mobile.guru.absensi.saya') }}" class="clay-cyan p-3 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    📌
+                </div>
+                <span class="text-[10px] font-black">Absen Saya</span>
             </a>
 
             <!-- Periksa Tugas -->
-            <a href="{{ route('mobile.guru.tugas') }}" class="clay-yellow p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <a href="{{ route('mobile.guru.tugas') }}" class="clay-yellow p-3 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     📝
                 </div>
-                <span class="text-[11px] font-black">Nilai</span>
+                <span class="text-[10px] font-black">Nilai</span>
             </a>
 
             <!-- Space -->
-            <a href="{{ route('mobile.space.index') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <a href="{{ route('mobile.space.index') }}" class="clay-purple p-3 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     💬
                 </div>
-                <span class="text-[11px] font-black">Space</span>
+                <span class="text-[10px] font-black">Space</span>
             </a>
         </div>
         @endif

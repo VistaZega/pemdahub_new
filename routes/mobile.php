@@ -52,6 +52,7 @@ Route::prefix('m')->name('mobile.')->group(function () {
         Route::prefix('guru')->name('guru.')->group(function () {
             Route::get('/jadwal', [MobileTeacherController::class, 'jadwal'])->name('jadwal');
             Route::get('/absensi-input', [MobileTeacherController::class, 'absensiInput'])->name('absensi.input');
+            Route::get('/absensi-saya', [MobileTeacherController::class, 'absensiSaya'])->name('absensi.saya');
             Route::post('/absensi-store', [MobileTeacherController::class, 'storeAbsensi'])->name('absensi.store');
             Route::get('/tugas', [MobileTeacherController::class, 'tugas'])->name('tugas');
             Route::post('/tugas/{submission}/grade', [MobileTeacherController::class, 'gradeSubmission'])->name('tugas.grade');

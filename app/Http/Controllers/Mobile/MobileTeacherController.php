@@ -253,4 +253,49 @@ class MobileTeacherController extends Controller
 
         return back()->with('success', 'Nilai tugas berhasil disimpan!');
     }
+
+    /**
+     * Presensi & Rekap Kehadiran Guru Sendiri (Absen Saya)
+     */
+    public function absensiSaya(Request $request)
+    {
+        $user = Auth::user();
+        $teacher = $this->getTeacher();
+
+        $employee = \App\Models\Employee::where('user_id', $user->id)->first();
+        if (!$employee && $user->school_id) {
+            $employee = \App\Models\Employee::where('school_id', $user->school_id)->first();
+        }
+
+        $attendances = collect();
+        $todayAttendance = null;
+        $stats = ['hadir' => 0, 'terlambat' => 0, 'izin' => 0, 'alpha' => 0];
+
+        if ($employee) {
+            $attendances = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
+                ->whereYear('date', now()->year)
+                ->whereMonth('date', now()->month)
+                ->orderBy('date', 'desc')
+                ->get();
+
+            $todayAttendance = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
+                ->where('date', now()->format('Y-m-d'))
+                ->first();
+
+            foreach ($attendances as $att) {
+                $status = strtolower($att->status ?? 'hadir');
+                if (str_contains($status, 'hadir') || $status === 'present') {
+                    $stats['hadir']++;
+                } elseif (str_contains($status, 'lambat') || $status === 'late') {
+                    $stats['terlambat']++;
+                } elseif (in_array($status, ['izin', 'sakit', 'cuti'])) {
+                    $stats['izin']++;
+                } else {
+                    $stats['alpha']++;
+                }
+            }
+        }
+
+        return view('mobile.teacher.absensi_saya', compact('teacher', 'employee', 'attendances', 'todayAttendance', 'stats'));
+    }
 }

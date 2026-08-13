@@ -4,15 +4,19 @@
 
 @section('content')
 <div class="space-y-4" x-data="{ mode: 'pelajaran', editMode: true }">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="text-xl font-black text-slate-900">Absensi Kelas Siswa 📋</h2>
-            <p class="text-[11px] text-slate-500 font-bold">Input & Edit Kehadiran Belajar Siswa</p>
-        </div>
+    <!-- Dual Tab Navigation Bar (Absen Siswa vs Absen Saya) -->
+    <div class="flex items-center space-x-2 border-b-2 border-slate-200/80 pb-2">
+        <a href="{{ route('mobile.guru.absensi.input') }}" 
+           class="flex-1 py-2.5 px-3 rounded-2xl text-xs font-black text-center transition clay-green text-white shadow-md scale-105">
+            📋 Absen Siswa (Kelas)
+        </a>
+        <a href="{{ route('mobile.guru.absensi.saya') }}" 
+           class="flex-1 py-2.5 px-3 rounded-2xl text-xs font-black text-center transition bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900">
+            📌 Absen Saya (Guru)
+        </a>
     </div>
 
-    <!-- Mode Tab Switcher (Clay Pills) -->
+    <!-- Sub Mode Tab Switcher (Absen Belajar vs Absen Kehadiran Sekolah) -->
     <div class="flex items-center space-x-2 border-b-2 border-slate-200/80 pb-2">
         <button @click="mode = 'pelajaran'" 
                 :class="mode === 'pelajaran' ? 'clay-purple text-white shadow-md scale-105 font-black' : 'bg-white text-slate-600 border-2 border-slate-200 font-bold'"
