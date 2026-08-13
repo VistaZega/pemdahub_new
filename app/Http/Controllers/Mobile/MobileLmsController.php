@@ -216,12 +216,23 @@ class MobileLmsController extends Controller
         $teacher = \App\Models\Teacher::where('user_id', $user->id)->first() ?? $user->teacher;
 
         $questionBanks = collect();
-        if ($teacher && class_exists('\App\Models\CbtQuestionBank')) {
-            $questionBanks = \App\Models\CbtQuestionBank::where('teacher_id', $teacher->id)
-                ->orWhere('is_shared', true)
-                ->when($teacher->school_id, fn($q) => $q->orWhere('school_id', $teacher->school_id))
-                ->latest()
-                ->get();
+        if (class_exists('\App\Models\CbtQuestionBank')) {
+            $schoolId = $teacher?->school_id ?? $user->school_id;
+            $teacherId = $teacher?->id ?? 0;
+
+            $questionBanks = \App\Models\CbtQuestionBank::where(function($q) use ($teacherId, $schoolId) {
+                if ($teacherId) {
+                    $q->where('teacher_id', $teacherId);
+                }
+                if ($schoolId) {
+                    $q->orWhere('school_id', $schoolId);
+                }
+                $q->orWhere('is_shared', true);
+            })->latest()->get();
+
+            if ($questionBanks->isEmpty()) {
+                $questionBanks = \App\Models\CbtQuestionBank::latest()->take(30)->get();
+            }
         }
 
         return view('mobile.lms.show', compact('course', 'student', 'submissionMap', 'attemptMap', 'questionBanks'));
