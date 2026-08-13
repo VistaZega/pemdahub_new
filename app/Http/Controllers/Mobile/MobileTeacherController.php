@@ -424,9 +424,9 @@ class MobileTeacherController extends Controller
         $activeAY = null;
         if (class_exists('\App\Models\AcademicYear')) {
             $activeAY = \App\Models\AcademicYear::where('is_active', true)
-                ->orWhere('status', 'active')
                 ->orderBy('is_active', 'desc')
-                ->first();
+                ->first()
+                ?? \App\Models\AcademicYear::latest()->first();
         }
         $activeAYId = $activeAY?->id;
 
