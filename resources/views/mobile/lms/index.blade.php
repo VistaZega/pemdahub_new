@@ -40,19 +40,29 @@
 
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-[10px] font-black text-slate-700 uppercase">Kode Kelas (Opsional)</label>
-                        <input type="text" name="code" placeholder="Otomatis jika kosong" 
-                               class="w-full p-2.5 bg-white border-2 border-purple-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-700 uppercase">Rombel Kelas</label>
+                        <label class="block text-[10px] font-black text-slate-700 uppercase">Pilih Rombel Kelas</label>
                         <select name="classroom_id" class="w-full p-2.5 bg-white border-2 border-purple-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
-                            <option value="">-- Semua Kelas --</option>
+                            <option value="">-- Pilih Rombel Mengajar --</option>
                             @foreach($classrooms as $cls)
                                 <option value="{{ $cls->id }}">{{ $cls->class_name }}</option>
                             @endforeach
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-700 uppercase">Mata Pelajaran</label>
+                        <select name="subject_id" class="w-full p-2.5 bg-white border-2 border-purple-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
+                            <option value="">-- Pilih Mapel --</option>
+                            @foreach($subjects as $subj)
+                                <option value="{{ $subj->id }}">{{ $subj->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-slate-700 uppercase">Kode Kelas (Opsional)</label>
+                    <input type="text" name="code" placeholder="Kosongkan jika ingin dibuat otomatis..." 
+                           class="w-full p-2.5 bg-white border-2 border-purple-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
                 </div>
 
                 <div>

@@ -43,8 +43,49 @@ class MobileLmsController extends Controller
             $enrolledCourses = LmsCourse::with('teacher')->latest()->take(10)->get();
         }
 
-        $classrooms = \App\Models\Classroom::where('is_active', true)->orderBy('class_name')->get();
-        $subjects = \App\Models\Subject::orderBy('name')->get();
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+
+        $classrooms = collect();
+        if ($teacher) {
+            $classrooms = \App\Models\Classroom::where('is_active', true)
+                ->where(function ($q) use ($teacher, $activeYear) {
+                    $q->whereHas('schedules', function ($sq) use ($teacher, $activeYear) {
+                        $sq->where('teacher_id', $teacher->id);
+                        if ($activeYear) {
+                            $sq->where('academic_year_id', $activeYear->id);
+                        }
+                    })
+                    ->orWhereHas('teachingAssignments', function ($tq) use ($teacher, $activeYear) {
+                        $tq->where('teacher_id', $teacher->id);
+                        if ($activeYear) {
+                            $tq->where('academic_year_id', $activeYear->id);
+                        }
+                    })
+                    ->orWhere('homeroom_teacher_id', $teacher->id);
+                })
+                ->orderBy('class_name')
+                ->get();
+        }
+
+        if ($classrooms->isEmpty()) {
+            $schoolId = $teacher?->school_id ?? $user->school_id;
+            $classrooms = \App\Models\Classroom::where('is_active', true)
+                ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                ->orderBy('class_name')
+                ->get();
+        }
+
+        $subjects = collect();
+        if ($teacher) {
+            $subjects = \App\Models\Subject::whereHas('schedules', fn($q) => $q->where('teacher_id', $teacher->id))
+                ->orWhereHas('teachingAssignments', fn($q) => $q->where('teacher_id', $teacher->id))
+                ->orderBy('name')
+                ->get();
+        }
+
+        if ($subjects->isEmpty()) {
+            $subjects = \App\Models\Subject::orderBy('name')->get();
+        }
 
         return view('mobile.lms.index', compact('enrolledCourses', 'isTeacher', 'classrooms', 'subjects'));
     }
