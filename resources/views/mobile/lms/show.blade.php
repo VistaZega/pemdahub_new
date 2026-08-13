@@ -423,17 +423,6 @@
                         <input type="text" name="description" placeholder="Pilihlah satu jawaban paling tepat..." 
                                class="w-full p-2.5 bg-white border-2 border-pink-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-700 uppercase">Hubungkan Paket / Bank Soal CBT (Opsional)</label>
-                        <select name="question_package_id" class="w-full p-2.5 bg-white border-2 border-pink-200 rounded-xl text-xs font-bold text-slate-900 outline-none">
-                            <option value="">-- Tanpa Bank Soal (Soal Default) --</option>
-                            @if(isset($questionBanks) && count($questionBanks) > 0)
-                                @foreach($questionBanks as $bank)
-                                    <option value="{{ $bank->id }}">📦 {{ $bank->bank_name }} ({{ $bank->total_questions ?? count($bank->questions ?? []) }} Soal)</option>
-                                @endforeach
-                            @endif
-                        </select>
-                    </div>
 
                     <div>
                         <label class="block text-[10px] font-black text-slate-700 uppercase">Durasi Pengerjaan (Menit)</label>
