@@ -40,11 +40,53 @@
         </div>
     </div>
 
-    <!-- Quick Access Grid (4 Priority Features) -->
+    <!-- Quick Access Grid (Role-Based Features) -->
     <div>
         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5 px-1">Menu Utama</h3>
+        
+        @if($user->role === 'siswa')
         <div class="grid grid-cols-4 gap-2.5">
-            <!-- Space -->
+            <!-- Jadwal -->
+            <a href="{{ route('mobile.jadwal') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
+                <div class="w-11 h-11 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </div>
+                <span class="text-[11px] font-semibold text-slate-200">Jadwal</span>
+            </a>
+
+            <!-- Nilai -->
+            <a href="{{ route('mobile.nilai') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
+                <div class="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <span class="text-[11px] font-semibold text-slate-200">Nilai</span>
+            </a>
+
+            <!-- Tagihan SPP -->
+            <a href="{{ route('mobile.tagihan') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
+                <div class="w-11 h-11 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <span class="text-[11px] font-semibold text-slate-200">Tagihan</span>
+            </a>
+
+            <!-- CBT Ujian -->
+            <a href="{{ route('mobile.cbt') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
+                <div class="w-11 h-11 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-laptop-code"></i>
+                </div>
+                <span class="text-[11px] font-semibold text-slate-200">CBT Ujian</span>
+            </a>
+
+            <!-- PKL / Tugas Akhir -->
+            <a href="{{ route('mobile.pkl') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
+                <div class="w-11 h-11 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <span class="text-[11px] font-semibold text-slate-200">PKL</span>
+            </a>
+
+            <!-- Pembda Space -->
             <a href="{{ route('mobile.space.index') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
                 <div class="w-11 h-11 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
                     <i class="fa-solid fa-comments"></i>
@@ -62,20 +104,48 @@
 
             <!-- Absensi -->
             <a href="{{ route('mobile.absensi.index') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+                <div class="w-11 h-11 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
                     <i class="fa-solid fa-fingerprint"></i>
                 </div>
                 <span class="text-[11px] font-semibold text-slate-200">Absensi</span>
             </a>
-
-            <!-- Profil -->
-            <a href="{{ route('mobile.profile') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
-                <div class="w-11 h-11 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
-                    <i class="fa-solid fa-id-card"></i>
+        </div>
+        @else
+        <!-- Menu Guru / Pegawai -->
+        <div class="grid grid-cols-4 gap-2.5">
+            <!-- Jadwal Mengajar -->
+            <a href="{{ route('mobile.guru.jadwal') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
+                <div class="w-11 h-11 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-chalkboard-user"></i>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-200">Profil</span>
+                <span class="text-[11px] font-semibold text-slate-200">Jadwal</span>
+            </a>
+
+            <!-- Input Absensi Kelas -->
+            <a href="{{ route('mobile.guru.absensi.input') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
+                <div class="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-clipboard-user"></i>
+                </div>
+                <span class="text-[11px] font-semibold text-slate-200">Absen Kelas</span>
+            </a>
+
+            <!-- Periksa Tugas -->
+            <a href="{{ route('mobile.guru.tugas') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
+                <div class="w-11 h-11 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-file-signature"></i>
+                </div>
+                <span class="text-[11px] font-semibold text-slate-200">Nilai Tugas</span>
+            </a>
+
+            <!-- Space -->
+            <a href="{{ route('mobile.space.index') }}" class="glass-card rounded-2xl p-3 text-center hover:bg-slate-800/80 transition flex flex-col items-center group">
+                <div class="w-11 h-11 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-lg mb-1.5 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+                <span class="text-[11px] font-semibold text-slate-200">Space</span>
             </a>
         </div>
+        @endif
     </div>
 
     <!-- Attendance Summary Widget (If student) -->

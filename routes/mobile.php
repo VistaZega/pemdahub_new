@@ -7,6 +7,8 @@ use App\Http\Controllers\Mobile\MobileSpaceController;
 use App\Http\Controllers\Mobile\MobileLmsController;
 use App\Http\Controllers\Mobile\MobileAbsensiController;
 use App\Http\Controllers\Mobile\MobileProfileController;
+use App\Http\Controllers\Mobile\MobileStudentController;
+use App\Http\Controllers\Mobile\MobileTeacherController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +38,23 @@ Route::prefix('m')->name('mobile.')->group(function () {
 
         // Dashboard
         Route::get('/dashboard', [MobileDashboardController::class, 'index'])->name('dashboard');
+
+        // Modul Siswa Existing
+        Route::get('/jadwal', [MobileStudentController::class, 'jadwal'])->name('jadwal');
+        Route::get('/nilai', [MobileStudentController::class, 'nilai'])->name('nilai');
+        Route::get('/tagihan', [MobileStudentController::class, 'tagihan'])->name('tagihan');
+        Route::get('/cbt', [MobileStudentController::class, 'cbt'])->name('cbt');
+        Route::get('/pkl', [MobileStudentController::class, 'pkl'])->name('pkl');
+        Route::post('/pkl/log', [MobileStudentController::class, 'storePklLog'])->name('pkl.log');
+
+        // Modul Guru Existing
+        Route::prefix('guru')->name('guru.')->group(function () {
+            Route::get('/jadwal', [MobileTeacherController::class, 'jadwal'])->name('jadwal');
+            Route::get('/absensi-input', [MobileTeacherController::class, 'absensiInput'])->name('absensi.input');
+            Route::post('/absensi-store', [MobileTeacherController::class, 'storeAbsensi'])->name('absensi.store');
+            Route::get('/tugas', [MobileTeacherController::class, 'tugas'])->name('tugas');
+            Route::post('/tugas/{submission}/grade', [MobileTeacherController::class, 'gradeSubmission'])->name('tugas.grade');
+        });
 
         // Pembda Space (Forum)
         Route::prefix('space')->name('space.')->group(function () {
