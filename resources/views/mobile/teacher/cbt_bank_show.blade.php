@@ -110,6 +110,7 @@
 
             <form action="{{ route('guru.cbt.banks.assign-to-lms', $bank->id) }}" method="POST" class="space-y-3">
                 @csrf
+                <input type="hidden" name="is_mobile" value="1">
                 <div class="p-3 bg-purple-50 rounded-2xl border border-purple-200">
                     <p class="text-[10px] font-black text-purple-700 uppercase">Bank Soal Terpilih:</p>
                     <p class="text-xs font-black text-slate-900 mt-0.5">{{ $bank->bank_name }} ({{ count($bank->questions ?? []) }} Soal)</p>

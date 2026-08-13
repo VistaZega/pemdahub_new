@@ -300,7 +300,12 @@ class CbtController extends Controller
             'is_published' => true,
         ]);
 
-        if (request()->wantsJson() || str_contains(request()->url(), '/m/')) {
+        $referer = (request()->header('referer') ?? '') . ' ' . (request()->url() ?? '') . ' ' . (request()->header('User-Agent') ?? '');
+        $isMobile = str_contains($referer, '/m/') 
+            || request()->has('is_mobile') 
+            || preg_match('/(Mobile|Android|iPhone|iPad|iPod|Touch|Windows Phone)/i', request()->header('User-Agent') ?? '');
+
+        if ($isMobile) {
             return redirect()->route('mobile.lms.show', $request->input('course_id'))
                 ->with('success', "Bank Soal '{$bank->bank_name}' berhasil ditautkan sebagai Kuis LMS!");
         }
