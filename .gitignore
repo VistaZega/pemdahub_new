@@ -58,3 +58,6 @@ Daftar Akun*
 /roster_unzipped/
 /tmp/
 /examples/
+/whatsapp-server/node_modules/
+/whatsapp-server/auth_info_baileys/
+
