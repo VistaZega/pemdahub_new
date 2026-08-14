@@ -31,10 +31,15 @@
                     @foreach($subjectGrades as $g)
                         <div class="p-3 rounded-2xl bg-[#f4f7fc] border-2 border-slate-200/80 flex items-center justify-between">
                             <div>
-                                <span class="text-[10px] text-slate-500 block truncate font-bold">{{ $g->assessmentType->name ?? 'Nilai' }}</span>
-                                <span class="text-[9px] text-slate-400 font-bold">{{ $g->created_at ? $g->created_at->format('d/m/Y') : '' }}</span>
+                                <span class="text-[10px] text-slate-500 block truncate font-bold">{{ $g->assessmentType->name ?? ($g->grade_type ?? 'Nilai') }}</span>
+                                @if($g->lms_source_type)
+                                    <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full {{ $g->lms_source_type === 'quiz_attempt' ? 'bg-purple-100 text-purple-700' : ($g->lms_source_type === 'submission' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700') }}">
+                                        {{ $g->lms_source_type === 'quiz_attempt' ? '📝 Kuis LMS' : ($g->lms_source_type === 'submission' ? '📄 Tugas LMS' : '💻 CBT') }}
+                                    </span>
+                                @endif
+                                <span class="text-[9px] text-slate-400 font-bold block mt-0.5">{{ $g->notes ? Str::limit($g->notes, 25) : ($g->created_at ? $g->created_at->format('d/m/Y') : '') }}</span>
                             </div>
-                            <span class="text-base font-black text-emerald-600">{{ $g->score }}</span>
+                            <span class="text-base font-black {{ $g->score >= 75 ? 'text-emerald-600' : ($g->score >= 60 ? 'text-amber-600' : 'text-rose-600') }}">{{ $g->score }}</span>
                         </div>
                     @endforeach
                 </div>

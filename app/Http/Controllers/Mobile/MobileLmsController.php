@@ -12,6 +12,7 @@ use App\Models\LmsQuiz;
 use App\Models\LmsQuizAttempt;
 use App\Models\LmsQuizAnswer;
 use App\Models\Student;
+use App\Services\GradeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -453,6 +454,14 @@ class MobileLmsController extends Controller
             'score' => $finalPercentage,
             'is_passed' => $finalPercentage >= $passingScore,
         ]);
+
+        // Sinkronisasi skor kuis ke tabel Grades utama agar muncul di Rekap Nilai
+        try {
+            $gradeService = app(GradeService::class);
+            $gradeService->syncQuizAttemptToGrade($attempt);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('LMS Quiz grade sync failed: ' . $e->getMessage());
+        }
 
         return redirect()->route('mobile.lms.quiz.result', $attempt->id)->with('success', 'Kuis berhasil diselesaikan!');
     }

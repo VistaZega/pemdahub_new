@@ -249,7 +249,16 @@ class MobileTeacherController extends Controller
             'score' => $request->input('score'),
             'feedback' => $request->input('feedback'),
             'status' => 'graded',
+            'graded_by' => Auth::id(),
         ]);
+
+        // Sinkronisasi nilai tugas ke tabel Grades utama agar muncul di Rekap Nilai Siswa
+        try {
+            $gradeService = app(\App\Services\GradeService::class);
+            $gradeService->syncSubmissionToGrade($submission);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('LMS Submission grade sync failed: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Nilai tugas berhasil disimpan!');
     }
