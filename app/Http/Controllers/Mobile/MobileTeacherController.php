@@ -550,17 +550,30 @@ class MobileTeacherController extends Controller
         $teacher = $this->getTeacher();
         $user = Auth::user();
 
-        $mediaList = collect();
-        if (class_exists('\App\Models\KnowledgeMedia')) {
-            $mediaList = \App\Models\KnowledgeMedia::latest()->take(20)->get();
+        $foundationLetters = collect();
+        if (class_exists('\App\Models\FoundationLetter')) {
+            $foundationLetters = \App\Models\FoundationLetter::latest()->get();
         }
 
-        $announcements = collect();
-        if (class_exists('\App\Models\Announcement')) {
-            $announcements = \App\Models\Announcement::latest()->take(20)->get();
+        $lmsAnnouncements = collect();
+        if (class_exists('\App\Models\LmsAnnouncement')) {
+            $lmsAnnouncements = \App\Models\LmsAnnouncement::with(['author', 'course'])
+                ->latest()
+                ->take(20)
+                ->get();
         }
 
-        return view('mobile.teacher.edaran', compact('teacher', 'mediaList', 'announcements'));
+        $newsList = collect();
+        if (class_exists('\App\Models\News')) {
+            $newsList = \App\Models\News::latest()->take(20)->get();
+        }
+
+        return view('mobile.teacher.edaran', compact(
+            'teacher', 
+            'foundationLetters', 
+            'lmsAnnouncements', 
+            'newsList'
+        ));
     }
 
     /**
