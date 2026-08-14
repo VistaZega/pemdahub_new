@@ -73,55 +73,57 @@
         </div>
 
         <!-- Presensi Status & Form Button -->
-        <div class="pt-4 border-t-2 border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="pt-4 border-t-2 border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             @if(!empty($todayAttendance))
                 @php
                     $isNotCheckedOut = !$todayAttendance->time_out || $todayAttendance->time_out === '00:00:00' || $todayAttendance->time_out === '00:00';
                 @endphp
-                <div class="flex items-center gap-3.5">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 border-2 border-emerald-300 flex items-center justify-center text-emerald-700 text-xl font-black shadow-sm">
+                <div class="flex items-center gap-5 min-w-0">
+                    <div class="w-13 h-13 rounded-2xl bg-emerald-100 border-2 border-emerald-300 shrink-0 flex items-center justify-center text-emerald-700 text-2xl font-black shadow-sm p-3">
                         <i class="fas fa-circle-check"></i>
                     </div>
-                    <div>
-                        <span class="text-xs text-slate-500 font-extrabold block">Status Presensi Hari Ini:</span>
-                        <span class="text-base font-black text-slate-900">
-                            Hadir (Masuk: <span class="text-emerald-600">{{ substr($todayAttendance->time_in ?? $todayAttendance->check_in_time ?? date('H:i'), 0, 5) }}</span>)
+                    <div class="space-y-1 min-w-0">
+                        <span class="text-xs text-slate-500 font-extrabold block uppercase tracking-wider">Status Presensi Hari Ini</span>
+                        <div class="text-base sm:text-lg font-black text-slate-900 leading-tight">
+                            Hadir <span class="text-xs font-bold text-slate-500">(Masuk: <span class="text-emerald-600 font-black text-sm">{{ substr($todayAttendance->time_in ?? $todayAttendance->check_in_time ?? date('H:i'), 0, 5) }}</span>)</span>
                             @if(!$isNotCheckedOut)
-                                | Pulang: <span class="text-blue-600">{{ substr($todayAttendance->time_out, 0, 5) }}</span>
+                                <span class="text-xs font-bold text-slate-500">| Pulang: <span class="text-blue-600 font-black text-sm">{{ substr($todayAttendance->time_out, 0, 5) }}</span></span>
                             @endif
-                        </span>
+                        </div>
                     </div>
                 </div>
 
                 @if($isNotCheckedOut)
-                    <form action="{{ route('mobile.absensi.scan') }}" method="POST" id="desktopGpsForm" class="w-full sm:w-auto">
+                    <form action="{{ route('mobile.absensi.scan') }}" method="POST" id="desktopGpsForm" class="w-full sm:w-auto shrink-0">
                         @csrf
                         <input type="hidden" name="latitude" id="desktopLatInput">
                         <input type="hidden" name="longitude" id="desktopLngInput">
-                        <button type="button" onclick="handleDesktopGpsScan()" class="w-full sm:w-auto px-7 py-3.5 bg-amber-400 text-slate-950 font-black text-xs rounded-2xl shadow-md hover:bg-amber-300 transition flex items-center justify-center gap-2 border-2 border-slate-900">
-                            <i class="fas fa-right-from-bracket text-sm"></i>
-                            <span>📍 PRESENSI GPS PULANG SEKARANG</span>
+                        <button type="button" onclick="handleDesktopGpsScan()" class="w-full sm:w-auto px-8 py-3.5 bg-amber-400 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-md hover:bg-amber-300 transition flex items-center justify-center gap-3 border-2 border-slate-900">
+                            <i class="fas fa-right-from-bracket text-base text-slate-900"></i>
+                            <span class="tracking-wide">PRESENSI GPS PULANG SEKARANG</span>
                         </button>
                     </form>
                 @endif
             @else
-                <div class="flex items-center gap-3.5">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-amber-800 text-xl font-black shadow-sm">
-                        <i class="fas fa-clock"></i>
+                <div class="flex items-center gap-5 min-w-0">
+                    <div class="w-13 h-13 rounded-2xl bg-amber-100 border-2 border-amber-300 shrink-0 flex items-center justify-center text-amber-800 text-2xl font-black shadow-sm p-3">
+                        <i class="fas fa-user-clock"></i>
                     </div>
-                    <div>
-                        <span class="text-xs text-slate-500 font-extrabold block">Status Presensi Hari Ini:</span>
-                        <span class="text-base font-black text-amber-700">Belum Presensi Masuk Hari Ini</span>
+                    <div class="space-y-1 min-w-0">
+                        <span class="text-xs text-slate-500 font-extrabold block uppercase tracking-wider">Status Presensi Hari Ini</span>
+                        <div class="text-base sm:text-lg font-black text-amber-700 leading-tight">
+                            Belum Presensi Masuk Hari Ini
+                        </div>
                     </div>
                 </div>
 
-                <form action="{{ route('mobile.absensi.scan') }}" method="POST" id="desktopGpsForm" class="w-full sm:w-auto">
+                <form action="{{ route('mobile.absensi.scan') }}" method="POST" id="desktopGpsForm" class="w-full sm:w-auto shrink-0">
                     @csrf
                     <input type="hidden" name="latitude" id="desktopLatInput">
                     <input type="hidden" name="longitude" id="desktopLngInput">
-                    <button type="button" onclick="handleDesktopGpsScan()" class="w-full sm:w-auto px-7 py-3.5 bg-teal-600 text-white font-black text-xs rounded-2xl shadow-md hover:bg-teal-700 transition flex items-center justify-center gap-2 border-2 border-teal-800">
+                    <button type="button" onclick="handleDesktopGpsScan()" class="w-full sm:w-auto px-8 py-3.5 bg-teal-600 text-white font-black text-xs sm:text-sm rounded-2xl shadow-md hover:bg-teal-700 transition flex items-center justify-center gap-3 border-2 border-teal-800">
                         <i class="fas fa-location-dot text-amber-300 text-base"></i>
-                        <span>📍 PRESENSI GPS GURU SEKARANG</span>
+                        <span class="tracking-wide">PRESENSI GPS GURU SEKARANG</span>
                     </button>
                 </form>
             @endif
