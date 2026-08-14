@@ -14,6 +14,8 @@
            class="clay-btn px-4 py-2.5 text-white text-xs font-black flex items-center gap-1.5 shadow-md">
             <i class="fa-solid fa-plus text-xs"></i> Post Baru
         </a>
+    </div>
+
     <!-- LIVE ACTIVITY TICKER BANNER -->
     <div class="clay-card p-2.5 bg-gradient-to-r from-purple-950 via-indigo-900 to-purple-900 text-white rounded-2xl shadow-md border-2 border-purple-400/40 overflow-hidden relative">
         <div class="flex items-center space-x-2 text-[10px] font-black">

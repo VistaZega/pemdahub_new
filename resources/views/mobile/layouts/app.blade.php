@@ -170,7 +170,7 @@
 <body class="h-full bg-[#f4f7fc] text-slate-800 flex flex-col justify-between overflow-x-hidden">
 
     <!-- Top Playful Clay Header -->
-    <header class="sticky top-0 z-40 w-full bg-[#f4f7fc]/90 backdrop-blur-md border-b border-slate-200/60 px-5 py-3.5 flex items-center justify-between"
+    <header class="sticky top-0 z-40 w-full max-w-md mx-auto bg-[#f4f7fc]/90 backdrop-blur-md border-b border-slate-200/60 px-5 py-3.5 flex items-center justify-between"
             x-data="{ showRoleModal: false }">
         <div class="flex items-center space-x-3">
             <div class="w-11 h-11 rounded-2xl bg-white p-1 shadow-lg shadow-purple-500/20 border-2 border-white flex items-center justify-center shrink-0">
