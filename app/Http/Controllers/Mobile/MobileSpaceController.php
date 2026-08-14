@@ -173,10 +173,36 @@ class MobileSpaceController extends Controller
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
             'content' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'attachment' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,zip|max:10240',
+            'voice_note' => 'nullable|file|mimes:mp3,wav,m4a,ogg,webm|max:10240',
             'poll_question' => 'nullable|string|max:255',
             'poll_options' => 'nullable|array',
             'poll_options.*' => 'nullable|string|max:255',
         ]);
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('forum/images', 'public');
+        }
+
+        $attachmentPath = null;
+        $attachmentName = null;
+        $fileCategory = null;
+
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $attachmentName = $file->getClientOriginalName();
+            $attachmentPath = $file->store('forum/attachments', 'public');
+            $fileCategory = 'document';
+        }
+
+        if ($request->hasFile('voice_note')) {
+            $file = $request->file('voice_note');
+            $attachmentName = 'VoiceNote_' . now()->format('Ymd_His') . '.' . $file->getClientOriginalExtension();
+            $attachmentPath = $file->store('forum/voicenotes', 'public');
+            $fileCategory = 'voice_note';
+        }
 
         $title = $validated['title'] ?? Str::limit(strip_tags($validated['content']), 50);
 
@@ -186,6 +212,10 @@ class MobileSpaceController extends Controller
             'title' => $title,
             'content' => $validated['content'],
             'category' => $group->type === 'classroom' ? 'diskusi' : 'info',
+            'image_path' => $imagePath,
+            'attachment_path' => $attachmentPath,
+            'attachment_name' => $attachmentName,
+            'file_category' => $fileCategory,
             'views_count' => 0,
         ]);
 

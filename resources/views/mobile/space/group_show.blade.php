@@ -114,6 +114,49 @@
                     {!! nl2br($formattedContent) !!}
                 </div>
 
+                <!-- LAMPIRAN FOTO KEGIATAN -->
+                @if($thread->image_path)
+                    <div class="ml-11 rounded-2xl overflow-hidden border-2 border-slate-200 shadow-md max-w-xs">
+                        <img src="{{ asset('storage/' . $thread->image_path) }}" alt="Foto Kegiatan" class="w-full h-auto object-cover hover:scale-105 transition duration-300">
+                    </div>
+                @endif
+
+                <!-- LAMPIRAN VOICE NOTE (PESAN SUARA 3D) -->
+                @if($thread->file_category === 'voice_note' || ($thread->attachment_path && str_contains($thread->attachment_path, 'voicenotes')))
+                    <div class="ml-11 p-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md space-y-2 max-w-xs border-2 border-white">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white font-black text-sm shrink-0">
+                                🎙️
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="text-[9px] font-black uppercase text-purple-200 block">Pesan Suara (Voice Note)</span>
+                                <audio controls class="w-full h-7 mt-1 rounded-lg">
+                                    <source src="{{ asset('storage/' . $thread->attachment_path) }}" type="audio/webm">
+                                    <source src="{{ asset('storage/' . $thread->attachment_path) }}" type="audio/mpeg">
+                                    Browser Anda tidak mendukung pesan suara.
+                                </audio>
+                            </div>
+                        </div>
+                    </div>
+                @elseif($thread->attachment_path)
+                    <!-- LAMPIRAN DOKUMEN PDF / FILE -->
+                    <div class="ml-11 p-3 rounded-2xl bg-slate-50 border-2 border-slate-200 flex items-center justify-between text-xs max-w-xs shadow-xs">
+                        <div class="flex items-center space-x-2.5 min-w-0">
+                            <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-black text-xs shrink-0">
+                                📁
+                            </div>
+                            <div class="min-w-0">
+                                <h5 class="font-black text-slate-800 text-[11px] truncate">{{ $thread->attachment_name ?? 'Dokumen Lampiran' }}</h5>
+                                <span class="text-[9px] font-bold text-slate-400">File Modul / PDF</span>
+                            </div>
+                        </div>
+                        <a href="{{ asset('storage/' . $thread->attachment_path) }}" target="_blank" 
+                           class="px-2.5 py-1 rounded-xl bg-purple-600 text-white text-[10px] font-black shadow-xs hover:bg-purple-700 transition shrink-0">
+                            Buka
+                        </a>
+                    </div>
+                @endif
+
                 <!-- SMART ACADEMIC CARD: KARTU TUGAS LMS (Jika postingan mengandung referensi LMS) -->
                 @if(str_contains($thread->content, '[TUGAS_LMS]') || $thread->category === 'sharing' || str_contains(strtolower($thread->title), 'tugas'))
                     <div class="ml-11 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg space-y-2 border-2 border-emerald-300">
@@ -249,9 +292,15 @@
                 </button>
             </div>
 
-            <form action="{{ route('mobile.space.group.post', $group->id) }}" method="POST" class="space-y-2">
+            <form action="{{ route('mobile.space.group.post', $group->id) }}" method="POST" enctype="multipart/form-data" class="space-y-2" x-data="{ showMediaPicker: false }">
                 @csrf
                 <div class="flex items-center space-x-2">
+                    <!-- Media Attachment Trigger Buttons -->
+                    <button type="button" @click="showMediaPicker = !showMediaPicker" 
+                            class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-700 border border-purple-200 flex items-center justify-center text-sm font-black shrink-0 hover:bg-purple-200 transition">
+                        <i class="fa-solid fa-paperclip"></i>
+                    </button>
+
                     <textarea id="groupChatInput" name="content" rows="2" required
                               placeholder="Ketik pesan ke {{ $group->name }}... (Gunakan @SemuaSiswa untuk mention)" 
                               class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold placeholder-slate-400 focus:outline-none focus:border-purple-600 transition resize-none"></textarea>
@@ -260,6 +309,31 @@
                             class="clay-btn px-4 py-3 text-white font-black text-xs shrink-0 flex items-center gap-1">
                         <i class="fa-solid fa-paper-plane text-xs"></i>
                     </button>
+                </div>
+
+                <!-- Media Attachments Selection Bar -->
+                <div x-show="showMediaPicker" x-transition class="p-3 bg-purple-50 border-2 border-purple-200 rounded-2xl space-y-2 text-xs">
+                    <span class="text-[10px] font-black text-purple-900 uppercase block">📷 Lampirkan Media / File Suara:</span>
+                    
+                    <div class="grid grid-cols-3 gap-2">
+                        <!-- Foto Picker -->
+                        <label class="p-2 rounded-xl bg-white border border-purple-200 text-center font-black text-[10px] text-purple-700 cursor-pointer hover:bg-purple-100 transition block">
+                            📷 Upload Foto
+                            <input type="file" name="image" accept="image/*" class="hidden">
+                        </label>
+
+                        <!-- Document PDF Picker -->
+                        <label class="p-2 rounded-xl bg-white border border-purple-200 text-center font-black text-[10px] text-purple-700 cursor-pointer hover:bg-purple-100 transition block">
+                            📁 File PDF / Doc
+                            <input type="file" name="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx" class="hidden">
+                        </label>
+
+                        <!-- Voice Note Picker -->
+                        <label class="p-2 rounded-xl bg-white border border-purple-200 text-center font-black text-[10px] text-purple-700 cursor-pointer hover:bg-purple-100 transition block">
+                            🎙️ Voice Note
+                            <input type="file" name="voice_note" accept="audio/*" class="hidden">
+                        </label>
+                    </div>
                 </div>
 
                 <!-- 3D Poll Creation Inputs -->
