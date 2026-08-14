@@ -3,6 +3,58 @@
 
 @section('content')
 <div class="space-y-6">
+    {{-- Session Flash Alert Notifications (Tanda Konfirmasi Berhasil / Gagal) --}}
+    @if(session('success'))
+        <div class="bg-emerald-50 border-2 border-emerald-500 text-emerald-950 rounded-2xl p-4.5 shadow-md flex items-center justify-between gap-4 animate-bounce-once">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-emerald-500 text-white shrink-0 flex items-center justify-center text-xl shadow-sm">
+                    <i class="fas fa-circle-check"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-black uppercase text-emerald-700 tracking-wider">Presensi Berhasil! 🎉</h4>
+                    <p class="text-sm font-black text-emerald-950 mt-0.5 leading-snug">{{ session('success') }}</p>
+                </div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-950 p-2">
+                <i class="fas fa-xmark text-lg"></i>
+            </button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="bg-rose-50 border-2 border-rose-500 text-rose-950 rounded-2xl p-4.5 shadow-md flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-rose-500 text-white shrink-0 flex items-center justify-center text-xl shadow-sm">
+                    <i class="fas fa-circle-exclamation"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-black uppercase text-rose-700 tracking-wider">Presensi Gagal! ⚠️</h4>
+                    <p class="text-sm font-black text-rose-950 mt-0.5 leading-snug">{{ session('error') }}</p>
+                </div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-950 p-2">
+                <i class="fas fa-xmark text-lg"></i>
+            </button>
+        </div>
+    @endif
+
+    @if(session('info'))
+        <div class="bg-blue-50 border-2 border-blue-500 text-blue-950 rounded-2xl p-4.5 shadow-md flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-blue-500 text-white shrink-0 flex items-center justify-center text-xl shadow-sm">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-black uppercase text-blue-700 tracking-wider">Informasi Presensi ℹ️</h4>
+                    <p class="text-sm font-black text-blue-950 mt-0.5 leading-snug">{{ session('info') }}</p>
+                </div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-blue-700 hover:text-blue-950 p-2">
+                <i class="fas fa-xmark text-lg"></i>
+            </button>
+        </div>
+    @endif
+
     {{-- Header Banner (Neo-Brutalism) --}}
     <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #0f766e 50%, #115e59 100%) !important;">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
