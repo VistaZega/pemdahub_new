@@ -8,7 +8,7 @@
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-xl font-black text-slate-900">Jadwal Pelajaran 📅</h2>
-            <p class="text-[11px] text-slate-500 font-bold">Kelas: {{ $classroom->name ?? 'Belum ada kelas' }}</p>
+            <p class="text-[11px] text-slate-500 font-bold">Kelas: {{ $classroom->class_name ?? 'Belum ada kelas' }}</p>
         </div>
         <a href="{{ route('mobile.dashboard') }}" class="text-xs text-blue-600 font-black hover:text-blue-700">
             <i class="fa-solid fa-arrow-left"></i> Beranda

@@ -217,6 +217,7 @@ class MobileLmsController extends Controller
 
         $user = Auth::user();
         $teacher = \App\Models\Teacher::where('user_id', $user->id)->first() ?? $user->teacher;
+        $isTeacher = $teacher && ($course->teacher_id == $teacher->id);
 
         $questionBanks = collect();
         if (class_exists('\App\Models\CbtQuestionBank')) {
@@ -238,7 +239,7 @@ class MobileLmsController extends Controller
             }
         }
 
-        return view('mobile.lms.show', compact('course', 'student', 'submissionMap', 'attemptMap', 'questionBanks', 'completedMaterialIds'));
+        return view('mobile.lms.show', compact('course', 'student', 'submissionMap', 'attemptMap', 'questionBanks', 'completedMaterialIds', 'isTeacher'));
     }
 
     public function material($id)
@@ -390,6 +391,12 @@ class MobileLmsController extends Controller
     public function submitQuiz(Request $request, $attemptId)
     {
         $attempt = LmsQuizAttempt::with(['quiz.questions', 'quiz.cbtQuestionBank.questions'])->findOrFail($attemptId);
+        
+        $student = $this->getStudent();
+        if ($student && $attempt->student_id !== $student->id) {
+            return redirect()->route('mobile.lms.index')->with('error', 'Anda tidak memiliki akses ke percobaan kuis ini.');
+        }
+
         if ($attempt->finished_at) {
             return redirect()->route('mobile.lms.show', $attempt->quiz->course_id)->with('info', 'Kuis sudah selesai.');
         }
@@ -706,6 +713,21 @@ class MobileLmsController extends Controller
     public function streamMaterial($id)
     {
         $material = LmsMaterial::findOrFail($id);
+        
+        $student = $this->getStudent();
+        if ($student && ($material->course?->is_sequential || $material->module?->is_sequential)) {
+            $allCourseMaterials = LmsMaterial::where('course_id', $material->course_id)
+                ->orderBy('module_id', 'asc')->orderBy('order', 'asc')->orderBy('id', 'asc')->get();
+            $completedMaterialIds = \App\Models\LmsMaterialProgress::where('student_id', $student->id)
+                ->pluck('material_id')->toArray();
+            foreach ($allCourseMaterials as $m) {
+                if ($m->id == $material->id) break;
+                if (!in_array($m->id, $completedMaterialIds)) {
+                    return back()->with('error', '🔒 Materi ini masih terkunci! Selesaikan materi sebelumnya terlebih dahulu.');
+                }
+            }
+        }
+
         $filePath = $material->file_path;
 
         if (!$filePath) {
@@ -743,6 +765,21 @@ class MobileLmsController extends Controller
     public function downloadMaterial($id)
     {
         $material = LmsMaterial::findOrFail($id);
+
+        $student = $this->getStudent();
+        if ($student && ($material->course?->is_sequential || $material->module?->is_sequential)) {
+            $allCourseMaterials = LmsMaterial::where('course_id', $material->course_id)
+                ->orderBy('module_id', 'asc')->orderBy('order', 'asc')->orderBy('id', 'asc')->get();
+            $completedMaterialIds = \App\Models\LmsMaterialProgress::where('student_id', $student->id)
+                ->pluck('material_id')->toArray();
+            foreach ($allCourseMaterials as $m) {
+                if ($m->id == $material->id) break;
+                if (!in_array($m->id, $completedMaterialIds)) {
+                    return back()->with('error', '🔒 Materi ini masih terkunci! Selesaikan materi sebelumnya terlebih dahulu.');
+                }
+            }
+        }
+
         $filePath = $material->file_path;
 
         if (!$filePath) {

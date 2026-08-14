@@ -189,7 +189,7 @@
                         <h4 class="text-xs font-black leading-snug">{{ $thread->title }}</h4>
                         <div class="flex items-center justify-between pt-1">
                             <span class="text-[10px] text-amber-100 font-medium">Kode Akses: UJIAN-PEMBDA</span>
-                            <a href="/m/siswa/cbt" 
+                            <a href="{{ auth()->user()->hasRole('guru') ? route('mobile.guru.cbt') : route('mobile.cbt') }}" 
                                class="px-3 py-1 rounded-xl bg-white text-rose-800 text-[10px] font-black shadow-md hover:bg-rose-50 transition flex items-center gap-1">
                                 🎯 Masuk Bilik Ujian &rarr;
                             </a>

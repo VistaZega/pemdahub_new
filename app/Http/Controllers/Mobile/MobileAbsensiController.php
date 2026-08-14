@@ -60,12 +60,19 @@ class MobileAbsensiController extends Controller
             $lat = (float) $request->input('latitude', 0);
             $lng = (float) $request->input('longitude', 0);
 
-            if ($employee && $lat != 0.0 && $lng != 0.0 && $employee->school) {
+            if ($employee && $employee->school) {
                 $schoolLat = (float) ($employee->school->latitude ?? 0);
                 $schoolLong = (float) ($employee->school->longitude ?? 0);
                 $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 100);
 
                 if ($schoolLat != 0.0 && $schoolLong != 0.0) {
+                    if ($lat == 0.0 && $lng == 0.0) {
+                        $msg = 'Gagal! Lokasi GPS tidak ditemukan.';
+                        return $wantsJson
+                            ? response()->json(['success' => false, 'message' => $msg], 403)
+                            : back()->with('error', $msg);
+                    }
+
                     $distance = $this->calculateDistance($lat, $lng, $schoolLat, $schoolLong);
                     if ($distance > $maxRadiusMeters) {
                         $msg = 'Gagal! Lokasi Anda berada di luar area sekolah (' . round($distance) . 'm dari sekolah. Maksimal ' . $maxRadiusMeters . 'm).';

@@ -263,9 +263,6 @@ class MobileTeacherController extends Controller
         $teacher = $this->getTeacher();
 
         $employee = \App\Models\Employee::where('user_id', $user->id)->first();
-        if (!$employee && $user->school_id) {
-            $employee = \App\Models\Employee::where('school_id', $user->school_id)->first();
-        }
 
         $month = (int) $request->get('month', now()->month);
         $year = (int) $request->get('year', now()->year);
@@ -738,8 +735,10 @@ class MobileTeacherController extends Controller
         }
 
         $reportCards = collect();
-        if (class_exists('\App\Models\ReportCard')) {
+        if (class_exists('\App\Models\ReportCard') && $homeroomClasses->isNotEmpty()) {
+            $homeroomIds = $homeroomClasses->pluck('id')->toArray();
             $reportCards = \App\Models\ReportCard::with(['student', 'classroom'])
+                ->whereIn('classroom_id', $homeroomIds)
                 ->latest()
                 ->take(20)
                 ->get();

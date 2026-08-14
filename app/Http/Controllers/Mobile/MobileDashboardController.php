@@ -59,16 +59,16 @@ class MobileDashboardController extends Controller
         }
 
         // Recent Forum discussions (Pembda Space Terbaru)
-        $recentDiscussions = ForumThread::with(['user'])
+        $recentDiscussions = ForumThread::with(['user.student', 'user.teacher'])
             ->withCount(['replies', 'likes'])
             ->latest()
             ->take(5)
             ->get();
 
         // Popular Forum discussions (Pembda Space Paling Rame)
-        $popularDiscussions = ForumThread::with(['user'])
+        $popularDiscussions = ForumThread::with(['user.student', 'user.teacher'])
             ->withCount(['replies', 'likes'])
-            ->orderByRaw('(replies_count + likes_count) DESC')
+            ->orderByDesc('replies_count')
             ->latest()
             ->take(5)
             ->get();

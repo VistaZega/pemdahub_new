@@ -62,8 +62,9 @@ class MobileStudentController extends Controller
                 ->get();
 
             foreach ($allSchedules as $sch) {
-                if (isset($schedulesByDay[$sch->day_of_week])) {
-                    $schedulesByDay[$sch->day_of_week]->push($sch);
+                $dayLower = strtolower($sch->day_of_week);
+                if (isset($schedulesByDay[$dayLower])) {
+                    $schedulesByDay[$dayLower]->push($sch);
                 }
             }
         }
@@ -196,6 +197,9 @@ class MobileStudentController extends Controller
         ]);
 
         $student = $this->getStudent();
+        if (!$student) {
+            return back()->with('error', 'Data siswa tidak ditemukan.');
+        }
         $pklPlacement = PklStudent::where('student_id', $student->id)->firstOrFail();
 
         PklLog::create([

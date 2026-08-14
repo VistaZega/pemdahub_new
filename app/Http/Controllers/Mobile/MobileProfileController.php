@@ -116,8 +116,11 @@ class MobileProfileController extends Controller
                 $studentFields['photo'] = $path;
             }
 
+            // Menggunakan fillable statik untuk efisiensi daripada mengeksekusi Schema::hasColumn berulang-ulang
+            $allowedStudentFields = ['name', 'full_name', 'email', 'nisn', 'nis', 'gender', 'birth_place', 'birth_date', 'religion', 'address', 'phone', 'parent_name', 'parent_phone', 'guardian_name', 'guardian_phone', 'hobby', 'photo'];
+            
             foreach ($studentFields as $col => $val) {
-                if (Schema::hasColumn('students', $col)) {
+                if (in_array($col, $allowedStudentFields)) {
                     $student->$col = $val;
                 }
             }
@@ -147,8 +150,10 @@ class MobileProfileController extends Controller
                 $teacherFields['photo'] = $path;
             }
 
+            $allowedTeacherFields = ['name', 'full_name', 'email', 'nip', 'gender', 'birth_place', 'birth_date', 'religion', 'address', 'phone', 'education_level', 'major', 'position', 'photo'];
+
             foreach ($teacherFields as $col => $val) {
-                if (Schema::hasColumn('teachers', $col)) {
+                if (in_array($col, $allowedTeacherFields)) {
                     $teacher->$col = $val;
                 }
             }

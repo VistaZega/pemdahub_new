@@ -6,7 +6,7 @@
 @php
     $isTeacher = session('active_role') === 'guru' || 
                  auth()->user()?->isGuru() || 
-                 ($course->teacher_id == auth()->id());
+                 $isTeacher;
 @endphp
 <div class="space-y-4" x-data="{ tab: 'modul', showAddModule: false, showAddMaterial: false, showAddAssignment: false, showAddQuiz: false }">
     <!-- Back Link -->

@@ -112,13 +112,7 @@ class MobileSpaceController extends Controller
             ->first();
 
         if (!$membership) {
-            // Otomatis gabungkan jika grup resmi
-            $membership = ForumGroupMember::create([
-                'group_id' => $group->id,
-                'user_id' => $user->id,
-                'role' => 'member',
-                'joined_at' => now(),
-            ]);
+            return redirect()->route('mobile.space.index')->with('error', 'Anda tidak memiliki akses ke grup ini.');
         }
 
         // Hitung real member count
@@ -162,6 +156,11 @@ class MobileSpaceController extends Controller
     {
         $user = Auth::user();
         $group = ForumGroup::findOrFail($groupId);
+
+        $isMember = \App\Models\ForumGroupMember::where('group_id', $groupId)->where('user_id', Auth::id())->exists();
+        if (!$isMember) {
+            return redirect()->back()->with('error', 'Anda tidak tergabung dalam grup ini.');
+        }
 
         // Cek batasan posting admin
         if ($group->only_admin_can_post) {
@@ -253,7 +252,18 @@ class MobileSpaceController extends Controller
         $user = Auth::user();
         $optionId = $request->input('option_id');
 
-        $poll = \App\Models\ForumPoll::with('options')->findOrFail($pollId);
+        $poll = \App\Models\ForumPoll::with(['options', 'thread'])->findOrFail($pollId);
+
+        if ($poll->thread && $poll->thread->group_id) {
+            $isMember = \App\Models\ForumGroupMember::where('group_id', $poll->thread->group_id)->where('user_id', Auth::id())->exists();
+            if (!$isMember) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['error' => 'Anda tidak memiliki akses.'], 403);
+                }
+                return redirect()->back()->with('error', 'Anda tidak memiliki akses.');
+            }
+        }
+
         $option = \App\Models\ForumPollOption::where('forum_poll_id', $poll->id)->findOrFail($optionId);
 
         // Cek apakah sudah pernah voting
