@@ -44,6 +44,12 @@ class WhatsAppService implements WhatsAppServiceInterface
 
         $phone = $this->normalizePhoneNumber($phone);
 
+        // Global System Footer
+        $systemFooter = "\n\n---\n🤖 _Pesan ini dikirimkan secara otomatis oleh Sistem PembdaHUB Perguruan Pembda._";
+        if (!str_contains($message, 'Sistem PembdaHUB') && !str_contains($message, 'PembdaHUB Executive')) {
+            $message .= $systemFooter;
+        }
+
         try {
             $data = [
                 'target' => $phone,
