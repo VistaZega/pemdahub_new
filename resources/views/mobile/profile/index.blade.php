@@ -1,10 +1,10 @@
 @extends('mobile.layouts.app')
 
-@section('title', 'Profil Saya 3D - PembdaHUB Mobile')
+@section('title', 'Profil & Update Data Lengkap - PembdaHUB Mobile')
 
 @section('content')
-<div class="space-y-4" x-data="{ showPasswordFields: false }">
-    <!-- Form Upload Foto & Edit Profil -->
+<div class="space-y-4" x-data="{ showPasswordFields: false, activeTab: 'dasar' }">
+    <!-- Form Upload Foto & Update Data Lengkap -->
     <form action="{{ route('mobile.profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
         @csrf
 
@@ -32,21 +32,37 @@
 
                 @if($student && $student->school)
                     <p class="text-xs text-blue-100 mt-2 font-extrabold"><i class="fa-solid fa-school mr-1"></i>{{ $student->school->name }}</p>
+                @elseif($teacher && $teacher->school)
+                    <p class="text-xs text-blue-100 mt-2 font-extrabold"><i class="fa-solid fa-school mr-1"></i>{{ $teacher->school->name }}</p>
                 @endif
             </div>
 
             <p class="text-[10px] text-blue-100 font-bold italic pt-1">
-                💡 Klik ikon kamera di atas foto profil untuk mengganti foto Anda.
+                💡 Klik ikon kamera di foto untuk mengganti foto profil Anda.
             </p>
         </div>
 
-        <!-- FORM EDIT DATA PROFIL LENGKAP -->
-        <div class="clay-card p-5 space-y-4 bg-white border-2 border-slate-200">
+        <!-- TAB NAVIGATION (DATA AKUN vs BIODATA LENGKAP) -->
+        <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+            <button type="button" @click="activeTab = 'dasar'"
+                    class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5"
+                    :class="activeTab === 'dasar' ? 'bg-white text-blue-700 shadow-md border-2 border-blue-200 scale-102' : 'text-slate-500 hover:text-slate-900'">
+                <span>👤 Data Akun</span>
+            </button>
+
+            <button type="button" @click="activeTab = 'biodata'"
+                    class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5"
+                    :class="activeTab === 'biodata' ? 'bg-white text-blue-700 shadow-md border-2 border-blue-200 scale-102' : 'text-slate-500 hover:text-slate-900'">
+                <span>📋 Biodata Lengkap</span>
+            </button>
+        </div>
+
+        <!-- SECTION 1: DATA UTAMA AKUN -->
+        <div x-show="activeTab === 'dasar'" x-transition class="clay-card p-5 space-y-4 bg-white border-2 border-slate-200">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <h3 class="text-xs font-black text-slate-900 flex items-center gap-2 uppercase tracking-wider">
-                    <i class="fa-solid fa-user-pen text-blue-600 text-sm"></i> Edit Profil Lengkap
+                    <i class="fa-solid fa-user-gear text-blue-600 text-sm"></i> Informasi Dasar Akun
                 </h3>
-                <span class="text-[10px] text-slate-400 font-bold">Informasi Diri</span>
             </div>
 
             <div class="space-y-3">
@@ -108,13 +124,163 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Tombol Simpan Perubahan -->
-            <button type="submit" 
-                    class="clay-btn w-full py-3 text-white text-xs font-black shadow-lg flex items-center justify-center gap-2">
-                <i class="fa-solid fa-floppy-disk text-xs"></i> Simpan Perubahan Profil
-            </button>
         </div>
+
+        <!-- SECTION 2: BIODATA LENGKAP (SISWA / GURU / PEGAWAI) -->
+        <div x-show="activeTab === 'biodata'" x-transition class="clay-card p-5 space-y-4 bg-white border-2 border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <h3 class="text-xs font-black text-slate-900 flex items-center gap-2 uppercase tracking-wider">
+                    <i class="fa-solid fa-address-card text-blue-600 text-sm"></i> 
+                    {{ $student ? 'Biodata Lengkap Siswa' : ($teacher ? 'Biodata Lengkap Guru & Pegawai' : 'Biodata Diri Pengguna') }}
+                </h3>
+            </div>
+
+            <div class="space-y-3">
+                @if($student)
+                    <!-- FIELD KHUSUS SISWA -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">NISN</label>
+                            <input type="text" name="nisn" value="{{ old('nisn', $student->nisn) }}" placeholder="Nomor NISN"
+                                   class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">NIS Sekolah</label>
+                            <input type="text" name="nis" value="{{ old('nis', $student->nis) }}" placeholder="Nomor NIS"
+                                   class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Tempat Lahir</label>
+                            <input type="text" name="birth_place" value="{{ old('birth_place', $student->birth_place) }}" placeholder="Kota Lahir"
+                                   class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Tanggal Lahir</label>
+                            <input type="date" name="birth_date" value="{{ old('birth_date', $student->birth_date?->format('Y-m-d')) }}"
+                                   class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Jenis Kelamin</label>
+                            <select name="gender" class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                                <option value="">-- Pilih --</option>
+                                <option value="L" {{ old('gender', $student->gender) === 'L' ? 'selected' : '' }}>Laki-laki</option>
+                                <option value="P" {{ old('gender', $student->gender) === 'P' ? 'selected' : '' }}>Perempuan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Agama</label>
+                            <input type="text" name="religion" value="{{ old('religion', $student->religion) }}" placeholder="Agama"
+                                   class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Alamat Tempat Tinggal</label>
+                        <textarea name="address" rows="2" placeholder="Alamat lengkap siswa..."
+                                  class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold resize-none">{{ old('address', $student->address) }}</textarea>
+                    </div>
+
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-2xl space-y-2">
+                        <span class="text-[10px] font-black text-blue-900 uppercase block">👨‍👩‍👧 Data Orang Tua / Wali</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[9px] font-black text-slate-600 uppercase mb-1">Nama Orang Tua</label>
+                                <input type="text" name="parent_name" value="{{ old('parent_name', $student->parent_name) }}" placeholder="Nama Ibu/Ayah"
+                                       class="w-full px-2.5 py-1.5 bg-white border border-blue-200 rounded-lg text-slate-900 text-xs font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-black text-slate-600 uppercase mb-1">No HP Orang Tua</label>
+                                <input type="text" name="parent_phone" value="{{ old('parent_phone', $student->parent_phone) }}" placeholder="08xxxxxxxxxx"
+                                       class="w-full px-2.5 py-1.5 bg-white border border-blue-200 rounded-lg text-slate-900 text-xs font-bold">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Hobi / Minat Bakat</label>
+                        <input type="text" name="hobby" value="{{ old('hobby', $student->hobby) }}" placeholder="Contoh: Olahraga, Seni, Coding"
+                               class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                    </div>
+                @elseif($teacher)
+                    <!-- FIELD KHUSUS GURU / PEGAWAI -->
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">NIP / NPT</label>
+                        <input type="text" name="nip" value="{{ old('nip', $teacher->nip) }}" placeholder="Nomor NIP/NPT Guru"
+                               class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Tempat Lahir</label>
+                            <input type="text" name="birth_place" value="{{ old('birth_place', $teacher->birth_place) }}" placeholder="Kota Lahir"
+                                   class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Tanggal Lahir</label>
+                            <input type="date" name="birth_date" value="{{ old('birth_date', $teacher->birth_date?->format('Y-m-d')) }}"
+                                   class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Jenis Kelamin</label>
+                            <select name="gender" class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                                <option value="">-- Pilih --</option>
+                                <option value="L" {{ old('gender', $teacher->gender) === 'L' ? 'selected' : '' }}>Laki-laki</option>
+                                <option value="P" {{ old('gender', $teacher->gender) === 'P' ? 'selected' : '' }}>Perempuan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Agama</label>
+                            <input type="text" name="religion" value="{{ old('religion', $teacher->religion) }}" placeholder="Agama"
+                                   class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Pendidikan Terakhir</label>
+                            <input type="text" name="education_level" value="{{ old('education_level', $teacher->education_level) }}" placeholder="S1 / S2 / S3"
+                                   class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Jurusan</label>
+                            <input type="text" name="major" value="{{ old('major', $teacher->major) }}" placeholder="Jurusan Studi"
+                                   class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Jabatan / Posisi</label>
+                        <input type="text" name="position" value="{{ old('position', $teacher->position) }}" placeholder="Jabatan Mengajar / Staf"
+                               class="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-600 uppercase mb-1">Alamat Tempat Tinggal</label>
+                        <textarea name="address" rows="2" placeholder="Alamat lengkap guru..."
+                                  class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold resize-none">{{ old('address', $teacher->address) }}</textarea>
+                    </div>
+                @else
+                    <div class="p-4 text-center text-slate-500 text-xs font-bold">
+                        Profil ini terdaftar sebagai Admin / Pengguna Umum.
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Tombol Simpan Perubahan Utama -->
+        <button type="submit" 
+                class="clay-btn w-full py-3.5 text-white text-xs font-black shadow-lg flex items-center justify-center gap-2">
+            <i class="fa-solid fa-floppy-disk text-xs"></i> Simpan Seluruh Data Profil
+        </button>
     </form>
 
     <!-- Role Switcher Widget (If Multi-Role) -->
@@ -157,32 +323,6 @@
         </form>
     </div>
     @endif
-
-    <!-- Account Detail Group (Clay Card) -->
-    <div class="clay-card p-5 space-y-3">
-        <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider">Informasi Akun</h3>
-
-        <div class="space-y-2.5 text-xs font-bold">
-            <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                <span class="text-slate-500">Username</span>
-                <span class="font-black text-slate-900">{{ $user->username ?? '-' }}</span>
-            </div>
-
-            @if($student)
-            <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                <span class="text-slate-500">NISN</span>
-                <span class="font-black text-slate-900">{{ $student->nisn ?? '-' }}</span>
-            </div>
-            @endif
-
-            @if($teacher)
-            <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                <span class="text-slate-500">NIP / NPT</span>
-                <span class="font-black text-slate-900">{{ $teacher->nip ?? '-' }}</span>
-            </div>
-            @endif
-        </div>
-    </div>
 
     <!-- Quick Navigation Links -->
     <div class="clay-card p-2 space-y-1">

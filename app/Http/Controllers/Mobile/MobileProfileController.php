@@ -28,7 +28,7 @@ class MobileProfileController extends Controller
     }
 
     /**
-     * Update user profile & photo
+     * Update user profile, photo, and complete Student/Teacher/Employee domain data
      */
     public function update(Request $request)
     {
@@ -41,6 +41,26 @@ class MobileProfileController extends Controller
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
             'current_password' => 'nullable|required_with:new_password',
             'new_password' => 'nullable|min:6|confirmed',
+
+            // Data Biodata Lengkap Siswa
+            'nisn' => 'nullable|string|max:30',
+            'nis' => 'nullable|string|max:30',
+            'gender' => 'nullable|string|max:20',
+            'birth_place' => 'nullable|string|max:100',
+            'birth_date' => 'nullable|date',
+            'religion' => 'nullable|string|max:50',
+            'address' => 'nullable|string|max:500',
+            'parent_name' => 'nullable|string|max:150',
+            'parent_phone' => 'nullable|string|max:30',
+            'guardian_name' => 'nullable|string|max:150',
+            'guardian_phone' => 'nullable|string|max:30',
+            'hobby' => 'nullable|string|max:100',
+
+            // Data Biodata Lengkap Guru / Pegawai
+            'nip' => 'nullable|string|max:50',
+            'education_level' => 'nullable|string|max:50',
+            'major' => 'nullable|string|max:100',
+            'position' => 'nullable|string|max:100',
         ]);
 
         // 1. Handle Password Update
@@ -65,53 +85,76 @@ class MobileProfileController extends Controller
             $user->photo = $path;
         }
 
-        // 3. Update User Basic Info (Only name, email, photo - NOT phone)
+        // 3. Update User Basic Info
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         $user->save();
 
-        // 4. Sync Updates to Associated Student Model
+        // 4. Update Data Lengkap Siswa (Student Model)
         $student = $user->student ?? Student::where('user_id', $user->id)->first();
         if ($student) {
-            if (Schema::hasColumn('students', 'name')) {
-                $student->name = $validated['name'];
+            $studentFields = [
+                'name' => $validated['name'],
+                'full_name' => $validated['name'],
+                'email' => $validated['email'],
+                'nisn' => $validated['nisn'] ?? $student->nisn,
+                'nis' => $validated['nis'] ?? $student->nis,
+                'gender' => $validated['gender'] ?? $student->gender,
+                'birth_place' => $validated['birth_place'] ?? $student->birth_place,
+                'birth_date' => $validated['birth_date'] ?? $student->birth_date,
+                'religion' => $validated['religion'] ?? $student->religion,
+                'address' => $validated['address'] ?? $student->address,
+                'phone' => $validated['phone'] ?? $student->phone,
+                'parent_name' => $validated['parent_name'] ?? $student->parent_name,
+                'parent_phone' => $validated['parent_phone'] ?? $student->parent_phone,
+                'guardian_name' => $validated['guardian_name'] ?? $student->guardian_name,
+                'guardian_phone' => $validated['guardian_phone'] ?? $student->guardian_phone,
+                'hobby' => $validated['hobby'] ?? $student->hobby,
+            ];
+
+            if (isset($path)) {
+                $studentFields['photo'] = $path;
             }
-            if (Schema::hasColumn('students', 'full_name')) {
-                $student->full_name = $validated['name'];
-            }
-            if (Schema::hasColumn('students', 'email')) {
-                $student->email = $validated['email'];
-            }
-            if (isset($validated['phone']) && Schema::hasColumn('students', 'phone')) {
-                $student->phone = $validated['phone'];
-            }
-            if (isset($path) && Schema::hasColumn('students', 'photo')) {
-                $student->photo = $path;
+
+            foreach ($studentFields as $col => $val) {
+                if (Schema::hasColumn('students', $col)) {
+                    $student->$col = $val;
+                }
             }
             $student->save();
         }
 
-        // 5. Sync Updates to Associated Teacher Model
+        // 5. Update Data Lengkap Guru & Pegawai (Teacher Model)
         $teacher = $user->teacher ?? Teacher::where('user_id', $user->id)->first();
         if ($teacher) {
-            if (Schema::hasColumn('teachers', 'name')) {
-                $teacher->name = $validated['name'];
+            $teacherFields = [
+                'name' => $validated['name'],
+                'full_name' => $validated['name'],
+                'email' => $validated['email'],
+                'nip' => $validated['nip'] ?? $teacher->nip,
+                'gender' => $validated['gender'] ?? $teacher->gender,
+                'birth_place' => $validated['birth_place'] ?? $teacher->birth_place,
+                'birth_date' => $validated['birth_date'] ?? $teacher->birth_date,
+                'religion' => $validated['religion'] ?? $teacher->religion,
+                'address' => $validated['address'] ?? $teacher->address,
+                'phone' => $validated['phone'] ?? $teacher->phone,
+                'education_level' => $validated['education_level'] ?? $teacher->education_level,
+                'major' => $validated['major'] ?? $teacher->major,
+                'position' => $validated['position'] ?? $teacher->position,
+            ];
+
+            if (isset($path)) {
+                $teacherFields['photo'] = $path;
             }
-            if (Schema::hasColumn('teachers', 'full_name')) {
-                $teacher->full_name = $validated['name'];
-            }
-            if (Schema::hasColumn('teachers', 'email')) {
-                $teacher->email = $validated['email'];
-            }
-            if (isset($validated['phone']) && Schema::hasColumn('teachers', 'phone')) {
-                $teacher->phone = $validated['phone'];
-            }
-            if (isset($path) && Schema::hasColumn('teachers', 'photo')) {
-                $teacher->photo = $path;
+
+            foreach ($teacherFields as $col => $val) {
+                if (Schema::hasColumn('teachers', $col)) {
+                    $teacher->$col = $val;
+                }
             }
             $teacher->save();
         }
 
-        return back()->with('success', 'Profil dan foto profil Anda (' . $user->name . ') berhasil diperbarui!');
+        return back()->with('success', 'Data Profil Lengkap & Foto Profil Anda berhasil diperbarui!');
     }
 }
