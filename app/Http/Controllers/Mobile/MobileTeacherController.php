@@ -520,12 +520,16 @@ class MobileTeacherController extends Controller
             }
         }
 
-        // Muat daftar seluruh siswa secara presisi (bisa dari student_classes pivot maupun classroom_id langsung)
+        // Muat daftar seluruh siswa secara presisi dari student_classes pivot
         foreach ($classrooms as $cls) {
             $pivotStudents = $cls->students()->with('user')->get();
-            $directStudents = Student::where('classroom_id', $cls->id)->with('user')->get();
 
-            $mergedStudents = $pivotStudents->merge($directStudents)->unique('id')->sortBy('full_name')->values();
+            if (\Illuminate\Support\Facades\Schema::hasColumn('students', 'classroom_id')) {
+                $directStudents = Student::where('classroom_id', $cls->id)->with('user')->get();
+                $mergedStudents = $pivotStudents->merge($directStudents)->unique('id')->sortBy('full_name')->values();
+            } else {
+                $mergedStudents = $pivotStudents->unique('id')->sortBy('full_name')->values();
+            }
 
             $cls->setRelation('students', $mergedStudents);
             $cls->students_count = $mergedStudents->count();
