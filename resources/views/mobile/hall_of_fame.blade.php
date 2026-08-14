@@ -62,8 +62,8 @@
 
                     <div>
                         <h4 class="text-xs font-black text-slate-900 uppercase leading-snug">{{ $std->full_name }}</h4>
-                        <span class="text-[10px] font-bold text-slate-500 block">
-                            NIS: {{ $std->nis ?? '-' }} {{ isset($std->classroom) ? '&bull; Kelas ' . ($std->classroom->name ?? '-') : '' }}
+                        <span class="text-[10px] font-black text-amber-700 block mt-0.5">
+                            🏫 {{ $std->school->name ?? ($std->user->school->name ?? 'Unit Sekolah Pembda') }} {{ isset($std->classroom) ? '&bull; Kelas ' . ($std->classroom->name ?? '-') : '' }}
                         </span>
                     </div>
                 </div>
@@ -113,8 +113,8 @@
 
                     <div>
                         <h4 class="text-xs font-black text-slate-900 uppercase leading-snug">{{ $tcher->full_name }}</h4>
-                        <span class="text-[10px] font-bold text-purple-600 block">
-                            NIP: {{ $tcher->nip ?? '-' }}
+                        <span class="text-[10px] font-black text-purple-700 block mt-0.5">
+                            🏫 {{ $tcher->school->name ?? ($tcher->user->school->name ?? 'Unit Sekolah Pembda') }} {{ isset($tcher->position) ? '&bull; ' . $tcher->position : '' }}
                         </span>
                     </div>
                 </div>
