@@ -1,6 +1,6 @@
 @extends('mobile.layouts.app')
 
-@section('title', 'Pembda Space - WA Groups & Forum Publik Mobile')
+@section('title', 'Pembda Space - Class Squads & Wall Mobile')
 
 @section('content')
 <div class="space-y-4">
@@ -8,7 +8,7 @@
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-xl font-black text-slate-900">Pembda Space 💬</h2>
-            <p class="text-[11px] text-slate-500 font-bold">WA Groups & Forum Komunitas Sekolah</p>
+            <p class="text-[11px] text-slate-500 font-bold">Class Squads & Wall Komunitas Sekolah</p>
         </div>
         <a href="{{ route('mobile.space.create') }}" 
            class="clay-btn px-4 py-2.5 text-white text-xs font-black flex items-center gap-1.5 shadow-md">
@@ -16,21 +16,21 @@
         </a>
     </div>
 
-    <!-- MAIN TOP NAVIGATION TABS (WA GROUPS vs KANAL FORUM PUBLIK) -->
+    <!-- MAIN TOP NAVIGATION TABS (CLASS SQUADS vs WALL) -->
     <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
         <a href="{{ route('mobile.space.index', ['tab' => 'groups']) }}" 
            class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'groups' ? 'bg-white text-purple-700 shadow-md border-2 border-purple-200 scale-102' : 'text-slate-500 hover:text-slate-900' }}">
-            <span>👥 WA Groups</span>
+            <span>👥 Class Squads</span>
             <span class="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-900 text-[10px] font-black">{{ count($groups) }}</span>
         </a>
         <a href="{{ route('mobile.space.index', ['tab' => 'kanal']) }}" 
            class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'kanal' ? 'bg-white text-purple-700 shadow-md border-2 border-purple-200 scale-102' : 'text-slate-500 hover:text-slate-900' }}">
-            <span>📌 Kanal Forum</span>
+            <span>🧱 Wall</span>
             <span class="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-900 text-[10px] font-black">{{ count($categories) }}</span>
         </a>
     </div>
 
-    <!-- TAB 1: WA GROUPS -->
+    <!-- TAB 1: CLASS SQUADS -->
     @if($tab === 'groups')
         <!-- Search Input -->
         <form action="{{ route('mobile.space.index') }}" method="GET" class="relative">
@@ -38,21 +38,21 @@
             @if($groupFilter)<input type="hidden" name="filter" value="{{ $groupFilter }}">@endif
             <div class="relative">
                 <input type="text" name="search" value="{{ $search ?? '' }}" 
-                       placeholder="Cari nama grup obrolan..." 
+                       placeholder="Cari nama Class Squad..." 
                        class="w-full pl-10 pr-4 py-3 bg-white border-2 border-slate-200/90 rounded-2xl text-slate-900 text-xs placeholder-slate-400 font-bold focus:outline-none focus:border-purple-600 shadow-sm transition">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
             </div>
         </form>
 
-        <!-- Group Filter Pills -->
+        <!-- Squad Filter Pills -->
         <div class="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
             <a href="{{ route('mobile.space.index', ['tab' => 'groups', 'filter' => 'semua']) }}" 
                class="px-4 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ $groupFilter === 'semua' ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
-                🔥 Semua Grup
+                🔥 Semua Squad
             </a>
             <a href="{{ route('mobile.space.index', ['tab' => 'groups', 'filter' => 'kelas']) }}" 
                class="px-4 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ $groupFilter === 'kelas' ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
-                🏫 Kelas Saya
+                🏫 Class Squads Saya
             </a>
             <a href="{{ route('mobile.space.index', ['tab' => 'groups', 'filter' => 'lobi']) }}" 
                class="px-4 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ $groupFilter === 'lobi' ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
@@ -60,9 +60,9 @@
             </a>
         </div>
 
-        <!-- GROUPS LIST FEED -->
+        <!-- CLASS SQUADS LIST FEED -->
         <div class="space-y-3">
-            <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider px-1">Daftar Grup Obrolan Aktif</h3>
+            <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider px-1">Daftar Class Squads Aktif</h3>
 
             @forelse($groups as $grp)
                 @php
@@ -73,7 +73,7 @@
                    class="clay-card p-4.5 block transition relative hover:border-purple-300 space-y-2.5 bg-white border-2 border-slate-200">
                     
                     <div class="flex items-center space-x-3">
-                        <!-- Group Icon Avatar -->
+                        <!-- Squad Icon Avatar -->
                         <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-xl font-black shadow-md border-2 border-white shrink-0">
                             {{ $grp->icon ?? '💬' }}
                         </div>
@@ -96,7 +96,7 @@
 
                             <div class="flex items-center space-x-2 text-[9px] font-bold text-slate-400 mt-1">
                                 <span class="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-black">
-                                    👥 {{ $memberCount }} Anggota
+                                    👥 {{ $memberCount }} Anggota Squad
                                 </span>
                                 @if($grp->only_admin_can_post)
                                     <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-black">
@@ -109,14 +109,14 @@
                 </a>
             @empty
                 <div class="clay-card p-8 text-center text-slate-500 text-xs font-bold space-y-2">
-                    <div class="text-3xl">💬</div>
-                    <p>Belum ada grup obrolan terdaftar saat ini.</p>
+                    <div class="text-3xl">👥</div>
+                    <p>Belum ada Class Squad terdaftar saat ini.</p>
                 </div>
             @endforelse
         </div>
     @endif
 
-    <!-- TAB 2: KANAL & FORUM PUBLIK (12+ CATEGORIES & THREADS FEED) -->
+    <!-- TAB 2: WALL (12+ CATEGORIES & THREADS FEED) -->
     @if($tab === 'kanal')
         <!-- Search Input -->
         <form action="{{ route('mobile.space.index') }}" method="GET" class="relative">
@@ -124,17 +124,17 @@
             @if($category)<input type="hidden" name="category" value="{{ $category }}">@endif
             <div class="relative">
                 <input type="text" name="search" value="{{ $search ?? '' }}" 
-                       placeholder="Cari postingan atau ide..." 
+                       placeholder="Cari ide atau postingan di Wall..." 
                        class="w-full pl-10 pr-4 py-3 bg-white border-2 border-slate-200/90 rounded-2xl text-slate-900 text-xs placeholder-slate-400 font-bold focus:outline-none focus:border-purple-600 shadow-sm transition">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
             </div>
         </form>
 
-        <!-- Category Pills (All 12 Forum Channels) -->
+        <!-- Category Pills (All Wall Categories) -->
         <div class="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
             <a href="{{ route('mobile.space.index', ['tab' => 'kanal']) }}" 
                class="px-3.5 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ !$category ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
-                🔥 Semua Kanal
+                🧱 Semua Wall
             </a>
             @foreach($categories as $key => $label)
                 <a href="{{ route('mobile.space.index', ['tab' => 'kanal', 'category' => $key]) }}" 
@@ -144,7 +144,7 @@
             @endforeach
         </div>
 
-        <!-- PUBLIC THREADS FEED -->
+        <!-- PUBLIC THREADS WALL FEED -->
         <div class="space-y-3">
             @forelse($threads as $thread)
                 @php
@@ -191,8 +191,8 @@
                 </a>
             @empty
                 <div class="clay-card p-8 text-center text-slate-500 text-xs font-bold space-y-2">
-                    <div class="text-3xl">📌</div>
-                    <p>Belum ada postingan di kanal ini.</p>
+                    <div class="text-3xl">🧱</div>
+                    <p>Belum ada postingan di Wall ini.</p>
                 </div>
             @endforelse
 

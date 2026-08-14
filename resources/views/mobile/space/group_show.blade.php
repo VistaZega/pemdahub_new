@@ -1,18 +1,18 @@
 @extends('mobile.layouts.app')
 
-@section('title', $group->name . ' - Pembda Space Groups')
+@section('title', $group->name . ' - Pembda Class Squads')
 
 @section('content')
 <div class="space-y-4" x-data="{ showMembers: false }">
     <!-- Back Navigation & Group Header Card -->
     <div class="flex items-center justify-between">
         <a href="{{ route('mobile.space.index') }}" class="inline-flex items-center gap-1.5 text-xs font-black text-slate-500 hover:text-slate-900 transition">
-            <i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Grup
+            <i class="fa-solid fa-arrow-left"></i> Kembali ke Class Squads
         </a>
 
         <button @click="showMembers = true" 
                 class="px-3 py-1 bg-purple-100 text-purple-900 rounded-xl text-[10px] font-black border border-purple-200 flex items-center gap-1">
-            <i class="fa-solid fa-users"></i> {{ count($group->members) }} Anggota
+            <i class="fa-solid fa-users"></i> {{ $group->calculated_member_count ?? count($group->members) }} Anggota Squad
         </button>
     </div>
 
@@ -24,14 +24,14 @@
             </div>
             <div class="min-w-0 flex-1">
                 <h2 class="text-base font-black text-slate-900 leading-snug truncate">{{ $group->name }}</h2>
-                <p class="text-[11px] text-purple-700 font-bold leading-tight">{{ $group->description ?? 'Grup Obrolan Resmi PembdaHUB' }}</p>
+                <p class="text-[11px] text-purple-700 font-bold leading-tight">{{ $group->description ?? 'Class Squad Resmi PembdaHUB' }}</p>
             </div>
         </div>
 
         @if($group->only_admin_can_post)
             <div class="p-2.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black flex items-center gap-2">
                 <i class="fa-solid fa-bullhorn text-amber-700 text-xs"></i>
-                <span>Grup Pengumuman: Hanya Guru / Admin yang dapat mengirim pesan.</span>
+                <span>Squad Pengumuman: Hanya Guru / Admin yang dapat mengirim pesan.</span>
             </div>
         @endif
     </div>
