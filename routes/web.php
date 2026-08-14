@@ -17,7 +17,13 @@ Route::get('/dev-unassigned', function() {
     return response()->json($results);
 });
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Log;
+Route::get('/download', function () {
+    return view('public.app_download');
+})->name('app.download');
+
+Route::get('/app', function () {
+    return view('public.app_download');
+});
 
 Route::get('/pwa-reset', function () {
     return response('<!DOCTYPE html>
