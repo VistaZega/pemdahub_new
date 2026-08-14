@@ -824,17 +824,12 @@ class MobileTeacherController extends Controller
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        // Cari Rombel Wali Kelas
+        // Cari Rombel Wali Kelas (Hanya untuk Wali Kelas aktif)
         $classroom = null;
         if ($teacher) {
             $classroom = Classroom::where('homeroom_teacher_id', $teacher->id)
                 ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
                 ->first();
-        }
-
-        // Fallback jika bukan wali kelas / admin
-        if (!$classroom) {
-            $classroom = Classroom::first();
         }
 
         $students = collect();
