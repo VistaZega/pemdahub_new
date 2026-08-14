@@ -121,16 +121,21 @@ class WhatsAppService implements WhatsAppServiceInterface
      */
     private function renderTemplate(string $templateName, array $variables): string
     {
-        $templates = config('whatsapp-templates');
+        $settingKey = 'wa_tpl_' . str_replace('.', '_', $templateName);
+        $customTemplate = \App\Models\Setting::getValue($settingKey, null);
 
-        if (!isset($templates[$templateName])) {
-            throw new TemplateNotFoundException($templateName);
+        if ($customTemplate) {
+            $template = $customTemplate;
+        } else {
+            $templates = config('whatsapp-templates');
+            if (!isset($templates[$templateName])) {
+                throw new TemplateNotFoundException($templateName);
+            }
+            $template = $templates[$templateName];
         }
 
-        $template = $templates[$templateName];
-
         foreach ($variables as $key => $value) {
-            $template = str_replace("{{$key}}", $value, $template);
+            $template = str_replace("{{$key}}", (string) $value, $template);
         }
 
         return $template;

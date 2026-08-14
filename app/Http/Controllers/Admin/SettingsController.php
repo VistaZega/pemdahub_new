@@ -343,4 +343,113 @@ class SettingsController extends Controller
             ->route('admin.settings.whatsapp')
             ->with('error', 'Gagal mengirim pesan: ' . $errorMsg);
     }
+
+    /**
+     * Display WhatsApp Templates Editor page
+     */
+    public function whatsappTemplates()
+    {
+        $this->authorizeFeatureAccess();
+
+        $defaultTemplates = config('whatsapp-templates');
+
+        $templateList = [
+            'student.attendance' => [
+                'title' => '📌 Notifikasi Kehadiran Siswa (Absensi)',
+                'variables' => ['{nama}', '{tanggal}', '{classroom_name}', '{status}'],
+            ],
+            'payment.receipt' => [
+                'title' => '💳 Notifikasi Kwitansi Pembayaran SPP (Lunas)',
+                'variables' => ['{nama}', '{transaction_id}', '{jumlah}', '{tanggal}', '{bulan}'],
+            ],
+            'payment.reminder' => [
+                'title' => '💰 Notifikasi Pengingat Tagihan SPP',
+                'variables' => ['{nama}', '{jenis_tagihan}', '{jumlah}', '{jatuh_tempo}', '{bank_name}', '{bank_account}', '{bank_holder}'],
+            ],
+            'student.grade_published' => [
+                'title' => '📊 Notifikasi Pengumuman Nilai & Rapor',
+                'variables' => ['{nama}', '{classroom_name}', '{subject_name}', '{grade_type}', '{score}', '{notes}'],
+            ],
+            'student.counseling' => [
+                'title' => '⚠️ Notifikasi Catatan Pembinaan (BK)',
+                'variables' => ['{nama}', '{title}', '{reason}', '{action}'],
+            ],
+            'student.award' => [
+                'title' => '🏆 Notifikasi Apresiasi Penghargaan & Poin',
+                'variables' => ['{nama}', '{title}', '{points}', '{reason}'],
+            ],
+            'psb.registration' => [
+                'title' => '🏫 Notifikasi Konfirmasi Pendaftaran PSB',
+                'variables' => ['{nama}', '{nomor_registrasi}', '{sekolah}', '{tahun_ajaran}', '{biaya}', '{email}'],
+            ],
+            'lms.assignment.published' => [
+                'title' => '📚 Notifikasi Tugas Baru LMS',
+                'variables' => ['{nama}', '{course_name}', '{title}', '{due_date}', '{link}'],
+            ],
+        ];
+
+        $templates = [];
+        foreach ($templateList as $key => $info) {
+            $settingKey = 'wa_tpl_' . str_replace('.', '_', $key);
+            $savedValue = Setting::getValue($settingKey, null);
+            $templates[$key] = [
+                'title' => $info['title'],
+                'variables' => $info['variables'],
+                'content' => $savedValue !== null ? $savedValue : ($defaultTemplates[$key] ?? ''),
+            ];
+        }
+
+        // Delivery thresholds & condition settings
+        $conditions = [
+            'wa_cond_notify_absent' => Setting::getValue('wa_cond_notify_absent', true),
+            'wa_cond_notify_late' => Setting::getValue('wa_cond_notify_late', true),
+            'wa_cond_notify_present' => Setting::getValue('wa_cond_notify_present', true),
+            'wa_cond_late_threshold_minutes' => Setting::getValue('wa_cond_late_threshold_minutes', 15),
+            'wa_cond_spp_reminder_days' => Setting::getValue('wa_cond_spp_reminder_days', 3),
+            'wa_target_parent' => Setting::getValue('wa_target_parent', true),
+            'wa_target_student' => Setting::getValue('wa_target_student', false),
+        ];
+
+        return view('admin.settings.whatsapp-templates', compact('templates', 'conditions'));
+    }
+
+    /**
+     * Update WhatsApp Templates & Delivery Conditions
+     */
+    public function updateWhatsappTemplates(Request $request)
+    {
+        $this->authorizeFeatureAccess();
+
+        // Save Template Text Customizations
+        $templateKeys = [
+            'student.attendance',
+            'payment.receipt',
+            'payment.reminder',
+            'student.grade_published',
+            'student.counseling',
+            'student.award',
+            'psb.registration',
+            'lms.assignment.published',
+        ];
+
+        foreach ($templateKeys as $key) {
+            $settingKey = 'wa_tpl_' . str_replace('.', '_', $key);
+            if ($request->has("tpl_$settingKey")) {
+                Setting::setValue($settingKey, $request->input("tpl_$settingKey"), 'string', 'whatsapp_templates');
+            }
+        }
+
+        // Save Conditions & Thresholds
+        Setting::setValue('wa_cond_notify_absent', $request->boolean('wa_cond_notify_absent'), 'boolean', 'whatsapp_conditions');
+        Setting::setValue('wa_cond_notify_late', $request->boolean('wa_cond_notify_late'), 'boolean', 'whatsapp_conditions');
+        Setting::setValue('wa_cond_notify_present', $request->boolean('wa_cond_notify_present'), 'boolean', 'whatsapp_conditions');
+        Setting::setValue('wa_cond_late_threshold_minutes', (int) $request->input('wa_cond_late_threshold_minutes', 15), 'integer', 'whatsapp_conditions');
+        Setting::setValue('wa_cond_spp_reminder_days', (int) $request->input('wa_cond_spp_reminder_days', 3), 'integer', 'whatsapp_conditions');
+        Setting::setValue('wa_target_parent', $request->boolean('wa_target_parent'), 'boolean', 'whatsapp_conditions');
+        Setting::setValue('wa_target_student', $request->boolean('wa_target_student'), 'boolean', 'whatsapp_conditions');
+
+        return redirect()
+            ->route('admin.settings.whatsapp.templates')
+            ->with('success', 'Template teks pesan dan syarat pengiriman WhatsApp berhasil diperbarui!');
+    }
 }
