@@ -806,4 +806,86 @@ class MobileTeacherController extends Controller
 
         return view('mobile.teacher.cbt_bank_show', compact('bank', 'courses', 'teacher'));
     }
+
+    /**
+     * Rekap Tagihan Uang Sekolah Rombel untuk Wali Kelas (Berdasarkan Bulan Berkenaan)
+     */
+    public function tagihan(Request $request)
+    {
+        $teacher = $this->getTeacher();
+        $activeYear = AcademicYear::where('is_active', true)->first();
+
+        $selectedMonth = (int) $request->input('month', now()->month);
+        $selectedYear = (int) $request->input('year', now()->year);
+
+        $monthNames = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        // Cari Rombel Wali Kelas
+        $classroom = null;
+        if ($teacher) {
+            $classroom = Classroom::where('homeroom_teacher_id', $teacher->id)
+                ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                ->first();
+        }
+
+        // Fallback jika bukan wali kelas / admin
+        if (!$classroom) {
+            $classroom = Classroom::first();
+        }
+
+        $students = collect();
+        $stats = [
+            'total_students' => 0,
+            'lunas_count' => 0,
+            'belum_lunas_count' => 0,
+            'total_tunggakan' => 0,
+        ];
+
+        if ($classroom) {
+            // Ambil daftar siswa kelas
+            $pivotStudents = $classroom->students()->get();
+            $directStudents = Student::where('classroom_id', $classroom->id)->get();
+            $allStudents = $pivotStudents->merge($directStudents)->unique('id');
+
+            $stats['total_students'] = $allStudents->count();
+
+            foreach ($allStudents as $student) {
+                // Ambil tagihan bulan berkenaan
+                $monthBill = \App\Models\StudentBill::where('student_id', $student->id)
+                    ->where('month', $selectedMonth)
+                    ->where('year', $selectedYear)
+                    ->first();
+
+                // Ambil seluruh tunggakan siswa
+                $totalUnpaid = \App\Models\StudentBill::where('student_id', $student->id)
+                    ->where('status', '!=', 'lunas')
+                    ->get()
+                    ->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+
+                $statusBulanIni = $monthBill ? $monthBill->status : 'belum_bayar';
+                if ($statusBulanIni === 'lunas') {
+                    $stats['lunas_count']++;
+                } else {
+                    $stats['belum_lunas_count']++;
+                }
+
+                $stats['total_tunggakan'] += $totalUnpaid;
+
+                $student->month_bill = $monthBill;
+                $student->status_bulan_ini = $statusBulanIni;
+                $student->total_tunggakan = $totalUnpaid;
+
+                $students->push($student);
+            }
+        }
+
+        return view('mobile.teacher.tagihan', compact(
+            'teacher', 'classroom', 'students', 'stats', 
+            'selectedMonth', 'selectedYear', 'monthNames'
+        ));
+    }
 }

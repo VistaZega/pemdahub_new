@@ -213,6 +213,14 @@
                 <span class="text-[10px] font-black">Hall of Fame</span>
             </a>
 
+            <!-- 11. Tagihan Kelas Wali Kelas -->
+            <a href="{{ route('mobile.guru.tagihan') }}" class="clay-green p-2.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    💳
+                </div>
+                <span class="text-[10px] font-black">Tagihan Kelas</span>
+            </a>
+
             <!-- 11. Pembda Space -->
             <a href="{{ route('mobile.space.index') }}" class="clay-purple p-2.5 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
