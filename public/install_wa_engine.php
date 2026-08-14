@@ -11,6 +11,30 @@ if ($secret !== 'pembda99') {
 }
 
 header('Content-Type: text/html; charset=utf-8');
+
+function getPathExportPrefix() {
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        return '';
+    }
+    
+    $commonPaths = [
+        '/usr/local/bin',
+        '/usr/bin',
+        '/bin',
+        '/usr/local/nodejs/bin',
+        '/opt/cpanel/ea-nodejs20/bin',
+        '/opt/cpanel/ea-nodejs18/bin',
+        '/opt/cpanel/ea-nodejs16/bin',
+        '/opt/cpanel/ea-nodejs14/bin',
+        getenv('HOME') . '/.nvm/versions/node/v20.*/bin',
+        getenv('HOME') . '/.nvm/versions/node/v18.*/bin',
+        getenv('HOME') . '/bin',
+        getenv('HOME') . '/.node/bin',
+        getenv('HOME') . '/.nvm/versions/node/$(ls ' . getenv('HOME') . '/.nvm/versions/node 2>/dev/null | tail -n 1)/bin'
+    ];
+    
+    return 'export PATH=$PATH:' . implode(':', $commonPaths) . '; ';
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -18,11 +42,11 @@ header('Content-Type: text/html; charset=utf-8');
     <meta charset="UTF-8">
     <title>WhatsApp Engine Web Deployment - PembdaHUB</title>
     <style>
-        body { background: #0b141a; color: #e9edef; font-family: system-ui, sans-serif; padding: 30px; max-width: 800px; margin: 0 auto; }
+        body { background: #0b141a; color: #e9edef; font-family: system-ui, sans-serif; padding: 30px; max-width: 850px; margin: 0 auto; }
         .card { background: #111b21; border: 1px solid #222d34; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
         .btn { background: #00a884; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; }
         .btn:hover { background: #008f70; }
-        pre { background: #000; color: #00ff66; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+        pre { background: #000; color: #00ff66; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 13px; max-height: 400px; }
         .status { padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
         .connected { background: rgba(37, 211, 102, 0.2); color: #25d366; }
         .disconnected { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
@@ -65,13 +89,14 @@ header('Content-Type: text/html; charset=utf-8');
     <?php
     $action = $_GET['action'] ?? '';
     $rootDir = dirname(__DIR__);
+    $pathPrefix = getPathExportPrefix();
 
     if ($action === 'install') {
         echo '<div class="card">';
         echo '<h3>📦 Menjalankan npm install di folder whatsapp-server...</h3>';
         echo '<pre>';
         
-        $cmd = "cd {$rootDir}/whatsapp-server && npm install 2>&1";
+        $cmd = "{$pathPrefix}cd {$rootDir}/whatsapp-server && npm install 2>&1";
         $output = shell_exec($cmd);
         echo htmlspecialchars($output ?: 'Selesai tanpa output error.');
         
@@ -88,7 +113,8 @@ header('Content-Type: text/html; charset=utf-8');
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             pclose(popen("start /B node {$serverPath}", "r"));
         } else {
-            exec("nohup node {$serverPath} > /dev/null 2>&1 &");
+            $cmd = "{$pathPrefix}nohup node {$serverPath} > /dev/null 2>&1 &";
+            exec($cmd);
         }
         
         echo "Layanan node whatsapp-server/server.js telah diperintahkan untuk berjalan di background.\n";
