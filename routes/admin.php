@@ -303,6 +303,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::post('settings/whatsapp/test', [App\Http\Controllers\Admin\SettingsController::class, 'testWhatsapp'])->name('settings.whatsapp.test');
     Route::get('settings/whatsapp/templates', [App\Http\Controllers\Admin\SettingsController::class, 'whatsappTemplates'])->name('settings.whatsapp.templates');
     Route::put('settings/whatsapp/templates', [App\Http\Controllers\Admin\SettingsController::class, 'updateWhatsappTemplates'])->name('settings.whatsapp.templates.update');
+    Route::post('settings/whatsapp/digest-test', [App\Http\Controllers\Admin\SettingsController::class, 'testExecutiveDigest'])->name('settings.whatsapp.digest.test');
     Route::get('settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     
     // Report Cards (Rapor Digital)

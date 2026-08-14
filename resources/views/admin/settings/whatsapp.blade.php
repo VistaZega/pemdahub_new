@@ -169,6 +169,37 @@ Halo! Ini adalah pesan tes otomatisasi pengiriman dari menu Settings PembdaHUB. 
                 </form>
             </div>
 
+            <!-- Form Uji Coba Laporan Eksekutif -->
+            <div class="pt-4 border-t border-gray-100">
+                <div class="border-b border-gray-100 pb-3 mb-3">
+                    <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-user-tie text-emerald-600"></i> Uji Coba Laporan Eksekutif WA
+                    </h3>
+                    <p class="text-[11px] text-gray-500">Tes pengiriman rekap berita ke Kepsek & Wali Kelas</p>
+                </div>
+
+                <form action="{{ route('admin.settings.whatsapp.digest.test') }}" method="POST" class="space-y-3">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Pilih Jenis Laporan Eksekutif:</label>
+                        <select name="digest_type" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-emerald-500 bg-white">
+                            <option value="principal_attendance">📊 Kepsek: Rekap Absensi Harian (07:45 WIB)</option>
+                            <option value="homeroom_attendance">👩‍🏫 Wali Kelas: Rekap Absensi Harian Kelas</option>
+                            <option value="principal_spp">💰 Kepsek: Rekap SPP & Tunggakan Bulanan</option>
+                            <option value="homeroom_spp">💳 Wali Kelas: Rekap SPP Siswa Kelas Binaan</option>
+                            <option value="principal_lms">📚 Kepsek: Rekap LMS Guru & Ranking Mingguan</option>
+                            <option value="homeroom_lms">✏️ Wali Kelas: Rekap LMS Siswa & Ranking</option>
+                            <option value="award_sample">🏆 Realtime: Notifikasi Prestasi Siswa</option>
+                            <option value="edaran_sample">📜 Realtime: Notifikasi Surat Edaran Yayasan</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs shadow transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-play"></i> Eksekusi Laporan Tes WA
+                    </button>
+                </form>
+            </div>
+
             <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100 text-xs text-emerald-800 space-y-1">
                 <p class="font-bold flex items-center gap-1">
                     <i class="fas fa-shield-alt"></i> Keamanan & Anti-Spam:

@@ -452,4 +452,67 @@ class SettingsController extends Controller
             ->route('admin.settings.whatsapp.templates')
             ->with('success', 'Template teks pesan dan syarat pengiriman WhatsApp berhasil diperbarui!');
     }
+
+    /**
+     * Test sending Executive Digest WhatsApp message
+     */
+    public function testExecutiveDigest(Request $request)
+    {
+        $this->authorizeFeatureAccess();
+
+        $request->validate([
+            'digest_type' => 'required|string',
+        ]);
+
+        $type = $request->input('digest_type');
+        $reportService = app(\App\Services\ExecutiveReportService::class);
+
+        switch ($type) {
+            case 'principal_attendance':
+                $res = $reportService->sendPrincipalDailyAttendanceDigest();
+                break;
+            case 'homeroom_attendance':
+                $res = $reportService->sendHomeroomDailyAttendanceDigest();
+                break;
+            case 'principal_spp':
+                $res = $reportService->sendPrincipalMonthlySppDigest();
+                break;
+            case 'homeroom_spp':
+                $res = $reportService->sendHomeroomMonthlySppDigest();
+                break;
+            case 'principal_lms':
+                $res = $reportService->sendPrincipalWeeklyLmsDigest();
+                break;
+            case 'homeroom_lms':
+                $res = $reportService->sendHomeroomWeeklyLmsDigest();
+                break;
+            case 'award_sample':
+                $res = $reportService->notifyStudentAward(
+                    'Ahmad Fajar',
+                    'XI IPA 1',
+                    'Juara 1 LKS Informatika SMK 2026',
+                    50,
+                    'Meraih Juara 1 Tingkat Provinsi'
+                );
+                break;
+            case 'edaran_sample':
+                $res = $reportService->notifySuratEdaran(
+                    'Surat Edaran Libur Hari Raya & Penetapan Seragam Baru 2026',
+                    'https://perguruanpembda.com/download/surat-edaran-2026.pdf'
+                );
+                break;
+            default:
+                $res = ['success' => false, 'message' => 'Jenis laporan eksekutif tidak dikenal'];
+        }
+
+        if (!empty($res['success'])) {
+            return redirect()
+                ->route('admin.settings.whatsapp')
+                ->with('success', 'Uji Coba Laporan Eksekutif [' . $type . '] BERHASIL dieksekusi: ' . ($res['message'] ?? 'Terkirim'));
+        }
+
+        return redirect()
+            ->route('admin.settings.whatsapp')
+            ->with('error', 'Gagal mengeksekusi Laporan Eksekutif: ' . ($res['message'] ?? 'Error'));
+    }
 }
