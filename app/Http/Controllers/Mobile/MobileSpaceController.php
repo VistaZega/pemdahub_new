@@ -52,7 +52,9 @@ class MobileSpaceController extends Controller
         $groups = $groupsQuery->get()->map(function ($grp) {
             // Hitung statistik anggota riil berdasarkan tipe grup
             if ($grp->type === 'lobby') {
-                $grp->calculated_member_count = User::count();
+                $studentCount = Student::count();
+                $teacherCount = Teacher::count();
+                $grp->calculated_member_count = ($studentCount > 0) ? ($studentCount + $teacherCount) : User::whereIn('role', ['siswa', 'guru', 'admin'])->count();
             } elseif ($grp->type === 'broadcast' || $grp->slug === 'ruang-guru-pembda') {
                 $grp->calculated_member_count = Teacher::count() + User::where('role', 'admin')->count();
             } elseif ($grp->classroom_id) {
@@ -121,7 +123,9 @@ class MobileSpaceController extends Controller
 
         // Hitung real member count
         if ($group->type === 'lobby') {
-            $group->calculated_member_count = User::count();
+            $studentCount = Student::count();
+            $teacherCount = Teacher::count();
+            $group->calculated_member_count = ($studentCount > 0) ? ($studentCount + $teacherCount) : User::whereIn('role', ['siswa', 'guru', 'admin'])->count();
         } elseif ($group->slug === 'ruang-guru-pembda') {
             $group->calculated_member_count = Teacher::count() + User::where('role', 'admin')->count();
         } elseif ($group->classroom_id) {
