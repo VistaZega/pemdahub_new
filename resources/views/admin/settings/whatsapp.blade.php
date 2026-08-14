@@ -189,6 +189,7 @@ Halo! Ini adalah pesan tes otomatisasi pengiriman dari menu Settings PembdaHUB. 
                             <option value="homeroom_spp">💳 Wali Kelas: Rekap SPP Siswa Kelas Binaan</option>
                             <option value="principal_lms">📚 Kepsek: Rekap LMS Guru & Ranking Mingguan</option>
                             <option value="homeroom_lms">✏️ Wali Kelas: Rekap LMS Siswa & Ranking</option>
+                            <option value="points_weekly">⭐ Siswa: Rekap Poin Prestasi Mingguan (Setiap Sabtu)</option>
                             <option value="award_sample">🏆 Realtime: Notifikasi Prestasi Siswa</option>
                             <option value="edaran_sample">📜 Realtime: Notifikasi Surat Edaran Yayasan</option>
                         </select>

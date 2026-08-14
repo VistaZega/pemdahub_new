@@ -49,6 +49,11 @@ class SendWaExecutiveDigest extends Command
                 $this->info("✅ " . ($res1['message'] ?? 'Done Kepsek') . " | " . ($res2['message'] ?? 'Done Wali Kelas'));
                 break;
 
+            case 'points-weekly':
+                $res = $reportService->sendWeeklyStudentPointsDigest();
+                $this->info("✅ " . ($res['message'] ?? 'Done Rekap Poin'));
+                break;
+
             case 'award-sample':
                 $res = $reportService->notifyStudentAward(
                     'Ahmad Fajar',

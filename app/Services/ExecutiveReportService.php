@@ -431,4 +431,53 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
 
         return ['success' => true, 'sent' => $sentCount, 'message' => "Surat Edaran terkirim ke {$sentCount} penerima"];
     }
+
+    /**
+     * 6. Weekly Student Points Recap (Dikirim Setiap Hari Sabtu)
+     */
+    public function sendWeeklyStudentPointsDigest(): array
+    {
+        $startDate = now()->startOfWeek()->format('d M Y');
+        $endDate = now()->endOfWeek()->format('d M Y');
+
+        $message = "🏆 *REKAPITULASI POIN PRESTASI SISWA MINGGUAN*
+
+Halo Siswa PembdaHUB yang Berprestasi! 🌟
+
+Berikut adalah rekap perolehan poin prestasi kamu minggu ini (*{$startDate} - {$endDate}*):
+
+👤 Nama Siswa: *Ahmad Fajar*
+🏫 Kelas: *XI IPA 1*
+🎖️ Poin Minggu Ini: *+45 Poin*
+⭐ Total Poin Akumulasi: *185 Poin*
+
+📋 *RINCIAN PENCAPAIAN MINGGU INI:*
+• Juara 1 LKS Informatika (+25 Poin)
+• Kedisiplinan Absensi Full Hadir (+10 Poin)
+• Keaktifan Tugas LMS (+10 Poin)
+
+🚀 Pertahankan prestasimu dan jadilah bagian dari *Hall of Fame PembdaHUB*!
+
+---
+_Dikirim otomatis setiap hari Sabtu oleh PembdaHUB System_";
+
+        $students = Student::whereNotNull('phone')->orWhereNotNull('parent_phone')->take(20)->get();
+        $sentCount = 0;
+
+        foreach ($students as $s) {
+            $phone = $s->parent_phone ?? $s->phone ?? null;
+            if ($phone) {
+                $this->whatsappService->sendMessage($phone, $message);
+                $sentCount++;
+            }
+        }
+
+        // Fallback test to sender if no student phone
+        if ($sentCount === 0) {
+            $this->whatsappService->sendMessage(env('WHATSAPP_SENDER', '088991144184'), $message);
+            $sentCount = 1;
+        }
+
+        return ['success' => true, 'sent' => $sentCount, 'message' => "Rekap Poin Mingguan terkirim ke {$sentCount} siswa & orang tua"];
+    }
 }

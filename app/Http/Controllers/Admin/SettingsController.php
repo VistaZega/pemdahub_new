@@ -486,6 +486,9 @@ class SettingsController extends Controller
             case 'homeroom_lms':
                 $res = $reportService->sendHomeroomWeeklyLmsDigest();
                 break;
+            case 'points_weekly':
+                $res = $reportService->sendWeeklyStudentPointsDigest();
+                break;
             case 'award_sample':
                 $res = $reportService->notifyStudentAward(
                     'Ahmad Fajar',
