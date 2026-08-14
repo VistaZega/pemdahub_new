@@ -6,8 +6,8 @@
 <div class="min-h-[80vh] flex flex-col justify-center py-6">
     <!-- Hero Branding -->
     <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-white p-3 shadow-xl shadow-blue-500/20 mb-4 border-4 border-white">
-            <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Pembda" class="w-full h-full object-contain">
+        <div class="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-white p-2 shadow-xl shadow-purple-500/20 mb-4 border-4 border-white">
+            <img src="{{ asset('images/app-logo.png?v=4') }}" alt="PembdaHUB Logo" class="w-full h-full object-cover rounded-2xl">
         </div>
         <h2 class="text-3xl font-black text-slate-900 tracking-tight">PembdaHUB</h2>
         <p class="text-xs text-blue-600 font-extrabold mt-1 tracking-wide uppercase">Perguruan Pembangunan Daerah Nias</p>

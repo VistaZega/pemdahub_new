@@ -171,8 +171,8 @@
     <header class="sticky top-0 z-40 w-full bg-[#f4f7fc]/90 backdrop-blur-md border-b border-slate-200/60 px-5 py-3.5 flex items-center justify-between"
             x-data="{ showRoleModal: false }">
         <div class="flex items-center space-x-3">
-            <div class="w-11 h-11 rounded-2xl bg-white p-1 shadow-lg shadow-blue-500/20 border-2 border-white flex items-center justify-center shrink-0">
-                <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Pembda" class="w-full h-full object-contain">
+            <div class="w-11 h-11 rounded-2xl bg-white p-1 shadow-lg shadow-purple-500/20 border-2 border-white flex items-center justify-center shrink-0">
+                <img src="{{ asset('images/app-logo.png?v=4') }}" alt="PembdaHUB Logo" class="w-full h-full object-cover rounded-xl">
             </div>
             <div>
                 <h1 class="text-lg font-black text-slate-900 tracking-tight leading-none">PembdaHUB</h1>
