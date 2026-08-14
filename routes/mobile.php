@@ -162,5 +162,6 @@ Route::prefix('m')->name('mobile.')->group(function () {
 
         // Profile
         Route::get('/profile', [MobileProfileController::class, 'index'])->name('profile');
+        Route::post('/profile/update', [MobileProfileController::class, 'update'])->name('profile.update');
     });
 });

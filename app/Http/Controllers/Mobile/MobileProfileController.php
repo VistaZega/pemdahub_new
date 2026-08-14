@@ -5,10 +5,17 @@ namespace App\Http\Controllers\Mobile;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Teacher;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class MobileProfileController extends Controller
 {
+    /**
+     * Display profile page
+     */
     public function index()
     {
         $user = Auth::user();
@@ -22,5 +29,83 @@ class MobileProfileController extends Controller
         }
 
         return view('mobile.profile.index', compact('user', 'student', 'teacher'));
+    }
+
+    /**
+     * Update user profile & photo
+     */
+    public function update(Request $request)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'phone' => 'nullable|string|max:30',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'current_password' => 'nullable|required_with:new_password',
+            'new_password' => 'nullable|min:6|confirmed',
+        ]);
+
+        // 1. Handle Password Update
+        if (!empty($validated['new_password'])) {
+            if (!Hash::check($validated['current_password'], $user->password)) {
+                return back()->with('error', 'Kata sandi saat ini tidak cocok.');
+            }
+            $user->password = Hash::make($validated['new_password']);
+        }
+
+        // 2. Handle Photo Profile Upload
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $filename = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('avatars', $filename, 'public');
+
+            // Hapus photo lama dari storage jika bukan default
+            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+                Storage::disk('public')->delete($user->photo);
+            }
+
+            $user->photo = $path;
+        }
+
+        // 3. Update User Basic Info
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        if ($request->has('phone')) {
+            $user->phone = $validated['phone'];
+        }
+        $user->save();
+
+        // 4. Sync Updates to Associated Student/Teacher Model
+        if ($user->role === 'siswa') {
+            $student = Student::where('user_id', $user->id)->first();
+            if ($student) {
+                $student->name = $validated['name'];
+                $student->email = $validated['email'];
+                if (isset($validated['phone']) && \Schema::hasColumn('students', 'phone')) {
+                    $student->phone = $validated['phone'];
+                }
+                if (isset($path) && \Schema::hasColumn('students', 'photo')) {
+                    $student->photo = $path;
+                }
+                $student->save();
+            }
+        } elseif (in_array($user->role, ['guru', 'pegawai'])) {
+            $teacher = Teacher::where('user_id', $user->id)->first();
+            if ($teacher) {
+                $teacher->name = $validated['name'];
+                $teacher->email = $validated['email'];
+                if (isset($validated['phone']) && \Schema::hasColumn('teachers', 'phone')) {
+                    $teacher->phone = $validated['phone'];
+                }
+                if (isset($path) && \Schema::hasColumn('teachers', 'photo')) {
+                    $teacher->photo = $path;
+                }
+                $teacher->save();
+            }
+        }
+
+        return back()->with('success', 'Profil dan foto profil Anda berhasil diperbarui!');
     }
 }
