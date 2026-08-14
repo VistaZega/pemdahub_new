@@ -12,29 +12,53 @@ if ($secret !== 'pembda99') {
 
 header('Content-Type: text/html; charset=utf-8');
 
-function getPathExportPrefix() {
+function findBinary($name) {
     if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-        return '';
+        return $name;
     }
-    
-    $commonPaths = [
-        '/usr/local/bin',
-        '/usr/bin',
-        '/bin',
-        '/usr/local/nodejs/bin',
-        '/opt/cpanel/ea-nodejs20/bin',
-        '/opt/cpanel/ea-nodejs18/bin',
-        '/opt/cpanel/ea-nodejs16/bin',
-        '/opt/cpanel/ea-nodejs14/bin',
-        getenv('HOME') . '/.nvm/versions/node/v20.*/bin',
-        getenv('HOME') . '/.nvm/versions/node/v18.*/bin',
-        getenv('HOME') . '/bin',
-        getenv('HOME') . '/.node/bin',
-        getenv('HOME') . '/.nvm/versions/node/$(ls ' . getenv('HOME') . '/.nvm/versions/node 2>/dev/null | tail -n 1)/bin'
+
+    $searchPaths = [
+        '/usr/local/bin/' . $name,
+        '/usr/bin/' . $name,
+        '/bin/' . $name,
+        '/opt/cpanel/ea-nodejs20/bin/' . $name,
+        '/opt/cpanel/ea-nodejs18/bin/' . $name,
+        '/opt/cpanel/ea-nodejs16/bin/' . $name,
+        '/opt/cpanel/ea-nodejs14/bin/' . $name,
+        '/usr/local/nodejs/bin/' . $name,
+        '/usr/local/softaculous/node/bin/' . $name,
+        getenv('HOME') . '/bin/' . $name,
+        getenv('HOME') . '/.node/bin/' . $name
     ];
-    
-    return 'export PATH=$PATH:' . implode(':', $commonPaths) . '; ';
+
+    $nvmBase = getenv('HOME') . '/.nvm/versions/node';
+    if (is_dir($nvmBase)) {
+        $versions = @scandir($nvmBase, SCANDIR_SORT_DESCENDING);
+        if ($versions) {
+            foreach ($versions as $v) {
+                if ($v !== '.' && $v !== '..') {
+                    $searchPaths[] = "$nvmBase/$v/bin/$name";
+                }
+            }
+        }
+    }
+
+    foreach ($searchPaths as $path) {
+        if (@file_exists($path)) {
+            return $path;
+        }
+    }
+
+    $which = trim(@shell_exec("which $name 2>/dev/null") ?? '');
+    if ($which && @file_exists($which)) {
+        return $which;
+    }
+
+    return null;
 }
+
+$nodeBin = findBinary('node');
+$npmBin = findBinary('npm');
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -50,6 +74,7 @@ function getPathExportPrefix() {
         .status { padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
         .connected { background: rgba(37, 211, 102, 0.2); color: #25d366; }
         .disconnected { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .diag { background: #1a232a; padding: 10px 15px; border-radius: 8px; font-size: 12px; font-family: monospace; color: #8696a0; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -84,21 +109,28 @@ function getPathExportPrefix() {
             <a href="?action=start&secret=pembda99" class="btn" style="background:#3b82f6;">2. Jalankan Server Engine</a>
             <a href="wa_qr.php?secret=pembda99" class="btn" style="background:#a855f7;" target="_blank">3. Scan QR Code 📱</a>
         </div>
+
+        <!-- Diagnostic Binaries Info -->
+        <div class="diag">
+            🔍 <strong>Deteksi Server Binary:</strong><br>
+            Node Executable: <span style="color:<?php echo $nodeBin ? '#25d366':'#ef4444'; ?>;"><?php echo $nodeBin ? htmlspecialchars($nodeBin) : '❌ Node.js Tidak Ditemukan di Path Standard'; ?></span><br>
+            NPM Executable: <span style="color:<?php echo $npmBin ? '#25d366':'#ef4444'; ?>;"><?php echo $npmBin ? htmlspecialchars($npmBin) : '❌ NPM Tidak Ditemukan di Path Standard'; ?></span>
+        </div>
     </div>
 
     <?php
     $action = $_GET['action'] ?? '';
     $rootDir = dirname(__DIR__);
-    $pathPrefix = getPathExportPrefix();
 
     if ($action === 'install') {
         echo '<div class="card">';
         echo '<h3>📦 Menjalankan npm install di folder whatsapp-server...</h3>';
         echo '<pre>';
         
-        $cmd = "{$pathPrefix}cd {$rootDir}/whatsapp-server && npm install 2>&1";
+        $npmCmd = $npmBin ?: 'npm';
+        $cmd = "cd {$rootDir}/whatsapp-server && {$npmCmd} install 2>&1";
         $output = shell_exec($cmd);
-        echo htmlspecialchars($output ?: 'Selesai tanpa output error.');
+        echo htmlspecialchars($output ?: 'Proses selesai.');
         
         echo '</pre>';
         echo '</div>';
@@ -109,15 +141,17 @@ function getPathExportPrefix() {
         echo '<h3>🚀 Memulai WhatsApp Engine Server di Background...</h3>';
         echo '<pre>';
         
+        $nodeCmd = $nodeBin ?: 'node';
         $serverPath = "{$rootDir}/whatsapp-server/server.js";
+        
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            pclose(popen("start /B node {$serverPath}", "r"));
+            pclose(popen("start /B {$nodeCmd} {$serverPath}", "r"));
         } else {
-            $cmd = "{$pathPrefix}nohup node {$serverPath} > /dev/null 2>&1 &";
+            $cmd = "nohup {$nodeCmd} {$serverPath} > /dev/null 2>&1 &";
             exec($cmd);
         }
         
-        echo "Layanan node whatsapp-server/server.js telah diperintahkan untuk berjalan di background.\n";
+        echo "Layanan node whatsapp-server/server.js telah diperintahkan untuk berjalan di background menggunakan {$nodeCmd}.\n";
         echo "Silakan klik tombol '3. Scan QR Code' atau refresh halaman ini untuk mengecek status.";
         
         echo '</pre>';
