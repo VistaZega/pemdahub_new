@@ -443,12 +443,7 @@ class MobileTeacherController extends Controller
                             ->orWhereNull('academic_year_id');
                     });
                 })
-                ->with(['students' => function ($sq) {
-                    $sq->where('students.status', 'active');
-                }, 'students.user', 'major'])
-                ->withCount(['students' => function ($sq) {
-                    $sq->where('students.status', 'active');
-                }])
+                ->with(['major'])
                 ->orderBy('class_name')
                 ->get();
 
@@ -476,12 +471,7 @@ class MobileTeacherController extends Controller
                             ->orWhereNull('academic_year_id');
                     });
                 })
-                ->with(['students' => function ($sq) {
-                    $sq->where('students.status', 'active');
-                }, 'students.user', 'major'])
-                ->withCount(['students' => function ($sq) {
-                    $sq->where('students.status', 'active');
-                }])
+                ->with(['major'])
                 ->orderBy('class_name')
                 ->get();
 
@@ -497,12 +487,7 @@ class MobileTeacherController extends Controller
             $teachingClasses = Classroom::where('is_active', true)
                 ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
                 ->when($activeAYId, fn($q) => $q->where(fn($sub) => $sub->where('academic_year_id', $activeAYId)->orWhereNull('academic_year_id')))
-                ->with(['students' => function ($sq) {
-                    $sq->where('students.status', 'active');
-                }, 'students.user', 'major'])
-                ->withCount(['students' => function ($sq) {
-                    $sq->where('students.status', 'active');
-                }])
+                ->with(['major'])
                 ->orderBy('class_name')
                 ->get();
 
@@ -533,6 +518,17 @@ class MobileTeacherController extends Controller
                     $existing->is_teaching = true;
                 }
             }
+        }
+
+        // Muat daftar seluruh siswa secara presisi (bisa dari student_classes pivot maupun classroom_id langsung)
+        foreach ($classrooms as $cls) {
+            $pivotStudents = $cls->students()->with('user')->get();
+            $directStudents = Student::where('classroom_id', $cls->id)->with('user')->get();
+
+            $mergedStudents = $pivotStudents->merge($directStudents)->unique('id')->sortBy('full_name')->values();
+
+            $cls->setRelation('students', $mergedStudents);
+            $cls->students_count = $mergedStudents->count();
         }
 
         return view('mobile.teacher.kelas', compact(
