@@ -31,36 +31,71 @@ class ExecutiveReportService
         $dateToday = date('Y-m-d');
         $dateFormatted = date('d F Y');
 
-        // Aggregate Attendance Across School
-        $stats = Attendance::whereDate('date', $dateToday)
+        // 1. SISWA STATS
+        $statsSiswa = Attendance::whereDate('date', $dateToday)
             ->select('status', DB::raw('count(*) as count'))
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
 
-        $present = $stats['hadir'] ?? $stats['present'] ?? 0;
-        $late = $stats['terlambat'] ?? $stats['late'] ?? 0;
-        $sick = $stats['sakit'] ?? $stats['sick'] ?? 0;
-        $permit = $stats['izin'] ?? $stats['permit'] ?? 0;
-        $absent = $stats['alpha'] ?? $stats['alpa'] ?? $stats['absent'] ?? 0;
-
+        $presentS = $statsSiswa['hadir'] ?? $statsSiswa['present'] ?? 0;
+        $lateS = $statsSiswa['terlambat'] ?? $statsSiswa['late'] ?? 0;
+        $sickS = $statsSiswa['sakit'] ?? $statsSiswa['sick'] ?? 0;
+        $permitS = $statsSiswa['izin'] ?? $statsSiswa['permit'] ?? 0;
+        $absentS = $statsSiswa['alpha'] ?? $statsSiswa['alpa'] ?? $statsSiswa['absent'] ?? 0;
         $totalSiswa = Student::active()->count();
 
-        $message = "🏫 *LAPORAN EKSEKUTIF KEHADIRAN HARIAN*
+        // 2. GURU STATS
+        $statsGuru = \App\Models\EmployeeAttendance::whereDate('date', $dateToday)
+            ->whereHas('employee', function ($q) {
+                $q->where('employee_type', 'guru');
+            })
+            ->select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        $presentG = $statsGuru['hadir'] ?? 0;
+        $sickG = $statsGuru['sakit'] ?? 0;
+        $permitG = $statsGuru['izin'] ?? 0;
+        $absentG = $statsGuru['alpha'] ?? $statsGuru['alpa'] ?? 0;
+        $dinasG = $statsGuru['dinas_luar'] ?? 0;
+
+        // 3. PEGAWAI / STAF STATS
+        $statsStaff = \App\Models\EmployeeAttendance::whereDate('date', $dateToday)
+            ->whereHas('employee', function ($q) {
+                $q->where('employee_type', '!=', 'guru');
+            })
+            ->select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        $presentP = $statsStaff['hadir'] ?? 0;
+        $sickP = $statsStaff['sakit'] ?? 0;
+        $permitP = $statsStaff['izin'] ?? 0;
+        $absentP = $statsStaff['alpha'] ?? $statsStaff['alpa'] ?? 0;
+        $cutiP = $statsStaff['cuti'] ?? 0;
+
+        $message = "🏫 *LAPORAN EKSEKUTIF KEHADIRAN TOTAL (SISWA, GURU, & PEGAWAI)*
 📌 *Kepada Yth. Kepala Sekolah Perguruan Pembda*
 
 📅 Tanggal: *{$dateFormatted}*
 ⏰ Waktu Rekap: *30 Menit Pasca Jam Masuk (07:45 WIB)*
 
-📊 *RINGKASAN KEHADIRAN SISWA:*
-• 👥 Total Siswa Aktif: *{$totalSiswa} Siswa*
-• ✅ Hadir Tepat Waktu: *{$present} Siswa*
-• 🕒 Terlambat: *{$late} Siswa*
-• 🤒 Sakit: *{$sick} Siswa*
-• 📩 Izin: *{$permit} Siswa*
-• ❌ Alpha / Tanpa Keterangan: *{$absent} Siswa*
+👨‍🎓 *1. KEHADIRAN SISWA (Total: {$totalSiswa} Siswa):*
+• ✅ Hadir Tepat Waktu: *{$presentS}* | 🕒 Terlambat: *{$lateS}*
+• 🤒 Sakit: *{$sickS}* | 📩 Izin: *{$permitS}* | ❌ Alpha: *{$absentS}*
 
-💡 *Catatan:* Laporan detail absensi per kelas dapat dipantau langsung di Portal Admin PembdaHUB.
+👨‍🏫 *2. KEHADIRAN GURU & TENAGA PENDIDIK:*
+• ✅ Hadir: *{$presentG}* | 🚗 Dinas Luar: *{$dinasG}*
+• 🤒 Sakit: *{$sickG}* | 📩 Izin: *{$permitG}* | ❌ Alpha: *{$absentG}*
+
+💼 *3. KEHADIRAN PEGAWAI & STAF TATA USAHAS:*
+• ✅ Hadir: *{$presentP}* | 🏖️ Cuti: *{$cutiP}*
+• 🤒 Sakit: *{$sickP}* | 📩 Izin: *{$permitP}* | ❌ Alpha: *{$absentP}*
+
+💡 *Catatan:* Laporan rincian presensi kehadiran per unit/kelas dapat dipantau langsung di Portal Admin PembdaHUB.
 
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_";
