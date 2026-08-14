@@ -104,11 +104,13 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::get('/hall-of-fame', [MobileTeacherController::class, 'hallOfFame'])->name('hall-of-fame');
         });
 
-        // Pembda Space (Forum)
+        // Pembda Space (Forum & WA Groups)
         Route::prefix('space')->name('space.')->group(function () {
             Route::get('/', [MobileSpaceController::class, 'index'])->name('index');
             Route::get('/create', [MobileSpaceController::class, 'create'])->name('create');
             Route::post('/', [MobileSpaceController::class, 'store'])->name('store');
+            Route::get('/group/{group}', [MobileSpaceController::class, 'showGroup'])->name('group.show');
+            Route::post('/group/{group}/post', [MobileSpaceController::class, 'storeGroupThread'])->name('group.post');
             Route::get('/{thread}', [MobileSpaceController::class, 'show'])->name('show');
             Route::post('/{thread}/reply', [MobileSpaceController::class, 'reply'])->name('reply');
             Route::post('/{thread}/like', [MobileSpaceController::class, 'like'])->name('like');
