@@ -39,8 +39,21 @@
         <a href="{{ route('mobile.guru.absensi.saya') }}" 
            class="flex-1 py-2.5 px-3 rounded-2xl text-xs font-black text-center transition clay-purple text-white shadow-md scale-105">
             📌 Absen Saya (Guru)
-        </a>
-    </div>
+    <!-- Special 17 August Independence Day Card for Guru (HUT RI Merah-Putih) -->
+    @if(date('m-d') === '08-17')
+        <div class="p-4 rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-red-100 border-2 border-red-500 shadow-lg text-white space-y-2 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <span class="px-3 py-0.5 rounded-full text-[10px] font-black uppercase bg-white text-red-700 shadow border border-red-200">
+                    🇮🇩 HARI KEMERDEKAAN RI
+                </span>
+                <span class="text-xs font-black text-slate-800 bg-white/90 px-2 py-0.5 rounded-lg border border-slate-200">17 AGUSTUS</span>
+            </div>
+            <h3 class="text-base font-black text-white leading-tight drop-shadow-md">DIRGAHAYU REPUBLIK INDONESIA — MERDEKA! ✊</h3>
+            <p class="text-[11px] text-red-50 font-bold leading-relaxed drop-shadow-sm">
+                Hormat setinggi-tingginya kepada para Pahlawan Pendidikan! Terima kasih atas dedikasi dan pengabdian Bapak/Ibu Guru dalam mendidik generasi penerus bangsa Indonesia. 🇮🇩✨
+            </p>
+        </div>
+    @endif
 
     <!-- Today Presensi GPS Trigger Card (Clay Purple) -->
     <div class="clay-purple p-5 space-y-3.5 relative overflow-hidden">

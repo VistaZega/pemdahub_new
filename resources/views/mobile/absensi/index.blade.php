@@ -3,12 +3,21 @@
 @section('title', 'Absensi Mobile Pro - PembdaHUB')
 
 @section('content')
-<div class="space-y-4">
-    <!-- Header Title -->
-    <div>
-        <h2 class="text-lg font-black text-slate-900">Absensi & Presensi</h2>
-        <p class="text-[11px] text-slate-500 font-medium">Presensi Mandiri GPS & Catatan Kehadiran</p>
-    </div>
+    <!-- Special 17 August Independence Day Card (HUT RI Merah-Putih) -->
+    @if(date('m-d') === '08-17')
+        <div class="p-4 rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-white border-2 border-red-500 shadow-lg text-white space-y-2 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <span class="px-3 py-0.5 rounded-full text-[10px] font-black uppercase bg-white text-red-700 shadow border border-red-200">
+                    🇮🇩 DIRGAHAYU REPUBLIK INDONESIA
+                </span>
+                <span class="text-xs font-black text-slate-800 bg-white/90 px-2 py-0.5 rounded-lg border border-slate-200">17 AGUSTUS</span>
+            </div>
+            <h3 class="text-base font-black text-white leading-tight drop-shadow-md">HUT RI Ke-81 — MERDEKA! ✊</h3>
+            <p class="text-[11px] text-red-50 font-bold leading-relaxed drop-shadow-sm">
+                Selamat Hari Kemerdekaan Republik Indonesia! Mari isi kemerdekaan dengan semangat belajar, berkarya, dan menjadi kebanggaan Bangsa! 🇮🇩✨
+            </p>
+        </div>
+    @endif
 
     <!-- GPS Presensi Card (UI/UX Pro Max Emerald Gradient Card) -->
     <div class="bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 rounded-3xl p-5 text-white shadow-lg shadow-emerald-500/25 text-center relative overflow-hidden"

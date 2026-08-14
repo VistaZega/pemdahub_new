@@ -533,14 +533,29 @@ class AttendanceController extends Controller
                 \App\Models\ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
             }
 
-            return response()->json(['success' => true, 'message' => 'Absen berhasil (Radius: '. round($distance) .'m)']);
+            $isMerdekaDay = (date('m-d') === '08-17');
+            if ($isMerdekaDay) {
+                $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Selamat Hari Kemerdekaan RI! Presensi kehadiranmu hari ini berhasil dicatat (Radius: ' . round($distance) . 'm). Tetap semangat belajar demi masa depan Bangsa! 🇮🇩✨';
+            } else {
+                $msg = 'Absen berhasil (Radius: '. round($distance) .'m)';
+            }
+
+            return response()->json(['success' => true, 'message' => $msg]);
         }
 
         // Jika dia tap lagi untuk pulang
         $isNotCheckedOut = !$attendance->time_out || $attendance->time_out === '00:00:00' || $attendance->time_out === '00:00';
         if ($attendance->time_in && $isNotCheckedOut) {
             $attendance->update(['time_out' => $currentTime]);
-            return response()->json(['success' => true, 'message' => 'Absen pulang berhasil.']);
+            
+            $isMerdekaDay = (date('m-d') === '08-17');
+            if ($isMerdekaDay) {
+                $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi pulangmu berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '. Selamat memperingati Hari Kemerdekaan RI!';
+            } else {
+                $msg = 'Absen pulang berhasil dikirim!';
+            }
+            
+            return response()->json(['success' => true, 'message' => $msg]);
         }
 
         return response()->json(['success' => false, 'message' => 'Anda sudah absen masuk dan pulang hari ini.']);

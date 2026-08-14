@@ -103,8 +103,14 @@ class MobileAbsensiController extends Controller
                 ]
             );
 
+            $isMerdekaDay = (date('m-d') === '08-17');
+
             if ($attendance->wasRecentlyCreated) {
-                $msg = '📍 Presensi GPS Masuk Guru berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '!';
+                if ($isMerdekaDay) {
+                    $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Selamat Hari Kemerdekaan RI! Presensi GPS Masuk Guru berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '. Tetap semangat mencerdaskan bangsa! 🇮🇩✨';
+                } else {
+                    $msg = '📍 Presensi GPS Masuk Guru berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '!';
+                }
                 return $wantsJson
                     ? response()->json(['success' => true, 'message' => $msg])
                     : back()->with('success', $msg);
@@ -114,7 +120,11 @@ class MobileAbsensiController extends Controller
             $isNotCheckedOut = !$attendance->time_out || $attendance->time_out === '00:00:00' || $attendance->time_out === '00:00';
             if ($attendance->time_in && $isNotCheckedOut) {
                 $attendance->update(['time_out' => $currentTime]);
-                $msg = '📍 Presensi GPS Pulang Guru berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '!';
+                if ($isMerdekaDay) {
+                    $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi GPS Pulang Guru berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '. Selamat memperingati Hari Kemerdekaan RI!';
+                } else {
+                    $msg = '📍 Presensi GPS Pulang Guru berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '!';
+                }
                 return $wantsJson
                     ? response()->json(['success' => true, 'message' => $msg])
                     : back()->with('success', $msg);
