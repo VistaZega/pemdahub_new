@@ -585,10 +585,140 @@ class MobileTeacherController extends Controller
 
         $exams = collect();
         if (class_exists('\App\Models\CbtExam')) {
-            $exams = \App\Models\CbtExam::latest()->take(10)->get();
+            $exams = \App\Models\CbtExam::when($teacher, fn($q) => $q->where('teacher_id', $teacher->id))
+                ->with(['questionBanks', 'results', 'subject'])
+                ->withCount(['results', 'participants', 'sessions'])
+                ->latest()
+                ->get();
         }
 
         return view('mobile.teacher.cbt', compact('teacher', 'banks', 'exams'));
+    }
+
+    /**
+     * Store Ujian CBT Baru (Guru Mobile)
+     */
+    public function cbtExamStore(Request $request)
+    {
+        $teacher = $this->getTeacher();
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'exam_title' => 'required|string|max:255',
+            'question_bank_id' => 'required|integer',
+            'duration_minutes' => 'required|integer|min:1',
+            'exam_type' => 'nullable|string',
+            'passing_score' => 'nullable|numeric|min:0|max:100',
+            'access_code' => 'nullable|string|max:50',
+            'start_date' => 'nullable|date',
+            'start_time_only' => 'nullable|string',
+            'end_date' => 'nullable|date',
+            'end_time_only' => 'nullable|string',
+        ]);
+
+        $bank = \App\Models\CbtQuestionBank::find($validated['question_bank_id']);
+
+        $startDateTime = now();
+        if (!empty($validated['start_date'])) {
+            $t = $validated['start_time_only'] ?? '08:00';
+            $startDateTime = \Carbon\Carbon::parse($validated['start_date'] . ' ' . $t);
+        }
+
+        $endDateTime = now()->addDays(7);
+        if (!empty($validated['end_date'])) {
+            $t = $validated['end_time_only'] ?? '23:59';
+            $endDateTime = \Carbon\Carbon::parse($validated['end_date'] . ' ' . $t);
+        }
+
+        $exam = \App\Models\CbtExam::create([
+            'school_id' => $teacher?->school_id ?? $user->school_id,
+            'subject_id' => $bank?->subject_id,
+            'teacher_id' => $teacher?->id,
+            'exam_title' => $validated['exam_title'],
+            'exam_type' => $validated['exam_type'] ?? 'quiz',
+            'exam_scope' => 'class',
+            'status' => 'published',
+            'duration_minutes' => $validated['duration_minutes'],
+            'passing_score' => $validated['passing_score'] ?? 70,
+            'access_code' => $validated['access_code'] ?? strtoupper(\Illuminate\Support\Str::random(6)),
+            'start_time' => $startDateTime,
+            'end_time' => $endDateTime,
+            'randomize_questions' => true,
+            'randomize_options' => true,
+            'show_result' => true,
+            'created_by' => $user->id,
+        ]);
+
+        if ($bank) {
+            $exam->questionBanks()->attach($bank->id);
+        }
+
+        return redirect()->route('mobile.guru.cbt')
+            ->with('success', 'Jadwal Ujian CBT "' . $exam->exam_title . '" berhasil dibuat & diterbitkan!');
+    }
+
+    /**
+     * Monitoring Ujian CBT Live (Guru Mobile)
+     */
+    public function cbtExamMonitor($examId)
+    {
+        $teacher = $this->getTeacher();
+        $exam = \App\Models\CbtExam::with([
+            'questionBanks.questions',
+            'results.student.user',
+            'sessions.student.user',
+            'subject'
+        ])->findOrFail($examId);
+
+        $results = $exam->results ?? collect();
+
+        // Enforce Photo Profile on all student result records
+        foreach ($results as $res) {
+            $std = $res->student ?? null;
+            if ($std) {
+                $photo = $std->photo_url ?? null;
+                if (!$photo || str_contains($photo, 'default-student.jpg') || str_contains($photo, 'default-avatar')) {
+                    if (isset($std->user->avatar_url) && $std->user->avatar_url) {
+                        $photo = $std->user->avatar_url;
+                    } else {
+                        $photo = 'https://ui-avatars.com/api/?name=' . urlencode($std->full_name) . '&background=7c3aed&color=fff&bold=true';
+                    }
+                }
+                $std->display_photo = $photo;
+            }
+        }
+
+        $avgScore = $results->avg('score') ?? 0;
+        $maxScore = $results->max('score') ?? 0;
+        $minScore = $results->min('score') ?? 0;
+        $passedCount = $results->where('score', '>=', $exam->passing_score ?? 70)->count();
+
+        return view('mobile.teacher.cbt_monitor', compact(
+            'teacher',
+            'exam',
+            'results',
+            'avgScore',
+            'maxScore',
+            'minScore',
+            'passedCount'
+        ));
+    }
+
+    /**
+     * Toggle / Selesaikan Ujian CBT (Guru Mobile)
+     */
+    public function cbtExamToggleStatus($examId)
+    {
+        $exam = \App\Models\CbtExam::findOrFail($examId);
+        if ($exam->status === 'active' || $exam->status === 'published') {
+            $exam->update(['status' => 'completed']);
+            $msg = 'Ujian CBT telah diselesaikan.';
+        } else {
+            $exam->update(['status' => 'published']);
+            $msg = 'Ujian CBT telah diaktifkan kembali.';
+        }
+
+        return redirect()->back()->with('success', $msg);
     }
 
     /**

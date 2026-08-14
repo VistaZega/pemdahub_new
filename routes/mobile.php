@@ -60,6 +60,9 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::get('/edaran', [MobileTeacherController::class, 'edaran'])->name('edaran');
             Route::get('/cbt', [MobileTeacherController::class, 'cbt'])->name('cbt');
             Route::get('/cbt/banks/{bank}', [MobileTeacherController::class, 'cbtBankShow'])->name('cbt.bank.show');
+            Route::post('/cbt/exams', [MobileTeacherController::class, 'cbtExamStore'])->name('cbt.exam.store');
+            Route::get('/cbt/exams/{exam}/monitor', [MobileTeacherController::class, 'cbtExamMonitor'])->name('cbt.exam.monitor');
+            Route::post('/cbt/exams/{exam}/toggle-status', [MobileTeacherController::class, 'cbtExamToggleStatus'])->name('cbt.exam.toggle-status');
             Route::get('/raport', [MobileTeacherController::class, 'raport'])->name('raport');
             Route::get('/hall-of-fame', [MobileTeacherController::class, 'hallOfFame'])->name('hall-of-fame');
         });
