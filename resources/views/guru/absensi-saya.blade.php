@@ -74,7 +74,7 @@
 
         <!-- Presensi Status & Form Button -->
         <div class="pt-3 border-t border-white/15 flex flex-col sm:flex-row items-center justify-between gap-4">
-            @if($todayAttendance)
+            @if(!empty($todayAttendance))
                 @php
                     $isNotCheckedOut = !$todayAttendance->time_out || $todayAttendance->time_out === '00:00:00' || $todayAttendance->time_out === '00:00';
                 @endphp

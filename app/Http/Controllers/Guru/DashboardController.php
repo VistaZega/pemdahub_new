@@ -932,6 +932,11 @@ class DashboardController extends Controller
                 return $att->date->day;
             });
 
+        // Get today attendance for current employee
+        $todayAttendance = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
+            ->where('date', now()->format('Y-m-d'))
+            ->first();
+
         // Compile statistics
         $totals = [
             'hadir_mengajar' => 0,
@@ -1056,7 +1061,7 @@ class DashboardController extends Controller
             : 0;
 
         return view('guru.absensi-saya', compact(
-            'teacher', 'employee', 'month', 'year', 'calendarData', 'totals', 'pct', 'daysInMonth'
+            'teacher', 'employee', 'month', 'year', 'calendarData', 'totals', 'pct', 'daysInMonth', 'todayAttendance'
         ));
     }
 
