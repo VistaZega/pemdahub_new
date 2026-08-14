@@ -11,6 +11,7 @@ use App\Models\ForumGroupMember;
 use App\Models\Classroom;
 use App\Models\Student;
 use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -18,18 +19,20 @@ use Illuminate\Support\Str;
 class MobileSpaceController extends Controller
 {
     /**
-     * Tampilan Utama Pembda Space Groups (WA Groups Style)
+     * Tampilan Utama Pembda Space (WA Groups & Kanal Forum Publik)
      */
     public function index(Request $request)
     {
         $user = Auth::user();
+        $tab = $request->input('tab', 'groups'); // 'groups' atau 'kanal'
         $groupFilter = $request->input('filter', 'semua');
+        $category = $request->input('category');
         $search = $request->input('search');
 
         // Otomatis sinkronkan grup pengguna berbasis peran & Rombel
         $this->syncUserGroups($user);
 
-        // Ambil grup-grup di mana pengguna terdaftar sebagai anggota
+        // 1. Ambil Data WA Groups
         $groupsQuery = ForumGroup::whereHas('members', function ($q) use ($user) {
             $q->where('user_id', $user->id);
         })->with(['latestThread.user', 'members']);
@@ -46,18 +49,51 @@ class MobileSpaceController extends Controller
             $groupsQuery->where('name', 'like', "%{$search}%");
         }
 
-        $groups = $groupsQuery->get()->sortByDesc(function ($g) {
+        $groups = $groupsQuery->get()->map(function ($grp) {
+            // Hitung statistik anggota riil berdasarkan tipe grup
+            if ($grp->type === 'lobby') {
+                $grp->calculated_member_count = User::count();
+            } elseif ($grp->type === 'broadcast' || $grp->slug === 'ruang-guru-pembda') {
+                $grp->calculated_member_count = Teacher::count() + User::where('role', 'admin')->count();
+            } elseif ($grp->classroom_id) {
+                $cls = Classroom::find($grp->classroom_id);
+                if ($cls) {
+                    $pivotCount = $cls->students()->count();
+                    $directCount = Student::where('classroom_id', $cls->id)->count();
+                    $grp->calculated_member_count = max($pivotCount, $directCount) + 1; // Siswa + Wali Kelas
+                } else {
+                    $grp->calculated_member_count = count($grp->members);
+                }
+            } else {
+                $grp->calculated_member_count = count($grp->members);
+            }
+            return $grp;
+        })->sortByDesc(function ($g) {
             return $g->latestThread?->created_at ?? $g->created_at;
         })->values();
 
-        // Feed postingan umum jika diinginkan
-        $recentThreads = ForumThread::with(['user', 'replies'])
-            ->withCount('replies', 'likes')
-            ->latest()
-            ->take(10)
-            ->get();
+        // 2. Ambil Data Kanal / Kategori Forum Publik (Legacy & Multi-Channel)
+        $categories = ForumThread::CATEGORIES;
 
-        return view('mobile.space.index', compact('groups', 'groupFilter', 'search', 'recentThreads'));
+        $threadsQuery = ForumThread::with(['user', 'replies'])
+            ->withCount('replies', 'likes');
+
+        if ($category) {
+            $threadsQuery->where('category', $category);
+        }
+
+        if ($search) {
+            $threadsQuery->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        $threads = $threadsQuery->orderBy('is_pinned', 'desc')
+            ->latest()
+            ->paginate(15);
+
+        return view('mobile.space.index', compact('groups', 'tab', 'groupFilter', 'category', 'categories', 'search', 'threads'));
     }
 
     /**
@@ -81,6 +117,24 @@ class MobileSpaceController extends Controller
                 'role' => 'member',
                 'joined_at' => now(),
             ]);
+        }
+
+        // Hitung real member count
+        if ($group->type === 'lobby') {
+            $group->calculated_member_count = User::count();
+        } elseif ($group->slug === 'ruang-guru-pembda') {
+            $group->calculated_member_count = Teacher::count() + User::where('role', 'admin')->count();
+        } elseif ($group->classroom_id) {
+            $cls = Classroom::find($group->classroom_id);
+            if ($cls) {
+                $pivotCount = $cls->students()->count();
+                $directCount = Student::where('classroom_id', $cls->id)->count();
+                $group->calculated_member_count = max($pivotCount, $directCount) + 1;
+            } else {
+                $group->calculated_member_count = count($group->members);
+            }
+        } else {
+            $group->calculated_member_count = count($group->members);
         }
 
         // Update last_read_at
@@ -139,7 +193,8 @@ class MobileSpaceController extends Controller
     {
         $user = Auth::user();
         $userGroups = ForumGroup::whereHas('members', fn($q) => $q->where('user_id', $user->id))->get();
-        return view('mobile.space.create', compact('userGroups'));
+        $categories = ForumThread::CATEGORIES;
+        return view('mobile.space.create', compact('userGroups', 'categories'));
     }
 
     public function store(Request $request)
@@ -266,8 +321,6 @@ class MobileSpaceController extends Controller
         }
 
         // 3. Grup Rombel / Kelas Saya
-        $activeAY = \App\Models\AcademicYear::where('is_active', true)->first();
-
         // Jika User adalah Siswa
         $student = Student::where('user_id', $user->id)->first();
         if ($student) {
@@ -305,7 +358,6 @@ class MobileSpaceController extends Controller
         // Jika User adalah Guru (Wali Kelas / Guru Pengajar)
         $teacher = Teacher::where('user_id', $user->id)->first();
         if ($teacher) {
-            // Kelas Perwalian
             $homeroomClasses = Classroom::where('is_active', true)
                 ->where('homeroom_teacher_id', $teacher->id)
                 ->get();
@@ -328,7 +380,7 @@ class MobileSpaceController extends Controller
                     'group_id' => $clsGroup->id,
                     'user_id' => $user->id,
                 ], [
-                    'role' => 'admin', // Wali Kelas otomatis Admin Grup
+                    'role' => 'admin',
                     'joined_at' => now(),
                 ]);
             }
