@@ -44,6 +44,18 @@
             <p class="text-sm text-gray-600">Konfigurasi denda keterlambatan pembayaran SPP/Tagihan beserta masa tenggang.</p>
         </a>
 
+        <!-- Kartu Pintasan Pengaturan: WhatsApp & Otomatisasi -->
+        <a href="{{ route('admin.settings.whatsapp') }}" class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block border-t-4 border-emerald-500">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <span class="text-gray-400"><i class="fas fa-chevron-right"></i></span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">WhatsApp & Otomatisasi</h3>
+            <p class="text-sm text-gray-600">Kelola status gateway dan daftar saklar (On/Off) otomatisasi pengiriman pesan ke wali murid.</p>
+        </a>
+
         <!-- Kartu Pintasan Pengaturan: Konversi Predikat Rapor -->
         <a href="{{ route('admin.settings.report-cards') }}" class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block border-t-4 border-indigo-600">
             <div class="flex items-center justify-between mb-4">

@@ -752,6 +752,10 @@
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white"><i class="fas fa-cog text-[10px]"></i></div>
                 <span>Pengaturan Rapor</span>
             </a>
+            <a href="{{ route('admin.settings.whatsapp') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.settings.whatsapp*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white"><i class="fab fa-whatsapp text-[12px]"></i></div>
+                <span>Pengaturan WA &amp; Otomatisasi</span>
+            </a>
         </div>
     </div>
     @endif

@@ -108,6 +108,7 @@ $npmBin = findBinary('npm');
             <a href="?action=install&secret=pembda99" class="btn">1. Install Dependensi (npm install)</a>
             <a href="?action=start&secret=pembda99" class="btn" style="background:#3b82f6;">2. Jalankan Server Engine</a>
             <a href="wa_qr.php?secret=pembda99" class="btn" style="background:#a855f7;" target="_blank">3. Scan QR Code 📱</a>
+            <a href="/admin/settings/whatsapp" class="btn" style="background:#059669;" target="_blank">4. Pengaturan WA PembdaHUB ⚙️</a>
         </div>
 
         <!-- Diagnostic Binaries Info -->

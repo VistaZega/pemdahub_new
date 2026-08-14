@@ -298,6 +298,9 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::post('settings/late-fees/preview', [App\Http\Controllers\Admin\SettingsController::class, 'previewLateFee'])->name('settings.late-fees.preview');
     Route::get('settings/report-cards', [App\Http\Controllers\Admin\SettingsController::class, 'reportCards'])->name('settings.report-cards');
     Route::put('settings/report-cards', [App\Http\Controllers\Admin\SettingsController::class, 'updateReportCards'])->name('settings.report-cards.update');
+    Route::get('settings/whatsapp', [App\Http\Controllers\Admin\SettingsController::class, 'whatsapp'])->name('settings.whatsapp');
+    Route::put('settings/whatsapp', [App\Http\Controllers\Admin\SettingsController::class, 'updateWhatsapp'])->name('settings.whatsapp.update');
+    Route::post('settings/whatsapp/test', [App\Http\Controllers\Admin\SettingsController::class, 'testWhatsapp'])->name('settings.whatsapp.test');
     Route::get('settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     
     // Report Cards (Rapor Digital)

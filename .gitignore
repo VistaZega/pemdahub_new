@@ -60,4 +60,6 @@ Daftar Akun*
 /examples/
 /whatsapp-server/node_modules/
 /whatsapp-server/auth_info_baileys/
+/whatsapp-server/package-lock.json
+
 

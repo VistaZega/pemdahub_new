@@ -249,4 +249,98 @@ class SettingsController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk mengelola Otorisasi Fitur.');
         }
     }
+
+    /**
+     * Display WhatsApp Automation Settings page
+     */
+    public function whatsapp()
+    {
+        $this->authorizeFeatureAccess();
+
+        $waKeys = [
+            'wa_send_attendance_alert' => 'Notifikasi Absensi Siswa (Hadir / Terlambat / Alpa)',
+            'wa_send_payment_receipt' => 'Notifikasi Kwitansi Pembayaran SPP Lunas',
+            'wa_send_payment_reminder' => 'Notifikasi Pengingat Tagihan SPP Jatuh Tempo',
+            'wa_send_grade_published' => 'Notifikasi Penerbitan Nilai & Rapor',
+            'wa_send_counseling_record' => 'Notifikasi Catatan Pembinaan BK (Bimbingan Konseling)',
+            'wa_send_reputation_award' => 'Notifikasi Apresiasi Penghargaan & Poin Siswa',
+            'wa_send_psb_registration' => 'Notifikasi Pendaftaran Siswa Baru (PSB)',
+            'wa_send_psb_payment' => 'Notifikasi Pembayaran Pendaftaran PSB',
+            'wa_send_psb_test_schedule' => 'Notifikasi Jadwal Tes Masuk PSB',
+            'wa_send_psb_acceptance' => 'Notifikasi Pengumuman Kelulusan PSB',
+            'wa_send_lms_notification' => 'Notifikasi LMS (Materi, Tugas, & Kuis Baru)',
+            'wa_send_teaching_reminder' => 'Notifikasi Pengingat Jadwal Mengajar Guru',
+        ];
+
+        $settings = [];
+        foreach ($waKeys as $key => $label) {
+            $settings[$key] = [
+                'label' => $label,
+                'enabled' => Setting::getValue($key, true),
+            ];
+        }
+
+        $service = new \App\Services\WhatsAppService();
+        $accountInfo = $service->getAccountInfo();
+
+        return view('admin.settings.whatsapp', compact('settings', 'accountInfo'));
+    }
+
+    /**
+     * Update WhatsApp Automation Settings
+     */
+    public function updateWhatsapp(Request $request)
+    {
+        $this->authorizeFeatureAccess();
+
+        $waKeys = [
+            'wa_send_attendance_alert',
+            'wa_send_payment_receipt',
+            'wa_send_payment_reminder',
+            'wa_send_grade_published',
+            'wa_send_counseling_record',
+            'wa_send_reputation_award',
+            'wa_send_psb_registration',
+            'wa_send_psb_payment',
+            'wa_send_psb_test_schedule',
+            'wa_send_psb_acceptance',
+            'wa_send_lms_notification',
+            'wa_send_teaching_reminder',
+        ];
+
+        foreach ($waKeys as $key) {
+            Setting::setValue($key, $request->boolean($key), 'boolean', 'features');
+        }
+
+        return redirect()
+            ->route('admin.settings.whatsapp')
+            ->with('success', 'Pengaturan otomatisasi pengiriman WhatsApp berhasil disimpan!');
+    }
+
+    /**
+     * Test sending WhatsApp message from Settings page
+     */
+    public function testWhatsapp(Request $request)
+    {
+        $this->authorizeFeatureAccess();
+
+        $request->validate([
+            'phone' => 'required|string',
+            'message' => 'required|string',
+        ]);
+
+        $service = new \App\Services\WhatsAppService();
+        $result = $service->sendMessage($request->input('phone'), $request->input('message'));
+
+        if (!empty($result['success'])) {
+            return redirect()
+                ->route('admin.settings.whatsapp')
+                ->with('success', 'Pesan uji coba WhatsApp BERHASIL terkirim ke ' . $request->input('phone'));
+        }
+
+        $errorMsg = $result['response']['message'] ?? $result['error'] ?? 'Gagal mengirim pesan WhatsApp';
+        return redirect()
+            ->route('admin.settings.whatsapp')
+            ->with('error', 'Gagal mengirim pesan: ' . $errorMsg);
+    }
 }
