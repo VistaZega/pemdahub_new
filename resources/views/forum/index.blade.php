@@ -169,25 +169,32 @@
 
                     <!-- Class Squads Saya (Rombel & Guru) -->
                     @if(isset($userGroups) && count($userGroups) > 0)
-                        <div class="space-y-1.5 p-2 bg-purple-50/70 border-2 border-purple-200/80 rounded-2xl" x-data="{ expanded: true }">
-                            <button @click="expanded = !expanded" class="w-full flex items-center justify-between px-2 py-1 text-xs font-black text-purple-900 hover:text-purple-950 transition uppercase tracking-wider group">
+                        <div class="space-y-1.5" x-data="{ expanded: true }">
+                            <button @click="expanded = !expanded" class="w-full flex items-center justify-between px-2 py-1 text-xs font-bold text-slate-900 hover:text-black transition uppercase tracking-wider group">
                                 <span class="flex items-center gap-1.5">
                                     <i class="ph-bold ph-users-three text-purple-600 text-sm"></i>
-                                    <span>Class Squads Saya</span>
+                                    <span class="font-extrabold text-purple-900">Class Squads Saya</span>
                                 </span>
                                 <i class="ph-bold ph-caret-down text-purple-600 transition-transform duration-200" :class="expanded ? '' : '-rotate-90'"></i>
                             </button>
-                            <div x-show="expanded" class="space-y-1 pt-1">
+                            <div x-show="expanded" class="space-y-0.5">
                                 @foreach($userGroups as $grp)
+                                    @php
+                                        $grpName = $grp->name ?? 'Class Squad';
+                                        preg_match('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}]/u', $grpName, $matches);
+                                        $grpEmoji = $matches[0] ?? ($grp->icon ?? '👥');
+                                        $cleanGrpName = trim(str_replace($grpEmoji, '', $grpName));
+                                        $memberCount = $grp->calculated_member_count ?? count($grp->members ?? []);
+                                    @endphp
                                     <a href="{{ route('mobile.space.group.show', $grp->id) }}" 
-                                       class="flex items-center justify-between px-2.5 py-2 rounded-xl transition-all duration-200 bg-white border border-purple-100 text-slate-900 font-bold hover:bg-purple-600 hover:text-white group shadow-xs">
-                                        <div class="flex items-center gap-2 min-w-0">
-                                            <span class="text-sm shrink-0">{{ $grp->icon ?? '💬' }}</span>
-                                            <span class="text-xs truncate font-black group-hover:text-white">{{ $grp->name }}</span>
+                                       class="flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 text-slate-900 font-medium channel-hover border-l-2 border-transparent hover:border-purple-600 group">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <span class="text-base shrink-0">{{ $grpEmoji }}</span>
+                                            <span class="text-sm truncate font-semibold text-slate-900 group-hover:text-purple-700">{{ $cleanGrpName }}</span>
                                         </div>
-                                        <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-900 group-hover:bg-purple-800 group-hover:text-white shrink-0">
-                                            Squad
-                                        </span>
+                                        @if($memberCount > 0)
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 shrink-0">{{ $memberCount }}</span>
+                                        @endif
                                     </a>
                                 @endforeach
                             </div>
