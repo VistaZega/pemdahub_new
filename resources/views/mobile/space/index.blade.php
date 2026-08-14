@@ -61,10 +61,23 @@
                     </div>
                 @endif
 
+                @php
+                    $authorUser = $thread->user ?? null;
+                    $authorPhoto = $authorUser?->avatar_url ?? null;
+                    if (!$authorPhoto || str_contains($authorPhoto, 'default-avatar') || str_contains($authorPhoto, 'default-student.jpg')) {
+                        if ($authorUser?->student?->photo_url) {
+                            $authorPhoto = $authorUser->student->photo_url;
+                        } elseif ($authorUser?->teacher?->photo_url) {
+                            $authorPhoto = $authorUser->teacher->photo_url;
+                        } else {
+                            $authorPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($authorUser?->name ?? 'User') . '&background=7c3aed&color=fff&bold=true';
+                        }
+                    }
+                @endphp
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white font-black text-xs shadow-md border-2 border-white shrink-0">
-                        {{ strtoupper(substr($thread->user->name ?? 'A', 0, 1)) }}
-                    </div>
+                    <img src="{{ $authorPhoto }}" alt="{{ $authorUser?->name }}"
+                         onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($authorUser?->name ?? 'User') }}&background=7c3aed&color=fff&bold=true';"
+                         class="w-10 h-10 rounded-2xl object-cover border-2 border-purple-200 shadow-md shrink-0">
                     <div class="min-w-0 flex-1">
                         <h4 class="text-xs font-black text-slate-900 leading-snug truncate">{{ $thread->user->name ?? 'Pengguna' }}</h4>
                         <span class="text-[10px] text-slate-400 font-bold block">{{ $thread->created_at ? $thread->created_at->diffForHumans() : '' }}</span>

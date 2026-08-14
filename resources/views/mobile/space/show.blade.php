@@ -12,11 +12,24 @@
     <!-- Main Thread Card (Clay Card) -->
     <div class="clay-card p-5 space-y-3">
         <!-- Author Info -->
+        @php
+            $authorUser = $thread->user ?? null;
+            $authorPhoto = $authorUser?->avatar_url ?? null;
+            if (!$authorPhoto || str_contains($authorPhoto, 'default-avatar') || str_contains($authorPhoto, 'default-student.jpg')) {
+                if ($authorUser?->student?->photo_url) {
+                    $authorPhoto = $authorUser->student->photo_url;
+                } elseif ($authorUser?->teacher?->photo_url) {
+                    $authorPhoto = $authorUser->teacher->photo_url;
+                } else {
+                    $authorPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($authorUser?->name ?? 'User') . '&background=7c3aed&color=fff&bold=true';
+                }
+            }
+        @endphp
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white font-black text-sm shadow-md border border-white">
-                    {{ strtoupper(substr($thread->user->name ?? 'A', 0, 1)) }}
-                </div>
+                <img src="{{ $authorPhoto }}" alt="{{ $authorUser?->name }}"
+                     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($authorUser?->name ?? 'User') }}&background=7c3aed&color=fff&bold=true';"
+                     class="w-10 h-10 rounded-2xl object-cover border-2 border-purple-200 shadow-md shrink-0">
                 <div>
                     <h4 class="text-xs font-black text-slate-900 leading-none">{{ $thread->user->name ?? 'Pengguna' }}</h4>
                     <span class="text-[10px] text-slate-400 font-bold">{{ $thread->created_at ? $thread->created_at->format('d M Y, H:i') : '' }}</span>
@@ -77,12 +90,25 @@
         <h4 class="text-xs font-black text-slate-500 uppercase tracking-wider px-1">Komentar ({{ count($thread->replies) }})</h4>
 
         @forelse($thread->replies as $reply)
+            @php
+                $replyUser = $reply->user ?? null;
+                $replyPhoto = $replyUser?->avatar_url ?? null;
+                if (!$replyPhoto || str_contains($replyPhoto, 'default-avatar') || str_contains($replyPhoto, 'default-student.jpg')) {
+                    if ($replyUser?->student?->photo_url) {
+                        $replyPhoto = $replyUser->student->photo_url;
+                    } elseif ($replyUser?->teacher?->photo_url) {
+                        $replyPhoto = $replyUser->teacher->photo_url;
+                    } else {
+                        $replyPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($replyUser?->name ?? 'User') . '&background=7c3aed&color=fff&bold=true';
+                    }
+                }
+            @endphp
             <div class="clay-card p-4 space-y-2">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-slate-200 flex items-center justify-center text-slate-800 font-black text-xs border border-white">
-                            {{ strtoupper(substr($reply->user->name ?? 'U', 0, 1)) }}
-                        </div>
+                        <img src="{{ $replyPhoto }}" alt="{{ $replyUser?->name }}"
+                             onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($replyUser?->name ?? 'User') }}&background=7c3aed&color=fff&bold=true';"
+                             class="w-8 h-8 rounded-xl object-cover border border-purple-200 shadow-xs shrink-0">
                         <div>
                             <h5 class="text-xs font-black text-slate-900 leading-none">{{ $reply->user->name ?? 'Pengguna' }}</h5>
                             <span class="text-[9px] text-slate-400 font-bold">{{ $reply->created_at ? $reply->created_at->diffForHumans() : '' }}</span>

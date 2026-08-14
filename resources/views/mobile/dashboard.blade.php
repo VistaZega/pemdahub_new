@@ -288,6 +288,19 @@
         <!-- TAB 1: POSTINGAN TERBARU -->
         <div x-show="spaceTab === 'terbaru'" x-transition class="space-y-3">
             @forelse($recentDiscussions as $thread)
+                @php
+                    $authorUser = $thread->user ?? null;
+                    $authorPhoto = $authorUser?->avatar_url ?? null;
+                    if (!$authorPhoto || str_contains($authorPhoto, 'default-avatar') || str_contains($authorPhoto, 'default-student.jpg')) {
+                        if ($authorUser?->student?->photo_url) {
+                            $authorPhoto = $authorUser->student->photo_url;
+                        } elseif ($authorUser?->teacher?->photo_url) {
+                            $authorPhoto = $authorUser->teacher->photo_url;
+                        } else {
+                            $authorPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($authorUser?->name ?? 'User') . '&background=7c3aed&color=fff&bold=true';
+                        }
+                    }
+                @endphp
                 <a href="{{ route('mobile.space.show', $thread->id) }}" class="clay-card p-4.5 block hover:border-blue-300 transition space-y-2 bg-white border-2 border-slate-200">
                     <!-- Top Category & Time Badge -->
                     <div class="flex items-center justify-between">
@@ -309,7 +322,9 @@
                     <!-- Footer: Author & Stats -->
                     <div class="flex items-center justify-between text-[10px] text-slate-500 pt-2.5 border-t border-slate-100 font-extrabold">
                         <span class="text-slate-700 flex items-center gap-1.5 min-w-0 truncate">
-                            <i class="fa-regular fa-circle-user text-blue-600 text-xs"></i> 
+                            <img src="{{ $authorPhoto }}" alt="{{ $authorUser?->name }}"
+                                 onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($authorUser?->name ?? 'User') }}&background=7c3aed&color=fff&bold=true';"
+                                 class="w-5 h-5 rounded-full object-cover border border-purple-200 shrink-0">
                             <span class="truncate font-black text-slate-800 uppercase tracking-tight text-[10px]">{{ $thread->user->name ?? 'Anonim' }}</span>
                         </span>
                         <div class="flex items-center space-x-3 text-slate-500 shrink-0 text-[10px] font-black">
@@ -328,6 +343,19 @@
         <!-- TAB 2: POSTINGAN PALING RAME -->
         <div x-show="spaceTab === 'rame'" x-transition class="space-y-3">
             @forelse($popularDiscussions as $thread)
+                @php
+                    $authorUser = $thread->user ?? null;
+                    $authorPhoto = $authorUser?->avatar_url ?? null;
+                    if (!$authorPhoto || str_contains($authorPhoto, 'default-avatar') || str_contains($authorPhoto, 'default-student.jpg')) {
+                        if ($authorUser?->student?->photo_url) {
+                            $authorPhoto = $authorUser->student->photo_url;
+                        } elseif ($authorUser?->teacher?->photo_url) {
+                            $authorPhoto = $authorUser->teacher->photo_url;
+                        } else {
+                            $authorPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($authorUser?->name ?? 'User') . '&background=e11d48&color=fff&bold=true';
+                        }
+                    }
+                @endphp
                 <a href="{{ route('mobile.space.show', $thread->id) }}" class="clay-card p-4.5 block hover:border-rose-300 transition space-y-2 bg-white border-2 border-rose-100">
                     <!-- Top Category, Hot Badge & Time -->
                     <div class="flex items-center justify-between">
@@ -354,7 +382,9 @@
                     <!-- Footer: Author & Stats -->
                     <div class="flex items-center justify-between text-[10px] text-slate-500 pt-2.5 border-t border-slate-100 font-extrabold">
                         <span class="text-slate-700 flex items-center gap-1.5 min-w-0 truncate">
-                            <i class="fa-regular fa-circle-user text-rose-600 text-xs"></i> 
+                            <img src="{{ $authorPhoto }}" alt="{{ $authorUser?->name }}"
+                                 onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($authorUser?->name ?? 'User') }}&background=e11d48&color=fff&bold=true';"
+                                 class="w-5 h-5 rounded-full object-cover border border-rose-200 shrink-0">
                             <span class="truncate font-black text-slate-800 uppercase tracking-tight text-[10px]">{{ $thread->user->name ?? 'Anonim' }}</span>
                         </span>
                         <div class="flex items-center space-x-3 text-slate-500 shrink-0 text-[10px] font-black">
