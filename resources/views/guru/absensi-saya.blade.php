@@ -38,6 +38,96 @@
         </div>
     </div>
 
+    <!-- Special 17 August Independence Day Card for Guru (HUT RI Merah-Putih) -->
+    @if(date('m-d') === '08-17')
+        <div class="p-5 rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-red-900 border-2 border-black shadow-xl text-white space-y-2 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-white text-red-700 shadow border border-red-200">
+                    🇮🇩 HARI KEMERDEKAAN RI
+                </span>
+                <span class="text-xs font-black text-slate-900 bg-white px-3 py-1 rounded-xl border border-slate-200">17 AGUSTUS</span>
+            </div>
+            <h3 class="text-lg font-black text-white leading-tight drop-shadow-md">DIRGAHAYU REPUBLIK INDONESIA — MERDEKA! ✊</h3>
+            <p class="text-xs text-red-50 font-bold leading-relaxed drop-shadow-sm">
+                Hormat setinggi-tingginya kepada para Pahlawan Pendidikan! Terima kasih atas dedikasi dan pengabdian Bapak/Ibu Guru dalam mendidik generasi penerus bangsa Indonesia. 🇮🇩✨
+            </p>
+        </div>
+    @endif
+
+    <!-- Presensi GPS Guru Mandiri Trigger Card (Fasilitas Absen Guru Real-time) -->
+    <div class="bg-gradient-to-r from-teal-800 via-teal-900 to-slate-900 text-white rounded-3xl p-6 shadow-xl border-2 border-black space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-teal-500/30 text-teal-200 border border-teal-400/40">
+                    📍 Presensi Mandiri GPS Guru
+                </span>
+                <h3 class="text-lg font-black text-white mt-1.5 leading-tight flex items-center gap-2">
+                    <i class="fas fa-calendar-day text-teal-400"></i>
+                    {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
+                </h3>
+            </div>
+            
+            <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 text-white font-black text-sm text-center">
+                <i class="far fa-clock mr-1 text-teal-300"></i> <span id="desktopLiveClock">{{ date('H:i:s') }}</span> WIB
+            </div>
+        </div>
+
+        <!-- Presensi Status & Form Button -->
+        <div class="pt-3 border-t border-white/15 flex flex-col sm:flex-row items-center justify-between gap-4">
+            @if($todayAttendance)
+                @php
+                    $isNotCheckedOut = !$todayAttendance->time_out || $todayAttendance->time_out === '00:00:00' || $todayAttendance->time_out === '00:00';
+                @endphp
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 text-lg font-black">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-teal-200 font-bold block">Status Presensi Hari Ini:</span>
+                        <span class="text-sm font-black text-white">
+                            Hadir (Masuk: {{ substr($todayAttendance->time_in ?? $todayAttendance->check_in_time ?? date('H:i'), 0, 5) }})
+                            @if(!$isNotCheckedOut)
+                                | Pulang: {{ substr($todayAttendance->time_out, 0, 5) }}
+                            @endif
+                        </span>
+                    </div>
+                </div>
+
+                @if($isNotCheckedOut)
+                    <form action="{{ route('mobile.absensi.scan') }}" method="POST" id="desktopGpsForm" class="w-full sm:w-auto">
+                        @csrf
+                        <input type="hidden" name="latitude" id="desktopLatInput">
+                        <input type="hidden" name="longitude" id="desktopLngInput">
+                        <button type="button" onclick="handleDesktopGpsScan()" class="w-full sm:w-auto px-6 py-3 bg-amber-400 text-slate-900 font-black text-xs rounded-2xl shadow-lg hover:bg-amber-300 transition flex items-center justify-center gap-2 border-2 border-black">
+                            <i class="fas fa-sign-out-alt text-sm"></i>
+                            <span>📍 Presensi GPS Pulang Sekarang</span>
+                        </button>
+                    </form>
+                @endif
+            @else
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-lg font-black">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-teal-200 font-bold block">Status Presensi Hari Ini:</span>
+                        <span class="text-sm font-black text-amber-300">Belum Presensi Masuk Hari Ini</span>
+                    </div>
+                </div>
+
+                <form action="{{ route('mobile.absensi.scan') }}" method="POST" id="desktopGpsForm" class="w-full sm:w-auto">
+                    @csrf
+                    <input type="hidden" name="latitude" id="desktopLatInput">
+                    <input type="hidden" name="longitude" id="desktopLngInput">
+                    <button type="button" onclick="handleDesktopGpsScan()" class="w-full sm:w-auto px-6 py-3 bg-teal-400 text-slate-950 font-black text-xs rounded-2xl shadow-lg hover:bg-teal-300 transition flex items-center justify-center gap-2 border-2 border-black">
+                        <i class="fas fa-location-dot text-rose-600 text-base"></i>
+                        <span>📍 PRESENSI GPS GURU SEKARANG</span>
+                    </button>
+                </form>
+            @endif
+        </div>
+    </div>
+
     <!-- Stats Grid -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <!-- Kehadiran Rate -->
@@ -201,4 +291,40 @@
         </div>
     </div>
 </div>
+
+<script>
+    setInterval(() => {
+        const now = new Date();
+        const clockEl = document.getElementById('desktopLiveClock');
+        if (clockEl) {
+            clockEl.innerText = now.toTimeString().split(' ')[0];
+        }
+    }, 1000);
+
+    function handleDesktopGpsScan() {
+        const form = document.getElementById('desktopGpsForm');
+        const latInput = document.getElementById('desktopLatInput');
+        const lngInput = document.getElementById('desktopLngInput');
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    latInput.value = pos.coords.latitude;
+                    lngInput.value = pos.coords.longitude;
+                    form.submit();
+                },
+                (err) => {
+                    latInput.value = 0;
+                    lngInput.value = 0;
+                    form.submit();
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        } else {
+            latInput.value = 0;
+            lngInput.value = 0;
+            form.submit();
+        }
+    }
+</script>
 @endsection
