@@ -21,6 +21,16 @@ Route::get('/download', function () {
     return view('public.app_download');
 })->name('app.download');
 
+Route::get('/install_wa_engine.php', function() {
+    require public_path('install_wa_engine.php');
+    return '';
+});
+
+Route::get('/wa_qr.php', function() {
+    require public_path('wa_qr.php');
+    return '';
+});
+
 Route::get('/app', function () {
     return view('public.app_download');
 });
