@@ -8,6 +8,7 @@ use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -61,7 +62,7 @@ class MobileProfileController extends Controller
             $filename = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('avatars', $filename, 'public');
 
-            // Hapus photo lama dari storage jika bukan default
+            // Hapus photo lama dari storage jika ada
             if ($user->photo && Storage::disk('public')->exists($user->photo)) {
                 Storage::disk('public')->delete($user->photo);
             }
@@ -69,24 +70,33 @@ class MobileProfileController extends Controller
             $user->photo = $path;
         }
 
-        // 3. Update User Basic Info
+        // 3. Update User Basic Info (Safely check column existence)
         $user->name = $validated['name'];
         $user->email = $validated['email'];
-        if ($request->has('phone')) {
+        
+        if (isset($validated['phone']) && Schema::hasColumn('users', 'phone')) {
             $user->phone = $validated['phone'];
         }
+        
         $user->save();
 
         // 4. Sync Updates to Associated Student/Teacher Model
         if ($user->role === 'siswa') {
             $student = Student::where('user_id', $user->id)->first();
             if ($student) {
-                $student->name = $validated['name'];
-                $student->email = $validated['email'];
-                if (isset($validated['phone']) && \Schema::hasColumn('students', 'phone')) {
+                if (Schema::hasColumn('students', 'name')) {
+                    $student->name = $validated['name'];
+                }
+                if (Schema::hasColumn('students', 'full_name')) {
+                    $student->full_name = $validated['name'];
+                }
+                if (Schema::hasColumn('students', 'email')) {
+                    $student->email = $validated['email'];
+                }
+                if (isset($validated['phone']) && Schema::hasColumn('students', 'phone')) {
                     $student->phone = $validated['phone'];
                 }
-                if (isset($path) && \Schema::hasColumn('students', 'photo')) {
+                if (isset($path) && Schema::hasColumn('students', 'photo')) {
                     $student->photo = $path;
                 }
                 $student->save();
@@ -94,12 +104,19 @@ class MobileProfileController extends Controller
         } elseif (in_array($user->role, ['guru', 'pegawai'])) {
             $teacher = Teacher::where('user_id', $user->id)->first();
             if ($teacher) {
-                $teacher->name = $validated['name'];
-                $teacher->email = $validated['email'];
-                if (isset($validated['phone']) && \Schema::hasColumn('teachers', 'phone')) {
+                if (Schema::hasColumn('teachers', 'name')) {
+                    $teacher->name = $validated['name'];
+                }
+                if (Schema::hasColumn('teachers', 'full_name')) {
+                    $teacher->full_name = $validated['name'];
+                }
+                if (Schema::hasColumn('teachers', 'email')) {
+                    $teacher->email = $validated['email'];
+                }
+                if (isset($validated['phone']) && Schema::hasColumn('teachers', 'phone')) {
                     $teacher->phone = $validated['phone'];
                 }
-                if (isset($path) && \Schema::hasColumn('teachers', 'photo')) {
+                if (isset($path) && Schema::hasColumn('teachers', 'photo')) {
                     $teacher->photo = $path;
                 }
                 $teacher->save();
