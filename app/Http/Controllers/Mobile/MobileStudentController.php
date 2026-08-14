@@ -110,13 +110,31 @@ class MobileStudentController extends Controller
 
         if ($student) {
             $bills = StudentBill::where('student_id', $student->id)
-                ->with(['academicYear', 'billItems'])
+                ->with(['academicYear', 'paymentType', 'billItems'])
+                ->orderBy('year', 'desc')
+                ->orderBy('month', 'desc')
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+            $monthNames = [
+                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+            ];
+
+            foreach ($bills as $bill) {
+                $typeName = $bill->paymentType->type_name ?? 'SPP / Uang Sekolah';
+                if ($bill->month && isset($monthNames[$bill->month])) {
+                    $bill->display_title = $typeName . ' (' . $monthNames[$bill->month] . ' ' . ($bill->year ?? '') . ')';
+                } else {
+                    $bill->display_title = $typeName;
+                }
+                $bill->sisa_tunggakan = max(0, $bill->amount - $bill->paid_amount);
+            }
+
             $totalAmount = $bills->sum('amount');
             $totalPaid = $bills->sum('paid_amount');
-            $totalOutstanding = $totalAmount - $totalPaid;
+            $totalOutstanding = max(0, $totalAmount - $totalPaid);
         }
 
         return view('mobile.student.tagihan', compact('student', 'bills', 'totalAmount', 'totalPaid', 'totalOutstanding'));
