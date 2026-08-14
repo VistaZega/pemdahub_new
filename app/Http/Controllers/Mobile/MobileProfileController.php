@@ -70,17 +70,12 @@ class MobileProfileController extends Controller
             $user->photo = $path;
         }
 
-        // 3. Update User Basic Info (Safely check column existence)
+        // 3. Update User Basic Info (Only name, email, photo - NOT phone)
         $user->name = $validated['name'];
         $user->email = $validated['email'];
-        
-        if (isset($validated['phone']) && Schema::hasColumn('users', 'phone')) {
-            $user->phone = $validated['phone'];
-        }
-        
         $user->save();
 
-        // 4. Sync Updates to Associated Student/Teacher Model
+        // 4. Sync Updates to Associated Student/Teacher Model (where phone column actually exists)
         if ($user->role === 'siswa') {
             $student = Student::where('user_id', $user->id)->first();
             if ($student) {
