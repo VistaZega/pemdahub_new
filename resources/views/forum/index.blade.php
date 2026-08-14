@@ -181,9 +181,9 @@
                                 @foreach($userGroups as $grp)
                                     @php
                                         $grpName = $grp->name ?? 'Class Squad';
-                                        preg_match('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}]/u', $grpName, $matches);
-                                        $grpEmoji = $matches[0] ?? ($grp->icon ?? '👥');
-                                        $cleanGrpName = trim(str_replace($grpEmoji, '', $grpName));
+                                        preg_match('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\s]+/u', $grpName, $matches);
+                                        $grpEmoji = !empty($matches[0]) ? trim($matches[0]) : ($grp->icon ?? '👥');
+                                        $cleanGrpName = trim(preg_replace('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\s]+/u', '', $grpName));
                                         $memberCount = $grp->calculated_member_count ?? count($grp->members ?? []);
                                     @endphp
                                     <a href="{{ route('mobile.space.group.show', $grp->id) }}" 
