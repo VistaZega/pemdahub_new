@@ -161,7 +161,8 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::post('/scan', [MobileAbsensiController::class, 'scan'])->name('scan');
         });
 
-        // Profile
+        // Profile & Hall of Fame
+        Route::get('/hall-of-fame', [MobileTeacherController::class, 'hallOfFame'])->name('hall-of-fame');
         Route::get('/profile', [MobileProfileController::class, 'index'])->name('profile');
         Route::post('/profile/update', [MobileProfileController::class, 'update'])->name('profile.update');
     });
