@@ -70,6 +70,14 @@
                     <textarea name="description" rows="2" placeholder="Penjelasan mengenai kelas ini..." class="w-full p-2.5 bg-white border-2 border-purple-200 rounded-xl text-xs font-bold text-slate-900 outline-none resize-none"></textarea>
                 </div>
 
+                <div class="p-3 bg-purple-100/60 rounded-xl border border-purple-200 flex items-start gap-2.5">
+                    <input type="checkbox" id="is_sequential" name="is_sequential" value="1" class="mt-0.5 w-4 h-4 text-purple-600 rounded border-purple-300 focus:ring-purple-500">
+                    <label for="is_sequential" class="text-[11px] font-bold text-purple-950 cursor-pointer">
+                        <span class="font-black text-purple-900 block">🔒 Wajibkan Penyelesaian Modul Secara Bertahap</span>
+                        Siswa tidak bisa mengerjakan/membuka modul berikutnya sebelum modul sebelumnya diselesaikan.
+                    </label>
+                </div>
+
                 <button type="submit" class="w-full py-2.5 bg-purple-600 text-white font-black text-xs rounded-xl shadow-sm hover:bg-purple-700 transition">
                     Simpan & Buat Kelas LMS
                 </button>

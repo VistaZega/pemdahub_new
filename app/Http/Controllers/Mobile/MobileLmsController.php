@@ -130,6 +130,7 @@ class MobileLmsController extends Controller
             'is_published' => true,
             'is_active' => true,
             'status' => 'active',
+            'is_sequential' => $request->has('is_sequential'),
         ]);
 
         return back()->with('success', 'Kelas / Course LMS baru berhasil dibuat!');
@@ -151,6 +152,7 @@ class MobileLmsController extends Controller
             'course_name' => $request->input('course_name'),
             'code' => $request->input('code'),
             'description' => $request->input('description'),
+            'is_sequential' => $request->has('is_sequential'),
         ]);
 
         return back()->with('success', 'Informasi Kelas LMS berhasil diperbarui!');
@@ -179,11 +181,7 @@ class MobileLmsController extends Controller
     private function getStudent()
     {
         $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
-        if (!$student && $user) {
-            $student = Student::when($user->school_id, fn($q) => $q->where('school_id', $user->school_id))->first();
-        }
-        return $student;
+        return Student::where('user_id', $user->id)->first();
     }
 
     public function show($id)
@@ -199,6 +197,7 @@ class MobileLmsController extends Controller
         $student = $this->getStudent();
         $submissionMap = collect();
         $attemptMap = collect();
+        $completedMaterialIds = [];
 
         if ($student) {
             $submissionMap = LmsSubmission::where('student_id', $student->id)
@@ -210,6 +209,10 @@ class MobileLmsController extends Controller
                 ->whereIn('quiz_id', $course->quizzes->pluck('id'))
                 ->get()
                 ->groupBy('quiz_id');
+
+            $completedMaterialIds = \App\Models\LmsMaterialProgress::where('student_id', $student->id)
+                ->pluck('material_id')
+                ->toArray();
         }
 
         $user = Auth::user();
@@ -235,7 +238,7 @@ class MobileLmsController extends Controller
             }
         }
 
-        return view('mobile.lms.show', compact('course', 'student', 'submissionMap', 'attemptMap', 'questionBanks'));
+        return view('mobile.lms.show', compact('course', 'student', 'submissionMap', 'attemptMap', 'questionBanks', 'completedMaterialIds'));
     }
 
     public function material($id)
@@ -243,6 +246,29 @@ class MobileLmsController extends Controller
         $material = LmsMaterial::with(['course', 'module'])->findOrFail($id);
 
         $student = $this->getStudent();
+
+        // Pengecekan Kunci Pembelajaran Bertahap (Sequential Learning Lock)
+        if ($student && ($material->course?->is_sequential || $material->module?->is_sequential)) {
+            $allCourseMaterials = LmsMaterial::where('course_id', $material->course_id)
+                ->orderBy('module_id', 'asc')
+                ->orderBy('order', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+            
+            $completedMaterialIds = \App\Models\LmsMaterialProgress::where('student_id', $student->id)
+                ->pluck('material_id')
+                ->toArray();
+            
+            foreach ($allCourseMaterials as $m) {
+                if ($m->id == $material->id) {
+                    break; // Materi ini berada di urutan aktif dan boleh dibuka!
+                }
+                if (!in_array($m->id, $completedMaterialIds)) {
+                    return back()->with('error', '🔒 Modul/Materi ini masih terkunci! Anda harus menyelesaikan materi ("' . $m->title . '") terlebih dahulu.');
+                }
+            }
+        }
+
         if ($student) {
             \App\Models\LmsMaterialProgress::updateOrCreate(
                 [

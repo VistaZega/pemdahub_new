@@ -21,9 +21,16 @@
                 <i class="fa-solid fa-book-bookmark"></i>
             </div>
             <div>
-                <span class="px-2.5 py-0.5 rounded-full bg-white/30 text-white text-[9px] font-black border border-white/40 uppercase">
-                    {{ $course->code }}
-                </span>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="px-2.5 py-0.5 rounded-full bg-white/30 text-white text-[9px] font-black border border-white/40 uppercase">
+                        {{ $course->code }}
+                    </span>
+                    @if($course->is_sequential)
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-900 text-[9px] font-black border border-black uppercase shadow-xs">
+                            🔒 Belajar Bertahap
+                        </span>
+                    @endif
+                </div>
                 <h2 class="text-base font-black text-white mt-1 leading-snug tracking-tight">{{ $course->course_name }}</h2>
                 <p class="text-xs text-purple-100 mt-0.5 font-bold">
                     <i class="fa-regular fa-user mr-1"></i>{{ $course->teacher->full_name ?? 'Pengajar' }}
