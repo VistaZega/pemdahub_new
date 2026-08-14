@@ -543,7 +543,7 @@ class MobileTeacherController extends Controller
     }
 
     /**
-     * Surat Edaran & Informasi Sekolah (Guru Mobile)
+     * Surat Edaran Resmi (Guru Mobile)
      */
     public function edaran()
     {
@@ -555,24 +555,9 @@ class MobileTeacherController extends Controller
             $foundationLetters = \App\Models\FoundationLetter::latest()->get();
         }
 
-        $lmsAnnouncements = collect();
-        if (class_exists('\App\Models\LmsAnnouncement')) {
-            $lmsAnnouncements = \App\Models\LmsAnnouncement::with(['author', 'course'])
-                ->latest()
-                ->take(20)
-                ->get();
-        }
-
-        $newsList = collect();
-        if (class_exists('\App\Models\News')) {
-            $newsList = \App\Models\News::latest()->take(20)->get();
-        }
-
         return view('mobile.teacher.edaran', compact(
             'teacher', 
-            'foundationLetters', 
-            'lmsAnnouncements', 
-            'newsList'
+            'foundationLetters'
         ));
     }
 
