@@ -358,6 +358,14 @@ class SettingsController extends Controller
                 'title' => '📌 Notifikasi Kehadiran Siswa (Absensi)',
                 'variables' => ['{nama}', '{tanggal}', '{classroom_name}', '{status}'],
             ],
+            'teacher.attendance' => [
+                'title' => '👨‍🏫 Notifikasi Presensi Kehadiran Guru',
+                'variables' => ['{nama}', '{tanggal}', '{waktu}', '{status}', '{tipe_absen}', '{jabatan}'],
+            ],
+            'employee.attendance' => [
+                'title' => '💼 Notifikasi Presensi Kehadiran Pegawai / Staf',
+                'variables' => ['{nama}', '{tanggal}', '{waktu}', '{status}', '{tipe_absen}', '{jabatan}'],
+            ],
             'payment.receipt' => [
                 'title' => '💳 Notifikasi Kwitansi Pembayaran SPP (Lunas)',
                 'variables' => ['{nama}', '{transaction_id}', '{jumlah}', '{tanggal}', '{bulan}'],
@@ -423,6 +431,8 @@ class SettingsController extends Controller
         // Save Template Text Customizations
         $templateKeys = [
             'student.attendance',
+            'teacher.attendance',
+            'employee.attendance',
             'payment.receipt',
             'payment.reminder',
             'student.grade_published',

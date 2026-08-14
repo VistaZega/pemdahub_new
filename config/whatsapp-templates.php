@@ -476,6 +476,200 @@ Nilai baru untuk evaluasi belajar Anda telah diterbitkan:
 🏫 Kelas: {classroom_name}
 📚 Mata Pelajaran: {subject_name}
 📝 Jenis Nilai: *{grade_type}* (Kuis/Tugas)
+Halo *{nama}*,
+
+{pesan}
+
+Terima kasih 🙏
+
+---
+{footer}",
+
+    /**
+     * Payment Reminder
+     */
+    'payment.reminder' => 
+"💰 *PENGINGAT PEMBAYARAN*
+
+Halo *{nama}*,
+
+Anda memiliki tagihan yang belum dibayar:
+
+📋 Tagihan: {jenis_tagihan}
+💵 Jumlah: Rp {jumlah}
+⏰ Jatuh tempo: {jatuh_tempo}
+
+Silakan lakukan pembayaran ke:
+Bank: {bank_name}
+No. Rek: {bank_account}
+a.n. {bank_holder}
+
+Setelah transfer, konfirmasi ke:
+📞 {contact_phone}
+
+Terima kasih 🙏",
+
+    /**
+     * LMS - New Material Published
+     */
+    'lms.material.published' => 
+"📚 *MATERI BARU TERSEDIA!*
+
+Halo *{nama}*,
+
+Guru Anda *{teacher_name}* baru saja menerbitkan materi baru di kelas online.
+
+🏫 Course: *{course_name}*
+📖 Judul Materi: *{title}*
+
+Mari baca dan pelajari materinya sekarang untuk meningkatkan pemahaman Anda.
+
+🎯 Akses Course:
+{link}
+
+Semangat belajar! 🎓",
+
+    /**
+     * LMS - New Assignment Published
+     */
+    'lms.assignment.published' => 
+"📝 *TUGAS BARU DIBUAT!*
+
+Halo *{nama}*,
+
+Ada tugas baru yang harus Anda selesaikan di kelas online.
+
+🏫 Course: *{course_name}*
+✍️ Tugas: *{title}*
+⏰ Batas Pengumpulan: *{due_date}*
+
+Pastikan Anda membaca petunjuk pengerjaan dan mengumpulkan sebelum batas waktu.
+
+🎯 Akses & Kumpulkan Tugas:
+{link}
+
+Jangan menunda pekerjaan Anda! 💪",
+
+    /**
+     * LMS - New Quiz Published
+     */
+    'lms.quiz.published' => 
+"✏️ *KUIS BARU DIBUAT!*
+
+Halo *{nama}*,
+
+Guru Anda telah mempublikasikan kuis baru di kelas online.
+
+🏫 Course: *{course_name}*
+🏆 Kuis: *{title}*
+
+Persiapkan diri Anda dengan baik sebelum memulai kuis ini.
+
+🎯 Kerjakan Kuis:
+{link}
+
+Semoga sukses! 🌟",
+
+    /**
+     * LMS - Virtual Meeting Started
+     */
+    'lms.meeting.started' => 
+"📹 *KELAS TATAP MUKA VIRTUAL DIMULAI!*
+
+Halo *{nama}*,
+
+Guru Anda *{teacher_name}* telah memulai kelas tatap muka virtual (Video Conference) sekarang!
+
+🏫 Course: *{course_name}*
+⏰ Mulai: Baru saja
+
+Silakan segera bergabung ke ruang meeting kelas untuk mengikuti penjelasan materi secara langsung.
+
+🎯 Gabung Meeting Kelas:
+{link}
+
+Diharapkan hadir tepat waktu! 🤝",
+
+    /**
+     * Counseling - New counseling record (pembinaan)
+     */
+    'student.counseling' => 
+"⚠️ *CATATAN PEMBINAAN SISWA*
+
+Halo Orang Tua/Wali dari *{nama}*,
+
+Kami menginformasikan bahwa siswa yang bersangkutan hari ini mendapatkan catatan pembinaan/konseling:
+
+📋 Kejadian: *{title}*
+📝 Keterangan: {reason}
+💡 Tindak Lanjut: {action}
+
+Mari bersama-sama membimbing putra/putri kita agar menjadi lebih baik. Jika ada hal yang ingin didiskusikan, silakan hubungi wali kelas atau guru BK.
+
+Terima kasih 🙏",
+
+    /**
+     * Reputation - New award (penghargaan)
+     */
+    'student.award' => 
+"🎉 *APRESIASI PENGHARGAAN SISWA*
+
+Selamat kepada *{nama}*! 🏆
+
+Siswa telah mendapatkan penghargaan prestasi/keaktifan hari ini:
+
+📋 Kategori: *{title}*
+🎖️ Poin Tambahan: +{points} Poin
+📝 Deskripsi: {reason}
+
+Terima kasih atas dedikasi dan kerja kerasnya. Teruslah berprestasi dan menginspirasi teman-teman lainnya! 🌟",
+
+    /**
+     * Payment - Receipt/Confirmation
+     */
+    'payment.receipt' => 
+"✅ *PEMBAYARAN SPP / UANG SEKOLAH BERHASIL!*
+
+Halo *{nama}*, pembayaran Anda telah diterima dan diverifikasi:
+
+📋 No. Transaksi: *{transaction_id}*
+💵 Jumlah: Rp {jumlah}
+📅 Tanggal: {tanggal}
+🏷️ Keterangan: SPP/Iuran Bulan *{bulan}*
+
+Status Tagihan: *LUNAS* ✅
+
+Terima kasih atas pembayaran tepat waktu. Bukti kuitansi resmi dapat diunduh di portal siswa. 🙏",
+
+    /**
+     * Teacher - Teaching Schedule Reminder
+     */
+    'teacher.teaching_reminder' => 
+"⏰ *PENGINGAT JADWAL MENGAJAR*
+
+Halo Bapak/Ibu *{teacher_name}*,
+
+Mengingatkan jadwal mengajar Anda hari ini:
+
+🏫 Kelas: *{classroom_name}*
+📚 Mata Pelajaran: *{subject_name}*
+🕐 Jam/Sesi: *{time_slot}*
+
+Harap hadir tepat waktu di ruang kelas. Terima kasih atas dedikasi Bapak/Ibu guru! 👨‍🏫👩‍🏫",
+
+    /**
+     * Grades - Grade Published
+     */
+    'student.grade_published' => 
+"📊 *PENGUMUMAN NILAI BARU*
+
+Halo *{nama}*,
+
+Nilai baru untuk evaluasi belajar Anda telah diterbitkan:
+
+🏫 Kelas: {classroom_name}
+📚 Mata Pelajaran: {subject_name}
+📝 Jenis Nilai: *{grade_type}* (Kuis/Tugas)
 💯 Nilai Anda: *{score}*
 💡 Catatan: {notes}
 
@@ -498,4 +692,38 @@ Menginfokan status kehadiran putra/putri Anda hari ini:
 _Catatan: Jika status Izin/Sakit, mohon kirimkan surat keterangan resmi ke wali kelas._
 
 Terima kasih atas kerja samanya. 🙏",
+
+    /**
+     * Attendance - Teacher Attendance Alert
+     */
+    'teacher.attendance' => 
+"👨‍🏫 *NOTIFIKASI PRESENSI KEHADIRAN GURU*
+
+Halo Bapak/Ibu *{nama}*,
+
+Presensi kehadiran Anda telah berhasil dicatat oleh sistem:
+
+📅 Tanggal: *{tanggal}*
+⏰ Waktu Scan: *{waktu} WIB*
+🏷️ Status: *{status}* ({tipe_absen})
+💼 Jabatan: {jabatan}
+
+Terima kasih atas dedikasi dan kehadiran Bapak/Ibu hari ini! 🙏",
+
+    /**
+     * Attendance - Staff / Employee Attendance Alert
+     */
+    'employee.attendance' => 
+"💼 *NOTIFIKASI PRESENSI KEHADIRAN PEGAWAI*
+
+Halo Bapak/Ibu *{nama}*,
+
+Presensi kehadiran Pegawai/Staf telah berhasil dicatat oleh sistem:
+
+📅 Tanggal: *{tanggal}*
+⏰ Waktu Scan: *{waktu} WIB*
+🏷️ Status: *{status}* ({tipe_absen})
+💼 Jabatan/Unit: {jabatan}
+
+Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
 ];

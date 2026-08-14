@@ -275,6 +275,25 @@ class AttendanceController extends Controller
                     'device_id' => $request->input('device_id', 'KIOSK-EMP'),
                 ]);
 
+                // Kirim Notifikasi WA ke Nomor HP Guru / Pegawai
+                $empPhone = $employee->phone ?? $employee->user?->phone_number ?? null;
+                if ($empPhone) {
+                    try {
+                        $waService = app(\App\Services\WhatsAppService::class);
+                        $templateName = $isTeacher ? 'teacher.attendance' : 'employee.attendance';
+                        $waService->sendTemplate($empPhone, $templateName, [
+                            'nama' => $employee->full_name,
+                            'tanggal' => date('d F Y', strtotime($today)),
+                            'waktu' => date('H:i', strtotime($currentTime)),
+                            'status' => 'Hadir Tepat Waktu',
+                            'tipe_absen' => 'Masuk',
+                            'jabatan' => $jabatan,
+                        ]);
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('WA Employee Attendance Notification Failed: ' . $e->getMessage());
+                    }
+                }
+
                 $displayMsg = 'Berhasil Masuk';
                 if ($isTeacher) {
                     if (!$hasScheduleToday) {
