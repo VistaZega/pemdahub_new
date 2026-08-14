@@ -80,18 +80,18 @@ class ForumController extends Controller
             $onlineCount = 0;
         }
 
-        // Fetch latest and trending highlights for the top banner
-        $latestHighlight = ForumThread::with(['user', 'replies'])->latest()->first();
-        
-        $trendingHighlight = ForumThread::with(['user', 'replies'])
-            ->withCount(['replies', 'likes'])
-            ->orderByRaw('(replies_count + likes_count) DESC')
-            ->first();
+        // Fetch Pembda Space Groups for PC Sidebar
+        $userGroups = collect();
+        if ($user && class_exists('\App\Models\ForumGroup')) {
+            $userGroups = \App\Models\ForumGroup::whereHas('members', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })->with(['latestThread'])->get();
+        }
 
         return view('forum.index', compact(
             'threads', 'counts', 'category', 'search', 
             'topStudents', 'activeCollabs', 'channelGroups',
-            'totalThreads', 'onlineCount', 'latestHighlight', 'trendingHighlight'
+            'totalThreads', 'onlineCount', 'latestHighlight', 'trendingHighlight', 'userGroups'
         ));
     }
 
