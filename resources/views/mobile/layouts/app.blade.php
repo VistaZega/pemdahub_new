@@ -194,14 +194,45 @@
                 </button>
             @endif
 
-            <!-- PWA Install Button -->
-            <div x-data="{ deferredPrompt: null, canInstall: false }" 
-                 x-init="window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; canInstall = true; });">
+            <!-- PWA Global Install Banner / Button -->
+            <div x-data="{ deferredPrompt: null, canInstall: false, showBanner: false }" 
+                 x-init="window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; canInstall = true; showBanner = true; });">
                 <button x-show="canInstall" 
-                        @click="deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { canInstall = false; });"
-                        class="w-10 h-10 rounded-2xl bg-white border-2 border-slate-200 flex items-center justify-center text-slate-700 hover:text-blue-600 transition shadow-sm">
-                    <i class="fa-solid fa-download text-sm"></i>
+                        @click="deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { canInstall = false; showBanner = false; });"
+                        class="px-3 py-1.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-xs shadow-md flex items-center gap-1.5 transition active:scale-95">
+                    <i class="fa-solid fa-download text-xs"></i>
+                    <span>Install HP</span>
                 </button>
+
+                <!-- Floating Bottom Pop-up Banner for 1-Click Install -->
+                <div x-show="showBanner" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-12"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-12"
+                     class="fixed bottom-20 left-4 right-4 z-50 p-4 bg-slate-900 text-white rounded-3xl shadow-2xl border-2 border-blue-500/50 flex items-center justify-between gap-3 backdrop-blur-lg"
+                     style="display: none;">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-11 h-11 rounded-2xl bg-white p-1 shrink-0 border border-white/50">
+                            <img src="{{ asset('images/app-logo.png?v=6') }}" alt="PembdaHUB" class="w-full h-full object-contain rounded-xl">
+                        </div>
+                        <div class="min-w-0">
+                            <h4 class="text-xs font-black text-white truncate">Install PembdaHUB Mobile 🚀</h4>
+                            <p class="text-[10px] text-slate-300 font-bold truncate">Pasang ke Layar Utama HP Anda untuk 1-klik akses!</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button @click="deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { canInstall = false; showBanner = false; });" 
+                                class="px-3.5 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-[11px] font-black rounded-xl shadow-md active:scale-95">
+                            Install
+                        </button>
+                        <button @click="showBanner = false" class="p-2 text-slate-400 hover:text-white">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
             @endauth
         </div>
