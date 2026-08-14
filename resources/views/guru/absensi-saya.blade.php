@@ -54,40 +54,40 @@
         </div>
     @endif
 
-    <!-- Presensi GPS Guru Mandiri Trigger Card (Fasilitas Absen Guru Real-time) -->
-    <div class="bg-gradient-to-r from-teal-800 via-teal-900 to-slate-900 text-white rounded-3xl p-6 shadow-xl border-2 border-black space-y-4">
+    <!-- Presensi GPS Guru Mandiri Trigger Card (Clean White High-Contrast Desktop Card) -->
+    <div class="bg-white rounded-3xl p-6 shadow-md border-2 border-slate-200 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-teal-500/30 text-teal-200 border border-teal-400/40">
+                <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase bg-teal-100 text-teal-800 border border-teal-200 shadow-xs">
                     📍 Presensi Mandiri GPS Guru
                 </span>
-                <h3 class="text-lg font-black text-white mt-1.5 leading-tight flex items-center gap-2">
-                    <i class="fas fa-calendar-day text-teal-400"></i>
+                <h3 class="text-xl font-black text-slate-900 mt-2 leading-tight flex items-center gap-2">
+                    <i class="fas fa-calendar-day text-teal-600"></i>
                     {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
                 </h3>
             </div>
             
-            <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 text-white font-black text-sm text-center">
-                <i class="far fa-clock mr-1 text-teal-300"></i> <span id="desktopLiveClock">{{ date('H:i:s') }}</span> WIB
+            <div class="bg-slate-100 px-4 py-2 rounded-2xl border-2 border-slate-200 text-slate-900 font-black text-sm text-center shadow-inner">
+                <i class="far fa-clock mr-1.5 text-teal-600"></i> <span id="desktopLiveClock" class="text-base text-slate-900">{{ date('H:i:s') }}</span> WIB
             </div>
         </div>
 
         <!-- Presensi Status & Form Button -->
-        <div class="pt-3 border-t border-white/15 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="pt-4 border-t-2 border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             @if(!empty($todayAttendance))
                 @php
                     $isNotCheckedOut = !$todayAttendance->time_out || $todayAttendance->time_out === '00:00:00' || $todayAttendance->time_out === '00:00';
                 @endphp
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 text-lg font-black">
-                        <i class="fas fa-check-circle"></i>
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 border-2 border-emerald-300 flex items-center justify-center text-emerald-700 text-xl font-black shadow-sm">
+                        <i class="fas fa-circle-check"></i>
                     </div>
                     <div>
-                        <span class="text-xs text-teal-200 font-bold block">Status Presensi Hari Ini:</span>
-                        <span class="text-sm font-black text-white">
-                            Hadir (Masuk: {{ substr($todayAttendance->time_in ?? $todayAttendance->check_in_time ?? date('H:i'), 0, 5) }})
+                        <span class="text-xs text-slate-500 font-extrabold block">Status Presensi Hari Ini:</span>
+                        <span class="text-base font-black text-slate-900">
+                            Hadir (Masuk: <span class="text-emerald-600">{{ substr($todayAttendance->time_in ?? $todayAttendance->check_in_time ?? date('H:i'), 0, 5) }}</span>)
                             @if(!$isNotCheckedOut)
-                                | Pulang: {{ substr($todayAttendance->time_out, 0, 5) }}
+                                | Pulang: <span class="text-blue-600">{{ substr($todayAttendance->time_out, 0, 5) }}</span>
                             @endif
                         </span>
                     </div>
@@ -98,20 +98,20 @@
                         @csrf
                         <input type="hidden" name="latitude" id="desktopLatInput">
                         <input type="hidden" name="longitude" id="desktopLngInput">
-                        <button type="button" onclick="handleDesktopGpsScan()" class="w-full sm:w-auto px-6 py-3 bg-amber-400 text-slate-900 font-black text-xs rounded-2xl shadow-lg hover:bg-amber-300 transition flex items-center justify-center gap-2 border-2 border-black">
-                            <i class="fas fa-sign-out-alt text-sm"></i>
-                            <span>📍 Presensi GPS Pulang Sekarang</span>
+                        <button type="button" onclick="handleDesktopGpsScan()" class="w-full sm:w-auto px-7 py-3.5 bg-amber-400 text-slate-950 font-black text-xs rounded-2xl shadow-md hover:bg-amber-300 transition flex items-center justify-center gap-2 border-2 border-slate-900">
+                            <i class="fas fa-right-from-bracket text-sm"></i>
+                            <span>📍 PRESENSI GPS PULANG SEKARANG</span>
                         </button>
                     </form>
                 @endif
             @else
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-lg font-black">
-                        <i class="fas fa-user-clock"></i>
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-amber-800 text-xl font-black shadow-sm">
+                        <i class="fas fa-clock"></i>
                     </div>
                     <div>
-                        <span class="text-xs text-teal-200 font-bold block">Status Presensi Hari Ini:</span>
-                        <span class="text-sm font-black text-amber-300">Belum Presensi Masuk Hari Ini</span>
+                        <span class="text-xs text-slate-500 font-extrabold block">Status Presensi Hari Ini:</span>
+                        <span class="text-base font-black text-amber-700">Belum Presensi Masuk Hari Ini</span>
                     </div>
                 </div>
 
@@ -119,8 +119,8 @@
                     @csrf
                     <input type="hidden" name="latitude" id="desktopLatInput">
                     <input type="hidden" name="longitude" id="desktopLngInput">
-                    <button type="button" onclick="handleDesktopGpsScan()" class="w-full sm:w-auto px-6 py-3 bg-teal-400 text-slate-950 font-black text-xs rounded-2xl shadow-lg hover:bg-teal-300 transition flex items-center justify-center gap-2 border-2 border-black">
-                        <i class="fas fa-location-dot text-rose-600 text-base"></i>
+                    <button type="button" onclick="handleDesktopGpsScan()" class="w-full sm:w-auto px-7 py-3.5 bg-teal-600 text-white font-black text-xs rounded-2xl shadow-md hover:bg-teal-700 transition flex items-center justify-center gap-2 border-2 border-teal-800">
+                        <i class="fas fa-location-dot text-amber-300 text-base"></i>
                         <span>📍 PRESENSI GPS GURU SEKARANG</span>
                     </button>
                 </form>
