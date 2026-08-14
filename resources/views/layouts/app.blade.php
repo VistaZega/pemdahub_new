@@ -13,12 +13,12 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- PWA Manifest & App Shell Meta Tags -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/manifest.json?v=6">
     <meta name="theme-color" content="#6366f1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PembdaHUB">
-    <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png?v=6">
 
     <script>
       if ('serviceWorker' in navigator) {

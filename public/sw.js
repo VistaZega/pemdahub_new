@@ -1,13 +1,10 @@
-const CACHE_NAME = 'pembdahub-mobile-v1';
+const CACHE_NAME = 'pembdahub-mobile-v6';
 const urlsToCache = [
   '/m/',
   '/m/dashboard',
-  '/m/space',
-  '/m/lms',
-  '/m/absensi',
-  '/manifest.json',
-  '/images/icons/icon-192x192.png',
-  '/images/icons/icon-512x512.png'
+  '/manifest.json?v=6',
+  '/images/icons/icon-192x192.png?v=6',
+  '/images/icons/icon-512x512.png?v=6'
 ];
 
 self.addEventListener('install', (event) => {
