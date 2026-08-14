@@ -3,6 +3,13 @@
 @section('title', 'Absensi Mobile Pro - PembdaHUB')
 
 @section('content')
+<div class="space-y-4">
+    <!-- Header Title -->
+    <div>
+        <h2 class="text-lg font-black text-slate-900">Absensi & Presensi</h2>
+        <p class="text-[11px] text-slate-500 font-medium">Presensi Mandiri GPS & Catatan Kehadiran</p>
+    </div>
+
     <!-- Special 17 August Independence Day Card (HUT RI Merah-Putih) -->
     @if(date('m-d') === '08-17')
         <div class="p-4 rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-white border-2 border-red-500 shadow-lg text-white space-y-2 relative overflow-hidden">

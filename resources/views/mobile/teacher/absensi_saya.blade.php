@@ -39,6 +39,9 @@
         <a href="{{ route('mobile.guru.absensi.saya') }}" 
            class="flex-1 py-2.5 px-3 rounded-2xl text-xs font-black text-center transition clay-purple text-white shadow-md scale-105">
             📌 Absen Saya (Guru)
+        </a>
+    </div>
+
     <!-- Special 17 August Independence Day Card for Guru (HUT RI Merah-Putih) -->
     @if(date('m-d') === '08-17')
         <div class="p-4 rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-red-100 border-2 border-red-500 shadow-lg text-white space-y-2 relative overflow-hidden">
