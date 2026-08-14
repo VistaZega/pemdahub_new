@@ -181,19 +181,20 @@
                                 @foreach($userGroups as $grp)
                                     @php
                                         $grpName = $grp->name ?? 'Class Squad';
-                                        preg_match('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\s]+/u', $grpName, $matches);
-                                        $grpEmoji = !empty($matches[0]) ? trim($matches[0]) : ($grp->icon ?? '👥');
+                                        // Strip any leading emojis from name column
                                         $cleanGrpName = trim(preg_replace('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\s]+/u', '', $grpName));
+                                        $grpIcon = $grp->icon ?? '💬';
                                         $memberCount = $grp->calculated_member_count ?? count($grp->members ?? []);
                                     @endphp
                                     <a href="{{ route('mobile.space.group.show', $grp->id) }}" 
+                                       title="{{ $cleanGrpName }}"
                                        class="flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 text-slate-900 font-medium channel-hover border-l-2 border-transparent hover:border-purple-600 group">
-                                        <div class="flex items-center gap-3 min-w-0">
-                                            <span class="text-base shrink-0">{{ $grpEmoji }}</span>
-                                            <span class="text-sm truncate font-semibold text-slate-900 group-hover:text-purple-700">{{ $cleanGrpName }}</span>
+                                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                            <span class="text-base shrink-0">{{ $grpIcon }}</span>
+                                            <span class="text-xs truncate font-bold text-slate-900 group-hover:text-purple-700 leading-tight">{{ $cleanGrpName }}</span>
                                         </div>
                                         @if($memberCount > 0)
-                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 shrink-0">{{ $memberCount }}</span>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 shrink-0 ml-1.5">{{ $memberCount }}</span>
                                         @endif
                                     </a>
                                 @endforeach

@@ -83,6 +83,10 @@ class ForumController extends Controller
         // Fetch Pembda Space Groups for PC Sidebar
         $userGroups = collect();
         if ($user && class_exists('\App\Models\ForumGroup')) {
+            // Standardize existing DB record names if needed
+            \App\Models\ForumGroup::where('slug', 'lobi-utama')->update(['name' => 'Lobi Utama Pembda Space', 'icon' => '💬']);
+            \App\Models\ForumGroup::where('slug', 'ruang-guru-pembda')->update(['name' => 'Diskusi Guru & Staf', 'icon' => '👨‍🏫']);
+
             $userGroups = \App\Models\ForumGroup::whereHas('members', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })->with(['latestThread'])->get();

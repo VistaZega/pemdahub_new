@@ -378,10 +378,10 @@ class MobileSpaceController extends Controller
         }
 
         // 1. Lobi Utama Pembda Space (Grup Default Umum)
-        $lobbyGroup = ForumGroup::firstOrCreate(
+        $lobbyGroup = ForumGroup::updateOrCreate(
             ['slug' => 'lobi-utama'],
             [
-                'name' => '💬 Lobi Utama Pembda Space',
+                'name' => 'Lobi Utama Pembda Space',
                 'description' => 'Ruang obrolan umum & kolaborasi seluruh warga Yayasan PEMBDA',
                 'icon' => '💬',
                 'color' => 'purple',
@@ -400,10 +400,10 @@ class MobileSpaceController extends Controller
 
         // 2. Grup Khusus Guru & Staf (Jika role guru / employee)
         if ($user->hasRole('guru') || $user->hasRole('admin') || Teacher::where('user_id', $user->id)->exists()) {
-            $teacherGroup = ForumGroup::firstOrCreate(
+            $teacherGroup = ForumGroup::updateOrCreate(
                 ['slug' => 'ruang-guru-pembda'],
                 [
-                    'name' => '👨‍🏫 Ruang Diskusi Guru & Staf',
+                    'name' => 'Diskusi Guru & Staf',
                     'description' => 'Komunitas & koordinasi khusus Tenaga Pendidik PEMBDA',
                     'icon' => '👨‍🏫',
                     'color' => 'blue',
