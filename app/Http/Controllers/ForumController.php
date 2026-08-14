@@ -88,6 +88,12 @@ class ForumController extends Controller
             })->with(['latestThread'])->get();
         }
 
+        // Fetch Highlight Threads for Forum Header Banner
+        $latestHighlight = ForumThread::with(['user'])->latest()->first();
+        $trendingHighlight = ForumThread::with(['user'])->withCount(['replies', 'likes'])
+            ->orderByDesc('replies_count')
+            ->first();
+
         return view('forum.index', compact(
             'threads', 'counts', 'category', 'search', 
             'topStudents', 'activeCollabs', 'channelGroups',
