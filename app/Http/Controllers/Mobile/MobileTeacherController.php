@@ -846,9 +846,11 @@ class MobileTeacherController extends Controller
         ];
 
         if ($classroom) {
-            // Ambil daftar siswa kelas
+            // Ambil daftar siswa kelas (pivot relationship + direct column fallback jika ada)
             $pivotStudents = $classroom->students()->get();
-            $directStudents = Student::where('classroom_id', $classroom->id)->get();
+            $directStudents = \Illuminate\Support\Facades\Schema::hasColumn('students', 'classroom_id')
+                ? Student::where('classroom_id', $classroom->id)->get()
+                : collect();
             $allStudents = $pivotStudents->merge($directStudents)->unique('id');
 
             $stats['total_students'] = $allStudents->count();
