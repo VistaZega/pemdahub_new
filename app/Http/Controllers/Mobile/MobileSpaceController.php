@@ -142,7 +142,7 @@ class MobileSpaceController extends Controller
 
         // Ambil postingan / pesan di dalam grup ini
         $threads = ForumThread::where('group_id', $group->id)
-            ->with(['user', 'replies.user'])
+            ->with(['user', 'replies.user', 'poll.options', 'poll.votes'])
             ->withCount('replies', 'likes')
             ->orderBy('is_pinned', 'desc')
             ->latest()
@@ -173,6 +173,9 @@ class MobileSpaceController extends Controller
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
             'content' => 'required|string',
+            'poll_question' => 'nullable|string|max:255',
+            'poll_options' => 'nullable|array',
+            'poll_options.*' => 'nullable|string|max:255',
         ]);
 
         $title = $validated['title'] ?? Str::limit(strip_tags($validated['content']), 50);
@@ -186,7 +189,61 @@ class MobileSpaceController extends Controller
             'views_count' => 0,
         ]);
 
-        return back()->with('success', 'Pesan berhasil dikirim ke grup ' . $group->name);
+        // Buat Polling 3D jika opsi diisi
+        if (!empty($validated['poll_question']) && !empty($validated['poll_options'])) {
+            $filteredOptions = array_filter($validated['poll_options']);
+            if (count($filteredOptions) >= 2) {
+                $poll = \App\Models\ForumPoll::create([
+                    'forum_thread_id' => $thread->id,
+                    'question' => $validated['poll_question'],
+                ]);
+
+                foreach ($filteredOptions as $optText) {
+                    \App\Models\ForumPollOption::create([
+                        'forum_poll_id' => $poll->id,
+                        'option_text' => $optText,
+                        'votes_count' => 0,
+                    ]);
+                }
+            }
+        }
+
+        return back()->with('success', 'Pesan berhasil dikirim ke squad ' . $group->name);
+    }
+
+    /**
+     * Submit Vote Polling 3D
+     */
+    public function votePoll(Request $request, $pollId)
+    {
+        $user = Auth::user();
+        $optionId = $request->input('option_id');
+
+        $poll = \App\Models\ForumPoll::with('options')->findOrFail($pollId);
+        $option = \App\Models\ForumPollOption::where('forum_poll_id', $poll->id)->findOrFail($optionId);
+
+        // Cek apakah sudah pernah voting
+        $existingVote = \App\Models\ForumPollVote::where('forum_poll_id', $poll->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existingVote) {
+            // Kurangi count opsi lama jika ganti pilihan
+            if ($existingVote->forum_poll_option_id !== $option->id) {
+                \App\Models\ForumPollOption::where('id', $existingVote->forum_poll_option_id)->decrement('votes_count');
+                $existingVote->update(['forum_poll_option_id' => $option->id]);
+                $option->increment('votes_count');
+            }
+        } else {
+            \App\Models\ForumPollVote::create([
+                'forum_poll_id' => $poll->id,
+                'forum_poll_option_id' => $option->id,
+                'user_id' => $user->id,
+            ]);
+            $option->increment('votes_count');
+        }
+
+        return back()->with('success', 'Pilihan suara Anda berhasil dicatat!');
     }
 
     public function create()

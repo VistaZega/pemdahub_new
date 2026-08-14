@@ -154,6 +154,56 @@
                     </div>
                 @endif
 
+                <!-- INTERACTIVE 3D POLLING CARD (Jika terdapat Polling pada Postingan) -->
+                @if($thread->poll)
+                    @php
+                        $poll = $thread->poll;
+                        $totalVotes = $poll->options->sum('votes_count');
+                        $userVotedOptionId = $poll->votes->where('user_id', auth()->id())->first()?->forum_poll_option_id;
+                    @endphp
+                    <div class="ml-11 p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-purple-300 space-y-3 shadow-md">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 rounded-md bg-purple-600 text-white text-[9px] font-black uppercase tracking-wider">
+                                📊 POLLING 3D INTERAKTIF
+                            </span>
+                            <span class="text-[10px] font-bold text-purple-700">Total: {{ $totalVotes }} Suara</span>
+                        </div>
+
+                        <h4 class="text-xs font-black text-slate-900 leading-snug">❓ {{ $poll->question }}</h4>
+
+                        <div class="space-y-2">
+                            @foreach($poll->options as $opt)
+                                @php
+                                    $pct = $totalVotes > 0 ? round(($opt->votes_count / $totalVotes) * 100) : 0;
+                                    $isSelected = ($userVotedOptionId === $opt->id);
+                                @endphp
+                                <form action="{{ route('mobile.space.poll.vote', $poll->id) }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="option_id" value="{{ $opt->id }}">
+                                    <button type="submit" 
+                                            class="w-full text-left p-2.5 rounded-xl border-2 transition relative overflow-hidden group {{ $isSelected ? 'bg-purple-600 text-white border-purple-700 shadow-md' : 'bg-white text-slate-800 border-slate-200 hover:border-purple-300' }}">
+                                        <!-- Progress Bar Background -->
+                                        <div class="absolute left-0 top-0 bottom-0 {{ $isSelected ? 'bg-purple-800/40' : 'bg-purple-100' }} transition-all duration-500" 
+                                             style="width: {{ $pct }}%"></div>
+                                        
+                                        <div class="relative z-10 flex items-center justify-between text-xs font-black">
+                                            <span class="flex items-center gap-2">
+                                                @if($isSelected)
+                                                    <i class="fa-solid fa-circle-check text-xs"></i>
+                                                @else
+                                                    <i class="fa-regular fa-circle text-xs text-slate-400"></i>
+                                                @endif
+                                                {{ $opt->option_text }}
+                                            </span>
+                                            <span>{{ $pct }}% ({{ $opt->votes_count }})</span>
+                                        </div>
+                                    </button>
+                                </form>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Footer Stats & Reactions -->
                 <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[10px] text-slate-500 font-black pl-11">
                     <span class="text-blue-600 flex items-center gap-1">
@@ -177,7 +227,7 @@
 
     <!-- Chat Input Form Card -->
     @if(!$group->only_admin_can_post || ($membership && $membership->role === 'admin'))
-        <div class="clay-card p-4 bg-white border-2 border-purple-200 sticky bottom-4 shadow-xl space-y-2">
+        <div class="clay-card p-4 bg-white border-2 border-purple-200 sticky bottom-4 shadow-xl space-y-2" x-data="{ showPollForm: false }">
             <!-- Mention Shortcut Chips -->
             <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 text-[9px] font-black no-scrollbar">
                 <span class="text-slate-400 uppercase tracking-wider shrink-0">Tag:</span>
@@ -193,18 +243,40 @@
                         class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-200 shrink-0 hover:bg-emerald-200">
                     +Kartu LMS
                 </button>
+                <button type="button" @click="showPollForm = !showPollForm" 
+                        class="px-2 py-0.5 rounded-lg bg-indigo-600 text-white border border-indigo-700 shrink-0 hover:bg-indigo-700 font-black">
+                    📊 +Polling 3D
+                </button>
             </div>
 
-            <form action="{{ route('mobile.space.group.post', $group->id) }}" method="POST" class="flex items-center space-x-2">
+            <form action="{{ route('mobile.space.group.post', $group->id) }}" method="POST" class="space-y-2">
                 @csrf
-                <textarea id="groupChatInput" name="content" rows="2" required
-                          placeholder="Ketik pesan ke {{ $group->name }}... (Gunakan @SemuaSiswa untuk mention)" 
-                          class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold placeholder-slate-400 focus:outline-none focus:border-purple-600 transition resize-none"></textarea>
-                
-                <button type="submit" 
-                        class="clay-btn px-4 py-3 text-white font-black text-xs shrink-0 flex items-center gap-1">
-                    <i class="fa-solid fa-paper-plane text-xs"></i>
-                </button>
+                <div class="flex items-center space-x-2">
+                    <textarea id="groupChatInput" name="content" rows="2" required
+                              placeholder="Ketik pesan ke {{ $group->name }}... (Gunakan @SemuaSiswa untuk mention)" 
+                              class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold placeholder-slate-400 focus:outline-none focus:border-purple-600 transition resize-none"></textarea>
+                    
+                    <button type="submit" 
+                            class="clay-btn px-4 py-3 text-white font-black text-xs shrink-0 flex items-center gap-1">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- 3D Poll Creation Inputs -->
+                <div x-show="showPollForm" x-transition class="p-3 bg-indigo-50 border-2 border-indigo-200 rounded-2xl space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black text-indigo-900 uppercase">📊 Buat Polling 3D</span>
+                        <button type="button" @click="showPollForm = false" class="text-[10px] text-slate-400 font-bold">✕ Batal</button>
+                    </div>
+                    <input type="text" name="poll_question" placeholder="Pertanyaan Polling / Voting..." 
+                           class="w-full p-2 bg-white border border-indigo-200 rounded-xl text-xs font-bold text-slate-900">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" name="poll_options[]" placeholder="Opsi A..." 
+                               class="p-2 bg-white border border-indigo-200 rounded-xl text-xs font-bold text-slate-900">
+                        <input type="text" name="poll_options[]" placeholder="Opsi B..." 
+                               class="p-2 bg-white border border-indigo-200 rounded-xl text-xs font-bold text-slate-900">
+                    </div>
+                </div>
             </form>
         </div>
     @endif

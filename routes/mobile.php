@@ -111,6 +111,7 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::post('/', [MobileSpaceController::class, 'store'])->name('store');
             Route::get('/group/{group}', [MobileSpaceController::class, 'showGroup'])->name('group.show');
             Route::post('/group/{group}/post', [MobileSpaceController::class, 'storeGroupThread'])->name('group.post');
+            Route::post('/poll/{poll}/vote', [MobileSpaceController::class, 'votePoll'])->name('poll.vote');
             Route::get('/{thread}', [MobileSpaceController::class, 'show'])->name('show');
             Route::post('/{thread}/reply', [MobileSpaceController::class, 'reply'])->name('reply');
             Route::post('/{thread}/like', [MobileSpaceController::class, 'like'])->name('like');
