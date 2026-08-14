@@ -42,8 +42,8 @@ class ForumThread extends Model
     ];
 
     public const CATEGORIES = [
-        'diskusi' => '💬 Lobi Utama',
-        'info' => '📢 Pengumuman',
+        'diskusi' => '💬 Wall Diskusi Publik',
+        'info' => '📢 Wall Pengumuman',
         'tanya_jawab' => '❓ Tanya Jawab',
         'sharing' => '📁 Bank File',
         'art_gallery' => '🎨 Karya Seni',
@@ -57,7 +57,7 @@ class ForumThread extends Model
     ];
 
     public const CHANNEL_GROUPS = [
-        '💬 OBROLAN' => ['diskusi', 'info'],
+        '🧱 WALL OBROLAN' => ['diskusi', 'info'],
         '📚 AKADEMIK' => ['tanya_jawab', 'sharing'],
         '🎨 SHOWCASE' => ['art_gallery', 'talent', 'performance'],
         '🎮 HANGOUT' => ['gaming', 'trending'],

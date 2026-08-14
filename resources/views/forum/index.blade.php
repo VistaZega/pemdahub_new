@@ -167,13 +167,13 @@
                         </a>
                     </div>
 
-                    <!-- Class Squads Saya (Rombel & Guru) -->
+                    <!-- Class Squads (Rombel & Guru) - Standardized with Mobile -->
                     @if(isset($userGroups) && count($userGroups) > 0)
                         <div class="space-y-1.5" x-data="{ expanded: true }">
                             <button @click="expanded = !expanded" class="w-full flex items-center justify-between px-2 py-1 text-xs font-bold text-slate-900 hover:text-black transition uppercase tracking-wider group">
                                 <span class="flex items-center gap-1.5">
                                     <i class="ph-bold ph-users-three text-purple-600 text-sm"></i>
-                                    <span class="font-extrabold text-purple-900">Class Squads Saya</span>
+                                    <span class="font-extrabold text-purple-900">👥 Class Squads</span>
                                 </span>
                                 <i class="ph-bold ph-caret-down text-purple-600 transition-transform duration-200" :class="expanded ? '' : '-rotate-90'"></i>
                             </button>
