@@ -472,39 +472,25 @@ class AttendanceController extends Controller
         
         $schoolLat = (float) ($school->latitude ?? 0); 
         $schoolLong = (float) ($school->longitude ?? 0);
-        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 100); // Default 100 meter radius
-        $hasValidSchoolCoords = ($schoolLat != 0.0 && $schoolLong != 0.0);
+        if ($schoolLat == 0.0 || $schoolLong == 0.0) {
+            $schoolLat = (float) \App\Models\Setting::getValue('school_latitude', 1.282500);
+            $schoolLong = (float) \App\Models\Setting::getValue('school_longitude', 97.619000);
+        }
 
-        $today = \Carbon\Carbon::now('Asia/Jakarta')->toDateString();
+        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 150); // Default 150 meter radius
+        if ($maxRadiusMeters <= 0) {
+            $maxRadiusMeters = 150;
+        }
 
-        // Cek apakah siswa sedang PKL aktif saat ini (Failsafe & Flexible)
-        $isPklActive = \App\Models\PklPlacement::where(function($q) use ($student, $studentUserId) {
-                $q->where('student_id', $student->id)
-                  ->orWhere('student_id', $studentUserId);
-            })
-            ->where(function($q) {
-                $q->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
-                  ->orWhereNull('status')
-                  ->orWhereNotIn('status', ['cancelled', 'rejected', 'finished', 'completed', 'selesai', 'nonaktif']);
-            })
-            ->where(function($q) use ($today) {
-                $q->whereNull('start_date')
-                  ->orWhereDate('start_date', '<=', $today);
-            })
-            ->where(function($q) use ($today) {
-                $q->whereNull('end_date')
-                  ->orWhereDate('end_date', '>=', $today);
-            })
-            ->exists();
-
-        // Rumus Penghitungan Jarak (Haversine Formula via SQL atau hitung di PHP)
+        // Rumus Penghitungan Jarak (Haversine Formula)
         $distance = $this->calculateDistance($request->latitude, $request->longitude, $schoolLat, $schoolLong);
 
-        // Jika ada koordinat sekolah yang valid dan tidak sedang PKL aktif, terapkan batas radius
-        if ($hasValidSchoolCoords && !$isPklActive && $distance > $maxRadiusMeters) {
+        // KETAT: Jika di luar radius sekolah, TOLAK SEGERA!
+        if ($distance > $maxRadiusMeters) {
+            $formattedDist = number_format($distance, 0, ',', '.');
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal! Lokasi Anda berada di luar jangkauan area sekolah (' . round($distance) . ' meter dari sekolah. Maksimal ' . $maxRadiusMeters . ' meter).'
+                'message' => "Gagal! Lokasi Anda berada di luar jangkauan area sekolah ({$formattedDist} meter dari sekolah. Maksimal {$maxRadiusMeters} meter)."
             ], 403);
         }
 

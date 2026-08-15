@@ -60,27 +60,33 @@ class MobileAbsensiController extends Controller
             $lat = (float) $request->input('latitude', 0);
             $lng = (float) $request->input('longitude', 0);
 
-            if ($employee && $employee->school) {
-                $schoolLat = (float) ($employee->school->latitude ?? 0);
-                $schoolLong = (float) ($employee->school->longitude ?? 0);
-                $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 100);
+            if ($lat == 0.0 && $lng == 0.0) {
+                $msg = 'Gagal! Lokasi GPS tidak ditemukan atau belum aktif.';
+                return $wantsJson
+                    ? response()->json(['success' => false, 'message' => $msg], 422)
+                    : back()->with('error', $msg);
+            }
 
-                if ($schoolLat != 0.0 && $schoolLong != 0.0) {
-                    if ($lat == 0.0 && $lng == 0.0) {
-                        $msg = 'Gagal! Lokasi GPS tidak ditemukan.';
-                        return $wantsJson
-                            ? response()->json(['success' => false, 'message' => $msg], 403)
-                            : back()->with('error', $msg);
-                    }
+            $school = $employee ? $employee->school : ($user->school ?? null);
+            $schoolLat = (float) ($school->latitude ?? 0);
+            $schoolLong = (float) ($school->longitude ?? 0);
+            if ($schoolLat == 0.0 || $schoolLong == 0.0) {
+                $schoolLat = (float) \App\Models\Setting::getValue('school_latitude', 1.282500);
+                $schoolLong = (float) \App\Models\Setting::getValue('school_longitude', 97.619000);
+            }
 
-                    $distance = $this->calculateDistance($lat, $lng, $schoolLat, $schoolLong);
-                    if ($distance > $maxRadiusMeters) {
-                        $msg = 'Gagal! Lokasi Anda berada di luar area sekolah (' . round($distance) . 'm dari sekolah. Maksimal ' . $maxRadiusMeters . 'm).';
-                        return $wantsJson
-                            ? response()->json(['success' => false, 'message' => $msg], 403)
-                            : back()->with('error', $msg);
-                    }
-                }
+            $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 150);
+            if ($maxRadiusMeters <= 0) {
+                $maxRadiusMeters = 150;
+            }
+
+            $distance = $this->calculateDistance($lat, $lng, $schoolLat, $schoolLong);
+            if ($distance > $maxRadiusMeters) {
+                $formattedDist = number_format($distance, 0, ',', '.');
+                $msg = "Gagal! Lokasi Anda berada di luar area sekolah ({$formattedDist} meter dari sekolah. Maksimal {$maxRadiusMeters} meter).";
+                return $wantsJson
+                    ? response()->json(['success' => false, 'message' => $msg], 403)
+                    : back()->with('error', $msg);
             }
 
             if (!$employee) {
