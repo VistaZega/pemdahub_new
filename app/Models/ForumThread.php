@@ -70,6 +70,11 @@ class ForumThread extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function group()
+    {
+        return $this->belongsTo(ForumGroup::class, 'group_id');
+    }
+
     public function replies()
     {
         return $this->hasMany(ForumReply::class)->orderBy('created_at', 'asc');
