@@ -238,6 +238,13 @@ class AuthController extends Controller
     {
         $role = session('active_role', $user->role);
         
+        $userAgent = request()->userAgent() ?? '';
+        $isMobile = request()->is('m/*') || preg_match('/Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i', $userAgent);
+
+        if ($isMobile && in_array($role, ['siswa', 'guru', 'pegawai', 'orang_tua', 'alumni'])) {
+            return redirect()->route('mobile.dashboard');
+        }
+
         $url = match ($role) {
             'superadmin', 'kepala_sekolah' => route('admin.dashboard'),
             'admin_sekolah' => route('sekolah.dashboard'),
