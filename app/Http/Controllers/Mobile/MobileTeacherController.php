@@ -1000,9 +1000,13 @@ class MobileTeacherController extends Controller
         }
 
         // Rombel Mengajar & Rombel Wali Kelas
-        $homeroomClasses = Classroom::where('teacher_id', $teacher->id)->get();
-        $teachingClassrooms = Classroom::whereHas('teachingAssignments', function ($q) use ($teacher) {
-            $q->where('teacher_id', $teacher->id);
+        $homeroomClasses = Classroom::where('homeroom_teacher_id', $teacher->id)->get();
+        $teachingClassrooms = Classroom::where(function ($q) use ($teacher) {
+            $q->whereHas('teachingAssignments', function ($tq) use ($teacher) {
+                $tq->where('teacher_id', $teacher->id);
+            })->orWhereHas('schedules', function ($sq) use ($teacher) {
+                $sq->where('teacher_id', $teacher->id);
+            });
         })->get();
 
         $allClassrooms = $homeroomClasses->merge($teachingClassrooms)->unique('id')->values();
