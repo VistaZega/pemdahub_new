@@ -54,6 +54,16 @@ class ScheduleGridController extends Controller
             ->sort()
             ->values();
             
+        // Get all active classrooms for selected school & academic year (for modal dropdowns / multi-class gabungan)
+        $allClassrooms = Classroom::where('school_id', $selectedSchoolId)
+            ->where('academic_year_id', $selectedYearId)
+            ->where('is_active', 1)
+            ->select('id', 'class_name', 'grade_level', 'shift', 'school_id', 'academic_year_id')
+            ->orderBy('grade_level', 'asc')
+            ->orderBy('shift', 'asc')
+            ->orderByRaw('LENGTH(class_name) ASC, class_name ASC')
+            ->get();
+
         // Get classrooms for selected school (optimized with select)
         $classroomsQuery = Classroom::where('school_id', $selectedSchoolId)
             ->where('academic_year_id', $selectedYearId)
@@ -199,6 +209,7 @@ class ScheduleGridController extends Controller
             'academicYears',
             'schools',
             'classrooms',
+            'allClassrooms',
             'timeSlots',
             'schedules',
             'scheduleGrid',

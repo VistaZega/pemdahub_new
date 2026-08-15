@@ -767,8 +767,12 @@
                             <i class="fas fa-users-viewfinder mr-1"></i> Pilih Kelas Tambahan (Untuk Kelas Gabungan)
                         </label>
                         <select name="additional_classrooms[]" id="additionalClassrooms" class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-sm select2" multiple="multiple">
-                            @foreach($classrooms as $cls)
-                                <option value="{{ $cls->id }}" class="classroom-option-{{ $cls->id }}">{{ $cls->class_name }}</option>
+                            @foreach(($allClassrooms ?? $classrooms)->groupBy('grade_level') as $grade => $groupClassrooms)
+                                <optgroup label="Tingkat {{ $grade }}">
+                                    @foreach($groupClassrooms as $cls)
+                                        <option value="{{ $cls->id }}" class="classroom-option-{{ $cls->id }}">{{ $cls->class_name }}</option>
+                                    @endforeach
+                                </optgroup>
                             @endforeach
                         </select>
                         <p class="text-[10px] text-gray-500 mt-1">Pilih kelas lain yang belajar bersamaan. Sistem akan otomatis menyamakan Kode Grup dan menghindari bentrok antar-kelas ini.</p>
