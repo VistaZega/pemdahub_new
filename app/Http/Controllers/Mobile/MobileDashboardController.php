@@ -10,6 +10,7 @@ use App\Models\Attendance;
 use App\Models\ForumThread;
 use App\Models\LmsCourse;
 use App\Models\LmsAssignment;
+use App\Models\LmsSubmission;
 use App\Models\PklPlacement;
 use App\Models\FinalProject;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,14 @@ class MobileDashboardController extends Controller
         $showPkl = false;
         $showProjectAkhir = false;
         $showPenelitianAkhir = false;
+        $studentProgress = [
+            'overall' => 0,
+            'attendance_rate' => 100,
+            'task_rate' => 100,
+            'total_assignments' => 0,
+            'submitted_assignments' => 0,
+            'caption' => 'Semangat terus dalam belajar dan pertahankan kehadiranmu! 🌟',
+        ];
 
         // Guru specific flags
         $hasPklBimbingan = false;
@@ -46,7 +55,8 @@ class MobileDashboardController extends Controller
             if ($student) {
                 // Determine school type & grade level for PKL & Final Project
                 $schoolType = strtoupper($student->school->type ?? '');
-                $gradeLevel = $student->currentClassroom()->first()?->grade_level ?? $student->grade_level;
+                $classroom = $student->currentClassroom()->first();
+                $gradeLevel = $classroom?->grade_level ?? $student->grade_level;
                 $isKelasXII = ($gradeLevel == 12);
 
                 $showPkl = ($schoolType === 'SMK' && $isKelasXII);
@@ -68,9 +78,73 @@ class MobileDashboardController extends Controller
                     }
                 }
 
+                // Kalkulasi Real Kehadiran
+                $totalMonthAttendance = $attendances->count();
+                $presentMonthCount = $attendances->whereIn('status', ['hadir', 'terlambat'])->count();
+
+                if ($totalMonthAttendance > 0) {
+                    $attendanceRate = round(($presentMonthCount / $totalMonthAttendance) * 100);
+                } else {
+                    $totalAllAttendance = Attendance::where('student_id', $student->id)->count();
+                    $presentAllCount = Attendance::where('student_id', $student->id)->whereIn('status', ['hadir', 'terlambat'])->count();
+                    $attendanceRate = $totalAllAttendance > 0 ? round(($presentAllCount / $totalAllAttendance) * 100) : 100;
+                }
+
+                // LMS courses & assignments progress
+                $totalAssignments = 0;
+                $submittedAssignments = 0;
+                $taskRate = 100;
+
+                if ($classroom) {
+                    $courseIds = LmsCourse::where(function ($q) use ($classroom) {
+                        $q->where('classroom_id', $classroom->id)
+                          ->orWhereHas('classes', fn($cq) => $cq->where('classroom_id', $classroom->id));
+                    })->where('is_published', true)->pluck('id');
+
+                    $assignmentIds = LmsAssignment::whereIn('course_id', $courseIds)->where('is_published', true)->pluck('id');
+                    $totalAssignments = $assignmentIds->count();
+
+                    if ($totalAssignments > 0) {
+                        $submittedAssignments = LmsSubmission::where('student_id', $student->id)
+                            ->whereIn('assignment_id', $assignmentIds)
+                            ->whereIn('status', ['submitted', 'graded'])
+                            ->count();
+                        $taskRate = round(($submittedAssignments / $totalAssignments) * 100);
+                    }
+                }
+
+                // Kalkulasi Real Gabungan (50% Absensi + 50% Tugas LMS)
+                if ($totalAssignments > 0 && ($totalMonthAttendance > 0 || Attendance::where('student_id', $student->id)->exists())) {
+                    $overallProgress = (int) round(($attendanceRate * 0.5) + ($taskRate * 0.5));
+                } elseif ($totalAssignments > 0) {
+                    $overallProgress = (int) $taskRate;
+                } else {
+                    $overallProgress = (int) $attendanceRate;
+                }
+                $overallProgress = min(100, max(0, $overallProgress));
+
+                // Pesan Motivasi Kontekstual
+                if ($overallProgress >= 90) {
+                    $caption = 'Luar biasa! Progres belajar dan kehadiranmu sangat optimal minggu ini! 🌟';
+                } elseif ($overallProgress >= 75) {
+                    $caption = 'Semangat terus! Kamu sudah menyelesaikan sebagian besar target belajar dan absensimu! 🚀';
+                } elseif ($overallProgress >= 50) {
+                    $caption = 'Bagus! Terus tingkatkan kehadiran dan lengkapi tugas-tugas yang belum dikumpulkan! 💪';
+                } else {
+                    $caption = 'Ayo tingkatkan keaktifan! Pastikan hadir tepat waktu dan segera kumpulkan tugasmu! ⚡';
+                }
+
+                $studentProgress = [
+                    'overall' => $overallProgress,
+                    'attendance_rate' => $attendanceRate,
+                    'task_rate' => $taskRate,
+                    'total_assignments' => $totalAssignments,
+                    'submitted_assignments' => $submittedAssignments,
+                    'caption' => $caption,
+                ];
+
                 // LMS courses for student
-                $activeCourses = LmsCourse::whereHas('classes', function ($q) use ($student) {
-                    $classroom = $student->currentClassroom()->first();
+                $activeCourses = LmsCourse::whereHas('classes', function ($q) use ($classroom) {
                     if ($classroom) {
                         $q->where('classroom_id', $classroom->id);
                     }
@@ -116,6 +190,7 @@ class MobileDashboardController extends Controller
             'student',
             'teacher',
             'attendanceStats',
+            'studentProgress',
             'recentDiscussions',
             'popularDiscussions',
             'activeCourses',

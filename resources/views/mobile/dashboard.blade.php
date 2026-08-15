@@ -33,26 +33,50 @@
         </div>
     </div>
 
-    <!-- Progress Tracking Demo Card (Clay Progress Bar) -->
+    <!-- Progress Tracking Real Card (Clay Progress Bar) -->
     @if($activeRole === 'siswa')
+    @php
+        $progOverall = $studentProgress['overall'] ?? 0;
+        $progAttendance = $studentProgress['attendance_rate'] ?? 0;
+        $progTask = $studentProgress['task_rate'] ?? 0;
+        $totalAssign = $studentProgress['total_assignments'] ?? 0;
+        $submittedAssign = $studentProgress['submitted_assignments'] ?? 0;
+        $progCaption = $studentProgress['caption'] ?? 'Semangat terus dalam belajar dan pertahankan kehadiranmu! 🌟';
+    @endphp
     <div class="clay-card p-5 space-y-3">
         <div class="flex items-center justify-between">
             <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
                 <i class="fa-solid fa-rocket text-orange-500"></i> Progres Belajar & Kehadiran
             </h3>
-            <span class="text-xs font-black text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">75% Selesai</span>
+            <span class="text-xs font-black text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                {{ $progOverall }}% Selesai
+            </span>
         </div>
 
         <!-- 3D Clay Progress Bar -->
         <div class="w-full bg-slate-100 rounded-full h-5 p-1 shadow-inner relative overflow-hidden border border-slate-200">
-            <div class="bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 h-full rounded-full transition-all duration-500 shadow-md relative" style="width: 75%">
+            <div class="bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 h-full rounded-full transition-all duration-500 shadow-md relative" style="width: {{ max(6, $progOverall) }}%">
                 <div class="absolute right-1 top-0 bottom-0 flex items-center">
                     <span class="text-[9px] font-black text-white px-1">🚀</span>
                 </div>
             </div>
         </div>
 
-        <p class="text-[11px] font-bold text-slate-600">Semangat terus! Kamu sudah menyelesaikan sebagian besar target minggu ini! 🌟</p>
+        <!-- Detail Breakdown Badges -->
+        <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 pt-0.5 px-0.5">
+            <span class="flex items-center gap-1">
+                <i class="fa-solid fa-clipboard-user text-emerald-500"></i> Kehadiran: <strong class="text-slate-800">{{ $progAttendance }}%</strong>
+            </span>
+            @if($totalAssign > 0)
+                <span class="flex items-center gap-1">
+                    <i class="fa-solid fa-book-bookmark text-purple-500"></i> Tugas: <strong class="text-slate-800">{{ $submittedAssign }}/{{ $totalAssign }} Selesai</strong>
+                </span>
+            @else
+                <span class="text-slate-400 font-semibold">Tugas Belum Ada</span>
+            @endif
+        </div>
+
+        <p class="text-[11px] font-bold text-slate-600 leading-relaxed">{{ $progCaption }}</p>
     </div>
     @endif
 
