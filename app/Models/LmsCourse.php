@@ -91,6 +91,245 @@ class LmsCourse extends Model
     }
 
     /**
+     * Get Subject / Course thematic visual design tokens (icon, gradient, emoji, badge color)
+     */
+    public function getDesignAttribute(): array
+    {
+        $subjectName = $this->subject->name ?? '';
+        $haystack = strtolower(($this->course_name ?? '') . ' ' . $subjectName);
+
+        if (preg_match('/(matematika|aljabar|kalkulus|hitung|statistika|math)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-calculator',
+                'emoji' => '📐',
+                'gradient' => 'from-emerald-600 via-teal-600 to-cyan-700',
+                'badgeBg' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                'accentColor' => 'emerald',
+                'category' => 'Eksak & Hitungan',
+            ];
+        }
+
+        if (preg_match('/(indonesia|sastra|bahasa id)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-book-open-reader',
+                'emoji' => '📖',
+                'gradient' => 'from-rose-600 via-red-600 to-pink-700',
+                'badgeBg' => 'bg-rose-50 text-rose-800 border-rose-200',
+                'accentColor' => 'rose',
+                'category' => 'Bahasa & Sastra',
+            ];
+        }
+
+        if (preg_match('/(inggris|english|toefl|foreign)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-earth-americas',
+                'emoji' => '🌐',
+                'gradient' => 'from-blue-600 via-indigo-600 to-sky-700',
+                'badgeBg' => 'bg-blue-50 text-blue-800 border-blue-200',
+                'accentColor' => 'blue',
+                'category' => 'Bahasa Asing',
+            ];
+        }
+
+        if (preg_match('/(fisika|physics)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-atom',
+                'emoji' => '⚛️',
+                'gradient' => 'from-cyan-600 via-blue-600 to-indigo-800',
+                'badgeBg' => 'bg-cyan-50 text-cyan-800 border-cyan-200',
+                'accentColor' => 'cyan',
+                'category' => 'Sains Fisika',
+            ];
+        }
+
+        if (preg_match('/(kimia|chemistry)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-flask-vial',
+                'emoji' => '🧪',
+                'gradient' => 'from-purple-600 via-violet-600 to-fuchsia-800',
+                'badgeBg' => 'bg-purple-50 text-purple-800 border-purple-200',
+                'accentColor' => 'purple',
+                'category' => 'Sains Kimia',
+            ];
+        }
+
+        if (preg_match('/(biologi|ipa|anatomi|lingkungan|natural)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-dna',
+                'emoji' => '🧬',
+                'gradient' => 'from-emerald-700 via-green-600 to-teal-800',
+                'badgeBg' => 'bg-green-50 text-green-800 border-green-200',
+                'accentColor' => 'green',
+                'category' => 'Sains & Hayati',
+            ];
+        }
+
+        if (preg_match('/(informatika|rpl|tkj|komputer|coding|pemrograman|basis data|database|jaringan|network|web|it|software|hardware|multimedia|desain grafis)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-laptop-code',
+                'emoji' => '💻',
+                'gradient' => 'from-indigo-700 via-slate-800 to-blue-950',
+                'badgeBg' => 'bg-indigo-50 text-indigo-800 border-indigo-200',
+                'accentColor' => 'indigo',
+                'category' => 'Teknologi & IT',
+            ];
+        }
+
+        if (preg_match('/(sejarah|history|ips|sosiologi|antropologi)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-landmark-dome',
+                'emoji' => '🏛️',
+                'gradient' => 'from-amber-700 via-amber-600 to-yellow-800',
+                'badgeBg' => 'bg-amber-50 text-amber-800 border-amber-200',
+                'accentColor' => 'amber',
+                'category' => 'Sosial & Humaniora',
+            ];
+        }
+
+        if (preg_match('/(geografi|bumi|kebumian)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-globe',
+                'emoji' => '🌍',
+                'gradient' => 'from-teal-700 via-emerald-600 to-sky-800',
+                'badgeBg' => 'bg-teal-50 text-teal-800 border-teal-200',
+                'accentColor' => 'teal',
+                'category' => 'Geografi & Bumi',
+            ];
+        }
+
+        if (preg_match('/(ekonomi|akuntansi|keuangan|bisnis|manajemen|marketing|pemasaran)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-chart-line',
+                'emoji' => '📊',
+                'gradient' => 'from-emerald-700 via-teal-600 to-slate-800',
+                'badgeBg' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                'accentColor' => 'emerald',
+                'category' => 'Ekonomi & Bisnis',
+            ];
+        }
+
+        if (preg_match('/(agama|pak|pab|kristen|katolik|islam|budi pekerti|spiritual)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-hands-praying',
+                'emoji' => '🙏',
+                'gradient' => 'from-sky-600 via-indigo-600 to-teal-700',
+                'badgeBg' => 'bg-sky-50 text-sky-800 border-sky-200',
+                'accentColor' => 'sky',
+                'category' => 'Pendidikan Keagamaan',
+            ];
+        }
+
+        if (preg_match('/(ppkn|pkn|pancasila|kewarganegaraan|hukum)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-shield-halved',
+                'emoji' => '🇮🇩',
+                'gradient' => 'from-red-600 via-rose-700 to-slate-900',
+                'badgeBg' => 'bg-red-50 text-red-800 border-red-200',
+                'accentColor' => 'red',
+                'category' => 'Kewarganegaraan',
+            ];
+        }
+
+        if (preg_match('/(seni|musik|rupa|tari|teater|budaya|prakarya|kerajinan)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-palette',
+                'emoji' => '🎨',
+                'gradient' => 'from-pink-600 via-fuchsia-600 to-purple-800',
+                'badgeBg' => 'bg-pink-50 text-pink-800 border-pink-200',
+                'accentColor' => 'pink',
+                'category' => 'Seni & Budaya',
+            ];
+        }
+
+        if (preg_match('/(pjok|penjas|olahraga|atletik|kebugaran)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-person-running',
+                'emoji' => '⚽',
+                'gradient' => 'from-orange-600 via-amber-600 to-rose-700',
+                'badgeBg' => 'bg-orange-50 text-orange-800 border-orange-200',
+                'accentColor' => 'orange',
+                'category' => 'Olahraga & Kesehatan',
+            ];
+        }
+
+        if (preg_match('/(otomotif|tkr|tbsm|sepeda motor|mobil|mesin bubut|bengkel)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-wrench',
+                'emoji' => '🔧',
+                'gradient' => 'from-slate-700 via-zinc-800 to-neutral-900',
+                'badgeBg' => 'bg-slate-100 text-slate-800 border-slate-300',
+                'accentColor' => 'slate',
+                'category' => 'Teknik Otomotif',
+            ];
+        }
+
+        if (preg_match('/(listrik|elektronika|mekatronika|kelistrikan|pln)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-bolt-lightning',
+                'emoji' => '⚡',
+                'gradient' => 'from-amber-600 via-orange-600 to-yellow-700',
+                'badgeBg' => 'bg-amber-50 text-amber-800 border-amber-200',
+                'accentColor' => 'amber',
+                'category' => 'Teknik Elektro',
+            ];
+        }
+
+        if (preg_match('/(hotel|perhotelan|pariwisata|tata boga|kuliner|food|beverage|restoran)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-bell-concierge',
+                'emoji' => '🛎️',
+                'gradient' => 'from-rose-600 via-orange-600 to-amber-700',
+                'badgeBg' => 'bg-rose-50 text-rose-800 border-rose-200',
+                'accentColor' => 'rose',
+                'category' => 'Pariwisata & Kuliner',
+            ];
+        }
+
+        if (preg_match('/(busana|fashion|menjahit|tekstil)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-scissors',
+                'emoji' => '👗',
+                'gradient' => 'from-fuchsia-600 via-pink-600 to-purple-700',
+                'badgeBg' => 'bg-fuchsia-50 text-fuchsia-800 border-fuchsia-200',
+                'accentColor' => 'fuchsia',
+                'category' => 'Tata Busana',
+            ];
+        }
+
+        if (preg_match('/(bk|konseling|psikologi|karir)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-heart-pulse',
+                'emoji' => '💖',
+                'gradient' => 'from-rose-500 via-pink-500 to-purple-600',
+                'badgeBg' => 'bg-rose-50 text-rose-800 border-rose-200',
+                'accentColor' => 'rose',
+                'category' => 'Bimbingan Konseling',
+            ];
+        }
+
+        if (preg_match('/(ipas|pkk|projek kreatif|kewirausahaan|entrepreneur)/i', $haystack)) {
+            return [
+                'icon' => 'fa-solid fa-lightbulb',
+                'emoji' => '💡',
+                'gradient' => 'from-amber-600 via-teal-600 to-indigo-700',
+                'badgeBg' => 'bg-amber-50 text-amber-800 border-amber-200',
+                'accentColor' => 'amber',
+                'category' => 'Projek & Inovasi',
+            ];
+        }
+
+        // Default Subject Card Theme
+        return [
+            'icon' => 'fa-solid fa-graduation-cap',
+            'emoji' => '🎓',
+            'gradient' => 'from-purple-700 via-indigo-600 to-blue-700',
+            'badgeBg' => 'bg-purple-50 text-purple-800 border-purple-200',
+            'accentColor' => 'purple',
+            'category' => 'Mata Pelajaran Umum',
+        ];
+    }
+
+    /**
      * Relationship: Course belongs to School
      */
     public function school()
