@@ -41,7 +41,7 @@ class MobileStudentController extends Controller
     }
 
     /**
-     * Jadwal Pelajaran Siswa Mobile
+     * Jadwal Pelajaran Siswa Mobile (Harian & Roster 1 Minggu)
      */
     public function jadwal()
     {
@@ -56,11 +56,18 @@ class MobileStudentController extends Controller
 
         $today = strtolower(now()->format('l'));
         $activeDay = in_array($today, $days) ? $today : 'monday';
+        $currentTime = now()->format('H:i:s');
 
         $schedulesByDay = [];
         foreach ($days as $day) {
             $schedulesByDay[$day] = collect();
         }
+
+        $currentSchedule = null;
+        $nextSchedule = null;
+        $totalWeeklyJP = 0;
+        $totalWeeklySessions = 0;
+        $uniqueSubjectIds = collect();
 
         if ($classroom) {
             $schedules = Schedule::where('classroom_id', $classroom->id)
@@ -71,15 +78,64 @@ class MobileStudentController extends Controller
                     return $sch->timeSlot->slot_order ?? ($sch->timeSlot->start_time ?? ($sch->start_time ?? '00:00'));
                 });
 
+            $totalWeeklySessions = $schedules->count();
+
             foreach ($schedules as $sch) {
                 $dayKey = strtolower($sch->day_of_week ?? '');
+                $duration = (int) ($sch->duration_slots ?: 1);
+                $totalWeeklyJP += $duration;
+
+                $subjId = $sch->subject_id ?? ($sch->teachingAssignment->subject_id ?? null);
+                if ($subjId) {
+                    $uniqueSubjectIds->push($subjId);
+                }
+
+                // Kalkulasi status waktu (Khusus hari ini)
+                $sch->time_status = 'normal';
+                $startStr = $sch->timeSlot->start_time ?? $sch->start_time;
+                $endStr = $sch->timeSlot->end_time ?? $sch->end_time;
+
+                if ($dayKey === $today && $startStr && $endStr) {
+                    $startFormatted = date('H:i:s', strtotime($startStr));
+                    $endFormatted = date('H:i:s', strtotime($endStr));
+
+                    if ($currentTime >= $startFormatted && $currentTime <= $endFormatted) {
+                        $sch->time_status = 'ongoing';
+                        if (!$currentSchedule) {
+                            $currentSchedule = $sch;
+                        }
+                    } elseif ($currentTime < $startFormatted) {
+                        $sch->time_status = 'upcoming';
+                        if (!$nextSchedule) {
+                            $nextSchedule = $sch;
+                        }
+                    } elseif ($currentTime > $endFormatted) {
+                        $sch->time_status = 'completed';
+                    }
+                }
+
                 if (isset($schedulesByDay[$dayKey])) {
                     $schedulesByDay[$dayKey]->push($sch);
                 }
             }
         }
 
-        return view('mobile.student.jadwal', compact('student', 'classroom', 'days', 'dayLabels', 'activeDay', 'schedulesByDay'));
+        $totalUniqueSubjects = $uniqueSubjectIds->unique()->count();
+
+        return view('mobile.student.jadwal', compact(
+            'student',
+            'classroom',
+            'days',
+            'dayLabels',
+            'activeDay',
+            'today',
+            'schedulesByDay',
+            'currentSchedule',
+            'nextSchedule',
+            'totalWeeklyJP',
+            'totalWeeklySessions',
+            'totalUniqueSubjects'
+        ));
     }
 
     /**

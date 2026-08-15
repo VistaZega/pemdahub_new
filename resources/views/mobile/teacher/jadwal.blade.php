@@ -3,84 +3,301 @@
 @section('title', 'Jadwal Mengajar Guru - PembdaHUB Mobile Pro')
 
 @section('content')
-<div class="space-y-4 pt-1" x-data="{ day: '{{ $activeDay }}' }">
+<div class="space-y-4 pt-1" x-data="{ viewMode: 'harian', day: '{{ $activeDay }}' }">
     <!-- Header -->
     <div class="flex items-center justify-between px-1">
         <a href="{{ route('mobile.dashboard') }}" class="w-9 h-9 rounded-2xl bg-white border-2 border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:bg-slate-50 transition active:scale-95">
             <i class="fa-solid fa-arrow-left text-xs"></i>
         </a>
-        <div>
-            <h2 class="text-sm font-black text-slate-900 uppercase tracking-wide text-center">Jadwal Mengajar Guru</h2>
-            <p class="text-[10px] text-slate-500 font-bold text-center truncate max-w-[200px]">{{ $teacher->full_name ?? '-' }}</p>
+        <div class="text-center">
+            <h2 class="text-sm font-black text-slate-900 uppercase tracking-wide">Jadwal Mengajar Guru</h2>
+            <p class="text-[10px] text-slate-500 font-bold truncate max-w-[200px]">{{ $teacher->full_name ?? '-' }}</p>
         </div>
         <div class="w-9"></div>
     </div>
 
-    <!-- Day Filter Pills (Clay Pills) -->
-    <div class="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
-        @foreach($days as $d)
-            @php $count = $schedulesByDay[$d]->count(); @endphp
-            <button @click="day = '{{ $d }}'" 
-                    :class="day === '{{ $d }}' ? 'clay-purple text-white shadow-md scale-105 font-black' : 'bg-white text-slate-600 border-2 border-slate-200 font-bold'"
-                    class="px-3.5 py-2 rounded-2xl text-xs whitespace-nowrap transition flex items-center gap-1.5 shrink-0">
-                <span>{{ $dayLabels[$d] }}</span>
-                @if($count > 0)
-                    <span class="w-4 h-4 rounded-full text-[9px] font-black flex items-center justify-center"
-                          :class="day === '{{ $d }}' ? 'bg-white/30 text-white' : 'bg-purple-100 text-purple-800'">
-                        {{ $count }}
-                    </span>
-                @endif
-            </button>
-        @endforeach
+    <!-- Toggle View Switch: Harian vs Roster 1 Minggu -->
+    <div class="bg-slate-200/80 p-1 rounded-2xl flex items-center shadow-inner border border-slate-300/60">
+        <button @click="viewMode = 'harian'" 
+                :class="viewMode === 'harian' ? 'bg-white text-purple-700 font-black shadow-sm' : 'text-slate-600 font-bold hover:text-slate-800'"
+                class="flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+            <i class="fa-solid fa-calendar-day text-xs"></i>
+            <span>Mode Harian</span>
+        </button>
+        <button @click="viewMode = 'roster'" 
+                :class="viewMode === 'roster' ? 'bg-white text-purple-700 font-black shadow-sm' : 'text-slate-600 font-bold hover:text-slate-800'"
+                class="flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+            <i class="fa-solid fa-table-cells text-xs"></i>
+            <span>Roster 1 Minggu</span>
+        </button>
     </div>
 
-    <!-- Schedules List (Clay Cards) -->
-    @foreach($days as $d)
-        <div x-show="day === '{{ $d }}'" class="space-y-2.5">
-            @forelse($schedulesByDay[$d] as $sch)
-                @php
-                    $subjectName = $sch->subject->name ?? ($sch->teachingAssignment->subject->name ?? 'Mata Pelajaran');
-                    $className = $sch->classroom->name ?? ($sch->teachingAssignment->classroom->name ?? ($sch->classroom->class_name ?? '-'));
-                    $timeDisplay = $sch->timeSlot 
-                        ? ($sch->timeSlot->start_time . ' - ' . $sch->timeSlot->end_time) 
-                        : (($sch->start_time && $sch->end_time) ? ($sch->start_time . ' - ' . $sch->end_time) : ($sch->start_time ?? '-'));
+    <!-- KETERANGAN STATUS MENGAJAR HARI INI (Live Teaching Card) -->
+    @if($currentSchedule)
+        @php
+            $currSubj = $currentSchedule->subject->name ?? ($currentSchedule->teachingAssignment->subject->name ?? 'Mata Pelajaran');
+            $currClass = $currentSchedule->classroom->name ?? ($currentSchedule->teachingAssignment->classroom->name ?? ($currentSchedule->classroom->class_name ?? '-'));
+            $currTime = $currentSchedule->timeSlot 
+                ? ($currentSchedule->timeSlot->start_time . ' - ' . $currentSchedule->timeSlot->end_time) 
+                : (($currentSchedule->start_time && $currentSchedule->end_time) ? ($currentSchedule->start_time . ' - ' . $currentSchedule->end_time) : ($currentSchedule->start_time ?? '-'));
+        @endphp
+        <div class="clay-green p-4.5 space-y-2 border-2 border-emerald-300/80 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-900/40 text-emerald-100 border border-emerald-400/50">
+                    <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+                    Sedang Mengajar Saat Ini
+                </span>
+                <span class="text-[10px] font-black text-emerald-950 bg-white/40 px-2 py-0.5 rounded-lg">
+                    {{ $currTime }}
+                </span>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-black text-white leading-snug">{{ $currSubj }}</h3>
+                <p class="text-[11px] text-emerald-100 font-bold mt-0.5 flex items-center gap-1.5">
+                    <i class="fa-solid fa-school text-xs text-white"></i> Kelas: {{ $currClass }}
+                </p>
+                @if($currentSchedule->room)
+                    <p class="text-[10px] text-emerald-200 font-extrabold mt-0.5">
+                        <i class="fa-solid fa-door-open mr-1"></i> Ruangan: {{ $currentSchedule->room }}
+                    </p>
+                @endif
+            </div>
+        </div>
+    @elseif($nextSchedule)
+        @php
+            $nextSubj = $nextSchedule->subject->name ?? ($nextSchedule->teachingAssignment->subject->name ?? 'Mata Pelajaran');
+            $nextClass = $nextSchedule->classroom->name ?? ($nextSchedule->teachingAssignment->classroom->name ?? ($nextSchedule->classroom->class_name ?? '-'));
+            $nextTime = $nextSchedule->timeSlot 
+                ? ($nextSchedule->timeSlot->start_time . ' - ' . $nextSchedule->timeSlot->end_time) 
+                : (($nextSchedule->start_time && $nextSchedule->end_time) ? ($nextSchedule->start_time . ' - ' . $nextSchedule->end_time) : ($nextSchedule->start_time ?? '-'));
+        @endphp
+        <div class="clay-purple p-4.5 space-y-2 border-2 border-purple-300/80">
+            <div class="flex items-center justify-between">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-white/30 text-purple-950 border border-white/40">
+                    <i class="fa-solid fa-clock-rotate-left text-[9px]"></i>
+                    Mengajar Terdekat / Berikutnya
+                </span>
+                <span class="text-[10px] font-black text-purple-950 bg-white/40 px-2 py-0.5 rounded-lg">
+                    {{ $nextTime }}
+                </span>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-black text-white leading-snug">{{ $nextSubj }}</h3>
+                <p class="text-[11px] text-purple-100 font-bold mt-0.5 flex items-center gap-1.5">
+                    <i class="fa-solid fa-school text-xs text-white"></i> Kelas: {{ $nextClass }}
+                </p>
+                @if($nextSchedule->room)
+                    <p class="text-[10px] text-purple-200 font-extrabold mt-0.5">
+                        <i class="fa-solid fa-door-open mr-1"></i> Ruangan: {{ $nextSchedule->room }}
+                    </p>
+                @endif
+            </div>
+        </div>
+    @endif
+
+    <!-- ==================== 1. TAMPILAN MODE HARIAN ==================== -->
+    <div x-show="viewMode === 'harian'" class="space-y-3">
+        <!-- Day Filter Pills (Clay Pills) -->
+        <div class="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
+            @foreach($days as $d)
+                @php 
+                    $count = $schedulesByDay[$d]->count(); 
+                    $isHariIni = ($d === $today);
                 @endphp
-                <div class="clay-card p-4 flex items-center justify-between gap-3">
-                    <div class="flex items-center space-x-3.5 min-w-0">
-                        <div class="w-11 h-11 rounded-2xl clay-purple flex items-center justify-center font-black text-lg shadow-sm shrink-0">
-                            <i class="fa-solid fa-chalkboard-user text-white"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <h4 class="text-xs font-black text-slate-900 truncate">{{ $subjectName }}</h4>
-                            <p class="text-[10px] text-slate-500 font-bold truncate flex items-center gap-1">
-                                <i class="fa-solid fa-school text-purple-600"></i> Kelas: {{ $className }}
-                            </p>
-                            @if($sch->room)
-                                <p class="text-[9px] text-purple-600 font-extrabold truncate">
-                                    <i class="fa-solid fa-door-open mr-0.5"></i> {{ $sch->room }}
+                <button @click="day = '{{ $d }}'" 
+                        :class="day === '{{ $d }}' ? 'clay-purple text-white shadow-md scale-105 font-black' : 'bg-white text-slate-600 border-2 border-slate-200 font-bold'"
+                        class="px-3.5 py-2 rounded-2xl text-xs whitespace-nowrap transition flex items-center gap-1.5 shrink-0 relative">
+                    @if($isHariIni)
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 absolute top-1.5 right-1.5"></span>
+                    @endif
+                    <span>{{ $dayLabels[$d] }}</span>
+                    @if($count > 0)
+                        <span class="w-4 h-4 rounded-full text-[9px] font-black flex items-center justify-center"
+                              :class="day === '{{ $d }}' ? 'bg-white/30 text-white' : 'bg-purple-100 text-purple-800'">
+                            {{ $count }}
+                        </span>
+                    @endif
+                </button>
+            @endforeach
+        </div>
+
+        <!-- Schedules List (Clay Cards) -->
+        @foreach($days as $d)
+            <div x-show="day === '{{ $d }}'" class="space-y-2.5">
+                <div class="flex items-center justify-between px-1">
+                    <span class="text-xs font-black text-slate-700 uppercase tracking-wider">
+                        Jadwal Hari {{ $dayLabels[$d] }} ({{ $schedulesByDay[$d]->count() }} Sesi)
+                    </span>
+                    @if($d === $today)
+                        <span class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300">
+                            Hari Ini
+                        </span>
+                    @endif
+                </div>
+
+                @forelse($schedulesByDay[$d] as $sch)
+                    @php
+                        $subjectName = $sch->subject->name ?? ($sch->teachingAssignment->subject->name ?? 'Mata Pelajaran');
+                        $className = $sch->classroom->name ?? ($sch->teachingAssignment->classroom->name ?? ($sch->classroom->class_name ?? '-'));
+                        $timeDisplay = $sch->timeSlot 
+                            ? ($sch->timeSlot->start_time . ' - ' . $sch->timeSlot->end_time) 
+                            : (($sch->start_time && $sch->end_time) ? ($sch->start_time . ' - ' . $sch->end_time) : ($sch->start_time ?? '-'));
+
+                        $isOngoing = ($sch->time_status === 'ongoing');
+                        $isUpcoming = ($sch->time_status === 'upcoming');
+                        $isCompleted = ($sch->time_status === 'completed');
+                    @endphp
+                    <div class="clay-card p-4 flex items-center justify-between gap-3 border-2 
+                        {{ $isOngoing ? 'border-emerald-400 bg-emerald-50/40' : ($isUpcoming ? 'border-purple-200' : ($isCompleted ? 'border-slate-200 opacity-80' : 'border-slate-100')) }}">
+                        <div class="flex items-center space-x-3.5 min-w-0">
+                            <div class="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-lg shadow-sm shrink-0
+                                {{ $isOngoing ? 'clay-green text-white' : ($isUpcoming ? 'clay-purple text-white' : 'clay-card text-slate-600') }}">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <h4 class="text-xs font-black text-slate-900 truncate">{{ $subjectName }}</h4>
+                                    @if($isOngoing)
+                                        <span class="text-[8px] font-black bg-emerald-500 text-white px-1.5 py-0.5 rounded-md uppercase animate-pulse">
+                                            Sedang Berlangsung
+                                        </span>
+                                    @elseif($isUpcoming)
+                                        <span class="text-[8px] font-black bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded-md uppercase">
+                                            Akan Datang
+                                        </span>
+                                    @elseif($isCompleted)
+                                        <span class="text-[8px] font-black bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-md uppercase">
+                                            Selesai
+                                        </span>
+                                    @endif
+                                </div>
+                                <p class="text-[10px] text-slate-500 font-bold truncate flex items-center gap-1 mt-0.5">
+                                    <i class="fa-solid fa-school text-purple-600"></i> Kelas: {{ $className }}
                                 </p>
+                                @if($sch->room)
+                                    <p class="text-[9px] text-purple-600 font-extrabold truncate">
+                                        <i class="fa-solid fa-door-open mr-0.5"></i> {{ $sch->room }}
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="text-right shrink-0">
+                            <span class="px-2.5 py-1 rounded-xl text-[10px] font-black border block
+                                {{ $isOngoing ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-purple-50 text-purple-900 border border-purple-200' }}">
+                                {{ $timeDisplay }}
+                            </span>
+                            @if($sch->duration_slots > 1)
+                                <span class="text-[9px] text-slate-400 font-bold mt-0.5 block">
+                                    {{ $sch->duration_slots }} JP
+                                </span>
                             @endif
                         </div>
                     </div>
-
-                    <div class="text-right shrink-0">
-                        <span class="px-2.5 py-1 rounded-xl bg-purple-50 text-[10px] text-purple-900 font-black border border-purple-200 block">
-                            {{ $timeDisplay }}
-                        </span>
-                        @if($sch->duration_slots > 1)
-                            <span class="text-[9px] text-slate-400 font-bold mt-0.5 block">
-                                {{ $sch->duration_slots }} JP
-                            </span>
-                        @endif
+                @empty
+                    <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold space-y-1">
+                        <i class="fa-solid fa-calendar-check text-3xl mb-1 text-slate-300"></i>
+                        <p>Tidak ada jadwal mengajar di hari {{ $dayLabels[$d] }}.</p>
                     </div>
+                @endforelse
+            </div>
+        @endforeach
+    </div>
+
+    <!-- ==================== 2. TAMPILAN MODE ROSTER 1 MINGGU ==================== -->
+    <div x-show="viewMode === 'roster'" class="space-y-4" style="display: none;">
+        <!-- Weekly Summary Hero Card -->
+        <div class="clay-purple p-5 space-y-2.5">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider bg-white/30 px-2.5 py-0.5 rounded-full border border-white/40">
+                    Roster Mengajar Mingguan
+                </span>
+                <span class="text-[10px] font-black bg-white/20 px-2.5 py-0.5 rounded-full">
+                    Senin s/d Sabtu
+                </span>
+            </div>
+
+            <h3 class="text-base font-black text-white leading-tight">
+                Roster Jadwal Mengajar {{ $teacher->full_name ?? '-' }}
+            </h3>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-3 gap-2 pt-1 border-t border-white/20 text-center text-white">
+                <div class="p-1.5 bg-white/10 rounded-xl">
+                    <span class="block text-xs font-black">{{ $totalWeeklySessions }}</span>
+                    <span class="text-[8px] font-bold text-purple-100 uppercase">Total Sesi</span>
                 </div>
-            @empty
-                <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold space-y-1">
-                    <i class="fa-solid fa-calendar-check text-3xl mb-1 text-slate-300"></i>
-                    <p>Tidak ada jadwal mengajar di hari {{ $dayLabels[$d] }}.</p>
+                <div class="p-1.5 bg-white/10 rounded-xl">
+                    <span class="block text-xs font-black">{{ $totalWeeklyJP }}</span>
+                    <span class="text-[8px] font-bold text-purple-100 uppercase">Total JP</span>
                 </div>
-            @endforelse
+                <div class="p-1.5 bg-white/10 rounded-xl">
+                    <span class="block text-xs font-black">{{ $totalUniqueClasses }}</span>
+                    <span class="text-[8px] font-bold text-purple-100 uppercase">Kelas Diajar</span>
+                </div>
+            </div>
         </div>
-    @endforeach
+
+        <!-- Weekly Day-by-Day Roster Cards -->
+        <div class="space-y-3">
+            @foreach($days as $d)
+                @php 
+                    $daySchedules = $schedulesByDay[$d]; 
+                    $isHariIni = ($d === $today);
+                @endphp
+                <div class="clay-card p-4 space-y-2.5 border-2 {{ $isHariIni ? 'border-purple-400 bg-purple-50/20' : 'border-slate-200' }}">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs
+                                {{ $isHariIni ? 'bg-purple-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700' }}">
+                                {{ substr($dayLabels[$d], 0, 1) }}
+                            </div>
+                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">{{ $dayLabels[$d] }}</h4>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            @if($isHariIni)
+                                <span class="text-[8px] font-black bg-purple-600 text-white px-2 py-0.5 rounded-full uppercase">
+                                    Hari Ini
+                                </span>
+                            @endif
+                            <span class="text-[10px] font-black text-slate-500">
+                                {{ $daySchedules->count() }} Sesi Mengajar
+                            </span>
+                        </div>
+                    </div>
+
+                    @if($daySchedules->isNotEmpty())
+                        <div class="space-y-2">
+                            @foreach($daySchedules as $sch)
+                                @php
+                                    $subj = $sch->subject->name ?? ($sch->teachingAssignment->subject->name ?? 'Mata Pelajaran');
+                                    $className = $sch->classroom->name ?? ($sch->teachingAssignment->classroom->name ?? ($sch->classroom->class_name ?? '-'));
+                                    $time = $sch->timeSlot 
+                                        ? ($sch->timeSlot->start_time . ' - ' . $sch->timeSlot->end_time) 
+                                        : (($sch->start_time && $sch->end_time) ? ($sch->start_time . ' - ' . $sch->end_time) : ($sch->start_time ?? '-'));
+                                @endphp
+                                <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                                    <div class="min-w-0 pr-2">
+                                        <p class="font-black text-slate-800 truncate">{{ $subj }}</p>
+                                        <p class="text-[10px] text-slate-500 font-semibold truncate">Kelas: {{ $className }}</p>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <span class="text-[10px] font-black text-purple-700 block">{{ $time }}</span>
+                                        @if($sch->room)
+                                            <span class="text-[9px] text-purple-600 font-bold block">{{ $sch->room }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-[11px] text-slate-400 font-bold text-center py-2 italic">Tidak ada jadwal mengajar.</p>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    </div>
 </div>
 @endsection
