@@ -21,7 +21,7 @@
     <div class="clay-purple p-5 space-y-3">
         <div class="flex items-center justify-between">
             <span class="text-[10px] font-black uppercase tracking-wider bg-white/30 px-2.5 py-0.5 rounded-full border border-white/40">
-                Tahap: {{ $stages[$project->current_stage]['label'] ?? ucfirst($project->current_stage ?? 'Bab 1') }}
+                Tahap: {{ $stages[$project->current_stage]['label'] ?? ($stages[$project->current_stage]['name'] ?? ucfirst($project->current_stage ?? 'Bab 1')) }}
             </span>
             <span class="text-[10px] font-black bg-white/20 px-2.5 py-0.5 rounded-full uppercase">
                 Status: {{ $project->status }}
@@ -70,7 +70,7 @@
                         @endif
                     </div>
                     <span class="text-[8px] font-extrabold text-slate-600 text-center mt-1 truncate max-w-[50px] leading-tight">
-                        {{ $stageInfo['label'] }}
+                        {{ $stageInfo['label'] ?? ($stageInfo['name'] ?? ucfirst($key)) }}
                     </span>
                 </div>
             @endforeach
@@ -102,7 +102,7 @@
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-purple-100 text-purple-800 border border-purple-200">
-                            {{ $stages[$log->stage]['label'] ?? ucfirst($log->stage) }}
+                            {{ $stages[$log->stage]['label'] ?? ($stages[$log->stage]['name'] ?? ucfirst($log->stage)) }}
                         </span>
                         <span class="text-[10px] font-bold text-slate-500">
                             {{ \Carbon\Carbon::parse($log->log_date)->translatedFormat('d M Y') }}

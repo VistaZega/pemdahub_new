@@ -81,7 +81,7 @@
                     <i class="fa-solid fa-bars-progress text-purple-600"></i> Tahapan Bimbingan
                 </h4>
                 <span class="text-[10px] font-extrabold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200 uppercase">
-                    Tahap: {{ $stages[$project->current_stage]['label'] ?? ucfirst($project->current_stage ?? 'Tahap Awal') }}
+                    Tahap: {{ $stages[$project->current_stage]['label'] ?? ($stages[$project->current_stage]['name'] ?? ucfirst($project->current_stage ?? 'Tahap Awal')) }}
                 </span>
             </div>
 
@@ -104,7 +104,7 @@
                             @endif
                         </div>
                         <span class="text-[8px] font-extrabold text-slate-600 text-center mt-1 truncate max-w-[50px] leading-tight">
-                            {{ $stageInfo['label'] }}
+                            {{ $stageInfo['label'] ?? ($stageInfo['name'] ?? ucfirst($key)) }}
                         </span>
                     </div>
                 @endforeach

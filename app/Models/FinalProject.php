@@ -47,36 +47,43 @@ class FinalProject extends Model
         return [
             self::STAGE_BAB1 => [
                 'name' => 'Bab I: Pendahuluan',
+                'label' => 'Bab I',
                 'description' => 'Latar Belakang Masalah, Rumusan Masalah, Tujuan, dan Manfaat Penelitian/Project.',
                 'next' => self::STAGE_BAB2,
             ],
             self::STAGE_BAB2 => [
                 'name' => 'Bab II: Kajian Pustaka',
+                'label' => 'Bab II',
                 'description' => 'Kajian Teori, Penelitian Terdahulu, Kerangka Berpikir, dan Hipotesis (jika ada).',
                 'next' => self::STAGE_BAB3,
             ],
             self::STAGE_BAB3 => [
                 'name' => 'Bab III: Metodologi / Perancangan',
+                'label' => 'Bab III',
                 'description' => 'Metode Penelitian, Waktu & Tempat, Instrumen Pengumpulan Data, atau Perancangan Desain/Sistem.',
                 'next' => self::STAGE_BAB4,
             ],
             self::STAGE_BAB4 => [
                 'name' => 'Bab IV: Hasil & Pembahasan',
+                'label' => 'Bab IV',
                 'description' => 'Penyajian Data Penelitian, Analisis Hasil Penelitian, atau Implementasi & Pengujian Sistem.',
                 'next' => self::STAGE_BAB5,
             ],
             self::STAGE_BAB5 => [
                 'name' => 'Bab V: Penutup',
+                'label' => 'Bab V',
                 'description' => 'Kesimpulan dari seluruh pembahasan penelitian/project dan Saran untuk pengembangan.',
                 'next' => self::STAGE_SIDANG,
             ],
             self::STAGE_SIDANG => [
                 'name' => 'Siap Sidang / Ujian Akhir',
+                'label' => 'Sidang',
                 'description' => 'Penyusunan laporan lengkap, persiapan materi presentasi, dan pengajuan jadwal sidang.',
                 'next' => self::STAGE_COMPLETED,
             ],
             self::STAGE_COMPLETED => [
                 'name' => 'Lulus & Selesai',
+                'label' => 'Lulus',
                 'description' => 'Kelompok Tugas Akhir telah menyelesaikan semua tahapan revisi sidang dan dinyatakan lulus.',
                 'next' => null,
             ],

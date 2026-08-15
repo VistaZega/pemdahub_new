@@ -47,7 +47,7 @@
         @forelse($projects as $project)
             @php
                 $stages = \App\Models\FinalProject::getStages();
-                $currentStageLabel = $stages[$project->current_stage]['label'] ?? ucfirst($project->current_stage ?? 'Bab 1');
+                $currentStageLabel = $stages[$project->current_stage]['label'] ?? ($stages[$project->current_stage]['name'] ?? ucfirst($project->current_stage ?? 'Bab 1'));
             @endphp
             <a href="{{ route('mobile.guru.final-projects.bimbingan.show', $project->id) }}" class="clay-card p-4 block hover:border-purple-300 transition active:scale-98 space-y-3">
                 <div class="flex items-center justify-between gap-2">
