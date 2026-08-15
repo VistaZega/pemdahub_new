@@ -62,12 +62,17 @@ class MobileTeacherController extends Controller
 
         if ($teacher) {
             $schedules = Schedule::where('teacher_id', $teacher->id)
-                ->with(['subject', 'classroom', 'timeSlot'])
-                ->get();
+                ->orWhereHas('teachingAssignment', fn($q) => $q->where('teacher_id', $teacher->id))
+                ->with(['subject', 'classroom', 'timeSlot', 'teachingAssignment.subject', 'teachingAssignment.classroom'])
+                ->get()
+                ->sortBy(function ($sch) {
+                    return $sch->timeSlot->slot_order ?? ($sch->timeSlot->start_time ?? ($sch->start_time ?? '00:00'));
+                });
 
             foreach ($schedules as $sch) {
-                if (isset($schedulesByDay[$sch->day_of_week])) {
-                    $schedulesByDay[$sch->day_of_week]->push($sch);
+                $dayKey = strtolower($sch->day_of_week ?? '');
+                if (isset($schedulesByDay[$dayKey])) {
+                    $schedulesByDay[$dayKey]->push($sch);
                 }
             }
         }

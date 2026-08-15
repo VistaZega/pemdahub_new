@@ -46,16 +46,16 @@ class MobileStudentController extends Controller
     public function jadwal()
     {
         $student = $this->getStudent();
-        $classroom = $student ? $student->currentClassroom()->first() : null;
+        $classroom = $student ? ($student->currentClassroom()->first() ?? $student->classroom ?? $student->classrooms()->latest()->first()) : null;
 
-        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         $dayLabels = [
-            'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
-            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'
+            'monday' => 'Senin', 'tuesday' => 'Selasa', 'wednesday' => 'Rabu',
+            'thursday' => 'Kamis', 'friday' => 'Jumat', 'saturday' => 'Sabtu'
         ];
 
-        $today = date('l');
-        $activeDay = in_array($today, $days) ? $today : 'Monday';
+        $today = strtolower(now()->format('l'));
+        $activeDay = in_array($today, $days) ? $today : 'monday';
 
         $schedulesByDay = [];
         foreach ($days as $day) {
@@ -64,13 +64,17 @@ class MobileStudentController extends Controller
 
         if ($classroom) {
             $schedules = Schedule::where('classroom_id', $classroom->id)
-                ->with(['subject', 'teacher'])
-                ->orderBy('start_time', 'asc')
-                ->get();
+                ->orWhereHas('teachingAssignment', fn($q) => $q->where('classroom_id', $classroom->id))
+                ->with(['subject', 'teacher.user', 'teachingAssignment.subject', 'teachingAssignment.teacher.user', 'timeSlot'])
+                ->get()
+                ->sortBy(function ($sch) {
+                    return $sch->timeSlot->slot_order ?? ($sch->timeSlot->start_time ?? ($sch->start_time ?? '00:00'));
+                });
 
             foreach ($schedules as $sch) {
-                if (isset($schedulesByDay[$sch->day_of_week])) {
-                    $schedulesByDay[$sch->day_of_week]->push($sch);
+                $dayKey = strtolower($sch->day_of_week ?? '');
+                if (isset($schedulesByDay[$dayKey])) {
+                    $schedulesByDay[$dayKey]->push($sch);
                 }
             }
         }
