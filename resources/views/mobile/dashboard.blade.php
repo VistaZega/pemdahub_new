@@ -50,6 +50,57 @@
         </div>
     </div>
 
+    <!-- 🌟 Top Stories Bar: Kanal & Squad Pembda Space -->
+    <div class="space-y-1.5 pt-1">
+        <div class="flex items-center justify-between px-1">
+            <h3 class="text-[11px] font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Space Channel & Squad</span>
+            </h3>
+            <a href="{{ route('mobile.space.index') }}" class="text-[10px] font-extrabold text-purple-600 hover:text-purple-700 flex items-center gap-1">
+                <span>Buka Space</span> <i class="fa-solid fa-chevron-right text-[8px]"></i>
+            </a>
+        </div>
+
+        <div class="flex items-center gap-3 overflow-x-auto pb-2 pt-1 px-1 no-scrollbar scroll-smooth">
+            <!-- Lobi Utama Bubble -->
+            <a href="{{ route('mobile.space.index') }}" class="flex flex-col items-center gap-1 shrink-0 group">
+                <div class="w-13 h-13 rounded-2xl p-0.5 bg-gradient-to-tr from-purple-600 via-indigo-500 to-blue-500 shadow-md group-hover:scale-105 transition">
+                    <div class="w-full h-full rounded-[14px] bg-slate-900 flex items-center justify-center text-xl text-white font-black">
+                        🏛️
+                    </div>
+                </div>
+                <span class="text-[10px] font-black text-slate-800 tracking-tight max-w-[64px] truncate text-center">Lobi Utama</span>
+            </a>
+
+            @if(isset($spaceGroups) && count($spaceGroups) > 0)
+                @foreach($spaceGroups as $grp)
+                    @php
+                        $isNew = $grp->latestThread && $grp->latestThread->created_at && $grp->latestThread->created_at->gt(now()->subDays(2));
+                        $grpIcon = match($grp->type ?? '') {
+                            'classroom' => '👥',
+                            'broadcast' => '📢',
+                            'extracurricular' => '🎨',
+                            'subject' => '📖',
+                            default => '💬'
+                        };
+                    @endphp
+                    <a href="{{ route('mobile.space.group.show', $grp->id) }}" class="flex flex-col items-center gap-1 shrink-0 group relative">
+                        <div class="w-13 h-13 rounded-2xl p-0.5 {{ $isNew ? 'bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-400 animate-pulse' : 'bg-slate-300' }} shadow-md group-hover:scale-105 transition">
+                            <div class="w-full h-full rounded-[14px] bg-white flex items-center justify-center text-xl text-slate-800 font-black border border-slate-100">
+                                {{ $grpIcon }}
+                            </div>
+                        </div>
+                        @if($isNew)
+                            <span class="absolute top-0 right-0 w-3 h-3 bg-rose-500 border-2 border-white rounded-full"></span>
+                        @endif
+                        <span class="text-[10px] font-black text-slate-800 tracking-tight max-w-[64px] truncate text-center">{{ $grp->name }}</span>
+                    </a>
+                @endforeach
+            @endif
+        </div>
+    </div>
+
     <!-- Progress Tracking Real Card (Clay Progress Bar) -->
     @if($activeRole === 'siswa')
     @php
@@ -148,10 +199,20 @@
             $siswaSchoolType = strtoupper($student?->school?->type ?? '');
             $siswaGradeLevel = $student?->currentClassroom()?->first()?->grade_level ?? $student?->grade_level;
             $isKelasXII = ($siswaGradeLevel == 12);
+            $showPkl = ($siswaSchoolType === 'SMK' && $isKelasXII);
         @endphp
 
         @if($activeRole === 'siswa')
         <div class="grid grid-cols-4 gap-3">
+            <!-- 💬 PEMBDA SPACE (Primary Engine - Highlight Clay Purple) -->
+            <a href="{{ route('mobile.space.index') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95 relative overflow-hidden border-2 border-purple-400 shadow-lg">
+                <div class="absolute top-1 right-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[7px] font-black animate-pulse">LIVE</div>
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    💬
+                </div>
+                <span class="text-[11px] font-black">Pembda Space</span>
+            </a>
+
             <!-- Jadwal (Clay Blue) -->
             <a href="{{ route('mobile.jadwal') }}" class="clay-blue p-3.5 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
@@ -181,66 +242,34 @@
                 <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     💻
                 </div>
-                <span class="text-[11px] font-black">CBT</span>
+                <span class="text-[11px] font-black">CBT Ujian</span>
             </a>
 
-            @if($siswaSchoolType === 'SMK' && $isKelasXII)
-            <!-- PKL (Clay Orange) - Khusus Siswa SMK Kelas XII -->
-            <a href="{{ route('mobile.pkl') }}" class="clay-orange p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    💼
-                </div>
-                <span class="text-[11px] font-black">PKL</span>
-            </a>
-
-            <!-- Project Akhir (Clay Purple) - Khusus Siswa SMK Kelas XII -->
-            <a href="{{ route('mobile.final-project') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    🚀
-                </div>
-                <span class="text-[11px] font-black">Project Akhir</span>
-            </a>
-            @elseif($siswaSchoolType === 'SMA' && $isKelasXII)
-            <!-- Penelitian Akhir (Clay Purple) - Khusus Siswa SMA Kelas XII -->
-            <a href="{{ route('mobile.final-project') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    🔬
-                </div>
-                <span class="text-[11px] font-black">Penelitian</span>
-            </a>
-            @endif
-
-            <!-- Pembda Space (Clay Purple) -->
-            <a href="{{ route('mobile.space.index') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    💬
-                </div>
-                <span class="text-[11px] font-black">Space</span>
-            </a>
-
-            <!-- LMS (Clay Blue) -->
+            <!-- LMS Ruang Belajar (Clay Blue) -->
             <a href="{{ route('mobile.lms.index') }}" class="clay-blue p-3.5 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     📚
                 </div>
-                <span class="text-[11px] font-black">LMS</span>
+                <span class="text-[11px] font-black">LMS Belajar</span>
             </a>
 
-            <!-- Absensi (Clay Cyan) -->
-            <a href="{{ route('mobile.absensi.index') }}" class="clay-cyan p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+            <!-- Presensi Scan QR (Clay Cyan) -->
+            <a href="{{ route('mobile.absensi.scan') }}" class="clay-cyan p-3.5 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    📌
+                    📷
                 </div>
-                <span class="text-[11px] font-black">Absensi</span>
+                <span class="text-[11px] font-black">Scan QR</span>
             </a>
 
-            <!-- Catatan Perkembangan & Prestasi (Clay Yellow) -->
-            <a href="{{ route('mobile.catatan') }}" class="clay-yellow p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+            {{-- MODUL PKL SISWA (Jika SMK & Kelas XII) --}}
+            @if($showPkl)
+            <a href="{{ route('mobile.pkl') }}" class="clay-orange p-3.5 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    🏆
+                    💼
                 </div>
-                <span class="text-[11px] font-black">Catatan</span>
+                <span class="text-[11px] font-black">Jurnal PKL</span>
             </a>
+            @endif
 
             <!-- Hall Of Fame Siswa (Clay Orange) -->
             <a href="{{ route('mobile.hall-of-fame') }}" class="clay-orange p-3.5 text-center flex flex-col items-center group transition active:scale-95">
@@ -251,8 +280,17 @@
             </a>
         </div>
         @else
-        <!-- Menu Guru (Synchronized Playful 3D Clay Cards - Grid cols 4 identik Siswa) -->
+        <!-- Menu Guru (Synchronized Playful 3D Clay Cards) -->
         <div class="grid grid-cols-4 gap-3">
+            <!-- 💬 PEMBDA SPACE (Primary Engine - Highlight Clay Purple) -->
+            <a href="{{ route('mobile.space.index') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95 relative overflow-hidden border-2 border-purple-400 shadow-lg">
+                <div class="absolute top-1 right-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[7px] font-black animate-pulse">LIVE</div>
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    💬
+                </div>
+                <span class="text-[11px] font-black">Pembda Space</span>
+            </a>
+
             <!-- 1. Jadwal Mengajar (Clay Purple) -->
             <a href="{{ route('mobile.guru.jadwal') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
@@ -301,117 +339,12 @@
                 <span class="text-[11px] font-black">My Class</span>
             </a>
 
-            <!-- 7. Catatan Siswa (Clay Yellow) -->
-            <a href="{{ route('mobile.guru.catatan-siswa') }}" class="clay-yellow p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    🏆
-                </div>
-                <span class="text-[11px] font-black">Catatan</span>
-            </a>
-
-            <!-- 8. CBT Ujian (Clay Pink) -->
+            <!-- 7. CBT Ujian (Clay Pink) -->
             <a href="{{ route('mobile.guru.cbt') }}" class="clay-pink p-3.5 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     💻
                 </div>
                 <span class="text-[11px] font-black">CBT</span>
-            </a>
-
-            <!-- 9. Raport Digital (Clay Green) -->
-            <a href="{{ route('mobile.guru.raport') }}" class="clay-green p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    📊
-                </div>
-                <span class="text-[11px] font-black">Raport</span>
-            </a>
-
-            <!-- 10. Tagihan Kelas Wali Kelas (Clay Green) -->
-            <a href="{{ route('mobile.guru.tagihan') }}" class="clay-green p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    💳
-                </div>
-                <span class="text-[11px] font-black">Tagihan</span>
-            </a>
-
-            <!-- 11. Hall Of Fame (Clay Orange) -->
-            <a href="{{ route('mobile.guru.hall-of-fame') }}" class="clay-orange p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    👑
-                </div>
-                <span class="text-[11px] font-black">Hall of Fame</span>
-            </a>
-
-            <!-- 12. Surat Edaran (Clay Orange) -->
-            <a href="{{ route('mobile.guru.edaran') }}" class="clay-orange p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    📜
-                </div>
-                <span class="text-[11px] font-black">Edaran</span>
-            </a>
-
-            {{-- 13. MODUL BIMBINGAN PKL GURU (Jika ditugaskan) --}}
-            @if($hasPklBimbingan ?? false)
-            <a href="{{ route('mobile.guru.pkl') }}" class="clay-orange p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    💼
-                </div>
-                <span class="text-[11px] font-black">Bimbing PKL</span>
-            </a>
-
-            <a href="{{ route('mobile.guru.pkl.monitoring') }}" class="clay-blue p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    🏢
-                </div>
-                <span class="text-[11px] font-black">Monitor DUDI</span>
-            </a>
-            @endif
-
-            {{-- 14. MODUL BIMBINGAN PROJECT / PENELITIAN AKHIR GURU (Jika ditugaskan) --}}
-            @if($hasProjectBimbingan ?? false)
-            <a href="{{ route('mobile.guru.final-projects.bimbingan') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    🔬
-                </div>
-                <span class="text-[11px] font-black">{{ ($teacher?->school?->type ?? '') === 'SMK' ? 'Bimbing Proyek' : 'Bimbing TA' }}</span>
-            </a>
-            @endif
-
-            {{-- 15. MODUL PENGUJI UJIAN PROJECT / PENELITIAN AKHIR (Jika ditugaskan) --}}
-            @if($hasProjectUjian ?? false)
-            <a href="{{ route('mobile.guru.final-projects.ujian') }}" class="clay-pink p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    🎓
-                </div>
-                <span class="text-[11px] font-black">{{ ($teacher?->school?->type ?? '') === 'SMK' ? 'Uji Proyek' : 'Uji TA' }}</span>
-            </a>
-            @endif
-
-            {{-- 16. MODUL KELOLA PANITIA PKL (Jika memiliki jabatan Panitia PKL / Admin) --}}
-            @if($isPanitiaPkl ?? false)
-            <a href="{{ route('mobile.panitia.pkl') }}" class="clay-yellow p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    ⚙️
-                </div>
-                <span class="text-[11px] font-black">Panitia PKL</span>
-            </a>
-            @endif
-
-            {{-- 17. MODUL KELOLA PANITIA PROJECT/PENELITIAN AKHIR (Jika memiliki jabatan Panitia TA / Admin) --}}
-            @if($isPanitiaProyek ?? false)
-            <a href="{{ route('mobile.panitia.final-project') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    🛠️
-                </div>
-                <span class="text-[11px] font-black">Panitia TA</span>
-            </a>
-            @endif
-
-            <!-- 18. Pembda Space (Clay Purple) -->
-            <a href="{{ route('mobile.space.index') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    💬
-                </div>
-                <span class="text-[11px] font-black">Space</span>
             </a>
         </div>
         @endif
@@ -470,13 +403,71 @@
     </div>
     @endif
 
+    <!-- 🗳️ Poling Interaktif Pembda Space -->
+    @if(isset($activePollThread) && $activePollThread && $activePollThread->poll)
+    @php
+        $poll = $activePollThread->poll;
+        $totalVotes = $poll->options->sum('votes_count');
+        $userVotedOptionId = \App\Models\ForumPollVote::where('forum_poll_id', $poll->id)->where('user_id', Auth::id())->value('forum_poll_option_id');
+    @endphp
+    <div class="clay-purple p-4.5 space-y-3 relative overflow-hidden shadow-lg border-2 border-purple-300" id="dashboard-poll-card">
+        <div class="flex items-center justify-between">
+            <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[9px] font-black uppercase tracking-wider border border-white/30">
+                🗳️ Poling Interaktif Space
+            </span>
+            <span class="text-[10px] font-extrabold text-purple-100">
+                <i class="fa-solid fa-users text-amber-300 mr-1"></i><span id="poll-total-votes">{{ $totalVotes }}</span> Suara
+            </span>
+        </div>
+
+        <div>
+            <h4 class="text-xs font-black text-white leading-snug">{{ $activePollThread->title }}</h4>
+            <p class="text-[10px] text-purple-100/90 font-bold mt-0.5">Oleh: {{ $activePollThread->user->name ?? 'Pembda HUB' }}</p>
+        </div>
+
+        <form onsubmit="submitDashboardPoll(event, {{ $poll->id }})" class="space-y-2 pt-1">
+            @csrf
+            <div class="space-y-1.5" id="poll-options-container">
+                @foreach($poll->options as $opt)
+                    @php
+                        $pct = $totalVotes > 0 ? round(($opt->votes_count / $totalVotes) * 100) : 0;
+                        $isChecked = $userVotedOptionId == $opt->id;
+                    @endphp
+                    <label class="block p-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 cursor-pointer transition relative overflow-hidden">
+                        <!-- Progress Bar Fill -->
+                        <div class="absolute left-0 top-0 bottom-0 bg-white/25 transition-all duration-500 rounded-xl" style="width: {{ $pct }}%"></div>
+                        
+                        <div class="flex items-center justify-between relative z-10 text-[11px] font-bold text-white">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <input type="radio" name="option_id" value="{{ $opt->id }}" {{ $isChecked ? 'checked' : '' }} class="w-4 h-4 text-purple-600 focus:ring-0 accent-amber-300 cursor-pointer">
+                                <span class="truncate">{{ $opt->option_text }}</span>
+                            </div>
+                            <span class="text-[10px] font-black text-amber-300 ml-2 shrink-0">{{ $pct }}% ({{ $opt->votes_count }})</span>
+                        </div>
+                    </label>
+                @endforeach
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+                <button type="submit" class="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-900 font-black text-[11px] rounded-xl shadow-md transition active:scale-95 flex items-center gap-1.5">
+                    <i class="fa-solid fa-check-to-slot"></i>
+                    <span>Kirim Suara</span>
+                </button>
+                <a href="{{ route('mobile.space.show', $activePollThread->id) }}" class="text-[10px] font-extrabold text-purple-100 hover:underline">
+                    Lihat Diskusi <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+    @endif
+
     <!-- Pembda Space Widget (Terbaru & Paling Rame) -->
     <div x-data="{ spaceTab: 'terbaru' }">
         <div class="flex items-center justify-between mb-2.5 px-1">
             <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                💬 Pembda Space
+                💬 Pembda Space Live Feed
             </h3>
-            <a href="{{ route('mobile.space.index') }}" class="text-[11px] font-black text-blue-600 hover:text-blue-700">
+            <a href="{{ route('mobile.space.index') }}" class="text-[11px] font-black text-purple-600 hover:text-purple-700">
                 Lihat Semua <i class="fa-solid fa-arrow-right text-[9px]"></i>
             </a>
         </div>
@@ -484,7 +475,7 @@
         <!-- Tab Pills (Terbaru vs Paling Rame) -->
         <div class="grid grid-cols-2 gap-2 p-1.5 bg-slate-200/70 rounded-2xl border-2 border-slate-300 mb-3">
             <button @click="spaceTab = 'terbaru'"
-                    :class="spaceTab === 'terbaru' ? 'bg-blue-600 text-white border-2 border-black shadow-md font-black' : 'text-slate-600 font-extrabold hover:text-slate-900'"
+                    :class="spaceTab === 'terbaru' ? 'bg-purple-600 text-white border-2 border-black shadow-md font-black' : 'text-slate-600 font-extrabold hover:text-slate-900'"
                     class="py-2 px-2 text-[11px] transition flex items-center justify-center gap-1">
                 ✨ Postingan Terbaru
             </button>
@@ -510,26 +501,27 @@
                             $authorPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($authorUser?->name ?? 'User') . '&background=7c3aed&color=fff&bold=true';
                         }
                     }
+                    $userLiked = $thread->likes ? $thread->likes->contains('user_id', Auth::id()) : false;
                 @endphp
-                <a href="{{ route('mobile.space.show', $thread->id) }}" class="clay-card p-4.5 block hover:border-blue-300 transition space-y-2 bg-white border-2 border-slate-200">
+                <div class="clay-card p-4.5 space-y-2 bg-white border-2 border-slate-200 hover:border-purple-300 transition">
                     <!-- Top Category & Time Badge -->
                     <div class="flex items-center justify-between">
-                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-black rounded-full bg-blue-100 text-blue-800 border border-blue-200">
-                            #💬 {{ $thread->category_label ?? $thread->category ?? 'Lobi Utama' }}
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-black rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                            #💬 {{ $thread->group->name ?? ($thread->category_label ?? $thread->category ?? 'Lobi Utama') }}
                         </span>
                         <span class="text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                            <i class="fa-regular fa-clock text-blue-500"></i>
+                            <i class="fa-regular fa-clock text-purple-500"></i>
                             {{ $thread->created_at ? $thread->created_at->diffForHumans() : '-' }}
                         </span>
                     </div>
 
                     <!-- Post Title & Content Preview -->
-                    <div class="space-y-1">
-                        <h4 class="text-xs font-black text-slate-900 leading-snug">{{ $thread->title }}</h4>
-                        <p class="text-[11px] text-slate-600 line-clamp-2 leading-relaxed font-semibold">{{ Str::limit(strip_tags($thread->content), 80) }}</p>
-                    </div>
+                    <a href="{{ route('mobile.space.show', $thread->id) }}" class="block space-y-1 group">
+                        <h4 class="text-xs font-black text-slate-900 leading-snug group-hover:text-purple-600 transition">{{ $thread->title }}</h4>
+                        <p class="text-[11px] text-slate-600 line-clamp-2 leading-relaxed font-semibold">{{ Str::limit(strip_tags($thread->content), 85) }}</p>
+                    </a>
 
-                    <!-- Footer: Author & Stats -->
+                    <!-- Footer: Author & Interactive Action Buttons -->
                     <div class="flex items-center justify-between text-[10px] text-slate-500 pt-2.5 border-t border-slate-100 font-extrabold">
                         <span class="text-slate-700 flex items-center gap-1.5 min-w-0 truncate">
                             <img src="{{ $authorPhoto }}" alt="{{ $authorUser?->name }}"
@@ -537,12 +529,24 @@
                                  class="w-5 h-5 rounded-full object-cover border border-purple-200 shrink-0">
                             <span class="truncate font-black text-slate-800 uppercase tracking-tight text-[10px]">{{ $thread->user->name ?? 'Anonim' }}</span>
                         </span>
-                        <div class="flex items-center space-x-3 text-slate-500 shrink-0 text-[10px] font-black">
-                            <span class="flex items-center gap-1 text-blue-600"><i class="fa-regular fa-comment"></i>{{ $thread->replies_count ?? count($thread->replies ?? []) }}</span>
-                            <span class="flex items-center gap-1 text-rose-600"><i class="fa-regular fa-heart"></i>{{ $thread->likes_count ?? count($thread->likes ?? []) }}</span>
+                        <div class="flex items-center space-x-2 shrink-0">
+                            <!-- Direct Like Button (AJAX) -->
+                            <button type="button" 
+                                    onclick="toggleDashboardLike({{ $thread->id }}, this)" 
+                                    class="like-btn px-2.5 py-1 rounded-xl transition flex items-center gap-1 text-[10px] {{ $userLiked ? 'bg-rose-50 text-rose-600 border border-rose-200 font-black' : 'bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600 font-bold' }}">
+                                <i class="{{ $userLiked ? 'fa-solid fa-heart text-rose-500' : 'fa-regular fa-heart' }}"></i>
+                                <span class="like-count">{{ $thread->likes_count ?? count($thread->likes ?? []) }}</span>
+                            </button>
+
+                            <!-- Direct Comment Button -->
+                            <a href="{{ route('mobile.space.show', $thread->id) }}" 
+                               class="px-2.5 py-1 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition flex items-center gap-1 text-[10px] font-black">
+                                <i class="fa-regular fa-comment"></i>
+                                <span>{{ $thread->replies_count ?? count($thread->replies ?? []) }}</span>
+                            </a>
                         </div>
                     </div>
-                </a>
+                </div>
             @empty
                 <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold">
                     Belum ada postingan terbaru di Pembda Space.
@@ -565,8 +569,9 @@
                             $authorPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($authorUser?->name ?? 'User') . '&background=e11d48&color=fff&bold=true';
                         }
                     }
+                    $userLiked = $thread->likes ? $thread->likes->contains('user_id', Auth::id()) : false;
                 @endphp
-                <a href="{{ route('mobile.space.show', $thread->id) }}" class="clay-card p-4.5 block hover:border-rose-300 transition space-y-2 bg-white border-2 border-rose-100">
+                <div class="clay-card p-4.5 space-y-2 bg-white border-2 border-rose-100 hover:border-rose-300 transition">
                     <!-- Top Category, Hot Badge & Time -->
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-1.5">
@@ -574,7 +579,7 @@
                                 🔥 Paling Rame
                             </span>
                             <span class="text-[9px] font-extrabold text-slate-500">
-                                #{{ $thread->category_label ?? $thread->category ?? 'Diskusi' }}
+                                #{{ $thread->group->name ?? ($thread->category_label ?? $thread->category ?? 'Diskusi') }}
                             </span>
                         </div>
                         <span class="text-[10px] font-bold text-slate-500 flex items-center gap-1">
@@ -584,12 +589,12 @@
                     </div>
 
                     <!-- Post Title & Content Preview -->
-                    <div class="space-y-1">
-                        <h4 class="text-xs font-black text-slate-900 leading-snug">{{ $thread->title }}</h4>
-                        <p class="text-[11px] text-slate-600 line-clamp-2 leading-relaxed font-semibold">{{ Str::limit(strip_tags($thread->content), 80) }}</p>
-                    </div>
+                    <a href="{{ route('mobile.space.show', $thread->id) }}" class="block space-y-1 group">
+                        <h4 class="text-xs font-black text-slate-900 leading-snug group-hover:text-rose-600 transition">{{ $thread->title }}</h4>
+                        <p class="text-[11px] text-slate-600 line-clamp-2 leading-relaxed font-semibold">{{ Str::limit(strip_tags($thread->content), 85) }}</p>
+                    </a>
 
-                    <!-- Footer: Author & Stats -->
+                    <!-- Footer: Author & Interactive Action Buttons -->
                     <div class="flex items-center justify-between text-[10px] text-slate-500 pt-2.5 border-t border-slate-100 font-extrabold">
                         <span class="text-slate-700 flex items-center gap-1.5 min-w-0 truncate">
                             <img src="{{ $authorPhoto }}" alt="{{ $authorUser?->name }}"
@@ -597,12 +602,24 @@
                                  class="w-5 h-5 rounded-full object-cover border border-rose-200 shrink-0">
                             <span class="truncate font-black text-slate-800 uppercase tracking-tight text-[10px]">{{ $thread->user->name ?? 'Anonim' }}</span>
                         </span>
-                        <div class="flex items-center space-x-3 text-slate-500 shrink-0 text-[10px] font-black">
-                            <span class="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200"><i class="fa-regular fa-comment"></i> {{ $thread->replies_count ?? count($thread->replies ?? []) }} Komentar</span>
-                            <span class="flex items-center gap-1 text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200"><i class="fa-regular fa-heart"></i> {{ $thread->likes_count ?? count($thread->likes ?? []) }} Suka</span>
+                        <div class="flex items-center space-x-2 shrink-0">
+                            <!-- Direct Like Button (AJAX) -->
+                            <button type="button" 
+                                    onclick="toggleDashboardLike({{ $thread->id }}, this)" 
+                                    class="like-btn px-2.5 py-1 rounded-xl transition flex items-center gap-1 text-[10px] {{ $userLiked ? 'bg-rose-50 text-rose-600 border border-rose-200 font-black' : 'bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600 font-bold' }}">
+                                <i class="{{ $userLiked ? 'fa-solid fa-heart text-rose-500' : 'fa-regular fa-heart' }}"></i>
+                                <span class="like-count">{{ $thread->likes_count ?? count($thread->likes ?? []) }}</span>
+                            </button>
+
+                            <!-- Direct Comment Button -->
+                            <a href="{{ route('mobile.space.show', $thread->id) }}" 
+                               class="px-2.5 py-1 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition flex items-center gap-1 text-[10px] font-black">
+                                <i class="fa-regular fa-comment"></i>
+                                <span>{{ $thread->replies_count ?? count($thread->replies ?? []) }}</span>
+                            </a>
                         </div>
                     </div>
-                </a>
+                </div>
             @empty
                 <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold">
                     Belum ada postingan ramai di Pembda Space.

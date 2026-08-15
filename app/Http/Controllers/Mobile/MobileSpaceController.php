@@ -294,6 +294,20 @@ class MobileSpaceController extends Controller
             $option->increment('votes_count');
         }
 
+        if (request()->ajax() || request()->wantsJson()) {
+            $poll->load('options');
+            return response()->json([
+                'success' => true,
+                'message' => 'Pilihan suara Anda berhasil dicatat!',
+                'options' => $poll->options->map(fn($opt) => [
+                    'id' => $opt->id,
+                    'option_text' => $opt->option_text,
+                    'votes_count' => $opt->votes_count,
+                ]),
+                'total_votes' => $poll->options->sum('votes_count'),
+            ]);
+        }
+
         return back()->with('success', 'Pilihan suara Anda berhasil dicatat!');
     }
 
@@ -406,16 +420,28 @@ class MobileSpaceController extends Controller
     public function like($id)
     {
         $userId = Auth::id();
-        $existing = ForumLike::where('user_id', $userId)
+        $existing = \App\Models\ForumLike::where('user_id', $userId)
             ->where('forum_thread_id', $id)
             ->first();
 
+        $liked = false;
         if ($existing) {
             $existing->delete();
         } else {
-            ForumLike::create([
+            \App\Models\ForumLike::create([
                 'user_id' => $userId,
                 'forum_thread_id' => $id,
+            ]);
+            $liked = true;
+        }
+
+        $likesCount = \App\Models\ForumLike::where('forum_thread_id', $id)->count();
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'liked' => $liked,
+                'likes_count' => $likesCount,
             ]);
         }
 

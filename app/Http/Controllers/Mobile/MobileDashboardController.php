@@ -245,15 +245,31 @@ class MobileDashboardController extends Controller
             $activeCourses = LmsCourse::where('teacher_id', $teacher->id ?? 0)->take(3)->get();
         }
 
+        // Pembda Space Engine Data: Kanal & Squad Stories Bar
+        $spaceGroups = \App\Models\ForumGroup::whereHas('members', fn($q) => $q->where('user_id', $user->id))
+            ->with(['latestThread'])
+            ->take(6)
+            ->get();
+
+        if ($spaceGroups->isEmpty()) {
+            $spaceGroups = \App\Models\ForumGroup::take(6)->get();
+        }
+
+        // Active Poll Thread (Poling Interaktif)
+        $activePollThread = ForumThread::whereHas('poll')
+            ->with(['poll.options', 'user.student', 'user.teacher', 'group'])
+            ->latest()
+            ->first();
+
         // Recent Forum discussions (Pembda Space Terbaru)
-        $recentDiscussions = ForumThread::with(['user.student', 'user.teacher'])
+        $recentDiscussions = ForumThread::with(['user.student', 'user.teacher', 'group', 'likes'])
             ->withCount(['replies', 'likes'])
             ->latest()
             ->take(5)
             ->get();
 
         // Popular Forum discussions (Pembda Space Paling Rame)
-        $popularDiscussions = ForumThread::with(['user.student', 'user.teacher'])
+        $popularDiscussions = ForumThread::with(['user.student', 'user.teacher', 'group', 'likes'])
             ->withCount(['replies', 'likes'])
             ->orderByDesc('replies_count')
             ->latest()
@@ -271,6 +287,8 @@ class MobileDashboardController extends Controller
             'teacherAttendanceStats',
             'recentDiscussions',
             'popularDiscussions',
+            'spaceGroups',
+            'activePollThread',
             'activeCourses',
             'showPkl',
             'showProjectAkhir',
