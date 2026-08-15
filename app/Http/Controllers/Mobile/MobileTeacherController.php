@@ -67,6 +67,11 @@ class MobileTeacherController extends Controller
         $totalWeeklySessions = 0;
         $uniqueClassroomIds = collect();
 
+        $timetable = [];
+        $subjectColors = [];
+        $timeSlots = collect();
+        $activeDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+
         if ($teacher) {
             $schedules = Schedule::where('teacher_id', $teacher->id)
                 ->orWhereHas('teachingAssignment', fn($q) => $q->where('teacher_id', $teacher->id))
@@ -78,6 +83,14 @@ class MobileTeacherController extends Controller
 
             $totalWeeklySessions = $schedules->count();
 
+            // Check if Saturday has any schedules
+            $hasSaturday = $schedules->where('day_of_week', 'saturday')->isNotEmpty();
+            if ($hasSaturday) {
+                $activeDays[] = 'saturday';
+            }
+
+            // Build Subject Color Mapping
+            $palettes = ['purple', 'indigo', 'blue', 'emerald', 'amber', 'rose', 'cyan', 'teal', 'orange', 'pink'];
             foreach ($schedules as $sch) {
                 $dayKey = strtolower($sch->day_of_week ?? '');
                 $duration = (int) ($sch->duration_slots ?: 1);
@@ -86,6 +99,20 @@ class MobileTeacherController extends Controller
                 $classId = $sch->classroom_id ?? ($sch->teachingAssignment->classroom_id ?? null);
                 if ($classId) {
                     $uniqueClassroomIds->push($classId);
+                }
+
+                $subjId = $sch->subject_id ?? ($sch->teachingAssignment->subject_id ?? null);
+                if ($subjId && !isset($subjectColors[$subjId])) {
+                    $colorIndex = count($subjectColors) % count($palettes);
+                    $col = $palettes[$colorIndex];
+                    $subjectColors[$subjId] = [
+                        'bg' => "bg-{$col}-50",
+                        'border' => "border-{$col}-200",
+                        'text' => "text-{$col}-900",
+                        'sub' => "text-{$col}-600",
+                        'badge' => "bg-{$col}-100 text-{$col}-800",
+                        'dot' => "bg-{$col}-500",
+                    ];
                 }
 
                 // Kalkulasi status waktu (Khusus hari ini)
@@ -116,6 +143,80 @@ class MobileTeacherController extends Controller
                     $schedulesByDay[$dayKey]->push($sch);
                 }
             }
+
+            // Build Matrix Timetable (Baris = Waktu/TimeSlot, Kolom = Hari)
+            $timeSlotIds = $schedules->pluck('time_slot_id')->unique()->filter();
+            if ($timeSlotIds->isNotEmpty()) {
+                $usedSlots = \App\Models\TimeSlot::whereIn('id', $timeSlotIds)->orderBy('slot_order')->get();
+                $minOrder = $usedSlots->min('slot_order');
+                $maxOrder = $usedSlots->max('slot_order');
+
+                foreach ($schedules as $s) {
+                    if ($s->timeSlot && $s->duration_slots > 1) {
+                        $endOrder = $s->timeSlot->slot_order + ($s->duration_slots - 1);
+                        if ($endOrder > $maxOrder) {
+                            $maxOrder = $endOrder;
+                        }
+                    }
+                }
+
+                $schoolId = $teacher->school_id ?? null;
+                $timeSlots = \App\Models\TimeSlot::when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                    ->whereBetween('slot_order', [$minOrder, $maxOrder])
+                    ->orderBy('slot_order')
+                    ->get()
+                    ->unique(fn($slot) => $slot->start_time . '-' . $slot->end_time);
+            }
+
+            if ($timeSlots->isEmpty()) {
+                // Extract unique times from schedules directly
+                $timeSlots = $schedules->map(function ($s) {
+                    $start = $s->start_time ? date('H:i', strtotime($s->start_time)) : '07:30';
+                    $end = $s->end_time ? date('H:i', strtotime($s->end_time)) : '08:15';
+                    return (object) [
+                        'slot_order' => $start,
+                        'start_time' => $start,
+                        'end_time' => $end,
+                        'slot_name' => $start . ' - ' . $end,
+                    ];
+                })->unique('start_time')->sortBy('start_time');
+            }
+
+            // Map schedules by day and slotOrder/timeKey
+            $sMap = [];
+            foreach ($schedules as $s) {
+                $slotOrderKey = $s->time_slot_id ? $s->timeSlot?->slot_order : ($s->start_time ? date('H:i', strtotime($s->start_time)) : null);
+                $timeKey = ($s->timeSlot->start_time ?? $s->start_time) . '-' . ($s->timeSlot->end_time ?? $s->end_time);
+                $dayKey = strtolower($s->day_of_week ?? '');
+
+                if ($slotOrderKey !== null) {
+                    $sMap[$dayKey][$slotOrderKey] = $s;
+                }
+                $sMap[$dayKey][$timeKey] = $s;
+            }
+
+            $occupied = [];
+            foreach ($timeSlots as $slot) {
+                $orderKey = $slot->slot_order ?? $slot->start_time;
+                $timeKey = $slot->start_time . '-' . $slot->end_time;
+
+                foreach ($activeDays as $day) {
+                    if (isset($occupied[$day][$orderKey])) continue;
+
+                    $sch = $sMap[$day][$orderKey] ?? ($sMap[$day][$timeKey] ?? null);
+                    if ($sch) {
+                        $timetable[$orderKey][$day] = $sch;
+                        $duration = (int) ($sch->duration_slots ?: 1);
+                        if ($duration > 1 && is_numeric($orderKey)) {
+                            for ($i = 1; $i < $duration; $i++) {
+                                $occupied[$day][$orderKey + $i] = true;
+                            }
+                        }
+                    } else {
+                        $timetable[$orderKey][$day] = null;
+                    }
+                }
+            }
         }
 
         $totalUniqueClasses = $uniqueClassroomIds->unique()->count();
@@ -123,10 +224,14 @@ class MobileTeacherController extends Controller
         return view('mobile.teacher.jadwal', compact(
             'teacher',
             'days',
+            'activeDays',
             'dayLabels',
             'activeDay',
             'today',
             'schedulesByDay',
+            'timetable',
+            'timeSlots',
+            'subjectColors',
             'currentSchedule',
             'nextSchedule',
             'totalWeeklyJP',

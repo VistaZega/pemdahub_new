@@ -206,7 +206,7 @@
         @endforeach
     </div>
 
-    <!-- ==================== 2. TAMPILAN MODE ROSTER 1 MINGGU ==================== -->
+    <!-- ==================== 2. TAMPILAN MODE ROSTER 1 MINGGU (TABEL MATRIKS) ==================== -->
     <div x-show="viewMode === 'roster'" class="space-y-4" style="display: none;">
         <!-- Weekly Summary Hero Card -->
         <div class="clay-purple p-5 space-y-2.5">
@@ -215,12 +215,12 @@
                     Roster Mengajar Mingguan
                 </span>
                 <span class="text-[10px] font-black bg-white/20 px-2.5 py-0.5 rounded-full">
-                    Senin s/d Sabtu
+                    Senin s/d {{ in_array('saturday', $activeDays) ? 'Sabtu' : 'Jumat' }}
                 </span>
             </div>
 
             <h3 class="text-base font-black text-white leading-tight">
-                Roster Jadwal Mengajar {{ $teacher->full_name ?? '-' }}
+                Tabel Roster Mengajar {{ $teacher->full_name ?? '-' }}
             </h3>
 
             <!-- Quick Stats -->
@@ -240,64 +240,164 @@
             </div>
         </div>
 
-        <!-- Weekly Day-by-Day Roster Cards -->
-        <div class="space-y-3">
-            @foreach($days as $d)
-                @php 
-                    $daySchedules = $schedulesByDay[$d]; 
-                    $isHariIni = ($d === $today);
-                @endphp
-                <div class="clay-card p-4 space-y-2.5 border-2 {{ $isHariIni ? 'border-purple-400 bg-purple-50/20' : 'border-slate-200' }}">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                        <div class="flex items-center gap-2">
-                            <div class="w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs
-                                {{ $isHariIni ? 'bg-purple-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700' }}">
-                                {{ substr($dayLabels[$d], 0, 1) }}
-                            </div>
-                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">{{ $dayLabels[$d] }}</h4>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            @if($isHariIni)
-                                <span class="text-[8px] font-black bg-purple-600 text-white px-2 py-0.5 rounded-full uppercase">
-                                    Hari Ini
-                                </span>
-                            @endif
-                            <span class="text-[10px] font-black text-slate-500">
-                                {{ $daySchedules->count() }} Sesi Mengajar
-                            </span>
-                        </div>
-                    </div>
-
-                    @if($daySchedules->isNotEmpty())
-                        <div class="space-y-2">
-                            @foreach($daySchedules as $sch)
-                                @php
-                                    $subj = $sch->subject->name ?? ($sch->teachingAssignment->subject->name ?? 'Mata Pelajaran');
-                                    $className = $sch->classroom->name ?? ($sch->teachingAssignment->classroom->name ?? ($sch->classroom->class_name ?? '-'));
-                                    $time = $sch->timeSlot 
-                                        ? ($sch->timeSlot->start_time . ' - ' . $sch->timeSlot->end_time) 
-                                        : (($sch->start_time && $sch->end_time) ? ($sch->start_time . ' - ' . $sch->end_time) : ($sch->start_time ?? '-'));
-                                @endphp
-                                <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
-                                    <div class="min-w-0 pr-2">
-                                        <p class="font-black text-slate-800 truncate">{{ $subj }}</p>
-                                        <p class="text-[10px] text-slate-500 font-semibold truncate">Kelas: {{ $className }}</p>
-                                    </div>
-                                    <div class="text-right shrink-0">
-                                        <span class="text-[10px] font-black text-purple-700 block">{{ $time }}</span>
-                                        @if($sch->room)
-                                            <span class="text-[9px] text-purple-600 font-bold block">{{ $sch->room }}</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-[11px] text-slate-400 font-bold text-center py-2 italic">Tidak ada jadwal mengajar.</p>
-                    @endif
-                </div>
-            @endforeach
+        <!-- Scroll Hint -->
+        <div class="flex items-center justify-between px-1 text-[11px] font-extrabold text-purple-700 bg-purple-50 p-2.5 rounded-2xl border border-purple-200">
+            <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-arrows-left-right text-xs"></i> Geser tabel ke kanan untuk melihat seluruh hari
+            </span>
+            <span class="text-[9px] font-black uppercase bg-purple-200/70 text-purple-900 px-2 py-0.5 rounded-full">Tabel Roster</span>
         </div>
+
+        <!-- Weekly Timetable Matrix Table (Baris: Waktu, Kolom: Hari) -->
+        <div class="clay-card p-0 overflow-hidden border-2 border-slate-200 shadow-sm">
+            <div class="overflow-x-auto relative">
+                <table class="w-full border-collapse min-w-[650px] text-left">
+                    <thead>
+                        <tr class="bg-slate-100/90 border-b-2 border-slate-200">
+                            <!-- Kolom Waktu (Sticky Left) -->
+                            <th class="p-3 text-[11px] font-black text-slate-700 uppercase tracking-wider text-center border-r-2 border-slate-200 w-24 sticky left-0 bg-slate-100 z-20 shadow-[2px_0_4px_rgba(0,0,0,0.04)]">
+                                Jam / Waktu
+                            </th>
+                            @foreach($activeDays as $d)
+                                @php $isHariIni = ($d === $today); @endphp
+                                <th class="p-2.5 text-center border-r border-slate-200 last:border-r-0 min-w-[125px] {{ $isHariIni ? 'bg-purple-100/70' : '' }}">
+                                    <span class="text-[11px] font-black uppercase tracking-wide block {{ $isHariIni ? 'text-purple-900' : 'text-slate-700' }}">
+                                        {{ $dayLabels[$d] }}
+                                    </span>
+                                    @if($isHariIni)
+                                        <span class="inline-block text-[8px] font-black bg-purple-600 text-white px-1.5 py-0.2 rounded-full uppercase mt-0.5">
+                                            Hari Ini
+                                        </span>
+                                    @endif
+                                </th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 text-xs">
+                        @php $renderedOccupied = []; @endphp
+                        @forelse($timeSlots as $slot)
+                            @php
+                                $orderKey = $slot->slot_order ?? $slot->start_time;
+                                $startFormatted = \Carbon\Carbon::parse($slot->start_time)->format('H:i');
+                                $endFormatted = \Carbon\Carbon::parse($slot->end_time)->format('H:i');
+                            @endphp
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <!-- Sticky Time Column -->
+                                <td class="p-2 border-r-2 border-slate-200 text-center sticky left-0 bg-slate-50 z-10 w-24 shadow-[2px_0_4px_rgba(0,0,0,0.04)]">
+                                    <span class="text-[11px] font-black text-slate-900 block bg-white px-1.5 py-0.5 rounded-lg border border-slate-200 shadow-2xs">
+                                        {{ $startFormatted }}
+                                    </span>
+                                    <span class="text-[9px] font-bold text-slate-400 block my-0.5">s/d</span>
+                                    <span class="text-[10px] font-bold text-slate-600 block bg-white px-1.5 py-0.5 rounded-lg border border-slate-200">
+                                        {{ $endFormatted }}
+                                    </span>
+                                </td>
+
+                                <!-- Day Columns -->
+                                @foreach($activeDays as $d)
+                                    @php
+                                        if (isset($renderedOccupied[$d][$orderKey])) continue;
+
+                                        $sch = $timetable[$orderKey][$d] ?? null;
+                                        $isHariIni = ($d === $today);
+                                        $duration = (int) ($sch->duration_slots ?? 1);
+
+                                        if ($duration > 1 && is_numeric($orderKey)) {
+                                            for ($i = 1; $i < $duration; $i++) {
+                                                $renderedOccupied[$d][$orderKey + $i] = true;
+                                            }
+                                        }
+
+                                        $subjId = $sch ? ($sch->subject_id ?? ($sch->teachingAssignment->subject_id ?? 0)) : 0;
+                                        $col = $subjectColors[$subjId] ?? [
+                                            'bg' => 'bg-slate-50',
+                                            'border' => 'border-slate-200',
+                                            'text' => 'text-slate-800',
+                                            'sub' => 'text-slate-500',
+                                            'badge' => 'bg-slate-100 text-slate-700',
+                                            'dot' => 'bg-slate-400'
+                                        ];
+                                    @endphp
+                                    <td class="p-1.5 border-r border-slate-200 last:border-r-0 align-top {{ $isHariIni ? 'bg-purple-50/30' : '' }}"
+                                        @if($duration > 1) rowspan="{{ $duration }}" @endif>
+                                        @if($sch)
+                                            @php
+                                                $subjectName = $sch->subject->name ?? ($sch->teachingAssignment->subject->name ?? 'Mata Pelajaran');
+                                                $className = $sch->classroom->name ?? ($sch->teachingAssignment->classroom->name ?? ($sch->classroom->class_name ?? '-'));
+                                                $isOngoing = ($sch->time_status === 'ongoing');
+                                            @endphp
+                                            <div class="p-2 rounded-xl {{ $col['bg'] }} border {{ $col['border'] }} h-full flex flex-col justify-between space-y-1 relative shadow-2xs {{ $isOngoing ? 'ring-2 ring-emerald-500' : '' }}">
+                                                <div>
+                                                    <div class="flex items-center justify-between gap-1">
+                                                        <span class="w-2 h-2 rounded-full {{ $col['dot'] }} shrink-0"></span>
+                                                        @if($duration > 1)
+                                                            <span class="text-[8px] font-black {{ $col['badge'] }} px-1 py-0.2 rounded-md">
+                                                                {{ $duration }} JP
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                    <h5 class="text-[11px] font-black {{ $col['text'] }} leading-tight mt-1 line-clamp-2">
+                                                        {{ $subjectName }}
+                                                    </h5>
+                                                </div>
+
+                                                <div class="pt-1 border-t border-black/5 text-[9px] font-bold {{ $col['sub'] }} truncate">
+                                                    <p class="truncate"><i class="fa-solid fa-school text-[8px] mr-0.5"></i>Kelas: {{ $className }}</p>
+                                                    @if($sch->room)
+                                                        <p class="text-purple-700 font-extrabold truncate"><i class="fa-solid fa-door-open text-[8px] mr-0.5"></i>{{ $sch->room }}</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="h-full min-h-[60px] flex items-center justify-center text-slate-300 text-xs">
+                                                -
+                                            </div>
+                                        @endif
+                                    </td>
+                                @endforeach
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="{{ count($activeDays) + 1 }}" class="p-6 text-center text-slate-500 font-bold text-xs">
+                                    Belum ada slot waktu atau jadwal yang ditentukan.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Subject Color Legend -->
+        @if(!empty($subjectColors))
+        <div class="clay-card p-4 space-y-2">
+            <h4 class="text-[11px] font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-palette text-purple-600"></i> Legenda Mata Pelajaran
+            </h4>
+            <div class="flex flex-wrap gap-1.5">
+                @php
+                    $legendSubjects = collect();
+                    foreach($timetable as $row) {
+                        foreach($row as $schedule) {
+                            if($schedule) {
+                                $sId = $schedule->subject_id ?? ($schedule->teachingAssignment->subject_id ?? null);
+                                if($sId) {
+                                    $legendSubjects[$sId] = $schedule->subject->name ?? ($schedule->teachingAssignment->subject->name ?? 'Mata Pelajaran');
+                                }
+                            }
+                        }
+                    }
+                @endphp
+                @foreach($legendSubjects as $sId => $sName)
+                    @php $c = $subjectColors[$sId] ?? ['bg' => 'bg-slate-100', 'text' => 'text-slate-800', 'dot' => 'bg-slate-400']; @endphp
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-black {{ $c['bg'] }} {{ $c['text'] }} border border-black/5">
+                        <span class="w-2 h-2 rounded-full {{ $c['dot'] }}"></span>
+                        <span class="truncate max-w-[140px]">{{ $sName }}</span>
+                    </span>
+                @endforeach
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 @endsection
