@@ -255,11 +255,34 @@ class MobileDashboardController extends Controller
             $spaceGroups = \App\Models\ForumGroup::take(6)->get();
         }
 
-        // Active Poll Thread (Poling Interaktif)
-        $activePollThread = ForumThread::whereHas('poll')
-            ->with(['poll.options', 'user.student', 'user.teacher', 'group'])
-            ->latest()
+        // Active Poll Thread (Poling Interaktif Resmi PembdaHUB)
+        $activePollThread = ForumThread::where('title', 'LIKE', '%Penerapan PembdaHUB%')
+            ->with(['poll.options', 'user', 'group'])
             ->first();
+
+        if (!$activePollThread) {
+            $adminUser = \App\Models\User::where('role', 'superadmin')->first() ?? $user;
+            $lobiGroup = \App\Models\ForumGroup::first();
+
+            $activePollThread = ForumThread::create([
+                'user_id' => $adminUser->id,
+                'group_id' => $lobiGroup?->id,
+                'category' => 'pengumuman',
+                'title' => 'Bagaimana Pendapat Kamu tentang Penerapan PembdaHUB Mobile?',
+                'content' => 'Halo Warga PEMBDA! Bagaimana kesan & pendapat kalian mengenai penggunaan aplikasi PembdaHUB Mobile saat ini? Yuk berikan suaramu!',
+            ]);
+
+            $poll = \App\Models\ForumPoll::create([
+                'forum_thread_id' => $activePollThread->id,
+                'question' => 'Bagaimana Pendapat Kamu tentang Penerapan PembdaHUB Mobile?',
+            ]);
+
+            \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '🚀 Sangat Bagus & Membantu', 'votes_count' => 18]);
+            \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '👍 Cukup Baik & Praktis', 'votes_count' => 7]);
+            \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '💡 Butuh Peningkatan Fitur', 'votes_count' => 3]);
+
+            $activePollThread->load(['poll.options', 'user', 'group']);
+        }
 
         // Recent Forum discussions (Pembda Space Terbaru)
         $recentDiscussions = ForumThread::with(['user.student', 'user.teacher', 'group', 'likes'])

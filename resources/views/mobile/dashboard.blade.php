@@ -203,11 +203,11 @@
         @endphp
 
         @if($activeRole === 'siswa')
-        <div class="grid grid-cols-4 sm:grid-cols-5 gap-y-3 gap-x-2">
+        <div class="grid grid-cols-4 sm:grid-cols-5 gap-y-3.5 gap-x-2">
             <!-- Space -->
             <a href="{{ route('mobile.space.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-purple flex items-center justify-center text-lg shadow-sm border border-purple-300 relative group-hover:scale-105 transition">
-                    <span class="absolute -top-0.5 -right-0.5 px-1 rounded-full bg-rose-500 text-white text-[7px] font-black animate-pulse">LIVE</span>
+                <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 relative group-hover:scale-110 transition">
+                    <span class="absolute -top-0.5 -right-0.5 px-1 rounded-full bg-rose-500 text-white text-[7px] font-black animate-pulse shadow-sm">LIVE</span>
                     💬
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Space</span>
@@ -215,7 +215,7 @@
 
             <!-- Jadwal -->
             <a href="{{ route('mobile.jadwal') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-blue flex items-center justify-center text-lg shadow-sm border border-blue-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     📅
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Jadwal</span>
@@ -223,7 +223,7 @@
 
             <!-- Nilai -->
             <a href="{{ route('mobile.nilai') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-green flex items-center justify-center text-lg shadow-sm border border-emerald-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-green flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     📈
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Nilai</span>
@@ -231,7 +231,7 @@
 
             <!-- SPP -->
             <a href="{{ route('mobile.tagihan') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-yellow flex items-center justify-center text-lg shadow-sm border border-amber-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-yellow flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     💳
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">SPP</span>
@@ -239,7 +239,7 @@
 
             <!-- CBT -->
             <a href="{{ route('mobile.cbt') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-pink flex items-center justify-center text-lg shadow-sm border border-rose-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-pink flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     💻
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">CBT</span>
@@ -247,7 +247,7 @@
 
             <!-- LMS -->
             <a href="{{ route('mobile.lms.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-blue flex items-center justify-center text-lg shadow-sm border border-blue-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     📚
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">LMS</span>
@@ -255,7 +255,7 @@
 
             <!-- Absensi -->
             <a href="{{ route('mobile.absensi.scan') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-cyan flex items-center justify-center text-lg shadow-sm border border-cyan-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     📷
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Absensi</span>
@@ -264,7 +264,7 @@
             {{-- PKL (Khusus Siswa SMK Kelas XII) --}}
             @if($showPkl)
             <a href="{{ route('mobile.pkl') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-orange flex items-center justify-center text-lg shadow-sm border border-orange-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-orange flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     💼
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">PKL</span>
@@ -273,19 +273,19 @@
 
             <!-- Fame -->
             <a href="{{ route('mobile.hall-of-fame') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-orange flex items-center justify-center text-lg shadow-sm border border-orange-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-orange flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     👑
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Fame</span>
             </a>
         </div>
         @else
-        <!-- Menu Guru (Compact Circular Icons) -->
-        <div class="grid grid-cols-4 sm:grid-cols-5 gap-y-3 gap-x-2">
+        <!-- Menu Guru (Compact Circular Icons with 3D Pastel Clay) -->
+        <div class="grid grid-cols-4 sm:grid-cols-5 gap-y-3.5 gap-x-2">
             <!-- Space -->
             <a href="{{ route('mobile.space.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-purple flex items-center justify-center text-lg shadow-sm border border-purple-300 relative group-hover:scale-105 transition">
-                    <span class="absolute -top-0.5 -right-0.5 px-1 rounded-full bg-rose-500 text-white text-[7px] font-black animate-pulse">LIVE</span>
+                <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 relative group-hover:scale-110 transition">
+                    <span class="absolute -top-0.5 -right-0.5 px-1 rounded-full bg-rose-500 text-white text-[7px] font-black animate-pulse shadow-sm">LIVE</span>
                     💬
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Space</span>
@@ -293,7 +293,7 @@
 
             <!-- Jadwal -->
             <a href="{{ route('mobile.guru.jadwal') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-purple flex items-center justify-center text-lg shadow-sm border border-purple-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     👨‍🏫
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Jadwal</span>
@@ -301,7 +301,7 @@
 
             <!-- Absensi -->
             <a href="{{ route('mobile.guru.absensi.input') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-green flex items-center justify-center text-lg shadow-sm border border-emerald-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-green flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     📋
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Absensi</span>
@@ -309,7 +309,7 @@
 
             <!-- Presensi -->
             <a href="{{ route('mobile.guru.absensi.saya') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-cyan flex items-center justify-center text-lg shadow-sm border border-cyan-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     📌
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Presensi</span>
@@ -317,7 +317,7 @@
 
             <!-- Nilai -->
             <a href="{{ route('mobile.guru.tugas') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-yellow flex items-center justify-center text-lg shadow-sm border border-amber-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-yellow flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     📝
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Nilai</span>
@@ -325,7 +325,7 @@
 
             <!-- LMS -->
             <a href="{{ route('mobile.lms.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-blue flex items-center justify-center text-lg shadow-sm border border-blue-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     📚
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">LMS</span>
@@ -333,7 +333,7 @@
 
             <!-- Kelas -->
             <a href="{{ route('mobile.guru.kelas') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-purple flex items-center justify-center text-lg shadow-sm border border-purple-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     🏫
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Kelas</span>
@@ -341,7 +341,7 @@
 
             <!-- CBT -->
             <a href="{{ route('mobile.guru.cbt') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-11 h-11 rounded-full clay-pink flex items-center justify-center text-lg shadow-sm border border-rose-200 group-hover:scale-105 transition">
+                <div class="w-12 h-12 rounded-full clay-pink flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     💻
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">CBT</span>
@@ -350,54 +350,58 @@
         @endif
     </div>
 
-    <!-- Attendance Summary Widget (Clay Cards - Synchronized for Siswa & Guru) -->
+    <!-- Attendance Summary Widget (Compact Clay Pills Row) -->
     @if($activeRole === 'siswa')
-    <div class="clay-card p-5 space-y-3">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
-                <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Rekap Absensi Bulan Ini</h3>
+    <div class="clay-card p-3.5 space-y-2.5">
+        <div class="flex items-center justify-between px-0.5">
+            <div class="flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                <h3 class="text-[11px] font-black text-slate-800 uppercase tracking-wider">Presensi Bulan Ini</h3>
             </div>
-            <a href="{{ route('mobile.absensi.index') }}" class="text-[11px] font-black text-blue-600 hover:text-blue-700">Detail <i class="fa-solid fa-chevron-right text-[9px]"></i></a>
+            <a href="{{ route('mobile.absensi.index') }}" class="text-[10px] font-black text-blue-600 hover:text-blue-700">
+                Detail <i class="fa-solid fa-chevron-right text-[8px]"></i>
+            </a>
         </div>
 
-        <div class="grid grid-cols-3 gap-2.5">
-            <div class="clay-green p-3 text-center">
-                <span class="text-2xl font-black leading-none">{{ $attendanceStats['hadir'] }}</span>
-                <span class="block text-[10px] font-black uppercase mt-1">Hadir</span>
+        <div class="grid grid-cols-3 gap-2 text-white">
+            <div class="clay-green py-2 px-2.5 rounded-2xl flex items-center justify-between shadow-sm">
+                <span class="text-[10px] font-black uppercase tracking-tight">Hadir</span>
+                <span class="text-sm font-black leading-none bg-white/20 px-2 py-0.5 rounded-xl border border-white/30">{{ $attendanceStats['hadir'] }}</span>
             </div>
-            <div class="clay-yellow p-3 text-center">
-                <span class="text-2xl font-black leading-none">{{ $attendanceStats['terlambat'] }}</span>
-                <span class="block text-[10px] font-black uppercase mt-1">Terlambat</span>
+            <div class="clay-yellow py-2 px-2.5 rounded-2xl flex items-center justify-between shadow-sm">
+                <span class="text-[10px] font-black uppercase tracking-tight">Late</span>
+                <span class="text-sm font-black leading-none bg-white/20 px-2 py-0.5 rounded-xl border border-white/30">{{ $attendanceStats['terlambat'] }}</span>
             </div>
-            <div class="clay-pink p-3 text-center">
-                <span class="text-2xl font-black leading-none">{{ $attendanceStats['sakit'] + $attendanceStats['izin'] + $attendanceStats['alpha'] }}</span>
-                <span class="block text-[10px] font-black uppercase mt-1">Izin/Alpha</span>
+            <div class="clay-pink py-2 px-2.5 rounded-2xl flex items-center justify-between shadow-sm">
+                <span class="text-[10px] font-black uppercase tracking-tight">Izin</span>
+                <span class="text-sm font-black leading-none bg-white/20 px-2 py-0.5 rounded-xl border border-white/30">{{ $attendanceStats['sakit'] + $attendanceStats['izin'] + $attendanceStats['alpha'] }}</span>
             </div>
         </div>
     </div>
     @elseif(in_array($activeRole, ['guru', 'pegawai', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'ketua_yayasan']))
-    <div class="clay-card p-5 space-y-3">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
-                <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Presensi & Jadwal Mengajar Guru</h3>
+    <div class="clay-card p-3.5 space-y-2.5">
+        <div class="flex items-center justify-between px-0.5">
+            <div class="flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
+                <h3 class="text-[11px] font-black text-slate-800 uppercase tracking-wider">Presensi Guru</h3>
             </div>
-            <a href="{{ route('mobile.guru.absensi.saya') }}" class="text-[11px] font-black text-blue-600 hover:text-blue-700">Presensi Saya <i class="fa-solid fa-chevron-right text-[9px]"></i></a>
+            <a href="{{ route('mobile.guru.absensi.saya') }}" class="text-[10px] font-black text-blue-600 hover:text-blue-700">
+                Presensi Saya <i class="fa-solid fa-chevron-right text-[8px]"></i>
+            </a>
         </div>
 
-        <div class="grid grid-cols-3 gap-2.5">
-            <div class="clay-green p-3 text-center">
-                <span class="text-2xl font-black leading-none">{{ $teacherAttendanceStats['hadir'] ?? 0 }}</span>
-                <span class="block text-[10px] font-black uppercase mt-1">Hadir Kerja</span>
+        <div class="grid grid-cols-3 gap-2 text-white">
+            <div class="clay-green py-2 px-2.5 rounded-2xl flex items-center justify-between shadow-sm">
+                <span class="text-[10px] font-black uppercase tracking-tight">Hadir</span>
+                <span class="text-sm font-black leading-none bg-white/20 px-2 py-0.5 rounded-xl border border-white/30">{{ $teacherAttendanceStats['hadir'] ?? 0 }}</span>
             </div>
-            <div class="clay-yellow p-3 text-center">
-                <span class="text-2xl font-black leading-none">{{ $teacherAttendanceStats['terlambat'] ?? 0 }}</span>
-                <span class="block text-[10px] font-black uppercase mt-1">Terlambat</span>
+            <div class="clay-yellow py-2 px-2.5 rounded-2xl flex items-center justify-between shadow-sm">
+                <span class="text-[10px] font-black uppercase tracking-tight">Late</span>
+                <span class="text-sm font-black leading-none bg-white/20 px-2 py-0.5 rounded-xl border border-white/30">{{ $teacherAttendanceStats['terlambat'] ?? 0 }}</span>
             </div>
-            <div class="clay-purple p-3 text-center">
-                <span class="text-2xl font-black leading-none">{{ $teacherAttendanceStats['total_jadwal'] ?? 0 }}</span>
-                <span class="block text-[10px] font-black uppercase mt-1">Kelas Hari Ini</span>
+            <div class="clay-purple py-2 px-2.5 rounded-2xl flex items-center justify-between shadow-sm">
+                <span class="text-[10px] font-black uppercase tracking-tight">Kelas</span>
+                <span class="text-sm font-black leading-none bg-white/20 px-2 py-0.5 rounded-xl border border-white/30">{{ $teacherAttendanceStats['total_jadwal'] ?? 0 }}</span>
             </div>
         </div>
     </div>
