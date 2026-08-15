@@ -315,62 +315,7 @@
         @endif
     </div>
 
-    <!-- Attendance Summary Widget (Compact Clay Pills Row) -->
-    @if($activeRole === 'siswa')
-    <div class="clay-card p-3.5 space-y-2.5">
-        <div class="flex items-center justify-between px-0.5">
-            <div class="flex items-center space-x-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                <h3 class="text-[11px] font-black text-slate-800 uppercase tracking-wider">Presensi Bulan Ini</h3>
-            </div>
-            <a href="{{ route('mobile.absensi.index') }}" class="text-[10px] font-black text-blue-600 hover:text-blue-700">
-                Detail <i class="fa-solid fa-chevron-right text-[8px]"></i>
-            </a>
-        </div>
 
-        <div class="grid grid-cols-3 gap-2 text-white">
-            <div class="clay-green py-2 px-2.5 rounded-2xl flex items-center justify-between shadow-sm">
-                <span class="text-[10px] font-black uppercase tracking-tight">Hadir</span>
-                <span class="text-sm font-black leading-none bg-white/20 px-2 py-0.5 rounded-xl border border-white/30">{{ $attendanceStats['hadir'] }}</span>
-            </div>
-            <div class="clay-yellow py-2 px-2.5 rounded-2xl flex items-center justify-between shadow-sm">
-                <span class="text-[10px] font-black uppercase tracking-tight">Late</span>
-                <span class="text-sm font-black leading-none bg-white/20 px-2 py-0.5 rounded-xl border border-white/30">{{ $attendanceStats['terlambat'] }}</span>
-            </div>
-            <div class="clay-pink py-2 px-2.5 rounded-2xl flex items-center justify-between shadow-sm">
-                <span class="text-[10px] font-black uppercase tracking-tight">Izin</span>
-                <span class="text-sm font-black leading-none bg-white/20 px-2 py-0.5 rounded-xl border border-white/30">{{ $attendanceStats['sakit'] + $attendanceStats['izin'] + $attendanceStats['alpha'] }}</span>
-            </div>
-        </div>
-    </div>
-    @elseif(in_array($activeRole, ['guru', 'pegawai', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'ketua_yayasan']))
-    <div class="clay-card p-3.5 space-y-2.5">
-        <div class="flex items-center justify-between px-0.5">
-            <div class="flex items-center space-x-1.5">
-                <span class="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
-                <h3 class="text-[11px] font-black text-slate-800 uppercase tracking-wider">Presensi Guru</h3>
-            </div>
-            <a href="{{ route('mobile.guru.absensi.saya') }}" class="text-[10px] font-black text-blue-600 hover:text-blue-700">
-                Presensi Saya <i class="fa-solid fa-chevron-right text-[8px]"></i>
-            </a>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2 text-white">
-            <div class="clay-green py-2 px-2.5 rounded-2xl flex items-center justify-between shadow-sm">
-                <span class="text-[10px] font-black uppercase tracking-tight">Hadir</span>
-                <span class="text-sm font-black leading-none bg-white/20 px-2 py-0.5 rounded-xl border border-white/30">{{ $teacherAttendanceStats['hadir'] ?? 0 }}</span>
-            </div>
-            <div class="clay-yellow py-2 px-2.5 rounded-2xl flex items-center justify-between shadow-sm">
-                <span class="text-[10px] font-black uppercase tracking-tight">Late</span>
-                <span class="text-sm font-black leading-none bg-white/20 px-2 py-0.5 rounded-xl border border-white/30">{{ $teacherAttendanceStats['terlambat'] ?? 0 }}</span>
-            </div>
-            <div class="clay-purple py-2 px-2.5 rounded-2xl flex items-center justify-between shadow-sm">
-                <span class="text-[10px] font-black uppercase tracking-tight">Kelas</span>
-                <span class="text-sm font-black leading-none bg-white/20 px-2 py-0.5 rounded-xl border border-white/30">{{ $teacherAttendanceStats['total_jadwal'] ?? 0 }}</span>
-            </div>
-        </div>
-    </div>
-    @endif
 
     <!-- 🗳️ Poling Interaktif Pembda Space -->
     @if(isset($activePollThread) && $activePollThread && $activePollThread->poll)
