@@ -283,6 +283,15 @@ class MobileDashboardController extends Controller
             \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '💡 Butuh Peningkatan Fitur', 'votes_count' => 0]);
 
             $activePollThread->load(['poll.options', 'user', 'group']);
+        } else if ($activePollThread->poll) {
+            // Force sync votes_count dengan jumlah record voting asli di tabel forum_poll_votes
+            foreach ($activePollThread->poll->options as $opt) {
+                $realVoteCount = \App\Models\ForumPollVote::where('forum_poll_option_id', $opt->id)->count();
+                if ($opt->votes_count !== $realVoteCount) {
+                    $opt->votes_count = $realVoteCount;
+                    \App\Models\ForumPollOption::where('id', $opt->id)->update(['votes_count' => $realVoteCount]);
+                }
+            }
         }
 
         // Recent Forum discussions (Pembda Space Terbaru)
