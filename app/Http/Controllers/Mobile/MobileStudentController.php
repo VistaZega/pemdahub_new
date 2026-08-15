@@ -16,6 +16,10 @@ use App\Models\FinalProject;
 use App\Models\FinalProjectLog;
 use App\Models\FinalProjectFormat;
 use App\Models\FinalProjectMember;
+use App\Models\StudentAchievement;
+use App\Models\StudentCounselingRecord;
+use App\Models\StudentDevelopmentNote;
+use App\Models\StudentRecommendation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -733,4 +737,62 @@ class MobileStudentController extends Controller
 
         return response()->download(storage_path('app/public/' . $format->file_path));
     }
+
+    /**
+     * Catatan Perkembangan Siswa Mobile (Prestasi, Pembinaan BK, dan Observasi Perkembangan)
+     */
+    public function catatan()
+    {
+        $student = $this->getStudent();
+        if (!$student) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Data profil siswa tidak ditemukan.');
+        }
+
+        // 1. Prestasi Siswa
+        $achievements = StudentAchievement::where('student_id', $student->id)
+            ->with(['academicYear'])
+            ->orderByDesc('achievement_date')
+            ->orderByDesc('id')
+            ->get();
+
+        // 2. Catatan Pembinaan & Konseling BK
+        $counselings = StudentCounselingRecord::where('student_id', $student->id)
+            ->where('is_confidential', false) // Siswa hanya melihat catatan non-rahasia
+            ->with(['counselor', 'academicYear', 'semester'])
+            ->orderByDesc('incident_date')
+            ->orderByDesc('id')
+            ->get();
+
+        // 3. Catatan Perkembangan & Observasi Belajar
+        $developmentNotes = StudentDevelopmentNote::where('student_id', $student->id)
+            ->with(['notedByUser', 'academicYear', 'semester'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        // 4. Rekomendasi Karakter & Akademik
+        $recommendations = StudentRecommendation::where('student_id', $student->id)
+            ->with(['recommendedBy'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Stats
+        $stats = [
+            'total_prestasi' => $achievements->count(),
+            'total_pembinaan' => $counselings->count(),
+            'total_perkembangan' => $developmentNotes->count(),
+            'total_rekomendasi' => $recommendations->count(),
+            'reputation_points' => $student->user->reputation->total_points ?? $student->reputation_points ?? 0,
+            'reputation_level' => $student->user->reputation->level_name ?? 'Rising Star',
+        ];
+
+        return view('mobile.student.catatan', compact(
+            'student',
+            'achievements',
+            'counselings',
+            'developmentNotes',
+            'recommendations',
+            'stats'
+        ));
+    }
 }
+

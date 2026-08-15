@@ -223,6 +223,14 @@ class Student extends Model
     // ─── Student Development Relationships ──────────────────────
 
     /**
+     * Relationship: Student Achievements / Prestasi
+     */
+    public function achievements()
+    {
+        return $this->hasMany(StudentAchievement::class, 'student_id');
+    }
+
+    /**
      * Relationship: Counseling records (konseling, pembinaan, kasus)
      */
     public function counselingRecords()

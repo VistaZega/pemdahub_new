@@ -19,6 +19,11 @@ use App\Models\FinalProject;
 use App\Models\FinalProjectLog;
 use App\Models\FinalProjectFormat;
 use App\Models\ReputationLog;
+use App\Models\StudentAchievement;
+use App\Models\StudentCounselingRecord;
+use App\Models\StudentDevelopmentNote;
+use App\Models\StudentRecommendation;
+use App\Models\Semester;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -932,7 +937,7 @@ class MobileTeacherController extends Controller
     }
 
     /**
-     * Hall of Fame & Leaderboard (Guru Mobile)
+     * Hall of Fame & Leaderboard (Mobile PWA)
      */
     public function hallOfFame()
     {
@@ -941,18 +946,18 @@ class MobileTeacherController extends Controller
 
         if (class_exists('\App\Models\Reputation')) {
             $topStudents = \App\Models\Reputation::whereHas('user.student')
-                ->with(['user.student'])
+                ->with(['user.student.school', 'user.student.classroom', 'user.student.achievements'])
                 ->orderBy('total_points', 'desc')
-                ->take(15)
+                ->take(20)
                 ->get()
                 ->pluck('user.student')
                 ->filter()
                 ->values();
 
             $topTeachers = \App\Models\Reputation::whereHas('user.teacher')
-                ->with(['user.teacher'])
+                ->with(['user.teacher.school', 'user.teacher.teachingAssignments.subject'])
                 ->orderBy('total_points', 'desc')
-                ->take(10)
+                ->take(15)
                 ->get()
                 ->pluck('user.teacher')
                 ->filter()
@@ -960,14 +965,322 @@ class MobileTeacherController extends Controller
         }
 
         if ($topStudents->isEmpty()) {
-            $topStudents = Student::with('user.reputation')->latest()->take(15)->get();
+            $topStudents = Student::with(['school', 'user.reputation', 'classroom'])
+                ->withCount('achievements')
+                ->latest()
+                ->take(20)
+                ->get();
         }
 
         if ($topTeachers->isEmpty()) {
-            $topTeachers = Teacher::with('user.reputation')->latest()->take(10)->get();
+            $topTeachers = Teacher::with(['school', 'user.reputation', 'teachingAssignments.subject'])
+                ->latest()
+                ->take(15)
+                ->get();
         }
 
-        return view('mobile.hall_of_fame', compact('topStudents', 'topTeachers'));
+        // Recent Star Achievements
+        $recentAchievements = StudentAchievement::with(['student.school', 'student.classroom', 'academicYear'])
+            ->orderByDesc('achievement_date')
+            ->orderByDesc('id')
+            ->take(8)
+            ->get();
+
+        return view('mobile.hall_of_fame', compact('topStudents', 'topTeachers', 'recentAchievements'));
+    }
+
+    /**
+     * Catatan Perkembangan Siswa (Panel Guru Mobile)
+     */
+    public function catatanIndex(Request $request)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Data profil guru tidak ditemukan.');
+        }
+
+        // Rombel Mengajar & Rombel Wali Kelas
+        $homeroomClasses = Classroom::where('teacher_id', $teacher->id)->get();
+        $teachingClassrooms = Classroom::whereHas('teachingAssignments', function ($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })->get();
+
+        $allClassrooms = $homeroomClasses->merge($teachingClassrooms)->unique('id')->values();
+        if ($allClassrooms->isEmpty()) {
+            $allClassrooms = Classroom::when($teacher->school_id, fn($q) => $q->where('school_id', $teacher->school_id))->get();
+        }
+
+        $selectedClassroomId = $request->query('classroom_id', $allClassrooms->first()->id ?? null);
+        $selectedStudentId = $request->query('student_id');
+
+        // Students in selected classroom
+        $students = collect();
+        if ($selectedClassroomId) {
+            $students = Student::whereHas('classrooms', function ($q) use ($selectedClassroomId) {
+                $q->where('classrooms.id', $selectedClassroomId);
+            })
+            ->with(['school', 'user.reputation'])
+            ->withCount(['achievements', 'counselingRecords', 'developmentNotes'])
+            ->orderBy('full_name')
+            ->get();
+
+            if ($students->isEmpty()) {
+                // Fallback for single classroom relation
+                $students = Student::where('classroom_id', $selectedClassroomId)
+                    ->with(['school', 'user.reputation'])
+                    ->withCount(['achievements', 'counselingRecords', 'developmentNotes'])
+                    ->orderBy('full_name')
+                    ->get();
+            }
+        }
+
+        // Selected Student Details
+        $selectedStudent = null;
+        $achievements = collect();
+        $counselings = collect();
+        $developmentNotes = collect();
+        $recommendations = collect();
+
+        if ($selectedStudentId) {
+            $selectedStudent = Student::with(['school', 'classroom', 'user.reputation'])->find($selectedStudentId);
+            if ($selectedStudent) {
+                $achievements = StudentAchievement::where('student_id', $selectedStudent->id)
+                    ->with('academicYear')
+                    ->orderByDesc('achievement_date')
+                    ->get();
+
+                $counselings = StudentCounselingRecord::where('student_id', $selectedStudent->id)
+                    ->with(['counselor', 'academicYear', 'semester'])
+                    ->orderByDesc('incident_date')
+                    ->get();
+
+                $developmentNotes = StudentDevelopmentNote::where('student_id', $selectedStudent->id)
+                    ->with(['notedByUser', 'academicYear', 'semester'])
+                    ->orderByDesc('created_at')
+                    ->get();
+
+                $recommendations = StudentRecommendation::where('student_id', $selectedStudent->id)
+                    ->with(['recommendedBy'])
+                    ->orderByDesc('created_at')
+                    ->get();
+            }
+        }
+
+        $activeAcademicYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
+        $activeSemester = Semester::where('is_active', true)->first() ?? Semester::latest()->first();
+
+        return view('mobile.teacher.catatan', compact(
+            'teacher',
+            'allClassrooms',
+            'selectedClassroomId',
+            'students',
+            'selectedStudent',
+            'achievements',
+            'counselings',
+            'developmentNotes',
+            'recommendations',
+            'activeAcademicYear',
+            'activeSemester'
+        ));
+    }
+
+    /**
+     * Simpan Catatan Prestasi Siswa oleh Guru
+     */
+    public function storePrestasi(Request $request)
+    {
+        $validated = $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'title' => 'required|string|max:255',
+            'type' => 'required|in:academic,sport,art,competition,other',
+            'level' => 'required|in:school,district,city,province,national,international',
+            'rank' => 'required|in:winner,runner_up,third_place,participant',
+            'achievement_date' => 'required|date',
+            'description' => 'nullable|string',
+            'certificate_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+
+        $student = Student::findOrFail($validated['student_id']);
+        $activeAcademicYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
+
+        $certificatePath = null;
+        if ($request->hasFile('certificate_file')) {
+            $certificatePath = $request->file('certificate_file')->store('achievements', 'public');
+        }
+
+        $achievement = StudentAchievement::create([
+            'student_id' => $student->id,
+            'academic_year_id' => $activeAcademicYear->id ?? 1,
+            'title' => $validated['title'],
+            'type' => $validated['type'],
+            'level' => $validated['level'],
+            'rank' => $validated['rank'],
+            'achievement_date' => $validated['achievement_date'],
+            'description' => $validated['description'] ?? null,
+            'certificate_file' => $certificatePath,
+            'created_by' => Auth::id(),
+        ]);
+
+        // Award reputation points for achievement
+        $pointsMap = [
+            'international' => 500,
+            'national' => 300,
+            'province' => 200,
+            'city' => 100,
+            'district' => 50,
+            'school' => 30,
+        ];
+        $bonusPoints = $pointsMap[$validated['level']] ?? 30;
+
+        if ($student->user_id) {
+            $reputation = \App\Models\Reputation::firstOrCreate(
+                ['user_id' => $student->user_id],
+                ['total_points' => 0, 'level_name' => 'Rising Star']
+            );
+            $reputation->increment('total_points', $bonusPoints);
+            $reputation->updateLevel();
+            $reputation->save();
+
+            ReputationLog::create([
+                'user_id' => $student->user_id,
+                'points' => $bonusPoints,
+                'type' => 'achievement',
+                'description' => "Penghargaan Prestasi: {$validated['title']} (" . strtoupper($validated['level']) . ")",
+            ]);
+        }
+
+        return redirect()->route('mobile.guru.catatan-siswa', [
+            'classroom_id' => $request->classroom_id,
+            'student_id' => $student->id,
+            'tab' => 'prestasi'
+        ])->with('success', 'Catatan Prestasi Siswa berhasil ditambahkan & Poin Reputasi dikreditkan! 🏆');
+    }
+
+    /**
+     * Simpan Catatan Pembinaan / Konseling BK Siswa oleh Guru
+     */
+    public function storePembinaan(Request $request)
+    {
+        $validated = $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'record_type' => 'required|in:konseling,pembinaan,pelanggaran,penghargaan,home_visit',
+            'category' => 'nullable|string|max:100',
+            'severity' => 'nullable|in:ringan,sedang,berat',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'action_taken' => 'nullable|string',
+            'result' => 'nullable|string',
+            'follow_up' => 'nullable|string',
+            'incident_date' => 'required|date',
+            'location' => 'nullable|string|max:255',
+            'parent_notified' => 'nullable|boolean',
+            'status' => 'required|in:open,in_progress,resolved,closed',
+            'is_confidential' => 'nullable|boolean',
+        ]);
+
+        $student = Student::findOrFail($validated['student_id']);
+        $activeAcademicYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
+        $activeSemester = Semester::where('is_active', true)->first() ?? Semester::latest()->first();
+
+        StudentCounselingRecord::create([
+            'student_id' => $student->id,
+            'school_id' => $student->school_id ?? Auth::user()->school_id,
+            'academic_year_id' => $activeAcademicYear->id ?? 1,
+            'semester_id' => $activeSemester->id ?? 1,
+            'record_type' => $validated['record_type'],
+            'category' => $validated['category'] ?? 'disiplin',
+            'severity' => $validated['severity'] ?? 'ringan',
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'action_taken' => $validated['action_taken'] ?? null,
+            'result' => $validated['result'] ?? null,
+            'follow_up' => $validated['follow_up'] ?? null,
+            'incident_date' => $validated['incident_date'],
+            'location' => $validated['location'] ?? 'Lingkungan Sekolah',
+            'parent_notified' => $request->has('parent_notified') ? 1 : 0,
+            'parent_notified_date' => $request->has('parent_notified') ? now() : null,
+            'status' => $validated['status'],
+            'counselor_id' => Auth::id(),
+            'is_confidential' => $request->has('is_confidential') ? 1 : 0,
+        ]);
+
+        return redirect()->route('mobile.guru.catatan-siswa', [
+            'classroom_id' => $request->classroom_id,
+            'student_id' => $student->id,
+            'tab' => 'pembinaan'
+        ])->with('success', 'Catatan Pembinaan & Bimbingan Siswa berhasil disimpan.');
+    }
+
+    /**
+     * Simpan Catatan Perkembangan & Observasi Siswa oleh Guru
+     */
+    public function storePerkembangan(Request $request)
+    {
+        $validated = $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'aspect' => 'required|in:akademik,sikap,keterampilan,spiritual,sosial,fisik,ekstrakurikuler',
+            'observation' => 'required|string',
+            'progress' => 'nullable|string',
+            'challenges' => 'nullable|string',
+            'suggestion' => 'nullable|string',
+        ]);
+
+        $student = Student::findOrFail($validated['student_id']);
+        $activeAcademicYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
+        $activeSemester = Semester::where('is_active', true)->first() ?? Semester::latest()->first();
+
+        StudentDevelopmentNote::create([
+            'student_id' => $student->id,
+            'school_id' => $student->school_id ?? Auth::user()->school_id,
+            'academic_year_id' => $activeAcademicYear->id ?? 1,
+            'semester_id' => $activeSemester->id ?? 1,
+            'aspect' => $validated['aspect'],
+            'observation' => $validated['observation'],
+            'progress' => $validated['progress'] ?? null,
+            'challenges' => $validated['challenges'] ?? null,
+            'suggestion' => $validated['suggestion'] ?? null,
+            'noted_by' => Auth::id(),
+            'noted_by_role' => 'wali_kelas',
+        ]);
+
+        return redirect()->route('mobile.guru.catatan-siswa', [
+            'classroom_id' => $request->classroom_id,
+            'student_id' => $student->id,
+            'tab' => 'perkembangan'
+        ])->with('success', 'Catatan Perkembangan Siswa berhasil dicatat.');
+    }
+
+    /**
+     * Hapus Catatan Prestasi
+     */
+    public function destroyPrestasi($id)
+    {
+        $achievement = StudentAchievement::findOrFail($id);
+        if ($achievement->certificate_file && Storage::disk('public')->exists($achievement->certificate_file)) {
+            Storage::disk('public')->delete($achievement->certificate_file);
+        }
+        $achievement->delete();
+        return back()->with('success', 'Catatan prestasi siswa berhasil dihapus.');
+    }
+
+    /**
+     * Hapus Catatan Pembinaan
+     */
+    public function destroyPembinaan($id)
+    {
+        $record = StudentCounselingRecord::findOrFail($id);
+        $record->delete();
+        return back()->with('success', 'Catatan pembinaan siswa berhasil dihapus.');
+    }
+
+    /**
+     * Hapus Catatan Perkembangan
+     */
+    public function destroyPerkembangan($id)
+    {
+        $note = StudentDevelopmentNote::findOrFail($id);
+        $note->delete();
+        return back()->with('success', 'Catatan perkembangan siswa berhasil dihapus.');
     }
 
     /**

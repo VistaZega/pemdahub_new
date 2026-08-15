@@ -80,6 +80,8 @@ Route::prefix('m')->name('mobile.')->group(function () {
         // Modul Siswa Existing & Final Project
         Route::get('/jadwal', [MobileStudentController::class, 'jadwal'])->name('jadwal');
         Route::get('/nilai', [MobileStudentController::class, 'nilai'])->name('nilai');
+        Route::get('/catatan', [MobileStudentController::class, 'catatan'])->name('catatan');
+        Route::get('/prestasi', fn() => redirect()->route('mobile.catatan'))->name('prestasi');
         Route::get('/tagihan', [MobileStudentController::class, 'tagihan'])->name('tagihan');
         Route::get('/cbt', [MobileStudentController::class, 'cbt'])->name('cbt');
         
@@ -111,6 +113,13 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::get('/cbt/exams/{exam}/monitor', [MobileTeacherController::class, 'cbtExamMonitor'])->name('cbt.exam.monitor');
             Route::post('/cbt/exams/{exam}/toggle-status', [MobileTeacherController::class, 'cbtExamToggleStatus'])->name('cbt.exam.toggle-status');
             Route::get('/raport', [MobileTeacherController::class, 'raport'])->name('raport');
+            Route::get('/catatan-siswa', [MobileTeacherController::class, 'catatanIndex'])->name('catatan-siswa');
+            Route::post('/catatan-siswa/prestasi', [MobileTeacherController::class, 'storePrestasi'])->name('catatan-siswa.prestasi.store');
+            Route::post('/catatan-siswa/pembinaan', [MobileTeacherController::class, 'storePembinaan'])->name('catatan-siswa.pembinaan.store');
+            Route::post('/catatan-siswa/perkembangan', [MobileTeacherController::class, 'storePerkembangan'])->name('catatan-siswa.perkembangan.store');
+            Route::delete('/catatan-siswa/prestasi/{id}', [MobileTeacherController::class, 'destroyPrestasi'])->name('catatan-siswa.prestasi.destroy');
+            Route::delete('/catatan-siswa/pembinaan/{id}', [MobileTeacherController::class, 'destroyPembinaan'])->name('catatan-siswa.pembinaan.destroy');
+            Route::delete('/catatan-siswa/perkembangan/{id}', [MobileTeacherController::class, 'destroyPerkembangan'])->name('catatan-siswa.perkembangan.destroy');
             Route::get('/hall-of-fame', [MobileTeacherController::class, 'hallOfFame'])->name('hall-of-fame');
             Route::get('/tagihan', [MobileTeacherController::class, 'tagihan'])->name('tagihan');
 
