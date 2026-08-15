@@ -9,6 +9,7 @@ use App\Http\Controllers\Mobile\MobileAbsensiController;
 use App\Http\Controllers\Mobile\MobileProfileController;
 use App\Http\Controllers\Mobile\MobileStudentController;
 use App\Http\Controllers\Mobile\MobileTeacherController;
+use App\Http\Controllers\Mobile\MobilePanitiaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -143,6 +144,21 @@ Route::prefix('m')->name('mobile.')->group(function () {
             // Project Akhir / Penelitian Akhir Ujian Guru (Penguji)
             Route::get('/final-projects/ujian', [MobileTeacherController::class, 'finalProjectUjianIndex'])->name('final-projects.ujian');
             Route::post('/final-projects/ujian/{project}/grade', [MobileTeacherController::class, 'gradeFinalProject'])->name('final-projects.ujian.grade');
+        });
+
+        // Modul Panitia PKL & Panitia Final Project
+        Route::prefix('panitia')->name('panitia.')->group(function () {
+            // Panitia PKL
+            Route::get('/pkl', [MobilePanitiaController::class, 'pklIndex'])->name('pkl');
+            Route::get('/pkl/{id}', [MobilePanitiaController::class, 'pklPlacementShow'])->name('pkl.show');
+            Route::post('/pkl/{id}/assign-teacher', [MobilePanitiaController::class, 'assignPembimbingPkl'])->name('pkl.assign-teacher');
+            Route::post('/pkl/{id}/update-status', [MobilePanitiaController::class, 'updatePlacementStatus'])->name('pkl.update-status');
+
+            // Panitia Final Project / Penelitian Akhir
+            Route::get('/final-project', [MobilePanitiaController::class, 'finalProjectIndex'])->name('final-project');
+            Route::get('/final-project/{id}', [MobilePanitiaController::class, 'finalProjectShow'])->name('final-project.show');
+            Route::post('/final-project/{id}/approve-proposal', [MobilePanitiaController::class, 'approveProposal'])->name('final-project.approve-proposal');
+            Route::post('/final-project/{id}/assign-examiner', [MobilePanitiaController::class, 'assignAdvisorExaminer'])->name('final-project.assign-examiner');
         });
 
         // Pembda Space (Forum & WA Groups)

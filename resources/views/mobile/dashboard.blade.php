@@ -373,7 +373,7 @@
 
             {{-- 16. MODUL KELOLA PANITIA PKL (Jika memiliki jabatan Panitia PKL / Admin) --}}
             @if($isPanitiaPkl ?? false)
-            <a href="{{ route('admin.pkl-alumni.placements.index') }}" class="clay-yellow p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+            <a href="{{ route('mobile.panitia.pkl') }}" class="clay-yellow p-3.5 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     ⚙️
                 </div>
@@ -383,7 +383,7 @@
 
             {{-- 17. MODUL KELOLA PANITIA PROJECT/PENELITIAN AKHIR (Jika memiliki jabatan Panitia TA / Admin) --}}
             @if($isPanitiaProyek ?? false)
-            <a href="{{ route('admin.final-projects.proposals.index') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+            <a href="{{ route('mobile.panitia.final-project') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
                 <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     🛠️
                 </div>
