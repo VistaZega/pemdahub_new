@@ -640,19 +640,45 @@
 
                     <!-- Multi-Class (Gabungan Kelas) -->
                     <div class="bg-gradient-to-r from-indigo-50 to-white rounded-xl p-4 border border-indigo-200" id="multiClassSection">
-                        <label class="block text-sm font-semibold text-indigo-700 mb-2">
-                            <i class="fas fa-users-viewfinder mr-1"></i> Pilih Kelas Tambahan (Untuk Kelas Gabungan)
-                        </label>
-                        <select name="additional_classrooms[]" id="additionalClassrooms" class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-sm select2" multiple="multiple">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-semibold text-indigo-800">
+                                <i class="fas fa-users-viewfinder mr-1.5 text-indigo-600"></i> Pilih Kelas Tambahan (Untuk Kelas Gabungan / Lintas Tingkat)
+                            </label>
+                            <span id="selectedClassCount" class="text-xs font-bold px-2.5 py-0.5 bg-indigo-100 text-indigo-700 rounded-full border border-indigo-200">
+                                0 kelas tambahan dipilih
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-gray-500 mb-3">
+                            Klik pada satu atau beberapa kelas di bawah untuk digabung dalam jam yang sama. Anda dapat memilih lebih dari satu kelas (misal: gabung Kelas XI dan XII).
+                        </p>
+
+                        <div class="space-y-3 max-h-52 overflow-y-auto pr-1">
                             @foreach(($allClassrooms ?? $classrooms)->groupBy('grade_level') as $grade => $groupClassrooms)
-                                <optgroup label="Tingkat {{ $grade }}">
-                                    @foreach($groupClassrooms as $cls)
-                                        <option value="{{ $cls->id }}" class="classroom-option-{{ $cls->id }}">{{ $cls->class_name }}</option>
-                                    @endforeach
-                                </optgroup>
+                                <div>
+                                    <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-2">
+                                        <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-extrabold">Tingkat {{ $grade }}</span>
+                                        <span class="h-px bg-gray-200 flex-grow"></span>
+                                    </div>
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach($groupClassrooms as $cls)
+                                            <label class="relative inline-flex cursor-pointer classroom-chip" id="chip_classroom_{{ $cls->id }}">
+                                                <input type="checkbox" name="additional_classrooms[]" value="{{ $cls->id }}" 
+                                                       class="peer sr-only additional-classroom-checkbox" 
+                                                       onchange="updateSelectedClassCount()">
+                                                <div class="px-3 py-1.5 border-2 border-gray-200 bg-white rounded-lg text-xs font-semibold text-gray-700 transition-all 
+                                                            peer-checked:border-indigo-600 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:shadow-sm
+                                                            peer-disabled:opacity-40 peer-disabled:bg-gray-100 peer-disabled:border-gray-200 peer-disabled:cursor-not-allowed peer-disabled:text-gray-400
+                                                            hover:border-indigo-300 hover:bg-indigo-50/50 flex items-center gap-1.5">
+                                                    <span>{{ $cls->class_name }}</span>
+                                                    <span class="main-classroom-tag hidden text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded font-normal">(Kelas Utama)</span>
+                                                </div>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
                             @endforeach
-                        </select>
-                        <p class="text-[10px] text-gray-500 mt-1">Pilih kelas lain yang belajar bersamaan. Sistem akan otomatis menyamakan Kode Grup dan menghindari bentrok antar-kelas ini.</p>
+                        </div>
+                        <p class="text-[10px] text-gray-500 mt-2"><i class="fas fa-info-circle mr-1 text-indigo-500"></i>Sistem akan otomatis mengikat jadwal kelas-kelas ini dengan Kode Grup (Group Code) yang sama sehingga tidak terjadi bentrok.</p>
                     </div>
 
 
@@ -777,31 +803,33 @@ async function openScheduleModal(day, timeSlotId, classroomId, scheduleId) {
         document.getElementById('multiClassSection').classList.remove('hidden'); // Tampilkan multi-kelas di mode Create
     }
     
-    // Disable current classroom in additional_classrooms select (use vanilla JS to prevent jQuery ReferenceError)
-    const additionalSelect = document.getElementById('additionalClassrooms');
-    if (additionalSelect) {
-        Array.from(additionalSelect.options).forEach(opt => opt.disabled = false); // enable all first
-        const currentOpt = additionalSelect.querySelector(`option[value="${classroomId}"]`);
-        if (currentOpt) currentOpt.disabled = true;
+    // Reset and initialize additional classrooms checkboxes
+    document.querySelectorAll('.additional-classroom-checkbox').forEach(cb => {
+        cb.checked = false;
+        cb.disabled = false;
+    });
+    document.querySelectorAll('.classroom-chip').forEach(chip => {
+        chip.classList.remove('pointer-events-none');
+        const tag = chip.querySelector('.main-classroom-tag');
+        if (tag) tag.classList.add('hidden');
+    });
+
+    // Disable current classroom chip (kelas utama yang sedang diplot)
+    const currentChip = document.getElementById(`chip_classroom_${classroomId}`);
+    if (currentChip) {
+        const cb = currentChip.querySelector('input');
+        if (cb) {
+            cb.checked = false;
+            cb.disabled = true;
+        }
+        currentChip.classList.add('pointer-events-none');
+        const tag = currentChip.querySelector('.main-classroom-tag');
+        if (tag) tag.classList.remove('hidden');
     }
-    
+    updateSelectedClassCount();
+
     // Reset assignment selection
     document.getElementById('selectedAssignmentId').value = '';
-    
-    // Inisialisasi Select2 jika tersedia
-    if (typeof jQuery !== 'undefined') {
-        if (additionalSelect) {
-            jQuery(additionalSelect).val(null).trigger('change'); // reset selection visually for select2
-        }
-        if (typeof jQuery.fn.select2 !== 'undefined') {
-            jQuery('#additionalClassrooms').select2({
-                placeholder: "Pilih kelas tambahan...",
-                allowClear: true,
-                width: '100%',
-                dropdownParent: jQuery('#scheduleModal')
-            });
-        }
-    }
     
     try {
         // Fetch subjects, teachers, AND teaching assignments for this classroom
@@ -1191,6 +1219,14 @@ function toggleManualSelection() {
         icon.classList.remove('fa-chevron-down');
         icon.classList.add('fa-chevron-up');
         text.textContent = 'Sembunyikan pilihan manual';
+    }
+}
+
+function updateSelectedClassCount() {
+    const checkedCount = document.querySelectorAll('.additional-classroom-checkbox:checked').length;
+    const badge = document.getElementById('selectedClassCount');
+    if (badge) {
+        badge.textContent = checkedCount === 0 ? '0 kelas tambahan dipilih' : `${checkedCount} kelas tambahan dipilih`;
     }
 }
 
