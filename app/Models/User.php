@@ -401,12 +401,28 @@ class User extends Authenticatable
 
     public function isPanitiaPkl(): bool
     {
-        return $this->role === 'panitia_pkl' || $this->hasSpecialDuty(['PKL', 'HUBIN']);
+        return $this->role === 'panitia_pkl' || $this->hasSpecialDuty(['PKL', 'HUBIN', 'PRAKERIN']);
     }
 
     public function isPanitiaProyek(): bool
     {
-        return $this->role === 'panitia_ta' || $this->hasSpecialDuty(['PROYEK', 'PROJECT', 'PROJEK', 'TA', 'TUGAS AKHIR', 'TUGAS-AKHIR']);
+        return $this->role === 'panitia_ta' || $this->hasSpecialDuty(['PROYEK', 'PROJECT', 'PROJEK', 'TA', 'TUGAS AKHIR', 'TUGAS-AKHIR', 'PENELITIAN', 'KTI', 'KARYA TULIS']);
+    }
+
+    /**
+     * Check if user can assign teachers as PKL supervisor/advisor
+     */
+    public function canAssignPklAdvisor(): bool
+    {
+        return $this->isSuperAdmin() || $this->isAdminSekolah() || $this->isKepalaSekolah() || $this->isPanitiaPkl();
+    }
+
+    /**
+     * Check if user can assign teachers as Final Project / Research supervisor/advisor
+     */
+    public function canAssignFinalProjectAdvisor(): bool
+    {
+        return $this->isSuperAdmin() || $this->isAdminSekolah() || $this->isKepalaSekolah() || $this->isPanitiaProyek();
     }
 
     public function isPksOrPiket(): bool

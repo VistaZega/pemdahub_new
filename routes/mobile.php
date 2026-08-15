@@ -77,15 +77,25 @@ Route::prefix('m')->name('mobile.')->group(function () {
         // Dashboard
         Route::get('/dashboard', [MobileDashboardController::class, 'index'])->name('dashboard');
 
-        // Modul Siswa Existing
+        // Modul Siswa Existing & Final Project
         Route::get('/jadwal', [MobileStudentController::class, 'jadwal'])->name('jadwal');
         Route::get('/nilai', [MobileStudentController::class, 'nilai'])->name('nilai');
         Route::get('/tagihan', [MobileStudentController::class, 'tagihan'])->name('tagihan');
         Route::get('/cbt', [MobileStudentController::class, 'cbt'])->name('cbt');
+        
+        // PKL Siswa (Khusus Kelas XII SMK)
         Route::get('/pkl', [MobileStudentController::class, 'pkl'])->name('pkl');
         Route::post('/pkl/log', [MobileStudentController::class, 'storePklLog'])->name('pkl.log');
 
-        // Modul Guru Existing
+        // Project Akhir (SMK) / Penelitian Akhir (SMA) Siswa (Khusus Kelas XII)
+        Route::get('/final-project', [MobileStudentController::class, 'finalProject'])->name('final-project');
+        Route::get('/project-akhir', fn() => redirect()->route('mobile.final-project'))->name('project-akhir');
+        Route::get('/penelitian-akhir', fn() => redirect()->route('mobile.final-project'))->name('penelitian-akhir');
+        Route::post('/final-project/propose', [MobileStudentController::class, 'proposeFinalProject'])->name('final-project.propose');
+        Route::post('/final-project/log', [MobileStudentController::class, 'storeFinalProjectLog'])->name('final-project.log');
+        Route::get('/final-project/download-format/{format}', [MobileStudentController::class, 'downloadFinalProjectFormat'])->name('final-project.download-format');
+
+        // Modul Guru
         Route::prefix('guru')->name('guru.')->group(function () {
             Route::get('/jadwal', [MobileTeacherController::class, 'jadwal'])->name('jadwal');
             Route::get('/absensi-input', [MobileTeacherController::class, 'absensiInput'])->name('absensi.input');
@@ -103,6 +113,27 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::get('/raport', [MobileTeacherController::class, 'raport'])->name('raport');
             Route::get('/hall-of-fame', [MobileTeacherController::class, 'hallOfFame'])->name('hall-of-fame');
             Route::get('/tagihan', [MobileTeacherController::class, 'tagihan'])->name('tagihan');
+
+            // PKL Bimbingan Guru (Siswa & Logbook)
+            Route::get('/pkl', [MobileTeacherController::class, 'pklIndex'])->name('pkl');
+            Route::get('/pkl/{placement}', [MobileTeacherController::class, 'pklShow'])->name('pkl.show');
+            Route::post('/pkl/{placement}/log/{log}/approve', [MobileTeacherController::class, 'approvePklLog'])->name('pkl.log.approve');
+
+            // PKL Monitoring Kunjungan Mingguan DUDI Guru
+            Route::get('/pkl-monitoring', [MobileTeacherController::class, 'pklMonitoringIndex'])->name('pkl.monitoring');
+            Route::get('/pkl-monitoring/{dudi_id}/{shift?}', [MobileTeacherController::class, 'pklMonitoringShow'])->name('pkl.monitoring.show');
+            Route::post('/pkl-monitoring/{dudi_id}/{shift?}', [MobileTeacherController::class, 'storePklMonitoring'])->name('pkl.monitoring.store');
+            Route::post('/pkl-monitoring/{dudi_id}/{shift?}/perangkat', [MobileTeacherController::class, 'updatePklPerangkat'])->name('pkl.monitoring.perangkat');
+
+            // Project Akhir (SMK) / Penelitian Akhir (SMA) Bimbingan Guru
+            Route::get('/final-projects/bimbingan', [MobileTeacherController::class, 'finalProjectBimbinganIndex'])->name('final-projects.bimbingan');
+            Route::get('/final-projects/bimbingan/{project}', [MobileTeacherController::class, 'finalProjectBimbinganShow'])->name('final-projects.bimbingan.show');
+            Route::post('/final-projects/bimbingan/{project}/review-log/{log}', [MobileTeacherController::class, 'reviewFinalProjectLog'])->name('final-projects.bimbingan.review-log');
+            Route::post('/final-projects/bimbingan/{project}/ready', [MobileTeacherController::class, 'markFinalProjectReady'])->name('final-projects.bimbingan.ready');
+
+            // Project Akhir / Penelitian Akhir Ujian Guru (Penguji)
+            Route::get('/final-projects/ujian', [MobileTeacherController::class, 'finalProjectUjianIndex'])->name('final-projects.ujian');
+            Route::post('/final-projects/ujian/{project}/grade', [MobileTeacherController::class, 'gradeFinalProject'])->name('final-projects.ujian.grade');
         });
 
         // Pembda Space (Forum & WA Groups)

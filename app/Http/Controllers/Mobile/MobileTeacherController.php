@@ -11,8 +11,18 @@ use App\Models\Student;
 use App\Models\Attendance;
 use App\Models\LmsAssignment;
 use App\Models\LmsSubmission;
+use App\Models\PklPlacement;
+use App\Models\PklLog;
+use App\Models\PklMonitoring;
+use App\Models\Dudi;
+use App\Models\FinalProject;
+use App\Models\FinalProjectLog;
+use App\Models\FinalProjectFormat;
+use App\Models\ReputationLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MobileTeacherController extends Controller
 {
@@ -892,5 +902,404 @@ class MobileTeacherController extends Controller
             'teacher', 'classroom', 'students', 'stats', 
             'selectedMonth', 'selectedYear', 'monthNames'
         ));
+    }
+
+    // =========================================================================
+    // MODUL PKL GURU (BIMBINGAN SISWA & MONITORING KUNJUNGAN DUDI MINGGUAN)
+    // =========================================================================
+
+    /**
+     * Daftar Siswa Bimbingan PKL Guru
+     */
+    public function pklIndex()
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Profil Guru tidak ditemukan.');
+        }
+
+        $activeYear = AcademicYear::where('is_active', true)->first();
+
+        $placements = PklPlacement::where('teacher_id', $teacher->id)
+            ->with(['student.user', 'dudi', 'grade'])
+            ->withCount([
+                'logs as total_logs_count',
+                'logs as pending_logs_count' => fn($q) => $q->where('status', 'pending')
+            ])
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->orderByDesc('id')
+            ->get();
+
+        return view('mobile.teacher.pkl.index', compact('teacher', 'placements', 'activeYear'));
+    }
+
+    /**
+     * Detail Jurnal Siswa PKL & Verifikasi Logbook
+     */
+    public function pklShow(PklPlacement $placement)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || $placement->teacher_id !== $teacher->id) {
+            return redirect()->route('mobile.guru.pkl')->with('error', 'Akses ditolak: Anda bukan pembimbing untuk siswa ini.');
+        }
+
+        $placement->load(['student.user', 'dudi', 'grade', 'logs' => function($q) {
+            $q->orderByDesc('log_date');
+        }]);
+
+        return view('mobile.teacher.pkl.show', compact('teacher', 'placement'));
+    }
+
+    /**
+     * Approve / ACC Jurnal Harian Siswa PKL
+     */
+    public function approvePklLog(PklPlacement $placement, PklLog $log)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || $placement->teacher_id !== $teacher->id || $log->pkl_placement_id !== $placement->id) {
+            return back()->with('error', 'Akses ditolak.');
+        }
+
+        $log->update([
+            'status' => 'approved',
+            'approved_at' => now(),
+        ]);
+
+        if ($placement->student && $placement->student->user_id) {
+            ReputationLog::log(
+                $placement->student->user_id,
+                10,
+                'pkl_log_approved',
+                'Logbook PKL tanggal ' . \Carbon\Carbon::parse($log->log_date)->format('d/m/Y') . ' disetujui Pembimbing',
+                $log
+            );
+        }
+
+        return back()->with('success', 'Logbook harian PKL siswa berhasil diverifikasi (ACC).');
+    }
+
+    /**
+     * Rekap DUDI & Monitoring Kunjungan Mingguan PKL
+     */
+    public function pklMonitoringIndex()
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Profil Guru tidak ditemukan.');
+        }
+
+        $activeYear = AcademicYear::where('is_active', true)->first();
+
+        $query = PklPlacement::with('dudi')
+            ->where('teacher_id', $teacher->id);
+
+        if ($activeYear) {
+            $query->where('academic_year_id', $activeYear->id);
+        }
+
+        $groups = $query->select('dudi_id', 'shift', DB::raw('count(*) as total_students'), DB::raw('MAX(is_perangkat_ready) as is_perangkat_ready'))
+            ->groupBy('dudi_id', 'shift')
+            ->get();
+
+        foreach ($groups as $group) {
+            $group->visit_count = PklMonitoring::where('teacher_id', $teacher->id)
+                ->where('dudi_id', $group->dudi_id)
+                ->where('shift', $group->shift)
+                ->count();
+        }
+
+        return view('mobile.teacher.pkl_monitoring.index', compact('teacher', 'groups', 'activeYear'));
+    }
+
+    /**
+     * Form Laporan Kunjungan Mingguan DUDI & Upload Perangkat
+     */
+    public function pklMonitoringShow($dudi_id, $shift = null)
+    {
+        if ($shift === 'null') $shift = null;
+        $teacher = $this->getTeacher();
+        $dudi = Dudi::findOrFail($dudi_id);
+        $activeYear = AcademicYear::where('is_active', true)->first();
+
+        $placementsQuery = PklPlacement::with(['student.user', 'logs' => function($q) {
+                $q->orderByDesc('log_date')->take(3);
+            }])
+            ->where('teacher_id', $teacher->id)
+            ->where('dudi_id', $dudi_id)
+            ->where('shift', $shift);
+
+        if ($activeYear) {
+            $placementsQuery->where('academic_year_id', $activeYear->id);
+        }
+
+        $placements = $placementsQuery->get();
+        if ($placements->isEmpty()) {
+            return redirect()->route('mobile.guru.pkl.monitoring')->with('error', 'Anda tidak membimbing di DUDI ini.');
+        }
+
+        $isPerangkatReady = $placements->first()->is_perangkat_ready ?? false;
+        $perangkatFilePath = $placements->first()->perangkat_file_path ?? null;
+
+        $monitorings = PklMonitoring::where('teacher_id', $teacher->id)
+            ->where('dudi_id', $dudi_id)
+            ->where('shift', $shift)
+            ->orderByDesc('monitoring_date')
+            ->get();
+
+        return view('mobile.teacher.pkl_monitoring.show', compact('teacher', 'dudi', 'shift', 'placements', 'monitorings', 'isPerangkatReady', 'perangkatFilePath', 'activeYear'));
+    }
+
+    /**
+     * Simpan Laporan Kunjungan Mingguan DUDI
+     */
+    public function storePklMonitoring(Request $request, $dudi_id, $shift = null)
+    {
+        if ($shift === 'null') $shift = null;
+        $teacher = $this->getTeacher();
+
+        $request->validate([
+            'monitoring_date' => 'required|date',
+            'notes' => 'nullable|string',
+            'assignment_letter' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
+        ]);
+
+        $letterPath = $request->file('assignment_letter')->store('pkl/monitoring_letters', 'public');
+        $photoPath = $request->file('photo')->store('pkl/monitoring_photos', 'public');
+
+        PklMonitoring::create([
+            'teacher_id' => $teacher->id,
+            'dudi_id' => $dudi_id,
+            'shift' => $shift,
+            'monitoring_date' => $request->monitoring_date,
+            'notes' => $request->notes,
+            'assignment_letter_path' => $letterPath,
+            'photo_path' => $photoPath,
+        ]);
+
+        return back()->with('success', 'Laporan kunjungan mingguan ke DUDI berhasil disimpan.');
+    }
+
+    /**
+     * Upload Dokumen Perangkat PKL
+     */
+    public function updatePklPerangkat(Request $request, $dudi_id, $shift = null)
+    {
+        if ($shift === 'null') $shift = null;
+        $teacher = $this->getTeacher();
+
+        $request->validate([
+            'perangkat_file' => 'required|file|mimes:pdf,jpg,jpeg,png,zip,rar|max:10240',
+        ]);
+
+        $path = $request->file('perangkat_file')->store('pkl_perangkat', 'public');
+
+        PklPlacement::where('teacher_id', $teacher->id)
+            ->where('dudi_id', $dudi_id)
+            ->where('shift', $shift)
+            ->update([
+                'is_perangkat_ready' => true,
+                'perangkat_file_path' => $path
+            ]);
+
+        return back()->with('success', 'Dokumen Perangkat PKL berhasil diunggah.');
+    }
+
+    // =========================================================================
+    // MODUL PROJECT AKHIR (SMK) / PENELITIAN AKHIR (SMA) GURU
+    // =========================================================================
+
+    /**
+     * Daftar Kelompok Bimbingan Project / Penelitian Akhir Guru
+     */
+    public function finalProjectBimbinganIndex(Request $request)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Profil Guru tidak ditemukan.');
+        }
+
+        $activeYear = AcademicYear::where('is_active', true)->first();
+
+        $projects = FinalProject::where('advisor_id', $teacher->id)
+            ->with(['student.user', 'student.school', 'members.student.user'])
+            ->withCount([
+                'logs as total_logs_count',
+                'logs as pending_logs_count' => fn($q) => $q->where('status', 'pending')
+            ])
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->latest()
+            ->get();
+
+        $schoolType = $teacher->school?->type ?? 'SMK';
+
+        return view('mobile.teacher.final_projects.bimbingan_index', compact('teacher', 'projects', 'schoolType', 'activeYear'));
+    }
+
+    /**
+     * Detail Bimbingan Project / Penelitian Akhir Guru
+     */
+    public function finalProjectBimbinganShow($id)
+    {
+        $teacher = $this->getTeacher();
+        $project = FinalProject::with([
+            'student.user', 'student.school', 'members.student.user', 'examiner.user',
+            'logs' => fn($q) => $q->orderByDesc('log_date')
+        ])->findOrFail($id);
+
+        if ($project->advisor_id !== $teacher->id) {
+            return redirect()->route('mobile.guru.final-projects.bimbingan')->with('error', 'Akses ditolak: Anda bukan pembimbing kelompok ini.');
+        }
+
+        $stages = FinalProject::getStages();
+        $schoolType = $project->student->school?->type ?? 'SMK';
+
+        return view('mobile.teacher.final_projects.bimbingan_show', compact('teacher', 'project', 'stages', 'schoolType'));
+    }
+
+    /**
+     * Review Logbook Bimbingan (ACC / Tolak & Feedback)
+     */
+    public function reviewFinalProjectLog(Request $request, $projectId, $logId)
+    {
+        $teacher = $this->getTeacher();
+        $project = FinalProject::findOrFail($projectId);
+
+        if ($project->advisor_id !== $teacher->id) {
+            return back()->with('error', 'Akses ditolak.');
+        }
+
+        $log = FinalProjectLog::where('final_project_id', $project->id)->findOrFail($logId);
+
+        $validated = $request->validate([
+            'advisor_feedback' => 'required|string',
+            'status' => 'required|in:approved,rejected',
+        ]);
+
+        $log->update([
+            'advisor_feedback' => $validated['advisor_feedback'],
+            'status' => $validated['status'],
+        ]);
+
+        // Jika disetujui (ACC), naikkan tahapan ke stage berikutnya jika relevan
+        if ($validated['status'] === 'approved') {
+            $stages = FinalProject::getStages();
+            $currentStageKey = $project->current_stage;
+
+            if (isset($stages[$currentStageKey]['next']) && $stages[$currentStageKey]['next'] !== null) {
+                $project->update([
+                    'current_stage' => $stages[$currentStageKey]['next'],
+                ]);
+            }
+        }
+
+        // Berikan poin reputasi untuk bimbingan guru (+15 poin)
+        if ($teacher->user_id) {
+            ReputationLog::log(
+                $teacher->user_id,
+                15,
+                'final_project_mentoring',
+                'Membimbing & mereview jurnal Project/Penelitian Akhir: ' . $project->title,
+                $project
+            );
+        }
+
+        return back()->with('success', 'Review jurnal bimbingan berhasil disimpan.');
+    }
+
+    /**
+     * Tandai Kelompok Siap Ujian (Defense)
+     */
+    public function markFinalProjectReady(Request $request, $projectId)
+    {
+        $teacher = $this->getTeacher();
+        $project = FinalProject::findOrFail($projectId);
+
+        if ($project->advisor_id !== $teacher->id) {
+            return back()->with('error', 'Akses ditolak.');
+        }
+
+        $project->update([
+            'status' => 'ready',
+            'current_stage' => 'ujian',
+        ]);
+
+        return back()->with('success', 'Kelompok berhasil ditandai Siap Maju Ujian / Sidang.');
+    }
+
+    /**
+     * Daftar Jadwal Ujian Project / Penelitian Akhir Guru (Penguji)
+     */
+    public function finalProjectUjianIndex(Request $request)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Profil Guru tidak ditemukan.');
+        }
+
+        $activeYear = AcademicYear::where('is_active', true)->first();
+
+        $projects = FinalProject::where('examiner_id', $teacher->id)
+            ->with(['student.user', 'student.school', 'advisor.user', 'members.student.user'])
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->latest()
+            ->get();
+
+        $schoolType = $teacher->school?->type ?? 'SMK';
+
+        return view('mobile.teacher.final_projects.ujian_index', compact('teacher', 'projects', 'schoolType', 'activeYear'));
+    }
+
+    /**
+     * Input Nilai Ujian Sidang Project / Penelitian Akhir
+     */
+    public function gradeFinalProject(Request $request, $projectId)
+    {
+        $teacher = $this->getTeacher();
+        $project = FinalProject::with(['student.user', 'members.student.user'])->findOrFail($projectId);
+
+        if ($project->examiner_id !== $teacher->id) {
+            return back()->with('error', 'Akses ditolak: Anda bukan penguji kelompok ini.');
+        }
+
+        $validated = $request->validate([
+            'final_score' => 'required|numeric|min:0|max:100',
+            'status' => 'required|in:passed,failed',
+            'examiner_notes' => 'nullable|string',
+        ]);
+
+        $project->update([
+            'final_score' => $validated['final_score'],
+            'status' => $validated['status'],
+            'examiner_notes' => $validated['examiner_notes'] ?? null,
+            'current_stage' => 'selesai',
+        ]);
+
+        // Jika lulus, berikan poin reputasi kelulusan (+25 poin ke siswa dan anggota kelompok)
+        if ($validated['status'] === 'passed') {
+            if ($project->student && $project->student->user_id) {
+                ReputationLog::log(
+                    $project->student->user_id,
+                    25,
+                    'final_project_passed',
+                    'Lulus Ujian Sidang Akhir: ' . $project->title,
+                    $project
+                );
+            }
+
+            foreach ($project->members as $member) {
+                if ($member->student && $member->student->user_id && $member->student_id !== $project->student_id) {
+                    ReputationLog::log(
+                        $member->student->user_id,
+                        25,
+                        'final_project_passed',
+                        'Lulus Ujian Sidang Akhir: ' . $project->title,
+                        $project
+                    );
+                }
+            }
+        }
+
+        return back()->with('success', 'Nilai dan evaluasi ujian sidang berhasil disimpan.');
     }
 }

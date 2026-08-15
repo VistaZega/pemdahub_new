@@ -12,9 +12,15 @@ use App\Models\Semester;
 use App\Models\CbtExam;
 use App\Models\PklPlacement;
 use App\Models\PklLog;
+use App\Models\FinalProject;
+use App\Models\FinalProjectLog;
+use App\Models\FinalProjectFormat;
+use App\Models\FinalProjectMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class MobileStudentController extends Controller
 {
@@ -165,31 +171,39 @@ class MobileStudentController extends Controller
     }
 
     /**
-     * PKL & Jurnal Siswa Mobile
+     * PKL & Jurnal Siswa Mobile (Khusus Siswa Kelas XII SMK)
      */
     public function pkl()
     {
         $student = $this->getStudent();
-        $pklPlacement = null;
-        $logs = collect();
-
-        if ($student) {
-            $pklPlacement = PklPlacement::where('student_id', $student->id)
-                ->with(['dudi', 'teacher', 'academicYear'])
-                ->first();
-
-            if ($pklPlacement) {
-                $logs = PklLog::where('pkl_placement_id', $pklPlacement->id)
-                    ->orderBy('log_date', 'desc')
-                    ->get();
-            }
+        if (!$student) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Profil siswa tidak ditemukan.');
         }
 
-        return view('mobile.student.pkl', compact('student', 'pklPlacement', 'logs'));
+        $classroom = $student->currentClassroom()->first();
+        $gradeLevel = $classroom?->grade_level ?? $student->grade_level;
+        $schoolType = strtoupper($student->school->type ?? '');
+
+        if ($schoolType !== 'SMK' || $gradeLevel != 12) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Akses ditolak: Menu PKL hanya diperuntukkan bagi siswa Kelas XII SMK.');
+        }
+
+        $pklPlacement = PklPlacement::where('student_id', $student->id)
+            ->with(['dudi', 'teacher', 'academicYear', 'grade'])
+            ->first();
+
+        $logs = collect();
+        if ($pklPlacement) {
+            $logs = PklLog::where('pkl_placement_id', $pklPlacement->id)
+                ->orderBy('log_date', 'desc')
+                ->get();
+        }
+
+        return view('mobile.student.pkl', compact('student', 'classroom', 'pklPlacement', 'logs'));
     }
 
     /**
-     * Submit PKL Log Entry
+     * Submit PKL Daily Log Entry
      */
     public function storePklLog(Request $request)
     {
@@ -202,9 +216,18 @@ class MobileStudentController extends Controller
         if (!$student) {
             return back()->with('error', 'Data siswa tidak ditemukan.');
         }
+
+        $classroom = $student->currentClassroom()->first();
+        $gradeLevel = $classroom?->grade_level ?? $student->grade_level;
+        $schoolType = strtoupper($student->school->type ?? '');
+
+        if ($schoolType !== 'SMK' || $gradeLevel != 12) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Akses ditolak: Jurnal PKL hanya untuk siswa Kelas XII SMK.');
+        }
+
         $pklPlacement = PklPlacement::where('student_id', $student->id)->first();
         if (!$pklPlacement) {
-            return back()->with('error', 'Data penempatan PKL Anda tidak ditemukan.');
+            return back()->with('error', 'Data penempatan PKL Anda belum ditentukan oleh Panitia.');
         }
 
         PklLog::create([
@@ -214,6 +237,169 @@ class MobileStudentController extends Controller
             'status' => 'pending',
         ]);
 
-        return back()->with('success', 'Jurnal kegiatan PKL berhasil dikirim untuk diverifikasi.');
+        return back()->with('success', 'Jurnal harian PKL berhasil dikirim untuk diverifikasi Pembimbing.');
+    }
+
+    /**
+     * Project Akhir (SMK) / Penelitian Akhir (SMA) Siswa Mobile
+     */
+    public function finalProject()
+    {
+        $student = $this->getStudent();
+        if (!$student) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Profil siswa tidak ditemukan.');
+        }
+
+        $classroom = $student->currentClassroom()->first();
+        $gradeLevel = $classroom?->grade_level ?? $student->grade_level;
+        $schoolType = strtoupper($student->school->type ?? '');
+
+        if (!in_array($schoolType, ['SMA', 'SMK']) || $gradeLevel != 12) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Akses ditolak: Menu Project/Penelitian Akhir hanya untuk siswa Kelas XII SMA atau SMK.');
+        }
+
+        $project = $student->currentFinalProject();
+        $formats = FinalProjectFormat::where('school_id', $student->school_id)->get();
+        $stages = FinalProject::getStages();
+        $classmates = collect();
+
+        if ($project) {
+            $project->load(['advisor.user', 'examiner.user', 'members.student.user']);
+            $logs = $project->logs()->orderByDesc('log_date')->get();
+        } else {
+            $logs = collect();
+            if ($schoolType === 'SMA' && $classroom) {
+                // Teman sekelas yang belum memiliki kelompok
+                $classmates = $classroom->students()
+                    ->where('students.id', '!=', $student->id)
+                    ->whereDoesntHave('finalProjectMemberships')
+                    ->orderBy('full_name')
+                    ->get();
+            }
+        }
+
+        return view('mobile.student.final_project', compact('student', 'classroom', 'schoolType', 'project', 'logs', 'formats', 'stages', 'classmates'));
+    }
+
+    /**
+     * Pengajuan Proposal Penelitian Akhir Siswa (Khusus SMA)
+     */
+    public function proposeFinalProject(Request $request)
+    {
+        $student = $this->getStudent();
+        if (!$student) {
+            return back()->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        $classroom = $student->currentClassroom()->first();
+        $schoolType = strtoupper($student->school->type ?? '');
+        $gradeLevel = $classroom?->grade_level ?? $student->grade_level;
+
+        if ($schoolType !== 'SMA' || $gradeLevel != 12) {
+            return back()->with('error', 'Pengajuan proposal mandiri hanya untuk siswa Kelas XII SMA.');
+        }
+
+        if ($student->currentFinalProject()) {
+            return back()->with('error', 'Anda sudah terdaftar dalam kelompok Penelitian Akhir.');
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'abstract' => 'required|string',
+            'member_ids' => 'nullable|array',
+            'member_ids.*' => 'exists:students,id',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $project = FinalProject::create([
+                'student_id' => $student->id,
+                'academic_year_id' => $classroom->academic_year_id,
+                'type' => 'penelitian_ilmiah',
+                'title' => $validated['title'],
+                'abstract' => $validated['abstract'],
+                'status' => 'pending',
+            ]);
+
+            // Add leader
+            FinalProjectMember::create([
+                'final_project_id' => $project->id,
+                'student_id' => $student->id,
+                'role' => 'leader'
+            ]);
+
+            // Add members
+            if (!empty($validated['member_ids'])) {
+                foreach ($validated['member_ids'] as $memberId) {
+                    FinalProjectMember::create([
+                        'final_project_id' => $project->id,
+                        'student_id' => $memberId,
+                        'role' => 'member'
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('mobile.final-project')->with('success', 'Proposal Penelitian Akhir berhasil diajukan dan menunggu persetujuan Panitia.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal mengajukan proposal: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    /**
+     * Submit Logbook Konsultasi / Bimbingan Project/Penelitian Akhir
+     */
+    public function storeFinalProjectLog(Request $request)
+    {
+        $student = $this->getStudent();
+        if (!$student) {
+            return back()->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        $project = $student->currentFinalProject();
+        if (!$project) {
+            return back()->with('error', 'Data Project / Penelitian Akhir tidak ditemukan.');
+        }
+
+        $validated = $request->validate([
+            'stage' => 'required|string',
+            'activity' => 'required|string',
+            'log_date' => 'required|date',
+            'file_attachment' => 'nullable|file|mimes:pdf,doc,docx,zip,rar,jpg,png|max:10240',
+            'drive_link' => 'nullable|url|max:255',
+        ]);
+
+        $filePath = null;
+        if ($request->hasFile('file_attachment')) {
+            $filePath = $request->file('file_attachment')->store('final_project_logs', 'public');
+        }
+
+        FinalProjectLog::create([
+            'final_project_id' => $project->id,
+            'stage' => $validated['stage'],
+            'activity' => $validated['activity'],
+            'log_date' => $validated['log_date'],
+            'file_attachment' => $filePath,
+            'drive_link' => $validated['drive_link'] ?? null,
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Jurnal bimbingan berhasil dikirim ke Guru Pembimbing.');
+    }
+
+    /**
+     * Unduh Berkas Panduan / Format
+     */
+    public function downloadFinalProjectFormat($formatId)
+    {
+        $student = $this->getStudent();
+        $format = FinalProjectFormat::where('school_id', $student->school_id)->findOrFail($formatId);
+
+        if (!Storage::disk('public')->exists($format->file_path)) {
+            return back()->with('error', 'Berkas panduan tidak ditemukan di server.');
+        }
+
+        return response()->download(storage_path('app/public/' . $format->file_path));
     }
 }
