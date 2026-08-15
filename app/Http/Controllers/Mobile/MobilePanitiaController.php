@@ -77,7 +77,7 @@ class MobilePanitiaController extends Controller
         $unassignedTeacher = PklPlacement::when($activeAY, fn($q) => $q->where('academic_year_id', $activeAY->id))->whereNull('teacher_id')->count();
 
         $teachers = Teacher::orderBy('full_name')->get();
-        $dudis = Dudi::where('is_active', true)->orderBy('name')->get();
+        $dudis = Dudi::orderBy('name')->get();
 
         return view('mobile.panitia.pkl', compact(
             'placements',
@@ -105,7 +105,7 @@ class MobilePanitiaController extends Controller
 
         $placement = PklPlacement::with(['student.school', 'student.user', 'dudi', 'teacher.user'])->findOrFail($id);
         $teachers = Teacher::orderBy('full_name')->get();
-        $dudis = Dudi::where('is_active', true)->orderBy('name')->get();
+        $dudis = Dudi::orderBy('name')->get();
         $monitorings = PklMonitoring::where('dudi_id', $placement->dudi_id ?? 0)->latest('visit_date')->get();
 
         return view('mobile.panitia.pkl_detail', compact('placement', 'teachers', 'dudis', 'monitorings'));
