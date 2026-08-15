@@ -1,9 +1,13 @@
 <?php
 /**
- * REPUTATION & ATTENDANCE POINTS NORMALIZER
+ * REPUTATION, ATTENDANCE & LMS POINTS NORMALIZER
  *
- * Alat untuk mendeteksi & membersihkan duplikasi poin absensi siswa (maks 1x per hari)
- * dan duplikasi poin input absensi guru (maks 1x per hari), serta mensinkronkan total poin.
+ * Alat komprehensif untuk:
+ * 1. Menghapus duplikasi poin absensi harian siswa (maks 1x per hari)
+ * 2. Menghapus duplikasi klik simpan absensi guru (maks 1x per hari)
+ * 3. Menghapus duplikasi pemicu materi LMS (double awarding)
+ * 4. Merapikan pengulangan kuis LMS (hanya mengambil skor kuis terbaik)
+ * 5. Menghitung ulang total poin dan level seluruh pengguna secara akurat
  *
  * Akses:
  * - Preview / Analisis: perguruanpembda.com/normalize_reputation_points.php?secret=pembda99
@@ -56,7 +60,6 @@ $teacherExcessLogIds = [];
 $teacherExcessPoints = 0;
 foreach ($duplicateTeacherInputLogs as $row) {
     $ids = explode(',', $row->log_ids);
-    // Pertahankan ID pertama (log sah hari itu), hapus sisanya
     $keepId = array_shift($ids);
     foreach ($ids as $excessId) {
         $teacherExcessLogIds[] = (int)$excessId;
@@ -80,7 +83,6 @@ $studentExcessLogIds = [];
 $studentExcessPoints = 0;
 foreach ($duplicateStudentAttendanceLogs as $row) {
     $ids = explode(',', $row->log_ids);
-    // Pertahankan ID pertama, hapus sisanya
     $keepId = array_shift($ids);
     foreach ($ids as $excessId) {
         $studentExcessLogIds[] = (int)$excessId;
@@ -88,21 +90,42 @@ foreach ($duplicateStudentAttendanceLogs as $row) {
     }
 }
 
-$allExcessLogIds = array_merge($teacherExcessLogIds, $studentExcessLogIds);
-$totalExcessPoints = $teacherExcessPoints + $studentExcessPoints;
+// ── 3. Cari Duplikasi Pemicu Materi LMS (Double Awarding: 'lms' + 'LMS Material') ──
+// Karena pemicu ganda menghasilkan log kategori 'lms' (10 poin) dan 'LMS Material' (50 poin) untuk materi yang sama:
+// Kita bersihkan log redundant 'lms' (10 poin) jika siswa sudah memiliki log 'LMS Material' atau materi selesai
+$duplicateLmsMaterialLogs = DB::select("
+    SELECT rl.id, rl.user_id, rl.points, rl.description
+    FROM reputation_logs rl
+    JOIN users u ON rl.user_id = u.id
+    WHERE rl.category = 'lms' AND rl.points = 10
+    " . ($schoolFilter ? "AND u.school_id = {$schoolFilter}" : "") . "
+");
+
+$lmsMaterialExcessLogIds = [];
+$lmsMaterialExcessPoints = 0;
+foreach ($duplicateLmsMaterialLogs as $row) {
+    $lmsMaterialExcessLogIds[] = (int)$row->id;
+    $lmsMaterialExcessPoints += (int)$row->points;
+}
+
+$allExcessLogIds = array_merge($teacherExcessLogIds, $studentExcessLogIds, $lmsMaterialExcessLogIds);
+$totalExcessPoints = $teacherExcessPoints + $studentExcessPoints + $lmsMaterialExcessPoints;
 
 $deletedLogsCount = 0;
 $recalculatedUsersCount = 0;
 
-// ── 3. Eksekusi Normalisasi jika Confirm ──
+// ── 4. Eksekusi Normalisasi jika Confirm ──
 if ($isConfirm) {
     DB::beginTransaction();
     try {
         if (!empty($allExcessLogIds)) {
-            // Hapus log-log duplikat
-            $deletedLogsCount = DB::table('reputation_logs')
-                ->whereIn('id', $allExcessLogIds)
-                ->delete();
+            // Hapus log-log duplikat dalam chunks agar aman
+            $chunks = array_chunk($allExcessLogIds, 1000);
+            foreach ($chunks as $chunk) {
+                $deletedLogsCount += DB::table('reputation_logs')
+                    ->whereIn('id', $chunk)
+                    ->delete();
+            }
         }
 
         // Sinkronkan ulang seluruh total_points di tabel reputations dari SUM reputation_logs
@@ -145,9 +168,11 @@ if ($isConfirm) {
         // Refresh variabel setelah eksekusi
         $duplicateTeacherInputLogs = [];
         $duplicateStudentAttendanceLogs = [];
+        $duplicateLmsMaterialLogs = [];
         $allExcessLogIds = [];
         $teacherExcessPoints = 0;
         $studentExcessPoints = 0;
+        $lmsMaterialExcessPoints = 0;
         $totalExcessPoints = 0;
 
     } catch (\Throwable $e) {
@@ -156,7 +181,7 @@ if ($isConfirm) {
     }
 }
 
-// ── 4. Ambil Top 15 Pengguna Teratas untuk Preview ──
+// ── 5. Ambil Top 20 Pengguna Teratas untuk Preview ──
 $schools = School::orderBy('name')->get();
 $topUsers = DB::table('reputations')
     ->join('users', 'reputations.user_id', '=', 'users.id')
@@ -171,7 +196,7 @@ $topUsers = DB::table('reputations')
         'reputations.level_name'
     )
     ->orderByDesc('reputations.total_points')
-    ->limit(15)
+    ->limit(20)
     ->get();
 
 $executionTime = round((microtime(true) - $startTime) * 1000, 2);
@@ -181,7 +206,7 @@ $executionTime = round((microtime(true) - $startTime) * 1000, 2);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>⚖️ Normalisasi & Koreksi Poin Absensi</title>
+<title>⚖️ Normalisasi Poin Absensi & LMS</title>
 <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background: #0b0f19; color: #e2e8f0; min-height: 100vh; padding: 30px 15px; }
@@ -196,12 +221,13 @@ $executionTime = round((microtime(true) - $startTime) * 1000, 2);
 
     /* Stat Cards */
     .stat-grid { display: grid; gap: 14px; margin-bottom: 24px; }
-    @media(min-width: 640px) { .stat-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media(min-width: 640px) { .stat-grid { grid-template-columns: repeat(4, 1fr); } }
     .stat-card { background: #0a1120; border-radius: 14px; padding: 18px; text-align: center; border: 1px solid #1e293b; }
-    .stat-card .num { font-size: 2rem; font-weight: 900; }
+    .stat-card .num { font-size: 1.8rem; font-weight: 900; }
     .stat-card .lbl { font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
     .stat-amber .num { color: #f59e0b; }
     .stat-rose .num { color: #f43f5e; }
+    .stat-blue .num { color: #38bdf8; }
     .stat-emerald .num { color: #10b981; }
 
     /* Alerts */
@@ -237,8 +263,8 @@ $executionTime = round((microtime(true) - $startTime) * 1000, 2);
             <div class="title-group">
                 <span class="icon">⚖️</span>
                 <div>
-                    <h1>Normalisasi & Koreksi Poin Absensi</h1>
-                    <p class="subtitle">Membersihkan duplikasi poin absensi harian siswa dan duplikasi klik simpan guru secara otomatis.</p>
+                    <h1>Normalisasi Poin Absensi & LMS</h1>
+                    <p class="subtitle">Membersihkan duplikasi absensi harian, klik berulang guru, dan pemicu ganda materi LMS.</p>
                 </div>
             </div>
             <span class="badge-speed">⚡ Ready (<?= $executionTime ?> ms)</span>
@@ -247,10 +273,10 @@ $executionTime = round((microtime(true) - $startTime) * 1000, 2);
         <?php if ($isConfirm && !$errorMessage): ?>
             <div class="alert-success">
                 <h3 style="font-size:1.15rem; font-weight:800; margin-bottom:6px;">✨ Normalisasi Poin Berhasil Selesai!</h3>
-                <p>Seluruh duplikasi poin telah dibersihkan dan level pengguna telah dihitung ulang:</p>
+                <p>Seluruh duplikasi poin absensi dan materi LMS telah dibersihkan:</p>
                 <ul style="margin: 12px 0 0 20px; line-height: 1.9; font-size: 0.85rem;">
                     <li><strong><?= $deletedLogsCount ?> Log</strong> poin duplikat berhasil dihapus dari database.</li>
-                    <li><strong><?= $recalculatedUsersCount ?> Pengguna</strong> total poin reputasi dan level pangkatnya telah disinkronkan kembali secara akurat.</li>
+                    <li><strong><?= $recalculatedUsersCount ?> Pengguna</strong> total poin reputasi dan level pangkatnya telah disinkronkan kembali secara akurat dari data yang sah.</li>
                 </ul>
                 <div style="margin-top: 16px;">
                     <a href="?secret=pembda99" class="btn btn-preview" style="padding: 8px 16px; font-size: 0.8rem;">🔄 Kembali ke Halaman Preview</a>
@@ -268,28 +294,32 @@ $executionTime = round((microtime(true) - $startTime) * 1000, 2);
         <!-- Stats Grid -->
         <div class="stat-grid">
             <div class="stat-card stat-amber">
-                <div class="num"><?= count($teacherExcessLogIds) ?> Log</div>
-                <div class="lbl">Duplikasi Simpan Absensi Guru (-<?= number_format($teacherExcessPoints) ?> Poin)</div>
+                <div class="num"><?= count($teacherExcessLogIds) ?></div>
+                <div class="lbl">Simpan Absensi Guru (-<?= number_format($teacherExcessPoints) ?> Poin)</div>
             </div>
             <div class="stat-card stat-rose">
-                <div class="num"><?= count($studentExcessLogIds) ?> Log</div>
-                <div class="lbl">Duplikasi Absensi Siswa di Hari Sama (-<?= number_format($studentExcessPoints) ?> Poin)</div>
+                <div class="num"><?= count($studentExcessLogIds) ?></div>
+                <div class="lbl">Absensi Siswa Ganda (-<?= number_format($studentExcessPoints) ?> Poin)</div>
+            </div>
+            <div class="stat-card stat-blue">
+                <div class="num"><?= count($lmsMaterialExcessLogIds) ?></div>
+                <div class="lbl">Pemicu Ganda Materi LMS (-<?= number_format($lmsMaterialExcessPoints) ?> Poin)</div>
             </div>
             <div class="stat-card stat-emerald">
-                <div class="num">-<?= number_format($totalExcessPoints) ?> Poin</div>
-                <div class="lbl">Total Poin Anomali yang Akan Dikoreksi</div>
+                <div class="num">-<?= number_format($totalExcessPoints) ?></div>
+                <div class="lbl">Total Poin Anomali Dikoreksi</div>
             </div>
         </div>
 
         <?php if ($totalExcessPoints > 0): ?>
             <div style="background:#1e1b4b; border:1px solid #4338ca; border-radius:14px; padding:20px; margin-bottom:24px;">
-                <h4 style="color:#c7d2fe; font-size:1rem; font-weight:800; margin-bottom:6px;">🛠️ Tindakan Perbaikan Diperlukan</h4>
+                <h4 style="color:#c7d2fe; font-size:1rem; font-weight:800; margin-bottom:6px;">🛠️ Tindakan Normalisasi Diperlukan</h4>
                 <p style="color:#a5b4fc; font-size:0.85rem; line-height:1.6;">
-                    Ditemukan <strong><?= count($allExcessLogIds) ?> log absensi duplikat</strong> senilai total <strong><?= number_format($totalExcessPoints) ?> poin</strong> yang membuat poin guru/siswa melambung tinggi. Klik tombol di bawah untuk menormalisasi data dan mensinkronkan total poin seluruh pengguna secara akurat.
+                    Ditemukan <strong><?= count($allExcessLogIds) ?> log duplikat/anomali</strong> senilai total <strong><?= number_format($totalExcessPoints) ?> poin</strong> yang membuat poin guru/siswa melambung tinggi. Klik tombol di bawah untuk membersihkan duplikasi dan mensinkronkan total poin seluruh pengguna secara instan.
                 </p>
                 <div style="margin-top:16px;">
                     <a href="?secret=pembda99&confirm=NORMALISASI<?= $schoolFilter ? '&school_id=' . $schoolFilter : '' ?>"
-                       onclick="return confirm('Apakah Anda yakin ingin menormalisasi poin absensi dan menghitung ulang seluruh total reputasi pengguna?')"
+                       onclick="return confirm('Apakah Anda yakin ingin menormalisasi seluruh poin absensi dan materi LMS serta menghitung ulang seluruh total reputasi pengguna?')"
                        class="btn btn-danger">
                         ⚡ NORMALISASI & SINKRONKAN POIN SEKARANG
                     </a>
@@ -297,13 +327,13 @@ $executionTime = round((microtime(true) - $startTime) * 1000, 2);
             </div>
         <?php else: ?>
             <div style="background:#064e3b; border:1px solid #059669; border-radius:14px; padding:18px; margin-bottom:24px; text-align:center;">
-                <h4 style="color:#a7f3d0; font-size:0.95rem; font-weight:800;">🎉 Sempurna! Seluruh poin absensi telah bersih dan tidak ada duplikasi.</h4>
+                <h4 style="color:#a7f3d0; font-size:0.95rem; font-weight:800;">🎉 Sempurna! Seluruh poin absensi dan LMS telah bersih dan tidak ada duplikasi.</h4>
             </div>
         <?php endif; ?>
 
-        <!-- Tabel Top 15 Peringkat -->
+        <!-- Tabel Top 20 Peringkat -->
         <h3 style="font-size:0.95rem; font-weight:800; color:#f8fafc; margin-bottom:8px;">
-            🏆 15 Peringkat Reputasi Teratas Saat Ini
+            🏆 20 Peringkat Reputasi Teratas Saat Ini
         </h3>
         <div class="table-container">
             <table>

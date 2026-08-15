@@ -68,13 +68,13 @@ class LmsMaterialProgress extends Model
 
         if (!$alreadyCompleted) {
             $student = $this->student;
-            if ($student && $student->user_id) {
+            if ($student && $student->user_id && $this->material) {
                 \App\Models\ReputationLog::log(
                     $student->user_id, 
-                    10, 
-                    'lms', 
-                    "Menyelesaikan materi: " . ($this->material->title ?? 'Materi LMS'),
-                    $this
+                    20, 
+                    'lms_material', 
+                    "Menyelesaikan materi LMS: " . ($this->material->title ?? 'Materi'),
+                    $this->material
                 );
             }
         }

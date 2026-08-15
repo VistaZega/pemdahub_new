@@ -295,23 +295,7 @@ class LmsController extends Controller
         );
 
         if ($request->status === 'completed') {
-            $isAlreadyCompleted = $progress->status === 'completed';
             $progress->markCompleted();
-
-            // Give EXP for completing material (Gamification)
-            if (!$isAlreadyCompleted && $student->user_id) {
-                try {
-                    \App\Models\ReputationLog::log(
-                        $student->user_id,
-                        50, // Base EXP for reading material
-                        'LMS Material',
-                        'Membaca materi: ' . $material->title,
-                        $material
-                    );
-                } catch (\Exception $e) {
-                    \Log::error('Gagal memberikan EXP LMS: ' . $e->getMessage());
-                }
-            }
         } else {
             $progress->fill([
                 'status' => $request->status,
@@ -750,16 +734,16 @@ class LmsController extends Controller
             \Log::warning('LMS quiz sync failed: ' . $e->getMessage());
         }
 
-        // Give EXP for completing Quiz (Gamification)
+        // Give EXP for completing Quiz (Gamification - Referensi ke $quiz agar re-attempt tidak menumpuk ganda)
         if ($student->user_id) {
             try {
-                $expEarned = 50 + (int)($scorePercentage / 2); // 50 base + up to 50 for score
+                $expEarned = 10 + (int)(($scorePercentage / 100) * 40); // Max 50 Poin (Nilai 100%)
                 \App\Models\ReputationLog::log(
                     $student->user_id,
                     $expEarned,
-                    'LMS Quiz',
+                    'lms_quiz',
                     'Menyelesaikan kuis: ' . $quiz->title . ' (' . number_format($scorePercentage, 1) . '%)',
-                    $attempt
+                    $quiz
                 );
             } catch (\Exception $e) {
                 \Log::error('Gagal memberikan EXP Quiz: ' . $e->getMessage());
