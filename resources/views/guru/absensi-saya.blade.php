@@ -106,78 +106,90 @@
         </div>
     @endif
 
-    <!-- Presensi GPS Guru Mandiri Trigger Card (Clean White High-Contrast Desktop Card) -->
-    <div class="bg-white rounded-3xl p-6 shadow-md border-2 border-slate-200 space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-                <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase bg-teal-100 text-teal-800 border border-teal-200 shadow-xs">
-                    📍 Presensi Mandiri GPS Guru
-                </span>
-                <h3 class="text-xl font-black text-slate-900 mt-2 leading-tight flex items-center gap-2">
-                    <i class="fas fa-calendar-day text-teal-600"></i>
-                    {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
-                </h3>
+    <!-- Presensi GPS Guru Mandiri Trigger Card (Modern Gradient & High-Contrast Neo-Brutalism) -->
+    <div class="bg-white rounded-3xl p-6 shadow-xl border-2 border-black space-y-5 relative overflow-hidden">
+        {{-- Background glow accent --}}
+        <div class="absolute -right-12 -top-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
+            <div class="flex items-center gap-4">
+                <div class="w-13 h-13 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center text-black text-2xl font-black shadow-md flex-shrink-0">
+                    <i class="fas fa-location-dot text-black"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                        <span class="px-3 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-black bg-teal-100 text-teal-900 shadow-xs">
+                            📍 Presensi Mandiri GPS Guru & Pegawai
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+                            <i class="fas fa-shield-halved text-emerald-600 mr-1"></i> Geofencing Radius Aktif
+                        </span>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-900 leading-tight">
+                        {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
+                    </h3>
+                </div>
             </div>
             
-            <div class="bg-slate-100 px-4 py-2 rounded-2xl border-2 border-slate-200 text-slate-900 font-black text-sm text-center shadow-inner">
-                <i class="far fa-clock mr-1.5 text-teal-600"></i> <span id="desktopLiveClock" class="text-base text-slate-900">{{ date('H:i:s') }}</span> WIB
+            <div class="bg-slate-900 text-white px-5 py-2.5 rounded-2xl border-2 border-black font-black text-sm flex items-center gap-2 shadow-md self-start sm:self-auto">
+                <i class="far fa-clock text-amber-400 text-base"></i>
+                <span id="desktopLiveClock" class="text-base text-amber-300 tracking-wider font-mono">{{ date('H:i:s') }}</span>
+                <span class="text-xs text-slate-400 uppercase">WIB</span>
             </div>
         </div>
 
-        <!-- Presensi Status & Form Button -->
-        <div class="pt-4 border-t-2 border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <!-- Presensi Status & Action Buttons -->
+        <div class="pt-4 border-t-2 border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
             @if(!empty($todayAttendance))
                 @php
                     $isNotCheckedOut = !$todayAttendance->time_out || $todayAttendance->time_out === '00:00:00' || $todayAttendance->time_out === '00:00';
                 @endphp
-                <div class="flex items-center gap-5 min-w-0">
-                    <div class="w-13 h-13 rounded-2xl bg-emerald-100 border-2 border-emerald-300 shrink-0 flex items-center justify-center text-emerald-700 text-2xl font-black shadow-sm p-3">
+                <div class="flex items-center gap-4 min-w-0">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 border-2 border-emerald-400 shrink-0 flex items-center justify-center text-emerald-700 text-2xl font-black shadow-sm">
                         <i class="fas fa-circle-check"></i>
                     </div>
-                    <div class="space-y-1 min-w-0">
-                        <span class="text-xs text-slate-500 font-extrabold block uppercase tracking-wider">Status Presensi Hari Ini</span>
-                        <div class="text-base sm:text-lg font-black text-slate-900 leading-tight">
-                            Hadir <span class="text-xs font-bold text-slate-500">(Masuk: <span class="text-emerald-600 font-black text-sm">{{ substr($todayAttendance->time_in ?? $todayAttendance->check_in_time ?? date('H:i'), 0, 5) }}</span>)</span>
+                    <div class="space-y-0.5 min-w-0">
+                        <span class="text-[11px] text-slate-500 font-extrabold uppercase tracking-wider block">Status Presensi Hari Ini</span>
+                        <div class="text-base font-black text-slate-900 flex flex-wrap items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-black">Hadir Masuk</span>
+                            <span class="text-xs font-bold text-slate-600">Jam: <span class="text-emerald-700 font-black">{{ substr($todayAttendance->time_in ?? $todayAttendance->check_in_time ?? date('H:i'), 0, 5) }} WIB</span></span>
                             @if(!$isNotCheckedOut)
-                                <span class="text-xs font-bold text-slate-500">| Pulang: <span class="text-blue-600 font-black text-sm">{{ substr($todayAttendance->time_out, 0, 5) }}</span></span>
+                                <span class="text-slate-300">·</span>
+                                <span class="px-2.5 py-0.5 rounded-lg bg-blue-100 text-blue-900 border border-blue-300 text-xs font-black">Pulang</span>
+                                <span class="text-xs font-bold text-slate-600">Jam: <span class="text-blue-700 font-black">{{ substr($todayAttendance->time_out, 0, 5) }} WIB</span></span>
                             @endif
                         </div>
                     </div>
                 </div>
 
                 @if($isNotCheckedOut)
-                    <form action="{{ route('mobile.absensi.scan') }}" method="POST" id="desktopGpsForm" class="w-full sm:w-auto shrink-0">
-                        @csrf
-                        <input type="hidden" name="latitude" id="desktopLatInput">
-                        <input type="hidden" name="longitude" id="desktopLngInput">
-                        <button type="button" onclick="handleDesktopGpsScan()" class="w-full sm:w-auto px-8 py-3.5 bg-amber-400 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-md hover:bg-amber-300 transition flex items-center justify-center gap-3 border-2 border-slate-900">
-                            <i class="fas fa-right-from-bracket text-base text-slate-900"></i>
-                            <span class="tracking-wide">PRESENSI GPS PULANG SEKARANG</span>
-                        </button>
-                    </form>
+                    <button type="button" onclick="performGuruGpsScan(this)" class="w-full sm:w-auto px-8 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-3 border-2 border-black">
+                        <i class="fas fa-right-from-bracket text-base text-slate-900"></i>
+                        <span class="tracking-wide">PRESENSI PULANG SEKARANG (GPS)</span>
+                    </button>
+                @else
+                    <div class="px-5 py-2.5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900 text-xs font-black flex items-center gap-2">
+                        <i class="fas fa-circle-check text-emerald-600 text-base"></i>
+                        <span>Presensi Lengkap Hari Ini (Masuk & Pulang Selesai)</span>
+                    </div>
                 @endif
             @else
-                <div class="flex items-center gap-5 min-w-0">
-                    <div class="w-13 h-13 rounded-2xl bg-amber-100 border-2 border-amber-300 shrink-0 flex items-center justify-center text-amber-800 text-2xl font-black shadow-sm p-3">
+                <div class="flex items-center gap-4 min-w-0">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 border-2 border-amber-300 shrink-0 flex items-center justify-center text-amber-800 text-2xl font-black shadow-sm">
                         <i class="fas fa-user-clock"></i>
                     </div>
-                    <div class="space-y-1 min-w-0">
-                        <span class="text-xs text-slate-500 font-extrabold block uppercase tracking-wider">Status Presensi Hari Ini</span>
-                        <div class="text-base sm:text-lg font-black text-amber-700 leading-tight">
-                            Belum Presensi Masuk Hari Ini
+                    <div class="space-y-0.5 min-w-0">
+                        <span class="text-[11px] text-slate-500 font-extrabold uppercase tracking-wider block">Status Presensi Hari Ini</span>
+                        <div class="text-base font-black text-amber-800 leading-tight">
+                            Belum Melakukan Presensi Masuk
                         </div>
                     </div>
                 </div>
 
-                <form action="{{ route('mobile.absensi.scan') }}" method="POST" id="desktopGpsForm" class="w-full sm:w-auto shrink-0">
-                    @csrf
-                    <input type="hidden" name="latitude" id="desktopLatInput">
-                    <input type="hidden" name="longitude" id="desktopLngInput">
-                    <button type="button" onclick="handleDesktopGpsScan()" class="w-full sm:w-auto px-8 py-3.5 bg-teal-600 text-white font-black text-xs sm:text-sm rounded-2xl shadow-md hover:bg-teal-700 transition flex items-center justify-center gap-3 border-2 border-teal-800">
-                        <i class="fas fa-location-dot text-amber-300 text-base"></i>
-                        <span class="tracking-wide">PRESENSI GPS GURU SEKARANG</span>
-                    </button>
-                </form>
+                <button type="button" onclick="performGuruGpsScan(this)" class="w-full sm:w-auto px-8 py-3.5 bg-teal-600 hover:bg-teal-700 text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-3 border-2 border-black">
+                    <i class="fas fa-fingerprint text-amber-300 text-lg animate-pulse"></i>
+                    <span class="tracking-wide">PRESENSI MASUK SEKARANG (GPS)</span>
+                </button>
             @endif
         </div>
     </div>
@@ -346,6 +358,11 @@
     </div>
 </div>
 
+</div>
+@endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     setInterval(() => {
         const now = new Date();
@@ -355,30 +372,114 @@
         }
     }, 1000);
 
-    function handleDesktopGpsScan() {
-        const form = document.getElementById('desktopGpsForm');
-        const latInput = document.getElementById('desktopLatInput');
-        const lngInput = document.getElementById('desktopLngInput');
-
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    latInput.value = pos.coords.latitude;
-                    lngInput.value = pos.coords.longitude;
-                    form.submit();
-                },
-                (err) => {
-                    latInput.value = 0;
-                    lngInput.value = 0;
-                    form.submit();
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-        } else {
-            latInput.value = 0;
-            lngInput.value = 0;
-            form.submit();
+    function performGuruGpsScan(btnElement) {
+        if (!navigator.geolocation) {
+            Swal.fire({
+                icon: 'error',
+                title: 'GPS Tidak Didukung',
+                text: 'Browser Anda tidak mendukung fitur lokasi (GPS). Gunakan Google Chrome atau browser modern lainnya.',
+                confirmButtonColor: '#059669',
+            });
+            return;
         }
+
+        const origHtml = btnElement ? btnElement.innerHTML : '';
+        if (btnElement) {
+            btnElement.disabled = true;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Mengambil Lokasi GPS...';
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            function (pos) {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                let deviceId = localStorage.getItem('pembdahub_device_id');
+                if (!deviceId) {
+                    deviceId = 'dev_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                    localStorage.setItem('pembdahub_device_id', deviceId);
+                }
+
+                if (btnElement) {
+                    btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Memverifikasi Presensi...';
+                }
+
+                fetch('{{ route('mobile.absensi.scan') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        latitude: lat,
+                        longitude: lng,
+                        device_id: deviceId
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (btnElement) {
+                        btnElement.disabled = false;
+                        btnElement.innerHTML = origHtml;
+                    }
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Presensi Berhasil! 🎉',
+                            html: `<p class="font-bold text-slate-800">${data.message}</p><p class="text-xs text-slate-500 mt-2">Terima kasih atas dedikasi dan pengabdian Bapak/Ibu Guru!</p>`,
+                            timer: 3500,
+                            timerProgressBar: true,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Tutup',
+                            confirmButtonColor: '#059669',
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Presensi Belum Berhasil ⚠️',
+                            text: data.message || 'Terjadi kesalahan saat memverifikasi lokasi.',
+                            confirmButtonColor: '#e11d48',
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    if (btnElement) {
+                        btnElement.disabled = false;
+                        btnElement.innerHTML = origHtml;
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gangguan Jaringan',
+                        text: 'Gagal terhubung ke server. Pastikan koneksi internet aktif dan stabil.',
+                        confirmButtonColor: '#e11d48',
+                    });
+                });
+            },
+            function (err) {
+                if (btnElement) {
+                    btnElement.disabled = false;
+                    btnElement.innerHTML = origHtml;
+                }
+                let msg = 'Gagal mengakses GPS pada perangkat Anda.';
+                if (err.code === err.PERMISSION_DENIED) {
+                    msg = 'Akses lokasi ditolak. Harap izinkan akses lokasi (GPS) pada browser/perangkat Anda.';
+                } else if (err.code === err.POSITION_UNAVAILABLE) {
+                    msg = 'Sinyal GPS tidak terdeteksi. Pastikan GPS aktif dan berada di area terbuka.';
+                }
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Akses Lokasi Diperlukan 📍',
+                    text: msg,
+                    confirmButtonColor: '#f59e0b',
+                });
+            },
+            { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+        );
     }
 </script>
-@endsection
+@endpush

@@ -252,13 +252,23 @@ class DashboardController extends Controller
             ->take(3)
             ->get();
 
+        // Today Employee Attendance for teacher
+        $employee = $teacher->employee;
+        $todayAttendance = null;
+        if ($employee) {
+            $todayAttendance = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
+                ->where('date', now()->format('Y-m-d'))
+                ->first();
+        }
+
         return view('guru.dashboard', compact(
             'teacher', 'activeYear', 'activeSemester', 'classrooms',
             'totalStudents', 'todaySchedules', 'groupedTodaySchedules', 'gradesCount',
             'homeroomClassroom', 'homeroomBillingStats', 'weeklyScheduleCount',
             'currentTime', 'currentSchedule', 'nextSchedule',
             'reputation', 'reputationLogs', 'rank', 'foundationLetters',
-            'availableSchools', 'activeSchoolName', 'isMultiSchool', 'effectiveSchoolId'
+            'availableSchools', 'activeSchoolName', 'isMultiSchool', 'effectiveSchoolId',
+            'todayAttendance'
         ));
     }
 
