@@ -93,71 +93,54 @@ class MobileProfileController extends Controller
         // 4. Update Data Lengkap Siswa (Student Model)
         $student = $user->student ?? Student::where('user_id', $user->id)->first();
         if ($student) {
-            $studentFields = [
-                'name' => $validated['name'],
-                'full_name' => $validated['name'],
-                'email' => $validated['email'],
-                'nisn' => $validated['nisn'] ?? $student->nisn,
-                'nis' => $validated['nis'] ?? $student->nis,
-                'gender' => $validated['gender'] ?? $student->gender,
-                'birth_place' => $validated['birth_place'] ?? $student->birth_place,
-                'birth_date' => $validated['birth_date'] ?? $student->birth_date,
-                'religion' => $validated['religion'] ?? $student->religion,
-                'address' => $validated['address'] ?? $student->address,
-                'phone' => $validated['phone'] ?? $student->phone,
-                'parent_name' => $validated['parent_name'] ?? $student->parent_name,
-                'parent_phone' => $validated['parent_phone'] ?? $student->parent_phone,
-                'guardian_name' => $validated['guardian_name'] ?? $student->guardian_name,
-                'guardian_phone' => $validated['guardian_phone'] ?? $student->guardian_phone,
-                'hobby' => $validated['hobby'] ?? $student->hobby,
-            ];
-
-            if (isset($path)) {
-                $studentFields['photo'] = $path;
-            }
-
-            // Menggunakan fillable statik untuk efisiensi daripada mengeksekusi Schema::hasColumn berulang-ulang
-            $allowedStudentFields = ['name', 'full_name', 'email', 'nisn', 'nis', 'gender', 'birth_place', 'birth_date', 'religion', 'address', 'phone', 'parent_name', 'parent_phone', 'guardian_name', 'guardian_phone', 'hobby', 'photo'];
-            
-            foreach ($studentFields as $col => $val) {
-                if (in_array($col, $allowedStudentFields)) {
-                    $student->$col = $val;
-                }
-            }
+            $student->full_name = $validated['name'];
+            if (isset($validated['nisn'])) $student->nisn = $validated['nisn'];
+            if (isset($validated['nis'])) $student->nis = $validated['nis'];
+            if (isset($validated['gender'])) $student->gender = $validated['gender'];
+            if (isset($validated['birth_place'])) $student->birth_place = $validated['birth_place'];
+            if (isset($validated['birth_date'])) $student->birth_date = $validated['birth_date'];
+            if (isset($validated['religion'])) $student->religion = $validated['religion'];
+            if (isset($validated['address'])) $student->address = $validated['address'];
+            if (isset($validated['phone'])) $student->phone = $validated['phone'];
+            if (isset($validated['parent_name'])) $student->parent_name = $validated['parent_name'];
+            if (isset($validated['parent_phone'])) $student->parent_phone = $validated['parent_phone'];
+            if (isset($validated['guardian_name'])) $student->guardian_name = $validated['guardian_name'];
+            if (isset($validated['guardian_phone'])) $student->guardian_phone = $validated['guardian_phone'];
+            if (isset($validated['hobby'])) $student->hobby = $validated['hobby'];
+            if (isset($path)) $student->photo = $path;
             $student->save();
         }
 
-        // 5. Update Data Lengkap Guru & Pegawai (Teacher Model)
+        // 5. Update Data Lengkap Guru & Pegawai (Teacher & Employee Models)
         $teacher = $user->teacher ?? Teacher::where('user_id', $user->id)->first();
         if ($teacher) {
-            $teacherFields = [
-                'name' => $validated['name'],
-                'full_name' => $validated['name'],
-                'email' => $validated['email'],
-                'nip' => $validated['nip'] ?? $teacher->nip,
-                'gender' => $validated['gender'] ?? $teacher->gender,
-                'birth_place' => $validated['birth_place'] ?? $teacher->birth_place,
-                'birth_date' => $validated['birth_date'] ?? $teacher->birth_date,
-                'religion' => $validated['religion'] ?? $teacher->religion,
-                'address' => $validated['address'] ?? $teacher->address,
-                'phone' => $validated['phone'] ?? $teacher->phone,
-                'education_level' => $validated['education_level'] ?? $teacher->education_level,
-                'major' => $validated['major'] ?? $teacher->major,
-                'position' => $validated['position'] ?? $teacher->position,
-            ];
-
-            if (isset($path)) {
-                $teacherFields['photo'] = $path;
-            }
-
-            $allowedTeacherFields = ['name', 'full_name', 'email', 'nip', 'gender', 'birth_place', 'birth_date', 'religion', 'address', 'phone', 'education_level', 'major', 'position', 'photo'];
-
-            foreach ($teacherFields as $col => $val) {
-                if (in_array($col, $allowedTeacherFields)) {
-                    $teacher->$col = $val;
-                }
-            }
+            $teacher->full_name = $validated['name'];
+            if (isset($validated['gender'])) $teacher->gender = $validated['gender'];
+            if (isset($validated['birth_place'])) $teacher->birth_place = $validated['birth_place'];
+            if (isset($validated['birth_date'])) $teacher->birth_date = $validated['birth_date'];
+            if (isset($validated['religion'])) $teacher->religion = $validated['religion'];
+            if (isset($validated['address'])) $teacher->address = $validated['address'];
+            if (isset($validated['phone'])) $teacher->phone = $validated['phone'];
+            if (isset($validated['education_level'])) $teacher->education_level = $validated['education_level'];
+            if (isset($validated['major'])) $teacher->major = $validated['major'];
+            if (isset($validated['position'])) $teacher->position = $validated['position'];
+            if (isset($path)) $teacher->photo = $path;
             $teacher->save();
+        }
+
+        $employee = \App\Models\Employee::where('user_id', $user->id)->first();
+        if ($employee) {
+            $employee->full_name = $validated['name'];
+            $employee->email = $validated['email'];
+            if (isset($validated['nip'])) $employee->nip = $validated['nip'];
+            if (isset($validated['gender'])) $employee->gender = $validated['gender'];
+            if (isset($validated['birth_place'])) $employee->birth_place = $validated['birth_place'];
+            if (isset($validated['birth_date'])) $employee->birth_date = $validated['birth_date'];
+            if (isset($validated['religion'])) $employee->religion = $validated['religion'];
+            if (isset($validated['address'])) $employee->address = $validated['address'];
+            if (isset($validated['phone'])) $employee->phone = $validated['phone'];
+            if (isset($path)) $employee->photo = $path;
+            $employee->save();
         }
 
         return back()->with('success', 'Data Profil Lengkap & Foto Profil Anda berhasil diperbarui!');
