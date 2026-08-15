@@ -42,12 +42,20 @@ class MobileDashboardController extends Controller
             'caption' => 'Semangat terus dalam belajar dan pertahankan kehadiranmu! 🌟',
         ];
 
-        // Guru specific flags
+        // Guru specific flags & stats
         $hasPklBimbingan = false;
         $hasProjectBimbingan = false;
         $hasProjectUjian = false;
         $isPanitiaPkl = false;
         $isPanitiaProyek = false;
+        $teacherProgress = [
+            'overall' => 100,
+            'attendance_rate' => 100,
+            'classes_today' => 0,
+            'pending_assignments' => 0,
+            'caption' => 'Dedikasi Anda sangat luar biasa dalam membimbing siswa Pembda! 👨‍🏫🌟',
+        ];
+        $teacherAttendanceStats = ['hadir' => 0, 'terlambat' => 0, 'sakit_izin' => 0, 'total_jadwal' => 0];
 
         if ($activeRole === 'siswa') {
             $student = Student::where('user_id', $user->id)->with('school')->first();
