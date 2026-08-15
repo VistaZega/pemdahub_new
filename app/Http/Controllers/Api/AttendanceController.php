@@ -467,7 +467,7 @@ class AttendanceController extends Controller
             return response()->json(['success' => false, 'message' => 'Akses ditolak. Anda bukan Siswa.'], 403);
         }
 
-        // ==== KEAMANAN 2: GEOFENCING (GPS Radius Validasi) ====
+        // ==== KEAMANAN 2: GEOFENCING (GPS Radius Validasi) & PENGECUALIAN PKL ====
         $school = $student->school;
         
         $schoolLat = (float) ($school->latitude ?? 0); 
@@ -482,11 +482,35 @@ class AttendanceController extends Controller
             $maxRadiusMeters = 150;
         }
 
-        // Rumus Penghitungan Jarak (Haversine Formula)
+        $todayDate = \Carbon\Carbon::now('Asia/Jakarta')->toDateString();
+
+        // Cek apakah siswa SEDANG AKTIF PKL di Industri / DUDI
+        $activePkl = \App\Models\PklPlacement::with('dudi')
+            ->where(function($q) use ($student, $studentUserId) {
+                $q->where('student_id', $student->id)
+                  ->orWhere('student_id', $studentUserId);
+            })
+            ->where(function($q) {
+                $q->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan']);
+            })
+            ->where(function($q) use ($todayDate) {
+                $q->whereNull('start_date')
+                  ->orWhereDate('start_date', '<=', $todayDate);
+            })
+            ->where(function($q) use ($todayDate) {
+                $q->whereNull('end_date')
+                  ->orWhereDate('end_date', '>=', $todayDate);
+            })
+            ->first();
+
+        $isPklActive = !empty($activePkl);
+        $dudiName = $activePkl ? ($activePkl->dudi->name ?? ($activePkl->company_name ?? 'Mitra DUDI')) : null;
+
+        // Hitung Jarak GPS Siswa ke Titik Sekolah
         $distance = $this->calculateDistance($request->latitude, $request->longitude, $schoolLat, $schoolLong);
 
-        // KETAT: Jika di luar radius sekolah, TOLAK SEGERA!
-        if ($distance > $maxRadiusMeters) {
+        // Jika BUKAN siswa PKL aktif dan berada di luar radius sekolah, TOLAK SEGERA!
+        if (!$isPklActive && $distance > $maxRadiusMeters) {
             $formattedDist = number_format($distance, 0, ',', '.');
             return response()->json([
                 'success' => false,
@@ -517,7 +541,7 @@ class AttendanceController extends Controller
             [
                 'classroom_id' => $studentClass->classroom_id,
                 'status' => $status,
-                'recorded_via' => 'qr_gps',
+                'recorded_via' => $isPklActive ? 'gps_pkl' : 'qr_gps',
                 'device_id' => $request->device_id, // KODE UNIK HP DISIMPAN
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
@@ -534,15 +558,19 @@ class AttendanceController extends Controller
                     default => 0
                 };
                 $classroomName = $studentClass->classroom ? $studentClass->classroom->class_name : 'Kelas';
-                $desc = "Kehadiran di kelas " . $classroomName . " (" . ucfirst($status) . ")";
+                $desc = $isPklActive 
+                    ? "Presensi PKL di {$dudiName}" 
+                    : "Kehadiran di kelas " . $classroomName . " (" . ucfirst($status) . ")";
                 \App\Models\ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
             }
 
             $isMerdekaDay = (date('m-d') === '08-17');
             if ($isMerdekaDay) {
-                $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Selamat Hari Kemerdekaan RI! Presensi kehadiranmu hari ini berhasil dicatat (Radius: ' . round($distance) . 'm). Tetap semangat belajar demi masa depan Bangsa! 🇮🇩✨';
+                $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Selamat Hari Kemerdekaan RI! Presensi kehadiranmu hari ini berhasil dicatat. Tetap semangat belajar demi masa depan Bangsa! 🇮🇩✨';
+            } elseif ($isPklActive) {
+                $msg = "📍 Presensi PKL Berhasil! Kehadiran Anda di {$dudiName} telah tercatat pada jam " . date('H:i', strtotime($currentTime)) . " dengan tag GPS. Selamat bertugas! 💼";
             } else {
-                $msg = 'Absen berhasil (Radius: '. round($distance) .'m)';
+                $msg = '📍 Presensi Mandiri Sekolah berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '!';
             }
 
             return response()->json(['success' => true, 'message' => $msg]);
@@ -555,11 +583,13 @@ class AttendanceController extends Controller
             
             $isMerdekaDay = (date('m-d') === '08-17');
             if ($isMerdekaDay) {
-                $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi pulangmu berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '. Selamat memperingati Hari Kemerdekaan RI!';
+                $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi Pulang berhasil dicatat. Selamat memperingati Hari Kemerdekaan RI!';
+            } elseif ($isPklActive) {
+                $msg = "📍 Presensi Pulang PKL Berhasil! Selesai bertugas di {$dudiName} pada jam " . date('H:i', strtotime($currentTime)) . ". 💼";
             } else {
-                $msg = 'Absen pulang berhasil dikirim!';
+                $msg = '📍 Presensi Pulang berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '!';
             }
-            
+
             return response()->json(['success' => true, 'message' => $msg]);
         }
 
