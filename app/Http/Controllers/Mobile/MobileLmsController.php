@@ -30,18 +30,46 @@ class MobileLmsController extends Controller
         if ($student && !$isTeacher) {
             $enrolledCourses = LmsCourse::whereHas('enrollments', function ($q) use ($student) {
                 $q->where('student_id', $student->id);
-            })->with('teacher')->get();
+            })
+            ->with(['teacher.user', 'subject', 'classroom', 'modules'])
+            ->withCount(['materials', 'assignments', 'quizzes', 'enrollments'])
+            ->get();
         } else {
             $teacherId = $teacher->id ?? 0;
             $enrolledCourses = LmsCourse::where('teacher_id', $teacherId)
                 ->orWhere(fn($q) => $q->whereNull('teacher_id'))
-                ->with('teacher')
+                ->with(['teacher.user', 'subject', 'classroom', 'modules'])
+                ->withCount(['materials', 'assignments', 'quizzes', 'enrollments'])
                 ->latest()
                 ->get();
         }
 
         if ($enrolledCourses->isEmpty()) {
-            $enrolledCourses = LmsCourse::with('teacher')->latest()->take(10)->get();
+            $enrolledCourses = LmsCourse::with(['teacher.user', 'subject', 'classroom', 'modules'])
+                ->withCount(['materials', 'assignments', 'quizzes', 'enrollments'])
+                ->latest()
+                ->take(12)
+                ->get();
+        }
+
+        // Hitung persentase progress penyelesaian materi untuk siswa
+        $courseProgress = [];
+        if ($student) {
+            $completedMaterials = \App\Models\LmsMaterialProgress::where('student_id', $student->id)
+                ->pluck('material_id')
+                ->toArray();
+
+            foreach ($enrolledCourses as $c) {
+                $totalMat = $c->materials_count;
+                if ($totalMat > 0) {
+                    $matIds = \App\Models\LmsMaterial::where('course_id', $c->id)->pluck('id')->toArray();
+                    $completedCount = count(array_intersect($matIds, $completedMaterials));
+                    $pct = round(($completedCount / $totalMat) * 100);
+                    $courseProgress[$c->id] = min(100, $pct);
+                } else {
+                    $courseProgress[$c->id] = 0;
+                }
+            }
         }
 
         $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
@@ -95,7 +123,7 @@ class MobileLmsController extends Controller
                 ->get();
         }
 
-        return view('mobile.lms.index', compact('enrolledCourses', 'isTeacher', 'classrooms', 'subjects'));
+        return view('mobile.lms.index', compact('enrolledCourses', 'isTeacher', 'classrooms', 'subjects', 'courseProgress'));
     }
 
     /**
