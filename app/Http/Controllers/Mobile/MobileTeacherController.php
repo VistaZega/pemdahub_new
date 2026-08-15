@@ -1028,7 +1028,7 @@ class MobileTeacherController extends Controller
             ->orderBy('full_name')
             ->get();
 
-            if ($students->isEmpty()) {
+            if ($students->isEmpty() && \Illuminate\Support\Facades\Schema::hasColumn('students', 'classroom_id')) {
                 // Fallback for single classroom relation
                 $students = Student::where('classroom_id', $selectedClassroomId)
                     ->with(['school', 'user.reputation'])
