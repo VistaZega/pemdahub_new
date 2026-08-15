@@ -270,43 +270,46 @@
 
     <!-- Chat Input Form Card -->
     @if(!$group->only_admin_can_post || ($membership && $membership->role === 'admin'))
-        <div class="clay-card p-4 bg-white border-2 border-purple-200 sticky bottom-4 shadow-xl space-y-2" x-data="{ showPollForm: false }">
+        <div class="clay-card p-4 bg-white border-2 border-purple-200 sticky bottom-4 shadow-xl space-y-2.5" x-data="{ showPollForm: false }">
             <!-- Mention Shortcut Chips -->
-            <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 text-[9px] font-black no-scrollbar">
+            <div class="flex items-center space-x-1.5 overflow-x-auto pb-2 mb-2 text-[9px] font-black no-scrollbar border-b border-purple-100">
                 <span class="text-slate-400 uppercase tracking-wider shrink-0">Tag:</span>
                 <button type="button" onclick="document.getElementById('groupChatInput').value += ' @SemuaSiswa '" 
-                        class="px-2 py-0.5 rounded-lg bg-purple-100 text-purple-900 border border-purple-200 shrink-0 hover:bg-purple-200">
+                        class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-900 border border-purple-200 shrink-0 hover:bg-purple-200 transition">
                     +@SemuaSiswa
                 </button>
                 <button type="button" onclick="document.getElementById('groupChatInput').value += ' @WaliKelas '" 
-                        class="px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-200 shrink-0 hover:bg-amber-200">
+                        class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-200 shrink-0 hover:bg-amber-200 transition">
                     +@WaliKelas
                 </button>
                 <button type="button" onclick="document.getElementById('groupChatInput').value += ' [TUGAS_LMS] '" 
-                        class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-200 shrink-0 hover:bg-emerald-200">
+                        class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-200 shrink-0 hover:bg-emerald-200 transition">
                     +Kartu LMS
                 </button>
                 <button type="button" @click="showPollForm = !showPollForm" 
-                        class="px-2 py-0.5 rounded-lg bg-indigo-600 text-white border border-indigo-700 shrink-0 hover:bg-indigo-700 font-black">
+                        class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white border border-indigo-700 shrink-0 hover:bg-indigo-700 font-black shadow-xs transition">
                     📊 +Polling 3D
                 </button>
             </div>
 
             <form action="{{ route('mobile.space.group.post', $group->id) }}" method="POST" enctype="multipart/form-data" class="space-y-2" x-data="{ showMediaPicker: false }">
                 @csrf
-                <div class="flex items-center space-x-2">
+                <div class="flex items-end space-x-2">
                     <!-- Media Attachment Trigger Buttons -->
                     <button type="button" @click="showMediaPicker = !showMediaPicker" 
                             class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-700 border border-purple-200 flex items-center justify-center text-sm font-black shrink-0 hover:bg-purple-200 transition">
                         <i class="fa-solid fa-paperclip"></i>
                     </button>
 
-                    <textarea id="groupChatInput" name="content" rows="2" required
-                              placeholder="Ketik pesan ke {{ $group->name }}... (Gunakan @SemuaSiswa untuk mention)" 
-                              class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold placeholder-slate-400 focus:outline-none focus:border-purple-600 transition resize-none"></textarea>
+                    <div class="flex-1 min-w-0">
+                        <textarea id="groupChatInput" name="content" rows="2" required
+                                  placeholder="Ketik pesan ke {{ $group->name }}... (Gunakan @SemuaSiswa)" 
+                                  oninput="this.style.height = ''; this.style.height = Math.min(Math.max(this.scrollHeight, 52), 160) + 'px'"
+                                  class="w-full py-2.5 px-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold placeholder-slate-400 focus:outline-none focus:border-purple-600 transition resize-y min-h-[52px] max-h-40 leading-relaxed"></textarea>
+                    </div>
                     
                     <button type="submit" 
-                            class="clay-btn px-4 py-3 text-white font-black text-xs shrink-0 flex items-center gap-1">
+                            class="clay-btn px-4 py-3.5 text-white font-black text-xs shrink-0 flex items-center gap-1">
                         <i class="fa-solid fa-paper-plane text-xs"></i>
                     </button>
                 </div>
