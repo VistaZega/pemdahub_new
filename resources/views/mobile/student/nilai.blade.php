@@ -31,7 +31,7 @@
                     @foreach($subjectGrades as $g)
                         <div class="p-3 rounded-2xl bg-[#f4f7fc] border-2 border-slate-200/80 flex items-center justify-between">
                             <div>
-                                <span class="text-[10px] text-slate-500 block truncate font-bold">{{ $g->assessmentType->name ?? ($g->grade_type ?? 'Nilai') }}</span>
+                                <span class="text-[10px] text-slate-500 block truncate font-bold">{{ $g->getGradeTypeLabel() }}</span>
                                 @if($g->lms_source_type)
                                     <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full {{ $g->lms_source_type === 'quiz_attempt' ? 'bg-purple-100 text-purple-700' : ($g->lms_source_type === 'submission' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700') }}">
                                         {{ $g->lms_source_type === 'quiz_attempt' ? '📝 Kuis LMS' : ($g->lms_source_type === 'submission' ? '📄 Tugas LMS' : '💻 CBT') }}

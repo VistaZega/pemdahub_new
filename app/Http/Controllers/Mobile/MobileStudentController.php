@@ -84,7 +84,7 @@ class MobileStudentController extends Controller
         $avgScore = 0;
 
         if ($student) {
-            $query = Grade::where('student_id', $student->id)->with(['subject', 'assessmentType']);
+            $query = Grade::where('student_id', $student->id)->with(['subject']);
             if ($activeSemester) {
                 $query->where('semester_id', $activeSemester->id);
             }
