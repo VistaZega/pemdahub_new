@@ -253,7 +253,7 @@ class MobileLmsController extends Controller
         if ($student && ($material->course?->is_sequential || $material->module?->is_sequential)) {
             $allCourseMaterials = LmsMaterial::where('course_id', $material->course_id)
                 ->orderBy('module_id', 'asc')
-                ->orderBy('order', 'asc')
+                ->orderBy('order_number', 'asc')
                 ->orderBy('id', 'asc')
                 ->get();
             
@@ -726,7 +726,7 @@ class MobileLmsController extends Controller
         $student = $this->getStudent();
         if ($student && ($material->course?->is_sequential || $material->module?->is_sequential)) {
             $allCourseMaterials = LmsMaterial::where('course_id', $material->course_id)
-                ->orderBy('module_id', 'asc')->orderBy('order', 'asc')->orderBy('id', 'asc')->get();
+                ->orderBy('module_id', 'asc')->orderBy('order_number', 'asc')->orderBy('id', 'asc')->get();
             $completedMaterialIds = \App\Models\LmsMaterialProgress::where('student_id', $student->id)
                 ->pluck('material_id')->toArray();
             foreach ($allCourseMaterials as $m) {
@@ -778,7 +778,7 @@ class MobileLmsController extends Controller
         $student = $this->getStudent();
         if ($student && ($material->course?->is_sequential || $material->module?->is_sequential)) {
             $allCourseMaterials = LmsMaterial::where('course_id', $material->course_id)
-                ->orderBy('module_id', 'asc')->orderBy('order', 'asc')->orderBy('id', 'asc')->get();
+                ->orderBy('module_id', 'asc')->orderBy('order_number', 'asc')->orderBy('id', 'asc')->get();
             $completedMaterialIds = \App\Models\LmsMaterialProgress::where('student_id', $student->id)
                 ->pluck('material_id')->toArray();
             foreach ($allCourseMaterials as $m) {
