@@ -255,9 +255,10 @@ class MobileDashboardController extends Controller
             $spaceGroups = \App\Models\ForumGroup::take(6)->get();
         }
 
-        // Active Poll Thread (Poling Interaktif Resmi PembdaHUB)
-        $activePollThread = ForumThread::where('title', 'LIKE', '%Penerapan PembdaHUB%')
-            ->with(['poll.options', 'user', 'group'])
+        // Active Poll Thread (Poling Interaktif Real dari Database)
+        $activePollThread = ForumThread::whereHas('poll')
+            ->with(['poll.options', 'user.student', 'user.teacher', 'group'])
+            ->latest()
             ->first();
 
         if (!$activePollThread) {
@@ -277,9 +278,9 @@ class MobileDashboardController extends Controller
                 'question' => 'Bagaimana Pendapat Kamu tentang Penerapan PembdaHUB Mobile?',
             ]);
 
-            \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '🚀 Sangat Bagus & Membantu', 'votes_count' => 18]);
-            \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '👍 Cukup Baik & Praktis', 'votes_count' => 7]);
-            \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '💡 Butuh Peningkatan Fitur', 'votes_count' => 3]);
+            \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '🚀 Sangat Bagus & Membantu', 'votes_count' => 0]);
+            \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '👍 Cukup Baik & Praktis', 'votes_count' => 0]);
+            \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '💡 Butuh Peningkatan Fitur', 'votes_count' => 0]);
 
             $activePollThread->load(['poll.options', 'user', 'group']);
         }

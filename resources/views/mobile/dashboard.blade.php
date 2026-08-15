@@ -335,10 +335,10 @@
         </div>
 
         <div>
-            <h4 class="text-xs font-black text-white leading-snug">{{ $activePollThread->title ?? 'Bagaimana Pendapat Kamu tentang Penerapan PembdaHUB Mobile?' }}</h4>
+            <h4 class="text-xs font-black text-white leading-snug">{{ $activePollThread->title }}</h4>
             <p class="text-[10px] text-purple-100/90 font-bold mt-0.5 flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-300"></span>
-                <span>Oleh: Super Admin</span>
+                <span>Oleh: {{ $activePollThread->user->name ?? 'Pembda HUB' }}</span>
             </p>
         </div>
 
