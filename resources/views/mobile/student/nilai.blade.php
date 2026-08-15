@@ -1,14 +1,30 @@
 @extends('mobile.layouts.app')
 
-@section('title', 'Rekap Nilai 3D - Mobile Pro')
+@section('title', 'Rekap Nilai Siswa - PembdaHUB Mobile Pro')
 
 @section('content')
-<div class="space-y-4">
+<div class="space-y-4 pt-1">
+    <!-- Top Header -->
+    <div class="flex items-center justify-between gap-2 px-1">
+        <div class="flex items-center gap-2.5 min-w-0">
+            <a href="{{ route('mobile.dashboard') }}" class="w-9 h-9 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 flex items-center justify-center shadow-xs active:scale-95 transition shrink-0">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+            </a>
+            <div class="min-w-0">
+                <h2 class="text-base font-black text-slate-900 leading-tight truncate">Rekap Nilai</h2>
+                <p class="text-[10px] text-slate-500 font-bold truncate">Akademik & Tugas Siswa</p>
+            </div>
+        </div>
+        <div class="w-9 h-9 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-700 flex items-center justify-center text-base font-black shrink-0">
+            📈
+        </div>
+    </div>
+
     <!-- Header & Average Badge Clay Card -->
-    <div class="clay-green p-6 flex items-center justify-between">
+    <div class="clay-green p-5 sm:p-6 flex items-center justify-between rounded-3xl shadow-md">
         <div>
-            <span class="text-[10px] font-black uppercase tracking-wider bg-white/30 px-2.5 py-0.5 rounded-full border border-white/40">Rekap Nilai Siswa</span>
-            <h2 class="text-base font-black text-white mt-1.5 leading-snug">{{ $activeSemester->name ?? 'Semester Aktif' }}</h2>
+            <span class="text-[10px] font-black uppercase tracking-wider bg-white/30 px-2.5 py-0.5 rounded-full border border-white/40">Semester Aktif</span>
+            <h2 class="text-base font-black text-white mt-1.5 leading-snug">{{ $activeSemester->name ?? 'Semester Berjalan' }}</h2>
         </div>
         <div class="text-right bg-white/30 backdrop-blur-md border border-white/40 rounded-2xl p-3 shadow-sm">
             <span class="text-2xl font-black text-white leading-none">{{ $avgScore }}</span>

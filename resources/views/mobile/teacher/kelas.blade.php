@@ -9,19 +9,24 @@
     searchStudent: ''
 }">
     <!-- Header Title -->
-    <div class="flex items-center justify-between">
-        <div>
-            <div class="flex items-center gap-2">
-                <h2 class="text-xl font-black text-slate-900">Kelas Saya (My Class) 🏫</h2>
-                @if(isset($activeAY) && $activeAY)
-                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-300">
-                        TP {{ $activeAY->name ?? $activeAY->year }}
-                    </span>
-                @endif
+    <div class="flex items-center justify-between gap-2 px-1 pt-1">
+        <div class="flex items-center gap-2.5 min-w-0">
+            <a href="{{ route('mobile.dashboard') }}" class="w-9 h-9 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 flex items-center justify-center shadow-xs active:scale-95 transition shrink-0">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+            </a>
+            <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                    <h2 class="text-base font-black text-slate-900 leading-tight truncate">Kelas Saya</h2>
+                    @if(isset($activeAY) && $activeAY)
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-black border border-emerald-300 shrink-0">
+                            TP {{ $activeAY->name ?? $activeAY->year }}
+                        </span>
+                    @endif
+                </div>
+                <p class="text-[10px] text-slate-500 font-bold truncate">Rombel & Siswa Bimbingan</p>
             </div>
-            <p class="text-[11px] text-slate-500 font-bold">Daftar Rombel & Siswa yang Saya Ajar / Walikan</p>
         </div>
-        <div class="w-10 h-10 rounded-2xl clay-blue flex items-center justify-center text-xl font-black text-white shrink-0">
+        <div class="w-9 h-9 rounded-2xl bg-purple-50 border-2 border-purple-300 text-purple-700 flex items-center justify-center text-base font-black shrink-0">
             🏫
         </div>
     </div>

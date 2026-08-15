@@ -5,9 +5,19 @@
 @section('content')
 <div class="space-y-4">
     <!-- Header Title -->
-    <div>
-        <h2 class="text-xl font-black text-slate-900">Raport Digital 📊</h2>
-        <p class="text-[11px] text-slate-500 font-bold">Penilaian & Pencetakan Raport Digital Wali Kelas</p>
+    <div class="flex items-center justify-between gap-2 px-1 pt-1">
+        <div class="flex items-center gap-2.5 min-w-0">
+            <a href="{{ route('mobile.dashboard') }}" class="w-9 h-9 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 flex items-center justify-center shadow-xs active:scale-95 transition shrink-0">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+            </a>
+            <div class="min-w-0">
+                <h2 class="text-base font-black text-slate-900 leading-tight truncate">Raport Digital</h2>
+                <p class="text-[10px] text-slate-500 font-bold truncate">Kelola & Cetak Raport Wali Kelas</p>
+            </div>
+        </div>
+        <div class="w-9 h-9 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-700 flex items-center justify-center text-base font-black shrink-0">
+            📊
+        </div>
     </div>
 
     <!-- Homeroom Classes (3D Clay Cards) -->

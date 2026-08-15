@@ -17,6 +17,8 @@
                     </span>
                     @if($student && $student->school)
                         <span class="text-[10px] text-blue-100 font-extrabold truncate">{{ $student->school->name }}</span>
+                    @elseif($teacher && $teacher->school)
+                        <span class="text-[10px] text-blue-100 font-extrabold truncate">{{ $teacher->school->name }}</span>
                     @endif
                 </div>
                 <h2 class="text-xl font-black text-white truncate leading-tight tracking-tight">Halo, {{ strtok($user->name, ' ') }}! 🚀</h2>
@@ -24,7 +26,7 @@
                     @if($student)
                         NISN: {{ $student->nisn ?? $student->nis ?? '-' }}
                     @elseif($teacher)
-                        NIP: {{ $teacher->nip ?? '-' }}
+                        NIP: {{ $teacher->nip ?? '-' }} • Guru Pengampu
                     @else
                         {{ $user->email }}
                     @endif
@@ -77,6 +79,45 @@
         </div>
 
         <p class="text-[11px] font-bold text-slate-600 leading-relaxed">{{ $progCaption }}</p>
+    </div>
+    @elseif(in_array($activeRole, ['guru', 'pegawai', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'ketua_yayasan']))
+    @php
+        $tOverall = $teacherProgress['overall'] ?? 100;
+        $tAttendance = $teacherProgress['attendance_rate'] ?? 100;
+        $tClassesToday = $teacherProgress['classes_today'] ?? 0;
+        $tPendingAssign = $teacherProgress['pending_assignments'] ?? 0;
+        $tCaption = $teacherProgress['caption'] ?? 'Dedikasi Anda sangat luar biasa dalam membimbing generasi penerus Pembda! 👨‍🏫🌟';
+    @endphp
+    <div class="clay-card p-5 space-y-3">
+        <div class="flex items-center justify-between">
+            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-chalkboard-user text-purple-600"></i> Aktivitas Mengajar & Presensi Guru
+            </h3>
+            <span class="text-xs font-black text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+                {{ $tOverall }}% Optimal
+            </span>
+        </div>
+
+        <!-- 3D Clay Progress Bar for Teacher -->
+        <div class="w-full bg-slate-100 rounded-full h-5 p-1 shadow-inner relative overflow-hidden border border-slate-200">
+            <div class="bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 h-full rounded-full transition-all duration-500 shadow-md relative" style="width: {{ max(6, $tOverall) }}%">
+                <div class="absolute right-1 top-0 bottom-0 flex items-center">
+                    <span class="text-[9px] font-black text-white px-1">✨</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Breakdown Badges -->
+        <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 pt-0.5 px-0.5">
+            <span class="flex items-center gap-1">
+                <i class="fa-solid fa-calendar-day text-purple-600"></i> Jadwal Hari Ini: <strong class="text-slate-800">{{ $tClassesToday }} Sesi</strong>
+            </span>
+            <span class="flex items-center gap-1">
+                <i class="fa-solid fa-clipboard-check text-amber-500"></i> Periksa Tugas: <strong class="{{ $tPendingAssign > 0 ? 'text-rose-600 font-black' : 'text-slate-800' }}">{{ $tPendingAssign }} Menunggu</strong>
+            </span>
+        </div>
+
+        <p class="text-[11px] font-bold text-slate-600 leading-relaxed">{{ $tCaption }}</p>
     </div>
     @endif
 
@@ -195,181 +236,173 @@
             </a>
         </div>
         @else
-        <!-- Menu Guru (Clay Cards Grid - Modul Utama + Bimbingan + Panitia) -->
-        <div class="grid grid-cols-4 sm:grid-cols-6 gap-2">
-            <!-- 1. Jadwal Mengajar -->
-            <a href="{{ route('mobile.guru.jadwal') }}" class="clay-purple p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+        <!-- Menu Guru (Synchronized Playful 3D Clay Cards - Grid cols 4 identik Siswa) -->
+        <div class="grid grid-cols-4 gap-3">
+            <!-- 1. Jadwal Mengajar (Clay Purple) -->
+            <a href="{{ route('mobile.guru.jadwal') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     👨‍🏫
                 </div>
-                <span class="text-[10px] font-black">Jadwal</span>
+                <span class="text-[11px] font-black">Jadwal</span>
             </a>
 
-            <!-- 2. Input Absensi Siswa -->
-            <a href="{{ route('mobile.guru.absensi.input') }}" class="clay-green p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <!-- 2. Absen Siswa (Clay Green) -->
+            <a href="{{ route('mobile.guru.absensi.input') }}" class="clay-green p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     📋
                 </div>
-                <span class="text-[10px] font-black">Absen Siswa</span>
+                <span class="text-[11px] font-black">Absen Siswa</span>
             </a>
 
-            <!-- 3. Presensi Guru Mandiri (Absen Saya) -->
-            <a href="{{ route('mobile.guru.absensi.saya') }}" class="clay-cyan p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <!-- 3. Absen Saya / Presensi Guru (Clay Cyan) -->
+            <a href="{{ route('mobile.guru.absensi.saya') }}" class="clay-cyan p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     📌
                 </div>
-                <span class="text-[10px] font-black">Absen Saya</span>
+                <span class="text-[11px] font-black">Absen Saya</span>
             </a>
 
-            <!-- 4. Periksa Tugas & Nilai -->
-            <a href="{{ route('mobile.guru.tugas') }}" class="clay-yellow p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <!-- 4. Periksa Tugas & Nilai (Clay Yellow) -->
+            <a href="{{ route('mobile.guru.tugas') }}" class="clay-yellow p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     📝
                 </div>
-                <span class="text-[10px] font-black">Nilai</span>
+                <span class="text-[11px] font-black">Nilai</span>
             </a>
 
-            <!-- 5. LMS Modul -->
-            <a href="{{ route('mobile.lms.index') }}" class="clay-blue p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <!-- 5. LMS Modul (Clay Blue) -->
+            <a href="{{ route('mobile.lms.index') }}" class="clay-blue p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     📚
                 </div>
-                <span class="text-[10px] font-black">LMS</span>
+                <span class="text-[11px] font-black">LMS</span>
             </a>
 
-            <!-- 6. My Class (Kelas Saya) -->
-            <a href="{{ route('mobile.guru.kelas') }}" class="clay-purple p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <!-- 6. My Class / Kelas Saya (Clay Purple) -->
+            <a href="{{ route('mobile.guru.kelas') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     🏫
                 </div>
-                <span class="text-[10px] font-black">My Class</span>
+                <span class="text-[11px] font-black">My Class</span>
             </a>
 
-            <!-- 7. Catatan Perkembangan & Prestasi Siswa -->
-            <a href="{{ route('mobile.guru.catatan-siswa') }}" class="clay-yellow p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    📝
-                </div>
-                <span class="text-[10px] font-black">Catatan Siswa</span>
-            </a>
-
-            <!-- 8. Surat Edaran -->
-            <a href="{{ route('mobile.guru.edaran') }}" class="clay-orange p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    📜
-                </div>
-                <span class="text-[10px] font-black">Edaran</span>
-            </a>
-
-            <!-- 9. CBT Ujian -->
-            <a href="{{ route('mobile.guru.cbt') }}" class="clay-pink p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    💻
-                </div>
-                <span class="text-[10px] font-black">CBT</span>
-            </a>
-
-            <!-- 10. Raport Digital -->
-            <a href="{{ route('mobile.guru.raport') }}" class="clay-green p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    📊
-                </div>
-                <span class="text-[10px] font-black">Raport</span>
-            </a>
-
-            <!-- 11. Tagihan Kelas Wali Kelas -->
-            <a href="{{ route('mobile.guru.tagihan') }}" class="clay-green p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    💳
-                </div>
-                <span class="text-[10px] font-black">Tagihan</span>
-            </a>
-
-            <!-- 12. Hall Of Fame -->
-            <a href="{{ route('mobile.guru.hall-of-fame') }}" class="clay-yellow p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <!-- 7. Catatan Siswa (Clay Yellow) -->
+            <a href="{{ route('mobile.guru.catatan-siswa') }}" class="clay-yellow p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     🏆
                 </div>
-                <span class="text-[10px] font-black">Hall of Fame</span>
+                <span class="text-[11px] font-black">Catatan</span>
+            </a>
+
+            <!-- 8. CBT Ujian (Clay Pink) -->
+            <a href="{{ route('mobile.guru.cbt') }}" class="clay-pink p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    💻
+                </div>
+                <span class="text-[11px] font-black">CBT</span>
+            </a>
+
+            <!-- 9. Raport Digital (Clay Green) -->
+            <a href="{{ route('mobile.guru.raport') }}" class="clay-green p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    📊
+                </div>
+                <span class="text-[11px] font-black">Raport</span>
+            </a>
+
+            <!-- 10. Tagihan Kelas Wali Kelas (Clay Green) -->
+            <a href="{{ route('mobile.guru.tagihan') }}" class="clay-green p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    💳
+                </div>
+                <span class="text-[11px] font-black">Tagihan</span>
+            </a>
+
+            <!-- 11. Hall Of Fame (Clay Orange) -->
+            <a href="{{ route('mobile.guru.hall-of-fame') }}" class="clay-orange p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    👑
+                </div>
+                <span class="text-[11px] font-black">Hall of Fame</span>
+            </a>
+
+            <!-- 12. Surat Edaran (Clay Orange) -->
+            <a href="{{ route('mobile.guru.edaran') }}" class="clay-orange p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
+                    📜
+                </div>
+                <span class="text-[11px] font-black">Edaran</span>
             </a>
 
             {{-- 13. MODUL BIMBINGAN PKL GURU (Jika ditugaskan) --}}
             @if($hasPklBimbingan ?? false)
-            <a href="{{ route('mobile.guru.pkl') }}" class="clay-orange p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <a href="{{ route('mobile.guru.pkl') }}" class="clay-orange p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     💼
                 </div>
-                <span class="text-[10px] font-black">Bimbingan PKL</span>
+                <span class="text-[11px] font-black">Bimbing PKL</span>
             </a>
 
-            <a href="{{ route('mobile.guru.pkl.monitoring') }}" class="clay-blue p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <a href="{{ route('mobile.guru.pkl.monitoring') }}" class="clay-blue p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     🏢
                 </div>
-                <span class="text-[10px] font-black">Monitoring DUDI</span>
+                <span class="text-[11px] font-black">Monitor DUDI</span>
             </a>
             @endif
 
             {{-- 14. MODUL BIMBINGAN PROJECT / PENELITIAN AKHIR GURU (Jika ditugaskan) --}}
             @if($hasProjectBimbingan ?? false)
-            <a href="{{ route('mobile.guru.final-projects.bimbingan') }}" class="clay-purple p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <a href="{{ route('mobile.guru.final-projects.bimbingan') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     🔬
                 </div>
-                <span class="text-[10px] font-black">{{ ($teacher?->school?->type ?? '') === 'SMK' ? 'Bimbing Project' : 'Bimbing TA' }}</span>
+                <span class="text-[11px] font-black">{{ ($teacher?->school?->type ?? '') === 'SMK' ? 'Bimbing Proyek' : 'Bimbing TA' }}</span>
             </a>
             @endif
 
             {{-- 15. MODUL PENGUJI UJIAN PROJECT / PENELITIAN AKHIR (Jika ditugaskan) --}}
             @if($hasProjectUjian ?? false)
-            <a href="{{ route('mobile.guru.final-projects.ujian') }}" class="clay-pink p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <a href="{{ route('mobile.guru.final-projects.ujian') }}" class="clay-pink p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     🎓
                 </div>
-                <span class="text-[10px] font-black">{{ ($teacher?->school?->type ?? '') === 'SMK' ? 'Ujian Project' : 'Ujian TA' }}</span>
+                <span class="text-[11px] font-black">{{ ($teacher?->school?->type ?? '') === 'SMK' ? 'Uji Proyek' : 'Uji TA' }}</span>
             </a>
             @endif
 
             {{-- 16. MODUL KELOLA PANITIA PKL (Jika memiliki jabatan Panitia PKL / Admin) --}}
             @if($isPanitiaPkl ?? false)
-            <a href="{{ route('admin.pkl-alumni.placements.index') }}" class="clay-yellow p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <a href="{{ route('admin.pkl-alumni.placements.index') }}" class="clay-yellow p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     ⚙️
                 </div>
-                <span class="text-[10px] font-black">Panitia PKL</span>
+                <span class="text-[11px] font-black">Panitia PKL</span>
             </a>
             @endif
 
             {{-- 17. MODUL KELOLA PANITIA PROJECT/PENELITIAN AKHIR (Jika memiliki jabatan Panitia TA / Admin) --}}
             @if($isPanitiaProyek ?? false)
-            <a href="{{ route('admin.final-projects.proposals.index') }}" class="clay-purple p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <a href="{{ route('admin.final-projects.proposals.index') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     🛠️
                 </div>
-                <span class="text-[10px] font-black">Panitia TA</span>
+                <span class="text-[11px] font-black">Panitia TA</span>
             </a>
             @endif
 
-            <!-- 18. Pembda Space -->
-            <a href="{{ route('mobile.space.index') }}" class="clay-purple p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
+            <!-- 18. Pembda Space (Clay Purple) -->
+            <a href="{{ route('mobile.space.index') }}" class="clay-purple p-3.5 text-center flex flex-col items-center group transition active:scale-95">
+                <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-1.5 border border-white/40 shadow-sm group-hover:scale-110 transition">
                     💬
                 </div>
-                <span class="text-[10px] font-black">Space</span>
-            </a>
-
-            <!-- 19. Profile Saya -->
-            <a href="{{ route('mobile.profile') }}" class="clay-cyan p-2.5 text-center flex flex-col items-center group transition active:scale-95">
-                <div class="w-10 h-10 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-xl mb-1 border border-white/40 shadow-sm group-hover:scale-110 transition">
-                    👤
-                </div>
-                <span class="text-[10px] font-black">Profile</span>
+                <span class="text-[11px] font-black">Space</span>
             </a>
         </div>
         @endif
     </div>
 
-    <!-- Attendance Summary Widget (Clay Cards) -->
+    <!-- Attendance Summary Widget (Clay Cards - Synchronized for Siswa & Guru) -->
     @if($activeRole === 'siswa')
     <div class="clay-card p-5 space-y-3">
         <div class="flex items-center justify-between">
@@ -392,6 +425,31 @@
             <div class="clay-pink p-3 text-center">
                 <span class="text-2xl font-black leading-none">{{ $attendanceStats['sakit'] + $attendanceStats['izin'] + $attendanceStats['alpha'] }}</span>
                 <span class="block text-[10px] font-black uppercase mt-1">Izin/Alpha</span>
+            </div>
+        </div>
+    </div>
+    @elseif(in_array($activeRole, ['guru', 'pegawai', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'ketua_yayasan']))
+    <div class="clay-card p-5 space-y-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
+                <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Presensi & Jadwal Mengajar Guru</h3>
+            </div>
+            <a href="{{ route('mobile.guru.absensi.saya') }}" class="text-[11px] font-black text-blue-600 hover:text-blue-700">Presensi Saya <i class="fa-solid fa-chevron-right text-[9px]"></i></a>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2.5">
+            <div class="clay-green p-3 text-center">
+                <span class="text-2xl font-black leading-none">{{ $teacherAttendanceStats['hadir'] ?? 0 }}</span>
+                <span class="block text-[10px] font-black uppercase mt-1">Hadir Kerja</span>
+            </div>
+            <div class="clay-yellow p-3 text-center">
+                <span class="text-2xl font-black leading-none">{{ $teacherAttendanceStats['terlambat'] ?? 0 }}</span>
+                <span class="block text-[10px] font-black uppercase mt-1">Terlambat</span>
+            </div>
+            <div class="clay-purple p-3 text-center">
+                <span class="text-2xl font-black leading-none">{{ $teacherAttendanceStats['total_jadwal'] ?? 0 }}</span>
+                <span class="block text-[10px] font-black uppercase mt-1">Kelas Hari Ini</span>
             </div>
         </div>
     </div>
