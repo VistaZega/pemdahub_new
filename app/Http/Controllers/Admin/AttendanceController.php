@@ -298,6 +298,7 @@ class AttendanceController extends Controller
         $user = auth()->user();
         $isSuperAdmin = $user->isSuperAdmin();
         $selectedSchoolId = $request->input('school_id');
+        $selectedDate = $request->input('date', \Carbon\Carbon::now('Asia/Jakarta')->toDateString());
 
         $schools = $isSuperAdmin ? \App\Models\School::where('is_active', true)->schoolsOnly()->get() : [];
 
@@ -314,16 +315,23 @@ class AttendanceController extends Controller
             ->get();
 
         $selectedClassroom = $request->input('classroom_id');
-        $students = [];
+        $students = collect();
+        $existingAttendances = collect();
+        $classroom = null;
+
         if ($selectedClassroom) {
-            $classroom = Classroom::find($selectedClassroom);
-            $activeAY = \App\Models\AcademicYear::where('is_active', true)->first();
+            $classroom = Classroom::with('school')->find($selectedClassroom);
             if ($classroom) {
                 $students = $classroom->students()
                     ->where('student_classes.status', 'aktif')
                     ->when($activeAY, fn($q) => $q->where('student_classes.academic_year_id', $activeAY->id))
                     ->orderBy('full_name')
                     ->get();
+
+                $existingAttendances = Attendance::where('classroom_id', $selectedClassroom)
+                    ->whereDate('date', $selectedDate)
+                    ->get()
+                    ->keyBy('student_id');
             }
         }
         return view('admin.attendances.bulk', [
@@ -331,7 +339,10 @@ class AttendanceController extends Controller
             'classrooms' => $classrooms,
             'selectedSchoolId' => $selectedSchoolId,
             'selectedClassroom' => $selectedClassroom,
+            'selectedDate' => $selectedDate,
+            'classroom' => $classroom,
             'students' => $students,
+            'existingAttendances' => $existingAttendances,
             'isSuperAdmin' => $isSuperAdmin,
         ]);
     }
@@ -345,23 +356,37 @@ class AttendanceController extends Controller
             'date' => 'required|date',
             'classroom_id' => 'required|exists:classrooms,id',
             'statuses' => 'required|array',
+            'statuses.*' => 'required|in:hadir,terlambat,izin,sakit,alpha',
         ]);
         $classroom = Classroom::findOrFail($request->classroom_id);
         $date = $request->date;
+        $count = 0;
+
         foreach ($request->statuses as $studentId => $status) {
             $note = $request->notes[$studentId] ?? null;
+
+            $existing = \App\Models\Attendance::where('student_id', $studentId)
+                ->where('classroom_id', $classroom->id)
+                ->whereDate('date', $date)
+                ->first();
+
+            $updateData = [
+                'status' => $status,
+                'notes' => $note,
+            ];
+
+            if (!$existing) {
+                $updateData['recorded_via'] = 'manual';
+                $updateData['created_by'] = auth()->id();
+            }
+
             $attendance = \App\Models\Attendance::updateOrCreate(
                 [
                     'student_id' => $studentId,
                     'classroom_id' => $classroom->id,
                     'date' => $date,
                 ],
-                [
-                    'status' => $status,
-                    'notes' => $note,
-                    'recorded_via' => 'manual',
-                    'created_by' => auth()->id(),
-                ]
+                $updateData
             );
 
             // Reputation Hook
@@ -375,8 +400,13 @@ class AttendanceController extends Controller
                 $desc = "Kehadiran di kelas " . $classroom->class_name . " (" . ucfirst($status) . ")";
                 \App\Models\ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
             }
+            $count++;
         }
-        return redirect()->route('admin.attendances.index')->with('success', 'Absensi kelas berhasil disimpan.');
+
+        return redirect()->route('admin.attendances.index', [
+            'classroom_id' => $classroom->id,
+            'date' => $date,
+        ])->with('success', "Absensi kelas {$classroom->class_name} ({$count} siswa) berhasil disimpan.");
     }
     /**
      * Show mass update form for handling holidays / sending students home
