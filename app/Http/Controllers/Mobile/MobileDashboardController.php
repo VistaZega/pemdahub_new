@@ -269,7 +269,7 @@ class MobileDashboardController extends Controller
                 'group_id' => $lobiGroup?->id,
                 'category' => 'pengumuman',
                 'title' => 'Bagaimana Pendapat Kamu tentang Penerapan PembdaHUB Mobile?',
-                'content' => 'Halo Warga PEMBDA! Bagaimana kesan & pendapat kalian mengenai penggunaan aplikasi PembdaHUB Mobile saat ini? Yuk berikan suaramu!',
+                'content' => 'Halo Warga YAYASAN PEMBDA! Bagaimana kesan & pendapat kalian mengenai penggunaan aplikasi PembdaHUB Mobile saat ini? Yuk berikan suaramu! 📱 Belum install aplikasi di HP? Download & install aplikasi PembdaHUB Mobile resmi via: ' . route('app.download'),
             ]);
 
             $poll = \App\Models\ForumPoll::create([

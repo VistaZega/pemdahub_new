@@ -430,6 +430,18 @@
                 </a>
             </div>
         </form>
+
+        <!-- 📲 Download App Promo Bar (Agar Warga Lain Bisa Install PembdaHUB Mobile) -->
+        <div class="pt-2.5 mt-1 border-t border-white/20 flex items-center justify-between gap-2">
+            <div class="text-[10px] font-bold text-purple-100 flex items-center gap-1.5 min-w-0">
+                <span class="text-sm">📱</span>
+                <span class="truncate">Ajak Warga PEMBDA Lain Install PembdaHUB di HP!</span>
+            </div>
+            <a href="{{ route('app.download') }}" target="_blank" class="px-3 py-1.5 bg-white text-purple-900 font-black text-[10px] rounded-xl shadow-sm hover:bg-purple-50 transition shrink-0 flex items-center gap-1 active:scale-95">
+                <i class="fa-solid fa-download text-purple-600"></i>
+                <span>Download App</span>
+            </a>
+        </div>
     </div>
     @endif
 
