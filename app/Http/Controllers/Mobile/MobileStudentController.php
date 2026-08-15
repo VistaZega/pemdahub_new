@@ -111,7 +111,7 @@ class MobileStudentController extends Controller
 
         if ($student) {
             $bills = StudentBill::where('student_id', $student->id)
-                ->with(['academicYear', 'paymentType', 'billItems'])
+                ->with(['academicYear', 'paymentType', 'payments'])
                 ->orderBy('year', 'desc')
                 ->orderBy('month', 'desc')
                 ->orderBy('created_at', 'desc')
