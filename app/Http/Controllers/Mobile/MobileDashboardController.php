@@ -193,7 +193,10 @@ class MobileDashboardController extends Controller
 
                 // Teacher Classes Today
                 $todayDay = strtolower(now()->format('l'));
-                $classesToday = \App\Models\Schedule::where('teacher_id', $teacherId)->where('day', $todayDay)->count();
+                $classesToday = \App\Models\Schedule::where(function ($q) use ($teacherId) {
+                    $q->where('teacher_id', $teacherId)
+                      ->orWhereHas('teachingAssignment', fn($tq) => $tq->where('teacher_id', $teacherId));
+                })->where('day_of_week', $todayDay)->count();
 
                 // Pending assignments to grade
                 $teacherCourseIds = LmsCourse::where('teacher_id', $teacherId)->pluck('id');
