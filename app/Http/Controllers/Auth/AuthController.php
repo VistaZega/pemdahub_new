@@ -22,8 +22,24 @@ class AuthController extends Controller
     /**
      * Show login form
      */
-    public function showLoginForm(): View
+    public function showLoginForm(Request $request): View|\Illuminate\Http\RedirectResponse
     {
+        $referer = $request->header('referer') ?? '';
+        $userAgent = $request->userAgent() ?? '';
+        $secChUaMobile = $request->header('sec-ch-ua-mobile') === '?1';
+
+        $isMobileRequest = $request->is('m/*') 
+            || $request->is('m')
+            || str_contains($referer, '/m/') 
+            || $request->cookie('app_mode') === 'mobile' 
+            || session('is_mobile_app')
+            || $secChUaMobile 
+            || preg_match('/Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i', $userAgent);
+
+        if ($isMobileRequest && !session('prefer_desktop')) {
+            return redirect()->route('mobile.login');
+        }
+
         return view('auth.login');
     }
 
@@ -238,10 +254,21 @@ class AuthController extends Controller
     {
         $role = session('active_role', $user->role);
         
+        $referer = request()->header('referer') ?? '';
         $userAgent = request()->userAgent() ?? '';
-        $isMobile = request()->is('m/*') || preg_match('/Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i', $userAgent);
+        $secChUaMobile = request()->header('sec-ch-ua-mobile') === '?1';
 
-        if ($isMobile && in_array($role, ['siswa', 'guru', 'pegawai', 'orang_tua', 'alumni'])) {
+        $isMobile = request()->is('m/*') 
+            || request()->is('m')
+            || str_contains($referer, '/m/')
+            || request()->cookie('app_mode') === 'mobile'
+            || session('is_mobile_app')
+            || $secChUaMobile
+            || preg_match('/Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i', $userAgent);
+
+        if ($isMobile && !session('prefer_desktop') && in_array($role, ['siswa', 'guru', 'pegawai', 'orang_tua', 'alumni'])) {
+            cookie()->queue('app_mode', 'mobile', 60 * 24 * 365);
+            session(['is_mobile_app' => true]);
             return redirect()->route('mobile.dashboard');
         }
 

@@ -326,7 +326,7 @@
 
     <!-- Quick Navigation Links & Logout Section -->
     <div class="clay-card p-2 space-y-1.5 bg-white border-2 border-slate-200">
-        <a href="{{ url('/') }}" class="p-3.5 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between text-xs text-slate-800 font-black">
+        <a href="{{ url('/?switch_mode=desktop') }}" class="p-3.5 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between text-xs text-slate-800 font-black">
             <div class="flex items-center space-x-3">
                 <i class="fa-solid fa-desktop text-blue-600 text-sm"></i>
                 <span>Beralih ke Versi Desktop (Web)</span>

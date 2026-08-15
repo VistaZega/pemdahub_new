@@ -43,8 +43,30 @@ return Application::configure(basePath: dirname(__DIR__))
             'feature' => \App\Http\Middleware\CheckFeature::class,
         ]);
 
-        // Register filters preservation specifically in the web group so sessions are active
+        // Smart Guest Redirection for Mobile App & PWA
+        $middleware->redirectGuestsTo(function (Request $request) {
+            $referer = $request->header('referer') ?? '';
+            $userAgent = $request->userAgent() ?? '';
+            $secChUaMobile = $request->header('sec-ch-ua-mobile') === '?1';
+
+            $isMobileRequest = $request->is('m/*') 
+                || $request->is('m')
+                || str_contains($referer, '/m/') 
+                || $request->cookie('app_mode') === 'mobile' 
+                || session('is_mobile_app')
+                || $secChUaMobile 
+                || preg_match('/Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i', $userAgent);
+
+            if ($isMobileRequest && !session('prefer_desktop')) {
+                return route('mobile.login');
+            }
+
+            return route('login');
+        });
+
+        // Register MobileModeHandler and PreserveFilters in web group so sessions are active
         $middleware->web(append: [
+            \App\Http\Middleware\MobileModeHandler::class,
             \App\Http\Middleware\PreserveFilters::class,
         ]);
 

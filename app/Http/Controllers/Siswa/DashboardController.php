@@ -42,6 +42,24 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $referer = request()->header('referer') ?? '';
+        $userAgent = request()->userAgent() ?? '';
+        $secChUaMobile = request()->header('sec-ch-ua-mobile') === '?1';
+
+        $isMobile = request()->is('m/*') 
+            || request()->is('m')
+            || str_contains($referer, '/m/')
+            || request()->cookie('app_mode') === 'mobile'
+            || session('is_mobile_app')
+            || $secChUaMobile
+            || preg_match('/Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i', $userAgent);
+
+        if ($isMobile && !session('prefer_desktop')) {
+            cookie()->queue('app_mode', 'mobile', 60 * 24 * 365);
+            session(['is_mobile_app' => true]);
+            return redirect()->route('mobile.dashboard');
+        }
+
         $student = $this->getStudent();
         $student->load('school');
         $activeYear = Cache::remember('active_academic_year', 3600, fn() => AcademicYear::where('is_active', true)->first());
