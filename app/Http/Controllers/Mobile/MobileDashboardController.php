@@ -33,6 +33,7 @@ class MobileDashboardController extends Controller
         $showPkl = false;
         $showProjectAkhir = false;
         $showPenelitianAkhir = false;
+        $classroom = null;
         $studentProgress = [
             'overall' => 0,
             'attendance_rate' => 100,
@@ -58,7 +59,7 @@ class MobileDashboardController extends Controller
         $teacherAttendanceStats = ['hadir' => 0, 'terlambat' => 0, 'sakit_izin' => 0, 'total_jadwal' => 0];
 
         if ($activeRole === 'siswa') {
-            $student = Student::where('user_id', $user->id)->with('school')->first();
+            $student = Student::where('user_id', $user->id)->with(['school', 'user.reputation'])->first();
             
             if ($student) {
                 // Determine school type & grade level for PKL & Final Project
@@ -263,6 +264,7 @@ class MobileDashboardController extends Controller
             'user',
             'student',
             'teacher',
+            'classroom',
             'attendanceStats',
             'studentProgress',
             'teacherProgress',

@@ -183,7 +183,7 @@
             </div>
             <div>
                 <h1 class="text-lg font-black text-slate-900 tracking-tight leading-none">PembdaHUB</h1>
-                <span class="text-[10px] font-extrabold text-blue-600 tracking-wider uppercase">Playful 3D App</span>
+                <span class="text-[10px] font-extrabold text-blue-600 tracking-wider uppercase">EDUCATION PORTAL</span>
             </div>
         </div>
 
