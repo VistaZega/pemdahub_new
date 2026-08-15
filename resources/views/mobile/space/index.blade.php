@@ -196,6 +196,12 @@
                         {{ strip_tags($thread->content) }}
                     </p>
 
+                    @if($thread->image_path)
+                        <div class="h-32 w-full rounded-2xl overflow-hidden border border-purple-200">
+                            <img src="{{ asset('storage/' . $thread->image_path) }}" alt="{{ $thread->title }}" class="w-full h-full object-cover">
+                        </div>
+                    @endif
+
                     <div class="flex items-center space-x-4 pt-1.5 text-[10px] font-black text-slate-400 border-t border-slate-100">
                         <span class="flex items-center gap-1 text-purple-600"><i class="fa-regular fa-comment"></i> {{ $thread->replies_count ?? 0 }} Komentar</span>
                         <span class="flex items-center gap-1 text-rose-600"><i class="fa-regular fa-heart"></i> {{ $thread->likes_count ?? 0 }} Suka</span>

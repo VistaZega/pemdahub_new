@@ -304,7 +304,22 @@ class MobileSpaceController extends Controller
             'content' => 'required|string',
             'category' => 'nullable|string',
             'group_id' => 'nullable|integer',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'attachment' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,zip|max:10240',
         ]);
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('forum/images', 'public');
+        }
+
+        $attachmentPath = null;
+        $attachmentName = null;
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $attachmentName = $file->getClientOriginalName();
+            $attachmentPath = $file->store('forum/attachments', 'public');
+        }
 
         $thread = ForumThread::create([
             'user_id' => Auth::id(),
@@ -312,6 +327,9 @@ class MobileSpaceController extends Controller
             'title' => $validated['title'],
             'content' => $validated['content'],
             'category' => $validated['category'] ?? 'diskusi',
+            'image_path' => $imagePath,
+            'attachment_path' => $attachmentPath,
+            'attachment_name' => $attachmentName,
             'views_count' => 0,
         ]);
 

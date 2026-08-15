@@ -46,6 +46,32 @@
             {!! nl2br(e($thread->content)) !!}
         </div>
 
+        <!-- Image Attachment -->
+        @if($thread->image_path)
+            <div class="rounded-2xl overflow-hidden border-2 border-purple-200 shadow-md max-w-sm">
+                <img src="{{ asset('storage/' . $thread->image_path) }}" alt="{{ $thread->title }}" class="w-full h-auto object-cover hover:scale-105 transition duration-300">
+            </div>
+        @endif
+
+        <!-- Document Attachment -->
+        @if($thread->attachment_path)
+            <div class="p-3 rounded-2xl bg-slate-50 border-2 border-slate-200 flex items-center justify-between text-xs max-w-sm shadow-xs">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                    <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-black text-xs shrink-0">
+                        📁
+                    </div>
+                    <div class="min-w-0">
+                        <h5 class="font-black text-slate-800 text-[11px] truncate">{{ $thread->attachment_name ?? 'Dokumen Lampiran' }}</h5>
+                        <span class="text-[9px] font-bold text-slate-400">File Lampiran</span>
+                    </div>
+                </div>
+                <a href="{{ asset('storage/' . $thread->attachment_path) }}" target="_blank" 
+                   class="px-3 py-1 rounded-xl bg-purple-600 text-white text-[10px] font-black shadow-xs hover:bg-purple-700 transition shrink-0">
+                    Unduh File
+                </a>
+            </div>
+        @endif
+
         <!-- Interaction Bar -->
         <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs font-black text-slate-500">
             <div class="flex items-center space-x-4">

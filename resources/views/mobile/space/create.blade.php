@@ -21,7 +21,7 @@
             </div>
         @endif
 
-        <form action="{{ route('mobile.space.store') }}" method="POST" class="space-y-4">
+        <form action="{{ route('mobile.space.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4" x-data="{ imagePreview: null }">
             @csrf
 
             <!-- Channel Selection -->
@@ -48,9 +48,29 @@
             <!-- Content -->
             <div>
                 <label for="content" class="block text-xs font-black text-slate-800 mb-1.5">Isi Postingan</label>
-                <textarea id="content" name="content" rows="6" required
+                <textarea id="content" name="content" rows="4" required
                           placeholder="Jelaskan topik diskusi Anda secara detail..." 
                           class="w-full p-4 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold placeholder-slate-400 focus:outline-none focus:border-blue-500 transition resize-none">{{ old('content') }}</textarea>
+            </div>
+
+            <!-- Image Upload & Preview -->
+            <div class="space-y-2">
+                <label class="block text-xs font-black text-slate-800">📷 Sisipkan Foto / Gambar (Opsional)</label>
+                <div class="flex items-center gap-3">
+                    <label class="px-4 py-2.5 rounded-2xl bg-purple-50 border-2 border-purple-200 text-purple-700 text-xs font-black cursor-pointer hover:bg-purple-100 transition flex items-center gap-2">
+                        <i class="fa-solid fa-camera"></i> Pilih Foto
+                        <input type="file" name="image" accept="image/*" class="hidden" 
+                               @change="const file = $event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => imagePreview = e.target.result; reader.readAsDataURL(file); }">
+                    </label>
+                    <span class="text-[10px] text-slate-400 font-bold">Maks. 5 MB (JPG, PNG, WebP)</span>
+                </div>
+                
+                <template x-if="imagePreview">
+                    <div class="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-purple-400 shadow-md">
+                        <img :src="imagePreview" class="w-full h-full object-cover">
+                        <button type="button" @click="imagePreview = null" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-rose-600 text-white font-black text-xs flex items-center justify-center shadow-md">✕</button>
+                    </div>
+                </template>
             </div>
 
             <!-- Submit -->
