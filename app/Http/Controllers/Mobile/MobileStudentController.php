@@ -505,14 +505,26 @@ class MobileStudentController extends Controller
     }
 
     /**
-     * Submit PKL Daily Log Entry
+     * Submit PKL Daily Log Entry with Photo Upload & GPS Tagging
      */
     public function storePklLog(Request $request)
     {
         $request->validate([
-            'date' => 'required|date',
-            'activity_description' => 'required|string',
+            'date' => 'nullable|date|before_or_equal:today',
+            'log_date' => 'nullable|date|before_or_equal:today',
+            'activity' => 'nullable|string',
+            'activity_description' => 'nullable|string',
+            'photo' => 'nullable|image|max:10240', // max 10MB
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
+
+        $logDate = $request->input('date') ?? ($request->input('log_date') ?? date('Y-m-d'));
+        $activity = $request->input('activity_description') ?? $request->input('activity');
+
+        if (empty($activity) || strlen(trim($activity)) < 5) {
+            return back()->with('error', 'Deskripsi aktivitas PKL wajib diisi minimal 5 karakter.');
+        }
 
         $student = $this->getStudent();
         if (!$student) {
@@ -532,14 +544,31 @@ class MobileStudentController extends Controller
             return back()->with('error', 'Data penempatan PKL Anda belum ditentukan oleh Panitia.');
         }
 
+        // Cek duplikasi jurnal pada tanggal yang sama
+        $exists = PklLog::where('pkl_placement_id', $pklPlacement->id)
+            ->where('log_date', $logDate)
+            ->exists();
+
+        if ($exists) {
+            return back()->with('error', 'Anda sudah mengirim jurnal PKL untuk tanggal ' . date('d/m/Y', strtotime($logDate)) . '.');
+        }
+
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('pkl_proofs', 'public');
+        }
+
         PklLog::create([
             'pkl_placement_id' => $pklPlacement->id,
-            'log_date' => $request->input('date'),
-            'activity' => $request->input('activity_description'),
-            'status' => 'pending',
+            'log_date' => $logDate,
+            'activity' => $activity,
+            'photo' => $photoPath,
+            'latitude' => $request->input('latitude'),
+            'longitude' => $request->input('longitude'),
+            'status' => 'submitted',
         ]);
 
-        return back()->with('success', 'Jurnal harian PKL berhasil dikirim untuk diverifikasi Pembimbing.');
+        return back()->with('success', 'Jurnal harian PKL berhasil dikirim beserta bukti foto & koordinat GPS.');
     }
 
     /**

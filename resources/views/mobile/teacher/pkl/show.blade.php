@@ -66,9 +66,36 @@
                     @endif
                 </div>
 
-                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs font-bold text-slate-800 leading-relaxed">
+                <!-- Foto Bukti PKL yang Diunggah Siswa -->
+                @if($log->photo_url)
+                    <div class="rounded-2xl overflow-hidden border-2 border-slate-200 bg-slate-100 relative group">
+                        <img src="{{ $log->photo_url }}" 
+                             alt="Bukti PKL {{ $log->log_date }}" 
+                             class="w-full h-44 object-cover"
+                             onclick="window.open('{{ $log->photo_url }}', '_blank')">
+                        <div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-xs text-white px-2 py-1 rounded-lg text-[9px] font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i> Klik untuk Perbesar
+                        </div>
+                    </div>
+                @endif
+
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs font-bold text-slate-800 leading-relaxed whitespace-pre-line">
                     {{ $log->activity ?? $log->activity_description }}
                 </div>
+
+                <!-- GPS Tagging Info -->
+                @if($log->latitude && $log->longitude)
+                    <div class="flex items-center justify-between text-blue-700 bg-blue-50/70 px-2.5 py-1.5 rounded-xl border border-blue-200 text-[10px] font-extrabold">
+                        <span class="flex items-center gap-1 truncate">
+                            <i class="fa-solid fa-location-dot text-rose-500"></i>
+                            <span>Tag GPS: {{ number_format($log->latitude, 5) }}, {{ number_format($log->longitude, 5) }}</span>
+                        </span>
+                        <a href="https://maps.google.com/?q={{ $log->latitude }},{{ $log->longitude }}" target="_blank"
+                           class="text-[9px] font-black text-blue-800 bg-white px-2 py-0.5 rounded-md border border-blue-300 shadow-2xs hover:bg-blue-100 transition shrink-0">
+                            Buka Peta <i class="fa-solid fa-arrow-up-right-from-square text-[8px] ml-0.5"></i>
+                        </a>
+                    </div>
+                @endif
 
                 <!-- Action Button for Teacher -->
                 <div class="pt-1 flex items-center justify-between">
