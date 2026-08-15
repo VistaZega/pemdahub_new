@@ -171,6 +171,10 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::post('/group/{group}/post', [MobileSpaceController::class, 'storeGroupThread'])->name('group.post');
             Route::post('/poll/{poll}/vote', [MobileSpaceController::class, 'votePoll'])->name('poll.vote');
             Route::get('/{thread}', [MobileSpaceController::class, 'show'])->name('show');
+            Route::get('/{thread}/edit', [MobileSpaceController::class, 'editThread'])->name('edit');
+            Route::put('/{thread}', [MobileSpaceController::class, 'updateThread'])->name('update');
+            Route::delete('/{thread}', [MobileSpaceController::class, 'destroyThread'])->name('destroy');
+            Route::delete('/reply/{reply}', [MobileSpaceController::class, 'destroyReply'])->name('reply.destroy');
             Route::post('/{thread}/reply', [MobileSpaceController::class, 'reply'])->name('reply');
             Route::post('/{thread}/like', [MobileSpaceController::class, 'like'])->name('like');
         });

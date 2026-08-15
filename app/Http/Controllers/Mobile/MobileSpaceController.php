@@ -449,6 +449,110 @@ class MobileSpaceController extends Controller
     }
 
     /**
+     * Edit Postingan Thread (Khusus Penulis / Admin)
+     */
+    public function editThread($id)
+    {
+        $user = Auth::user();
+        $thread = ForumThread::with('group')->findOrFail($id);
+
+        $isOwner = ($thread->user_id === $user->id);
+        $isAdmin = in_array($user->role, ['superadmin', 'admin_sekolah']);
+
+        if (!$isOwner && !$isAdmin) {
+            return redirect()->route('mobile.space.show', $id)->with('error', 'Anda tidak memiliki hak akses untuk mengedit postingan ini.');
+        }
+
+        $categories = ForumThread::CATEGORIES;
+        return view('mobile.space.edit', compact('thread', 'categories'));
+    }
+
+    /**
+     * Update Postingan Thread
+     */
+    public function updateThread(Request $request, $id)
+    {
+        $user = Auth::user();
+        $thread = ForumThread::findOrFail($id);
+
+        $isOwner = ($thread->user_id === $user->id);
+        $isAdmin = in_array($user->role, ['superadmin', 'admin_sekolah']);
+
+        if (!$isOwner && !$isAdmin) {
+            return redirect()->route('mobile.space.show', $id)->with('error', 'Anda tidak memiliki hak akses untuk mengubah postingan ini.');
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string|min:5',
+            'category' => 'nullable|string',
+        ]);
+
+        $thread->update([
+            'title' => $validated['title'],
+            'content' => $validated['content'],
+            'category' => $validated['category'] ?? $thread->category,
+        ]);
+
+        return redirect()->route('mobile.space.show', $thread->id)->with('success', 'Postingan Anda berhasil diperbarui!');
+    }
+
+    /**
+     * Hapus Postingan Thread (Khusus Penulis / Admin)
+     */
+    public function destroyThread($id)
+    {
+        $user = Auth::user();
+        $thread = ForumThread::with(['poll', 'replies', 'likes'])->findOrFail($id);
+
+        $isOwner = ($thread->user_id === $user->id);
+        $isAdmin = in_array($user->role, ['superadmin', 'admin_sekolah']);
+
+        if (!$isOwner && !$isAdmin) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk menghapus postingan ini.');
+        }
+
+        // Hapus polling terkait jika ada
+        if ($thread->poll) {
+            \App\Models\ForumPollVote::where('forum_poll_id', $thread->poll->id)->delete();
+            \App\Models\ForumPollOption::where('forum_poll_id', $thread->poll->id)->delete();
+            $thread->poll->delete();
+        }
+
+        // Hapus balasan & likes
+        $thread->replies()->delete();
+        $thread->likes()->delete();
+        $groupId = $thread->group_id;
+
+        $thread->delete();
+
+        if ($groupId) {
+            return redirect()->route('mobile.space.group.show', $groupId)->with('success', 'Postingan berhasil dihapus!');
+        }
+
+        return redirect()->route('mobile.space.index')->with('success', 'Postingan berhasil dihapus!');
+    }
+
+    /**
+     * Hapus Balasan Komentar (Khusus Penulis / Admin)
+     */
+    public function destroyReply($id)
+    {
+        $user = Auth::user();
+        $reply = ForumReply::findOrFail($id);
+
+        $isOwner = ($reply->user_id === $user->id);
+        $isAdmin = in_array($user->role, ['superadmin', 'admin_sekolah']);
+
+        if (!$isOwner && !$isAdmin) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk menghapus komentar ini.');
+        }
+
+        $reply->delete();
+        return redirect()->back()->with('success', 'Komentar berhasil dihapus!');
+    }
+
+    /**
      * Private Helper: Sinkronisasi Grup Otomatis Berbasis Data Akademik User
      */
     private function syncUserGroups($user)

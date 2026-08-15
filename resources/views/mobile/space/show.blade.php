@@ -25,6 +25,10 @@
                 }
             }
         @endphp
+        @php
+            $isOwnerOrAdmin = (Auth::id() === $thread->user_id) || in_array(Auth::user()->role ?? '', ['superadmin', 'admin_sekolah']);
+        @endphp
+
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <img src="{{ $authorPhoto }}" alt="{{ $authorUser?->name }}"
@@ -35,9 +39,25 @@
                     <span class="text-[10px] text-slate-400 font-bold">{{ $thread->created_at ? $thread->created_at->format('d M Y, H:i') : '' }}</span>
                 </div>
             </div>
-            <span class="px-3 py-0.5 rounded-full bg-purple-100 text-purple-900 text-[10px] font-black border border-purple-200">
-                #{{ $thread->category_label ?? $thread->category ?? 'diskusi' }}
-            </span>
+            
+            <div class="flex items-center space-x-1.5">
+                <span class="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 text-[10px] font-black border border-purple-200">
+                    #{{ $thread->category_label ?? $thread->category ?? 'diskusi' }}
+                </span>
+
+                @if($isOwnerOrAdmin)
+                <a href="{{ route('mobile.space.edit', $thread->id) }}" class="p-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-purple-100 hover:text-purple-700 text-xs transition" title="Edit Postingan">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+                <form action="{{ route('mobile.space.destroy', $thread->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus postingan ini?');" class="inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="p-1.5 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs transition" title="Hapus Postingan">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </form>
+                @endif
+            </div>
         </div>
 
         <!-- Thread Title & Body -->
@@ -140,6 +160,15 @@
                             <span class="text-[9px] text-slate-400 font-bold">{{ $reply->created_at ? $reply->created_at->diffForHumans() : '' }}</span>
                         </div>
                     </div>
+                    @if((Auth::id() === $reply->user_id) || in_array(Auth::user()->role ?? '', ['superadmin', 'admin_sekolah']))
+                    <form action="{{ route('mobile.space.reply.destroy', $reply->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus komentar ini?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-rose-500 hover:text-rose-700 text-[11px] px-2 py-1 rounded-lg bg-rose-50 font-bold border border-rose-100 transition">
+                            <i class="fa-solid fa-trash-can"></i> Hapus
+                        </button>
+                    </form>
+                    @endif
                 </div>
 
                 <p class="text-xs text-slate-700 leading-relaxed font-medium pl-10">{!! nl2br(e($reply->content)) !!}</p>
