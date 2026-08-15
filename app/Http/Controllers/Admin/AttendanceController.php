@@ -389,7 +389,7 @@ class AttendanceController extends Controller
                 $updateData
             );
 
-            // Reputation Hook
+            // Reputation Hook (Maksimal 1x per tanggal)
             $student = \App\Models\Student::find($studentId);
             if ($student && $student->user_id) {
                 $points = match($status) {
@@ -398,7 +398,19 @@ class AttendanceController extends Controller
                     default => 0
                 };
                 $desc = "Kehadiran di kelas " . $classroom->class_name . " (" . ucfirst($status) . ")";
-                \App\Models\ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
+                
+                $alreadyLoggedOther = \App\Models\ReputationLog::where('user_id', $student->user_id)
+                    ->where('category', 'attendance')
+                    ->whereDate('created_at', $date)
+                    ->where(function($q) use ($attendance) {
+                        $q->where('reference_type', '!=', get_class($attendance))
+                          ->orWhere('reference_id', '!=', $attendance->id);
+                    })
+                    ->exists();
+
+                if (!$alreadyLoggedOther) {
+                    \App\Models\ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
+                }
             }
             $count++;
         }

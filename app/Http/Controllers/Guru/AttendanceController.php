@@ -221,7 +221,7 @@ class AttendanceController extends Controller
                     ]
                 );
 
-                // Reputation Hook for Student
+                // Reputation Hook for Student (Maksimal 1x per tanggal)
                 $student = \App\Models\Student::find($studentId);
                 if ($student && $student->user_id) {
                     $points = match($status) {
@@ -230,20 +230,39 @@ class AttendanceController extends Controller
                         default => 0
                     };
                     $desc = "Kehadiran di kelas " . $classroomName . " (" . ucfirst($status) . ")";
-                    \App\Models\ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
+                    
+                    // Cek apakah siswa sudah memiliki log kehadiran pada tanggal ini selain record ini
+                    $alreadyLoggedOtherDate = \App\Models\ReputationLog::where('user_id', $student->user_id)
+                        ->where('category', 'attendance')
+                        ->whereDate('created_at', $date)
+                        ->where(function($q) use ($attendance) {
+                            $q->where('reference_type', '!=', get_class($attendance))
+                              ->orWhere('reference_id', '!=', $attendance->id);
+                        })
+                        ->exists();
+
+                    if (!$alreadyLoggedOtherDate) {
+                        \App\Models\ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
+                    }
                 }
 
                 $count++;
             }
 
-            // Reputation Hook for Teacher
-            \App\Models\ReputationLog::log(
-                Auth::id(), 
-                20, 
-                'attendance_input', 
-                "Melakukan input absensi kelas: " . ($request->classroom_id ?? 'Kelas'),
-                null // Reference ID could be classroom + date hash if needed
-            );
+            // Reputation Hook for Teacher (Maksimal +20 Poin 1x per tanggal agar tidak berlipat saat berulang kali klik simpan)
+            $teacherAlreadyLoggedToday = \App\Models\ReputationLog::where('user_id', Auth::id())
+                ->where('category', 'attendance_input')
+                ->whereDate('created_at', $request->date ?? date('Y-m-d'))
+                ->exists();
+
+            if (!$teacherAlreadyLoggedToday) {
+                \App\Models\ReputationLog::log(
+                    Auth::id(), 
+                    20, 
+                    'attendance_input', 
+                    "Melakukan input absensi harian (" . ($request->date ?? date('Y-m-d')) . ")"
+                );
+            }
 
             $dateCarbon = \Carbon\Carbon::parse($request->date);
             return redirect()->route('guru.absensi', [
