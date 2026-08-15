@@ -1,12 +1,18 @@
 <?php
 /**
- * CLEANUP SCRIPT - Pembersihan Postingan & Komentar Spam / Terlalu Singkat di Pembda Space
- * Serta Pembatalan / Penarikan Poin Reputasi Terkait
+ * CLEANUP SCRIPT (HIGH SPEED BATCH ENGINE)
+ * Pembersihan Postingan & Komentar Spam / Terlalu Singkat di Pembda Space
+ * Serta Pembatalan & Sinkronisasi Poin Reputasi Pengguna
  *
  * Akses:
  * - Preview / Diagnostik: perguruanpembda.com/cleanup_space_spam.php?secret=pembda99
- * - Eksekusi Hapus & Tarik Poin: perguruanpembda.com/cleanup_space_spam.php?secret=pembda99&min_chars=15&confirm=HAPUS
+ * - Eksekusi Hapus Cepat: perguruanpembda.com/cleanup_space_spam.php?secret=pembda99&min_chars=15&confirm=HAPUS
  */
+
+// ── Timeout & Memory Optimization ──
+@set_time_limit(300);
+@ini_set('memory_limit', '512M');
+@ini_set('max_execution_time', '300');
 
 // ── Keamanan ──
 $secret = $_GET['secret'] ?? '';
@@ -18,6 +24,7 @@ if ($secret !== 'pembda99') {
 $minChars   = isset($_GET['min_chars']) ? max(1, (int)$_GET['min_chars']) : 15;
 $scope      = $_GET['scope'] ?? 'all'; // 'all', 'threads', 'replies'
 $isConfirm  = isset($_GET['confirm']) && $_GET['confirm'] === 'HAPUS';
+$replyMinChars = min($minChars, 10);
 
 // ── Bootstrap Laravel ──
 define('LARAVEL_START', microtime(true));
@@ -27,232 +34,216 @@ $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
 $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use App\Models\ForumThread;
 use App\Models\ForumReply;
-use App\Models\ForumLike;
-use App\Models\ForumReaction;
-use App\Models\ForumPoll;
-use App\Models\ForumPollOption;
-use App\Models\ForumPollVote;
-use App\Models\ForumMember;
 use App\Models\AlumniForum;
-use App\Models\AlumniForumReply;
-use App\Models\ReputationLog;
-use App\Models\Reputation;
-use App\Models\User;
 
-// ── 1. Ambil Data Thread Spam (< $minChars) ──
-$spamThreadsQuery = ForumThread::with(['user', 'group'])
-    ->where(function ($q) use ($minChars) {
-        $q->whereRaw('CHAR_LENGTH(TRIM(content)) < ?', [$minChars])
-          ->orWhereRaw('CHAR_LENGTH(TRIM(title)) < ?', [$minChars]);
-    });
+$startTime = microtime(true);
+$errorMessage = null;
 
-$spamThreads = $spamThreadsQuery->latest()->get();
-$totalThreadsInDb = ForumThread::count();
-
-// ── 2. Ambil Data Balasan/Komentar Spam (< 10 karakter atau < $minChars) ──
-$replyMinChars = min($minChars, 10);
-$spamRepliesQuery = ForumReply::with(['user', 'thread'])
-    ->whereNull('voice_note_path') // jangan hapus voice note
-    ->whereRaw('CHAR_LENGTH(TRIM(content)) < ?', [$replyMinChars]);
-
-$spamReplies = $spamRepliesQuery->latest()->get();
-$totalRepliesInDb = ForumReply::count();
-
-// ── 3. Alumni Forum Spam (jika ada) ──
-$spamAlumniThreads = AlumniForum::with('user')
-    ->where(function ($q) use ($minChars) {
-        $q->whereRaw('CHAR_LENGTH(TRIM(content)) < ?', [$minChars])
-          ->orWhereRaw('CHAR_LENGTH(TRIM(title)) < ?', [$minChars]);
-    })->get();
-
-// ── 4. Hitung Poin Reputasi yang Terkait dengan Data Spam Ini ──
-$threadIds = $spamThreads->pluck('id')->toArray();
-$replyIds = $spamReplies->pluck('id')->toArray();
-
-$spamThreadPoints = ReputationLog::whereIn('reference_type', [ForumThread::class, 'App\Models\ForumThread'])
-    ->whereIn('reference_id', $threadIds)
-    ->sum('points');
-
-$spamReplyPoints = ReputationLog::whereIn('reference_type', [ForumReply::class, 'App\Models\ForumReply'])
-    ->whereIn('reference_id', $replyIds)
-    ->sum('points');
-
-// Jika log tidak punya reference tapi tercatat via kata kunci postingan spam
-$totalPointsToRevoke = $spamThreadPoints + $spamReplyPoints;
-
-// Ambil daftar user yang poinnya akan terdampak
-$affectedUsers = [];
-$affectedLogs = ReputationLog::where(function ($q) use ($threadIds, $replyIds) {
-    $q->where(function ($sq) use ($threadIds) {
-        $sq->whereIn('reference_type', [ForumThread::class, 'App\Models\ForumThread'])
-           ->whereIn('reference_id', $threadIds);
-    })->orWhere(function ($sq) use ($replyIds) {
-        $sq->whereIn('reference_type', [ForumReply::class, 'App\Models\ForumReply'])
-           ->whereIn('reference_id', $replyIds);
-    });
-})->with('user')->get();
-
-foreach ($affectedLogs as $log) {
-    $uid = $log->user_id;
-    if (!isset($affectedUsers[$uid])) {
-        $affectedUsers[$uid] = [
-            'name' => $log->user->name ?? 'User #' . $uid,
-            'role' => $log->user->role ?? '-',
-            'points_deducted' => 0,
-        ];
-    }
-    $affectedUsers[$uid]['points_deducted'] += $log->points;
-}
-
+// ── 1. Eksekusi Hapus Batch Cepat jika Confirm ──
 $deletedThreadsCount = 0;
 $deletedRepliesCount = 0;
 $deletedAlumniCount = 0;
-$deletedFilesCount = 0;
 $revokedPointsCount = 0;
 $recalculatedUsersCount = 0;
-$errorMessage = null;
 
-// ── 5. Eksekusi Penghapusan dan Pembatalan Poin jika Confirm ──
 if ($isConfirm) {
     DB::beginTransaction();
     try {
         $affectedUserIds = [];
 
-        // Hapus Threads Spam & Tarik Poinnya
+        // 1. Ambil IDs Thread Spam
+        $spamThreadIds = [];
         if ($scope === 'all' || $scope === 'threads') {
-            foreach ($spamThreads as $thread) {
-                // Hapus file gambar & attachment
-                if ($thread->image_path && Storage::disk('public')->exists($thread->image_path)) {
-                    Storage::disk('public')->delete($thread->image_path);
-                    $deletedFilesCount++;
+            $spamThreadIds = DB::table('forum_threads')
+                ->whereRaw('CHAR_LENGTH(TRIM(content)) < ? OR CHAR_LENGTH(TRIM(title)) < ?', [$minChars, $minChars])
+                ->pluck('id')
+                ->toArray();
+
+            if (!empty($spamThreadIds)) {
+                $threadUserIds = DB::table('forum_threads')->whereIn('id', $spamThreadIds)->pluck('user_id')->toArray();
+                $affectedUserIds = array_merge($affectedUserIds, $threadUserIds);
+
+                // Tarik & hapus reputation logs
+                $pointSum = DB::table('reputation_logs')
+                    ->whereIn('reference_type', [ForumThread::class, 'App\Models\ForumThread'])
+                    ->whereIn('reference_id', $spamThreadIds)
+                    ->sum('points');
+                $revokedPointsCount += (int)$pointSum;
+
+                DB::table('reputation_logs')
+                    ->whereIn('reference_type', [ForumThread::class, 'App\Models\ForumThread'])
+                    ->whereIn('reference_id', $spamThreadIds)
+                    ->delete();
+
+                // Hapus balasan & relasinya
+                $threadReplyIds = DB::table('forum_replies')->whereIn('forum_thread_id', $spamThreadIds)->pluck('id')->toArray();
+                if (!empty($threadReplyReply)) {
+                    DB::table('forum_reactions')->whereIn('forum_reply_id', $threadReplyIds)->delete();
+                    DB::table('reputation_logs')
+                        ->whereIn('reference_type', [ForumReply::class, 'App\Models\ForumReply'])
+                        ->whereIn('reference_id', $threadReplyIds)
+                        ->delete();
                 }
-                if ($thread->attachment_path && Storage::disk('public')->exists($thread->attachment_path)) {
-                    Storage::disk('public')->delete($thread->attachment_path);
-                    $deletedFilesCount++;
-                }
+                DB::table('forum_replies')->whereIn('forum_thread_id', $spamThreadIds)->delete();
 
-                // Hapus relasi balasan & filenya
-                $replies = ForumReply::where('forum_thread_id', $thread->id)->get();
-                foreach ($replies as $r) {
-                    if ($r->voice_note_path && Storage::disk('public')->exists($r->voice_note_path)) {
-                        Storage::disk('public')->delete($r->voice_note_path);
-                        $deletedFilesCount++;
-                    }
-                    ForumReaction::where('forum_reply_id', $r->id)->delete();
-                    
-                    // Tarik poin komentar pada thread ini
-                    $rLogs = ReputationLog::whereIn('reference_type', [ForumReply::class, 'App\Models\ForumReply'])
-                        ->where('reference_id', $r->id)
-                        ->get();
-                    foreach ($rLogs as $rl) {
-                        $revokedPointsCount += $rl->points;
-                        $affectedUserIds[] = $rl->user_id;
-                        $rl->delete();
-                    }
-
-                    $r->delete();
-                }
-
-                // Hapus relasi likes, reactions, members, polls
-                ForumLike::where('forum_thread_id', $thread->id)->delete();
-                ForumReaction::where('forum_thread_id', $thread->id)->delete();
-                ForumMember::where('forum_thread_id', $thread->id)->delete();
-
-                $polls = ForumPoll::where('forum_thread_id', $thread->id)->get();
-                foreach ($polls as $poll) {
-                    ForumPollVote::where('forum_poll_id', $poll->id)->delete();
-                    ForumPollOption::where('forum_poll_id', $poll->id)->delete();
-                    $poll->delete();
+                // Hapus likes, reactions, members
+                DB::table('forum_likes')->whereIn('forum_thread_id', $spamThreadIds)->delete();
+                DB::table('forum_reactions')->whereIn('forum_thread_id', $spamThreadIds)->delete();
+                if (DB::getSchemaBuilder()->hasTable('forum_members')) {
+                    DB::table('forum_members')->whereIn('forum_thread_id', $spamThreadIds)->delete();
                 }
 
-                // Batalkan Poin Reputasi Pembuat Thread
-                $tLogs = ReputationLog::whereIn('reference_type', [ForumThread::class, 'App\Models\ForumThread'])
-                    ->where('reference_id', $thread->id)
-                    ->get();
-                foreach ($tLogs as $tl) {
-                    $revokedPointsCount += $tl->points;
-                    $affectedUserIds[] = $tl->user_id;
-                    $tl->delete();
+                // Hapus polls
+                $pollIds = DB::table('forum_polls')->whereIn('forum_thread_id', $spamThreadIds)->pluck('id')->toArray();
+                if (!empty($pollIds)) {
+                    DB::table('forum_poll_votes')->whereIn('forum_poll_id', $pollIds)->delete();
+                    DB::table('forum_poll_options')->whereIn('forum_poll_id', $pollIds)->delete();
+                    DB::table('forum_polls')->whereIn('id', $pollIds)->delete();
                 }
-                $affectedUserIds[] = $thread->user_id;
 
-                $thread->delete();
-                $deletedThreadsCount++;
+                // Hapus threads
+                $deletedThreadsCount = DB::table('forum_threads')->whereIn('id', $spamThreadIds)->delete();
             }
         }
 
-        // Hapus Balasan Spam & Tarik Poinnya
+        // 2. Ambil IDs Balasan Spam
         if ($scope === 'all' || $scope === 'replies') {
-            foreach ($spamReplies as $reply) {
-                if ($reply->exists) {
-                    ForumReaction::where('forum_reply_id', $reply->id)->delete();
+            $spamReplyIds = DB::table('forum_replies')
+                ->whereNull('voice_note_path')
+                ->whereRaw('CHAR_LENGTH(TRIM(content)) < ?', [$replyMinChars])
+                ->pluck('id')
+                ->toArray();
 
-                    // Batalkan Poin Reputasi Komentar
-                    $rLogs = ReputationLog::whereIn('reference_type', [ForumReply::class, 'App\Models\ForumReply'])
-                        ->where('reference_id', $reply->id)
-                        ->get();
-                    foreach ($rLogs as $rl) {
-                        $revokedPointsCount += $rl->points;
-                        $affectedUserIds[] = $rl->user_id;
-                        $rl->delete();
-                    }
-                    $affectedUserIds[] = $reply->user_id;
+            if (!empty($spamReplyIds)) {
+                $replyUserIds = DB::table('forum_replies')->whereIn('id', $spamReplyIds)->pluck('user_id')->toArray();
+                $affectedUserIds = array_merge($affectedUserIds, $replyUserIds);
 
-                    $reply->delete();
-                    $deletedRepliesCount++;
-                }
+                $rPointSum = DB::table('reputation_logs')
+                    ->whereIn('reference_type', [ForumReply::class, 'App\Models\ForumReply'])
+                    ->whereIn('reference_id', $spamReplyIds)
+                    ->sum('points');
+                $revokedPointsCount += (int)$rPointSum;
+
+                DB::table('forum_reactions')->whereIn('forum_reply_id', $spamReplyIds)->delete();
+                DB::table('reputation_logs')
+                    ->whereIn('reference_type', [ForumReply::class, 'App\Models\ForumReply'])
+                    ->whereIn('reference_id', $spamReplyIds)
+                    ->delete();
+
+                $deletedRepliesCount = DB::table('forum_replies')->whereIn('id', $spamReplyIds)->delete();
             }
         }
 
-        // Hapus Alumni Threads Spam
+        // 3. Hapus Alumni Forum Spam
         if ($scope === 'all' || $scope === 'threads') {
-            foreach ($spamAlumniThreads as $athread) {
-                if ($athread->image_path && Storage::disk('public')->exists($athread->image_path)) {
-                    Storage::disk('public')->delete($athread->image_path);
-                    $deletedFilesCount++;
+            if (DB::getSchemaBuilder()->hasTable('alumni_forums')) {
+                $alumniIds = DB::table('alumni_forums')
+                    ->whereRaw('CHAR_LENGTH(TRIM(content)) < ? OR CHAR_LENGTH(TRIM(title)) < ?', [$minChars, $minChars])
+                    ->pluck('id')
+                    ->toArray();
+
+                if (!empty($alumniIds)) {
+                    if (DB::getSchemaBuilder()->hasTable('alumni_forum_replies')) {
+                        DB::table('alumni_forum_replies')->whereIn('alumni_forum_id', $alumniIds)->delete();
+                    }
+                    $deletedAlumniCount = DB::table('alumni_forums')->whereIn('id', $alumniIds)->delete();
                 }
-                AlumniForumReply::where('alumni_forum_id', $athread->id)->delete();
-                $athread->delete();
-                $deletedAlumniCount++;
             }
         }
 
-        // ── SINKRONISASI ULANG TOTAL POIN REPUTASI & LEVEL USER ──
+        // 4. Sinkronisasi Ulang Total Poin Reputasi Seluruh User Terdampak
         $uniqueUserIds = array_unique(array_filter($affectedUserIds));
         foreach ($uniqueUserIds as $uId) {
-            $sumPoints = ReputationLog::where('user_id', $uId)->sum('points');
-            $rep = Reputation::firstOrCreate(['user_id' => $uId]);
-            $rep->total_points = max(0, (int)$sumPoints);
-            $rep->updateLevel();
-            $rep->save();
+            $sumPoints = DB::table('reputation_logs')->where('user_id', $uId)->sum('points');
+            $validPoints = max(0, (int)$sumPoints);
+
+            $levelName = 'Newbie';
+            if ($validPoints >= 5000) $levelName = 'Emerald Elite';
+            elseif ($validPoints >= 2000) $levelName = 'Legendary Scholar';
+            elseif ($validPoints >= 1000) $levelName = 'Ace Specialist';
+            elseif ($validPoints >= 500) $levelName = 'Rising Star';
+
+            DB::table('reputations')->updateOrInsert(
+                ['user_id' => $uId],
+                [
+                    'total_points' => $validPoints,
+                    'level_name' => $levelName,
+                    'updated_at' => now(),
+                ]
+            );
             $recalculatedUsersCount++;
         }
 
         DB::commit();
-
-        // Refresh data setelah eksekusi
-        $spamThreads = collect();
-        $spamReplies = collect();
-        $spamAlumniThreads = collect();
-        $totalThreadsInDb = ForumThread::count();
-        $totalRepliesInDb = ForumReply::count();
-        $affectedUsers = [];
-
     } catch (\Throwable $e) {
         DB::rollBack();
         $errorMessage = $e->getMessage();
     }
 }
+
+// ── 2. Query Data Statistik (Ringan & Cepat) ──
+$totalThreadsInDb = DB::table('forum_threads')->count();
+$totalRepliesInDb = DB::table('forum_replies')->count();
+
+$spamThreadsCount = DB::table('forum_threads')
+    ->whereRaw('CHAR_LENGTH(TRIM(content)) < ? OR CHAR_LENGTH(TRIM(title)) < ?', [$minChars, $minChars])
+    ->count();
+
+$spamRepliesCount = DB::table('forum_replies')
+    ->whereNull('voice_note_path')
+    ->whereRaw('CHAR_LENGTH(TRIM(content)) < ?', [$replyMinChars])
+    ->count();
+
+// Estimasi Poin yang Akan Ditarik
+$estimatedPoints = ($spamThreadsCount * 15) + ($spamRepliesCount * 5);
+
+// Ambil sampel data untuk tabel preview (maksimal 50 teratas agar loading cepat)
+$sampleThreads = DB::table('forum_threads')
+    ->leftJoin('users', 'forum_threads.user_id', '=', 'users.id')
+    ->leftJoin('forum_groups', 'forum_threads.group_id', '=', 'forum_groups.id')
+    ->whereRaw('CHAR_LENGTH(TRIM(forum_threads.content)) < ? OR CHAR_LENGTH(TRIM(forum_threads.title)) < ?', [$minChars, $minChars])
+    ->select(
+        'forum_threads.id',
+        'forum_threads.title',
+        'forum_threads.content',
+        'forum_threads.created_at',
+        'forum_threads.category',
+        'users.name as author_name',
+        'users.role as author_role',
+        'forum_groups.name as group_name'
+    )
+    ->latest('forum_threads.created_at')
+    ->limit(50)
+    ->get();
+
+$sampleReplies = DB::table('forum_replies')
+    ->leftJoin('users', 'forum_replies.user_id', '=', 'users.id')
+    ->leftJoin('forum_threads', 'forum_replies.forum_thread_id', '=', 'forum_threads.id')
+    ->whereNull('forum_replies.voice_note_path')
+    ->whereRaw('CHAR_LENGTH(TRIM(forum_replies.content)) < ?', [$replyMinChars])
+    ->select(
+        'forum_replies.id',
+        'forum_replies.content',
+        'forum_replies.created_at',
+        'forum_replies.forum_thread_id',
+        'users.name as author_name',
+        'users.role as author_role',
+        'forum_threads.title as thread_title'
+    )
+    ->latest('forum_replies.created_at')
+    ->limit(50)
+    ->get();
+
+$executionTime = round((microtime(true) - $startTime) * 1000, 2);
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🧹 Pembersih Spam & Pembatalan Poin - Pembda Space</title>
+<title>⚡ Pembersih Cepat Spam Pembda Space</title>
 <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background: #0b0f19; color: #e2e8f0; min-height: 100vh; padding: 30px 15px; }
@@ -263,7 +254,7 @@ if ($isConfirm) {
     .icon { font-size: 2.2rem; }
     h1 { font-size: 1.4rem; font-weight: 800; color: #f8fafc; }
     .subtitle { color: #94a3b8; font-size: 0.8rem; margin-top: 4px; }
-    .badge-secret { background: #064e3b; color: #34d399; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 99px; }
+    .badge-speed { background: #0284c7; color: #e0f2fe; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 99px; }
 
     /* Filter Controls */
     .filter-bar { background: #0a1120; border-radius: 14px; padding: 16px; margin-bottom: 24px; border: 1px solid #1e293b; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
@@ -312,27 +303,26 @@ if ($isConfirm) {
             <div class="title-group">
                 <span class="icon">🧹</span>
                 <div>
-                    <h1>Pembersih Postingan Spam & Pembatalan Poin</h1>
-                    <p class="subtitle">Menghapus postingan pendek/spam dan secara otomatis membatalkan/menarik kembali poin reputasi yang sempat diberikan.</p>
+                    <h1>Pembersih Cepat Spam & Pembatalan Poin</h1>
+                    <p class="subtitle">Mesin batch berkecepatan tinggi: membersihkan postingan 1 karakter dan membatalkan poin terkait.</p>
                 </div>
             </div>
-            <span class="badge-secret">🔒 Mode Aman: Terverifikasi</span>
+            <span class="badge-speed">⚡ Batch Engine (<?= $executionTime ?> ms)</span>
         </div>
 
         <?php if ($isConfirm && !$errorMessage): ?>
             <div class="alert-success">
-                <h3 style="font-size:1.15rem; font-weight:800; margin-bottom:6px;">✨ Pembersihan & Pembatalan Poin Berhasil Selesai!</h3>
-                <p>Seluruh postingan spam telah dihapus dan poin reputasi pengguna telah disinkronkan kembali secara akurat:</p>
+                <h3 style="font-size:1.15rem; font-weight:800; margin-bottom:6px;">✨ Pembersihan & Penarikan Poin Berhasil Selesai!</h3>
+                <p>Seluruh postingan spam telah dihapus dan poin reputasi pengguna telah disinkronkan kembali secara instan:</p>
                 <ul style="margin: 12px 0 0 20px; line-height: 1.9; font-size: 0.85rem;">
                     <li><strong><?= $deletedThreadsCount ?></strong> Postingan Utama (Threads) terhapus.</li>
                     <li><strong><?= $deletedRepliesCount ?></strong> Balasan / Komentar Spam terhapus.</li>
                     <li><strong><?= $deletedAlumniCount ?></strong> Postingan Forum Alumni terhapus.</li>
-                    <li><strong><?= $deletedFilesCount ?></strong> File gambar & lampiran yatim terhapus dari storage.</li>
                     <li><strong style="color:#fef08a;">-<?= $revokedPointsCount ?> Poin</strong> Reputasi berhasil ditarik & dibatalkan.</li>
-                    <li><strong><?= $recalculatedUsersCount ?> User</strong> total poin & level reputasinya telah dihitung ulang dari database riil.</li>
+                    <li><strong><?= $recalculatedUsersCount ?> User</strong> total poin & level pangkatnya telah dihitung ulang secara akurat.</li>
                 </ul>
                 <div style="margin-top: 16px;">
-                    <a href="?secret=pembda99" class="btn btn-preview" style="padding: 8px 16px; font-size: 0.8rem;">🔄 Kembali ke Halaman Preview</a>
+                    <a href="?secret=pembda99" class="btn btn-preview" style="padding: 8px 16px; font-size: 0.8rem;">🔄 Selesai & Kembali ke Preview</a>
                 </div>
             </div>
         <?php endif; ?>
@@ -374,34 +364,34 @@ if ($isConfirm) {
         <!-- Stats Grid -->
         <div class="stat-grid">
             <div class="stat-card stat-rose">
-                <div class="num"><?= $spamThreads->count() ?></div>
+                <div class="num"><?= $spamThreadsCount ?></div>
                 <div class="lbl">Postingan Spam (&lt; <?= $minChars ?> Karakter)</div>
             </div>
             <div class="stat-card stat-amber">
-                <div class="num"><?= $spamReplies->count() ?></div>
+                <div class="num"><?= $spamRepliesCount ?></div>
                 <div class="lbl">Komentar Spam (&lt; <?= $replyMinChars ?> Karakter)</div>
             </div>
             <div class="stat-card stat-purple">
-                <div class="num">-<?= $totalPointsToRevoke ?></div>
-                <div class="lbl">Poin yang Akan Ditarik / Dibatalkan</div>
+                <div class="num">-<?= $estimatedPoints ?></div>
+                <div class="lbl">Estimasi Poin yang Ditarik</div>
             </div>
             <div class="stat-card stat-emerald">
-                <div class="num"><?= max(0, $totalThreadsInDb - $spamThreads->count()) ?></div>
+                <div class="num"><?= max(0, $totalThreadsInDb - $spamThreadsCount) ?></div>
                 <div class="lbl">Postingan Valid Tersisa</div>
             </div>
         </div>
 
-        <?php if ($spamThreads->count() > 0 || $spamReplies->count() > 0): ?>
+        <?php if ($spamThreadsCount > 0 || $spamRepliesCount > 0): ?>
             <div style="background:#1e1b4b; border:1px solid #4338ca; border-radius:14px; padding:18px; margin-bottom:20px;">
-                <h4 style="color:#c7d2fe; font-size:0.95rem; font-weight:800; margin-bottom:6px;">⚠️ Konfirmasi Pembersihan Data & Pembatalan Poin</h4>
+                <h4 style="color:#c7d2fe; font-size:0.95rem; font-weight:800; margin-bottom:6px;">⚠️ Eksekusi Pembersihan Data & Pembatalan Poin</h4>
                 <p style="color:#a5b4fc; font-size:0.8rem; line-height:1.6;">
-                    Total <strong><?= $spamThreads->count() ?> postingan</strong> dan <strong><?= $spamReplies->count() ?> balasan</strong> di bawah ini akan dihapus permanen. Selain itu, sekitar <strong><?= $totalPointsToRevoke ?> poin reputasi</strong> dari user pembuat spam akan <strong>otomatis ditarik / dibatalkan</strong> dan level pangkat mereka akan disesuaikan kembali.
+                    Ditemukan <strong><?= $spamThreadsCount ?> postingan</strong> dan <strong><?= $spamRepliesCount ?> balasan</strong> spam (&lt; <?= $minChars ?> karakter). Klik tombol di bawah untuk menghapus seluruh data ini dan menarik kembali poin reputasi terkait dalam 1 kali klik instan.
                 </p>
                 <div style="margin-top:14px;">
                     <a href="?secret=pembda99&min_chars=<?= $minChars ?>&scope=<?= $scope ?>&confirm=HAPUS"
-                       onclick="return confirm('PERINGATAN: Apakah Anda yakin ingin MENGHAPUS seluruh <?= $spamThreads->count() + $spamReplies->count() ?> data spam dan MENARIK KEMBALI <?= $totalPointsToRevoke ?> poin reputasi terkait?')"
+                       onclick="return confirm('PERINGATAN: Apakah Anda yakin ingin MENGHAPUS seluruh <?= $spamThreadsCount + $spamRepliesCount ?> data spam dan MENARIK KEMBALI poin reputasi terkait?')"
                        class="btn btn-danger">
-                        🗑️ HAPUS SEKARANG & TARIK <?= $totalPointsToRevoke ?> POIN REPUTASI
+                        🗑️ HAPUS SEKARANG & TARIK POIN (<?= $spamThreadsCount + $spamRepliesCount ?> Data)
                     </a>
                 </div>
             </div>
@@ -411,11 +401,13 @@ if ($isConfirm) {
             </div>
         <?php endif; ?>
 
-        <!-- Tabel Daftar Postingan Spam -->
-        <?php if ($spamThreads->count() > 0): ?>
-            <h3 style="font-size:0.95rem; font-weight:800; color:#f8fafc; margin-top:20px; margin-bottom:8px;">
-                📋 Daftar Postingan Utama Spam (<?= $spamThreads->count() ?>)
-            </h3>
+        <!-- Tabel Sampel Postingan Spam -->
+        <?php if ($sampleThreads->count() > 0): ?>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; margin-bottom:8px;">
+                <h3 style="font-size:0.95rem; font-weight:800; color:#f8fafc;">
+                    📋 Sampel Postingan Utama Spam (Total: <?= $spamThreadsCount ?>, Menampilkan <?= $sampleThreads->count() ?>)
+                </h3>
+            </div>
             <div class="table-container">
                 <table>
                     <thead>
@@ -424,22 +416,22 @@ if ($isConfirm) {
                             <th>Penulis</th>
                             <th>Grup / Kanal</th>
                             <th>Judul & Isi Postingan</th>
-                            <th>Panjang Teks</th>
+                            <th>Panjang</th>
                             <th>Poin Ditarik</th>
                             <th>Tanggal</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach($spamThreads as $th): ?>
+                        <?php foreach($sampleThreads as $th): ?>
                             <tr>
                                 <td style="font-weight:bold; color:#94a3b8;">#<?= $th->id ?></td>
                                 <td>
-                                    <strong><?= htmlspecialchars($th->user->name ?? 'User #' . $th->user_id) ?></strong>
-                                    <div style="font-size:0.7rem; color:#64748b;"><?= htmlspecialchars($th->user->role ?? '-') ?></div>
+                                    <strong><?= htmlspecialchars($th->author_name ?? 'User') ?></strong>
+                                    <div style="font-size:0.7rem; color:#64748b;"><?= htmlspecialchars($th->author_role ?? '-') ?></div>
                                 </td>
                                 <td>
                                     <span style="font-size:0.75rem; font-weight:700; color:#38bdf8;">
-                                        <?= htmlspecialchars($th->group->name ?? ($th->category ? ucfirst($th->category) : 'Publik')) ?>
+                                        <?= htmlspecialchars($th->group_name ?? ($th->category ? ucfirst($th->category) : 'Publik')) ?>
                                     </span>
                                 </td>
                                 <td>
@@ -457,7 +449,7 @@ if ($isConfirm) {
                                     <span class="points-pill">-15 Poin</span>
                                 </td>
                                 <td style="font-size:0.75rem; color:#94a3b8;">
-                                    <?= $th->created_at ? $th->created_at->format('d/m/Y H:i') : '-' ?>
+                                    <?= $th->created_at ? date('d/m/Y H:i', strtotime($th->created_at)) : '-' ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -466,11 +458,13 @@ if ($isConfirm) {
             </div>
         <?php endif; ?>
 
-        <!-- Tabel Daftar Balasan Spam -->
-        <?php if ($spamReplies->count() > 0): ?>
-            <h3 style="font-size:0.95rem; font-weight:800; color:#f8fafc; margin-top:30px; margin-bottom:8px;">
-                💬 Daftar Komentar / Balasan Spam (<?= $spamReplies->count() ?>)
-            </h3>
+        <!-- Tabel Sampel Balasan Spam -->
+        <?php if ($sampleReplies->count() > 0): ?>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:30px; margin-bottom:8px;">
+                <h3 style="font-size:0.95rem; font-weight:800; color:#f8fafc;">
+                    💬 Sampel Komentar / Balasan Spam (Total: <?= $spamRepliesCount ?>, Menampilkan <?= $sampleReplies->count() ?>)
+                </h3>
+            </div>
             <div class="table-container">
                 <table>
                     <thead>
@@ -479,22 +473,22 @@ if ($isConfirm) {
                             <th>Penulis</th>
                             <th>Topik Terkait</th>
                             <th>Isi Balasan</th>
-                            <th>Panjang Teks</th>
+                            <th>Panjang</th>
                             <th>Poin Ditarik</th>
                             <th>Tanggal</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach($spamReplies as $rep): ?>
+                        <?php foreach($sampleReplies as $rep): ?>
                             <tr>
                                 <td style="font-weight:bold; color:#94a3b8;">#<?= $rep->id ?></td>
                                 <td>
-                                    <strong><?= htmlspecialchars($rep->user->name ?? 'User #' . $rep->user_id) ?></strong>
-                                    <div style="font-size:0.7rem; color:#64748b;"><?= htmlspecialchars($rep->user->role ?? '-') ?></div>
+                                    <strong><?= htmlspecialchars($rep->author_name ?? 'User') ?></strong>
+                                    <div style="font-size:0.7rem; color:#64748b;"><?= htmlspecialchars($rep->author_role ?? '-') ?></div>
                                 </td>
                                 <td>
                                     <span style="font-size:0.75rem; color:#94a3b8;">
-                                        <?= htmlspecialchars($rep->thread->title ?? 'Thread #' . $rep->forum_thread_id) ?>
+                                        <?= htmlspecialchars($rep->thread_title ?? 'Thread #' . $rep->forum_thread_id) ?>
                                     </span>
                                 </td>
                                 <td>
@@ -509,7 +503,7 @@ if ($isConfirm) {
                                     <span class="points-pill">-5 Poin</span>
                                 </td>
                                 <td style="font-size:0.75rem; color:#94a3b8;">
-                                    <?= $rep->created_at ? $rep->created_at->format('d/m/Y H:i') : '-' ?>
+                                    <?= $rep->created_at ? date('d/m/Y H:i', strtotime($rep->created_at)) : '-' ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -519,8 +513,8 @@ if ($isConfirm) {
         <?php endif; ?>
 
         <div style="margin-top:30px; padding-top:16px; border-top:1px solid #1e293b; display:flex; justify-content:space-between; font-size:0.75rem; color:#64748b;">
-            <span>PembdaHUB Production Maintenance Engine</span>
-            <span>Hostinger Production Server Tool</span>
+            <span>PembdaHUB High Speed Engine</span>
+            <span>Hostinger Production Tool</span>
         </div>
     </div>
 </div>
