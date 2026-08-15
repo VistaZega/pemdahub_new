@@ -334,6 +334,31 @@
             <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
         </a>
 
+        <!-- Petunjuk Install Aplikasi HP -->
+        <div x-data="{ openGuide: false }" class="border-t border-slate-100 pt-1">
+            <button @click="openGuide = !openGuide" class="w-full p-3.5 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between text-xs text-slate-800 font-black">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-mobile-screen-button text-purple-600 text-sm"></i>
+                    <span>Petunjuk Install Aplikasi di HP</span>
+                </div>
+                <i class="fa-solid text-[10px] text-slate-400" :class="openGuide ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </button>
+            <div x-show="openGuide" x-collapse class="p-3 bg-slate-50 rounded-2xl space-y-2 mt-1 text-[11px]" style="display: none;">
+                <div class="font-black text-emerald-700 flex items-center gap-1.5">
+                    <i class="fa-brands fa-android text-sm"></i> <span>Android (Chrome):</span>
+                </div>
+                <p class="text-slate-600 pl-4 leading-relaxed">
+                    Buka website $\rightarrow$ Tekan titik tiga (⋮) kanan atas $\rightarrow$ Pilih <strong>"Instal aplikasi"</strong> atau <strong>"Tambahkan ke Layar Utama"</strong>.
+                </p>
+                <div class="font-black text-blue-700 flex items-center gap-1.5 pt-1">
+                    <i class="fa-brands fa-apple text-sm"></i> <span>iPhone (Safari):</span>
+                </div>
+                <p class="text-slate-600 pl-4 leading-relaxed">
+                    Buka website $\rightarrow$ Tekan ikon Bagikan (□↑) $\rightarrow$ Pilih <strong>"Tambahkan ke Layar Utama"</strong>.
+                </p>
+            </div>
+        </div>
+
         <!-- Form Tombol Keluar / Logout -->
         <form action="{{ route('mobile.logout') }}" method="POST" class="pt-1">
             @csrf

@@ -52,24 +52,32 @@
 
         <!-- Instructions Accordion / Steps -->
         <div class="text-left space-y-3 pt-2 border-t border-white/10">
-            <h4 class="text-xs font-black text-slate-300 uppercase tracking-wider text-center">Cara Pasang (Install) di Layar Utama HP:</h4>
+            <h4 class="text-xs font-black text-slate-300 uppercase tracking-wider text-center flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-circle-info text-purple-400"></i> Cara Pasang (Install) di Layar Utama HP:
+            </h4>
             
-            <div class="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300 space-y-1">
-                <div class="font-black text-emerald-400 flex items-center gap-1.5">
-                    <i class="fa-brands fa-android text-base"></i> Untuk HP Android (Chrome):
+            <div class="p-4 rounded-2xl bg-slate-800/90 border border-slate-700/80 text-xs text-slate-300 space-y-2">
+                <div class="font-black text-emerald-400 flex items-center gap-2 text-xs">
+                    <i class="fa-brands fa-android text-base"></i> <span>1. HP Android (Google Chrome):</span>
                 </div>
-                <p class="text-[11px] text-slate-400 font-medium pl-5">
-                    Buka link $\rightarrow$ Tekan titik tiga (⋮) di kanan atas $\rightarrow$ Pilih <strong>"Tambahkan ke Layar Utama" / "Install Aplikasi"</strong>.
-                </p>
+                <ol class="text-[11px] text-slate-300 font-medium space-y-1 pl-6 list-decimal">
+                    <li>Buka link <strong class="text-white">perguruanpembda.com</strong> di Google Chrome.</li>
+                    <li>Tekan ikon <strong>titik tiga (⋮)</strong> di kanan atas Chrome.</li>
+                    <li>Pilih menu <strong class="text-emerald-300">"Instal aplikasi"</strong> atau <strong class="text-emerald-300">"Tambahkan ke Layar Utama"</strong>.</li>
+                    <li>Klik <strong>"Instal"</strong> — Aplikasi langsung terpasang di Layar Utama HP Anda!</li>
+                </ol>
             </div>
 
-            <div class="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300 space-y-1">
-                <div class="font-black text-blue-400 flex items-center gap-1.5">
-                    <i class="fa-brands fa-apple text-base"></i> Untuk iPhone / iOS (Safari):
+            <div class="p-4 rounded-2xl bg-slate-800/90 border border-slate-700/80 text-xs text-slate-300 space-y-2">
+                <div class="font-black text-blue-400 flex items-center gap-2 text-xs">
+                    <i class="fa-brands fa-apple text-base"></i> <span>2. iPhone / iPad (Safari):</span>
                 </div>
-                <p class="text-[11px] text-slate-400 font-medium pl-5">
-                    Buka link $\rightarrow$ Tekan ikon Bagikan / Share (□↑) $\rightarrow$ Pilih <strong>"Add to Home Screen" (Tambahkan ke Utama)</strong>.
-                </p>
+                <ol class="text-[11px] text-slate-300 font-medium space-y-1 pl-6 list-decimal">
+                    <li>Buka link <strong class="text-white">perguruanpembda.com</strong> di Safari.</li>
+                    <li>Tekan ikon <strong>Bagikan / Share (□↑)</strong> di bagian bawah layar.</li>
+                    <li>Gulir ke bawah dan pilih <strong class="text-blue-300">"Tambahkan ke Layar Utama"</strong>.</li>
+                    <li>Klik <strong>"Tambah"</strong> di sudut kanan atas.</li>
+                </ol>
             </div>
         </div>
 

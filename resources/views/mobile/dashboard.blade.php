@@ -5,14 +5,14 @@
 @section('content')
 <div class="space-y-5 pt-2">
     <!-- Hero Banner Card (Playful 3D Clay Banner) -->
-    <div class="clay-blue p-6 relative overflow-hidden">
-        <div class="flex items-center space-x-4 relative z-10">
-            <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-16 h-16 rounded-2xl object-cover border-4 border-white/60 shadow-md bg-white">
+    <div class="clay-blue p-4 relative overflow-hidden">
+        <div class="flex items-center space-x-3.5 relative z-10">
+            <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-14 h-14 rounded-2xl object-cover border-2 border-white/80 shadow-md bg-white shrink-0">
 
             <div class="flex-1 min-w-0">
-                <div class="flex items-center space-x-2 mb-1">
+                <div class="flex items-center space-x-2 mb-0.5">
                     @php $activeRole = session('active_role', $user->role); @endphp
-                    <span class="px-3 py-0.5 rounded-full bg-white/30 text-white text-[10px] font-black tracking-wide uppercase border border-white/40 shadow-sm backdrop-blur-sm">
+                    <span class="px-2.5 py-0.5 rounded-full bg-white/30 text-white text-[9px] font-black tracking-wide uppercase border border-white/40 shadow-xs backdrop-blur-sm shrink-0">
                         {{ strtoupper($activeRole) }}
                     </span>
                     @if($student && $student->school)
@@ -21,24 +21,28 @@
                         <span class="text-[10px] text-blue-100 font-extrabold truncate">{{ $teacher->school->name }}</span>
                     @endif
                 </div>
-                <h2 class="text-xl font-black text-white truncate leading-tight tracking-tight">Halo, {{ $user->name }}! 🚀</h2>
+
+                <h2 class="text-base font-black text-white truncate leading-tight tracking-tight">Halo, {{ strtok($user->name, ' ') }}! 🚀</h2>
+
                 @if($student)
                     @php
                         $studentClassroom = $classroom ?? $student->currentClassroom()->first();
                         $className = $studentClassroom->name ?? ($studentClassroom->class_name ?? '-');
                         $studentPoints = $user->reputation->total_points ?? ($student->reputation_points ?? 0);
                     @endphp
-                    <div class="flex flex-wrap items-center gap-1.5 mt-1.5 text-[11px] font-extrabold text-blue-100">
-                        <span class="bg-white/20 px-2 py-0.5 rounded-lg border border-white/30"><i class="fa-solid fa-id-card text-blue-200 mr-1"></i>NISN: {{ $student->nisn ?? $student->nis ?? '-' }}</span>
-                        <span class="bg-white/20 px-2 py-0.5 rounded-lg border border-white/30"><i class="fa-solid fa-graduation-cap text-blue-200 mr-1"></i>Kelas: {{ $className }}</span>
-                        <span class="bg-amber-400 text-slate-900 px-2 py-0.5 rounded-lg font-black shadow-xs"><i class="fa-solid fa-star text-amber-900 mr-1"></i>{{ number_format($studentPoints) }} Poin</span>
+                    <div class="flex items-center flex-wrap gap-x-2 gap-y-0.5 mt-1 text-[11px] font-extrabold text-blue-100/90 leading-none">
+                        <span class="truncate">NISN: {{ $student->nisn ?? $student->nis ?? '-' }}</span>
+                        <span class="text-white/60">•</span>
+                        <span class="truncate text-white">Kelas: {{ $className }}</span>
+                        <span class="text-white/60">•</span>
+                        <span class="text-amber-300 font-black"><i class="fa-solid fa-star text-amber-300 text-[10px]"></i> {{ number_format($studentPoints) }} Poin</span>
                     </div>
                 @elseif($teacher)
-                    <p class="text-xs text-blue-100/90 mt-1 font-bold truncate">
+                    <p class="text-xs text-blue-100/90 mt-0.5 font-bold truncate">
                         NIP: {{ $teacher->nip ?? '-' }} • Guru Pengampu
                     </p>
                 @else
-                    <p class="text-xs text-blue-100/90 mt-1 font-bold truncate">
+                    <p class="text-xs text-blue-100/90 mt-0.5 font-bold truncate">
                         {{ $user->email }}
                     </p>
                 @endif
