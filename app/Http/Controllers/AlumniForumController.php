@@ -63,14 +63,25 @@ class AlumniForumController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts('alumni_forum_post:' . $user->id, 1)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn('alumni_forum_post:' . $user->id);
+            return back()->withInput()->with('error', "Anda membuat topik terlalu cepat. Harap tunggu {$seconds} detik lagi untuk mencegah spam.");
+        }
+
         $request->validate([
-            'title' => 'required|max:255',
-            'category' => 'required',
-            'content' => 'required',
+            'title' => 'required|string|min:15|max:255',
+            'category' => 'required|string',
+            'content' => 'required|string|min:15',
             'image' => 'nullable|image|max:5120',
+        ], [
+            'title.min' => 'Judul topik minimal 15 karakter.',
+            'content.min' => 'Isi topik minimal 15 karakter.',
         ]);
 
-        $user = auth()->user();
+        \Illuminate\Support\Facades\RateLimiter::hit('alumni_forum_post:' . $user->id, 300); // 5 menit cooldown
+
         $schoolId = $this->resolveSchoolId();
 
         $imagePath = null;
@@ -100,11 +111,24 @@ class AlumniForumController extends Controller
 
     public function reply(Request $request, AlumniForum $forum)
     {
-        $request->validate(['content' => 'required']);
+        $user = auth()->user();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts('alumni_forum_reply:' . $user->id, 1)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn('alumni_forum_reply:' . $user->id);
+            return back()->withInput()->with('error', "Anda membalas terlalu cepat. Harap tunggu {$seconds} detik lagi.");
+        }
+
+        $request->validate([
+            'content' => 'required|string|min:10',
+        ], [
+            'content.min' => 'Tanggapan minimal 10 karakter.',
+        ]);
+
+        \Illuminate\Support\Facades\RateLimiter::hit('alumni_forum_reply:' . $user->id, 60);
 
         AlumniForumReply::create([
             'alumni_forum_id' => $forum->id,
-            'user_id' => auth()->id(),
+            'user_id' => $user->id,
             'content' => $request->content,
         ]);
 

@@ -171,16 +171,25 @@ class MobileSpaceController extends Controller
             }
         }
 
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts('space_group_post:' . $user->id, 1)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn('space_group_post:' . $user->id);
+            return back()->withInput()->with('error', "Anda mengirim postingan terlalu cepat. Harap tunggu {$seconds} detik lagi untuk mencegah spam.");
+        }
+
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
-            'content' => 'required|string',
+            'content' => 'required|string|min:15',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'attachment' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,zip|max:10240',
             'voice_note' => 'nullable|file|mimes:mp3,wav,m4a,ogg,webm|max:10240',
             'poll_question' => 'nullable|string|max:255',
             'poll_options' => 'nullable|array',
             'poll_options.*' => 'nullable|string|max:255',
+        ], [
+            'content.min' => 'Isi postingan minimal 15 karakter.',
         ]);
+
+        \Illuminate\Support\Facades\RateLimiter::hit('space_group_post:' . $user->id, 300); // 5 menit cooldown
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -298,14 +307,26 @@ class MobileSpaceController extends Controller
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts('forum_post:' . $user->id, 1)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn('forum_post:' . $user->id);
+            return back()->withInput()->with('error', "Anda membuat postingan terlalu cepat. Harap tunggu {$seconds} detik lagi untuk mencegah spam.");
+        }
+
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'title' => 'required|string|min:15|max:255',
+            'content' => 'required|string|min:15',
             'category' => 'nullable|string',
             'group_id' => 'nullable|integer',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'attachment' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,zip|max:10240',
+        ], [
+            'title.min' => 'Judul postingan minimal 15 karakter.',
+            'content.min' => 'Isi postingan minimal 15 karakter.',
         ]);
+
+        \Illuminate\Support\Facades\RateLimiter::hit('forum_post:' . $user->id, 300); // 5 menit cooldown
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -321,7 +342,7 @@ class MobileSpaceController extends Controller
         }
 
         $thread = ForumThread::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'group_id' => $validated['group_id'] ?? null,
             'title' => $validated['title'],
             'content' => $validated['content'],
@@ -332,8 +353,11 @@ class MobileSpaceController extends Controller
             'views_count' => 0,
         ]);
 
+        // Gamification: +15 Poin Reputasi
+        \App\Models\ReputationLog::log($user->id, 15, 'forum', "Membuat postingan Pembda Space: {$thread->title}", $thread);
+
         return redirect()->route('mobile.space.show', $thread->id)
-            ->with('success', 'Postingan berhasil dibuat di Pembda Space!');
+            ->with('success', 'Postingan berhasil dibuat di Pembda Space! (+15 Poin Reputasi)');
     }
 
     public function show($id)
@@ -350,19 +374,33 @@ class MobileSpaceController extends Controller
 
     public function reply(Request $request, $id)
     {
-        $request->validate([
-            'content' => 'required|string',
+        $user = Auth::user();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts('forum_reply:' . $user->id, 1)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn('forum_reply:' . $user->id);
+            return back()->withInput()->with('error', "Anda membalas terlalu cepat. Harap tunggu {$seconds} detik lagi.");
+        }
+
+        $validated = $request->validate([
+            'content' => 'required|string|min:10',
+        ], [
+            'content.min' => 'Komentar balasan minimal 10 karakter.',
         ]);
+
+        \Illuminate\Support\Facades\RateLimiter::hit('forum_reply:' . $user->id, 60); // 1 menit cooldown
 
         $thread = ForumThread::findOrFail($id);
 
-        ForumReply::create([
+        $reply = ForumReply::create([
             'forum_thread_id' => $thread->id,
-            'user_id' => Auth::id(),
-            'content' => $request->input('content'),
+            'user_id' => $user->id,
+            'content' => $validated['content'],
         ]);
 
-        return back()->with('success', 'Komentar Anda berhasil dikirim.');
+        // Gamification: +5 Poin Reputasi
+        \App\Models\ReputationLog::log($user->id, 5, 'forum', "Mengomentari postingan Space: {$thread->title}", $reply);
+
+        return back()->with('success', 'Komentar Anda berhasil dikirim! (+5 Poin Reputasi)');
     }
 
     public function like($id)
