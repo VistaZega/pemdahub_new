@@ -288,7 +288,15 @@ class User extends Authenticatable
      */
     public function isGuru(): bool
     {
-        return $this->hasRole('guru') || session('active_role') === 'guru';
+        return $this->hasRole('guru') || session('active_role') === 'guru' || (bool) $this->teacher;
+    }
+
+    /**
+     * Check if user is Pegawai
+     */
+    public function isPegawai(): bool
+    {
+        return $this->hasRole('pegawai') || session('active_role') === 'pegawai' || (bool) $this->employee;
     }
 
     /**
