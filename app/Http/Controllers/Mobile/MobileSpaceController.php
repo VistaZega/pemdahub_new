@@ -61,8 +61,7 @@ class MobileSpaceController extends Controller
                 $cls = Classroom::find($grp->classroom_id);
                 if ($cls) {
                     $pivotCount = $cls->students()->count();
-                    $directCount = Student::where('classroom_id', $cls->id)->count();
-                    $grp->calculated_member_count = max($pivotCount, $directCount) + 1; // Siswa + Wali Kelas
+                    $grp->calculated_member_count = $pivotCount + 1; // Siswa + Wali Kelas
                 } else {
                     $grp->calculated_member_count = count($grp->members);
                 }
