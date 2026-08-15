@@ -324,8 +324,8 @@
     </div>
     @endif
 
-    <!-- Quick Navigation Links -->
-    <div class="clay-card p-2 space-y-1">
+    <!-- Quick Navigation Links & Logout Section -->
+    <div class="clay-card p-2 space-y-1.5 bg-white border-2 border-slate-200">
         <a href="{{ url('/') }}" class="p-3.5 rounded-2xl hover:bg-slate-50 transition flex items-center justify-between text-xs text-slate-800 font-black">
             <div class="flex items-center space-x-3">
                 <i class="fa-solid fa-desktop text-blue-600 text-sm"></i>
@@ -333,6 +333,17 @@
             </div>
             <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
         </a>
+
+        <!-- Form Tombol Keluar / Logout -->
+        <form action="{{ route('mobile.logout') }}" method="POST" class="pt-1">
+            @csrf
+            <button type="submit" 
+                    onclick="return confirm('Apakah Anda yakin ingin keluar dari akun PembdaHUB Mobile?')"
+                    class="w-full p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-700 hover:bg-rose-600 hover:text-white transition flex items-center justify-center gap-2 text-xs font-black shadow-xs group">
+                <i class="fa-solid fa-right-from-bracket text-sm text-rose-600 group-hover:text-white"></i>
+                <span>Keluar dari Aplikasi (Logout)</span>
+            </button>
+        </form>
     </div>
 </div>
 

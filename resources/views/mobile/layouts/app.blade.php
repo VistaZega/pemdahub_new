@@ -194,6 +194,17 @@
                 </button>
             @endif
 
+            <!-- Quick Logout Header Button -->
+            <form action="{{ route('mobile.logout') }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" 
+                        title="Keluar / Logout"
+                        onclick="return confirm('Apakah Anda yakin ingin keluar dari PembdaHUB Mobile?')"
+                        class="w-9 h-9 rounded-2xl bg-white text-rose-600 border-2 border-rose-200 shadow-sm flex items-center justify-center hover:bg-rose-600 hover:text-white transition active:scale-95">
+                    <i class="fa-solid fa-right-from-bracket text-xs"></i>
+                </button>
+            </form>
+
             <!-- PWA Global Install Banner / Button -->
             <div x-data="{ deferredPrompt: null, canInstall: false, showBanner: false }" 
                  x-init="window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; canInstall = true; showBanner = true; });">
