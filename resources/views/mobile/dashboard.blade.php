@@ -5,7 +5,7 @@
 @section('content')
 <div class="space-y-5 pt-2">
     <!-- Hero Banner Card (Playful 3D Clay Banner) -->
-    <div class="clay-blue p-4 relative overflow-hidden">
+    <div class="clay-blue p-4 relative overflow-hidden shadow-lg">
         <div class="flex items-center space-x-3.5 relative z-10">
             <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-14 h-14 rounded-2xl object-cover border-2 border-white/80 shadow-md bg-white shrink-0">
 
@@ -48,29 +48,73 @@
                 @endif
             </div>
         </div>
+
+        <!-- 🚀 Inline Compact Progress Belajar & Kehadiran (Di Dalam Hero Banner) -->
+        @if($activeRole === 'siswa')
+        @php
+            $progOverall = $studentProgress['overall'] ?? 0;
+            $progAttendance = $studentProgress['attendance_rate'] ?? 0;
+        @endphp
+        <div class="mt-3 pt-2.5 border-t border-white/20 flex items-center justify-between gap-3 text-white relative z-10">
+            <div class="flex items-center gap-1.5 shrink-0 text-[10px] font-black">
+                <span class="text-amber-300">🚀 Progres:</span>
+                <span class="bg-white/20 px-2 py-0.5 rounded-lg border border-white/30 text-[10px] font-black">{{ $progOverall }}%</span>
+            </div>
+            <div class="flex-1 bg-black/20 rounded-full h-2.5 p-0.5 overflow-hidden border border-white/30">
+                <div class="bg-gradient-to-r from-amber-300 via-yellow-300 to-emerald-400 h-full rounded-full transition-all duration-500 shadow-xs" style="width: {{ max(6, $progOverall) }}%"></div>
+            </div>
+            <div class="text-[10px] font-extrabold text-blue-100 shrink-0">
+                Hadir: <span class="text-emerald-300 font-black">{{ $progAttendance }}%</span>
+            </div>
+        </div>
+        @elseif(in_array($activeRole, ['guru', 'pegawai', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'ketua_yayasan']))
+        @php
+            $tOverall = $teacherProgress['overall'] ?? 100;
+            $tAttendance = $teacherProgress['attendance_rate'] ?? 100;
+        @endphp
+        <div class="mt-3 pt-2.5 border-t border-white/20 flex items-center justify-between gap-3 text-white relative z-10">
+            <div class="flex items-center gap-1.5 shrink-0 text-[10px] font-black">
+                <span class="text-amber-300">👨‍🏫 Kinerja:</span>
+                <span class="bg-white/20 px-2 py-0.5 rounded-lg border border-white/30 text-[10px] font-black">{{ $tOverall }}%</span>
+            </div>
+            <div class="flex-1 bg-black/20 rounded-full h-2.5 p-0.5 overflow-hidden border border-white/30">
+                <div class="bg-gradient-to-r from-purple-300 via-pink-300 to-amber-300 h-full rounded-full transition-all duration-500 shadow-xs" style="width: {{ max(6, $tOverall) }}%"></div>
+            </div>
+            <div class="text-[10px] font-extrabold text-blue-100 shrink-0">
+                Presensi: <span class="text-emerald-300 font-black">{{ $tAttendance }}%</span>
+            </div>
+        </div>
+        @endif
     </div>
 
     <!-- 🌟 Top Stories Bar: Kanal & Squad Pembda Space -->
-    <div class="space-y-1.5 pt-1">
-        <div class="flex items-center justify-between px-1">
-            <h3 class="text-[11px] font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+    <div class="bg-white/80 backdrop-blur-md p-3 rounded-2xl border-2 border-slate-200/80 shadow-xs space-y-2">
+        <div class="flex items-center justify-between px-0.5">
+            <h3 class="text-[11px] font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="relative flex h-2.5 w-2.5">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
                 <span>Space Channel & Squad</span>
             </h3>
-            <a href="{{ route('mobile.space.index') }}" class="text-[10px] font-extrabold text-purple-600 hover:text-purple-700 flex items-center gap-1">
+            <a href="{{ route('mobile.space.index') }}" class="text-[10px] font-black text-purple-600 hover:text-purple-700 flex items-center gap-1">
                 <span>Buka Space</span> <i class="fa-solid fa-chevron-right text-[8px]"></i>
             </a>
         </div>
 
-        <div class="flex items-center gap-3 overflow-x-auto pb-2 pt-1 px-1 no-scrollbar scroll-smooth">
+        <div class="flex items-center gap-3.5 overflow-x-auto pb-1 pt-1 px-0.5 no-scrollbar scroll-smooth">
             <!-- Lobi Utama Bubble -->
-            <a href="{{ route('mobile.space.index') }}" class="flex flex-col items-center gap-1 shrink-0 group">
-                <div class="w-13 h-13 rounded-2xl p-0.5 bg-gradient-to-tr from-purple-600 via-indigo-500 to-blue-500 shadow-md group-hover:scale-105 transition">
-                    <div class="w-full h-full rounded-[14px] bg-slate-900 flex items-center justify-center text-xl text-white font-black">
+            <a href="{{ route('mobile.space.index') }}" class="flex flex-col items-center gap-1.5 shrink-0 group">
+                <div class="w-14 h-14 rounded-2xl p-0.5 bg-gradient-to-tr from-purple-600 via-pink-500 to-amber-400 shadow-md group-hover:scale-110 transition-all duration-300 relative">
+                    <div class="w-full h-full rounded-[14px] bg-gradient-to-tr from-slate-900 to-indigo-900 flex items-center justify-center text-2xl shadow-inner border border-white/20">
                         🏛️
                     </div>
+                    <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500 border border-white"></span>
+                    </span>
                 </div>
-                <span class="text-[10px] font-black text-slate-800 tracking-tight max-w-[64px] truncate text-center">Lobi Utama</span>
+                <span class="text-[10px] font-black text-slate-800 tracking-tight max-w-[68px] truncate text-center">Lobi Utama</span>
             </a>
 
             @if(isset($spaceGroups) && count($spaceGroups) > 0)
@@ -84,108 +128,29 @@
                             'subject' => '📖',
                             default => '💬'
                         };
+                        $ringColor = match($grp->type ?? '') {
+                            'classroom' => 'from-emerald-400 via-teal-500 to-blue-500',
+                            'broadcast' => 'from-rose-500 via-pink-500 to-amber-400',
+                            'extracurricular' => 'from-amber-400 via-orange-500 to-rose-500',
+                            'subject' => 'from-blue-500 via-indigo-500 to-purple-500',
+                            default => 'from-purple-500 via-indigo-500 to-blue-400'
+                        };
                     @endphp
-                    <a href="{{ route('mobile.space.group.show', $grp->id) }}" class="flex flex-col items-center gap-1 shrink-0 group relative">
-                        <div class="w-13 h-13 rounded-2xl p-0.5 {{ $isNew ? 'bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-400 animate-pulse' : 'bg-slate-300' }} shadow-md group-hover:scale-105 transition">
-                            <div class="w-full h-full rounded-[14px] bg-white flex items-center justify-center text-xl text-slate-800 font-black border border-slate-100">
+                    <a href="{{ route('mobile.space.group.show', $grp->id) }}" class="flex flex-col items-center gap-1.5 shrink-0 group relative">
+                        <div class="w-14 h-14 rounded-2xl p-0.5 bg-gradient-to-tr {{ $ringColor }} shadow-md group-hover:scale-110 transition-all duration-300">
+                            <div class="w-full h-full rounded-[14px] bg-white flex items-center justify-center text-2xl text-slate-800 font-black border border-slate-100 shadow-inner">
                                 {{ $grpIcon }}
                             </div>
                         </div>
                         @if($isNew)
-                            <span class="absolute top-0 right-0 w-3 h-3 bg-rose-500 border-2 border-white rounded-full"></span>
+                            <span class="absolute top-0 right-0 w-3.5 h-3.5 bg-rose-500 border-2 border-white rounded-full flex items-center justify-center text-[7px] text-white font-black">!</span>
                         @endif
-                        <span class="text-[10px] font-black text-slate-800 tracking-tight max-w-[64px] truncate text-center">{{ $grp->name }}</span>
+                        <span class="text-[10px] font-black text-slate-800 tracking-tight max-w-[68px] truncate text-center">{{ $grp->name }}</span>
                     </a>
                 @endforeach
             @endif
         </div>
     </div>
-
-    <!-- Progress Tracking Real Card (Clay Progress Bar) -->
-    @if($activeRole === 'siswa')
-    @php
-        $progOverall = $studentProgress['overall'] ?? 0;
-        $progAttendance = $studentProgress['attendance_rate'] ?? 0;
-        $progTask = $studentProgress['task_rate'] ?? 0;
-        $totalAssign = $studentProgress['total_assignments'] ?? 0;
-        $submittedAssign = $studentProgress['submitted_assignments'] ?? 0;
-        $progCaption = $studentProgress['caption'] ?? 'Semangat terus dalam belajar dan pertahankan kehadiranmu! 🌟';
-    @endphp
-    <div class="clay-card p-5 space-y-3">
-        <div class="flex items-center justify-between">
-            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                <i class="fa-solid fa-rocket text-orange-500"></i> Progres Belajar & Kehadiran
-            </h3>
-            <span class="text-xs font-black text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                {{ $progOverall }}% Selesai
-            </span>
-        </div>
-
-        <!-- 3D Clay Progress Bar -->
-        <div class="w-full bg-slate-100 rounded-full h-5 p-1 shadow-inner relative overflow-hidden border border-slate-200">
-            <div class="bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 h-full rounded-full transition-all duration-500 shadow-md relative" style="width: {{ max(6, $progOverall) }}%">
-                <div class="absolute right-1 top-0 bottom-0 flex items-center">
-                    <span class="text-[9px] font-black text-white px-1">🚀</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Detail Breakdown Badges -->
-        <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 pt-0.5 px-0.5">
-            <span class="flex items-center gap-1">
-                <i class="fa-solid fa-clipboard-user text-emerald-500"></i> Kehadiran: <strong class="text-slate-800">{{ $progAttendance }}%</strong>
-            </span>
-            @if($totalAssign > 0)
-                <span class="flex items-center gap-1">
-                    <i class="fa-solid fa-book-bookmark text-purple-500"></i> Tugas: <strong class="text-slate-800">{{ $submittedAssign }}/{{ $totalAssign }} Selesai</strong>
-                </span>
-            @else
-                <span class="text-slate-400 font-semibold">Tugas Belum Ada</span>
-            @endif
-        </div>
-
-        <p class="text-[11px] font-bold text-slate-600 leading-relaxed">{{ $progCaption }}</p>
-    </div>
-    @elseif(in_array($activeRole, ['guru', 'pegawai', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'ketua_yayasan']))
-    @php
-        $tOverall = $teacherProgress['overall'] ?? 100;
-        $tAttendance = $teacherProgress['attendance_rate'] ?? 100;
-        $tClassesToday = $teacherProgress['classes_today'] ?? 0;
-        $tPendingAssign = $teacherProgress['pending_assignments'] ?? 0;
-        $tCaption = $teacherProgress['caption'] ?? 'Dedikasi Anda sangat luar biasa dalam membimbing generasi penerus Pembda! 👨‍🏫🌟';
-    @endphp
-    <div class="clay-card p-5 space-y-3">
-        <div class="flex items-center justify-between">
-            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                <i class="fa-solid fa-chalkboard-user text-purple-600"></i> Aktivitas Mengajar & Presensi Guru
-            </h3>
-            <span class="text-xs font-black text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
-                {{ $tOverall }}% Optimal
-            </span>
-        </div>
-
-        <!-- 3D Clay Progress Bar for Teacher -->
-        <div class="w-full bg-slate-100 rounded-full h-5 p-1 shadow-inner relative overflow-hidden border border-slate-200">
-            <div class="bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 h-full rounded-full transition-all duration-500 shadow-md relative" style="width: {{ max(6, $tOverall) }}%">
-                <div class="absolute right-1 top-0 bottom-0 flex items-center">
-                    <span class="text-[9px] font-black text-white px-1">✨</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Detail Breakdown Badges -->
-        <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 pt-0.5 px-0.5">
-            <span class="flex items-center gap-1">
-                <i class="fa-solid fa-calendar-day text-purple-600"></i> Jadwal Hari Ini: <strong class="text-slate-800">{{ $tClassesToday }} Sesi</strong>
-            </span>
-            <span class="flex items-center gap-1">
-                <i class="fa-solid fa-clipboard-check text-amber-500"></i> Periksa Tugas: <strong class="{{ $tPendingAssign > 0 ? 'text-rose-600 font-black' : 'text-slate-800' }}">{{ $tPendingAssign }} Menunggu</strong>
-            </span>
-        </div>
-
-        <p class="text-[11px] font-bold text-slate-600 leading-relaxed">{{ $tCaption }}</p>
-    </div>
-    @endif
 
     <!-- Quick Access Grid (Compact Circular Icons) -->
     <div>
