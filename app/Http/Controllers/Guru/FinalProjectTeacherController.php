@@ -189,12 +189,12 @@ class FinalProjectTeacherController extends Controller
             'status' => 'completed',
         ]);
 
-        // Award reputation points for all students (+100 points)
+        // Award reputation points for all students (+200 points)
         $members = $project->members()->with('student')->get();
         if ($members->isEmpty() && $project->student && $project->student->user_id) {
             \App\Models\ReputationLog::log(
                 $project->student->user_id,
-                100,
+                200,
                 'final_project',
                 'Lulus Sidang Tugas Akhir dengan Nilai: ' . $validated['grade'],
                 $project
@@ -204,7 +204,7 @@ class FinalProjectTeacherController extends Controller
                 if ($member->student && $member->student->user_id) {
                     \App\Models\ReputationLog::log(
                         $member->student->user_id,
-                        100,
+                        200,
                         'final_project',
                         'Lulus Sidang Tugas Akhir dengan Nilai: ' . $validated['grade'],
                         $project

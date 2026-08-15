@@ -252,11 +252,11 @@
                         <div>
                             <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Level Pencapaian</label>
                             <select name="achievement_level" class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-semibold focus:border-blue-600 outline-none transition-all">
-                                <option value="sekolah" {{ $record->achievement_level == 'sekolah' ? 'selected' : '' }}>Tingkat Sekolah</option>
-                                <option value="kabupaten" {{ $record->achievement_level == 'kabupaten' ? 'selected' : '' }}>Tingkat Kabupaten</option>
-                                <option value="propinsi" {{ $record->achievement_level == 'propinsi' ? 'selected' : '' }}>Tingkat Provinsi</option>
-                                <option value="nasional" {{ $record->achievement_level == 'nasional' ? 'selected' : '' }}>Tingkat Nasional</option>
-                                <option value="internasional" {{ $record->achievement_level == 'internasional' ? 'selected' : '' }}>Tingkat Internasional</option>
+                                <option value="sekolah" {{ $record->achievement_level == 'sekolah' ? 'selected' : '' }}>Tingkat Sekolah (+100 Poin)</option>
+                                <option value="kabupaten" {{ $record->achievement_level == 'kabupaten' ? 'selected' : '' }}>Tingkat Kabupaten / Kota (+200 Poin)</option>
+                                <option value="propinsi" {{ $record->achievement_level == 'propinsi' ? 'selected' : '' }}>Tingkat Provinsi (+300 Poin)</option>
+                                <option value="nasional" {{ $record->achievement_level == 'nasional' ? 'selected' : '' }}>Tingkat Nasional (+400 Poin)</option>
+                                <option value="internasional" {{ $record->achievement_level == 'internasional' ? 'selected' : '' }}>Tingkat Internasional (+500 Poin)</option>
                             </select>
                         </div>
                     </div>

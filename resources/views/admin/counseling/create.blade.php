@@ -120,11 +120,11 @@
                         <div>
                             <label class="block text-sm font-black text-slate-950 uppercase tracking-wider mb-3 pl-1">Level Pencapaian</label>
                             <select name="achievement_level" class="w-full bg-white border-2 border-slate-400 rounded-xl px-5 py-4 text-base sm:text-lg font-black text-slate-950 focus:border-blue-600 outline-none transition-all shadow-md cursor-pointer">
-                                <option value="sekolah">Tingkat Sekolah</option>
-                                <option value="kabupaten">Tingkat Kabupaten</option>
-                                <option value="propinsi">Tingkat Provinsi</option>
-                                <option value="nasional">Tingkat Nasional</option>
-                                <option value="internasional">Tingkat Internasional</option>
+                                <option value="sekolah">Tingkat Sekolah (+100 Poin)</option>
+                                <option value="kabupaten">Tingkat Kabupaten / Kota (+200 Poin)</option>
+                                <option value="propinsi">Tingkat Provinsi (+300 Poin)</option>
+                                <option value="nasional">Tingkat Nasional (+400 Poin)</option>
+                                <option value="internasional">Tingkat Internasional (+500 Poin)</option>
                             </select>
                         </div>
                     </div>

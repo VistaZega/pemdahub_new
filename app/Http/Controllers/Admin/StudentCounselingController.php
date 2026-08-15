@@ -324,15 +324,15 @@ class StudentCounselingController extends Controller
                 $type = 'character';
                 
                 if ($record->record_type === 'penghargaan') {
-                    // Prestasi: poin POSITIF berdasarkan level
+                    // Prestasi: poin POSITIF berdasarkan level (Skala Baru: 100 - 500 Poin)
                     $levels = [
-                        'sekolah' => 50,
-                        'kabupaten' => 100,
-                        'propinsi' => 150,
-                        'nasional' => 200,
-                        'internasional' => 250
+                        'sekolah' => 100,
+                        'kabupaten' => 200,
+                        'propinsi' => 300,
+                        'nasional' => 400,
+                        'internasional' => 500
                     ];
-                    $points = $levels[$record->achievement_level] ?? 50;
+                    $points = $levels[$record->achievement_level] ?? 100;
                     $type = 'achievement';
                 } elseif ($record->record_type === 'pelanggaran') {
                     // Pelanggaran: poin NEGATIF berdasarkan severity
@@ -561,8 +561,8 @@ class StudentCounselingController extends Controller
                 $type = 'character';
                 
                 if ($record->record_type === 'penghargaan') {
-                    $levels = ['sekolah' => 50, 'kabupaten' => 100, 'propinsi' => 150, 'nasional' => 200, 'internasional' => 250];
-                    $points = $levels[$record->achievement_level] ?? 50;
+                    $levels = ['sekolah' => 100, 'kabupaten' => 200, 'propinsi' => 300, 'nasional' => 400, 'internasional' => 500];
+                    $points = $levels[$record->achievement_level] ?? 100;
                     $type = 'academic';
                 } elseif ($record->record_type === 'pelanggaran') {
                     $severities = ['ringan' => -20, 'sedang' => -50, 'berat' => -100];
