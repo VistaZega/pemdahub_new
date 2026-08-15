@@ -151,9 +151,11 @@ class MobileStudentController extends Controller
         $exams = collect();
 
         if ($classroom) {
-            $exams = CbtExam::whereHas('classrooms', function ($q) use ($classroom) {
-                $q->where('classroom_id', $classroom->id);
-            })->where('is_active', true)
+            $exams = CbtExam::where(function ($query) use ($classroom) {
+                $query->whereHas('classrooms', function ($q) use ($classroom) {
+                    $q->where('classroom_id', $classroom->id);
+                })->orWhere('exam_scope', 'school');
+            })->whereIn('status', ['published', 'active'])
               ->with('subject')
               ->latest()
               ->get();

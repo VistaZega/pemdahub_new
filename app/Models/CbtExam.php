@@ -110,6 +110,10 @@ class CbtExam extends Model
     }
 
     public function participants(): HasMany { return $this->hasMany(CbtExamParticipant::class, 'exam_id'); }
+    public function classrooms(): BelongsToMany
+    {
+        return $this->belongsToMany(Classroom::class, 'cbt_exam_participants', 'exam_id', 'classroom_id');
+    }
     public function sessions(): HasMany { return $this->hasMany(CbtExamSession::class, 'exam_id'); }
     public function results(): HasMany { return $this->hasMany(CbtExamResult::class, 'exam_id'); }
 
