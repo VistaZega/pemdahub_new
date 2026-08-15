@@ -49,8 +49,30 @@
         @php
             $totalLogs = $logs->count();
             $approvedLogs = $logs->where('status', 'approved')->count();
-            $pendingLogs = $logs->where('status', '!=', 'approved')->count();
+            $rejectedLogs = $logs->where('status', 'rejected');
+            $pendingLogs = $logs->where('status', 'submitted')->count();
         @endphp
+
+        <!-- Alert Banner jika ada Jurnal yang Perlu Direvisi -->
+        @if($rejectedLogs->count() > 0)
+            <div class="clay-card p-4 bg-gradient-to-r from-rose-500 to-red-600 text-white space-y-2 border-2 border-rose-300 shadow-lg animate-pulse">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center font-black text-sm shrink-0">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black">Ada {{ $rejectedLogs->count() }} Jurnal PKL Perlu Direvisi!</h4>
+                        <p class="text-[10px] text-rose-100 font-semibold leading-tight">Pembimbing telah memberikan catatan revisi pada jurnal Anda.</p>
+                    </div>
+                </div>
+                <div class="pt-1 border-t border-white/20">
+                    <p class="text-[10px] text-white/90 font-bold">
+                        Gulir ke bawah pada jurnal bertanda merah dan klik tombol <strong>"Perbaiki Jurnal"</strong> untuk mengirim perbaikan.
+                    </p>
+                </div>
+            </div>
+        @endif
+
         <div class="grid grid-cols-3 gap-2.5">
             <div class="clay-card p-3 text-center">
                 <span class="text-xl font-black text-slate-800 leading-none">{{ $totalLogs }}</span>
@@ -60,34 +82,53 @@
                 <span class="text-xl font-black leading-none">{{ $approvedLogs }}</span>
                 <span class="block text-[9px] font-black uppercase mt-1">Disetujui</span>
             </div>
-            <div class="clay-yellow p-3 text-center">
-                <span class="text-xl font-black leading-none">{{ $pendingLogs }}</span>
-                <span class="block text-[9px] font-black uppercase mt-1">Menunggu</span>
+            <div class="{{ $rejectedLogs->count() > 0 ? 'bg-rose-100 text-rose-800 border-2 border-rose-300' : 'clay-yellow' }} p-3 text-center rounded-2xl">
+                <span class="text-xl font-black leading-none">{{ $rejectedLogs->count() > 0 ? $rejectedLogs->count() : $pendingLogs }}</span>
+                <span class="block text-[9px] font-black uppercase mt-1">{{ $rejectedLogs->count() > 0 ? 'Perlu Revisi' : 'Menunggu' }}</span>
             </div>
         </div>
 
         <!-- Form Input Jurnal PKL Harian (Clay Card with Photo & GPS) -->
-        <div class="clay-card p-5 space-y-3.5 bg-white border-2 border-slate-200">
+        <div class="clay-card p-5 space-y-3.5 bg-white border-2 border-slate-200" id="form-pkl-card">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                 <h3 class="text-xs font-black text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-camera-retro text-orange-500"></i> Kirim Jurnal & Foto Kegiatan PKL
+                    <i class="fa-solid fa-camera-retro" :class="isRevising ? 'text-rose-500' : 'text-orange-500'"></i> 
+                    <span x-text="isRevising ? 'Perbaiki & Kirim Ulang Jurnal' : 'Kirim Jurnal & Foto Kegiatan PKL'"></span>
                 </h3>
-                <span class="text-[9px] font-extrabold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">Wajib Tag GPS</span>
+                <template x-if="isRevising">
+                    <span class="text-[9px] font-extrabold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full border border-rose-300">Mode Revisi</span>
+                </template>
+                <template x-if="!isRevising">
+                    <span class="text-[9px] font-extrabold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">Wajib Tag GPS</span>
+                </template>
             </div>
+
+            <!-- Notice Sedang Mode Revisi -->
+            <template x-if="isRevising">
+                <div class="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between text-xs text-rose-800">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-left text-rose-600"></i>
+                        <span>Memperbaiki jurnal tanggal: <strong x-text="selectedDate"></strong></span>
+                    </div>
+                    <button type="button" @click="cancelRevision()" class="text-[10px] font-black text-rose-700 underline">
+                        Batal
+                    </button>
+                </div>
+            </template>
 
             <form action="{{ route('mobile.pkl.log') }}" method="POST" enctype="multipart/form-data" class="space-y-3.5">
                 @csrf
                 <!-- Tanggal Kegiatan -->
                 <div>
                     <label for="date" class="block text-xs font-black text-slate-800 mb-1">Tanggal Kegiatan</label>
-                    <input type="date" id="date" name="date" value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}" onclick="try { this.showPicker(); } catch(e) {}" required
+                    <input type="date" id="date" name="date" x-model="selectedDate" max="{{ date('Y-m-d') }}" onclick="try { this.showPicker(); } catch(e) {}" required
                            class="w-full px-3.5 py-2.5 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold cursor-pointer focus:outline-hidden focus:border-orange-500">
                 </div>
 
                 <!-- Deskripsi Aktivitas -->
                 <div>
                     <label for="activity_description" class="block text-xs font-black text-slate-800 mb-1">Deskripsi Aktivitas / Pekerjaan di DUDI</label>
-                    <textarea id="activity_description" name="activity_description" rows="3" required
+                    <textarea id="activity_description" name="activity_description" x-model="activityText" rows="3" required
                               placeholder="Tuliskan secara jelas aktivitas pekerjaan, mesin/alat yang digunakan, atau materi yang dipelajari hari ini..."
                               class="w-full p-3.5 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold resize-none focus:outline-hidden focus:border-orange-500"></textarea>
                 </div>
@@ -95,7 +136,7 @@
                 <!-- Upload / Ambil Foto Bukti PKL -->
                 <div>
                     <label class="block text-xs font-black text-slate-800 mb-1">
-                        Foto Bukti Kegiatan PKL <span class="text-slate-400 font-bold">(Maks. 10MB)</span>
+                        Foto Bukti Kegiatan PKL <span class="text-slate-400 font-bold" x-text="isRevising ? '(Opsional jika ganti foto)' : '(Maks. 10MB)'"></span>
                     </label>
 
                     <!-- Preview Container -->
@@ -129,7 +170,7 @@
                             <i class="fa-solid fa-camera"></i>
                         </div>
                         <div>
-                            <p class="text-xs font-black text-slate-800">Ambil Foto / Upload Bukti</p>
+                            <p class="text-xs font-black text-slate-800" x-text="isRevising ? 'Unggah Foto Baru (Opsional)' : 'Ambil Foto / Upload Bukti'"></p>
                             <p class="text-[10px] text-slate-500 font-bold">Kamera HP atau Galeri Gambar</p>
                         </div>
                     </div>
@@ -172,9 +213,19 @@
                     <input type="hidden" name="longitude" :value="longitude">
                 </div>
 
-                <button type="submit" class="clay-btn w-full py-3 text-white font-black text-xs flex items-center justify-center gap-2 shadow-md active:scale-95">
-                    <i class="fa-solid fa-paper-plane"></i> Kirim Jurnal Harian & Foto
-                </button>
+                <div class="flex gap-2">
+                    <template x-if="isRevising">
+                        <button type="button" @click="cancelRevision()" class="w-1/3 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-xs active:scale-95">
+                            Batal
+                        </button>
+                    </template>
+                    <button type="submit" 
+                            :class="isRevising ? 'bg-gradient-to-r from-rose-500 to-red-600' : 'clay-btn'"
+                            class="flex-1 py-3 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-md active:scale-95">
+                        <i class="fa-solid fa-paper-plane"></i> 
+                        <span x-text="isRevising ? 'Kirim Ulang Revisi Jurnal' : 'Kirim Jurnal Harian & Foto'"></span>
+                    </button>
+                </div>
             </form>
         </div>
 
@@ -207,7 +258,7 @@
                 $isApproved = ($log->status === 'approved');
                 $isRejected = ($log->status === 'rejected');
             @endphp
-            <div class="clay-card p-4 space-y-3 border-2 {{ $isApproved ? 'border-emerald-300 bg-white' : ($isRejected ? 'border-rose-300 bg-rose-50/20' : 'border-amber-300 bg-white') }}">
+            <div class="clay-card p-4 space-y-3 border-2 {{ $isApproved ? 'border-emerald-300 bg-white' : ($isRejected ? 'border-rose-300 bg-rose-50/20 shadow-xs' : 'border-amber-300 bg-white') }}">
                 <!-- Header Card: Date & Status -->
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
@@ -220,8 +271,8 @@
                             <i class="fa-solid fa-check-double text-[8px] mr-0.5"></i> Disetujui
                         </span>
                     @elseif($isRejected)
-                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-rose-100 text-rose-800 border border-rose-300">
-                            <i class="fa-solid fa-xmark text-[8px] mr-0.5"></i> Perlu Revisi
+                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-rose-100 text-rose-800 border border-rose-300 font-bold">
+                            <i class="fa-solid fa-triangle-exclamation text-[8px] mr-0.5"></i> Perlu Revisi
                         </span>
                     @else
                         <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase clay-yellow">
@@ -276,9 +327,16 @@
 
                     <!-- Rejection / Revision Notes -->
                     @if($isRejected && $log->mentor_notes)
-                        <div class="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs">
-                            <span class="font-black flex items-center gap-1"><i class="fa-solid fa-comment-dots"></i> Catatan Revisi Pembimbing:</span>
-                            <p class="font-bold mt-0.5 italic">"{{ $log->mentor_notes }}"</p>
+                        <div class="p-3 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs space-y-1">
+                            <span class="font-black flex items-center gap-1 text-rose-700"><i class="fa-solid fa-comment-dots text-rose-600"></i> Catatan Revisi Pembimbing:</span>
+                            <p class="font-bold bg-white/80 p-2 rounded-xl border border-rose-100 text-rose-900 italic">"{{ $log->mentor_notes }}"</p>
+                        </div>
+
+                        <div class="pt-1">
+                            <button type="button" @click="startRevision('{{ \Carbon\Carbon::parse($log->log_date)->format('Y-m-d') }}', '{{ addslashes($log->activity ?? $log->activity_description) }}')"
+                                    class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md active:scale-95 flex items-center justify-center gap-1.5 transition">
+                                <i class="fa-solid fa-pen-to-square"></i> Perbaiki & Kirim Ulang Jurnal Ini
+                            </button>
                         </div>
                     @endif
                 </div>
@@ -296,6 +354,9 @@
 <script>
 function pklJournalForm() {
     return {
+        selectedDate: '{{ date('Y-m-d') }}',
+        activityText: '',
+        isRevising: false,
         photoPreview: null,
         latitude: null,
         longitude: null,
@@ -305,6 +366,22 @@ function pklJournalForm() {
 
         init() {
             this.fetchGps();
+        },
+
+        startRevision(dateStr, activityStr) {
+            this.selectedDate = dateStr;
+            this.activityText = activityStr;
+            this.isRevising = true;
+            const el = document.getElementById('form-pkl-card');
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+        },
+
+        cancelRevision() {
+            this.selectedDate = '{{ date('Y-m-d') }}';
+            this.activityText = '';
+            this.isRevising = false;
         },
 
         previewImage(event) {

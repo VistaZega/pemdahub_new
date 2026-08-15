@@ -435,6 +435,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::post('placements', [App\Http\Controllers\Admin\PklAlumniAdminController::class, 'placementsStore'])->name('placements.store');
         Route::get('placements/{placement}', [App\Http\Controllers\Admin\PklAlumniAdminController::class, 'placementsShow'])->name('placements.show');
         Route::post('placements/{placement}/log/{log}/approve', [App\Http\Controllers\Admin\PklAlumniAdminController::class, 'approveLog'])->name('placements.log.approve');
+        Route::post('placements/{placement}/log/{log}/reject', [App\Http\Controllers\Admin\PklAlumniAdminController::class, 'rejectLog'])->name('placements.log.reject');
         Route::get('placements/{placement}/edit', [App\Http\Controllers\Admin\PklAlumniAdminController::class, 'placementsEdit'])->name('placements.edit');
         Route::put('placements/{placement}', [App\Http\Controllers\Admin\PklAlumniAdminController::class, 'placementsUpdate'])->name('placements.update');
         Route::delete('placements/{placement}', [App\Http\Controllers\Admin\PklAlumniAdminController::class, 'placementsDestroy'])->name('placements.destroy');

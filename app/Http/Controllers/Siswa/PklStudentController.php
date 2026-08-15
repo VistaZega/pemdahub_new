@@ -47,12 +47,46 @@ class PklStudentController extends Controller
         ]);
 
         // Check if log for this date already exists
-        $exists = PklLog::where('pkl_placement_id', $placement->id)
+        $existingLog = PklLog::where('pkl_placement_id', $placement->id)
             ->where('log_date', $validated['log_date'])
-            ->exists();
+            ->first();
 
-        if ($exists) {
-            return redirect()->back()->with('error', 'Anda sudah mengisi logbook untuk tanggal ini.');
+        if ($existingLog) {
+            if ($existingLog->status === 'rejected') {
+                // Update / Revisi logbook yang ditolak
+                $photoPath = $existingLog->photo;
+                if ($request->hasFile('photo')) {
+                    if ($photoPath && \Storage::disk('public')->exists($photoPath)) {
+                        \Storage::disk('public')->delete($photoPath);
+                    }
+                    $photoPath = $request->file('photo')->store('pkl_proofs', 'public');
+                }
+
+                $existingLog->update([
+                    'activity' => $validated['activity'],
+                    'photo' => $photoPath,
+                    'latitude' => $validated['latitude'] ?? $existingLog->latitude,
+                    'longitude' => $validated['longitude'] ?? $existingLog->longitude,
+                    'status' => 'submitted',
+                ]);
+
+                // Notifikasi ke guru pembimbing
+                if ($placement->teacher && $placement->teacher->user_id) {
+                    \App\Models\Notification::create([
+                        'user_id' => $placement->teacher->user_id,
+                        'school_id' => $student->school_id,
+                        'title' => '📝 Revisi Jurnal PKL Dikirim',
+                        'message' => 'Siswa ' . $student->full_name . ' telah mengirimkan revisi logbook PKL untuk tanggal ' . \Carbon\Carbon::parse($validated['log_date'])->format('d/m/Y') . '.',
+                        'type' => 'info',
+                        'related_model' => 'PklLog',
+                        'related_id' => $existingLog->id,
+                    ]);
+                }
+
+                return redirect()->route('siswa.pkl.index')->with('success', 'Revisi logbook harian berhasil dikirim dan menunggu verifikasi pembimbing.');
+            }
+
+            return redirect()->back()->with('error', 'Anda sudah mengisi logbook untuk tanggal ini dan sedang diproses/telah disetujui.');
         }
 
         $photoPath = null;

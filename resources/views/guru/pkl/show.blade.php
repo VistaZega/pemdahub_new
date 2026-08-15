@@ -195,22 +195,47 @@
                             </div>
 
                             @if($log->status === 'rejected' && $log->mentor_notes)
-                                <div class="mt-3 p-2.5 bg-rose-50/50 border border-rose-100 rounded-xl text-xs text-rose-800">
-                                    <span class="font-bold flex items-center gap-1 mb-0.5"><i class="fas fa-exclamation-circle"></i> Catatan Mentor (Alasan Penolakan):</span>
-                                    <p class="italic">"{{ $log->mentor_notes }}"</p>
+                                <div class="mt-3 p-3 bg-rose-50/70 border border-rose-200 rounded-xl text-xs text-rose-800">
+                                    <span class="font-bold flex items-center gap-1 mb-1 text-rose-700">
+                                        <i class="fas fa-exclamation-circle text-rose-600"></i> Catatan Revisi untuk Siswa:
+                                    </span>
+                                    <p class="italic bg-white/70 p-2 rounded-lg border border-rose-100">"{{ $log->mentor_notes }}"</p>
                                 </div>
                             @endif
 
-                            @if($log->status === 'submitted')
-                                <div class="mt-4 border-t border-gray-100 pt-3 flex justify-end">
+                            <div class="mt-4 border-t border-gray-100 pt-3 flex flex-wrap items-center justify-end gap-2">
+                                @if($log->status === 'submitted')
+                                    <button type="button" onclick="openRevisionModal('{{ route('guru.pkl.log.reject', [$placement->id, $log->id]) }}', '{{ \Carbon\Carbon::parse($log->log_date)->format('d/m/Y') }}')"
+                                            class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 border border-rose-200 shadow-xs">
+                                        <i class="fas fa-undo-alt"></i> Minta Revisi
+                                    </button>
                                     <form action="{{ route('guru.pkl.log.approve', [$placement->id, $log->id]) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1 border border-indigo-200">
-                                            <i class="fas fa-check-circle"></i> Ambil Alih Persetujuan
+                                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm">
+                                            <i class="fas fa-check-circle"></i> Setujui (ACC Jurnal)
                                         </button>
                                     </form>
-                                </div>
-                            @endif
+                                @elseif($log->status === 'rejected')
+                                    <span class="text-xs font-semibold text-rose-600 mr-auto flex items-center gap-1">
+                                        <i class="fas fa-clock"></i> Menunggu siswa mengirim revisi
+                                    </span>
+                                    <form action="{{ route('guru.pkl.log.approve', [$placement->id, $log->id]) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 border border-emerald-200">
+                                            <i class="fas fa-check"></i> Setujui Langsung
+                                        </button>
+                                    </form>
+                                @elseif($log->status === 'approved')
+                                    <span class="text-xs font-bold text-emerald-700 flex items-center gap-1 mr-auto">
+                                        <i class="fas fa-check-double text-emerald-600"></i> Disetujui: {{ $log->approved_at ? \Carbon\Carbon::parse($log->approved_at)->format('d/m/Y H:i') : '-' }}
+                                    </span>
+                                    <button type="button" onclick="openRevisionModal('{{ route('guru.pkl.log.reject', [$placement->id, $log->id]) }}', '{{ \Carbon\Carbon::parse($log->log_date)->format('d/m/Y') }}')"
+                                            class="text-gray-400 hover:text-rose-600 font-medium text-[11px] transition flex items-center gap-1 underline"
+                                            title="Ubah status menjadi perlu revisi jika ada kesalahan">
+                                        Minta Revisi Ulang
+                                    </button>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @empty
@@ -220,6 +245,48 @@
                 @endforelse
             </div>
         </div>
+    </div>
+</div>
+
+{{-- Modal Catatan Revisi Pembimbing --}}
+<div id="revision-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-gray-100 transform transition-all">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-800 text-sm">Minta Revisi Logbook</h4>
+                    <p class="text-[11px] text-gray-400" id="modal-log-date">Tanggal Logbook</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeRevisionModal()" class="w-8 h-8 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 flex items-center justify-center">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="revision-form" action="" method="POST" class="space-y-4">
+            @csrf
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5">
+                    Catatan / Alasan Revisi untuk Siswa <span class="text-rose-500">*</span>
+                </label>
+                <textarea name="mentor_notes" rows="4" required
+                          placeholder="Tuliskan arahan perbaikan (misal: Deskripsi kegiatan terlalu singkat, tolong jelaskan langkah kerjanya / Lampirkan foto kegiatan yang lebih jelas)..."
+                          class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:ring-2 focus:ring-rose-400 focus:bg-white transition"></textarea>
+                <p class="text-[10px] text-gray-400 mt-1">Siswa akan menerima notifikasi dan catatan ini di HP & akun PembdaHUB-nya.</p>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                <button type="button" onclick="closeRevisionModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">
+                    <i class="fas fa-paper-plane"></i> Kirim Catatan Revisi
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -236,6 +303,21 @@
         }, function(err) {
             console.error('Failed to copy: ', err);
         });
+    }
+
+    function openRevisionModal(actionUrl, logDate) {
+        const modal = document.getElementById('revision-modal');
+        const form = document.getElementById('revision-form');
+        const dateSpan = document.getElementById('modal-log-date');
+        
+        form.action = actionUrl;
+        dateSpan.innerText = 'Logbook Tanggal: ' + logDate;
+        modal.classList.remove('hidden');
+    }
+
+    function closeRevisionModal() {
+        const modal = document.getElementById('revision-modal');
+        modal.classList.add('hidden');
     }
 </script>
 

@@ -235,6 +235,61 @@ class PklAlumniAdminController extends Controller
         return redirect()->back()->with('success', 'Logbook harian berhasil disetujui.');
     }
 
+    public function rejectLog(Request $request, $placementId, $logId)
+    {
+        $isSA = $this->isSuperAdmin();
+        $schoolId = $this->getSchoolId();
+
+        $placement = PklPlacement::with('student')->findOrFail($placementId);
+        $log = \App\Models\PklLog::findOrFail($logId);
+
+        if (!$isSA && $placement->student->school_id !== $schoolId) {
+            abort(403);
+        }
+
+        if ($log->pkl_placement_id !== $placement->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'mentor_notes' => 'required|string|max:1000',
+        ]);
+
+        $log->update([
+            'status' => 'rejected',
+            'mentor_notes' => $validated['mentor_notes'],
+            'approved_at' => null,
+        ]);
+
+        if ($placement->student && $placement->student->user_id) {
+            \App\Models\ReputationLog::removeLog($placement->student->user_id, get_class($log), $log->id);
+
+            \App\Models\Notification::create([
+                'user_id' => $placement->student->user_id,
+                'school_id' => $placement->student->school_id,
+                'title' => '⚠️ Logbook PKL Perlu Direvisi',
+                'message' => 'Logbook PKL tanggal ' . \Carbon\Carbon::parse($log->log_date)->format('d/m/Y') . ' diminta revisi oleh Admin/Sekolah. Catatan: ' . $validated['mentor_notes'],
+                'type' => 'warning',
+                'related_model' => 'PklLog',
+                'related_id' => $log->id,
+            ]);
+
+            try {
+                if ($placement->student->phone) {
+                    $waService = app(\App\Services\WhatsAppService::class);
+                    if ($waService && $waService->isEnabled()) {
+                        $msg = "Halo {$placement->student->full_name}, logbook PKL Anda untuk tanggal " . \Carbon\Carbon::parse($log->log_date)->format('d/m/Y') . " perlu direvisi oleh Pembimbing/Sekolah.\n\n*Catatan Revisi:* {$validated['mentor_notes']}\n\nSilakan perbaiki melalui PembdaHUB: " . url('/m/pkl');
+                        $waService->sendMessage($placement->student->phone, $msg);
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Gagal kirim notifikasi WA revisi PKL: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->back()->with('success', 'Catatan revisi logbook berhasil dikirim ke siswa.');
+    }
+
     public function placementsEdit($id)
     {
         $isSA = $this->isSuperAdmin();

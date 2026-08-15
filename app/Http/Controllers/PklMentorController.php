@@ -73,9 +73,33 @@ class PklMentorController extends Controller
 
         if ($placement->student && $placement->student->user_id) {
             \App\Models\ReputationLog::removeLog($placement->student->user_id, get_class($log), $log->id);
+
+            // In-app Notification
+            \App\Models\Notification::create([
+                'user_id' => $placement->student->user_id,
+                'school_id' => $placement->student->school_id,
+                'title' => '⚠️ Logbook PKL Perlu Direvisi',
+                'message' => 'Logbook PKL tanggal ' . \Carbon\Carbon::parse($log->log_date)->format('d/m/Y') . ' diminta revisi oleh Mentor Industri (' . $placement->mentor_name . '). Catatan: ' . $validated['mentor_notes'],
+                'type' => 'warning',
+                'related_model' => 'PklLog',
+                'related_id' => $log->id,
+            ]);
+
+            // WhatsApp Notification
+            try {
+                if ($placement->student->phone) {
+                    $waService = app(\App\Services\WhatsAppService::class);
+                    if ($waService && $waService->isEnabled()) {
+                        $msg = "Halo {$placement->student->full_name}, logbook PKL Anda untuk tanggal " . \Carbon\Carbon::parse($log->log_date)->format('d/m/Y') . " perlu direvisi oleh Mentor DUDI ({$placement->mentor_name}).\n\n*Catatan Revisi:* {$validated['mentor_notes']}\n\nSilakan segera perbaiki melalui PembdaHUB: " . url('/m/pkl');
+                        $waService->sendMessage($placement->student->phone, $msg);
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Gagal kirim notifikasi WA revisi PKL: ' . $e->getMessage());
+            }
         }
 
-        return redirect()->route('mentor.pkl.portal', $token)->with('success', 'Log harian ditolak.');
+        return redirect()->route('mentor.pkl.portal', $token)->with('success', 'Catatan revisi logbook berhasil dikirim ke siswa.');
     }
 
     public function submitGrade($token, Request $request)

@@ -548,13 +548,47 @@ class MobileStudentController extends Controller
             return back()->with('error', 'Data penempatan PKL Anda belum ditentukan oleh Panitia.');
         }
 
-        // Cek duplikasi jurnal pada tanggal yang sama
-        $exists = PklLog::where('pkl_placement_id', $pklPlacement->id)
+        // Cek jurnal pada tanggal yang sama
+        $existingLog = PklLog::where('pkl_placement_id', $pklPlacement->id)
             ->where('log_date', $logDate)
-            ->exists();
+            ->first();
 
-        if ($exists) {
-            return back()->with('error', 'Anda sudah mengirim jurnal PKL untuk tanggal ' . date('d/m/Y', strtotime($logDate)) . '.');
+        if ($existingLog) {
+            if ($existingLog->status === 'rejected') {
+                // Update / Revisi jurnal yang diminta perbaikan
+                $photoPath = $existingLog->photo;
+                if ($request->hasFile('photo')) {
+                    if ($photoPath && \Storage::disk('public')->exists($photoPath)) {
+                        \Storage::disk('public')->delete($photoPath);
+                    }
+                    $photoPath = $request->file('photo')->store('pkl_proofs', 'public');
+                }
+
+                $existingLog->update([
+                    'activity' => $activity,
+                    'photo' => $photoPath,
+                    'latitude' => $request->input('latitude') ?? $existingLog->latitude,
+                    'longitude' => $request->input('longitude') ?? $existingLog->longitude,
+                    'status' => 'submitted',
+                ]);
+
+                // Notifikasi ke guru pembimbing
+                if ($pklPlacement->teacher && $pklPlacement->teacher->user_id) {
+                    \App\Models\Notification::create([
+                        'user_id' => $pklPlacement->teacher->user_id,
+                        'school_id' => $student->school_id,
+                        'title' => '📝 Revisi Jurnal PKL Masuk',
+                        'message' => 'Siswa ' . $student->full_name . ' telah mengirimkan revisi jurnal PKL tanggal ' . date('d/m/Y', strtotime($logDate)) . '.',
+                        'type' => 'info',
+                        'related_model' => 'PklLog',
+                        'related_id' => $existingLog->id,
+                    ]);
+                }
+
+                return back()->with('success', 'Revisi jurnal PKL berhasil dikirim dan menunggu verifikasi pembimbing.');
+            }
+
+            return back()->with('error', 'Anda sudah mengirim jurnal PKL untuk tanggal ' . date('d/m/Y', strtotime($logDate)) . ' dan sedang diverifikasi/telah disetujui.');
         }
 
         $photoPath = null;

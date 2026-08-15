@@ -124,12 +124,36 @@
 
             {{-- Right Column: Form + History --}}
             <div class="lg:col-span-2 space-y-6">
+                @php
+                    $rejectedLogs = $placement->logs->where('status', 'rejected');
+                @endphp
+
+                {{-- Alert Banner jika ada logbook yang ditolak / perlu revisi --}}
+                @if($rejectedLogs->count() > 0)
+                    <div class="bg-gradient-to-r from-rose-500 to-red-600 text-white rounded-2xl p-5 shadow-lg flex items-start gap-4 animate-pulse">
+                        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl shrink-0">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 class="font-bold text-sm">Ada {{ $rejectedLogs->count() }} Logbook PKL yang Perlu Anda Revisi!</h4>
+                            <p class="text-xs text-rose-100 leading-relaxed">
+                                Pembimbing telah memberikan catatan revisi pada logbook Anda. Silakan klik tombol <strong>"Revisi Logbook Ini"</strong> di daftar riwayat di bawah untuk memperbaiki deskripsi atau mengganti foto.
+                            </p>
+                        </div>
+                    </div>
+                @endif
+
                 {{-- Form Logbook --}}
                 @if(!$placement->grade)
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                        <h3 class="text-sm font-bold text-gray-850 border-b border-gray-100 pb-3 mb-4 flex items-center gap-2">
-                            <i class="fas fa-edit text-amber-500"></i> Isi Logbook Harian PKL
-                        </h3>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5" id="form-logbook-card">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+                            <h3 class="text-sm font-bold text-gray-850 flex items-center gap-2" id="form-title">
+                                <i class="fas fa-edit text-amber-500"></i> Isi Logbook Harian PKL
+                            </h3>
+                            <span id="revision-badge" class="hidden text-xs bg-rose-100 text-rose-700 font-bold px-2.5 py-0.5 rounded-lg border border-rose-200">
+                                Mode Revisi Logbook
+                            </span>
+                        </div>
                         
                         @if(session('success'))
                             <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-xs font-semibold mb-4">
@@ -143,23 +167,33 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('siswa.pkl.log.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                        <div id="revision-notice" class="hidden mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-info-circle text-rose-600"></i>
+                                <span>Sedang memperbaiki logbook tanggal: <strong id="revision-date-text"></strong></span>
+                            </div>
+                            <button type="button" onclick="cancelRevision()" class="text-[11px] font-bold text-rose-600 underline hover:text-rose-800">
+                                Batal Revisi
+                            </button>
+                        </div>
+
+                        <form action="{{ route('siswa.pkl.log.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4" id="logbook-form">
                             @csrf
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Tanggal Kegiatan</label>
-                                    <input type="date" name="log_date" value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition" required>
+                                    <input type="date" name="log_date" id="input_log_date" value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition" required>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Foto Bukti Kegiatan (Maks 5MB)</label>
-                                    <input type="file" name="photo" accept="image/*" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition">
+                                    <input type="file" name="photo" id="input_photo" accept="image/*" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition">
                                 </div>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Deskripsi Aktivitas & Hasil Pekerjaan</label>
-                                <textarea name="activity" rows="4" placeholder="Tuliskan detail pekerjaan, alat/bahan yang digunakan, dan hasil yang dicapai hari ini (Minimal 10 karakter)..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition" required></textarea>
+                                <textarea name="activity" id="input_activity" rows="4" placeholder="Tuliskan detail pekerjaan, alat/bahan yang digunakan, dan hasil yang dicapai hari ini (Minimal 10 karakter)..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition" required></textarea>
                             </div>
 
                             {{-- GPS Geolocation info --}}
@@ -171,8 +205,11 @@
                                 <input type="hidden" name="longitude" id="longitude">
                             </div>
 
-                            <div class="flex justify-end">
-                                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-2.5 rounded-xl shadow transition text-sm flex items-center gap-2">
+                            <div class="flex justify-end gap-3">
+                                <button type="button" id="btn-cancel-revision" onclick="cancelRevision()" class="hidden px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100 text-sm font-bold transition">
+                                    Batal
+                                </button>
+                                <button type="submit" id="btn-submit-log" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-2.5 rounded-xl shadow transition text-sm flex items-center gap-2">
                                     <i class="fas fa-paper-plane"></i> Kirim Logbook
                                 </button>
                             </div>
@@ -188,7 +225,11 @@
 
                     <div class="space-y-4">
                         @forelse($placement->logs as $log)
-                            <div class="border border-gray-100 rounded-xl p-4 hover:bg-gray-50/30 transition">
+                            @php
+                                $isRejected = ($log->status === 'rejected');
+                                $isApproved = ($log->status === 'approved');
+                            @endphp
+                            <div class="border {{ $isRejected ? 'border-rose-300 bg-rose-50/20 shadow-xs' : 'border-gray-100 hover:bg-gray-50/30' }} rounded-xl p-4 transition">
                                 <div class="flex flex-col md:flex-row md:items-start justify-between gap-3 mb-3">
                                     <div>
                                         <p class="text-xs font-bold text-gray-700">
@@ -206,17 +247,17 @@
                                         @php
                                             $statusClass = match($log->status) {
                                                 'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                                'rejected' => 'bg-rose-50 text-rose-700 border-rose-200',
+                                                'rejected' => 'bg-rose-100 text-rose-800 border-rose-300 font-black',
                                                 default => 'bg-amber-50 text-amber-700 border-amber-200'
                                             };
                                             $statusText = match($log->status) {
-                                                'approved' => 'Disetujui Mentor',
+                                                'approved' => 'Disetujui',
                                                 'rejected' => 'Perlu Revisi',
                                                 default => 'Menunggu Persetujuan'
                                             };
                                         @endphp
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border {{ $statusClass }}">
-                                            <i class="fas {{ $log->status === 'approved' ? 'fa-check' : ($log->status === 'rejected' ? 'fa-times' : 'fa-clock') }}"></i>
+                                            <i class="fas {{ $isApproved ? 'fa-check' : ($isRejected ? 'fa-exclamation-triangle' : 'fa-clock') }}"></i>
                                             {{ $statusText }}
                                         </span>
                                     </div>
@@ -224,7 +265,7 @@
 
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                     <div class="md:col-span-3">
-                                        <p class="text-xs text-gray-600 whitespace-pre-line">{{ $log->activity }}</p>
+                                        <p class="text-xs text-gray-700 whitespace-pre-line leading-relaxed">{{ $log->activity }}</p>
                                     </div>
                                     @if($log->photo)
                                         <div class="md:col-span-1">
@@ -235,10 +276,21 @@
                                     @endif
                                 </div>
 
-                                @if($log->status === 'rejected' && $log->mentor_notes)
-                                    <div class="mt-3 p-3 bg-rose-50/50 border border-rose-100 rounded-xl text-xs text-rose-800">
-                                        <span class="font-bold flex items-center gap-1 mb-1"><i class="fas fa-exclamation-circle"></i> Catatan Mentor:</span>
-                                        <p class="italic">"{{ $log->mentor_notes }}"</p>
+                                @if($isRejected && $log->mentor_notes)
+                                    <div class="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 space-y-1">
+                                        <span class="font-bold flex items-center gap-1 text-rose-700">
+                                            <i class="fas fa-comment-dots text-rose-600"></i> Catatan Revisi dari Pembimbing:
+                                        </span>
+                                        <p class="italic bg-white/80 p-2 rounded-lg border border-rose-100 text-rose-900 font-medium">"{{ $log->mentor_notes }}"</p>
+                                    </div>
+                                @endif
+
+                                @if($isRejected && !$placement->grade)
+                                    <div class="mt-3 pt-3 border-t border-rose-200 flex justify-end">
+                                        <button type="button" onclick="startRevision('{{ $log->log_date->format('Y-m-d') }}', '{{ addslashes($log->activity) }}')"
+                                                class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-sm transition flex items-center gap-1.5 transform hover:scale-[1.02]">
+                                            <i class="fas fa-edit"></i> Perbaiki / Kirim Ulang Logbook Ini
+                                        </button>
                                     </div>
                                 @endif
                             </div>
@@ -276,6 +328,35 @@
             gpsStatus.innerHTML = '<span class="text-rose-700 flex items-center gap-1.5"><i class="fas fa-times-circle"></i> Browser Anda tidak mendukung sensor GPS.</span>';
         }
     });
+
+    function startRevision(dateStr, activityText) {
+        document.getElementById('input_log_date').value = dateStr;
+        document.getElementById('input_activity').value = activityText;
+        
+        document.getElementById('revision-notice').classList.remove('hidden');
+        document.getElementById('revision-badge').classList.remove('hidden');
+        document.getElementById('btn-cancel-revision').classList.remove('hidden');
+        document.getElementById('revision-date-text').innerText = dateStr;
+        
+        document.getElementById('form-title').innerHTML = '<i class="fas fa-undo-alt text-rose-500"></i> Perbaiki Logbook PKL';
+        document.getElementById('btn-submit-log').innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Ulang Revisi Logbook';
+        document.getElementById('btn-submit-log').className = 'bg-rose-600 hover:bg-rose-700 text-white font-bold px-6 py-2.5 rounded-xl shadow transition text-sm flex items-center gap-2';
+
+        document.getElementById('form-logbook-card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelRevision() {
+        document.getElementById('input_log_date').value = '{{ date('Y-m-d') }}';
+        document.getElementById('input_activity').value = '';
+        
+        document.getElementById('revision-notice').classList.add('hidden');
+        document.getElementById('revision-badge').classList.add('hidden');
+        document.getElementById('btn-cancel-revision').classList.add('hidden');
+        
+        document.getElementById('form-title').innerHTML = '<i class="fas fa-edit text-amber-500"></i> Isi Logbook Harian PKL';
+        document.getElementById('btn-submit-log').innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Logbook';
+        document.getElementById('btn-submit-log').className = 'bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-2.5 rounded-xl shadow transition text-sm flex items-center gap-2';
+    }
 </script>
 @endif
 @endsection

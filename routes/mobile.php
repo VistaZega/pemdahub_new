@@ -128,6 +128,7 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::get('/pkl', [MobileTeacherController::class, 'pklIndex'])->name('pkl');
             Route::get('/pkl/{placement}', [MobileTeacherController::class, 'pklShow'])->name('pkl.show');
             Route::post('/pkl/{placement}/log/{log}/approve', [MobileTeacherController::class, 'approvePklLog'])->name('pkl.log.approve');
+            Route::post('/pkl/{placement}/log/{log}/reject', [MobileTeacherController::class, 'rejectPklLog'])->name('pkl.log.reject');
 
             // PKL Monitoring Kunjungan Mingguan DUDI Guru
             Route::get('/pkl-monitoring', [MobileTeacherController::class, 'pklMonitoringIndex'])->name('pkl.monitoring');
