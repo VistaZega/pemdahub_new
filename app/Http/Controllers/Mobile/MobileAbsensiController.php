@@ -43,7 +43,7 @@ class MobileAbsensiController extends Controller
     {
         $user = Auth::user();
         $activeRole = session('active_role', $user->role);
-        $wantsJson = $request->wantsJson() || $request->ajax();
+        $wantsJson = $request->expectsJson() || $request->wantsJson() || $request->ajax() || $request->isJson();
 
         // 1. CEK APAPUN ROLE ATAU MODEL GURU / PEGAWAI
         $employee = \App\Models\Employee::where('user_id', $user->id)->first();

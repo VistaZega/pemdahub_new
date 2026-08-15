@@ -45,6 +45,8 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
                             },
                             body: JSON.stringify({
@@ -53,7 +55,13 @@
                                 device_id: navigator.userAgent
                             })
                         })
-                        .then(res => res.json())
+                        .then(async (res) => {
+                            const data = await res.json().catch(() => ({}));
+                            if (!res.ok || data.success === false) {
+                                throw new Error(data.message || 'Presensi gagal diproses.');
+                            }
+                            return data;
+                        })
                         .then(data => {
                             this.loading = false;
                             alert(data.message || 'Presensi GPS berhasil dikirim!');
@@ -61,7 +69,7 @@
                         })
                         .catch(err => {
                             this.loading = false;
-                            alert('Gagal presensi: ' + err.message);
+                            alert(err.message || 'Gagal melakukan presensi.');
                         });
                     },
                     (err) => {
