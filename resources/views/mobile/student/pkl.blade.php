@@ -7,8 +7,8 @@
     <!-- Header Clay Card -->
     <div class="clay-orange p-6">
         <span class="text-[10px] font-black uppercase tracking-wider bg-white/30 px-2.5 py-0.5 rounded-full border border-white/40">Praktik Kerja Lapangan (PKL)</span>
-        <h2 class="text-base font-black text-white mt-1.5 leading-snug">{{ $pklPlacement->company->name ?? 'Lokasi PKL Belum Ditentukan' }}</h2>
-        <p class="text-xs text-orange-100 mt-0.5 font-bold"><i class="fa-solid fa-user-tie mr-1"></i>Pembimbing: {{ $pklPlacement->advisor->full_name ?? '-' }}</p>
+        <h2 class="text-base font-black text-white mt-1.5 leading-snug">{{ $pklPlacement->dudi->name ?? ($pklPlacement->company_name ?? 'Lokasi PKL Belum Ditentukan') }}</h2>
+        <p class="text-xs text-orange-100 mt-0.5 font-bold"><i class="fa-solid fa-user-tie mr-1"></i>Pembimbing: {{ $pklPlacement->teacher->full_name ?? '-' }}</p>
     </div>
 
     <!-- Input Log Form (Clay Card) -->
@@ -45,13 +45,13 @@
         @forelse($logs as $log)
             <div class="clay-card p-4 space-y-1.5">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-black text-slate-900">{{ \Carbon\Carbon::parse($log->date)->translatedFormat('l, d M Y') }}</span>
+                    <span class="text-xs font-black text-slate-900">{{ \Carbon\Carbon::parse($log->log_date ?? $log->created_at)->translatedFormat('l, d M Y') }}</span>
                     <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase
                         {{ $log->status === 'approved' ? 'clay-green' : 'clay-yellow' }}">
                         {{ $log->status }}
                     </span>
                 </div>
-                <p class="text-xs text-slate-700 font-bold leading-relaxed">{{ $log->activity_description }}</p>
+                <p class="text-xs text-slate-700 font-bold leading-relaxed">{{ $log->activity ?? $log->activity_description }}</p>
             </div>
         @empty
             <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold">

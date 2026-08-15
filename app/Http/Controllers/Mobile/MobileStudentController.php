@@ -10,7 +10,7 @@ use App\Models\StudentBill;
 use App\Models\AcademicYear;
 use App\Models\Semester;
 use App\Models\CbtExam;
-use App\Models\PklStudent;
+use App\Models\PklPlacement;
 use App\Models\PklLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -42,14 +42,14 @@ class MobileStudentController extends Controller
         $student = $this->getStudent();
         $classroom = $student ? $student->currentClassroom()->first() : null;
 
-        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         $dayLabels = [
-            'monday' => 'Senin', 'tuesday' => 'Selasa', 'wednesday' => 'Rabu',
-            'thursday' => 'Kamis', 'friday' => 'Jumat', 'saturday' => 'Sabtu',
+            'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'
         ];
 
-        $today = strtolower(now()->format('l'));
-        $activeDay = in_array($today, $days) ? $today : 'monday';
+        $today = date('l');
+        $activeDay = in_array($today, $days) ? $today : 'Monday';
 
         $schedulesByDay = [];
         foreach ($days as $day) {
@@ -57,14 +57,14 @@ class MobileStudentController extends Controller
         }
 
         if ($classroom) {
-            $allSchedules = Schedule::where('classroom_id', $classroom->id)
-                ->with(['subject', 'teacher.user', 'timeSlot'])
+            $schedules = Schedule::where('classroom_id', $classroom->id)
+                ->with(['subject', 'teacher'])
+                ->orderBy('start_time', 'asc')
                 ->get();
 
-            foreach ($allSchedules as $sch) {
-                $dayLower = strtolower($sch->day_of_week);
-                if (isset($schedulesByDay[$dayLower])) {
-                    $schedulesByDay[$dayLower]->push($sch);
+            foreach ($schedules as $sch) {
+                if (isset($schedulesByDay[$sch->day_of_week])) {
+                    $schedulesByDay[$sch->day_of_week]->push($sch);
                 }
             }
         }
@@ -174,13 +174,13 @@ class MobileStudentController extends Controller
         $logs = collect();
 
         if ($student) {
-            $pklPlacement = PklStudent::where('student_id', $student->id)
-                ->with(['company', 'advisor'])
+            $pklPlacement = PklPlacement::where('student_id', $student->id)
+                ->with(['dudi', 'teacher', 'academicYear'])
                 ->first();
 
             if ($pklPlacement) {
-                $logs = PklLog::where('pkl_student_id', $pklPlacement->id)
-                    ->orderBy('date', 'desc')
+                $logs = PklLog::where('pkl_placement_id', $pklPlacement->id)
+                    ->orderBy('log_date', 'desc')
                     ->get();
             }
         }
@@ -202,12 +202,15 @@ class MobileStudentController extends Controller
         if (!$student) {
             return back()->with('error', 'Data siswa tidak ditemukan.');
         }
-        $pklPlacement = PklStudent::where('student_id', $student->id)->firstOrFail();
+        $pklPlacement = PklPlacement::where('student_id', $student->id)->first();
+        if (!$pklPlacement) {
+            return back()->with('error', 'Data penempatan PKL Anda tidak ditemukan.');
+        }
 
         PklLog::create([
-            'pkl_student_id' => $pklPlacement->id,
-            'date' => $request->input('date'),
-            'activity_description' => $request->input('activity_description'),
+            'pkl_placement_id' => $pklPlacement->id,
+            'log_date' => $request->input('date'),
+            'activity' => $request->input('activity_description'),
             'status' => 'pending',
         ]);
 
