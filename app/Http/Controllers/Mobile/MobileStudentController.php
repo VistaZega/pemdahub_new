@@ -268,46 +268,185 @@ class MobileStudentController extends Controller
     }
 
     /**
-     * Tagihan & Keuangan SPP Mobile
+     * Tagihan & Keuangan SPP Mobile Siswa
+     * Menghitung kewajiban/tunggakan s.d. bulan berkenaan (bukan 12 bulan penuh)
      */
     public function tagihan()
     {
         $student = $this->getStudent();
         $bills = collect();
-        $totalAmount = 0;
-        $totalPaid = 0;
-        $totalOutstanding = 0;
+
+        $currentMonth = (int) now()->month;
+        $currentYear = (int) now()->year;
+
+        $monthNames = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        $currentMonthName = $monthNames[$currentMonth] ?? date('F');
+        $currentPeriodLabel = $currentMonthName . ' ' . $currentYear;
+
+        // Koleksi & Metrik Keuangan s.d. Bulan Berkenaan
+        $dueBills = collect();        // Tagihan jatuh tempo s.d. bulan ini (belum lunas)
+        $futureBills = collect();     // Tagihan masa depan (belum jatuh tempo)
+        $paidBills = collect();       // Tagihan yang sudah lunas
+        $allBills = collect();        // Seluruh tagihan terformat
+
+        $totalDueAmount = 0;          // Total kewajiban s.d. bulan berkenaan
+        $totalDuePaid = 0;            // Total yang telah dibayar s.d. bulan berkenaan
+        $totalDueOutstanding = 0;     // Tunggakan riil s.d. bulan berkenaan
+
+        $totalFutureAmount = 0;       // Total tagihan masa depan
+        $allBillsTotalAmount = 0;     // Total seluruh tagihan tahunan
+
+        $currentMonthBill = null;     // Tagihan SPP bulan berkenaan
+        $currentMonthStatus = 'none'; // 'lunas', 'cicilan', 'belum_bayar', 'none'
+        $unpaidPastMonths = [];       // Bulan-bulan sebelumnya yang menunggak
+        $unpaidCurrentAndPast = [];   // Semua bulan menunggak s.d. bulan ini
 
         if ($student) {
-            $bills = StudentBill::where('student_id', $student->id)
+            $rawBills = StudentBill::where('student_id', $student->id)
                 ->with(['academicYear', 'paymentType', 'payments'])
-                ->orderBy('year', 'desc')
-                ->orderBy('month', 'desc')
-                ->orderBy('created_at', 'desc')
+                ->orderBy('year', 'asc')
+                ->orderBy('month', 'asc')
+                ->orderBy('created_at', 'asc')
                 ->get();
 
-            $monthNames = [
-                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-            ];
-
-            foreach ($bills as $bill) {
+            foreach ($rawBills as $bill) {
                 $typeName = $bill->paymentType->type_name ?? 'SPP / Uang Sekolah';
-                if ($bill->month && isset($monthNames[$bill->month])) {
-                    $bill->display_title = $typeName . ' (' . $monthNames[$bill->month] . ' ' . ($bill->year ?? '') . ')';
+                $isMonthly = ($bill->month !== null && $bill->year !== null);
+
+                if ($isMonthly && isset($monthNames[$bill->month])) {
+                    $bill->display_title = $typeName . ' (' . $monthNames[$bill->month] . ' ' . $bill->year . ')';
+                    $bill->period_name = $monthNames[$bill->month] . ' ' . $bill->year;
                 } else {
                     $bill->display_title = $typeName;
+                    $bill->period_name = $bill->academicYear->name ?? 'Tagihan Khusus';
                 }
-                $bill->sisa_tunggakan = max(0, $bill->amount - $bill->paid_amount);
+
+                $remaining = max(0, (float)$bill->amount - (float)$bill->paid_amount);
+                $bill->sisa_tunggakan = $remaining;
+
+                // Tentukan Jatuh Tempo s.d. Bulan Berkenaan:
+                // Non-bulanan (uang seragam/DSP dll) = jatuh tempo
+                // Bulanan = year < currentYear ATAU (year == currentYear DAN month <= currentMonth)
+                $isDue = false;
+                $isCurrentMonth = false;
+
+                if (!$isMonthly) {
+                    $isDue = true;
+                } else {
+                    if ($bill->year < $currentYear || ($bill->year == $currentYear && $bill->month <= $currentMonth)) {
+                        $isDue = true;
+                    }
+                    if ($bill->year == $currentYear && $bill->month == $currentMonth) {
+                        $isCurrentMonth = true;
+                        $currentMonthBill = $bill;
+                    }
+                }
+
+                $bill->is_due = $isDue;
+                $bill->is_current_month = $isCurrentMonth;
+                $bill->is_future = !$isDue;
+
+                $allBillsTotalAmount += (float) $bill->amount;
+                $allBills->push($bill);
+
+                if ($isDue) {
+                    $totalDueAmount += (float) $bill->amount;
+                    $totalDuePaid += (float) $bill->paid_amount;
+                    $totalDueOutstanding += $remaining;
+
+                    if ($bill->status === 'lunas' || $remaining <= 0) {
+                        $paidBills->push($bill);
+                    } else {
+                        $dueBills->push($bill);
+
+                        if ($isMonthly) {
+                            $unpaidCurrentAndPast[] = $bill->period_name;
+                            if (!$isCurrentMonth) {
+                                $unpaidPastMonths[] = $bill->period_name;
+                            }
+                        }
+                    }
+                } else {
+                    // Tagihan bulan mendatang
+                    $totalFutureAmount += (float) $bill->amount;
+                    if ($bill->status === 'lunas' || $remaining <= 0) {
+                        $paidBills->push($bill);
+                    } else {
+                        $futureBills->push($bill);
+                    }
+                }
             }
 
-            $totalAmount = $bills->sum('amount');
-            $totalPaid = $bills->sum('paid_amount');
-            $totalOutstanding = max(0, $totalAmount - $totalPaid);
+            // Evaluasi status bulan berkenaan
+            if ($currentMonthBill) {
+                if ($currentMonthBill->status === 'lunas' || $currentMonthBill->sisa_tunggakan <= 0) {
+                    $currentMonthStatus = 'lunas';
+                } elseif ($currentMonthBill->paid_amount > 0) {
+                    $currentMonthStatus = 'cicilan';
+                } else {
+                    $currentMonthStatus = 'belum_bayar';
+                }
+            }
         }
 
-        return view('mobile.student.tagihan', compact('student', 'bills', 'totalAmount', 'totalPaid', 'totalOutstanding'));
+        // Tentukan Kesimpulan Finansial Komprehensif
+        $financialSummary = [
+            'status_code' => 'lunas',
+            'headline' => '',
+            'description' => '',
+            'badge_text' => '',
+            'badge_class' => '',
+            'card_gradient' => '',
+        ];
+
+        if ($totalDueOutstanding <= 0) {
+            $financialSummary['status_code'] = 'lunas';
+            $financialSummary['headline'] = 'Bebas Tunggakan s.d. ' . $currentPeriodLabel;
+            $financialSummary['description'] = 'Seluruh kewajiban pembayaran uang sekolah s.d. bulan berkenaan telah lunas terbayar.';
+            $financialSummary['badge_text'] = '🟢 LUNAS BEBAS TUNGGAKAN';
+            $financialSummary['badge_class'] = 'bg-emerald-100 text-emerald-900 border-emerald-300';
+            $financialSummary['card_gradient'] = 'bg-gradient-to-br from-emerald-600 to-teal-700';
+        } elseif (empty($unpaidPastMonths) && $currentMonthStatus !== 'lunas') {
+            $financialSummary['status_code'] = 'menunggu_bulan_ini';
+            $financialSummary['headline'] = 'Menunggu Pembayaran ' . $currentPeriodLabel;
+            $financialSummary['description'] = 'Uang sekolah bulan-bulan sebelumnya telah lunas. Harap menyelesaikan tagihan bulan ' . $currentPeriodLabel . '.';
+            $financialSummary['badge_text'] = '🟡 BELUM BAYAR BULAN INI';
+            $financialSummary['badge_class'] = 'bg-amber-100 text-amber-900 border-amber-300';
+            $financialSummary['card_gradient'] = 'bg-gradient-to-br from-amber-500 to-orange-600';
+        } else {
+            $financialSummary['status_code'] = 'menunggak';
+            $financialSummary['headline'] = 'Menunggak Pembayaran Uang Sekolah';
+            $financialSummary['description'] = 'Siswa tercatat belum menyelesaikan pembayaran uang sekolah untuk bulan: ' . implode(', ', $unpaidCurrentAndPast) . ' (Total ' . count($unpaidCurrentAndPast) . ' Bulan).';
+            $financialSummary['badge_text'] = '🔴 ADA TUNGGAKAN SPP';
+            $financialSummary['badge_class'] = 'bg-rose-100 text-rose-900 border-rose-300';
+            $financialSummary['card_gradient'] = 'bg-gradient-to-br from-rose-600 to-red-700';
+        }
+
+        return view('mobile.student.tagihan', compact(
+            'student',
+            'currentPeriodLabel',
+            'currentMonthName',
+            'currentYear',
+            'currentMonthBill',
+            'currentMonthStatus',
+            'unpaidPastMonths',
+            'unpaidCurrentAndPast',
+            'financialSummary',
+            'totalDueAmount',
+            'totalDuePaid',
+            'totalDueOutstanding',
+            'totalFutureAmount',
+            'allBillsTotalAmount',
+            'dueBills',
+            'futureBills',
+            'paidBills',
+            'allBills'
+        ));
     }
 
     /**

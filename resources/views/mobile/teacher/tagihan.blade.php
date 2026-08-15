@@ -141,7 +141,7 @@
                     </div>
 
                     <!-- Detail Tagihan Bulan Berkenaan & Tunggakan -->
-                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-bold space-y-1">
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-bold space-y-1.5">
                         <div class="flex items-center justify-between text-slate-600">
                             <span>Tagihan {{ $monthNames[$selectedMonth] }}:</span>
                             <span class="font-black text-slate-900">
@@ -157,15 +157,32 @@
                         </div>
 
                         <div class="flex items-center justify-between pt-1 border-t border-slate-200 text-rose-700 font-black">
-                            <span>Total Akumulasi Tunggakan:</span>
+                            <span>Tunggakan s.d. {{ $monthNames[$selectedMonth] }}:</span>
                             <span>Rp {{ number_format($std->total_tunggakan, 0, ',', '.') }}</span>
                         </div>
+
+                        @if(!empty($std->unpaid_months))
+                            <div class="pt-1 border-t border-slate-200/80">
+                                <span class="text-[9px] font-extrabold text-slate-500 uppercase block mb-1">Bulan Menunggak:</span>
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach($std->unpaid_months as $um)
+                                        <span class="px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[9px] font-black">
+                                            {{ $um }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Action Button: Ingatkan via WhatsApp -->
+                    @php
+                        $unpaidListStr = !empty($std->unpaid_months) ? ' (Bulan menunggak: ' . implode(', ', $std->unpaid_months) . ')' : '';
+                        $customWaText = "Halo Bapak/Ibu Wali dari " . $std->full_name . ", menginformasikan rekap pembayaran SPP s.d. bulan " . $monthNames[$selectedMonth] . " " . $selectedYear . ". Status bulan " . $monthNames[$selectedMonth] . ": " . ($status === 'lunas' ? 'LUNAS' : ($status === 'cicilan' ? 'DIBAYAR SEBAGIAN' : 'BELUM BAYAR')) . ". Total tunggakan s.d. bulan ini: Rp " . number_format($std->total_tunggakan, 0, ',', '.') . $unpaidListStr . ". Terima kasih. - Wali Kelas " . ($classroom->name ?? '');
+                    @endphp
                     @if($cleanPhone)
                         <div class="pt-1 flex justify-end">
-                            <a href="https://wa.me/{{ $cleanPhone }}?text={{ urlencode($waText) }}" target="_blank"
+                            <a href="https://wa.me/{{ $cleanPhone }}?text={{ urlencode($customWaText) }}" target="_blank"
                                class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-[10px] font-black shadow-sm hover:bg-emerald-700 transition flex items-center gap-1.5">
                                 <i class="fa-brands fa-whatsapp text-xs"></i> Ingatkan Ortu via WA
                             </a>

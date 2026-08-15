@@ -1040,13 +1040,22 @@ class MobileTeacherController extends Controller
                     ->where('year', $selectedYear)
                     ->first();
 
-                // Ambil seluruh tunggakan siswa
-                $totalUnpaid = \App\Models\StudentBill::where('student_id', $student->id)
+                // Ambil tunggakan siswa HANYA s.d. bulan berkenaan (Bukan 12 bulan masa depan)
+                $dueUnpaidBills = \App\Models\StudentBill::where('student_id', $student->id)
+                    ->where(function ($q) use ($selectedYear, $selectedMonth) {
+                        $q->whereNull('month')
+                          ->orWhere('year', '<', $selectedYear)
+                          ->orWhere(function ($sub) use ($selectedYear, $selectedMonth) {
+                              $sub->where('year', $selectedYear)
+                                  ->where('month', '<=', $selectedMonth);
+                          });
+                    })
                     ->where('status', '!=', 'lunas')
-                    ->get()
-                    ->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+                    ->get();
 
-                $statusBulanIni = $monthBill ? $monthBill->status : 'belum_bayar';
+                $totalUnpaid = $dueUnpaidBills->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+
+                $statusBulanIni = $monthBill ? ($monthBill->status === 'lunas' ? 'lunas' : ($monthBill->paid_amount > 0 ? 'cicilan' : 'belum_bayar')) : 'belum_bayar';
                 if ($statusBulanIni === 'lunas') {
                     $stats['lunas_count']++;
                 } else {
@@ -1058,6 +1067,9 @@ class MobileTeacherController extends Controller
                 $student->month_bill = $monthBill;
                 $student->status_bulan_ini = $statusBulanIni;
                 $student->total_tunggakan = $totalUnpaid;
+                $student->unpaid_months = $dueUnpaidBills->whereNotNull('month')->map(function ($b) use ($monthNames) {
+                    return ($monthNames[$b->month] ?? $b->month) . ' ' . $b->year;
+                })->values()->all();
 
                 $students->push($student);
             }
