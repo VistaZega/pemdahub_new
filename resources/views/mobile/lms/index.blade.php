@@ -9,25 +9,25 @@
     $totalQuizzes = $enrolledCourses->sum('quizzes_count');
 @endphp
 
-<div class="space-y-4 pb-8" x-data="{ 
+<div class="space-y-4 pb-12" x-data="{ 
     showAddCourse: false, 
     searchQuery: ''
 }">
     <!-- Header Navigation -->
-    <div class="flex items-center justify-between px-1">
-        <div>
-            <div class="flex items-center gap-2">
-                <span class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-xs">
+    <div class="flex items-center justify-between gap-2 px-1 pt-1">
+        <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2.5">
+                <span class="w-9 h-9 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-md shrink-0">
                     <i class="fa-solid fa-book-bookmark text-sm"></i>
                 </span>
-                <div>
-                    <h2 class="text-base font-black text-slate-900 leading-tight">LMS Digital</h2>
-                    <p class="text-[10px] text-slate-500 font-bold">Ruang Belajar & Materi Interaktif</p>
+                <div class="min-w-0">
+                    <h2 class="text-base font-black text-slate-900 leading-tight truncate">LMS Digital</h2>
+                    <p class="text-[10px] text-slate-500 font-bold truncate">Ruang Belajar & Materi Interaktif</p>
                 </div>
             </div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 shrink-0">
             @if($isTeacher)
                 <button @click="showAddCourse = !showAddCourse" 
                         class="px-3 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-black shadow-md hover:opacity-90 active:scale-95 transition flex items-center gap-1.5">
@@ -44,28 +44,28 @@
     </div>
 
     <!-- Quick Stats Banner Clay Card -->
-    <div class="clay-purple p-4.5 space-y-3">
-        <div class="flex items-center justify-between">
-            <span class="text-[10px] font-black uppercase tracking-wider bg-white/25 px-2.5 py-0.5 rounded-full border border-white/30 text-white">
+    <div class="clay-purple p-5 sm:p-6 space-y-3.5 rounded-3xl shadow-lg">
+        <div class="flex items-center justify-between gap-3 px-1">
+            <span class="text-[10px] font-black uppercase tracking-wider bg-white/25 px-3 py-1 rounded-full border border-white/35 text-white shadow-xs">
                 {{ $isTeacher ? '👨‍🏫 Panel Pengajar LMS' : '👨‍🎓 Ruang Belajar Siswa' }}
             </span>
-            <span class="text-[10px] font-black text-purple-100 bg-white/15 px-2 py-0.5 rounded-full">
+            <span class="text-[10px] font-black text-purple-100 bg-white/20 px-3 py-1 rounded-full border border-white/30">
                 {{ $enrolledCourses->count() }} Kelas Aktif
             </span>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 pt-1 text-center">
-            <div class="p-2 rounded-xl bg-white/15 backdrop-blur-xs border border-white/25">
-                <span class="text-lg font-black text-white leading-none block">{{ $enrolledCourses->count() }}</span>
-                <span class="text-[9px] font-bold text-purple-100 uppercase tracking-tight mt-0.5 block">Mapel</span>
+        <div class="grid grid-cols-3 gap-2.5 pt-1 text-center">
+            <div class="py-3 px-2 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-xs">
+                <span class="text-xl font-black text-white leading-none block">{{ $enrolledCourses->count() }}</span>
+                <span class="text-[9px] font-extrabold text-purple-100 uppercase tracking-wider mt-1 block">Mapel</span>
             </div>
-            <div class="p-2 rounded-xl bg-white/15 backdrop-blur-xs border border-white/25">
-                <span class="text-lg font-black text-white leading-none block">{{ $totalMaterials }}</span>
-                <span class="text-[9px] font-bold text-purple-100 uppercase tracking-tight mt-0.5 block">Materi</span>
+            <div class="py-3 px-2 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-xs">
+                <span class="text-xl font-black text-white leading-none block">{{ $totalMaterials }}</span>
+                <span class="text-[9px] font-extrabold text-purple-100 uppercase tracking-wider mt-1 block">Materi</span>
             </div>
-            <div class="p-2 rounded-xl bg-white/15 backdrop-blur-xs border border-white/25">
-                <span class="text-lg font-black text-white leading-none block">{{ $totalAssignments + $totalQuizzes }}</span>
-                <span class="text-[9px] font-bold text-purple-100 uppercase tracking-tight mt-0.5 block">Tugas & Kuis</span>
+            <div class="py-3 px-2 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-xs">
+                <span class="text-xl font-black text-white leading-none block">{{ $totalAssignments + $totalQuizzes }}</span>
+                <span class="text-[9px] font-extrabold text-purple-100 uppercase tracking-wider mt-1 block">Tugas & Kuis</span>
             </div>
         </div>
     </div>
@@ -121,7 +121,7 @@
                               class="w-full px-3.5 py-2 bg-white border-2 border-purple-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-hidden focus:border-purple-600 resize-none"></textarea>
                 </div>
 
-                <div class="p-3 bg-purple-100/70 rounded-xl border border-purple-300 flex items-start gap-2.5">
+                <div class="p-3.5 bg-purple-100/70 rounded-2xl border border-purple-300 flex items-start gap-2.5">
                     <input type="checkbox" id="is_sequential" name="is_sequential" value="1" class="mt-0.5 w-4 h-4 text-purple-600 rounded border-purple-400 focus:ring-purple-500 cursor-pointer">
                     <label for="is_sequential" class="text-[11px] font-bold text-purple-950 cursor-pointer select-none">
                         <span class="font-black text-purple-900 flex items-center gap-1">
@@ -139,7 +139,7 @@
     @endif
 
     <!-- Search & Filter Controls -->
-    <div class="clay-card p-3 space-y-2.5 bg-white border border-slate-200">
+    <div class="clay-card p-3 space-y-2.5 bg-white border border-slate-200 shadow-sm">
         <!-- Live Search Input -->
         <div class="relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
@@ -154,7 +154,7 @@
     </div>
 
     <!-- Course Cards Section -->
-    <div class="space-y-3">
+    <div class="space-y-3.5">
         <div class="flex items-center justify-between px-1">
             <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                 <i class="fa-solid fa-graduation-cap text-purple-600"></i>
@@ -165,7 +165,7 @@
             </span>
         </div>
 
-        <div class="grid grid-cols-1 gap-3.5">
+        <div class="grid grid-cols-1 gap-4">
             @forelse($enrolledCourses as $course)
                 @php
                     $subjectName = $course->subject->name ?? '';
@@ -176,18 +176,18 @@
                 @endphp
 
                 <!-- Dynamic Course Card with Search Filter -->
-                <div class="clay-card overflow-hidden border-2 border-slate-200/90 hover:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md group bg-white"
+                <div class="clay-card overflow-hidden border-2 border-slate-200/90 hover:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md group bg-white rounded-3xl"
                      x-show="!searchQuery || '{{ strtolower(addslashes($course->course_name . ' ' . $subjectName . ' ' . $teacherName . ' ' . $course->code . ' ' . $className)) }}'.includes(searchQuery.toLowerCase())">
                     
                     <!-- Card Top Thematic Gradient Banner -->
-                    <div class="bg-gradient-to-r {{ $theme['gradient'] }} p-4 text-white relative overflow-hidden">
+                    <div class="bg-gradient-to-r {{ $theme['gradient'] }} p-5 text-white relative overflow-hidden rounded-t-3xl">
                         <!-- Subtle Background Watermark Graphic -->
                         <div class="absolute -right-3 -bottom-4 text-white/10 text-6xl pointer-events-none transform -rotate-12">
                             <i class="{{ $theme['icon'] }}"></i>
                         </div>
 
                         <!-- Top Floating Badges -->
-                        <div class="flex items-center justify-between gap-2 relative z-10 mb-2.5">
+                        <div class="flex items-center justify-between gap-2.5 relative z-10 mb-3">
                             <div class="flex items-center gap-1.5 flex-wrap">
                                 <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-xs text-white border border-white/30 shadow-2xs">
                                     {{ $course->code }}
@@ -200,14 +200,14 @@
                             </div>
 
                             @if($course->is_sequential)
-                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-400/90 text-amber-950 border border-amber-300 shadow-2xs flex items-center gap-1 shrink-0">
+                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-amber-400/90 text-amber-950 border border-amber-300 shadow-2xs flex items-center gap-1 shrink-0">
                                     <i class="fa-solid fa-lock text-[8px]"></i> Bertahap
                                 </span>
                             @endif
                         </div>
 
                         <!-- Main Icon & Course Name Row -->
-                        <div class="flex items-start gap-3 relative z-10">
+                        <div class="flex items-start gap-3.5 relative z-10">
                             <!-- 3D Style Glossy Thematic Icon -->
                             <div class="w-13 h-13 rounded-2xl bg-white/20 backdrop-blur-md border border-white/35 shadow-md flex items-center justify-center text-white text-2xl group-hover:scale-108 transition-transform duration-200 shrink-0">
                                 <i class="{{ $theme['icon'] }}"></i>
@@ -226,11 +226,11 @@
                     </div>
 
                     <!-- Card Body Content -->
-                    <div class="p-4 space-y-3">
+                    <div class="p-5 space-y-3.5">
                         <!-- Instructor Info & Description -->
-                        <div class="flex items-center justify-between text-xs">
+                        <div class="flex items-center justify-between gap-2 text-xs">
                             <div class="flex items-center gap-2 min-w-0">
-                                <div class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 font-black text-[10px] flex items-center justify-center border border-purple-200 shrink-0">
+                                <div class="w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-black text-[10px] flex items-center justify-center border border-purple-200 shrink-0">
                                     {{ strtoupper(substr($teacherName, 0, 1)) }}
                                 </div>
                                 <div class="min-w-0">
@@ -240,33 +240,33 @@
                             </div>
 
                             @if($course->subject)
-                                <span class="px-2 py-0.5 rounded-lg text-[9px] font-black {{ $theme['badgeBg'] }} border shrink-0">
+                                <span class="px-2.5 py-1 rounded-lg text-[9px] font-black {{ $theme['badgeBg'] }} border shrink-0">
                                     {{ $course->subject->name }}
                                 </span>
                             @endif
                         </div>
 
                         @if($course->description)
-                            <p class="text-[11px] text-slate-600 font-semibold line-clamp-2 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            <p class="text-[11px] text-slate-600 font-semibold line-clamp-2 leading-relaxed bg-slate-50 p-3 rounded-2xl border border-slate-100">
                                 {{ $course->description }}
                             </p>
                         @endif
 
                         <!-- Key Metrics Grid -->
-                        <div class="grid grid-cols-4 gap-1.5 pt-1 text-center">
-                            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                        <div class="grid grid-cols-4 gap-2 pt-1 text-center">
+                            <div class="py-2.5 px-1 rounded-2xl bg-slate-50 border border-slate-200/80">
                                 <span class="text-xs font-black text-slate-800 block">{{ $course->materials_count }}</span>
                                 <span class="text-[8px] font-black text-slate-500 uppercase">Materi</span>
                             </div>
-                            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                            <div class="py-2.5 px-1 rounded-2xl bg-slate-50 border border-slate-200/80">
                                 <span class="text-xs font-black text-slate-800 block">{{ $course->assignments_count }}</span>
                                 <span class="text-[8px] font-black text-slate-500 uppercase">Tugas</span>
                             </div>
-                            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                            <div class="py-2.5 px-1 rounded-2xl bg-slate-50 border border-slate-200/80">
                                 <span class="text-xs font-black text-slate-800 block">{{ $course->quizzes_count }}</span>
                                 <span class="text-[8px] font-black text-slate-500 uppercase">Kuis</span>
                             </div>
-                            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                            <div class="py-2.5 px-1 rounded-2xl bg-slate-50 border border-slate-200/80">
                                 <span class="text-xs font-black text-slate-800 block">{{ $course->modules->count() }}</span>
                                 <span class="text-[8px] font-black text-slate-500 uppercase">Modul</span>
                             </div>
@@ -274,7 +274,7 @@
 
                         <!-- Progress Bar (for Students) -->
                         @if(!$isTeacher)
-                            <div class="space-y-1 pt-1">
+                            <div class="space-y-1.5 pt-1">
                                 <div class="flex items-center justify-between text-[10px] font-black">
                                     <span class="text-slate-600">Progres Pembelajaran:</span>
                                     <span class="{{ $progress == 100 ? 'text-emerald-600' : ($progress > 0 ? 'text-blue-600' : 'text-slate-400') }}">
@@ -289,12 +289,12 @@
                         @endif
 
                         <!-- Action Footer -->
-                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
                             @if($isTeacher)
                                 <form action="{{ route('mobile.lms.course.destroy', $course->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus seluruh kelas LMS {{ addslashes($course->course_name) }}?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="px-2.5 py-2 rounded-xl bg-rose-50 text-rose-700 text-[10px] font-black border border-rose-200 hover:bg-rose-100 active:scale-95 transition flex items-center gap-1">
+                                    <button type="submit" class="px-3 py-2.5 rounded-xl bg-rose-50 text-rose-700 text-[10px] font-black border border-rose-200 hover:bg-rose-100 active:scale-95 transition flex items-center gap-1">
                                         <i class="fa-solid fa-trash-can"></i> Hapus
                                     </button>
                                 </form>
@@ -305,7 +305,7 @@
                             @endif
 
                             <a href="{{ route('mobile.lms.show', $course->id) }}" 
-                               class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r {{ $theme['gradient'] }} text-white text-xs font-black text-center shadow-md active:scale-98 hover:opacity-95 transition flex items-center justify-center gap-1.5 group-hover:shadow-lg">
+                               class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r {{ $theme['gradient'] }} text-white text-xs font-black text-center shadow-md active:scale-98 hover:opacity-95 transition flex items-center justify-center gap-1.5 group-hover:shadow-lg">
                                 <span>Masuk Kelas LMS</span>
                                 <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
                             </a>
@@ -313,7 +313,7 @@
                     </div>
                 </div>
             @empty
-                <div class="clay-card p-8 text-center text-slate-500 space-y-3 bg-white">
+                <div class="clay-card p-8 text-center text-slate-500 space-y-3 bg-white rounded-3xl">
                     <div class="w-16 h-16 rounded-3xl bg-purple-50 border-2 border-purple-200 text-purple-600 text-3xl flex items-center justify-center mx-auto shadow-inner">
                         🎓
                     </div>
@@ -336,6 +336,7 @@
     </div>
 </div>
 @endsection
+
 
 
 
