@@ -3,21 +3,21 @@
 @section('title', 'Input Absensi Massal - Pusat Absensi')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Unified Header -->
+<div class="space-y-8">
+    {{-- Unified LMS Header --}}
     @include('admin.attendance.header')
 
-    <!-- Rombel Filter if Group = Siswa -->
+    {{-- Classroom / Rombel Selector if Group = Siswa --}}
     @if($group === 'siswa')
-    <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-3">
-        <form method="GET" class="flex items-center gap-2.5 flex-wrap">
+    <div class="bg-white p-5 rounded-3xl border-2 border-black shadow-md flex flex-wrap items-center justify-between gap-4">
+        <form method="GET" class="flex items-center gap-3 flex-wrap">
             <input type="hidden" name="group" value="siswa">
             <input type="hidden" name="school_id" value="{{ $schoolId }}">
             <input type="hidden" name="date" value="{{ $date }}">
 
-            <span class="text-xs font-black text-slate-700 uppercase tracking-wider">Pilih Rombel / Kelas:</span>
+            <span class="text-xs font-black text-black uppercase tracking-wider">Pilih Rombel / Kelas:</span>
             <select name="classroom_id" onchange="this.form.submit()"
-                    class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-800 focus:ring-2 focus:ring-emerald-500 min-w-[200px]">
+                    class="bg-white border-2 border-black rounded-2xl px-4 py-2.5 text-xs font-black text-black focus:ring-2 focus:ring-amber-400 min-w-[220px] shadow-sm cursor-pointer">
                 @foreach($classrooms as $cls)
                     <option value="{{ $cls->id }}" {{ $classroomId == $cls->id ? 'selected' : '' }}>
                         {{ $cls->class_name }}
@@ -26,19 +26,19 @@
             </select>
         </form>
 
-        <span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl">
-            {{ $persons->count() }} Siswa Terdaftar di Kelas Ini
+        <span class="text-xs font-black text-black bg-amber-300 border-2 border-black px-4 py-2 rounded-2xl shadow-sm">
+            Total <b>{{ $persons->count() }}</b> Siswa Terdaftar
         </span>
     </div>
     @endif
 
     @if($persons->isEmpty())
-    <div class="bg-white rounded-3xl border border-slate-200 py-20 text-center text-slate-400">
-        <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-300 text-3xl">
-            <i class="fa-solid fa-user-slash"></i>
+    <div class="bg-white rounded-3xl border-2 border-black py-20 text-center text-gray-400 shadow-xl">
+        <div class="w-16 h-16 bg-amber-100 rounded-3xl border-2 border-black flex items-center justify-center mx-auto mb-4 text-black text-3xl shadow-md">
+            <i class="fas fa-user-slash"></i>
         </div>
-        <p class="font-bold text-base text-slate-800">Tidak ada data terdaftar untuk filter yang dipilih.</p>
-        <p class="text-xs text-slate-400 mt-1">Pastikan data kelas/pegawai/guru sudah aktif di sistem.</p>
+        <p class="font-black text-base text-black">Tidak ada data terdaftar untuk filter yang dipilih.</p>
+        <p class="text-xs text-gray-500 font-bold mt-1">Pastikan data kelas atau pegawai sudah aktif di sistem.</p>
     </div>
     @else
 
@@ -51,45 +51,45 @@
             <input type="hidden" name="classroom_id" value="{{ $classroomId }}">
         @endif
 
-        <!-- Quick Action Bar -->
-        <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-4 mb-4">
-            <div class="flex flex-wrap items-center gap-2">
-                <span class="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mr-1">
-                    <i class="fa-solid fa-wand-magic-sparkles text-emerald-500"></i> Quick Set:
+        {{-- Quick Set Action Bar --}}
+        <div class="bg-white rounded-3xl border-2 border-black p-5 mb-6 shadow-md">
+            <div class="flex flex-wrap items-center gap-3">
+                <span class="text-xs font-black text-black uppercase tracking-wider flex items-center gap-2 mr-2">
+                    <i class="fas fa-magic text-amber-500"></i> Quick Actions:
                 </span>
                 <button type="button" onclick="setAllStatus('hadir')" 
-                        class="px-3 py-1.5 bg-emerald-100 text-emerald-800 rounded-xl text-xs font-black hover:bg-emerald-200 transition active:scale-95 shadow-2xs">
-                    <i class="fa-solid fa-check mr-1"></i> Semua Hadir
+                        class="px-4 py-2.5 bg-emerald-300 text-black rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black hover:bg-emerald-400 transition active:scale-95 shadow-sm">
+                    <i class="fas fa-check mr-1"></i> Semua Hadir
                 </button>
                 <button type="button" onclick="setAllTimeEmptyOnly()" 
-                        class="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-xl text-xs font-black hover:bg-blue-200 transition active:scale-95 shadow-2xs">
-                    <i class="fa-solid fa-clock mr-1"></i> Jam Default Yang Kosong (07:15 – 15:00)
+                        class="px-4 py-2.5 bg-amber-300 text-black rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black hover:bg-amber-400 transition active:scale-95 shadow-sm">
+                    <i class="fas fa-clock mr-1"></i> Jam Default Yang Kosong (07:15 – 15:00)
                 </button>
                 <button type="button" onclick="resetAll()" 
-                        class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-black hover:bg-slate-200 transition active:scale-95">
-                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset Yang Kosong
+                        class="px-4 py-2.5 bg-gray-100 text-black rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black hover:bg-gray-200 transition active:scale-95 shadow-sm">
+                    <i class="fas fa-rotate-left mr-1"></i> Reset Yang Kosong
                 </button>
-                <span class="ml-auto text-xs font-black text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                <span class="ml-auto text-xs font-black text-black bg-black text-amber-400 border-2 border-black px-4 py-2 rounded-2xl shadow-sm">
                     {{ $persons->count() }} Data Siap Diinput
                 </span>
             </div>
         </div>
 
-        <!-- Spreadsheet Table -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+        {{-- Spreadsheet Table --}}
+        <div class="bg-white rounded-3xl border-2 border-black shadow-xl overflow-hidden mb-8">
             <div class="overflow-x-auto">
                 <table class="w-full">
-                    <thead class="bg-slate-50/80 border-b border-slate-100">
+                    <thead class="bg-black text-amber-400 border-b-2 border-black">
                         <tr>
-                            <th class="px-4 py-3.5 text-left text-[11px] font-black text-slate-500 uppercase tracking-wider w-10">No</th>
-                            <th class="px-4 py-3.5 text-left text-[11px] font-black text-slate-500 uppercase tracking-wider">Nama & Sumber Presensi</th>
-                            <th class="px-4 py-3.5 text-center text-[11px] font-black text-slate-500 uppercase tracking-wider w-44">Status</th>
-                            <th class="px-4 py-3.5 text-center text-[11px] font-black text-slate-500 uppercase tracking-wider w-32">Jam Masuk</th>
-                            <th class="px-4 py-3.5 text-center text-[11px] font-black text-slate-500 uppercase tracking-wider w-32">Jam Pulang</th>
-                            <th class="px-4 py-3.5 text-left text-[11px] font-black text-slate-500 uppercase tracking-wider">Keterangan</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-wider w-12">No</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-wider">Nama & Sumber Presensi Real</th>
+                            <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-wider w-48">Status</th>
+                            <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-wider w-36">Jam Masuk</th>
+                            <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-wider w-36">Jam Pulang</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-wider">Keterangan</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="divide-y-2 divide-black/10">
                         @foreach($persons as $idx => $p)
                         @php
                             $ex = $existing->get($p->id);
@@ -97,39 +97,39 @@
                             $timeOutVal = $ex?->time_out ? substr($ex->time_out, 0, 5) : '';
                             $codeVal = $group === 'siswa' ? ($p->nisn ?: ($p->nis ?: '-')) : ($p->employee_code ?: ($p->nip ?: '-'));
                         @endphp
-                        <tr class="hover:bg-emerald-50/30 transition-colors {{ $ex ? 'bg-emerald-50/20' : '' }}">
-                            <td class="px-4 py-3 text-xs text-slate-400 font-bold">{{ $idx + 1 }}</td>
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-black text-xs shrink-0 shadow-xs">
+                        <tr class="hover:bg-amber-50/80 transition-colors {{ $ex ? 'bg-emerald-50/30' : '' }}">
+                            <td class="px-5 py-4 text-xs text-black font-black font-mono">{{ $idx + 1 }}</td>
+                            <td class="px-5 py-4">
+                                <div class="flex items-center gap-3.5">
+                                    <div class="w-10 h-10 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
                                         {{ strtoupper(substr($p->full_name, 0, 2)) }}
                                     </div>
                                     <div class="min-w-0">
-                                        <div class="font-bold text-slate-900 text-sm truncate flex items-center gap-1.5 flex-wrap">
+                                        <div class="font-black text-black text-sm truncate flex items-center gap-2 flex-wrap">
                                             <span>{{ $p->full_name }}</span>
                                             @if($ex)
                                                 @if($ex->recorded_via === 'gps')
-                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-100 text-blue-700 border border-blue-200">
-                                                        <i class="fa-solid fa-location-dot"></i> GPS
+                                                    <span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-blue-100 text-blue-900 border border-blue-900">
+                                                        <i class="fas fa-location-dot"></i> GPS
                                                     </span>
                                                 @elseif($ex->recorded_via === 'rfid')
-                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-200">
-                                                        <i class="fa-solid fa-id-card"></i> RFID
+                                                    <span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-amber-200 text-black border border-black">
+                                                        <i class="fas fa-id-card"></i> RFID
                                                     </span>
                                                 @else
-                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-slate-100 text-slate-600 border border-slate-200">
-                                                        <i class="fa-solid fa-pen"></i> Manual
+                                                    <span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-gray-100 text-black border border-black">
+                                                        <i class="fas fa-pen"></i> Manual
                                                     </span>
                                                 @endif
                                             @endif
                                         </div>
-                                        <div class="text-xs text-slate-400 font-mono">{{ $codeVal }}</div>
+                                        <div class="text-xs text-gray-500 font-bold font-mono">{{ $codeVal }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-5 py-4">
                                 <select name="attendance[{{ $p->id }}][status]"
-                                        class="att-status w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-black text-slate-800 focus:ring-2 focus:ring-emerald-500">
+                                        class="att-status w-full px-3 py-2.5 bg-white border-2 border-black rounded-xl text-xs font-black text-black focus:ring-2 focus:ring-amber-400 shadow-sm cursor-pointer">
                                     <option value="hadir" {{ ($ex?->status ?? 'hadir') === 'hadir' ? 'selected' : '' }}>Hadir</option>
                                     <option value="terlambat" {{ $ex?->status === 'terlambat' ? 'selected' : '' }}>Terlambat</option>
                                     <option value="izin" {{ $ex?->status === 'izin' ? 'selected' : '' }}>Izin</option>
@@ -141,22 +141,22 @@
                                     <option value="alpha" {{ $ex?->status === 'alpha' ? 'selected' : '' }}>Alpha</option>
                                 </select>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-5 py-4">
                                 <input type="time" name="attendance[{{ $p->id }}][time_in]"
                                        value="{{ $timeInVal }}"
                                        data-is-existing="{{ $ex && $timeInVal ? 'true' : 'false' }}"
-                                       class="att-time-in w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-center text-slate-800 focus:ring-2 focus:ring-emerald-500">
+                                       class="att-time-in w-full px-3 py-2.5 bg-white border-2 border-black rounded-xl text-xs font-mono font-black text-center text-black focus:ring-2 focus:ring-amber-400 shadow-sm">
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-5 py-4">
                                 <input type="time" name="attendance[{{ $p->id }}][time_out]"
                                        value="{{ $timeOutVal }}"
                                        data-is-existing="{{ $ex && $timeOutVal ? 'true' : 'false' }}"
-                                       class="att-time-out w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-center text-slate-800 focus:ring-2 focus:ring-emerald-500">
+                                       class="att-time-out w-full px-3 py-2.5 bg-white border-2 border-black rounded-xl text-xs font-mono font-black text-center text-black focus:ring-2 focus:ring-amber-400 shadow-sm">
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-5 py-4">
                                 <input type="text" name="attendance[{{ $p->id }}][notes]"
-                                       value="{{ $ex?->notes }}" placeholder="Keterangan opsional"
-                                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500">
+                                       value="{{ $ex?->notes }}" placeholder="Keterangan opsional..."
+                                       class="w-full px-3 py-2.5 bg-white border-2 border-black rounded-xl text-xs font-bold text-black focus:ring-2 focus:ring-amber-400 shadow-sm">
                             </td>
                         </tr>
                         @endforeach
@@ -165,16 +165,16 @@
             </div>
         </div>
 
-        <!-- Submit Button -->
+        {{-- Submit Button Bar --}}
         <div class="flex items-center justify-end gap-3">
             <a href="{{ route('admin.attendance.monitoring', ['group' => $group, 'school_id' => $schoolId, 'date' => $date]) }}"
-               class="px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition text-xs">
+               class="px-6 py-3 bg-gray-100 border-2 border-black text-black rounded-2xl font-black uppercase tracking-wider hover:bg-gray-200 transition text-xs shadow-sm">
                 Batal
             </a>
             <button type="submit" id="submitBtn"
-                    class="px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-2xl font-black hover:from-emerald-700 hover:to-teal-800 shadow-md transition flex items-center gap-2 text-xs uppercase tracking-wider active:scale-95">
-                <i class="fa-solid fa-floppy-disk"></i>
-                <span>Simpan Absensi {{ ucfirst($group) }}</span>
+                    class="px-8 py-3.5 bg-black hover:bg-amber-400 hover:text-black text-amber-400 rounded-2xl font-black uppercase tracking-wider border-2 border-black shadow-xl transition active:scale-95 flex items-center gap-2.5 text-xs">
+                <i class="fas fa-save text-sm"></i>
+                <span>Simpan Absensi Massal {{ ucfirst($group) }}</span>
             </button>
         </div>
     </form>
@@ -207,7 +207,7 @@ function resetAll() {
 document.getElementById('bulkAttendanceForm')?.addEventListener('submit', function () {
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan Absensi...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...';
 });
 </script>
 @endsection

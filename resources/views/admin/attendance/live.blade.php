@@ -3,154 +3,160 @@
 @section('title', 'Live Presensi Real-Time - Pusat Absensi')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Unified Header -->
+<div class="space-y-8">
+    {{-- Unified LMS Header --}}
     @include('admin.attendance.header')
 
-    <!-- Live Status Banner & Counter Grid -->
+    {{-- ═══════════════════════════════════════════════ --}}
+    {{-- LIVE STATUS STAT METRICS (LMS STYLE) --}}
+    {{-- ═══════════════════════════════════════════════ --}}
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <!-- 1. Total Target -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs">
-            <div class="flex items-center justify-between text-slate-400 mb-1">
-                <span class="text-[11px] font-black uppercase tracking-wider">Total Terdaftar</span>
-                <i class="fa-solid fa-users text-xs"></i>
+        {{-- 1. Total Target --}}
+        <div class="bg-black text-amber-400 rounded-3xl p-5 border-2 border-black shadow-md">
+            <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider mb-2">
+                <span>Total Terdaftar</span>
+                <i class="fas fa-users"></i>
             </div>
-            <div class="text-2xl font-black text-slate-900" id="stat_total_target">
+            <div class="text-3xl font-black font-mono text-white" id="stat_total_target">
                 {{ number_format($stats['total_target']) }}
             </div>
-            <span class="text-[10px] font-bold text-slate-400 capitalize">{{ $group }} Aktif</span>
+            <span class="text-[10px] font-black uppercase tracking-wider text-amber-300">{{ $group }} Aktif</span>
         </div>
 
-        <!-- 2. Hadir -->
-        <div class="bg-emerald-50/80 rounded-2xl p-4 border border-emerald-200 shadow-2xs">
-            <div class="flex items-center justify-between text-emerald-600 mb-1">
-                <span class="text-[11px] font-black uppercase tracking-wider">Hadir Tepat Waktu</span>
-                <i class="fa-solid fa-circle-check text-xs"></i>
+        {{-- 2. Hadir --}}
+        <div class="bg-emerald-300 text-black rounded-3xl p-5 border-2 border-black shadow-md">
+            <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider mb-2">
+                <span>Hadir Tepat</span>
+                <i class="fas fa-circle-check"></i>
             </div>
-            <div class="text-2xl font-black text-emerald-700" id="stat_hadir">
+            <div class="text-3xl font-black font-mono" id="stat_hadir">
                 {{ number_format($stats['hadir']) }}
             </div>
-            <span class="text-[10px] font-bold text-emerald-600">Masuk Sebelum Batas</span>
+            <span class="text-[10px] font-black uppercase tracking-wider">Tepat Waktu</span>
         </div>
 
-        <!-- 3. Terlambat -->
-        <div class="bg-amber-50/80 rounded-2xl p-4 border border-amber-200 shadow-2xs">
-            <div class="flex items-center justify-between text-amber-600 mb-1">
-                <span class="text-[11px] font-black uppercase tracking-wider">Terlambat</span>
-                <i class="fa-solid fa-clock text-xs"></i>
+        {{-- 3. Terlambat --}}
+        <div class="bg-amber-300 text-black rounded-3xl p-5 border-2 border-black shadow-md">
+            <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider mb-2">
+                <span>Terlambat</span>
+                <i class="fas fa-clock"></i>
             </div>
-            <div class="text-2xl font-black text-amber-700" id="stat_terlambat">
+            <div class="text-3xl font-black font-mono" id="stat_terlambat">
                 {{ number_format($stats['terlambat']) }}
             </div>
-            <span class="text-[10px] font-bold text-amber-600">Masuk Lewat Toleransi</span>
+            <span class="text-[10px] font-black uppercase tracking-wider">Lewat Batas</span>
         </div>
 
-        <!-- 4. Izin & Sakit -->
-        <div class="bg-blue-50/80 rounded-2xl p-4 border border-blue-200 shadow-2xs">
-            <div class="flex items-center justify-between text-blue-600 mb-1">
-                <span class="text-[11px] font-black uppercase tracking-wider">Izin / Sakit</span>
-                <i class="fa-solid fa-envelope-open-text text-xs"></i>
+        {{-- 4. Izin & Sakit --}}
+        <div class="bg-sky-300 text-black rounded-3xl p-5 border-2 border-black shadow-md">
+            <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider mb-2">
+                <span>Izin / Sakit</span>
+                <i class="fas fa-envelope-open-text"></i>
             </div>
-            <div class="text-2xl font-black text-blue-700" id="stat_izin_sakit">
+            <div class="text-3xl font-black font-mono" id="stat_izin_sakit">
                 {{ number_format($stats['izin'] + $stats['sakit'] + $stats['dinas_luar'] + $stats['cuti']) }}
             </div>
-            <span class="text-[10px] font-bold text-blue-600">Surat Keterangan Resmi</span>
+            <span class="text-[10px] font-black uppercase tracking-wider">Keterangan Resmi</span>
         </div>
 
-        <!-- 5. Alpha -->
-        <div class="bg-rose-50/80 rounded-2xl p-4 border border-rose-200 shadow-2xs">
-            <div class="flex items-center justify-between text-rose-600 mb-1">
-                <span class="text-[11px] font-black uppercase tracking-wider">Alpha</span>
-                <i class="fa-solid fa-circle-xmark text-xs"></i>
+        {{-- 5. Alpha --}}
+        <div class="bg-rose-400 text-black rounded-3xl p-5 border-2 border-black shadow-md">
+            <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider mb-2">
+                <span>Alpha</span>
+                <i class="fas fa-circle-xmark"></i>
             </div>
-            <div class="text-2xl font-black text-rose-700" id="stat_alpha">
+            <div class="text-3xl font-black font-mono" id="stat_alpha">
                 {{ number_format($stats['alpha']) }}
             </div>
-            <span class="text-[10px] font-bold text-rose-600">Tanpa Keterangan</span>
+            <span class="text-[10px] font-black uppercase tracking-wider">Tanpa Keterangan</span>
         </div>
 
-        <!-- 6. Belum Hadir -->
-        <div class="bg-slate-100/90 rounded-2xl p-4 border border-slate-300 shadow-2xs">
-            <div class="flex items-center justify-between text-slate-500 mb-1">
-                <span class="text-[11px] font-black uppercase tracking-wider">Belum Presensi</span>
-                <i class="fa-solid fa-hourglass-half text-xs"></i>
+        {{-- 6. Belum Hadir --}}
+        <div class="bg-gray-100 text-black rounded-3xl p-5 border-2 border-black shadow-md">
+            <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider mb-2">
+                <span>Belum Absen</span>
+                <i class="fas fa-hourglass-half"></i>
             </div>
-            <div class="text-2xl font-black text-slate-800" id="stat_belum">
+            <div class="text-3xl font-black font-mono" id="stat_belum">
                 {{ number_format($stats['belum']) }}
             </div>
-            <span class="text-[10px] font-bold text-slate-500">Menunggu Tap / GPS</span>
+            <span class="text-[10px] font-black uppercase tracking-wider text-gray-600">Menunggu Tap/GPS</span>
         </div>
     </div>
 
-    <!-- Live Stream Feed Container -->
-    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5 flex-wrap gap-3">
-            <div class="flex items-center gap-2.5">
-                <span class="relative flex h-3 w-3">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+    {{-- ═══════════════════════════════════════════════ --}}
+    {{-- LIVE FEED STREAM CONTAINER --}}
+    {{-- ═══════════════════════════════════════════════ --}}
+    <div class="bg-white rounded-3xl border-2 border-black p-6 md:p-8 shadow-xl">
+        <div class="flex items-center justify-between pb-5 border-b-2 border-black mb-6 flex-wrap gap-4">
+            <div class="flex items-center gap-3">
+                <span class="relative flex h-4 w-4">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-4 w-4 bg-rose-600"></span>
                 </span>
                 <div>
-                    <h3 class="text-base font-black text-slate-900 leading-tight">Live Activity Stream (Real-Time Feed)</h3>
-                    <p class="text-xs text-slate-400 font-semibold">Memperbarui secara otomatis setiap 4 detik saat ada presensi GPS / RFID masuk</p>
+                    <h3 class="text-lg font-black text-black leading-tight">Live Activity Feed (Real-Time Stream)</h3>
+                    <p class="text-xs text-gray-500 font-bold">Data diperbarui otomatis setiap 4 detik saat ada presensi masuk</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2">
-                <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-xl text-xs font-mono font-bold" id="live_clock">
+            <div class="flex items-center gap-3">
+                <span class="px-4 py-2 bg-black text-amber-400 rounded-2xl text-xs font-mono font-black border-2 border-black shadow-sm" id="live_clock">
                     {{ \Carbon\Carbon::now('Asia/Jakarta')->format('H:i:s') }} WIB
                 </span>
-                <button type="button" onclick="pollLiveData()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs transition active:scale-95" title="Refresh Sekarang">
-                    <i class="fa-solid fa-rotate text-xs"></i>
+                <button type="button" onclick="pollLiveData()" class="px-4 py-2 bg-amber-300 hover:bg-amber-400 text-black rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black transition active:scale-95 shadow-sm" title="Refresh Sekarang">
+                    <i class="fas fa-rotate mr-1"></i> Refresh
                 </button>
             </div>
         </div>
 
-        <!-- Live Events Grid -->
-        <div id="live_events_container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        {{-- Live Events Grid --}}
+        <div id="live_events_container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @forelse($liveEvents as $ev)
-                <div class="p-3.5 rounded-2xl border border-slate-200/90 hover:border-slate-300 bg-slate-50/50 hover:bg-white transition-all shadow-2xs flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-xs">
+                <div class="p-4 rounded-3xl border-2 border-black hover:bg-amber-50 transition-all shadow-sm flex items-center justify-between gap-3 bg-white">
+                    <div class="flex items-center gap-3.5 min-w-0">
+                        <div class="w-11 h-11 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
                             {{ strtoupper(substr($ev['name'], 0, 2)) }}
                         </div>
                         <div class="min-w-0">
-                            <div class="font-bold text-slate-900 text-sm truncate">{{ $ev['name'] }}</div>
-                            <div class="text-[11px] text-slate-400 truncate">{{ $ev['subtitle'] }} · {{ $ev['code'] }}</div>
+                            <div class="font-black text-black text-sm truncate">{{ $ev['name'] }}</div>
+                            <div class="text-xs text-gray-500 font-bold truncate">{{ $ev['subtitle'] }} · {{ $ev['code'] }}</div>
                         </div>
                     </div>
 
                     <div class="text-right shrink-0">
-                        <div class="flex items-center justify-end gap-1 mb-1">
+                        <div class="flex items-center justify-end gap-1.5 mb-1.5">
                             @if($ev['recorded_via'] === 'gps')
-                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-100 text-blue-700 border border-blue-200">
-                                    <i class="fa-solid fa-location-dot"></i> GPS
+                                <span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-blue-100 text-blue-900 border border-blue-900">
+                                    <i class="fas fa-location-dot"></i> GPS
                                 </span>
                             @elseif($ev['recorded_via'] === 'rfid')
-                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-200">
-                                    <i class="fa-solid fa-id-card"></i> RFID
+                                <span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-amber-200 text-black border border-black">
+                                    <i class="fas fa-id-card"></i> RFID
                                 </span>
                             @else
-                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-slate-100 text-slate-600 border border-slate-200">
-                                    <i class="fa-solid fa-pen"></i> Manual
+                                <span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-gray-100 text-black border border-black">
+                                    <i class="fas fa-pen"></i> Manual
                                 </span>
                             @endif
 
-                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black
-                                  {{ $ev['status'] === 'hadir' ? 'bg-emerald-100 text-emerald-800' : ($ev['status'] === 'terlambat' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800') }}">
-                                {{ ucfirst($ev['status']) }}
+                            <span class="px-2 py-0.5 rounded-xl text-[9px] font-black border border-black
+                                  {{ $ev['status'] === 'hadir' ? 'bg-emerald-300 text-black' : ($ev['status'] === 'terlambat' ? 'bg-amber-300 text-black' : 'bg-rose-400 text-black') }}">
+                                {{ strtoupper($ev['status']) }}
                             </span>
                         </div>
-                        <div class="text-xs font-mono font-bold text-slate-700">
+                        <div class="text-xs font-mono font-black text-black">
                             {{ $ev['time_in'] ?? '-' }} WIB
                         </div>
                     </div>
                 </div>
             @empty
-                <div class="col-span-full py-16 text-center text-slate-400">
-                    <i class="fa-solid fa-satellite-dish text-4xl mb-3 text-slate-300"></i>
-                    <p class="font-bold text-sm">Belum ada aktivitas presensi masuk pada tanggal ini.</p>
-                    <p class="text-xs text-slate-400 mt-0.5">Aktivitas kehadiran GPS atau RFID akan muncul di sini seketika.</p>
+                <div class="col-span-full py-20 text-center text-gray-400">
+                    <div class="w-16 h-16 bg-amber-100 rounded-3xl border-2 border-black flex items-center justify-center mx-auto mb-4 text-black text-3xl shadow-md">
+                        <i class="fas fa-satellite-dish"></i>
+                    </div>
+                    <p class="font-black text-base text-black">Belum ada aktivitas presensi masuk pada tanggal ini.</p>
+                    <p class="text-xs text-gray-500 font-bold mt-1">Aktivitas presensi GPS atau RFID akan muncul di sini secara langsung.</p>
                 </div>
             @endforelse
         </div>
@@ -192,37 +198,37 @@ function pollLiveData() {
                     const initials = ev.name.substring(0, 2).toUpperCase();
                     let viaBadge = '';
                     if (ev.recorded_via === 'gps') {
-                        viaBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-100 text-blue-700 border border-blue-200"><i class="fa-solid fa-location-dot"></i> GPS</span>';
+                        viaBadge = '<span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-blue-100 text-blue-900 border border-blue-900"><i class="fas fa-location-dot"></i> GPS</span>';
                     } else if (ev.recorded_via === 'rfid') {
-                        viaBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-200"><i class="fa-solid fa-id-card"></i> RFID</span>';
+                        viaBadge = '<span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-amber-200 text-black border border-black"><i class="fas fa-id-card"></i> RFID</span>';
                     } else {
-                        viaBadge = '<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-slate-100 text-slate-600 border border-slate-200"><i class="fa-solid fa-pen"></i> Manual</span>';
+                        viaBadge = '<span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-gray-100 text-black border border-black"><i class="fas fa-pen"></i> Manual</span>';
                     }
 
-                    let statusClass = 'bg-rose-100 text-rose-800';
-                    if (ev.status === 'hadir') statusClass = 'bg-emerald-100 text-emerald-800';
-                    else if (ev.status === 'terlambat') statusClass = 'bg-amber-100 text-amber-800';
+                    let statusClass = 'bg-rose-400 text-black';
+                    if (ev.status === 'hadir') statusClass = 'bg-emerald-300 text-black';
+                    else if (ev.status === 'terlambat') statusClass = 'bg-amber-300 text-black';
 
                     html += `
-                        <div class="p-3.5 rounded-2xl border border-slate-200/90 hover:border-slate-300 bg-slate-50/50 hover:bg-white transition-all shadow-2xs flex items-center justify-between gap-3 animate-fade-in">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-xs">
+                        <div class="p-4 rounded-3xl border-2 border-black hover:bg-amber-50 transition-all shadow-sm flex items-center justify-between gap-3 bg-white">
+                            <div class="flex items-center gap-3.5 min-w-0">
+                                <div class="w-11 h-11 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
                                     ${initials}
                                 </div>
                                 <div class="min-w-0">
-                                    <div class="font-bold text-slate-900 text-sm truncate">${ev.name}</div>
-                                    <div class="text-[11px] text-slate-400 truncate">${ev.subtitle} · ${ev.code}</div>
+                                    <div class="font-black text-black text-sm truncate">${ev.name}</div>
+                                    <div class="text-xs text-gray-500 font-bold truncate">${ev.subtitle} · ${ev.code}</div>
                                 </div>
                             </div>
 
                             <div class="text-right shrink-0">
-                                <div class="flex items-center justify-end gap-1 mb-1">
+                                <div class="flex items-center justify-end gap-1.5 mb-1.5">
                                     ${viaBadge}
-                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black ${statusClass}">
+                                    <span class="px-2 py-0.5 rounded-xl text-[9px] font-black border border-black ${statusClass}">
                                         ${ev.status.toUpperCase()}
                                     </span>
                                 </div>
-                                <div class="text-xs font-mono font-bold text-slate-700">
+                                <div class="text-xs font-mono font-black text-black">
                                     ${ev.time_in || '-'} WIB
                                 </div>
                             </div>
@@ -236,7 +242,6 @@ function pollLiveData() {
     .catch(err => console.error('Live polling error:', err));
 }
 
-// Start auto polling every 4.5 seconds
 document.addEventListener('DOMContentLoaded', () => {
     livePollingInterval = setInterval(pollLiveData, 4500);
 });
