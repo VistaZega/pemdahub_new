@@ -464,20 +464,33 @@
 @if(!$thread->is_locked)
 <div class="fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-xl border-t border-slate-200 pb-safe z-50 transition-all duration-300 shadow-lg" id="compose-bar">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 py-3">
-        <!-- Quote / Reply Target Banner -->
+        <!-- Mode Label: Komentar Utama Baru (Default) -->
+        <div id="general-comment-label" class="flex items-center justify-between gap-2 mb-2 max-w-5xl mx-auto px-1">
+            <div class="inline-flex items-center gap-2 text-xs font-black text-slate-700 bg-slate-100/90 px-2.5 py-1 rounded-lg border border-slate-200/80">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <i class="ph-bold ph-chat-circle-text text-indigo-600 text-sm"></i>
+                <span>Tulis Komentar Utama (Baru)</span>
+            </div>
+            <span class="text-[11px] text-slate-400 font-medium hidden sm:inline">Komentar ini akan ditambahkan ke postingan ini</span>
+        </div>
+
+        <!-- Mode Label: Balas Komentar Spesifik (Aktif saat klik Balas) -->
         <div id="quote-preview" class="hidden mb-2.5 max-w-5xl mx-auto">
-            <div class="bg-gradient-to-r from-indigo-50 via-purple-50 to-white border border-indigo-200 rounded-xl p-3 flex justify-between items-center gap-4 shadow-sm">
+            <div class="bg-indigo-50 border-2 border-indigo-300 rounded-xl p-3 flex justify-between items-center gap-4 shadow-sm">
                 <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-sm flex-shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-base flex-shrink-0 shadow-xs">
                         <i class="ph-bold ph-arrow-bend-down-right"></i>
                     </div>
                     <div class="min-w-0">
-                        <div class="text-xs font-black text-indigo-900" id="quote-user">Membalas Pengguna</div>
-                        <div class="text-xs text-slate-600 truncate" id="quote-text">...</div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-indigo-200 text-indigo-900">Mode Balas Komentar</span>
+                            <div class="text-xs font-black text-indigo-950 truncate" id="quote-user">Membalas @Pengguna</div>
+                        </div>
+                        <div class="text-xs text-indigo-800/80 truncate mt-0.5 italic font-medium" id="quote-text">...</div>
                     </div>
                 </div>
-                <button type="button" onclick="cancelQuote()" class="px-2.5 py-1 bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 text-xs font-bold rounded-lg border border-slate-200 hover:border-rose-200 transition flex items-center gap-1 flex-shrink-0" title="Batalkan balasan spesifik">
-                    <i class="ph-bold ph-x"></i> Batal Balas
+                <button type="button" onclick="cancelQuote()" class="px-3 py-1.5 bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-bold rounded-lg border border-slate-200 hover:border-rose-200 transition flex items-center gap-1.5 flex-shrink-0 shadow-xs" title="Batalkan balasan spesifik dan kembali ke komentar baru">
+                    <i class="ph-bold ph-x font-black text-rose-500"></i> <span>Batal Balas</span>
                 </button>
             </div>
         </div>
@@ -508,7 +521,7 @@
                 </div>
             </div>
 
-            <div class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden focus-within:border-red-500 focus-within:bg-white transition-colors flex flex-col justify-center min-h-[48px]">
+            <div class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden focus-within:border-indigo-500 focus-within:bg-white transition-colors flex flex-col justify-center min-h-[48px]">
                 
                 <!-- Voice Note Preview -->
                 <div id="vn-preview" class="w-full bg-transparent text-slate-800 px-4 py-2 flex items-center gap-3" style="display: none;">
@@ -520,7 +533,7 @@
                 </div>
 
                 <div class="flex items-end">
-                    <textarea name="content" rows="1" placeholder="Ketik pesan..." class="w-full bg-transparent text-slate-800 placeholder-slate-400 px-4 py-3 outline-none resize-none min-h-[48px] max-h-32 text-sm sm:text-base no-scrollbar" id="reply-textarea" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+                    <textarea name="content" rows="1" placeholder="Tulis komentar baru untuk postingan ini..." class="w-full bg-transparent text-slate-800 placeholder-slate-400 px-4 py-3 outline-none resize-none min-h-[48px] max-h-32 text-sm sm:text-base no-scrollbar" id="reply-textarea" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
                     
                     <!-- Mic Button -->
                     <button type="button" id="record-btn" onclick="toggleRecord()" class="p-3 text-slate-400 hover:text-rose-500 transition flex-shrink-0 mb-0.5 mr-0.5 rounded-xl flex items-center justify-center" title="Merekam voice note">
@@ -529,7 +542,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-r from-red-600 to-red-500 flex items-center justify-center text-white shadow-md shadow-red-200 hover:scale-105 transition flex-shrink-0 mb-1">
+            <button type="submit" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-indigo-200 hover:scale-105 transition flex-shrink-0 mb-1" title="Kirim Komentar">
                 <i class="ph-bold ph-paper-plane-right text-xl"></i>
             </button>
         </form>
@@ -613,7 +626,10 @@ function quoteReply(id, user, text) {
     document.getElementById('parent_reply_id').value = id;
     document.getElementById('quote-user').textContent = 'Membalas @' + user;
     document.getElementById('quote-text').textContent = text ? '"' + text + '"' : 'Pesan';
-    document.getElementById('quote-preview').classList.remove('hidden');
+    
+    // Switch labels: hide general comment, show reply preview
+    document.getElementById('general-comment-label')?.classList.add('hidden');
+    document.getElementById('quote-preview')?.classList.remove('hidden');
     
     const textarea = document.getElementById('reply-textarea');
     if (textarea) {
@@ -627,10 +643,14 @@ function quoteReply(id, user, text) {
 
 function cancelQuote() {
     document.getElementById('parent_reply_id').value = '';
-    document.getElementById('quote-preview').classList.add('hidden');
+    
+    // Switch labels: show general comment, hide reply preview
+    document.getElementById('quote-preview')?.classList.add('hidden');
+    document.getElementById('general-comment-label')?.classList.remove('hidden');
+    
     const textarea = document.getElementById('reply-textarea');
     if (textarea) {
-        textarea.placeholder = 'Ketik komentar umum...';
+        textarea.placeholder = 'Tulis komentar baru untuk postingan ini...';
     }
 }
 
