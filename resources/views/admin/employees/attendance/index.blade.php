@@ -125,16 +125,26 @@
                             <span class="px-3 py-1 bg-gray-100 text-gray-500 text-xs font-semibold rounded-full">Belum</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-center text-sm {{ $att && $att->isLate() ? 'text-orange-600 font-bold' : 'text-gray-700' }}">
-                            {{ $att?->time_in ?? '-' }}
+                        <td class="px-6 py-4 text-center text-sm font-mono {{ $att && $att->isLate() ? 'text-orange-600 font-bold' : 'text-gray-700' }}">
+                            {{ $att?->time_in ? substr($att->time_in, 0, 5) : '-' }}
                             @if($att && $att->isLate()) <i class="fas fa-exclamation-circle text-orange-500 ml-1" title="Terlambat"></i> @endif
                         </td>
-                        <td class="px-6 py-4 text-center text-sm text-gray-700">{{ $att?->time_out ?? '-' }}</td>
+                        <td class="px-6 py-4 text-center text-sm font-mono text-gray-700">{{ $att?->time_out ? substr($att->time_out, 0, 5) : '-' }}</td>
                         <td class="px-6 py-4 text-center">
                             @if($att)
-                            <span class="px-2 py-1 {{ $att->recorded_via === 'rfid' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600' }} text-xs font-semibold rounded-full">
-                                {{ strtoupper($att->recorded_via) }}
-                            </span>
+                                @if($att->recorded_via === 'gps')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded-full border border-blue-200">
+                                        <i class="fas fa-location-dot text-[10px]"></i> GPS
+                                    </span>
+                                @elseif($att->recorded_via === 'rfid')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-100 text-amber-800 text-xs font-bold rounded-full border border-amber-200">
+                                        <i class="fas fa-id-card text-[10px]"></i> RFID
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-full border border-slate-200">
+                                        <i class="fas fa-pen text-[10px]"></i> MANUAL
+                                    </span>
+                                @endif
                             @else - @endif
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $att?->notes ?? '-' }}</td>

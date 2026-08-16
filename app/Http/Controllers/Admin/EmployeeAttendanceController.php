@@ -29,13 +29,19 @@ class EmployeeAttendanceController extends Controller
             $employees = Employee::with('school')
                 ->where('is_active', true)
                 ->where('school_id', $schoolId)
-                ->where('employee_type', '!=', 'guru') // Guru punya menu absensi sendiri
+                ->where(function($q) {
+                    $q->where('employee_type', '!=', 'guru')
+                      ->whereDoesntHave('teacher');
+                })
                 ->orderBy('full_name')
                 ->get();
 
             $attendances = EmployeeAttendance::where('date', $date)
                 ->where('school_id', $schoolId)
-                ->whereHas('employee', fn($q) => $q->where('employee_type', '!=', 'guru'))
+                ->whereHas('employee', function($q) {
+                    $q->where('employee_type', '!=', 'guru')
+                      ->whereDoesntHave('teacher');
+                })
                 ->get()
                 ->keyBy('employee_id');
 
@@ -83,13 +89,19 @@ class EmployeeAttendanceController extends Controller
         $school = School::findOrFail($schoolId);
         $employees = Employee::where('is_active', true)
             ->where('school_id', $schoolId)
-            ->where('employee_type', '!=', 'guru') // Guru punya menu absensi sendiri
+            ->where(function($q) {
+                $q->where('employee_type', '!=', 'guru')
+                  ->whereDoesntHave('teacher');
+            })
             ->orderBy('full_name')
             ->get();
 
         $existing = EmployeeAttendance::where('date', $date)
             ->where('school_id', $schoolId)
-            ->whereHas('employee', fn($q) => $q->where('employee_type', '!=', 'guru'))
+            ->whereHas('employee', function($q) {
+                $q->where('employee_type', '!=', 'guru')
+                  ->whereDoesntHave('teacher');
+            })
             ->get()
             ->keyBy('employee_id');
 
@@ -151,15 +163,20 @@ class EmployeeAttendanceController extends Controller
         if ($schoolId) {
             $employees = Employee::where('is_active', true)
                 ->where('school_id', $schoolId)
-                ->where('employee_type', '!=', 'guru')
-                ->with(['teacher.schedules'])
+                ->where(function($q) {
+                    $q->where('employee_type', '!=', 'guru')
+                      ->whereDoesntHave('teacher');
+                })
                 ->orderBy('full_name')
                 ->get();
 
             $attendances = EmployeeAttendance::where('school_id', $schoolId)
                 ->whereYear('date', $year)
                 ->whereMonth('date', $month)
-                ->whereHas('employee', fn($q) => $q->where('employee_type', '!=', 'guru'))
+                ->whereHas('employee', function($q) {
+                    $q->where('employee_type', '!=', 'guru')
+                      ->whereDoesntHave('teacher');
+                })
                 ->get();
 
             // Build matrix: employee_id => [day => EmployeeAttendance model]
