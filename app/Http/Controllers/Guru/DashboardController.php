@@ -121,23 +121,18 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $referer = request()->header('referer') ?? '';
         $userAgent = request()->userAgent() ?? '';
         $secChUaMobile = request()->header('sec-ch-ua-mobile') === '?1';
+        $isMobilePhone = $secChUaMobile || (bool) preg_match('/Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|webOS|Windows Phone/i', $userAgent);
 
-        $isMobile = request()->is('m/*') 
-            || request()->is('m')
-            || str_contains($referer, '/m/')
-            || request()->cookie('app_mode') === 'mobile'
-            || session('is_mobile_app')
-            || $secChUaMobile
-            || preg_match('/Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i', $userAgent);
-
-        if ($isMobile && !session('prefer_desktop')) {
-            cookie()->queue('app_mode', 'mobile', 60 * 24 * 365);
-            session(['is_mobile_app' => true]);
+        // Hanya arahkan ke mobile dashboard jika perangkat fisik adalah HP
+        if ($isMobilePhone && !session('prefer_desktop')) {
             return redirect()->route('mobile.dashboard');
         }
+
+        // Jika akses dari PC / Desktop, bersihkan sisa cookie mobile lama
+        cookie()->queue(cookie()->forget('app_mode'));
+        session()->forget('is_mobile_app');
 
         $teacher = $this->getTeacher();
         $teacher->load('school');
