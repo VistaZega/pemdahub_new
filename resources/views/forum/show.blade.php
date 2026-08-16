@@ -92,7 +92,7 @@
 </style>
 
 <!-- App Window Wrapper -->
-<div class="w-full bg-forum-base text-forum-title font-['Inter'] rounded-3xl border border-forum mx-auto flex flex-col pt-4 pb-32 px-4 sm:px-6 relative shadow-sm" style="min-height: 85vh; background-image: radial-gradient(rgba(220,38,38,0.03) 2px, transparent 2px); background-size: 24px 24px;" x-data="forumChat()">
+<div class="w-full bg-forum-base text-forum-title font-['Inter'] rounded-3xl border border-forum mx-auto flex flex-col pt-4 px-4 sm:px-6 relative shadow-sm" style="min-height: 85vh; padding-bottom: 240px !important; background-image: radial-gradient(rgba(220,38,38,0.03) 2px, transparent 2px); background-size: 24px 24px;" x-data="forumChat()">
     
     <!-- Top Nav Bar -->
     <div class="flex items-center justify-between bg-white/95 backdrop-blur-xl p-4 rounded-2xl border border-slate-200 mb-6 sticky top-4 z-40 shadow-sm">
@@ -629,6 +629,9 @@
                     </div> <!-- End Right Column -->
                 </div> <!-- End Top-Level Card -->
             @endforeach
+
+            <!-- Dedicated bottom clearance spacer so the last comment & all action buttons are never covered by the sticky bar -->
+            <div style="height: 180px; width: 100%; pointer-events: none;" class="w-full flex-shrink-0" aria-hidden="true"></div>
         </div>
     </div>
 
