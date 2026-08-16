@@ -16,8 +16,8 @@
         <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div class="flex items-start md:items-center gap-5">
-                <div class="w-16 h-16 rounded-2xl bg-amber-400 text-black border-2 border-black shadow-lg flex items-center justify-center text-2xl font-black shrink-0">
+            <div class="flex items-start md:items-center">
+                <div class="w-16 h-16 rounded-2xl bg-amber-400 text-black border-2 border-black shadow-lg flex items-center justify-center text-2xl font-black shrink-0 mr-5">
                     <i class="fas fa-clipboard-user text-black"></i>
                 </div>
                 <div>

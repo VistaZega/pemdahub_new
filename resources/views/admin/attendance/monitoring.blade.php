@@ -116,16 +116,16 @@
     {{-- DATA TABLE (POP NEO-BRUTALISM, LEGA & RAPI)    --}}
     {{-- ═══════════════════════════════════════════════ --}}
     <div class="bg-white rounded-3xl border-2 border-black shadow-xl overflow-hidden">
-        <div class="px-6 py-5 bg-white border-b-2 border-black flex items-center justify-between flex-wrap gap-3">
-            <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-2xl bg-black text-amber-400 flex items-center justify-center font-black text-lg border-2 border-black shadow-sm">
+        <div class="px-6 py-5 bg-white border-b-2 border-black flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center">
+                <div class="w-12 h-12 rounded-2xl bg-black text-amber-400 flex items-center justify-center font-black text-lg border-2 border-black shadow-sm shrink-0 mr-4">
                     <i class="fas fa-users-viewfinder"></i>
                 </div>
                 <div>
-                    <h2 class="font-black text-black text-lg tracking-tight">
+                    <h2 class="font-black text-black text-lg md:text-xl tracking-tight leading-tight">
                         Daftar Presensi {{ ucfirst($group) }}
                     </h2>
-                    <p class="text-xs text-gray-500 font-bold">
+                    <p class="text-xs text-gray-500 font-bold mt-1">
                         {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }} &middot; {{ $selectedSchool->name ?? '' }}
                     </p>
                 </div>
@@ -148,21 +148,21 @@
             <table class="w-full text-left border-collapse table-fixed">
                 <thead class="bg-black text-amber-400 border-b-2 border-black">
                     <tr class="whitespace-nowrap">
-                        <th class="py-3.5 px-2 text-center text-xs font-black uppercase tracking-wider w-10">No</th>
-                        <th class="py-3.5 px-3 text-left text-xs font-black uppercase tracking-wider w-[24%]">Nama & Identitas</th>
+                        <th class="py-3.5 pl-4 pr-2 text-center text-xs font-black uppercase tracking-wider w-12">No</th>
+                        <th class="py-3.5 px-3 text-left text-xs font-black uppercase tracking-wider w-[23%]">Nama & Identitas</th>
                         <th class="py-3.5 px-2 text-left text-xs font-black uppercase tracking-wider w-[14%]">Unit / Rombel</th>
                         <th class="py-3.5 px-2 text-center text-xs font-black uppercase tracking-wider w-[15%]">Status Kehadiran</th>
                         <th class="py-3.5 px-1.5 text-center text-xs font-black uppercase tracking-wider w-[7%]">Masuk</th>
                         <th class="py-3.5 px-1.5 text-center text-xs font-black uppercase tracking-wider w-[7%]">Pulang</th>
                         <th class="py-3.5 px-1.5 text-center text-xs font-black uppercase tracking-wider w-[8%]">Metode</th>
-                        <th class="py-3.5 px-2 text-left text-xs font-black uppercase tracking-wider w-[10%]">Keterangan</th>
-                        <th class="py-3.5 px-2 text-center text-xs font-black uppercase tracking-wider w-[12%]">Aksi</th>
+                        <th class="py-3.5 px-2 text-left text-xs font-black uppercase tracking-wider w-[11%]">Keterangan</th>
+                        <th class="py-3.5 pl-2 pr-6 text-center text-xs font-black uppercase tracking-wider w-[15%]">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y-2 divide-black/10">
                     @foreach($items as $idx => $it)
                     <tr class="hover:bg-amber-50/80 transition-colors {{ $it->status === 'belum' ? 'bg-gray-50/50' : '' }}" id="row-person-{{ $it->person_id }}">
-                        <td class="py-3.5 px-2 text-center text-xs text-black font-black font-mono whitespace-nowrap">{{ $idx + 1 }}</td>
+                        <td class="py-3.5 pl-4 pr-2 text-center text-xs text-black font-black font-mono whitespace-nowrap">{{ $idx + 1 }}</td>
                         <td class="py-3.5 px-3">
                             <div class="flex items-center gap-2.5 min-w-0">
                                 <div class="w-9 h-9 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-xs overflow-hidden">
@@ -196,7 +196,7 @@
                                     default      => 'bg-gray-200 text-black'
                                 };
                             @endphp
-                            <span class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-2xl text-[11px] font-black uppercase tracking-wider border-2 border-black shadow-xs whitespace-nowrap leading-none {{ $badgeStyle }}">
+                            <span class="inline-flex items-center justify-center px-4 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-normal border-2 border-black shadow-xs whitespace-nowrap leading-tight {{ $badgeStyle }}">
                                 {{ $it->status === 'belum' ? 'Belum Absen' : ucfirst(str_replace('_', ' ', $it->status)) }}
                             </span>
                         </td>
@@ -226,8 +226,8 @@
                         <td class="py-3.5 px-2 text-xs font-bold text-gray-700 truncate">
                             {{ $it->notes ?? '-' }}
                         </td>
-                        <td class="py-3.5 px-2 text-center whitespace-nowrap">
-                            <div class="inline-flex items-center justify-center gap-1.5">
+                        <td class="py-3.5 pl-2 pr-6 text-center whitespace-nowrap">
+                            <div class="inline-flex items-center justify-center gap-2">
                                 {{-- Tombol Edit Modal --}}
                                 <button type="button" 
                                         onclick="openEditModal({{ json_encode([
@@ -243,7 +243,7 @@
                                             'time_out'     => $it->raw_time_out,
                                             'notes'        => $it->notes,
                                         ]) }})"
-                                        class="px-2.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-black rounded-xl font-black border-2 border-black shadow-xs transition active:scale-95 inline-flex items-center justify-center gap-1 text-xs" 
+                                        class="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-black rounded-xl font-black border-2 border-black shadow-xs transition active:scale-95 inline-flex items-center justify-center gap-1.5 text-xs" 
                                         title="Edit Presensi">
                                     <i class="fas fa-edit text-[11px]"></i>
                                     <span>Edit</span>
@@ -254,7 +254,7 @@
                                 <form action="{{ route('admin.attendance.destroy', ['id' => $it->attendance_id, 'group' => $group]) }}" 
                                       method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus/mereset data presensi {{ $it->name }}?');" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="px-2.5 py-1.5 bg-rose-400 hover:bg-rose-500 text-black rounded-xl font-black border-2 border-black shadow-xs transition active:scale-95 inline-flex items-center justify-center gap-1 text-xs" title="Hapus Presensi">
+                                    <button type="submit" class="px-3 py-1.5 bg-rose-400 hover:bg-rose-500 text-black rounded-xl font-black border-2 border-black shadow-xs transition active:scale-95 inline-flex items-center justify-center gap-1.5 text-xs" title="Hapus Presensi">
                                         <i class="fas fa-trash text-[11px]"></i>
                                         <span>Hapus</span>
                                     </button>
