@@ -5,77 +5,95 @@
     $currentDate = $date ?? \Carbon\Carbon::now('Asia/Jakarta')->toDateString();
 @endphp
 
-{{-- Google Fonts for Luxury Aesthetic --}}
+{{-- Google Fonts for Playful Educational UI --}}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
-    .luxury-glass-panel {
-        background: rgba(11, 17, 29, 0.75) !important;
-        backdrop-filter: blur(28px) !important;
-        -webkit-backdrop-filter: blur(28px) !important;
-        border: 1px solid rgba(212, 175, 55, 0.25) !important;
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.12) !important;
-        position: relative;
-        overflow: hidden;
+    :root {
+        --clay-font-title: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
+        --clay-font-body: 'Plus Jakarta Sans', sans-serif;
     }
-    .luxury-glass-panel::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), #d4af37, rgba(255, 255, 255, 0.3), transparent);
-        opacity: 0.7;
+    .clay-card {
+        background: #ffffff;
+        border-radius: 28px;
+        box-shadow: 8px 12px 24px rgba(30, 41, 59, 0.08), -6px -6px 16px rgba(255, 255, 255, 0.9), inset 2px 2px 4px rgba(255, 255, 255, 0.8), inset -2px -2px 4px rgba(0, 0, 0, 0.03);
+        border: 2px solid #f1f5f9;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .gold-gradient-text {
-        background: linear-gradient(135deg, #f6e6b4 0%, #d4af37 50%, #aa841e 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+    .clay-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 12px 18px 30px rgba(30, 41, 59, 0.12), -8px -8px 20px rgba(255, 255, 255, 1);
     }
-    .gold-pill-luxury {
-        background: rgba(212, 175, 55, 0.1);
-        border: 1px solid rgba(212, 175, 55, 0.35);
-        color: #f6e6b4;
+    .clay-btn-primary {
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        color: #ffffff;
+        box-shadow: 4px 6px 14px rgba(67, 97, 238, 0.35), inset 2px 2px 3px rgba(255, 255, 255, 0.4), inset -2px -2px 3px rgba(0, 0, 0, 0.2);
+        border: none;
     }
-    .gold-pill-luxury:hover, .gold-pill-luxury.active {
-        background: linear-gradient(135deg, #f6e6b4 0%, #d4af37 50%, #997819 100%);
-        color: #05070a;
-        box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
+    .clay-btn-amber {
+        background: linear-gradient(135deg, #ffd166 0%, #f77f00 100%);
+        color: #1e293b;
+        box-shadow: 4px 6px 14px rgba(247, 127, 0, 0.3), inset 2px 2px 3px rgba(255, 255, 255, 0.6), inset -2px -2px 3px rgba(0, 0, 0, 0.1);
+        border: none;
+    }
+    .clay-btn-coral {
+        background: linear-gradient(135deg, #ff758c 0%, #ff4b2b 100%);
+        color: #ffffff;
+        box-shadow: 4px 6px 14px rgba(255, 75, 43, 0.35), inset 2px 2px 3px rgba(255, 255, 255, 0.4), inset -2px -2px 3px rgba(0, 0, 0, 0.2);
+        border: none;
+    }
+    .clay-btn-emerald {
+        background: linear-gradient(135deg, #06d6a0 0%, #059669 100%);
+        color: #ffffff;
+        box-shadow: 4px 6px 14px rgba(6, 214, 160, 0.35), inset 2px 2px 3px rgba(255, 255, 255, 0.4), inset -2px -2px 3px rgba(0, 0, 0, 0.2);
+        border: none;
+    }
+    .clay-pill-soft {
+        background: #f8fafc;
+        box-shadow: inset 3px 3px 6px rgba(0,0,0,0.05), inset -3px -3px 6px rgba(255,255,255,0.9);
+        border: 1px solid #e2e8f0;
+    }
+    .clay-badge-bubble {
+        border-radius: 9999px;
+        box-shadow: 3px 4px 8px rgba(0,0,0,0.06), inset 1px 1px 2px rgba(255,255,255,0.6);
     }
 </style>
 
 <div class="space-y-6 mb-8">
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- HAUTE ACADEMIC HERO BANNER (LIQUID GLASS SUITE) --}}
+    {{-- PLAYFUL CLAYMORPHISM HERO GREETING BANNER       --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="luxury-glass-panel rounded-[2.5rem] p-7 md:p-9 text-white">
-        {{-- Liquid Glass Ambient Refraction Blobs --}}
-        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none"></div>
+    <div class="clay-card rounded-[2.5rem] p-7 md:p-9 relative overflow-hidden" 
+         style="background: linear-gradient(135deg, #4361ee 0%, #4895ef 50%, #4cc9f0 100%); color: #ffffff;">
+        
+        {{-- Cute Floating Background Bubbles --}}
+        <div class="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
+        <div class="absolute right-32 -top-12 w-36 h-36 rounded-full bg-yellow-300/20 blur-lg pointer-events-none"></div>
+        <div class="absolute left-1/3 -bottom-8 w-24 h-24 rounded-full bg-pink-400/20 blur-md pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div class="flex items-start md:items-center">
-                {{-- Masterpiece Gold Crest --}}
-                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-black flex items-center justify-center text-2xl font-black shadow-xl shrink-0 mr-5 border border-white/40">
-                    <i class="fas fa-crown text-black"></i>
+                {{-- Playful 3D Mascot Icon --}}
+                <div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-yellow-300 via-amber-400 to-orange-400 text-slate-900 flex items-center justify-center text-3xl shadow-lg shrink-0 mr-5 transform hover:rotate-6 transition-transform"
+                     style="box-shadow: 4px 6px 16px rgba(245, 158, 11, 0.4), inset 2px 2px 4px rgba(255,255,255,0.8), inset -2px -2px 4px rgba(0,0,0,0.1);">
+                    <i class="fas fa-graduation-cap text-slate-900"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2.5 mb-2 flex-wrap">
-                        <span class="px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.25em] gold-pill-luxury shadow-xs flex items-center gap-1.5">
-                            <i class="fas fa-gem text-amber-300"></i> Royal Academic Suite
+                        <span class="px-3.5 py-1 rounded-full text-xs font-bold bg-white/20 text-white backdrop-blur-md shadow-sm flex items-center gap-1.5 border border-white/30">
+                            <i class="fas fa-sparkles text-yellow-300"></i> Edu Attendance Hub
                         </span>
-                        <span class="px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] bg-emerald-500/10 border border-emerald-400/30 text-emerald-300 shadow-xs flex items-center gap-1.5">
-                            <i class="fas fa-shield-halved text-emerald-400"></i> Cryptographic Verified
+                        <span class="px-3.5 py-1 rounded-full text-xs font-bold bg-emerald-400 text-slate-900 shadow-sm flex items-center gap-1.5 font-sans">
+                            <i class="fas fa-satellite-dish"></i> 100% Real-Time Track
                         </span>
                     </div>
-                    <h1 class="text-2xl md:text-3xl font-serif font-normal tracking-tight text-white leading-tight">
-                        Presensi <span class="gold-gradient-text italic font-semibold">{{ ucfirst($currentGroup) }}</span> &mdash; {{ $selectedSchool->name ?? 'Perguruan Pembda Nias' }}
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white leading-tight" style="font-family: var(--clay-font-title);">
+                        Pusat Presensi {{ ucfirst($currentGroup) }} — {{ $selectedSchool->name ?? 'Perguruan Pembda' }}
                     </h1>
-                    <p class="text-xs md:text-sm font-light mt-1.5 text-slate-300 leading-relaxed max-w-xl">
-                        Haute precision GPS & RFID verification, bespoke attendance governance, and immutable registry.
+                    <p class="text-xs md:text-sm font-medium mt-1 text-blue-100 leading-relaxed max-w-xl font-sans">
+                        Monitoring kehadiran terpadu, verifikasi GPS & RFID, input massal cerdas, dan rekapitulasi laporan terpercaya!
                     </p>
                 </div>
             </div>
@@ -83,57 +101,57 @@
             {{-- Controls: Unit & Date Filter --}}
             <div class="flex flex-wrap items-center gap-3.5 shrink-0">
                 @if($isSuperAdmin && isset($schools) && $schools->count() > 1)
-                <div class="relative min-w-[230px]">
+                <div class="relative min-w-[220px]">
                     <select onchange="changeAttendanceSchool(this.value)"
-                            class="w-full bg-[#0d1424]/80 hover:bg-[#131d33] border border-amber-400/40 rounded-2xl px-5 py-3 text-xs font-bold text-amber-200 focus:ring-2 focus:ring-amber-400 transition cursor-pointer appearance-none pr-10 shadow-lg backdrop-blur-md">
+                            class="w-full bg-white text-slate-800 font-bold text-xs rounded-2xl px-5 py-3.5 shadow-md focus:ring-4 focus:ring-yellow-300 transition cursor-pointer appearance-none pr-10 border-2 border-white/60">
                         @foreach($schools as $sch)
-                            <option value="{{ $sch->id }}" {{ $currentSchoolId == $sch->id ? 'selected' : '' }} class="bg-[#0b101c] text-white">
-                                🏛️ {{ $sch->name }}
+                            <option value="{{ $sch->id }}" {{ $currentSchoolId == $sch->id ? 'selected' : '' }}>
+                                🏫 {{ $sch->name }}
                             </option>
                         @endforeach
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-amber-400 text-xs">
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-600 text-xs">
                         <i class="fas fa-chevron-down font-bold"></i>
                     </div>
                 </div>
                 @endif
 
-                <div class="inline-flex items-center gap-2.5 bg-gradient-to-r from-amber-400/20 to-yellow-500/10 text-amber-200 border border-amber-400/40 rounded-2xl px-5 py-2.5 shadow-lg backdrop-blur-md">
-                    <i class="fas fa-calendar-alt text-amber-400 text-sm"></i>
+                <div class="inline-flex items-center gap-2.5 bg-white text-slate-800 rounded-2xl px-5 py-3 shadow-md border-2 border-white/60">
+                    <i class="fas fa-calendar-day text-indigo-600 text-sm"></i>
                     <input type="date" value="{{ $currentDate }}" onchange="changeAttendanceDate(this.value)"
-                           class="bg-transparent border-none text-xs font-bold text-amber-200 focus:ring-0 p-0 cursor-pointer">
+                           class="bg-transparent border-none text-xs font-bold text-slate-800 focus:ring-0 p-0 cursor-pointer">
                 </div>
             </div>
         </div>
     </div>
 
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- LIQUID GLASS NAVIGATION BAR: KELOMPOK & SUB-MENU --}}
+    {{-- PLAYFUL CLAY NAVIGATION BAR: KELOMPOK & SUB-MENU--}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="luxury-glass-panel rounded-[2rem] p-5 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+    <div class="clay-card rounded-[2rem] p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-5 bg-white">
         {{-- Kelompok Switcher --}}
         <div>
-            <span class="block text-[10px] font-bold text-amber-300/70 uppercase tracking-[0.25em] mb-2">
-                Pilih Kelompok Eksklusif:
+            <span class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-2" style="font-family: var(--clay-font-title);">
+                Pilih Kelompok Presensi:
             </span>
             <div class="flex flex-wrap items-center gap-2.5">
                 @if(!$isYayasan)
                 <a href="{{ request()->fullUrlWithQuery(['group' => 'siswa']) }}" 
-                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all
-                          {{ $currentGroup === 'siswa' ? 'bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-black shadow-lg scale-[1.02] border border-white/60 font-black' : 'bg-white/5 text-slate-300 hover:bg-amber-400/15 border border-white/10 hover:border-amber-400/40' }}">
+                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all
+                          {{ $currentGroup === 'siswa' ? 'clay-btn-primary scale-[1.03]' : 'clay-pill-soft text-slate-700 hover:bg-slate-100' }}">
                     <i class="fas fa-user-graduate text-xs"></i>
                     <span>Siswa</span>
                 </a>
                 <a href="{{ request()->fullUrlWithQuery(['group' => 'guru']) }}" 
-                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all
-                          {{ $currentGroup === 'guru' ? 'bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-black shadow-lg scale-[1.02] border border-white/60 font-black' : 'bg-white/5 text-slate-300 hover:bg-amber-400/15 border border-white/10 hover:border-amber-400/40' }}">
+                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all
+                          {{ $currentGroup === 'guru' ? 'clay-btn-primary scale-[1.03]' : 'clay-pill-soft text-slate-700 hover:bg-slate-100' }}">
                     <i class="fas fa-chalkboard-teacher text-xs"></i>
                     <span>Guru</span>
                 </a>
                 @endif
                 <a href="{{ request()->fullUrlWithQuery(['group' => 'pegawai']) }}" 
-                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all
-                          {{ $currentGroup === 'pegawai' ? 'bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-black shadow-lg scale-[1.02] border border-white/60 font-black' : 'bg-white/5 text-slate-300 hover:bg-amber-400/15 border border-white/10 hover:border-amber-400/40' }}">
+                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all
+                          {{ $currentGroup === 'pegawai' ? 'clay-btn-primary scale-[1.03]' : 'clay-pill-soft text-slate-700 hover:bg-slate-100' }}">
                     <i class="fas fa-user-tie text-xs"></i>
                     <span>Pegawai / Staf</span>
                 </a>
@@ -142,38 +160,38 @@
 
         {{-- 4 Sub-Menu Navigation Tabs --}}
         <div>
-            <span class="block text-[10px] font-bold text-amber-300/70 uppercase tracking-[0.25em] mb-2 lg:text-right">
-                Pilihan Modul Terpadu:
+            <span class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-2 lg:text-right" style="font-family: var(--clay-font-title);">
+                Pilihan Menu Presensi:
             </span>
             <div class="flex flex-wrap items-center gap-2.5">
                 {{-- 1. Live Feed --}}
                 <a href="{{ route('admin.attendance.live', ['group' => $currentGroup, 'school_id' => $currentSchoolId, 'date' => $currentDate]) }}"
-                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all
-                          {{ str_contains($currentRoute, 'live') ? 'bg-rose-500/90 text-white shadow-lg shadow-rose-500/30 border border-rose-300/50 scale-[1.02]' : 'bg-white/5 text-slate-300 hover:bg-amber-400/15 border border-white/10 hover:border-amber-400/40' }}">
-                    <span class="w-2 h-2 rounded-full {{ str_contains($currentRoute, 'live') ? 'bg-white animate-ping' : 'bg-rose-500' }}"></span>
+                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all
+                          {{ str_contains($currentRoute, 'live') ? 'clay-btn-coral scale-[1.03]' : 'clay-pill-soft text-slate-700 hover:bg-slate-100' }}">
+                    <span class="w-2.5 h-2.5 rounded-full {{ str_contains($currentRoute, 'live') ? 'bg-white animate-ping' : 'bg-rose-500' }}"></span>
                     <span>Live Feed</span>
                 </a>
 
                 {{-- 2. Monitoring Harian --}}
                 <a href="{{ route('admin.attendance.monitoring', ['group' => $currentGroup, 'school_id' => $currentSchoolId, 'date' => $currentDate]) }}"
-                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all
-                          {{ str_contains($currentRoute, 'monitoring') || $currentRoute === 'admin.attendance.index' ? 'bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-black shadow-lg scale-[1.02] border border-white/60 font-black' : 'bg-white/5 text-slate-300 hover:bg-amber-400/15 border border-white/10 hover:border-amber-400/40' }}">
-                    <i class="fas fa-chart-line text-xs"></i>
+                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all
+                          {{ str_contains($currentRoute, 'monitoring') || $currentRoute === 'admin.attendance.index' ? 'clay-btn-primary scale-[1.03]' : 'clay-pill-soft text-slate-700 hover:bg-slate-100' }}">
+                    <i class="fas fa-chart-pie text-xs"></i>
                     <span>Monitoring Harian</span>
                 </a>
 
                 {{-- 3. Input Massal --}}
                 <a href="{{ route('admin.attendance.bulk', ['group' => $currentGroup, 'school_id' => $currentSchoolId, 'date' => $currentDate]) }}"
-                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all
-                          {{ str_contains($currentRoute, 'bulk') ? 'bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-black shadow-lg scale-[1.02] border border-white/60 font-black' : 'bg-white/5 text-slate-300 hover:bg-amber-400/15 border border-white/10 hover:border-amber-400/40' }}">
-                    <i class="fas fa-table text-xs"></i>
+                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all
+                          {{ str_contains($currentRoute, 'bulk') ? 'clay-btn-amber scale-[1.03]' : 'clay-pill-soft text-slate-700 hover:bg-slate-100' }}">
+                    <i class="fas fa-table-list text-xs"></i>
                     <span>Input Massal</span>
                 </a>
 
                 {{-- 4. Rekap & Laporan --}}
                 <a href="{{ route('admin.attendance.rekap', ['group' => $currentGroup, 'school_id' => $currentSchoolId]) }}"
-                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all
-                          {{ str_contains($currentRoute, 'rekap') ? 'bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-black shadow-lg scale-[1.02] border border-white/60 font-black' : 'bg-white/5 text-slate-300 hover:bg-amber-400/15 border border-white/10 hover:border-amber-400/40' }}">
+                   class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all
+                          {{ str_contains($currentRoute, 'rekap') ? 'clay-btn-emerald scale-[1.03]' : 'clay-pill-soft text-slate-700 hover:bg-slate-100' }}">
                     <i class="fas fa-file-invoice text-xs"></i>
                     <span>Rekap & Laporan</span>
                 </a>

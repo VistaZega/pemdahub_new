@@ -1,51 +1,45 @@
 @extends('layouts.admin')
 
-@section('title', 'Monitoring Presensi - Haute Academic Suite')
+@section('title', 'Monitoring Presensi - Edu Attendance Hub')
 
 @push('styles')
 <style>
-    .luxury-stat-card {
-        background: rgba(13, 20, 35, 0.65) !important;
-        backdrop-filter: blur(24px) !important;
-        -webkit-backdrop-filter: blur(24px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
-        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    .clay-stat-card {
+        background: #ffffff;
+        border-radius: 28px;
+        box-shadow: 8px 12px 24px rgba(30, 41, 59, 0.06), -6px -6px 16px rgba(255, 255, 255, 0.9), inset 2px 2px 4px rgba(255, 255, 255, 0.8), inset -2px -2px 4px rgba(0, 0, 0, 0.03);
+        border: 2px solid #f1f5f9;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .luxury-stat-card:hover {
+    .clay-stat-card:hover {
         transform: translateY(-5px);
-        border-color: rgba(212, 175, 55, 0.5) !important;
-        box-shadow: 0 25px 55px rgba(0, 0, 0, 0.75), 0 0 25px rgba(212, 175, 55, 0.15) !important;
+        box-shadow: 12px 18px 30px rgba(30, 41, 59, 0.12), -8px -8px 20px rgba(255, 255, 255, 1);
     }
-    .luxury-table-container {
-        background: rgba(10, 15, 26, 0.8) !important;
-        backdrop-filter: blur(28px) !important;
-        -webkit-backdrop-filter: blur(28px) !important;
-        border: 1px solid rgba(212, 175, 55, 0.25) !important;
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+    .clay-badge {
+        box-shadow: 2px 3px 6px rgba(0,0,0,0.06), inset 1px 1px 2px rgba(255,255,255,0.7), inset -1px -1px 2px rgba(0,0,0,0.05);
     }
 </style>
 @endpush
 
 @section('content')
 <div class="space-y-8">
-    {{-- Unified Luxury Header --}}
+    {{-- Unified Playful Clay Header --}}
     @include('admin.attendance.header')
 
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- LIQUID GLASS STAT METRIC CARDS (JEWEL ACCENTS) --}}
+    {{-- PLAYFUL CLAY STAT METRIC CARDS (8 VIBRANT CHIPS)--}}
     {{-- ═══════════════════════════════════════════════ --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
         @php
             $statCards = [
-                ['key' => null,         'label' => 'Total Terdaftar',  'desc' => 'Seluruh ' . $group . ' aktif',  'val' => $stats['total'],      'icon' => 'fa-users',              'glow' => '#6366f1', 'icon_bg' => 'from-indigo-500/20 to-indigo-900/40 border-indigo-400/40 text-indigo-300'],
-                ['key' => 'hadir',      'label' => 'Hadir Tepat',      'desc' => 'Presensi sebelum batas',        'val' => $stats['hadir'],      'icon' => 'fa-circle-check',       'glow' => '#10b981', 'icon_bg' => 'from-emerald-500/20 to-emerald-900/40 border-emerald-400/40 text-emerald-300'],
-                ['key' => 'terlambat',  'label' => 'Terlambat',        'desc' => 'Lewat jam toleransi',          'val' => $stats['terlambat'],  'icon' => 'fa-clock',              'glow' => '#f59e0b', 'icon_bg' => 'from-amber-500/20 to-amber-900/40 border-amber-400/40 text-amber-300'],
-                ['key' => 'izin',       'label' => 'Izin Resmi',        'desc' => 'Ada surat / dispensasi',       'val' => $stats['izin'],       'icon' => 'fa-envelope-open-text', 'glow' => '#3b82f6', 'icon_bg' => 'from-blue-500/20 to-blue-900/40 border-blue-400/40 text-blue-300'],
-                ['key' => 'sakit',      'label' => 'Sakit',             'desc' => 'Keterangan medis',             'val' => $stats['sakit'],      'icon' => 'fa-heart-pulse',        'glow' => '#eab308', 'icon_bg' => 'from-yellow-500/20 to-yellow-900/40 border-yellow-400/40 text-yellow-300'],
-                ['key' => 'dinas_luar', 'label' => 'Dinas Luar',        'desc' => 'Tugas kedinasan',              'val' => $stats['dinas_luar'], 'icon' => 'fa-briefcase',          'glow' => '#a855f7', 'icon_bg' => 'from-purple-500/20 to-purple-900/40 border-purple-400/40 text-purple-300'],
-                ['key' => 'alpha',      'label' => 'Tanpa Keterangan',  'desc' => 'Alpha / absen',                'val' => $stats['alpha'],      'icon' => 'fa-circle-xmark',       'glow' => '#f43f5e', 'icon_bg' => 'from-rose-500/20 to-rose-900/40 border-rose-400/40 text-rose-300'],
-                ['key' => 'belum',      'label' => 'Belum Presensi',    'desc' => 'Menunggu scan/tap',            'val' => $stats['belum'],      'icon' => 'fa-hourglass-half',     'glow' => '#94a3b8', 'icon_bg' => 'from-slate-500/20 to-slate-900/40 border-slate-400/40 text-slate-300'],
+                ['key' => null,         'label' => 'Total Terdaftar',  'desc' => 'Seluruh ' . $group . ' aktif',  'val' => $stats['total'],      'icon' => 'fa-users',              'icon_bg' => 'from-indigo-500 to-blue-600 text-white shadow-indigo-200', 'active_border' => 'border-indigo-400 ring-2 ring-indigo-300'],
+                ['key' => 'hadir',      'label' => 'Hadir Tepat',      'desc' => 'Tepat waktu hari ini',         'val' => $stats['hadir'],      'icon' => 'fa-circle-check',       'icon_bg' => 'from-emerald-400 to-teal-600 text-white shadow-emerald-200', 'active_border' => 'border-emerald-400 ring-2 ring-emerald-300'],
+                ['key' => 'terlambat',  'label' => 'Terlambat',        'desc' => 'Lewat jam toleransi',          'val' => $stats['terlambat'],  'icon' => 'fa-clock',              'icon_bg' => 'from-amber-400 to-orange-500 text-white shadow-amber-200', 'active_border' => 'border-amber-400 ring-2 ring-amber-300'],
+                ['key' => 'izin',       'label' => 'Izin Resmi',        'desc' => 'Ada surat / dispensasi',       'val' => $stats['izin'],       'icon' => 'fa-envelope-open-text', 'icon_bg' => 'from-sky-400 to-blue-600 text-white shadow-sky-200', 'active_border' => 'border-sky-400 ring-2 ring-sky-300'],
+                ['key' => 'sakit',      'label' => 'Sakit',             'desc' => 'Keterangan medis dokter',      'val' => $stats['sakit'],      'icon' => 'fa-heart-pulse',        'icon_bg' => 'from-yellow-300 to-amber-500 text-slate-900 shadow-yellow-200', 'active_border' => 'border-yellow-400 ring-2 ring-yellow-300'],
+                ['key' => 'dinas_luar', 'label' => 'Dinas Luar',        'desc' => 'Tugas kedinasan luar',         'val' => $stats['dinas_luar'], 'icon' => 'fa-briefcase',          'icon_bg' => 'from-purple-400 to-indigo-600 text-white shadow-purple-200', 'active_border' => 'border-purple-400 ring-2 ring-purple-300'],
+                ['key' => 'alpha',      'label' => 'Tanpa Keterangan',  'desc' => 'Alpha / tidak hadir',          'val' => $stats['alpha'],      'icon' => 'fa-circle-xmark',       'icon_bg' => 'from-rose-400 to-pink-600 text-white shadow-rose-200', 'active_border' => 'border-rose-400 ring-2 ring-rose-300'],
+                ['key' => 'belum',      'label' => 'Belum Presensi',    'desc' => 'Menunggu scan/tap kartu',      'val' => $stats['belum'],      'icon' => 'fa-hourglass-half',     'icon_bg' => 'from-slate-400 to-slate-600 text-white shadow-slate-200', 'active_border' => 'border-slate-400 ring-2 ring-slate-300'],
             ];
         @endphp
 
@@ -54,32 +48,30 @@
             $isActive = ($statusFilter === $p['key']) || ($statusFilter === null && $p['key'] === null);
         @endphp
         <a href="{{ request()->fullUrlWithQuery(['status' => $p['key']]) }}" 
-           class="luxury-stat-card rounded-3xl p-5 md:p-6 flex flex-col justify-between relative overflow-hidden group
-                  {{ $isActive ? 'border-amber-400/80 bg-amber-950/20 ring-1 ring-amber-400/50 scale-[1.02]' : '' }}">
+           class="clay-stat-card rounded-3xl p-5 md:p-6 flex flex-col justify-between relative overflow-hidden group
+                  {{ $isActive ? $p['active_border'] . ' bg-blue-50/40 scale-[1.02]' : '' }}">
             
-            {{-- Ambient Jewel Glow --}}
-            <div class="absolute -right-8 -top-8 w-28 h-28 rounded-full blur-2xl opacity-20 pointer-events-none" style="background: {{ $p['glow'] }};"></div>
-
             <div class="flex items-center justify-between mb-4 relative z-10">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br border flex items-center justify-center text-lg font-black shadow-lg {{ $p['icon_bg'] }}">
+                <div class="w-13 h-13 rounded-2xl bg-gradient-to-br flex items-center justify-center text-xl font-bold shadow-md p-3 {{ $p['icon_bg'] }}"
+                     style="box-shadow: 3px 5px 12px rgba(0,0,0,0.15), inset 2px 2px 3px rgba(255,255,255,0.4);">
                     <i class="fas {{ $p['icon'] }}"></i>
                 </div>
-                <span class="text-3xl font-serif font-bold text-white leading-none font-mono">
+                <span class="text-3xl font-extrabold text-slate-800 leading-none font-mono" style="font-family: var(--clay-font-title);">
                     {{ number_format($p['val']) }}
                 </span>
             </div>
             <div class="relative z-10">
-                <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-200">{{ $p['label'] }}</p>
-                <p class="text-[11px] font-medium text-slate-400 mt-0.5">{{ $p['desc'] }}</p>
+                <p class="text-xs font-extrabold uppercase tracking-wider text-slate-700" style="font-family: var(--clay-font-title);">{{ $p['label'] }}</p>
+                <p class="text-[11px] font-semibold text-slate-400 mt-0.5">{{ $p['desc'] }}</p>
             </div>
         </a>
         @endforeach
     </div>
 
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- TOOLBAR: FILTER & SEARCH (LIQUID GLASS SUITE)   --}}
+    {{-- CLAY TOOLBAR: FILTER & SEARCH                   --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="luxury-glass-panel rounded-[2rem] p-6 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-5 text-white">
+    <div class="clay-card rounded-[2rem] p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5 bg-white">
         <form method="GET" class="flex flex-wrap items-center gap-3.5 flex-1">
             <input type="hidden" name="group" value="{{ $group }}">
             <input type="hidden" name="school_id" value="{{ $schoolId }}">
@@ -92,10 +84,10 @@
             @if($group === 'siswa' && $classrooms->isNotEmpty())
             <div class="min-w-[220px]">
                 <select name="classroom_id" onchange="this.form.submit()"
-                        class="w-full bg-[#0b101c]/90 border border-amber-400/30 rounded-2xl px-5 py-3 text-xs font-bold text-amber-200 focus:ring-2 focus:ring-amber-400 cursor-pointer shadow-lg">
-                    <option value="" class="bg-[#0b101c] text-white">🏛️ Semua Rombel / Kelas</option>
+                        class="w-full clay-pill-soft rounded-2xl px-5 py-3 text-xs font-bold text-slate-700 focus:ring-4 focus:ring-indigo-100 cursor-pointer shadow-sm">
+                    <option value="">🏫 Semua Rombel / Kelas</option>
                     @foreach($classrooms as $cls)
-                        <option value="{{ $cls->id }}" {{ $classroomId == $cls->id ? 'selected' : '' }} class="bg-[#0b101c] text-white">
+                        <option value="{{ $cls->id }}" {{ $classroomId == $cls->id ? 'selected' : '' }}>
                             {{ $cls->class_name }}
                         </option>
                     @endforeach
@@ -106,17 +98,17 @@
             {{-- Search Input --}}
             <div class="relative flex-1 min-w-[240px] max-w-md">
                 <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama, NISN, NIP, atau kode..."
-                       class="w-full bg-[#0b101c]/90 border border-white/15 rounded-2xl pl-11 pr-5 py-3 text-xs font-medium text-white placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 shadow-lg outline-none transition">
-                <i class="fas fa-search absolute left-4.5 top-3.5 text-amber-400/70 text-xs"></i>
+                       class="w-full clay-pill-soft rounded-2xl pl-11 pr-5 py-3 text-xs font-bold text-slate-800 placeholder:text-slate-400 focus:ring-4 focus:ring-indigo-100 shadow-sm outline-none transition">
+                <i class="fas fa-search absolute left-4.5 top-3.5 text-indigo-500 text-xs"></i>
             </div>
 
-            <button type="submit" class="px-6 py-3 bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-black text-xs font-black uppercase tracking-wider rounded-2xl border border-white/40 shadow-lg hover:shadow-amber-500/20 transition active:scale-95">
+            <button type="submit" class="clay-btn-primary px-6 py-3 text-xs font-extrabold uppercase tracking-wider rounded-2xl shadow-md transition active:scale-95">
                 Filter
             </button>
 
             @if($search || $classroomId || $statusFilter)
             <a href="{{ route('admin.attendance.monitoring', ['group' => $group, 'school_id' => $schoolId, 'date' => $date]) }}" 
-               class="px-5 py-3 bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold rounded-2xl border border-white/10 transition shadow-sm">
+               class="clay-pill-soft px-5 py-3 text-slate-600 text-xs font-bold rounded-2xl transition hover:bg-slate-100 shadow-sm">
                 <i class="fas fa-rotate-left mr-1.5"></i> Reset
             </a>
             @endif
@@ -124,132 +116,133 @@
 
         <div class="flex items-center gap-3 shrink-0">
             <a href="{{ route('admin.attendance.bulk', ['group' => $group, 'school_id' => $schoolId, 'date' => $date, 'classroom_id' => $classroomId]) }}" 
-               class="inline-flex items-center gap-2.5 px-6 py-3 bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-black rounded-2xl text-xs font-black uppercase tracking-wider border border-white/40 shadow-lg hover:shadow-amber-500/30 transition active:scale-95">
-                <i class="fas fa-table text-sm text-black"></i>
+               class="clay-btn-amber inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl text-xs font-extrabold uppercase tracking-wider shadow-md transition active:scale-95">
+                <i class="fas fa-table-list text-sm"></i>
                 <span>Input Massal</span>
             </a>
         </div>
     </div>
 
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- LIQUID OBSIDIAN DATA TABLE                      --}}
+    {{-- PLAYFUL CLAY DATA TABLE                         --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="luxury-table-container rounded-[2.5rem] overflow-hidden text-white">
-        {{-- Card Header with Generous Margin --}}
-        <div class="px-7 py-6 border-b border-white/10 flex items-center justify-between flex-wrap gap-4 bg-black/20">
+    <div class="clay-card rounded-[2.5rem] overflow-hidden bg-white">
+        {{-- Card Header --}}
+        <div class="px-7 py-6 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4 bg-gradient-to-r from-blue-50/50 via-indigo-50/30 to-purple-50/30">
             <div class="flex items-center">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-black flex items-center justify-center font-black text-lg border border-white/40 shadow-lg shrink-0 mr-4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center font-bold text-xl shadow-md shrink-0 mr-4"
+                     style="box-shadow: 3px 5px 12px rgba(67, 97, 238, 0.35);">
                     <i class="fas fa-users-viewfinder"></i>
                 </div>
                 <div>
-                    <h2 class="font-serif text-lg md:text-xl font-bold tracking-tight text-white leading-tight">
+                    <h2 class="text-lg md:text-xl font-extrabold tracking-tight text-slate-800 leading-tight" style="font-family: var(--clay-font-title);">
                         Daftar Presensi {{ ucfirst($group) }}
                     </h2>
-                    <p class="text-xs text-slate-400 font-medium mt-1">
+                    <p class="text-xs text-slate-500 font-semibold mt-0.5">
                         {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }} &middot; {{ $selectedSchool->name ?? '' }}
                     </p>
                 </div>
             </div>
-            <span class="text-xs font-bold text-amber-200 bg-amber-400/10 border border-amber-400/30 px-4 py-2 rounded-full shadow-xs tracking-wider">
-                Total <b class="text-white">{{ $items->count() }}</b> Data Terdaftar
+            <span class="text-xs font-extrabold text-indigo-700 bg-indigo-100/80 px-4 py-2 rounded-2xl shadow-xs border border-indigo-200">
+                Total <b>{{ $items->count() }}</b> Data Terdaftar
             </span>
         </div>
 
         @if($items->isEmpty())
         <div class="py-24 text-center text-slate-400">
-            <div class="w-16 h-16 bg-amber-400/10 rounded-3xl border border-amber-400/30 flex items-center justify-center mx-auto mb-4 text-amber-300 text-3xl shadow-lg">
+            <div class="w-16 h-16 bg-amber-100 rounded-3xl border-2 border-amber-200 flex items-center justify-center mx-auto mb-4 text-amber-600 text-3xl shadow-md">
                 <i class="fas fa-user-slash"></i>
             </div>
-            <p class="font-serif text-lg text-white font-medium">Tidak ada data presensi yang sesuai dengan filter.</p>
-            <p class="text-xs text-slate-400 mt-1">Silakan sesuaikan filter rombel, tanggal, atau status di atas.</p>
+            <p class="text-lg text-slate-800 font-extrabold" style="font-family: var(--clay-font-title);">Tidak ada data presensi yang sesuai dengan filter.</p>
+            <p class="text-xs text-slate-500 font-semibold mt-1">Silakan sesuaikan filter rombel, tanggal, atau status di atas.</p>
         </div>
         @else
         <div class="overflow-x-auto w-full">
             <table class="w-full text-left border-collapse table-fixed">
-                <thead class="bg-[#070b14] border-b border-amber-400/30 text-amber-300">
+                <thead class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white border-b-2 border-slate-900">
                     <tr class="whitespace-nowrap">
-                        <th class="py-4 pl-5 pr-2 text-center text-[11px] font-bold uppercase tracking-[0.2em] w-12 text-amber-400/70">No</th>
-                        <th class="py-4 px-3 text-left text-[11px] font-bold uppercase tracking-[0.2em] w-[23%] text-amber-300">Nama & Identitas</th>
-                        <th class="py-4 px-2 text-left text-[11px] font-bold uppercase tracking-[0.2em] w-[14%] text-amber-300">Unit / Rombel</th>
-                        <th class="py-4 px-2 text-center text-[11px] font-bold uppercase tracking-[0.2em] w-[15%] text-amber-300">Status Kehadiran</th>
-                        <th class="py-4 px-1.5 text-center text-[11px] font-bold uppercase tracking-[0.2em] w-[7%] text-amber-300">Masuk</th>
-                        <th class="py-4 px-1.5 text-center text-[11px] font-bold uppercase tracking-[0.2em] w-[7%] text-amber-300">Pulang</th>
-                        <th class="py-4 px-1.5 text-center text-[11px] font-bold uppercase tracking-[0.2em] w-[8%] text-amber-300">Metode</th>
-                        <th class="py-4 px-2 text-left text-[11px] font-bold uppercase tracking-[0.2em] w-[11%] text-amber-300">Keterangan</th>
-                        <th class="py-4 pl-2 pr-6 text-center text-[11px] font-bold uppercase tracking-[0.2em] w-[15%] text-amber-300">Aksi</th>
+                        <th class="py-4 pl-5 pr-2 text-center text-xs font-extrabold uppercase tracking-wider w-12 text-yellow-300">No</th>
+                        <th class="py-4 px-3 text-left text-xs font-extrabold uppercase tracking-wider w-[23%]">Nama & Identitas</th>
+                        <th class="py-4 px-2 text-left text-xs font-extrabold uppercase tracking-wider w-[14%]">Unit / Rombel</th>
+                        <th class="py-4 px-2 text-center text-xs font-extrabold uppercase tracking-wider w-[15%]">Status Kehadiran</th>
+                        <th class="py-4 px-1.5 text-center text-xs font-extrabold uppercase tracking-wider w-[7%]">Masuk</th>
+                        <th class="py-4 px-1.5 text-center text-xs font-extrabold uppercase tracking-wider w-[7%]">Pulang</th>
+                        <th class="py-4 px-1.5 text-center text-xs font-extrabold uppercase tracking-wider w-[8%]">Metode</th>
+                        <th class="py-4 px-2 text-left text-xs font-extrabold uppercase tracking-wider w-[11%]">Keterangan</th>
+                        <th class="py-4 pl-2 pr-6 text-center text-xs font-extrabold uppercase tracking-wider w-[15%]">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-white/5">
+                <tbody class="divide-y divide-slate-100">
                     @foreach($items as $idx => $it)
-                    <tr class="hover:bg-white/[0.04] transition-colors {{ $it->status === 'belum' ? 'bg-white/[0.01]' : '' }}" id="row-person-{{ $it->person_id }}">
-                        <td class="py-4 pl-5 pr-2 text-center text-xs text-slate-400 font-mono font-bold whitespace-nowrap">{{ $idx + 1 }}</td>
+                    <tr class="hover:bg-indigo-50/50 transition-colors {{ $it->status === 'belum' ? 'bg-slate-50/40' : '' }}" id="row-person-{{ $it->person_id }}">
+                        <td class="py-4 pl-5 pr-2 text-center text-xs text-slate-600 font-mono font-extrabold whitespace-nowrap">{{ $idx + 1 }}</td>
                         <td class="py-4 px-3">
                             <div class="flex items-center gap-2.5 min-w-0">
-                                {{-- Liquid Gold Avatar --}}
-                                <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-700 text-black border border-white/40 flex items-center justify-center font-black text-xs shrink-0 shadow-sm overflow-hidden">
+                                {{-- Playful Clay Avatar --}}
+                                <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-900 border-2 border-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-sm overflow-hidden">
                                     @if(!empty($it->photo_url))
                                         <img src="{{ $it->photo_url }}" class="w-full h-full object-cover" alt="{{ $it->name }}">
                                     @else
-                                        <span class="text-black font-black text-xs">{{ strtoupper(substr($it->name, 0, 2)) }}</span>
+                                        <span class="text-slate-900 font-black text-xs">{{ strtoupper(substr($it->name, 0, 2)) }}</span>
                                     @endif
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <div class="font-bold text-white text-xs md:text-sm leading-tight truncate" title="{{ $it->name }}">{{ $it->name }}</div>
-                                    <div class="text-[10px] text-amber-200/60 font-mono mt-0.5 truncate">{{ $it->code }}</div>
+                                    <div class="font-extrabold text-slate-800 text-xs md:text-sm leading-tight truncate" title="{{ $it->name }}">{{ $it->name }}</div>
+                                    <div class="text-[10px] text-slate-400 font-mono font-bold mt-0.5 truncate">{{ $it->code }}</div>
                                 </div>
                             </div>
                         </td>
                         <td class="py-4 px-2">
-                            <span class="inline-flex items-center px-2.5 py-1 bg-white/5 border border-white/10 rounded-xl text-[11px] font-medium text-slate-200 truncate max-w-full" title="{{ $it->info }}">
+                            <span class="inline-flex items-center px-2.5 py-1 bg-slate-100 rounded-xl text-[11px] font-bold text-slate-700 truncate max-w-full" title="{{ $it->info }}">
                                 {{ $it->info }}
                             </span>
                         </td>
                         <td class="py-4 px-2 text-center">
                             @php
                                 $badgeStyle = match($it->status) {
-                                    'hadir'      => 'bg-emerald-500/15 border-emerald-400/50 text-emerald-300 shadow-emerald-500/10',
-                                    'terlambat'  => 'bg-amber-500/15 border-amber-400/50 text-amber-300 shadow-amber-500/10',
-                                    'izin'       => 'bg-blue-500/15 border-blue-400/50 text-blue-300 shadow-blue-500/10',
-                                    'sakit'      => 'bg-yellow-500/15 border-yellow-400/50 text-yellow-300 shadow-yellow-500/10',
-                                    'dinas_luar' => 'bg-purple-500/15 border-purple-400/50 text-purple-300 shadow-purple-500/10',
-                                    'cuti'       => 'bg-indigo-500/15 border-indigo-400/50 text-indigo-300 shadow-indigo-500/10',
-                                    'alpha'      => 'bg-rose-500/15 border-rose-400/50 text-rose-300 shadow-rose-500/10',
-                                    default      => 'bg-slate-500/10 border-slate-400/30 text-slate-300'
+                                    'hadir'      => 'bg-gradient-to-r from-emerald-400 to-teal-500 text-white shadow-emerald-200',
+                                    'terlambat'  => 'bg-gradient-to-r from-amber-400 to-orange-400 text-slate-900 shadow-amber-200',
+                                    'izin'       => 'bg-gradient-to-r from-sky-400 to-blue-500 text-white shadow-sky-200',
+                                    'sakit'      => 'bg-gradient-to-r from-yellow-300 to-amber-400 text-slate-900 shadow-yellow-200',
+                                    'dinas_luar' => 'bg-gradient-to-r from-purple-400 to-indigo-500 text-white shadow-purple-200',
+                                    'cuti'       => 'bg-gradient-to-r from-indigo-400 to-blue-600 text-white shadow-indigo-200',
+                                    'alpha'      => 'bg-gradient-to-r from-rose-400 to-pink-500 text-white shadow-rose-200',
+                                    default      => 'bg-slate-200 text-slate-700 shadow-slate-100'
                                 };
                             @endphp
-                            <span class="inline-flex items-center justify-center px-4 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-normal border shadow-xs whitespace-nowrap leading-tight {{ $badgeStyle }}">
+                            <span class="clay-badge inline-flex items-center justify-center px-4 py-1.5 rounded-2xl text-[11px] font-extrabold uppercase tracking-normal whitespace-nowrap leading-tight {{ $badgeStyle }}">
                                 {{ $it->status === 'belum' ? 'Belum Absen' : ucfirst(str_replace('_', ' ', $it->status)) }}
                             </span>
                         </td>
-                        <td class="py-4 px-1.5 text-center text-xs font-mono font-bold text-slate-200 whitespace-nowrap">
+                        <td class="py-4 px-1.5 text-center text-xs font-mono font-extrabold text-slate-800 whitespace-nowrap">
                             {{ $it->time_in }}
                         </td>
-                        <td class="py-4 px-1.5 text-center text-xs font-mono font-bold text-slate-200 whitespace-nowrap">
+                        <td class="py-4 px-1.5 text-center text-xs font-mono font-extrabold text-slate-800 whitespace-nowrap">
                             {{ $it->time_out }}
                         </td>
                         <td class="py-4 px-1.5 text-center whitespace-nowrap">
                             @if($it->recorded_via === 'gps')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-bold bg-blue-500/15 text-blue-300 border border-blue-400/40 shadow-xs whitespace-nowrap">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-blue-100 text-blue-700 border border-blue-200 whitespace-nowrap">
                                     <i class="fas fa-location-dot mr-1"></i> GPS
                                 </span>
                             @elseif($it->recorded_via === 'rfid')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-bold bg-amber-500/15 text-amber-300 border border-amber-400/40 shadow-xs whitespace-nowrap">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap">
                                     <i class="fas fa-id-card mr-1"></i> RFID
                                 </span>
                             @elseif($it->recorded_via === 'manual')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-500/15 text-slate-300 border border-slate-400/40 shadow-xs whitespace-nowrap">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
                                     <i class="fas fa-pen mr-1"></i> MANUAL
                                 </span>
                             @else
-                                <span class="text-slate-500 font-bold text-xs">-</span>
+                                <span class="text-slate-400 font-bold text-xs">-</span>
                             @endif
                         </td>
-                        <td class="py-4 px-2 text-xs font-medium text-slate-300 truncate">
+                        <td class="py-4 px-2 text-xs font-semibold text-slate-600 truncate">
                             {{ $it->notes ?? '-' }}
                         </td>
                         <td class="py-4 pl-2 pr-6 text-center whitespace-nowrap">
                             <div class="inline-flex items-center justify-center gap-2">
-                                {{-- Liquid Gold Edit Button --}}
+                                {{-- Playful Clay Edit Button --}}
                                 <button type="button" 
                                         onclick="openEditModal({{ json_encode([
                                             'person_id'    => $it->person_id,
@@ -264,18 +257,18 @@
                                             'time_out'     => $it->raw_time_out,
                                             'notes'        => $it->notes,
                                         ]) }})"
-                                        class="px-3 py-1.5 bg-gradient-to-r from-amber-400/20 to-yellow-500/10 hover:from-amber-400 hover:to-yellow-500 text-amber-200 hover:text-black rounded-xl font-bold border border-amber-400/50 shadow-xs transition active:scale-95 inline-flex items-center justify-center gap-1.5 text-xs" 
+                                        class="clay-btn-amber px-3 py-1.5 rounded-xl font-extrabold transition active:scale-95 inline-flex items-center justify-center gap-1.5 text-xs" 
                                         title="Edit Presensi">
                                     <i class="fas fa-edit text-[11px]"></i>
                                     <span>Edit</span>
                                 </button>
 
-                                {{-- Liquid Ruby Hapus Button --}}
+                                {{-- Playful Clay Hapus Button --}}
                                 @if($it->attendance_id)
                                 <form action="{{ route('admin.attendance.destroy', ['id' => $it->attendance_id, 'group' => $group]) }}" 
                                       method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus/mereset data presensi {{ $it->name }}?');" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500 text-rose-300 hover:text-white rounded-xl font-bold border border-rose-400/40 shadow-xs transition active:scale-95 inline-flex items-center justify-center gap-1.5 text-xs" title="Hapus Presensi">
+                                    <button type="submit" class="clay-btn-coral px-3 py-1.5 rounded-xl font-extrabold transition active:scale-95 inline-flex items-center justify-center gap-1.5 text-xs" title="Hapus Presensi">
                                         <i class="fas fa-trash text-[11px]"></i>
                                         <span>Hapus</span>
                                     </button>
@@ -293,22 +286,22 @@
 </div>
 
 {{-- ═══════════════════════════════════════════════ --}}
-{{-- 🌟 INTERACTIVE LIQUID GLASS EDIT MODAL          --}}
+{{-- 🌟 PLAYFUL CLAY EDIT MODAL                      --}}
 {{-- ═══════════════════════════════════════════════ --}}
-<div id="editAttendanceModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="luxury-glass-panel rounded-[2.5rem] max-w-lg w-full overflow-hidden transform transition-all text-white border border-amber-400/40 shadow-2xl">
+<div id="editAttendanceModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="clay-card rounded-[2.5rem] max-w-lg w-full overflow-hidden transform transition-all bg-white shadow-2xl">
         {{-- Modal Header --}}
-        <div class="px-8 py-6 bg-black/40 flex items-center justify-between border-b border-white/10">
+        <div class="px-8 py-6 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-between border-b border-slate-100">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-black flex items-center justify-center text-xl font-black border border-white/40 shadow-lg">
-                    <i class="fas fa-user-edit text-black"></i>
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center text-xl font-bold shadow-md">
+                    <i class="fas fa-user-pen"></i>
                 </div>
                 <div>
-                    <h3 class="font-serif text-xl font-bold text-white leading-tight">Edit Presensi Individu</h3>
-                    <p class="text-xs text-amber-300/80 font-medium mt-0.5" id="modal_person_subtitle">Nama & Rombel</p>
+                    <h3 class="text-xl font-extrabold text-slate-800 leading-tight" style="font-family: var(--clay-font-title);">Edit Presensi Individu</h3>
+                    <p class="text-xs text-indigo-600 font-bold mt-0.5" id="modal_person_subtitle">Nama & Rombel</p>
                 </div>
             </div>
-            <button type="button" onclick="closeEditModal()" class="w-10 h-10 rounded-full bg-white/5 hover:bg-amber-400 hover:text-black text-slate-300 flex items-center justify-center transition border border-white/15">
+            <button type="button" onclick="closeEditModal()" class="w-10 h-10 rounded-full bg-white hover:bg-rose-500 hover:text-white text-slate-400 flex items-center justify-center transition shadow-sm border border-slate-200">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
@@ -322,47 +315,47 @@
             <input type="hidden" name="person_id" id="modal_person_id">
             <input type="hidden" name="classroom_id" id="modal_classroom_id">
 
-            {{-- Person Info Banner --}}
-            <div class="bg-amber-400/10 border border-amber-400/30 rounded-3xl p-4 flex items-center gap-4 shadow-sm">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-black font-black flex items-center justify-center text-sm border border-white/40 shrink-0 overflow-hidden shadow-sm" id="modal_avatar_container">
+            {{-- Person Info Card --}}
+            <div class="bg-indigo-50/60 border-2 border-indigo-100 rounded-3xl p-4 flex items-center gap-4 shadow-xs">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-900 font-extrabold flex items-center justify-center text-sm shrink-0 overflow-hidden shadow-sm" id="modal_avatar_container">
                     <span id="modal_avatar_initial">YZ</span>
                 </div>
                 <div class="min-w-0">
-                    <div class="font-bold text-white text-base truncate" id="modal_person_name">Nama Pengguna</div>
-                    <div class="text-xs text-amber-200/70 font-mono" id="modal_person_code">NISN / NIP</div>
+                    <div class="font-extrabold text-slate-800 text-base truncate" id="modal_person_name">Nama Pengguna</div>
+                    <div class="text-xs text-indigo-500 font-mono font-bold" id="modal_person_code">NISN / NIP</div>
                 </div>
             </div>
 
             {{-- Status Selector Cards --}}
             <div>
-                <label class="block text-xs font-bold text-amber-300/80 uppercase tracking-[0.2em] mb-2.5">
+                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2.5" style="font-family: var(--clay-font-title);">
                     Pilih Status Kehadiran:
                 </label>
                 <div class="grid grid-cols-3 gap-2.5">
                     <label class="cursor-pointer">
                         <input type="radio" name="status" value="hadir" class="sr-only peer modal-status-radio">
-                        <div class="p-3.5 rounded-2xl border border-white/10 text-center text-xs font-bold text-slate-300 bg-white/5 peer-checked:bg-emerald-500/20 peer-checked:border-emerald-400 peer-checked:text-emerald-300 peer-checked:shadow-lg transition">
+                        <div class="p-3.5 rounded-2xl border-2 border-slate-100 text-center text-xs font-extrabold text-slate-600 bg-slate-50 peer-checked:bg-emerald-500 peer-checked:border-emerald-600 peer-checked:text-white peer-checked:shadow-md transition">
                             <i class="fas fa-circle-check block text-lg mb-1"></i>
                             Hadir
                         </div>
                     </label>
                     <label class="cursor-pointer">
                         <input type="radio" name="status" value="terlambat" class="sr-only peer modal-status-radio">
-                        <div class="p-3.5 rounded-2xl border border-white/10 text-center text-xs font-bold text-slate-300 bg-white/5 peer-checked:bg-amber-500/20 peer-checked:border-amber-400 peer-checked:text-amber-300 peer-checked:shadow-lg transition">
+                        <div class="p-3.5 rounded-2xl border-2 border-slate-100 text-center text-xs font-extrabold text-slate-600 bg-slate-50 peer-checked:bg-amber-400 peer-checked:border-amber-500 peer-checked:text-slate-900 peer-checked:shadow-md transition">
                             <i class="fas fa-clock block text-lg mb-1"></i>
                             Terlambat
                         </div>
                     </label>
                     <label class="cursor-pointer">
                         <input type="radio" name="status" value="izin" class="sr-only peer modal-status-radio">
-                        <div class="p-3.5 rounded-2xl border border-white/10 text-center text-xs font-bold text-slate-300 bg-white/5 peer-checked:bg-blue-500/20 peer-checked:border-blue-400 peer-checked:text-blue-300 peer-checked:shadow-lg transition">
+                        <div class="p-3.5 rounded-2xl border-2 border-slate-100 text-center text-xs font-extrabold text-slate-600 bg-slate-50 peer-checked:bg-sky-500 peer-checked:border-sky-600 peer-checked:text-white peer-checked:shadow-md transition">
                             <i class="fas fa-envelope block text-lg mb-1"></i>
                             Izin
                         </div>
                     </label>
                     <label class="cursor-pointer">
                         <input type="radio" name="status" value="sakit" class="sr-only peer modal-status-radio">
-                        <div class="p-3.5 rounded-2xl border border-white/10 text-center text-xs font-bold text-slate-300 bg-white/5 peer-checked:bg-yellow-500/20 peer-checked:border-yellow-400 peer-checked:text-yellow-300 peer-checked:shadow-lg transition">
+                        <div class="p-3.5 rounded-2xl border-2 border-slate-100 text-center text-xs font-extrabold text-slate-600 bg-slate-50 peer-checked:bg-yellow-400 peer-checked:border-yellow-500 peer-checked:text-slate-900 peer-checked:shadow-md transition">
                             <i class="fas fa-heart-pulse block text-lg mb-1"></i>
                             Sakit
                         </div>
@@ -370,14 +363,14 @@
                     @if($group !== 'siswa')
                     <label class="cursor-pointer">
                         <input type="radio" name="status" value="dinas_luar" class="sr-only peer modal-status-radio">
-                        <div class="p-3.5 rounded-2xl border border-white/10 text-center text-xs font-bold text-slate-300 bg-white/5 peer-checked:bg-purple-500/20 peer-checked:border-purple-400 peer-checked:text-purple-300 peer-checked:shadow-lg transition">
+                        <div class="p-3.5 rounded-2xl border-2 border-slate-100 text-center text-xs font-extrabold text-slate-600 bg-slate-50 peer-checked:bg-purple-500 peer-checked:border-purple-600 peer-checked:text-white peer-checked:shadow-md transition">
                             <i class="fas fa-briefcase block text-lg mb-1"></i>
                             Dinas Luar
                         </div>
                     </label>
                     <label class="cursor-pointer">
                         <input type="radio" name="status" value="cuti" class="sr-only peer modal-status-radio">
-                        <div class="p-3.5 rounded-2xl border border-white/10 text-center text-xs font-bold text-slate-300 bg-white/5 peer-checked:bg-indigo-500/20 peer-checked:border-indigo-400 peer-checked:text-indigo-300 peer-checked:shadow-lg transition">
+                        <div class="p-3.5 rounded-2xl border-2 border-slate-100 text-center text-xs font-extrabold text-slate-600 bg-slate-50 peer-checked:bg-indigo-500 peer-checked:border-indigo-600 peer-checked:text-white peer-checked:shadow-md transition">
                             <i class="fas fa-calendar-xmark block text-lg mb-1"></i>
                             Cuti
                         </div>
@@ -385,14 +378,14 @@
                     @endif
                     <label class="cursor-pointer">
                         <input type="radio" name="status" value="alpha" class="sr-only peer modal-status-radio">
-                        <div class="p-3.5 rounded-2xl border border-white/10 text-center text-xs font-bold text-slate-300 bg-white/5 peer-checked:bg-rose-500/20 peer-checked:border-rose-400 peer-checked:text-rose-300 peer-checked:shadow-lg transition">
+                        <div class="p-3.5 rounded-2xl border-2 border-slate-100 text-center text-xs font-extrabold text-slate-600 bg-slate-50 peer-checked:bg-rose-500 peer-checked:border-rose-600 peer-checked:text-white peer-checked:shadow-md transition">
                             <i class="fas fa-circle-xmark block text-lg mb-1"></i>
                             Alpha
                         </div>
                     </label>
                     <label class="cursor-pointer">
                         <input type="radio" name="status" value="belum" class="sr-only peer modal-status-radio">
-                        <div class="p-3.5 rounded-2xl border border-white/10 text-center text-xs font-bold text-slate-300 bg-white/5 peer-checked:bg-slate-500/30 peer-checked:border-slate-300 peer-checked:text-white peer-checked:shadow-lg transition">
+                        <div class="p-3.5 rounded-2xl border-2 border-slate-100 text-center text-xs font-extrabold text-slate-600 bg-slate-50 peer-checked:bg-slate-700 peer-checked:border-slate-800 peer-checked:text-white peer-checked:shadow-md transition">
                             <i class="fas fa-hourglass block text-lg mb-1"></i>
                             Belum Absen
                         </div>
@@ -403,44 +396,44 @@
             {{-- Jam Masuk & Jam Pulang --}}
             <div class="grid grid-cols-2 gap-4 pt-1">
                 <div>
-                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-[0.15em] mb-2 flex items-center justify-between">
+                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
                         <span>Jam Masuk:</span>
-                        <button type="button" onclick="document.getElementById('modal_time_in').value='07:15'" class="text-[10px] text-amber-300 underline hover:text-amber-200">
+                        <button type="button" onclick="document.getElementById('modal_time_in').value='07:15'" class="text-[10px] text-indigo-600 font-bold underline hover:text-indigo-800">
                             07:15
                         </button>
                     </label>
                     <input type="time" name="time_in" id="modal_time_in"
-                           class="w-full bg-[#0b101c]/90 border border-white/20 rounded-2xl px-5 py-3 text-xs font-mono font-bold text-white focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 shadow-sm outline-none">
+                           class="w-full clay-pill-soft rounded-2xl px-5 py-3 text-xs font-mono font-extrabold text-slate-800 focus:ring-4 focus:ring-indigo-100 shadow-xs outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-[0.15em] mb-2 flex items-center justify-between">
+                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
                         <span>Jam Pulang:</span>
-                        <button type="button" onclick="document.getElementById('modal_time_out').value='15:00'" class="text-[10px] text-amber-300 underline hover:text-amber-200">
+                        <button type="button" onclick="document.getElementById('modal_time_out').value='15:00'" class="text-[10px] text-indigo-600 font-bold underline hover:text-indigo-800">
                             15:00
                         </button>
                     </label>
                     <input type="time" name="time_out" id="modal_time_out"
-                           class="w-full bg-[#0b101c]/90 border border-white/20 rounded-2xl px-5 py-3 text-xs font-mono font-bold text-white focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 shadow-sm outline-none">
+                           class="w-full clay-pill-soft rounded-2xl px-5 py-3 text-xs font-mono font-extrabold text-slate-800 focus:ring-4 focus:ring-indigo-100 shadow-xs outline-none">
                 </div>
             </div>
 
             {{-- Notes --}}
             <div>
-                <label class="block text-xs font-bold text-slate-300 uppercase tracking-[0.15em] mb-2">
+                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
                     Keterangan / Catatan:
                 </label>
                 <textarea name="notes" id="modal_notes" rows="2" placeholder="Tuliskan keterangan opsional..."
-                          class="w-full bg-[#0b101c]/90 border border-white/20 rounded-2xl p-4 text-xs font-medium text-white focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 shadow-sm outline-none"></textarea>
+                          class="w-full clay-pill-soft rounded-2xl p-4 text-xs font-semibold text-slate-800 focus:ring-4 focus:ring-indigo-100 shadow-xs outline-none"></textarea>
             </div>
 
             {{-- Modal Actions --}}
-            <div class="flex items-center justify-end gap-3.5 pt-4 border-t border-white/10">
+            <div class="flex items-center justify-end gap-3.5 pt-4 border-t border-slate-100">
                 <button type="button" onclick="closeEditModal()" 
-                        class="px-6 py-3.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-2xl text-xs font-bold uppercase tracking-wider border border-white/10 transition shadow-sm">
+                        class="clay-pill-soft px-6 py-3.5 text-slate-600 rounded-2xl text-xs font-extrabold uppercase tracking-wider hover:bg-slate-100 transition shadow-sm">
                     Batal
                 </button>
                 <button type="submit" id="modalSaveBtn"
-                        class="px-8 py-3.5 bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 hover:opacity-90 text-black rounded-2xl text-xs font-black uppercase tracking-wider border border-white/40 shadow-xl transition active:scale-95 flex items-center gap-2.5">
+                        class="clay-btn-primary px-8 py-3.5 rounded-2xl text-xs font-extrabold uppercase tracking-wider shadow-lg transition active:scale-95 flex items-center gap-2.5">
                     <i class="fas fa-save text-sm"></i>
                     <span>Simpan Perubahan</span>
                 </button>
@@ -462,7 +455,7 @@ function openEditModal(data) {
     if (data.photo_url) {
         avatarContainer.innerHTML = `<img src="${data.photo_url}" class="w-full h-full object-cover" alt="${data.name}">`;
     } else {
-        avatarContainer.innerHTML = `<span class="text-black font-black text-sm">${(data.name || 'AB').substring(0, 2).toUpperCase()}</span>`;
+        avatarContainer.innerHTML = `<span class="text-slate-900 font-extrabold text-sm">${(data.name || 'AB').substring(0, 2).toUpperCase()}</span>`;
     }
 
     // Set Radio Status
