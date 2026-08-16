@@ -87,7 +87,7 @@
         @endif
     </div>
 
-    <!-- 🕒 Banner Presensi Guru / Pegawai / Siswa (GPS Check-In / Check-Out) -->
+    <!-- 🕒 Compact Quick Presensi Bar (Guru / Pegawai / Siswa) -->
     @php
         $isTeacherOrStaff = in_array($activeRole, ['guru', 'pegawai', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'ketua_yayasan']);
         $isStudentRole = ($activeRole === 'siswa');
@@ -95,75 +95,44 @@
     @endphp
 
     @if(($isTeacherOrStaff || $isStudentRole) && (empty($todayAttendance) || $isNotCheckedOut))
-    <div class="rounded-3xl p-4.5 text-white shadow-xl border-2 border-black relative overflow-hidden transition-all duration-300"
-         style="background: {{ empty($todayAttendance) ? 'linear-gradient(135deg, #0f766e 0%, #047857 50%, #065f46 100%)' : 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #1e40af 100%)' }} !important;">
-        
-        <!-- Watermark Graphic -->
-        <div class="absolute -right-3 -bottom-5 text-white/10 text-8xl pointer-events-none transform -rotate-12">
-            <i class="fa-solid fa-location-dot"></i>
-        </div>
-
-        <div class="space-y-3 relative z-10">
-            <!-- Header Badges -->
-            <div class="flex items-center justify-between gap-2 flex-wrap">
+    <div class="bg-white rounded-2xl p-2.5 sm:p-3 border-2 border-slate-200/90 shadow-xs flex items-center justify-between gap-2.5 transition-all">
+        <!-- Left: Status Icon & Quick Info -->
+        <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-sm sm:text-base shrink-0 shadow-2xs border
+                        {{ empty($todayAttendance) ? 'bg-amber-100 text-amber-700 border-amber-300' : 'bg-emerald-100 text-emerald-700 border-emerald-300' }}">
+                <i class="fa-solid {{ empty($todayAttendance) ? 'fa-fingerprint animate-pulse' : 'fa-check-double' }}"></i>
+            </div>
+            <div class="min-w-0">
                 <div class="flex items-center gap-1.5">
-                    <span class="px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-black/30 border border-white/20 text-white shadow-2xs">
-                        <i class="fa-solid fa-satellite-dish text-amber-300 mr-1"></i> Presensi GPS
+                    <span class="text-xs font-black text-slate-900 truncate">
+                        {{ empty($todayAttendance) ? 'Waktunya Presensi!' : 'Presensi Masuk Tercatat' }}
                     </span>
                     @if(empty($todayAttendance))
-                        <span class="px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-rose-500 text-white border border-rose-400 animate-pulse shadow-2xs">
-                            Belum Presensi
-                        </span>
+                        <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-500 text-white shrink-0 leading-none">Belum</span>
                     @else
-                        <span class="px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-emerald-400 text-slate-950 border border-emerald-300 shadow-2xs">
-                            Masuk: {{ substr($todayAttendance->time_in, 0, 5) }} WIB
-                        </span>
+                        <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-emerald-600 text-white shrink-0 leading-none">{{ substr($todayAttendance->time_in, 0, 5) }}</span>
                     @endif
                 </div>
-
-                <span class="text-[10px] font-black text-amber-300">
-                    {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
-                </span>
-            </div>
-
-            <!-- Title & Body -->
-            <div>
-                <h3 class="font-black text-base text-white leading-tight flex items-center gap-1.5">
-                    @if(empty($todayAttendance))
-                        <span>Waktunya Presensi {{ $isStudentRole ? 'Siswa' : ($activeRole === 'pegawai' ? 'Pegawai' : 'Guru') }}! 🕒</span>
-                    @else
-                        <span>Presensi Masuk Tercatat! Jangan Lupa Pulang 👋</span>
-                    @endif
-                </h3>
-                <p class="text-xs text-emerald-100 font-semibold mt-1 leading-snug">
-                    @if(empty($todayAttendance))
-                        {{ $isStudentRole ? 'Kamu belum melakukan Presensi Masuk hari ini. Konfirmasi kehadiran GPS kamu sekarang.' : 'Bapak/Ibu ' . ($activeRole === 'pegawai' ? 'Pegawai' : 'Guru') . ' belum melakukan Presensi Masuk hari ini. Konfirmasi kehadiran GPS Anda sekarang.' }}
-                    @else
-                        {{ $isStudentRole ? 'Kamu sudah tercatat masuk jam ' . substr($todayAttendance->time_in, 0, 5) . ' WIB. Pastikan konfirmasi presensi pulang sebelum meninggalkan sekolah.' : 'Anda sudah tercatat masuk jam ' . substr($todayAttendance->time_in, 0, 5) . ' WIB. Pastikan melakukan presensi pulang sebelum meninggalkan sekolah.' }}
-                    @endif
+                <p class="text-[10px] text-slate-500 font-bold truncate">
+                    {{ empty($todayAttendance) ? 'Konfirmasi kehadiran GPS sekarang' : 'Jangan lupa presensi pulang nanti' }}
                 </p>
             </div>
+        </div>
 
-            <!-- Action Buttons -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                <button type="button" 
-                        onclick="performMobileGpsScan(this)" 
-                        class="w-full py-2.5 px-3 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black rounded-2xl shadow-md transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider border-2 border-black">
-                    @if(empty($todayAttendance))
-                        <i class="fa-solid fa-location-dot text-slate-950 text-xs"></i>
-                        <span>Presensi Masuk Sekarang</span>
-                    @else
-                        <i class="fa-solid fa-right-from-bracket text-slate-950 text-xs"></i>
-                        <span>Presensi Pulang Sekarang</span>
-                    @endif
-                </button>
-
-                <a href="{{ $isStudentRole ? route('mobile.absensi.index') : (Route::has('mobile.guru.absensi.saya') ? route('mobile.guru.absensi.saya') : route('mobile.absensi.index')) }}" 
-                   class="w-full py-2.5 px-3 bg-white/20 hover:bg-white/30 active:scale-95 text-white font-black rounded-2xl text-xs uppercase tracking-wider border border-white/30 transition text-center flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-calendar-days text-[11px]"></i>
-                    <span>Detail Rekap Absensi</span>
-                </a>
-            </div>
+        <!-- Right: Action Button -->
+        <div class="shrink-0 flex items-center gap-1.5">
+            <button type="button" 
+                    onclick="performMobileGpsScan(this)" 
+                    class="px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-2xs border-2 active:scale-95
+                           {{ empty($todayAttendance) ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500' : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-700' }}">
+                <i class="fa-solid {{ empty($todayAttendance) ? 'fa-location-dot' : 'fa-right-from-bracket' }} text-[10px]"></i>
+                <span>{{ empty($todayAttendance) ? 'Presensi' : 'Pulang' }}</span>
+            </button>
+            <a href="{{ $isStudentRole ? route('mobile.absensi.index') : (Route::has('mobile.guru.absensi.saya') ? route('mobile.guru.absensi.saya') : route('mobile.absensi.index')) }}" 
+               class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs border border-slate-200 shrink-0 active:scale-95"
+               title="Rekap Absensi">
+                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </a>
         </div>
     </div>
     @endif
