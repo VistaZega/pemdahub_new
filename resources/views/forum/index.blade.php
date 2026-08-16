@@ -874,6 +874,7 @@
             <!-- User Profile Card -->
             @php
                 $user = auth()->user();
+                $isYayasan = $user->isOwnerOrSuperAdmin() || $user->canAccessYayasan() || $user->role === 'ketua_yayasan';
                 $rep = $user->reputation;
                 $pts = $rep->total_points ?? 0;
                 $school = $user->school->name ?? 'Yayasan Perguruan Pembda Nias';
@@ -884,6 +885,24 @@
                 elseif ($pts >= 100) { $rank = 'Warga Aktif 🚀'; $next = 200; }
                 $pct = min(100, max(5, round(($pts / $next) * 100)));
             @endphp
+            @if($isYayasan)
+            <div class="bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 rounded-3xl p-5 shadow-lg text-white relative overflow-hidden border-2 border-black">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-400 border-2 border-black shadow-inner flex items-center justify-center flex-shrink-0 overflow-hidden text-black font-black text-lg">
+                        <img src="{{ $user->avatar_url }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="w-full h-full items-center justify-center hidden bg-amber-400 text-black font-black"><i class="fas fa-crown"></i></div>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="font-black text-white truncate text-base tracking-tight">{{ $user->name }}</div>
+                        <div class="text-[10px] text-amber-300 font-bold uppercase tracking-wider truncate">{{ $school }}</div>
+                    </div>
+                </div>
+                
+                <div class="inline-flex items-center gap-1.5 bg-black/40 px-3 py-1 rounded-xl text-xs font-black text-amber-300 border border-amber-400/30">
+                    <i class="fas fa-crown text-amber-400"></i> Pimpinan Yayasan
+                </div>
+            </div>
+            @else
             <div class="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 rounded-3xl p-5 shadow-lg shadow-purple-500/20 text-white relative overflow-hidden">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-12 h-12 rounded-2xl bg-white/20 border-2 border-white/40 shadow-inner flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -903,6 +922,7 @@
                     <div class="bg-white h-full rounded-full transition-all duration-300" style="width: {{ $pct }}%"></div>
                 </div>
             </div>
+            @endif
 
             <!-- Leaderboard Widget -->
             <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">

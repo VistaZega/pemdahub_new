@@ -35,6 +35,17 @@
                     <div class="text-3xl font-black text-emerald-400">{{ number_format(auth()->user()->reputation->total_points ?? 0) }}</div>
                 </div>
             </div>
+            @elseif(auth()->check() && (auth()->user()->isOwnerOrSuperAdmin() || auth()->user()->canAccessYayasan() || auth()->user()->role === 'ketua_yayasan'))
+            <div class="bg-black border-2 border-black rounded-3xl p-4 md:p-5 shadow-2xl flex items-center gap-4 shrink-0 text-white">
+                <div class="w-12 h-12 rounded-2xl bg-amber-400 border border-black flex items-center justify-center text-black text-xl shadow-sm shrink-0">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div>
+                    <div class="text-[10px] font-black uppercase tracking-wider text-amber-300">Status Kehormatan</div>
+                    <div class="text-base font-black text-white leading-tight">Pimpinan Yayasan</div>
+                    <div class="text-[10px] text-slate-400 font-bold mt-0.5">Non-Kompetitif (Off Leaderboard)</div>
+                </div>
+            </div>
             @endif
         </div>
     </div>

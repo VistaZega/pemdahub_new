@@ -41,6 +41,16 @@ class ReputationLog extends Model
      */
     public static function log($userId, $points, $category, $description = '', $ref = null): void
     {
+        $user = User::find($userId);
+        if (!$user) {
+            return;
+        }
+
+        // Pengurus Yayasan, Superadmin, dan Owner tidak mengumpulkan poin kompetitif
+        if ($user->isOwnerOrSuperAdmin() || $user->canAccessYayasan() || $user->role === 'ketua_yayasan') {
+            return;
+        }
+
         // Check if we are updating an existing log for this reference
         $existingLog = null;
         if ($ref) {

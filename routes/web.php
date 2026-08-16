@@ -695,7 +695,10 @@ Route::get('/', function () {
 
     $topTeachersElite = \App\Models\Reputation::with(['user.teacher.school', 'user.badges'])
         ->whereHas('user', function($q) {
-            $q->where('role', 'guru');
+            $q->where('role', 'guru')
+              ->where('role', '!=', 'superadmin')
+              ->where('role', '!=', 'ketua_yayasan')
+              ->where('username', '!=', 'yulzega');
         })
         ->orderBy('total_points', 'desc')
         ->take(4)

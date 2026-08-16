@@ -397,6 +397,25 @@
                     <a href="{{ route('reputation.leaderboard') }}" class="text-xs font-black text-amber-300 hover:text-amber-400 uppercase tracking-wider">Papan Skor →</a>
                 </div>
 
+                @php
+                    $isYayasanUser = $teacher->user && ($teacher->user->isOwnerOrSuperAdmin() || $teacher->user->canAccessYayasan() || $teacher->user->role === 'ketua_yayasan');
+                @endphp
+
+                @if($isYayasanUser)
+                <div class="text-center p-5 bg-slate-900 rounded-2xl shadow-md border-2 border-slate-700 mb-4 relative overflow-hidden text-white">
+                    <div class="relative z-10 pt-2">
+                        <div class="w-14 h-14 rounded-2xl bg-amber-400 border-2 border-black mx-auto mb-3 flex items-center justify-center text-black text-2xl shadow-md">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div class="text-xl font-black text-white mb-1">Pimpinan Yayasan</div>
+                        <div class="text-[11px] font-bold text-amber-300 uppercase tracking-wider mb-2">Perguruan Pembda Nias</div>
+                        
+                        <div class="inline-block px-4 py-1.5 bg-black/60 text-amber-300 text-xs font-black rounded-xl shadow-sm uppercase tracking-wider border border-slate-700">
+                            Status Non-Kompetitif
+                        </div>
+                    </div>
+                </div>
+                @else
                 <div class="text-center p-5 bg-slate-900 rounded-2xl shadow-md border-2 border-slate-700 mb-4 relative overflow-hidden text-white">
                     <div class="absolute top-2 right-2">
                         <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase border border-amber-400" style="background-color: #fbbf24 !important; color: #000000 !important;">Rank #{{ $rank }}</span>
@@ -416,6 +435,7 @@
                         <div class="bg-amber-400 h-full rounded-full" style="width: {{ $reputation->progress_percentage }}%"></div>
                     </div>
                 </div>
+                @endif
 
                 <div class="space-y-2.5 relative z-10">
                     <h3 class="text-[10px] font-black text-amber-300 uppercase tracking-wider">Kontribusi Terakhir</h3>

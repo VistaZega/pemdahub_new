@@ -45,7 +45,10 @@ class LeaderboardController extends Controller
             'user.reputationLogs' => fn($q) => $q->orderBy('id', 'desc')->take(5)
         ])
             ->whereHas('user', function($q) {
-                $q->where('role', 'guru');
+                $q->where('role', 'guru')
+                  ->where('role', '!=', 'superadmin')
+                  ->where('role', '!=', 'ketua_yayasan')
+                  ->where('username', '!=', 'yulzega');
             })
             ->orderBy('total_points', 'desc')
             ->take(10)
@@ -53,8 +56,11 @@ class LeaderboardController extends Controller
 
         $userRanking = null;
         if (auth()->check()) {
-            $userRanking = Reputation::where('total_points', '>', auth()->user()->reputation?->total_points ?? 0)
-                ->count() + 1;
+            $currentUser = auth()->user();
+            if (!$currentUser->isOwnerOrSuperAdmin() && !$currentUser->canAccessYayasan() && $currentUser->role !== 'ketua_yayasan') {
+                $userRanking = Reputation::where('total_points', '>', $currentUser->reputation?->total_points ?? 0)
+                    ->count() + 1;
+            }
         }
 
         return view('reputation.leaderboard', compact('topStudents', 'topTeachers', 'userRanking'));

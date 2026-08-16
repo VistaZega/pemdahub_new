@@ -76,18 +76,31 @@
 
             {{-- Reputation & Badges --}}
             @if($teacher->user && $teacher->user->reputation)
+            @php
+                $isYayasanTeacher = $teacher->user->isOwnerOrSuperAdmin() || $teacher->user->canAccessYayasan() || $teacher->user->role === 'ketua_yayasan';
+            @endphp
             <div class="border-t border-gray-100 p-6 bg-slate-50/50">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pembda Elite</h3>
-                    <span class="text-xs font-bold {{ $teacher->user->reputation->level_color }} text-white px-2 py-0.5 rounded-full">
-                        {{ $teacher->user->reputation->level_name }}
+                    <span class="text-xs font-bold {{ $isYayasanTeacher ? 'bg-amber-500' : $teacher->user->reputation->level_color }} text-white px-2 py-0.5 rounded-full">
+                        {{ $isYayasanTeacher ? 'Pimpinan Yayasan' : $teacher->user->reputation->level_name }}
                     </span>
                 </div>
                 
+                @if($isYayasanTeacher)
+                <div class="flex items-center gap-3 mb-6 p-3 bg-amber-50 rounded-2xl border border-amber-200 text-amber-950">
+                    <i class="fas fa-crown text-amber-500 text-2xl"></i>
+                    <div>
+                        <div class="text-xs font-bold">Status Non-Kompetitif</div>
+                        <div class="text-[11px] text-amber-800">Akun Manajemen & Pimpinan Yayasan</div>
+                    </div>
+                </div>
+                @else
                 <div class="flex items-center gap-3 mb-6">
                     <div class="text-3xl font-bold text-slate-800">{{ number_format($teacher->user->reputation->total_points) }}</div>
                     <div class="text-xs font-bold text-slate-400 uppercase leading-tight">Total<br>Score</div>
                 </div>
+                @endif
 
                 <div class="space-y-3">
                     <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Koleksi Lencana</h4>
