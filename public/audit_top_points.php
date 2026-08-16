@@ -19,6 +19,7 @@ $response = $kernel->handle(
 );
 
 use App\Models\User;
+use App\Models\Reputation;
 use App\Models\ReputationLog;
 use Illuminate\Support\Facades\DB;
 
@@ -29,23 +30,28 @@ $isDryRun = isset($_GET['dry_run']) && $_GET['dry_run'] == '1';
 $executionLog = [];
 
 if ($doFix) {
-    // Perform audit and normalization
-    $allUsersWithAnomalies = User::where('reputation_points', '>', 500)->get();
+    // Perform audit and normalization for all users with reputations
+    $allReps = Reputation::where('total_points', '>', 300)->with('user')->get();
     
     DB::beginTransaction();
     try {
         $totalDeductedPoints = 0;
         $totalDeletedLogs = 0;
 
-        foreach ($allUsersWithAnomalies as $u) {
+        foreach ($allReps as $rep) {
+            $user = $rep->user;
+            if (!$user) continue;
+
             $userDeducted = 0;
             $userLogsDeleted = 0;
 
-            // 1. Check duplicate LMS material logs for the same user and same material
-            $materialLogs = ReputationLog::where('user_id', $u->id)
+            // 1. Check duplicate LMS material logs for the same user and same description/material
+            $materialLogs = ReputationLog::where('user_id', $user->id)
                 ->where(function($q) {
-                    $q->where('type', 'like', '%material%')
-                      ->orWhere('description', 'like', '%Materi%');
+                    $q->where('category', 'like', '%material%')
+                      ->orWhere('category', 'like', '%lms%')
+                      ->orWhere('description', 'like', '%Materi%')
+                      ->orWhere('description', 'like', '%materi%');
                 })
                 ->orderBy('id')
                 ->get();
@@ -74,10 +80,11 @@ if ($doFix) {
             }
 
             // 2. Check duplicate LMS quiz logs for the same user and same quiz
-            $quizLogs = ReputationLog::where('user_id', $u->id)
+            $quizLogs = ReputationLog::where('user_id', $user->id)
                 ->where(function($q) {
-                    $q->where('type', 'like', '%quiz%')
+                    $q->where('category', 'like', '%quiz%')
                       ->orWhere('description', 'like', '%Kuis%')
+                      ->orWhere('description', 'like', '%kuis%')
                       ->orWhere('description', 'like', '%quiz%');
                 })
                 ->orderBy('id')
@@ -107,17 +114,17 @@ if ($doFix) {
             }
 
             // 3. Check identical description flood (>5 identical non-material/non-quiz logs)
-            $floods = ReputationLog::where('user_id', $u->id)
-                ->select('description', 'type', DB::raw('COUNT(*) as cnt'), DB::raw('MIN(id) as keep_id'))
-                ->whereNotIn('type', ['daily_login', 'attendance'])
-                ->groupBy('description', 'type')
+            $floods = ReputationLog::where('user_id', $user->id)
+                ->select('description', 'category', DB::raw('COUNT(*) as cnt'), DB::raw('MIN(id) as keep_id'))
+                ->whereNotIn('category', ['daily_login', 'attendance', 'login'])
+                ->groupBy('description', 'category')
                 ->having('cnt', '>', 5)
                 ->get();
 
             foreach ($floods as $f) {
-                $excessLogs = ReputationLog::where('user_id', $u->id)
+                $excessLogs = ReputationLog::where('user_id', $user->id)
                     ->where('description', $f->description)
-                    ->where('type', $f->type)
+                    ->where('category', $f->category)
                     ->where('id', '!=', $f->keep_id)
                     ->get();
 
@@ -130,33 +137,24 @@ if ($doFix) {
                 }
             }
 
-            // Re-sync User table reputation_points
+            // Re-sync Reputation total_points
             if (!$isDryRun) {
-                $newTotal = (int) ReputationLog::where('user_id', $u->id)->sum('points');
+                $newTotal = (int) ReputationLog::where('user_id', $user->id)->sum('points');
                 $newTotal = max(0, $newTotal);
                 
-                // Determine new level
-                $level = 'Pemula';
-                if ($newTotal >= 2000) $level = 'Legenda';
-                elseif ($newTotal >= 1000) $level = 'Master';
-                elseif ($newTotal >= 500) $level = 'Pakar';
-                elseif ($newTotal >= 250) $level = 'Terampil';
-                elseif ($newTotal >= 100) $level = 'Aktif';
-
-                $u->update([
-                    'reputation_points' => $newTotal,
-                    'reputation_level' => $level
-                ]);
+                $rep->total_points = $newTotal;
+                $rep->updateLevel();
+                $rep->save();
             }
 
             if ($userDeducted > 0) {
                 $executionLog[] = [
-                    'name' => $u->name,
-                    'username' => $u->username,
+                    'name' => $user->name,
+                    'username' => $user->username,
                     'deducted' => $userDeducted,
                     'deleted_logs' => $userLogsDeleted,
-                    'old_points' => $u->reputation_points,
-                    'new_points' => max(0, $u->reputation_points - $userDeducted)
+                    'old_points' => $rep->total_points,
+                    'new_points' => max(0, $rep->total_points - $userDeducted)
                 ];
                 $totalDeductedPoints += $userDeducted;
                 $totalDeletedLogs += $userLogsDeleted;
@@ -187,7 +185,7 @@ if ($doFix) {
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between flex-wrap gap-4">
             <div>
                 <h1 class="text-2xl font-black text-slate-900">🛡️ Audit Poin Reputasi Tertinggi</h1>
-                <p class="text-sm text-slate-500 mt-1">Pemeriksaan integritas poin perolehan siswa (LMS Materi, Kuis, Forum Diskusi, & Brick).</p>
+                <p class="text-sm text-slate-500 mt-1">Pemeriksaan integritas perolehan poin siswa & guru (LMS Materi, Kuis, Forum Diskusi, & Brick).</p>
             </div>
             <div class="flex items-center gap-2">
                 <a href="?secret=pembda99" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
@@ -220,7 +218,7 @@ if ($doFix) {
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px]">
-                                    <th class="p-2">Nama Siswa</th>
+                                    <th class="p-2">Nama Siswa / Guru</th>
                                     <th class="p-2">Username</th>
                                     <th class="p-2 text-right">Poin Semula</th>
                                     <th class="p-2 text-right">Poin Anomali Ditarik</th>
@@ -245,35 +243,41 @@ if ($doFix) {
         <?php endif; ?>
 
         <?php
-        // 1. Get Top 5 Users by Reputation Points + Johan Prasettyo Zebua if not in top 5
-        $topUsers = User::orderByDesc('reputation_points')->take(5)->get();
+        // 1. Get Top 5 Reputations + Johan Prasettyo Zebua if not in top 5
+        $topReputations = Reputation::with('user')->orderByDesc('total_points')->take(5)->get();
         $targetUser = User::where('username', '0134283844')->orWhere('name', 'LIKE', '%JOHAN PRASETTYO%')->first();
         
-        $usersToAudit = collect($topUsers);
-        if ($targetUser && !$usersToAudit->contains('id', $targetUser->id)) {
-            $usersToAudit->push($targetUser);
+        $reputationsToAudit = collect($topReputations);
+        if ($targetUser) {
+            $targetRep = Reputation::where('user_id', $targetUser->id)->first();
+            if ($targetRep && !$reputationsToAudit->contains('id', $targetRep->id)) {
+                $reputationsToAudit->push($targetRep);
+            }
         }
         ?>
 
         <!-- Top Users Audit Cards -->
         <div class="space-y-6">
-            <?php foreach ($usersToAudit as $rank => $user): ?>
+            <?php foreach ($reputationsToAudit as $rank => $rep): ?>
                 <?php
+                $user = $rep->user;
+                if (!$user) continue;
+
                 // Fetch logs summary
                 $totalLogPoints = ReputationLog::where('user_id', $user->id)->sum('points');
                 $logCount = ReputationLog::where('user_id', $user->id)->count();
 
-                // Group by type
+                // Group by category
                 $typeBreakdown = ReputationLog::where('user_id', $user->id)
-                    ->select('type', DB::raw('COUNT(*) as count'), DB::raw('SUM(points) as total_points'))
-                    ->groupBy('type')
+                    ->select('category', DB::raw('COUNT(*) as count'), DB::raw('SUM(points) as total_points'))
+                    ->groupBy('category')
                     ->orderByDesc('total_points')
                     ->get();
 
                 // Check identical description floods
                 $duplicateDescriptions = ReputationLog::where('user_id', $user->id)
-                    ->select('description', 'type', DB::raw('COUNT(*) as duplicate_count'), DB::raw('SUM(points) as flood_points'))
-                    ->groupBy('description', 'type')
+                    ->select('description', 'category', DB::raw('COUNT(*) as duplicate_count'), DB::raw('SUM(points) as flood_points'))
+                    ->groupBy('description', 'category')
                     ->having('duplicate_count', '>', 3)
                     ->orderByDesc('flood_points')
                     ->get();
@@ -290,12 +294,12 @@ if ($doFix) {
                     $anomalies[] = "Aktivitas berulang/farming: '{$dup->description}' tercatat {$dup->duplicate_count}x (menyumbang {$dup->flood_points} poin, anomali: ~" . number_format($anomPoints, 0, ',', '.') . " pts)";
                 }
 
-                if ($user->reputation_points > 3000 && $logCount > 300) {
+                if ($rep->total_points > 3000 && $logCount > 300) {
                     $anomalies[] = "Total log poin sangat masif ({$logCount} transaksi), mengindikasikan eksploitasi berulang pada materi/kuis yang sama";
                 }
 
                 $isAnomalous = count($anomalies) > 0 || $fraudPoints > 100;
-                $legitimatePointsEstimate = max(0, $user->reputation_points - $fraudPoints);
+                $legitimatePointsEstimate = max(0, $rep->total_points - $fraudPoints);
                 ?>
 
                 <div class="bg-white rounded-2xl border <?= $isAnomalous ? 'border-rose-300 ring-2 ring-rose-200' : 'border-slate-200' ?> p-6 shadow-sm space-y-5">
@@ -310,14 +314,14 @@ if ($doFix) {
                                 <p class="text-xs text-slate-500 font-medium">
                                     Username: <span class="font-mono font-bold text-slate-800"><?= htmlspecialchars($user->username) ?></span> | 
                                     Role: <span class="uppercase font-bold text-slate-700"><?= htmlspecialchars($user->role) ?></span> | 
-                                    Level: <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold text-[10px]"><?= htmlspecialchars($user->reputation_level ?? 'Pemula') ?></span>
+                                    Level: <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold text-[10px]"><?= htmlspecialchars($rep->level_name ?? 'Newbie') ?></span>
                                 </p>
                             </div>
                         </div>
 
                         <div class="text-right">
                             <div class="text-2xl font-black <?= $isAnomalous ? 'text-rose-600' : 'text-indigo-600' ?>">
-                                <?= number_format($user->reputation_points, 0, ',', '.') ?> <span class="text-xs text-slate-500 font-normal">Poin</span>
+                                <?= number_format($rep->total_points, 0, ',', '.') ?> <span class="text-xs text-slate-500 font-normal">Poin</span>
                             </div>
                             <span class="text-[11px] text-slate-400">Total Log: <?= number_format($totalLogPoints, 0, ',', '.') ?> pts (<?= $logCount ?> transaksi)</span>
                         </div>
@@ -355,7 +359,7 @@ if ($doFix) {
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <?php foreach ($typeBreakdown as $tb): ?>
                                 <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3">
-                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider"><?= htmlspecialchars($tb->type ?: 'unspecified') ?></span>
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider"><?= htmlspecialchars($tb->category ?: 'unspecified') ?></span>
                                     <div class="text-base font-black text-slate-800 mt-0.5">
                                         <?= number_format($tb->total_points, 0, ',', '.') ?> <span class="text-[10px] text-slate-400 font-normal">pts</span>
                                     </div>
@@ -369,14 +373,14 @@ if ($doFix) {
                     <div>
                         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Sampel Log Aktivitas Terakhir</h3>
                         <?php
-                        $sampleLogs = ReputationLog::where('user_id', $user->id)->latest()->take(5)->get();
+                        $sampleLogs = ReputationLog::where('user_id', $user->id)->orderBy('id', 'desc')->take(5)->get();
                         ?>
                         <div class="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden text-xs">
                             <table class="w-full text-left">
                                 <thead class="bg-slate-100/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase">
                                     <tr>
                                         <th class="p-2.5">Waktu</th>
-                                        <th class="p-2.5">Tipe</th>
+                                        <th class="p-2.5">Kategori</th>
                                         <th class="p-2.5">Keterangan</th>
                                         <th class="p-2.5 text-right">Poin</th>
                                     </tr>
@@ -384,8 +388,8 @@ if ($doFix) {
                                 <tbody class="divide-y divide-slate-200/60">
                                     <?php foreach ($sampleLogs as $log): ?>
                                         <tr>
-                                            <td class="p-2.5 text-slate-500 font-mono"><?= $log->created_at->format('Y-m-d H:i:s') ?></td>
-                                            <td class="p-2.5 font-bold text-slate-700 uppercase"><?= htmlspecialchars($log->type) ?></td>
+                                            <td class="p-2.5 text-slate-500 font-mono"><?= $log->created_at ? $log->created_at->format('Y-m-d H:i:s') : '-' ?></td>
+                                            <td class="p-2.5 font-bold text-slate-700 uppercase"><?= htmlspecialchars($log->category) ?></td>
                                             <td class="p-2.5 text-slate-800"><?= htmlspecialchars($log->description) ?></td>
                                             <td class="p-2.5 text-right font-black <?= $log->points >= 0 ? 'text-emerald-600' : 'text-rose-600' ?>">
                                                 <?= $log->points > 0 ? '+' : '' ?><?= $log->points ?>
