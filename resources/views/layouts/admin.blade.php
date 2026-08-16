@@ -382,17 +382,11 @@
             </a>
             @endif
 
-            {{-- Absensi Guru & Absensi Staf: Super Admin Erwin, Admin Sekolah, Kepala Sekolah --}}
-            @if(($isSA || $isAdmin || $isKepsek) && !$isYayasan)
-            <a href="{{ route('admin.teachers.attendance.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.teachers.attendance.*') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-chalkboard-teacher text-[10px]"></i></div>
-                <span>Absensi Guru</span>
+            {{-- Pusat Absensi Terpadu: Siswa, Guru, Pegawai (Super Admin, Yayasan, Admin Sekolah, Kepala Sekolah) --}}
+            <a href="{{ route('admin.attendance.monitoring') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.attendances.*') || request()->routeIs('admin.teachers.attendance.*') || request()->routeIs('admin.employees.attendance.*') ? $ac : $nc }}">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white"><i class="fas fa-clipboard-user text-[10px]"></i></div>
+                <span class="font-bold">Pusat Absensi</span>
             </a>
-            <a href="{{ route('admin.employees.attendance.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.employees.attendance.*') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-fingerprint text-[10px]"></i></div>
-                <span>Absensi Staf</span>
-            </a>
-            @endif
 
             {{-- Absensi TEFA: Super Admin Erwin --}}
             @if($isSA && !$isYayasan)
@@ -523,18 +517,6 @@
             <i class="fas fa-chevron-right text-[9px] chevron"></i>
         </button>
         <div class="menu-group-body closed mt-1 space-y-0.5">
-            <a href="{{ route('admin.attendances.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.attendances.index') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-list-check text-[10px]"></i></div>
-                <span>Absensi Siswa</span>
-            </a>
-            <a href="{{ route('admin.attendances.bulk') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.attendances.bulk') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-users-viewfinder text-[10px]"></i></div>
-                <span>Input Absensi Siswa</span>
-            </a>
-            <a href="{{ route('admin.attendances.monitoring') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.attendances.monitoring') ? $ac : $nc }}">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white"><i class="fas fa-chart-line text-[10px]"></i></div>
-                <span>Monitoring Absensi Siswa</span>
-            </a>
             <a href="{{ route('admin.grades.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.grades.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center text-white"><i class="fas fa-pen-to-square text-[10px]"></i></div>
                 <span>Nilai</span>

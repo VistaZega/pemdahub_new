@@ -57,10 +57,21 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::put('grade-weights/{school}', [App\Http\Controllers\Admin\GradeWeightController::class, 'update'])->name('grade-weights.update');
     Route::post('grade-weights/{school}/reset', [App\Http\Controllers\Admin\GradeWeightController::class, 'reset'])->name('grade-weights.reset');
 
-    // Attendances (Absensi)
-    Route::get('attendances/monitoring', [App\Http\Controllers\Admin\AttendanceController::class, 'monitoring'])->name('attendances.monitoring');
-    Route::get('attendances/bulk', [App\Http\Controllers\Admin\AttendanceController::class, 'bulk'])->name('attendances.bulk');
-    Route::post('attendances/bulk', [App\Http\Controllers\Admin\AttendanceController::class, 'bulkStore'])->name('attendances.bulkStore');
+    // Pusat Absensi Terpadu (Unified Attendance Center: Siswa, Guru, Pegawai)
+    Route::prefix('attendance')->name('attendance.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'monitoring'])->name('index');
+        Route::get('live', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'live'])->name('live');
+        Route::get('monitoring', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'monitoring'])->name('monitoring');
+        Route::get('bulk', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'bulkInput'])->name('bulk');
+        Route::post('bulk', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'bulkStore'])->name('bulk.store');
+        Route::get('rekap', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'rekap'])->name('rekap');
+        Route::delete('{id}', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'destroy'])->name('destroy');
+    });
+
+    // Legacy Attendances Route Aliases & Mass-Update Support
+    Route::get('attendances/monitoring', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'monitoring'])->name('attendances.monitoring');
+    Route::get('attendances/bulk', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'bulkInput'])->name('attendances.bulk');
+    Route::post('attendances/bulk', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'bulkStore'])->name('attendances.bulkStore');
     Route::get('attendances/mass-update', [App\Http\Controllers\Admin\AttendanceController::class, 'massUpdate'])->name('attendances.mass-update');
     Route::post('attendances/mass-update', [App\Http\Controllers\Admin\AttendanceController::class, 'massUpdateStore'])->name('attendances.mass-update.store');
     Route::get('attendances/check', [App\Http\Controllers\Admin\AttendanceController::class, 'checkExistence'])->name('attendances.check');
