@@ -99,36 +99,40 @@
                             $codeVal = $group === 'siswa' ? ($p->nisn ?: ($p->nis ?: '-')) : ($p->employee_code ?: ($p->nip ?: '-'));
                         @endphp
                         <tr class="hover:bg-amber-50/80 transition-colors {{ $ex ? 'bg-emerald-50/30' : '' }}">
-                            <td class="px-5 py-4 text-center text-xs text-black font-black font-mono whitespace-nowrap">{{ $idx + 1 }}</td>
-                            <td class="px-5 py-4 whitespace-nowrap">
-                                <div class="flex items-center gap-3.5">
-                                    <div class="w-10 h-10 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
-                                        {{ strtoupper(substr($p->full_name, 0, 2)) }}
+                            <td class="px-3 py-3.5 text-center text-xs text-black font-black font-mono whitespace-nowrap">{{ $idx + 1 }}</td>
+                            <td class="px-4 py-3.5">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-xs overflow-hidden">
+                                        @if(!empty($p->photo_url))
+                                            <img src="{{ $p->photo_url }}" class="w-full h-full object-cover" alt="{{ $p->full_name }}">
+                                        @else
+                                            <span class="text-black font-black text-xs">{{ strtoupper(substr($p->full_name, 0, 2)) }}</span>
+                                        @endif
                                     </div>
                                     <div class="min-w-0">
-                                        <div class="font-black text-black text-sm flex items-center gap-2 flex-wrap">
-                                            <span>{{ $p->full_name }}</span>
+                                        <div class="font-black text-black text-xs md:text-sm leading-tight flex items-center gap-2 flex-wrap">
+                                            <span class="truncate max-w-[200px]" title="{{ $p->full_name }}">{{ $p->full_name }}</span>
                                             @if($ex)
                                                 @if($ex->recorded_via === 'gps')
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-xl text-[9px] font-black bg-blue-100 text-blue-900 border border-blue-900 whitespace-nowrap">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black bg-blue-100 text-blue-900 border border-blue-900 whitespace-nowrap">
                                                         <i class="fas fa-location-dot mr-1"></i> GPS
                                                     </span>
                                                 @elseif($ex->recorded_via === 'rfid')
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-xl text-[9px] font-black bg-amber-200 text-black border border-black whitespace-nowrap">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black bg-amber-200 text-black border border-black whitespace-nowrap">
                                                         <i class="fas fa-id-card mr-1"></i> RFID
                                                     </span>
                                                 @else
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-xl text-[9px] font-black bg-gray-100 text-black border border-black whitespace-nowrap">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black bg-gray-100 text-black border border-black whitespace-nowrap">
                                                         <i class="fas fa-pen mr-1"></i> Manual
                                                     </span>
                                                 @endif
                                             @endif
                                         </div>
-                                        <div class="text-xs text-gray-500 font-bold font-mono">{{ $codeVal }}</div>
+                                        <div class="text-[11px] text-gray-500 font-bold font-mono">{{ $codeVal }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-5 py-4 whitespace-nowrap">
+                            <td class="px-3 py-3.5 whitespace-nowrap">
                                 <select name="attendance[{{ $p->id }}][status]"
                                         class="att-status w-full px-4 py-2.5 bg-white border-2 border-black rounded-2xl text-xs font-black text-black focus:ring-2 focus:ring-amber-400 shadow-sm cursor-pointer">
                                     <option value="hadir" {{ ($ex?->status ?? 'hadir') === 'hadir' ? 'selected' : '' }}>Hadir</option>

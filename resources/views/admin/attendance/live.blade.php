@@ -128,8 +128,12 @@
             @forelse($liveEvents as $ev)
                 <div class="p-5 rounded-3xl border-2 border-black hover:bg-amber-50 transition-all shadow-md flex items-center justify-between gap-4 bg-white">
                     <div class="flex items-center gap-4 min-w-0">
-                        <div class="w-12 h-12 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
-                            {{ strtoupper(substr($ev['name'], 0, 2)) }}
+                        <div class="w-12 h-12 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-sm overflow-hidden">
+                            @if(!empty($ev['photo_url']))
+                                <img src="{{ $ev['photo_url'] }}" class="w-full h-full object-cover" alt="{{ $ev['name'] }}">
+                            @else
+                                <span class="text-black font-black text-xs">{{ strtoupper(substr($ev['name'], 0, 2)) }}</span>
+                            @endif
                         </div>
                         <div class="min-w-0">
                             <div class="font-black text-black text-sm truncate">{{ $ev['name'] }}</div>
@@ -207,6 +211,10 @@ function pollLiveData() {
                 let html = '';
                 data.liveEvents.forEach(ev => {
                     const initials = ev.name.substring(0, 2).toUpperCase();
+                    const photoHtml = ev.photo_url 
+                        ? `<img src="${ev.photo_url}" class="w-full h-full object-cover" alt="${ev.name}">`
+                        : `<span class="text-black font-black text-xs">${initials}</span>`;
+
                     let viaBadge = '';
                     if (ev.recorded_via === 'gps') {
                         viaBadge = '<span class="px-3 py-1 rounded-xl text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-900"><i class="fas fa-location-dot mr-1"></i> GPS</span>';
@@ -223,8 +231,8 @@ function pollLiveData() {
                     html += `
                         <div class="p-5 rounded-3xl border-2 border-black hover:bg-amber-50 transition-all shadow-md flex items-center justify-between gap-4 bg-white">
                             <div class="flex items-center gap-4 min-w-0">
-                                <div class="w-12 h-12 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
-                                    ${initials}
+                                <div class="w-12 h-12 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-sm overflow-hidden">
+                                    ${photoHtml}
                                 </div>
                                 <div class="min-w-0">
                                     <div class="font-black text-black text-sm truncate">${ev.name}</div>
