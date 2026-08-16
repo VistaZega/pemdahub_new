@@ -98,10 +98,13 @@
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-star-half-alt text-[10px]"></i></div>
                 <span>Evaluasi Kinerja</span>
             </a>
-            <a href="{{ route('admin.employees.leaves.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.employees.leaves.*') ? $ac : $nc }}">
+            <span class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm opacity-50 cursor-not-allowed select-none" title="Modul Cuti belum dapat diakses">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-sky-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-calendar-check text-[10px]"></i></div>
-                <span>Cuti & Izin</span>
-            </a>
+                <span class="flex-1">Cuti &amp; Izin</span>
+                <span class="text-[9px] font-black bg-amber-100 text-amber-600 border border-amber-300 px-1.5 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap">
+                    <i class="fas fa-lock text-[8px]"></i> Segera
+                </span>
+            </span>
             <a href="{{ route('admin.workload.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.workload.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-list-check text-[10px]"></i></div>
                 <span>Rekap Beban Kerja dan Penggajian</span>
@@ -384,13 +387,14 @@
 
 
 
-            {{-- Cuti & Izin: Super Admin Yayasan, Kepala Sekolah --}}
-            @if($isYayasan || $isKepsek)
-            <a href="{{ route('admin.employees.leaves.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.employees.leaves.*') ? $ac : $nc }}">
+            {{-- Cuti & Izin: Tampil untuk semua, tapi disabled/locked --}}
+            <span class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm opacity-50 cursor-not-allowed select-none" title="Modul Cuti belum dapat diakses">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-sky-600 flex items-center justify-center text-white"><i class="fas fa-calendar-check text-[10px]"></i></div>
-                <span>Cuti & Izin</span>
-            </a>
-            @endif
+                <span class="flex-1">Cuti &amp; Izin</span>
+                <span class="text-[9px] font-black bg-amber-100 text-amber-600 border border-amber-300 px-1.5 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap">
+                    <i class="fas fa-lock text-[8px]"></i> Segera
+                </span>
+            </span>
 
 
             @if($isYayasan || $isFinance)
