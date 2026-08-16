@@ -115,7 +115,7 @@ class UnifiedAttendanceController extends Controller
                       });
                 })
                 ->orderBy('id', 'desc')
-                ->take(100)
+                ->take(500)
                 ->get();
 
             $totalEvents = $attendances->count();
@@ -165,7 +165,7 @@ class UnifiedAttendanceController extends Controller
                     $q->where('employee_type', 'guru')->orWhereHas('teacher');
                 })
                 ->orderBy('id', 'desc')
-                ->take(100)
+                ->take(500)
                 ->get();
 
             $totalEvents = $attendances->count();
@@ -214,7 +214,7 @@ class UnifiedAttendanceController extends Controller
                     $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
                 })
                 ->orderBy('id', 'desc')
-                ->take(100)
+                ->take(500)
                 ->get();
 
             $totalEvents = $attendances->count();

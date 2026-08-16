@@ -72,6 +72,26 @@
         line-height: 1.2;
         white-space: nowrap;
     }
+    /* Sleek Custom Scrollbar */
+    .edu-live-scroll {
+        max-height: 720px;
+        overflow-y: auto;
+        padding-right: 6px;
+    }
+    .edu-live-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    .edu-live-scroll::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 8px;
+    }
+    .edu-live-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 8px;
+    }
+    .edu-live-scroll::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
 </style>
 @endpush
 
@@ -180,7 +200,12 @@
                     <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-600"></span>
                 </span>
                 <div>
-                    <h3 class="text-base md:text-lg font-bold text-slate-800 leading-snug">Live Activity Feed (Urutan Presensi Masuk)</h3>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <h3 class="text-base md:text-lg font-bold text-slate-800 leading-snug">Live Activity Feed (Urutan Presensi Masuk)</h3>
+                        <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            Total <b id="live_events_counter">{{ $liveEvents->count() }}</b> Masuk Hari Ini
+                        </span>
+                    </div>
                     <p class="text-xs text-slate-500 font-medium mt-0.5">
                         Menampilkan seluruh riwayat presensi hari ini. Absen terbaru & nomor urut terbesar berada di paling atas.
                     </p>
@@ -188,6 +213,13 @@
             </div>
 
             <div class="flex items-center gap-3">
+                {{-- Quick Live Search --}}
+                <div class="relative min-w-[180px] hidden sm:block">
+                    <input type="text" id="live_search_input" onkeyup="filterLiveFeed(this.value)" placeholder="Cari nama di feed..."
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <i class="fas fa-search absolute left-2.5 top-2.5 text-slate-400 text-[10px]"></i>
+                </div>
+
                 <span class="px-4 py-2 bg-slate-900 text-amber-300 rounded-xl text-xs font-mono font-bold" id="live_clock">
                     {{ \Carbon\Carbon::now('Asia/Jakarta')->format('H:i:s') }} WIB
                 </span>
@@ -198,8 +230,8 @@
             </div>
         </div>
 
-        {{-- Full-Width Live Stream Feed (Vertical List) --}}
-        <div id="live_events_container" class="space-y-3.5 w-full">
+        {{-- Full-Width Live Stream Feed (Vertical List with Scroll Container) --}}
+        <div id="live_events_container" class="space-y-3.5 w-full edu-live-scroll">
             @forelse($liveEvents as $ev)
                 @php
                     $isLatest = !empty($ev['is_latest']);
@@ -217,7 +249,7 @@
                     };
                 @endphp
 
-                <div class="edu-live-row w-full flex flex-col md:flex-row md:items-center justify-between gap-4 {{ $isLatest ? 'edu-live-latest' : '' }}">
+                <div class="edu-live-row live-feed-item w-full flex flex-col md:flex-row md:items-center justify-between gap-4 {{ $isLatest ? 'edu-live-latest' : '' }}" data-search-name="{{ strtolower($ev['name']) }} {{ strtolower($ev['code']) }}">
                     {{-- Left Section: Seq No + Latest Tag + Avatar + Identity --}}
                     <div class="flex items-center gap-4 min-w-0 flex-1">
                         {{-- Nomor Urut Absen --}}
@@ -536,6 +568,19 @@ document.getElementById('singleAttendanceForm')?.addEventListener('submit', func
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...';
 });
 
+function filterLiveFeed(query) {
+    const q = (query || '').toLowerCase().trim();
+    const items = document.querySelectorAll('.live-feed-item');
+    items.forEach(el => {
+        const text = el.getAttribute('data-search-name') || '';
+        if (!q || text.includes(q)) {
+            el.style.display = 'flex';
+        } else {
+            el.style.display = 'none';
+        }
+    });
+}
+
 let livePollingInterval = null;
 
 function pollLiveData() {
@@ -562,108 +607,117 @@ function pollLiveData() {
             }
 
             const container = document.getElementById('live_events_container');
-            if (data.liveEvents && data.liveEvents.length > 0) {
-                let html = '';
-                data.liveEvents.forEach((ev, idx) => {
-                    const initials = (ev.name || 'AB').substring(0, 2).toUpperCase();
-                    const photoHtml = ev.photo_url 
-                        ? `<img src="${ev.photo_url}" class="w-full h-full object-cover" alt="${ev.name}">`
-                        : `<span>${initials}</span>`;
+            if (data.liveEvents) {
+                const counter = document.getElementById('live_events_counter');
+                if (counter) counter.innerText = data.liveEvents.length;
 
-                    let viaBadge = '';
-                    if (ev.recorded_via === 'gps') {
-                        viaBadge = '<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200"><i class="fas fa-location-dot mr-1.5"></i> GPS</span>';
-                    } else if (ev.recorded_via === 'rfid') {
-                        viaBadge = '<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200"><i class="fas fa-id-card mr-1.5"></i> RFID</span>';
-                    } else {
-                        viaBadge = '<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200"><i class="fas fa-pen mr-1.5"></i> Manual</span>';
-                    }
+                if (data.liveEvents.length > 0) {
+                    let html = '';
+                    data.liveEvents.forEach((ev, idx) => {
+                        const initials = (ev.name || 'AB').substring(0, 2).toUpperCase();
+                        const photoHtml = ev.photo_url 
+                            ? `<img src="${ev.photo_url}" class="w-full h-full object-cover" alt="${ev.name}">`
+                            : `<span>${initials}</span>`;
 
-                    let statusClass = 'bg-slate-100 text-slate-600 border-slate-300';
-                    if (ev.status === 'hadir') statusClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
-                    else if (ev.status === 'terlambat') statusClass = 'bg-amber-100 text-amber-800 border-amber-300';
-                    else if (ev.status === 'izin') statusClass = 'bg-blue-100 text-blue-800 border-blue-300';
-                    else if (ev.status === 'sakit') statusClass = 'bg-yellow-100 text-yellow-800 border-yellow-300';
-                    else if (ev.status === 'alpha') statusClass = 'bg-rose-100 text-rose-800 border-rose-300';
+                        let viaBadge = '';
+                        if (ev.recorded_via === 'gps') {
+                            viaBadge = '<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200"><i class="fas fa-location-dot mr-1.5"></i> GPS</span>';
+                        } else if (ev.recorded_via === 'rfid') {
+                            viaBadge = '<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200"><i class="fas fa-id-card mr-1.5"></i> RFID</span>';
+                        } else {
+                            viaBadge = '<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200"><i class="fas fa-pen mr-1.5"></i> Manual</span>';
+                        }
 
-                    const isLatest = (idx === 0);
-                    const latestRowClass = isLatest ? 'edu-live-latest' : '';
-                    const latestBadge = isLatest ? '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-900 shadow-xs animate-pulse">🔥 TERBARU</span>' : '';
-                    const seqBadge = isLatest 
-                        ? `<span class="w-10 h-10 rounded-xl bg-amber-500 text-slate-900 font-extrabold text-sm flex items-center justify-center shadow-md border border-amber-300">#${ev.seq_no}</span>`
-                        : `<span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs font-mono flex items-center justify-center border border-slate-200">#${ev.seq_no}</span>`;
+                        let statusClass = 'bg-slate-100 text-slate-600 border-slate-300';
+                        if (ev.status === 'hadir') statusClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+                        else if (ev.status === 'terlambat') statusClass = 'bg-amber-100 text-amber-800 border-amber-300';
+                        else if (ev.status === 'izin') statusClass = 'bg-blue-100 text-blue-800 border-blue-300';
+                        else if (ev.status === 'sakit') statusClass = 'bg-yellow-100 text-yellow-800 border-yellow-300';
+                        else if (ev.status === 'alpha') statusClass = 'bg-rose-100 text-rose-800 border-rose-300';
 
-                    const modalPayload = JSON.stringify({
-                        person_id: ev.person_id || null,
-                        name: ev.name || '',
-                        code: ev.code || '',
-                        photo_url: ev.photo_url || '',
-                        info: ev.subtitle || '',
-                        classroom_id: ev.classroom_id || null,
-                        attendance_id: ev.id || null,
-                        status: ev.status || 'hadir',
-                        time_in: ev.raw_time_in || '',
-                        time_out: ev.raw_time_out || '',
-                        notes: ev.notes || '',
-                    }).replace(/"/g, '&quot;');
+                        const isLatest = (idx === 0);
+                        const latestRowClass = isLatest ? 'edu-live-latest' : '';
+                        const latestBadge = isLatest ? '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-900 shadow-xs animate-pulse">🔥 TERBARU</span>' : '';
+                        const seqBadge = isLatest 
+                            ? `<span class="w-10 h-10 rounded-xl bg-amber-500 text-slate-900 font-extrabold text-sm flex items-center justify-center shadow-md border border-amber-300">#${ev.seq_no}</span>`
+                            : `<span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs font-mono flex items-center justify-center border border-slate-200">#${ev.seq_no}</span>`;
 
-                    const destroyUrl = "{{ url('/admin/attendance') }}/" + ev.id + "?group={{ $group }}";
-                    const csrfToken = "{{ csrf_token() }}";
+                        const modalPayload = JSON.stringify({
+                            person_id: ev.person_id || null,
+                            name: ev.name || '',
+                            code: ev.code || '',
+                            photo_url: ev.photo_url || '',
+                            info: ev.subtitle || '',
+                            classroom_id: ev.classroom_id || null,
+                            attendance_id: ev.id || null,
+                            status: ev.status || 'hadir',
+                            time_in: ev.raw_time_in || '',
+                            time_out: ev.raw_time_out || '',
+                            notes: ev.notes || '',
+                        }).replace(/"/g, '&quot;');
 
-                    html += `
-                        <div class="edu-live-row w-full flex flex-col md:flex-row md:items-center justify-between gap-4 ${latestRowClass}">
-                            <div class="flex items-center gap-4 min-w-0 flex-1">
-                                <div class="shrink-0 flex flex-col items-center">
-                                    ${seqBadge}
-                                </div>
-                                <div class="w-11 h-11 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden text-slate-700 shadow-2xs">
-                                    ${photoHtml}
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="font-bold text-slate-800 text-sm leading-snug">${ev.name}</span>
-                                        ${latestBadge}
+                        const destroyUrl = "{{ url('/admin/attendance') }}/" + ev.id + "?group={{ $group }}";
+                        const csrfToken = "{{ csrf_token() }}";
+
+                        html += `
+                            <div class="edu-live-row live-feed-item w-full flex flex-col md:flex-row md:items-center justify-between gap-4 ${latestRowClass}" data-search-name="${(ev.name || '').toLowerCase()} ${(ev.code || '').toLowerCase()}">
+                                <div class="flex items-center gap-4 min-w-0 flex-1">
+                                    <div class="shrink-0 flex flex-col items-center">
+                                        ${seqBadge}
                                     </div>
-                                    <div class="text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-2 flex-wrap">
-                                        <span>${ev.subtitle}</span>
-                                        <span class="text-slate-300">&bull;</span>
-                                        <span class="font-mono text-slate-400">${ev.code}</span>
+                                    <div class="w-11 h-11 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden text-slate-700 shadow-2xs">
+                                        ${photoHtml}
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-bold text-slate-800 text-sm leading-snug">${ev.name}</span>
+                                            ${latestBadge}
+                                        </div>
+                                        <div class="text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-2 flex-wrap">
+                                            <span>${ev.subtitle}</span>
+                                            <span class="text-slate-300">&bull;</span>
+                                            <span class="font-mono text-slate-400">${ev.code}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="flex items-center gap-4 shrink-0 flex-wrap justify-between md:justify-end">
-                                <div>${viaBadge}</div>
-                                <div class="text-xs font-mono font-bold text-slate-800 bg-slate-50 border border-slate-200 px-3 py-1 rounded-lg">
-                                    <i class="fas fa-clock text-slate-400 mr-1"></i> ${ev.time_in || '-'} WIB
-                                </div>
-                                <div>
-                                    <span class="edu-badge-status ${statusClass}">
-                                        ${ev.status.toUpperCase()}
-                                    </span>
-                                </div>
-                                <div class="inline-flex items-center gap-2 pl-2 md:border-l md:border-slate-200">
-                                    <button type="button" 
-                                            onclick='openEditModal(${modalPayload})'
-                                            class="edu-table-btn bg-amber-400 hover:bg-amber-500 text-slate-900 border-amber-500 shadow-2xs" 
-                                            title="Edit Presensi">
-                                        <i class="fas fa-edit text-[11px]"></i>
-                                        <span>Edit</span>
-                                    </button>
-                                    <form action="${destroyUrl}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data presensi ${ev.name}?');" class="inline">
-                                        <input type="hidden" name="_token" value="${csrfToken}">
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <button type="submit" class="edu-table-btn bg-rose-600 hover:bg-rose-700 text-white border-rose-700 shadow-2xs" title="Hapus Presensi">
-                                            <i class="fas fa-trash text-[11px]"></i>
-                                            <span>Hapus</span>
+                                <div class="flex items-center gap-4 shrink-0 flex-wrap justify-between md:justify-end">
+                                    <div>${viaBadge}</div>
+                                    <div class="text-xs font-mono font-bold text-slate-800 bg-slate-50 border border-slate-200 px-3 py-1 rounded-lg">
+                                        <i class="fas fa-clock text-slate-400 mr-1"></i> ${ev.time_in || '-'} WIB
+                                    </div>
+                                    <div>
+                                        <span class="edu-badge-status ${statusClass}">
+                                            ${ev.status.toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <div class="inline-flex items-center gap-2 pl-2 md:border-l md:border-slate-200">
+                                        <button type="button" 
+                                                onclick='openEditModal(${modalPayload})'
+                                                class="edu-table-btn bg-amber-400 hover:bg-amber-500 text-slate-900 border-amber-500 shadow-2xs" 
+                                                title="Edit Presensi">
+                                            <i class="fas fa-edit text-[11px]"></i>
+                                            <span>Edit</span>
                                         </button>
-                                    </form>
+                                        <form action="${destroyUrl}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data presensi ${ev.name}?');" class="inline">
+                                            <input type="hidden" name="_token" value="${csrfToken}">
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <button type="submit" class="edu-table-btn bg-rose-600 hover:bg-rose-700 text-white border-rose-700 shadow-2xs" title="Hapus Presensi">
+                                                <i class="fas fa-trash text-[11px]"></i>
+                                                <span>Hapus</span>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
-                });
-                container.innerHTML = html;
+                        `;
+                    });
+                    container.innerHTML = html;
+                    
+                    // Re-apply search filter if user is actively searching
+                    const curSearch = document.getElementById('live_search_input')?.value;
+                    if (curSearch) filterLiveFeed(curSearch);
+                }
             }
         }
     })
