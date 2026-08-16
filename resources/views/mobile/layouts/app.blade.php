@@ -297,6 +297,13 @@
                         </button>
                     @endif
 
+                    @if(auth()->user()->isOwnerOrSuperAdmin() || auth()->user()->hasRole('orang_tua') || auth()->user()->parents()->exists())
+                        <button type="submit" name="role" value="orang_tua" class="w-full text-left p-3.5 rounded-2xl bg-white border-2 border-slate-200 text-xs font-black hover:bg-pink-50 hover:border-pink-300 transition flex items-center justify-between shadow-sm">
+                            <span>👨‍👩‍👧 Orang Tua (Wali Celeste)</span>
+                            @if($currentRole === 'orang_tua')<i class="fa-solid fa-circle-check text-pink-600 text-base"></i>@endif
+                        </button>
+                    @endif
+
                     @if(auth()->user()->isOwnerOrSuperAdmin() || auth()->user()->hasRole('siswa'))
                         <button type="submit" name="role" value="siswa" class="w-full text-left p-3.5 rounded-2xl bg-white border-2 border-slate-200 text-xs font-black hover:bg-blue-50 hover:border-blue-300 transition flex items-center justify-between shadow-sm">
                             <span>🎓 Siswa</span>

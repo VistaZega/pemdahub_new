@@ -118,6 +118,7 @@ class MobileAuthController extends Controller
             'kepala_sekolah' => $user->isKepalaSekolah() || $user->isOwnerOrSuperAdmin(),
             'pegawai' => $user->hasRole('pegawai') || $user->employee !== null || $user->isAdminSekolah() || $user->isOwnerOrSuperAdmin(),
             'admin_sekolah' => $user->isAdminSekolah(),
+            'orang_tua' => $user->isOwnerOrSuperAdmin() || $user->hasRole('orang_tua') || $user->parents()->exists(),
             'siswa' => $user->isOwnerOrSuperAdmin() || $user->hasRole('siswa'),
             default => $user->hasRole($targetRole),
         };
@@ -157,6 +158,26 @@ class MobileAuthController extends Controller
                     'position' => 'Yayasan / Super Admin',
                     'is_active' => true,
                 ]);
+            }
+        }
+
+        // Auto-create parent link with Celeste Nibenia Ogaena if switching to orang_tua for Bapak Yulianus Zega / Super Admin
+        if ($targetRole === 'orang_tua' && $user->isOwnerOrSuperAdmin()) {
+            $parentExists = \App\Models\ParentModel::where('user_id', $user->id)->exists();
+            if (!$parentExists) {
+                $celeste = \App\Models\Student::where('full_name', 'LIKE', '%Celeste%')->first();
+                if ($celeste) {
+                    \App\Models\ParentModel::firstOrCreate(
+                        ['user_id' => $user->id, 'student_id' => $celeste->id],
+                        [
+                            'relation_type' => 'ayah',
+                            'full_name' => $user->name,
+                            'phone' => $user->phone ?? '-',
+                            'email' => $user->email ?? '-',
+                            'occupation' => 'Ketua Yayasan',
+                        ]
+                    );
+                }
             }
         }
 

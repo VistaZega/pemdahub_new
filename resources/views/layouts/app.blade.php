@@ -212,37 +212,160 @@
                     @endphp
                     
                     @if(auth()->user()->isOwnerOrSuperAdmin())
-                        <div class="hidden sm:flex items-center gap-1.5 bg-black/20 p-1 rounded-xl border border-white/10">
-                            @if($currentRole !== 'superadmin')
-                                <form action="{{ route('switch-role') }}" method="POST" class="m-0 p-0">
-                                    @csrf
-                                    <input type="hidden" name="role" value="superadmin">
-                                    <button type="submit" class="bg-gray-800 hover:bg-gray-700 text-white px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm border border-gray-600 tooltip" title="Masuk Mode Super Admin">
-                                        <i class="fas fa-chess-king text-gray-300"></i>
-                                        <span>Super Admin</span>
-                                    </button>
-                                </form>
-                            @endif
-                            @if(auth()->user()->canAccessYayasan() && $currentRole !== 'ketua_yayasan')
-                                <form action="{{ route('switch-role') }}" method="POST" class="m-0 p-0">
-                                    @csrf
-                                    <input type="hidden" name="role" value="ketua_yayasan">
-                                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm border border-purple-500/50 tooltip" title="Masuk Mode Yayasan">
-                                        <i class="fas fa-building text-purple-200"></i>
-                                        <span>Yayasan</span>
-                                    </button>
-                                </form>
-                            @endif
-                            @if($currentRole !== 'guru')
-                                <form action="{{ route('switch-role') }}" method="POST" class="m-0 p-0">
-                                    @csrf
-                                    <input type="hidden" name="role" value="guru">
-                                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm border border-emerald-400/50 tooltip" title="Masuk Mode Guru">
-                                        <i class="fas fa-chalkboard-teacher text-emerald-100"></i>
-                                        <span>Guru</span>
-                                    </button>
-                                </form>
-                            @endif
+                        @php
+                            $roleMeta = [
+                                'superadmin' => [
+                                    'title' => 'Super Admin',
+                                    'desc' => 'Administrator Utama',
+                                    'icon' => 'fas fa-chess-king',
+                                    'color' => 'bg-amber-400 text-black',
+                                ],
+                                'ketua_yayasan' => [
+                                    'title' => 'Ketua Yayasan',
+                                    'desc' => 'Pengawasan & Keuangan',
+                                    'icon' => 'fas fa-landmark',
+                                    'color' => 'bg-purple-600 text-white',
+                                ],
+                                'guru' => [
+                                    'title' => 'Guru Pengampu',
+                                    'desc' => 'Portal Guru, LMS & Nilai',
+                                    'icon' => 'fas fa-chalkboard-teacher',
+                                    'color' => 'bg-emerald-600 text-white',
+                                ],
+                                'orang_tua' => [
+                                    'title' => 'Orang Tua / Wali',
+                                    'desc' => 'Wali dari Celeste Nibenia Ogaena',
+                                    'icon' => 'fas fa-user-friends',
+                                    'color' => 'bg-pink-600 text-white',
+                                ],
+                            ];
+                            $activeMeta = $roleMeta[$currentRole] ?? [
+                                'title' => ucwords(str_replace('_', ' ', $currentRole)),
+                                'desc' => 'Mode Aktif',
+                                'icon' => 'fas fa-user-circle',
+                                'color' => 'bg-slate-800 text-white',
+                            ];
+                        @endphp
+
+                        {{-- Elegant Role Switcher Dropdown --}}
+                        <div class="relative" x-data="{ openRoleSwitch: false }">
+                            <button @click="openRoleSwitch = !openRoleSwitch" @click.away="openRoleSwitch = false"
+                                    class="flex items-center gap-2 bg-black/40 hover:bg-black/60 px-3 py-1.5 rounded-xl border-2 border-black text-white text-xs font-black transition shadow-sm active:scale-95">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                                <i class="{{ $activeMeta['icon'] }} text-amber-300"></i>
+                                <span class="hidden sm:inline font-black">{{ $activeMeta['title'] }}</span>
+                                <span class="sm:hidden font-black">{{ Str::limit($activeMeta['title'], 8) }}</span>
+                                <i class="fas fa-chevron-down text-[9px] text-white/70 ml-0.5 transition-transform" :class="{ 'rotate-180': openRoleSwitch }"></i>
+                            </button>
+
+                            <div x-show="openRoleSwitch" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="opacity-0 scale-95" 
+                                 x-transition:enter-end="opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="opacity-100 scale-100" 
+                                 x-transition:leave-end="opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-72 bg-slate-900 border-2 border-black rounded-2xl shadow-2xl z-50 overflow-hidden text-white"
+                                 style="display: none;">
+                                
+                                <div class="px-4 py-3 bg-gradient-to-r from-slate-950 to-slate-900 border-b border-slate-800">
+                                    <div class="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center justify-between">
+                                        <span>Ganti Mode Peran (Role Switcher)</span>
+                                        <i class="fas fa-crown text-amber-400"></i>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 font-medium mt-0.5">Pilih tampilan dashboard yang ingin diakses:</p>
+                                </div>
+
+                                <div class="p-2 space-y-1">
+                                    {{-- 1. Super Admin --}}
+                                    <form action="{{ route('switch-role') }}" method="POST" class="m-0 p-0">
+                                        @csrf
+                                        <input type="hidden" name="role" value="superadmin">
+                                        <button type="submit" 
+                                                class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-black transition flex items-center justify-between group
+                                                       {{ $currentRole === 'superadmin' ? 'bg-amber-400 text-black shadow-sm' : 'hover:bg-slate-800 text-slate-200' }}">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg flex items-center justify-center {{ $currentRole === 'superadmin' ? 'bg-black text-amber-400' : 'bg-slate-800 text-amber-300' }} shrink-0">
+                                                    <i class="fas fa-chess-king text-xs"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="leading-tight font-black">Super Admin</div>
+                                                    <div class="text-[10px] {{ $currentRole === 'superadmin' ? 'text-black/70' : 'text-slate-400' }} font-normal">Administrator Utama</div>
+                                                </div>
+                                            </div>
+                                            @if($currentRole === 'superadmin')
+                                                <i class="fas fa-check-circle text-black text-sm"></i>
+                                            @endif
+                                        </button>
+                                    </form>
+
+                                    {{-- 2. Ketua Yayasan --}}
+                                    <form action="{{ route('switch-role') }}" method="POST" class="m-0 p-0">
+                                        @csrf
+                                        <input type="hidden" name="role" value="ketua_yayasan">
+                                        <button type="submit" 
+                                                class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-black transition flex items-center justify-between group
+                                                       {{ $currentRole === 'ketua_yayasan' ? 'bg-purple-600 text-white shadow-sm' : 'hover:bg-slate-800 text-slate-200' }}">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg flex items-center justify-center {{ $currentRole === 'ketua_yayasan' ? 'bg-black text-purple-300' : 'bg-slate-800 text-purple-400' }} shrink-0">
+                                                    <i class="fas fa-landmark text-xs"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="leading-tight font-black">Ketua Yayasan</div>
+                                                    <div class="text-[10px] {{ $currentRole === 'ketua_yayasan' ? 'text-purple-200' : 'text-slate-400' }} font-normal">Pengawasan & Keuangan</div>
+                                                </div>
+                                            </div>
+                                            @if($currentRole === 'ketua_yayasan')
+                                                <i class="fas fa-check-circle text-white text-sm"></i>
+                                            @endif
+                                        </button>
+                                    </form>
+
+                                    {{-- 3. Guru Pengampu --}}
+                                    <form action="{{ route('switch-role') }}" method="POST" class="m-0 p-0">
+                                        @csrf
+                                        <input type="hidden" name="role" value="guru">
+                                        <button type="submit" 
+                                                class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-black transition flex items-center justify-between group
+                                                       {{ $currentRole === 'guru' ? 'bg-emerald-600 text-white shadow-sm' : 'hover:bg-slate-800 text-slate-200' }}">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg flex items-center justify-center {{ $currentRole === 'guru' ? 'bg-black text-emerald-300' : 'bg-slate-800 text-emerald-400' }} shrink-0">
+                                                    <i class="fas fa-chalkboard-teacher text-xs"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="leading-tight font-black">Guru Pengampu</div>
+                                                    <div class="text-[10px] {{ $currentRole === 'guru' ? 'text-emerald-200' : 'text-slate-400' }} font-normal">Portal Guru, LMS & Nilai</div>
+                                                </div>
+                                            </div>
+                                            @if($currentRole === 'guru')
+                                                <i class="fas fa-check-circle text-white text-sm"></i>
+                                            @endif
+                                        </button>
+                                    </form>
+
+                                    {{-- 4. Orang Tua / Wali --}}
+                                    <form action="{{ route('switch-role') }}" method="POST" class="m-0 p-0">
+                                        @csrf
+                                        <input type="hidden" name="role" value="orang_tua">
+                                        <button type="submit" 
+                                                class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-black transition flex items-center justify-between group
+                                                       {{ $currentRole === 'orang_tua' ? 'bg-pink-600 text-white shadow-sm' : 'hover:bg-slate-800 text-slate-200' }}">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg flex items-center justify-center {{ $currentRole === 'orang_tua' ? 'bg-black text-pink-300' : 'bg-slate-800 text-pink-400' }} shrink-0">
+                                                    <i class="fas fa-user-friends text-xs"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="leading-tight font-black">Orang Tua / Wali</div>
+                                                    <div class="text-[10px] {{ $currentRole === 'orang_tua' ? 'text-pink-200' : 'text-slate-400' }} font-normal">Wali: Celeste Nibenia Ogaena</div>
+                                                </div>
+                                            </div>
+                                            @if($currentRole === 'orang_tua')
+                                                <i class="fas fa-check-circle text-white text-sm"></i>
+                                            @endif
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     @elseif(auth()->user()->isKepalaSekolah())
                         <form action="{{ route('switch-role') }}" method="POST" class="inline">

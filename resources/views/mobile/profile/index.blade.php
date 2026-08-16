@@ -314,6 +314,13 @@
                 </button>
             @endif
 
+            @if($user->isOwnerOrSuperAdmin() || $user->hasRole('orang_tua') || $user->parents()->exists())
+                <button type="submit" name="role" value="orang_tua" 
+                        class="p-3 rounded-2xl border-2 text-xs font-black transition flex items-center justify-center gap-1.5 {{ $activeRole === 'orang_tua' ? 'clay-pink text-white shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' }}">
+                    <span>👨‍👩‍👧 Orang Tua</span>
+                </button>
+            @endif
+
             @if($user->isOwnerOrSuperAdmin() || $user->hasRole('siswa'))
                 <button type="submit" name="role" value="siswa" 
                         class="p-3 rounded-2xl border-2 text-xs font-black transition flex items-center justify-center gap-1.5 {{ $activeRole === 'siswa' ? 'clay-blue text-white shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' }}">
