@@ -1070,6 +1070,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{thread}', [App\Http\Controllers\ForumController::class, 'destroy'])->name('destroy');
         Route::get('/{thread}/edit', [App\Http\Controllers\ForumController::class, 'edit'])->name('edit');
         Route::put('/{thread}', [App\Http\Controllers\ForumController::class, 'update'])->name('update');
+        Route::put('/reply/{reply}', [App\Http\Controllers\ForumController::class, 'updateReply'])->name('reply.update');
+        Route::delete('/reply/{reply}', [App\Http\Controllers\ForumController::class, 'destroyReply'])->name('reply.destroy');
         Route::post('/reply/{reply}/accept', [App\Http\Controllers\ForumController::class, 'acceptReply'])->name('reply.accept');
         
         // Project, Committee & Charity Actions

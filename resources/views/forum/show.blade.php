@@ -375,90 +375,133 @@
             }
         @endphp
 
-        <div id="replies" class="space-y-6">
+        <div id="replies" class="space-y-6 pb-52 sm:pb-60">
             @foreach($topLevelReplies as $reply)
                 <!-- Top-Level Comment Card -->
-                <div class="flex gap-3 sm:gap-4" id="reply-{{ $reply->id }}">
+                <div class="flex gap-3 sm:gap-4" id="reply-{{ $reply->id }}" x-data="{ editing: false }">
                     <img src="{{ $reply->user->avatar_url }}" 
                          class="w-10 h-10 rounded-full border border-slate-200 shadow-xs flex-shrink-0 object-cover">
                     <div class="flex-1 min-w-0 space-y-2">
-                        <!-- User Info -->
-                        <div class="flex items-baseline gap-2 flex-wrap">
-                            <span class="font-bold text-slate-800 text-sm">{{ $reply->user->name }}</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold uppercase tracking-wider">{{ $reply->user->role }}</span>
-                            <span class="text-xs text-slate-400">{{ $reply->created_at->format('H:i') }}</span>
-                            @if($reply->is_accepted)
-                                <span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded flex items-center gap-1 font-bold">
-                                    <i class="ph-bold ph-star text-amber-600"></i> Jawaban Terbaik
-                                </span>
-                            @endif
-                        </div>
+                        <!-- User Info & Edit/Delete -->
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <div class="flex items-baseline gap-2 flex-wrap min-w-0">
+                                <span class="font-bold text-slate-800 text-sm">{{ $reply->user->name }}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold uppercase tracking-wider">{{ $reply->user->role }}</span>
+                                <span class="text-xs text-slate-400">{{ $reply->created_at->format('H:i') }}</span>
+                                @if($reply->is_accepted)
+                                    <span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded flex items-center gap-1 font-bold">
+                                        <i class="ph-bold ph-star text-amber-600"></i> Jawaban Terbaik
+                                    </span>
+                                @endif
+                            </div>
 
-                        <!-- Bubble -->
-                        <div class="{{ $reply->is_accepted ? 'bg-amber-50/80 border-amber-200 ring-1 ring-amber-300' : 'bg-white border-slate-200' }} border rounded-2xl rounded-tl-none p-4 max-w-2xl text-sm text-slate-800 shadow-sm">
-                            @if($reply->voice_note_path)
-                                <div class="mb-2 flex items-center gap-2 text-indigo-600 font-bold text-xs">
-                                    <i class="ph-bold ph-microphone text-lg"></i> Pesan Suara
-                                </div>
-                                <audio controls class="w-full h-10 rounded-xl max-w-[250px] sm:max-w-xs mb-2 bg-slate-100" src="{{ asset('storage/' . $reply->voice_note_path) }}"></audio>
-                            @endif
-                            @if($reply->content)
-                                {!! nl2br(e($reply->content)) !!}
-                            @endif
-                        </div>
-
-                        <!-- Actions -->
-                        <div class="flex flex-wrap items-center justify-between gap-2 mt-2 w-full max-w-2xl">
-                            <!-- Left: Smiley & Reactions -->
-                            <div class="flex items-center gap-2">
-                                <!-- Reply Picker -->
-                                <div class="flex items-center relative">
-                                    <button @click="togglePicker('reply-{{ $reply->id }}')" class="w-6 h-6 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-800 transition">
-                                        <i class="ph-bold ph-smiley"></i>
+                            <!-- Edit / Delete for Comment Author or Super Admin -->
+                            @if(auth()->id() === $reply->user_id || auth()->user()->isSuperAdmin())
+                                <div class="flex items-center gap-1 ml-auto">
+                                    <button type="button" @click="editing = !editing" class="px-2 py-0.5 text-slate-400 hover:text-indigo-600 rounded-md hover:bg-slate-100 transition text-xs font-bold flex items-center gap-1" title="Edit Komentar">
+                                        <i class="ph-bold ph-pencil-simple"></i> <span>Edit</span>
                                     </button>
-                                    <!-- Picker Dropdown (Inline) -->
-                                    <div x-show="pickerOpen === 'reply-{{ $reply->id }}'" class="ml-2 p-1 bg-white border border-slate-200 rounded-xl flex gap-1 shadow-lg z-20">
-                                        @foreach(\App\Models\ForumReaction::EMOJIS as $emoji => $name)
-                                            <button @click="reactReply('{{ $reply->id }}', '{{ $emoji }}')" class="w-6 h-6 rounded hover:bg-slate-100 flex items-center justify-center text-base transition-transform hover:scale-125">
-                                                {{ $emoji }}
+                                    <form action="{{ route('forum.reply.destroy', $reply) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus komentar ini?');" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="px-2 py-0.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition text-xs font-bold flex items-center gap-1" title="Hapus Komentar">
+                                            <i class="ph-bold ph-trash"></i> <span>Hapus</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Normal Bubble (when NOT editing) -->
+                        <div x-show="!editing">
+                            <div class="{{ $reply->is_accepted ? 'bg-amber-50/80 border-amber-200 ring-1 ring-amber-300' : 'bg-white border-slate-200' }} border rounded-2xl rounded-tl-none p-4 max-w-2xl text-sm text-slate-800 shadow-sm">
+                                @if($reply->voice_note_path)
+                                    <div class="mb-2 flex items-center gap-2 text-indigo-600 font-bold text-xs">
+                                        <i class="ph-bold ph-microphone text-lg"></i> Pesan Suara
+                                    </div>
+                                    <audio controls class="w-full h-10 rounded-xl max-w-[250px] sm:max-w-xs mb-2 bg-slate-100" src="{{ asset('storage/' . $reply->voice_note_path) }}"></audio>
+                                @endif
+                                @if($reply->content)
+                                    {!! nl2br(e($reply->content)) !!}
+                                @endif
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex flex-wrap items-center justify-between gap-2 mt-2 w-full max-w-2xl">
+                                <!-- Left: Smiley & Reactions -->
+                                <div class="flex items-center gap-2">
+                                    <!-- Reply Picker -->
+                                    <div class="flex items-center relative">
+                                        <button @click="togglePicker('reply-{{ $reply->id }}')" class="w-6 h-6 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-800 transition">
+                                            <i class="ph-bold ph-smiley"></i>
+                                        </button>
+                                        <!-- Picker Dropdown (Inline) -->
+                                        <div x-show="pickerOpen === 'reply-{{ $reply->id }}'" class="ml-2 p-1 bg-white border border-slate-200 rounded-xl flex gap-1 shadow-lg z-20">
+                                            @foreach(\App\Models\ForumReaction::EMOJIS as $emoji => $name)
+                                                <button @click="reactReply('{{ $reply->id }}', '{{ $emoji }}')" class="w-6 h-6 rounded hover:bg-slate-100 flex items-center justify-center text-base transition-transform hover:scale-125">
+                                                    {{ $emoji }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    <!-- Reactions -->
+                                    <div id="reply-reactions-{{ $reply->id }}" class="flex flex-wrap gap-1">
+                                        @foreach($reply->getReactionCounts() as $emoji => $count)
+                                            <button onclick="reactReplyAjax({{ $reply->id }}, '{{ $emoji }}')" class="flex items-center gap-1 px-1.5 py-0.5 bg-white hover:bg-slate-100 border border-slate-200 rounded text-[10px] font-bold text-slate-700 transition shadow-sm">
+                                                <span>{{ $emoji }}</span> <span>{{ $count }}</span>
                                             </button>
                                         @endforeach
                                     </div>
                                 </div>
 
-                                <!-- Reactions -->
-                                <div id="reply-reactions-{{ $reply->id }}" class="flex flex-wrap gap-1">
-                                    @foreach($reply->getReactionCounts() as $emoji => $count)
-                                        <button onclick="reactReplyAjax({{ $reply->id }}, '{{ $emoji }}')" class="flex items-center gap-1 px-1.5 py-0.5 bg-white hover:bg-slate-100 border border-slate-200 rounded text-[10px] font-bold text-slate-700 transition shadow-sm">
-                                            <span>{{ $emoji }}</span> <span>{{ $count }}</span>
-                                        </button>
-                                    @endforeach
+                                <!-- Right: Balas & Terbaik -->
+                                <div class="flex items-center gap-3 ml-auto">
+                                    <!-- Reply Button with Data Attributes -->
+                                    <button type="button" 
+                                            data-reply-id="{{ $reply->id }}" 
+                                            data-user-name="{{ e($reply->user->name) }}" 
+                                            data-snippet="{{ e(Str::limit(preg_replace('/\s+/', ' ', strip_tags($reply->content ?? ($reply->voice_note_path ? 'Pesan Suara' : ''))), 80)) }}" 
+                                            onclick="quoteReplyFromBtn(this)" 
+                                            class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200/70 transition shadow-xs">
+                                        <i class="ph-bold ph-arrow-bend-up-left"></i> Balas
+                                    </button>
+
+                                    <!-- Accept Answer -->
+                                    @if(!$reply->is_accepted && !$thread->replies->contains('is_accepted', true) && (auth()->id() === $thread->user_id || auth()->user()->isSuperAdmin()))
+                                        <form action="{{ route('forum.reply.accept', $reply) }}" method="POST" class="inline-flex items-center">
+                                            @csrf
+                                            <button type="submit" class="text-[10px] font-bold text-slate-400 hover:text-amber-600 transition">
+                                                TERBAIK
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Right: Balas & Terbaik -->
-                            <div class="flex items-center gap-3 ml-auto">
-                                <!-- Reply Button with Data Attributes -->
-                                <button type="button" 
-                                        data-reply-id="{{ $reply->id }}" 
-                                        data-user-name="{{ e($reply->user->name) }}" 
-                                        data-snippet="{{ e(Str::limit(preg_replace('/\s+/', ' ', strip_tags($reply->content ?? ($reply->voice_note_path ? 'Pesan Suara' : ''))), 80)) }}" 
-                                        onclick="quoteReplyFromBtn(this)" 
-                                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200/70 transition shadow-xs">
-                                    <i class="ph-bold ph-arrow-bend-up-left"></i> Balas
-                                </button>
-
-                                <!-- Accept Answer -->
-                                @if(!$reply->is_accepted && !$thread->replies->contains('is_accepted', true) && (auth()->id() === $thread->user_id || auth()->user()->isSuperAdmin()))
-                                    <form action="{{ route('forum.reply.accept', $reply) }}" method="POST" class="inline-flex items-center">
-                                        @csrf
-                                        <button type="submit" class="text-[10px] font-bold text-slate-400 hover:text-amber-600 transition">
-                                            TERBAIK
-                                        </button>
-                                    </form>
-                                @endif
-                            </div>
-                        </div> <!-- End Actions -->
+                        <!-- Inline Edit Form (when editing == true) -->
+                        <div x-show="editing" x-cloak class="max-w-2xl bg-slate-50 border border-indigo-200 rounded-2xl p-4 space-y-2.5 shadow-sm">
+                            <form action="{{ route('forum.reply.update', $reply) }}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="text-xs font-bold text-indigo-950 flex items-center gap-1">
+                                        <i class="ph-bold ph-pencil-simple text-indigo-600"></i> Edit Komentar
+                                    </label>
+                                    <button type="button" @click="editing = false" class="text-slate-400 hover:text-slate-600 text-xs">✕ Tutup</button>
+                                </div>
+                                <textarea name="content" rows="3" class="w-full text-sm p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white resize-y shadow-2xs">{{ $reply->content }}</textarea>
+                                <div class="flex items-center justify-end gap-2 mt-2">
+                                    <button type="button" @click="editing = false" class="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition">
+                                        Batal
+                                    </button>
+                                    <button type="submit" class="px-4 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition flex items-center gap-1">
+                                        <i class="ph-bold ph-check"></i> Simpan Perubahan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
 
                         <!-- NESTED / MENJOROK KE DALAM: Balasan untuk komentar ini -->
                         @php
@@ -476,7 +519,7 @@
                         @if($childReplies->count() > 0)
                             <div class="mt-4 space-y-3 pl-4 sm:pl-8 border-l-2 border-indigo-300">
                                 @foreach($childReplies as $child)
-                                    <div class="relative" id="reply-{{ $child->id }}">
+                                    <div class="relative" id="reply-{{ $child->id }}" x-data="{ editingChild: false }">
                                         <div class="bg-indigo-50/70 hover:bg-indigo-50/90 border border-indigo-200/80 rounded-2xl p-4 shadow-xs transition space-y-2 max-w-xl">
                                             <div class="flex items-center justify-between gap-2">
                                                 <div class="flex items-center gap-2.5 min-w-0">
@@ -488,15 +531,30 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Balas button -->
-                                                <button type="button" 
-                                                        data-reply-id="{{ $child->id }}" 
-                                                        data-user-name="{{ e($child->user->name) }}" 
-                                                        data-snippet="{{ e(Str::limit(preg_replace('/\s+/', ' ', strip_tags($child->content ?? ($child->voice_note_path ? 'Pesan Suara' : ''))), 80)) }}" 
-                                                        onclick="quoteReplyFromBtn(this)" 
-                                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-white hover:bg-indigo-100 border border-indigo-200 transition shadow-2xs">
-                                                    <i class="ph-bold ph-arrow-bend-up-left"></i> Balas
-                                                </button>
+                                                <!-- Actions: Balas, Edit, Delete -->
+                                                <div class="flex items-center gap-1.5 ml-auto">
+                                                    <button type="button" 
+                                                            data-reply-id="{{ $child->id }}" 
+                                                            data-user-name="{{ e($child->user->name) }}" 
+                                                            data-snippet="{{ e(Str::limit(preg_replace('/\s+/', ' ', strip_tags($child->content ?? ($child->voice_note_path ? 'Pesan Suara' : ''))), 80)) }}" 
+                                                            onclick="quoteReplyFromBtn(this)" 
+                                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-white hover:bg-indigo-100 border border-indigo-200 transition shadow-2xs">
+                                                        <i class="ph-bold ph-arrow-bend-up-left"></i> Balas
+                                                    </button>
+
+                                                    @if(auth()->id() === $child->user_id || auth()->user()->isSuperAdmin())
+                                                        <button type="button" @click="editingChild = !editingChild" class="p-1 text-slate-400 hover:text-indigo-600 rounded-md hover:bg-white transition text-xs font-bold" title="Edit Balasan">
+                                                            <i class="ph-bold ph-pencil-simple"></i>
+                                                        </button>
+                                                        <form action="{{ route('forum.reply.destroy', $child) }}" method="POST" onsubmit="return confirm('Hapus balasan ini?');" class="inline">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="p-1 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition text-xs font-bold" title="Hapus Balasan">
+                                                                <i class="ph-bold ph-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                </div>
                                             </div>
 
                                             <!-- Quoted Badge -->
@@ -505,40 +563,63 @@
                                                 <span>Membalas <strong class="text-indigo-950">{{ $child->parent->user->name ?? $reply->user->name }}</strong></span>
                                             </div>
 
-                                            <!-- Bubble content -->
-                                            <div class="text-xs sm:text-sm text-slate-800 leading-relaxed bg-white p-3 rounded-xl border border-indigo-100/70 shadow-2xs">
-                                                @if($child->voice_note_path)
-                                                    <div class="mb-1.5 flex items-center gap-1.5 text-indigo-600 font-bold text-xs">
-                                                        <i class="ph-bold ph-microphone text-sm"></i> Pesan Suara
-                                                    </div>
-                                                    <audio controls class="w-full h-8 rounded-lg max-w-[220px] mb-1 bg-slate-50" src="{{ asset('storage/' . $child->voice_note_path) }}"></audio>
-                                                @endif
-                                                @if($child->content)
-                                                    {!! nl2br(e($child->content)) !!}
-                                                @endif
-                                            </div>
+                                            <!-- Normal Child Bubble (when NOT editing) -->
+                                            <div x-show="!editingChild" class="space-y-2">
+                                                <div class="text-xs sm:text-sm text-slate-800 leading-relaxed bg-white p-3 rounded-xl border border-indigo-100/70 shadow-2xs">
+                                                    @if($child->voice_note_path)
+                                                        <div class="mb-1.5 flex items-center gap-1.5 text-indigo-600 font-bold text-xs">
+                                                            <i class="ph-bold ph-microphone text-sm"></i> Pesan Suara
+                                                        </div>
+                                                        <audio controls class="w-full h-8 rounded-lg max-w-[220px] mb-1 bg-slate-50" src="{{ asset('storage/' . $child->voice_note_path) }}"></audio>
+                                                    @endif
+                                                    @if($child->content)
+                                                        {!! nl2br(e($child->content)) !!}
+                                                    @endif
+                                                </div>
 
-                                            <!-- Reactions -->
-                                            <div class="flex items-center gap-2 pt-1">
-                                                <div class="flex items-center relative">
-                                                    <button @click="togglePicker('reply-{{ $child->id }}')" class="w-5 h-5 rounded-full hover:bg-white flex items-center justify-center text-slate-400 hover:text-slate-700 transition text-xs">
-                                                        <i class="ph-bold ph-smiley"></i>
-                                                    </button>
-                                                    <div x-show="pickerOpen === 'reply-{{ $child->id }}'" class="ml-1 p-1 bg-white border border-slate-200 rounded-xl flex gap-1 shadow-lg z-20">
-                                                        @foreach(\App\Models\ForumReaction::EMOJIS as $emoji => $name)
-                                                            <button @click="reactReply('{{ $child->id }}', '{{ $emoji }}')" class="w-5 h-5 rounded hover:bg-slate-100 flex items-center justify-center text-sm transition-transform hover:scale-125">
-                                                                {{ $emoji }}
+                                                <!-- Reactions -->
+                                                <div class="flex items-center gap-2 pt-1">
+                                                    <div class="flex items-center relative">
+                                                        <button @click="togglePicker('reply-{{ $child->id }}')" class="w-5 h-5 rounded-full hover:bg-white flex items-center justify-center text-slate-400 hover:text-slate-700 transition text-xs">
+                                                            <i class="ph-bold ph-smiley"></i>
+                                                        </button>
+                                                        <div x-show="pickerOpen === 'reply-{{ $child->id }}'" class="ml-1 p-1 bg-white border border-slate-200 rounded-xl flex gap-1 shadow-lg z-20">
+                                                            @foreach(\App\Models\ForumReaction::EMOJIS as $emoji => $name)
+                                                                <button @click="reactReply('{{ $child->id }}', '{{ $emoji }}')" class="w-5 h-5 rounded hover:bg-slate-100 flex items-center justify-center text-sm transition-transform hover:scale-125">
+                                                                    {{ $emoji }}
+                                                                </button>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                    <div id="reply-reactions-{{ $child->id }}" class="flex flex-wrap gap-1">
+                                                        @foreach($child->getReactionCounts() as $emoji => $count)
+                                                            <button onclick="reactReplyAjax({{ $child->id }}, '{{ $emoji }}')" class="flex items-center gap-1 px-1.5 py-0.5 bg-white hover:bg-slate-50 border border-indigo-100 rounded text-[10px] font-bold text-slate-700 transition shadow-2xs">
+                                                                <span>{{ $emoji }}</span> <span>{{ $count }}</span>
                                                             </button>
                                                         @endforeach
                                                     </div>
                                                 </div>
-                                                <div id="reply-reactions-{{ $child->id }}" class="flex flex-wrap gap-1">
-                                                    @foreach($child->getReactionCounts() as $emoji => $count)
-                                                        <button onclick="reactReplyAjax({{ $child->id }}, '{{ $emoji }}')" class="flex items-center gap-1 px-1.5 py-0.5 bg-white hover:bg-slate-50 border border-indigo-100 rounded text-[10px] font-bold text-slate-700 transition shadow-2xs">
-                                                            <span>{{ $emoji }}</span> <span>{{ $count }}</span>
+                                            </div>
+
+                                            <!-- Inline Edit Form for Child Reply -->
+                                            <div x-show="editingChild" x-cloak class="bg-white border border-indigo-200 rounded-xl p-3 space-y-2 shadow-2xs">
+                                                <form action="{{ route('forum.reply.update', $child) }}" method="POST">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <div class="flex items-center justify-between mb-1">
+                                                        <label class="text-[11px] font-bold text-indigo-950">Edit Balasan:</label>
+                                                        <button type="button" @click="editingChild = false" class="text-slate-400 hover:text-slate-600 text-xs">✕ Tutup</button>
+                                                    </div>
+                                                    <textarea name="content" rows="2" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-y">{{ $child->content }}</textarea>
+                                                    <div class="flex items-center justify-end gap-2 mt-1.5">
+                                                        <button type="button" @click="editingChild = false" class="px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-md transition">
+                                                            Batal
                                                         </button>
-                                                    @endforeach
-                                                </div>
+                                                        <button type="submit" class="px-3 py-1 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-md shadow-xs transition">
+                                                            Simpan
+                                                        </button>
+                                                    </div>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>

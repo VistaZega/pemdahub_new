@@ -346,6 +346,73 @@ class ForumController extends Controller
     }
 
     /**
+     * Update a reply / comment
+     */
+    public function updateReply(Request $request, ForumReply $reply)
+    {
+        $user = Auth::user();
+        if ($reply->user_id !== $user->id && !$user->isSuperAdmin()) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengedit komentar ini.');
+        }
+
+        $validated = $request->validate([
+            'content' => 'required|string|min:2|max:3000',
+        ]);
+
+        $reply->update([
+            'content' => $validated['content'],
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Komentar berhasil diperbarui!',
+                'content' => $reply->content,
+            ]);
+        }
+
+        return back()->with('success', 'Komentar berhasil diperbarui!');
+    }
+
+    /**
+     * Delete a reply / comment
+     */
+    public function destroyReply(ForumReply $reply)
+    {
+        $user = Auth::user();
+        $thread = $reply->thread;
+        if ($reply->user_id !== $user->id && !$user->isSuperAdmin() && $thread->user_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menghapus komentar ini.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Delete voice note if exists
+            if ($reply->voice_note_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($reply->voice_note_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($reply->voice_note_path);
+            }
+
+            // Remove reputation points
+            ReputationLog::removeLog($reply->user_id, ForumReply::class, $reply->id);
+
+            // Re-assign child replies to parent of this reply (or top-level)
+            ForumReply::where('parent_reply_id', $reply->id)->update(['parent_reply_id' => $reply->parent_reply_id]);
+
+            // Delete reactions
+            \App\Models\ForumReaction::where('forum_reply_id', $reply->id)->delete();
+
+            $reply->delete();
+
+            DB::commit();
+
+            return back()->with('success', 'Komentar berhasil dihapus!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menghapus komentar: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Like / Upvote Thread
      */
     public function like(Request $request, ForumThread $thread)
