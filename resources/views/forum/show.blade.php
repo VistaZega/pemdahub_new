@@ -362,101 +362,208 @@
         @endif
 
         <!-- REPLIES LIST -->
+        @php
+            // Get all top-level replies (no parent_reply_id)
+            $topLevelReplies = $thread->replies->whereNull('parent_reply_id');
+            // In case there are orphan replies whose parent is not found, handle them
+            $allParentIds = $thread->replies->pluck('id')->toArray();
+            $orphanReplies = $thread->replies->whereNotNull('parent_reply_id')->whereNotIn('parent_reply_id', $allParentIds);
+        @endphp
+
         <div id="replies" class="space-y-6">
-            @foreach($thread->replies as $reply)
-                <div class="flex gap-3 sm:gap-4 {{ $reply->parent ? 'ml-6 sm:ml-10 pl-3 border-l-2 border-indigo-100/80' : '' }}" id="reply-{{ $reply->id }}">
-                    <img src="{{ $reply->user->avatar_url }}" 
-                         class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200 shadow-xs flex-shrink-0 object-cover">
-                    <div class="flex-1 min-w-0 space-y-1.5">
-                        <div class="flex items-baseline gap-2 flex-wrap">
-                            <span class="font-bold text-slate-800 text-sm">{{ $reply->user->name }}</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold uppercase tracking-wider">{{ $reply->user->role }}</span>
-                            <span class="text-xs text-slate-400">{{ $reply->created_at->format('H:i') }}</span>
-                            @if($reply->is_accepted)
-                                <span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded flex items-center gap-1 font-bold">
-                                    <i class="ph-bold ph-star text-amber-600"></i> Jawaban Terbaik
-                                </span>
-                            @endif
-                        </div>
-
-                        <!-- Quote Parent -->
-                        @if($reply->parent)
-                            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50/90 border border-indigo-200/80 rounded-xl text-xs text-indigo-700 font-semibold mb-1.5 cursor-pointer hover:bg-indigo-100/80 transition shadow-xs max-w-2xl" onclick="document.getElementById('reply-{{ $reply->parent_id }}')?.scrollIntoView({behavior: 'smooth'})" title="Klik untuk melompat ke komentar asli">
-                                <i class="ph-bold ph-arrow-bend-down-right text-indigo-600 text-sm flex-shrink-0"></i>
-                                <span class="flex-shrink-0">Membalas <strong class="text-indigo-900 font-bold">{{ $reply->parent->user->name }}</strong>:</span>
-                                <span class="text-slate-500 italic truncate">
-                                    @if($reply->parent->voice_note_path)
-                                        <i class="ph-bold ph-microphone"></i> Pesan Suara
-                                    @else
-                                        "{!! Str::limit(strip_tags($reply->parent->content), 40) !!}"
-                                    @endif
-                                </span>
+            @foreach($topLevelReplies as $reply)
+                <div class="space-y-3" id="thread-reply-group-{{ $reply->id }}">
+                    <!-- Top-Level Comment Card -->
+                    <div class="flex gap-3 sm:gap-4" id="reply-{{ $reply->id }}">
+                        <img src="{{ $reply->user->avatar_url }}" 
+                             class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200 shadow-xs flex-shrink-0 object-cover">
+                        <div class="flex-1 min-w-0 space-y-1.5">
+                            <div class="flex items-baseline gap-2 flex-wrap">
+                                <span class="font-bold text-slate-800 text-sm">{{ $reply->user->name }}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold uppercase tracking-wider">{{ $reply->user->role }}</span>
+                                <span class="text-xs text-slate-400">{{ $reply->created_at->format('H:i') }}</span>
+                                @if($reply->is_accepted)
+                                    <span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded flex items-center gap-1 font-bold">
+                                        <i class="ph-bold ph-star text-amber-600"></i> Jawaban Terbaik
+                                    </span>
+                                @endif
                             </div>
-                        @endif
 
-                        <!-- Bubble -->
-                        <div class="{{ $reply->is_accepted ? 'bg-amber-50/80 border-amber-200 ring-1 ring-amber-300' : 'bg-white border-slate-200' }} border rounded-2xl rounded-tl-none p-4 max-w-2xl text-sm text-slate-800 shadow-sm">
-                            @if($reply->voice_note_path)
-                                <div class="mb-2 flex items-center gap-2 text-indigo-600 font-bold text-xs">
-                                    <i class="ph-bold ph-microphone text-lg"></i> Pesan Suara
-                                </div>
-                                <audio controls class="w-full h-10 rounded-xl max-w-[250px] sm:max-w-xs mb-2 bg-slate-100" src="{{ asset('storage/' . $reply->voice_note_path) }}"></audio>
-                            @endif
-                            @if($reply->content)
-                                {!! nl2br(e($reply->content)) !!}
-                            @endif
-                        </div>
+                            <!-- Bubble -->
+                            <div class="{{ $reply->is_accepted ? 'bg-amber-50/80 border-amber-200 ring-1 ring-amber-300' : 'bg-white border-slate-200' }} border rounded-2xl rounded-tl-none p-4 max-w-2xl text-sm text-slate-800 shadow-sm">
+                                @if($reply->voice_note_path)
+                                    <div class="mb-2 flex items-center gap-2 text-indigo-600 font-bold text-xs">
+                                        <i class="ph-bold ph-microphone text-lg"></i> Pesan Suara
+                                    </div>
+                                    <audio controls class="w-full h-10 rounded-xl max-w-[250px] sm:max-w-xs mb-2 bg-slate-100" src="{{ asset('storage/' . $reply->voice_note_path) }}"></audio>
+                                @endif
+                                @if($reply->content)
+                                    {!! nl2br(e($reply->content)) !!}
+                                @endif
+                            </div>
 
-                        <!-- Actions -->
-                        <div class="flex flex-wrap items-center justify-between gap-2 mt-2 w-full max-w-2xl">
-                            <!-- Left: Smiley & Reactions -->
-                            <div class="flex items-center gap-2">
-                                <!-- Reply Picker -->
-                                <div class="flex items-center relative">
-                                    <button @click="togglePicker('reply-{{ $reply->id }}')" class="w-6 h-6 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-800 transition">
-                                        <i class="ph-bold ph-smiley"></i>
-                                    </button>
-                                    <!-- Picker Dropdown (Inline) -->
-                                    <div x-show="pickerOpen === 'reply-{{ $reply->id }}'" class="ml-2 p-1 bg-white border border-slate-200 rounded-xl flex gap-1 shadow-lg z-20">
-                                        @foreach(\App\Models\ForumReaction::EMOJIS as $emoji => $name)
-                                            <button @click="reactReply('{{ $reply->id }}', '{{ $emoji }}')" class="w-6 h-6 rounded hover:bg-slate-100 flex items-center justify-center text-base transition-transform hover:scale-125">
-                                                {{ $emoji }}
+                            <!-- Actions -->
+                            <div class="flex flex-wrap items-center justify-between gap-2 mt-2 w-full max-w-2xl">
+                                <!-- Left: Smiley & Reactions -->
+                                <div class="flex items-center gap-2">
+                                    <!-- Reply Picker -->
+                                    <div class="flex items-center relative">
+                                        <button @click="togglePicker('reply-{{ $reply->id }}')" class="w-6 h-6 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-800 transition">
+                                            <i class="ph-bold ph-smiley"></i>
+                                        </button>
+                                        <!-- Picker Dropdown (Inline) -->
+                                        <div x-show="pickerOpen === 'reply-{{ $reply->id }}'" class="ml-2 p-1 bg-white border border-slate-200 rounded-xl flex gap-1 shadow-lg z-20">
+                                            @foreach(\App\Models\ForumReaction::EMOJIS as $emoji => $name)
+                                                <button @click="reactReply('{{ $reply->id }}', '{{ $emoji }}')" class="w-6 h-6 rounded hover:bg-slate-100 flex items-center justify-center text-base transition-transform hover:scale-125">
+                                                    {{ $emoji }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    <!-- Reactions -->
+                                    <div id="reply-reactions-{{ $reply->id }}" class="flex flex-wrap gap-1">
+                                        @foreach($reply->getReactionCounts() as $emoji => $count)
+                                            <button onclick="reactReplyAjax({{ $reply->id }}, '{{ $emoji }}')" class="flex items-center gap-1 px-1.5 py-0.5 bg-white hover:bg-slate-100 border border-slate-200 rounded text-[10px] font-bold text-slate-700 transition shadow-sm">
+                                                <span>{{ $emoji }}</span> <span>{{ $count }}</span>
                                             </button>
                                         @endforeach
                                     </div>
                                 </div>
 
-                                <!-- Reactions -->
-                                <div id="reply-reactions-{{ $reply->id }}" class="flex flex-wrap gap-1">
-                                    @foreach($reply->getReactionCounts() as $emoji => $count)
-                                        <button onclick="reactReplyAjax({{ $reply->id }}, '{{ $emoji }}')" class="flex items-center gap-1 px-1.5 py-0.5 bg-white hover:bg-slate-100 border border-slate-200 rounded text-[10px] font-bold text-slate-700 transition shadow-sm">
-                                            <span>{{ $emoji }}</span> <span>{{ $count }}</span>
-                                        </button>
-                                    @endforeach
+                                <!-- Right: Balas & Terbaik -->
+                                <div class="flex items-center gap-3 ml-auto">
+                                    <!-- Reply Button with Data Attributes (Bulletproof!) -->
+                                    <button type="button" 
+                                            data-reply-id="{{ $reply->id }}" 
+                                            data-user-name="{{ e($reply->user->name) }}" 
+                                            data-snippet="{{ e(Str::limit(preg_replace('/\s+/', ' ', strip_tags($reply->content ?? ($reply->voice_note_path ? 'Pesan Suara' : ''))), 80)) }}" 
+                                            onclick="quoteReplyFromBtn(this)" 
+                                            class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200/70 transition shadow-xs">
+                                        <i class="ph-bold ph-arrow-bend-up-left"></i> Balas
+                                    </button>
+
+                                    <!-- Accept Answer -->
+                                    @if(!$reply->is_accepted && !$thread->replies->contains('is_accepted', true) && (auth()->id() === $thread->user_id || auth()->user()->isSuperAdmin()))
+                                        <form action="{{ route('forum.reply.accept', $reply) }}" method="POST" class="inline-flex items-center">
+                                            @csrf
+                                            <button type="submit" class="text-[10px] font-bold text-slate-400 hover:text-amber-600 transition">
+                                                TERBAIK
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
-                            </div>
-
-                            <!-- Right: Balas & Terbaik -->
-                            <div class="flex items-center gap-3 ml-auto">
-                                <!-- Reply Button with Icon -->
-                                <button type="button" onclick="quoteReply({{ $reply->id }}, '{{ addslashes($reply->user->name) }}', '{{ addslashes(Str::limit(strip_tags($reply->content ?? ($reply->voice_note_path ? 'Pesan Suara' : '')), 80)) }}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 transition">
-                                    <i class="ph-bold ph-arrow-bend-up-left"></i> Balas
-                                </button>
-
-                                <!-- Accept Answer -->
-                                @if(!$reply->is_accepted && !$thread->replies->contains('is_accepted', true) && (auth()->id() === $thread->user_id || auth()->user()->isSuperAdmin()))
-                                    <form action="{{ route('forum.reply.accept', $reply) }}" method="POST" class="inline-flex items-center">
-                                        @csrf
-                                        <button type="submit" class="text-[10px] font-bold text-slate-400 hover:text-amber-600 transition">
-                                            TERBAIK
-                                        </button>
-                                    </form>
-                                @endif
                             </div>
                         </div>
                     </div>
+
+                    <!-- NESTED / MENJOROK KE DALAM: Balasan untuk komentar ini -->
+                    @php
+                        $childReplies = $thread->replies->where('parent_reply_id', $reply->id);
+                    @endphp
+                    @if($childReplies->count() > 0)
+                        <div class="ml-6 sm:ml-12 pl-3 sm:pl-4 border-l-2 border-indigo-200/90 space-y-3.5 mt-2.5 bg-indigo-50/20 rounded-r-2xl py-3 pr-2">
+                            @foreach($childReplies as $child)
+                                <div class="flex gap-2.5 sm:gap-3" id="reply-{{ $child->id }}">
+                                    <img src="{{ $child->user->avatar_url }}" class="w-8 h-8 rounded-full border border-indigo-200 shadow-xs flex-shrink-0 object-cover">
+                                    <div class="flex-1 min-w-0 space-y-1">
+                                        <div class="flex items-baseline gap-2 flex-wrap">
+                                            <span class="font-bold text-slate-800 text-xs sm:text-sm">{{ $child->user->name }}</span>
+                                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold uppercase">{{ $child->user->role }}</span>
+                                            <span class="text-[11px] text-slate-400">{{ $child->created_at->format('H:i') }}</span>
+                                        </div>
+                                        
+                                        <!-- Mention Badge -->
+                                        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-indigo-100/70 border border-indigo-200/80 rounded-md text-[11px] text-indigo-800 font-bold mb-1">
+                                            <i class="ph-bold ph-arrow-bend-down-right text-indigo-600"></i>
+                                            <span>Membalas <span class="text-indigo-950 font-extrabold">{{ $child->parent->user->name ?? $reply->user->name }}</span></span>
+                                        </div>
+
+                                        <!-- Bubble -->
+                                        <div class="{{ $child->is_accepted ? 'bg-amber-50/90 border-amber-200 ring-1 ring-amber-300' : 'bg-white border-slate-200' }} border rounded-2xl rounded-tl-none p-3 max-w-2xl text-xs sm:text-sm text-slate-800 shadow-xs">
+                                            @if($child->voice_note_path)
+                                                <div class="mb-1 flex items-center gap-1.5 text-indigo-600 font-bold text-xs">
+                                                    <i class="ph-bold ph-microphone"></i> Pesan Suara
+                                                </div>
+                                                <audio controls class="w-full h-8 rounded-lg max-w-[220px] mb-1 bg-slate-100" src="{{ asset('storage/' . $child->voice_note_path) }}"></audio>
+                                            @endif
+                                            @if($child->content)
+                                                {!! nl2br(e($child->content)) !!}
+                                            @endif
+                                        </div>
+
+                                        <!-- Actions -->
+                                        <div class="flex flex-wrap items-center justify-between gap-2 mt-1.5 w-full max-w-2xl">
+                                            <!-- Left: Emoji Reactions -->
+                                            <div class="flex items-center gap-1.5">
+                                                <div class="flex items-center relative">
+                                                    <button @click="togglePicker('reply-{{ $child->id }}')" class="w-5 h-5 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 transition text-xs">
+                                                        <i class="ph-bold ph-smiley"></i>
+                                                    </button>
+                                                    <div x-show="pickerOpen === 'reply-{{ $child->id }}'" class="ml-1 p-1 bg-white border border-slate-200 rounded-xl flex gap-1 shadow-lg z-20">
+                                                        @foreach(\App\Models\ForumReaction::EMOJIS as $emoji => $name)
+                                                            <button @click="reactReply('{{ $child->id }}', '{{ $emoji }}')" class="w-5 h-5 rounded hover:bg-slate-100 flex items-center justify-center text-sm transition-transform hover:scale-125">
+                                                                {{ $emoji }}
+                                                            </button>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                                <div id="reply-reactions-{{ $child->id }}" class="flex flex-wrap gap-1">
+                                                    @foreach($child->getReactionCounts() as $emoji => $count)
+                                                        <button onclick="reactReplyAjax({{ $child->id }}, '{{ $emoji }}')" class="flex items-center gap-1 px-1.5 py-0.5 bg-white hover:bg-slate-100 border border-slate-200 rounded text-[10px] font-bold text-slate-700 transition shadow-xs">
+                                                            <span>{{ $emoji }}</span> <span>{{ $count }}</span>
+                                                        </button>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+
+                                            <!-- Right: Balas button for Child -->
+                                            <div class="flex items-center gap-2 ml-auto">
+                                                <button type="button" 
+                                                        data-reply-id="{{ $child->id }}" 
+                                                        data-user-name="{{ e($child->user->name) }}" 
+                                                        data-snippet="{{ e(Str::limit(preg_replace('/\s+/', ' ', strip_tags($child->content ?? ($child->voice_note_path ? 'Pesan Suara' : ''))), 80)) }}" 
+                                                        onclick="quoteReplyFromBtn(this)" 
+                                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-slate-600 hover:text-indigo-600 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 transition shadow-2xs">
+                                                    <i class="ph-bold ph-arrow-bend-up-left"></i> Balas
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             @endforeach
+
+            @if($orphanReplies->count() > 0)
+                @foreach($orphanReplies as $orphan)
+                    <div class="flex gap-3 sm:gap-4" id="reply-{{ $orphan->id }}">
+                        <img src="{{ $orphan->user->avatar_url }}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200 shadow-xs flex-shrink-0 object-cover">
+                        <div class="flex-1 min-w-0 space-y-1.5">
+                            <div class="flex items-baseline gap-2 flex-wrap">
+                                <span class="font-bold text-slate-800 text-sm">{{ $orphan->user->name }}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold uppercase tracking-wider">{{ $orphan->user->role }}</span>
+                                <span class="text-xs text-slate-400">{{ $orphan->created_at->format('H:i') }}</span>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 max-w-2xl text-sm text-slate-800 shadow-sm">
+                                {!! nl2br(e($orphan->content)) !!}
+                            </div>
+                            <div class="flex items-center justify-end mt-1 max-w-2xl">
+                                <button type="button" 
+                                        data-reply-id="{{ $orphan->id }}" 
+                                        data-user-name="{{ e($orphan->user->name) }}" 
+                                        data-snippet="{{ e(Str::limit(preg_replace('/\s+/', ' ', strip_tags($orphan->content ?? '')), 80)) }}" 
+                                        onclick="quoteReplyFromBtn(this)" 
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200/70 transition shadow-xs">
+                                    <i class="ph-bold ph-arrow-bend-up-left"></i> Balas
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            @endif
         </div>
     </div>
 
@@ -622,16 +729,30 @@ document.addEventListener('click', function(event) {
 });
 
 // Quote functionality
+function quoteReplyFromBtn(btn) {
+    if (!btn) return;
+    const id = btn.getAttribute('data-reply-id');
+    const user = btn.getAttribute('data-user-name');
+    const text = btn.getAttribute('data-snippet');
+    quoteReply(id, user, text);
+}
+
 function quoteReply(id, user, text) {
-    document.getElementById('parent_reply_id').value = id;
-    document.getElementById('quote-user').textContent = 'Membalas @' + user;
-    document.getElementById('quote-text').textContent = text ? '"' + text + '"' : 'Pesan';
+    const parentInput = document.getElementById('parent_reply_id');
+    const quoteUser = document.getElementById('quote-user');
+    const quoteText = document.getElementById('quote-text');
+    const quotePreview = document.getElementById('quote-preview');
+    const generalLabel = document.getElementById('general-comment-label');
+    const textarea = document.getElementById('reply-textarea');
+
+    if (parentInput) parentInput.value = id;
+    if (quoteUser) quoteUser.textContent = 'Membalas @' + user;
+    if (quoteText) quoteText.textContent = text ? '"' + text + '"' : 'Pesan';
     
     // Switch labels: hide general comment, show reply preview
-    document.getElementById('general-comment-label')?.classList.add('hidden');
-    document.getElementById('quote-preview')?.classList.remove('hidden');
+    if (generalLabel) generalLabel.classList.add('hidden');
+    if (quotePreview) quotePreview.classList.remove('hidden');
     
-    const textarea = document.getElementById('reply-textarea');
     if (textarea) {
         textarea.placeholder = 'Tulis balasan untuk @' + user + '...';
         textarea.focus();
