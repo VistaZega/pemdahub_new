@@ -98,13 +98,26 @@
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-star-half-alt text-[10px]"></i></div>
                 <span>Evaluasi Kinerja</span>
             </a>
-            <span class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm opacity-50 cursor-not-allowed select-none" title="Modul Cuti belum dapat diakses">
+            {{-- Cuti & Izin: Kepsek & Yayasan bisa akses; lain hanya lihat --}}
+            @if($isKepsek || $isYayasan)
+            <a href="{{ route('admin.employees.leaves.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.employees.leaves.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-sky-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-calendar-check text-[10px]"></i></div>
                 <span class="flex-1">Cuti &amp; Izin</span>
-                <span class="text-[9px] font-black bg-amber-100 text-amber-600 border border-amber-300 px-1.5 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap">
-                    <i class="fas fa-lock text-[8px]"></i> Segera
+                @if($isKepsek && !$isYayasan)
+                <span class="text-[9px] font-black bg-cyan-100 text-cyan-700 border border-cyan-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">Kasek</span>
+                @elseif($isYayasan)
+                <span class="text-[9px] font-black bg-violet-100 text-violet-700 border border-violet-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">Yayasan</span>
+                @endif
+            </a>
+            @else
+            <span class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm opacity-50 cursor-not-allowed select-none" title="Hanya Kepala Sekolah dan Yayasan yang dapat mengakses modul ini">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-sky-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-calendar-check text-[10px]"></i></div>
+                <span class="flex-1">Cuti &amp; Izin</span>
+                <span class="text-[9px] font-black bg-slate-100 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap">
+                    <i class="fas fa-lock text-[8px]"></i> Terkunci
                 </span>
             </span>
+            @endif
             <a href="{{ route('admin.workload.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.workload.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-list-check text-[10px]"></i></div>
                 <span>Rekap Beban Kerja dan Penggajian</span>
@@ -387,14 +400,26 @@
 
 
 
-            {{-- Cuti & Izin: Tampil untuk semua, tapi disabled/locked --}}
-            <span class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm opacity-50 cursor-not-allowed select-none" title="Modul Cuti belum dapat diakses">
+            {{-- Cuti & Izin: Kepsek & Yayasan bisa akses; lain hanya lihat --}}
+            @if($isKepsek || $isYayasan)
+            <a href="{{ route('admin.employees.leaves.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.employees.leaves.*') ? $ac : $nc }}">
                 <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-sky-600 flex items-center justify-center text-white"><i class="fas fa-calendar-check text-[10px]"></i></div>
                 <span class="flex-1">Cuti &amp; Izin</span>
-                <span class="text-[9px] font-black bg-amber-100 text-amber-600 border border-amber-300 px-1.5 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap">
-                    <i class="fas fa-lock text-[8px]"></i> Segera
+                @if($isKepsek && !$isYayasan)
+                <span class="text-[9px] font-black bg-cyan-100 text-cyan-700 border border-cyan-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">Kasek</span>
+                @elseif($isYayasan)
+                <span class="text-[9px] font-black bg-violet-100 text-violet-700 border border-violet-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">Yayasan</span>
+                @endif
+            </a>
+            @else
+            <span class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm opacity-50 cursor-not-allowed select-none" title="Hanya Kepala Sekolah dan Yayasan yang dapat mengakses modul ini">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-sky-600 flex items-center justify-center text-white"><i class="fas fa-calendar-check text-[10px]"></i></div>
+                <span class="flex-1">Cuti &amp; Izin</span>
+                <span class="text-[9px] font-black bg-slate-100 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap">
+                    <i class="fas fa-lock text-[8px]"></i> Terkunci
                 </span>
             </span>
+            @endif
 
 
             @if($isYayasan || $isFinance)
