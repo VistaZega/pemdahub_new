@@ -145,45 +145,45 @@
         </div>
         @else
         <div class="overflow-x-auto w-full">
-            <table class="w-full text-left border-collapse table-auto">
+            <table class="w-full text-left border-collapse table-fixed">
                 <thead class="bg-black text-amber-400 border-b-2 border-black">
                     <tr class="whitespace-nowrap">
-                        <th class="px-3 py-3.5 text-center text-xs font-black uppercase tracking-wider w-12">No</th>
-                        <th class="px-4 py-3.5 text-left text-xs font-black uppercase tracking-wider">Nama & Identitas</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-black uppercase tracking-wider">Unit / Rombel</th>
-                        <th class="px-3 py-3.5 text-center text-xs font-black uppercase tracking-wider">Status Kehadiran</th>
-                        <th class="px-2 py-3.5 text-center text-xs font-black uppercase tracking-wider">Masuk</th>
-                        <th class="px-2 py-3.5 text-center text-xs font-black uppercase tracking-wider">Pulang</th>
-                        <th class="px-2 py-3.5 text-center text-xs font-black uppercase tracking-wider">Metode</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-black uppercase tracking-wider">Keterangan</th>
-                        <th class="px-3 py-3.5 text-center text-xs font-black uppercase tracking-wider">Aksi</th>
+                        <th class="py-3.5 px-2 text-center text-xs font-black uppercase tracking-wider w-10">No</th>
+                        <th class="py-3.5 px-3 text-left text-xs font-black uppercase tracking-wider w-[24%]">Nama & Identitas</th>
+                        <th class="py-3.5 px-2 text-left text-xs font-black uppercase tracking-wider w-[14%]">Unit / Rombel</th>
+                        <th class="py-3.5 px-2 text-center text-xs font-black uppercase tracking-wider w-[15%]">Status Kehadiran</th>
+                        <th class="py-3.5 px-1.5 text-center text-xs font-black uppercase tracking-wider w-[7%]">Masuk</th>
+                        <th class="py-3.5 px-1.5 text-center text-xs font-black uppercase tracking-wider w-[7%]">Pulang</th>
+                        <th class="py-3.5 px-1.5 text-center text-xs font-black uppercase tracking-wider w-[8%]">Metode</th>
+                        <th class="py-3.5 px-2 text-left text-xs font-black uppercase tracking-wider w-[10%]">Keterangan</th>
+                        <th class="py-3.5 px-2 text-center text-xs font-black uppercase tracking-wider w-[12%]">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y-2 divide-black/10">
                     @foreach($items as $idx => $it)
                     <tr class="hover:bg-amber-50/80 transition-colors {{ $it->status === 'belum' ? 'bg-gray-50/50' : '' }}" id="row-person-{{ $it->person_id }}">
-                        <td class="px-3 py-3.5 text-center text-xs text-black font-black font-mono whitespace-nowrap">{{ $idx + 1 }}</td>
-                        <td class="px-4 py-3.5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-xs overflow-hidden">
+                        <td class="py-3.5 px-2 text-center text-xs text-black font-black font-mono whitespace-nowrap">{{ $idx + 1 }}</td>
+                        <td class="py-3.5 px-3">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-9 h-9 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-xs overflow-hidden">
                                     @if(!empty($it->photo_url))
                                         <img src="{{ $it->photo_url }}" class="w-full h-full object-cover" alt="{{ $it->name }}">
                                     @else
                                         <span class="text-black font-black text-xs">{{ strtoupper(substr($it->name, 0, 2)) }}</span>
                                     @endif
                                 </div>
-                                <div class="min-w-0">
-                                    <div class="font-black text-black text-xs md:text-sm leading-tight truncate max-w-[200px]" title="{{ $it->name }}">{{ $it->name }}</div>
-                                    <div class="text-[11px] text-gray-500 font-bold font-mono">{{ $it->code }}</div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-black text-black text-xs md:text-sm leading-tight truncate" title="{{ $it->name }}">{{ $it->name }}</div>
+                                    <div class="text-[10px] text-gray-500 font-bold font-mono truncate">{{ $it->code }}</div>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-3 py-3.5 whitespace-nowrap">
-                            <span class="inline-flex items-center px-3 py-1 bg-gray-100 border border-black/20 rounded-xl text-xs font-black text-black">
+                        <td class="py-3.5 px-2">
+                            <span class="inline-flex items-center px-2.5 py-1 bg-gray-100 border border-black/20 rounded-xl text-[11px] font-black text-black truncate max-w-full" title="{{ $it->info }}">
                                 {{ $it->info }}
                             </span>
                         </td>
-                        <td class="px-3 py-3.5 text-center whitespace-nowrap">
+                        <td class="py-3.5 px-2 text-center">
                             @php
                                 $badgeStyle = match($it->status) {
                                     'hadir'      => 'bg-emerald-300 text-black',
@@ -196,37 +196,37 @@
                                     default      => 'bg-gray-200 text-black'
                                 };
                             @endphp
-                            <span class="inline-flex items-center justify-center px-3.5 py-1 rounded-xl text-xs font-black uppercase tracking-wider border-2 border-black shadow-xs whitespace-nowrap {{ $badgeStyle }}">
+                            <span class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-2xl text-[11px] font-black uppercase tracking-wider border-2 border-black shadow-xs whitespace-nowrap leading-none {{ $badgeStyle }}">
                                 {{ $it->status === 'belum' ? 'Belum Absen' : ucfirst(str_replace('_', ' ', $it->status)) }}
                             </span>
                         </td>
-                        <td class="px-2 py-3.5 text-center text-xs font-mono font-black text-black whitespace-nowrap">
+                        <td class="py-3.5 px-1.5 text-center text-xs font-mono font-black text-black whitespace-nowrap">
                             {{ $it->time_in }}
                         </td>
-                        <td class="px-2 py-3.5 text-center text-xs font-mono font-black text-black whitespace-nowrap">
+                        <td class="py-3.5 px-1.5 text-center text-xs font-mono font-black text-black whitespace-nowrap">
                             {{ $it->time_out }}
                         </td>
-                        <td class="px-2 py-3.5 text-center whitespace-nowrap">
+                        <td class="py-3.5 px-1.5 text-center whitespace-nowrap">
                             @if($it->recorded_via === 'gps')
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-900 shadow-2xs whitespace-nowrap">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black bg-blue-100 text-blue-900 border border-blue-900 shadow-2xs whitespace-nowrap">
                                     <i class="fas fa-location-dot mr-1"></i> GPS
                                 </span>
                             @elseif($it->recorded_via === 'rfid')
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-amber-200 text-black border border-black shadow-2xs whitespace-nowrap">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black bg-amber-200 text-black border border-black shadow-2xs whitespace-nowrap">
                                     <i class="fas fa-id-card mr-1"></i> RFID
                                 </span>
                             @elseif($it->recorded_via === 'manual')
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-gray-100 text-black border border-black shadow-2xs whitespace-nowrap">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black bg-gray-100 text-black border border-black shadow-2xs whitespace-nowrap">
                                     <i class="fas fa-pen mr-1"></i> MANUAL
                                 </span>
                             @else
                                 <span class="text-gray-400 font-bold text-xs">-</span>
                             @endif
                         </td>
-                        <td class="px-3 py-3.5 text-xs font-bold text-gray-700 max-w-[140px] truncate">
+                        <td class="py-3.5 px-2 text-xs font-bold text-gray-700 truncate">
                             {{ $it->notes ?? '-' }}
                         </td>
-                        <td class="px-3 py-3.5 text-center whitespace-nowrap">
+                        <td class="py-3.5 px-2 text-center whitespace-nowrap">
                             <div class="inline-flex items-center justify-center gap-1.5">
                                 {{-- Tombol Edit Modal --}}
                                 <button type="button" 
@@ -243,9 +243,9 @@
                                             'time_out'     => $it->raw_time_out,
                                             'notes'        => $it->notes,
                                         ]) }})"
-                                        class="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-black rounded-xl font-black border-2 border-black shadow-xs transition active:scale-95 inline-flex items-center justify-center gap-1.5 text-xs" 
+                                        class="px-2.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-black rounded-xl font-black border-2 border-black shadow-xs transition active:scale-95 inline-flex items-center justify-center gap-1 text-xs" 
                                         title="Edit Presensi">
-                                    <i class="fas fa-edit text-xs"></i>
+                                    <i class="fas fa-edit text-[11px]"></i>
                                     <span>Edit</span>
                                 </button>
 
@@ -254,8 +254,8 @@
                                 <form action="{{ route('admin.attendance.destroy', ['id' => $it->attendance_id, 'group' => $group]) }}" 
                                       method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus/mereset data presensi {{ $it->name }}?');" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="px-3 py-1.5 bg-rose-400 hover:bg-rose-500 text-black rounded-xl font-black border-2 border-black shadow-xs transition active:scale-95 inline-flex items-center justify-center gap-1.5 text-xs" title="Hapus Presensi">
-                                        <i class="fas fa-trash text-xs"></i>
+                                    <button type="submit" class="px-2.5 py-1.5 bg-rose-400 hover:bg-rose-500 text-black rounded-xl font-black border-2 border-black shadow-xs transition active:scale-95 inline-flex items-center justify-center gap-1 text-xs" title="Hapus Presensi">
+                                        <i class="fas fa-trash text-[11px]"></i>
                                         <span>Hapus</span>
                                     </button>
                                 </form>
