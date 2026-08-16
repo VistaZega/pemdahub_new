@@ -77,7 +77,7 @@
             {{-- Reputation & Badges --}}
             @if($teacher->user && $teacher->user->reputation)
             @php
-                $isYayasanTeacher = $teacher->user->isOwnerOrSuperAdmin() || $teacher->user->canAccessYayasan() || $teacher->user->role === 'ketua_yayasan';
+                $isYayasanTeacher = $teacher->user && ($teacher->user->username === 'yulzega' || str_contains(strtolower($teacher->user->name ?? ''), 'yulianus zega'));
             @endphp
             <div class="border-t border-gray-100 p-6 bg-slate-50/50">
                 <div class="flex items-center justify-between mb-4">

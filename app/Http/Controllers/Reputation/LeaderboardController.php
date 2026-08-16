@@ -46,9 +46,8 @@ class LeaderboardController extends Controller
         ])
             ->whereHas('user', function($q) {
                 $q->where('role', 'guru')
-                  ->where('role', '!=', 'superadmin')
-                  ->where('role', '!=', 'ketua_yayasan')
-                  ->where('username', '!=', 'yulzega');
+                  ->where('username', '!=', 'yulzega')
+                  ->where('name', 'NOT LIKE', '%Yulianus Zega%');
             })
             ->orderBy('total_points', 'desc')
             ->take(10)
@@ -57,7 +56,8 @@ class LeaderboardController extends Controller
         $userRanking = null;
         if (auth()->check()) {
             $currentUser = auth()->user();
-            if (!$currentUser->isOwnerOrSuperAdmin() && !$currentUser->canAccessYayasan() && $currentUser->role !== 'ketua_yayasan') {
+            $isYulianusZega = $currentUser->username === 'yulzega' || str_contains(strtolower($currentUser->name ?? ''), 'yulianus zega');
+            if (!$isYulianusZega) {
                 $userRanking = Reputation::where('total_points', '>', $currentUser->reputation?->total_points ?? 0)
                     ->count() + 1;
             }

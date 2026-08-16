@@ -398,7 +398,7 @@
                 </div>
 
                 @php
-                    $isYayasanUser = $teacher->user && ($teacher->user->isOwnerOrSuperAdmin() || $teacher->user->canAccessYayasan() || $teacher->user->role === 'ketua_yayasan');
+                    $isYayasanUser = $teacher->user && ($teacher->user->username === 'yulzega' || str_contains(strtolower($teacher->user->name ?? ''), 'yulianus zega'));
                 @endphp
 
                 @if($isYayasanUser)

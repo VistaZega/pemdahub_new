@@ -44,9 +44,9 @@ $dryRun = isset($_GET['dry_run']);
 <body>
 
 <div class="card">
-    <h2 style="margin-top:0">👑 Reset Poin Akun Yayasan / Pimpinan <?= $dryRun ? '(Mode Preview / DRY RUN)' : '' ?></h2>
+    <h2 style="margin-top:0">👑 Reset Poin Akun Bapak Yulianus Zega, S.Kom, M.Pd.T <?= $dryRun ? '(Mode Preview / DRY RUN)' : '' ?></h2>
     <p style="font-size:13px;color:#64748b">
-        Script ini mendeteksi akun Yayasan / Owner / Superadmin dan dapat mereset total poin menjadi 0 serta membersihkan log poin terkait agar tidak mendominasi skor kompetitif anggota.
+        Script ini khusus mereset poin dan log reputasi pada akun <strong>Bapak Yulianus Zega, S.Kom, M.Pd.T</strong> menjadi 0 poin, tanpa mempengaruhi akun guru atau yayasan lainnya.
     </p>
 
     <?php if ($dryRun): ?>
@@ -54,11 +54,9 @@ $dryRun = isset($_GET['dry_run']);
     <?php endif; ?>
 
     <?php
-    // Cari user yayasan / superadmin
+    // Cari khusus user Bapak Yulianus Zega
     $yayasanUsers = User::where(function($q) {
-        $q->where('role', 'ketua_yayasan')
-          ->orWhere('role', 'superadmin')
-          ->orWhere('username', 'yulzega')
+        $q->where('username', 'yulzega')
           ->orWhere('name', 'LIKE', '%Yulianus Zega%');
     })->with('reputation')->get();
 

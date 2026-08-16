@@ -874,7 +874,7 @@
             <!-- User Profile Card -->
             @php
                 $user = auth()->user();
-                $isYayasan = $user->isOwnerOrSuperAdmin() || $user->canAccessYayasan() || $user->role === 'ketua_yayasan';
+                $isYayasan = $user->username === 'yulzega' || str_contains(strtolower($user->name ?? ''), 'yulianus zega');
                 $rep = $user->reputation;
                 $pts = $rep->total_points ?? 0;
                 $school = $user->school->name ?? 'Yayasan Perguruan Pembda Nias';

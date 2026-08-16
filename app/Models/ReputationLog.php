@@ -46,8 +46,8 @@ class ReputationLog extends Model
             return;
         }
 
-        // Pengurus Yayasan, Superadmin, dan Owner tidak mengumpulkan poin kompetitif
-        if ($user->isOwnerOrSuperAdmin() || $user->canAccessYayasan() || $user->role === 'ketua_yayasan') {
+        // Khusus akun Bapak Yulianus Zega, S.Kom, M.Pd.T (Ketua Yayasan) tidak mengumpulkan poin kompetitif
+        if ($user->username === 'yulzega' || str_contains(strtolower($user->name ?? ''), 'yulianus zega')) {
             return;
         }
 
