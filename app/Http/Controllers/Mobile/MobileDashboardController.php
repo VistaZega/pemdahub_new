@@ -255,22 +255,25 @@ class MobileDashboardController extends Controller
             $spaceGroups = \App\Models\ForumGroup::take(6)->get();
         }
 
-        // Active Poll Thread (Poling Interaktif Real dari Database)
-        $activePollThread = ForumThread::whereHas('poll')
-            ->with(['poll.options', 'user.student', 'user.teacher', 'group'])
-            ->latest()
+        // Active Poll Thread (Poling Resmi PembdaHUB oleh Super Admin dengan 5 Pilihan)
+        $activePollThread = ForumThread::where('title', 'LIKE', '%Penerapan PembdaHUB%')
+            ->whereHas('poll')
+            ->with(['poll.options', 'user', 'group'])
             ->first();
 
         if (!$activePollThread) {
-            $adminUser = \App\Models\User::where('role', 'superadmin')->first() ?? $user;
-            $lobiGroup = \App\Models\ForumGroup::first();
+            $superAdmin = \App\Models\User::where('role', 'superadmin')->first() 
+                ?? \App\Models\User::where('name', 'LIKE', '%Admin%')->first() 
+                ?? $user;
+
+            $lobiGroup = \App\Models\ForumGroup::where('slug', 'lobi-utama')->first() ?? \App\Models\ForumGroup::first();
 
             $activePollThread = ForumThread::create([
-                'user_id' => $adminUser->id,
+                'user_id' => $superAdmin->id,
                 'group_id' => $lobiGroup?->id,
                 'category' => 'pengumuman',
                 'title' => 'Bagaimana Pendapat Kamu tentang Penerapan PembdaHUB Mobile?',
-                'content' => 'Halo Warga YAYASAN PEMBDA! Bagaimana kesan & pendapat kalian mengenai penggunaan aplikasi PembdaHUB Mobile saat ini? Yuk berikan suaramu! 📱 Belum install aplikasi di HP? Download & install aplikasi PembdaHUB Mobile resmi via: ' . route('app.download'),
+                'content' => "Halo Warga YAYASAN PEMBDA! Bagaimana kesan & pendapat kalian mengenai penggunaan aplikasi PembdaHUB Mobile saat ini? Yuk berikan suaramu!\n\n📱 Belum install aplikasi di HP? Download & install aplikasi PembdaHUB Mobile resmi via: " . route('app.download'),
             ]);
 
             $poll = \App\Models\ForumPoll::create([
@@ -278,13 +281,47 @@ class MobileDashboardController extends Controller
                 'question' => 'Bagaimana Pendapat Kamu tentang Penerapan PembdaHUB Mobile?',
             ]);
 
-            \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '🚀 Sangat Bagus & Membantu', 'votes_count' => 0]);
-            \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '👍 Cukup Baik & Praktis', 'votes_count' => 0]);
-            \App\Models\ForumPollOption::create(['forum_poll_id' => $poll->id, 'option_text' => '💡 Butuh Peningkatan Fitur', 'votes_count' => 0]);
+            $options = [
+                '🚀 Sangat Bagus, Canggih & Membantu',
+                '👍 Cukup Baik & Sangat Praktis',
+                '💡 Fitur Lengkap, Perlu Sosialisasi',
+                '⭐ Menarik, Ingin Ditambah Fitur Baru',
+                '🛠️ Perlu Peningkatan & Optimalisasi',
+            ];
+
+            foreach ($options as $optText) {
+                \App\Models\ForumPollOption::create([
+                    'forum_poll_id' => $poll->id,
+                    'option_text' => $optText,
+                    'votes_count' => 0,
+                ]);
+            }
 
             $activePollThread->load(['poll.options', 'user', 'group']);
         } else if ($activePollThread->poll) {
-            // Force sync votes_count dengan jumlah record voting asli di tabel forum_poll_votes
+            // Pastikan ada 5 pilihan jika belum ada 5
+            $currentOptionsCount = $activePollThread->poll->options->count();
+            if ($currentOptionsCount < 5) {
+                $missingOptions = [
+                    '🚀 Sangat Bagus, Canggih & Membantu',
+                    '👍 Cukup Baik & Sangat Praktis',
+                    '💡 Fitur Lengkap, Perlu Sosialisasi',
+                    '⭐ Menarik, Ingin Ditambah Fitur Baru',
+                    '🛠️ Perlu Peningkatan & Optimalisasi',
+                ];
+
+                \App\Models\ForumPollOption::where('forum_poll_id', $activePollThread->poll->id)->delete();
+                foreach ($missingOptions as $optText) {
+                    \App\Models\ForumPollOption::create([
+                        'forum_poll_id' => $activePollThread->poll->id,
+                        'option_text' => $optText,
+                        'votes_count' => 0,
+                    ]);
+                }
+                $activePollThread->load(['poll.options']);
+            }
+
+            // Sync votes_count dengan record murni di forum_poll_votes
             foreach ($activePollThread->poll->options as $opt) {
                 $realVoteCount = \App\Models\ForumPollVote::where('forum_poll_option_id', $opt->id)->count();
                 if ($opt->votes_count !== $realVoteCount) {
