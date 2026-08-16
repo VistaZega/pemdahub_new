@@ -6,7 +6,7 @@
 <style>
     .clay-stat-card {
         background: #ffffff;
-        border-radius: 28px;
+        border-radius: 30px;
         box-shadow: 8px 12px 24px rgba(30, 41, 59, 0.06), -6px -6px 16px rgba(255, 255, 255, 0.9), inset 2px 2px 4px rgba(255, 255, 255, 0.8), inset -2px -2px 4px rgba(0, 0, 0, 0.03);
         border: 2px solid #f1f5f9;
         transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -17,7 +17,7 @@
     }
     .clay-event-card {
         background: #ffffff;
-        border-radius: 24px;
+        border-radius: 26px;
         box-shadow: 6px 10px 20px rgba(30, 41, 59, 0.05), -4px -4px 12px rgba(255, 255, 255, 0.9), inset 2px 2px 3px rgba(255, 255, 255, 0.8);
         border: 2px solid #f1f5f9;
         transition: all 0.3s ease;
@@ -31,18 +31,18 @@
 @endpush
 
 @section('content')
-<div class="space-y-8">
+<div class="space-y-10">
     {{-- Unified Playful Clay Header --}}
     @include('admin.attendance.header')
 
     {{-- ═══════════════════════════════════════════════ --}}
     {{-- STATISTIC METRIC CARDS (PLAYFUL CLAY CHIPS)    --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
         {{-- 1. Total Target --}}
-        <div class="clay-stat-card rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center text-xl font-bold shadow-md"
+        <div class="clay-stat-card p-6 flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center text-xl font-bold shadow-md"
                      style="box-shadow: 3px 5px 12px rgba(67, 97, 238, 0.35);">
                     <i class="fas fa-users"></i>
                 </div>
@@ -50,14 +50,14 @@
             </div>
             <div>
                 <p class="text-xs font-extrabold uppercase tracking-wider text-slate-700" style="font-family: var(--clay-font-title);">Total Terdaftar</p>
-                <p class="text-[11px] font-semibold text-slate-400 mt-0.5">{{ ucfirst($group) }} aktif</p>
+                <p class="text-[11px] font-semibold text-slate-400 mt-1">{{ ucfirst($group) }} aktif</p>
             </div>
         </div>
 
         {{-- 2. Hadir --}}
-        <div class="clay-stat-card rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white flex items-center justify-center text-xl font-bold shadow-md"
+        <div class="clay-stat-card p-6 flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white flex items-center justify-center text-xl font-bold shadow-md"
                      style="box-shadow: 3px 5px 12px rgba(6, 214, 160, 0.35);">
                     <i class="fas fa-circle-check"></i>
                 </div>
@@ -65,14 +65,14 @@
             </div>
             <div>
                 <p class="text-xs font-extrabold uppercase tracking-wider text-slate-700" style="font-family: var(--clay-font-title);">Hadir Tepat</p>
-                <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Sebelum batas waktu</p>
+                <p class="text-[11px] font-semibold text-slate-400 mt-1">Sebelum batas waktu</p>
             </div>
         </div>
 
         {{-- 3. Terlambat --}}
-        <div class="clay-stat-card rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-xl font-bold shadow-md"
+        <div class="clay-stat-card p-6 flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-xl font-bold shadow-md"
                      style="box-shadow: 3px 5px 12px rgba(245, 158, 11, 0.35);">
                     <i class="fas fa-clock"></i>
                 </div>
@@ -80,14 +80,14 @@
             </div>
             <div>
                 <p class="text-xs font-extrabold uppercase tracking-wider text-slate-700" style="font-family: var(--clay-font-title);">Terlambat</p>
-                <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Lewat toleransi</p>
+                <p class="text-[11px] font-semibold text-slate-400 mt-1">Lewat toleransi</p>
             </div>
         </div>
 
         {{-- 4. Izin & Sakit --}}
-        <div class="clay-stat-card rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center text-xl font-bold shadow-md"
+        <div class="clay-stat-card p-6 flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center text-xl font-bold shadow-md"
                      style="box-shadow: 3px 5px 12px rgba(56, 189, 248, 0.35);">
                     <i class="fas fa-envelope-open-text"></i>
                 </div>
@@ -95,14 +95,14 @@
             </div>
             <div>
                 <p class="text-xs font-extrabold uppercase tracking-wider text-slate-700" style="font-family: var(--clay-font-title);">Izin & Sakit</p>
-                <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Surat resmi terlampir</p>
+                <p class="text-[11px] font-semibold text-slate-400 mt-1">Surat resmi terlampir</p>
             </div>
         </div>
 
         {{-- 5. Alpha --}}
-        <div class="clay-stat-card rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-400 to-pink-600 text-white flex items-center justify-center text-xl font-bold shadow-md"
+        <div class="clay-stat-card p-6 flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-rose-400 to-pink-600 text-white flex items-center justify-center text-xl font-bold shadow-md"
                      style="box-shadow: 3px 5px 12px rgba(244, 63, 94, 0.35);">
                     <i class="fas fa-circle-xmark"></i>
                 </div>
@@ -110,14 +110,14 @@
             </div>
             <div>
                 <p class="text-xs font-extrabold uppercase tracking-wider text-slate-700" style="font-family: var(--clay-font-title);">Alpha</p>
-                <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Tanpa keterangan</p>
+                <p class="text-[11px] font-semibold text-slate-400 mt-1">Tanpa keterangan</p>
             </div>
         </div>
 
         {{-- 6. Belum Presensi --}}
-        <div class="clay-stat-card rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-400 to-slate-600 text-white flex items-center justify-center text-xl font-bold shadow-md"
+        <div class="clay-stat-card p-6 flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-slate-400 to-slate-600 text-white flex items-center justify-center text-xl font-bold shadow-md"
                      style="box-shadow: 3px 5px 12px rgba(100, 116, 139, 0.35);">
                     <i class="fas fa-hourglass-half"></i>
                 </div>
@@ -125,7 +125,7 @@
             </div>
             <div>
                 <p class="text-xs font-extrabold uppercase tracking-wider text-slate-700" style="font-family: var(--clay-font-title);">Belum Hadir</p>
-                <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Menunggu tap/GPS</p>
+                <p class="text-[11px] font-semibold text-slate-400 mt-1">Menunggu tap/GPS</p>
             </div>
         </div>
     </div>
@@ -133,24 +133,24 @@
     {{-- ═══════════════════════════════════════════════ --}}
     {{-- LIVE FEED STREAM CONTAINER (PLAYFUL CLAY)       --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="clay-card rounded-[2.5rem] p-7 md:p-9 bg-white">
-        <div class="flex items-center justify-between pb-6 border-b border-slate-100 mb-8 flex-wrap gap-4">
-            <div class="flex items-center gap-3.5">
+    <div class="clay-card rounded-[2.5rem] p-8 md:p-10 bg-white">
+        <div class="flex items-center justify-between pb-7 border-b border-slate-100 mb-8 flex-wrap gap-5">
+            <div class="flex items-center gap-4">
                 <span class="relative flex h-4 w-4">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-4 w-4 bg-rose-600"></span>
                 </span>
                 <div>
-                    <h3 class="text-xl font-extrabold text-slate-800 leading-tight" style="font-family: var(--clay-font-title);">Live Activity Feed (Real-Time Stream)</h3>
-                    <p class="text-xs text-slate-500 font-semibold mt-0.5">Data diperbarui otomatis setiap 4 detik saat ada presensi masuk</p>
+                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 leading-tight" style="font-family: var(--clay-font-title);">Live Activity Feed (Real-Time Stream)</h3>
+                    <p class="text-xs text-slate-500 font-semibold mt-1">Data diperbarui otomatis setiap 4 detik saat ada presensi masuk</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <span class="px-5 py-2.5 bg-slate-900 text-yellow-300 rounded-2xl text-xs font-mono font-extrabold shadow-md" id="live_clock">
+            <div class="flex items-center gap-3.5">
+                <span class="px-5.5 py-3 bg-slate-900 text-yellow-300 rounded-2xl text-xs font-mono font-extrabold shadow-md" id="live_clock">
                     {{ \Carbon\Carbon::now('Asia/Jakarta')->format('H:i:s') }} WIB
                 </span>
-                <button type="button" onclick="pollLiveData()" class="clay-btn-amber px-6 py-2.5 rounded-2xl text-xs font-extrabold uppercase tracking-wider transition active:scale-95 shadow-md flex items-center gap-2" title="Refresh Sekarang">
+                <button type="button" onclick="pollLiveData()" class="clay-btn-amber px-7 py-3 rounded-2xl text-xs font-extrabold uppercase tracking-wider transition active:scale-95 shadow-md flex items-center gap-2" title="Refresh Sekarang">
                     <i class="fas fa-rotate text-slate-900"></i>
                     <span>Refresh</span>
                 </button>
@@ -158,11 +158,11 @@
         </div>
 
         {{-- Live Events Grid --}}
-        <div id="live_events_container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div id="live_events_container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @forelse($liveEvents as $ev)
-                <div class="clay-event-card p-5 flex items-center justify-between gap-4">
+                <div class="clay-event-card p-6 flex items-center justify-between gap-5">
                     <div class="flex items-center gap-4 min-w-0">
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-900 border-2 border-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-sm overflow-hidden">
+                        <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-900 border-2 border-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-sm overflow-hidden">
                             @if(!empty($ev['photo_url']))
                                 <img src="{{ $ev['photo_url'] }}" class="w-full h-full object-cover" alt="{{ $ev['name'] }}">
                             @else
@@ -171,7 +171,7 @@
                         </div>
                         <div class="min-w-0">
                             <div class="font-extrabold text-slate-800 text-sm truncate">{{ $ev['name'] }}</div>
-                            <div class="text-xs text-slate-400 font-semibold truncate mt-0.5">{{ $ev['subtitle'] }} · {{ $ev['code'] }}</div>
+                            <div class="text-xs text-slate-400 font-semibold truncate mt-1">{{ $ev['subtitle'] }} · {{ $ev['code'] }}</div>
                         </div>
                     </div>
 
@@ -208,7 +208,7 @@
                     </div>
                 </div>
             @empty
-                <div class="col-span-full py-20 text-center text-slate-400">
+                <div class="col-span-full py-24 text-center text-slate-400">
                     <div class="w-16 h-16 bg-amber-100 rounded-3xl border-2 border-amber-200 flex items-center justify-center mx-auto mb-4 text-amber-600 text-3xl shadow-md">
                         <i class="fas fa-satellite-dish"></i>
                     </div>
@@ -269,14 +269,14 @@ function pollLiveData() {
                     else if (ev.status === 'terlambat') statusClass = 'bg-amber-100 text-amber-800 border-amber-300';
 
                     html += `
-                        <div class="clay-event-card p-5 flex items-center justify-between gap-4">
+                        <div class="clay-event-card p-6 flex items-center justify-between gap-5">
                             <div class="flex items-center gap-4 min-w-0">
-                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-900 border-2 border-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-sm overflow-hidden">
+                                <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-900 border-2 border-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-sm overflow-hidden">
                                     ${photoHtml}
                                 </div>
                                 <div class="min-w-0">
                                     <div class="font-extrabold text-slate-800 text-sm truncate">${ev.name}</div>
-                                    <div class="text-xs text-slate-400 font-semibold truncate mt-0.5">${ev.subtitle} · ${ev.code}</div>
+                                    <div class="text-xs text-slate-400 font-semibold truncate mt-1">${ev.subtitle} · ${ev.code}</div>
                                 </div>
                             </div>
 
