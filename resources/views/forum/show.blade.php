@@ -235,6 +235,70 @@
                             </div>
                         </div>
                     @endif
+
+                    <!-- EMBEDDED INTERACTIVE POLL -->
+                    @if($thread->poll)
+                        @php
+                            $poll = $thread->poll;
+                            $totalVotes = $poll->totalVotes();
+                            $userVote = $poll->votes()->where('user_id', auth()->id())->first();
+                            $userVotedOptionId = $userVote ? $userVote->forum_poll_option_id : null;
+                        @endphp
+                        <div class="mt-4 p-4.5 bg-gradient-to-br from-indigo-50/90 via-purple-50/40 to-white border border-indigo-100 rounded-2xl shadow-sm space-y-3.5" id="thread-detail-poll">
+                            <div class="flex items-center justify-between gap-2 border-b border-indigo-100/80 pb-2.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-sm shadow-sm flex-shrink-0">
+                                        <i class="ph-bold ph-chart-bar"></i>
+                                    </span>
+                                    <span class="text-[10px] font-black tracking-wider uppercase text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md">📊 Polling Interaktif</span>
+                                </div>
+                                <span class="text-xs font-bold text-slate-500 flex items-center gap-1">
+                                    <i class="ph-bold ph-users text-indigo-500"></i>
+                                    <span id="poll-total-votes">{{ $totalVotes }}</span> Suara
+                                </span>
+                            </div>
+
+                            <h3 class="text-sm font-black text-slate-900 leading-snug">
+                                {{ $poll->question }}
+                            </h3>
+
+                            <div class="space-y-2.5 pt-1" id="poll-options-container">
+                                @foreach($poll->options as $option)
+                                    @php 
+                                        $pct = $totalVotes > 0 ? round(($option->votes_count / $totalVotes) * 100) : 0;
+                                        $hasVoted = $userVotedOptionId === $option->id;
+                                    @endphp
+                                    <button type="button" onclick="votePoll({{ $option->id }})" class="w-full relative overflow-hidden rounded-xl border text-left p-3 transition-all duration-300 group cursor-pointer {{ $hasVoted ? 'border-indigo-500 bg-indigo-50/90 ring-2 ring-indigo-400/30' : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50' }}" id="poll-btn-{{ $option->id }}">
+                                        <!-- Progress Bar -->
+                                        <div class="absolute top-0 left-0 h-full {{ $hasVoted ? 'bg-indigo-200/60' : 'bg-indigo-100/50' }} transition-all duration-700 pointer-events-none" style="width: {{ $pct }}%" id="poll-bg-{{ $option->id }}"></div>
+                                        
+                                        <div class="relative z-10 flex justify-between items-center text-xs font-bold">
+                                            <div class="flex items-center gap-2.5 {{ $hasVoted ? 'text-indigo-900' : 'text-slate-800' }}">
+                                                <span class="w-5 h-5 rounded-full flex items-center justify-center border text-[11px] flex-shrink-0 {{ $hasVoted ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 group-hover:border-indigo-400 bg-white text-slate-500' }}" id="poll-check-{{ $option->id }}">
+                                                    @if($hasVoted)
+                                                        <i class="ph-bold ph-check"></i>
+                                                    @else
+                                                        {{ $loop->iteration }}
+                                                    @endif
+                                                </span>
+                                                <span class="truncate">{{ $option->option_text }}</span>
+                                            </div>
+                                            <div class="font-extrabold flex items-center gap-1.5 flex-shrink-0 {{ $hasVoted ? 'text-indigo-700' : 'text-slate-600' }}">
+                                                <span id="poll-pct-{{ $option->id }}">{{ $pct }}%</span>
+                                                <span class="text-[10px] font-semibold text-slate-400" id="poll-count-{{ $option->id }}">({{ $option->votes_count }})</span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                @endforeach
+                            </div>
+                            
+                            @if(!$poll->isOpen())
+                                <div class="text-[11px] font-bold text-amber-600 flex items-center gap-1 pt-1">
+                                    <i class="ph-bold ph-lock-key"></i> Polling ini telah ditutup
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Thread Reactions & Actions -->
@@ -288,39 +352,6 @@
             </div>
         @endif
 
-        <!-- POLL PANEL (if exists) -->
-        @if($thread->poll)
-            <div class="max-w-3xl ml-14 sm:ml-16 bg-white border border-red-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-1.5 h-full bg-red-500"></div>
-                <h3 class="forum-hdr text-base font-bold text-slate-800 mb-4">{{ $thread->poll->question }}</h3>
-                <div class="space-y-3" id="poll-options-container">
-                    @foreach($thread->poll->options as $option)
-                        @php 
-                            $pct = $option->percentage(); 
-                            $hasVoted = $thread->poll->votes()->where('user_id', auth()->id())->where('forum_poll_option_id', $option->id)->exists();
-                        @endphp
-                        <button onclick="votePoll({{ $option->id }})" class="w-full relative overflow-hidden rounded-xl border {{ $hasVoted ? 'border-red-500 bg-red-50/80' : 'border-slate-200 bg-slate-50 hover:bg-slate-100' }} p-3 text-left transition group">
-                            <!-- Progress Bar -->
-                            <div class="absolute top-0 left-0 h-full bg-red-200/50 transition-all duration-1000" style="width: {{ $pct }}%" id="poll-bg-{{ $option->id }}"></div>
-                            
-                            <div class="relative z-10 flex justify-between items-center text-sm font-bold">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-4 h-4 rounded-full border-2 {{ $hasVoted ? 'border-red-600 bg-red-600' : 'border-slate-400' }} flex items-center justify-center">
-                                        @if($hasVoted)<div class="w-2 h-2 rounded-full bg-white"></div>@endif
-                                    </div>
-                                    <span class="{{ $hasVoted ? 'text-red-900' : 'text-slate-700' }}">{{ $option->option_text }}</span>
-                                </div>
-                                <div class="flex items-center gap-2 text-slate-500">
-                                    <span id="poll-pct-{{ $option->id }}">{{ $pct }}%</span>
-                                </div>
-                            </div>
-                        </button>
-                    @endforeach
-                </div>
-                <div class="mt-3 text-xs text-slate-400 font-bold text-right" id="poll-total-votes">Total Votes: {{ $thread->poll->totalVotes() }}</div>
-            </div>
-        @endif
-
         <!-- REPLIES DIVIDER -->
         @if($thread->replies->count() > 0)
             <div class="flex items-center gap-4 my-4 max-w-3xl ml-14 sm:ml-16">
@@ -333,9 +364,9 @@
         <!-- REPLIES LIST -->
         <div id="replies" class="space-y-6">
             @foreach($thread->replies as $reply)
-                <div class="flex gap-4" id="reply-{{ $reply->id }}">
+                <div class="flex gap-3 sm:gap-4 {{ $reply->parent ? 'ml-6 sm:ml-10 pl-3 border-l-2 border-indigo-100/80' : '' }}" id="reply-{{ $reply->id }}">
                     <img src="{{ $reply->user->avatar_url }}" 
-                         class="w-10 h-10 rounded-full border border-slate-200 shadow-sm flex-shrink-0 object-cover">
+                         class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200 shadow-xs flex-shrink-0 object-cover">
                     <div class="flex-1 min-w-0 space-y-1.5">
                         <div class="flex items-baseline gap-2 flex-wrap">
                             <span class="font-bold text-slate-800 text-sm">{{ $reply->user->name }}</span>
@@ -350,15 +381,16 @@
 
                         <!-- Quote Parent -->
                         @if($reply->parent)
-                            <div class="bg-slate-100 border-l-2 border-indigo-500 rounded-lg p-2.5 max-w-2xl text-xs text-slate-600 mb-2 cursor-pointer hover:bg-indigo-50 transition" onclick="document.getElementById('reply-{{ $reply->parent_id }}').scrollIntoView({behavior: 'smooth'})">
-                                <div class="font-bold text-indigo-600 mb-1">Membalas {{ $reply->parent->user->name }}</div>
-                                <div class="line-clamp-2">
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50/90 border border-indigo-200/80 rounded-xl text-xs text-indigo-700 font-semibold mb-1.5 cursor-pointer hover:bg-indigo-100/80 transition shadow-xs max-w-2xl" onclick="document.getElementById('reply-{{ $reply->parent_id }}')?.scrollIntoView({behavior: 'smooth'})" title="Klik untuk melompat ke komentar asli">
+                                <i class="ph-bold ph-arrow-bend-down-right text-indigo-600 text-sm flex-shrink-0"></i>
+                                <span class="flex-shrink-0">Membalas <strong class="text-indigo-900 font-bold">{{ $reply->parent->user->name }}</strong>:</span>
+                                <span class="text-slate-500 italic truncate">
                                     @if($reply->parent->voice_note_path)
                                         <i class="ph-bold ph-microphone"></i> Pesan Suara
                                     @else
-                                        {!! strip_tags($reply->parent->content) !!}
+                                        "{!! Str::limit(strip_tags($reply->parent->content), 40) !!}"
                                     @endif
-                                </div>
+                                </span>
                             </div>
                         @endif
 
@@ -406,9 +438,9 @@
 
                             <!-- Right: Balas & Terbaik -->
                             <div class="flex items-center gap-3 ml-auto">
-                                <!-- Reply Button -->
-                                <button @click="quoteReply({{ $reply->id }}, '{{ addslashes($reply->user->name) }}', '{{ addslashes(Str::limit(strip_tags($reply->content), 100)) }}')" class="text-[10px] font-bold text-slate-400 hover:text-indigo-600 transition">
-                                    BALAS
+                                <!-- Reply Button with Icon -->
+                                <button type="button" onclick="quoteReply({{ $reply->id }}, '{{ addslashes($reply->user->name) }}', '{{ addslashes(Str::limit(strip_tags($reply->content ?? ($reply->voice_note_path ? 'Pesan Suara' : '')), 80)) }}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 transition">
+                                    <i class="ph-bold ph-arrow-bend-up-left"></i> Balas
                                 </button>
 
                                 <!-- Accept Answer -->
@@ -432,15 +464,20 @@
 @if(!$thread->is_locked)
 <div class="fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-xl border-t border-slate-200 pb-safe z-50 transition-all duration-300 shadow-lg" id="compose-bar">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 py-3">
-        <!-- Quote Preview Area -->
-        <div id="quote-preview" class="hidden mb-2 ml-14 sm:ml-16 mr-14">
-            <div class="bg-slate-100 border-l-2 border-red-500 rounded-lg p-2.5 flex justify-between items-start gap-4">
-                <div class="min-w-0">
-                    <div class="text-xs font-bold text-red-600 mb-0.5" id="quote-user"></div>
-                    <div class="text-xs text-slate-600 line-clamp-1" id="quote-text"></div>
+        <!-- Quote / Reply Target Banner -->
+        <div id="quote-preview" class="hidden mb-2.5 max-w-5xl mx-auto">
+            <div class="bg-gradient-to-r from-indigo-50 via-purple-50 to-white border border-indigo-200 rounded-xl p-3 flex justify-between items-center gap-4 shadow-sm">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-sm flex-shrink-0">
+                        <i class="ph-bold ph-arrow-bend-down-right"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-xs font-black text-indigo-900" id="quote-user">Membalas Pengguna</div>
+                        <div class="text-xs text-slate-600 truncate" id="quote-text">...</div>
+                    </div>
                 </div>
-                <button type="button" onclick="cancelQuote()" class="text-slate-400 hover:text-slate-700 p-1">
-                    <i class="ph-bold ph-x"></i>
+                <button type="button" onclick="cancelQuote()" class="px-2.5 py-1 bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 text-xs font-bold rounded-lg border border-slate-200 hover:border-rose-200 transition flex items-center gap-1 flex-shrink-0" title="Batalkan balasan spesifik">
+                    <i class="ph-bold ph-x"></i> Batal Balas
                 </button>
             </div>
         </div>
@@ -574,15 +611,27 @@ document.addEventListener('click', function(event) {
 // Quote functionality
 function quoteReply(id, user, text) {
     document.getElementById('parent_reply_id').value = id;
-    document.getElementById('quote-user').textContent = 'Membalas ' + user;
-    document.getElementById('quote-text').textContent = text;
+    document.getElementById('quote-user').textContent = 'Membalas @' + user;
+    document.getElementById('quote-text').textContent = text ? '"' + text + '"' : 'Pesan';
     document.getElementById('quote-preview').classList.remove('hidden');
-    document.querySelector('textarea[name="content"]').focus();
+    
+    const textarea = document.getElementById('reply-textarea');
+    if (textarea) {
+        textarea.placeholder = 'Tulis balasan untuk @' + user + '...';
+        textarea.focus();
+    }
+
+    // Scroll smoothly to compose bar
+    document.getElementById('compose-bar')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
 function cancelQuote() {
     document.getElementById('parent_reply_id').value = '';
     document.getElementById('quote-preview').classList.add('hidden');
+    const textarea = document.getElementById('reply-textarea');
+    if (textarea) {
+        textarea.placeholder = 'Ketik komentar umum...';
+    }
 }
 
 function getCsrfToken() {
@@ -675,25 +724,38 @@ async function votePoll(optionId) {
         }
         const data = await res.json();
         if (data.success) {
-            document.getElementById('poll-total-votes').textContent = 'Total Votes: ' + data.total_votes;
-            data.options.forEach(opt => {
-                document.getElementById(`poll-pct-${opt.id}`).textContent = opt.percentage + '%';
-                document.getElementById(`poll-bg-${opt.id}`).style.width = opt.percentage + '%';
-                
-                const btn = document.getElementById(`poll-bg-${opt.id}`).parentElement;
-                const circle = btn.querySelector('.rounded-full.border-2');
-                const text = btn.querySelector('.relative.z-10 span');
-                
-                if (data.voted && data.voted_option_id === opt.id) {
-                    btn.className = 'w-full relative overflow-hidden rounded-xl border border-indigo-500 bg-indigo-50/80 p-3 text-left transition group';
-                    circle.className = 'w-4 h-4 rounded-full border-2 border-indigo-600 bg-indigo-600 flex items-center justify-center';
-                    circle.innerHTML = '<div class="w-2 h-2 rounded-full bg-white"></div>';
-                    text.className = 'text-indigo-900';
-                } else {
-                    btn.className = 'w-full relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 p-3 text-left transition group';
-                    circle.className = 'w-4 h-4 rounded-full border-2 border-slate-400 flex items-center justify-center';
-                    circle.innerHTML = '';
-                    text.className = 'text-slate-700';
+            const totalEl = document.getElementById('poll-total-votes');
+            if (totalEl) totalEl.textContent = data.total_votes;
+            
+            data.options.forEach((opt, idx) => {
+                const pctEl = document.getElementById(`poll-pct-${opt.id}`);
+                const countEl = document.getElementById(`poll-count-${opt.id}`);
+                const bgEl = document.getElementById(`poll-bg-${opt.id}`);
+                const btnEl = document.getElementById(`poll-btn-${opt.id}`);
+                const checkEl = document.getElementById(`poll-check-${opt.id}`);
+
+                if (pctEl) pctEl.textContent = opt.percentage + '%';
+                if (countEl) countEl.textContent = '(' + opt.votes_count + ')';
+                if (bgEl) bgEl.style.width = opt.percentage + '%';
+
+                const isSelected = data.voted && data.voted_option_id === opt.id;
+
+                if (btnEl) {
+                    if (isSelected) {
+                        btnEl.className = 'w-full relative overflow-hidden rounded-xl border text-left p-3 transition-all duration-300 group cursor-pointer border-indigo-500 bg-indigo-50/90 ring-2 ring-indigo-400/30';
+                    } else {
+                        btnEl.className = 'w-full relative overflow-hidden rounded-xl border text-left p-3 transition-all duration-300 group cursor-pointer border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50';
+                    }
+                }
+
+                if (checkEl) {
+                    if (isSelected) {
+                        checkEl.className = 'w-5 h-5 rounded-full flex items-center justify-center border text-[11px] flex-shrink-0 border-indigo-600 bg-indigo-600 text-white';
+                        checkEl.innerHTML = '<i class="ph-bold ph-check"></i>';
+                    } else {
+                        checkEl.className = 'w-5 h-5 rounded-full flex items-center justify-center border text-[11px] flex-shrink-0 border-slate-300 group-hover:border-indigo-400 bg-white text-slate-500';
+                        checkEl.textContent = (idx + 1);
+                    }
                 }
             });
         }
