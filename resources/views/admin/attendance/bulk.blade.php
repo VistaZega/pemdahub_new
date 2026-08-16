@@ -127,16 +127,16 @@
                                         <div class="font-bold text-slate-800 text-xs md:text-sm leading-snug flex items-center gap-2 flex-wrap">
                                             <span class="truncate max-w-[200px]" title="{{ $p->full_name }}">{{ $p->full_name }}</span>
                                             @if($ex)
-                                                @if($ex->recorded_via === 'gps')
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
-                                                        <i class="fas fa-location-dot mr-1"></i> GPS
+                                                @if(in_array($ex->recorded_via, ['rfid', 'qrcode', 'device', 'scanner']))
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap" title="Absen via Scan Kartu RFID / QR Code">
+                                                        <i class="fas fa-id-card mr-1"></i> Scan RFID
                                                     </span>
-                                                @elseif($ex->recorded_via === 'rfid')
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
-                                                        <i class="fas fa-id-card mr-1"></i> RFID
+                                                @elseif(in_array($ex->recorded_via, ['gps', 'web', 'phone', 'online']))
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap" title="Absen via Website Mobile/Desktop">
+                                                        <i class="fas fa-mobile-screen-button mr-1"></i> Phone/PC
                                                     </span>
                                                 @else
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap" title="Absen diinput Manual oleh Admin">
                                                         <i class="fas fa-pen mr-1"></i> Manual
                                                     </span>
                                                 @endif

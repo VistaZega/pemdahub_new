@@ -130,14 +130,14 @@
                         </span>
                         <span class="edu-hero-pill bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                             <i class="fas fa-satellite-dish"></i>
-                            <span>Real-Time GPS & RFID</span>
+                            <span>Scan RFID &bull; Phone/PC &bull; Manual</span>
                         </span>
                     </div>
                     <h1 class="text-xl md:text-2xl lg:text-3xl font-extrabold tracking-tight text-white leading-snug">
                         Presensi {{ ucfirst($currentGroup) }} &mdash; {{ $selectedSchool->name ?? 'Perguruan Pembda' }}
                     </h1>
                     <p class="text-xs md:text-sm font-medium mt-1 text-slate-300 leading-relaxed max-w-xl">
-                        Monitoring absensi harian, verifikasi kehadiran tepat waktu, dan rekapitulasi data terpadu.
+                        Monitoring absensi harian, verifikasi kehadiran via Scan RFID, Phone/PC, dan input massal Manual.
                     </p>
                 </div>
             </div>

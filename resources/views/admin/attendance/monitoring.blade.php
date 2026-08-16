@@ -253,17 +253,17 @@
                             {{ $it->time_out }}
                         </td>
                         <td class="py-3.5 px-3 text-center whitespace-nowrap">
-                            @if($it->recorded_via === 'gps')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                    <i class="fas fa-location-dot mr-1"></i> GPS
+                            @if(in_array($it->recorded_via, ['rfid', 'qrcode', 'device', 'scanner']))
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200" title="Absen via Scan Kartu RFID / QR Code">
+                                    <i class="fas fa-id-card mr-1"></i> Scan RFID
                                 </span>
-                            @elseif($it->recorded_via === 'rfid')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                    <i class="fas fa-id-card mr-1"></i> RFID
+                            @elseif(in_array($it->recorded_via, ['gps', 'web', 'phone', 'online']))
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200" title="Absen via Website Mobile/Desktop">
+                                    <i class="fas fa-mobile-screen-button mr-1"></i> Phone/PC
                                 </span>
-                            @elseif($it->recorded_via === 'manual')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                    <i class="fas fa-pen mr-1"></i> MANUAL
+                            @elseif($it->recorded_via === 'manual' || $it->recorded_via === 'bulk')
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200" title="Absen diinput Manual oleh Admin">
+                                    <i class="fas fa-pen mr-1"></i> Manual
                                 </span>
                             @else
                                 <span class="text-slate-400 font-bold">-</span>
