@@ -682,14 +682,32 @@
                                 @endif
                             </div>
 
-                            <!-- Content -->
-                            <div class="pl-13 space-y-3">
-                                <h3 class="forum-hdr text-lg md:text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors leading-snug">
-                                    {{ $thread->title }}
-                                </h3>
-                                <p class="text-sm text-slate-900 font-normal line-clamp-2 leading-relaxed">
-                                    {{ Str::limit(strip_tags($thread->content), 200) }}
-                                </p>
+                                <!-- Content -->
+                                <div class="pl-13 space-y-2">
+                                    <h3 class="forum-hdr text-lg md:text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors leading-snug">
+                                        {{ $thread->title }}
+                                    </h3>
+                                    
+                                    @php
+                                        $contentLength = mb_strlen(strip_tags($thread->content ?? ''));
+                                        $isLongContent = $contentLength > 350;
+                                    @endphp
+
+                                    <div class="text-sm text-slate-800 font-normal leading-relaxed">
+                                        @if($isLongContent)
+                                            <p class="line-clamp-3 text-slate-800">
+                                                {!! nl2br(e(Str::limit(strip_tags($thread->content), 300))) !!}
+                                            </p>
+                                            <a href="{{ route('forum.show', $thread) }}" class="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline mt-1">
+                                                <span>Baca Selengkapnya</span>
+                                                <i class="ph-bold ph-arrow-right"></i>
+                                            </a>
+                                        @else
+                                            <div class="space-y-1">
+                                                {!! nl2br(e($thread->content)) !!}
+                                            </div>
+                                        @endif
+                                    </div>
 
                                 @if($thread->image_path)
                                     <div class="mt-3 rounded-xl overflow-hidden border border-slate-200 max-w-sm max-h-48">
