@@ -736,12 +736,73 @@
                                 @endif
 
                                 @if($thread->poll)
-                                    <div class="mt-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl max-w-sm flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center"><i class="ph-bold ph-chart-bar text-indigo-600"></i></div>
-                                        <div>
-                                            <div class="text-xs text-indigo-700 font-bold">Polling Interaktif</div>
-                                            <div class="text-sm text-slate-900 font-bold line-clamp-1">{{ $thread->poll->question }}</div>
+                                    @php
+                                        $poll = $thread->poll;
+                                        $totalVotes = $poll->totalVotes();
+                                        $userVote = $poll->votes->where('user_id', auth()->id())->first();
+                                        $userVotedOptionId = $userVote ? $userVote->forum_poll_option_id : null;
+                                    @endphp
+                                    <div class="mt-4 p-4 bg-gradient-to-br from-indigo-50/90 via-purple-50/40 to-white border border-indigo-100 rounded-2xl shadow-sm space-y-3 cursor-default" onclick="event.preventDefault(); event.stopPropagation();">
+                                        <div class="flex items-center justify-between gap-2 border-b border-indigo-100/80 pb-2.5">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-sm shadow-sm flex-shrink-0">
+                                                    <i class="ph-bold ph-chart-bar"></i>
+                                                </span>
+                                                <div>
+                                                    <span class="text-[10px] font-black tracking-wider uppercase text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md">📊 Polling Interaktif</span>
+                                                </div>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-500 flex items-center gap-1">
+                                                <i class="ph-bold ph-users text-indigo-500"></i>
+                                                <span id="poll-feed-total-{{ $poll->id }}">{{ $totalVotes }}</span> Suara
+                                            </span>
                                         </div>
+
+                                        <h4 class="text-sm font-black text-slate-900 leading-snug">
+                                            {{ $poll->question }}
+                                        </h4>
+
+                                        <div class="space-y-2 pt-1" id="poll-feed-options-{{ $poll->id }}">
+                                            @foreach($poll->options as $opt)
+                                                @php
+                                                    $pct = $totalVotes > 0 ? round(($opt->votes_count / $totalVotes) * 100) : 0;
+                                                    $isVoted = $userVotedOptionId === $opt->id;
+                                                @endphp
+                                                <button type="button" 
+                                                        onclick="voteFeedPoll(event, {{ $opt->id }}, {{ $poll->id }})" 
+                                                        class="w-full relative overflow-hidden rounded-xl border text-left p-3 transition-all duration-300 group cursor-pointer {{ $isVoted ? 'border-indigo-500 bg-indigo-50/90 ring-2 ring-indigo-400/30' : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50' }}"
+                                                        id="poll-feed-btn-{{ $opt->id }}">
+                                                    
+                                                    <!-- Progress Bar Fill -->
+                                                    <div class="absolute top-0 left-0 h-full {{ $isVoted ? 'bg-indigo-200/60' : 'bg-indigo-100/50' }} transition-all duration-700 pointer-events-none" 
+                                                         style="width: {{ $pct }}%" 
+                                                         id="poll-feed-bg-{{ $opt->id }}"></div>
+                                                    
+                                                    <div class="relative z-10 flex items-center justify-between gap-3 text-xs">
+                                                        <div class="flex items-center gap-2 font-bold {{ $isVoted ? 'text-indigo-900' : 'text-slate-800' }}">
+                                                            <span class="w-5 h-5 rounded-full flex items-center justify-center border text-[11px] flex-shrink-0 {{ $isVoted ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 group-hover:border-indigo-400 bg-white text-slate-500' }}" id="poll-feed-check-{{ $opt->id }}">
+                                                                @if($isVoted)
+                                                                    <i class="ph-bold ph-check"></i>
+                                                                @else
+                                                                    {{ $loop->iteration }}
+                                                                @endif
+                                                            </span>
+                                                            <span class="truncate">{{ $opt->option_text }}</span>
+                                                        </div>
+                                                        <div class="font-extrabold flex items-center gap-1.5 flex-shrink-0 {{ $isVoted ? 'text-indigo-700' : 'text-slate-600' }}">
+                                                            <span id="poll-feed-pct-{{ $opt->id }}">{{ $pct }}%</span>
+                                                            <span class="text-[10px] font-semibold text-slate-400" id="poll-feed-count-{{ $opt->id }}">({{ $opt->votes_count }})</span>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                        
+                                        @if(!$poll->isOpen())
+                                            <div class="text-[11px] font-bold text-amber-600 flex items-center gap-1 pt-1">
+                                                <i class="ph-bold ph-lock-key"></i> Polling ini telah ditutup
+                                            </div>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -919,6 +980,74 @@ async function toggleLike(btn, url) {
         alert('Like JS Catch Error: ' + error.message);
     } finally {
         btn.disabled = false;
+    }
+}
+
+async function voteFeedPoll(event, optionId, pollId) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    try {
+        const res = await fetch(`{{ url('/forum/poll') }}/${optionId}/vote`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-XSRF-TOKEN': getCsrfToken()
+            }
+        });
+        
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            alert(err.message || 'Gagal mengirim pilihan polling.');
+            return;
+        }
+        
+        const data = await res.json();
+        if (data.success) {
+            // Update total votes count
+            const totalEl = document.getElementById(`poll-feed-total-${pollId}`);
+            if (totalEl) totalEl.textContent = data.total_votes;
+            
+            // Update each option in the poll
+            data.options.forEach((opt, idx) => {
+                const pctEl = document.getElementById(`poll-feed-pct-${opt.id}`);
+                const countEl = document.getElementById(`poll-feed-count-${opt.id}`);
+                const bgEl = document.getElementById(`poll-feed-bg-${opt.id}`);
+                const btnEl = document.getElementById(`poll-feed-btn-${opt.id}`);
+                const checkEl = document.getElementById(`poll-feed-check-${opt.id}`);
+                
+                if (pctEl) pctEl.textContent = opt.percentage + '%';
+                if (countEl) countEl.textContent = '(' + opt.votes_count + ')';
+                if (bgEl) bgEl.style.width = opt.percentage + '%';
+                
+                const isSelected = data.voted && data.voted_option_id === opt.id;
+                
+                if (btnEl) {
+                    if (isSelected) {
+                        btnEl.className = 'w-full relative overflow-hidden rounded-xl border text-left p-3 transition-all duration-300 group cursor-pointer border-indigo-500 bg-indigo-50/90 ring-2 ring-indigo-400/30';
+                    } else {
+                        btnEl.className = 'w-full relative overflow-hidden rounded-xl border text-left p-3 transition-all duration-300 group cursor-pointer border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50';
+                    }
+                }
+                
+                if (checkEl) {
+                    if (isSelected) {
+                        checkEl.className = 'w-5 h-5 rounded-full flex items-center justify-center border text-[11px] flex-shrink-0 border-indigo-600 bg-indigo-600 text-white';
+                        checkEl.innerHTML = '<i class="ph-bold ph-check"></i>';
+                    } else {
+                        checkEl.className = 'w-5 h-5 rounded-full flex items-center justify-center border text-[11px] flex-shrink-0 border-slate-300 group-hover:border-indigo-400 bg-white text-slate-500';
+                        checkEl.textContent = (idx + 1);
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        console.error('Poll Error:', e);
+        alert('Terjadi kesalahan koneksi saat voting polling.');
     }
 }
 

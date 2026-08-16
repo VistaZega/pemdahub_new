@@ -29,7 +29,7 @@ class ForumController extends Controller
         $search = $request->get('search');
         $user = Auth::user();
 
-        $query = ForumThread::with(['user', 'replies', 'likes', 'members', 'reactions', 'poll'])
+        $query = ForumThread::with(['user', 'replies', 'likes', 'members', 'reactions', 'poll.options', 'poll.votes'])
             ->pinnedFirst();
 
         // Scope by category
