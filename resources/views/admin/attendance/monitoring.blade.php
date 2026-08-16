@@ -145,41 +145,41 @@
         </div>
         @else
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full text-left border-collapse">
                 <thead class="bg-black text-amber-400 border-b-2 border-black">
-                    <tr>
-                        <th class="px-6 py-4.5 text-left text-[11px] font-black uppercase tracking-wider w-14">No</th>
-                        <th class="px-6 py-4.5 text-left text-[11px] font-black uppercase tracking-wider">Nama & Identitas</th>
-                        <th class="px-6 py-4.5 text-left text-[11px] font-black uppercase tracking-wider">Unit / Rombel</th>
-                        <th class="px-6 py-4.5 text-center text-[11px] font-black uppercase tracking-wider w-44">Status Kehadiran</th>
-                        <th class="px-6 py-4.5 text-center text-[11px] font-black uppercase tracking-wider w-36">Jam Masuk</th>
-                        <th class="px-6 py-4.5 text-center text-[11px] font-black uppercase tracking-wider w-36">Jam Pulang</th>
-                        <th class="px-6 py-4.5 text-center text-[11px] font-black uppercase tracking-wider w-32">Metode</th>
-                        <th class="px-6 py-4.5 text-left text-[11px] font-black uppercase tracking-wider">Keterangan</th>
-                        <th class="px-6 py-4.5 text-center text-[11px] font-black uppercase tracking-wider w-44">Aksi</th>
+                    <tr class="whitespace-nowrap">
+                        <th class="px-5 py-4 text-center text-xs font-black uppercase tracking-wider w-16">No</th>
+                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-wider min-w-[220px]">Nama & Identitas</th>
+                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-wider min-w-[150px]">Unit / Rombel</th>
+                        <th class="px-5 py-4 text-center text-xs font-black uppercase tracking-wider min-w-[160px]">Status Kehadiran</th>
+                        <th class="px-5 py-4 text-center text-xs font-black uppercase tracking-wider min-w-[120px]">Jam Masuk</th>
+                        <th class="px-5 py-4 text-center text-xs font-black uppercase tracking-wider min-w-[120px]">Jam Pulang</th>
+                        <th class="px-5 py-4 text-center text-xs font-black uppercase tracking-wider min-w-[110px]">Metode</th>
+                        <th class="px-5 py-4 text-left text-xs font-black uppercase tracking-wider min-w-[180px]">Keterangan</th>
+                        <th class="px-5 py-4 text-center text-xs font-black uppercase tracking-wider min-w-[140px]">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y-2 divide-black/10">
                     @foreach($items as $idx => $it)
                     <tr class="hover:bg-amber-50/80 transition-colors {{ $it->status === 'belum' ? 'bg-gray-50/50' : '' }}" id="row-person-{{ $it->person_id }}">
-                        <td class="px-6 py-4.5 text-xs text-black font-black font-mono">{{ $idx + 1 }}</td>
-                        <td class="px-6 py-4.5">
+                        <td class="px-5 py-4 text-center text-xs text-black font-black font-mono whitespace-nowrap">{{ $idx + 1 }}</td>
+                        <td class="px-5 py-4 whitespace-nowrap">
                             <div class="flex items-center gap-3.5">
-                                <div class="w-11 h-11 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                <div class="w-10 h-10 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
                                     {{ strtoupper(substr($it->name, 0, 2)) }}
                                 </div>
                                 <div class="min-w-0">
-                                    <div class="font-black text-black text-sm truncate">{{ $it->name }}</div>
+                                    <div class="font-black text-black text-sm">{{ $it->name }}</div>
                                     <div class="text-xs text-gray-500 font-bold font-mono">{{ $it->code }}</div>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4.5 text-xs text-black font-black">
-                            <span class="inline-block bg-gray-100 border border-black/20 rounded-xl px-3 py-1">
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-3 py-1 bg-gray-100 border border-black/20 rounded-xl text-xs font-black text-black">
                                 {{ $it->info }}
                             </span>
                         </td>
-                        <td class="px-6 py-4.5 text-center">
+                        <td class="px-5 py-4 text-center whitespace-nowrap">
                             @php
                                 $badgeStyle = match($it->status) {
                                     'hadir'      => 'bg-emerald-300 text-black',
@@ -192,38 +192,38 @@
                                     default      => 'bg-gray-200 text-black'
                                 };
                             @endphp
-                            <span class="inline-flex items-center px-4 py-1.5 rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black shadow-xs {{ $badgeStyle }}">
+                            <span class="inline-flex items-center justify-center px-4 py-1.5 rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black shadow-xs whitespace-nowrap {{ $badgeStyle }}">
                                 {{ $it->status === 'belum' ? 'Belum Absen' : ucfirst(str_replace('_', ' ', $it->status)) }}
                             </span>
                         </td>
-                        <td class="px-6 py-4.5 text-center text-xs font-mono font-black text-black">
+                        <td class="px-5 py-4 text-center text-xs font-mono font-black text-black whitespace-nowrap">
                             {{ $it->time_in }}
                         </td>
-                        <td class="px-6 py-4.5 text-center text-xs font-mono font-black text-black">
+                        <td class="px-5 py-4 text-center text-xs font-mono font-black text-black whitespace-nowrap">
                             {{ $it->time_out }}
                         </td>
-                        <td class="px-6 py-4.5 text-center">
+                        <td class="px-5 py-4 text-center whitespace-nowrap">
                             @if($it->recorded_via === 'gps')
-                                <span class="px-3 py-1 rounded-xl text-[10px] font-black bg-blue-100 text-blue-900 border-2 border-blue-900 shadow-2xs">
-                                    <i class="fas fa-location-dot mr-1"></i> GPS
+                                <span class="inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black bg-blue-100 text-blue-900 border-2 border-blue-900 shadow-2xs whitespace-nowrap">
+                                    <i class="fas fa-location-dot mr-1.5"></i> GPS
                                 </span>
                             @elseif($it->recorded_via === 'rfid')
-                                <span class="px-3 py-1 rounded-xl text-[10px] font-black bg-amber-200 text-black border-2 border-black shadow-2xs">
-                                    <i class="fas fa-id-card mr-1"></i> RFID
+                                <span class="inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black bg-amber-200 text-black border-2 border-black shadow-2xs whitespace-nowrap">
+                                    <i class="fas fa-id-card mr-1.5"></i> RFID
                                 </span>
                             @elseif($it->recorded_via === 'manual')
-                                <span class="px-3 py-1 rounded-xl text-[10px] font-black bg-gray-100 text-black border-2 border-black shadow-2xs">
-                                    <i class="fas fa-pen mr-1"></i> MANUAL
+                                <span class="inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black bg-gray-100 text-black border-2 border-black shadow-2xs whitespace-nowrap">
+                                    <i class="fas fa-pen mr-1.5"></i> MANUAL
                                 </span>
                             @else
                                 <span class="text-gray-300 font-bold">-</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4.5 text-xs font-bold text-gray-700 max-w-[200px] truncate">
+                        <td class="px-5 py-4 text-xs font-bold text-gray-700 max-w-[220px] truncate">
                             {{ $it->notes ?? '-' }}
                         </td>
-                        <td class="px-6 py-4.5 text-center">
-                            <div class="inline-flex items-center gap-2.5">
+                        <td class="px-5 py-4 text-center whitespace-nowrap">
+                            <div class="inline-flex items-center justify-center gap-2">
                                 {{-- Tombol Edit Modal --}}
                                 <button type="button" 
                                         onclick="openEditModal({{ json_encode([
