@@ -114,7 +114,7 @@ class UnifiedAttendanceController extends Controller
                              ->when($activeAY, fn($ssq) => $ssq->where('academic_year_id', $activeAY->id));
                       });
                 })
-                ->orderBy('updated_at', 'desc')
+                ->orderBy('id', 'desc')
                 ->take(30)
                 ->get();
 
@@ -135,7 +135,7 @@ class UnifiedAttendanceController extends Controller
                     'time_out'     => $att->time_out ? substr($att->time_out, 0, 5) : null,
                     'recorded_via' => $att->recorded_via ?: 'gps',
                     'device_id'    => $att->device_id,
-                    'timestamp'    => $att->updated_at ? $att->updated_at->diffForHumans() : '-',
+                    'timestamp'    => $att->time_in ? 'Jam ' . substr($att->time_in, 0, 5) . ' WIB' : '-',
                 ]);
             }
         } elseif ($f['group'] === 'guru') {
@@ -154,7 +154,7 @@ class UnifiedAttendanceController extends Controller
                 ->whereHas('employee', function ($q) {
                     $q->where('employee_type', 'guru')->orWhereHas('teacher');
                 })
-                ->orderBy('updated_at', 'desc')
+                ->orderBy('id', 'desc')
                 ->take(30)
                 ->get();
 
@@ -174,7 +174,7 @@ class UnifiedAttendanceController extends Controller
                     'time_out'     => $att->time_out ? substr($att->time_out, 0, 5) : null,
                     'recorded_via' => $att->recorded_via ?: 'gps',
                     'device_id'    => $att->device_id,
-                    'timestamp'    => $att->updated_at ? $att->updated_at->diffForHumans() : '-',
+                    'timestamp'    => $att->time_in ? 'Jam ' . substr($att->time_in, 0, 5) . ' WIB' : '-',
                 ]);
             }
         } else {
@@ -193,7 +193,7 @@ class UnifiedAttendanceController extends Controller
                 ->whereHas('employee', function ($q) {
                     $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
                 })
-                ->orderBy('updated_at', 'desc')
+                ->orderBy('id', 'desc')
                 ->take(30)
                 ->get();
 
@@ -213,7 +213,7 @@ class UnifiedAttendanceController extends Controller
                     'time_out'     => $att->time_out ? substr($att->time_out, 0, 5) : null,
                     'recorded_via' => $att->recorded_via ?: 'gps',
                     'device_id'    => $att->device_id,
-                    'timestamp'    => $att->updated_at ? $att->updated_at->diffForHumans() : '-',
+                    'timestamp'    => $att->time_in ? 'Jam ' . substr($att->time_in, 0, 5) . ' WIB' : '-',
                 ]);
             }
         }
