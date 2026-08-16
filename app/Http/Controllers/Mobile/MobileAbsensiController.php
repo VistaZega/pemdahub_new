@@ -81,11 +81,12 @@ class MobileAbsensiController extends Controller
             }
 
             $distance = $this->calculateDistance($lat, $lng, $schoolLat, $schoolLong);
+            $formattedDist = number_format($distance, 0, ',', '.');
+
             if ($distance > $maxRadiusMeters) {
-                $formattedDist = number_format($distance, 0, ',', '.');
-                $msg = "Gagal! Lokasi Anda berada di luar area sekolah ({$formattedDist} meter dari sekolah. Maksimal {$maxRadiusMeters} meter).";
+                $msg = "⛔ Presensi Ditolak! Lokasi Anda berada di luar radius area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter (Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}\n🏫 Titik Target Sekolah: {$schoolLat}, {$schoolLong}";
                 return $wantsJson
-                    ? response()->json(['success' => false, 'message' => $msg], 403)
+                    ? response()->json(['success' => false, 'message' => $msg, 'distance' => round($distance), 'max_radius' => $maxRadiusMeters], 403)
                     : back()->with('error', $msg);
             }
 
@@ -113,12 +114,12 @@ class MobileAbsensiController extends Controller
 
             if ($attendance->wasRecentlyCreated) {
                 if ($isMerdekaDay) {
-                    $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Selamat Hari Kemerdekaan RI! Presensi GPS Masuk Guru berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '. Tetap semangat mencerdaskan bangsa! 🇮🇩✨';
+                    $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi Masuk berhasil dicatat jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak GPS: {$formattedDist} m dari sekolah).";
                 } else {
-                    $msg = '📍 Presensi GPS Masuk Guru berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '!';
+                    $msg = '📍 Presensi Masuk berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak: {$formattedDist} m dari titik sekolah).";
                 }
                 return $wantsJson
-                    ? response()->json(['success' => true, 'message' => $msg])
+                    ? response()->json(['success' => true, 'message' => $msg, 'distance' => round($distance)])
                     : back()->with('success', $msg);
             }
 
@@ -127,12 +128,12 @@ class MobileAbsensiController extends Controller
             if ($attendance->time_in && $isNotCheckedOut) {
                 $attendance->update(['time_out' => $currentTime]);
                 if ($isMerdekaDay) {
-                    $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi GPS Pulang Guru berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '. Selamat memperingati Hari Kemerdekaan RI!';
+                    $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi Pulang berhasil dicatat jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak GPS: {$formattedDist} m).";
                 } else {
-                    $msg = '📍 Presensi GPS Pulang Guru berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '!';
+                    $msg = '📍 Presensi Pulang berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak: {$formattedDist} m).";
                 }
                 return $wantsJson
-                    ? response()->json(['success' => true, 'message' => $msg])
+                    ? response()->json(['success' => true, 'message' => $msg, 'distance' => round($distance)])
                     : back()->with('success', $msg);
             }
 
