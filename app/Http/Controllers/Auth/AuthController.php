@@ -22,23 +22,8 @@ class AuthController extends Controller
     /**
      * Show login form
      */
-    public function showLoginForm(Request $request): View|\Illuminate\Http\RedirectResponse
+    public function showLoginForm(Request $request): View
     {
-        $userAgent = $request->userAgent() ?? '';
-        $secChUaMobile = $request->header('sec-ch-ua-mobile') === '?1';
-
-        // Deteksi apakah perangkat benar-benar Handphone / Smartphone fisik
-        $isMobilePhone = $secChUaMobile || (bool) preg_match('/Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|webOS|Windows Phone/i', $userAgent);
-
-        // Jika akses dari HP dan tidak memilih mode desktop, arahkan ke login mobile
-        if ($isMobilePhone && !session('prefer_desktop')) {
-            return redirect()->route('mobile.login');
-        }
-
-        // Jika akses dari PC / Desktop, bersihkan sisa cookie mobile lama agar tetap di versi desktop
-        cookie()->queue(cookie()->forget('app_mode'));
-        session()->forget('is_mobile_app');
-
         return view('auth.login');
     }
 
@@ -252,21 +237,6 @@ class AuthController extends Controller
     private function redirectByRole(User $user): RedirectResponse
     {
         $role = session('active_role', $user->role);
-        
-        $userAgent = request()->userAgent() ?? '';
-        $secChUaMobile = request()->header('sec-ch-ua-mobile') === '?1';
-        $isMobilePhone = $secChUaMobile || (bool) preg_match('/Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|webOS|Windows Phone/i', $userAgent);
-
-        // Hanya arahkan ke mobile dashboard jika login dilakukan dari HP fisik
-        if ($isMobilePhone && !session('prefer_desktop') && in_array($role, ['siswa', 'guru', 'pegawai', 'orang_tua', 'alumni'])) {
-            cookie()->queue('app_mode', 'mobile', 60 * 24 * 365);
-            session(['is_mobile_app' => true]);
-            return redirect()->route('mobile.dashboard');
-        }
-
-        // Login dari PC / Desktop: bersihkan cookie mobile lama
-        cookie()->queue(cookie()->forget('app_mode'));
-        session()->forget('is_mobile_app');
 
         $url = match ($role) {
             'superadmin', 'kepala_sekolah' => route('admin.dashboard'),
