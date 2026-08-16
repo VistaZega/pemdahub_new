@@ -62,6 +62,10 @@ class MobileDashboardController extends Controller
             $student = Student::where('user_id', $user->id)->with(['school', 'user.reputation'])->first();
             
             if ($student) {
+                $todayAttendance = Attendance::where('student_id', $student->id)
+                    ->whereDate('date', now()->toDateString())
+                    ->first();
+
                 // Determine school type & grade level for PKL & Final Project
                 $schoolType = strtoupper($student->school->type ?? '');
                 $classroom = $student->currentClassroom()->first();
@@ -181,14 +185,22 @@ class MobileDashboardController extends Controller
                 $hasProjectBimbingan = FinalProject::where('advisor_id', $teacherId)->exists();
                 $hasProjectUjian = FinalProject::where('examiner_id', $teacherId)->exists();
 
-                // Teacher Attendance Rate
+                // Teacher / Employee Attendance Rate & Today Attendance
                 $employee = \App\Models\Employee::where('user_id', $user->id)->first();
+                if (!$employee && $user->school_id && in_array($user->role, ['superadmin', 'admin_sekolah', 'kepala_sekolah'])) {
+                    $employee = \App\Models\Employee::where('school_id', $user->school_id)->first();
+                }
+
                 $attRate = 100;
                 $hadirCount = 0;
                 $lateCount = 0;
                 $izinCount = 0;
 
                 if ($employee) {
+                    $todayAttendance = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
+                        ->whereDate('date', now()->toDateString())
+                        ->first();
+
                     $empAtts = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
                         ->whereMonth('date', now()->month)
                         ->whereYear('date', now()->year)
@@ -350,6 +362,8 @@ class MobileDashboardController extends Controller
             'user',
             'student',
             'teacher',
+            'employee',
+            'todayAttendance',
             'classroom',
             'attendanceStats',
             'studentProgress',

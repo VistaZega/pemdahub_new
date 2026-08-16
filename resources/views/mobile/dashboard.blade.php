@@ -87,6 +87,87 @@
         @endif
     </div>
 
+    <!-- 🕒 Banner Presensi Guru / Pegawai / Siswa (GPS Check-In / Check-Out) -->
+    @php
+        $isTeacherOrStaff = in_array($activeRole, ['guru', 'pegawai', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'ketua_yayasan']);
+        $isStudentRole = ($activeRole === 'siswa');
+        $isNotCheckedOut = empty($todayAttendance) || !$todayAttendance->time_out || $todayAttendance->time_out === '00:00:00' || $todayAttendance->time_out === '00:00';
+    @endphp
+
+    @if(($isTeacherOrStaff || $isStudentRole) && (empty($todayAttendance) || $isNotCheckedOut))
+    <div class="rounded-3xl p-4.5 text-white shadow-xl border-2 border-black relative overflow-hidden transition-all duration-300"
+         style="background: {{ empty($todayAttendance) ? 'linear-gradient(135deg, #0f766e 0%, #047857 50%, #065f46 100%)' : 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #1e40af 100%)' }} !important;">
+        
+        <!-- Watermark Graphic -->
+        <div class="absolute -right-3 -bottom-5 text-white/10 text-8xl pointer-events-none transform -rotate-12">
+            <i class="fa-solid fa-location-dot"></i>
+        </div>
+
+        <div class="space-y-3 relative z-10">
+            <!-- Header Badges -->
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center gap-1.5">
+                    <span class="px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-black/30 border border-white/20 text-white shadow-2xs">
+                        <i class="fa-solid fa-satellite-dish text-amber-300 mr-1"></i> Presensi GPS
+                    </span>
+                    @if(empty($todayAttendance))
+                        <span class="px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-rose-500 text-white border border-rose-400 animate-pulse shadow-2xs">
+                            Belum Presensi
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-emerald-400 text-slate-950 border border-emerald-300 shadow-2xs">
+                            Masuk: {{ substr($todayAttendance->time_in, 0, 5) }} WIB
+                        </span>
+                    @endif
+                </div>
+
+                <span class="text-[10px] font-black text-amber-300">
+                    {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
+                </span>
+            </div>
+
+            <!-- Title & Body -->
+            <div>
+                <h3 class="font-black text-base text-white leading-tight flex items-center gap-1.5">
+                    @if(empty($todayAttendance))
+                        <span>Waktunya Presensi {{ $isStudentRole ? 'Siswa' : ($activeRole === 'pegawai' ? 'Pegawai' : 'Guru') }}! 🕒</span>
+                    @else
+                        <span>Presensi Masuk Tercatat! Jangan Lupa Pulang 👋</span>
+                    @endif
+                </h3>
+                <p class="text-xs text-emerald-100 font-semibold mt-1 leading-snug">
+                    @if(empty($todayAttendance))
+                        {{ $isStudentRole ? 'Kamu belum melakukan Presensi Masuk hari ini. Konfirmasi kehadiran GPS kamu sekarang.' : 'Bapak/Ibu ' . ($activeRole === 'pegawai' ? 'Pegawai' : 'Guru') . ' belum melakukan Presensi Masuk hari ini. Konfirmasi kehadiran GPS Anda sekarang.' }}
+                    @else
+                        {{ $isStudentRole ? 'Kamu sudah tercatat masuk jam ' . substr($todayAttendance->time_in, 0, 5) . ' WIB. Pastikan konfirmasi presensi pulang sebelum meninggalkan sekolah.' : 'Anda sudah tercatat masuk jam ' . substr($todayAttendance->time_in, 0, 5) . ' WIB. Pastikan melakukan presensi pulang sebelum meninggalkan sekolah.' }}
+                    @endif
+                </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                <button type="button" 
+                        onclick="performMobileGpsScan(this)" 
+                        class="w-full py-2.5 px-3 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black rounded-2xl shadow-md transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider border-2 border-black">
+                    @if(empty($todayAttendance))
+                        <i class="fa-solid fa-location-dot text-slate-950 text-xs"></i>
+                        <span>Presensi Masuk Sekarang</span>
+                    @else
+                        <i class="fa-solid fa-right-from-bracket text-slate-950 text-xs"></i>
+                        <span>Presensi Pulang Sekarang</span>
+                    @endif
+                </button>
+
+                <a href="{{ $isStudentRole ? route('mobile.absensi.index') : (Route::has('mobile.guru.absensi.saya') ? route('mobile.guru.absensi.saya') : route('mobile.absensi.index')) }}" 
+                   class="w-full py-2.5 px-3 bg-white/20 hover:bg-white/30 active:scale-95 text-white font-black rounded-2xl text-xs uppercase tracking-wider border border-white/30 transition text-center flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-calendar-days text-[11px]"></i>
+                    <span>Detail Rekap Absensi</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- 🌟 Top Stories Bar: Kanal & Squad Pembda Space -->
     <div class="bg-white/80 backdrop-blur-md p-3 rounded-2xl border-2 border-slate-200/80 shadow-xs space-y-2">
         <div class="flex items-center justify-between px-0.5">
@@ -558,3 +639,155 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function performMobileGpsScan(btnElement) {
+        if (!navigator.geolocation) {
+            Swal.fire({
+                icon: 'error',
+                title: 'GPS Tidak Didukung',
+                text: 'Perangkat atau browser Anda tidak mendukung fitur lokasi (GPS). Gunakan browser Chrome atau izinkan akses lokasi.',
+                confirmButtonColor: '#2563eb',
+            });
+            return;
+        }
+
+        const origHtml = btnElement ? btnElement.innerHTML : '';
+        if (btnElement) {
+            btnElement.disabled = true;
+            btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Mengambil Lokasi GPS...';
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            function (pos) {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                let deviceId = localStorage.getItem('pembdahub_device_id');
+                if (!deviceId) {
+                    deviceId = 'dev_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                    localStorage.setItem('pembdahub_device_id', deviceId);
+                }
+
+                if (btnElement) {
+                    btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Memverifikasi Presensi...';
+                }
+
+                fetch('{{ route('mobile.absensi.scan') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        latitude: lat,
+                        longitude: lng,
+                        device_id: deviceId
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (btnElement) {
+                        btnElement.disabled = false;
+                        btnElement.innerHTML = origHtml;
+                    }
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Presensi Berhasil! 🎉',
+                            html: `<p class="font-bold text-slate-800">${data.message}</p><p class="text-xs text-slate-500 mt-2">Data kehadiran Anda telah tercatat.</p>`,
+                            timer: 3500,
+                            timerProgressBar: true,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Tutup',
+                            confirmButtonColor: '#059669',
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Presensi Belum Berhasil ⚠️',
+                            text: data.message || 'Terjadi kendala saat memverifikasi lokasi.',
+                            confirmButtonColor: '#e11d48',
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    if (btnElement) {
+                        btnElement.disabled = false;
+                        btnElement.innerHTML = origHtml;
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gangguan Jaringan',
+                        text: 'Gagal terhubung ke server. Pastikan koneksi internet aktif dan stabil.',
+                        confirmButtonColor: '#e11d48',
+                    });
+                });
+            },
+            function (err) {
+                if (btnElement) {
+                    btnElement.disabled = false;
+                    btnElement.innerHTML = origHtml;
+                }
+                let errText = 'Gagal mengakses lokasi GPS. Pastikan GPS aktif dan izin lokasi diizinkan pada browser/HP Anda.';
+                if (err.code === 1) {
+                    errText = 'Izin lokasi ditolak. Harap izinkan akses lokasi (GPS) pada browser/aplikasi Anda.';
+                } else if (err.code === 2) {
+                    errText = 'Posisi GPS tidak dapat ditentukan. Pastikan Anda berada di area dengan sinyal GPS baik.';
+                } else if (err.code === 3) {
+                    errText = 'Waktu permintaan lokasi habis (timeout). Silakan coba lagi.';
+                }
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Akses Lokasi Diperlukan',
+                    text: errText,
+                    confirmButtonColor: '#e11d48',
+                });
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    }
+
+    function toggleDashboardLike(threadId, btn) {
+        fetch(`/mobile/space/threads/${threadId}/like`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const countSpan = btn.querySelector('.like-count');
+                const icon = btn.querySelector('i');
+                if (countSpan) countSpan.textContent = data.likes_count;
+                if (data.liked) {
+                    btn.classList.remove('bg-slate-100', 'text-slate-600');
+                    btn.classList.add('bg-rose-50', 'text-rose-600', 'border-rose-200', 'font-black');
+                    icon.classList.remove('fa-regular');
+                    icon.classList.add('fa-solid', 'text-rose-500');
+                } else {
+                    btn.classList.add('bg-slate-100', 'text-slate-600');
+                    btn.classList.remove('bg-rose-50', 'text-rose-600', 'border-rose-200', 'font-black');
+                    icon.classList.remove('fa-solid', 'text-rose-500');
+                    icon.classList.add('fa-regular');
+                }
+            }
+        })
+        .catch(err => console.error(err));
+    }
+</script>
+@endpush
