@@ -49,32 +49,57 @@ class LmsCourseController extends Controller
     /**
      * List all courses for this teacher
      */
-    public function index()
+    public function index(Request $request)
     {
         $teacher = $this->getTeacher();
         if (!$teacher) {
             return redirect()->route('guru.dashboard')->with('error', 'Data guru tidak ditemukan.');
         }
-        $teacher->load('school');
-        $effectiveSchoolId = $this->getEffectiveSchoolId($teacher);
-        $isMultiSchool = $this->hasMultiSchoolAccess();
 
         $activeSemester = $this->getActiveSemester();
+        $classrooms = \App\Models\Classroom::whereHas('lmsClasses.course', function($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })
+        ->orderBy('class_name')
+        ->get();
 
+        $selectedClassroomId = $request->query('classroom_id');
+        
         $courses = LmsCourse::where('teacher_id', $teacher->id)
-            ->when($isMultiSchool && $effectiveSchoolId, function($q) use ($effectiveSchoolId) {
-                $q->where(function($sq) use ($effectiveSchoolId) {
-                    $sq->whereHas('lmsClasses', fn($cq) => $cq->where('school_id', $effectiveSchoolId))
-                       ->orWhereHas('classroom', fn($crq) => $crq->where('school_id', $effectiveSchoolId))
-                       ->orWhere('school_id', $effectiveSchoolId);
-                });
+            ->when($selectedClassroomId, function($q) use ($selectedClassroomId) {
+                $q->whereHas('lmsClasses', fn($sq) => $sq->where('classroom_id', $selectedClassroomId));
+            })
+            ->when(!$selectedClassroomId, function($q) {
+                // Tanpa filter: tampilkan semua course yang punya rombel
+                $q->whereHas('lmsClasses');
             })
             ->with(['subject', 'semester', 'classroom', 'lmsClasses.classroom'])
             ->withCount(['materials', 'assignments', 'quizzes'])
             ->orderByDesc('created_at')
             ->paginate(12)->withQueryString();
 
-        return view('guru.lms.index', compact('teacher', 'courses', 'activeSemester'));
+        // Orphan courses: milik guru, tidak punya rombel
+        $orphanCourses = LmsCourse::where('teacher_id', $teacher->id)
+            ->whereDoesntHave('lmsClasses')
+            ->with(['subject', 'semester'])
+            ->withCount(['materials', 'assignments', 'quizzes'])
+            ->get();
+
+        // Rombel yang dipilih untuk context banner
+        $selectedClassroom = $selectedClassroomId
+            ? $classrooms->firstWhere('id', $selectedClassroomId)
+            : null;
+
+        return view('guru.lms.index', compact(
+            'teacher', 'courses', 'activeSemester',
+            'classrooms', 'selectedClassroomId', 'selectedClassroom',
+            'orphanCourses'
+        ));
+    }
+
+    public function indexByClassroom($classroomId)
+    {
+        return redirect()->route('guru.lms.index', ['classroom_id' => $classroomId]);
     }
 
     /**

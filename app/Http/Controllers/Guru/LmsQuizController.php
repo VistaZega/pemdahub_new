@@ -574,9 +574,9 @@ class LmsQuizController extends Controller
     }
 
     /**
-     * View quiz results/attempts
+     * View quiz results/attempts, filtered by classroom if provided
      */
-    public function results(LmsQuiz $quiz)
+    public function results(Request $request, LmsQuiz $quiz)
     {
         $teacher = $this->getTeacher();
         $course = $quiz->course;
@@ -585,13 +585,42 @@ class LmsQuizController extends Controller
         }
         $teacher->load('school');
 
-        $quiz->load(['attempts' => fn($q) => $q->with('student.user')->orderByDesc('finished_at')]);
+        // Ambil semua rombel yang terhubung ke course ini
+        $classrooms = \App\Models\LmsClass::where('course_id', $course->id)
+            ->with('classroom')
+            ->get()
+            ->pluck('classroom')
+            ->filter()
+            ->values();
+
+        // Filter per rombel jika dipilih
+        $selectedClassroomId = $request->query('classroom_id');
+        $selectedClassroom = $selectedClassroomId
+            ? $classrooms->firstWhere('id', $selectedClassroomId)
+            : null;
+
+        // Load attempts, filter by classroom students jika ada filter
+        $attemptsQuery = $quiz->attempts()->with('student.user')->orderByDesc('finished_at');
+
+        if ($selectedClassroomId && $selectedClassroom) {
+            $enrolledStudentIds = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
+                $q->where('course_id', $course->id)->where('classroom_id', $selectedClassroomId);
+            })->pluck('student_id');
+
+            $attemptsQuery->whereIn('student_id', $enrolledStudentIds);
+        }
+
+        $quiz->setRelation('attempts', $attemptsQuery->get());
 
         $totalAttempts = $quiz->attempts->count();
         $passedCount = $quiz->attempts->where('is_passed', true)->count();
         $avgScore = $quiz->attempts->whereNotNull('score')->avg('score');
 
-        return view('guru.lms.quiz-results', compact('teacher', 'course', 'quiz', 'totalAttempts', 'passedCount', 'avgScore'));
+        return view('guru.lms.quiz-results', compact(
+            'teacher', 'course', 'quiz',
+            'totalAttempts', 'passedCount', 'avgScore',
+            'classrooms', 'selectedClassroomId', 'selectedClassroom'
+        ));
     }
 
     /**

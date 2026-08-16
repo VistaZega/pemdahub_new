@@ -93,9 +93,9 @@ class LmsAssignmentController extends Controller
     }
 
     /**
-     * Show assignment detail with submissions
+     * Show assignment detail with submissions, filtered by classroom if provided
      */
-    public function show(LmsAssignment $assignment)
+    public function show(Request $request, LmsAssignment $assignment)
     {
         $teacher = $this->getTeacher();
         $course = $assignment->course;
@@ -104,12 +104,42 @@ class LmsAssignmentController extends Controller
         }
         $teacher->load('school');
 
-        $assignment->load(['submissions' => fn($q) => $q->with('student.user')->orderByDesc('submitted_at')]);
+        // Ambil semua rombel yang terhubung ke course ini
+        $classrooms = \App\Models\LmsClass::where('course_id', $course->id)
+            ->with('classroom')
+            ->get()
+            ->pluck('classroom')
+            ->filter()
+            ->values();
+
+        // Filter per rombel jika dipilih
+        $selectedClassroomId = $request->query('classroom_id');
+        $selectedClassroom = $selectedClassroomId
+            ? $classrooms->firstWhere('id', $selectedClassroomId)
+            : null;
+
+        // Load submissions, filter by classroom students jika ada filter
+        $submissionsQuery = $assignment->submissions()->with('student.user')->orderByDesc('submitted_at');
+
+        if ($selectedClassroomId && $selectedClassroom) {
+            // Dapatkan student_id yang ada di rombel ini via enrollments
+            $enrolledStudentIds = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
+                $q->where('course_id', $course->id)->where('classroom_id', $selectedClassroomId);
+            })->pluck('student_id');
+
+            $submissionsQuery->whereIn('student_id', $enrolledStudentIds);
+        }
+
+        $assignment->setRelation('submissions', $submissionsQuery->get());
 
         $totalSubmissions = $assignment->submissions->where('status', '!=', 'draft')->count();
         $gradedCount = $assignment->submissions->where('status', 'graded')->count();
 
-        return view('guru.lms.assignment-show', compact('teacher', 'course', 'assignment', 'totalSubmissions', 'gradedCount'));
+        return view('guru.lms.assignment-show', compact(
+            'teacher', 'course', 'assignment',
+            'totalSubmissions', 'gradedCount',
+            'classrooms', 'selectedClassroomId', 'selectedClassroom'
+        ));
     }
 
     public function edit(LmsAssignment $assignment)

@@ -53,6 +53,35 @@
         </div>
     </div>
 
+    {{-- Rombel Filter --}}
+    @if($classrooms->count() > 1)
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
+        <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider shrink-0">
+                <i class="fas fa-users text-gray-400"></i> Filter Rombel:
+            </div>
+            <a href="{{ route('guru.lms.quizzes.results', $quiz->id) }}"
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition
+                      {{ !$selectedClassroomId ? 'bg-black text-amber-400 border-black' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-amber-300 hover:border-black hover:text-black' }}">
+                <i class="fas fa-th-large text-[10px]"></i> Semua Rombel
+            </a>
+            @foreach($classrooms as $classroom)
+            <a href="{{ route('guru.lms.quizzes.results', $quiz->id) }}?classroom_id={{ $classroom->id }}"
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition
+                      {{ $selectedClassroomId == $classroom->id ? 'bg-black text-amber-400 border-black' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-amber-300 hover:border-black hover:text-black' }}">
+                <i class="fas fa-users text-[10px]"></i> {{ $classroom->class_name }}
+            </a>
+            @endforeach
+        </div>
+        @if($selectedClassroom)
+        <div class="mt-2 text-xs text-gray-500 font-semibold flex items-center gap-1.5">
+            <i class="fas fa-filter text-amber-500"></i>
+            Menampilkan hasil dari: <strong class="text-gray-800">{{ $selectedClassroom->class_name }}</strong>
+        </div>
+        @endif
+    </div>
+    @endif
+
     {{-- Stats Cards --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="stat-card-gradient-1 rounded-xl p-6 text-white shadow-md relative overflow-hidden">
