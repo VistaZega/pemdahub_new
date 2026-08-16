@@ -4,143 +4,156 @@
 
 @section('content')
 <div class="space-y-8">
-    {{-- Unified LMS Header --}}
+    {{-- Unified Header --}}
     @include('admin.attendance.header')
 
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- LIVE STATUS STAT METRICS (LMS STYLE) --}}
+    {{-- STATISTIC METRIC CARDS (POP NEO-BRUTALISM GRID) --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
         {{-- 1. Total Target --}}
-        <div class="bg-black text-amber-400 rounded-3xl p-5 border-2 border-black shadow-md">
-            <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider mb-2">
-                <span>Total Terdaftar</span>
-                <i class="fas fa-users"></i>
+        <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md hover:shadow-xl transition-all flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-black shadow-sm text-xl font-black" style="background-color: #4f46e5 !important; color: #ffffff !important;">
+                    <i class="fas fa-users text-white"></i>
+                </div>
+                <span class="text-3xl font-black text-black leading-none font-mono" id="stat_total_target">{{ number_format($stats['total_target']) }}</span>
             </div>
-            <div class="text-3xl font-black font-mono text-white" id="stat_total_target">
-                {{ number_format($stats['total_target']) }}
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-black">Total Terdaftar</p>
+                <p class="text-[11px] font-bold text-gray-500 mt-0.5">{{ ucfirst($group) }} aktif</p>
             </div>
-            <span class="text-[10px] font-black uppercase tracking-wider text-amber-300">{{ $group }} Aktif</span>
         </div>
 
         {{-- 2. Hadir --}}
-        <div class="bg-emerald-300 text-black rounded-3xl p-5 border-2 border-black shadow-md">
-            <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider mb-2">
-                <span>Hadir Tepat</span>
-                <i class="fas fa-circle-check"></i>
+        <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md hover:shadow-xl transition-all flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-black shadow-sm text-xl font-black" style="background-color: #059669 !important; color: #ffffff !important;">
+                    <i class="fas fa-circle-check text-white"></i>
+                </div>
+                <span class="text-3xl font-black text-black leading-none font-mono" id="stat_hadir">{{ number_format($stats['hadir']) }}</span>
             </div>
-            <div class="text-3xl font-black font-mono" id="stat_hadir">
-                {{ number_format($stats['hadir']) }}
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-black">Hadir Tepat</p>
+                <p class="text-[11px] font-bold text-gray-500 mt-0.5">Sebelum batas waktu</p>
             </div>
-            <span class="text-[10px] font-black uppercase tracking-wider">Tepat Waktu</span>
         </div>
 
         {{-- 3. Terlambat --}}
-        <div class="bg-amber-300 text-black rounded-3xl p-5 border-2 border-black shadow-md">
-            <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider mb-2">
-                <span>Terlambat</span>
-                <i class="fas fa-clock"></i>
+        <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md hover:shadow-xl transition-all flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-black shadow-sm text-xl font-black" style="background-color: #d97706 !important; color: #ffffff !important;">
+                    <i class="fas fa-clock text-white"></i>
+                </div>
+                <span class="text-3xl font-black text-black leading-none font-mono" id="stat_terlambat">{{ number_format($stats['terlambat']) }}</span>
             </div>
-            <div class="text-3xl font-black font-mono" id="stat_terlambat">
-                {{ number_format($stats['terlambat']) }}
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-black">Terlambat</p>
+                <p class="text-[11px] font-bold text-gray-500 mt-0.5">Lewat batas toleransi</p>
             </div>
-            <span class="text-[10px] font-black uppercase tracking-wider">Lewat Batas</span>
         </div>
 
         {{-- 4. Izin & Sakit --}}
-        <div class="bg-sky-300 text-black rounded-3xl p-5 border-2 border-black shadow-md">
-            <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider mb-2">
-                <span>Izin / Sakit</span>
-                <i class="fas fa-envelope-open-text"></i>
+        <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md hover:shadow-xl transition-all flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-black shadow-sm text-xl font-black" style="background-color: #0284c7 !important; color: #ffffff !important;">
+                    <i class="fas fa-envelope-open-text text-white"></i>
+                </div>
+                <span class="text-3xl font-black text-black leading-none font-mono" id="stat_izin_sakit">{{ number_format($stats['izin'] + $stats['sakit'] + $stats['dinas_luar'] + $stats['cuti']) }}</span>
             </div>
-            <div class="text-3xl font-black font-mono" id="stat_izin_sakit">
-                {{ number_format($stats['izin'] + $stats['sakit'] + $stats['dinas_luar'] + $stats['cuti']) }}
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-black">Izin & Sakit</p>
+                <p class="text-[11px] font-bold text-gray-500 mt-0.5">Surat resmi terlampir</p>
             </div>
-            <span class="text-[10px] font-black uppercase tracking-wider">Keterangan Resmi</span>
         </div>
 
         {{-- 5. Alpha --}}
-        <div class="bg-rose-400 text-black rounded-3xl p-5 border-2 border-black shadow-md">
-            <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider mb-2">
-                <span>Alpha</span>
-                <i class="fas fa-circle-xmark"></i>
+        <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md hover:shadow-xl transition-all flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-black shadow-sm text-xl font-black" style="background-color: #e11d48 !important; color: #ffffff !important;">
+                    <i class="fas fa-circle-xmark text-white"></i>
+                </div>
+                <span class="text-3xl font-black text-black leading-none font-mono" id="stat_alpha">{{ number_format($stats['alpha']) }}</span>
             </div>
-            <div class="text-3xl font-black font-mono" id="stat_alpha">
-                {{ number_format($stats['alpha']) }}
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-black">Alpha</p>
+                <p class="text-[11px] font-bold text-gray-500 mt-0.5">Tanpa keterangan</p>
             </div>
-            <span class="text-[10px] font-black uppercase tracking-wider">Tanpa Keterangan</span>
         </div>
 
         {{-- 6. Belum Hadir --}}
-        <div class="bg-gray-100 text-black rounded-3xl p-5 border-2 border-black shadow-md">
-            <div class="flex items-center justify-between text-xs font-black uppercase tracking-wider mb-2">
-                <span>Belum Absen</span>
-                <i class="fas fa-hourglass-half"></i>
+        <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md hover:shadow-xl transition-all flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-black shadow-sm text-xl font-black" style="background-color: #334155 !important; color: #ffffff !important;">
+                    <i class="fas fa-hourglass-half text-white"></i>
+                </div>
+                <span class="text-3xl font-black text-black leading-none font-mono" id="stat_belum">{{ number_format($stats['belum']) }}</span>
             </div>
-            <div class="text-3xl font-black font-mono" id="stat_belum">
-                {{ number_format($stats['belum']) }}
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-black">Belum Presensi</p>
+                <p class="text-[11px] font-bold text-gray-500 mt-0.5">Menunggu tap/GPS</p>
             </div>
-            <span class="text-[10px] font-black uppercase tracking-wider text-gray-600">Menunggu Tap/GPS</span>
         </div>
     </div>
 
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- LIVE FEED STREAM CONTAINER --}}
+    {{-- LIVE FEED STREAM CONTAINER (LEGA & RAPI)       --}}
     {{-- ═══════════════════════════════════════════════ --}}
     <div class="bg-white rounded-3xl border-2 border-black p-6 md:p-8 shadow-xl">
-        <div class="flex items-center justify-between pb-5 border-b-2 border-black mb-6 flex-wrap gap-4">
-            <div class="flex items-center gap-3">
+        <div class="flex items-center justify-between pb-6 border-b-2 border-black mb-6 flex-wrap gap-4">
+            <div class="flex items-center gap-3.5">
                 <span class="relative flex h-4 w-4">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-4 w-4 bg-rose-600"></span>
                 </span>
                 <div>
-                    <h3 class="text-lg font-black text-black leading-tight">Live Activity Feed (Real-Time Stream)</h3>
-                    <p class="text-xs text-gray-500 font-bold">Data diperbarui otomatis setiap 4 detik saat ada presensi masuk</p>
+                    <h3 class="text-xl font-black text-black leading-tight tracking-tight">Live Activity Feed (Real-Time Stream)</h3>
+                    <p class="text-xs text-gray-500 font-bold mt-0.5">Data diperbarui otomatis setiap 4 detik saat ada presensi masuk</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-3">
-                <span class="px-4 py-2 bg-black text-amber-400 rounded-2xl text-xs font-mono font-black border-2 border-black shadow-sm" id="live_clock">
+                <span class="px-5 py-3 bg-black text-amber-400 rounded-2xl text-xs font-mono font-black border-2 border-black shadow-md" id="live_clock">
                     {{ \Carbon\Carbon::now('Asia/Jakarta')->format('H:i:s') }} WIB
                 </span>
-                <button type="button" onclick="pollLiveData()" class="px-4 py-2 bg-amber-300 hover:bg-amber-400 text-black rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black transition active:scale-95 shadow-sm" title="Refresh Sekarang">
-                    <i class="fas fa-rotate mr-1"></i> Refresh
+                <button type="button" onclick="pollLiveData()" class="px-6 py-3 bg-amber-400 hover:bg-amber-300 text-black rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black transition active:scale-95 shadow-md flex items-center gap-2" title="Refresh Sekarang">
+                    <i class="fas fa-rotate text-black"></i>
+                    <span>Refresh</span>
                 </button>
             </div>
         </div>
 
         {{-- Live Events Grid --}}
-        <div id="live_events_container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div id="live_events_container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             @forelse($liveEvents as $ev)
-                <div class="p-4 rounded-3xl border-2 border-black hover:bg-amber-50 transition-all shadow-sm flex items-center justify-between gap-3 bg-white">
-                    <div class="flex items-center gap-3.5 min-w-0">
-                        <div class="w-11 h-11 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
+                <div class="p-5 rounded-3xl border-2 border-black hover:bg-amber-50 transition-all shadow-md flex items-center justify-between gap-4 bg-white">
+                    <div class="flex items-center gap-4 min-w-0">
+                        <div class="w-12 h-12 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
                             {{ strtoupper(substr($ev['name'], 0, 2)) }}
                         </div>
                         <div class="min-w-0">
                             <div class="font-black text-black text-sm truncate">{{ $ev['name'] }}</div>
-                            <div class="text-xs text-gray-500 font-bold truncate">{{ $ev['subtitle'] }} · {{ $ev['code'] }}</div>
+                            <div class="text-xs text-gray-500 font-bold truncate mt-0.5">{{ $ev['subtitle'] }} · {{ $ev['code'] }}</div>
                         </div>
                     </div>
 
                     <div class="text-right shrink-0">
-                        <div class="flex items-center justify-end gap-1.5 mb-1.5">
+                        <div class="flex items-center justify-end gap-2 mb-2">
                             @if($ev['recorded_via'] === 'gps')
-                                <span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-blue-100 text-blue-900 border border-blue-900">
-                                    <i class="fas fa-location-dot"></i> GPS
+                                <span class="px-3 py-1 rounded-xl text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-900">
+                                    <i class="fas fa-location-dot mr-1"></i> GPS
                                 </span>
                             @elseif($ev['recorded_via'] === 'rfid')
-                                <span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-amber-200 text-black border border-black">
-                                    <i class="fas fa-id-card"></i> RFID
+                                <span class="px-3 py-1 rounded-xl text-[10px] font-black bg-amber-200 text-black border border-black">
+                                    <i class="fas fa-id-card mr-1"></i> RFID
                                 </span>
                             @else
-                                <span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-gray-100 text-black border border-black">
-                                    <i class="fas fa-pen"></i> Manual
+                                <span class="px-3 py-1 rounded-xl text-[10px] font-black bg-gray-100 text-black border border-black">
+                                    <i class="fas fa-pen mr-1"></i> Manual
                                 </span>
                             @endif
 
-                            <span class="px-2 py-0.5 rounded-xl text-[9px] font-black border border-black
+                            <span class="px-3 py-1 rounded-xl text-[10px] font-black border border-black
                                   {{ $ev['status'] === 'hadir' ? 'bg-emerald-300 text-black' : ($ev['status'] === 'terlambat' ? 'bg-amber-300 text-black' : 'bg-rose-400 text-black') }}">
                                 {{ strtoupper($ev['status']) }}
                             </span>
@@ -176,7 +189,6 @@ function pollLiveData() {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            // Update stats
             if (data.stats) {
                 document.getElementById('stat_total_target').innerText = Number(data.stats.total_target).toLocaleString();
                 document.getElementById('stat_hadir').innerText = Number(data.stats.hadir).toLocaleString();
@@ -190,7 +202,6 @@ function pollLiveData() {
                 document.getElementById('live_clock').innerText = data.time_now + ' WIB';
             }
 
-            // Render live events
             const container = document.getElementById('live_events_container');
             if (data.liveEvents && data.liveEvents.length > 0) {
                 let html = '';
@@ -198,11 +209,11 @@ function pollLiveData() {
                     const initials = ev.name.substring(0, 2).toUpperCase();
                     let viaBadge = '';
                     if (ev.recorded_via === 'gps') {
-                        viaBadge = '<span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-blue-100 text-blue-900 border border-blue-900"><i class="fas fa-location-dot"></i> GPS</span>';
+                        viaBadge = '<span class="px-3 py-1 rounded-xl text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-900"><i class="fas fa-location-dot mr-1"></i> GPS</span>';
                     } else if (ev.recorded_via === 'rfid') {
-                        viaBadge = '<span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-amber-200 text-black border border-black"><i class="fas fa-id-card"></i> RFID</span>';
+                        viaBadge = '<span class="px-3 py-1 rounded-xl text-[10px] font-black bg-amber-200 text-black border border-black"><i class="fas fa-id-card mr-1"></i> RFID</span>';
                     } else {
-                        viaBadge = '<span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-gray-100 text-black border border-black"><i class="fas fa-pen"></i> Manual</span>';
+                        viaBadge = '<span class="px-3 py-1 rounded-xl text-[10px] font-black bg-gray-100 text-black border border-black"><i class="fas fa-pen mr-1"></i> Manual</span>';
                     }
 
                     let statusClass = 'bg-rose-400 text-black';
@@ -210,21 +221,21 @@ function pollLiveData() {
                     else if (ev.status === 'terlambat') statusClass = 'bg-amber-300 text-black';
 
                     html += `
-                        <div class="p-4 rounded-3xl border-2 border-black hover:bg-amber-50 transition-all shadow-sm flex items-center justify-between gap-3 bg-white">
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <div class="w-11 h-11 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
+                        <div class="p-5 rounded-3xl border-2 border-black hover:bg-amber-50 transition-all shadow-md flex items-center justify-between gap-4 bg-white">
+                            <div class="flex items-center gap-4 min-w-0">
+                                <div class="w-12 h-12 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
                                     ${initials}
                                 </div>
                                 <div class="min-w-0">
                                     <div class="font-black text-black text-sm truncate">${ev.name}</div>
-                                    <div class="text-xs text-gray-500 font-bold truncate">${ev.subtitle} · ${ev.code}</div>
+                                    <div class="text-xs text-gray-500 font-bold truncate mt-0.5">${ev.subtitle} · ${ev.code}</div>
                                 </div>
                             </div>
 
                             <div class="text-right shrink-0">
-                                <div class="flex items-center justify-end gap-1.5 mb-1.5">
+                                <div class="flex items-center justify-end gap-2 mb-2">
                                     ${viaBadge}
-                                    <span class="px-2 py-0.5 rounded-xl text-[9px] font-black border border-black ${statusClass}">
+                                    <span class="px-3 py-1 rounded-xl text-[10px] font-black border border-black ${statusClass}">
                                         ${ev.status.toUpperCase()}
                                     </span>
                                 </div>

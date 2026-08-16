@@ -4,20 +4,20 @@
 
 @section('content')
 <div class="space-y-8">
-    {{-- Unified LMS Header --}}
+    {{-- Unified Header --}}
     @include('admin.attendance.header')
 
     {{-- Classroom / Rombel Selector if Group = Siswa --}}
     @if($group === 'siswa')
-    <div class="bg-white p-5 rounded-3xl border-2 border-black shadow-md flex flex-wrap items-center justify-between gap-4">
-        <form method="GET" class="flex items-center gap-3 flex-wrap">
+    <div class="bg-white p-6 rounded-3xl border-2 border-black shadow-xl flex flex-wrap items-center justify-between gap-5">
+        <form method="GET" class="flex items-center gap-3.5 flex-wrap">
             <input type="hidden" name="group" value="siswa">
             <input type="hidden" name="school_id" value="{{ $schoolId }}">
             <input type="hidden" name="date" value="{{ $date }}">
 
             <span class="text-xs font-black text-black uppercase tracking-wider">Pilih Rombel / Kelas:</span>
             <select name="classroom_id" onchange="this.form.submit()"
-                    class="bg-white border-2 border-black rounded-2xl px-4 py-2.5 text-xs font-black text-black focus:ring-2 focus:ring-amber-400 min-w-[220px] shadow-sm cursor-pointer">
+                    class="bg-white border-2 border-black rounded-2xl px-5 py-3 text-xs font-black text-black focus:ring-2 focus:ring-amber-400 min-w-[240px] shadow-sm cursor-pointer">
                 @foreach($classrooms as $cls)
                     <option value="{{ $cls->id }}" {{ $classroomId == $cls->id ? 'selected' : '' }}>
                         {{ $cls->class_name }}
@@ -26,7 +26,7 @@
             </select>
         </form>
 
-        <span class="text-xs font-black text-black bg-amber-300 border-2 border-black px-4 py-2 rounded-2xl shadow-sm">
+        <span class="text-xs font-black text-black bg-amber-300 border-2 border-black px-5 py-2.5 rounded-2xl shadow-sm">
             Total <b>{{ $persons->count() }}</b> Siswa Terdaftar
         </span>
     </div>
@@ -52,24 +52,27 @@
         @endif
 
         {{-- Quick Set Action Bar --}}
-        <div class="bg-white rounded-3xl border-2 border-black p-5 mb-6 shadow-md">
-            <div class="flex flex-wrap items-center gap-3">
+        <div class="bg-white rounded-3xl border-2 border-black p-6 mb-6 shadow-xl">
+            <div class="flex flex-wrap items-center gap-3.5">
                 <span class="text-xs font-black text-black uppercase tracking-wider flex items-center gap-2 mr-2">
-                    <i class="fas fa-magic text-amber-500"></i> Quick Actions:
+                    <i class="fas fa-magic text-amber-500 text-sm"></i> Quick Actions:
                 </span>
                 <button type="button" onclick="setAllStatus('hadir')" 
-                        class="px-4 py-2.5 bg-emerald-300 text-black rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black hover:bg-emerald-400 transition active:scale-95 shadow-sm">
-                    <i class="fas fa-check mr-1"></i> Semua Hadir
+                        class="px-5 py-3 bg-emerald-300 text-black rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black hover:bg-emerald-400 transition active:scale-95 shadow-sm flex items-center gap-2">
+                    <i class="fas fa-check text-black"></i>
+                    <span>Semua Hadir</span>
                 </button>
                 <button type="button" onclick="setAllTimeEmptyOnly()" 
-                        class="px-4 py-2.5 bg-amber-300 text-black rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black hover:bg-amber-400 transition active:scale-95 shadow-sm">
-                    <i class="fas fa-clock mr-1"></i> Jam Default Yang Kosong (07:15 – 15:00)
+                        class="px-5 py-3 bg-amber-300 text-black rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black hover:bg-amber-400 transition active:scale-95 shadow-sm flex items-center gap-2">
+                    <i class="fas fa-clock text-black"></i>
+                    <span>Jam Default (07:15 – 15:00)</span>
                 </button>
                 <button type="button" onclick="resetAll()" 
-                        class="px-4 py-2.5 bg-gray-100 text-black rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black hover:bg-gray-200 transition active:scale-95 shadow-sm">
-                    <i class="fas fa-rotate-left mr-1"></i> Reset Yang Kosong
+                        class="px-5 py-3 bg-gray-100 text-black rounded-2xl text-xs font-black uppercase tracking-wider border-2 border-black hover:bg-gray-200 transition active:scale-95 shadow-sm flex items-center gap-2">
+                    <i class="fas fa-rotate-left text-black"></i>
+                    <span>Reset Yang Kosong</span>
                 </button>
-                <span class="ml-auto text-xs font-black text-black bg-black text-amber-400 border-2 border-black px-4 py-2 rounded-2xl shadow-sm">
+                <span class="ml-auto text-xs font-black text-black bg-black text-amber-400 border-2 border-black px-5 py-2.5 rounded-2xl shadow-sm">
                     {{ $persons->count() }} Data Siap Diinput
                 </span>
             </div>
@@ -81,12 +84,12 @@
                 <table class="w-full">
                     <thead class="bg-black text-amber-400 border-b-2 border-black">
                         <tr>
-                            <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-wider w-12">No</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-wider">Nama & Sumber Presensi Real</th>
-                            <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-wider w-48">Status</th>
-                            <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-wider w-36">Jam Masuk</th>
-                            <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-wider w-36">Jam Pulang</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-wider">Keterangan</th>
+                            <th class="px-6 py-4.5 text-left text-[11px] font-black uppercase tracking-wider w-14">No</th>
+                            <th class="px-6 py-4.5 text-left text-[11px] font-black uppercase tracking-wider">Nama & Sumber Presensi Real</th>
+                            <th class="px-6 py-4.5 text-center text-[11px] font-black uppercase tracking-wider w-52">Status</th>
+                            <th class="px-6 py-4.5 text-center text-[11px] font-black uppercase tracking-wider w-40">Jam Masuk</th>
+                            <th class="px-6 py-4.5 text-center text-[11px] font-black uppercase tracking-wider w-40">Jam Pulang</th>
+                            <th class="px-6 py-4.5 text-left text-[11px] font-black uppercase tracking-wider">Keterangan</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y-2 divide-black/10">
@@ -98,10 +101,10 @@
                             $codeVal = $group === 'siswa' ? ($p->nisn ?: ($p->nis ?: '-')) : ($p->employee_code ?: ($p->nip ?: '-'));
                         @endphp
                         <tr class="hover:bg-amber-50/80 transition-colors {{ $ex ? 'bg-emerald-50/30' : '' }}">
-                            <td class="px-5 py-4 text-xs text-black font-black font-mono">{{ $idx + 1 }}</td>
-                            <td class="px-5 py-4">
+                            <td class="px-6 py-4.5 text-xs text-black font-black font-mono">{{ $idx + 1 }}</td>
+                            <td class="px-6 py-4.5">
                                 <div class="flex items-center gap-3.5">
-                                    <div class="w-10 h-10 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                    <div class="w-11 h-11 rounded-2xl bg-black text-amber-400 border-2 border-black flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
                                         {{ strtoupper(substr($p->full_name, 0, 2)) }}
                                     </div>
                                     <div class="min-w-0">
@@ -109,16 +112,16 @@
                                             <span>{{ $p->full_name }}</span>
                                             @if($ex)
                                                 @if($ex->recorded_via === 'gps')
-                                                    <span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-blue-100 text-blue-900 border border-blue-900">
-                                                        <i class="fas fa-location-dot"></i> GPS
+                                                    <span class="px-2.5 py-1 rounded-xl text-[9px] font-black bg-blue-100 text-blue-900 border border-blue-900">
+                                                        <i class="fas fa-location-dot mr-1"></i> GPS
                                                     </span>
                                                 @elseif($ex->recorded_via === 'rfid')
-                                                    <span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-amber-200 text-black border border-black">
-                                                        <i class="fas fa-id-card"></i> RFID
+                                                    <span class="px-2.5 py-1 rounded-xl text-[9px] font-black bg-amber-200 text-black border border-black">
+                                                        <i class="fas fa-id-card mr-1"></i> RFID
                                                     </span>
                                                 @else
-                                                    <span class="px-2 py-0.5 rounded-xl text-[9px] font-black bg-gray-100 text-black border border-black">
-                                                        <i class="fas fa-pen"></i> Manual
+                                                    <span class="px-2.5 py-1 rounded-xl text-[9px] font-black bg-gray-100 text-black border border-black">
+                                                        <i class="fas fa-pen mr-1"></i> Manual
                                                     </span>
                                                 @endif
                                             @endif
@@ -127,9 +130,9 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-6 py-4.5">
                                 <select name="attendance[{{ $p->id }}][status]"
-                                        class="att-status w-full px-3 py-2.5 bg-white border-2 border-black rounded-xl text-xs font-black text-black focus:ring-2 focus:ring-amber-400 shadow-sm cursor-pointer">
+                                        class="att-status w-full px-4 py-3 bg-white border-2 border-black rounded-2xl text-xs font-black text-black focus:ring-2 focus:ring-amber-400 shadow-sm cursor-pointer">
                                     <option value="hadir" {{ ($ex?->status ?? 'hadir') === 'hadir' ? 'selected' : '' }}>Hadir</option>
                                     <option value="terlambat" {{ $ex?->status === 'terlambat' ? 'selected' : '' }}>Terlambat</option>
                                     <option value="izin" {{ $ex?->status === 'izin' ? 'selected' : '' }}>Izin</option>
@@ -141,22 +144,22 @@
                                     <option value="alpha" {{ $ex?->status === 'alpha' ? 'selected' : '' }}>Alpha</option>
                                 </select>
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-6 py-4.5">
                                 <input type="time" name="attendance[{{ $p->id }}][time_in]"
                                        value="{{ $timeInVal }}"
                                        data-is-existing="{{ $ex && $timeInVal ? 'true' : 'false' }}"
-                                       class="att-time-in w-full px-3 py-2.5 bg-white border-2 border-black rounded-xl text-xs font-mono font-black text-center text-black focus:ring-2 focus:ring-amber-400 shadow-sm">
+                                       class="att-time-in w-full px-4 py-3 bg-white border-2 border-black rounded-2xl text-xs font-mono font-black text-center text-black focus:ring-2 focus:ring-amber-400 shadow-sm">
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-6 py-4.5">
                                 <input type="time" name="attendance[{{ $p->id }}][time_out]"
                                        value="{{ $timeOutVal }}"
                                        data-is-existing="{{ $ex && $timeOutVal ? 'true' : 'false' }}"
-                                       class="att-time-out w-full px-3 py-2.5 bg-white border-2 border-black rounded-xl text-xs font-mono font-black text-center text-black focus:ring-2 focus:ring-amber-400 shadow-sm">
+                                       class="att-time-out w-full px-4 py-3 bg-white border-2 border-black rounded-2xl text-xs font-mono font-black text-center text-black focus:ring-2 focus:ring-amber-400 shadow-sm">
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-6 py-4.5">
                                 <input type="text" name="attendance[{{ $p->id }}][notes]"
                                        value="{{ $ex?->notes }}" placeholder="Keterangan opsional..."
-                                       class="w-full px-3 py-2.5 bg-white border-2 border-black rounded-xl text-xs font-bold text-black focus:ring-2 focus:ring-amber-400 shadow-sm">
+                                       class="w-full px-4 py-3 bg-white border-2 border-black rounded-2xl text-xs font-bold text-black focus:ring-2 focus:ring-amber-400 shadow-sm">
                             </td>
                         </tr>
                         @endforeach
@@ -166,14 +169,14 @@
         </div>
 
         {{-- Submit Button Bar --}}
-        <div class="flex items-center justify-end gap-3">
+        <div class="flex items-center justify-end gap-4">
             <a href="{{ route('admin.attendance.monitoring', ['group' => $group, 'school_id' => $schoolId, 'date' => $date]) }}"
-               class="px-6 py-3 bg-gray-100 border-2 border-black text-black rounded-2xl font-black uppercase tracking-wider hover:bg-gray-200 transition text-xs shadow-sm">
+               class="px-8 py-4 bg-gray-100 border-2 border-black text-black rounded-2xl font-black uppercase tracking-wider hover:bg-gray-200 transition text-xs shadow-sm">
                 Batal
             </a>
             <button type="submit" id="submitBtn"
-                    class="px-8 py-3.5 bg-black hover:bg-amber-400 hover:text-black text-amber-400 rounded-2xl font-black uppercase tracking-wider border-2 border-black shadow-xl transition active:scale-95 flex items-center gap-2.5 text-xs">
-                <i class="fas fa-save text-sm"></i>
+                    class="px-10 py-4 bg-black hover:bg-amber-400 hover:text-black text-amber-400 rounded-2xl font-black uppercase tracking-wider border-2 border-black shadow-xl transition active:scale-95 flex items-center gap-3 text-xs">
+                <i class="fas fa-save text-base"></i>
                 <span>Simpan Absensi Massal {{ ucfirst($group) }}</span>
             </button>
         </div>
@@ -207,7 +210,7 @@ function resetAll() {
 document.getElementById('bulkAttendanceForm')?.addEventListener('submit', function () {
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...';
 });
 </script>
 @endsection
