@@ -115,10 +115,12 @@ class UnifiedAttendanceController extends Controller
                       });
                 })
                 ->orderBy('id', 'desc')
-                ->take(30)
+                ->take(100)
                 ->get();
 
-            foreach ($attendances as $att) {
+            $totalEvents = $attendances->count();
+
+            foreach ($attendances as $idx => $att) {
                 $status = $att->status;
                 if (isset($stats[$status])) {
                     $stats[$status]++;
@@ -126,6 +128,10 @@ class UnifiedAttendanceController extends Controller
                 $cls = $att->student?->studentClasses?->firstWhere('status', 'aktif')?->classroom?->class_name ?? '-';
                 $liveEvents->push([
                     'id'           => $att->id,
+                    'person_id'    => $att->student_id,
+                    'classroom_id' => $att->classroom_id,
+                    'seq_no'       => $totalEvents - $idx,
+                    'is_latest'    => ($idx === 0),
                     'name'         => $att->student?->full_name ?? 'Siswa',
                     'code'         => $att->student?->nisn ?? $att->student?->nis ?? '-',
                     'photo_url'    => $att->student?->photo_url,
@@ -134,6 +140,9 @@ class UnifiedAttendanceController extends Controller
                     'status'       => $att->status,
                     'time_in'      => $att->time_in ? substr($att->time_in, 0, 5) : null,
                     'time_out'     => $att->time_out ? substr($att->time_out, 0, 5) : null,
+                    'raw_time_in'  => $att->time_in ? substr($att->time_in, 0, 5) : '',
+                    'raw_time_out' => $att->time_out ? substr($att->time_out, 0, 5) : '',
+                    'notes'        => $att->notes,
                     'recorded_via' => $att->recorded_via ?: 'gps',
                     'device_id'    => $att->device_id,
                     'timestamp'    => $att->time_in ? 'Jam ' . substr($att->time_in, 0, 5) . ' WIB' : '-',
@@ -156,16 +165,22 @@ class UnifiedAttendanceController extends Controller
                     $q->where('employee_type', 'guru')->orWhereHas('teacher');
                 })
                 ->orderBy('id', 'desc')
-                ->take(30)
+                ->take(100)
                 ->get();
 
-            foreach ($attendances as $att) {
+            $totalEvents = $attendances->count();
+
+            foreach ($attendances as $idx => $att) {
                 $status = $att->status;
                 if (isset($stats[$status])) {
                     $stats[$status]++;
                 }
                 $liveEvents->push([
                     'id'           => $att->id,
+                    'person_id'    => $att->employee_id,
+                    'classroom_id' => null,
+                    'seq_no'       => $totalEvents - $idx,
+                    'is_latest'    => ($idx === 0),
                     'name'         => $att->employee?->full_name ?? 'Guru',
                     'code'         => $att->employee?->employee_code ?? '-',
                     'photo_url'    => $att->employee?->photo_url,
@@ -174,6 +189,9 @@ class UnifiedAttendanceController extends Controller
                     'status'       => $att->status,
                     'time_in'      => $att->time_in ? substr($att->time_in, 0, 5) : null,
                     'time_out'     => $att->time_out ? substr($att->time_out, 0, 5) : null,
+                    'raw_time_in'  => $att->time_in ? substr($att->time_in, 0, 5) : '',
+                    'raw_time_out' => $att->time_out ? substr($att->time_out, 0, 5) : '',
+                    'notes'        => $att->notes,
                     'recorded_via' => $att->recorded_via ?: 'gps',
                     'device_id'    => $att->device_id,
                     'timestamp'    => $att->time_in ? 'Jam ' . substr($att->time_in, 0, 5) . ' WIB' : '-',
@@ -196,16 +214,22 @@ class UnifiedAttendanceController extends Controller
                     $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
                 })
                 ->orderBy('id', 'desc')
-                ->take(30)
+                ->take(100)
                 ->get();
 
-            foreach ($attendances as $att) {
+            $totalEvents = $attendances->count();
+
+            foreach ($attendances as $idx => $att) {
                 $status = $att->status;
                 if (isset($stats[$status])) {
                     $stats[$status]++;
                 }
                 $liveEvents->push([
                     'id'           => $att->id,
+                    'person_id'    => $att->employee_id,
+                    'classroom_id' => null,
+                    'seq_no'       => $totalEvents - $idx,
+                    'is_latest'    => ($idx === 0),
                     'name'         => $att->employee?->full_name ?? 'Pegawai',
                     'code'         => $att->employee?->employee_code ?? '-',
                     'photo_url'    => $att->employee?->photo_url,
@@ -214,6 +238,9 @@ class UnifiedAttendanceController extends Controller
                     'status'       => $att->status,
                     'time_in'      => $att->time_in ? substr($att->time_in, 0, 5) : null,
                     'time_out'     => $att->time_out ? substr($att->time_out, 0, 5) : null,
+                    'raw_time_in'  => $att->time_in ? substr($att->time_in, 0, 5) : '',
+                    'raw_time_out' => $att->time_out ? substr($att->time_out, 0, 5) : '',
+                    'notes'        => $att->notes,
                     'recorded_via' => $att->recorded_via ?: 'gps',
                     'device_id'    => $att->device_id,
                     'timestamp'    => $att->time_in ? 'Jam ' . substr($att->time_in, 0, 5) . ' WIB' : '-',
