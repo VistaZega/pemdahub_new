@@ -363,11 +363,18 @@
 
         <!-- REPLIES LIST -->
         @php
-            // Get all top-level replies (no parent_reply_id)
-            $topLevelReplies = $thread->replies->whereNull('parent_reply_id');
-            // In case there are orphan replies whose parent is not found, handle them
-            $allParentIds = $thread->replies->pluck('id')->toArray();
-            $orphanReplies = $thread->replies->whereNotNull('parent_reply_id')->whereNotIn('parent_reply_id', $allParentIds);
+            // Type-safe grouping of top-level and child replies
+            $topLevelReplies = $thread->replies->filter(function($r) {
+                return empty($r->parent_reply_id) || (int)$r->parent_reply_id === 0;
+            });
+
+            $allTopLevelIds = $topLevelReplies->pluck('id')->map(fn($id) => (int)$id)->toArray();
+
+            // Direct children or descendants
+            $allRepliesMap = [];
+            foreach ($thread->replies as $r) {
+                $allRepliesMap[(int)$r->id] = !empty($r->parent_reply_id) ? (int)$r->parent_reply_id : null;
+            }
         @endphp
 
         <div id="replies" class="space-y-6">
@@ -433,7 +440,7 @@
 
                                 <!-- Right: Balas & Terbaik -->
                                 <div class="flex items-center gap-3 ml-auto">
-                                    <!-- Reply Button with Data Attributes (Bulletproof!) -->
+                                    <!-- Reply Button with Data Attributes -->
                                     <button type="button" 
                                             data-reply-id="{{ $reply->id }}" 
                                             data-user-name="{{ e($reply->user->name) }}" 
@@ -459,74 +466,87 @@
 
                     <!-- NESTED / MENJOROK KE DALAM: Balasan untuk komentar ini -->
                     @php
-                        $childReplies = $thread->replies->where('parent_reply_id', $reply->id);
+                        $childReplies = $thread->replies->filter(function($r) use ($reply, $allRepliesMap) {
+                            if (empty($r->parent_reply_id)) return false;
+                            $pId = (int)$r->parent_reply_id;
+                            if ($pId === (int)$reply->id) return true;
+                            // Check parent of parent
+                            if (isset($allRepliesMap[$pId]) && $allRepliesMap[$pId] === (int)$reply->id) {
+                                return true;
+                            }
+                            return false;
+                        });
                     @endphp
+
                     @if($childReplies->count() > 0)
-                        <div class="ml-6 sm:ml-12 pl-3 sm:pl-4 border-l-2 border-indigo-200/90 space-y-3.5 mt-2.5 bg-indigo-50/20 rounded-r-2xl py-3 pr-2">
+                        <!-- Indented child replies container with visual tree branch line -->
+                        <div class="ml-8 sm:ml-16 mt-3 space-y-3">
                             @foreach($childReplies as $child)
-                                <div class="flex gap-2.5 sm:gap-3" id="reply-{{ $child->id }}">
-                                    <img src="{{ $child->user->avatar_url }}" class="w-8 h-8 rounded-full border border-indigo-200 shadow-xs flex-shrink-0 object-cover">
-                                    <div class="flex-1 min-w-0 space-y-1">
-                                        <div class="flex items-baseline gap-2 flex-wrap">
-                                            <span class="font-bold text-slate-800 text-xs sm:text-sm">{{ $child->user->name }}</span>
-                                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold uppercase">{{ $child->user->role }}</span>
-                                            <span class="text-[11px] text-slate-400">{{ $child->created_at->format('H:i') }}</span>
-                                        </div>
-                                        
-                                        <!-- Mention Badge -->
-                                        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-indigo-100/70 border border-indigo-200/80 rounded-md text-[11px] text-indigo-800 font-bold mb-1">
-                                            <i class="ph-bold ph-arrow-bend-down-right text-indigo-600"></i>
-                                            <span>Membalas <span class="text-indigo-950 font-extrabold">{{ $child->parent->user->name ?? $reply->user->name }}</span></span>
+                                <div class="relative pl-6 sm:pl-8 border-l-2 border-indigo-300" id="reply-{{ $child->id }}">
+                                    <!-- Tree branch connector curve -->
+                                    <div class="absolute -left-[2px] top-4 w-5 h-4 border-b-2 border-indigo-300 rounded-bl-lg pointer-events-none"></div>
+
+                                    <div class="bg-indigo-50/50 hover:bg-indigo-50/80 border border-indigo-100/90 rounded-2xl p-3.5 shadow-xs transition space-y-2 max-w-2xl">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <img src="{{ $child->user->avatar_url }}" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-indigo-200 shadow-2xs flex-shrink-0 object-cover">
+                                                <div class="min-w-0 flex items-baseline gap-1.5 flex-wrap">
+                                                    <span class="font-black text-slate-800 text-xs sm:text-sm truncate">{{ $child->user->name }}</span>
+                                                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-white text-slate-500 font-bold uppercase border border-slate-200">{{ $child->user->role }}</span>
+                                                    <span class="text-[10px] text-slate-400 font-medium">{{ $child->created_at->format('H:i') }}</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Balas button -->
+                                            <button type="button" 
+                                                    data-reply-id="{{ $child->id }}" 
+                                                    data-user-name="{{ e($child->user->name) }}" 
+                                                    data-snippet="{{ e(Str::limit(preg_replace('/\s+/', ' ', strip_tags($child->content ?? ($child->voice_note_path ? 'Pesan Suara' : ''))), 80)) }}" 
+                                                    onclick="quoteReplyFromBtn(this)" 
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-white hover:bg-indigo-100/60 border border-indigo-200 transition shadow-2xs">
+                                                <i class="ph-bold ph-arrow-bend-up-left"></i> Balas
+                                            </button>
                                         </div>
 
-                                        <!-- Bubble -->
-                                        <div class="{{ $child->is_accepted ? 'bg-amber-50/90 border-amber-200 ring-1 ring-amber-300' : 'bg-white border-slate-200' }} border rounded-2xl rounded-tl-none p-3 max-w-2xl text-xs sm:text-sm text-slate-800 shadow-xs">
+                                        <!-- Quoted Badge -->
+                                        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white border border-indigo-100 rounded-md text-[11px] text-indigo-700 font-semibold shadow-2xs">
+                                            <i class="ph-bold ph-arrow-bend-down-right text-indigo-500"></i>
+                                            <span>Membalas <strong class="text-indigo-950">{{ $child->parent->user->name ?? $reply->user->name }}</strong></span>
+                                        </div>
+
+                                        <!-- Bubble content -->
+                                        <div class="text-xs sm:text-sm text-slate-800 leading-relaxed pt-0.5">
                                             @if($child->voice_note_path)
-                                                <div class="mb-1 flex items-center gap-1.5 text-indigo-600 font-bold text-xs">
-                                                    <i class="ph-bold ph-microphone"></i> Pesan Suara
+                                                <div class="mb-1.5 flex items-center gap-1.5 text-indigo-600 font-bold text-xs">
+                                                    <i class="ph-bold ph-microphone text-sm"></i> Pesan Suara
                                                 </div>
-                                                <audio controls class="w-full h-8 rounded-lg max-w-[220px] mb-1 bg-slate-100" src="{{ asset('storage/' . $child->voice_note_path) }}"></audio>
+                                                <audio controls class="w-full h-8 rounded-lg max-w-[220px] mb-1 bg-white" src="{{ asset('storage/' . $child->voice_note_path) }}"></audio>
                                             @endif
                                             @if($child->content)
                                                 {!! nl2br(e($child->content)) !!}
                                             @endif
                                         </div>
 
-                                        <!-- Actions -->
-                                        <div class="flex flex-wrap items-center justify-between gap-2 mt-1.5 w-full max-w-2xl">
-                                            <!-- Left: Emoji Reactions -->
-                                            <div class="flex items-center gap-1.5">
-                                                <div class="flex items-center relative">
-                                                    <button @click="togglePicker('reply-{{ $child->id }}')" class="w-5 h-5 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 transition text-xs">
-                                                        <i class="ph-bold ph-smiley"></i>
-                                                    </button>
-                                                    <div x-show="pickerOpen === 'reply-{{ $child->id }}'" class="ml-1 p-1 bg-white border border-slate-200 rounded-xl flex gap-1 shadow-lg z-20">
-                                                        @foreach(\App\Models\ForumReaction::EMOJIS as $emoji => $name)
-                                                            <button @click="reactReply('{{ $child->id }}', '{{ $emoji }}')" class="w-5 h-5 rounded hover:bg-slate-100 flex items-center justify-center text-sm transition-transform hover:scale-125">
-                                                                {{ $emoji }}
-                                                            </button>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                                <div id="reply-reactions-{{ $child->id }}" class="flex flex-wrap gap-1">
-                                                    @foreach($child->getReactionCounts() as $emoji => $count)
-                                                        <button onclick="reactReplyAjax({{ $child->id }}, '{{ $emoji }}')" class="flex items-center gap-1 px-1.5 py-0.5 bg-white hover:bg-slate-100 border border-slate-200 rounded text-[10px] font-bold text-slate-700 transition shadow-xs">
-                                                            <span>{{ $emoji }}</span> <span>{{ $count }}</span>
+                                        <!-- Reactions -->
+                                        <div class="flex items-center gap-2 pt-1 border-t border-indigo-100/60">
+                                            <div class="flex items-center relative">
+                                                <button @click="togglePicker('reply-{{ $child->id }}')" class="w-5 h-5 rounded-full hover:bg-white flex items-center justify-center text-slate-400 hover:text-slate-700 transition text-xs">
+                                                    <i class="ph-bold ph-smiley"></i>
+                                                </button>
+                                                <div x-show="pickerOpen === 'reply-{{ $child->id }}'" class="ml-1 p-1 bg-white border border-slate-200 rounded-xl flex gap-1 shadow-lg z-20">
+                                                    @foreach(\App\Models\ForumReaction::EMOJIS as $emoji => $name)
+                                                        <button @click="reactReply('{{ $child->id }}', '{{ $emoji }}')" class="w-5 h-5 rounded hover:bg-slate-100 flex items-center justify-center text-sm transition-transform hover:scale-125">
+                                                            {{ $emoji }}
                                                         </button>
                                                     @endforeach
                                                 </div>
                                             </div>
-
-                                            <!-- Right: Balas button for Child -->
-                                            <div class="flex items-center gap-2 ml-auto">
-                                                <button type="button" 
-                                                        data-reply-id="{{ $child->id }}" 
-                                                        data-user-name="{{ e($child->user->name) }}" 
-                                                        data-snippet="{{ e(Str::limit(preg_replace('/\s+/', ' ', strip_tags($child->content ?? ($child->voice_note_path ? 'Pesan Suara' : ''))), 80)) }}" 
-                                                        onclick="quoteReplyFromBtn(this)" 
-                                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-slate-600 hover:text-indigo-600 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 transition shadow-2xs">
-                                                    <i class="ph-bold ph-arrow-bend-up-left"></i> Balas
-                                                </button>
+                                            <div id="reply-reactions-{{ $child->id }}" class="flex flex-wrap gap-1">
+                                                @foreach($child->getReactionCounts() as $emoji => $count)
+                                                    <button onclick="reactReplyAjax({{ $child->id }}, '{{ $emoji }}')" class="flex items-center gap-1 px-1.5 py-0.5 bg-white hover:bg-slate-50 border border-indigo-100 rounded text-[10px] font-bold text-slate-700 transition shadow-2xs">
+                                                        <span>{{ $emoji }}</span> <span>{{ $count }}</span>
+                                                    </button>
+                                                @endforeach
                                             </div>
                                         </div>
                                     </div>
@@ -536,34 +556,6 @@
                     @endif
                 </div>
             @endforeach
-
-            @if($orphanReplies->count() > 0)
-                @foreach($orphanReplies as $orphan)
-                    <div class="flex gap-3 sm:gap-4" id="reply-{{ $orphan->id }}">
-                        <img src="{{ $orphan->user->avatar_url }}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200 shadow-xs flex-shrink-0 object-cover">
-                        <div class="flex-1 min-w-0 space-y-1.5">
-                            <div class="flex items-baseline gap-2 flex-wrap">
-                                <span class="font-bold text-slate-800 text-sm">{{ $orphan->user->name }}</span>
-                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold uppercase tracking-wider">{{ $orphan->user->role }}</span>
-                                <span class="text-xs text-slate-400">{{ $orphan->created_at->format('H:i') }}</span>
-                            </div>
-                            <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 max-w-2xl text-sm text-slate-800 shadow-sm">
-                                {!! nl2br(e($orphan->content)) !!}
-                            </div>
-                            <div class="flex items-center justify-end mt-1 max-w-2xl">
-                                <button type="button" 
-                                        data-reply-id="{{ $orphan->id }}" 
-                                        data-user-name="{{ e($orphan->user->name) }}" 
-                                        data-snippet="{{ e(Str::limit(preg_replace('/\s+/', ' ', strip_tags($orphan->content ?? '')), 80)) }}" 
-                                        onclick="quoteReplyFromBtn(this)" 
-                                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200/70 transition shadow-xs">
-                                    <i class="ph-bold ph-arrow-bend-up-left"></i> Balas
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            @endif
         </div>
     </div>
 
