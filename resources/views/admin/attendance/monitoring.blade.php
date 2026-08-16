@@ -273,7 +273,7 @@
                             {{ $it->notes ?? '-' }}
                         </td>
                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                            <div class="inline-flex items-center justify-center gap-1.5">
+                            <div class="inline-flex items-center justify-center gap-2">
                                 {{-- Edit Button --}}
                                 <button type="button" 
                                         onclick="openEditModal({{ json_encode([
@@ -289,22 +289,30 @@
                                             'time_out'     => $it->raw_time_out,
                                             'notes'        => $it->notes,
                                         ]) }})"
-                                        class="edu-table-btn bg-amber-400 hover:bg-amber-500 text-slate-900 border-amber-500" 
+                                        class="edu-table-btn bg-amber-400 hover:bg-amber-500 text-slate-900 border-amber-500 shadow-2xs" 
                                         title="Edit Presensi">
                                     <i class="fas fa-edit text-[11px]"></i>
                                     <span>Edit</span>
                                 </button>
 
-                                {{-- Hapus Button --}}
+                                {{-- Hapus / Reset Button (Always Present) --}}
                                 @if($it->attendance_id)
                                 <form action="{{ route('admin.attendance.destroy', ['id' => $it->attendance_id, 'group' => $group]) }}" 
-                                      method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus/mereset data presensi {{ $it->name }}?');" class="inline">
+                                      method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data presensi {{ $it->name }} dan meresetnya ke Belum Absen?');" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="edu-table-btn bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200" title="Hapus Presensi">
+                                    <button type="submit" class="edu-table-btn bg-rose-600 hover:bg-rose-700 text-white border-rose-700 shadow-2xs" title="Hapus Presensi">
                                         <i class="fas fa-trash text-[11px]"></i>
                                         <span>Hapus</span>
                                     </button>
                                 </form>
+                                @else
+                                <button type="button" 
+                                        onclick="alert('Data presensi untuk {{ addslashes($it->name) }} saat ini berstatus Belum Absen (belum ada rekaman kehadiran yang tersimpan di database).')"
+                                        class="edu-table-btn bg-slate-100 hover:bg-slate-200 text-slate-400 border-slate-200" 
+                                        title="Belum ada data presensi yang perlu dihapus">
+                                    <i class="fas fa-trash text-[11px]"></i>
+                                    <span>Hapus</span>
+                                </button>
                                 @endif
                             </div>
                         </td>
