@@ -1,15 +1,15 @@
 @extends('layouts.admin')
 
-@section('title', 'Rekapitulasi Presensi Bulanan - Edu Attendance Hub')
+@section('title', 'Rekapitulasi Presensi Bulanan - Pusat Absensi')
 
 @push('styles')
 <style>
-    .clay-card {
+    .edu-card {
         background: #ffffff;
-        border-radius: 28px;
-        box-shadow: 8px 12px 24px rgba(30, 41, 59, 0.06), -6px -6px 16px rgba(255, 255, 255, 0.9), inset 2px 2px 4px rgba(255, 255, 255, 0.8), inset -2px -2px 4px rgba(0, 0, 0, 0.03);
-        border: 2px solid #f1f5f9;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border-radius: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease-in-out;
     }
     @media print {
         body * { visibility: hidden; }
@@ -21,22 +21,22 @@
 @endpush
 
 @section('content')
-<div class="space-y-10">
-    {{-- Unified Playful Clay Header --}}
+<div class="space-y-6 font-sans">
+    {{-- Unified Header --}}
     <div class="no-print">
         @include('admin.attendance.header')
     </div>
 
     {{-- Filter Bar (Month, Year, Classroom) --}}
-    <div class="clay-card rounded-[2.2rem] p-7 md:p-8 flex flex-wrap items-center justify-between gap-6 no-print bg-white">
-        <form method="GET" class="flex flex-wrap items-center gap-4 flex-1">
+    <div class="edu-card p-5 md:p-6 flex flex-wrap items-center justify-between gap-4 no-print bg-white">
+        <form method="GET" class="flex flex-wrap items-center gap-3 flex-1">
             <input type="hidden" name="group" value="{{ $group }}">
             <input type="hidden" name="school_id" value="{{ $schoolId }}">
 
             {{-- Month --}}
-            <div class="min-w-[180px]">
+            <div class="min-w-[160px]">
                 <select name="month" onchange="this.form.submit()"
-                        class="w-full clay-pill-soft rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 focus:ring-4 focus:ring-indigo-100 cursor-pointer shadow-sm">
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 cursor-pointer">
                     @for($m = 1; $m <= 12; $m++)
                         <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>
                             📅 {{ \Carbon\Carbon::create(null, $m)->translatedFormat('F') }}
@@ -46,9 +46,9 @@
             </div>
 
             {{-- Year --}}
-            <div class="min-w-[140px]">
+            <div class="min-w-[120px]">
                 <select name="year" onchange="this.form.submit()"
-                        class="w-full clay-pill-soft rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 focus:ring-4 focus:ring-indigo-100 cursor-pointer shadow-sm">
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 cursor-pointer">
                     @for($y = date('Y'); $y >= date('Y') - 3; $y--)
                         <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>
                             {{ $y }}
@@ -59,9 +59,9 @@
 
             {{-- Classroom if Siswa --}}
             @if($group === 'siswa' && $classrooms->isNotEmpty())
-            <div class="min-w-[230px]">
+            <div class="min-w-[200px]">
                 <select name="classroom_id" onchange="this.form.submit()"
-                        class="w-full clay-pill-soft rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 focus:ring-4 focus:ring-indigo-100 cursor-pointer shadow-sm">
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 cursor-pointer">
                     @foreach($classrooms as $cls)
                         <option value="{{ $cls->id }}" {{ $classroomId == $cls->id ? 'selected' : '' }}>
                             🏛️ {{ $cls->class_name }}
@@ -71,30 +71,30 @@
             </div>
             @endif
 
-            <button type="submit" class="clay-btn-primary px-7 py-3.5 text-xs font-extrabold uppercase tracking-wider rounded-2xl shadow-md transition active:scale-95">
+            <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow-sm">
                 Tampilkan
             </button>
         </form>
 
-        <div class="flex items-center gap-3.5 shrink-0">
-            <button type="button" onclick="window.print()" class="clay-btn-amber px-7 py-3.5 rounded-2xl text-xs font-extrabold uppercase tracking-wider transition flex items-center gap-2 shadow-md active:scale-95">
-                <i class="fas fa-print text-sm"></i>
+        <div class="flex items-center gap-3 shrink-0">
+            <button type="button" onclick="window.print()" class="px-5 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-900 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 shadow-2xs">
+                <i class="fas fa-print text-xs"></i>
                 <span>Cetak / PDF</span>
             </button>
         </div>
     </div>
 
     {{-- Printable Rekap Matrix Container --}}
-    <div id="printable_rekap_area" class="clay-card rounded-[2.5rem] p-8 md:p-10 space-y-7 bg-white">
+    <div id="printable_rekap_area" class="edu-card p-6 md:p-8 space-y-6 bg-white">
         {{-- Document Header --}}
-        <div class="border-b border-slate-100 pb-7 flex items-center justify-between gap-5 flex-wrap">
+        <div class="border-b border-slate-100 pb-5 flex items-center justify-between gap-4 flex-wrap">
             <div>
-                <p class="text-xs font-extrabold uppercase tracking-wider text-indigo-600">Laporan Resmi Presensi Bulanan</p>
-                <h2 class="text-xl md:text-2xl font-extrabold text-slate-800 tracking-tight mt-1" style="font-family: var(--clay-font-title);">
+                <p class="text-xs font-bold uppercase tracking-wider text-indigo-600">Laporan Resmi Presensi Bulanan</p>
+                <h2 class="text-lg md:text-xl font-bold text-slate-800 tracking-tight mt-0.5">
                     REKAPITULASI PRESENSI {{ strtoupper($group) }} &mdash; {{ strtoupper(\Carbon\Carbon::create($year, $month)->translatedFormat('F Y')) }}
                 </h2>
-                <p class="text-xs text-slate-500 font-bold mt-1.5">
-                    🏛️ {{ $selectedSchool->name ?? 'Perguruan Pembda Nias' }}
+                <p class="text-xs text-slate-500 font-medium mt-1">
+                    🏫 {{ $selectedSchool->name ?? 'Perguruan Pembda Nias' }}
                     @if($group === 'siswa' && $classroomId)
                         &middot; Kelas / Rombel: <b class="text-indigo-600">{{ $classrooms->firstWhere('id', $classroomId)?->class_name }}</b>
                     @endif
@@ -106,19 +106,19 @@
         </div>
 
         @if($persons->isEmpty())
-        <div class="py-28 text-center text-slate-400">
-            <div class="w-16 h-16 bg-amber-100 rounded-3xl border-2 border-amber-200 flex items-center justify-center mx-auto mb-4 text-amber-600 text-3xl shadow-md">
+        <div class="py-20 text-center text-slate-400">
+            <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3 text-slate-400 text-2xl">
                 <i class="fas fa-folder-open"></i>
             </div>
-            <p class="text-lg text-slate-800 font-extrabold" style="font-family: var(--clay-font-title);">Tidak ada data untuk periode ini.</p>
+            <p class="text-base text-slate-700 font-bold">Tidak ada data untuk periode ini.</p>
         </div>
         @else
-        <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-xs">
+        <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-2xs">
             <table class="w-full text-left text-xs border-collapse">
                 <thead>
-                    <tr class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white font-extrabold">
-                        <th class="p-3.5 w-12 text-center border-r border-slate-700 text-yellow-300">No</th>
-                        <th class="p-3.5 min-w-[190px] border-r border-slate-700 text-yellow-300">Nama Lengkap</th>
+                    <tr class="bg-slate-900 text-white font-bold">
+                        <th class="p-3 w-12 text-center border-r border-slate-700 text-slate-400">No</th>
+                        <th class="p-3 min-w-[180px] border-r border-slate-700">Nama Lengkap</th>
                         @for($d = 1; $d <= $daysInMonth; $d++)
                         @php
                             $dt = \Carbon\Carbon::create($year, $month, $d);
@@ -128,22 +128,22 @@
                             {{ $d }}
                         </th>
                         @endfor
-                        <th class="p-3 text-center w-10 bg-emerald-500 text-white border-r border-slate-700" title="Hadir">H</th>
-                        <th class="p-3 text-center w-10 bg-amber-400 text-slate-900 border-r border-slate-700" title="Terlambat">T</th>
-                        <th class="p-3 text-center w-10 bg-sky-400 text-white border-r border-slate-700" title="Izin">I</th>
-                        <th class="p-3 text-center w-10 bg-yellow-400 text-slate-900 border-r border-slate-700" title="Sakit">S</th>
-                        <th class="p-3 text-center w-10 bg-rose-500 text-white border-r border-slate-700" title="Alpha">A</th>
-                        <th class="p-3 text-center w-16 bg-gradient-to-r from-yellow-300 to-amber-500 text-slate-900 font-extrabold">%</th>
+                        <th class="p-2.5 text-center w-10 bg-emerald-600 text-white border-r border-slate-700" title="Hadir">H</th>
+                        <th class="p-2.5 text-center w-10 bg-amber-500 text-slate-900 border-r border-slate-700" title="Terlambat">T</th>
+                        <th class="p-2.5 text-center w-10 bg-blue-600 text-white border-r border-slate-700" title="Izin">I</th>
+                        <th class="p-2.5 text-center w-10 bg-yellow-500 text-slate-900 border-r border-slate-700" title="Sakit">S</th>
+                        <th class="p-2.5 text-center w-10 bg-rose-600 text-white border-r border-slate-700" title="Alpha">A</th>
+                        <th class="p-2.5 text-center w-16 bg-slate-800 text-amber-300 font-bold">%</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-slate-100 text-slate-700">
                     @foreach($persons as $idx => $p)
                     @php
                         $totH = 0; $totT = 0; $totI = 0; $totS = 0; $totA = 0; $totDL = 0; $totC = 0;
                     @endphp
-                    <tr class="hover:bg-indigo-50/40 transition-colors">
-                        <td class="p-3.5 text-center text-slate-600 font-mono font-extrabold border-r border-slate-200">{{ $idx + 1 }}</td>
-                        <td class="p-3.5 font-extrabold text-slate-800 border-r border-slate-200 truncate max-w-[240px]" title="{{ $p->full_name }}">
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="p-3 text-center text-slate-500 font-mono font-bold border-r border-slate-200">{{ $idx + 1 }}</td>
+                        <td class="p-3 font-bold text-slate-800 border-r border-slate-200 truncate max-w-[220px]" title="{{ $p->full_name }}">
                             {{ $p->full_name }}
                         </td>
                         @for($d = 1; $d <= $daysInMonth; $d++)
@@ -175,7 +175,7 @@
                             $cellBg = match($st) {
                                 'hadir'      => 'text-emerald-800 font-bold bg-emerald-100',
                                 'terlambat'  => 'text-amber-800 font-bold bg-amber-100',
-                                'izin'       => 'text-sky-800 font-bold bg-sky-100',
+                                'izin'       => 'text-blue-800 font-bold bg-blue-100',
                                 'sakit'      => 'text-yellow-800 font-bold bg-yellow-100',
                                 'dinas_luar' => 'text-purple-800 font-bold bg-purple-100',
                                 'cuti'       => 'text-indigo-800 font-bold bg-indigo-100',
@@ -183,7 +183,7 @@
                                 default      => $isSun ? 'bg-rose-50 text-rose-300' : 'text-slate-300'
                             };
                         @endphp
-                        <td class="p-2 text-center font-mono font-extrabold text-xs border-r border-slate-200 {{ $cellBg }}">
+                        <td class="p-1.5 text-center font-mono font-bold text-xs border-r border-slate-200 {{ $cellBg }}">
                             {{ $letter }}
                         </td>
                         @endfor
@@ -192,12 +192,12 @@
                             $totalActiveDays = max(1, $totH + $totI + $totS + $totA + $totC);
                             $rate = round(($totH / $totalActiveDays) * 100, 1);
                         @endphp
-                        <td class="p-2.5 text-center font-mono font-extrabold text-emerald-800 bg-emerald-50 border-r border-slate-200">{{ $totH }}</td>
-                        <td class="p-2.5 text-center font-mono font-extrabold text-amber-800 bg-amber-50 border-r border-slate-200">{{ $totT }}</td>
-                        <td class="p-2.5 text-center font-mono font-extrabold text-sky-800 bg-sky-50 border-r border-slate-200">{{ $totI }}</td>
-                        <td class="p-2.5 text-center font-mono font-extrabold text-yellow-800 bg-yellow-50 border-r border-slate-200">{{ $totS }}</td>
-                        <td class="p-2.5 text-center font-mono font-extrabold text-rose-800 bg-rose-50 border-r border-slate-200">{{ $totA }}</td>
-                        <td class="p-2.5 text-center font-mono font-black text-slate-900 bg-gradient-to-r from-yellow-300 to-amber-400">
+                        <td class="p-2 text-center font-mono font-bold text-emerald-800 bg-emerald-50 border-r border-slate-200">{{ $totH }}</td>
+                        <td class="p-2 text-center font-mono font-bold text-amber-800 bg-amber-50 border-r border-slate-200">{{ $totT }}</td>
+                        <td class="p-2 text-center font-mono font-bold text-blue-800 bg-blue-50 border-r border-slate-200">{{ $totI }}</td>
+                        <td class="p-2 text-center font-mono font-bold text-yellow-800 bg-yellow-50 border-r border-slate-200">{{ $totS }}</td>
+                        <td class="p-2 text-center font-mono font-bold text-rose-800 bg-rose-50 border-r border-slate-200">{{ $totA }}</td>
+                        <td class="p-2 text-center font-mono font-bold text-slate-900 bg-amber-200">
                             {{ $totH > 0 ? $rate . '%' : '0%' }}
                         </td>
                     </tr>
@@ -207,13 +207,13 @@
         </div>
 
         {{-- Legend / Keterangan Kode --}}
-        <div class="pt-5 border-t border-slate-100 flex flex-wrap items-center gap-5 text-xs font-bold text-slate-700">
-            <span class="uppercase tracking-wider text-indigo-600 font-extrabold">Keterangan:</span>
-            <span class="flex items-center gap-2"><span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center justify-center font-mono font-extrabold text-xs">H</span> Hadir</span>
-            <span class="flex items-center gap-2"><span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 border border-amber-300 inline-flex items-center justify-center font-mono font-extrabold text-xs">T</span> Terlambat</span>
-            <span class="flex items-center gap-2"><span class="w-6 h-6 rounded-lg bg-sky-100 text-sky-800 border border-sky-300 inline-flex items-center justify-center font-mono font-extrabold text-xs">I</span> Izin</span>
-            <span class="flex items-center gap-2"><span class="w-6 h-6 rounded-lg bg-yellow-100 text-yellow-800 border border-yellow-300 inline-flex items-center justify-center font-mono font-extrabold text-xs">S</span> Sakit</span>
-            <span class="flex items-center gap-2"><span class="w-6 h-6 rounded-lg bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center justify-center font-mono font-extrabold text-xs">A</span> Alpha</span>
+        <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center gap-4 text-xs font-bold text-slate-600">
+            <span class="uppercase tracking-wider text-indigo-600">Keterangan:</span>
+            <span class="flex items-center gap-1.5"><span class="w-5 h-5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center justify-center font-mono font-bold text-xs">H</span> Hadir</span>
+            <span class="flex items-center gap-1.5"><span class="w-5 h-5 rounded bg-amber-100 text-amber-800 border border-amber-300 inline-flex items-center justify-center font-mono font-bold text-xs">T</span> Terlambat</span>
+            <span class="flex items-center gap-1.5"><span class="w-5 h-5 rounded bg-blue-100 text-blue-800 border border-blue-300 inline-flex items-center justify-center font-mono font-bold text-xs">I</span> Izin</span>
+            <span class="flex items-center gap-1.5"><span class="w-5 h-5 rounded bg-yellow-100 text-yellow-800 border border-yellow-300 inline-flex items-center justify-center font-mono font-bold text-xs">S</span> Sakit</span>
+            <span class="flex items-center gap-1.5"><span class="w-5 h-5 rounded bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center justify-center font-mono font-bold text-xs">A</span> Alpha</span>
         </div>
         @endif
     </div>
