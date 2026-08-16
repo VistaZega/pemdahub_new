@@ -1354,7 +1354,9 @@ Route::get('/run-migrations', function () {
         echo "<h1>=== SYNCING ALUMNI DATA ACROSS ALL TABLES ===</h1>\n";
         $alumniSyncExitCode = \Illuminate\Support\Facades\Artisan::call('alumni:sync');
         echo \Illuminate\Support\Facades\Artisan::output();
-        echo "\nAlumni Sync Exit Code: " . $alumniSyncExitCode . "\n\n";
+        echo "<h1>=== SETTING ATTENDANCE RADIUS TO 50 METERS ===</h1>\n";
+        \App\Models\Setting::setValue('attendance_max_radius', '50', 'integer', 'features');
+        echo "✅ Attendance Max Radius diset ke <b>50 meter</b> di tabel settings!<br>\n";
 
         echo "<b><h2 style='color:#0f0;'>✅ MIGRATION AND SYNC COMPLETED SUCCESSFULLY!</h2></b>\n";
     } catch (\Exception $e) {

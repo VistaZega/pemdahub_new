@@ -477,9 +477,9 @@ class AttendanceController extends Controller
             $schoolLong = (float) \App\Models\Setting::getValue('school_longitude', 97.619000);
         }
 
-        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 150); // Default 150 meter radius
+        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 50); // Default 50 meter radius
         if ($maxRadiusMeters <= 0) {
-            $maxRadiusMeters = 150;
+            $maxRadiusMeters = 50;
         }
 
         $todayDate = \Carbon\Carbon::now('Asia/Jakarta')->toDateString();
