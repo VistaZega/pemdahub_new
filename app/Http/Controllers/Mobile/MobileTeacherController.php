@@ -391,27 +391,47 @@ class MobileTeacherController extends Controller
     /**
      * Lihat & Nilai Tugas Siswa (Guru)
      */
-    public function tugas()
+    public function tugas(Request $request)
     {
         $teacher = $this->getTeacher();
         $assignments = collect();
+        $classrooms = collect();
+        $selectedClassroomId = $request->query('classroom_id');
 
         if ($teacher) {
-            $assignments = LmsAssignment::whereHas('course', function ($q) use ($teacher) {
+            $classrooms = \App\Models\Classroom::whereHas('lmsClasses.course', function ($q) use ($teacher) {
                 $q->where('teacher_id', $teacher->id);
-            })->with(['course', 'submissions.student'])
+            })->orderBy('class_name')->get();
+
+            $assignments = LmsAssignment::whereHas('course', function ($q) use ($teacher, $selectedClassroomId) {
+                $q->where('teacher_id', $teacher->id);
+                if ($selectedClassroomId) {
+                    $q->where(function($sq) use ($selectedClassroomId) {
+                        $sq->where('classroom_id', $selectedClassroomId)
+                           ->orWhereHas('lmsClasses', fn($lq) => $lq->where('classroom_id', $selectedClassroomId));
+                    });
+                }
+            })->with([
+                'course.lmsClasses.classroom',
+                'submissions' => function($sq) use ($selectedClassroomId) {
+                    $sq->with('student.classroom')->latest();
+                    if ($selectedClassroomId) {
+                        $sq->whereHas('student', fn($stq) => $stq->where('classroom_id', $selectedClassroomId));
+                    }
+                }
+            ])
               ->latest()
               ->get();
         }
 
         if ($assignments->isEmpty()) {
-            $assignments = LmsAssignment::with(['course', 'submissions.student'])
+            $assignments = LmsAssignment::with(['course.lmsClasses.classroom', 'submissions.student.classroom'])
                 ->latest()
                 ->take(10)
                 ->get();
         }
 
-        return view('mobile.teacher.tugas', compact('teacher', 'assignments'));
+        return view('mobile.teacher.tugas', compact('teacher', 'assignments', 'classrooms', 'selectedClassroomId'));
     }
 
     /**

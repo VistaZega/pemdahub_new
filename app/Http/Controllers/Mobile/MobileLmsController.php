@@ -18,34 +18,41 @@ use Illuminate\Support\Facades\Auth;
 
 class MobileLmsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->first();
         $teacher = \App\Models\Teacher::where('user_id', $user->id)->first() ?? $user->teacher;
 
         $isTeacher = session('active_role') === 'guru' || $user->isGuru() || !empty($teacher);
+        $selectedClassroomId = $request->query('classroom_id');
 
         $enrolledCourses = collect();
         if ($student && !$isTeacher) {
             $enrolledCourses = LmsCourse::whereHas('enrollments', function ($q) use ($student) {
                 $q->where('student_id', $student->id);
             })
-            ->with(['teacher.user', 'subject', 'classroom', 'modules'])
+            ->with(['teacher.user', 'subject', 'classroom', 'modules', 'lmsClasses.classroom'])
             ->withCount(['materials', 'assignments', 'quizzes', 'enrollments'])
             ->get();
         } else {
             $teacherId = $teacher->id ?? 0;
             $enrolledCourses = LmsCourse::where('teacher_id', $teacherId)
+                ->when($selectedClassroomId, function($q) use ($selectedClassroomId) {
+                    $q->where(function($sq) use ($selectedClassroomId) {
+                        $sq->where('classroom_id', $selectedClassroomId)
+                           ->orWhereHas('lmsClasses', fn($lq) => $lq->where('classroom_id', $selectedClassroomId));
+                    });
+                })
                 ->orWhere(fn($q) => $q->whereNull('teacher_id'))
-                ->with(['teacher.user', 'subject', 'classroom', 'modules'])
+                ->with(['teacher.user', 'subject', 'classroom', 'modules', 'lmsClasses.classroom'])
                 ->withCount(['materials', 'assignments', 'quizzes', 'enrollments'])
                 ->latest()
                 ->get();
         }
 
         if ($enrolledCourses->isEmpty()) {
-            $enrolledCourses = LmsCourse::with(['teacher.user', 'subject', 'classroom', 'modules'])
+            $enrolledCourses = LmsCourse::with(['teacher.user', 'subject', 'classroom', 'modules', 'lmsClasses.classroom'])
                 ->withCount(['materials', 'assignments', 'quizzes', 'enrollments'])
                 ->latest()
                 ->take(12)
@@ -90,6 +97,9 @@ class MobileLmsController extends Controller
                             $tq->where('academic_year_id', $activeYear->id);
                         }
                     })
+                    ->orWhereHas('lmsClasses.course', function ($lq) use ($teacher) {
+                        $lq->where('teacher_id', $teacher->id);
+                    })
                     ->orWhere('homeroom_teacher_id', $teacher->id);
                 })
                 ->orderBy('class_name')
@@ -123,7 +133,7 @@ class MobileLmsController extends Controller
                 ->get();
         }
 
-        return view('mobile.lms.index', compact('enrolledCourses', 'isTeacher', 'classrooms', 'subjects', 'courseProgress'));
+        return view('mobile.lms.index', compact('enrolledCourses', 'isTeacher', 'classrooms', 'subjects', 'courseProgress', 'selectedClassroomId'));
     }
 
     /**

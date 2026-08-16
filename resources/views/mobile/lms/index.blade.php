@@ -27,8 +27,13 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-2 shrink-0">
+        <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
             @if($isTeacher)
+                <a href="{{ route('guru.cbt.banks.index') }}" 
+                   class="px-2.5 py-2 rounded-xl bg-amber-400 text-black text-xs font-black hover:bg-amber-300 active:scale-95 transition flex items-center gap-1.5 shadow-2xs border border-amber-500">
+                    <i class="fa-solid fa-database text-xs"></i>
+                    <span>Bank Soal</span>
+                </a>
                 <button @click="showAddCourse = !showAddCourse" 
                         class="px-3 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-black shadow-md hover:opacity-90 active:scale-95 transition flex items-center gap-1.5">
                     <i class="fa-solid" :class="showAddCourse ? 'fa-xmark' : 'fa-plus'"></i>
@@ -138,6 +143,32 @@
         </div>
     @endif
 
+    <!-- Rombel Horizontal Filter Pills for Teacher -->
+    @if($isTeacher && $classrooms->count() > 0)
+        <div class="space-y-1.5 px-0.5">
+            <div class="flex items-center justify-between text-[11px] font-black text-slate-700">
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-users text-purple-600"></i> Pilih Rombel Mengajar:</span>
+                @if($selectedClassroomId)
+                    <a href="{{ route('mobile.lms.index') }}" class="text-[10px] text-purple-600 font-extrabold hover:underline">Reset Filter ✕</a>
+                @endif
+            </div>
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
+                <a href="{{ route('mobile.lms.index') }}"
+                   class="px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 shadow-2xs
+                          {{ !$selectedClassroomId ? 'bg-slate-900 text-amber-300 border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:border-purple-300' }}">
+                    <i class="fa-solid fa-table-cells-large text-[10px] mr-1"></i> Semua Rombel
+                </a>
+                @foreach($classrooms as $cls)
+                    <a href="{{ route('mobile.lms.index', ['classroom_id' => $cls->id]) }}"
+                       class="px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 shadow-2xs
+                              {{ $selectedClassroomId == $cls->id ? 'bg-slate-900 text-amber-300 border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:border-purple-300' }}">
+                        {{ $cls->class_name }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     <!-- Search & Filter Controls -->
     <div class="clay-card p-3 space-y-2.5 bg-white border border-slate-200 shadow-sm">
         <!-- Live Search Input -->
@@ -172,12 +203,15 @@
                     $theme = $course->design;
                     $progress = $courseProgress[$course->id] ?? 0;
                     $teacherName = $course->teacher->full_name ?? ($course->teacher->user->name ?? 'Guru Pengampu');
-                    $className = $course->classroom->class_name ?? 'Semua Kelas';
+                    $classNames = $course->lmsClasses->pluck('classroom.class_name')->filter()->implode(', ');
+                    if (empty($classNames)) {
+                        $classNames = $course->classroom->class_name ?? 'Semua Kelas';
+                    }
                 @endphp
 
                 <!-- Dynamic Course Card with Search Filter -->
                 <div class="clay-card overflow-hidden border-2 border-slate-200/90 hover:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md group bg-white rounded-3xl"
-                     x-show="!searchQuery || '{{ strtolower(addslashes($course->course_name . ' ' . $subjectName . ' ' . $teacherName . ' ' . $course->code . ' ' . $className)) }}'.includes(searchQuery.toLowerCase())">
+                     x-show="!searchQuery || '{{ strtolower(addslashes($course->course_name . ' ' . $subjectName . ' ' . $teacherName . ' ' . $course->code . ' ' . $classNames)) }}'.includes(searchQuery.toLowerCase())">
                     
                     <!-- Card Top Thematic Gradient Banner -->
                     <div class="bg-gradient-to-r {{ $theme['gradient'] }} p-5 text-white relative overflow-hidden rounded-t-3xl">
@@ -192,9 +226,9 @@
                                 <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-xs text-white border border-white/30 shadow-2xs">
                                     {{ $course->code }}
                                 </span>
-                                @if($course->classroom)
+                                @if($classNames)
                                     <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-black/25 backdrop-blur-xs text-white border border-white/20">
-                                        <i class="fa-solid fa-users-rectangle text-[8px] mr-0.5"></i> {{ $course->classroom->class_name }}
+                                        <i class="fa-solid fa-users-rectangle text-[8px] mr-0.5"></i> {{ $classNames }}
                                     </span>
                                 @endif
                             </div>

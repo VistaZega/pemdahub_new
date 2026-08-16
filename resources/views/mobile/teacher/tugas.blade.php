@@ -63,6 +63,32 @@
         </div>
     </div>
 
+    <!-- Rombel Filter Pills -->
+    @if(isset($classrooms) && $classrooms->count() > 0)
+        <div class="space-y-1.5 px-0.5">
+            <div class="flex items-center justify-between text-[11px] font-black text-slate-700">
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-users text-purple-600"></i> Filter Kelas / Rombel:</span>
+                @if($selectedClassroomId)
+                    <a href="{{ route('mobile.guru.tugas') }}" class="text-[10px] text-purple-600 font-extrabold hover:underline">Reset Filter ✕</a>
+                @endif
+            </div>
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
+                <a href="{{ route('mobile.guru.tugas') }}"
+                   class="px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 shadow-2xs
+                          {{ !$selectedClassroomId ? 'bg-slate-900 text-amber-300 border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:border-purple-300' }}">
+                    <i class="fa-solid fa-table-cells-large text-[10px] mr-1"></i> Semua Rombel
+                </a>
+                @foreach($classrooms as $cls)
+                    <a href="{{ route('mobile.guru.tugas', ['classroom_id' => $cls->id]) }}"
+                       class="px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 shadow-2xs
+                              {{ $selectedClassroomId == $cls->id ? 'bg-slate-900 text-amber-300 border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:border-purple-300' }}">
+                        {{ $cls->class_name }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     <!-- Assignments List -->
     <div class="space-y-3.5">
         @forelse($assignments as $assignment)
