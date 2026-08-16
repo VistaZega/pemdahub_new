@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURELIA & CO. | Haute Horlogerie & Bespoke Luxury Artifacts</title>
+    <meta name="description" content="An intimate world of bespoke luxury, high horology, and rare artifacts. Crafted for connoisseurs of timeless elegance.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 Pro CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* ══════════════════════════════════════════════════════════ */
+        /* LUXURY DESIGN TOKENS & RESET                              */
+        /* ══════════════════════════════════════════════════════════ */
+        :root {
+            --bg-obsidian: #05070a;
+            --bg-surface: #0a0e17;
+            --bg-glass: rgba(14, 20, 32, 0.55);
+            --bg-glass-card: rgba(20, 27, 44, 0.4);
+            --bg-glass-hover: rgba(30, 41, 65, 0.65);
+            
+            --gold-primary: #d4af37;
+            --gold-light: #f6e6b4;
+            --gold-glow: rgba(212, 175, 55, 0.35);
+            --gold-gradient: linear-gradient(135deg, #f9e8be 0%, #d4af37 50%, #997819 100%);
+            --platinum-gradient: linear-gradient(135deg, #ffffff 0%, #d1d5db 50%, #9ca3af 100%);
+            
+            --border-glass: rgba(255, 255, 255, 0.12);
+            --border-gold: rgba(212, 175, 55, 0.35);
+            --border-gold-bright: rgba(212, 175, 55, 0.8);
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-gold: #e2c068;
+            
+            --font-display: 'Cinzel Decorative', Georgia, serif;
+            --font-serif: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            
+            --shadow-glass: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+            --shadow-gold: 0 0 35px rgba(212, 175, 55, 0.25);
+            --ease-luxury: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            background-color: var(--bg-obsidian);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background: var(--gold-primary);
+            color: #000;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #05070a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #252e42;
+            border-radius: 4px;
+            border: 1px solid var(--border-gold);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold-primary);
+        }
+
+        /* ══════════════════════════════════════════════════════════ */
+        /* LIQUID GLASS & LIGHT SPOTLIGHT BACKGROUND                 */
+        /* ══════════════════════════════════════════════════════════ */
+        #ambient-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.65;
+        }
+
+        .cursor-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, rgba(79, 70, 229, 0.04) 40%, transparent 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            transition: transform 0.15s ease-out, opacity 0.3s ease;
+        }
+
+        .liquid-glass {
+            background: var(--bg-glass);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid var(--border-glass);
+            box-shadow: var(--shadow-glass);
+            border-radius: 28px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s var(--ease-luxury);
+        }
+
+        .liquid-glass::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), var(--gold-primary), rgba(255, 255, 255, 0.35), transparent);
+            opacity: 0.5;
+            transition: opacity 0.5s;
+        }
+
+        .liquid-glass:hover::before {
+            opacity: 1;
+        }
+
+        .gold-shimmer {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        .platinum-shimmer {
+            background: var(--platinum-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        /* ══════════════════════════════════════════════════════════ */
+        /* LUXURY BUTTONS & PILLS                                    */
+        /* ══════════════════════════════════════════════════════════ */
+        .btn-luxury-gold {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px 36px;
+            border-radius: 9999px;
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #05070a;
+            background: var(--gold-gradient);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.4s var(--ease-luxury);
+            overflow: hidden;
+        }
+
+        .btn-luxury-gold::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 40%;
+            height: 200%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            transform: rotate(30deg);
+            transition: all 0.7s;
+        }
+
+        .btn-luxury-gold:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 16px 45px rgba(212, 175, 55, 0.55), inset 0 1px 2px #fff;
+        }
+
+        .btn-luxury-gold:hover::after {
+            left: 140%;
+        }
+
+        .btn-luxury-glass {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px 36px;
+            border-radius: 9999px;
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.4s var(--ease-luxury);
+        }
+
+        .btn-luxury-glass:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--gold-primary);
+            color: var(--gold-light);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .luxury-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 18px;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: var(--gold-light);
+        }
+
+        /* ══════════════════════════════════════════════════════════ */
+        /* NAVIGATION BAR                                            */
+        /* ══════════════════════════════════════════════════════════ */
+        nav.luxury-nav {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(1280px, 92vw);
+            z-index: 100;
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(8, 12, 20, 0.65);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 9999px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .brand-logo-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--gold-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 900;
+            box-shadow: 0 0 20px var(--gold-glow);
+        }
+
+        .brand-logo-text {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            letter-spacing: 0.3em;
+            color: #fff;
+            font-weight: 900;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--gold-light);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            width: 0;
+            height: 1.5px;
+            background: var(--gold-primary);
+            transition: all 0.3s var(--ease-luxury);
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-icon-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-icon-btn:hover {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: var(--gold-primary);
+            color: var(--gold-light);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 18px;
+            height: 18px;
+            background: var(--gold-primary);
+            color: #000;
+            border-radius: 50%;
+            font-size: 0.65rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ══════════════════════════════════════════════════════════ */
+        /* HERO SECTION                                              */
+        /* ══════════════════════════════════════════════════════════ */
+        .hero-section {
+            min-height: 100vh;
+            padding: 160px 4vw 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-container {
+            max-width: 1320px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-content {
+            display: flex;
+            flex-col: column;
+            gap: 28px;
+        }
+
+        .hero-title {
+            font-family: var(--font-serif);
+            font-size: clamp(2.8rem, 5.5vw, 5rem);
+            font-weight: 400;
+            line-height: 1.08;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-title em {
+            font-family: var(--font-serif);
+            font-style: italic;
+            font-weight: 300;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text-muted);
+            font-weight: 300;
+            max-width: 540px;
+        }
+
+        .hero-stats {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .hero-stat-item h4 {
+            font-family: var(--font-serif);
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--gold-light);
+        }
+
+        .hero-stat-item p {
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* 3D Masterpiece Card in Hero */
+        .hero-card-wrapper {
+            perspective: 1200px;
+            position: relative;
+        }
+
+        .hero-masterpiece-card {
+            background: linear-gradient(145deg, rgba(25, 33, 52, 0.6) 0%, rgba(10, 14, 23, 0.8) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 36px;
+            padding: 40px;
+            position: relative;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 50px rgba(212, 175, 55, 0.12);
+            transition: transform 0.4s var(--ease-luxury);
+            transform-style: preserve-3d;
+        }
+
+        .hero-masterpiece-card:hover {
+            transform: rotateY(-6deg) rotateX(4deg) translateY(-8px);
+            border-color: rgba(212, 175, 55, 0.7);
+        }
+
+        .masterpiece-img-container {
+            width: 100%;
+            height: 380px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .masterpiece-radial-glow {
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.3) 0%, transparent 70%);
+            filter: blur(40px);
+            animation: pulseGlow 6s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(0.9); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 0.9; }
+        }
+
+        .watch-svg-graphic {
+            width: 290px;
+            height: 290px;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.8));
+            animation: floatSlow 6s ease-in-out infinite;
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(1deg); }
+        }
+
+        .card-details-bar {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-meta h3 {
+            font-family: var(--font-serif);
+            font-size: 1.3rem;
+            color: #fff;
+        }
+        .card-meta p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+        .card-price {
+            font-family: var(--font-serif);
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--gold-light);
+        }
+
+        /* ══════════════════════════════════════════════════════════ */
+        /* HIGH-END PRODUCT SHOWCASE SECTION                         */
+        /* ══════════════════════════════════════════════════════════ */
+        .section-padding {
+            padding: 120px 4vw;
+            max-width: 1320px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 680px;
+            margin: 0 auto 70px;
+        }
+
+        .section-title {
+            font-family: var(--font-serif);
+            font-size: clamp(2.2rem, 3.8vw, 3.4rem);
+            font-weight: 400;
+            margin: 16px 0;
+            line-height: 1.15;
+        }
+
+        .section-desc {
+            font-size: 0.95rem;
+            line-height: 1.75;
+            color: var(--text-muted);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 32px;
+        }
+
+        .product-card {
+            background: var(--bg-glass-card);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-glass);
+            border-radius: 32px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s var(--ease-luxury);
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            background: var(--bg-glass-hover);
+            border-color: var(--border-gold);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.7), 0 0 35px rgba(212, 175, 55, 0.18);
+        }
+
+        .product-badge-corner {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            color: var(--gold-light);
+        }
+
+        .product-visual-stage {
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .product-visual-stage svg {
+            width: 180px;
+            height: 180px;
+            filter: drop-shadow(0 15px 30px rgba(0,0,0,0.6));
+            transition: transform 0.6s var(--ease-luxury);
+        }
+
+        .product-card:hover .product-visual-stage svg {
+            transform: scale(1.12) rotate(3deg);
+        }
+
+        .product-info {
+            margin-top: 15px;
+        }
+
+        .product-category {
+            font-size: 0.7rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--gold-primary);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .product-name {
+            font-family: var(--font-serif);
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .product-specs {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .product-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .product-price-tag {
+            font-family: var(--font-serif);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--gold-light);
+        }
+
+        .btn-quick-inquire {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .product-card:hover .btn-quick-inquire {
+            background: var(--gold-primary);
+            border-color: var(--gold-primary);
+            color: #000;
+            transform: rotate(45deg);
+        }
+
+        /* ══════════════════════════════════════════════════════════ */
+        /* STORYTELLING / ATELIER HERITAGE SECTION                   */
+        /* ══════════════════════════════════════════════════════════ */
+        .story-section {
+            background: radial-gradient(circle at 50% 50%, rgba(20, 27, 44, 0.4) 0%, transparent 80%);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 130px 4vw;
+            position: relative;
+            z-index: 2;
+        }
+
+        .story-grid {
+            max-width: 1320px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 70px;
+            align-items: center;
+        }
+
+        .story-visual-frame {
+            position: relative;
+            padding: 20px;
+        }
+
+        .story-glass-card {
+            background: rgba(15, 21, 35, 0.7);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: 36px;
+            padding: 40px;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7);
+            position: relative;
+        }
+
+        .story-quote {
+            font-family: var(--font-serif);
+            font-style: italic;
+            font-size: 1.45rem;
+            line-height: 1.6;
+            color: #fff;
+            margin-bottom: 24px;
+        }
+
+        .story-author {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .story-author-img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--gold-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .story-author-text h5 {
+            font-size: 0.95rem;
+            color: #fff;
+            font-weight: 700;
+        }
+        .story-author-text p {
+            font-size: 0.75rem;
+            color: var(--gold-light);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        /* ══════════════════════════════════════════════════════════ */
+        /* PREMIUM BRAND VALUES                                      */
+        /* ══════════════════════════════════════════════════════════ */
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 28px;
+            margin-top: 50px;
+        }
+
+        .value-card {
+            background: var(--bg-glass-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 28px;
+            padding: 36px 28px;
+            transition: all 0.4s var(--ease-luxury);
+        }
+
+        .value-card:hover {
+            border-color: var(--gold-primary);
+            background: rgba(212, 175, 55, 0.05);
+            transform: translateY(-6px);
+        }
+
+        .value-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold-primary);
+            font-size: 1.3rem;
+            margin-bottom: 22px;
+            transition: all 0.3s;
+        }
+
+        .value-card:hover .value-icon {
+            background: var(--gold-gradient);
+            color: #000;
+            box-shadow: 0 0 25px var(--gold-glow);
+        }
+
+        .value-title {
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .value-desc {
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+        }
+
+        /* ══════════════════════════════════════════════════════════ */
+        /* EXCLUSIVE MEMBERSHIP / PRIVATE SALON CTA                  */
+        /* ══════════════════════════════════════════════════════════ */
+        .membership-banner {
+            background: linear-gradient(135deg, rgba(20, 27, 44, 0.8) 0%, rgba(8, 11, 18, 0.95) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 40px;
+            padding: 70px 60px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.8), 0 0 60px rgba(212, 175, 55, 0.15);
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .membership-banner::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .membership-vip-card {
+            background: linear-gradient(135deg, #1e2538 0%, #0c101a 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 36px 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            position: relative;
+            transform: rotate(-3deg);
+            transition: transform 0.5s var(--ease-luxury);
+        }
+
+        .membership-vip-card:hover {
+            transform: rotate(0deg) scale(1.04);
+            border-color: var(--gold-primary);
+        }
+
+        .vip-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+
+        .vip-card-chip {
+            width: 44px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #d4af37, #f6e6b4);
+            border: 1px solid #997819;
+        }
+
+        .vip-card-number {
+            font-family: monospace;
+            font-size: 1.1rem;
+            letter-spacing: 0.3em;
+            color: #e2e8f0;
+            margin-bottom: 25px;
+        }
+
+        .vip-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--gold-light);
+        }
+
+        /* ══════════════════════════════════════════════════════════ */
+        /* MODAL / CONCIERGE DRAWER                                  */
+        /* ══════════════════════════════════════════════════════════ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(16px);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            transition: opacity 0.4s var(--ease-luxury);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-box {
+            background: #0d121d;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 36px;
+            max-width: 580px;
+            width: 100%;
+            padding: 45px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 40px rgba(212, 175, 55, 0.2);
+            position: relative;
+            transform: scale(0.92);
+            transition: transform 0.4s var(--ease-luxury);
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-close-btn:hover {
+            background: var(--gold-primary);
+            color: #000;
+        }
+
+        .form-input-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--gold-light);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 14px 20px;
+            color: #fff;
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* ══════════════════════════════════════════════════════════ */
+        /* FOOTER                                                     */
+        /* ══════════════════════════════════════════════════════════ */
+        footer.luxury-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: #030508;
+            padding: 80px 4vw 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer-grid {
+            max-width: 1320px;
+            margin: 0 auto 60px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.5fr;
+            gap: 50px;
+        }
+
+        .footer-brand h3 {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            letter-spacing: 0.25em;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+
+        .footer-brand p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            max-width: 360px;
+        }
+
+        .footer-col h4 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold-light);
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #fff;
+        }
+
+        .footer-bottom {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        /* ══════════════════════════════════════════════════════════ */
+        /* RESPONSIVE MEDIA QUERIES                                  */
+        /* ══════════════════════════════════════════════════════════ */
+        @media (max-width: 1024px) {
+            .hero-container, .story-grid, .membership-banner {
+                grid-template-columns: 1fr;
+                gap: 50px;
+            }
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 40px;
+            }
+            .nav-links {
+                display: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+            .membership-banner {
+                padding: 40px 24px;
+            }
+            .modal-box {
+                padding: 30px 20px;
+            }
+            .hero-stats {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Liquid Canvas -->
+    <canvas id="ambient-canvas"></canvas>
+    <div class="cursor-glow" id="cursor-glow"></div>
+
+    <!-- Navigation -->
+    <nav class="luxury-nav">
+        <a href="#hero" class="brand-logo">
+            <div class="brand-logo-icon">A</div>
+            <span class="brand-logo-text">AURELIA</span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="#collection" class="nav-link active">High Horology</a></li>
+            <li><a href="#atelier" class="nav-link">The Atelier</a></li>
+            <li><a href="#values" class="nav-link">Pillars</a></li>
+            <li><a href="#membership" class="nav-link">Private Salon</a></li>
+        </ul>
+
+        <div class="nav-actions">
+            <button class="nav-icon-btn" onclick="toggleAudio()" id="audio-toggle-btn" title="Ambient Soundscape">
+                <i class="fas fa-volume-xmark" id="audio-icon"></i>
+            </button>
+            <button class="nav-icon-btn" onclick="openConcierge('General Inquiry')" title="Private Concierge">
+                <i class="fas fa-gem"></i>
+            </button>
+            <a href="#membership" class="btn-luxury-gold" style="padding: 10px 24px; font-size: 0.72rem;">
+                Private Access
+            </a>
+        </div>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- HERO SECTION                                            -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="hero-section" id="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="luxury-pill">
+                    <i class="fas fa-crown"></i> Exclusive Preview · Edition MXXVI
+                </div>
+                
+                <h1 class="hero-title">
+                    Transcending Time Through <em>Liquid Perfection</em>
+                </h1>
+                
+                <p class="hero-desc">
+                    Sculpted from celestial meteorite, hand-beveled crystalline sapphire, and bespoke horological complications. Made exclusively for the discerning few.
+                </p>
+
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px;">
+                    <a href="#collection" class="btn-luxury-gold">
+                        Explore Collection <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <button onclick="openConcierge('Private Viewing Request')" class="btn-luxury-glass">
+                        Request Private Salon
+                    </button>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="hero-stat-item">
+                        <h4>12 / Year</h4>
+                        <p>Commissioned Pieces</p>
+                    </div>
+                    <div class="hero-stat-item">
+                        <h4>450 Hrs</h4>
+                        <p>Artisanal Hand-Finishing</p>
+                    </div>
+                    <div class="hero-stat-item">
+                        <h4>99.98%</h4>
+                        <p>Certified Purity</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Masterpiece 3D Card -->
+            <div class="hero-card-wrapper">
+                <div class="hero-masterpiece-card">
+                    <div class="product-badge-corner">PIÈCE UNIQUE</div>
+                    
+                    <div class="masterpiece-img-container">
+                        <div class="masterpiece-radial-glow"></div>
+                        
+                        <!-- Interactive SVG Luxury Tourbillon -->
+                        <svg class="watch-svg-graphic" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Outer Diamond Bezel -->
+                            <circle cx="100" cy="100" r="88" stroke="url(#goldGradient)" stroke-width="4" stroke-dasharray="4 6"/>
+                            <circle cx="100" cy="100" r="82" fill="#0c111c" stroke="url(#goldGradient)" stroke-width="2"/>
+                            
+                            <!-- Dial Guilloche Pattern -->
+                            <circle cx="100" cy="100" r="72" stroke="rgba(212,175,55,0.2)" stroke-width="1"/>
+                            <circle cx="100" cy="100" r="56" stroke="rgba(212,175,55,0.3)" stroke-width="1"/>
+                            
+                            <!-- Roman Markers -->
+                            <line x1="100" y1="22" x2="100" y2="30" stroke="#f6e6b4" stroke-width="2.5"/>
+                            <line x1="100" y1="170" x2="100" y2="178" stroke="#f6e6b4" stroke-width="2.5"/>
+                            <line x1="22" y1="100" x2="30" y2="100" stroke="#f6e6b4" stroke-width="2.5"/>
+                            <line x1="170" y1="100" x2="178" y2="100" stroke="#f6e6b4" stroke-width="2.5"/>
+                            
+                            <!-- Flying Tourbillon Cage -->
+                            <g transform="translate(100, 135)">
+                                <circle cx="0" cy="0" r="22" fill="#141c2c" stroke="url(#goldGradient)" stroke-width="1.5"/>
+                                <circle cx="0" cy="0" r="8" fill="url(#rubyGradient)"/>
+                                <path d="M-12 0 L12 0 M0 -12 L0 12" stroke="#d4af37" stroke-width="1.5"/>
+                            </g>
+                            
+                            <!-- Moonphase Aperture -->
+                            <path d="M80 65 Q100 45 120 65 Q100 75 80 65 Z" fill="#080c14" stroke="url(#goldGradient)" stroke-width="1"/>
+                            <circle cx="100" cy="60" r="6" fill="#f6e6b4"/>
+
+                            <!-- Breguet Blue Steel Hands -->
+                            <line x1="100" y1="100" x2="100" y2="46" stroke="#4361ee" stroke-width="2.5" stroke-linecap="round"/>
+                            <line x1="100" y1="100" x2="140" y2="100" stroke="#4361ee" stroke-width="3" stroke-linecap="round"/>
+                            <circle cx="100" cy="100" r="5" fill="#f6e6b4" stroke="#000" stroke-width="1"/>
+
+                            <!-- Gradients -->
+                            <defs>
+                                <linearGradient id="goldGradient" x1="0" y1="0" x2="200" y2="200">
+                                    <stop offset="0%" stop-color="#f6e6b4"/>
+                                    <stop offset="50%" stop-color="#d4af37"/>
+                                    <stop offset="100%" stop-color="#997819"/>
+                                </linearGradient>
+                                <radialGradient id="rubyGradient" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#f43f5e"/>
+                                    <stop offset="100%" stop-color="#881337"/>
+                                </radialGradient>
+                            </defs>
+                        </svg>
+                    </div>
+
+                    <div class="card-details-bar">
+                        <div class="card-meta">
+                            <h3>Chronographe Céleste VIII</h3>
+                            <p>Hand-skeletonized Grand Complication</p>
+                        </div>
+                        <div class="card-price">$128,000</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- HIGH-END PRODUCT SHOWCASE                               -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="section-padding" id="collection">
+        <div class="section-header">
+            <div class="luxury-pill"><i class="fas fa-sparkles"></i> Curated Masterworks</div>
+            <h2 class="section-title">The Haute Joaillerie & Horology Suite</h2>
+            <p class="section-desc">Each artifact represents the zenith of human craftsmanship, requiring hundreds of meticulous hours in our private Geneva ateliers.</p>
+        </div>
+
+        <div class="products-grid">
+            <!-- Product 1 -->
+            <div class="product-card">
+                <div class="product-badge-corner">LIMITED 1/5</div>
+                <div class="product-visual-stage">
+                    <svg viewBox="0 0 160 160" fill="none">
+                        <circle cx="80" cy="80" r="60" stroke="url(#goldGradient)" stroke-width="3"/>
+                        <circle cx="80" cy="80" r="48" fill="#090d16" stroke="rgba(212,175,55,0.4)" stroke-width="1.5"/>
+                        <polygon points="80,35 115,100 45,100" stroke="#f6e6b4" stroke-width="1.5" fill="rgba(212,175,55,0.1)"/>
+                        <circle cx="80" cy="80" r="14" fill="#3b82f6" opacity="0.8"/>
+                    </svg>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">Haute Horlogerie</div>
+                    <h3 class="product-name">Céleste No. VIII Tourbillon</h3>
+                    <p class="product-specs">Grade 5 Titanium & 18K Honey Gold casing with flying tri-axial tourbillon cage.</p>
+                </div>
+                <div class="product-card-footer">
+                    <span class="product-price-tag">$128,000</span>
+                    <button class="btn-quick-inquire" onclick="openConcierge('Céleste No. VIII Tourbillon')" title="Inquire Piece">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product 2 -->
+            <div class="product-card">
+                <div class="product-badge-corner">BESPOKE</div>
+                <div class="product-visual-stage">
+                    <svg viewBox="0 0 160 160" fill="none">
+                        <!-- Signet Ring -->
+                        <ellipse cx="80" cy="65" rx="42" ry="24" stroke="url(#goldGradient)" stroke-width="5"/>
+                        <polygon points="60,50 100,50 90,80 70,80" fill="#111827" stroke="url(#goldGradient)" stroke-width="2"/>
+                        <circle cx="80" cy="65" r="8" fill="#d4af37"/>
+                        <path d="M50 78 C50 120, 110 120, 110 78" stroke="url(#goldGradient)" stroke-width="6" fill="none"/>
+                    </svg>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">High Jewellery</div>
+                    <h3 class="product-name">Sovereign Obsidian Signet</h3>
+                    <p class="product-specs">Gibeon Meteorite inset encased in 24K hand-hammered recycled yellow gold.</p>
+                </div>
+                <div class="product-card-footer">
+                    <span class="product-price-tag">$42,500</span>
+                    <button class="btn-quick-inquire" onclick="openConcierge('Sovereign Obsidian Signet')" title="Inquire Piece">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product 3 -->
+            <div class="product-card">
+                <div class="product-badge-corner">VINTAGE 2024</div>
+                <div class="product-visual-stage">
+                    <svg viewBox="0 0 160 160" fill="none">
+                        <!-- Luxury Perfume Flacon -->
+                        <rect x="52" y="60" width="56" height="75" rx="14" fill="rgba(212,175,55,0.15)" stroke="url(#goldGradient)" stroke-width="2"/>
+                        <rect x="68" y="38" width="24" height="22" rx="4" fill="#d4af37" stroke="#f6e6b4" stroke-width="1.5"/>
+                        <rect x="74" y="28" width="12" height="10" fill="#000"/>
+                        <circle cx="80" cy="98" r="16" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                    </svg>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">Haute Parfumerie</div>
+                    <h3 class="product-name">L'Élixir Sacré d'Orient</h3>
+                    <p class="product-specs">Rare 40-year aged Cambodian Agarwood blended with Florentine Orris Butter.</p>
+                </div>
+                <div class="product-card-footer">
+                    <span class="product-price-tag">$3,400</span>
+                    <button class="btn-quick-inquire" onclick="openConcierge('L\'Élixir Sacré d\'Orient')" title="Inquire Piece">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product 4 -->
+            <div class="product-card">
+                <div class="product-badge-corner">PIÈCE UNIQUE</div>
+                <div class="product-visual-stage">
+                    <svg viewBox="0 0 160 160" fill="none">
+                        <!-- Luxury Minaudière / Clutch -->
+                        <rect x="42" y="60" width="76" height="54" rx="16" fill="#0a0f1d" stroke="url(#goldGradient)" stroke-width="2.5"/>
+                        <circle cx="80" cy="55" r="10" stroke="#d4af37" stroke-width="2"/>
+                        <path d="M50 85 L110 85" stroke="rgba(212,175,55,0.5)" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">Bespoke Leather</div>
+                    <h3 class="product-name">Vespera Noir Minaudière</h3>
+                    <p class="product-specs">Matte Porosus Crocodile with custom hand-carved ruthenium lock mechanism.</p>
+                </div>
+                <div class="product-card-footer">
+                    <span class="product-price-tag">$68,000</span>
+                    <button class="btn-quick-inquire" onclick="openConcierge('Vespera Noir Minaudière')" title="Inquire Piece">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- STORYTELLING / ATELIER HERITAGE                         -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="story-section" id="atelier">
+        <div class="story-grid">
+            <div>
+                <div class="luxury-pill"><i class="fas fa-compass-drafting"></i> The Geneva Heritage</div>
+                <h2 class="section-title" style="text-align: left; margin-top: 15px;">
+                    Where Relentless Devotion Meets Pure Alchemy
+                </h2>
+                <p class="section-desc" style="text-align: left; margin-bottom: 24px;">
+                    Founded upon the sacred principle that true luxury must remain fundamentally rare, Aurelia & Co. operates away from mass production. We craft no more than eighty masterworks each calendar year.
+                </p>
+                <p class="section-desc" style="text-align: left;">
+                    Every jewel is cast, beveled, and polished by third-generation master artisans whose hands possess the irreplaceable intuition of time-honored heritage.
+                </p>
+
+                <div style="margin-top: 35px;">
+                    <a href="#membership" class="btn-luxury-gold">
+                        Discover Atelier Lore <i class="fas fa-book-open"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="story-visual-frame">
+                <div class="story-glass-card">
+                    <p class="story-quote">
+                        "We do not merely measure seconds; we capture the immortal cadence of human ambition in solid gold and sapphire crystal."
+                    </p>
+                    <div class="story-author">
+                        <div class="story-author-img">AZ</div>
+                        <div class="story-author-text">
+                            <h5>Antoine Z. de Valmont</h5>
+                            <p>Master Horologer & Creative Director</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- PREMIUM BRAND VALUES                                    -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="section-padding" id="values">
+        <div class="section-header">
+            <div class="luxury-pill"><i class="fas fa-shield-halved"></i> Uncompromising Standard</div>
+            <h2 class="section-title">The Four Pillars of Aurelia Exclusivity</h2>
+            <p class="section-desc">Our solemn commitment to the connoisseurs who trust us with their family heirlooms.</p>
+        </div>
+
+        <div class="values-grid">
+            <div class="value-card">
+                <div class="value-icon"><i class="fas fa-fingerprint"></i></div>
+                <h3 class="value-title">Bespoke Provenance</h3>
+                <p class="value-desc">Each piece is individually numbered and recorded in our private Geneva vault archive with cryptographic certificate of authenticity.</p>
+            </div>
+
+            <div class="value-card">
+                <div class="value-icon"><i class="fas fa-leaf"></i></div>
+                <h3 class="value-title">Ethical Noble Materials</h3>
+                <p class="value-desc">100% Fairmined gold and conflict-free gemstones sourced directly through single-origin artisanal mining cooperatives.</p>
+            </div>
+
+            <div class="value-card">
+                <div class="value-icon"><i class="fas fa-plane"></i></div>
+                <h3 class="value-title">White-Glove Courier</h3>
+                <p class="value-desc">Direct personal hand-delivery to your private residence, yacht, or luxury suite anywhere across the globe.</p>
+            </div>
+
+            <div class="value-card">
+                <div class="value-icon"><i class="fas fa-infinity"></i></div>
+                <h3 class="value-title">Perpetual Warranty</h3>
+                <p class="value-desc">A lifetime restoration guarantee that ensures your commissioned artifact will be maintained across multiple generations.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- EXCLUSIVE MEMBERSHIP / PRIVATE SALON CTA                -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="section-padding" id="membership">
+        <div class="membership-banner">
+            <div>
+                <div class="luxury-pill" style="border-color: rgba(255,255,255,0.4);"><i class="fas fa-key"></i> By Invitation Only</div>
+                <h2 class="section-title" style="text-align: left; margin: 15px 0 20px;">
+                    L'Académie des Connaisseurs
+                </h2>
+                <p class="section-desc" style="text-align: left; color: #cbd5e1; margin-bottom: 30px;">
+                    Gain unfettered access to confidential private salons in Paris, Tokyo, and New York. Secure first rights of refusal on one-off masterworks and private commissions.
+                </p>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <button onclick="openConcierge('Private Salon Membership Invitation')" class="btn-luxury-gold">
+                        Request Membership Invitation <i class="fas fa-envelope-open-text"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VIP Card Graphic -->
+            <div>
+                <div class="membership-vip-card">
+                    <div class="vip-card-header">
+                        <span style="font-family: var(--font-display); letter-spacing: 0.2em; font-size: 0.9rem; color: #fff;">AURELIA & CO.</span>
+                        <div class="vip-card-chip"></div>
+                    </div>
+                    <div class="vip-card-number">
+                        8892 •••• •••• 0026
+                    </div>
+                    <div class="vip-card-footer">
+                        <div>
+                            <p style="font-size: 0.65rem; color: #94a3b8;">Cardholder</p>
+                            <p style="font-weight: 700; color: #fff; margin-top: 2px;">PATRON PRIVILÉGIÉ</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.65rem; color: #94a3b8;">Tier</p>
+                            <p style="font-weight: 700; color: var(--gold-light); margin-top: 2px;">NOIR OBSIDIENNE</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- PRIVATE CONCIERGE MODAL                                 -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="concierge-modal">
+        <div class="modal-box">
+            <button class="modal-close-btn" onclick="closeConcierge()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="luxury-pill" style="margin-bottom: 12px;"><i class="fas fa-gem"></i> Private Salon Concierge</div>
+            <h3 style="font-family: var(--font-serif); font-size: 1.8rem; color: #fff; margin-bottom: 8px;">Private Appointment</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 25px;">A dedicated haute horology specialist will contact you confidentially within two hours.</p>
+
+            <form onsubmit="handleInquirySubmit(event)">
+                <div class="form-input-group">
+                    <label class="form-label">Subject / Requested Piece</label>
+                    <input type="text" class="form-input" id="inquiry-subject" value="General Inquiry" required>
+                </div>
+                <div class="form-input-group">
+                    <label class="form-label">Full Name & Honorific</label>
+                    <input type="text" class="form-input" placeholder="e.g. Lord Sterling Alexander" required>
+                </div>
+                <div class="form-input-group">
+                    <label class="form-label">Confidential Contact (Email or WhatsApp)</label>
+                    <input type="text" class="form-input" placeholder="patron@estate.com / +41 22..." required>
+                </div>
+                <div class="form-input-group">
+                    <label class="form-label">Preferred Viewing Location</label>
+                    <select class="form-input" style="background: #111726; cursor: pointer;">
+                        <option>Geneva Private Atelier</option>
+                        <option>Place Vendôme Salon, Paris</option>
+                        <option>Fifth Avenue Suite, New York</option>
+                        <option>Ginza Private Residence, Tokyo</option>
+                        <option>Personal White-Glove Hand Courier</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-luxury-gold" style="width: 100%; margin-top: 10px;">
+                    Transmit Confidential Request <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- FOOTER                                                  -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <footer class="luxury-footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>AURELIA & CO.</h3>
+                <p>Haute Horlogerie & Bespoke Artisanal Artifacts. Established in Geneva. Dedicated to the perpetual pursuit of horological transcendence.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Collections</h4>
+                <ul class="footer-links">
+                    <li><a href="#collection">Grand Complications</a></li>
+                    <li><a href="#collection">Haute Joaillerie</a></li>
+                    <li><a href="#collection">Haute Parfumerie</a></li>
+                    <li><a href="#collection">Bespoke Commissions</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Salons</h4>
+                <ul class="footer-links">
+                    <li><a href="#atelier">Geneva Atelier</a></li>
+                    <li><a href="#atelier">Paris Vendôme</a></li>
+                    <li><a href="#atelier">New York Fifth</a></li>
+                    <li><a href="#atelier">Tokyo Ginza</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Private Dispatch</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 15px;">Receive our confidential monograph published once per solstice.</p>
+                <div style="display: flex; gap: 8px;">
+                    <input type="email" placeholder="Enter private email..." class="form-input" style="padding: 10px 16px; font-size: 0.8rem;">
+                    <button class="btn-luxury-gold" style="padding: 10px 20px; font-size: 0.75rem;"><i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 AURELIA & CO. GENÈVE. ALL RIGHTS RESERVED.</p>
+            <p>CONFIDENTIAL LUXURY PROTOCOL · PERPETUAL PROVENANCE GUARANTEE</p>
+        </div>
+    </footer>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- JAVASCRIPT: LIQUID CANVAS, SPOTLIGHT & AUDIO ENGINE     -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <script>
+        // Cursor Spotlight Tracking
+        const cursorGlow = document.getElementById('cursor-glow');
+        window.addEventListener('mousemove', (e) => {
+            cursorGlow.style.left = e.clientX + 'px';
+            cursorGlow.style.top = e.clientY + 'px';
+        });
+
+        // Ambient Liquid Particle Canvas
+        const canvas = document.getElementById('ambient-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class GoldenStar {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.3;
+                this.speedY = -Math.random() * 0.4 - 0.1;
+                this.opacity = Math.random() * 0.7 + 0.2;
+                this.fadeSpeed = Math.random() * 0.008 + 0.002;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.opacity += this.fadeSpeed;
+                if (this.opacity > 0.9 || this.opacity < 0.1) {
+                    this.fadeSpeed = -this.fadeSpeed;
+                }
+                if (this.y < 0 || this.x < 0 || this.x > width) {
+                    this.reset();
+                    this.y = height;
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(246, 230, 180, ${this.opacity})`;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = "rgba(212, 175, 55, 0.8)";
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 45; i++) {
+            particles.push(new GoldenStar());
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+
+        // Concierge Modal Logic
+        function openConcierge(subject = 'General Inquiry') {
+            document.getElementById('inquiry-subject').value = subject;
+            document.getElementById('concierge-modal').classList.add('active');
+        }
+
+        function closeConcierge() {
+            document.getElementById('concierge-modal').classList.remove('active');
+        }
+
+        document.getElementById('concierge-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'concierge-modal') closeConcierge();
+        });
+
+        function handleInquirySubmit(e) {
+            e.preventDefault();
+            alert('Your confidential request has been encrypted and dispatched to the Private Concierge. A director will contact you shortly.');
+            closeConcierge();
+        }
+
+        // Ambient Crystal Audio Engine (Web Audio API Synthesizer)
+        let audioCtx = null;
+        let isAudioPlaying = false;
+        let osc1, osc2, gainNode;
+
+        function toggleAudio() {
+            const icon = document.getElementById('audio-icon');
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                gainNode = audioCtx.createGain();
+                gainNode.gain.value = 0.05;
+                gainNode.connect(audioCtx.destination);
+
+                osc1 = audioCtx.createOscillator();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(432, audioCtx.currentTime); // 432Hz Golden ratio tone
+
+                osc2 = audioCtx.createOscillator();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(528, audioCtx.currentTime); // 528Hz Solfeggio frequency
+
+                osc1.connect(gainNode);
+                osc2.connect(gainNode);
+
+                osc1.start();
+                osc2.start();
+                isAudioPlaying = true;
+                icon.className = 'fas fa-volume-high text-amber-400';
+            } else if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+                isAudioPlaying = true;
+                icon.className = 'fas fa-volume-high text-amber-400';
+            } else if (audioCtx.state === 'running') {
+                audioCtx.suspend();
+                isAudioPlaying = false;
+                icon.className = 'fas fa-volume-xmark';
+            }
+        }
+    </script>
+</body>
+</html>
