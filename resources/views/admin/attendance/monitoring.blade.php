@@ -4,26 +4,65 @@
 
 @push('styles')
 <style>
+    .edu-font {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
     .edu-card {
         background: #ffffff;
         border-radius: 20px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
         border: 1px solid #e2e8f0;
-        transition: all 0.2s ease-in-out;
     }
-    .edu-card:hover {
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    .edu-stat-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        padding: 18px 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .edu-stat-card:hover {
+        box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+    }
+    .edu-badge-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+    .edu-table-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: nowrap;
+        border: 1px solid transparent;
+        transition: all 0.15s ease;
     }
 </style>
 @endpush
 
 @section('content')
-<div class="space-y-6 font-sans">
+<div class="space-y-6 edu-font">
     {{-- Unified Header --}}
     @include('admin.attendance.header')
 
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- STATISTIC METRIC CARDS (CLEAN & SPACIOUS)       --}}
+    {{-- STATISTIC METRIC CARDS                          --}}
     {{-- ═══════════════════════════════════════════════ --}}
     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
         @php
@@ -44,11 +83,10 @@
             $isActive = ($statusFilter === $p['key']) || ($statusFilter === null && $p['key'] === null);
         @endphp
         <a href="{{ request()->fullUrlWithQuery(['status' => $p['key']]) }}" 
-           class="edu-card p-5 flex flex-col justify-between relative overflow-hidden group transition
-                  {{ $isActive ? $p['active_border'] . ' bg-slate-50/70' : 'bg-white' }}">
+           class="edu-stat-card {{ $isActive ? $p['active_border'] . ' bg-slate-50' : 'bg-white' }}">
             
             <div class="flex items-center justify-between mb-3">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold {{ $p['icon_bg'] }}">
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-lg font-bold {{ $p['icon_bg'] }}">
                     <i class="fas {{ $p['icon'] }}"></i>
                 </div>
                 <span class="text-2xl lg:text-3xl font-extrabold text-slate-800 leading-none font-mono">
@@ -111,7 +149,7 @@
 
         <div class="flex items-center gap-3 shrink-0">
             <a href="{{ route('admin.attendance.bulk', ['group' => $group, 'school_id' => $schoolId, 'date' => $date, 'classroom_id' => $classroomId]) }}" 
-               class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm">
+               class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-900 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm border border-amber-500">
                 <i class="fas fa-table-list text-sm"></i>
                 <span>Input Massal</span>
             </a>
@@ -123,7 +161,7 @@
     {{-- ═══════════════════════════════════════════════ --}}
     <div class="edu-card overflow-hidden bg-white">
         {{-- Card Header --}}
-        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4 bg-slate-50/50">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4 bg-slate-50/60">
             <div class="flex items-center gap-3.5">
                 <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg font-bold shadow-sm">
                     <i class="fas fa-users-viewfinder"></i>
@@ -153,8 +191,8 @@
         @else
         <div class="overflow-x-auto w-full">
             <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-900 text-white border-b border-slate-800">
-                    <tr class="whitespace-nowrap text-xs font-bold uppercase tracking-wider">
+                <thead class="bg-slate-900 text-white border-b border-slate-800 text-xs font-bold uppercase tracking-wider">
+                    <tr class="whitespace-nowrap">
                         <th class="py-3.5 px-4 text-center w-12 text-slate-400">No</th>
                         <th class="py-3.5 px-4 text-left">Nama & Identitas</th>
                         <th class="py-3.5 px-4 text-left">Unit / Rombel</th>
@@ -166,10 +204,10 @@
                         <th class="py-3.5 px-4 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tbody class="divide-y divide-slate-100 text-slate-700 text-xs">
                     @foreach($items as $idx => $it)
                     <tr class="hover:bg-slate-50/80 transition-colors {{ $it->status === 'belum' ? 'bg-slate-50/30' : '' }}" id="row-person-{{ $it->person_id }}">
-                        <td class="py-3.5 px-4 text-center text-xs text-slate-500 font-mono font-bold">{{ $idx + 1 }}</td>
+                        <td class="py-3.5 px-4 text-center font-mono font-bold text-slate-500">{{ $idx + 1 }}</td>
                         <td class="py-3.5 px-4">
                             <div class="flex items-center gap-3">
                                 {{-- Avatar Profile --}}
@@ -194,24 +232,24 @@
                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
                             @php
                                 $badgeStyle = match($it->status) {
-                                    'hadir'      => 'bg-emerald-100 text-emerald-800 border border-emerald-200',
-                                    'terlambat'  => 'bg-amber-100 text-amber-800 border border-amber-200',
-                                    'izin'       => 'bg-blue-100 text-blue-800 border border-blue-200',
-                                    'sakit'      => 'bg-yellow-100 text-yellow-800 border border-yellow-200',
-                                    'dinas_luar' => 'bg-purple-100 text-purple-800 border border-purple-200',
-                                    'cuti'       => 'bg-indigo-100 text-indigo-800 border border-indigo-200',
-                                    'alpha'      => 'bg-rose-100 text-rose-800 border border-rose-200',
-                                    default      => 'bg-slate-100 text-slate-600 border border-slate-200'
+                                    'hadir'      => 'bg-emerald-100 text-emerald-800 border border-emerald-300',
+                                    'terlambat'  => 'bg-amber-100 text-amber-800 border border-amber-300',
+                                    'izin'       => 'bg-blue-100 text-blue-800 border border-blue-300',
+                                    'sakit'      => 'bg-yellow-100 text-yellow-800 border border-yellow-300',
+                                    'dinas_luar' => 'bg-purple-100 text-purple-800 border border-purple-300',
+                                    'cuti'       => 'bg-indigo-100 text-indigo-800 border border-indigo-300',
+                                    'alpha'      => 'bg-rose-100 text-rose-800 border border-rose-300',
+                                    default      => 'bg-slate-100 text-slate-600 border border-slate-300'
                                 };
                             @endphp
-                            <span class="inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide leading-none {{ $badgeStyle }}">
+                            <span class="edu-badge-status {{ $badgeStyle }}">
                                 {{ $it->status === 'belum' ? 'Belum Absen' : ucfirst(str_replace('_', ' ', $it->status)) }}
                             </span>
                         </td>
-                        <td class="py-3.5 px-3 text-center text-xs font-mono font-bold text-slate-800 whitespace-nowrap">
+                        <td class="py-3.5 px-3 text-center font-mono font-bold text-slate-800 whitespace-nowrap">
                             {{ $it->time_in }}
                         </td>
-                        <td class="py-3.5 px-3 text-center text-xs font-mono font-bold text-slate-800 whitespace-nowrap">
+                        <td class="py-3.5 px-3 text-center font-mono font-bold text-slate-800 whitespace-nowrap">
                             {{ $it->time_out }}
                         </td>
                         <td class="py-3.5 px-3 text-center whitespace-nowrap">
@@ -228,10 +266,10 @@
                                     <i class="fas fa-pen mr-1"></i> MANUAL
                                 </span>
                             @else
-                                <span class="text-slate-400 font-bold text-xs">-</span>
+                                <span class="text-slate-400 font-bold">-</span>
                             @endif
                         </td>
-                        <td class="py-3.5 px-4 text-xs font-medium text-slate-600 max-w-[160px] truncate">
+                        <td class="py-3.5 px-4 text-slate-600 max-w-[160px] truncate">
                             {{ $it->notes ?? '-' }}
                         </td>
                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
@@ -251,7 +289,7 @@
                                             'time_out'     => $it->raw_time_out,
                                             'notes'        => $it->notes,
                                         ]) }})"
-                                        class="px-2.5 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-900 rounded-lg font-bold text-xs inline-flex items-center gap-1 transition shadow-2xs" 
+                                        class="edu-table-btn bg-amber-400 hover:bg-amber-500 text-slate-900 border-amber-500" 
                                         title="Edit Presensi">
                                     <i class="fas fa-edit text-[11px]"></i>
                                     <span>Edit</span>
@@ -262,7 +300,7 @@
                                 <form action="{{ route('admin.attendance.destroy', ['id' => $it->attendance_id, 'group' => $group]) }}" 
                                       method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus/mereset data presensi {{ $it->name }}?');" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg font-bold text-xs inline-flex items-center gap-1 transition" title="Hapus Presensi">
+                                    <button type="submit" class="edu-table-btn bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200" title="Hapus Presensi">
                                         <i class="fas fa-trash text-[11px]"></i>
                                         <span>Hapus</span>
                                     </button>
