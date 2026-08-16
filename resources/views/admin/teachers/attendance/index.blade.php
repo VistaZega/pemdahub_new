@@ -128,12 +128,29 @@
                         <td class="px-5 py-3.5 text-sm text-gray-400">{{ $index + 1 }}</td>
                         <td class="px-5 py-3.5">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center flex-shrink-0">
+                                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-xs">
                                     <span class="text-white text-xs font-bold">{{ strtoupper(substr($teacher->full_name, 0, 2)) }}</span>
                                 </div>
                                 <div>
-                                    <div class="font-semibold text-gray-900 text-sm">{{ $teacher->full_name }}</div>
-                                    <div class="text-xs text-gray-400">{{ $teacher->employee_code ?? '-' }} · {{ $teacher->teacher?->teacher_code ?? '-' }}</div>
+                                    <div class="font-semibold text-gray-900 text-sm flex items-center gap-1.5 flex-wrap">
+                                        <span>{{ $teacher->full_name }}</span>
+                                        @if($att)
+                                            @if($att->recorded_via === 'gps')
+                                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-100 text-blue-700 border border-blue-200">
+                                                    <i class="fas fa-location-dot"></i> GPS
+                                                </span>
+                                            @elseif($att->recorded_via === 'rfid')
+                                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-200">
+                                                    <i class="fas fa-id-card"></i> RFID
+                                                </span>
+                                            @else
+                                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-slate-100 text-slate-600 border border-slate-200">
+                                                    <i class="fas fa-pen"></i> Manual
+                                                </span>
+                                            @endif
+                                        @endif
+                                    </div>
+                                    <div class="text-xs text-gray-400">{{ $teacher->employee_code ?? '-' }} · {{ $teacher->teacher?->teacher_code ?? 'Guru' }}</div>
                                 </div>
                             </div>
                         </td>
@@ -141,23 +158,23 @@
                             @if($att)
                             @php
                                 $colorMap = [
-                                    'hadir'     => 'bg-green-100 text-green-700',
-                                    'sakit'     => 'bg-yellow-100 text-yellow-700',
-                                    'izin'      => 'bg-blue-100 text-blue-700',
-                                    'alpha'     => 'bg-red-100 text-red-700',
-                                    'dinas_luar'=> 'bg-purple-100 text-purple-700',
-                                    'cuti'      => 'bg-indigo-100 text-indigo-700',
+                                    'hadir'     => 'bg-green-100 text-green-700 border border-green-200',
+                                    'sakit'     => 'bg-yellow-100 text-yellow-700 border border-yellow-200',
+                                    'izin'      => 'bg-blue-100 text-blue-700 border border-blue-200',
+                                    'alpha'     => 'bg-red-100 text-red-700 border border-red-200',
+                                    'dinas_luar'=> 'bg-purple-100 text-purple-700 border border-purple-200',
+                                    'cuti'      => 'bg-indigo-100 text-indigo-700 border border-indigo-200',
                                 ];
                             @endphp
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $colorMap[$att->status] ?? 'bg-gray-100 text-gray-700' }}">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {{ $colorMap[$att->status] ?? 'bg-gray-100 text-gray-700' }}">
                                 {{ \App\Models\EmployeeAttendance::STATUSES[$att->status] ?? $att->status }}
                             </span>
                             @endif
                         </td>
-                        <td class="px-5 py-3.5 text-center text-sm text-gray-700 font-mono">
+                        <td class="px-5 py-3.5 text-center text-sm text-gray-700 font-mono font-medium">
                             {{ $att?->time_in ? substr($att->time_in, 0, 5) : '-' }}
                         </td>
-                        <td class="px-5 py-3.5 text-center text-sm text-gray-700 font-mono">
+                        <td class="px-5 py-3.5 text-center text-sm text-gray-700 font-mono font-medium">
                             {{ $att?->time_out ? substr($att->time_out, 0, 5) : '-' }}
                         </td>
                         <td class="px-5 py-3.5 text-sm text-gray-500 max-w-[160px] truncate">

@@ -54,20 +54,24 @@
         {{-- Quick Actions --}}
         <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-4 mb-4">
             <div class="flex flex-wrap items-center gap-2">
-                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Quick Set:</span>
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                    <i class="fas fa-magic text-emerald-500"></i> Quick Set:
+                </span>
                 <button type="button" onclick="setAllStatus('hadir')"
-                        class="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-semibold hover:bg-green-200 transition-all">
+                        class="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-semibold hover:bg-green-200 transition-all shadow-2xs">
                     <i class="fas fa-check-circle mr-1"></i> Semua Hadir
                 </button>
-                <button type="button" onclick="setAllTime()"
-                        class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-200 transition-all">
-                    <i class="fas fa-clock mr-1"></i> Jam Default (07:15 – 15:00)
+                <button type="button" onclick="setAllTimeEmptyOnly()"
+                        class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-200 transition-all shadow-2xs">
+                    <i class="fas fa-clock mr-1"></i> Jam Default Yang Kosong (07:15 – 15:00)
                 </button>
                 <button type="button" onclick="resetAll()"
                         class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold hover:bg-gray-200 transition-all">
-                    <i class="fas fa-undo mr-1"></i> Reset
+                    <i class="fas fa-undo mr-1"></i> Reset Yang Kosong
                 </button>
-                <span class="ml-auto text-xs text-gray-400">{{ $teachers->count() }} guru</span>
+                <span class="ml-auto text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                    {{ $teachers->count() }} Guru Terdaftar
+                </span>
             </div>
         </div>
 
@@ -78,7 +82,7 @@
                     <thead class="bg-gray-50 border-b border-gray-100">
                         <tr>
                             <th class="px-4 py-3.5 text-left text-xs font-bold text-gray-500 uppercase w-10">No</th>
-                            <th class="px-4 py-3.5 text-left text-xs font-bold text-gray-500 uppercase">Guru</th>
+                            <th class="px-4 py-3.5 text-left text-xs font-bold text-gray-500 uppercase">Guru & Sumber Presensi</th>
                             <th class="px-4 py-3.5 text-center text-xs font-bold text-gray-500 uppercase w-44">Status</th>
                             <th class="px-4 py-3.5 text-center text-xs font-bold text-gray-500 uppercase w-32">Jam Masuk</th>
                             <th class="px-4 py-3.5 text-center text-xs font-bold text-gray-500 uppercase w-32">Jam Keluar</th>
@@ -87,23 +91,46 @@
                     </thead>
                     <tbody class="divide-y divide-gray-50">
                         @foreach($teachers as $index => $teacher)
-                        @php $ex = $existing->get($teacher->id); @endphp
-                        <tr class="hover:bg-emerald-50/40 transition-colors">
+                        @php 
+                            $ex = $existing->get($teacher->id);
+                            $timeInVal = $ex?->time_in ? substr($ex->time_in, 0, 5) : '';
+                            $timeOutVal = $ex?->time_out ? substr($ex->time_out, 0, 5) : '';
+                        @endphp
+                        <tr class="hover:bg-emerald-50/40 transition-colors {{ $ex ? 'bg-emerald-50/20' : '' }}">
                             <td class="px-4 py-3 text-sm text-gray-400">{{ $index + 1 }}</td>
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center flex-shrink-0">
+                                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-xs">
                                         <span class="text-white text-xs font-bold">{{ strtoupper(substr($teacher->full_name, 0, 2)) }}</span>
                                     </div>
-                                    <div>
-                                        <div class="font-semibold text-gray-900 text-sm">{{ $teacher->full_name }}</div>
-                                        <div class="text-xs text-gray-400">{{ $teacher->employee_code ?? '-' }}</div>
+                                    <div class="min-w-0">
+                                        <div class="font-semibold text-gray-900 text-sm truncate flex items-center gap-1.5 flex-wrap">
+                                            <span>{{ $teacher->full_name }}</span>
+                                            @if($ex)
+                                                @if($ex->recorded_via === 'gps')
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-100 text-blue-700 border border-blue-200">
+                                                        <i class="fas fa-location-dot"></i> GPS
+                                                    </span>
+                                                @elseif($ex->recorded_via === 'rfid')
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-200">
+                                                        <i class="fas fa-id-card"></i> RFID
+                                                    </span>
+                                                @else
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-slate-100 text-slate-600 border border-slate-200">
+                                                        <i class="fas fa-pen"></i> Manual
+                                                    </span>
+                                                @endif
+                                            @endif
+                                        </div>
+                                        <div class="text-xs text-gray-400">
+                                            {{ $teacher->employee_code ?? '-' }} · {{ $teacher->teacher?->teacher_code ?? 'Guru' }}
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-4 py-3">
                                 <select name="attendance[{{ $teacher->id }}][status]"
-                                        class="att-status w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400">
+                                        class="att-status w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 font-medium">
                                     @foreach(\App\Models\EmployeeAttendance::STATUSES as $k => $v)
                                     <option value="{{ $k }}" {{ ($ex?->status ?? 'hadir') == $k ? 'selected' : '' }}>{{ $v }}</option>
                                     @endforeach
@@ -111,18 +138,20 @@
                             </td>
                             <td class="px-4 py-3">
                                 <input type="time" name="attendance[{{ $teacher->id }}][time_in]"
-                                       value="{{ $ex?->time_in }}"
-                                       class="att-time-in w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 text-center">
+                                       value="{{ $timeInVal }}"
+                                       data-is-existing="{{ $ex && $timeInVal ? 'true' : 'false' }}"
+                                       class="att-time-in w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 text-center font-mono font-medium">
                             </td>
                             <td class="px-4 py-3">
                                 <input type="time" name="attendance[{{ $teacher->id }}][time_out]"
-                                       value="{{ $ex?->time_out }}"
-                                       class="att-time-out w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 text-center">
+                                       value="{{ $timeOutVal }}"
+                                       data-is-existing="{{ $ex && $timeOutVal ? 'true' : 'false' }}"
+                                       class="att-time-out w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 text-center font-mono font-medium">
                             </td>
                             <td class="px-4 py-3">
                                 <input type="text" name="attendance[{{ $teacher->id }}][notes]"
-                                       value="{{ $ex?->notes }}" placeholder="Opsional"
-                                       class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400">
+                                       value="{{ $ex?->notes }}" placeholder="Keterangan opsional"
+                                       class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400">
                             </td>
                         </tr>
                         @endforeach
@@ -150,14 +179,21 @@
 function setAllStatus(status) {
     document.querySelectorAll('.att-status').forEach(s => s.value = status);
 }
-function setAllTime() {
-    document.querySelectorAll('.att-time-in').forEach(i => { if (!i.value) i.value = '07:15'; });
-    document.querySelectorAll('.att-time-out').forEach(o => { if (!o.value) o.value = '15:00'; });
+function setAllTimeEmptyOnly() {
+    document.querySelectorAll('.att-time-in').forEach(i => { 
+        if (!i.value) i.value = '07:15'; 
+    });
+    document.querySelectorAll('.att-time-out').forEach(o => { 
+        if (!o.value) o.value = '15:00'; 
+    });
 }
 function resetAll() {
-    document.querySelectorAll('.att-status').forEach(s => s.value = 'hadir');
-    document.querySelectorAll('.att-time-in').forEach(i => i.value = '');
-    document.querySelectorAll('.att-time-out').forEach(o => o.value = '');
+    document.querySelectorAll('.att-time-in').forEach(i => {
+        if (i.getAttribute('data-is-existing') !== 'true') i.value = '';
+    });
+    document.querySelectorAll('.att-time-out').forEach(o => {
+        if (o.getAttribute('data-is-existing') !== 'true') o.value = '';
+    });
 }
 
 document.getElementById('attendanceForm')?.addEventListener('submit', function () {

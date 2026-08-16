@@ -33,13 +33,16 @@ class TeacherAttendanceController extends Controller
             $teachers = Employee::with('school', 'teacher')
                 ->where('is_active', true)
                 ->where('school_id', $schoolId)
-                ->where('employee_type', 'guru') // Filter hanya guru
+                ->where(function($q) {
+                    $q->where('employee_type', 'guru')
+                      ->orWhereHas('teacher');
+                })
                 ->orderBy('full_name')
                 ->get();
 
             $attendances = EmployeeAttendance::where('date', $date)
                 ->where('school_id', $schoolId)
-                ->whereHas('employee', fn($q) => $q->where('employee_type', 'guru'))
+                ->whereHas('employee', fn($q) => $q->where('employee_type', 'guru')->orWhereHas('teacher'))
                 ->get()
                 ->keyBy('employee_id');
 
@@ -88,15 +91,19 @@ class TeacherAttendanceController extends Controller
         }
 
         $school = School::findOrFail($schoolId);
-        $teachers = Employee::where('is_active', true)
+        $teachers = Employee::with('teacher')
+            ->where('is_active', true)
             ->where('school_id', $schoolId)
-            ->where('employee_type', 'guru') // Filter hanya guru
+            ->where(function($q) {
+                $q->where('employee_type', 'guru')
+                  ->orWhereHas('teacher');
+            })
             ->orderBy('full_name')
             ->get();
 
         $existing = EmployeeAttendance::where('date', $date)
             ->where('school_id', $schoolId)
-            ->whereHas('employee', fn($q) => $q->where('employee_type', 'guru'))
+            ->whereHas('employee', fn($q) => $q->where('employee_type', 'guru')->orWhereHas('teacher'))
             ->get()
             ->keyBy('employee_id');
 
@@ -126,7 +133,10 @@ class TeacherAttendanceController extends Controller
             // Pastikan pegawai ini memang guru dan milik sekolah yang dimaksud
             $teacher = Employee::where('id', $employeeId)
                 ->where('school_id', $schoolId)
-                ->where('employee_type', 'guru')
+                ->where(function($q) {
+                    $q->where('employee_type', 'guru')
+                      ->orWhereHas('teacher');
+                })
                 ->first();
 
             if (!$teacher) {
@@ -174,7 +184,10 @@ class TeacherAttendanceController extends Controller
         if ($schoolId) {
             $teachers = Employee::where('is_active', true)
                 ->where('school_id', $schoolId)
-                ->where('employee_type', 'guru') // Filter hanya guru
+                ->where(function($q) {
+                    $q->where('employee_type', 'guru')
+                      ->orWhereHas('teacher');
+                })
                 ->with('teacher')
                 ->orderBy('full_name')
                 ->get();
@@ -182,7 +195,7 @@ class TeacherAttendanceController extends Controller
             $attendances = EmployeeAttendance::where('school_id', $schoolId)
                 ->whereYear('date', $year)
                 ->whereMonth('date', $month)
-                ->whereHas('employee', fn($q) => $q->where('employee_type', 'guru'))
+                ->whereHas('employee', fn($q) => $q->where('employee_type', 'guru')->orWhereHas('teacher'))
                 ->get();
 
             // Bangun matrix: employee_id => [day => EmployeeAttendance model]
