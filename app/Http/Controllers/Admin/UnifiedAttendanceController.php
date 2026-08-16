@@ -305,17 +305,22 @@ class UnifiedAttendanceController extends Controller
                     continue;
                 }
 
-                $cls = $st->studentClasses->firstWhere('status', 'aktif')?->classroom?->class_name ?? '-';
+                $clsObj = $st->studentClasses->firstWhere('status', 'aktif')?->classroom;
+                $cls = $clsObj?->class_name ?? '-';
 
                 $items->push((object)[
                     'id'           => $st->id,
                     'attendance_id'=> $att?->id,
+                    'person_id'    => $st->id,
                     'name'         => $st->full_name,
                     'code'         => $st->nisn ?: ($st->nis ?: '-'),
                     'info'         => 'Kelas ' . $cls,
+                    'classroom_id' => $clsObj?->id,
                     'status'       => $stStatus,
                     'time_in'      => $att?->time_in ? substr($att->time_in, 0, 5) : '-',
                     'time_out'     => $att?->time_out ? substr($att->time_out, 0, 5) : '-',
+                    'raw_time_in'  => $att?->time_in ? substr($att->time_in, 0, 5) : '',
+                    'raw_time_out' => $att?->time_out ? substr($att->time_out, 0, 5) : '',
                     'recorded_via' => $att?->recorded_via,
                     'notes'        => $att?->notes,
                     'raw_att'      => $att,
@@ -361,12 +366,16 @@ class UnifiedAttendanceController extends Controller
                 $items->push((object)[
                     'id'           => $tc->id,
                     'attendance_id'=> $att?->id,
+                    'person_id'    => $tc->id,
                     'name'         => $tc->full_name,
                     'code'         => $tc->employee_code ?: ($tc->nip ?: '-'),
                     'info'         => 'Guru Pengampu',
+                    'classroom_id' => null,
                     'status'       => $tcStatus,
                     'time_in'      => $att?->time_in ? substr($att->time_in, 0, 5) : '-',
                     'time_out'     => $att?->time_out ? substr($att->time_out, 0, 5) : '-',
+                    'raw_time_in'  => $att?->time_in ? substr($att->time_in, 0, 5) : '',
+                    'raw_time_out' => $att?->time_out ? substr($att->time_out, 0, 5) : '',
                     'recorded_via' => $att?->recorded_via,
                     'notes'        => $att?->notes,
                     'raw_att'      => $att,
@@ -412,12 +421,16 @@ class UnifiedAttendanceController extends Controller
                 $items->push((object)[
                     'id'           => $emp->id,
                     'attendance_id'=> $att?->id,
+                    'person_id'    => $emp->id,
                     'name'         => $emp->full_name,
                     'code'         => $emp->employee_code ?: '-',
                     'info'         => $emp->position ?: 'Staf / Pegawai',
+                    'classroom_id' => null,
                     'status'       => $empStatus,
                     'time_in'      => $att?->time_in ? substr($att->time_in, 0, 5) : '-',
                     'time_out'     => $att?->time_out ? substr($att->time_out, 0, 5) : '-',
+                    'raw_time_in'  => $att?->time_in ? substr($att->time_in, 0, 5) : '',
+                    'raw_time_out' => $att?->time_out ? substr($att->time_out, 0, 5) : '',
                     'recorded_via' => $att?->recorded_via,
                     'notes'        => $att?->notes,
                     'raw_att'      => $att,
@@ -699,6 +712,94 @@ class UnifiedAttendanceController extends Controller
     }
 
     /**
+     * Store or update single attendance record (from Edit Modal)
+     */
+    public function singleSave(Request $request)
+    {
+        $request->validate([
+            'group'     => 'required|in:siswa,guru,pegawai',
+            'person_id' => 'required|integer',
+            'school_id' => 'required|exists:schools,id',
+            'date'      => 'required|date',
+            'status'    => 'required|in:hadir,terlambat,izin,sakit,dinas_luar,cuti,alpha,belum',
+            'time_in'   => 'nullable|string',
+            'time_out'  => 'nullable|string',
+            'notes'     => 'nullable|string',
+        ]);
+
+        $group = $request->group;
+        $personId = (int) $request->person_id;
+        $schoolId = (int) $request->school_id;
+        $date = $request->date;
+        $status = $request->status;
+        $timeIn = $request->time_in ? substr($request->time_in, 0, 5) : null;
+        $timeOut = $request->time_out ? substr($request->time_out, 0, 5) : null;
+        $notes = $request->notes;
+        $userId = auth()->id();
+
+        if ($status === 'belum') {
+            // Delete attendance record if set back to 'belum'
+            if ($group === 'siswa') {
+                Attendance::where('student_id', $personId)->where('date', $date)->delete();
+            } else {
+                EmployeeAttendance::where('employee_id', $personId)->where('date', $date)->delete();
+            }
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Status presensi direset ke Belum Absen.']);
+            }
+            return back()->with('success', 'Status presensi direset ke Belum Absen.');
+        }
+
+        if ($group === 'siswa') {
+            $classroomId = $request->classroom_id;
+            if (!$classroomId) {
+                $student = Student::with('studentClasses')->find($personId);
+                $classroomId = $student?->studentClasses?->firstWhere('status', 'aktif')?->classroom_id;
+            }
+
+            Attendance::updateOrCreate(
+                [
+                    'student_id' => $personId,
+                    'date'       => $date,
+                ],
+                [
+                    'classroom_id' => $classroomId,
+                    'status'       => $status,
+                    'time_in'      => in_array($status, ['hadir', 'terlambat']) ? ($timeIn ?: '07:15') : null,
+                    'time_out'     => in_array($status, ['hadir', 'terlambat']) ? $timeOut : null,
+                    'notes'        => $notes,
+                    'recorded_via' => 'manual',
+                    'created_by'   => $userId,
+                ]
+            );
+        } else {
+            // Guru & Pegawai
+            EmployeeAttendance::updateOrCreate(
+                [
+                    'employee_id' => $personId,
+                    'date'        => $date,
+                ],
+                [
+                    'school_id'    => $schoolId,
+                    'status'       => $status,
+                    'time_in'      => in_array($status, ['hadir', 'terlambat', 'dinas_luar']) ? ($timeIn ?: '07:15') : null,
+                    'time_out'     => in_array($status, ['hadir', 'terlambat', 'dinas_luar']) ? $timeOut : null,
+                    'notes'        => $notes,
+                    'recorded_via' => 'manual',
+                    'recorded_by'  => $userId,
+                ]
+            );
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Data presensi berhasil disimpan / diperbarui.']);
+        }
+
+        return back()->with('success', 'Data presensi berhasil disimpan / diperbarui.');
+    }
+
+    /**
      * Delete single attendance
      */
     public function destroy(Request $request, $id)
@@ -706,13 +807,17 @@ class UnifiedAttendanceController extends Controller
         $group = $request->get('group', 'siswa');
 
         if ($group === 'siswa') {
-            $att = Attendance::findOrFail($id);
-            $att->delete();
+            $att = Attendance::find($id);
+            if ($att) $att->delete();
         } else {
-            $att = EmployeeAttendance::findOrFail($id);
-            $att->delete();
+            $att = EmployeeAttendance::find($id);
+            if ($att) $att->delete();
         }
 
-        return back()->with('success', 'Data absensi berhasil dihapus.');
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Data presensi berhasil dihapus.']);
+        }
+
+        return back()->with('success', 'Data presensi berhasil dihapus.');
     }
 }

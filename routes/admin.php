@@ -64,6 +64,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::get('monitoring', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'monitoring'])->name('monitoring');
         Route::get('bulk', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'bulkInput'])->name('bulk');
         Route::post('bulk', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'bulkStore'])->name('bulk.store');
+        Route::post('single-save', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'singleSave'])->name('single.save');
         Route::get('rekap', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'rekap'])->name('rekap');
         Route::delete('{id}', [App\Http\Controllers\Admin\UnifiedAttendanceController::class, 'destroy'])->name('destroy');
     });
