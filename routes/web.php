@@ -1515,6 +1515,58 @@ Route::get('/fix-attendance', function () {
     echo "</pre>";
 });
 
+Route::get('/cek-absen-zega', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Akses Ditolak.');
+    }
+
+    echo "<pre style='background:#0f172a; color:#38bdf8; padding:24px; border-radius:16px; font-size:13px; font-family:monospace; line-height:1.6;'>";
+    echo "<h2 style='color:#4ade80;'>=== PENELUSURAN PRESENSI YULIANUS ZEGA, S.Kom, M.Pd.T ===</h2>\n";
+
+    $users = \App\Models\User::where('name', 'LIKE', '%Yulianus%')->orWhere('username', 'LIKE', '%zega%')->get();
+    echo "<b>1. DATA PENGGUNA (USER):</b>\n";
+    foreach ($users as $u) {
+        echo "- User ID: #{$u->id} | Name: {$u->name} | Username: {$u->username} | Role: {$u->role} | School ID: {$u->school_id}\n";
+    }
+
+    $employees = \App\Models\Employee::where('full_name', 'LIKE', '%Yulianus%')->get();
+    echo "\n<b>2. DATA PEGAWAI (EMPLOYEE):</b>\n";
+    foreach ($employees as $e) {
+        $pos = $e->getPrimaryPosition()?->position_name ?? 'Tidak Ada Posisi';
+        echo "- Employee ID: #{$e->id} | User ID: {$e->user_id} | Name: {$e->full_name} | Code: {$e->employee_code} | School ID: {$e->school_id} | Type: {$e->employee_type} | Posisi: {$pos}\n";
+    }
+
+    $teachers = \App\Models\Teacher::where('full_name', 'LIKE', '%Yulianus%')->get();
+    echo "\n<b>3. DATA GURU (TEACHER):</b>\n";
+    foreach ($teachers as $t) {
+        echo "- Teacher ID: #{$t->id} | User ID: {$t->user_id} | Employee ID: {$t->employee_id} | Name: {$t->full_name} | Code: {$t->teacher_code} | School ID: {$t->school_id}\n";
+    }
+
+    $today = date('Y-m-d');
+    $attendances = \App\Models\EmployeeAttendance::where('date', $today)->get();
+    echo "\n<b>4. SELURUH EMPLOYEE ATTENDANCE HARI INI ({$today}):</b>\n";
+    foreach ($attendances as $att) {
+        $empName = $att->employee?->full_name ?? 'Employee #' . $att->employee_id;
+        echo "- Attendance ID: #{$att->id} | Emp ID: #{$att->employee_id} ({$empName}) | School ID: {$att->school_id} | In: {$att->time_in} | Out: {$att->time_out} | Status: {$att->status} | Via: {$att->recorded_via} | Notes: {$att->notes}\n";
+    }
+
+    echo "\n<b>5. SIMULASI QUERY PUSAT ABSENSI (UNIFIED ATTENDANCE):</b>\n";
+    $schools = \App\Models\School::all();
+    foreach ($schools as $sc) {
+        $guruAtt = \App\Models\EmployeeAttendance::where('date', $today)
+            ->where('school_id', $sc->id)
+            ->whereHas('employee', fn($q) => $q->where('employee_type', 'guru')->orWhereHas('teacher'))
+            ->count();
+        $pegawaiAtt = \App\Models\EmployeeAttendance::where('date', $today)
+            ->where('school_id', $sc->id)
+            ->whereHas('employee', fn($q) => $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher'))
+            ->count();
+        echo "- Sekolah: [ID {$sc->id}] {$sc->name} -> Tab Guru: {$guruAtt} data | Tab Pegawai: {$pegawaiAtt} data\n";
+    }
+
+    echo "</pre>";
+});
+
 Route::get('/migrate-quiz-questions', function () {
     if (request('secret') !== 'pembda99') {
         abort(403, 'Unauthorized.');
