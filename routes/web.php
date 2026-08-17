@@ -1520,29 +1520,17 @@ Route::get('/cek-yarisman', function () {
         abort(403, 'Akses Ditolak.');
     }
 
-    echo "<pre style='background:#0f172a; color:#38bdf8; padding:24px; border-radius:16px; font-size:13px; font-family:monospace; line-height:1.6;'>";
-    echo "<h2 style='color:#4ade80;'>=== DATA YARISMAN WARUWU (ADMIN SMPS PEMBDA 2) ===</h2>\n";
-
     $users = \App\Models\User::where('name', 'LIKE', '%Yarisman%')->orWhere('username', 'LIKE', '%yarisman%')->get();
-    echo "<b>1. USERS:</b>\n";
-    foreach ($users as $u) {
-        echo "- User ID #{$u->id} | Name: {$u->name} | Username: {$u->username} | Role: {$u->role} | School: #{$u->school_id}\n";
-    }
-
     $employees = \App\Models\Employee::where('full_name', 'LIKE', '%Yarisman%')->orWhere('id', 231)->get();
-    echo "\n<b>2. EMPLOYEES:</b>\n";
-    foreach ($employees as $e) {
-        $pos = $e->getPrimaryPosition()?->position_name ?? 'Tidak Ada Posisi';
-        echo "- Employee ID #{$e->id} | User ID: {$e->user_id} | Name: {$e->full_name} | Type: '{$e->employee_type}' | School: #{$e->school_id} | Code: {$e->employee_code} | RFID: " . ($e->rfid_uid ?? '-') . " | Posisi: {$pos}\n";
-    }
+    $teachers = \App\Models\Teacher::where('full_name', 'LIKE', '%Yarisman%')->orWhere('employee_id', 231)->orWhere('user_id', 2153)->get();
+    $attendances = \App\Models\EmployeeAttendance::where('employee_id', 231)->latest('date')->take(5)->get();
 
-    $teachers = \App\Models\Teacher::where('full_name', 'LIKE', '%Yarisman%')->orWhere('employee_id', 231)->get();
-    echo "\n<b>3. TEACHERS:</b>\n";
-    foreach ($teachers as $t) {
-        echo "- Teacher ID #{$t->id} | User ID: {$t->user_id} | Employee ID: {$t->employee_id} | Name: {$t->full_name} | Code: {$t->teacher_code} | School: #{$t->school_id}\n";
-    }
-
-    echo "</pre>";
+    return response()->json([
+        'users' => $users,
+        'employees' => $employees,
+        'teachers' => $teachers,
+        'attendances' => $attendances,
+    ]);
 });
 
 Route::get('/migrate-quiz-questions', function () {
