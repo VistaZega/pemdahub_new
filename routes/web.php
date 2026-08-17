@@ -1520,17 +1520,77 @@ Route::get('/cek-yarisman', function () {
         abort(403, 'Akses Ditolak.');
     }
 
-    $users = \App\Models\User::where('name', 'LIKE', '%Yarisman%')->orWhere('username', 'LIKE', '%yarisman%')->get();
-    $employees = \App\Models\Employee::where('full_name', 'LIKE', '%Yarisman%')->orWhere('id', 231)->get();
-    $teachers = \App\Models\Teacher::where('full_name', 'LIKE', '%Yarisman%')->orWhere('employee_id', 231)->orWhere('user_id', 2153)->get();
-    $attendances = \App\Models\EmployeeAttendance::where('employee_id', 231)->latest('date')->take(5)->get();
+    echo "<pre style='background:#0f172a; color:#38bdf8; padding:24px; border-radius:16px; font-size:13px; font-family:monospace; line-height:1.6;'>";
+    echo "=== DIAGNOSTIK KELOMPOK ABSENSI YARISMAN WARUWU (SMPS PEMBDA 2 - SCHOOL #9) ===\n\n";
 
-    return response()->json([
-        'users' => $users,
-        'employees' => $employees,
-        'teachers' => $teachers,
-        'attendances' => $attendances,
-    ]);
+    $emp = \App\Models\Employee::find(231);
+    echo "1. EMPLOYEE DATA:\n";
+    echo "- ID: {$emp->id}\n";
+    echo "- Full Name: {$emp->full_name}\n";
+    echo "- Employee Type: '{$emp->employee_type}'\n";
+    echo "- Position: " . ($emp->getPrimaryPosition()?->position_name ?? 'Tidak Ada Posisi') . "\n";
+    echo "- School ID: {$emp->school_id}\n";
+    echo "- has('teacher'): " . ($emp->teacher ? 'YA (Teacher ID #' . $emp->teacher->id . ')' : 'TIDAK') . "\n";
+
+    $teachersMatch = \App\Models\Teacher::where('employee_id', 231)->orWhere('user_id', 2153)->orWhere('full_name', 'LIKE', '%Yarisman%')->get();
+    echo "\n2. MATCH DI TABEL TEACHERS:\n";
+    foreach ($teachersMatch as $tm) {
+        echo "- Teacher ID #{$tm->id} | User ID: {$tm->user_id} | Employee ID: {$tm->employee_id} | Name: {$tm->full_name}\n";
+    }
+    if ($teachersMatch->isEmpty()) {
+        echo "- TIDAK ADA di tabel teachers.\n";
+    }
+
+    $date = date('Y-m-d');
+    echo "\n3. CEK FILTER DI UNIFIED ATTENDANCE (SMPS PEMBDA 2 - SCHOOL #9):\n";
+    // Cek Guru query
+    $inGuru = \App\Models\Employee::where('is_active', true)
+        ->where('school_id', 9)
+        ->where(function ($q) {
+            $q->where('employee_type', 'guru')->orWhereHas('teacher');
+        })
+        ->where('id', 231)
+        ->exists();
+    echo "- Apakah masuk ke Tab GURU di Pusat Absensi? " . ($inGuru ? '🔴 YA (MASUK KE GURU)' : '🟢 TIDAK') . "\n";
+
+    // Cek Pegawai query
+    $inPegawai = \App\Models\Employee::where('is_active', true)
+        ->where('school_id', 9)
+        ->where(function ($q) {
+            $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+        })
+        ->where('id', 231)
+        ->exists();
+    echo "- Apakah masuk ke Tab PEGAWAI di Pusat Absensi? " . ($inPegawai ? '🟢 YA (MASUK KE PEGAWAI)' : '🔴 TIDAK') . "\n";
+
+    // Cek di Menu Admin Pegawai vs Admin Guru
+    $inTeacherMenu = \App\Models\Employee::where('is_active', true)
+        ->where('school_id', 9)
+        ->where(function($q) {
+            $q->where('employee_type', 'guru')->orWhereHas('teacher');
+        })
+        ->where('id', 231)
+        ->exists();
+    echo "- Apakah masuk ke Menu Presensi Guru (/admin/teachers/attendance)? " . ($inTeacherMenu ? '🔴 YA' : '🟢 TIDAK') . "\n";
+
+    $inEmpMenu = \App\Models\Employee::where('is_active', true)
+        ->where('school_id', 9)
+        ->where(function($q) {
+            $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+        })
+        ->where('id', 231)
+        ->exists();
+    echo "- Apakah masuk ke Menu Presensi Pegawai (/admin/employees/attendance)? " . ($inEmpMenu ? '🟢 YA' : '🔴 TIDAK') . "\n";
+
+    echo "\n4. REKAP ABSENSI HARI INI ({$date}):\n";
+    $att = \App\Models\EmployeeAttendance::where('employee_id', 231)->where('date', $date)->first();
+    if ($att) {
+        echo "- ID #{$att->id} | School: #{$att->school_id} | In: {$att->time_in} | Out: {$att->time_out} | Status: {$att->status} | Via: {$att->recorded_via}\n";
+    } else {
+        echo "- Belum ada absensi hari ini.\n";
+    }
+
+    echo "</pre>";
 });
 
 Route::get('/migrate-quiz-questions', function () {
