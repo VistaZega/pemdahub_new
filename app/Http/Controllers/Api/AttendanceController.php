@@ -56,13 +56,9 @@ class AttendanceController extends Controller
             // TAHAP A: EXACT MATCH LOOKUP (Prioritas Tertinggi untuk QR Code & RFID Langsung)
             // -------------------------------------------------------------------------
             
-            // 1. Cari di Teacher (Guru / Kepala Sekolah) berdasarkan teacher_code, rfid_uid, atau nip
+            // 1. Cari di Teacher (Guru / Kepala Sekolah) berdasarkan teacher_code
             $teacher = \App\Models\Teacher::where('is_active', true)
-                ->where(function($q) use ($rawUid) {
-                    $q->where('teacher_code', $rawUid)
-                      ->orWhere('rfid_uid', $rawUid)
-                      ->orWhere('nip', $rawUid);
-                })
+                ->where('teacher_code', $rawUid)
                 ->first();
 
             // 2. Cari di Employee (Pegawai / Staf / Guru) jika belum ketemu
@@ -121,15 +117,8 @@ class AttendanceController extends Controller
                     ->whereIn('status', \App\Models\StudentStatusHistory::ACTIVE_STATUSES)
                     ->first();
 
-                // Cari di Guru via RFID candidates
+                // Cari di Pegawai/Guru via RFID candidates
                 if (!$student) {
-                    $teacher = \App\Models\Teacher::whereIn('rfid_uid', $candidates)
-                        ->where('is_active', true)
-                        ->first();
-                }
-
-                // Cari di Pegawai via RFID candidates
-                if (!$student && !$teacher) {
                     $employee = \App\Models\Employee::whereIn('rfid_uid', $candidates)
                         ->where('is_active', true)
                         ->first();

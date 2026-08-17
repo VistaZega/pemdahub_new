@@ -1467,23 +1467,22 @@ Route::get('/fix-attendance', function () {
 
         // 5. Verifikasi Data Siswa Anggun Trienji Z
         $anggun = \App\Models\Student::where('full_name', 'LIKE', '%Anggun%')->orWhere('full_name', 'LIKE', '%Trienji%')->first();
-        echo "\n👩‍🎓 STATUS DATA SISWA ANGGUN TRIENJI Z DI DATABASE:\n";
-        if ($anggun) {
-            $c = $anggun->studentClasses()->where('status', 'aktif')->latest('id')->first();
+        // 5. Verifikasi Data Siswa Anggun Trienji Z
+        $anggun = \App\Models\Student::where('full_name', 'LIKE', '%Trienji%')
+            ->orWhere('full_name', 'LIKE', '%Anggun%')
+            ->get();
+        echo "\n👩‍🎓 STATUS DATA SISWA ANGGUN / TRIENJI DI DATABASE:\n";
+        foreach ($anggun as $s) {
+            $c = $s->studentClasses()->where('status', 'aktif')->latest('id')->first();
             $cName = $c && $c->classroom ? $c->classroom->class_name : 'Tanpa Kelas';
-            echo "- Student ID: #{$anggun->id} | Name: {$anggun->full_name} | NIS: {$anggun->nis} | NISN: {$anggun->nisn} | RFID: " . ($anggun->rfid_uid ?? '-') . " | Kelas: {$cName} | School: #{$anggun->school_id}\n";
-        } else {
-            echo "- Data siswa Anggun tidak ditemukan.\n";
+            echo "- Student ID: #{$s->id} | Name: {$s->full_name} | NIS: {$s->nis} | NISN: {$s->nisn} | RFID: " . ($s->rfid_uid ?? '-') . " | Kelas: {$cName} | School: #{$s->school_id}\n";
         }
 
-        // 6. Uji Simulasi Scan QR Code Ibu Herni Yanti
+        // 6. Uji Simulasi Scan Kiosk dengan Endpoint API Asli (Mock Request)
         $testCode = $herniTeacher?->teacher_code ?? $herniEmployee?->employee_code ?? 'GR001';
         echo "\n🧪 SIMULASI SCAN KIOSK DENGAN KODE QR ('{$testCode}'):\n";
         
-        $matchedTeacher = \App\Models\Teacher::where('is_active', true)
-            ->where(function($q) use ($testCode) {
-                $q->where('teacher_code', $testCode)->orWhere('rfid_uid', $testCode)->orWhere('nip', $testCode);
-            })->first();
+        $matchedTeacher = \App\Models\Teacher::where('is_active', true)->where('teacher_code', $testCode)->first();
         $matchedEmployee = \App\Models\Employee::where('is_active', true)
             ->where(function($q) use ($testCode) {
                 $q->where('employee_code', $testCode)->orWhere('rfid_uid', $testCode)->orWhere('nip', $testCode);
@@ -1494,7 +1493,7 @@ Route::get('/fix-attendance', function () {
             })->first();
 
         if ($matchedTeacher) {
-            echo "✅ HASIL IDENTIFIKASI: GURU/KEPALA SEKOLAH -> {$matchedTeacher->full_name} (Teacher ID #{$matchedTeacher->id})\n";
+            echo "✅ HASIL IDENTIFIKASI: GURU/KEPALA SEKOLAH -> {$matchedTeacher->full_name} (Teacher ID #{$matchedTeacher->id} | Code: {$matchedTeacher->teacher_code})\n";
         } elseif ($matchedEmployee) {
             echo "✅ HASIL IDENTIFIKASI: PEGAWAI/STAF -> {$matchedEmployee->full_name} (Employee ID #{$matchedEmployee->id})\n";
         } elseif ($matchedStudent) {
