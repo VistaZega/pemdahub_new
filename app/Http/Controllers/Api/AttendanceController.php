@@ -162,6 +162,7 @@ class AttendanceController extends Controller
                             'gender' => $teacher->gender ?? 'L',
                             'employee_type' => 'guru',
                             'employment_status' => 'yayasan',
+                            'tmt_date' => now()->format('Y-m-d'),
                             'is_active' => true,
                         ]
                     );

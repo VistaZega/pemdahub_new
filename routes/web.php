@@ -1426,6 +1426,7 @@ Route::get('/fix-attendance', function () {
                     'birth_place' => $teacher?->birth_place ?? '-',
                     'employee_type' => $user->role === 'guru' ? 'teacher' : 'staff',
                     'employment_status' => 'yayasan',
+                    'tmt_date' => now()->format('Y-m-d'),
                     'is_active' => true,
                 ]);
                 $createdEmpCount++;
@@ -1449,17 +1450,60 @@ Route::get('/fix-attendance', function () {
             }
         }
 
+        echo "\n📊 HASIL SINKRONISASI:\n";
+        echo "- Total Pengguna Guru/Pegawai Diperiksa: " . $guruUsers->count() . "\n";
+        echo "- Relasi Ditautkan: {$linkedCount}\n";
+        echo "- Pegawai Baru Dibuat: {$createdEmpCount}\n";
+
         // 4. Verifikasi Akun Kepala Sekolah SMPS Pembda 2 (Ibu Herni Yanti Telaumbanua)
         $herniUser = \App\Models\User::where('name', 'LIKE', '%Herni%')->first();
         $herniTeacher = \App\Models\Teacher::where('full_name', 'LIKE', '%Herni%')->orWhere('teacher_code', 'GR001')->first();
         $herniEmployee = \App\Models\Employee::where('full_name', 'LIKE', '%Herni%')->orWhere('id', 25)->first();
 
-        echo "\n👩‍🏫 STATUS AKUN IBU HERNI YANTI TELAUMBANUA:\n";
-        echo "- User: " . ($herniUser ? "ID #{$herniUser->id} | Role: {$herniUser->role} | Username: {$herniUser->username}" : "Belum Ada") . "\n";
-        echo "- Teacher: " . ($herniTeacher ? "ID #{$herniTeacher->id} | Code: {$herniTeacher->teacher_code} | School: #{$herniTeacher->school_id}" : "Belum Ada") . "\n";
-        echo "- Employee: " . ($herniEmployee ? "ID #{$herniEmployee->id} | Code: {$herniEmployee->employee_code} | Posisi: " . ($herniEmployee->getPrimaryPosition()?->position_name ?? 'Kepala Sekolah') : "Belum Ada") . "\n";
+        echo "\n👩‍🏫 STATUS DATA IBU HERNI YANTI TELAUMBANUA DI DATABASE:\n";
+        echo "- User     : " . ($herniUser ? "ID #{$herniUser->id} | Name: {$herniUser->name} | Role: {$herniUser->role} | Username: {$herniUser->username}" : "Belum Ada") . "\n";
+        echo "- Teacher  : " . ($herniTeacher ? "ID #{$herniTeacher->id} | Name: {$herniTeacher->full_name} | Code: {$herniTeacher->teacher_code} | RFID: " . ($herniTeacher->rfid_uid ?? '-') . " | School: #{$herniTeacher->school_id}" : "Belum Ada") . "\n";
+        echo "- Employee : " . ($herniEmployee ? "ID #{$herniEmployee->id} | Name: {$herniEmployee->full_name} | Code: {$herniEmployee->employee_code} | RFID: " . ($herniEmployee->rfid_uid ?? '-') . " | Posisi: " . ($herniEmployee->getPrimaryPosition()?->position_name ?? 'Kepala Sekolah') : "Belum Ada") . "\n";
 
-        // 5. Bersihkan Cache Laravel
+        // 5. Verifikasi Data Siswa Anggun Trienji Z
+        $anggun = \App\Models\Student::where('full_name', 'LIKE', '%Anggun%')->orWhere('full_name', 'LIKE', '%Trienji%')->first();
+        echo "\n👩‍🎓 STATUS DATA SISWA ANGGUN TRIENJI Z DI DATABASE:\n";
+        if ($anggun) {
+            $c = $anggun->studentClasses()->where('status', 'aktif')->latest('id')->first();
+            $cName = $c && $c->classroom ? $c->classroom->class_name : 'Tanpa Kelas';
+            echo "- Student ID: #{$anggun->id} | Name: {$anggun->full_name} | NIS: {$anggun->nis} | NISN: {$anggun->nisn} | RFID: " . ($anggun->rfid_uid ?? '-') . " | Kelas: {$cName} | School: #{$anggun->school_id}\n";
+        } else {
+            echo "- Data siswa Anggun tidak ditemukan.\n";
+        }
+
+        // 6. Uji Simulasi Scan QR Code Ibu Herni Yanti
+        $testCode = $herniTeacher?->teacher_code ?? $herniEmployee?->employee_code ?? 'GR001';
+        echo "\n🧪 SIMULASI SCAN KIOSK DENGAN KODE QR ('{$testCode}'):\n";
+        
+        $matchedTeacher = \App\Models\Teacher::where('is_active', true)
+            ->where(function($q) use ($testCode) {
+                $q->where('teacher_code', $testCode)->orWhere('rfid_uid', $testCode)->orWhere('nip', $testCode);
+            })->first();
+        $matchedEmployee = \App\Models\Employee::where('is_active', true)
+            ->where(function($q) use ($testCode) {
+                $q->where('employee_code', $testCode)->orWhere('rfid_uid', $testCode)->orWhere('nip', $testCode);
+            })->first();
+        $matchedStudent = \App\Models\Student::whereIn('status', \App\Models\StudentStatusHistory::ACTIVE_STATUSES)
+            ->where(function($q) use ($testCode) {
+                $q->where('nis', $testCode)->orWhere('nisn', $testCode)->orWhere('rfid_uid', $testCode);
+            })->first();
+
+        if ($matchedTeacher) {
+            echo "✅ HASIL IDENTIFIKASI: GURU/KEPALA SEKOLAH -> {$matchedTeacher->full_name} (Teacher ID #{$matchedTeacher->id})\n";
+        } elseif ($matchedEmployee) {
+            echo "✅ HASIL IDENTIFIKASI: PEGAWAI/STAF -> {$matchedEmployee->full_name} (Employee ID #{$matchedEmployee->id})\n";
+        } elseif ($matchedStudent) {
+            echo "⚠️ HASIL IDENTIFIKASI: SISWA -> {$matchedStudent->full_name} (NIS {$matchedStudent->nis})\n";
+        } else {
+            echo "❌ HASIL IDENTIFIKASI: Tidak Dikenal (KARTU BARU)\n";
+        }
+
+        // 7. Bersihkan Cache Laravel
         \Illuminate\Support\Facades\Artisan::call('route:clear');
         \Illuminate\Support\Facades\Artisan::call('config:clear');
         \Illuminate\Support\Facades\Artisan::call('cache:clear');
