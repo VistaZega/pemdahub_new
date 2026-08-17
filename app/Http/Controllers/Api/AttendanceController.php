@@ -46,46 +46,128 @@ class AttendanceController extends Controller
 
             $student = null;
             $employee = null;
+            $teacher = null;
             $tefaEmployee = null;
 
-            // 2. IDENTIFIKASI (RFID vs QR untuk Siswa/Guru)
-            if (!$type || $type === 'rfid') {
-                // Cari di Siswa berdasarkan RFID (mencakup semua variasi candidates)
+            // =========================================================================
+            // 2. IDENTIFIKASI ENTITAS (GURU / PEGAWAI / KARYAWAN TEFA / SISWA)
+            // =========================================================================
+
+            // TAHAP A: EXACT MATCH LOOKUP (Prioritas Tertinggi untuk QR Code & RFID Langsung)
+            // -------------------------------------------------------------------------
+            
+            // 1. Cari di Teacher (Guru / Kepala Sekolah) berdasarkan teacher_code, rfid_uid, atau nip
+            $teacher = \App\Models\Teacher::where('is_active', true)
+                ->where(function($q) use ($rawUid) {
+                    $q->where('teacher_code', $rawUid)
+                      ->orWhere('rfid_uid', $rawUid)
+                      ->orWhere('nip', $rawUid);
+                })
+                ->first();
+
+            // 2. Cari di Employee (Pegawai / Staf / Guru) jika belum ketemu
+            if (!$teacher) {
+                $employee = \App\Models\Employee::where('is_active', true)
+                    ->where(function($q) use ($rawUid) {
+                        $q->where('employee_code', $rawUid)
+                          ->orWhere('rfid_uid', $rawUid)
+                          ->orWhere('nip', $rawUid);
+                    })
+                    ->first();
+            }
+
+            // 3. Cari di TefaEmployee (Karyawan Bengkelin TEFA)
+            if (!$teacher && !$employee) {
+                $tefaEmployee = \App\Models\TefaEmployee::where('is_active', true)
+                    ->where(function($q) use ($rawUid) {
+                        $q->where('rfid_uid', $rawUid)
+                          ->orWhere('employee_code', $rawUid);
+                    })
+                    ->first();
+            }
+
+            // 4. Cari di Siswa (NIS, NISN, atau RFID UID)
+            if (!$teacher && !$employee && !$tefaEmployee) {
+                $student = \App\Models\Student::whereIn('status', \App\Models\StudentStatusHistory::ACTIVE_STATUSES)
+                    ->where(function($q) use ($rawUid) {
+                        $q->where('nis', $rawUid)
+                          ->orWhere('nisn', $rawUid)
+                          ->orWhere('rfid_uid', $rawUid);
+                    })
+                    ->first();
+            }
+
+            // 5. Cek User Account (jika scan username akun)
+            if (!$teacher && !$employee && !$tefaEmployee && !$student) {
+                $matchedUser = \App\Models\User::where('username', $rawUid)->first();
+                if ($matchedUser) {
+                    if ($matchedUser->role === 'guru') {
+                        $teacher = \App\Models\Teacher::where('user_id', $matchedUser->id)->first();
+                    } elseif (in_array($matchedUser->role, ['pegawai', 'kepala_sekolah', 'admin_sekolah'])) {
+                        $employee = \App\Models\Employee::where('user_id', $matchedUser->id)->first();
+                    } elseif ($matchedUser->role === 'siswa') {
+                        $student = \App\Models\Student::where('user_id', $matchedUser->id)
+                            ->whereIn('status', \App\Models\StudentStatusHistory::ACTIVE_STATUSES)
+                            ->first();
+                    }
+                }
+            }
+
+            // TAHAP B: RFID HARDWARE CANDIDATE MATCH (Jika RFID dibaca dengan variasi Hex/Dec)
+            // -------------------------------------------------------------------------
+            if (!$teacher && !$employee && !$tefaEmployee && !$student) {
+                // Cari di Siswa via RFID candidates
                 $student = \App\Models\Student::whereIn('rfid_uid', $candidates)
                     ->whereIn('status', \App\Models\StudentStatusHistory::ACTIVE_STATUSES)
                     ->first();
 
-                // Jika tidak ketemu di Siswa aktif, cari di Pegawai/Guru berdasarkan RFID
+                // Cari di Guru via RFID candidates
                 if (!$student) {
+                    $teacher = \App\Models\Teacher::whereIn('rfid_uid', $candidates)
+                        ->where('is_active', true)
+                        ->first();
+                }
+
+                // Cari di Pegawai via RFID candidates
+                if (!$student && !$teacher) {
                     $employee = \App\Models\Employee::whereIn('rfid_uid', $candidates)
                         ->where('is_active', true)
                         ->first();
                 }
 
-                // Jika tidak ketemu di Pegawai, cari di Karyawan TEFA berdasarkan RFID
-                if (!$student && !$employee) {
+                // Cari di Karyawan TEFA via RFID candidates
+                if (!$student && !$teacher && !$employee) {
                     $tefaEmployee = \App\Models\TefaEmployee::whereIn('rfid_uid', $candidates)
                         ->where('is_active', true)
                         ->first();
                 }
             }
 
-            // Jika masih belum ketemu (mungkin input QR Code berisi NIS/NIP) atau jika tipe eksplisit 'qr'
-            if (!$student && !$employee && !$tefaEmployee) {
-                // Cari di Siswa berdasarkan NIS atau NISN (QR Code Kertas)
-                $student = \App\Models\Student::where(function($q) use ($candidates) {
-                        $q->whereIn('nis', $candidates)->orWhereIn('nisn', $candidates);
-                    })
-                    ->whereIn('status', \App\Models\StudentStatusHistory::ACTIVE_STATUSES)
-                    ->first();
-
-                // Jika tidak ketemu di Siswa, cari di Pegawai/Guru berdasarkan NIP atau Kode Pegawai
-                if (!$student) {
-                    $employee = \App\Models\Employee::where(function($q) use ($candidates) {
-                            $q->whereIn('nip', $candidates)->orWhereIn('employee_code', $candidates);
-                        })
-                        ->where('is_active', true)
-                        ->first();
+            // RESOLUSI RELASI TEACHER -> EMPLOYEE
+            // Pastikan jika Teacher ditemukan, model Employee terkait terisi untuk EmployeeAttendance
+            if ($teacher && !$employee) {
+                if ($teacher->employee_id) {
+                    $employee = \App\Models\Employee::find($teacher->employee_id);
+                }
+                if (!$employee && $teacher->user_id) {
+                    $employee = \App\Models\Employee::where('user_id', $teacher->user_id)->first();
+                }
+                if (!$employee) {
+                    $employee = \App\Models\Employee::firstOrCreate(
+                        ['user_id' => $teacher->user_id ?? 0],
+                        [
+                            'school_id' => $teacher->school_id,
+                            'employee_code' => $teacher->teacher_code ?? ('G-' . $teacher->id),
+                            'full_name' => $teacher->full_name,
+                            'gender' => $teacher->gender ?? 'L',
+                            'employee_type' => 'guru',
+                            'employment_status' => 'yayasan',
+                            'is_active' => true,
+                        ]
+                    );
+                    if (!$teacher->employee_id) {
+                        $teacher->update(['employee_id' => $employee->id]);
+                    }
                 }
             }
 
@@ -211,7 +293,7 @@ class AttendanceController extends Controller
                     ->first();
 
                 // Dapatkan nama jabatan atau defaults
-                $jabatan = $employee->getPrimaryPosition()?->name ?? ($employee->isTeacher() ? 'Guru' : 'Staf');
+                $jabatan = $employee->getPrimaryPosition()?->position_name ?? ($employee->isTeacher() ? 'Guru' : 'Staf');
 
                 if ($existingAttendance) {
                     $isNotCheckedOut = !$existingAttendance->time_out || $existingAttendance->time_out === '00:00:00' || $existingAttendance->time_out === '00:00';
@@ -613,30 +695,31 @@ class AttendanceController extends Controller
 
     /**
      * Hasilkan semua variasi format UID (Hex, Reversed Hex, Decimal, Reversed Decimal, Wiegand, Zero-Padded)
-     * agar cocok dengan berbagai macam jenis hardware kiosk/scanner RFID di seluruh dunia.
+     * khusus untuk pembacaan kartu RFID fisik.
+     * Tidak memutasi string non-hex/QR code guru (seperti "GR001", "GTK001", "PGW-25").
      */
     private function getUidCandidates(string $rawUid): array
     {
         $uid = strtoupper(trim($rawUid));
         $candidates = [$uid];
 
-        // Normalisasi 1: Bersihkan karakter non-alphanumerik (titik, koma, strip, spasi)
-        $cleanUid = preg_replace('/[^A-F0-9]/i', '', $uid);
-        if ($cleanUid && $cleanUid !== $uid) {
-            $candidates[] = $cleanUid;
-        }
+        $isPureHex = (bool) preg_match('/^[0-9A-F]+$/i', $uid);
+        $isPureDec = (bool) preg_match('/^[0-9]+$/', $uid);
 
-        // Normalisasi 2: Hapus zero padding di depan (misal: "0459723891" -> "459723891")
-        $ltrimUid = ltrim($cleanUid ?: $uid, '0');
-        if ($ltrimUid && $ltrimUid !== $uid) {
-            $candidates[] = $ltrimUid;
+        // Jika string bukan format angka atau hex murni (misal "GR001", "PGW-25"), jangan lakukan mutasi
+        if (!$isPureHex && !$isPureDec) {
+            return array_values(array_unique(array_filter($candidates)));
         }
 
         // 1. Jika berupa angka desimal murni
-        $testDecs = array_unique(array_filter([$uid, $cleanUid, $ltrimUid]));
-        foreach ($testDecs as $decStr) {
-            if (preg_match('/^\d+$/', $decStr) && strlen($decStr) >= 5 && strlen($decStr) <= 12) {
-                $num = (float)$decStr;
+        if ($isPureDec) {
+            $ltrimUid = ltrim($uid, '0');
+            if ($ltrimUid && $ltrimUid !== $uid) {
+                $candidates[] = $ltrimUid;
+            }
+
+            if (strlen($uid) >= 5 && strlen($uid) <= 12) {
+                $num = (float)$uid;
                 if ($num > 0 && $num <= 4294967295) {
                     $hex = strtoupper(str_pad(dechex((int)$num), 8, '0', STR_PAD_LEFT));
                     $candidates[] = $hex;
@@ -658,31 +741,27 @@ class AttendanceController extends Controller
             }
         }
 
-        // 2. Jika berupa string Hex (4-byte / 8-char hex)
-        $testHexs = array_unique(array_filter([$uid, $cleanUid, $ltrimUid]));
-        foreach ($testHexs as $hexStr) {
-            if (ctype_xdigit($hexStr)) {
-                // Pad to 8 chars if 7 chars
-                $padHex = str_pad($hexStr, 8, '0', STR_PAD_LEFT);
-                $candidates[] = $padHex;
+        // 2. Jika berupa string Hex murni (4-byte / 8-char hex dari RC522)
+        if ($isPureHex && (strlen($uid) === 8 || strlen($uid) === 14 || strlen($uid) === 4 || strlen($uid) === 6)) {
+            $padHex = str_pad($uid, 8, '0', STR_PAD_LEFT);
+            $candidates[] = $padHex;
 
-                $dec = (string) hexdec($padHex);
-                $candidates[] = $dec;
-                $candidates[] = str_pad($dec, 10, '0', STR_PAD_LEFT);
+            $dec = (string) hexdec($padHex);
+            $candidates[] = $dec;
+            $candidates[] = str_pad($dec, 10, '0', STR_PAD_LEFT);
 
-                if (strlen($padHex) === 8) {
-                    // Reversed Byte Hex
-                    $revHex = $padHex[6].$padHex[7].$padHex[4].$padHex[5].$padHex[2].$padHex[3].$padHex[0].$padHex[1];
-                    $candidates[] = $revHex;
-                    $revDec = (string) hexdec($revHex);
-                    $candidates[] = $revDec;
-                    $candidates[] = str_pad($revDec, 10, '0', STR_PAD_LEFT);
+            if (strlen($padHex) === 8) {
+                // Reversed Byte Hex
+                $revHex = $padHex[6].$padHex[7].$padHex[4].$padHex[5].$padHex[2].$padHex[3].$padHex[0].$padHex[1];
+                $candidates[] = $revHex;
+                $revDec = (string) hexdec($revHex);
+                $candidates[] = $revDec;
+                $candidates[] = str_pad($revDec, 10, '0', STR_PAD_LEFT);
 
-                    // Wiegand 26 (3 bytes terakhir)
-                    $sub3Hex = substr($padHex, 2);
-                    $candidates[] = $sub3Hex;
-                    $candidates[] = (string) hexdec($sub3Hex);
-                }
+                // Wiegand 26 (3 bytes terakhir)
+                $sub3Hex = substr($padHex, 2);
+                $candidates[] = $sub3Hex;
+                $candidates[] = (string) hexdec($sub3Hex);
             }
         }
 

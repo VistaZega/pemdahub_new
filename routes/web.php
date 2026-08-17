@@ -1449,12 +1449,17 @@ Route::get('/fix-attendance', function () {
             }
         }
 
-        echo "\n📊 HASIL SINKRONISASI:\n";
-        echo "- Total Pengguna Guru/Pegawai Diperiksa: " . $guruUsers->count() . "\n";
-        echo "- Relasi Ditautkan: {$linkedCount}\n";
-        echo "- Pegawai Baru Dibuat: {$createdEmpCount}\n";
+        // 4. Verifikasi Akun Kepala Sekolah SMPS Pembda 2 (Ibu Herni Yanti Telaumbanua)
+        $herniUser = \App\Models\User::where('name', 'LIKE', '%Herni%')->first();
+        $herniTeacher = \App\Models\Teacher::where('full_name', 'LIKE', '%Herni%')->orWhere('teacher_code', 'GR001')->first();
+        $herniEmployee = \App\Models\Employee::where('full_name', 'LIKE', '%Herni%')->orWhere('id', 25)->first();
 
-        // 4. Bersihkan Cache Laravel
+        echo "\n👩‍🏫 STATUS AKUN IBU HERNI YANTI TELAUMBANUA:\n";
+        echo "- User: " . ($herniUser ? "ID #{$herniUser->id} | Role: {$herniUser->role} | Username: {$herniUser->username}" : "Belum Ada") . "\n";
+        echo "- Teacher: " . ($herniTeacher ? "ID #{$herniTeacher->id} | Code: {$herniTeacher->teacher_code} | School: #{$herniTeacher->school_id}" : "Belum Ada") . "\n";
+        echo "- Employee: " . ($herniEmployee ? "ID #{$herniEmployee->id} | Code: {$herniEmployee->employee_code} | Posisi: " . ($herniEmployee->getPrimaryPosition()?->position_name ?? 'Kepala Sekolah') : "Belum Ada") . "\n";
+
+        // 5. Bersihkan Cache Laravel
         \Illuminate\Support\Facades\Artisan::call('route:clear');
         \Illuminate\Support\Facades\Artisan::call('config:clear');
         \Illuminate\Support\Facades\Artisan::call('cache:clear');
