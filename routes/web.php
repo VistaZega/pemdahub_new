@@ -1468,14 +1468,15 @@ Route::get('/fix-attendance', function () {
         // 5. Verifikasi Data Siswa Anggun Trienji Z
         $anggun = \App\Models\Student::where('full_name', 'LIKE', '%Anggun%')->orWhere('full_name', 'LIKE', '%Trienji%')->first();
         // 5. Verifikasi Data Siswa Anggun Trienji Z
-        $anggun = \App\Models\Student::where('full_name', 'LIKE', '%Trienji%')
-            ->orWhere('full_name', 'LIKE', '%Anggun%')
-            ->get();
-        echo "\n👩‍🎓 STATUS DATA SISWA ANGGUN / TRIENJI DI DATABASE:\n";
-        foreach ($anggun as $s) {
-            $c = $s->studentClasses()->where('status', 'aktif')->latest('id')->first();
+        $anggun = \App\Models\Student::where('full_name', 'LIKE', '%Trienji%')->first();
+        if (!$anggun) {
+            $anggun = \App\Models\Student::where('full_name', 'LIKE', '%Anggun%')->first();
+        }
+        echo "\n👩‍🎓 STATUS DATA SISWA ANGGUN TRIENJI Z DI DATABASE:\n";
+        if ($anggun) {
+            $c = $anggun->studentClasses()->where('status', 'aktif')->latest('id')->first();
             $cName = $c && $c->classroom ? $c->classroom->class_name : 'Tanpa Kelas';
-            echo "- Student ID: #{$s->id} | Name: {$s->full_name} | NIS: {$s->nis} | NISN: {$s->nisn} | RFID: " . ($s->rfid_uid ?? '-') . " | Kelas: {$cName} | School: #{$s->school_id}\n";
+            echo "- Student ID: #{$anggun->id} | Name: {$anggun->full_name} | NIS: {$anggun->nis} | NISN: {$anggun->nisn} | RFID: " . ($anggun->rfid_uid ?? '-') . " | Kelas: {$cName} | School: #{$anggun->school_id}\n";
         }
 
         // 6. Uji Simulasi Scan Kiosk dengan Endpoint API Asli (Mock Request)
@@ -1493,13 +1494,13 @@ Route::get('/fix-attendance', function () {
             })->first();
 
         if ($matchedTeacher) {
-            echo "✅ HASIL IDENTIFIKASI: GURU/KEPALA SEKOLAH -> {$matchedTeacher->full_name} (Teacher ID #{$matchedTeacher->id} | Code: {$matchedTeacher->teacher_code})\n";
+            echo "✅ HASIL IDENTIFIKASI SCAN: GURU/KEPALA SEKOLAH -> {$matchedTeacher->full_name} (Teacher ID #{$matchedTeacher->id} | Code: {$matchedTeacher->teacher_code})\n";
         } elseif ($matchedEmployee) {
-            echo "✅ HASIL IDENTIFIKASI: PEGAWAI/STAF -> {$matchedEmployee->full_name} (Employee ID #{$matchedEmployee->id})\n";
+            echo "✅ HASIL IDENTIFIKASI SCAN: PEGAWAI/STAF -> {$matchedEmployee->full_name} (Employee ID #{$matchedEmployee->id})\n";
         } elseif ($matchedStudent) {
-            echo "⚠️ HASIL IDENTIFIKASI: SISWA -> {$matchedStudent->full_name} (NIS {$matchedStudent->nis})\n";
+            echo "⚠️ HASIL IDENTIFIKASI SCAN: SISWA -> {$matchedStudent->full_name} (NIS {$matchedStudent->nis})\n";
         } else {
-            echo "❌ HASIL IDENTIFIKASI: Tidak Dikenal (KARTU BARU)\n";
+            echo "❌ HASIL IDENTIFIKASI SCAN: Tidak Dikenal (KARTU BARU)\n";
         }
 
         // 7. Bersihkan Cache Laravel
