@@ -1524,50 +1524,56 @@ Route::get('/cek-yarisman', function () {
     echo "=== DIAGNOSTIK KELOMPOK ABSENSI YARISMAN WARUWU (SMPS PEMBDA 2 - SCHOOL #9) ===\n\n";
 
     $emp = \App\Models\Employee::find(231);
-    echo "1. EMPLOYEE DATA:\n";
+    echo "1. DATA PEGAWAI:\n";
     echo "- ID: {$emp->id}\n";
     echo "- Full Name: {$emp->full_name}\n";
-    echo "- Employee Type: '{$emp->employee_type}'\n";
-    echo "- Position: " . ($emp->getPrimaryPosition()?->position_name ?? 'Tidak Ada Posisi') . "\n";
+    echo "- Employee Type: '{$emp->employee_type}' (Harus Pegawai / Staff TU)\n";
     echo "- School ID: {$emp->school_id}\n";
-    echo "- has('teacher'): " . ($emp->teacher ? 'YA (Teacher ID #' . $emp->teacher->id . ')' : 'TIDAK') . "\n";
 
-    $teachersMatch = \App\Models\Teacher::where('employee_id', 231)->orWhere('user_id', 2153)->orWhere('full_name', 'LIKE', '%Yarisman%')->get();
-    echo "\n2. MATCH DI TABEL TEACHERS:\n";
-    foreach ($teachersMatch as $tm) {
-        echo "- Teacher ID #{$tm->id} | User ID: {$tm->user_id} | Employee ID: {$tm->employee_id} | Name: {$tm->full_name}\n";
-    }
-    if ($teachersMatch->isEmpty()) {
-        echo "- TIDAK ADA di tabel teachers.\n";
+    // Cek Teacher row
+    $teacher = \App\Models\Teacher::where('employee_id', 231)->orWhere('user_id', 2153)->first();
+    if ($teacher) {
+        $assignCount = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)->count();
+        $schedCount = \App\Models\Schedule::where('teacher_id', $teacher->id)->count();
+        echo "\n2. PHANTOM TEACHER RECORD (#{$teacher->id}):\n";
+        echo "- Teaching Assignments: {$assignCount}\n";
+        echo "- Schedules: {$schedCount}\n";
+
+        if ($assignCount === 0 && $schedCount === 0) {
+            $teacher->delete();
+            echo "🧹 Phantom Teacher Record #{$teacher->id} BERHASIL DIHAPUS (karena Yarisman adalah murni Pegawai/Staf TU).\n";
+        }
+    } else {
+        echo "\n2. TEACHER RECORD: Tidak ada record di tabel teachers (Sudah Bersih).\n";
     }
 
     $date = date('Y-m-d');
-    echo "\n3. CEK FILTER DI UNIFIED ATTENDANCE (SMPS PEMBDA 2 - SCHOOL #9):\n";
-    // Cek Guru query
+    echo "\n3. STATUS FILTER SETELAH PERBAIKAN (SMPS PEMBDA 2 - SCHOOL #9):\n";
     $inGuru = \App\Models\Employee::where('is_active', true)
         ->where('school_id', 9)
         ->where(function ($q) {
-            $q->where('employee_type', 'guru')->orWhereHas('teacher');
+            $q->where('employee_type', 'guru')
+              ->orWhere(fn($sq) => $sq->whereNull('employee_type')->whereHas('teacher'));
         })
         ->where('id', 231)
         ->exists();
-    echo "- Apakah masuk ke Tab GURU di Pusat Absensi? " . ($inGuru ? '🔴 YA (MASUK KE GURU)' : '🟢 TIDAK') . "\n";
+    echo "- Apakah masuk ke Tab GURU di Pusat Absensi? " . ($inGuru ? '🔴 YA (GURU)' : '🟢 TIDAK (Bukan Guru)') . "\n";
 
-    // Cek Pegawai query
     $inPegawai = \App\Models\Employee::where('is_active', true)
         ->where('school_id', 9)
         ->where(function ($q) {
-            $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+            $q->where('employee_type', '!=', 'guru')
+              ->orWhere(fn($sq) => $sq->whereNull('employee_type')->whereDoesntHave('teacher'));
         })
         ->where('id', 231)
         ->exists();
-    echo "- Apakah masuk ke Tab PEGAWAI di Pusat Absensi? " . ($inPegawai ? '🟢 YA (MASUK KE PEGAWAI)' : '🔴 TIDAK') . "\n";
+    echo "- Apakah masuk ke Tab PEGAWAI di Pusat Absensi? " . ($inPegawai ? '🟢 YA (MASUK KE PEGAWAI / STAF)' : '🔴 TIDAK') . "\n";
 
-    // Cek di Menu Admin Pegawai vs Admin Guru
     $inTeacherMenu = \App\Models\Employee::where('is_active', true)
         ->where('school_id', 9)
         ->where(function($q) {
-            $q->where('employee_type', 'guru')->orWhereHas('teacher');
+            $q->where('employee_type', 'guru')
+              ->orWhere(fn($sq) => $sq->whereNull('employee_type')->whereHas('teacher'));
         })
         ->where('id', 231)
         ->exists();
@@ -1576,18 +1582,17 @@ Route::get('/cek-yarisman', function () {
     $inEmpMenu = \App\Models\Employee::where('is_active', true)
         ->where('school_id', 9)
         ->where(function($q) {
-            $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+            $q->where('employee_type', '!=', 'guru')
+              ->orWhere(fn($sq) => $sq->whereNull('employee_type')->whereDoesntHave('teacher'));
         })
         ->where('id', 231)
         ->exists();
-    echo "- Apakah masuk ke Menu Presensi Pegawai (/admin/employees/attendance)? " . ($inEmpMenu ? '🟢 YA' : '🔴 TIDAK') . "\n";
+    echo "- Apakah masuk ke Menu Presensi Pegawai (/admin/employees/attendance)? " . ($inEmpMenu ? '🟢 YA (MASUK KE PRESENSI PEGAWAI)' : '🔴 TIDAK') . "\n";
 
     echo "\n4. REKAP ABSENSI HARI INI ({$date}):\n";
     $att = \App\Models\EmployeeAttendance::where('employee_id', 231)->where('date', $date)->first();
     if ($att) {
         echo "- ID #{$att->id} | School: #{$att->school_id} | In: {$att->time_in} | Out: {$att->time_out} | Status: {$att->status} | Via: {$att->recorded_via}\n";
-    } else {
-        echo "- Belum ada absensi hari ini.\n";
     }
 
     echo "</pre>";

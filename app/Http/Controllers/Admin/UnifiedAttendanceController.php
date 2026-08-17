@@ -153,7 +153,8 @@ class UnifiedAttendanceController extends Controller
             $teacherQuery = Employee::where('is_active', true)
                 ->where('school_id', $f['schoolId'])
                 ->where(function ($q) {
-                    $q->where('employee_type', 'guru')->orWhereHas('teacher');
+                    $q->where('employee_type', 'guru')
+                      ->orWhere(fn($sq) => $sq->whereNull('employee_type')->whereHas('teacher'));
                 });
 
             $stats['total_target'] = $teacherQuery->count();
@@ -162,7 +163,8 @@ class UnifiedAttendanceController extends Controller
                 ->where('date', $targetDate)
                 ->where('school_id', $f['schoolId'])
                 ->whereHas('employee', function ($q) {
-                    $q->where('employee_type', 'guru')->orWhereHas('teacher');
+                    $q->where('employee_type', 'guru')
+                      ->orWhere(fn($sq) => $sq->whereNull('employee_type')->whereHas('teacher'));
                 })
                 ->orderBy('id', 'desc')
                 ->take(500)
@@ -370,7 +372,8 @@ class UnifiedAttendanceController extends Controller
                 ->where('is_active', true)
                 ->where('school_id', $f['schoolId'])
                 ->where(function ($q) {
-                    $q->where('employee_type', 'guru')->orWhereHas('teacher');
+                    $q->where('employee_type', 'guru')
+                      ->orWhere(fn($sq) => $sq->whereNull('employee_type')->whereHas('teacher'));
                 })
                 ->when($search, function ($q) use ($search) {
                     $q->where(function ($sq) use ($search) {
@@ -537,7 +540,8 @@ class UnifiedAttendanceController extends Controller
                 ->where('is_active', true)
                 ->where('school_id', $f['schoolId'])
                 ->where(function ($q) {
-                    $q->where('employee_type', 'guru')->orWhereHas('teacher');
+                    $q->where('employee_type', 'guru')
+                      ->orWhere(fn($sq) => $sq->whereNull('employee_type')->whereHas('teacher'));
                 })
                 ->orderBy('full_name')
                 ->get();
@@ -712,7 +716,7 @@ class UnifiedAttendanceController extends Controller
                 ->where('is_active', true)
                 ->where('school_id', $f['schoolId'])
                 ->where(function ($q) {
-                    $q->where('employee_type', 'guru')->orWhereHas('teacher');
+                    $q->where('employee_type', 'guru')->orWhere(fn($sq) => $sq->whereNull('employee_type')->whereHas('teacher'));
                 })
                 ->orderBy('full_name')
                 ->get();
