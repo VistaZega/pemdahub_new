@@ -1424,7 +1424,7 @@ Route::get('/fix-attendance', function () {
                     'full_name' => $teacher?->full_name ?? $user->name,
                     'gender' => $teacher?->gender ?? 'L',
                     'birth_place' => $teacher?->birth_place ?? '-',
-                    'employee_type' => $user->role === 'guru' ? 'teacher' : 'staff',
+                    'employee_type' => $user->role === 'guru' ? 'guru' : 'staff',
                     'employment_status' => 'yayasan',
                     'tmt_date' => now()->format('Y-m-d'),
                     'is_active' => true,
