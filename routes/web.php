@@ -1515,6 +1515,22 @@ Route::get('/fix-attendance', function () {
     echo "</pre>";
 });
 
+Route::get('/test-scan-herni', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Akses Ditolak.');
+    }
+
+    $req = new \Illuminate\Http\Request();
+    $req->replace(['uid' => 'GR001']);
+    $req->headers->set('X-Kiosk-API-Key', 'RAHASIA-PEMBDAHUB-12345');
+
+    $controller = app(\App\Http\Controllers\Api\AttendanceController::class);
+    $response = $controller->handleRfidScan($req);
+
+    header('Content-Type: application/json');
+    return $response;
+});
+
 Route::get('/migrate-quiz-questions', function () {
     if (request('secret') !== 'pembda99') {
         abort(403, 'Unauthorized.');
