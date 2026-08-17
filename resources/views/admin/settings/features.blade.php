@@ -212,12 +212,12 @@
                     </label>
                     <div class="relative">
                         <input type="number" id="attendance_max_radius" name="attendance_max_radius" 
-                               value="{{ $settings['attendance_max_radius'] ?? 350 }}" min="50" max="2000" step="10"
+                               value="{{ $settings['attendance_max_radius'] ?? 175 }}" min="20" max="2000" step="5"
                                class="w-full text-base font-black px-3.5 py-2.5 rounded-xl border-2 border-slate-300 focus:border-indigo-500 outline-none bg-white text-slate-800">
                         <span class="absolute right-3.5 top-2.5 text-xs font-bold text-slate-400">meter</span>
                     </div>
                     <p class="text-[11px] text-slate-500 font-medium leading-relaxed">
-                        Rekomendasi: <b>350 meter</b> untuk mencakup seluruh area gedung sekolah, ruang guru, serta deviasi GPS di dalam ruangan.
+                        Standar Kompleks: <b>175 meter</b> untuk mencakup seluruh area gedung sekolah, ruang guru, serta toleransi deviasi GPS.
                     </p>
                 </div>
 

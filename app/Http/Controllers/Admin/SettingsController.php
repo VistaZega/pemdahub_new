@@ -182,7 +182,7 @@ class SettingsController extends Controller
             'pegawai_view_attendance_recap' => Setting::getValue('pegawai_view_attendance_recap', true),
 
             // Presensi & Geofencing GPS
-            'attendance_max_radius' => Setting::getValue('attendance_max_radius', 350),
+            'attendance_max_radius' => Setting::getValue('attendance_max_radius', 175),
             'school_latitude' => Setting::getValue('school_latitude', '1.282500'),
             'school_longitude' => Setting::getValue('school_longitude', '97.619000'),
 
@@ -244,7 +244,7 @@ class SettingsController extends Controller
         }
 
         if ($request->filled('attendance_max_radius')) {
-            $radius = max(50, (int) $request->input('attendance_max_radius', 350));
+            $radius = max(20, (int) $request->input('attendance_max_radius', 175));
             Setting::setValue('attendance_max_radius', $radius, 'integer', 'features');
         }
         if ($request->filled('school_latitude')) {

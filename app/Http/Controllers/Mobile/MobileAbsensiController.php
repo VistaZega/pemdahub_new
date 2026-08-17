@@ -111,10 +111,10 @@ class MobileAbsensiController extends Controller
                 );
             }
 
-            // Dapatkan Radius Geofencing (Default 350 meter agar mencakup seluruh kompleks sekolah & drift GPS)
-            $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 350);
-            if ($maxRadiusMeters < 100) {
-                $maxRadiusMeters = 350;
+            // Dapatkan Radius Geofencing (Default 175 meter sesuai konfigurasi kompleks sekolah)
+            $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 175);
+            if ($maxRadiusMeters <= 0) {
+                $maxRadiusMeters = 175;
             }
 
             // Kumpulkan seluruh titik koordinat unit sekolah dalam Kompleks Perguruan Pembda

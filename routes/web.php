@@ -1354,9 +1354,9 @@ Route::get('/run-migrations', function () {
         echo "<h1>=== SYNCING ALUMNI DATA ACROSS ALL TABLES ===</h1>\n";
         $alumniSyncExitCode = \Illuminate\Support\Facades\Artisan::call('alumni:sync');
         echo \Illuminate\Support\Facades\Artisan::output();
-        echo "<h1>=== SETTING ATTENDANCE RADIUS TO 350 METERS ===</h1>\n";
-        \App\Models\Setting::setValue('attendance_max_radius', '350', 'integer', 'features');
-        echo "✅ Attendance Max Radius diset ke <b>350 meter</b> di tabel settings!<br>\n";
+        echo "<h1>=== SETTING ATTENDANCE RADIUS TO 175 METERS ===</h1>\n";
+        \App\Models\Setting::setValue('attendance_max_radius', '175', 'integer', 'features');
+        echo "✅ Attendance Max Radius diset ke <b>175 meter</b> di tabel settings!<br>\n";
 
         echo "<b><h2 style='color:#0f0;'>✅ MIGRATION AND SYNC COMPLETED SUCCESSFULLY!</h2></b>\n";
     } catch (\Exception $e) {
@@ -1373,11 +1373,11 @@ Route::get('/fix-attendance', function () {
     echo "<h2 style='color:#4ade80;'>=== SINKRONISASI RELASI PEGAWAI GURU & RADIUS GEOFENCING ===</h2>\n";
 
     try {
-        // 1. Update Radius Presensi ke 350 Meter
-        \App\Models\Setting::setValue('attendance_max_radius', '350', 'integer', 'features');
+        // 1. Update Radius Presensi ke 175 Meter
+        \App\Models\Setting::setValue('attendance_max_radius', '175', 'integer', 'features');
         \App\Models\Setting::setValue('school_latitude', '1.282500', 'string', 'features');
         \App\Models\Setting::setValue('school_longitude', '97.619000', 'string', 'features');
-        echo "✅ Radius Geofencing GPS diset ke <b>350 meter</b> (Toleransi Kompleks Kampus & Deviasi Ruangan).\n";
+        echo "✅ Radius Geofencing GPS diset ke <b>175 meter</b> (Toleransi Area Sekolah & Deviasi Ruangan).\n";
 
         // 2. Sinkronisasi Sekolah
         $schools = \App\Models\School::all();
