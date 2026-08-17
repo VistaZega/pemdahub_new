@@ -1550,16 +1550,23 @@ Route::get('/cek-absen-zega', function () {
         echo "- Attendance ID: #{$att->id} | Emp ID: #{$att->employee_id} ({$empName}) | School ID: {$att->school_id} | In: {$att->time_in} | Out: {$att->time_out} | Status: {$att->status} | Via: {$att->recorded_via} | Notes: {$att->notes}\n";
     }
 
-    echo "\n<b>5. SIMULASI QUERY PUSAT ABSENSI (UNIFIED ATTENDANCE):</b>\n";
+    echo "\n<b>5. SIMULASI QUERY PUSAT ABSENSI (UNIFIED ATTENDANCE SETELAH PERBAIKAN):</b>\n";
     $schools = \App\Models\School::all();
     foreach ($schools as $sc) {
+        $isYayasan = (str_contains(strtolower($sc->name), 'yayasan') || strtoupper($sc->type ?? '') === 'YAYASAN');
         $guruAtt = \App\Models\EmployeeAttendance::where('date', $today)
             ->where('school_id', $sc->id)
             ->whereHas('employee', fn($q) => $q->where('employee_type', 'guru')->orWhereHas('teacher'))
             ->count();
         $pegawaiAtt = \App\Models\EmployeeAttendance::where('date', $today)
             ->where('school_id', $sc->id)
-            ->whereHas('employee', fn($q) => $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher'))
+            ->whereHas('employee', function($q) use ($isYayasan) {
+                if ($isYayasan) {
+                    $q->whereNotNull('id');
+                } else {
+                    $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+                }
+            })
             ->count();
         echo "- Sekolah: [ID {$sc->id}] {$sc->name} -> Tab Guru: {$guruAtt} data | Tab Pegawai: {$pegawaiAtt} data\n";
     }

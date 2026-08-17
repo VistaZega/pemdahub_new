@@ -26,21 +26,32 @@ class EmployeeAttendanceController extends Controller
         $stats = ['hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0, 'dinas_luar' => 0, 'cuti' => 0, 'belum' => 0];
 
         if ($schoolId) {
+            $schObj = School::find($schoolId);
+            $isYayasan = $schObj && (str_contains(strtolower($schObj->name), 'yayasan') || strtoupper($schObj->type ?? '') === 'YAYASAN');
+
             $employees = Employee::with('school')
                 ->where('is_active', true)
                 ->where('school_id', $schoolId)
-                ->where(function($q) {
-                    $q->where('employee_type', '!=', 'guru')
-                      ->whereDoesntHave('teacher');
+                ->where(function($q) use ($isYayasan) {
+                    if ($isYayasan) {
+                        $q->whereNotNull('id');
+                    } else {
+                        $q->where('employee_type', '!=', 'guru')
+                          ->whereDoesntHave('teacher');
+                    }
                 })
                 ->orderBy('full_name')
                 ->get();
 
             $attendances = EmployeeAttendance::where('date', $date)
                 ->where('school_id', $schoolId)
-                ->whereHas('employee', function($q) {
-                    $q->where('employee_type', '!=', 'guru')
-                      ->whereDoesntHave('teacher');
+                ->whereHas('employee', function($q) use ($isYayasan) {
+                    if ($isYayasan) {
+                        $q->whereNotNull('id');
+                    } else {
+                        $q->where('employee_type', '!=', 'guru')
+                          ->whereDoesntHave('teacher');
+                    }
                 })
                 ->get()
                 ->keyBy('employee_id');
@@ -87,20 +98,30 @@ class EmployeeAttendanceController extends Controller
         }
 
         $school = School::findOrFail($schoolId);
+        $isYayasan = (str_contains(strtolower($school->name), 'yayasan') || strtoupper($school->type ?? '') === 'YAYASAN');
+
         $employees = Employee::where('is_active', true)
             ->where('school_id', $schoolId)
-            ->where(function($q) {
-                $q->where('employee_type', '!=', 'guru')
-                  ->whereDoesntHave('teacher');
+            ->where(function($q) use ($isYayasan) {
+                if ($isYayasan) {
+                    $q->whereNotNull('id');
+                } else {
+                    $q->where('employee_type', '!=', 'guru')
+                      ->whereDoesntHave('teacher');
+                }
             })
             ->orderBy('full_name')
             ->get();
 
         $existing = EmployeeAttendance::where('date', $date)
             ->where('school_id', $schoolId)
-            ->whereHas('employee', function($q) {
-                $q->where('employee_type', '!=', 'guru')
-                  ->whereDoesntHave('teacher');
+            ->whereHas('employee', function($q) use ($isYayasan) {
+                if ($isYayasan) {
+                    $q->whereNotNull('id');
+                } else {
+                    $q->where('employee_type', '!=', 'guru')
+                      ->whereDoesntHave('teacher');
+                }
             })
             ->get()
             ->keyBy('employee_id');
@@ -161,11 +182,18 @@ class EmployeeAttendanceController extends Controller
         $daysInMonth = Carbon::create($year, $month)->daysInMonth;
 
         if ($schoolId) {
+            $schObj = School::find($schoolId);
+            $isYayasan = $schObj && (str_contains(strtolower($schObj->name), 'yayasan') || strtoupper($schObj->type ?? '') === 'YAYASAN');
+
             $employees = Employee::where('is_active', true)
                 ->where('school_id', $schoolId)
-                ->where(function($q) {
-                    $q->where('employee_type', '!=', 'guru')
-                      ->whereDoesntHave('teacher');
+                ->where(function($q) use ($isYayasan) {
+                    if ($isYayasan) {
+                        $q->whereNotNull('id');
+                    } else {
+                        $q->where('employee_type', '!=', 'guru')
+                          ->whereDoesntHave('teacher');
+                    }
                 })
                 ->orderBy('full_name')
                 ->get();
@@ -173,9 +201,13 @@ class EmployeeAttendanceController extends Controller
             $attendances = EmployeeAttendance::where('school_id', $schoolId)
                 ->whereYear('date', $year)
                 ->whereMonth('date', $month)
-                ->whereHas('employee', function($q) {
-                    $q->where('employee_type', '!=', 'guru')
-                      ->whereDoesntHave('teacher');
+                ->whereHas('employee', function($q) use ($isYayasan) {
+                    if ($isYayasan) {
+                        $q->whereNotNull('id');
+                    } else {
+                        $q->where('employee_type', '!=', 'guru')
+                          ->whereDoesntHave('teacher');
+                    }
                 })
                 ->get();
 

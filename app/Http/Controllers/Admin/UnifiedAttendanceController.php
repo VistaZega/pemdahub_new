@@ -201,8 +201,12 @@ class UnifiedAttendanceController extends Controller
             // Pegawai Live
             $empQuery = Employee::where('is_active', true)
                 ->where('school_id', $f['schoolId'])
-                ->where(function ($q) {
-                    $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+                ->where(function ($q) use ($f) {
+                    if ($f['isYayasan']) {
+                        $q->whereNotNull('id');
+                    } else {
+                        $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+                    }
                 });
 
             $stats['total_target'] = $empQuery->count();
@@ -210,8 +214,12 @@ class UnifiedAttendanceController extends Controller
             $attendances = EmployeeAttendance::with('employee')
                 ->where('date', $targetDate)
                 ->where('school_id', $f['schoolId'])
-                ->whereHas('employee', function ($q) {
-                    $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+                ->whereHas('employee', function ($q) use ($f) {
+                    if ($f['isYayasan']) {
+                        $q->whereNotNull('id');
+                    } else {
+                        $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+                    }
                 })
                 ->orderBy('id', 'desc')
                 ->take(500)
@@ -417,8 +425,12 @@ class UnifiedAttendanceController extends Controller
             // Pegawai
             $empQuery = Employee::where('is_active', true)
                 ->where('school_id', $f['schoolId'])
-                ->where(function ($q) {
-                    $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+                ->where(function ($q) use ($f) {
+                    if ($f['isYayasan']) {
+                        $q->whereNotNull('id');
+                    } else {
+                        $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+                    }
                 })
                 ->when($search, function ($q) use ($search) {
                     $q->where(function ($sq) use ($search) {
@@ -539,8 +551,12 @@ class UnifiedAttendanceController extends Controller
             // Pegawai
             $persons = Employee::where('is_active', true)
                 ->where('school_id', $f['schoolId'])
-                ->where(function ($q) {
-                    $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+                ->where(function ($q) use ($f) {
+                    if ($f['isYayasan']) {
+                        $q->whereNotNull('id');
+                    } else {
+                        $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+                    }
                 })
                 ->orderBy('full_name')
                 ->get();
@@ -715,8 +731,12 @@ class UnifiedAttendanceController extends Controller
             // Pegawai
             $persons = Employee::where('is_active', true)
                 ->where('school_id', $f['schoolId'])
-                ->where(function ($q) {
-                    $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+                ->where(function ($q) use ($f) {
+                    if ($f['isYayasan']) {
+                        $q->whereNotNull('id');
+                    } else {
+                        $q->where('employee_type', '!=', 'guru')->whereDoesntHave('teacher');
+                    }
                 })
                 ->orderBy('full_name')
                 ->get();
