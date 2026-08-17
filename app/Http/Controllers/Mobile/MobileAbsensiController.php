@@ -45,13 +45,10 @@ class MobileAbsensiController extends Controller
         $activeRole = session('active_role', $user->role);
         $wantsJson = $request->expectsJson() || $request->wantsJson() || $request->ajax() || $request->isJson();
 
-        // 1. CEK APAPUN ROLE ATAU MODEL GURU / PEGAWAI
-        $employee = \App\Models\Employee::where('user_id', $user->id)->first();
-        if (!$employee && $user->school_id && ($user->isGuru() || $user->isPegawai() || $activeRole === 'guru')) {
-            $employee = \App\Models\Employee::where('school_id', $user->school_id)->first();
-        }
+        $isGuruOrPegawai = $user->isGuru() || $user->isPegawai() || $user->isKepalaSekolah() || $activeRole === 'guru' || $activeRole === 'pegawai';
 
-        if ($employee || $activeRole === 'guru' || $user->isGuru()) {
+        // 1. CEK APAPUN ROLE ATAU MODEL GURU / PEGAWAI
+        if ($isGuruOrPegawai) {
             $today = date('Y-m-d');
             $currentTime = date('H:i:s');
             $deviceId = $request->input('device_id') ?: ('WEB-GPS-' . $user->id);
@@ -61,49 +58,149 @@ class MobileAbsensiController extends Controller
             $lng = (float) $request->input('longitude', 0);
 
             if ($lat == 0.0 && $lng == 0.0) {
-                $msg = 'Gagal! Lokasi GPS tidak ditemukan atau belum aktif.';
+                $msg = 'Gagal! Lokasi GPS tidak ditemukan atau belum aktif. Harap izinkan akses lokasi (GPS) pada browser/perangkat Anda.';
                 return $wantsJson
                     ? response()->json(['success' => false, 'message' => $msg], 422)
                     : back()->with('error', $msg);
             }
 
-            $school = $employee ? $employee->school : ($user->school ?? null);
-            $schoolLat = (float) ($school->latitude ?? 0);
-            $schoolLong = (float) ($school->longitude ?? 0);
-            if ($schoolLat == 0.0 || $schoolLong == 0.0) {
-                $schoolLat = (float) \App\Models\Setting::getValue('school_latitude', 1.282500);
-                $schoolLong = (float) \App\Models\Setting::getValue('school_longitude', 97.619000);
+            // Selesaikan relasi Employee dan Teacher secara aman (tidak pernah mengambil data pegawai milik orang lain)
+            $teacher = \App\Models\Teacher::where('user_id', $user->id)->first();
+            $employee = \App\Models\Employee::where('user_id', $user->id)->first();
+
+            if (!$employee && $teacher && $teacher->employee_id) {
+                $employee = \App\Models\Employee::find($teacher->employee_id);
+                if ($employee && !$employee->user_id) {
+                    $employee->update(['user_id' => $user->id]);
+                }
             }
 
-            $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 50);
-            if ($maxRadiusMeters <= 0) {
-                $maxRadiusMeters = 50;
-            }
-
-            $distance = $this->calculateDistance($lat, $lng, $schoolLat, $schoolLong);
-            $formattedDist = number_format($distance, 0, ',', '.');
-
-            if ($distance > $maxRadiusMeters) {
-                $msg = "⛔ Presensi Ditolak! Lokasi Anda berada di luar radius area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter (Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}\n🏫 Titik Target Sekolah: {$schoolLat}, {$schoolLong}";
-                return $wantsJson
-                    ? response()->json(['success' => false, 'message' => $msg, 'distance' => round($distance), 'max_radius' => $maxRadiusMeters], 403)
-                    : back()->with('error', $msg);
+            if ($employee && !$teacher) {
+                $teacher = \App\Models\Teacher::where('employee_id', $employee->id)->first();
+                if ($teacher && !$teacher->user_id) {
+                    $teacher->update(['user_id' => $user->id]);
+                }
             }
 
             if (!$employee) {
-                $msg = 'Data Pegawai/Guru tidak ditemukan di sistem. Harap hubungi Admin.';
+                $employee = \App\Models\Employee::create([
+                    'school_id' => $user->school_id ?? 1,
+                    'user_id' => $user->id,
+                    'employee_code' => $teacher?->teacher_code ?? ('PGW-' . $user->id),
+                    'full_name' => $teacher?->full_name ?? $user->name,
+                    'gender' => $teacher?->gender ?? 'L',
+                    'birth_place' => $teacher?->birth_place ?? '-',
+                    'employee_type' => $user->isGuru() ? 'teacher' : 'staff',
+                    'employment_status' => 'yayasan',
+                    'is_active' => true,
+                ]);
+            }
+
+            if ($employee && !$teacher && ($user->isGuru() || $activeRole === 'guru')) {
+                $teacher = \App\Models\Teacher::firstOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'employee_id' => $employee->id,
+                        'school_id' => $employee->school_id ?? $user->school_id ?? 1,
+                        'teacher_code' => $employee->employee_code ?? ('PGW-' . $user->id),
+                        'full_name' => $employee->full_name ?? $user->name,
+                        'gender' => $employee->gender ?? 'L',
+                        'birth_place' => $employee->birth_place ?? '-',
+                        'is_active' => true,
+                    ]
+                );
+            }
+
+            // Dapatkan Radius Geofencing (Default 350 meter agar mencakup seluruh kompleks sekolah & drift GPS)
+            $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 350);
+            if ($maxRadiusMeters < 100) {
+                $maxRadiusMeters = 350;
+            }
+
+            // Kumpulkan seluruh titik koordinat unit sekolah dalam Kompleks Perguruan Pembda
+            $targetLocations = [];
+
+            $primarySchool = $employee ? $employee->school : ($user->school ?? null);
+            if ($primarySchool && (float)$primarySchool->latitude != 0.0 && (float)$primarySchool->longitude != 0.0) {
+                $targetLocations[] = [
+                    'name' => $primarySchool->name,
+                    'lat' => (float)$primarySchool->latitude,
+                    'lng' => (float)$primarySchool->longitude,
+                ];
+            }
+
+            $allSchools = \App\Models\School::where('is_active', true)
+                ->whereNotNull('latitude')
+                ->whereNotNull('longitude')
+                ->where('latitude', '!=', 0)
+                ->where('longitude', '!=', 0)
+                ->get();
+            foreach ($allSchools as $sch) {
+                $targetLocations[] = [
+                    'name' => $sch->name,
+                    'lat' => (float)$sch->latitude,
+                    'lng' => (float)$sch->longitude,
+                ];
+            }
+
+            $globalLat = (float) \App\Models\Setting::getValue('school_latitude', 1.282500);
+            $globalLng = (float) \App\Models\Setting::getValue('school_longitude', 97.619000);
+            $targetLocations[] = [
+                'name' => 'Kampus Perguruan Pembda',
+                'lat' => $globalLat,
+                'lng' => $globalLng,
+            ];
+
+            // Cari jarak terdekat ke salah satu titik unit sekolah Pembda
+            $minDistance = null;
+            $closestTarget = null;
+            foreach ($targetLocations as $loc) {
+                $dist = $this->calculateDistance($lat, $lng, $loc['lat'], $loc['lng']);
+                if ($minDistance === null || $dist < $minDistance) {
+                    $minDistance = $dist;
+                    $closestTarget = $loc;
+                }
+            }
+
+            $formattedDist = number_format($minDistance, 0, ',', '.');
+
+            if ($minDistance > $maxRadiusMeters) {
+                $msg = "⛔ Presensi Ditolak! Lokasi Anda berada di luar radius area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}\n🏫 Titik Acuan: {$closestTarget['name']} ({$closestTarget['lat']}, {$closestTarget['lng']})";
                 return $wantsJson
-                    ? response()->json(['success' => false, 'message' => $msg], 404)
+                    ? response()->json(['success' => false, 'message' => $msg, 'distance' => round($minDistance), 'max_radius' => $maxRadiusMeters], 403)
                     : back()->with('error', $msg);
+            }
+
+            // Tentukan status kehadiran (Hadir Mengajar vs Tugas Khusus)
+            $isTeacher = ($user->isGuru() || $activeRole === 'guru' || ($employee && $employee->isTeacher()));
+            $hasScheduleToday = false;
+            $notes = null;
+
+            if ($isTeacher) {
+                $dayOfWeekString = strtolower(now()->format('l'));
+                if ($teacher) {
+                    $hasScheduleToday = \App\Models\Schedule::where('teacher_id', $teacher->id)
+                        ->where('day_of_week', $dayOfWeekString)
+                        ->exists();
+                }
+                if (!$hasScheduleToday || date('m-d') === '08-17') {
+                    $notes = 'tugas_khusus';
+                }
+            } else {
+                $isWeekend = in_array(now()->format('D'), ['Sat', 'Sun']);
+                if ($isWeekend || date('m-d') === '08-17') {
+                    $notes = 'tugas_khusus';
+                }
             }
 
             // Cari / Buat Presensi Guru Hari Ini
             $attendance = \App\Models\EmployeeAttendance::firstOrCreate(
                 ['employee_id' => $employee->id, 'date' => $today],
                 [
-                    'school_id'    => $employee->school_id,
+                    'school_id'    => $employee->school_id ?? $user->school_id ?? 1,
                     'time_in'      => $currentTime,
                     'status'       => 'hadir',
+                    'notes'        => $notes,
                     'recorded_via' => 'gps',
                     'device_id'    => $deviceId,
                     'recorded_by'  => $user->id,
@@ -113,13 +210,24 @@ class MobileAbsensiController extends Controller
             $isMerdekaDay = (date('m-d') === '08-17');
 
             if ($attendance->wasRecentlyCreated) {
+                // Log Reputasi untuk Tugas Khusus / Upacara
+                if ($notes === 'tugas_khusus' && $user->id) {
+                    \App\Models\ReputationLog::log(
+                        $user->id,
+                        15,
+                        'attendance',
+                        $isMerdekaDay ? 'Upacara Hari Kemerdekaan RI (Tugas Khusus)' : 'Tugas Khusus: Kehadiran di luar jadwal mengajar',
+                        $attendance
+                    );
+                }
+
                 if ($isMerdekaDay) {
-                    $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi Masuk berhasil dicatat jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak GPS: {$formattedDist} m dari sekolah).";
+                    $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi Masuk Upacara berhasil dicatat jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak GPS: {$formattedDist} m dari sekolah).";
                 } else {
                     $msg = '📍 Presensi Masuk berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak: {$formattedDist} m dari titik sekolah).";
                 }
                 return $wantsJson
-                    ? response()->json(['success' => true, 'message' => $msg, 'distance' => round($distance)])
+                    ? response()->json(['success' => true, 'message' => $msg, 'distance' => round($minDistance)])
                     : back()->with('success', $msg);
             }
 
@@ -128,12 +236,12 @@ class MobileAbsensiController extends Controller
             if ($attendance->time_in && $isNotCheckedOut) {
                 $attendance->update(['time_out' => $currentTime]);
                 if ($isMerdekaDay) {
-                    $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi Pulang berhasil dicatat jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak GPS: {$formattedDist} m).";
+                    $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi Pulang Upacara berhasil dicatat jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak GPS: {$formattedDist} m).";
                 } else {
                     $msg = '📍 Presensi Pulang berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak: {$formattedDist} m).";
                 }
                 return $wantsJson
-                    ? response()->json(['success' => true, 'message' => $msg, 'distance' => round($distance)])
+                    ? response()->json(['success' => true, 'message' => $msg, 'distance' => round($minDistance)])
                     : back()->with('success', $msg);
             }
 

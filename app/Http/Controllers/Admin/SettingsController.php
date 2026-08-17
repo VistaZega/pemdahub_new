@@ -181,6 +181,11 @@ class SettingsController extends Controller
             'pegawai_can_see_payroll_details' => Setting::getValue('pegawai_can_see_payroll_details', true),
             'pegawai_view_attendance_recap' => Setting::getValue('pegawai_view_attendance_recap', true),
 
+            // Presensi & Geofencing GPS
+            'attendance_max_radius' => Setting::getValue('attendance_max_radius', 350),
+            'school_latitude' => Setting::getValue('school_latitude', '1.282500'),
+            'school_longitude' => Setting::getValue('school_longitude', '97.619000'),
+
             // WhatsApp Otomatis
             'wa_send_psb_registration' => Setting::getValue('wa_send_psb_registration', true),
             'wa_send_psb_payment' => Setting::getValue('wa_send_psb_payment', true),
@@ -238,9 +243,20 @@ class SettingsController extends Controller
             Setting::setValue($key, $request->boolean($key), 'boolean', 'features');
         }
 
+        if ($request->filled('attendance_max_radius')) {
+            $radius = max(50, (int) $request->input('attendance_max_radius', 350));
+            Setting::setValue('attendance_max_radius', $radius, 'integer', 'features');
+        }
+        if ($request->filled('school_latitude')) {
+            Setting::setValue('school_latitude', $request->input('school_latitude'), 'string', 'features');
+        }
+        if ($request->filled('school_longitude')) {
+            Setting::setValue('school_longitude', $request->input('school_longitude'), 'string', 'features');
+        }
+
         return redirect()
             ->route('admin.settings.features')
-            ->with('success', 'Otorisasi fitur berhasil diperbarui!');
+            ->with('success', 'Konfigurasi otorisasi fitur dan pengaturan presensi berhasil diperbarui!');
     }
 
     private function authorizeFeatureAccess()

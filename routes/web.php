@@ -1354,14 +1354,116 @@ Route::get('/run-migrations', function () {
         echo "<h1>=== SYNCING ALUMNI DATA ACROSS ALL TABLES ===</h1>\n";
         $alumniSyncExitCode = \Illuminate\Support\Facades\Artisan::call('alumni:sync');
         echo \Illuminate\Support\Facades\Artisan::output();
-        echo "<h1>=== SETTING ATTENDANCE RADIUS TO 50 METERS ===</h1>\n";
-        \App\Models\Setting::setValue('attendance_max_radius', '50', 'integer', 'features');
-        echo "✅ Attendance Max Radius diset ke <b>50 meter</b> di tabel settings!<br>\n";
+        echo "<h1>=== SETTING ATTENDANCE RADIUS TO 350 METERS ===</h1>\n";
+        \App\Models\Setting::setValue('attendance_max_radius', '350', 'integer', 'features');
+        echo "✅ Attendance Max Radius diset ke <b>350 meter</b> di tabel settings!<br>\n";
 
         echo "<b><h2 style='color:#0f0;'>✅ MIGRATION AND SYNC COMPLETED SUCCESSFULLY!</h2></b>\n";
     } catch (\Exception $e) {
         echo "<b style='color:#f00;'>ERROR: " . $e->getMessage() . "</b>\n";
     }
+});
+
+Route::get('/fix-attendance', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Akses Ditolak.');
+    }
+
+    echo "<pre style='background:#0f172a; color:#38bdf8; padding:24px; border-radius:16px; font-size:13px; font-family:monospace; line-height:1.6;'>";
+    echo "<h2 style='color:#4ade80;'>=== SINKRONISASI RELASI PEGAWAI GURU & RADIUS GEOFENCING ===</h2>\n";
+
+    try {
+        // 1. Update Radius Presensi ke 350 Meter
+        \App\Models\Setting::setValue('attendance_max_radius', '350', 'integer', 'features');
+        \App\Models\Setting::setValue('school_latitude', '1.282500', 'string', 'features');
+        \App\Models\Setting::setValue('school_longitude', '97.619000', 'string', 'features');
+        echo "✅ Radius Geofencing GPS diset ke <b>350 meter</b> (Toleransi Kompleks Kampus & Deviasi Ruangan).\n";
+
+        // 2. Sinkronisasi Sekolah
+        $schools = \App\Models\School::all();
+        foreach ($schools as $sc) {
+            if (empty($sc->latitude) || (float)$sc->latitude == 0) {
+                $sc->update(['latitude' => 1.282500, 'longitude' => 97.619000]);
+                echo "🏫 Set koordinat default untuk sekolah: {$sc->name}\n";
+            }
+        }
+
+        // 3. Sinkronisasi Relasi Guru & Pegawai
+        $guruUsers = \App\Models\User::whereIn('role', ['guru', 'pegawai', 'kepala_sekolah'])->get();
+        $linkedCount = 0;
+        $createdEmpCount = 0;
+
+        foreach ($guruUsers as $user) {
+            $employee = \App\Models\Employee::where('user_id', $user->id)->first();
+            $teacher = \App\Models\Teacher::where('user_id', $user->id)->first();
+
+            // Jika employee belum punya user_id tapi teacher punya employee_id
+            if (!$employee && $teacher && $teacher->employee_id) {
+                $employee = \App\Models\Employee::find($teacher->employee_id);
+                if ($employee) {
+                    $employee->update(['user_id' => $user->id]);
+                    $linkedCount++;
+                    echo "🔗 Hubungkan Employee #{$employee->id} ke User #{$user->id} ({$user->name})\n";
+                }
+            }
+
+            // Jika employee ada tapi teacher belum link
+            if ($employee && !$teacher) {
+                $teacher = \App\Models\Teacher::where('employee_id', $employee->id)->first();
+                if ($teacher) {
+                    $teacher->update(['user_id' => $user->id]);
+                }
+            }
+
+            // Jika belum ada Employee sama sekali, buatkan Employee yang valid
+            if (!$employee) {
+                $employee = \App\Models\Employee::create([
+                    'school_id' => $user->school_id ?? 1,
+                    'user_id' => $user->id,
+                    'employee_code' => $teacher?->teacher_code ?? ('PGW-' . $user->id),
+                    'full_name' => $teacher?->full_name ?? $user->name,
+                    'gender' => $teacher?->gender ?? 'L',
+                    'birth_place' => $teacher?->birth_place ?? '-',
+                    'employee_type' => $user->role === 'guru' ? 'teacher' : 'staff',
+                    'employment_status' => 'yayasan',
+                    'is_active' => true,
+                ]);
+                $createdEmpCount++;
+                echo "✨ Buat Employee baru #{$employee->id} untuk User #{$user->id} ({$user->name})\n";
+            }
+
+            // Pastikan Teacher record juga terhubung ke Employee ini
+            if ($employee && $user->role === 'guru') {
+                \App\Models\Teacher::firstOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'employee_id' => $employee->id,
+                        'school_id' => $employee->school_id ?? $user->school_id ?? 1,
+                        'teacher_code' => $employee->employee_code ?? ('PGW-' . $user->id),
+                        'full_name' => $employee->full_name ?? $user->name,
+                        'gender' => $employee->gender ?? 'L',
+                        'birth_place' => $employee->birth_place ?? '-',
+                        'is_active' => true,
+                    ]
+                );
+            }
+        }
+
+        echo "\n📊 HASIL SINKRONISASI:\n";
+        echo "- Total Pengguna Guru/Pegawai Diperiksa: " . $guruUsers->count() . "\n";
+        echo "- Relasi Ditautkan: {$linkedCount}\n";
+        echo "- Pegawai Baru Dibuat: {$createdEmpCount}\n";
+
+        // 4. Bersihkan Cache Laravel
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        echo "\n⚡ Cache route, config, dan data berhasil dibersihkan!\n";
+        echo "<h3 style='color:#4ade80;'>🎉 SEMUA PROSES PERBAIKAN ABSENSI SELESAI DENGAN SUKSES!</h3>";
+    } catch (\Exception $e) {
+        echo "<b style='color:#f43f5e;'>ERROR: " . $e->getMessage() . "</b>\n";
+    }
+    echo "</pre>";
 });
 
 Route::get('/migrate-quiz-questions', function () {

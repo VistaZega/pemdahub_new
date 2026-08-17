@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Otorisasi & Kontrol Fitur - PembdaHUB')
 
@@ -187,6 +187,66 @@
                 </div>
             </div>
 
+        </div>
+
+        <!-- KATEGORI: GEOFENCING & RADIUS PRESENSI GPS -->
+        <div class="mt-8 bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-location-dot text-rose-500 text-2xl"></i>
+                        Radius Geofencing & Koordinat Presensi GPS
+                    </h2>
+                    <p class="text-xs text-gray-500 mt-1">Atur jangkauan radius toleransi GPS agar Bapak/Ibu Guru dan Pegawai dapat melakukan presensi mandiri di area sekolah dengan lancar.</p>
+                </div>
+                <span class="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-black rounded-full uppercase self-start sm:self-auto">
+                    Geofencing Multi-Kampus Aktif
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Radius Maksimal (Meter) -->
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                    <label for="attendance_max_radius" class="block text-xs font-black uppercase text-slate-700">
+                        Batas Radius Presensi (Meter)
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="attendance_max_radius" name="attendance_max_radius" 
+                               value="{{ $settings['attendance_max_radius'] ?? 350 }}" min="50" max="2000" step="10"
+                               class="w-full text-base font-black px-3.5 py-2.5 rounded-xl border-2 border-slate-300 focus:border-indigo-500 outline-none bg-white text-slate-800">
+                        <span class="absolute right-3.5 top-2.5 text-xs font-bold text-slate-400">meter</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 font-medium leading-relaxed">
+                        Rekomendasi: <b>350 meter</b> untuk mencakup seluruh area gedung sekolah, ruang guru, serta deviasi GPS di dalam ruangan.
+                    </p>
+                </div>
+
+                <!-- Latitude Kampus -->
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                    <label for="school_latitude" class="block text-xs font-black uppercase text-slate-700">
+                        Latitude Titik Pusat Sekolah
+                    </label>
+                    <input type="text" id="school_latitude" name="school_latitude" 
+                           value="{{ $settings['school_latitude'] ?? '1.282500' }}"
+                           class="w-full text-sm font-mono font-bold px-3.5 py-2.5 rounded-xl border-2 border-slate-300 focus:border-indigo-500 outline-none bg-white text-slate-800">
+                    <p class="text-[11px] text-slate-500 font-medium">
+                        Default: <code>1.282500</code> (Kompleks Jl. Pelita No. 09 Gunungsitoli).
+                    </p>
+                </div>
+
+                <!-- Longitude Kampus -->
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                    <label for="school_longitude" class="block text-xs font-black uppercase text-slate-700">
+                        Longitude Titik Pusat Sekolah
+                    </label>
+                    <input type="text" id="school_longitude" name="school_longitude" 
+                           value="{{ $settings['school_longitude'] ?? '97.619000' }}"
+                           class="w-full text-sm font-mono font-bold px-3.5 py-2.5 rounded-xl border-2 border-slate-300 focus:border-indigo-500 outline-none bg-white text-slate-800">
+                    <p class="text-[11px] text-slate-500 font-medium">
+                        Default: <code>97.619000</code> (Kompleks Jl. Pelita No. 09 Gunungsitoli).
+                    </p>
+                </div>
+            </div>
         </div>
 
         <!-- KATEGORI: WHATSAPP OTOMATIS -->

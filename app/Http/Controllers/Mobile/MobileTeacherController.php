@@ -363,29 +363,90 @@ class MobileTeacherController extends Controller
             'classroom_id' => 'required|exists:classrooms,id',
             'date' => 'required|date',
             'attendances' => 'required|array',
+            'attendances.*' => 'required|in:hadir,izin,sakit,alpha',
         ]);
 
+        $teacher = $this->getTeacher();
         $classroomId = $request->input('classroom_id');
         $date = $request->input('date');
         $attendancesInput = $request->input('attendances');
 
+        $classroom = Classroom::find($classroomId);
+        $classroomName = $classroom ? $classroom->class_name : 'Kelas';
+
+        $dayOfWeek = strtolower(\Carbon\Carbon::parse($date)->format('l'));
+        $schedule = Schedule::where('teacher_id', $teacher?->id ?? 0)
+            ->where('classroom_id', $classroomId)
+            ->where('day_of_week', $dayOfWeek)
+            ->first();
+
+        if (!$schedule) {
+            $schedule = Schedule::where('teacher_id', $teacher?->id ?? 0)
+                ->where('classroom_id', $classroomId)
+                ->first();
+        }
+        $scheduleId = $schedule ? $schedule->id : null;
+
+        $count = 0;
         foreach ($attendancesInput as $studentId => $status) {
-            Attendance::updateOrCreate(
+            $attendance = Attendance::updateOrCreate(
                 [
-                    'student_id' => $studentId,
-                    'date' => $date,
+                    'student_id'   => $studentId,
+                    'classroom_id' => $classroomId,
+                    'date'         => $date,
+                    'created_by'   => Auth::id(),
                 ],
                 [
-                    'classroom_id' => $classroomId,
-                    'status' => $status,
-                    'time_in' => now()->format('H:i:s'),
+                    'schedule_id'  => $scheduleId,
+                    'status'       => $status,
+                    'time_in'      => now()->format('H:i:s'),
                     'recorded_via' => 'manual',
-                    'created_by' => Auth::id(),
                 ]
+            );
+
+            // Reputation Hook Siswa
+            $student = Student::find($studentId);
+            if ($student && $student->user_id) {
+                $points = match($status) {
+                    'hadir' => 10,
+                    'alpha' => -10,
+                    default => 0
+                };
+                $desc = "Kehadiran di kelas " . $classroomName . " (" . ucfirst($status) . ")";
+                
+                $alreadyLoggedOtherDate = ReputationLog::where('user_id', $student->user_id)
+                    ->where('category', 'attendance')
+                    ->whereDate('created_at', $date)
+                    ->where(function($q) use ($attendance) {
+                        $q->where('reference_type', '!=', get_class($attendance))
+                          ->orWhere('reference_id', '!=', $attendance->id);
+                    })
+                    ->exists();
+
+                if (!$alreadyLoggedOtherDate) {
+                    ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
+                }
+            }
+
+            $count++;
+        }
+
+        // Reputation Hook Guru
+        $teacherAlreadyLoggedToday = ReputationLog::where('user_id', Auth::id())
+            ->where('category', 'attendance_input')
+            ->whereDate('created_at', $date ?? date('Y-m-d'))
+            ->exists();
+
+        if (!$teacherAlreadyLoggedToday) {
+            ReputationLog::log(
+                Auth::id(),
+                20,
+                'attendance_input',
+                "Melakukan input absensi kelas ({$date})"
             );
         }
 
-        return back()->with('success', 'Absensi kelas berhasil disimpan!');
+        return back()->with('success', "Absensi kelas berhasil disimpan untuk {$count} siswa!");
     }
 
     /**

@@ -234,7 +234,7 @@ class AttendanceController extends Controller
                     // Cek apakah siswa sudah memiliki log kehadiran pada tanggal ini selain record ini
                     $alreadyLoggedOtherDate = \App\Models\ReputationLog::where('user_id', $student->user_id)
                         ->where('category', 'attendance')
-                        ->whereDate('created_at', $date)
+                        ->whereDate('created_at', $request->date)
                         ->where(function($q) use ($attendance) {
                             $q->where('reference_type', '!=', get_class($attendance))
                               ->orWhere('reference_id', '!=', $attendance->id);
