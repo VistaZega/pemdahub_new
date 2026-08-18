@@ -144,6 +144,22 @@ class FinalProjectAdminController extends Controller
 
         $projects = $query->latest()->paginate(15)->withQueryString();
 
+        // Calculate summary statistics for claymorphism stat cards
+        $statsBaseQuery = FinalProject::query();
+        if ($activeYear) {
+            $statsBaseQuery->where('academic_year_id', $activeYear->id);
+        }
+        if (!$isSA) {
+            $statsBaseQuery->whereHas('student', fn($q) => $q->where('school_id', $schoolId));
+        }
+
+        $stats = [
+            'total' => (clone $statsBaseQuery)->count(),
+            'approved' => (clone $statsBaseQuery)->whereIn('status', ['approved', 'in_progress'])->count(),
+            'pending' => (clone $statsBaseQuery)->where('status', 'pending')->count(),
+            'ready_for_exam' => (clone $statsBaseQuery)->whereIn('status', ['ready_for_exam', 'completed'])->count(),
+        ];
+
         // Get teachers for advisor dropdown
         $teachersQuery = Teacher::with(['user', 'school']);
         if (!$isSA) {
@@ -156,7 +172,7 @@ class FinalProjectAdminController extends Controller
 
         $schools = School::whereIn('type', ['SMA', 'SMK'])->get();
 
-        return view('admin.final_projects.proposals.index', compact('projects', 'teachers', 'schools', 'isSA'));
+        return view('admin.final_projects.proposals.index', compact('projects', 'teachers', 'schools', 'stats', 'isSA'));
     }
 
     public function proposalsCreate(Request $request)
