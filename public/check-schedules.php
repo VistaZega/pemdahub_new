@@ -12,11 +12,20 @@ if (($_GET['secret'] ?? '') !== 'pembda99') {
     die('Unauthorized.');
 }
 
+// Enable error display for debugging
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 // Bootstrap Laravel
-require __DIR__ . '/../pembdahub/vendor/autoload.php';
-$app = require_once __DIR__ . '/../pembdahub/bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-$kernel->handle($request = Illuminate\Http\Request::capture());
+try {
+    require __DIR__ . '/../vendor/autoload.php';
+    $app = require_once __DIR__ . '/../bootstrap/app.php';
+    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
+} catch (\Throwable $e) {
+    echo "<pre>Bootstrap Error: " . $e->getMessage() . "\nFile: " . $e->getFile() . ":" . $e->getLine() . "</pre>";
+    exit;
+}
 
 use Illuminate\Support\Facades\DB;
 
@@ -43,6 +52,8 @@ pre { background: #161b22; padding: 15px; border-radius: 8px; overflow-x: auto; 
 
 echo "<h1>🔍 Diagnostik Jadwal (Schedules) - PembdaHUB</h1>";
 echo "<p class='info'>Waktu: " . date('Y-m-d H:i:s') . " WIB</p>";
+
+try {
 
 // 1. Cek Tahun Pelajaran Aktif
 echo "<h2>1. Tahun Pelajaran Aktif</h2>";
@@ -276,4 +287,14 @@ if ($totalForActiveAY === 0) {
 }
 
 echo "<br><p class='info'>💡 Catatan: Halaman ini aman untuk diakses berulang kali (hanya membaca data, tidak mengubah apapun).</p>";
+
+} catch (\Throwable $e) {
+    echo "<h2 style='color: #f85149;'>❌ Error Terjadi</h2>";
+    echo "<pre style='background: #161b22; padding: 15px; border-radius: 8px; color: #f85149;'>";
+    echo "Message: " . $e->getMessage() . "\n";
+    echo "File: " . $e->getFile() . ":" . $e->getLine() . "\n";
+    echo "Trace:\n" . $e->getTraceAsString();
+    echo "</pre>";
+}
+
 echo "</body></html>";
