@@ -265,6 +265,151 @@ if ($samples->isNotEmpty()) {
     echo "</table>";
 }
 
+// 9. Distribusi Agama Siswa (Penting untuk block_type = parallel/agama)
+echo "<h2>9. Distribusi Agama Siswa (students.religion)</h2>";
+$religionDist = DB::table('students')
+    ->join('student_classes', 'students.id', '=', 'student_classes.student_id')
+    ->join('classrooms', 'student_classes.classroom_id', '=', 'classrooms.id')
+    ->where('student_classes.status', 'aktif')
+    ->where('classrooms.academic_year_id', $activeAY->id)
+    ->select('students.religion', DB::raw('COUNT(DISTINCT students.id) as total'))
+    ->groupBy('students.religion')
+    ->orderByDesc('total')
+    ->get();
+
+echo "<table>";
+echo "<tr><th>Agama (religion)</th><th>Jumlah Siswa</th><th>Status</th></tr>";
+$nullReligion = 0;
+foreach ($religionDist as $row) {
+    $val = $row->religion ?? 'NULL';
+    $status = (empty($row->religion) || $row->religion === null) 
+        ? "<span class='badge badge-red'>KOSONG!</span>" 
+        : "<span class='badge badge-green'>OK</span>";
+    if (empty($row->religion)) $nullReligion += $row->total;
+    echo "<tr><td><strong>{$val}</strong></td><td>{$row->total}</td><td>{$status}</td></tr>";
+}
+echo "</table>";
+
+if ($nullReligion > 0) {
+    echo "<p class='error'>⚠️ Ditemukan {$nullReligion} siswa TANPA data agama! Ini menyebabkan siswa tidak masuk filter 'wajib hadir' untuk mata pelajaran Agama (Paralel).</p>";
+}
+
+// Cek apakah ada nilai religion yang menggunakan case berbeda
+$religionValues = DB::table('students')
+    ->whereNotNull('religion')
+    ->where('religion', '!=', '')
+    ->select('religion')
+    ->distinct()
+    ->pluck('religion')
+    ->toArray();
+echo "<p class='info'>Nilai unik religion di database: <strong>" . implode(', ', $religionValues) . "</strong></p>";
+echo "<p class='info'>Filter kode mencari: 'Islam', 'Katolik', 'Kristen', 'Hindu', 'Buddha', 'Konghucu' (case-sensitive match)</p>";
+
+// Cek case mismatch
+foreach ($religionValues as $val) {
+    $expected = ['Islam', 'Katolik', 'Kristen', 'Hindu', 'Buddha', 'Konghucu'];
+    $matched = false;
+    foreach ($expected as $exp) {
+        if ($val === $exp) { $matched = true; break; }
+    }
+    if (!$matched) {
+        // Check if it's a case issue
+        foreach ($expected as $exp) {
+            if (strtolower($val) === strtolower($exp) && $val !== $exp) {
+                echo "<p class='error'>⚠️ CASE MISMATCH: Database berisi '<strong>{$val}</strong>' tapi kode filter mencari '<strong>{$exp}</strong>'!</p>";
+            }
+        }
+    }
+}
+
+// 10. Teaching Assignments dengan block_type = parallel
+echo "<h2>10. Teaching Assignments tipe Paralel/Agama (TP Aktif)</h2>";
+$parallelAssignments = DB::table('teaching_assignments')
+    ->leftJoin('teachers', 'teaching_assignments.teacher_id', '=', 'teachers.id')
+    ->leftJoin('classrooms', 'teaching_assignments.classroom_id', '=', 'classrooms.id')
+    ->leftJoin('subjects', 'teaching_assignments.subject_id', '=', 'subjects.id')
+    ->where('teaching_assignments.academic_year_id', $activeAY->id)
+    ->where('teaching_assignments.block_type', 'parallel')
+    ->select(
+        'teaching_assignments.id',
+        'teachers.full_name as teacher_name',
+        'classrooms.class_name',
+        'subjects.name as subject_name',
+        'teaching_assignments.block_type',
+        'teaching_assignments.group_code',
+        'teaching_assignments.is_active'
+    )
+    ->orderBy('classrooms.class_name')
+    ->get();
+
+if ($parallelAssignments->isNotEmpty()) {
+    echo "<p>Ditemukan <strong>{$parallelAssignments->count()}</strong> teaching assignment tipe Paralel:</p>";
+    echo "<table>";
+    echo "<tr><th>ID</th><th>Guru</th><th>Kelas</th><th>Mapel</th><th>Group Code</th><th>Aktif</th></tr>";
+    foreach ($parallelAssignments as $pa) {
+        $activeLabel = $pa->is_active ? "<span class='badge badge-green'>Ya</span>" : "<span class='badge badge-red'>Tidak</span>";
+        echo "<tr><td>{$pa->id}</td><td>{$pa->teacher_name}</td><td>{$pa->class_name}</td><td>{$pa->subject_name}</td><td>" . ($pa->group_code ?? '-') . "</td><td>{$activeLabel}</td></tr>";
+    }
+    echo "</table>";
+} else {
+    echo "<p class='warn'>Tidak ada teaching assignment tipe Paralel untuk TP aktif.</p>";
+}
+
+// 11. Cek spesifik classroom_id=257 (dari screenshot)
+echo "<h2>11. Diagnostik Spesifik: Classroom ID 257 (dari laporan)</h2>";
+$cr257 = DB::table('classrooms')->where('id', 257)->first();
+if ($cr257) {
+    echo "<p class='ok'>Kelas: <strong>{$cr257->class_name}</strong> (ID: 257)</p>";
+    
+    // Cek schedules untuk kelas ini
+    $cr257Schedules = DB::table('schedules')
+        ->leftJoin('teachers', 'schedules.teacher_id', '=', 'teachers.id')
+        ->leftJoin('subjects', 'schedules.subject_id', '=', 'subjects.id')
+        ->where('schedules.classroom_id', 257)
+        ->where('schedules.academic_year_id', $activeAY->id)
+        ->select('schedules.id', 'schedules.day_of_week', 'schedules.start_time', 'schedules.end_time', 'teachers.full_name as teacher_name', 'subjects.name as subject_name')
+        ->orderBy('schedules.day_of_week')
+        ->get();
+    
+    echo "<h3>Jadwal untuk Kelas ini:</h3>";
+    if ($cr257Schedules->isNotEmpty()) {
+        echo "<table>";
+        echo "<tr><th>ID</th><th>Hari</th><th>Mulai</th><th>Selesai</th><th>Guru</th><th>Mapel</th></tr>";
+        foreach ($cr257Schedules as $s) {
+            echo "<tr><td>{$s->id}</td><td><strong>" . strtoupper($s->day_of_week ?? 'NULL') . "</strong></td><td>{$s->start_time}</td><td>{$s->end_time}</td><td>" . ($s->teacher_name ?? '-') . "</td><td>" . ($s->subject_name ?? '-') . "</td></tr>";
+        }
+        echo "</table>";
+        
+        $daysForCr257 = $cr257Schedules->pluck('day_of_week')->unique()->toArray();
+        echo "<p class='info'>Hari yang tersedia: <strong>" . implode(', ', array_map('strtoupper', $daysForCr257)) . "</strong></p>";
+        if (count($daysForCr257) === 1) {
+            echo "<p class='error'>⚠️ Kelas ini hanya punya jadwal 1 hari!</p>";
+        }
+    } else {
+        echo "<p class='error'>❌ TIDAK ADA jadwal untuk kelas ini di TP aktif!</p>";
+    }
+    
+    // Cek siswa dan agama mereka
+    $cr257Students = DB::table('student_classes')
+        ->join('students', 'student_classes.student_id', '=', 'students.id')
+        ->where('student_classes.classroom_id', 257)
+        ->where('student_classes.status', 'aktif')
+        ->where('student_classes.academic_year_id', $activeAY->id)
+        ->select('students.religion', DB::raw('COUNT(*) as total'))
+        ->groupBy('students.religion')
+        ->get();
+    
+    echo "<h3>Distribusi Agama Siswa di Kelas ini:</h3>";
+    echo "<table>";
+    echo "<tr><th>Agama</th><th>Jumlah</th></tr>";
+    foreach ($cr257Students as $row) {
+        echo "<tr><td>" . ($row->religion ?? 'NULL/KOSONG') . "</td><td>{$row->total}</td></tr>";
+    }
+    echo "</table>";
+} else {
+    echo "<p class='warn'>Classroom ID 257 tidak ditemukan.</p>";
+}
+
 echo "<hr>";
 echo "<h2>📋 Kesimpulan</h2>";
 
@@ -284,6 +429,10 @@ if ($totalForActiveAY === 0) {
 } else {
     echo "<p class='ok'>✅ Distribusi hari jadwal terlihat normal.</p>";
     echo "<p>Jika masalah masih terjadi, mungkin ada masalah spesifik pada guru/kelas tertentu.</p>";
+}
+
+if ($nullReligion > 0) {
+    echo "<p class='error'>❌ <strong>MASALAH KEDUA:</strong> {$nullReligion} siswa tidak punya data agama → mereka tidak akan dihitung sebagai 'wajib hadir' di mata pelajaran Agama (Paralel), sehingga ditampilkan merah.</p>";
 }
 
 echo "<br><p class='info'>💡 Catatan: Halaman ini aman untuk diakses berulang kali (hanya membaca data, tidak mengubah apapun).</p>";
