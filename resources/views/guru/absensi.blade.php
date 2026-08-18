@@ -324,7 +324,7 @@
                                                     };
                                                 }
                                             @endphp
-                                            <td class="px-1 py-1.5 text-center border-r border-gray-100 {{ $isInputCol && $isWajib ? 'bg-amber-50/80 border-x-2 border-amber-300' : '' }} {{ !$isWajib && !$stStatus ? 'bg-red-600 border-r border-red-700 text-white' : '' }}">
+                                            <td class="px-1 py-1.5 text-center border-r border-gray-100 {{ $isInputCol && $isWajib ? 'bg-amber-50/80 border-x-2 border-amber-300' : '' }} {{ !$isWajib && !$stStatus ? 'bg-slate-100/70 border-r border-gray-200 text-slate-400' : '' }}">
                                                 @if($isInputCol && $isWajib)
                                                     {{-- Mode Edit (editMode = true): Tampilkan Toggle Buttons --}}
                                                     @php
@@ -368,7 +368,7 @@
                                                 @elseif($stStatus)
                                                     <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black {{ $stBadge }}">{{ $stChar }}</span>
                                                 @elseif(!$isWajib)
-                                                    <span class="text-white font-black text-xs select-none" title="Beda Kelompok Blok / Tidak Wajib Hadir">&nbsp;</span>
+                                                    <span class="text-slate-400 font-bold text-xs select-none" title="Bukan Kelompok Mapel/Agama Ini (Tidak Wajib Hadir)">—</span>
                                                 @else
                                                     <span class="text-gray-200">.</span>
                                                 @endif
@@ -376,11 +376,11 @@
                                         @empty
                                             <td class="px-3 py-1.5 text-center border-r border-gray-100 text-gray-300">-</td>
                                         @endforelse
-                                        <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-green-700 bg-green-50/50' : 'text-red-400 bg-red-100/50' }} border-r border-gray-100">{{ $isWajib && $stStat['hadir'] > 0 ? $stStat['hadir'] : '-' }}</td>
-                                        <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-yellow-700 bg-yellow-50/50' : 'text-red-400 bg-red-100/50' }} border-r border-gray-100">{{ $isWajib && $stStat['sakit'] > 0 ? $stStat['sakit'] : '-' }}</td>
-                                        <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-blue-700 bg-blue-50/50' : 'text-red-400 bg-red-100/50' }} border-r border-gray-100">{{ $isWajib && $stStat['izin'] > 0 ? $stStat['izin'] : '-' }}</td>
-                                        <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-red-700 bg-red-50/50' : 'text-red-400 bg-red-100/50' }} border-r border-gray-100">{{ $isWajib && $stStat['alpha'] > 0 ? $stStat['alpha'] : '-' }}</td>
-                                        <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-purple-700 bg-purple-50/50' : 'text-red-400 bg-red-100/50' }}">{{ $isWajib && ($stStat['hadir'] + $stStat['sakit'] + $stStat['izin'] + $stStat['alpha']) > 0 ? $stStat['percentage'].'%' : '-' }}</td>
+                                        <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-green-700 bg-green-50/50' : 'text-slate-400 bg-slate-50/50' }} border-r border-gray-100">{{ $isWajib && $stStat['hadir'] > 0 ? $stStat['hadir'] : '-' }}</td>
+                                        <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-yellow-700 bg-yellow-50/50' : 'text-slate-400 bg-slate-50/50' }} border-r border-gray-100">{{ $isWajib && $stStat['sakit'] > 0 ? $stStat['sakit'] : '-' }}</td>
+                                        <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-blue-700 bg-blue-50/50' : 'text-slate-400 bg-slate-50/50' }} border-r border-gray-100">{{ $isWajib && $stStat['izin'] > 0 ? $stStat['izin'] : '-' }}</td>
+                                        <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-red-700 bg-red-50/50' : 'text-slate-400 bg-slate-50/50' }} border-r border-gray-100">{{ $isWajib && $stStat['alpha'] > 0 ? $stStat['alpha'] : '-' }}</td>
+                                        <td class="px-2 py-2 text-center font-black {{ $isWajib ? 'text-purple-700 bg-purple-50/50' : 'text-slate-400 bg-slate-50/50' }}">{{ $isWajib && ($stStat['hadir'] + $stStat['sakit'] + $stStat['izin'] + $stStat['alpha']) > 0 ? $stStat['percentage'].'%' : '-' }}</td>
                                     </tr>
                                 @empty
                                     <tr>

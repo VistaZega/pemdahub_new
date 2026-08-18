@@ -49,20 +49,47 @@ class TeachingAssignmentStudentFilterService
 
         // 2. Filter Paralel (Agama)
         if ($assignment->block_type === 'parallel' && $subject) {
-            $subjectName = strtolower($subject->name ?? $subject->subject_name ?? '');
+            $subjectName = strtolower(trim(($subject->name ?? '') . ' ' . ($subject->subject_name ?? '') . ' ' . ($subject->code ?? '') . ' ' . ($subject->subject_code ?? '')));
             
-            if (str_contains($subjectName, 'islam')) {
-                $studentsQuery->where('religion', 'Islam');
-            } elseif (str_contains($subjectName, 'katolik') || str_contains($subjectName, 'katholik')) {
-                $studentsQuery->where('religion', 'Katolik');
-            } elseif (str_contains($subjectName, 'kristen')) {
-                $studentsQuery->where('religion', 'Kristen');
+            if (str_contains($subjectName, 'islam') || str_contains($subjectName, 'pai') || preg_match('/\bpai\b/i', $subjectName)) {
+                $studentsQuery->where(function($q) {
+                    $q->where('religion', 'Islam')
+                      ->orWhere('religion', 'like', '%islam%')
+                      ->orWhere('religion', 'like', '%muslim%');
+                });
+            } elseif (str_contains($subjectName, 'katolik') || str_contains($subjectName, 'katholik') || str_contains($subjectName, 'p-kat') || str_contains($subjectName, 'pakat')) {
+                $studentsQuery->where(function($q) {
+                    $q->where('religion', 'Katolik')
+                      ->orWhere('religion', 'Katholik')
+                      ->orWhere('religion', 'like', '%katolik%')
+                      ->orWhere('religion', 'like', '%katholik%');
+                });
+            } elseif (str_contains($subjectName, 'kristen') || str_contains($subjectName, 'protestan') || str_contains($subjectName, 'pak') || preg_match('/\bpak\b/i', $subjectName)) {
+                $studentsQuery->where(function($q) {
+                    $q->where('religion', 'Kristen')
+                      ->orWhere('religion', 'Kristen Protestan')
+                      ->orWhere('religion', 'Protestan')
+                      ->orWhere('religion', 'like', '%kristen%')
+                      ->orWhere('religion', 'like', '%protestan%');
+                });
             } elseif (str_contains($subjectName, 'hindu')) {
-                $studentsQuery->where('religion', 'Hindu');
+                $studentsQuery->where(function($q) {
+                    $q->where('religion', 'Hindu')
+                      ->orWhere('religion', 'like', '%hindu%');
+                });
             } elseif (str_contains($subjectName, 'buddha') || str_contains($subjectName, 'budha')) {
-                $studentsQuery->where('religion', 'Buddha');
-            } elseif (str_contains($subjectName, 'konghucu')) {
-                $studentsQuery->where('religion', 'Konghucu');
+                $studentsQuery->where(function($q) {
+                    $q->where('religion', 'Buddha')
+                      ->orWhere('religion', 'Budha')
+                      ->orWhere('religion', 'like', '%buddha%')
+                      ->orWhere('religion', 'like', '%budha%');
+                });
+            } elseif (str_contains($subjectName, 'konghucu') || str_contains($subjectName, 'khonghucu')) {
+                $studentsQuery->where(function($q) {
+                    $q->where('religion', 'Konghucu')
+                      ->orWhere('religion', 'Khonghucu')
+                      ->orWhere('religion', 'like', '%konghucu%');
+                });
             }
         }
 
