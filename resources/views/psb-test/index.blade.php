@@ -100,7 +100,7 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-4">
-                                    <button onclick="openTestModal('{{ $applicant->registration_number }}', '{{ $applicant->full_name }}')" 
+                                    <button onclick="openTestModal('{{ $applicant->registration_number }}', '{{ addslashes($applicant->full_name) }}')" 
                                             class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg text-sm font-semibold hover:shadow-lg transition-all">
                                         <i class="fas fa-vial mr-2"></i>Test Notifikasi
                                     </button>
