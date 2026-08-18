@@ -490,6 +490,9 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::get('/proposals', [App\Http\Controllers\Admin\FinalProjectAdminController::class, 'proposalsIndex'])->name('proposals.index');
         Route::get('/proposals/create', [App\Http\Controllers\Admin\FinalProjectAdminController::class, 'proposalsCreate'])->name('proposals.create');
         Route::post('/proposals/store', [App\Http\Controllers\Admin\FinalProjectAdminController::class, 'proposalsStore'])->name('proposals.store');
+        Route::get('/proposals/{project}/edit', [App\Http\Controllers\Admin\FinalProjectAdminController::class, 'proposalsEdit'])->name('proposals.edit');
+        Route::put('/proposals/{project}', [App\Http\Controllers\Admin\FinalProjectAdminController::class, 'proposalsUpdate'])->name('proposals.update');
+        Route::delete('/proposals/{project}', [App\Http\Controllers\Admin\FinalProjectAdminController::class, 'proposalsDestroy'])->name('proposals.destroy');
         Route::post('/proposals/{project}/assign', [App\Http\Controllers\Admin\FinalProjectAdminController::class, 'proposalsAssign'])->name('proposals.assign');
 
         Route::get('/exams', [App\Http\Controllers\Admin\FinalProjectAdminController::class, 'examsIndex'])->name('exams.index');

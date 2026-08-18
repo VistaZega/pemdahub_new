@@ -191,14 +191,28 @@
                                     {{ $statusText }}
                                 </span>
                             </td>
-                            <td class="py-4.5 pr-6 text-right">
-                                @if($p->status === 'pending')
-                                    <button @click="openModal({{ $p->id }}, '{{ addslashes($p->student->full_name) }}', '{{ addslashes($p->title) }}', {{ $p->student->school_id }})" class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-3.5 py-1.5 rounded-xl text-xs shadow-md hover:shadow-lg transition-all transform active:scale-95 border border-indigo-700">
-                                        <i class="fas fa-circle-check"></i> Verifikasi
-                                    </button>
-                                @else
-                                    <span class="text-gray-600 font-bold italic text-xs">Selesai Diverifikasi</span>
-                                @endif
+                            <td class="py-4.5 pr-6 text-right whitespace-nowrap">
+                                <div class="inline-flex items-center justify-end gap-1.5">
+                                    @if($p->status === 'pending')
+                                        <button @click="openModal({{ $p->id }}, '{{ addslashes($p->student->full_name) }}', '{{ addslashes($p->title) }}', {{ $p->student->school_id }})" class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-3 py-1.5 rounded-xl text-xs shadow-sm hover:shadow transition-all transform active:scale-95 border border-indigo-700" title="Verifikasi & Tugaskan Pembimbing">
+                                            <i class="fas fa-circle-check"></i> Verifikasi
+                                        </button>
+                                    @endif
+
+                                    <!-- Tombol Edit -->
+                                    <a href="{{ route('admin.final-projects.proposals.edit', $p->id) }}" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold px-2.5 py-1.5 rounded-xl text-xs border border-amber-200 shadow-2xs hover:shadow-xs transition-all active:scale-95" title="Edit Judul & Anggota Kelompok">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+
+                                    <!-- Tombol Hapus -->
+                                    <form action="{{ route('admin.final-projects.proposals.destroy', $p->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus usulan project \'{{ addslashes($p->title) }}\' beserta seluruh data kelompoknya?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex items-center justify-center w-7 h-7 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs border border-rose-200 shadow-2xs hover:shadow-xs transition-all active:scale-95" title="Hapus Usulan Project">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty

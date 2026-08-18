@@ -270,6 +270,158 @@ class FinalProjectAdminController extends Controller
         }
     }
 
+    public function proposalsEdit(Request $request, $id)
+    {
+        $isSA = $this->isSuperAdmin();
+        $schoolId = $this->getSchoolId();
+
+        $project = FinalProject::with(['student.school', 'members.student', 'advisor.user'])->findOrFail($id);
+
+        if (!$isSA && $project->student->school_id != $schoolId) {
+            abort(403);
+        }
+
+        $activeYear = AcademicYear::where('is_active', true)->first();
+
+        // Temukan kelas siswa ketua / anggota kelompok ini
+        $currentClassroom = $project->student->studentClasses()
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->where('status', 'aktif')
+            ->first()?->classroom;
+
+        // Ambil daftar siswa kelas tersebut:
+        // Siswa yang saat ini anggota project ini ATAU siswa yang belum punya project lain
+        $currentMemberIds = $project->members->pluck('student_id')->toArray();
+        if (empty($currentMemberIds)) {
+            $currentMemberIds = [$project->student_id];
+        }
+
+        $availableStudents = collect();
+        if ($currentClassroom) {
+            $availableStudents = $currentClassroom->students()
+                ->where(function($q) use ($currentMemberIds, $project) {
+                    $q->whereIn('students.id', $currentMemberIds)
+                      ->orWhereDoesntHave('finalProjectMemberships', function($mq) use ($project) {
+                          $mq->where('final_project_id', '!=', $project->id);
+                      });
+                })
+                ->orderBy('full_name')
+                ->get();
+        } else {
+            $availableStudents = Student::where('school_id', $project->student->school_id)
+                ->where(function($q) use ($currentMemberIds, $project) {
+                    $q->whereIn('students.id', $currentMemberIds)
+                      ->orWhereDoesntHave('finalProjectMemberships', function($mq) use ($project) {
+                          $mq->where('final_project_id', '!=', $project->id);
+                      });
+                })
+                ->orderBy('full_name')
+                ->get();
+        }
+
+        // Get teachers for advisor dropdown (sekolah yang sama)
+        $teachers = Teacher::with(['user', 'school'])
+            ->where('school_id', $project->student->school_id)
+            ->where('is_active', true)
+            ->get();
+
+        $stages = FinalProject::getStages();
+
+        return view('admin.final_projects.proposals.edit', compact(
+            'project', 'currentClassroom', 'availableStudents', 'currentMemberIds', 'teachers', 'stages', 'isSA'
+        ));
+    }
+
+    public function proposalsUpdate(Request $request, $id)
+    {
+        $isSA = $this->isSuperAdmin();
+        $schoolId = $this->getSchoolId();
+
+        $project = FinalProject::with('student')->findOrFail($id);
+
+        if (!$isSA && $project->student->school_id != $schoolId) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'abstract' => 'nullable|string',
+            'advisor_id' => 'required|exists:teachers,id',
+            'status' => 'required|in:pending,approved,in_progress,ready_for_exam,completed,rejected',
+            'current_stage' => 'nullable|string|max:50',
+            'member_ids' => 'required|array|min:1',
+            'member_ids.*' => 'exists:students,id',
+            'leader_id' => 'required|exists:students,id',
+        ]);
+
+        // Verifikasi leader_id ada di dalam member_ids
+        if (!in_array($validated['leader_id'], $validated['member_ids'])) {
+            return redirect()->back()->with('error', 'Ketua kelompok yang dipilih harus termasuk dalam daftar anggota yang dicentang.')->withInput();
+        }
+
+        DB::beginTransaction();
+        try {
+            $project->update([
+                'title' => $validated['title'],
+                'abstract' => $validated['abstract'] ?? 'Deskripsi ditentukan oleh Panitia',
+                'advisor_id' => $validated['advisor_id'],
+                'status' => $validated['status'],
+                'current_stage' => $validated['current_stage'] ?? $project->current_stage,
+                'student_id' => $validated['leader_id'],
+            ]);
+
+            // Sinkronisasi anggota kelompok
+            // Hapus anggota lama
+            \App\Models\FinalProjectMember::where('final_project_id', $project->id)->delete();
+
+            // Masukkan anggota baru
+            foreach ($validated['member_ids'] as $memberId) {
+                \App\Models\FinalProjectMember::create([
+                    'final_project_id' => $project->id,
+                    'student_id' => $memberId,
+                    'role' => ($memberId == $validated['leader_id']) ? 'leader' : 'member'
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('admin.final-projects.proposals.index')->with('success', 'Data usulan project akhir & kelompok berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function proposalsDestroy(Request $request, $id)
+    {
+        $isSA = $this->isSuperAdmin();
+        $schoolId = $this->getSchoolId();
+
+        $project = FinalProject::with(['student', 'logs'])->findOrFail($id);
+
+        if (!$isSA && $project->student->school_id != $schoolId) {
+            abort(403);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Hapus berkas log bimbingan jika ada
+            foreach ($project->logs as $log) {
+                if ($log->documentation_file && Storage::disk('public')->exists($log->documentation_file)) {
+                    Storage::disk('public')->delete($log->documentation_file);
+                }
+            }
+
+            $projectTitle = $project->title;
+            $project->delete(); // Cascade akan menghapus final_project_members dan final_project_logs
+
+            DB::commit();
+            return redirect()->route('admin.final-projects.proposals.index')->with('success', "Usulan Project Akhir '{$projectTitle}' berhasil dihapus.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('admin.final-projects.proposals.index')->with('error', 'Gagal menghapus usulan project: ' . $e->getMessage());
+        }
+    }
+
     public function proposalsAssign(Request $request, $id)
     {
         $isSA = $this->isSuperAdmin();
