@@ -114,7 +114,7 @@ class AttendanceController extends Controller
                 
                 // Find the best matching schedule for this date
                 $dayOfWeek = strtolower(\Carbon\Carbon::parse($selectedDate)->format('l'));
-                $schedule = Schedule::with('teachingAssignment')
+                $schedule = Schedule::with(['teachingAssignment.subject', 'teachingAssignment.classroom'])
                     ->where('teacher_id', $teacher->id)
                     ->where('classroom_id', $selectedClassroomId)
                     ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
@@ -122,22 +122,32 @@ class AttendanceController extends Controller
                     ->first();
                     
                 if (!$schedule) {
-                     $schedule = Schedule::with('teachingAssignment')
+                     $schedule = Schedule::with(['teachingAssignment.subject', 'teachingAssignment.classroom'])
                         ->where('teacher_id', $teacher->id)
                         ->where('classroom_id', $selectedClassroomId)
                         ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
                         ->first();
                 }
 
+                $assignment = $schedule?->teachingAssignment;
+                if (!$assignment) {
+                    $assignment = \App\Models\TeachingAssignment::with(['subject', 'classroom'])
+                        ->where('teacher_id', $teacher->id)
+                        ->where('classroom_id', $selectedClassroomId)
+                        ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                        ->where('is_active', true)
+                        ->first();
+                }
+
                 $filterService = app(TeachingAssignmentStudentFilterService::class);
                 $allClassroomIds = [$selectedClassroomId];
 
-                if ($schedule && $schedule->teachingAssignment) {
-                    $students = $filterService->getStudentsForAssignment($schedule->teachingAssignment);
-                    if (!empty($schedule->teachingAssignment->group_code)) {
+                if ($assignment) {
+                    $students = $filterService->getStudentsForAssignment($assignment);
+                    if (!empty($assignment->group_code)) {
                         $allClassroomIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
                             ->where('academic_year_id', $activeYear->id)
-                            ->where('group_code', $schedule->teachingAssignment->group_code)
+                            ->where('group_code', $assignment->group_code)
                             ->pluck('classroom_id')
                             ->unique()
                             ->toArray();

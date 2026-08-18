@@ -62,6 +62,14 @@ class Student extends Model
     }
 
     /**
+     * Relationship: Applicant / Pendaftaran PSB
+     */
+    public function applicant()
+    {
+        return $this->hasOne(Applicant::class, 'student_id');
+    }
+
+    /**
      * Relationship: Siswa belongs to Classroom (direct assignment)
      */
     public function classroom()

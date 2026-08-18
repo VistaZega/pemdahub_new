@@ -5,20 +5,28 @@ namespace App\Services;
 use App\Models\TeachingAssignment;
 use App\Models\Student;
 use App\Models\BlockStudentGroup;
+use App\Models\Applicant;
+use App\Models\KonsentrasiKeahlian;
+use App\Models\ProgramKeahlian;
+use App\Models\Major;
 use Illuminate\Support\Collection;
 
 class TeachingAssignmentStudentFilterService
 {
     /**
      * Dapatkan daftar siswa untuk suatu penugasan mengajar, 
-     * dengan mempertimbangkan grup kelas gabungan, filter agama (paralel), 
-     * dan filter grup blok (SMK).
+     * dengan mempertimbangkan:
+     * 1. Grup kelas gabungan (group_code)
+     * 2. Filter kejuruan/jurusan (SMK/SMA Kelas Gabungan & Mapel Kejuruan)
+     * 3. Filter paralel agama (Islam, Kristen, Katolik, dll.)
+     * 4. Filter grup blok SMK (Kelompok A / B)
      */
     public function getStudentsForAssignment(TeachingAssignment $assignment): Collection
     {
         $activeYearId = $assignment->academic_year_id;
         $classroomId = $assignment->classroom_id;
         $subject = $assignment->subject;
+        $classroom = $assignment->classroom;
         
         $studentsQuery = Student::whereHas('studentClasses', function ($q) use ($activeYearId) {
             $q->where('status', 'aktif')
@@ -93,7 +101,92 @@ class TeachingAssignmentStudentFilterService
             }
         }
 
-        // 3. Filter SMK Block System
+        // 3. Filter Kejuruan / Jurusan (Khusus Mapel Kejuruan atau Kelas Gabungan)
+        if ($subject) {
+            $targetProgramId = $subject->program_keahlian_id;
+            $targetMajorId = $subject->major_id;
+            
+            // Deteksi otomatis jika program/major belum terhubung di tabel subjects
+            if (!$targetProgramId && !$targetMajorId) {
+                $subjectText = strtoupper(($subject->name ?? '') . ' ' . ($subject->subject_name ?? '') . ' ' . ($subject->code ?? '') . ' ' . ($subject->subject_code ?? ''));
+                $keywords = [
+                    'DPIB' => ['DPIB', 'BANGUNAN', 'GAMBAR BANGUNAN'],
+                    'TJKT' => ['TJKT', 'TKJ', 'JARINGAN', 'KOMPUTER DAN JARINGAN'],
+                    'TSM'  => ['TSM', 'TBSM', 'SEPEDA MOTOR'],
+                    'TKR'  => ['TKR', 'KENDARAAN RINGAN', 'OTOMOTIF'],
+                    'TAV'  => ['TAV', 'AUDIO VIDEO'],
+                    'TE'   => ['TE', 'ELEKTRONIKA'],
+                    'IPA'  => ['MIPA', 'IPA'],
+                    'IPS'  => ['IPS'],
+                ];
+                
+                foreach ($keywords as $code => $patterns) {
+                    foreach ($patterns as $p) {
+                        if (preg_match('/\b' . preg_quote($p, '/') . '\b/i', $subjectText)) {
+                            $prog = ProgramKeahlian::where('kode', 'like', "%{$code}%")
+                                ->orWhere('nama', 'like', "%{$code}%")
+                                ->first();
+                            if ($prog) {
+                                $targetProgramId = $prog->id;
+                                break 2;
+                            }
+                            
+                            $maj = Major::where('code', 'like', "%{$code}%")
+                                ->orWhere('name', 'like', "%{$code}%")
+                                ->first();
+                            if ($maj) {
+                                $targetMajorId = $maj->id;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Jika mapel ini terikat pada Program Keahlian / Jurusan tertentu
+            if ($targetProgramId || $targetMajorId) {
+                // Temukan siswa yang jurusannya cocok dari data Applicant (Pendaftaran PSB)
+                $applicantQuery = Applicant::where(function($q) use ($targetProgramId, $targetMajorId) {
+                    if ($targetProgramId) {
+                        $konsentrasiIds = KonsentrasiKeahlian::where('program_keahlian_id', $targetProgramId)->pluck('id')->toArray();
+                        $q->where('program_keahlian_id', $targetProgramId)
+                          ->orWhereIn('konsentrasi_keahlian_id', $konsentrasiIds);
+                    }
+                    if ($targetMajorId) {
+                        $q->orWhere('major_id', $targetMajorId);
+                    }
+                });
+
+                $applicantStudentIds = (clone $applicantQuery)->whereNotNull('student_id')->pluck('student_id')->toArray();
+                $applicantNisns = (clone $applicantQuery)->whereNotNull('nisn')->pluck('nisn')->toArray();
+
+                // Cek juga dari riwayat kelas reguler siswa
+                $classroomStudentIds = Student::whereHas('classrooms', function($q) use ($targetProgramId, $targetMajorId) {
+                    if ($targetProgramId) {
+                        $q->where('program_keahlian_id', $targetProgramId);
+                    }
+                    if ($targetMajorId) {
+                        $q->where('major_id', $targetMajorId);
+                    }
+                })->pluck('id')->toArray();
+
+                $allMatchedIds = array_unique(array_merge($applicantStudentIds, $classroomStudentIds));
+
+                // Jika ada siswa yang cocok, filter daftar siswa ke jurusan tersebut
+                if (!empty($allMatchedIds) || !empty($applicantNisns)) {
+                    $studentsQuery->where(function($q) use ($allMatchedIds, $applicantNisns) {
+                        if (!empty($allMatchedIds)) {
+                            $q->whereIn('id', $allMatchedIds);
+                        }
+                        if (!empty($applicantNisns)) {
+                            $q->orWhereIn('nisn', $applicantNisns);
+                        }
+                    });
+                }
+            }
+        }
+
+        // 4. Filter SMK Block System
         // 'all' = Group A
         // 'split' = Group B
         if (in_array($assignment->block_type, ['all', 'split'])) {
@@ -112,7 +205,7 @@ class TeachingAssignmentStudentFilterService
             if (!empty($validStudentIds)) {
                 $studentsQuery->whereIn('id', $validStudentIds);
             } else {
-                // If no group is mapped but it's supposed to be filtered, we should return empty.
+                // If no group is mapped but it's supposed to be filtered, return empty.
                 $studentsQuery->whereIn('id', [0]);
             }
         }

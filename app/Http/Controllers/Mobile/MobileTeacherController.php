@@ -297,24 +297,33 @@ class MobileTeacherController extends Controller
             $classroom = Classroom::find($selectedClassroomId);
             if ($classroom) {
                 $dayOfWeek = strtolower(\Carbon\Carbon::parse($date)->format('l'));
-                $schedule = Schedule::with('teachingAssignment.subject')
+                $schedule = Schedule::with('teachingAssignment.subject.programKeahlian', 'teachingAssignment.subject.major')
                     ->where('teacher_id', $teacher?->id ?? 0)
                     ->where('classroom_id', $selectedClassroomId)
                     ->where('day_of_week', $dayOfWeek)
                     ->first();
 
                 if (!$schedule) {
-                    $schedule = Schedule::with('teachingAssignment.subject')
+                    $schedule = Schedule::with('teachingAssignment.subject.programKeahlian', 'teachingAssignment.subject.major')
                         ->where('teacher_id', $teacher?->id ?? 0)
                         ->where('classroom_id', $selectedClassroomId)
+                        ->first();
+                }
+
+                $assignment = $schedule?->teachingAssignment;
+                if (!$assignment && $teacher) {
+                    $assignment = \App\Models\TeachingAssignment::with('subject.programKeahlian', 'subject.major', 'classroom')
+                        ->where('teacher_id', $teacher->id)
+                        ->where('classroom_id', $selectedClassroomId)
+                        ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                        ->where('is_active', true)
                         ->first();
                 }
 
                 $filterService = app(\App\Services\TeachingAssignmentStudentFilterService::class);
                 $allClassroomIds = [$selectedClassroomId];
 
-                if ($schedule && $schedule->teachingAssignment) {
-                    $assignment = $schedule->teachingAssignment;
+                if ($assignment) {
                     $students = $filterService->getStudentsForAssignment($assignment);
 
                     $rules = [];
@@ -326,6 +335,13 @@ class MobileTeacherController extends Controller
                                 ->pluck('classroom_id')
                                 ->unique()
                                 ->toArray();
+                        }
+                    }
+                    if ($assignment->subject) {
+                        if ($assignment->subject->programKeahlian) {
+                            $rules[] = 'Kejuruan ' . ($assignment->subject->programKeahlian->kode ?? $assignment->subject->programKeahlian->nama);
+                        } elseif ($assignment->subject->major) {
+                            $rules[] = 'Jurusan ' . ($assignment->subject->major->code ?? $assignment->subject->major->name);
                         }
                     }
                     if ($assignment->block_type === 'parallel') {

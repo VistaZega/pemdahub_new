@@ -97,7 +97,7 @@
         </div>
 
         {{-- Tab Controls & Action --}}
-        <div x-data="{ viewMode: '{{ request('viewMode', request('input_date') ? 'log' : 'matrix') }}', editMode: {{ ($isTodayScheduled ?? false) ? 'true' : 'false' }} }" class="space-y-4">
+        <div x-data="{ viewMode: '{{ request('viewMode', request('input_date') ? 'log' : 'matrix') }}', editMode: {{ ($isTodayScheduled ?? false) ? 'true' : 'false' }}, onlyWajib: false }" class="space-y-4">
             <div class="flex items-center justify-between gap-4 flex-wrap bg-white p-2 rounded-2xl border border-gray-100 shadow-sm print-hide">
                 <div class="flex items-center gap-2">
                     <button @click="viewMode = 'matrix'" :class="viewMode === 'matrix' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 border border-black">
@@ -202,7 +202,7 @@
                             <h2 class="font-bold text-purple-900 flex items-center gap-2">
                                 <i class="fas fa-chalkboard-teacher text-purple-500"></i> Rekap & Input Kehadiran Pelajaran Saya
                             </h2>
-                            <div class="mt-1">
+                            <div class="mt-1 flex items-center gap-2 flex-wrap">
                                 <button type="button" @click="editMode = !editMode" 
                                     :class="editMode ? 'bg-amber-400 hover:bg-amber-300 text-black border-2 border-black' : 'bg-gray-900 hover:bg-gray-800 text-white border-2 border-black'"
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-2 shadow-sm print-hide">
@@ -213,6 +213,14 @@
                                         <span class="flex items-center gap-1.5"><i class="fas fa-unlock text-black"></i> Mode Edit Aktif (Klik untuk Kunci Kembali)</span>
                                     </template>
                                 </button>
+                                @if(count($wajibStudentIds) < $classroomStudents->count())
+                                <button type="button" @click="onlyWajib = !onlyWajib" 
+                                    :class="onlyWajib ? 'bg-purple-700 text-white border-2 border-purple-900' : 'bg-white hover:bg-purple-50 text-purple-900 border-2 border-purple-300'"
+                                    class="px-3.5 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm print-hide">
+                                    <i class="fas fa-filter text-xs" :class="onlyWajib ? 'text-amber-300' : 'text-purple-600'"></i>
+                                    <span x-text="onlyWajib ? 'Hanya Siswa Jurusan/Wajib (' + {{ count($wajibStudentIds) }} + ' Siswa)' : 'Tampilkan Semua Siswa Kelas (' + {{ $classroomStudents->count() }} + ' Siswa)'"></span>
+                                </button>
+                                @endif
                             </div>
                         </div>
                         <div class="text-right">
@@ -295,7 +303,7 @@
                                         $stStat = $lessonStudentStats[$st->id] ?? ['hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0, 'percentage' => 0];
                                         $isWajib = in_array($st->id, $wajibStudentIds);
                                     @endphp
-                                    <tr class="hover:bg-purple-50/30 transition {{ !$isWajib ? 'bg-gray-50/50' : '' }}">
+                                    <tr x-show="!onlyWajib || {{ $isWajib ? 'true' : 'false' }}" class="hover:bg-purple-50/30 transition {{ !$isWajib ? 'bg-gray-50/50' : '' }}">
                                         <td class="px-3 py-2.5 text-center font-bold {{ !$isWajib ? 'text-gray-300' : 'text-gray-500' }} border-r border-gray-100">{{ $idx + 1 }}</td>
                                         <td class="px-4 py-2.5 font-bold border-r border-gray-100 truncate max-w-[200px] {{ !$isWajib ? 'text-gray-400' : 'text-gray-900' }}" title="{{ $st->full_name }}">
                                             {{ $st->full_name }}
