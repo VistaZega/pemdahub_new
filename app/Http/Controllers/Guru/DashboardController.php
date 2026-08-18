@@ -758,17 +758,6 @@ class DashboardController extends Controller
 
                 $wajibStudentIds = $classroomStudents->pluck('id')->toArray();
 
-                if ($assignments->isNotEmpty()) {
-                    $infoList = [];
-                    foreach ($assignments as $assignment) {
-                        $subjName = $assignment->subject->name ?? 'Mata Pelajaran';
-                        $infoList[] = $subjName;
-                    }
-                    $assignmentInfo = implode(' | ', array_unique($infoList));
-                } else {
-                    $assignmentInfo = 'Reguler';
-                }
-
                 // Recent attendance log list (Teacher's Class Attendance)
                 $attendances = Attendance::where('classroom_id', $selectedClassroomId)
                     ->whereYear('date', $selectedYear)
@@ -778,33 +767,25 @@ class DashboardController extends Controller
                     ->orderByDesc('date')
                     ->get();
 
-                // Calculate Lesson Matrix & Stats (KHUSUS SISWA WAJIB HADIR)
+                // Calculate Lesson Matrix & Stats
                 foreach ($attendances as $att) {
                     $dayNum = (int) \Carbon\Carbon::parse($att->date)->format('j');
                     $lessonMatrixMap[$att->student_id][$dayNum] = $att->status;
                 }
                 
                 foreach ($classroomStudents as $st) {
-                    $isWajib = in_array($st->id, $wajibStudentIds);
-                    if ($isWajib) {
-                        $stAtts = $attendances->where('student_id', $st->id);
-                        $h = $stAtts->where('status', 'hadir')->count();
-                        $s = $stAtts->where('status', 'sakit')->count();
-                        $i = $stAtts->where('status', 'izin')->count();
-                        $a = $stAtts->where('status', 'alpha')->count();
-                        $tot = $stAtts->count();
-                        $pct = $tot > 0 ? round(($h / $tot) * 100, 1) : 0;
+                    $stAtts = $attendances->where('student_id', $st->id);
+                    $h = $stAtts->where('status', 'hadir')->count();
+                    $s = $stAtts->where('status', 'sakit')->count();
+                    $i = $stAtts->where('status', 'izin')->count();
+                    $a = $stAtts->where('status', 'alpha')->count();
+                    $tot = $stAtts->count();
+                    $pct = $tot > 0 ? round(($h / $tot) * 100, 1) : 0;
 
-                        $lessonStudentStats[$st->id] = [
-                            'hadir' => $h, 'sakit' => $s, 'izin' => $i, 'alpha' => $a,
-                            'total' => $tot, 'percentage' => $pct
-                        ];
-                    } else {
-                        $lessonStudentStats[$st->id] = [
-                            'hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0,
-                            'total' => 0, 'percentage' => 0
-                        ];
-                    }
+                    $lessonStudentStats[$st->id] = [
+                        'hadir' => $h, 'sakit' => $s, 'izin' => $i, 'alpha' => $a,
+                        'total' => $tot, 'percentage' => $pct
+                    ];
                 }
 
                 // Get dynamic dates: Scheduled dates + any dates with actual attendance
@@ -851,6 +832,63 @@ class DashboardController extends Controller
                     }
                 }
 
+                // Hitung Rotasi Sistem Blok SMK pada Tanggal Terpilih:
+                // Konvensi SMK Swasta Pembda:
+                // Normal (Periode 1, 3, 5): Grup A = Ruang Kelas (Teori), Grup B = Ruang Lab (Praktik)
+                // Ditukar (Swapped / Periode 2, 4, 6): Grup A = Ruang Lab (Praktik), Grup B = Ruang Kelas (Teori)
+                $studentBlockGroups = \App\Models\BlockStudentGroup::where('classroom_id', $selectedClassroomId)
+                    ->pluck('group', 'student_id')
+                    ->toArray();
+
+                $blockSchedule = \App\Models\BlockSchedule::where('academic_year_id', $activeYear?->id)
+                    ->where('is_active', true)
+                    ->first();
+                $rotation = $blockSchedule ? $blockSchedule->getActiveRotationForDate($selectedInputDate) : 'normal';
+
+                $targetGroup = null;
+                $primaryAssignment = $assignments->first();
+                if ($primaryAssignment && in_array($primaryAssignment->block_type, ['all', 'split'])) {
+                    if ($primaryAssignment->block_type === 'split') {
+                        // Mapel Praktik / Lab
+                        $targetGroup = ($rotation === 'normal') ? 'B' : 'A';
+                    } else {
+                        // Mapel Teori / Kelas ('all')
+                        $targetGroup = ($rotation === 'normal') ? 'A' : 'B';
+                    }
+                }
+
+                // Tentukan Siswa yang Terjadwal di Kelas pada Hari/Tanggal Ini
+                $scheduledStudentIds = [];
+                if ($targetGroup && !empty($studentBlockGroups)) {
+                    foreach ($classroomStudents as $st) {
+                        if (($studentBlockGroups[$st->id] ?? null) === $targetGroup) {
+                            $scheduledStudentIds[] = $st->id;
+                        }
+                    }
+                } else {
+                    $scheduledStudentIds = $classroomStudents->pluck('id')->toArray();
+                }
+
+                // Buat Label Penugasan Mengajar
+                if ($assignments->isNotEmpty()) {
+                    $infoList = [];
+                    foreach ($assignments as $assignment) {
+                        $subjName = $assignment->subject->name ?? 'Mata Pelajaran';
+                        if ($assignment->block_type === 'split') {
+                            $grpLabel = ($targetGroup === 'A') ? 'Grup A (Ruang Lab)' : 'Grup B (Ruang Lab)';
+                            $infoList[] = "{$subjName} (Blok Praktik - {$grpLabel})";
+                        } elseif ($assignment->block_type === 'all') {
+                            $grpLabel = ($targetGroup === 'A') ? 'Grup A (Ruang Kelas)' : 'Grup B (Ruang Kelas)';
+                            $infoList[] = "{$subjName} (Blok Teori - {$grpLabel})";
+                        } else {
+                            $infoList[] = $subjName;
+                        }
+                    }
+                    $assignmentInfo = implode(' | ', array_unique($infoList));
+                } else {
+                    $assignmentInfo = 'Reguler';
+                }
+
                 $inputCarbon = \Carbon\Carbon::parse($selectedInputDate);
                 
                 // Jika input_date di bulan & tahun yang sama, pastikan tanggal tersebut ada di $lessonDates
@@ -870,14 +908,13 @@ class DashboardController extends Controller
 
                 $isTodayScheduled = in_array(date('Y-m-d'), $scheduledFullDates);
 
-                // Filter Ringkasan Kartu Atas (Summary) KHUSUS untuk Siswa Wajib Hadir
-                $wajibAttendances = $attendances->whereIn('student_id', $wajibStudentIds);
+                // Filter Ringkasan Kartu Atas (Summary)
                 $summary = [
-                    'present' => $wajibAttendances->where('status', 'hadir')->count(),
-                    'sick' => $wajibAttendances->where('status', 'sakit')->count(),
-                    'permission' => $wajibAttendances->where('status', 'izin')->count(),
-                    'absent' => $wajibAttendances->where('status', 'alpha')->count(),
-                    'total' => $wajibAttendances->count(),
+                    'present' => $attendances->where('status', 'hadir')->count(),
+                    'sick' => $attendances->where('status', 'sakit')->count(),
+                    'permission' => $attendances->where('status', 'izin')->count(),
+                    'absent' => $attendances->where('status', 'alpha')->count(),
+                    'total' => $attendances->count(),
                 ];
                 $summary['percentage'] = $summary['total'] > 0
                     ? round(($summary['present'] / $summary['total']) * 100, 1) : 0;
@@ -885,6 +922,9 @@ class DashboardController extends Controller
         } else {
             $selectedInputDate = date('Y-m-d');
             $isTodayScheduled = false;
+            $scheduledStudentIds = [];
+            $studentBlockGroups = [];
+            $targetGroup = null;
         }
 
         return view('guru.absensi', compact(
@@ -893,7 +933,8 @@ class DashboardController extends Controller
             'selectedMonth', 'selectedYear', 'monthsList', 'daysInMonth',
             'classroomStudents', 'matrixMap', 'studentStats',
             'lessonMatrixMap', 'lessonStudentStats', 'wajibStudentIds',
-            'assignmentInfo', 'lessonDates', 'selectedInputDate', 'isTodayScheduled'
+            'assignmentInfo', 'lessonDates', 'selectedInputDate', 'isTodayScheduled',
+            'scheduledStudentIds', 'studentBlockGroups', 'targetGroup'
         ));
     }
 

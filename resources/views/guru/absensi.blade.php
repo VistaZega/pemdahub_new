@@ -219,10 +219,15 @@
                             <div class="text-sm md:text-base font-black text-purple-900 bg-purple-100/90 border border-purple-200 px-4 py-1.5 rounded-xl mb-1 inline-block shadow-sm">
                                 {{ $selectedClassroom->class_name }} ({{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }})
                             </div>
+                            @if(isset($assignmentInfo))
+                            <div class="text-xs md:text-sm font-black text-purple-900 mt-0.5">
+                                {{ $assignmentInfo }}
+                            </div>
+                            @endif
                         </div>
                     </div>
 
-                    {{-- Toolbar Form Input --}}
+                    {{-- Toolbar Form Input (Hanya Muncul saat editMode = true) --}}
                     @php
                         $inputDay = (int)\Carbon\Carbon::parse($selectedInputDate)->format('j');
                         $inputMonth = (int)\Carbon\Carbon::parse($selectedInputDate)->format('n');
@@ -241,9 +246,18 @@
                             </span>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <button type="button" onclick="markAllHadir()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800">
-                                <i class="fas fa-check-double"></i> Hadirkan Semua Siswa ({{ $classroomStudents->count() }})
-                            </button>
+                            @if($targetGroup && count($scheduledStudentIds) < $classroomStudents->count())
+                                <button type="button" onclick="markScheduledHadir()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800" title="Hadirkan hanya kelompok siswa yang terjadwal aktif di kelas ini">
+                                    <i class="fas fa-check-double"></i> Hadirkan Grup Terjadwal (Grup {{ $targetGroup }}: {{ count($scheduledStudentIds) }})
+                                </button>
+                                <button type="button" onclick="markAllHadir()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-indigo-800" title="Hadirkan semua siswa di kelas ini jika seluruh kelas masuk">
+                                    <i class="fas fa-users"></i> Hadirkan Semua Siswa Kelas ({{ $classroomStudents->count() }})
+                                </button>
+                            @else
+                                <button type="button" onclick="markAllHadir()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800">
+                                    <i class="fas fa-check-double"></i> Hadirkan Semua Siswa ({{ $classroomStudents->count() }})
+                                </button>
+                            @endif
                             <button type="submit" class="px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-1.5">
                                 <i class="fas fa-save text-black"></i> Simpan Absensi
                             </button>
@@ -258,7 +272,7 @@
                             <thead>
                                 <tr class="bg-slate-900 text-white font-bold text-xs">
                                     <th class="px-3 py-3 text-center border-r border-slate-700 w-10">No</th>
-                                    <th class="px-4 py-3 text-left border-r border-slate-700 min-w-[180px]">Nama Siswa</th>
+                                    <th class="px-4 py-3 text-left border-r border-slate-700 min-w-[200px]">Nama Siswa</th>
                                     @foreach($lessonDates ?? [] as $d)
                                         <th class="px-1 py-2 text-center border-r border-slate-700 min-w-[24px] {{ $d == $inputDay ? 'bg-amber-400 text-black' : '' }}">{{ $d }}</th>
                                     @endforeach
@@ -273,12 +287,25 @@
                                 @forelse($classroomStudents as $idx => $st)
                                     @php
                                         $stStat = $lessonStudentStats[$st->id] ?? ['hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0, 'percentage' => 0];
+                                        $stGroup = $studentBlockGroups[$st->id] ?? null;
+                                        $isScheduled = in_array($st->id, $scheduledStudentIds ?? []);
                                     @endphp
-                                    <tr class="hover:bg-purple-50/30 transition">
-                                        <td class="px-3 py-2.5 text-center font-bold text-gray-500 border-r border-gray-100">{{ $idx + 1 }}</td>
-                                        <td class="px-4 py-2.5 font-bold border-r border-gray-100 truncate max-w-[200px] text-gray-900" title="{{ $st->full_name }}">
-                                            {{ $st->full_name }}
-                                            <div class="text-[9px] text-gray-400 font-normal">
+                                    <tr class="transition {{ !$isScheduled ? 'bg-rose-50/50 hover:bg-rose-100/50' : 'hover:bg-purple-50/30' }}">
+                                        <td class="px-3 py-2.5 text-center font-bold {{ !$isScheduled ? 'text-rose-900 font-black' : 'text-gray-500' }} border-r border-gray-100">{{ $idx + 1 }}</td>
+                                        <td class="px-4 py-2.5 font-bold border-r border-gray-100 truncate max-w-[240px]" title="{{ $st->full_name }}">
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <span class="{{ !$isScheduled ? 'text-rose-900 font-extrabold' : 'text-gray-900 font-bold' }}">
+                                                    {{ $st->full_name }}
+                                                </span>
+                                                @if($stGroup)
+                                                    @if($isScheduled)
+                                                        <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">Grup {{ $stGroup }}</span>
+                                                    @else
+                                                        <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-200/90 text-rose-950 border border-rose-400" title="Kelompok tidak di kelas ini (sedang di ruang lain)">Grup {{ $stGroup }} (Luar Blok)</span>
+                                                    @endif
+                                                @endif
+                                            </div>
+                                            <div class="text-[9px] {{ !$isScheduled ? 'text-rose-800 font-semibold' : 'text-gray-400 font-normal' }}">
                                                 NISN: {{ $st->nisn ?? '-' }} 
                                             </div>
                                         </td>
@@ -305,9 +332,12 @@
                                                 @if($isInputCol)
                                                     {{-- Mode Edit (editMode = true) --}}
                                                     @php
-                                                        $currVal = $stStatus ?? 'hadir';
+                                                        $currVal = $stStatus ?? ($isScheduled ? 'hadir' : '');
                                                     @endphp
-                                                    <div x-show="editMode" x-transition x-data="{ status: '{{ $currVal }}' }" @mark-all-hadir.window="status = 'hadir'" class="inline-flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-purple-200 shadow-sm print-hide">
+                                                    <div x-show="editMode" x-transition x-data="{ status: '{{ $currVal }}' }" 
+                                                        @mark-scheduled-hadir.window="if ({{ $isScheduled ? 'true' : 'false' }}) status = 'hadir'" 
+                                                        @mark-all-hadir.window="status = 'hadir'" 
+                                                        class="inline-flex items-center gap-0.5 bg-white p-0.5 rounded-lg border {{ $isScheduled ? 'border-purple-200 shadow-sm' : 'border-rose-300 bg-rose-50/40' }} print-hide">
                                                         <input type="hidden" name="statuses[{{ $st->id }}]" :value="status">
                                                         <button type="button" @click="status = 'hadir'" :class="status === 'hadir' ? 'bg-green-500 text-white font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Hadir">H</button>
                                                         <button type="button" @click="status = 'sakit'" :class="status === 'sakit' ? 'bg-yellow-400 text-black font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Sakit">S</button>
@@ -319,12 +349,16 @@
                                                     <div x-show="!editMode">
                                                         @if($stStatus)
                                                             <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black {{ $stBadge }}">{{ $stChar }}</span>
+                                                        @elseif(!$isScheduled)
+                                                            <span class="text-rose-900 font-black text-xs select-none" title="Kelompok tidak di kelas ini (sedang di ruang lain)">—</span>
                                                         @else
                                                             <span class="text-gray-300 font-bold text-xs select-none">·</span>
                                                         @endif
                                                     </div>
                                                 @elseif($stStatus)
                                                     <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black {{ $stBadge }}">{{ $stChar }}</span>
+                                                @elseif(!$isScheduled)
+                                                    <span class="text-rose-900 font-black text-xs select-none" title="Kelompok tidak di kelas ini (sedang di ruang lain)">—</span>
                                                 @else
                                                     <span class="text-gray-300 font-bold text-xs select-none">·</span>
                                                 @endif
@@ -362,6 +396,10 @@
 </form>
 
 <script>
+function markScheduledHadir() {
+    window.dispatchEvent(new CustomEvent('mark-scheduled-hadir'));
+}
+
 function markAllHadir() {
     window.dispatchEvent(new CustomEvent('mark-all-hadir'));
 }
