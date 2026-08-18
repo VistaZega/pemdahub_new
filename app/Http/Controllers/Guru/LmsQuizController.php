@@ -13,9 +13,11 @@ use App\Models\LmsQuizAttempt;
 use App\Models\LmsQuizAnswer;
 use App\Models\Teacher;
 use App\Imports\QuizQuestionsImport;
+use App\Exports\QuizResultsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class LmsQuizController extends Controller
 {
@@ -574,7 +576,7 @@ class LmsQuizController extends Controller
     }
 
     /**
-     * View quiz results/attempts, filtered by classroom if provided
+     * View quiz results/attempts recap per student
      */
     public function results(Request $request, LmsQuiz $quiz)
     {
@@ -585,6 +587,54 @@ class LmsQuizController extends Controller
         }
         $teacher->load('school');
 
+        $selectedClassroomId = $request->query('classroom_id') ? (int) $request->query('classroom_id') : null;
+        $recap = $this->getQuizRecapData($quiz, $selectedClassroomId);
+
+        $quiz->setRelation('attempts', $recap['attempts']);
+
+        return view('guru.lms.quiz-results', array_merge([
+            'teacher' => $teacher,
+            'course' => $course,
+            'quiz' => $quiz,
+        ], $recap));
+    }
+
+    /**
+     * Export quiz recap results to Excel
+     */
+    public function exportResults(Request $request, LmsQuiz $quiz)
+    {
+        $teacher = $this->getTeacher();
+        $course = $quiz->course;
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        $selectedClassroomId = $request->query('classroom_id') ? (int) $request->query('classroom_id') : null;
+        $recap = $this->getQuizRecapData($quiz, $selectedClassroomId);
+
+        $className = $recap['selectedClassroom'] ? Str::slug($recap['selectedClassroom']->class_name) : 'semua-rombel';
+        $quizSlug = Str::slug($quiz->title);
+        $filename = "rekap_nilai_kuis_{$quizSlug}_{$className}_" . date('Ymd_His') . '.xlsx';
+
+        return Excel::download(
+            new QuizResultsExport(
+                $quiz,
+                $recap['recapData'],
+                $recap['displayAttemptsCount'],
+                $recap['selectedClassroom']
+            ),
+            $filename
+        );
+    }
+
+    /**
+     * Build structured recap data per enrolled student for a quiz
+     */
+    private function getQuizRecapData(LmsQuiz $quiz, ?int $selectedClassroomId = null): array
+    {
+        $course = $quiz->course;
+
         // Ambil semua rombel yang terhubung ke course ini
         $classrooms = \App\Models\LmsClass::where('course_id', $course->id)
             ->with('classroom')
@@ -593,34 +643,168 @@ class LmsQuizController extends Controller
             ->filter()
             ->values();
 
-        // Filter per rombel jika dipilih
-        $selectedClassroomId = $request->query('classroom_id');
         $selectedClassroom = $selectedClassroomId
             ? $classrooms->firstWhere('id', $selectedClassroomId)
             : null;
 
-        // Load attempts, filter by classroom students jika ada filter
-        $attemptsQuery = $quiz->attempts()->with('student.user')->orderByDesc('finished_at');
+        // Ambil data enrollment siswa
+        $enrollmentQuery = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
+            $q->where('course_id', $course->id);
+            if ($selectedClassroomId) {
+                $q->where('classroom_id', $selectedClassroomId);
+            }
+        })->with(['student.user', 'lmsClass.classroom']);
+
+        $enrollments = $enrollmentQuery->get();
+
+        // Ambil semua pengerjaan quiz
+        $attemptsQuery = $quiz->attempts()->with('student.user')->orderBy('started_at', 'asc')->orderBy('id', 'asc');
 
         if ($selectedClassroomId && $selectedClassroom) {
-            $enrolledStudentIds = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
-                $q->where('course_id', $course->id)->where('classroom_id', $selectedClassroomId);
-            })->pluck('student_id');
-
+            $enrolledStudentIds = $enrollments->pluck('student_id')->filter()->unique();
             $attemptsQuery->whereIn('student_id', $enrolledStudentIds);
         }
 
-        $quiz->setRelation('attempts', $attemptsQuery->get());
+        $attempts = $attemptsQuery->get();
+        $attemptsByStudent = $attempts->groupBy('student_id');
 
-        $totalAttempts = $quiz->attempts->count();
-        $passedCount = $quiz->attempts->where('is_passed', true)->count();
-        $avgScore = $quiz->attempts->whereNotNull('score')->avg('score');
+        // Petakan siswa terdaftar
+        $studentsMap = collect();
 
-        return view('guru.lms.quiz-results', compact(
-            'teacher', 'course', 'quiz',
-            'totalAttempts', 'passedCount', 'avgScore',
-            'classrooms', 'selectedClassroomId', 'selectedClassroom'
-        ));
+        foreach ($enrollments as $enrollment) {
+            $student = $enrollment->student;
+            if (!$student) continue;
+
+            $studentsMap->put($student->id, [
+                'student' => $student,
+                'classroom_name' => $enrollment->lmsClass?->classroom?->class_name ?? ($student->classroom?->class_name ?? '-'),
+            ]);
+        }
+
+        // Jika ada siswa yang mengerjakan tapi belum ada di enrollment query (fallback)
+        foreach ($attemptsByStudent as $studentId => $stAttempts) {
+            if (!$studentsMap->has($studentId) && $stAttempts->isNotEmpty()) {
+                $firstAtt = $stAttempts->first();
+                if ($firstAtt && $firstAtt->student) {
+                    $studentsMap->put($studentId, [
+                        'student' => $firstAtt->student,
+                        'classroom_name' => $firstAtt->student->classroom?->class_name ?? '-',
+                    ]);
+                }
+            }
+        }
+
+        $passingScore = (float) ($quiz->passing_score ?? 75);
+        $recapList = collect();
+
+        foreach ($studentsMap as $studentId => $item) {
+            $student = $item['student'];
+            $classroomName = $item['classroom_name'];
+            $stAttempts = $attemptsByStudent->get($studentId, collect());
+
+            $attemptsByIndex = [];
+            $attemptsObjByIndex = [];
+            $idx = 1;
+            foreach ($stAttempts as $att) {
+                $attemptsByIndex[$idx] = $att->score !== null ? (float) $att->score : null;
+                $attemptsObjByIndex[$idx] = $att;
+                $idx++;
+            }
+
+            $finishedAttempts = $stAttempts->whereNotNull('finished_at');
+            $inProgressAttempt = $stAttempts->firstWhere('finished_at', null);
+            $bestScore = $finishedAttempts->isNotEmpty() ? (float) $finishedAttempts->max('score') : null;
+            $bestAttempt = $finishedAttempts->isNotEmpty() ? $finishedAttempts->sortByDesc('score')->first() : null;
+            $latestAttempt = $stAttempts->sortByDesc('started_at')->first();
+            $attemptCount = $finishedAttempts->count();
+
+            if ($attemptCount === 0) {
+                if ($inProgressAttempt) {
+                    $statusLabel = 'Sedang Mengerjakan';
+                    $statusType = 'in_progress';
+                } else {
+                    $statusLabel = 'Belum Mengerjakan';
+                    $statusType = 'unattempted';
+                }
+            } else {
+                if ($bestScore !== null && $bestScore >= $passingScore) {
+                    $statusLabel = 'Lulus';
+                    $statusType = 'passed';
+                } else {
+                    $statusLabel = 'Remedial';
+                    $statusType = 'failed';
+                }
+            }
+
+            $studentName = $student->full_name ?? $student->user->name ?? 'N/A';
+
+            $recapList->push([
+                'student' => $student,
+                'student_id' => $student->id,
+                'student_name' => $studentName,
+                'nisn' => $student->nisn ?? $student->nis ?? '-',
+                'classroom_name' => $classroomName,
+                'attempts' => $stAttempts,
+                'attempts_by_index' => $attemptsByIndex,
+                'attempts_obj_by_index' => $attemptsObjByIndex,
+                'attempt_count' => $attemptCount,
+                'has_in_progress' => (bool) $inProgressAttempt,
+                'best_score' => $bestScore,
+                'best_attempt' => $bestAttempt,
+                'latest_attempt' => $latestAttempt,
+                'status_label' => $statusLabel,
+                'status_type' => $statusType,
+            ]);
+        }
+
+        $recapData = $recapList->sortBy('student_name', SORT_NATURAL | SORT_FLAG_CASE)->values();
+
+        $quizMaxAttempts = (int) ($quiz->max_attempts ?? 1);
+        $maxStudentAttempts = $recapData->map(fn($r) => count($r['attempts_by_index']))->max() ?? 0;
+        $displayAttemptsCount = max(1, min(10, max($quizMaxAttempts, $maxStudentAttempts)));
+
+        // Summary Statistics
+        $totalStudents = $recapData->count();
+        $completedStudentsCount = $recapData->where('attempt_count', '>', 0)->count();
+        $passedStudentsCount = $recapData->where('status_type', 'passed')->count();
+        $inProgressStudentsCount = $recapData->where('status_type', 'in_progress')->count();
+        $unattemptedStudentsCount = $recapData->where('status_type', 'unattempted')->count();
+
+        $completedWithScore = $recapData->filter(fn($r) => $r['best_score'] !== null);
+        $avgScore = $completedWithScore->isNotEmpty() ? $completedWithScore->avg('best_score') : 0;
+
+        $ranges = [
+            '81-100' => 0,
+            '61-80'  => 0,
+            '41-60'  => 0,
+            '21-40'  => 0,
+            '0-20'   => 0,
+        ];
+        foreach ($completedWithScore as $r) {
+            $score = $r['best_score'];
+            if ($score > 80) $ranges['81-100']++;
+            elseif ($score > 60) $ranges['61-80']++;
+            elseif ($score > 40) $ranges['41-60']++;
+            elseif ($score > 20) $ranges['21-40']++;
+            else $ranges['0-20']++;
+        }
+
+        return [
+            'classrooms' => $classrooms,
+            'selectedClassroomId' => $selectedClassroomId,
+            'selectedClassroom' => $selectedClassroom,
+            'recapData' => $recapData,
+            'displayAttemptsCount' => $displayAttemptsCount,
+            'totalStudents' => $totalStudents,
+            'completedStudentsCount' => $completedStudentsCount,
+            'passedStudentsCount' => $passedStudentsCount,
+            'inProgressStudentsCount' => $inProgressStudentsCount,
+            'unattemptedStudentsCount' => $unattemptedStudentsCount,
+            'avgScore' => $avgScore,
+            'ranges' => $ranges,
+            'totalAttempts' => $attempts->whereNotNull('finished_at')->count(),
+            'attempts' => $attempts,
+        ];
     }
 
     /**
