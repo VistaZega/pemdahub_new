@@ -325,39 +325,7 @@ class MobileTeacherController extends Controller
 
                 if ($assignment) {
                     $students = $filterService->getStudentsForAssignment($assignment, $date);
-
-                    $blockSchedule = \App\Models\BlockSchedule::where('academic_year_id', $activeYear?->id)->where('is_active', true)->first();
-                    $rotation = $blockSchedule ? $blockSchedule->getActiveRotationForDate($date) : 'normal';
-
-                    $rules = [];
-                    if (!empty($assignment->group_code)) {
-                        $rules[] = 'Gabungan (Kelompok ' . $assignment->group_code . ')';
-                        if ($teacher) {
-                            $allClassroomIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
-                                ->where('group_code', $assignment->group_code)
-                                ->pluck('classroom_id')
-                                ->unique()
-                                ->toArray();
-                        }
-                    }
-                    if ($assignment->subject) {
-                        if ($assignment->subject->programKeahlian) {
-                            $rules[] = 'Kejuruan ' . ($assignment->subject->programKeahlian->kode ?? $assignment->subject->programKeahlian->nama);
-                        } elseif ($assignment->subject->major) {
-                            $rules[] = 'Jurusan ' . ($assignment->subject->major->code ?? $assignment->subject->major->name);
-                        }
-                    }
-                    if ($assignment->block_type === 'parallel') {
-                        $rules[] = 'Paralel Agama (' . ($assignment->subject->name ?? 'Agama') . ')';
-                    } elseif ($assignment->block_type === 'all') {
-                        $grp = ($rotation === 'normal') ? 'Grup A (Kelas Teori)' : 'Grup B (Kelas Teori)';
-                        $rules[] = "Blok Teori - $grp";
-                    } elseif ($assignment->block_type === 'split') {
-                        $grp = ($rotation === 'normal') ? 'Grup B (Ruang Lab)' : 'Grup A (Ruang Lab)';
-                        $rules[] = "Blok Praktik - $grp";
-                    }
-
-                    $assignmentRuleInfo = !empty($rules) ? implode(' • ', $rules) : 'Reguler';
+                    $assignmentRuleInfo = $assignment->subject->name ?? 'Mata Pelajaran';
                 } else {
                     $students = $classroom->students()->orderBy('full_name')->get();
                     $assignmentRuleInfo = 'Reguler';
@@ -384,7 +352,7 @@ class MobileTeacherController extends Controller
             'classroom_id' => 'required|exists:classrooms,id',
             'date' => 'required|date',
             'attendances' => 'required|array',
-            'attendances.*' => 'required|in:hadir,izin,sakit,alpha',
+            'attendances.*' => 'nullable|in:hadir,izin,sakit,alpha,',
         ]);
 
         $teacher = $this->getTeacher();
@@ -410,6 +378,9 @@ class MobileTeacherController extends Controller
 
         $count = 0;
         foreach ($attendancesInput as $studentId => $status) {
+            if (empty($status) || !in_array($status, ['hadir', 'izin', 'sakit', 'alpha'])) {
+                continue;
+            }
             $attendance = Attendance::updateOrCreate(
                 [
                     'student_id'   => $studentId,

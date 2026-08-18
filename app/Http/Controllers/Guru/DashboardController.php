@@ -740,8 +740,8 @@ class DashboardController extends Controller
                     ];
                 }
 
-                // Determine "Wajib" Students for Teacher in this Classroom FIRST
-                $assignments = \App\Models\TeachingAssignment::with(['subject.programKeahlian', 'subject.major', 'classroom'])
+                // Determine Students for Teacher in this Classroom
+                $assignments = \App\Models\TeachingAssignment::with(['subject', 'classroom'])
                     ->where('teacher_id', $teacher->id)
                     ->where(function($q) use ($selectedClassroomId, $activeYear) {
                         $q->where('classroom_id', $selectedClassroomId)
@@ -756,48 +756,16 @@ class DashboardController extends Controller
                     ->where('is_active', true)
                     ->get();
 
+                $wajibStudentIds = $classroomStudents->pluck('id')->toArray();
+
                 if ($assignments->isNotEmpty()) {
-                    $filterService = app(\App\Services\TeachingAssignmentStudentFilterService::class);
-                    $allWajibIds = collect();
                     $infoList = [];
-                    $blockSchedule = \App\Models\BlockSchedule::where('academic_year_id', $activeYear?->id)->where('is_active', true)->first();
-                    $rotation = $blockSchedule ? $blockSchedule->getActiveRotationForDate($selectedInputDate) : 'normal';
-
                     foreach ($assignments as $assignment) {
-                        $wajibStudents = $filterService->getStudentsForAssignment($assignment, $selectedInputDate);
-                        $allWajibIds = $allWajibIds->merge($wajibStudents->pluck('id'));
-
                         $subjName = $assignment->subject->name ?? 'Mata Pelajaran';
-                        $rules = [];
-
-                        // Rule Kejuruan / Jurusan
-                        if ($assignment->subject) {
-                            if ($assignment->subject->programKeahlian) {
-                                $rules[] = 'Kejuruan ' . ($assignment->subject->programKeahlian->kode ?? $assignment->subject->programKeahlian->nama);
-                            } elseif ($assignment->subject->major) {
-                                $rules[] = 'Jurusan ' . ($assignment->subject->major->code ?? $assignment->subject->major->name);
-                            }
-                        }
-
-                        // Rule Paralel Agama / Blok
-                        if ($assignment->block_type === 'parallel') {
-                            $rules[] = 'Paralel Agama';
-                        } elseif ($assignment->block_type === 'all') {
-                            $currentGroupLabel = ($rotation === 'normal') ? 'Grup A (Kelas Teori)' : 'Grup B (Kelas Teori)';
-                            $rules[] = "Blok Teori - $currentGroupLabel";
-                        } elseif ($assignment->block_type === 'split') {
-                            $currentGroupLabel = ($rotation === 'normal') ? 'Grup B (Ruang Lab)' : 'Grup A (Ruang Lab)';
-                            $rules[] = "Blok Praktik - $currentGroupLabel";
-                        }
-
-                        $ruleLabel = !empty($rules) ? ' (' . implode(' • ', $rules) . ')' : '';
-                        $infoList[] = "{$subjName}{$ruleLabel}";
+                        $infoList[] = $subjName;
                     }
-                    $intersected = $allWajibIds->intersect($classroomStudents->pluck('id'))->unique()->values()->toArray();
-                    $wajibStudentIds = !empty($intersected) ? $intersected : $classroomStudents->pluck('id')->toArray();
-                    $assignmentInfo = implode(' | ', $infoList);
+                    $assignmentInfo = implode(' | ', array_unique($infoList));
                 } else {
-                    $wajibStudentIds = $classroomStudents->pluck('id')->toArray();
                     $assignmentInfo = 'Reguler';
                 }
 
