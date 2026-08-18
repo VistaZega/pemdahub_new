@@ -183,7 +183,7 @@ class AttendanceController extends Controller
             'date' => 'required|date',
             'classroom_id' => 'required|exists:classrooms,id',
             'statuses' => 'required|array',
-            'statuses.*' => 'required|in:hadir,izin,sakit,alpha',
+            'statuses.*' => 'nullable|in:hadir,izin,sakit,alpha,',
         ]);
 
         $teacher = $this->getTeacher();
@@ -215,6 +215,9 @@ class AttendanceController extends Controller
             $scheduleId = $schedule ? $schedule->id : null;
 
             foreach ($request->statuses as $studentId => $status) {
+                if (empty($status) || !in_array($status, ['hadir', 'izin', 'sakit', 'alpha'])) {
+                    continue;
+                }
                 $note = $request->notes[$studentId] ?? null;
                 $attendance = Attendance::updateOrCreate(
                     [

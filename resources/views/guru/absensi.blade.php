@@ -255,8 +255,13 @@
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <button type="button" onclick="markAllWajibHadir()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800">
-                                <i class="fas fa-check-double"></i> Hadirkan Semua Wajib
+                                <i class="fas fa-check-double"></i> Hadirkan Siswa Wajib
                             </button>
+                            @if(count($wajibStudentIds) < $classroomStudents->count())
+                            <button type="button" onclick="markAllClassHadir()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-indigo-800" title="Hadirkan semua siswa di kelas ini jika seluruh siswa masuk ke pelajaran Anda">
+                                <i class="fas fa-users"></i> Hadirkan Semua Siswa Kelas ({{ $classroomStudents->count() }})
+                            </button>
+                            @endif
                             <button type="submit" class="px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-1.5">
                                 <i class="fas fa-save text-black"></i> Simpan Absensi
                             </button>
@@ -332,13 +337,13 @@
                                                     };
                                                 }
                                             @endphp
-                                            <td class="px-1 py-1.5 text-center border-r border-gray-100 {{ $isInputCol && $isWajib ? 'bg-amber-50/80 border-x-2 border-amber-300' : '' }} {{ !$isWajib && !$stStatus ? 'bg-slate-100/70 border-r border-gray-200 text-slate-400' : '' }}">
-                                                @if($isInputCol && $isWajib)
-                                                    {{-- Mode Edit (editMode = true): Tampilkan Toggle Buttons --}}
+                                            <td class="px-1 py-1.5 text-center border-r border-gray-100 {{ $isInputCol && $isWajib ? 'bg-amber-50/80 border-x-2 border-amber-300' : ($isInputCol ? 'bg-slate-50/80 border-x border-slate-200' : '') }} {{ !$isWajib && !$stStatus ? 'bg-slate-100/70 border-r border-gray-200 text-slate-400' : '' }}">
+                                                @if($isInputCol)
+                                                    {{-- Mode Edit (editMode = true): Tampilkan Toggle Buttons untuk SEMUA siswa --}}
                                                     @php
-                                                        $currVal = $stStatus ?? 'hadir';
+                                                        $currVal = $stStatus ?? ($isWajib ? 'hadir' : '');
                                                     @endphp
-                                                    <div x-show="editMode" x-transition x-data="{ status: '{{ $currVal }}' }" @mark-all-hadir.window="status = 'hadir'" class="inline-flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-purple-200 shadow-sm print-hide">
+                                                    <div x-show="editMode" x-transition x-data="{ status: '{{ $currVal }}' }" @mark-all-wajib-hadir.window="if ({{ $isWajib ? 'true' : 'false' }}) status = 'hadir'" @mark-all-class-hadir.window="status = 'hadir'" class="inline-flex items-center gap-0.5 bg-white p-0.5 rounded-lg border {{ $isWajib ? 'border-purple-300 shadow-sm' : 'border-gray-200 opacity-90 hover:opacity-100' }} print-hide">
                                                         <input type="hidden" name="statuses[{{ $st->id }}]" :value="status">
                                                         
                                                         <button type="button" @click="status = 'hadir'" 
@@ -364,11 +369,21 @@
                                                             class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Alpha">
                                                             A
                                                         </button>
+
+                                                        @if(!$isWajib)
+                                                        <button type="button" @click="status = ''" 
+                                                            :class="status === '' ? 'bg-slate-300 text-slate-700 font-black' : 'text-gray-300 hover:bg-gray-100'" 
+                                                            class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Bukan Kelompok / Kosongkan">
+                                                            —
+                                                        </button>
+                                                        @endif
                                                     </div>
                                                     {{-- Mode Terkunci (editMode = false) --}}
                                                     <div x-show="!editMode">
                                                         @if($stStatus)
                                                             <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black {{ $stBadge }}">{{ $stChar }}</span>
+                                                        @elseif(!$isWajib)
+                                                            <span class="text-slate-400 font-bold text-xs select-none" title="Bukan Kelompok Mapel/Kejuruan Ini (Tidak Wajib Hadir)">—</span>
                                                         @else
                                                             <span class="text-gray-200">.</span>
                                                         @endif
@@ -376,7 +391,7 @@
                                                 @elseif($stStatus)
                                                     <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black {{ $stBadge }}">{{ $stChar }}</span>
                                                 @elseif(!$isWajib)
-                                                    <span class="text-slate-400 font-bold text-xs select-none" title="Bukan Kelompok Mapel/Agama Ini (Tidak Wajib Hadir)">—</span>
+                                                    <span class="text-slate-400 font-bold text-xs select-none" title="Bukan Kelompok Mapel/Kejuruan Ini (Tidak Wajib Hadir)">—</span>
                                                 @else
                                                     <span class="text-gray-200">.</span>
                                                 @endif
@@ -415,7 +430,11 @@
 
 <script>
 function markAllWajibHadir() {
-    window.dispatchEvent(new CustomEvent('mark-all-hadir'));
+    window.dispatchEvent(new CustomEvent('mark-all-wajib-hadir'));
+}
+
+function markAllClassHadir() {
+    window.dispatchEvent(new CustomEvent('mark-all-class-hadir'));
 }
 
 function confirmDeleteSelectedDate() {
