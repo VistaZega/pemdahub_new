@@ -24,6 +24,8 @@ class MobileDashboardController extends Controller
         $activeRole = session('active_role', $user->role);
         $student = null;
         $teacher = null;
+        $employee = null;
+        $todayAttendance = null;
         $attendanceStats = ['hadir' => 0, 'terlambat' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0];
         $recentDiscussions = [];
         $activeCourses = [];
@@ -54,7 +56,7 @@ class MobileDashboardController extends Controller
             'attendance_rate' => 100,
             'classes_today' => 0,
             'pending_assignments' => 0,
-            'caption' => 'Dedikasi Anda sangat luar biasa dalam membimbing siswa Pembda! 👨‍🏫🌟',
+            'caption' => 'Dedikasi Anda sangat luar biasa dalam bertugas di Pembda! 👨‍🏫🌟',
         ];
         $teacherAttendanceStats = ['hadir' => 0, 'terlambat' => 0, 'sakit_izin' => 0, 'total_jadwal' => 0];
 
@@ -170,47 +172,44 @@ class MobileDashboardController extends Controller
                 $teacher = Teacher::when($user->school_id, fn($q) => $q->where('school_id', $user->school_id))->first();
             }
 
-            $teacherProgress = [
-                'overall' => 100,
-                'attendance_rate' => 100,
-                'classes_today' => 0,
-                'pending_assignments' => 0,
-                'caption' => 'Dedikasi Anda sangat luar biasa dalam membimbing siswa Pembda! 👨‍🏫🌟',
-            ];
-            $teacherAttendanceStats = ['hadir' => 0, 'terlambat' => 0, 'sakit_izin' => 0, 'total_jadwal' => 0];
+            // Always resolve employee for guru, pegawai, or admins
+            $employee = \App\Models\Employee::where('user_id', $user->id)->first();
+            if (!$employee && $teacher?->employee_id) {
+                $employee = \App\Models\Employee::find($teacher->employee_id);
+            }
+            if (!$employee && $user->school_id && in_array($user->role, ['superadmin', 'admin_sekolah', 'kepala_sekolah'])) {
+                $employee = \App\Models\Employee::where('school_id', $user->school_id)->first();
+            }
+
+            $attRate = 100;
+            $hadirCount = 0;
+            $lateCount = 0;
+            $izinCount = 0;
+
+            if ($employee) {
+                $todayAttendance = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
+                    ->whereDate('date', now()->toDateString())
+                    ->first();
+
+                $empAtts = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
+                    ->whereMonth('date', now()->month)
+                    ->whereYear('date', now()->year)
+                    ->get();
+                $hadirCount = $empAtts->whereIn('status', ['present', 'hadir'])->count();
+                $lateCount = $empAtts->whereIn('status', ['late', 'terlambat'])->count();
+                $izinCount = $empAtts->whereIn('status', ['leave', 'sick', 'izin', 'sakit'])->count();
+                $totalAtt = $empAtts->count();
+                $attRate = $totalAtt > 0 ? round((($hadirCount + $lateCount) / $totalAtt) * 100) : 100;
+            }
 
             $teacherId = $teacher?->id;
+            $classesToday = 0;
+            $pendingAssignments = 0;
+
             if ($teacherId) {
                 $hasPklBimbingan = PklPlacement::where('teacher_id', $teacherId)->exists();
                 $hasProjectBimbingan = FinalProject::where('advisor_id', $teacherId)->exists();
                 $hasProjectUjian = FinalProject::where('examiner_id', $teacherId)->exists();
-
-                // Teacher / Employee Attendance Rate & Today Attendance
-                $employee = \App\Models\Employee::where('user_id', $user->id)->first();
-                if (!$employee && $user->school_id && in_array($user->role, ['superadmin', 'admin_sekolah', 'kepala_sekolah'])) {
-                    $employee = \App\Models\Employee::where('school_id', $user->school_id)->first();
-                }
-
-                $attRate = 100;
-                $hadirCount = 0;
-                $lateCount = 0;
-                $izinCount = 0;
-
-                if ($employee) {
-                    $todayAttendance = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
-                        ->whereDate('date', now()->toDateString())
-                        ->first();
-
-                    $empAtts = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)
-                        ->whereMonth('date', now()->month)
-                        ->whereYear('date', now()->year)
-                        ->get();
-                    $hadirCount = $empAtts->whereIn('status', ['present', 'hadir'])->count();
-                    $lateCount = $empAtts->whereIn('status', ['late', 'terlambat'])->count();
-                    $izinCount = $empAtts->whereIn('status', ['leave', 'sick', 'izin', 'sakit'])->count();
-                    $totalAtt = $empAtts->count();
-                    $attRate = $totalAtt > 0 ? round((($hadirCount + $lateCount) / $totalAtt) * 100) : 100;
-                }
 
                 // Teacher Classes Today
                 $todayDay = strtolower(now()->format('l'));
@@ -223,33 +222,33 @@ class MobileDashboardController extends Controller
                 $teacherCourseIds = LmsCourse::where('teacher_id', $teacherId)->pluck('id');
                 $teacherAssignIds = LmsAssignment::whereIn('course_id', $teacherCourseIds)->pluck('id');
                 $pendingAssignments = LmsSubmission::whereIn('assignment_id', $teacherAssignIds)->where('status', 'submitted')->count();
-
-                // Teacher overall score
-                $teacherOverall = min(100, max(0, (int) round(($attRate * 0.7) + (max(0, 100 - ($pendingAssignments * 10)) * 0.3))));
-
-                if ($pendingAssignments > 0) {
-                    $tCaption = "Ada {$pendingAssignments} tugas siswa yang siap diperiksa & diberi penilaian! 📝";
-                } elseif ($classesToday > 0) {
-                    $tCaption = "Anda memiliki {$classesToday} sesi jadwal mengajar hari ini. Selamat mengajar! 🚀";
-                } else {
-                    $tCaption = "Aktivitas mengajar & presensi Anda bulan ini terpantau sangat baik! 🌟";
-                }
-
-                $teacherProgress = [
-                    'overall' => $teacherOverall,
-                    'attendance_rate' => $attRate,
-                    'classes_today' => $classesToday,
-                    'pending_assignments' => $pendingAssignments,
-                    'caption' => $tCaption,
-                ];
-
-                $teacherAttendanceStats = [
-                    'hadir' => $hadirCount,
-                    'terlambat' => $lateCount,
-                    'sakit_izin' => $izinCount,
-                    'total_jadwal' => $classesToday,
-                ];
             }
+
+            // Overall score
+            $teacherOverall = min(100, max(0, (int) round(($attRate * 0.7) + (max(0, 100 - ($pendingAssignments * 10)) * 0.3))));
+
+            if ($pendingAssignments > 0) {
+                $tCaption = "Ada {$pendingAssignments} tugas siswa yang siap diperiksa & diberi penilaian! 📝";
+            } elseif ($classesToday > 0) {
+                $tCaption = "Anda memiliki {$classesToday} sesi jadwal mengajar hari ini. Selamat mengajar! 🚀";
+            } else {
+                $tCaption = "Aktivitas tugas & presensi Anda bulan ini terpantau sangat baik! 🌟";
+            }
+
+            $teacherProgress = [
+                'overall' => $teacherOverall,
+                'attendance_rate' => $attRate,
+                'classes_today' => $classesToday,
+                'pending_assignments' => $pendingAssignments,
+                'caption' => $tCaption,
+            ];
+
+            $teacherAttendanceStats = [
+                'hadir' => $hadirCount,
+                'terlambat' => $lateCount,
+                'sakit_izin' => $izinCount,
+                'total_jadwal' => $classesToday,
+            ];
 
             $isPanitiaPkl = $user->isPanitiaPkl() || $user->isSuperAdmin() || $user->isAdminSekolah() || $user->isKepalaSekolah();
             $isPanitiaProyek = $user->isPanitiaProyek() || $user->isSuperAdmin() || $user->isAdminSekolah() || $user->isKepalaSekolah();

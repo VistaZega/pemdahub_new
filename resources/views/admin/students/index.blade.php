@@ -294,13 +294,13 @@
                                     </svg>
                                 </a>
                                 <button type="button" 
-                                    onclick="openQrModal('{{ $s->full_name }}', '{{ $s->nis ?: $s->nisn }}', '{{ $s->photo_url }}', '{{ $s->currentClassroom->first()->class_name ?? 'Tanpa Kelas' }}', '{{ $s->school?->name ?? 'Sekolah' }}', 'Siswa', '{{ addslashes($s->birth_place ?? '-') }}, {{ $s->birth_date ? $s->birth_date->format('d-m-Y') : '-' }}')"
+                                    onclick="openQrModal('{{ addslashes($s->full_name) }}', '{{ $s->nis ?: $s->nisn }}', '{{ $s->photo_url }}', '{{ addslashes($s->currentClassroom->first()->class_name ?? 'Tanpa Kelas') }}', '{{ addslashes($s->school?->name ?? 'Sekolah') }}', 'Siswa', '{{ addslashes($s->birth_place ?? '-') }}, {{ $s->birth_date ? $s->birth_date->format('d-m-Y') : '-' }}')"
                                     class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 hover:scale-110 transition-all duration-200 group"
                                     title="Cetak Kartu QR Code">
                                     <i class="fas fa-qrcode text-sm"></i>
                                 </button>
                                 <button type="button" 
-                                    onclick="openRfidModal('{{ $s->full_name }}', '{{ $s->rfid_uid }}', '{{ route('admin.students.update-rfid', $s->id) }}', 'Siswa', 'student', '{{ $s->id }}')"
+                                    onclick="openRfidModal('{{ addslashes($s->full_name) }}', '{{ $s->rfid_uid }}', '{{ route('admin.students.update-rfid', $s->id) }}', 'Siswa', 'student', '{{ $s->id }}')"
                                     class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 hover:scale-110 transition-all duration-200 group"
                                     title="Daftarkan RFID">
                                     <i class="fas fa-id-card text-sm"></i>
@@ -311,7 +311,7 @@
                                     <button type="submit"
                                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200 group"
                                         title="Hapus"
-                                        onclick="return confirm('Yakin ingin menghapus siswa {{ $s->full_name }}?')">
+                                        onclick="return confirm('Yakin ingin menghapus siswa {{ addslashes($s->full_name) }}?')">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                         </svg>

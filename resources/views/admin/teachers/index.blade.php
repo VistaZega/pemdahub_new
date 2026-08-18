@@ -281,13 +281,13 @@
                                 </a>
                                 @endif
                                 <button type="button" 
-                                    onclick="openQrModal('{{ $teacher->full_name }}', '{{ $teacher->teacher_code }}', '{{ $teacher->photo_url }}', 'Guru Pengajar', '{{ $teacher->school?->name ?? 'Sekolah' }}', 'Guru', '{{ addslashes($teacher->birth_place ?? '-') }}, {{ $teacher->birth_date ? $teacher->birth_date->format('d-m-Y') : '-' }}')"
+                                    onclick="openQrModal('{{ addslashes($teacher->full_name) }}', '{{ $teacher->teacher_code }}', '{{ $teacher->photo_url }}', 'Guru Pengajar', '{{ addslashes($teacher->school?->name ?? 'Sekolah') }}', 'Guru', '{{ addslashes($teacher->birth_place ?? '-') }}, {{ $teacher->birth_date ? $teacher->birth_date->format('d-m-Y') : '-' }}')"
                                     class="group flex items-center justify-center w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-600 text-white rounded-lg hover:scale-110 hover:rotate-3 transition-all duration-300 shadow-md"
                                     title="Cetak Kartu QR Code">
                                     <i class="fas fa-qrcode text-xs group-hover:scale-110 transition-transform"></i>
                                 </button>
                                 <button type="button" 
-                                    onclick="openRfidModal('{{ $teacher->full_name }}', '{{ $teacher->employee?->rfid_uid }}', '{{ route('admin.teachers.update-rfid', $teacher) }}', 'Guru', 'employee', '{{ $teacher->employee_id }}')"
+                                    onclick="openRfidModal('{{ addslashes($teacher->full_name) }}', '{{ $teacher->employee?->rfid_uid }}', '{{ route('admin.teachers.update-rfid', $teacher) }}', 'Guru', 'employee', '{{ $teacher->employee_id }}')"
                                     class="group flex items-center justify-center w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-lg hover:scale-110 hover:rotate-3 transition-all duration-300 shadow-md"
                                     title="Daftarkan RFID">
                                     <i class="fas fa-id-card text-xs group-hover:scale-110 transition-transform"></i>
