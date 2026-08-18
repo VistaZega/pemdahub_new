@@ -840,9 +840,16 @@ class DashboardController extends Controller
                     ->pluck('group', 'student_id')
                     ->toArray();
 
-                $blockSchedule = \App\Models\BlockSchedule::where('academic_year_id', $activeYear?->id)
+                $schoolId = $selectedClassroom?->school_id;
+                $blockSchedule = \App\Models\BlockSchedule::where(function($q) use ($schoolId) {
+                        if ($schoolId) {
+                            $q->where('school_id', $schoolId);
+                        }
+                    })
+                    ->where('academic_year_id', $activeYear?->id)
                     ->where('is_active', true)
-                    ->first();
+                    ->first() ?: \App\Models\BlockSchedule::where('academic_year_id', $activeYear?->id)->where('is_active', true)->first();
+
                 $rotation = $blockSchedule ? $blockSchedule->getActiveRotationForDate($selectedInputDate) : 'normal';
 
                 $targetGroup = null;
