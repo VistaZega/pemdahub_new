@@ -399,11 +399,53 @@ if ($cr257) {
         ->groupBy('students.religion')
         ->get();
     
-    echo "<h3>Distribusi Agama Siswa di Kelas ini:</h3>";
+    echo "<h3>Ringkasan Agama Siswa di Kelas IX - Isaac Newton (Total: 28 Siswa):</h3>";
     echo "<table>";
-    echo "<tr><th>Agama</th><th>Jumlah</th></tr>";
+    echo "<tr><th>Agama</th><th>Jumlah</th><th>Persentase</th><th>Status Kelompok Agama</th></tr>";
+    $totalInClass = 0;
     foreach ($cr257Students as $row) {
-        echo "<tr><td>" . ($row->religion ?? 'NULL/KOSONG') . "</td><td>{$row->total}</td></tr>";
+        $totalInClass += $row->total;
+    }
+    foreach ($cr257Students as $row) {
+        $relName = $row->religion ?: 'BELUM DIISI (NULL/KOSONG)';
+        $pct = $totalInClass > 0 ? round(($row->total / $totalInClass) * 100, 1) : 0;
+        $badge = empty($row->religion) 
+            ? "<span class='badge badge-red'>Perlu Diisi Admin</span>" 
+            : "<span class='badge badge-green'>Terdaftar</span>";
+        echo "<tr><td><strong>{$relName}</strong></td><td>{$row->total} siswa</td><td>{$pct}%</td><td>{$badge}</td></tr>";
+    }
+    echo "</table>";
+
+    // Daftar Lengkap Nama Siswa
+    $studentList = DB::table('student_classes')
+        ->join('students', 'student_classes.student_id', '=', 'students.id')
+        ->where('student_classes.classroom_id', 257)
+        ->where('student_classes.status', 'aktif')
+        ->where('student_classes.academic_year_id', $activeAY->id)
+        ->select('students.id', 'students.full_name', 'students.nisn', 'students.nis', 'students.gender', 'students.religion')
+        ->orderBy('students.full_name')
+        ->get();
+
+    echo "<h3>Daftar Lengkap 28 Siswa Kelas IX - Isaac Newton:</h3>";
+    echo "<table>";
+    echo "<tr><th>No</th><th>Nama Lengkap</th><th>NISN</th><th>L/P</th><th>Agama di Database</th><th>Status Mapel Pend. Agama Kristen</th></tr>";
+    foreach ($studentList as $idx => $st) {
+        $rel = $st->religion ?: 'KOSONG (NULL)';
+        $isKristen = in_array(strtolower(trim($st->religion ?? '')), ['kristen', 'kristen protestan', 'protestan']);
+        $statusWajib = $isKristen 
+            ? "<span class='badge badge-green'>Wajib Hadir (Kristen)</span>" 
+            : (!empty($st->religion) 
+                ? "<span class='badge badge-yellow'>Ikut Mapel {$st->religion}</span>" 
+                : "<span class='badge badge-red'>Agama Belum Diisi</span>");
+        
+        echo "<tr>";
+        echo "<td>" . ($idx + 1) . "</td>";
+        echo "<td><strong>{$st->full_name}</strong></td>";
+        echo "<td>" . ($st->nisn ?: ($st->nis ?: '-')) . "</td>";
+        echo "<td>" . ($st->gender ?? '-') . "</td>";
+        echo "<td>{$rel}</td>";
+        echo "<td>{$statusWajib}</td>";
+        echo "</tr>";
     }
     echo "</table>";
 } else {
