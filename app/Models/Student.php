@@ -317,6 +317,15 @@ class Student extends Model
         if ($this->photo && Storage::disk('public')->exists($this->photo)) {
             return asset('storage/' . $this->photo);
         }
+
+        if ($this->applicant && $this->applicant->photo_path && Storage::disk('public')->exists($this->applicant->photo_path)) {
+            return asset('storage/' . $this->applicant->photo_path);
+        }
+
+        if ($this->user && $this->user->photo && Storage::disk('public')->exists($this->user->photo)) {
+            return asset('storage/' . $this->user->photo);
+        }
+
         return asset('images/default-student.jpg');
     }
 

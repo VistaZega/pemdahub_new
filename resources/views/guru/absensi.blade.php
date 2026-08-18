@@ -143,9 +143,14 @@
                                 @endphp
                                 <tr class="hover:bg-gray-50/60 transition">
                                     <td class="px-3 py-2.5 text-center text-gray-500 font-bold border-r border-gray-100">{{ $idx + 1 }}</td>
-                                    <td class="px-4 py-2.5 font-bold text-gray-900 border-r border-gray-100 truncate max-w-[200px]" title="{{ $st->full_name }}">
-                                        {{ $st->full_name }}
-                                        <div class="text-[10px] text-gray-400 font-normal">NISN: {{ $st->nisn ?? '-' }}</div>
+                                    <td class="px-3 py-2.5 font-bold text-gray-900 border-r border-gray-100 min-w-[220px]">
+                                        <div class="flex items-center gap-2.5">
+                                            <img src="{{ $st->photo_url }}" alt="{{ $st->full_name }}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-gray-200 shadow-sm" onerror="this.src='{{ asset('images/default-student.jpg') }}'">
+                                            <div class="truncate max-w-[180px]" title="{{ $st->full_name }}">
+                                                <div class="text-xs font-bold text-gray-900 truncate">{{ $st->full_name }}</div>
+                                                <div class="text-[10px] text-gray-400 font-normal">NISN: {{ $st->nisn ?? '-' }}</div>
+                                            </div>
+                                        </div>
                                     </td>
                                     @for($d = 1; $d <= $daysInMonth; $d++)
                                         @php
@@ -272,7 +277,7 @@
                             <thead>
                                 <tr class="bg-slate-900 text-white font-bold text-xs">
                                     <th class="px-3 py-3 text-center border-r border-slate-700 w-10">No</th>
-                                    <th class="px-4 py-3 text-left border-r border-slate-700 min-w-[200px]">Nama Siswa</th>
+                                    <th class="px-4 py-3 text-left border-r border-slate-700 min-w-[240px]">Nama Siswa</th>
                                     @foreach($lessonDates ?? [] as $d)
                                         <th class="px-1 py-2 text-center border-r border-slate-700 min-w-[24px] {{ $d == $inputDay ? 'bg-amber-400 text-black' : '' }}">{{ $d }}</th>
                                     @endforeach
@@ -292,21 +297,26 @@
                                     @endphp
                                     <tr class="transition {{ !$isScheduled ? 'bg-rose-50/50 hover:bg-rose-100/50' : 'hover:bg-purple-50/30' }}">
                                         <td class="px-3 py-2.5 text-center font-bold {{ !$isScheduled ? 'text-rose-900 font-black' : 'text-gray-500' }} border-r border-gray-100">{{ $idx + 1 }}</td>
-                                        <td class="px-4 py-2.5 font-bold border-r border-gray-100 truncate max-w-[240px]" title="{{ $st->full_name }}">
-                                            <div class="flex items-center gap-1.5 flex-wrap">
-                                                <span class="{{ !$isScheduled ? 'text-rose-900 font-extrabold' : 'text-gray-900 font-bold' }}">
-                                                    {{ $st->full_name }}
-                                                </span>
-                                                @if($stGroup)
-                                                    @if($isScheduled)
-                                                        <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">Grup {{ $stGroup }}</span>
-                                                    @else
-                                                        <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200">Grup {{ $stGroup }}</span>
-                                                    @endif
-                                                @endif
-                                            </div>
-                                            <div class="text-[9px] {{ !$isScheduled ? 'text-rose-800 font-semibold' : 'text-gray-400 font-normal' }}">
-                                                NISN: {{ $st->nisn ?? '-' }} 
+                                        <td class="px-3 py-2.5 font-bold border-r border-gray-100 min-w-[240px]">
+                                            <div class="flex items-center gap-2.5">
+                                                <img src="{{ $st->photo_url }}" alt="{{ $st->full_name }}" class="w-8 h-8 rounded-full object-cover shrink-0 border-2 {{ !$isScheduled ? 'border-rose-400 shadow-sm' : 'border-purple-200 shadow-sm' }}" onerror="this.src='{{ asset('images/default-student.jpg') }}'">
+                                                <div class="truncate max-w-[190px]" title="{{ $st->full_name }}">
+                                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                                        <span class="{{ !$isScheduled ? 'text-rose-900 font-extrabold' : 'text-gray-900 font-bold' }}">
+                                                            {{ $st->full_name }}
+                                                        </span>
+                                                        @if($stGroup)
+                                                            @if($isScheduled)
+                                                                <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">Grup {{ $stGroup }}</span>
+                                                            @else
+                                                                <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200">Grup {{ $stGroup }}</span>
+                                                            @endif
+                                                        @endif
+                                                    </div>
+                                                    <div class="text-[9px] {{ !$isScheduled ? 'text-rose-800 font-semibold' : 'text-gray-400 font-normal' }}">
+                                                        NISN: {{ $st->nisn ?? '-' }} 
+                                                    </div>
+                                                </div>
                                             </div>
                                         </td>
                                         @forelse($lessonDates ?? [] as $d)

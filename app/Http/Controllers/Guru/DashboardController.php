@@ -710,7 +710,7 @@ class DashboardController extends Controller
                 if ($activeYear) {
                     $studentsQuery->wherePivot('academic_year_id', $activeYear->id);
                 }
-                $classroomStudents = $studentsQuery->orderBy('full_name')->get();
+                $classroomStudents = $studentsQuery->with(['applicant', 'user'])->orderBy('full_name')->get();
 
                 // Fetch monthly attendances for matrix grid (Daily School Attendance ONLY)
                 $monthlyAttendances = Attendance::where('classroom_id', $selectedClassroomId)
