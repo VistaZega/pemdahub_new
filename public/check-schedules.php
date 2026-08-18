@@ -60,7 +60,7 @@ echo "<h2>1. Tahun Pelajaran Aktif</h2>";
 $activeAY = DB::table('academic_years')->where('is_active', true)->first();
 if ($activeAY) {
     echo "<p class='ok'>✅ TP Aktif: {$activeAY->year} (ID: {$activeAY->id})</p>";
-    echo "<p>Semester: {$activeAY->semester} | Start: {$activeAY->start_date} | End: {$activeAY->end_date}</p>";
+    echo "<p>Start: " . ($activeAY->start_date ?? '-') . " | End: " . ($activeAY->end_date ?? '-') . "</p>";
 } else {
     echo "<p class='error'>❌ TIDAK ADA Tahun Pelajaran Aktif!</p>";
     echo "</body></html>";
