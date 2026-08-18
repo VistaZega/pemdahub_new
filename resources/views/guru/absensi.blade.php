@@ -301,7 +301,7 @@
                                                     @if($isScheduled)
                                                         <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">Grup {{ $stGroup }}</span>
                                                     @else
-                                                        <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-200/90 text-rose-950 border border-rose-400" title="Kelompok tidak di kelas ini (sedang di ruang lain)">Grup {{ $stGroup }} (Luar Blok)</span>
+                                                        <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200">Grup {{ $stGroup }}</span>
                                                     @endif
                                                 @endif
                                             </div>
