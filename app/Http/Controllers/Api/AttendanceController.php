@@ -75,10 +75,7 @@ class AttendanceController extends Controller
             // 3. Cari di TefaEmployee (Karyawan Bengkelin TEFA)
             if (!$teacher && !$employee) {
                 $tefaEmployee = \App\Models\TefaEmployee::where('is_active', true)
-                    ->where(function($q) use ($rawUid) {
-                        $q->where('rfid_uid', $rawUid)
-                          ->orWhere('employee_code', $rawUid);
-                    })
+                    ->where('rfid_uid', $rawUid)
                     ->first();
             }
 
