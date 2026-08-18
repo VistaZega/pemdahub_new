@@ -760,8 +760,11 @@ class DashboardController extends Controller
                     $filterService = app(\App\Services\TeachingAssignmentStudentFilterService::class);
                     $allWajibIds = collect();
                     $infoList = [];
+                    $blockSchedule = \App\Models\BlockSchedule::where('academic_year_id', $activeYear?->id)->where('is_active', true)->first();
+                    $rotation = $blockSchedule ? $blockSchedule->getActiveRotationForDate($selectedInputDate) : 'normal';
+
                     foreach ($assignments as $assignment) {
-                        $wajibStudents = $filterService->getStudentsForAssignment($assignment);
+                        $wajibStudents = $filterService->getStudentsForAssignment($assignment, $selectedInputDate);
                         $allWajibIds = $allWajibIds->merge($wajibStudents->pluck('id'));
 
                         $subjName = $assignment->subject->name ?? 'Mata Pelajaran';
@@ -780,9 +783,11 @@ class DashboardController extends Controller
                         if ($assignment->block_type === 'parallel') {
                             $rules[] = 'Paralel Agama';
                         } elseif ($assignment->block_type === 'all') {
-                            $rules[] = 'Blok Kelompok A';
+                            $currentGroupLabel = ($rotation === 'normal') ? 'Grup A (Kelas Teori)' : 'Grup B (Kelas Teori)';
+                            $rules[] = "Blok Teori - $currentGroupLabel";
                         } elseif ($assignment->block_type === 'split') {
-                            $rules[] = 'Blok Kelompok B';
+                            $currentGroupLabel = ($rotation === 'normal') ? 'Grup B (Ruang Lab)' : 'Grup A (Ruang Lab)';
+                            $rules[] = "Blok Praktik - $currentGroupLabel";
                         }
 
                         $ruleLabel = !empty($rules) ? ' (' . implode(' • ', $rules) . ')' : '';

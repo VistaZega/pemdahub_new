@@ -324,7 +324,10 @@ class MobileTeacherController extends Controller
                 $allClassroomIds = [$selectedClassroomId];
 
                 if ($assignment) {
-                    $students = $filterService->getStudentsForAssignment($assignment);
+                    $students = $filterService->getStudentsForAssignment($assignment, $date);
+
+                    $blockSchedule = \App\Models\BlockSchedule::where('academic_year_id', $activeYear?->id)->where('is_active', true)->first();
+                    $rotation = $blockSchedule ? $blockSchedule->getActiveRotationForDate($date) : 'normal';
 
                     $rules = [];
                     if (!empty($assignment->group_code)) {
@@ -347,9 +350,11 @@ class MobileTeacherController extends Controller
                     if ($assignment->block_type === 'parallel') {
                         $rules[] = 'Paralel Agama (' . ($assignment->subject->name ?? 'Agama') . ')';
                     } elseif ($assignment->block_type === 'all') {
-                        $rules[] = 'Sistem Blok SMK (Grup A)';
+                        $grp = ($rotation === 'normal') ? 'Grup A (Kelas Teori)' : 'Grup B (Kelas Teori)';
+                        $rules[] = "Blok Teori - $grp";
                     } elseif ($assignment->block_type === 'split') {
-                        $rules[] = 'Sistem Blok SMK (Grup B)';
+                        $grp = ($rotation === 'normal') ? 'Grup B (Ruang Lab)' : 'Grup A (Ruang Lab)';
+                        $rules[] = "Blok Praktik - $grp";
                     }
 
                     $assignmentRuleInfo = !empty($rules) ? implode(' • ', $rules) : 'Reguler';

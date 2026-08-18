@@ -157,7 +157,7 @@
                         </div>
                         <div>
                             <h4 class="text-sm font-bold text-gray-800">Rotasi Normal</h4>
-                            <p class="text-xs text-gray-600 mt-0.5">Grup A → Ruang Praktek, Grup B → Kelas Teori</p>
+                            <p class="text-xs text-gray-600 mt-0.5">Grup A → Ruang Kelas (Teori), Grup B → Ruang Lab (Praktik)</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3">
@@ -166,7 +166,7 @@
                         </div>
                         <div>
                             <h4 class="text-sm font-bold text-gray-800">Rotasi Ditukar (Swapped)</h4>
-                            <p class="text-xs text-gray-600 mt-0.5">Grup A → Kelas Teori, Grup B → Ruang Praktek</p>
+                            <p class="text-xs text-gray-600 mt-0.5">Grup A → Ruang Lab (Praktik), Grup B → Ruang Kelas (Teori)</p>
                         </div>
                     </div>
                 </div>

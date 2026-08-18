@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\TeachingAssignment;
 use App\Models\Student;
 use App\Models\BlockStudentGroup;
+use App\Models\BlockSchedule;
 use App\Models\Applicant;
 use App\Models\KonsentrasiKeahlian;
 use App\Models\ProgramKeahlian;
@@ -19,14 +20,16 @@ class TeachingAssignmentStudentFilterService
      * 1. Grup kelas gabungan (group_code)
      * 2. Filter kejuruan/jurusan (SMK/SMA Kelas Gabungan & Mapel Kejuruan)
      * 3. Filter paralel agama (Islam, Kristen, Katolik, dll.)
-     * 4. Filter grup blok SMK (Kelompok A / B)
+     * 4. Filter grup blok SMK yang berotasi otomatis berdasarkan tanggal (Grup A & B)
      */
-    public function getStudentsForAssignment(TeachingAssignment $assignment): Collection
+    public function getStudentsForAssignment(TeachingAssignment $assignment, $date = null): Collection
     {
+        $date = $date ? \Carbon\Carbon::parse($date) : \Carbon\Carbon::now();
         $activeYearId = $assignment->academic_year_id;
         $classroomId = $assignment->classroom_id;
         $subject = $assignment->subject;
         $classroom = $assignment->classroom;
+        $schoolId = $classroom?->school_id;
         
         $studentsQuery = Student::whereHas('studentClasses', function ($q) use ($activeYearId) {
             $q->where('status', 'aktif')
@@ -174,11 +177,29 @@ class TeachingAssignmentStudentFilterService
             }
         }
 
-        // 4. Filter SMK Block System
-        // 'all' = Group A
-        // 'split' = Group B
+        // 4. Filter SMK Block System (Berotasi otomatis sesuai tanggal & jadwal blok)
         if (in_array($assignment->block_type, ['all', 'split'])) {
-            $targetGroup = $assignment->block_type === 'all' ? 'A' : 'B';
+            $blockSchedule = BlockSchedule::where(function($q) use ($schoolId) {
+                    if ($schoolId) {
+                        $q->where('school_id', $schoolId);
+                    }
+                })
+                ->where('academic_year_id', $activeYearId)
+                ->where('is_active', true)
+                ->first();
+
+            $rotation = $blockSchedule ? $blockSchedule->getActiveRotationForDate($date) : 'normal';
+
+            // Di SMK Swasta Pembda:
+            // Rotasi Awal / Normal : Grup A = Kelas (Teori), Grup B = Lab (Praktik)
+            // Rotasi Ditukar (Swapped): Grup A = Lab (Praktik), Grup B = Kelas (Teori)
+            if ($assignment->block_type === 'split') {
+                // Mapel Praktik / Lab
+                $targetGroup = ($rotation === 'normal') ? 'B' : 'A';
+            } else {
+                // Mapel Teori / Kelas ('all')
+                $targetGroup = ($rotation === 'normal') ? 'A' : 'B';
+            }
             
             $classroomIdsForBlock = !empty($assignment->group_code) && isset($relatedClassroomIds) 
                 ? $relatedClassroomIds 

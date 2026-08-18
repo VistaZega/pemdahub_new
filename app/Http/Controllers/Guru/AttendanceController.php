@@ -143,7 +143,7 @@ class AttendanceController extends Controller
                 $allClassroomIds = [$selectedClassroomId];
 
                 if ($assignment) {
-                    $students = $filterService->getStudentsForAssignment($assignment);
+                    $students = $filterService->getStudentsForAssignment($assignment, $selectedDate);
                     if (!empty($assignment->group_code)) {
                         $allClassroomIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
                             ->where('academic_year_id', $activeYear->id)
