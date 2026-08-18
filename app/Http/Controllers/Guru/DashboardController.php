@@ -788,7 +788,8 @@ class DashboardController extends Controller
                         $ruleLabel = !empty($rules) ? ' (' . implode(' • ', $rules) . ')' : '';
                         $infoList[] = "{$subjName}{$ruleLabel}";
                     }
-                    $wajibStudentIds = $allWajibIds->intersect($classroomStudents->pluck('id'))->unique()->toArray();
+                    $intersected = $allWajibIds->intersect($classroomStudents->pluck('id'))->unique()->values()->toArray();
+                    $wajibStudentIds = !empty($intersected) ? $intersected : $classroomStudents->pluck('id')->toArray();
                     $assignmentInfo = implode(' | ', $infoList);
                 } else {
                     $wajibStudentIds = $classroomStudents->pluck('id')->toArray();

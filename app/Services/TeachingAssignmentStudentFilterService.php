@@ -42,12 +42,14 @@ class TeachingAssignmentStudentFilterService
                 ->unique()
                 ->toArray();
                 
+            $classroomIds = $relatedClassroomIds;
             $studentsQuery->whereHas('studentClasses', function($q) use ($relatedClassroomIds) {
                 $q->whereIn('classroom_id', $relatedClassroomIds);
             })->with(['classrooms' => function($q) use ($relatedClassroomIds) {
                 $q->whereIn('classrooms.id', $relatedClassroomIds);
             }]);
         } else {
+            $classroomIds = [$classroomId];
             $studentsQuery->whereHas('studentClasses', function($q) use ($classroomId) {
                 $q->where('classroom_id', $classroomId);
             })->with(['classrooms' => function($q) use ($classroomId) {
@@ -101,51 +103,43 @@ class TeachingAssignmentStudentFilterService
             }
         }
 
-        // 3. Filter Kejuruan / Jurusan (Khusus Mapel Kejuruan atau Kelas Gabungan)
+        // 3. Filter Kejuruan / Jurusan (Khusus Mapel Kejuruan)
         if ($subject) {
             $targetProgramId = $subject->program_keahlian_id;
             $targetMajorId = $subject->major_id;
             
-            // Deteksi otomatis jika program/major belum terhubung di tabel subjects
+            // Deteksi jika program_keahlian_id belum diset di tabel subjects
             if (!$targetProgramId && !$targetMajorId) {
                 $subjectText = strtoupper(($subject->name ?? '') . ' ' . ($subject->subject_name ?? '') . ' ' . ($subject->code ?? '') . ' ' . ($subject->subject_code ?? ''));
-                $keywords = [
-                    'DPIB' => ['DPIB', 'BANGUNAN', 'GAMBAR BANGUNAN'],
-                    'TJKT' => ['TJKT', 'TKJ', 'JARINGAN', 'KOMPUTER DAN JARINGAN'],
-                    'TSM'  => ['TSM', 'TBSM', 'SEPEDA MOTOR'],
-                    'TKR'  => ['TKR', 'KENDARAAN RINGAN', 'OTOMOTIF'],
-                    'TAV'  => ['TAV', 'AUDIO VIDEO'],
-                    'TE'   => ['TE', 'ELEKTRONIKA'],
-                    'IPA'  => ['MIPA', 'IPA'],
-                    'IPS'  => ['IPS'],
-                ];
                 
-                foreach ($keywords as $code => $patterns) {
-                    foreach ($patterns as $p) {
-                        if (preg_match('/\b' . preg_quote($p, '/') . '\b/i', $subjectText)) {
-                            $prog = ProgramKeahlian::where('kode', 'like', "%{$code}%")
-                                ->orWhere('nama', 'like', "%{$code}%")
-                                ->first();
-                            if ($prog) {
-                                $targetProgramId = $prog->id;
-                                break 2;
-                            }
-                            
-                            $maj = Major::where('code', 'like', "%{$code}%")
-                                ->orWhere('name', 'like', "%{$code}%")
-                                ->first();
-                            if ($maj) {
-                                $targetMajorId = $maj->id;
-                                break 2;
-                            }
-                        }
-                    }
+                if (preg_match('/\b(DPIB|BANGUNAN|GAMBAR BANGUNAN)\b/i', $subjectText)) {
+                    $targetProgramId = ProgramKeahlian::where('kode', 'DPIB')->orWhere('nama', 'like', '%Bangunan%')->orWhere('nama', 'like', '%Desain Pemodelan%')->value('id');
+                } elseif (preg_match('/\b(TJKT|TKJ|JARINGAN|KOMPUTER DAN JARINGAN)\b/i', $subjectText)) {
+                    $targetProgramId = ProgramKeahlian::whereIn('kode', ['TKJ', 'TJKT'])->orWhere('nama', 'like', '%Jaringan%')->value('id');
+                } elseif (preg_match('/\b(TSM|TBSM|SEPEDA MOTOR)\b/i', $subjectText)) {
+                    $targetProgramId = ProgramKeahlian::whereIn('kode', ['TSM', 'TBSM'])->orWhere('nama', 'like', '%Sepeda Motor%')->value('id');
+                } elseif (preg_match('/\b(TKR|KENDARAAN RINGAN)\b/i', $subjectText)) {
+                    $targetProgramId = ProgramKeahlian::where('kode', 'TKR')->orWhere('nama', 'like', '%Kendaraan Ringan%')->value('id');
+                } elseif (preg_match('/\b(TAV|AUDIO VIDEO)\b/i', $subjectText)) {
+                    $targetProgramId = ProgramKeahlian::where('kode', 'TAV')->orWhere('nama', 'like', '%Audio Video%')->orWhere('kode', 'TE')->orWhere('nama', 'like', '%Elektronika%')->value('id');
+                } elseif (preg_match('/\b(TE|ELEKTRONIKA)\b/i', $subjectText)) {
+                    $targetProgramId = ProgramKeahlian::where('kode', 'TE')->orWhere('nama', 'like', '%Elektronika%')->orWhere('kode', 'TAV')->orWhere('nama', 'like', '%Audio Video%')->value('id');
+                } elseif (preg_match('/\b(MIPA|IPA)\b/i', $subjectText)) {
+                    $targetMajorId = Major::where('code', 'IPA')->orWhere('name', 'like', '%IPA%')->value('id');
+                } elseif (preg_match('/\b(IPS)\b/i', $subjectText)) {
+                    $targetMajorId = Major::where('code', 'IPS')->orWhere('name', 'like', '%IPS%')->value('id');
                 }
             }
             
-            // Jika mapel ini terikat pada Program Keahlian / Jurusan tertentu
             if ($targetProgramId || $targetMajorId) {
-                // Temukan siswa yang jurusannya cocok dari data Applicant (Pendaftaran PSB)
+                // Cari siswa aktif di kelas ini yang memiliki kecocokan jurusan
+                $activeStudentIdsInClass = Student::whereHas('studentClasses', function ($q) use ($activeYearId, $classroomIds) {
+                    $q->where('status', 'aktif')
+                      ->where('academic_year_id', $activeYearId)
+                      ->whereIn('classroom_id', $classroomIds);
+                })->pluck('id')->toArray();
+
+                // A. Dari Applicant (PSB)
                 $applicantQuery = Applicant::where(function($q) use ($targetProgramId, $targetMajorId) {
                     if ($targetProgramId) {
                         $konsentrasiIds = KonsentrasiKeahlian::where('program_keahlian_id', $targetProgramId)->pluck('id')->toArray();
@@ -155,33 +149,27 @@ class TeachingAssignmentStudentFilterService
                     if ($targetMajorId) {
                         $q->orWhere('major_id', $targetMajorId);
                     }
-                });
+                })
+                ->whereIn('student_id', $activeStudentIdsInClass);
 
-                $applicantStudentIds = (clone $applicantQuery)->whereNotNull('student_id')->pluck('student_id')->toArray();
-                $applicantNisns = (clone $applicantQuery)->whereNotNull('nisn')->pluck('nisn')->toArray();
+                $matchedStudentIds = $applicantQuery->pluck('student_id')->toArray();
 
-                // Cek juga dari riwayat kelas reguler siswa
-                $classroomStudentIds = Student::whereHas('classrooms', function($q) use ($targetProgramId, $targetMajorId) {
-                    if ($targetProgramId) {
-                        $q->where('program_keahlian_id', $targetProgramId);
-                    }
-                    if ($targetMajorId) {
-                        $q->where('major_id', $targetMajorId);
-                    }
-                })->pluck('id')->toArray();
-
-                $allMatchedIds = array_unique(array_merge($applicantStudentIds, $classroomStudentIds));
-
-                // Jika ada siswa yang cocok, filter daftar siswa ke jurusan tersebut
-                if (!empty($allMatchedIds) || !empty($applicantNisns)) {
-                    $studentsQuery->where(function($q) use ($allMatchedIds, $applicantNisns) {
-                        if (!empty($allMatchedIds)) {
-                            $q->whereIn('id', $allMatchedIds);
+                // B. Dari riwayat kelas jurusan siswa
+                $classroomMatchedIds = Student::whereIn('id', $activeStudentIdsInClass)
+                    ->whereHas('classrooms', function($q) use ($targetProgramId, $targetMajorId) {
+                        if ($targetProgramId) {
+                            $q->where('program_keahlian_id', $targetProgramId);
                         }
-                        if (!empty($applicantNisns)) {
-                            $q->orWhereIn('nisn', $applicantNisns);
+                        if ($targetMajorId) {
+                            $q->where('major_id', $targetMajorId);
                         }
-                    });
+                    })->pluck('id')->toArray();
+
+                $allMatched = array_unique(array_merge($matchedStudentIds, $classroomMatchedIds));
+
+                // Hanya filter jika ditemukan kecocokan siswa di kelas ini
+                if (!empty($allMatched)) {
+                    $studentsQuery->whereIn('id', $allMatched);
                 }
             }
         }
@@ -192,24 +180,37 @@ class TeachingAssignmentStudentFilterService
         if (in_array($assignment->block_type, ['all', 'split'])) {
             $targetGroup = $assignment->block_type === 'all' ? 'A' : 'B';
             
-            // Get student IDs that belong to this group for the relevant classrooms
             $classroomIdsForBlock = !empty($assignment->group_code) && isset($relatedClassroomIds) 
                 ? $relatedClassroomIds 
                 : [$classroomId];
 
-            $validStudentIds = BlockStudentGroup::whereIn('classroom_id', $classroomIdsForBlock)
-                ->where('group', $targetGroup)
-                ->pluck('student_id')
-                ->toArray();
-                
-            if (!empty($validStudentIds)) {
-                $studentsQuery->whereIn('id', $validStudentIds);
-            } else {
-                // If no group is mapped but it's supposed to be filtered, return empty.
-                $studentsQuery->whereIn('id', [0]);
+            // Cek apakah kelas ini memiliki data pembagian grup blok
+            $hasBlockData = BlockStudentGroup::whereIn('classroom_id', $classroomIdsForBlock)->exists();
+
+            if ($hasBlockData) {
+                $validStudentIds = BlockStudentGroup::whereIn('classroom_id', $classroomIdsForBlock)
+                    ->where('group', $targetGroup)
+                    ->pluck('student_id')
+                    ->toArray();
+                    
+                if (!empty($validStudentIds)) {
+                    $studentsQuery->whereIn('id', $validStudentIds);
+                }
             }
         }
 
-        return $studentsQuery->orderBy('full_name')->get();
+        $results = $studentsQuery->orderBy('full_name')->get();
+
+        // Safety fallback: jika hasil kosong, kembalikan semua siswa aktif kelas agar tidak terblok
+        if ($results->isEmpty()) {
+            $fallbackQuery = Student::whereHas('studentClasses', function ($q) use ($activeYearId, $classroomIds) {
+                $q->where('status', 'aktif')
+                  ->where('academic_year_id', $activeYearId)
+                  ->whereIn('classroom_id', $classroomIds);
+            });
+            return $fallbackQuery->orderBy('full_name')->get();
+        }
+
+        return $results;
     }
 }
