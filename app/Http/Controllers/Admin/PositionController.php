@@ -69,7 +69,7 @@ class PositionController extends Controller
             ->paginate(20)->withQueryString();
         
         // Get schools for filter
-        $schools = $user->isSuperAdmin() 
+        $schools = $user->canAccessAllSchools() 
             ? School::where('is_active', 1)->orderBy('name')->get()
             : School::where('id', $user->school_id)->get();
         

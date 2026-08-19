@@ -49,13 +49,15 @@ class EmployeeController extends Controller
             ->orderBy('employee_code', 'asc')
             ->orderBy('full_name', 'asc');
 
+        $canAccessAllSchools = $user->canAccessAllSchools();
+
         // Admin sekolah: only their school
-        if (!$user->isSuperAdmin()) {
+        if (!$canAccessAllSchools) {
             $query->where('school_id', $user->school_id);
         }
 
-        // Filter by school (only for superadmin)
-        if ($request->filled('school_id') && $user->isSuperAdmin()) {
+        // Filter by school (for superadmin / yayasan)
+        if ($request->filled('school_id') && $canAccessAllSchools) {
             $query->where('school_id', $request->school_id);
         }
 
@@ -81,8 +83,8 @@ class EmployeeController extends Controller
 
         $employees = $query->with('school')->paginate(15)->withQueryString();
         
-        // Schools dropdown: superadmin sees all, admin sekolah sees only their school
-        $schools = $user->isSuperAdmin() 
+        // Schools dropdown: superadmin / yayasan sees all, admin sekolah sees only their school
+        $schools = $canAccessAllSchools 
             ? School::where('is_active', 1)->orderBy('name')->get()
             : School::where('id', $user->school_id)->get();
 

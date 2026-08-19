@@ -193,6 +193,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has foundation-wide / all schools access
+     * (Super Admin, Ketua Yayasan, atau Owner Yayasan)
+     */
+    public function canAccessAllSchools(): bool
+    {
+        return $this->isSuperAdmin() || $this->isKetuaYayasan() || $this->isOwnerOrSuperAdmin();
+    }
+
+    /**
      * Check if user is SuperAdmin
      */
     public function isSuperAdmin(): bool

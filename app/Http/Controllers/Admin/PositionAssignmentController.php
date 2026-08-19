@@ -61,13 +61,15 @@ class PositionAssignmentController extends Controller
             }
         }
         
-        // Auto-filter by school for non-superadmin
-        if (!$user->isSuperAdmin()) {
+        $canAccessAllSchools = $user->canAccessAllSchools();
+
+        // Auto-filter by school for non-superadmin/yayasan
+        if (!$canAccessAllSchools) {
             $query->where('school_id', $user->school_id);
         }
         
-        // Filter by school (for superadmin)
-        if ($request->filled('school_id') && $user->isSuperAdmin()) {
+        // Filter by school (for superadmin / yayasan)
+        if ($request->filled('school_id') && $canAccessAllSchools) {
             $query->where('school_id', $request->school_id);
         }
         
@@ -83,7 +85,7 @@ class PositionAssignmentController extends Controller
         $employees = $query->where('is_active', 1)->paginate(15)->withQueryString();
         
         // Schools dropdown
-        $schools = $user->isSuperAdmin() 
+        $schools = $canAccessAllSchools 
             ? School::where('is_active', 1)->orderBy('name')->get()
             : School::where('id', $user->school_id)->get();
         
@@ -107,18 +109,20 @@ class PositionAssignmentController extends Controller
         // Get employee_id from query string or session
         $employeeId = $request->employee_id;
         
+        $canAccessAllSchools = $user->canAccessAllSchools();
+
         $selectedEmployee = null;
         if ($employeeId) {
             $selectedEmployee = Employee::find($employeeId);
-            // Non-superadmin cannot assign positions for employees from other schools
-            if ($selectedEmployee && !$user->isSuperAdmin() && $selectedEmployee->school_id !== $user->school_id) {
+            // Non-superadmin / non-yayasan cannot assign positions for employees from other schools
+            if ($selectedEmployee && !$canAccessAllSchools && $selectedEmployee->school_id !== $user->school_id) {
                 $selectedEmployee = null;
             }
         }
         
         // Get all active employees (teachers and staff) based on user role
         $employeeQuery = Employee::where('is_active', 1)->with('school');
-        if (!$user->isSuperAdmin()) {
+        if (!$canAccessAllSchools) {
             // Admin sekolah bisa memilih pegawai unitnya sendiri ATAU pegawai Yayasan (school_id = 4)
             $employeeQuery->where(function($q) use ($user) {
                 $q->where('school_id', $user->school_id)
@@ -131,7 +135,7 @@ class PositionAssignmentController extends Controller
         // Get positions grouped by category
         $positionsQuery = Position::where('is_active', 1)->with('school');
 
-        if (!$user->isSuperAdmin()) {
+        if (!$canAccessAllSchools) {
             $positionsQuery->where(function($q) use ($user) {
                 $q->where('school_id', $user->school_id)
                   ->orWhereNull('school_id');
@@ -159,7 +163,7 @@ class PositionAssignmentController extends Controller
         
         // Get classrooms for wali kelas assignment
         $classrooms = collect([]);
-        $schoolIdForClassrooms = $selectedEmployee ? $selectedEmployee->school_id : (!$user->isSuperAdmin() ? $user->school_id : null);
+        $schoolIdForClassrooms = $selectedEmployee ? $selectedEmployee->school_id : (!$canAccessAllSchools ? $user->school_id : null);
         
         if ($schoolIdForClassrooms) {
             $classroomsQuery = Classroom::where('school_id', $schoolIdForClassrooms)->where('is_active', 1);
@@ -169,7 +173,7 @@ class PositionAssignmentController extends Controller
             $classrooms = $classroomsQuery->orderBy('grade_level')
                 ->orderBy('class_name')
                 ->get();
-        } elseif ($user->isSuperAdmin()) {
+        } elseif ($canAccessAllSchools) {
             $classroomsQuery = Classroom::where('is_active', 1);
             if ($currentYear) {
                 $classroomsQuery->where('academic_year_id', $currentYear->id);
@@ -251,7 +255,7 @@ class PositionAssignmentController extends Controller
         
         // Check authorization
         $employee = Employee::findOrFail($validated['employee_id']);
-        if (!$user->isSuperAdmin() && $employee->school_id !== $user->school_id) {
+        if (!$user->canAccessAllSchools() && $employee->school_id !== $user->school_id) {
             abort(403, 'Unauthorized');
         }
 
@@ -324,7 +328,7 @@ class PositionAssignmentController extends Controller
         $employee = Employee::with(['school', 'teacher'])->findOrFail($employeeId);
         
         // Check authorization
-        if (!$user->isSuperAdmin() && $employee->school_id !== $user->school_id) {
+        if (!$user->canAccessAllSchools() && $employee->school_id !== $user->school_id) {
             abort(403, 'Unauthorized');
         }
         
@@ -335,11 +339,11 @@ class PositionAssignmentController extends Controller
         // Get positions grouped by category - filtered by school context
         $positionsQuery = Position::where('is_active', 1);
 
-        if (!$user->isSuperAdmin()) {
+        if (!$user->canAccessAllSchools()) {
             // Admin Sekolah strictly hanya bisa melihat jabatan unit sekolahnya
             $positionsQuery->where('school_id', $user->school_id);
         } else {
-            // Superadmin difilter berdasarkan sekolah karyawan
+            // Superadmin / Yayasan difilter berdasarkan sekolah karyawan
             $positionsQuery->where(function($q) use ($employee) {
                 if ($employee->school_id) {
                     $q->where('school_id', $employee->school_id)
@@ -453,7 +457,7 @@ class PositionAssignmentController extends Controller
         
         // Check authorization
         $employee = Employee::findOrFail($validated['employee_id']);
-        if (!$user->isSuperAdmin() && $employee->school_id !== $user->school_id) {
+        if (!$user->canAccessAllSchools() && $employee->school_id !== $user->school_id) {
             abort(403, 'Unauthorized');
         }
 
@@ -526,7 +530,7 @@ class PositionAssignmentController extends Controller
         $employee = Employee::findOrFail($employeeId);
         
         // Check authorization
-        if (!$user->isSuperAdmin() && $employee->school_id !== $user->school_id) {
+        if (!$user->canAccessAllSchools() && $employee->school_id !== $user->school_id) {
             abort(403, 'Unauthorized');
         }
         
@@ -556,7 +560,7 @@ class PositionAssignmentController extends Controller
         $employee = Employee::findOrFail($employeeId);
         
         // Check authorization
-        if (!$user->isSuperAdmin() && $employee->school_id !== $user->school_id) {
+        if (!$user->canAccessAllSchools() && $employee->school_id !== $user->school_id) {
             abort(403, 'Unauthorized');
         }
         

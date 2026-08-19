@@ -20,9 +20,14 @@ class PayrollController extends Controller
      */
     public function slipSearch(Request $request)
     {
+        $user = auth()->user();
+        $canAccessAllSchools = $user->canAccessAllSchools();
+
         $academicYears = AcademicYear::orderByDesc('year')->get();
         $semesters = Semester::orderBy('id')->get();
-        $schools = School::where('is_active', true)->orderBy('name')->get();
+        $schools = $canAccessAllSchools 
+            ? School::where('is_active', true)->orderBy('name')->get()
+            : School::where('id', $user->school_id)->get();
 
         $activeYear = AcademicYear::where('is_active', true)->first();
         $activeSemester = Semester::where('is_active', true)->first();
@@ -30,6 +35,9 @@ class PayrollController extends Controller
         $yearId = $request->get('academic_year_id', $activeYear?->id);
         $semesterId = $request->get('semester_id', $activeSemester?->id);
         $schoolId = $request->get('school_id');
+        if (!$canAccessAllSchools && !$schoolId) {
+            $schoolId = $user->school_id;
+        }
         $search = $request->get('q');
 
         $employees = collect();

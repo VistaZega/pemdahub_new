@@ -25,8 +25,10 @@ class WorkloadSummaryController extends Controller
         $academicYears = AcademicYear::orderByDesc('year')->get();
         $semesters = Semester::orderBy('id')->get();
 
+        $canAccessAllSchools = $user->canAccessAllSchools();
+
         // Filter schools for dropdown
-        $schools = $user->isSuperAdmin() 
+        $schools = $canAccessAllSchools 
             ? School::where('is_active', true)->orderBy('name')->get()
             : School::where('id', $user->school_id)->get();
 
@@ -37,7 +39,7 @@ class WorkloadSummaryController extends Controller
         $semesterId = $request->get('semester_id', $activeSemester?->id);
         
         $schoolId = $request->get('school_id');
-        if (!$user->isSuperAdmin()) {
+        if (!$canAccessAllSchools) {
             $schoolId = $user->school_id;
         }
 
@@ -222,11 +224,18 @@ class WorkloadSummaryController extends Controller
      */
     public function bulkCalculate(Request $request)
     {
+        $user = auth()->user();
+        $canAccessAllSchools = $user->canAccessAllSchools();
+
         $request->validate([
             'school_id' => 'required|exists:schools,id',
             'academic_year_id' => 'required|exists:academic_years,id',
             'semester_id' => 'required|exists:semesters,id',
         ]);
+
+        if (!$canAccessAllSchools && $request->school_id != $user->school_id) {
+            return back()->with('error', 'Anda tidak memiliki akses untuk menghitung beban kerja sekolah ini.');
+        }
 
         $year = AcademicYear::findOrFail($request->academic_year_id);
         $semester = Semester::findOrFail($request->semester_id);
@@ -321,15 +330,17 @@ class WorkloadSummaryController extends Controller
     public function salaryReport(Request $request)
     {
         $user = auth()->user();
+        $canAccessAllSchools = $user->canAccessAllSchools();
+
         $schoolId = $request->get('school_id');
-        if (!$user->isSuperAdmin()) {
+        if (!$canAccessAllSchools) {
             $schoolId = $user->school_id;
         }
         
         $yearId = $request->get('academic_year_id', AcademicYear::where('is_active', true)->first()?->id);
         $semesterId = $request->get('semester_id', Semester::where('is_active', true)->first()?->id);
 
-        $schools = $user->isSuperAdmin() 
+        $schools = $canAccessAllSchools 
             ? School::where('is_active', true)->orderBy('name')->get()
             : School::where('id', $user->school_id)->get();
             
@@ -423,7 +434,14 @@ class WorkloadSummaryController extends Controller
      */
     public function exportSalaryReport(Request $request)
     {
+        $user = auth()->user();
+        $canAccessAllSchools = $user->canAccessAllSchools();
+
         $schoolId = $request->get('school_id');
+        if (!$canAccessAllSchools && !$schoolId) {
+            $schoolId = $user->school_id;
+        }
+
         $yearId = $request->get('academic_year_id');
         $semesterId = $request->get('semester_id');
 

@@ -57,7 +57,7 @@ class TeachingAssignmentController extends Controller
         }]);
 
         // Auto-filter by school (termasuk guru lintas unit via additionalSchools)
-        if (!$user->isSuperAdmin()) {
+        if (!$canAccessAllSchools) {
             $query->where(function ($q) use ($user) {
                 $q->where('school_id', $user->school_id)
                   ->orWhere('school_id', 4) // Guru Yayasan
@@ -67,7 +67,7 @@ class TeachingAssignmentController extends Controller
             });
         }
 
-        if ($request->filled('school_id') && $user->isSuperAdmin()) {
+        if ($request->filled('school_id') && $canAccessAllSchools) {
             $schoolId = $request->school_id;
             $query->where(function ($q) use ($schoolId) {
                 $q->where('school_id', $schoolId)
@@ -94,12 +94,12 @@ class TeachingAssignmentController extends Controller
             $teacher->total_assignments = $teacher->teachingAssignments->count();
         }
 
-        $schools = $user->isSuperAdmin()
+        $schools = $canAccessAllSchools
             ? School::where('is_active', 1)->schoolsOnly()->get()
             : School::where('id', $user->school_id)->get();
 
         // Count unlinked schedules (for sync button indicator)
-        $schoolIdForCount = $user->isSuperAdmin()
+        $schoolIdForCount = $canAccessAllSchools
             ? ($request->filled('school_id') ? $request->school_id : null)
             : $user->school_id;
         
@@ -118,23 +118,23 @@ class TeachingAssignmentController extends Controller
         }
 
         if ($schoolIdForCount) {
-            $statsQuery->whereHas('classroom', fn($cQ) => $cQ->where('school_id', $schoolIdForCount));
+            $statsQuery->whereHas('classroom', fn($q) => $q->where('school_id', $schoolIdForCount));
         }
 
-        $totalTeachingHoursAll = (int) $statsQuery->sum('hours_per_week');
-        $totalAssignmentsCount = (int) $statsQuery->count();
-
-        $totalActiveTeachersCount = Teacher::where('is_active', 1)
-            ->when($schoolIdForCount, function ($q) use ($schoolIdForCount) {
-                $q->where(function ($q2) use ($schoolIdForCount) {
-                    $q2->where('school_id', $schoolIdForCount)
-                       ->orWhere('school_id', 4)
-                       ->orWhereHas('additionalSchools', function ($q3) use ($schoolIdForCount) {
-                           $q3->where('schools.id', $schoolIdForCount);
-                       });
-                });
-            })
-            ->count();
+        $stats = [
+            'total_teachers' => $canAccessAllSchools
+                ? Teacher::where('is_active', 1)->count()
+                : Teacher::where('is_active', 1)->where(function ($q) use ($user) {
+                    $q->where('school_id', $user->school_id)
+                      ->orWhere('school_id', 4)
+                      ->orWhereHas('additionalSchools', function ($q2) use ($user) {
+                          $q2->where('schools.id', $user->school_id);
+                      });
+                })->count(),
+            'total_assignments' => (clone $statsQuery)->count(),
+            'total_hours' => (clone $statsQuery)->sum('hours_per_week'),
+            'unlinked_schedules' => $unlinkedScheduleCount,
+        ];
 
         return view('admin.assignments.teaching.index', compact(
             'teachers',
@@ -143,47 +143,40 @@ class TeachingAssignmentController extends Controller
             'semesters',
             'selectedYearId',
             'selectedSemesterId',
-            'unlinkedScheduleCount',
-            'totalTeachingHoursAll',
-            'totalAssignmentsCount',
-            'totalActiveTeachersCount'
+            'stats',
+            'unlinkedScheduleCount'
         ));
     }
 
     /**
-     * Create — Form buat penugasan mengajar baru
+     * Create — Form tambah penugasan mengajar baru
      */
     public function create(Request $request)
     {
         $user = auth()->user();
+        $canAccessAllSchools = $user->canAccessAllSchools();
 
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
         $currentYear = AcademicYear::where('is_active', 1)->first();
         $activeSemester = Semester::where('is_active', true)->first();
 
-        // Filter semesters by selected or current academic year
         $selectedAcademicYearId = $request->filled('academic_year_id')
             ? $request->academic_year_id
-            : ($currentYear ? $currentYear->id : null);
-        $semesters = $selectedAcademicYearId
-            ? Semester::where('academic_year_id', $selectedAcademicYearId)->orderBy('semester_number')->get()
-            : Semester::orderBy('id')->get();
+            : ($currentYear ? $currentYear->id : $academicYears->first()?->id);
 
-        $teacherId = $request->teacher_id;
-        $selectedTeacher = $teacherId ? Teacher::with('school')->find($teacherId) : null;
+        $selectedTeacher = null;
+        $selectedSchoolId = $canAccessAllSchools
+            ? $request->get('school_id')
+            : $user->school_id;
 
-        // Prioritas: (1) teacher's school_id, (2) explicit school_id from request
-        // Gunakan filled() bukan ?? agar empty string "" dari URL tidak menimpa fallback
-        $selectedSchoolId = $selectedTeacher
-            ? $selectedTeacher->school_id
-            : ($request->filled('school_id') ? $request->school_id : null);
+        $semesters = Semester::orderBy('id')->get();
 
         $selectedSemesterId = $request->filled('semester_id')
             ? $request->semester_id
             : ($activeSemester && $activeSemester->academic_year_id == $selectedAcademicYearId ? $activeSemester->id : $semesters->first()?->id);
 
         // Get schools for filter
-        $schools = $user->isSuperAdmin()
+        $schools = $canAccessAllSchools
             ? School::where('is_active', 1)->schoolsOnly()->orderBy('name')->get()
             : School::where('id', $user->school_id)->get();
 
@@ -192,7 +185,7 @@ class TeachingAssignmentController extends Controller
             ->with(['school', 'employee'])
             ->orderBy('full_name');
 
-        if (!$user->isSuperAdmin()) {
+        if (!$canAccessAllSchools) {
             $teacherQuery->where(function ($q) use ($user) {
                 $q->where('school_id', $user->school_id)
                   ->orWhere('school_id', 4) // Guru Yayasan
@@ -278,7 +271,7 @@ class TeachingAssignmentController extends Controller
         // --- SISTEM GEMBOK PERJANJIAN KINERJA (Khusus SMK) ---
         $hasContract = true;
         // Bypassed for Yayasan teachers or Superadmin/Ketua Yayasan
-        $isYayasanUser = $user->isSuperAdmin() || $user->hasRole('ketua_yayasan');
+        $isYayasanUser = $user->canAccessAllSchools();
         if (!$isYayasanUser && $selectedTeacher && $selectedTeacher->school && $selectedTeacher->school_id != 4) {
             $school = $selectedTeacher->school;
             if (strtoupper($school->type) === 'SMK' || str_contains(strtolower($school->name), 'smk') || str_contains(strtolower($school->name), 'kejuruan')) {
@@ -329,12 +322,12 @@ class TeachingAssignmentController extends Controller
         ]);
 
         $teacher = Teacher::findOrFail($validated['teacher_id']);
-        if (!$user->isSuperAdmin() && !$teacher->canAccessSchool($user->school_id)) {
+        if (!$user->canAccessAllSchools() && !$teacher->canAccessSchool($user->school_id)) {
             abort(403, 'Unauthorized');
         }
 
         // --- SISTEM GEMBOK PERJANJIAN KINERJA (Khusus SMK) ---
-        $isYayasanUser = $user->isSuperAdmin() || $user->hasRole('ketua_yayasan');
+        $isYayasanUser = $user->canAccessAllSchools();
         $school = \App\Models\School::find($teacher->school_id);
         
         if (!$isYayasanUser && $teacher->school_id != 4 && $school && (strtoupper($school->type) === 'SMK' || str_contains(strtolower($school->name), 'smk') || str_contains(strtolower($school->name), 'kejuruan'))) {
@@ -420,7 +413,7 @@ class TeachingAssignmentController extends Controller
         $user = auth()->user();
         $teacher = Teacher::with(['school', 'employee'])->findOrFail($teacherId);
 
-        if (!$user->isSuperAdmin() && !$teacher->canAccessSchool($user->school_id)) {
+        if (!$user->canAccessAllSchools() && !$teacher->canAccessSchool($user->school_id)) {
             abort(403, 'Unauthorized');
         }
 
@@ -515,7 +508,7 @@ class TeachingAssignmentController extends Controller
         $user = auth()->user();
         $teacher = $assignment->teacher;
 
-        if (!$user->isSuperAdmin() && !$teacher->canAccessSchool($user->school_id)) {
+        if (!$user->canAccessAllSchools() && !$teacher->canAccessSchool($user->school_id)) {
             abort(403, 'Unauthorized');
         }
 
@@ -565,7 +558,7 @@ class TeachingAssignmentController extends Controller
         $user = auth()->user();
         $teacher = $assignment->teacher;
 
-        if (!$user->isSuperAdmin() && !$teacher->canAccessSchool($user->school_id)) {
+        if (!$user->canAccessAllSchools() && !$teacher->canAccessSchool($user->school_id)) {
             abort(403, 'Unauthorized');
         }
 
@@ -588,7 +581,7 @@ class TeachingAssignmentController extends Controller
         $user = auth()->user();
         $teacher = Teacher::findOrFail($teacherId);
 
-        if (!$user->isSuperAdmin() && !$teacher->canAccessSchool($user->school_id)) {
+        if (!$user->canAccessAllSchools() && !$teacher->canAccessSchool($user->school_id)) {
             abort(403, 'Unauthorized');
         }
 
@@ -769,7 +762,7 @@ class TeachingAssignmentController extends Controller
         ]);
 
         $semester = Semester::findOrFail($validated['semester_id']);
-        $schoolId = $user->isSuperAdmin()
+        $schoolId = $user->canAccessAllSchools()
             ? $request->get('school_id')
             : $user->school_id;
 
