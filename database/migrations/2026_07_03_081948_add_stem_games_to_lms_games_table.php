@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE lms_games MODIFY COLUMN game_type ENUM('spin_wheel', 'flashcard', 'match', 'crossword', 'word_search', 'quiz', 'true_false', 'word_guess', 'scramble', 'sequence', 'image_hotspot', 'chem_balancer', 'math_ninja') NOT NULL DEFAULT 'flashcard'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE lms_games MODIFY COLUMN game_type ENUM('spin_wheel', 'flashcard', 'match', 'crossword', 'word_search', 'quiz', 'true_false', 'word_guess', 'scramble', 'sequence', 'image_hotspot', 'chem_balancer', 'math_ninja') NOT NULL DEFAULT 'flashcard'");
+        }
     }
 
     /**
@@ -20,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE lms_games MODIFY COLUMN game_type ENUM('spin_wheel', 'flashcard', 'match', 'crossword', 'word_search', 'quiz', 'true_false', 'word_guess', 'scramble', 'sequence') NOT NULL DEFAULT 'flashcard'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE lms_games MODIFY COLUMN game_type ENUM('spin_wheel', 'flashcard', 'match', 'crossword', 'word_search', 'quiz', 'true_false', 'word_guess', 'scramble', 'sequence') NOT NULL DEFAULT 'flashcard'");
+        }
     }
 };

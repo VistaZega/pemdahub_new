@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE teaching_assignments MODIFY COLUMN block_type VARCHAR(50) NOT NULL DEFAULT 'none'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE teaching_assignments MODIFY COLUMN block_type VARCHAR(50) NOT NULL DEFAULT 'none'");
+        }
     }
 
     /**
@@ -20,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE teaching_assignments MODIFY COLUMN block_type VARCHAR(50) NOT NULL DEFAULT 'none'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE teaching_assignments MODIFY COLUMN block_type VARCHAR(50) NOT NULL DEFAULT 'none'");
+        }
     }
 };

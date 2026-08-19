@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         // Modify ENUM to include 'scramble' and 'sequence'
-        \Illuminate\Support\Facades\DB::statement("ALTER TABLE lms_games MODIFY COLUMN game_type ENUM('spin_wheel', 'flashcard', 'match', 'crossword', 'word_search', 'quiz', 'true_false', 'word_guess', 'scramble', 'sequence') NOT NULL DEFAULT 'flashcard'");
+        if (\Illuminate\Support\Facades\DB::getDriverName() !== 'sqlite') {
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE lms_games MODIFY COLUMN game_type ENUM('spin_wheel', 'flashcard', 'match', 'crossword', 'word_search', 'quiz', 'true_false', 'word_guess', 'scramble', 'sequence') NOT NULL DEFAULT 'flashcard'");
+        }
     }
 
     /**
@@ -21,6 +23,8 @@ return new class extends Migration
     public function down(): void
     {
         // Rollback to previous enum (without scramble and sequence)
-        \Illuminate\Support\Facades\DB::statement("ALTER TABLE lms_games MODIFY COLUMN game_type ENUM('spin_wheel', 'flashcard', 'match', 'crossword', 'word_search', 'quiz', 'true_false', 'word_guess') NOT NULL DEFAULT 'flashcard'");
+        if (\Illuminate\Support\Facades\DB::getDriverName() !== 'sqlite') {
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE lms_games MODIFY COLUMN game_type ENUM('spin_wheel', 'flashcard', 'match', 'crossword', 'word_search', 'quiz', 'true_false', 'word_guess') NOT NULL DEFAULT 'flashcard'");
+        }
     }
 };

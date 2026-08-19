@@ -363,10 +363,21 @@ class MobileLmsController extends Controller
 
     public function startQuiz($quizId)
     {
-        $quiz = LmsQuiz::with(['course', 'questions', 'cbtQuestionBank.questions'])->findOrFail($quizId);
+        $quiz = LmsQuiz::with(['course'])->findOrFail($quizId);
         $student = $this->getStudent();
         if (!$student) {
             return redirect()->route('mobile.lms.show', $quiz->course_id)->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        if (!$quiz->isAvailable()) {
+            return redirect()->route('mobile.lms.show', $quiz->course_id)
+                ->with('error', 'Kuis ini belum tersedia atau sudah berakhir.');
+        }
+
+        // Check if student can still attempt
+        if (!$quiz->canAttempt($student->id)) {
+            return redirect()->route('mobile.lms.show', $quiz->course_id)
+                ->with('error', 'Anda sudah mencapai batas percobaan untuk kuis ini.');
         }
 
         $attempt = LmsQuizAttempt::where('quiz_id', $quiz->id)
@@ -382,21 +393,51 @@ class MobileLmsController extends Controller
             ]);
         }
 
-        $questions = $quiz->questions;
+        // Hitung sisa durasi pengerjaan kuis berdasarkan started_at
+        $elapsedSeconds = $attempt->started_at ? abs((int)now()->diffInSeconds($attempt->started_at)) : 0;
+        $totalSeconds = $quiz->time_limit ? ($quiz->time_limit * 60) : null;
+        $remainingSeconds = $totalSeconds !== null ? max(0, $totalSeconds - $elapsedSeconds) : null;
+
+        // Load questions (optionally shuffled or sampled randomly, seeded by attempt id)
+        $questionsQuery = $quiz->questions();
+        if ($quiz->shuffle_questions || ($quiz->question_sample_count && $quiz->question_sample_count > 0)) {
+            $questionsQuery->inRandomOrder($attempt->id);
+        } else {
+            $questionsQuery->orderBy('order_number');
+        }
+
+        if ($quiz->question_sample_count && $quiz->question_sample_count > 0) {
+            $questionsQuery->take($quiz->question_sample_count);
+        }
+
+        $questions = $questionsQuery->get();
+
         if ($questions->isEmpty() && $quiz->cbtQuestionBank) {
-            $questions = $quiz->cbtQuestionBank->questions->map(function($q) {
+            $cbtQuestions = $quiz->cbtQuestionBank->questions;
+            if ($quiz->shuffle_questions || ($quiz->question_sample_count && $quiz->question_sample_count > 0)) {
+                mt_srand($attempt->id);
+                $shuffled = $cbtQuestions->all();
+                shuffle($shuffled);
+                $cbtQuestions = collect($shuffled);
+            }
+            if ($quiz->question_sample_count && $quiz->question_sample_count > 0) {
+                $cbtQuestions = $cbtQuestions->take($quiz->question_sample_count);
+            }
+            $questions = $cbtQuestions->map(function($q) {
                 return (object)[
                     'id' => $q->id,
-                    'question_text' => $q->question_text ?? $q->question,
+                    'question' => $q->question_text ?? $q->question,
                     'question_type' => $q->question_type ?? 'multiple_choice',
                     'options' => is_string($q->options) ? json_decode($q->options, true) : ($q->options ?? [
-                        'A' => $q->option_a ?? 'Pilihan A',
-                        'B' => $q->option_b ?? 'Pilihan B',
-                        'C' => $q->option_c ?? 'Pilihan C',
-                        'D' => $q->option_d ?? 'Pilihan D',
+                        ['key' => 'A', 'text' => $q->option_a ?? 'Pilihan A'],
+                        ['key' => 'B', 'text' => $q->option_b ?? 'Pilihan B'],
+                        ['key' => 'C', 'text' => $q->option_c ?? 'Pilihan C'],
+                        ['key' => 'D', 'text' => $q->option_d ?? 'Pilihan D'],
                     ]),
-                    'score' => $q->score ?? 10,
-                    'correct_answer' => $q->correct_answer ?? $q->answer,
+                    'score' => $q->score ?? $q->points ?? 10,
+                    'correct_answer' => $q->correct_answer ?? $q->answer_key ?? $q->answer,
+                    'image_path' => $q->question_image ?? $q->image_path ?? null,
+                    'video_url' => $q->video_url ?? null,
                 ];
             });
         }
@@ -405,31 +446,36 @@ class MobileLmsController extends Controller
             $questions = collect([
                 (object)[
                     'id' => 101,
-                    'question_text' => 'Berapakah hasil dari 15 + 25?',
+                    'question' => 'Berapakah hasil dari 15 + 25?',
                     'question_type' => 'multiple_choice',
                     'options' => ['A' => '30', 'B' => '35', 'C' => '40', 'D' => '45'],
                     'score' => 10,
                     'correct_answer' => 'C',
+                    'image_path' => null,
+                    'video_url' => null,
                 ],
                 (object)[
                     'id' => 102,
-                    'question_text' => 'Apakah PembdaHUB mendukung sistem pembelajaran mobile & desktop?',
+                    'question' => 'Apakah PembdaHUB mendukung sistem pembelajaran mobile & desktop?',
                     'question_type' => 'multiple_choice',
                     'options' => ['A' => 'Ya, Benar', 'B' => 'Tidak'],
                     'score' => 10,
                     'correct_answer' => 'A',
+                    'image_path' => null,
+                    'video_url' => null,
                 ]
             ]);
         }
 
         $answerMap = $attempt->answers()->get()->keyBy('question_id');
+        $remainingAttempts = $quiz->getRemainingAttempts($student->id);
 
-        return view('mobile.lms.quiz', compact('quiz', 'attempt', 'questions', 'answerMap', 'student'));
+        return view('mobile.lms.quiz', compact('quiz', 'attempt', 'questions', 'answerMap', 'student', 'remainingSeconds', 'remainingAttempts'));
     }
 
     public function submitQuiz(Request $request, $attemptId)
     {
-        $attempt = LmsQuizAttempt::with(['quiz.questions', 'quiz.cbtQuestionBank.questions'])->findOrFail($attemptId);
+        $attempt = LmsQuizAttempt::with(['quiz.course', 'quiz.cbtQuestionBank'])->findOrFail($attemptId);
         
         $student = $this->getStudent();
         if ($student && $attempt->student_id !== $student->id) {
@@ -437,17 +483,47 @@ class MobileLmsController extends Controller
         }
 
         if ($attempt->finished_at) {
-            return redirect()->route('mobile.lms.show', $attempt->quiz->course_id)->with('info', 'Kuis sudah selesai.');
+            return redirect()->route('mobile.lms.quiz.result', $attempt->id)->with('info', 'Kuis sudah selesai dikerjakan.');
         }
 
         $quiz = $attempt->quiz;
-        $questions = $quiz->questions;
+        $questionsQuery = $quiz->questions();
+        if ($quiz->shuffle_questions || ($quiz->question_sample_count && $quiz->question_sample_count > 0)) {
+            $questionsQuery->inRandomOrder($attempt->id);
+        } else {
+            $questionsQuery->orderBy('order_number');
+        }
+
+        if ($quiz->question_sample_count && $quiz->question_sample_count > 0) {
+            $questionsQuery->take($quiz->question_sample_count);
+        }
+
+        $questions = $questionsQuery->get();
+
         if ($questions->isEmpty() && $quiz->cbtQuestionBank) {
-            $questions = $quiz->cbtQuestionBank->questions->map(function($q) {
+            $cbtQuestions = $quiz->cbtQuestionBank->questions;
+            if ($quiz->shuffle_questions || ($quiz->question_sample_count && $quiz->question_sample_count > 0)) {
+                mt_srand($attempt->id);
+                $shuffled = $cbtQuestions->all();
+                shuffle($shuffled);
+                $cbtQuestions = collect($shuffled);
+            }
+            if ($quiz->question_sample_count && $quiz->question_sample_count > 0) {
+                $cbtQuestions = $cbtQuestions->take($quiz->question_sample_count);
+            }
+            $questions = $cbtQuestions->map(function($q) {
                 return (object)[
                     'id' => $q->id,
-                    'score' => $q->score ?? 10,
-                    'correct_answer' => $q->correct_answer ?? $q->answer,
+                    'question' => $q->question_text ?? $q->question,
+                    'question_type' => $q->question_type ?? 'multiple_choice',
+                    'options' => is_string($q->options) ? json_decode($q->options, true) : ($q->options ?? [
+                        ['key' => 'A', 'text' => $q->option_a ?? 'Pilihan A'],
+                        ['key' => 'B', 'text' => $q->option_b ?? 'Pilihan B'],
+                        ['key' => 'C', 'text' => $q->option_c ?? 'Pilihan C'],
+                        ['key' => 'D', 'text' => $q->option_d ?? 'Pilihan D'],
+                    ]),
+                    'score' => $q->score ?? $q->points ?? 10,
+                    'correct_answer' => $q->correct_answer ?? $q->answer_key ?? $q->answer,
                 ];
             });
         }
@@ -459,38 +535,117 @@ class MobileLmsController extends Controller
             ]);
         }
 
+        $effectivePointsPerQuestion = $quiz->getEffectivePointsPerQuestion($questions->count());
+        $isQuizLevelScoring = ($quiz->points_per_question !== null || $quiz->question_sample_count !== null);
+
         $totalScore = 0;
-        $maxScore = $questions->sum('score') ?: 20;
+        $maxScore = $isQuizLevelScoring
+            ? ($questions->count() * $effectivePointsPerQuestion)
+            : $questions->sum('score');
 
         foreach ($questions as $question) {
-            $studentAnswer = trim($request->input("answers.{$question->id}", ''));
-            $correctAnswer = trim($question->correct_answer ?? '');
+            $answer = $request->input("answers.{$question->id}");
+            $finalAnswer = $answer;
 
-            $isCorrect = false;
-            if (!empty($studentAnswer) && !empty($correctAnswer)) {
-                $isCorrect = strtolower($studentAnswer) === strtolower($correctAnswer);
+            $isCorrect = null;
+            $questionScore = null;
+
+            $isAutoGradable = is_object($question) && method_exists($question, 'isAutoGradable')
+                ? $question->isAutoGradable()
+                : in_array($question->question_type ?? 'multiple_choice', ['multiple_choice', 'true_false', 'short_answer']);
+
+            if ($isAutoGradable && !empty($question->correct_answer)) {
+                $studentAnswer = trim((string)($answer ?? ''));
+                $correctAnswer = trim((string)$question->correct_answer);
+
+                if ($studentAnswer === '') {
+                    $isCorrect = false;
+                } elseif (($question->question_type ?? 'multiple_choice') === 'multiple_choice' && !empty($question->options)) {
+                    $options = $question->options;
+                    $firstOpt = $options[0] ?? null;
+                    $isAssoc = is_array($firstOpt) && isset($firstOpt['key']);
+
+                    if ($isAssoc) {
+                        if (preg_match('/^\d+$/', $correctAnswer)) {
+                            $alphabets = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+                            $correctAnswer = $alphabets[(int)$correctAnswer] ?? $correctAnswer;
+                        }
+                        if (preg_match('/^\d+$/', $studentAnswer)) {
+                            $alphabets = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+                            $studentAnswer = $alphabets[(int)$studentAnswer] ?? $studentAnswer;
+                        }
+                        $isCorrect = strtolower($studentAnswer) === strtolower($correctAnswer);
+                    } else {
+                        if (!preg_match('/^\d+$/', $correctAnswer)) {
+                            $alphabetMap = ['a' => 0, 'b' => 1, 'c' => 2, 'd' => 3, 'e' => 4, 'f' => 5, 'g' => 6];
+                            $lowerCorrect = strtolower($correctAnswer);
+                            if (isset($alphabetMap[$lowerCorrect])) {
+                                $correctAnswer = (string)$alphabetMap[$lowerCorrect];
+                            }
+                        }
+                        if (!preg_match('/^\d+$/', $studentAnswer)) {
+                            $alphabetMap = ['a' => 0, 'b' => 1, 'c' => 2, 'd' => 3, 'e' => 4, 'f' => 5, 'g' => 6];
+                            $lowerStudent = strtolower($studentAnswer);
+                            if (isset($alphabetMap[$lowerStudent])) {
+                                $studentAnswer = (string)$alphabetMap[$lowerStudent];
+                            }
+                        }
+
+                        $shuffledOptions = ($quiz->shuffle_questions && method_exists($question, 'getShuffledOptions'))
+                            ? $question->getShuffledOptions($attempt->id)
+                            : $options;
+                        $studentText = $shuffledOptions[(int)$studentAnswer] ?? null;
+                        $correctText = $options[(int)$correctAnswer] ?? null;
+                        $isCorrect = $studentText !== null && $correctText !== null
+                            && strtolower(trim((string)$studentText)) === strtolower(trim((string)$correctText));
+
+                        if ($studentText !== null && $quiz->shuffle_questions) {
+                            $origIdx = null;
+                            foreach ($options as $k => $val) {
+                                if (strtolower(trim((string)$val)) === strtolower(trim((string)$studentText))) {
+                                    $origIdx = $k;
+                                    break;
+                                }
+                            }
+                            if ($origIdx !== null) {
+                                $finalAnswer = (string)$origIdx;
+                            }
+                        }
+                    }
+                } elseif (($question->question_type ?? '') === 'true_false') {
+                    $normalizeTf = function($val) {
+                        $v = strtolower(trim((string)$val));
+                        if (in_array($v, ['true', '1', 't', 'b', 'benar', 'yes', 'y'])) return 'true';
+                        if (in_array($v, ['false', '0', 'f', 's', 'salah', 'no', 'n'])) return 'false';
+                        return $v;
+                    };
+                    $isCorrect = $normalizeTf($studentAnswer) === $normalizeTf($correctAnswer);
+                } else {
+                    $isCorrect = strtolower(trim($studentAnswer)) === strtolower(trim($correctAnswer));
+                }
+
+                $pointVal = $isQuizLevelScoring ? $effectivePointsPerQuestion : ($question->score ?? 10);
+                $questionScore = $isCorrect ? $pointVal : 0;
+                $totalScore += $questionScore;
             }
-
-            $questionScore = $isCorrect ? ($question->score ?: 10) : 0;
-            $totalScore += $questionScore;
 
             LmsQuizAnswer::updateOrCreate(
                 ['attempt_id' => $attempt->id, 'question_id' => $question->id],
                 [
-                    'answer' => $studentAnswer,
+                    'answer' => $finalAnswer,
                     'is_correct' => $isCorrect,
                     'score' => $questionScore,
                 ]
             );
         }
 
-        $finalPercentage = $maxScore > 0 ? round(($totalScore / $maxScore) * 100, 1) : 0;
+        $scorePercentage = $maxScore > 0 ? round(($totalScore / $maxScore) * 100, 1) : 0;
         $passingScore = $quiz->passing_score ?? 70;
 
         $attempt->update([
             'finished_at' => now(),
-            'score' => $finalPercentage,
-            'is_passed' => $finalPercentage >= $passingScore,
+            'score' => $scorePercentage,
+            'is_passed' => $scorePercentage >= $passingScore,
         ]);
 
         // Sinkronisasi skor kuis ke tabel Grades utama agar muncul di Rekap Nilai
@@ -499,6 +654,22 @@ class MobileLmsController extends Controller
             $gradeService->syncQuizAttemptToGrade($attempt);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('LMS Quiz grade sync failed: ' . $e->getMessage());
+        }
+
+        // Give EXP for completing Quiz
+        if ($student && $student->user_id) {
+            try {
+                $expEarned = 10 + (int)(($scorePercentage / 100) * 40);
+                \App\Models\ReputationLog::log(
+                    $student->user_id,
+                    $expEarned,
+                    'lms_quiz',
+                    'Menyelesaikan kuis: ' . $quiz->title . ' (' . number_format($scorePercentage, 1) . '%)',
+                    $quiz
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal memberikan EXP Quiz di mobile: ' . $e->getMessage());
+            }
         }
 
         return redirect()->route('mobile.lms.quiz.result', $attempt->id)->with('success', 'Kuis berhasil diselesaikan!');

@@ -160,13 +160,19 @@
 
                     {{-- Right: Timer --}}
                     @if($quiz->time_limit)
+                    @php
+                        $initSec = $remainingSeconds !== null ? $remainingSeconds : ($quiz->time_limit * 60);
+                        $initMin = floor($initSec / 60);
+                        $initRemSec = $initSec % 60;
+                        $initFormatted = sprintf('%02d:%02d', $initMin, $initRemSec);
+                    @endphp
                     <div class="flex items-center gap-2 flex-shrink-0">
                         <div :class="timerClass"
                              class="px-5 py-2.5 rounded-2xl flex items-center gap-2.5 transition-all duration-500 border-2 border-black shadow-md">
                             <i class="fas fa-stopwatch text-white text-base"></i>
                             <span id="timer" class="text-white font-mono font-black text-xl tracking-wider"
                                   :class="{ 'timer-gentle-pulse': timerSeconds <= 120 }"
-                                  x-text="timerDisplay">{{ $quiz->time_limit }}:00</span>
+                                  x-text="timerDisplay">{{ $initFormatted }}</span>
                         </div>
                     </div>
                     @endif
@@ -472,8 +478,8 @@ function quizApp() {
         ],
         flagged: [],
         showMobileNav: false,
-        timerSeconds: {{ $quiz->time_limit ? $quiz->time_limit * 60 : 0 }},
-        timerDisplay: '{{ $quiz->time_limit }}:00',
+        timerSeconds: {{ $remainingSeconds !== null ? $remainingSeconds : ($quiz->time_limit ? $quiz->time_limit * 60 : 0) }},
+        timerDisplay: '{{ $remainingSeconds !== null ? sprintf("%02d:%02d", floor($remainingSeconds / 60), $remainingSeconds % 60) : ($quiz->time_limit ? sprintf("%02d:00", $quiz->time_limit) : "00:00") }}',
         timerClass: 'timer-safe',
 
         get answeredCount() {
@@ -539,7 +545,7 @@ function quizApp() {
 @if($quiz->time_limit)
 // Enhanced Timer
 (function() {
-    let seconds = {{ $quiz->time_limit * 60 }};
+    let seconds = {{ $remainingSeconds !== null ? $remainingSeconds : ($quiz->time_limit * 60) }};
     const timerEl = document.getElementById('timer');
     const form = document.getElementById('quizForm');
 
@@ -548,7 +554,7 @@ function quizApp() {
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
         const display = m + ':' + String(s).padStart(2, '0');
-        timerEl.textContent = display;
+        if (timerEl) timerEl.textContent = display;
 
         // Update Alpine timer state
         const appEl = document.querySelector('[x-data]');
@@ -567,6 +573,7 @@ function quizApp() {
 
         if (seconds <= 0) {
             clearInterval(interval);
+            alert('Waktu ujian telah habis! Jawaban Anda sedang dikumpulkan secara otomatis.');
             form.submit();
         }
     }, 1000);

@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         // Alter users role enum
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('superadmin','admin_sekolah','kepala_sekolah','bendahara','ketua_yayasan','guru','siswa','orang_tua','pegawai','alumni') NOT NULL");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('superadmin','admin_sekolah','kepala_sekolah','bendahara','ketua_yayasan','guru','siswa','orang_tua','pegawai','alumni') NOT NULL");
+        }
 
         Schema::table('alumni_directories', function (Blueprint $table) {
             $table->foreignId('user_id')->nullable()->after('id')->constrained('users')->nullOnDelete();
@@ -30,6 +32,8 @@ return new class extends Migration
         });
 
         // Revert users role enum (removing alumni)
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('superadmin','admin_sekolah','kepala_sekolah','bendahara','ketua_yayasan','guru','siswa','orang_tua','pegawai') NOT NULL");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('superadmin','admin_sekolah','kepala_sekolah','bendahara','ketua_yayasan','guru','siswa','orang_tua','pegawai') NOT NULL");
+        }
     }
 };

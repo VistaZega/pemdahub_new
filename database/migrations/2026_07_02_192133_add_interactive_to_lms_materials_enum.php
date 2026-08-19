@@ -13,7 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         // Alter ENUM directly to avoid issues with Doctrine DBAL requirements in Laravel < 11
-        DB::statement("ALTER TABLE lms_materials MODIFY COLUMN material_type ENUM('pdf', 'document', 'video', 'text', 'image', 'link', 'interactive') NOT NULL");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE lms_materials MODIFY COLUMN material_type ENUM('pdf', 'document', 'video', 'text', 'image', 'link', 'interactive') NOT NULL");
+        }
     }
 
     /**
@@ -22,6 +24,8 @@ return new class extends Migration
     public function down(): void
     {
         // Revert back
-        DB::statement("ALTER TABLE lms_materials MODIFY COLUMN material_type ENUM('pdf', 'document', 'video', 'text', 'image', 'link') NOT NULL");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE lms_materials MODIFY COLUMN material_type ENUM('pdf', 'document', 'video', 'text', 'image', 'link') NOT NULL");
+        }
     }
 };

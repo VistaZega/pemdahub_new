@@ -12,14 +12,18 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         $smkId = DB::table('schools')
             ->where('type', 'SMK')
             ->orWhere('name', 'LIKE', '%SMK%')
-            ->value('id') ?? 3;
+            ->value('id');
 
         $activeYearId = DB::table('academic_years')
             ->where('is_active', true)
-            ->value('id') ?? 5;
+            ->value('id');
 
         // 1. Restore Sozaro Harefa, A.Md
         $sozaroExists = DB::table('employees')

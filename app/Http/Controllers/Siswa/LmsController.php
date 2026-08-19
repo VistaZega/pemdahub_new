@@ -570,12 +570,17 @@ class LmsController extends Controller
 
         $questions = $questionsQuery->get();
 
+        // Hitung sisa durasi pengerjaan kuis berdasarkan started_at
+        $elapsedSeconds = $attempt->started_at ? abs((int)now()->diffInSeconds($attempt->started_at)) : 0;
+        $totalSeconds = $quiz->time_limit ? ($quiz->time_limit * 60) : null;
+        $remainingSeconds = $totalSeconds !== null ? max(0, $totalSeconds - $elapsedSeconds) : null;
+
         // Get existing answers
         $answerMap = $attempt->answers()->get()->keyBy('question_id');
 
         $remainingAttempts = $quiz->getRemainingAttempts($student->id);
 
-        return view('siswa.lms.quiz', compact('student', 'course', 'quiz', 'attempt', 'questions', 'answerMap', 'remainingAttempts'));
+        return view('siswa.lms.quiz', compact('student', 'course', 'quiz', 'attempt', 'questions', 'answerMap', 'remainingAttempts', 'remainingSeconds'));
     }
 
     /**
