@@ -4,6 +4,9 @@
  * Akses via browser: https://perguruanpembda.com/check_progress_stats.php?secret=pembda99
  */
 
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 $SECRET_KEY = 'pembda99';
 $isCli = (php_sapi_name() === 'cli');
 if (!$isCli && (!isset($_GET['secret']) || $_GET['secret'] !== $SECRET_KEY)) {
@@ -48,6 +51,9 @@ try {
     $activeYear = AcademicYear::where('is_active', true)->first() 
         ?? AcademicYear::orderBy('year', 'desc')->first();
 
+    $activeSemester = Semester::where('is_active', true)->first()
+        ?? Semester::orderBy('id', 'desc')->first();
+
     $schools = School::orderBy('id')->get();
     $report = [
         'generated_at' => now()->toDateTimeString(),
@@ -55,6 +61,10 @@ try {
             'id' => $activeYear->id,
             'year' => $activeYear->year,
             'is_active' => $activeYear->is_active
+        ] : null,
+        'semester' => $activeSemester ? [
+            'id' => $activeSemester->id,
+            'name' => $activeSemester->name ?? $activeSemester->type ?? 'Semester Aktif',
         ] : null,
         'units' => []
     ];
@@ -66,44 +76,75 @@ try {
         $isYayasan = strtolower($school->type) === 'yayasan';
 
         // 1. Data Siswa
-        $totalStudents = Student::where('school_id', $sid)->count();
-        $activeStudents = Student::where('school_id', $sid)->where('is_active', true)->count();
-        
+        $totalStudents = 0;
+        $activeStudents = 0;
         $assignedStudents = 0;
-        if ($activeYear) {
-            $assignedStudents = StudentClass::where('academic_year_id', $activeYear->id)
-                ->whereHas('classroom', function($q) use ($sid) {
-                    $q->where('school_id', $sid);
-                })
-                ->where('status', 'aktif')
-                ->count();
-        }
+        try {
+            $totalStudents = Student::where('school_id', $sid)->count();
+            $activeStudents = Student::where('school_id', $sid)
+                ->where(function($q) {
+                    $q->where('status', 'aktif')
+                      ->orWhere('status', 'active')
+                      ->orWhereNull('status');
+                })->count();
+
+            if ($activeYear) {
+                $assignedStudents = StudentClass::where('academic_year_id', $activeYear->id)
+                    ->whereHas('classroom', fn($q) => $q->where('school_id', $sid))
+                    ->where(function($q) {
+                        $q->where('status', 'aktif')->orWhere('status', 'active');
+                    })
+                    ->count();
+            }
+        } catch (\Throwable $e) {}
 
         // 2. Data Rombel / Kelas
-        $totalClassrooms = Classroom::where('school_id', $sid)->count();
-        $classroomsWithHomeroom = Classroom::where('school_id', $sid)
-            ->whereNotNull('homeroom_teacher_id')
-            ->count();
+        $totalClassrooms = 0;
+        $classroomsWithHomeroom = 0;
+        $classroomsList = [];
+        try {
+            $classrooms = Classroom::where('school_id', $sid)->get();
+            $totalClassrooms = $classrooms->count();
+            $classroomsWithHomeroom = $classrooms->whereNotNull('homeroom_teacher_id')->count();
+            foreach ($classrooms as $c) {
+                $studentInClass = StudentClass::where('classroom_id', $c->id)
+                    ->where('academic_year_id', $activeYear->id ?? 0)
+                    ->where(fn($q) => $q->where('status', 'aktif')->orWhere('status', 'active'))
+                    ->count();
+                $classroomsList[] = [
+                    'id' => $c->id,
+                    'name' => $c->class_name,
+                    'grade' => $c->grade_level,
+                    'has_homeroom' => !empty($c->homeroom_teacher_id),
+                    'students_count' => $studentInClass
+                ];
+            }
+        } catch (\Throwable $e) {}
 
         // 3. Data Guru & Karyawan
-        $totalTeachers = Teacher::where('school_id', $sid)->count();
-        $totalEmployees = Employee::where('school_id', $sid)->count();
-        
+        $totalTeachers = 0;
+        $totalEmployees = 0;
+        try {
+            $totalTeachers = Teacher::where('school_id', $sid)->count();
+            $totalEmployees = Employee::where('school_id', $sid)->count();
+        } catch (\Throwable $e) {}
+
         // 4. Kurikulum & Jadwal
-        $totalSubjects = Subject::where('school_id', $sid)->count();
+        $totalSubjects = 0;
         $totalTeachingAssignments = 0;
         $totalSchedules = 0;
-        if ($activeYear) {
-            $totalTeachingAssignments = TeachingAssignment::where('academic_year_id', $activeYear->id)
-                ->whereHas('classroom', function($q) use ($sid) {
-                    $q->where('school_id', $sid);
-                })
-                ->count();
+        try {
+            $totalSubjects = Subject::where('school_id', $sid)->count();
+            if ($activeYear) {
+                $totalTeachingAssignments = TeachingAssignment::where('academic_year_id', $activeYear->id)
+                    ->whereHas('classroom', fn($q) => $q->where('school_id', $sid))
+                    ->count();
 
-            $totalSchedules = Schedule::where('school_id', $sid)
-                ->where('academic_year_id', $activeYear->id)
-                ->count();
-        }
+                $totalSchedules = Schedule::where('school_id', $sid)
+                    ->where('academic_year_id', $activeYear->id)
+                    ->count();
+            }
+        } catch (\Throwable $e) {}
 
         // 5. Keuangan
         $totalBills = 0;
@@ -111,81 +152,74 @@ try {
         $unpaidBills = 0;
         $totalBillAmount = 0;
         $totalPaidAmount = 0;
-        
-        if (class_exists(StudentBill::class)) {
-            $billsQuery = StudentBill::whereHas('student', function($q) use ($sid) {
-                $q->where('school_id', $sid);
-            });
+        try {
+            $billsQuery = StudentBill::whereHas('student', fn($q) => $q->where('school_id', $sid));
             if ($activeYear) {
                 $billsQuery->where('academic_year_id', $activeYear->id);
             }
             $totalBills = (clone $billsQuery)->count();
-            $paidBills = (clone $billsQuery)->whereIn('status', ['paid', 'lunas'])->count();
-            $unpaidBills = (clone $billsQuery)->whereIn('status', ['unpaid', 'belum_lunas', 'partial'])->count();
+            $paidBills = (clone $billsQuery)->where('status', 'lunas')->count();
+            $unpaidBills = (clone $billsQuery)->whereIn('status', ['belum_bayar', 'cicilan'])->count();
             $totalBillAmount = (clone $billsQuery)->sum('amount');
             $totalPaidAmount = (clone $billsQuery)->sum('paid_amount');
-        }
+        } catch (\Throwable $e) {}
 
         // 6. Absensi
         $studentAttendances = 0;
         $employeeAttendances = 0;
-        if (class_exists(Attendance::class)) {
-            $studentAttendances = Attendance::whereHas('student', function($q) use ($sid) {
-                $q->where('school_id', $sid);
-            })->count();
-        }
-        if (class_exists(EmployeeAttendance::class)) {
-            $employeeAttendances = EmployeeAttendance::whereHas('employee', function($q) use ($sid) {
-                $q->where('school_id', $sid);
-            })->count();
-        }
+        try {
+            $studentAttendances = Attendance::whereHas('student', fn($q) => $q->where('school_id', $sid))->count();
+        } catch (\Throwable $e) {}
+        try {
+            $employeeAttendances = EmployeeAttendance::whereHas('employee', fn($q) => $q->where('school_id', $sid))->count();
+        } catch (\Throwable $e) {}
 
         // 7. LMS
         $lmsCoursesCount = 0;
         $lmsMaterialsCount = 0;
         $lmsAssignmentsCount = 0;
         $lmsSubmissionsCount = 0;
-        if (class_exists(LmsCourse::class)) {
-            $courses = LmsCourse::where('school_id', $sid)->get();
+        $topLmsCourses = [];
+        try {
+            $courses = LmsCourse::where('school_id', $sid)->withCount(['materials', 'assignments'])->get();
             $lmsCoursesCount = $courses->count();
-            $courseIds = $courses->pluck('id')->toArray();
+            $lmsMaterialsCount = $courses->sum('materials_count');
+            $lmsAssignmentsCount = $courses->sum('assignments_count');
             
-            if (!empty($courseIds) && class_exists(LmsMaterial::class)) {
-                $lmsMaterialsCount = LmsMaterial::whereIn('course_id', $courseIds)->count();
-            }
-            if (!empty($courseIds) && class_exists(LmsAssignment::class)) {
-                $assignments = LmsAssignment::whereIn('course_id', $courseIds)->get();
-                $lmsAssignmentsCount = $assignments->count();
-                $assignIds = $assignments->pluck('id')->toArray();
-                if (!empty($assignIds) && class_exists(LmsSubmission::class)) {
+            $courseIds = $courses->pluck('id')->toArray();
+            if (!empty($courseIds)) {
+                $assignIds = LmsAssignment::whereIn('course_id', $courseIds)->pluck('id')->toArray();
+                if (!empty($assignIds)) {
                     $lmsSubmissionsCount = LmsSubmission::whereIn('assignment_id', $assignIds)->count();
                 }
             }
-        }
 
-        // 8. Pembda Space / Forum Partisipasi
+            foreach ($courses as $c) {
+                if ($c->materials_count > 0 || $c->assignments_count > 0) {
+                    $topLmsCourses[] = [
+                        'title' => $c->title,
+                        'materials' => $c->materials_count,
+                        'assignments' => $c->assignments_count,
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 8. Pembda Space
         $forumThreads = 0;
         $forumPosts = 0;
-        if (class_exists(ForumThread::class)) {
-            $forumThreads = ForumThread::whereHas('user', function($q) use ($sid) {
-                $q->where('school_id', $sid);
-            })->count();
-        }
-        if (class_exists(ForumPost::class)) {
-            $forumPosts = ForumPost::whereHas('user', function($q) use ($sid) {
-                $q->where('school_id', $sid);
-            })->count();
-        }
+        try {
+            $forumThreads = ForumThread::whereHas('user', fn($q) => $q->where('school_id', $sid))->count();
+            $forumPosts = ForumPost::whereHas('user', fn($q) => $q->where('school_id', $sid))->count();
+        } catch (\Throwable $e) {}
 
         // 9. CBT
         $cbtExamsCount = 0;
         $cbtQuestionBanksCount = 0;
-        if (class_exists(CbtExam::class)) {
+        try {
             $cbtExamsCount = CbtExam::where('school_id', $sid)->count();
-        }
-        if (class_exists(CbtQuestionBank::class)) {
             $cbtQuestionBanksCount = CbtQuestionBank::where('school_id', $sid)->count();
-        }
+        } catch (\Throwable $e) {}
 
         $report['units'][] = [
             'id' => $sid,
@@ -202,6 +236,8 @@ try {
                 'classrooms' => [
                     'total' => $totalClassrooms,
                     'with_homeroom' => $classroomsWithHomeroom,
+                    'homeroom_percentage' => $totalClassrooms > 0 ? round(($classroomsWithHomeroom / $totalClassrooms) * 100, 1) : 0,
+                    'list' => $classroomsList
                 ],
                 'teachers_and_staff' => [
                     'teachers' => $totalTeachers,
@@ -229,6 +265,7 @@ try {
                     'materials' => $lmsMaterialsCount,
                     'assignments' => $lmsAssignmentsCount,
                     'submissions' => $lmsSubmissionsCount,
+                    'active_courses' => $topLmsCourses,
                 ],
                 'space' => [
                     'threads' => $forumThreads,
@@ -242,9 +279,11 @@ try {
         ];
     }
 
-    // Space Total across all units
-    $report['global_space'] = [
+    $report['global_summary'] = [
         'total_users' => $totalCommunityUsers,
+        'total_students' => Student::count(),
+        'total_teachers' => Teacher::count(),
+        'total_employees' => Employee::count(),
         'total_threads' => class_exists(ForumThread::class) ? ForumThread::count() : 0,
         'total_posts' => class_exists(ForumPost::class) ? ForumPost::count() : 0,
     ];
