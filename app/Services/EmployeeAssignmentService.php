@@ -53,7 +53,7 @@ class EmployeeAssignmentService
      * Employment statuses with jam wajib mengajar (yayasan & PNS)
      * Honorer tidak punya jam wajib
      */
-    public const JAM_WAJIB_ELIGIBLE = ['yayasan', 'pns', 'GTY', 'PNS', 'gty'];
+    public const JAM_WAJIB_ELIGIBLE = ['yayasan', 'pns', 'GTY', 'PNS', 'gty', 'tetap', 'Gty'];
 
     /**
      * Default tarif honor Pembimbing PKL per JP.
@@ -152,12 +152,14 @@ class EmployeeAssignmentService
 
         // PTY / Non-Guru / Pegawai Yayasan (seperti Ketua Yayasan) atau Kepala Sekolah tidak memiliki kewajiban jam wajib mengajar (jam_wajib = 0).
         // Semua jam mengajar Kepala Sekolah dihitung full 100% sebagai jam honorarium.
+        // Catatan: Guru yang menjabat Ketua Program Keahlian (Kaprog)/Ketua Jurusan/Ketua Lab/Bengkel tetap memiliki jam wajib mengajar.
         $isNonGuruStaff = $employee && (
-            $employee->employee_type !== 'guru' ||
+            ($employee->employee_type !== 'guru' && !$employee->teacher) ||
             $employee->isYayasanStaff() ||
             $employee->isKepalaSekolah() ||
             $employee->positions()->where(function ($q) {
-                $q->where('position_name', 'LIKE', '%Ketua%')
+                $q->where('position_name', 'LIKE', '%Ketua Yayasan%')
+                  ->orWhere('position_code', 'LIKE', '%KETUA_YAYASAN%')
                   ->orWhere('position_name', 'LIKE', '%Kepala Sekolah%')
                   ->orWhere('position_name', 'LIKE', '%Kepala SMA%')
                   ->orWhere('position_name', 'LIKE', '%Kepala SMK%')
@@ -167,7 +169,7 @@ class EmployeeAssignmentService
             })->exists()
         );
 
-        $hasJamWajib = !$isNonGuruStaff && in_array($employmentStatus, self::JAM_WAJIB_ELIGIBLE);
+        $hasJamWajib = !$isNonGuruStaff && in_array($statusLower, array_map('strtolower', self::JAM_WAJIB_ELIGIBLE));
         $jamWajib = $hasJamWajib ? $rules['jam_wajib_tetap'] : 0;
 
         // Yayasan = honor tetap, honorer = honor honorer, percobaan = honor percobaan
