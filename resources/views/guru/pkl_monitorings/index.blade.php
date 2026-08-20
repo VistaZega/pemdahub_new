@@ -10,6 +10,14 @@
             <h2 class="text-2xl font-bold text-slate-800">Daftar Tempat PKL (DUDI)</h2>
             <p class="text-sm text-slate-500 mt-1">Pilih DUDI untuk melihat detail siswa dan membuat laporan monitoring.</p>
         </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-800 text-xs font-black shadow-xs">
+                <i class="fas fa-clock text-indigo-600"></i> Beban: {{ $pklHours ?? 0 }} JP
+            </span>
+            <a href="{{ route('guru.pkl.index') }}" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs transition">
+                <i class="fas fa-list text-emerald-600"></i> Daftar Siswa
+            </a>
+        </div>
     </div>
 
     @if(session('success'))

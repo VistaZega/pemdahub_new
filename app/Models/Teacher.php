@@ -185,6 +185,57 @@ class Teacher extends Model
     }
 
     /**
+     * Helper: Dapatkan Total Jam Pelajaran (JP) Penugasan Pembimbing PKL
+     */
+    public function getPklSupervisorHours(?int $academicYearId = null): int
+    {
+        $employee = $this->employee;
+        if (!$employee && $this->user_id) {
+            $employee = \App\Models\Employee::where('user_id', $this->user_id)->first();
+        }
+        if (!$employee) {
+            return 0;
+        }
+
+        $activeYearId = $academicYearId ?? \App\Models\AcademicYear::where('is_active', true)->value('id');
+
+        // 1. Cek dari employee_positions
+        $hours = (int) \Illuminate\Support\Facades\DB::table('employee_positions')
+            ->join('positions', 'positions.id', '=', 'employee_positions.position_id')
+            ->where('employee_positions.employee_id', $employee->id)
+            ->where(function($q) use ($activeYearId) {
+                if ($activeYearId) {
+                    $q->where('employee_positions.academic_year_id', $activeYearId)
+                      ->orWhereNull('employee_positions.academic_year_id');
+                }
+            })
+            ->whereNull('employee_positions.end_date')
+            ->where(function($q) {
+                $q->where('positions.position_code', 'LIKE', '%PKL%')
+                  ->orWhere('positions.position_name', 'LIKE', '%PKL%')
+                  ->orWhere('employee_positions.pkl_supervisor_hours', '>', 0);
+            })
+            ->sum('employee_positions.pkl_supervisor_hours');
+
+        if ($hours > 0) {
+            return $hours;
+        }
+
+        // 2. Cek dari EmployeeWorkloadSummary
+        if ($activeYearId) {
+            $summaryHours = \Illuminate\Support\Facades\DB::table('employee_workload_summaries')
+                ->where('employee_id', $employee->id)
+                ->where('academic_year_id', $activeYearId)
+                ->value('pkl_supervisor_hours');
+            if ($summaryHours) {
+                return (int) $summaryHours;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
      * Relationship: Guru memiliki banyak Penempatan PKL
      */
     public function pklPlacements(): HasMany

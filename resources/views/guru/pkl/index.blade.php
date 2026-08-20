@@ -18,10 +18,94 @@
                     Pemantauan Harian Logbook & Nilai Evaluasi Industri Siswa Bimbingan
                 </p>
             </div>
-            <div>
-                <span class="inline-flex items-center gap-2 text-xs font-black px-4 py-2 rounded-2xl border-2 border-black shadow-sm uppercase tracking-wider" style="background-color: #fbbf24 !important; color: #000000 !important;">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center gap-2 text-xs font-black px-3.5 py-2 rounded-2xl border-2 border-black shadow-sm uppercase tracking-wider" style="background-color: #34d399 !important; color: #000000 !important;">
+                    <i class="fas fa-clock text-black"></i> {{ $pklHours ?? 0 }} JP Penugasan
+                </span>
+                <span class="inline-flex items-center gap-2 text-xs font-black px-3.5 py-2 rounded-2xl border-2 border-black shadow-sm uppercase tracking-wider" style="background-color: #fbbf24 !important; color: #000000 !important;">
                     <i class="far fa-user text-black"></i> Pembimbing Lapangan
                 </span>
+            </div>
+        </div>
+    </div>
+
+    {{-- Stats Cards Grid (Neo-Brutalism) --}}
+    @php
+        $totalDudis = $placements->pluck('company_name')->unique()->filter()->count();
+        $allLogs = $placements->flatMap->logs;
+        $totalApprovedLogs = $allLogs->where('status', 'approved')->count();
+        $totalPendingLogs = $allLogs->where('status', 'submitted')->count();
+    @endphp
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {{-- Card 1: Total Siswa Bimbingan --}}
+        <div class="bg-white rounded-3xl border-2 border-black p-4 md:p-5 shadow-md flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center border-2 border-black shadow-sm text-lg md:text-xl font-black" style="background-color: #0284c7 !important; color: #ffffff !important;">
+                    <i class="fas fa-user-graduate text-white"></i>
+                </div>
+                <span class="text-2xl md:text-3xl font-black text-black leading-none">{{ $placements->count() }}</span>
+            </div>
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-black">Siswa Bimbingan</p>
+                <p class="text-[10px] md:text-[11px] font-bold text-slate-600 mt-0.5">Siswa PKL aktif diampu</p>
+            </div>
+        </div>
+
+        {{-- Card 2: JP Penugasan PKL (HIGHLIGHT) --}}
+        <div class="bg-white rounded-3xl border-2 border-black p-4 md:p-5 shadow-md flex flex-col justify-between relative overflow-hidden" style="background: linear-gradient(135deg, #ffffff 0%, #fef3c7 100%);">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center border-2 border-black shadow-sm text-lg md:text-xl font-black" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                    <i class="fas fa-clock text-black"></i>
+                </div>
+                <div class="text-right">
+                    <span class="text-2xl md:text-3xl font-black text-black leading-none">{{ $pklHours ?? 0 }}</span>
+                    <span class="text-xs font-black text-slate-800 ml-0.5">JP</span>
+                </div>
+            </div>
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-black">Beban Jam (JP) PKL</p>
+                @if(($pklHours ?? 0) > 0)
+                    <p class="text-[10px] md:text-[11px] font-black text-emerald-700 mt-0.5 flex items-center gap-1">
+                        <i class="fas fa-check-circle text-emerald-600 text-[10px]"></i> Ditetapkan di SK Penugasan
+                    </p>
+                @else
+                    <p class="text-[10px] md:text-[11px] font-bold text-amber-700 mt-0.5 flex items-center gap-1" title="Hubungi Admin untuk plot JP di menu Penugasan Jabatan">
+                        <i class="fas fa-info-circle text-amber-600 text-[10px]"></i> Belum diplot di Penugasan
+                    </p>
+                @endif
+            </div>
+        </div>
+
+        {{-- Card 3: Mitra Industri (DUDI) --}}
+        <div class="bg-white rounded-3xl border-2 border-black p-4 md:p-5 shadow-md flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center border-2 border-black shadow-sm text-lg md:text-xl font-black" style="background-color: #059669 !important; color: #ffffff !important;">
+                    <i class="fas fa-building text-white"></i>
+                </div>
+                <span class="text-2xl md:text-3xl font-black text-black leading-none">{{ $totalDudis }}</span>
+            </div>
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-black">Mitra Industri (DUDI)</p>
+                <p class="text-[10px] md:text-[11px] font-bold text-slate-600 mt-0.5">Lokasi tempat kerja siswa</p>
+            </div>
+        </div>
+
+        {{-- Card 4: Logbook Terverifikasi --}}
+        <div class="bg-white rounded-3xl border-2 border-black p-4 md:p-5 shadow-md flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center border-2 border-black shadow-sm text-lg md:text-xl font-black" style="background-color: #4f46e5 !important; color: #ffffff !important;">
+                    <i class="fas fa-clipboard-check text-white"></i>
+                </div>
+                <div class="text-right">
+                    <span class="text-2xl md:text-3xl font-black text-black leading-none">{{ $totalApprovedLogs }}</span>
+                    @if($totalPendingLogs > 0)
+                        <span class="text-[10px] font-black text-rose-600 ml-1">({{ $totalPendingLogs }} ⏳)</span>
+                    @endif
+                </div>
+            </div>
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-black">Logbook Disetujui</p>
+                <p class="text-[10px] md:text-[11px] font-bold text-slate-600 mt-0.5">{{ $totalPendingLogs > 0 ? $totalPendingLogs . ' butuh persetujuan' : 'Semua logbook terverifikasi' }}</p>
             </div>
         </div>
     </div>
@@ -29,9 +113,14 @@
     {{-- Placements List Card --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 class="font-bold text-gray-800 flex items-center gap-2 text-sm">
-                <i class="fas fa-list text-emerald-500"></i> Daftar Siswa Bimbingan PKL
-            </h2>
+            <div class="flex items-center gap-3">
+                <h2 class="font-bold text-gray-800 flex items-center gap-2 text-sm">
+                    <i class="fas fa-list text-emerald-500"></i> Daftar Siswa Bimbingan PKL
+                </h2>
+                <span class="px-2.5 py-0.5 rounded-lg text-xs font-black border border-emerald-300 bg-emerald-50 text-emerald-800">
+                    {{ $pklHours ?? 0 }} JP Penugasan
+                </span>
+            </div>
             <span class="text-xs bg-gray-150 px-2.5 py-1 rounded-lg text-gray-600 font-bold">
                 {{ $placements->count() }} Siswa
             </span>

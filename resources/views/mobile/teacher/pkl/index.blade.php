@@ -14,21 +14,44 @@
     </div>
 
     <!-- Hero Card (Clay Orange) -->
-    <div class="clay-orange p-5 space-y-2">
+    <div class="clay-orange p-5 space-y-3">
         <div class="flex items-center justify-between">
             <span class="text-[10px] font-black uppercase tracking-wider bg-white/30 px-2.5 py-0.5 rounded-full border border-white/40">
                 Guru Pembimbing PKL
             </span>
-            <span class="text-[10px] font-black bg-white/20 px-2.5 py-0.5 rounded-full">
-                {{ $activeYear->name ?? 'Tahun Aktif' }}
-            </span>
+            <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-black bg-amber-400 text-black px-2.5 py-0.5 rounded-full border border-black shadow-xs">
+                    ⚡ {{ $pklHours ?? 0 }} JP
+                </span>
+                <span class="text-[10px] font-black bg-white/20 px-2.5 py-0.5 rounded-full">
+                    {{ $activeYear->name ?? ($activeYear->year ?? 'Tahun Aktif') }}
+                </span>
+            </div>
         </div>
-        <h3 class="text-base font-black text-white leading-tight">
-            {{ $teacher->full_name }}
-        </h3>
-        <p class="text-xs text-orange-100 font-bold">
-            Membimbing <strong>{{ $placements->count() }}</strong> Siswa PKL di berbagai DUDI
-        </p>
+        <div>
+            <h3 class="text-base font-black text-white leading-tight">
+                {{ $teacher->full_name }}
+            </h3>
+            <p class="text-xs text-orange-100 font-bold mt-0.5">
+                Membimbing <strong>{{ $placements->count() }}</strong> Siswa • Beban Penugasan: <strong>{{ $pklHours ?? 0 }} JP</strong>
+            </p>
+        </div>
+
+        <!-- Mini Stats Grid -->
+        <div class="grid grid-cols-3 gap-2 pt-1">
+            <div class="bg-black/20 backdrop-blur-xs rounded-xl p-2 text-center border border-white/15">
+                <span class="block text-sm font-black text-white leading-none">{{ $placements->count() }}</span>
+                <span class="text-[9px] font-bold text-orange-200 uppercase tracking-wider">Siswa</span>
+            </div>
+            <div class="bg-black/20 backdrop-blur-xs rounded-xl p-2 text-center border border-white/15">
+                <span class="block text-sm font-black text-amber-300 leading-none">{{ $pklHours ?? 0 }} JP</span>
+                <span class="text-[9px] font-bold text-orange-200 uppercase tracking-wider">Beban PKL</span>
+            </div>
+            <div class="bg-black/20 backdrop-blur-xs rounded-xl p-2 text-center border border-white/15">
+                <span class="block text-sm font-black text-white leading-none">{{ $placements->pluck('company_name')->unique()->filter()->count() }}</span>
+                <span class="text-[9px] font-bold text-orange-200 uppercase tracking-wider">DUDI</span>
+            </div>
+        </div>
     </div>
 
     <!-- List of Supervised Students -->

@@ -1497,7 +1497,9 @@ class MobileTeacherController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        return view('mobile.teacher.pkl.index', compact('teacher', 'placements', 'activeYear'));
+        $pklHours = $teacher->getPklSupervisorHours($activeYear?->id);
+
+        return view('mobile.teacher.pkl.index', compact('teacher', 'placements', 'activeYear', 'pklHours'));
     }
 
     /**

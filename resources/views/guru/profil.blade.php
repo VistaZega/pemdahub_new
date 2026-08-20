@@ -181,13 +181,13 @@
                 </div>
             </div>
 
-            {{-- Data Kepegawaian --}}
+            {{-- Data Kepegawaian & Penugasan --}}
             @if($teacher->employee)
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-briefcase text-amber-500"></i> Data Kepegawaian</h2>
+                    <h2 class="font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-briefcase text-amber-500"></i> Data Kepegawaian & Penugasan</h2>
                 </div>
-                <div class="p-5">
+                <div class="p-5 space-y-4">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         @php
                             $empFields = [
@@ -208,6 +208,35 @@
                             </div>
                         @endforeach
                     </div>
+
+                    {{-- Active Positions / Penugasan Jabatan --}}
+                    @php
+                        $activePositions = $teacher->employee->activePositions;
+                    @endphp
+                    @if($activePositions && $activePositions->isNotEmpty())
+                    <div class="border-t border-gray-100 pt-4">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                            <i class="fas fa-award text-indigo-500"></i> Penugasan Jabatan Struktural / Fungsional
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($activePositions as $pos)
+                                @php
+                                    $isPklPos = str_contains(strtolower($pos->position_code ?? ''), 'pkl') || str_contains(strtolower($pos->position_name ?? ''), 'pkl');
+                                    $pklHoursVal = $pos->pivot->pkl_supervisor_hours ?? 0;
+                                @endphp
+                                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50/70 text-indigo-900 text-xs font-bold shadow-xs">
+                                    <i class="fas fa-check-circle text-indigo-600"></i>
+                                    <span>{{ $pos->position_name }}</span>
+                                    @if($isPklPos && $pklHoursVal > 0)
+                                        <span class="px-2 py-0.5 rounded-md bg-amber-400 text-black font-black text-[10px] border border-black shadow-xs">
+                                            {{ $pklHoursVal }} JP
+                                        </span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
             @endif

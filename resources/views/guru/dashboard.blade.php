@@ -372,6 +372,37 @@
                 </div>
                 @endif
             </div>
+            {{-- Pembimbing PKL Management --}}
+            @if(($pklPlacementsCount ?? 0) > 0 || ($pklSupervisorHours ?? 0) > 0)
+            <div class="bg-white rounded-3xl shadow-xl border-2 border-black p-6 relative overflow-hidden" style="background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);">
+                <h2 class="font-black text-black mb-4 flex items-center justify-between text-xs uppercase tracking-wider">
+                    <span class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl border border-black flex items-center justify-center font-black shadow-xs" style="background-color: #34d399 !important; color: #000000 !important;"><i class="fas fa-briefcase text-xs text-black"></i></span>
+                        Pembimbing PKL
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black border border-black bg-amber-400 text-black">
+                        {{ $pklSupervisorHours ?? 0 }} JP Penugasan
+                    </span>
+                </h2>
+                <div class="bg-emerald-100 border-2 border-black rounded-2xl p-4 relative shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-black text-black text-xl leading-tight">{{ $pklPlacementsCount ?? 0 }} Siswa</p>
+                            <p class="text-xs font-bold text-slate-800 mt-1 flex items-center gap-1.5">
+                                <i class="fas fa-clock text-emerald-800"></i>
+                                Beban PKL: <strong class="text-black">{{ $pklSupervisorHours ?? 0 }} JP</strong>
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center text-xl shadow-xs">
+                            💼
+                        </div>
+                    </div>
+                    <a href="{{ route('guru.pkl.index') }}" 
+                       class="inline-flex items-center gap-2 mt-4 text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl border-2 border-black transition shadow-md uppercase tracking-wider w-full justify-center">
+                        <i class="fas fa-eye text-amber-300"></i> Monitoring PKL Siswa
+                    </a>
+                </div>
+            </div>
             @endif
 
             {{-- Weekly Overview --}}

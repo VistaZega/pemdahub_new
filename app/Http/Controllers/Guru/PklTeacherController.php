@@ -18,13 +18,16 @@ class PklTeacherController extends Controller
     public function index()
     {
         $teacher = $this->getTeacher();
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
         
         $placements = PklPlacement::where('teacher_id', $teacher->id)
-            ->with(['student', 'logs', 'grade'])
+            ->with(['student', 'logs', 'grade', 'dudi'])
             ->orderByDesc('id')
             ->get();
 
-        return view('guru.pkl.index', compact('teacher', 'placements'));
+        $pklHours = $teacher->getPklSupervisorHours($activeYear?->id);
+
+        return view('guru.pkl.index', compact('teacher', 'placements', 'pklHours', 'activeYear'));
     }
 
     public function show(PklPlacement $placement)

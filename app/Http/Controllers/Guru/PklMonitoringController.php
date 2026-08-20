@@ -38,7 +38,9 @@ class PklMonitoringController extends Controller
             ->groupBy('dudi_id', 'shift')
             ->get();
 
-        return view('guru.pkl_monitorings.index', compact('teacher', 'groups', 'activeYear'));
+        $pklHours = $teacher->getPklSupervisorHours($activeYear?->id);
+
+        return view('guru.pkl_monitorings.index', compact('teacher', 'groups', 'activeYear', 'pklHours'));
     }
 
     public function show($dudi_id, $shift = null)

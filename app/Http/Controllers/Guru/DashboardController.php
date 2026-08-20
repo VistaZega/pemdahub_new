@@ -261,6 +261,12 @@ class DashboardController extends Controller
                 ->first();
         }
 
+        // PKL Supervisor stats for teacher
+        $pklSupervisorHours = $teacher->getPklSupervisorHours($activeYear?->id);
+        $pklPlacementsCount = \App\Models\PklPlacement::where('teacher_id', $teacher->id)
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->count();
+
         return view('guru.dashboard', compact(
             'teacher', 'activeYear', 'activeSemester', 'classrooms',
             'totalStudents', 'todaySchedules', 'groupedTodaySchedules', 'gradesCount',
@@ -268,7 +274,7 @@ class DashboardController extends Controller
             'currentTime', 'currentSchedule', 'nextSchedule',
             'reputation', 'reputationLogs', 'rank', 'foundationLetters',
             'availableSchools', 'activeSchoolName', 'isMultiSchool', 'effectiveSchoolId',
-            'todayAttendance'
+            'todayAttendance', 'pklSupervisorHours', 'pklPlacementsCount'
         ));
     }
 
