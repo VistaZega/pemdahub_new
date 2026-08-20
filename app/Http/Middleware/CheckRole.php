@@ -27,10 +27,11 @@ class CheckRole
         
         $activeRole = session('active_role');
 
-        // Check if user has one of the required roles directly, via active_role, or is superadmin
+        // Check if user has one of the required roles directly, via active_role, or is superadmin/owner
         $hasAccess = $user->hasAnyRole($roles) 
                   || ($activeRole && in_array($activeRole, $roles))
-                  || $user->isSuperAdmin();
+                  || $user->isSuperAdmin()
+                  || $user->isOwnerOrSuperAdmin();
 
         if (!$hasAccess) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');

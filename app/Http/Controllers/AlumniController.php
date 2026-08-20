@@ -37,8 +37,8 @@ class AlumniController extends Controller
             $alumni = AlumniProfile::where('email', Auth::user()->email)->first();
             if ($alumni) return $alumni;
 
-            // Allow Admin / Staff roles to preview and interact as well
-            if (in_array(Auth::user()->role, ['superadmin', 'admin_yayasan', 'admin_sekolah', 'guru'])) {
+            // Allow Admin / Staff roles / Owner / Yayasan to preview and interact as well
+            if (Auth::user()->canAccessAllSchools() || in_array(Auth::user()->role, ['superadmin', 'ketua_yayasan', 'admin_yayasan', 'admin_sekolah', 'guru', 'kepala_sekolah', 'bendahara'])) {
                 return AlumniProfile::firstOrCreate(
                     ['email' => Auth::user()->email],
                     [

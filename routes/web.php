@@ -1028,7 +1028,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Alumni Routes
-    Route::prefix('alumni-portal')->name('alumni.')->middleware('role:alumni,superadmin,admin_yayasan,admin_sekolah,guru')->group(function () {
+    Route::prefix('alumni-portal')->name('alumni.')->middleware('role:alumni,superadmin,ketua_yayasan,admin_yayasan,admin_sekolah,guru,kepala_sekolah,bendahara')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\AlumniDashboardController::class, 'index'])->name('dashboard');
 
         // Forum Alumni Khusus Unit Sekolah
