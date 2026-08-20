@@ -159,13 +159,7 @@ class EmployeeAssignmentService
             $employee->isKepalaSekolah() ||
             $employee->positions()->where(function ($q) {
                 $q->where('position_name', 'LIKE', '%Ketua Yayasan%')
-                  ->orWhere('position_code', 'LIKE', '%KETUA_YAYASAN%')
-                  ->orWhere('position_name', 'LIKE', '%Kepala Sekolah%')
-                  ->orWhere('position_name', 'LIKE', '%Kepala SMA%')
-                  ->orWhere('position_name', 'LIKE', '%Kepala SMK%')
-                  ->orWhere('position_name', 'LIKE', '%Kepala SMP%')
-                  ->orWhere('position_code', 'LIKE', '%KEPSEK%')
-                  ->orWhere('position_code', 'LIKE', '%KS%');
+                  ->orWhere('position_code', 'LIKE', '%KETUA_YAYASAN%');
             })->exists()
         );
 

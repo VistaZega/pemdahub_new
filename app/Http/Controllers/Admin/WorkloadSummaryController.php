@@ -75,7 +75,12 @@ class WorkloadSummaryController extends Controller
                 },
                 'position_name_rank' => function ($q) use ($yearId) {
                     $q->selectRaw("COALESCE(MIN(CASE 
-                        WHEN positions.position_name LIKE '%Kepala Sekolah%' OR positions.position_name LIKE '%Kepsek%' OR positions.position_code LIKE '%KEPSEK%' OR positions.position_code LIKE '%KS%' THEN 1
+                        WHEN (positions.position_name LIKE '%Kepala Sekolah%' OR positions.position_name LIKE '%Kepsek%' OR positions.position_code LIKE '%KEPSEK%' OR positions.position_code = 'KS')
+                             AND positions.position_name NOT LIKE '%Pembantu%'
+                             AND positions.position_name NOT LIKE '%PKS%'
+                             AND positions.position_name NOT LIKE '%Wakil%'
+                             AND positions.position_name NOT LIKE '%Wakasek%'
+                             AND positions.position_code NOT LIKE '%PKS%' THEN 1
                         WHEN positions.position_name LIKE '%Pembantu Kepala Sekolah%' OR positions.position_name LIKE '%PKS%' OR positions.position_name LIKE '%Wakil Kepala%' OR positions.position_name LIKE '%Wakasek%' THEN 2
                         WHEN positions.position_name LIKE '%Kapro%' OR positions.position_name LIKE '%Kaprog%' OR positions.position_name LIKE '%Ketua Program%' THEN 3
                         WHEN positions.position_name LIKE '%Wali Kelas%' THEN 4

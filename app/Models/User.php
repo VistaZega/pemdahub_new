@@ -276,7 +276,13 @@ class User extends Authenticatable
 
             // Cek 3: Posisi di tabel teachers
             $pos = strtolower($this->teacher->position ?? '');
-            if (str_contains($pos, 'kepala sekolah') || str_contains($pos, 'kepsek') || str_contains($pos, 'kasek') || str_contains($pos, 'principal')) {
+            if (
+                !str_contains($pos, 'pembantu') && 
+                !str_contains($pos, 'wakil') && 
+                !str_contains($pos, 'pks') && 
+                !str_contains($pos, 'wakasek') && 
+                (str_contains($pos, 'kepala sekolah') || str_contains($pos, 'kepsek') || str_contains($pos, 'kasek') || str_contains($pos, 'principal'))
+            ) {
                 return true;
             }
         }
@@ -284,7 +290,13 @@ class User extends Authenticatable
         // Cek 4: Posisi di tabel employees
         if ($this->employee) {
             $empPos = strtolower($this->employee->position ?? '');
-            if (str_contains($empPos, 'kepala sekolah') || str_contains($empPos, 'kepsek') || str_contains($empPos, 'kasek') || str_contains($empPos, 'principal')) {
+            if (
+                !str_contains($empPos, 'pembantu') && 
+                !str_contains($empPos, 'wakil') && 
+                !str_contains($empPos, 'pks') && 
+                !str_contains($empPos, 'wakasek') && 
+                (str_contains($empPos, 'kepala sekolah') || str_contains($empPos, 'kepsek') || str_contains($empPos, 'kasek') || str_contains($empPos, 'principal'))
+            ) {
                 return true;
             }
         }

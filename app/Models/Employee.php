@@ -256,12 +256,21 @@ class Employee extends Model
 
         return $this->positions()
             ->where(function ($q) {
-                $q->where('position_name', 'LIKE', '%Kepala Sekolah%')
-                  ->orWhere('position_name', 'LIKE', '%Kepala SMA%')
-                  ->orWhere('position_name', 'LIKE', '%Kepala SMK%')
-                  ->orWhere('position_name', 'LIKE', '%Kepala SMP%')
-                  ->orWhere('position_code', 'LIKE', '%KEPSEK%')
-                  ->orWhere('position_code', 'LIKE', '%KS%');
+                $q->where(function ($sq) {
+                    $sq->where('position_name', 'LIKE', '%Kepala Sekolah%')
+                      ->orWhere('position_name', 'LIKE', '%Kepala SMA%')
+                      ->orWhere('position_name', 'LIKE', '%Kepala SMK%')
+                      ->orWhere('position_name', 'LIKE', '%Kepala SMP%')
+                      ->orWhere('position_name', 'LIKE', '%Kepsek%')
+                      ->orWhere('position_code', 'LIKE', '%KEPSEK%')
+                      ->orWhere('position_code', 'KS');
+                })
+                ->where('position_name', 'NOT LIKE', '%Pembantu%')
+                ->where('position_name', 'NOT LIKE', '%PKS%')
+                ->where('position_name', 'NOT LIKE', '%Wakil%')
+                ->where('position_name', 'NOT LIKE', '%Wakasek%')
+                ->where('position_code', 'NOT LIKE', '%PKS%')
+                ->where('position_code', 'NOT LIKE', '%WAKASEK%');
             })
             ->exists();
     }
