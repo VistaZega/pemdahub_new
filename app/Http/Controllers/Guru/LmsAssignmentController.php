@@ -363,6 +363,19 @@ class LmsAssignmentController extends Controller
             'member_ids.*' => 'exists:students,id',
         ]);
 
+        // Cek apakah ada siswa yang sudah terdaftar di kelompok lain pada tugas ini
+        $alreadyGroupedStudentIds = $assignment->groups->flatMap(function ($grp) {
+            return $grp->members->pluck('id')->push($grp->leader_id);
+        })->unique()->filter()->toArray();
+
+        $allRequestedIds = collect($request->member_ids ?? [])->push((int)$request->leader_id)->unique()->toArray();
+        $conflicts = array_values(array_intersect($allRequestedIds, $alreadyGroupedStudentIds));
+
+        if (!empty($conflicts)) {
+            $conflictStudents = \App\Models\Student::whereIn('id', $conflicts)->get()->map(fn($s) => $s->user->name ?? $s->full_name)->implode(', ');
+            return redirect()->back()->with('error', "Gagal: Siswa ({$conflictStudents}) sudah terdaftar di kelompok lain pada tugas ini.");
+        }
+
         $group = $assignment->groups()->create([
             'name' => $request->name,
             'leader_id' => $request->leader_id,
@@ -412,14 +425,21 @@ class LmsAssignmentController extends Controller
 
         $classroomId = $request->classroom_id;
 
-        $students = $this->getEnrolledStudentsForCourse($course, $classroomId ? (int)$classroomId : null)->shuffle();
+        $allStudents = $this->getEnrolledStudentsForCourse($course, $classroomId ? (int)$classroomId : null);
 
-        if ($students->isEmpty()) {
-            return redirect()->back()->with('error', 'Tidak ada siswa yang terdaftar untuk dibagi kelompok.');
+        // Hanya bagi siswa yang belum memiliki kelompok
+        $alreadyGroupedStudentIds = $assignment->groups->flatMap(function ($grp) {
+            return $grp->members->pluck('id')->push($grp->leader_id);
+        })->unique()->filter()->toArray();
+
+        $availableStudents = $allStudents->reject(fn($s) => in_array($s->id, $alreadyGroupedStudentIds))->shuffle()->values();
+
+        if ($availableStudents->isEmpty()) {
+            return redirect()->back()->with('error', 'Semua siswa yang terdaftar sudah memiliki kelompok.');
         }
 
-        $numGroups = min((int)$request->group_count, $students->count());
-        $chunks = $students->split($numGroups);
+        $numGroups = min((int)$request->group_count, $availableStudents->count());
+        $chunks = $availableStudents->split($numGroups);
 
         $startIdx = $assignment->groups()->count();
         foreach ($chunks as $idx => $chunk) {
@@ -433,7 +453,7 @@ class LmsAssignmentController extends Controller
         }
 
         return redirect()->route('guru.lms.assignments.show', $assignment->id)
-            ->with('success', "Berhasil membuat {$numGroups} kelompok secara otomatis.");
+            ->with('success', "Berhasil membuat {$numGroups} kelompok secara otomatis dari {$availableStudents->count()} siswa yang belum memiliki kelompok.");
     }
 
     /**

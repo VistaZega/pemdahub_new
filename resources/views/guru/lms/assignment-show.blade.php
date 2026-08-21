@@ -217,6 +217,13 @@
 
 {{-- ============================== GROUP MANAGEMENT (IF GROUP ASSIGNMENT) ============================== --}}
 @if($assignment->isGroupAssignment())
+@php
+    $groupedStudentIds = $assignment->groups->flatMap(function($grp) {
+        return $grp->members->pluck('id')->push($grp->leader_id);
+    })->unique()->filter()->toArray();
+
+    $availableStudents = $allEnrolledStudents->reject(fn($s) => in_array($s->id, $groupedStudentIds))->values();
+@endphp
 <div class="bg-white rounded-2xl border-2 border-purple-200 shadow-md p-6 space-y-6" x-data="{ showAddGroup: false, showAutoGroup: false }">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
         <div class="flex items-center gap-3">
@@ -229,6 +236,7 @@
             </div>
         </div>
         <div class="flex items-center gap-2">
+            @if($availableStudents->isNotEmpty())
             <button type="button" @click="showAddGroup = !showAddGroup; showAutoGroup = false"
                     class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black bg-purple-600 text-white hover:bg-purple-700 transition shadow-sm">
                 <i class="fas fa-plus"></i> <span x-text="showAddGroup ? 'Batal' : 'Tambah Kelompok Manual'"></span>
@@ -237,6 +245,11 @@
                     class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black bg-amber-400 text-black hover:bg-amber-500 transition shadow-sm">
                 <i class="fas fa-magic"></i> <span x-text="showAutoGroup ? 'Batal' : 'Bagi Otomatis'"></span>
             </button>
+            @else
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                <i class="fas fa-check-double text-emerald-600"></i> Seluruh Siswa Sudah Masuk Kelompok
+            </span>
+            @endif
         </div>
     </div>
 
@@ -256,11 +269,11 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Pilih Ketua Kelompok <span class="text-rose-600">* (Yang berhak upload berkas)</span></label>
                     <select name="leader_id" required class="w-full border-2 border-gray-300 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
-                        <option value="">— Pilih Siswa Sebagai Ketua (Total: {{ $allEnrolledStudents->count() }} Siswa) —</option>
-                        @forelse($allEnrolledStudents as $std)
+                        <option value="">— Pilih Ketua (Tersedia: {{ $availableStudents->count() }} Siswa) —</option>
+                        @forelse($availableStudents as $std)
                         <option value="{{ $std->id }}">{{ $std->user->name ?? $std->full_name }} (NISN: {{ $std->nisn ?? '-' }})</option>
                         @empty
-                        <option value="" disabled>Belum ada data siswa pada rombel ini</option>
+                        <option value="" disabled>Semua siswa sudah terdaftar di kelompok lain</option>
                         @endforelse
                     </select>
                 </div>
@@ -269,17 +282,17 @@
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-xs font-bold text-gray-700">Pilih Anggota Kelompok (Centang Siswa):</label>
-                    <span class="text-[11px] font-bold text-purple-700">Total Siswa Terdaftar: {{ $allEnrolledStudents->count() }} Orang</span>
+                    <span class="text-[11px] font-bold text-purple-700">Tersedia: {{ $availableStudents->count() }} Orang dari {{ $allEnrolledStudents->count() }} Siswa</span>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-56 overflow-y-auto p-3 bg-white border border-gray-200 rounded-xl">
-                    @forelse($allEnrolledStudents as $std)
+                    @forelse($availableStudents as $std)
                     <label class="flex items-center gap-2 text-xs font-bold text-gray-700 hover:bg-purple-50 p-1.5 rounded-lg cursor-pointer transition">
                         <input type="checkbox" name="member_ids[]" value="{{ $std->id }}" class="rounded text-purple-600 focus:ring-0">
                         <span class="truncate">{{ $std->user->name ?? $std->full_name }}</span>
                     </label>
                     @empty
-                    <div class="col-span-full py-4 text-center text-xs text-amber-800 font-bold bg-amber-50 rounded-lg border border-amber-200">
-                        <i class="fas fa-exclamation-triangle mr-1 text-amber-600"></i> Belum ada siswa terdaftar pada kelas kursus ini.
+                    <div class="col-span-full py-4 text-center text-xs text-emerald-800 font-bold bg-emerald-50 rounded-lg border border-emerald-200">
+                        <i class="fas fa-check-circle mr-1 text-emerald-600"></i> Seluruh {{ $allEnrolledStudents->count() }} siswa sudah terbagi ke dalam kelompok.
                     </div>
                     @endforelse
                 </div>

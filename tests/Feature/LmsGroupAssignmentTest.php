@@ -435,4 +435,39 @@ class LmsGroupAssignmentTest extends TestCase
         $response->assertRedirect(route('guru.lms.assignments.show', $this->assignment->id));
         $this->assertDatabaseCount('lms_assignment_groups', 2);
     }
+
+    /**
+     * 8. Test Siswa yang sudah masuk kelompok tidak bisa ditambahkan ke kelompok lain
+     */
+    public function test_guru_cannot_add_student_who_is_already_in_another_group()
+    {
+        // Kelompok 1 sudah dibuat dengan leaderStudent dan memberStudent
+        $group1 = $this->assignment->groups()->create([
+            'name' => 'Kelompok 1',
+            'leader_id' => $this->leaderStudent->id,
+        ]);
+        $group1->members()->sync([$this->leaderStudent->id, $this->memberStudent->id]);
+
+        // Coba buat Kelompok 2 dengan leaderStudent yang sama (harus ditolak)
+        $response = $this->actingAs($this->guruUser)
+            ->post(route('guru.lms.assignments.groups.store', $this->assignment->id), [
+                'name' => 'Kelompok 2',
+                'leader_id' => $this->leaderStudent->id,
+                'member_ids' => [$this->otherStudent->id],
+            ]);
+
+        $response->assertSessionHas('error');
+        $this->assertDatabaseCount('lms_assignment_groups', 1);
+
+        // Coba buat Kelompok 2 dengan otherStudent sebagai ketua tapi memberStudent (yang sudah di Kelompok 1) sebagai anggota
+        $response2 = $this->actingAs($this->guruUser)
+            ->post(route('guru.lms.assignments.groups.store', $this->assignment->id), [
+                'name' => 'Kelompok 2',
+                'leader_id' => $this->otherStudent->id,
+                'member_ids' => [$this->memberStudent->id],
+            ]);
+
+        $response2->assertSessionHas('error');
+        $this->assertDatabaseCount('lms_assignment_groups', 1);
+    }
 }
