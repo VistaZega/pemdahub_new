@@ -1126,35 +1126,29 @@ Route::get('/debug-zega-classes', function () {
     $course = $assignment->course;
     $teacher = $course->teacher;
 
-    $out = "=== TEACHER & COURSE BREAKDOWN ===\n";
-    $out .= "Teacher: {$teacher->full_name} (ID: {$teacher->id})\n";
+    // Check TeachingAssignment for this teacher & subject
+    $ta = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+        ->where('subject_id', $course->subject_id)
+        ->where('classroom_id', 370)
+        ->first();
+
+    $c370 = \App\Models\Classroom::find(370);
+    $students370 = \App\Models\StudentClass::where('classroom_id', 370)
+        ->with('student.user')
+        ->get()
+        ->pluck('student')
+        ->filter()
+        ->sortBy(fn($s) => strtolower($s->user->name ?? $s->full_name ?? ''))
+        ->values();
+
+    $out = "=== CLASSROOM 370 & COURSE 313 ===\n";
     $out .= "Course: {$course->course_name} (ID: {$course->id})\n";
-    $out .= "Course classroom_id: {$course->classroom_id}\n\n";
+    $out .= "Classroom 370: {$c370->class_name} (School: {$c370->school_id})\n";
+    $out .= "Total Students in Classroom 370: " . $students370->count() . "\n\n";
 
-    // 1. Teaching Assignments
-    $out .= "--- Teaching Assignments for this Teacher ---\n";
-    $tas = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)->with(['classroom', 'subject'])->get();
-    foreach ($tas as $ta) {
-        $c = $ta->classroom;
-        $cnt = $c ? \App\Models\StudentClass::where('classroom_id', $c->id)->count() : 0;
-        $out .= "  * TA ID {$ta->id}: Subject '{$ta->subject?->subject_name}' | Classroom '{$c?->class_name}' (ID: {$c?->id}, School: {$c?->school_id}) | Students: {$cnt}\n";
-    }
-
-    // 2. LMS Classes attached to Course 313
-    $out .= "\n--- LMS Classes in Course {$course->id} ---\n";
-    $lmsClasses = \App\Models\LmsClass::where('course_id', $course->id)->with('classroom')->get();
-    foreach ($lmsClasses as $lc) {
-        $c = $lc->classroom;
-        $cnt = $c ? \App\Models\StudentClass::where('classroom_id', $c->id)->count() : 0;
-        $out .= "  * LMS Class ID {$lc->id}: Classroom '{$c?->class_name}' (ID: {$lc->classroom_id}, School: {$c?->school_id}) | Students in StudentClass: {$cnt}\n";
-    }
-
-    // 3. Check All Classrooms of SMK with student counts
-    $out .= "\n--- All SMK Classrooms with ~28 Students ---\n";
-    $smkClasses = \App\Models\Classroom::where('school_id', 7)->get();
-    foreach ($smkClasses as $sc) {
-        $cnt = \App\Models\StudentClass::where('classroom_id', $sc->id)->count();
-        $out .= "  * Classroom ID {$sc->id}: '{$sc->class_name}' ({$sc->class_code}) | Students: {$cnt}\n";
+    foreach ($students370 as $idx => $s) {
+        $name = $s->user->name ?? $s->full_name;
+        $out .= ($idx + 1) . ". {$name} (ID: {$s->id}, NISN: {$s->nisn})\n";
     }
 
     return response($out, 200, ['Content-Type' => 'text/plain; charset=utf-8']);
