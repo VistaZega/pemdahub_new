@@ -38,8 +38,19 @@ class LmsController extends Controller
             return redirect()->route('siswa.dashboard')->with('error', 'Data siswa tidak ditemukan.');
         }
 
+        // Auto-sync LMS enrollment siswa untuk rombel aktifnya
+        app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
+
         $enrollments = LmsEnrollment::where('student_id', $student->id)
             ->whereIn('status', ['enrolled', 'in_progress'])
+            ->whereHas('lmsClass.course', function($q) use ($student) {
+                if ($student->school_id) {
+                    $q->where(function($sq) use ($student) {
+                        $sq->where('school_id', $student->school_id)
+                           ->orWhereNull('school_id');
+                    });
+                }
+            })
             ->with(['lmsClass.course' => fn($q) => $q->with(['subject', 'teacher.user'])
                 ->withCount(['modules', 'materials', 'assignments', 'quizzes', 'discussions']),
                     'lmsClass.classroom'])
@@ -86,7 +97,19 @@ class LmsController extends Controller
     public function show(LmsCourse $course)
     {
         $student = $this->getStudent();
-        if (!$student || !$this->isEnrolled($student, $course)) {
+        if (!$student) {
+            return redirect()->route('siswa.dashboard')->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        // Cek otorisasi sekolah
+        if ($course->school_id && $student->school_id && $course->school_id != $student->school_id) {
+            return redirect()->route('siswa.lms.index')->with('error', 'Anda tidak memiliki akses ke course sekolah lain.');
+        }
+
+        // Auto-sync enrollment jika siswa berada di rombel course ini
+        app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
+
+        if (!$this->isEnrolled($student, $course)) {
             abort(403, 'Anda tidak terdaftar di course ini.');
         }
 
@@ -1028,10 +1051,39 @@ class LmsController extends Controller
 
     private function isEnrolled(Student $student, LmsCourse $course): bool
     {
-        return LmsEnrollment::whereHas('lmsClass', fn($q) => $q->where('course_id', $course->id))
+        if ($course->school_id && $student->school_id && $course->school_id != $student->school_id) {
+            return false;
+        }
+
+        $enrolled = LmsEnrollment::whereHas('lmsClass', fn($q) => $q->where('course_id', $course->id))
             ->where('student_id', $student->id)
             ->whereIn('status', ['enrolled', 'in_progress'])
             ->exists();
+
+        if ($enrolled) {
+            return true;
+        }
+
+        // Cek apakah rombel siswa cocok dengan classroom yang ditargetkan course ini
+        $studentClassroomIds = \App\Models\StudentClass::where('student_id', $student->id)
+            ->where('status', 'aktif')
+            ->pluck('classroom_id')
+            ->toArray();
+        if ($student->classroom_id) {
+            $studentClassroomIds[] = $student->classroom_id;
+        }
+
+        $courseClassroomIds = $course->lmsClasses()->pluck('classroom_id')->toArray();
+        if ($course->classroom_id) {
+            $courseClassroomIds[] = $course->classroom_id;
+        }
+
+        if (!empty(array_intersect($studentClassroomIds, $courseClassroomIds))) {
+            app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
+            return true;
+        }
+
+        return false;
     }
 
     /**

@@ -100,6 +100,18 @@ try {
             echo "<span class='ok'>✅ LMS Video Links (YouTube ID) Auto-Repaired successfully</span>\n";
         }
 
+        // Auto-sync LMS Enrollments & Materials
+        try {
+            $lmsService = app(\App\Services\LmsEnrollmentService::class);
+            $syncRes = $lmsService->syncAll();
+            echo "<span class='ok'>🎓 LMS Sync: {$syncRes['courses_synced']} Kursus & {$syncRes['classrooms_synced']} Rombel diproses, {$syncRes['new_enrollments_created']} pendaftaran siswa baru terhubung.</span>\n";
+            if (!empty($syncRes['rogue_cross_school_enrollments_cleaned'])) {
+                echo "<span class='ok'>🧹 LMS Clean: {$syncRes['rogue_cross_school_enrollments_cleaned']} pendaftaran silang sekolah dibersihkan.</span>\n";
+            }
+        } catch (\Exception $e) {
+            echo "<span class='warn'>⚠️ LMS Sync Warning: " . htmlspecialchars($e->getMessage()) . "</span>\n";
+        }
+
         // Auto-migrate & seed Pembda Tower (Menara Prestasi)
         if (!\Illuminate\Support\Facades\Schema::hasTable('pembda_tower_bricks')) {
             try {

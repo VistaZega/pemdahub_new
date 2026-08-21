@@ -249,6 +249,8 @@ class LmsCourseController extends Controller
             }
         }
 
+        app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($course);
+
         return redirect()->route('guru.lms.show', $course->id)
             ->with('success', 'Course berhasil dibuat.');
     }
@@ -415,6 +417,8 @@ class LmsCourseController extends Controller
                 $classToRemove->delete();
             }
         }
+
+        app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($course);
 
         return redirect()->route('guru.lms.show', $course->id)
             ->with('success', 'Course berhasil diperbarui.');

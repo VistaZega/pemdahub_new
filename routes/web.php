@@ -1352,16 +1352,42 @@ Route::get('/run-migrations', function () {
         }
 
         echo "<h1>=== SYNCING ALUMNI DATA ACROSS ALL TABLES ===</h1>\n";
-        $alumniSyncExitCode = \Illuminate\Support\Facades\Artisan::call('alumni:sync');
-        echo \Illuminate\Support\Facades\Artisan::output();
-        echo "<h1>=== SETTING ATTENDANCE RADIUS TO 175 METERS ===</h1>\n";
-        \App\Models\Setting::setValue('attendance_max_radius', '175', 'integer', 'features');
-        echo "✅ Attendance Max Radius diset ke <b>175 meter</b> di tabel settings!<br>\n";
+        echo "<h1>=== SYNCING LMS ENROLLMENTS & COURSES ===</h1>\n";
+        try {
+            $lmsSyncResult = app(\App\Services\LmsEnrollmentService::class)->syncAll();
+            echo "✅ LMS Sync Berhasil: <b>{$lmsSyncResult['courses_synced']}</b> Kursus disinkronkan, <b>{$lmsSyncResult['classrooms_synced']}</b> Rombel diproses, <b>{$lmsSyncResult['new_enrollments_created']}</b> pendaftaran siswa baru dibuat.<br>\n";
+            if (!empty($lmsSyncResult['rogue_cross_school_enrollments_cleaned'])) {
+                echo "🧹 Dibersihkan: <b>{$lmsSyncResult['rogue_cross_school_enrollments_cleaned']}</b> pendaftaran silang sekolah yang tidak valid.<br>\n";
+            }
+        } catch (\Throwable $e) {
+            echo "⚠️ Gagal sync LMS: " . $e->getMessage() . "<br>\n";
+        }
 
         echo "<b><h2 style='color:#0f0;'>✅ MIGRATION AND SYNC COMPLETED SUCCESSFULLY!</h2></b>\n";
     } catch (\Exception $e) {
         echo "<b style='color:#f00;'>ERROR: " . $e->getMessage() . "</b>\n";
     }
+});
+
+Route::get('/sync-lms-enrollments', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Akses Ditolak.');
+    }
+
+    echo "<pre style='background:#0f172a; color:#38bdf8; padding:24px; border-radius:16px; font-size:13px; font-family:monospace; line-height:1.6;'>";
+    echo "<h2 style='color:#4ade80;'>=== SINKRONISASI OTOMATIS PENDAFTARAN LMS & MATERI PEMBELAJARAN ===</h2>\n";
+
+    try {
+        $result = app(\App\Services\LmsEnrollmentService::class)->syncAll();
+        echo "✅ Kursus LMS diproses: <b>{$result['courses_synced']}</b>\n";
+        echo "✅ Rombel Kelas diproses: <b>{$result['classrooms_synced']}</b>\n";
+        echo "✅ Pendaftaran Siswa Baru dibuat: <b>{$result['new_enrollments_created']}</b>\n";
+        echo "🧹 Pendaftaran Silang Sekolah yang Dibersihkan: <b>{$result['rogue_cross_school_enrollments_cleaned']}</b>\n\n";
+        echo "<span style='color:#4ade80; font-weight:bold;'>SELURUH SISWA (TERMASUK SISWA BARU MASUK KELAS) KINI TELAH TERHUBUNG KE KELAS & MATERI GURU MASING-MASING!</span>\n";
+    } catch (\Throwable $e) {
+        echo "<span style='color:#f87171;'>ERROR: " . $e->getMessage() . "</span>\n";
+    }
+    echo "</pre>";
 });
 
 Route::get('/fix-attendance', function () {

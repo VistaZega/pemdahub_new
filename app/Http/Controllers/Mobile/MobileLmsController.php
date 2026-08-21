@@ -29,11 +29,38 @@ class MobileLmsController extends Controller
 
         $enrolledCourses = collect();
         if ($student && !$isTeacher) {
-            $enrolledCourses = LmsCourse::whereHas('enrollments', function ($q) use ($student) {
-                $q->where('student_id', $student->id);
+            // Auto sync pendaftaran LMS siswa untuk rombel aktifnya
+            app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
+
+            // Dapatkan ID rombel siswa
+            $studentClassroomIds = \App\Models\StudentClass::where('student_id', $student->id)
+                ->where('status', 'aktif')
+                ->pluck('classroom_id')
+                ->toArray();
+            if ($student->classroom_id) {
+                $studentClassroomIds[] = $student->classroom_id;
+            }
+            $studentClassroomIds = array_unique(array_filter($studentClassroomIds));
+
+            $enrolledCourses = LmsCourse::where(function ($q) use ($student, $studentClassroomIds) {
+                $q->whereHas('enrollments', function ($eq) use ($student) {
+                    $eq->where('student_id', $student->id);
+                })
+                ->orWhereIn('classroom_id', $studentClassroomIds)
+                ->orWhereHas('lmsClasses', function ($lq) use ($studentClassroomIds) {
+                    $lq->whereIn('classroom_id', $studentClassroomIds);
+                });
             })
-            ->with(['teacher.user', 'subject', 'classroom', 'modules', 'lmsClasses.classroom'])
+            ->when($student->school_id, function ($q) use ($student) {
+                $q->where(function ($sq) use ($student) {
+                    $sq->where('school_id', $student->school_id)
+                       ->orWhereNull('school_id');
+                });
+            })
+            ->where('is_published', true)
+            ->with(['teacher.user', 'subject', 'classroom', 'modules.materials', 'materials', 'lmsClasses.classroom'])
             ->withCount(['materials', 'assignments', 'quizzes', 'enrollments'])
+            ->latest()
             ->get();
         } else {
             $teacherId = $teacher->id ?? 0;
@@ -45,17 +72,9 @@ class MobileLmsController extends Controller
                     });
                 })
                 ->orWhere(fn($q) => $q->whereNull('teacher_id'))
-                ->with(['teacher.user', 'subject', 'classroom', 'modules', 'lmsClasses.classroom'])
+                ->with(['teacher.user', 'subject', 'classroom', 'modules.materials', 'materials', 'lmsClasses.classroom'])
                 ->withCount(['materials', 'assignments', 'quizzes', 'enrollments'])
                 ->latest()
-                ->get();
-        }
-
-        if ($enrolledCourses->isEmpty()) {
-            $enrolledCourses = LmsCourse::with(['teacher.user', 'subject', 'classroom', 'modules', 'lmsClasses.classroom'])
-                ->withCount(['materials', 'assignments', 'quizzes', 'enrollments'])
-                ->latest()
-                ->take(12)
                 ->get();
         }
 
@@ -157,7 +176,7 @@ class MobileLmsController extends Controller
         $activeSemester = \App\Models\Semester::where('is_active', true)->first()
             ?? \App\Models\Semester::latest()->first();
 
-        LmsCourse::create([
+        $course = LmsCourse::create([
             'school_id' => $teacher?->school_id ?? $user->school_id,
             'teacher_id' => $teacher?->id ?? 0,
             'subject_id' => $request->input('subject_id'),
@@ -172,7 +191,12 @@ class MobileLmsController extends Controller
             'is_sequential' => $request->has('is_sequential'),
         ]);
 
-        return back()->with('success', 'Kelas / Course LMS baru berhasil dibuat!');
+        // Auto-sync LmsClass & pendaftaran seluruh siswa di rombel terkait
+        if ($course->classroom_id) {
+            app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($course);
+        }
+
+        return back()->with('success', 'Kelas / Course LMS baru berhasil dibuat dan seluruh siswa di kelas telah terdaftar!');
     }
 
     /**
@@ -185,14 +209,22 @@ class MobileLmsController extends Controller
             'course_name' => 'required|string|max:255',
             'code' => 'required|string|max:50',
             'description' => 'nullable|string',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+            'subject_id' => 'nullable|exists:subjects,id',
         ]);
 
         $course->update([
             'course_name' => $request->input('course_name'),
             'code' => $request->input('code'),
             'description' => $request->input('description'),
+            'classroom_id' => $request->input('classroom_id', $course->classroom_id),
+            'subject_id' => $request->input('subject_id', $course->subject_id),
             'is_sequential' => $request->has('is_sequential'),
         ]);
+
+        if ($course->classroom_id) {
+            app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($course);
+        }
 
         return back()->with('success', 'Informasi Kelas LMS berhasil diperbarui!');
     }
@@ -209,7 +241,13 @@ class MobileLmsController extends Controller
 
     public function catalog()
     {
+        $user = Auth::user();
+        $student = Student::where('user_id', $user->id)->first();
+        $teacher = \App\Models\Teacher::where('user_id', $user->id)->first() ?? $user->teacher;
+        $schoolId = $student?->school_id ?? $teacher?->school_id ?? $user->school_id;
+
         $courses = LmsCourse::where('is_published', true)
+            ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
             ->with('teacher')
             ->latest()
             ->paginate(10);
@@ -239,6 +277,15 @@ class MobileLmsController extends Controller
         $completedMaterialIds = [];
 
         if ($student) {
+            // Cek otorisasi sekolah: Siswa tidak boleh melihat kursus sekolah lain
+            if ($course->school_id && $student->school_id && $course->school_id != $student->school_id) {
+                return redirect()->route('mobile.lms.index')
+                    ->with('error', 'Anda tidak memiliki akses ke kelas LMS sekolah lain.');
+            }
+
+            // Auto-sync enrollment jika siswa berada di rombel ini
+            app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
+
             $submissionMap = LmsSubmission::where('student_id', $student->id)
                 ->whereIn('assignment_id', $course->assignments->pluck('id'))
                 ->get()

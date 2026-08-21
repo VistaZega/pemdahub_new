@@ -44,6 +44,13 @@ class StudentLifecycleService
                 ]
             );
 
+            // Auto-sync LMS courses & materials untuk siswa baru ini
+            try {
+                app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
+            } catch (\Throwable $e) {
+                Log::warning('LMS sync on enrollStudent: ' . $e->getMessage());
+            }
+
             return $history;
         });
     }
@@ -104,6 +111,13 @@ class StudentLifecycleService
 
             // Log status transition
             $student->transitionTo('aktif', 'Naik kelas', $notes, null, $decidedBy);
+
+            // Auto-sync LMS courses & materials untuk rombel baru siswa ini
+            try {
+                app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
+            } catch (\Throwable $e) {
+                Log::warning('LMS sync on promoteStudent: ' . $e->getMessage());
+            }
 
             return $promotion;
         });

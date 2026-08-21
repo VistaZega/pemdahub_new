@@ -78,7 +78,14 @@ class ClassroomController extends Controller
             $classroom->students()->sync($syncData);
         });
 
-        return redirect()->route('admin.classrooms.index')->with('success', 'Siswa berhasil di-assign ke kelas.');
+        // Otomatis sinkronisasi LMS pendaftaran untuk seluruh siswa di kelas ini
+        try {
+            app(\App\Services\LmsEnrollmentService::class)->syncClassroomEnrollments($classroom);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Lms sync on assignStudents: ' . $e->getMessage());
+        }
+
+        return redirect()->route('admin.classrooms.index')->with('success', 'Siswa berhasil di-assign ke kelas dan terhubung ke kelas LMS.');
     }
     public function index(Request $request)
     {

@@ -152,8 +152,18 @@ class DashboardController extends Controller
         }
 
         // LMS Courses & Progress
+        app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
+
         $enrollments = \App\Models\LmsEnrollment::where('student_id', $student->id)
             ->whereIn('status', ['enrolled', 'in_progress'])
+            ->whereHas('lmsClass.course', function($q) use ($student) {
+                if ($student->school_id) {
+                    $q->where(function($sq) use ($student) {
+                        $sq->where('school_id', $student->school_id)
+                           ->orWhereNull('school_id');
+                    });
+                }
+            })
             ->with(['lmsClass.course' => fn($q) => $q->with(['subject', 'teacher.user'])
                 ->withCount(['modules', 'materials', 'assignments', 'quizzes']),
                     'lmsClass.classroom'])
