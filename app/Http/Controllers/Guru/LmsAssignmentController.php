@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Auth;
 
 class LmsAssignmentController extends Controller
 {
+    use HasMultiSchool;
+
     private function getTeacher(): ?Teacher
     {
         return Teacher::where('user_id', Auth::id())->first();

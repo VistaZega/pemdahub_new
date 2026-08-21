@@ -92,10 +92,12 @@ class LmsEnrollmentService
         }
 
         // 3. Bersihkan enrollment silang sekolah yang tidak valid jika ada (cth: siswa SMK terdaftar di kelas SMP)
+        // Catatan: Course dengan school_id = 4 (Yayasan) adalah sah untuk seluruh unit sekolah
         if ($student->school_id) {
             LmsEnrollment::where('student_id', $student->id)
                 ->whereHas('lmsClass.course', function ($q) use ($student) {
                     $q->whereNotNull('school_id')
+                      ->where('school_id', '!=', 4)
                       ->where('school_id', '!=', $student->school_id);
                 })
                 ->delete();
@@ -270,13 +272,14 @@ class LmsEnrollmentService
             $enrollmentsCount += $this->syncClassroomEnrollments($classroom);
         }
 
-        // Bersihkan data enrollment silang sekolah yang tidak valid
+        // Bersihkan data enrollment silang sekolah yang tidak valid (kecuali unit Yayasan / Lintas Unit)
         $deletedRogue = DB::table('lms_enrollments')
             ->join('lms_classes', 'lms_enrollments.lms_class_id', '=', 'lms_classes.id')
             ->join('lms_courses', 'lms_classes.course_id', '=', 'lms_courses.id')
             ->join('students', 'lms_enrollments.student_id', '=', 'students.id')
             ->whereNotNull('lms_courses.school_id')
             ->whereNotNull('students.school_id')
+            ->where('lms_courses.school_id', '!=', 4)
             ->whereColumn('lms_courses.school_id', '!=', 'students.school_id')
             ->delete();
 
