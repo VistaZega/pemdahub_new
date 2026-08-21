@@ -228,143 +228,27 @@
         </div>
     </div>
 
-    {{-- ===== ANSWER REVIEW SECTION ===== --}}
-    @if($quiz->show_result && isset($attempt->answers))
-    <div class="space-y-5">
-        <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-md border-2 border-black">
-                <i class="fas fa-clipboard-list text-amber-400 text-lg"></i>
+    {{-- ===== INFORMASI KERAHASIAAN SOAL ===== --}}
+    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-black space-y-4 result-fadeIn">
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-black text-amber-400 flex items-center justify-center flex-shrink-0 shadow-md border-2 border-black text-xl">
+                <i class="fas fa-user-shield"></i>
             </div>
             <div>
-                <h3 class="font-black text-black text-xl">Review Jawaban Ujian</h3>
-                <p class="text-xs font-bold text-black">Lihat evaluasi detail jawaban Anda per nomor soal</p>
-            </div>
-        </div>
-
-        @foreach($attempt->answers as $aIdx => $answer)
-        @php
-            $answerState = $answer->is_correct === true ? 'correct' : ($answer->is_correct === false ? 'wrong' : 'pending');
-            $bgColor = match($answerState) {
-                'correct' => '#f0fdf4',
-                'wrong' => '#fff1f2',
-                'pending' => '#fefce8'
-            };
-        @endphp
-        <div class="review-card bg-white rounded-3xl shadow-md border-2 border-black overflow-hidden"
-             style="animation-delay: {{ 0.7 + ($aIdx * 0.08) }}s">
-
-            {{-- Card accent bar --}}
-            <div class="h-2 border-b-2 border-black" style="background-color: {{ $answerState === 'correct' ? '#059669' : ($answerState === 'wrong' ? '#dc2626' : '#d97706') }} !important;"></div>
-
-            <div class="p-6">
-                <div class="flex items-start gap-4">
-                    {{-- Status circle --}}
-                    <div class="flex-shrink-0">
-                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md border-2 border-black"
-                             style="background-color: {{ $answerState === 'correct' ? '#059669' : ($answerState === 'wrong' ? '#dc2626' : '#d97706') }} !important; color: #ffffff !important;">
-                            <i class="fas {{ $answerState === 'correct' ? 'fa-check' : ($answerState === 'wrong' ? 'fa-times' : 'fa-hourglass-half') }} text-white text-xl"></i>
-                        </div>
-                    </div>
-
-                    {{-- Content --}}
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-start justify-between gap-3">
-                            <p class="font-black text-black text-base md:text-lg leading-relaxed">{{ $answer->question->question ?? 'Soal tidak tersedia' }}</p>
-                            <span class="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black border border-black shadow-sm" style="background-color: #fef08a !important; color: #000000 !important;">
-                                <i class="fas fa-star text-black text-[10px]"></i>
-                                {{ $answer->score ?? 0 }}/{{ $answer->question->score ?? 0 }} Poin
-                            </span>
-                        </div>
-
-                        <div class="mt-4 space-y-2.5">
-                            {{-- Student's answer --}}
-                            <div class="p-3.5 rounded-2xl border-2 border-black flex items-start gap-3" style="background-color: {{ $bgColor }} !important;">
-                                <span class="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center mt-0.5 border border-black bg-black text-white">
-                                    <i class="fas {{ $answerState === 'correct' ? 'fa-check text-emerald-400' : ($answerState === 'wrong' ? 'fa-times text-rose-400' : 'fa-hourglass-half text-amber-400') }} text-xs"></i>
-                                </span>
-                                <div>
-                                    <span class="text-black text-xs font-black uppercase tracking-wider">Jawaban Anda:</span>
-                                    @php
-                                        // Resolve display text for index-based answers
-                                        $displayAnswer = $answer->answer ?? '-';
-                                        if ($answer->question && $answer->question->question_type === 'multiple_choice' && $answer->question->options) {
-                                            $opts = $answer->question->options;
-                                            $firstOpt = $opts[0] ?? null;
-                                            if (!is_array($firstOpt) || !isset($firstOpt['key'])) {
-                                                // Non-associative: resolve index to text + label
-                                                $ansIdx = (int)$displayAnswer;
-                                                $alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-                                                if (isset($opts[$ansIdx])) {
-                                                    $displayAnswer = ($alphabet[$ansIdx] ?? ($ansIdx+1)) . '. ' . $opts[$ansIdx];
-                                                }
-                                            } else {
-                                                // Associative: show key + text
-                                                foreach ($opts as $o) {
-                                                    if (isset($o['key']) && strtolower($o['key']) === strtolower($displayAnswer)) {
-                                                        $displayAnswer = $o['key'] . '. ' . $o['text'];
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    @endphp
-                                    <p class="font-black text-black text-sm md:text-base mt-0.5">{{ $displayAnswer }}</p>
-                                </div>
-                            </div>
-
-                            {{-- Correct answer (if wrong) --}}
-                            @if($answerState === 'wrong' && $answer->question)
-                            <div class="p-3.5 rounded-2xl border-2 border-black flex items-start gap-3" style="background-color: #d1fae5 !important;">
-                                <span class="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center bg-black text-emerald-400 mt-0.5 border border-black">
-                                    <i class="fas fa-check text-xs"></i>
-                                </span>
-                                <div>
-                                    <span class="text-black text-xs font-black uppercase tracking-wider">Jawaban Yang Benar:</span>
-                                    @php
-                                        $correctDisplay = $answer->question->correct_answer;
-                                        if ($answer->question->question_type === 'multiple_choice' && $answer->question->options) {
-                                            $opts = $answer->question->options;
-                                            $firstOpt = $opts[0] ?? null;
-                                            if (!is_array($firstOpt) || !isset($firstOpt['key'])) {
-                                                $cIdx = (int)$correctDisplay;
-                                                $alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-                                                if (isset($opts[$cIdx])) {
-                                                    $correctDisplay = ($alphabet[$cIdx] ?? ($cIdx+1)) . '. ' . $opts[$cIdx];
-                                                }
-                                            } else {
-                                                foreach ($opts as $o) {
-                                                    if (isset($o['key']) && strtolower($o['key']) === strtolower($correctDisplay)) {
-                                                        $correctDisplay = $o['key'] . '. ' . $o['text'];
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    @endphp
-                                    <p class="font-black text-black text-sm md:text-base mt-0.5">{{ $correctDisplay }}</p>
-                                </div>
-                            </div>
-                            @elseif($answerState === 'pending' && $answer->question)
-                            <div class="p-3.5 rounded-2xl border-2 border-black flex items-start gap-3" style="background-color: #fef08a !important;">
-                                <span class="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center bg-black text-amber-400 mt-0.5 border border-black">
-                                    <i class="fas fa-clock text-xs"></i>
-                                </span>
-                                <div>
-                                    <span class="text-black text-xs font-black uppercase tracking-wider">Menunggu Penilaian Esai Dari Guru</span>
-                                </div>
-                            </div>
-                            @endif
-                        </div>
-                    </div>
+                <h3 class="font-black text-black text-lg sm:text-xl leading-tight">Detail Soal & Kunci Jawaban Dirahasiakan</h3>
+                <p class="text-xs sm:text-sm font-bold text-gray-700 mt-1 leading-relaxed">
+                    Untuk menjaga kerahasiaan, sportivitas, dan integritas evaluasi belajar, rincian soal serta kunci jawaban yang benar tidak ditampilkan pada halaman hasil.
+                </p>
+                <div class="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-300 flex items-center gap-2.5 text-xs font-bold text-amber-900">
+                    <i class="fas fa-info-circle text-amber-600 text-sm flex-shrink-0"></i>
+                    <span>Jika Anda ingin meningkatkan nilai, silakan pelajari kembali modul materi terkait di ruang kelas sebelum mencoba kuis berikutnya.</span>
                 </div>
             </div>
         </div>
-        @endforeach
     </div>
-    @endif
 
     {{-- ===== BACK TO COURSE BUTTON ===== --}}
-    <div class="pt-4">
+    <div class="pt-2">
         <a href="{{ route('siswa.lms.show', $course->id) }}?tab=quizzes"
            class="inline-flex items-center gap-3 bg-black hover:bg-amber-400 hover:text-black text-white px-7 py-4 rounded-2xl transition-all font-black text-sm uppercase tracking-wider border-2 border-black shadow-md">
             <i class="fas fa-arrow-left text-base"></i>
