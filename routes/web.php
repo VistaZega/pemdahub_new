@@ -1124,7 +1124,7 @@ Route::get('/debug-assignment-412', function () {
     }
     $assignment = \App\Models\LmsAssignment::find(412);
     if (!$assignment) {
-        return response()->json(['error' => 'Assignment 412 not found']);
+        return response('Assignment 412 not found', 404, ['Content-Type' => 'text/plain']);
     }
     $course = $assignment->course;
     $ctrl = app(\App\Http\Controllers\Guru\LmsAssignmentController::class);
@@ -1132,23 +1132,14 @@ Route::get('/debug-assignment-412', function () {
     $refMethod->setAccessible(true);
     $students = $refMethod->invoke($ctrl, $course);
     
-    return response()->json([
-        'assignment_id' => $assignment->id,
-        'assignment_title' => $assignment->title,
-        'is_group_assignment' => $assignment->is_group_assignment,
-        'course_id' => $course->id,
-        'course_name' => $course->course_name,
-        'school_id' => $course->school_id,
-        'classroom_id' => $course->classroom_id,
-        'lms_classes' => $course->lmsClasses,
-        'students_count' => $students->count(),
-        'students' => $students->map(fn($s) => [
-            'id' => $s->id,
-            'name' => $s->user->name ?? $s->full_name,
-            'nisn' => $s->nisn,
-            'school_id' => $s->school_id,
-        ]),
-    ]);
+    $out = "Assignment: {$assignment->title} (ID: {$assignment->id})\n";
+    $out .= "Course: {$course->course_name} (ID: {$course->id}, School: {$course->school_id}, Classroom: {$course->classroom_id})\n";
+    $out .= "Total Students Found: " . $students->count() . "\n\n";
+    foreach ($students as $idx => $s) {
+        $name = $s->user->name ?? $s->full_name;
+        $out .= ($idx + 1) . ". [ID: {$s->id}] {$name} (NISN: {$s->nisn}, School ID: {$s->school_id})\n";
+    }
+    return response($out, 200, ['Content-Type' => 'text/plain; charset=utf-8']);
 });
 
 Route::get('/run-migrations', function () {
