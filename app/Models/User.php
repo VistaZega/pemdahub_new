@@ -356,10 +356,22 @@ class User extends Authenticatable
      */
     public function isKetuaYayasan(): bool
     {
+        if (session('active_role') === 'superadmin') {
+            return false;
+        }
+        if (session('active_role') === 'ketua_yayasan') {
+            return true;
+        }
         if (!$this->canAccessYayasan()) {
             return false;
         }
-        return $this->hasRole('ketua_yayasan') || session('active_role') === 'ketua_yayasan' || $this->username === 'yulzega';
+        if ($this->hasRole('ketua_yayasan')) {
+            return true;
+        }
+        if ($this->isSuperAdmin()) {
+            return false;
+        }
+        return $this->username === 'yulzega';
     }
 
     /**
