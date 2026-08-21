@@ -136,28 +136,28 @@ class LmsAssignmentController extends Controller
             }
         })->with('student.user')->get()->pluck('student')->filter();
 
-        // 4. Ambil siswa langsung dari Classroom
-        $fromDirectClassroom = !empty($targetClassroomIds)
-            ? \App\Models\Student::whereIn('classroom_id', $targetClassroomIds)
+        // 4. Ambil siswa dari StudentClass (anggota rombel aktif)
+        $fromStudentClass = !empty($targetClassroomIds)
+            ? \App\Models\StudentClass::whereIn('classroom_id', $targetClassroomIds)
                 ->where('status', 'aktif')
-                ->with('user')
+                ->with('student.user')
                 ->get()
+                ->pluck('student')
+                ->filter()
             : collect();
 
-        // 5. Ambil siswa dari StudentClass (riwayat penempatan kelas aktif)
-        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
-        $fromStudentClass = !empty($targetClassroomIds)
-            ? \App\Models\Student::whereHas('studentClasses', function ($q) use ($targetClassroomIds, $activeYear) {
-                $q->whereIn('classroom_id', $targetClassroomIds)
-                  ->where('status', 'aktif')
-                  ->when($activeYear, fn($sq) => $sq->where('academic_year_id', $activeYear->id));
-            })->with('user')->get()
+        // 5. Ambil siswa langsung via relasi Classroom -> students
+        $fromClassrooms = !empty($targetClassroomIds)
+            ? \App\Models\Classroom::whereIn('id', $targetClassroomIds)
+                ->with('students.user')
+                ->get()
+                ->flatMap->students
             : collect();
 
         // Gabungkan, deduplikasi, dan urutkan berdasarkan nama
         return $fromEnrollment
-            ->merge($fromDirectClassroom)
             ->merge($fromStudentClass)
+            ->merge($fromClassrooms)
             ->unique('id')
             ->sortBy(fn($s) => strtolower($s->user->name ?? $s->full_name ?? ''))
             ->values();
