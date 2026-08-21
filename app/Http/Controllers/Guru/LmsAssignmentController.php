@@ -136,17 +136,16 @@ class LmsAssignmentController extends Controller
             }
         })->with('student.user')->get()->pluck('student')->filter();
 
-        // 4. Ambil siswa dari StudentClass (anggota rombel aktif)
+        // 4. Ambil siswa dari StudentClass (semua siswa yang terhubung ke rombel ini)
         $fromStudentClass = !empty($targetClassroomIds)
             ? \App\Models\StudentClass::whereIn('classroom_id', $targetClassroomIds)
-                ->where('status', 'aktif')
                 ->with('student.user')
                 ->get()
                 ->pluck('student')
                 ->filter()
             : collect();
 
-        // 5. Ambil siswa langsung via relasi Classroom -> students
+        // 5. Ambil siswa via relasi Classroom -> students
         $fromClassrooms = !empty($targetClassroomIds)
             ? \App\Models\Classroom::whereIn('id', $targetClassroomIds)
                 ->with('students.user')
@@ -154,10 +153,18 @@ class LmsAssignmentController extends Controller
                 ->flatMap->students
             : collect();
 
-        // Gabungkan, deduplikasi, dan urutkan berdasarkan nama
+        // 6. Ambil siswa via Student whereHas studentClasses
+        $fromStudentHasClass = !empty($targetClassroomIds)
+            ? \App\Models\Student::whereHas('studentClasses', function ($q) use ($targetClassroomIds) {
+                $q->whereIn('classroom_id', $targetClassroomIds);
+            })->with('user')->get()
+            : collect();
+
+        // Gabungkan semua sumber, deduplikasi berdasarkan id, dan urutkan berdasarkan nama
         return $fromEnrollment
             ->merge($fromStudentClass)
             ->merge($fromClassrooms)
+            ->merge($fromStudentHasClass)
             ->unique('id')
             ->sortBy(fn($s) => strtolower($s->user->name ?? $s->full_name ?? ''))
             ->values();

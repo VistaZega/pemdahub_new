@@ -36,13 +36,10 @@ class LmsEnrollmentService
         // Fallback jika belum ada di pivot student_classes untuk tahun aktif
         if (empty($classroomIds)) {
             $latestStudentClass = StudentClass::where('student_id', $student->id)
-                ->where('status', 'aktif')
                 ->latest()
                 ->first();
             if ($latestStudentClass) {
                 $classroomIds[] = $latestStudentClass->classroom_id;
-            } elseif ($student->classroom_id) {
-                $classroomIds[] = $student->classroom_id;
             }
         }
 
@@ -119,20 +116,27 @@ class LmsEnrollmentService
 
         $activeYear = AcademicYear::where('is_active', true)->first();
 
-        // 1. Ambil seluruh siswa aktif di rombel ini
+        // 1. Ambil seluruh siswa di rombel ini via student_classes
         $studentIds = StudentClass::where('classroom_id', $classroom->id)
-            ->where('status', 'aktif')
-            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->when($activeYear, function ($q) use ($activeYear, $classroom) {
+                $hasActiveYear = StudentClass::where('classroom_id', $classroom->id)
+                    ->where('academic_year_id', $activeYear->id)
+                    ->exists();
+                if ($hasActiveYear) {
+                    $q->where('academic_year_id', $activeYear->id);
+                }
+            })
             ->pluck('student_id')
             ->toArray();
 
-        // Tambahkan juga siswa dengan classroom_id langsung
-        $directStudentIds = Student::where('classroom_id', $classroom->id)
-            ->where('status', 'aktif')
-            ->pluck('id')
-            ->toArray();
+        // Fallback jika kosong, ambil seluruh student_id yang pernah di rombel ini
+        if (empty($studentIds)) {
+            $studentIds = StudentClass::where('classroom_id', $classroom->id)
+                ->pluck('student_id')
+                ->toArray();
+        }
 
-        $allStudentIds = array_unique(array_merge($studentIds, $directStudentIds));
+        $allStudentIds = array_unique(array_filter($studentIds));
         if (empty($allStudentIds)) {
             return 0;
         }
@@ -200,18 +204,31 @@ class LmsEnrollmentService
         foreach ($lmsClasses as $lmsClass) {
             $classroomId = $lmsClass->classroom_id;
 
+            // 1. Coba ambil siswa dengan academic year aktif jika ada
             $studentIds = StudentClass::where('classroom_id', $classroomId)
-                ->where('status', 'aktif')
-                ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                ->when($activeYear, function ($q) use ($activeYear, $classroomId) {
+                    $hasActiveYear = StudentClass::where('classroom_id', $classroomId)
+                        ->where('academic_year_id', $activeYear->id)
+                        ->exists();
+                    if ($hasActiveYear) {
+                        $q->where('academic_year_id', $activeYear->id);
+                    }
+                })
+                ->where(function ($q) {
+                    $q->whereNull('status')
+                      ->orWhereIn('status', ['aktif', 'active', 'Aktif', '']);
+                })
                 ->pluck('student_id')
                 ->toArray();
 
-            $directStudentIds = Student::where('classroom_id', $classroomId)
-                ->where('status', 'aktif')
-                ->pluck('id')
-                ->toArray();
+            // 2. Fallback: ambil semua siswa di student_classes untuk rombel ini
+            if (empty($studentIds)) {
+                $studentIds = StudentClass::where('classroom_id', $classroomId)
+                    ->pluck('student_id')
+                    ->toArray();
+            }
 
-            $allStudentIds = array_unique(array_merge($studentIds, $directStudentIds));
+            $allStudentIds = array_unique(array_filter($studentIds));
 
             foreach ($allStudentIds as $studentId) {
                 $enrollment = LmsEnrollment::firstOrCreate([
