@@ -102,6 +102,9 @@ class LmsAssignmentController extends Controller
      */
     private function getEnrolledStudentsForCourse(LmsCourse $course, ?int $selectedClassroomId = null)
     {
+        $teacher = $this->getTeacher();
+        $schoolId = $course->school_id ?? $teacher?->school_id;
+
         // 1. Sinkronisasi otomatis enrollments kursus
         try {
             app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($course);
@@ -117,13 +120,30 @@ class LmsAssignmentController extends Controller
             ->filter()
             ->values();
 
-        if ($classrooms->isEmpty() && $course->classroom) {
-            $classrooms = collect([$course->classroom]);
+        if ($classrooms->isEmpty() && $course->classroom_id) {
+            $c = \App\Models\Classroom::find($course->classroom_id);
+            if ($c) {
+                $classrooms = collect([$c]);
+            }
         }
 
         $allClassroomIds = $classrooms->pluck('id')->filter()->values()->toArray();
         if ($course->classroom_id && !in_array($course->classroom_id, $allClassroomIds)) {
             $allClassroomIds[] = $course->classroom_id;
+        }
+
+        // Tambahkan juga rombel dari penugasan mengajar guru untuk mapel ini jika belum ada
+        if ($teacher && $course->subject_id) {
+            $teachingClassroomIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+                ->where('subject_id', $course->subject_id)
+                ->pluck('classroom_id')
+                ->filter()
+                ->toArray();
+            foreach ($teachingClassroomIds as $tCid) {
+                if (!in_array($tCid, $allClassroomIds)) {
+                    $allClassroomIds[] = $tCid;
+                }
+            }
         }
 
         $targetClassroomIds = $selectedClassroomId ? [$selectedClassroomId] : $allClassroomIds;
@@ -160,12 +180,34 @@ class LmsAssignmentController extends Controller
             })->with('user')->get()
             : collect();
 
-        // Gabungkan semua sumber, deduplikasi berdasarkan id, dan urutkan berdasarkan nama
-        return $fromEnrollment
+        $students = $fromEnrollment
             ->merge($fromStudentClass)
             ->merge($fromClassrooms)
             ->merge($fromStudentHasClass)
             ->unique('id')
+            ->values();
+
+        // 7. ULTIMATE FALLBACK: Jika daftar siswa masih kosong (misal rombel belum ada data di tabel pivot),
+        // ambil semua siswa aktif di unit sekolah kursus/guru tersebut
+        if ($students->isEmpty() && $schoolId) {
+            $students = \App\Models\Student::where('school_id', $schoolId)
+                ->where(function ($q) {
+                    $q->whereNull('status')
+                      ->orWhereNotIn('status', ['lulus', 'keluar', 'pindah', 'dropout']);
+                })
+                ->with('user')
+                ->get();
+        }
+
+        // Filter unit sekolah agar tidak campur antar sekolah
+        if ($schoolId && $students->isNotEmpty()) {
+            $students = $students->filter(function ($s) use ($schoolId) {
+                return !$s->school_id || $s->school_id == $schoolId;
+            });
+        }
+
+        return $students
+            ->filter(fn($s) => $s && $s->id)
             ->sortBy(fn($s) => strtolower($s->user->name ?? $s->full_name ?? ''))
             ->values();
     }
