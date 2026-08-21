@@ -1124,29 +1124,18 @@ Route::get('/debug-zega-classes', function () {
     }
     $assignment = \App\Models\LmsAssignment::find(412);
     $course = $assignment->course;
-    $teacher = $course->teacher;
 
-    // Check TeachingAssignment for this teacher & subject
-    $ta = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
-        ->where('subject_id', $course->subject_id)
-        ->where('classroom_id', 370)
-        ->first();
+    $ctrl = app(\App\Http\Controllers\Guru\LmsAssignmentController::class);
+    $refMethod = new \ReflectionMethod($ctrl, 'getEnrolledStudentsForCourse');
+    $refMethod->setAccessible(true);
+    $students = $refMethod->invoke($ctrl, $course);
 
-    $c370 = \App\Models\Classroom::find(370);
-    $students370 = \App\Models\StudentClass::where('classroom_id', 370)
-        ->with('student.user')
-        ->get()
-        ->pluck('student')
-        ->filter()
-        ->sortBy(fn($s) => strtolower($s->user->name ?? $s->full_name ?? ''))
-        ->values();
-
-    $out = "=== CLASSROOM 370 & COURSE 313 ===\n";
+    $out = "=== CONTROLLER RESOLUTION FOR ASSIGNMENT 412 ===\n";
     $out .= "Course: {$course->course_name} (ID: {$course->id})\n";
-    $out .= "Classroom 370: {$c370->class_name} (School: {$c370->school_id})\n";
-    $out .= "Total Students in Classroom 370: " . $students370->count() . "\n\n";
+    $out .= "Classroom: " . ($course->classroom?->class_name ?? 'N/A') . " (ID: {$course->classroom_id})\n";
+    $out .= "Total Students Resolved by Controller: " . $students->count() . "\n\n";
 
-    foreach ($students370 as $idx => $s) {
+    foreach ($students as $idx => $s) {
         $name = $s->user->name ?? $s->full_name;
         $out .= ($idx + 1) . ". {$name} (ID: {$s->id}, NISN: {$s->nisn})\n";
     }

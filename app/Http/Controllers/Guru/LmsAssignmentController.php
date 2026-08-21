@@ -105,19 +105,8 @@ class LmsAssignmentController extends Controller
     private function getEnrolledStudentsForCourse(LmsCourse $course, ?int $selectedClassroomId = null)
     {
         $teacher = $this->getTeacher();
-        $schoolId = $course->school_id 
-            ?? $course->classroom?->school_id 
-            ?? $teacher?->school_id 
-            ?? auth()->user()?->school_id;
 
-        // 1. Sinkronisasi otomatis enrollments kursus
-        try {
-            app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($course);
-        } catch (\Throwable $e) {
-            \Log::warning('LMS syncCourseEnrollments warning: ' . $e->getMessage());
-        }
-
-        // 2. Ambil semua ID rombel yang terhubung ke course
+        // 1. Ambil semua rombel yang terhubung ke course
         $classrooms = \App\Models\LmsClass::where('course_id', $course->id)
             ->with('classroom')
             ->get()
@@ -132,117 +121,82 @@ class LmsAssignmentController extends Controller
             }
         }
 
+        // 2. Periksa apakah rombel yang ada saat ini memiliki data siswa di student_classes
+        $hasStudentsInCourseClassrooms = false;
+        foreach ($classrooms as $cr) {
+            if (\App\Models\StudentClass::where('classroom_id', $cr->id)->exists()) {
+                $hasStudentsInCourseClassrooms = true;
+                break;
+            }
+        }
+
+        // 3. Jika rombel kursus kosong siswa (misal terhubung ke rombel dummy/lama),
+        // sinkronkan otomatis ke rombel dari Penugasan Mengajar (TeachingAssignment) guru untuk mapel ini
+        if (!$hasStudentsInCourseClassrooms && $teacher && $course->subject_id) {
+            $taClassrooms = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+                ->where('subject_id', $course->subject_id)
+                ->with('classroom')
+                ->get()
+                ->pluck('classroom')
+                ->filter()
+                ->filter(fn($c) => \App\Models\StudentClass::where('classroom_id', $c->id)->exists())
+                ->values();
+
+            if ($taClassrooms->isNotEmpty()) {
+                $classrooms = $taClassrooms;
+                foreach ($taClassrooms as $tac) {
+                    \App\Models\LmsClass::firstOrCreate([
+                        'course_id' => $course->id,
+                        'classroom_id' => $tac->id,
+                    ], [
+                        'school_id' => $tac->school_id,
+                        'status' => 'active',
+                    ]);
+                }
+                $validSchoolId = $taClassrooms->first()->school_id;
+                $course->update([
+                    'classroom_id' => $taClassrooms->first()->id,
+                    'school_id' => $validSchoolId,
+                ]);
+            }
+        }
+
+        // 4. Sinkronisasi enrollments kursus
+        try {
+            app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($course);
+        } catch (\Throwable $e) {
+            \Log::warning('LMS syncCourseEnrollments warning: ' . $e->getMessage());
+        }
+
+        // 5. Tentukan target ID rombel (spesifik rombel terpilih atau seluruh rombel kursus ini)
         $allClassroomIds = $classrooms->pluck('id')->filter()->values()->toArray();
         if ($course->classroom_id && !in_array($course->classroom_id, $allClassroomIds)) {
             $allClassroomIds[] = $course->classroom_id;
         }
 
-        // Tambahkan juga rombel dari penugasan mengajar guru untuk mapel ini jika ada
-        if ($teacher && $course->subject_id) {
-            $teachingClassroomIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
-                ->where('subject_id', $course->subject_id)
-                ->pluck('classroom_id')
-                ->filter()
-                ->toArray();
-            foreach ($teachingClassroomIds as $tCid) {
-                if (!in_array($tCid, $allClassroomIds)) {
-                    $allClassroomIds[] = $tCid;
-                }
-            }
-        }
-
         $targetClassroomIds = $selectedClassroomId ? [$selectedClassroomId] : $allClassroomIds;
 
-        // Cari juga rombel terkait berdasarkan kata kunci jurusan/tingkat kelas (contoh 'TAV' -> 'X Teknik Rekayasa (DPIB, TKR 2, TAV)')
-        if ($course->classroom) {
-            $className = $course->classroom->class_name;
-            preg_match_all('/[A-Za-z0-9]+/u', $className, $matches);
-            $words = array_filter($matches[0] ?? [], fn($w) => strlen($w) >= 3 && !in_array(strtoupper($w), ['KELAS', 'RUANG', 'SMK', 'SMA', 'SMP']));
-            
-            foreach ($words as $word) {
-                $matchedIds = \App\Models\Classroom::where('class_name', 'LIKE', "%{$word}%")
-                    ->orWhere('class_code', 'LIKE', "%{$word}%")
-                    ->pluck('id')
-                    ->toArray();
-                foreach ($matchedIds as $mId) {
-                    if (!in_array($mId, $targetClassroomIds)) {
-                        $targetClassroomIds[] = $mId;
-                    }
-                }
-            }
-        }
-
-        // 3. Ambil siswa via LmsEnrollment
-        $fromEnrollment = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
-            $q->where('course_id', $course->id);
-            if ($selectedClassroomId) {
-                $q->where('classroom_id', $selectedClassroomId);
-            }
-        })->with('student.user')->get()->pluck('student')->filter();
-
-        // 4. Ambil siswa dari StudentClass (semua siswa yang terhubung ke rombel ini)
-        $fromStudentClass = !empty($targetClassroomIds)
-            ? \App\Models\StudentClass::whereIn('classroom_id', $targetClassroomIds)
-                ->with('student.user')
-                ->get()
-                ->pluck('student')
-                ->filter()
-            : collect();
-
-        // 5. Ambil siswa via relasi Classroom -> students
-        $fromClassrooms = !empty($targetClassroomIds)
-            ? \App\Models\Classroom::whereIn('id', $targetClassroomIds)
-                ->with('students.user')
-                ->get()
-                ->flatMap->students
-            : collect();
-
-        // 6. Ambil siswa via Student whereHas studentClasses
-        $fromStudentHasClass = !empty($targetClassroomIds)
-            ? \App\Models\Student::whereHas('studentClasses', function ($q) use ($targetClassroomIds) {
-                $q->whereIn('classroom_id', $targetClassroomIds);
-            })->with('user')->get()
-            : collect();
-
-        $students = $fromEnrollment
-            ->merge($fromStudentClass)
-            ->merge($fromClassrooms)
-            ->merge($fromStudentHasClass)
+        // 6. Ambil siswa via StudentClass dari rombel target secara tepat
+        $students = \App\Models\StudentClass::whereIn('classroom_id', $targetClassroomIds)
+            ->where(function ($q) {
+                $q->whereNull('status')
+                  ->orWhereIn('status', ['aktif', 'active', 'Aktif', '']);
+            })
+            ->with(['student.user'])
+            ->get()
+            ->pluck('student')
+            ->filter()
             ->unique('id')
             ->values();
 
-        // 7. ULTIMATE FALLBACK: Jika daftar siswa masih kosong, cari siswa aktif di unit sekolah guru/siswa (SMK=7, SMA=2, dsb)
+        // 7. Jika dari StudentClass kosong, ambil via LmsEnrollment kursus ini
         if ($students->isEmpty()) {
-            $candidateSchoolIds = [];
-            if ($schoolId && $schoolId != 4) {
-                $candidateSchoolIds[] = $schoolId;
-            } else {
-                // Yayasan / All Schools fallback (SMK ID 7, SMA ID 2, 3, SMP ID 1)
-                $candidateSchoolIds = [7, 2, 3, 1];
-            }
-
-            $students = \App\Models\Student::whereIn('school_id', $candidateSchoolIds)
-                ->where(function ($q) {
-                    $q->whereNull('status')
-                      ->orWhereNotIn('status', ['lulus', 'keluar', 'pindah', 'dropout']);
-                })
-                ->with('user')
-                ->get();
-        }
-
-        // 8. Jika masih kosong, ambil seluruh siswa aktif
-        if ($students->isEmpty()) {
-            $students = \App\Models\Student::where(function ($q) {
-                $q->whereNull('status')
-                  ->orWhereNotIn('status', ['lulus', 'keluar', 'pindah', 'dropout']);
-            })->with('user')->take(100)->get();
-        }
-
-        // Filter unit sekolah jika bukan yayasan (ID 4)
-        if ($schoolId && $schoolId != 4 && $students->isNotEmpty()) {
-            $students = $students->filter(function ($s) use ($schoolId) {
-                return !$s->school_id || $s->school_id == $schoolId;
-            });
+            $students = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
+                $q->where('course_id', $course->id);
+                if ($selectedClassroomId) {
+                    $q->where('classroom_id', $selectedClassroomId);
+                }
+            })->with('student.user')->get()->pluck('student')->filter()->unique('id')->values();
         }
 
         $finalStudents = $students
@@ -250,19 +204,10 @@ class LmsAssignmentController extends Controller
             ->sortBy(fn($s) => strtolower($s->user->name ?? $s->full_name ?? ''))
             ->values();
 
-        // 10. Otomatis daftarkan siswa ke LmsEnrollment agar sinkron 100%
+        // 8. Daftarkan siswa ke LmsEnrollment jika belum terdaftar
         if ($finalStudents->isNotEmpty()) {
             try {
                 $firstLmsClass = \App\Models\LmsClass::where('course_id', $course->id)->first();
-                if (!$firstLmsClass && $course->classroom_id) {
-                    $firstLmsClass = \App\Models\LmsClass::firstOrCreate([
-                        'course_id' => $course->id,
-                        'classroom_id' => $course->classroom_id,
-                    ], [
-                        'school_id' => $schoolId,
-                        'status' => 'active',
-                    ]);
-                }
                 if ($firstLmsClass) {
                     foreach ($finalStudents as $std) {
                         if (!$std || !$std->id) continue;
