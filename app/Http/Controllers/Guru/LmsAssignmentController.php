@@ -151,6 +151,25 @@ class LmsAssignmentController extends Controller
 
         $targetClassroomIds = $selectedClassroomId ? [$selectedClassroomId] : $allClassroomIds;
 
+        // Cari juga rombel terkait berdasarkan kata kunci jurusan/tingkat kelas (contoh 'TAV' -> 'X Teknik Rekayasa (DPIB, TKR 2, TAV)')
+        if ($course->classroom) {
+            $className = $course->classroom->class_name;
+            preg_match_all('/[A-Za-z0-9]+/u', $className, $matches);
+            $words = array_filter($matches[0] ?? [], fn($w) => strlen($w) >= 3 && !in_array(strtoupper($w), ['KELAS', 'RUANG', 'SMK', 'SMA', 'SMP']));
+            
+            foreach ($words as $word) {
+                $matchedIds = \App\Models\Classroom::where('class_name', 'LIKE', "%{$word}%")
+                    ->orWhere('class_code', 'LIKE', "%{$word}%")
+                    ->pluck('id')
+                    ->toArray();
+                foreach ($matchedIds as $mId) {
+                    if (!in_array($mId, $targetClassroomIds)) {
+                        $targetClassroomIds[] = $mId;
+                    }
+                }
+            }
+        }
+
         // 3. Ambil siswa via LmsEnrollment
         $fromEnrollment = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
             $q->where('course_id', $course->id);
@@ -190,27 +209,17 @@ class LmsAssignmentController extends Controller
             ->unique('id')
             ->values();
 
-        // 7. Jika masih kosong, cari rombel dengan nama kelas serupa (misal X TAV / XTAV)
-        if ($students->isEmpty() && $course->classroom) {
-            $className = trim($course->classroom->class_name);
-            $similarClassroomIds = \App\Models\Classroom::where('class_name', 'LIKE', "%{$className}%")
-                ->orWhere('class_code', 'LIKE', "%{$className}%")
-                ->pluck('id')
-                ->toArray();
-            if (!empty($similarClassroomIds)) {
-                $students = \App\Models\StudentClass::whereIn('classroom_id', $similarClassroomIds)
-                    ->with('student.user')
-                    ->get()
-                    ->pluck('student')
-                    ->filter()
-                    ->unique('id')
-                    ->values();
+        // 7. ULTIMATE FALLBACK: Jika daftar siswa masih kosong, cari siswa aktif di unit sekolah guru/siswa (SMK=7, SMA=2, dsb)
+        if ($students->isEmpty()) {
+            $candidateSchoolIds = [];
+            if ($schoolId && $schoolId != 4) {
+                $candidateSchoolIds[] = $schoolId;
+            } else {
+                // Yayasan / All Schools fallback (SMK ID 7, SMA ID 2, 3, SMP ID 1)
+                $candidateSchoolIds = [7, 2, 3, 1];
             }
-        }
 
-        // 8. ULTIMATE FALLBACK: Jika daftar siswa masih kosong sama sekali, ambil semua siswa aktif di unit sekolah
-        if ($students->isEmpty() && $schoolId) {
-            $students = \App\Models\Student::where('school_id', $schoolId)
+            $students = \App\Models\Student::whereIn('school_id', $candidateSchoolIds)
                 ->where(function ($q) {
                     $q->whereNull('status')
                       ->orWhereNotIn('status', ['lulus', 'keluar', 'pindah', 'dropout']);
@@ -219,7 +228,7 @@ class LmsAssignmentController extends Controller
                 ->get();
         }
 
-        // 9. Jika masih kosong tanpa schoolId sekalipun, ambil seluruh siswa aktif
+        // 8. Jika masih kosong, ambil seluruh siswa aktif
         if ($students->isEmpty()) {
             $students = \App\Models\Student::where(function ($q) {
                 $q->whereNull('status')
@@ -227,8 +236,8 @@ class LmsAssignmentController extends Controller
             })->with('user')->take(100)->get();
         }
 
-        // Filter unit sekolah jika ada agar tidak campur antar sekolah
-        if ($schoolId && $students->isNotEmpty()) {
+        // Filter unit sekolah jika bukan yayasan (ID 4)
+        if ($schoolId && $schoolId != 4 && $students->isNotEmpty()) {
             $students = $students->filter(function ($s) use ($schoolId) {
                 return !$s->school_id || $s->school_id == $schoolId;
             });
