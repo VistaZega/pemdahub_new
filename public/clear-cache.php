@@ -515,6 +515,39 @@ try {
     echo "<span class='info'>Base Path: " . base_path() . "</span>\n";
     echo "<span class='info'>Public Path: " . public_path() . "</span>\n";
     
+    echo "\n<span class='info'>=== LMS ASSIGNMENT 412 / COURSE 313 DIAGNOSTIC ===</span>\n";
+    try {
+        $ass = \App\Models\LmsAssignment::find(412);
+        if ($ass) {
+            $c = $ass->course;
+            echo "Assignment: {$ass->title} (ID: {$ass->id}, is_group: {$ass->is_group_assignment})\n";
+            echo "Course: " . ($c->course_name ?? $c->name) . " (ID: {$c->id}, School: {$c->school_id}, Subject: {$c->subject_id}, Classroom: {$c->classroom_id})\n";
+            $lClasses = \App\Models\LmsClass::where('course_id', $c->id)->get();
+            echo "LmsClasses count: " . $lClasses->count() . "\n";
+            foreach ($lClasses as $lc) {
+                $cr = $lc->classroom;
+                echo "  - LmsClass {$lc->id}: Classroom ID {$lc->classroom_id} (" . ($cr?->class_name ?? 'NULL') . "), School: {$lc->school_id}\n";
+                $scCount = \App\Models\StudentClass::where('classroom_id', $lc->classroom_id)->count();
+                echo "    -> StudentClass count in this classroom: {$scCount}\n";
+                $enrCount = \App\Models\LmsEnrollment::where('lms_class_id', $lc->id)->count();
+                echo "    -> LmsEnrollment count in this lms_class: {$enrCount}\n";
+            }
+            
+            $ctrl = app(\App\Http\Controllers\Guru\LmsAssignmentController::class);
+            $refMethod = new \ReflectionMethod($ctrl, 'getEnrolledStudentsForCourse');
+            $refMethod->setAccessible(true);
+            $stds = $refMethod->invoke($ctrl, $c);
+            echo "getEnrolledStudentsForCourse returned: " . $stds->count() . " students.\n";
+            foreach ($stds->take(10) as $s) {
+                echo "  * Student #{$s->id}: " . ($s->user->name ?? $s->full_name) . " (NISN: {$s->nisn})\n";
+            }
+        } else {
+            echo "Assignment 412 not found.\n";
+        }
+    } catch (\Throwable $e) {
+        echo "<span class='err'>LMS Diag Error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine() . "</span>\n";
+    }
+
     echo "\n<span class='info'>=== CONTENT OF public_html/.htaccess ===</span>\n";
     $htaccessPath = __DIR__ . '/.htaccess';
     if (file_exists($htaccessPath)) {
