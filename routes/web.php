@@ -1132,13 +1132,54 @@ Route::get('/debug-assignment-412', function () {
     $refMethod->setAccessible(true);
     $students = $refMethod->invoke($ctrl, $course);
     
-    $out = "Assignment: {$assignment->title} (ID: {$assignment->id})\n";
+    $out = "=== DIAGNOSTIC REPORT FOR ASSIGNMENT 412 ===\n";
+    $out .= "Assignment: {$assignment->title} (ID: {$assignment->id})\n";
     $out .= "Course: {$course->course_name} (ID: {$course->id}, School: {$course->school_id}, Classroom: {$course->classroom_id})\n";
-    $out .= "Total Students Found: " . $students->count() . "\n\n";
-    foreach ($students as $idx => $s) {
-        $name = $s->user->name ?? $s->full_name;
-        $out .= ($idx + 1) . ". [ID: {$s->id}] {$name} (NISN: {$s->nisn}, School ID: {$s->school_id})\n";
+    $out .= "Total Students Found By Controller: " . $students->count() . "\n\n";
+
+    // 1. Check Classroom 369
+    $cr = \App\Models\Classroom::find($course->classroom_id ?? 369);
+    $out .= "--- 1. Classroom 369 Details ---\n";
+    if ($cr) {
+        $out .= "Class Name: {$cr->class_name} | Code: {$cr->class_code} | School ID: {$cr->school_id} | Academic Year ID: {$cr->academic_year_id} | Grade: {$cr->grade_level}\n";
+    } else {
+        $out .= "Classroom 369 NOT FOUND in classrooms table!\n";
     }
+
+    // 2. Check StudentClass for Classroom 369
+    $scCount = \App\Models\StudentClass::where('classroom_id', $course->classroom_id ?? 369)->count();
+    $out .= "\n--- 2. StudentClass in Classroom 369 ---\n";
+    $out .= "Count in student_classes: {$scCount}\n";
+    $scSample = \App\Models\StudentClass::where('classroom_id', $course->classroom_id ?? 369)->take(5)->get();
+    foreach ($scSample as $sc) {
+        $out .= "  * StudentClass ID {$sc->id}: student_id={$sc->student_id}, status={$sc->status}, academic_year_id={$sc->academic_year_id}\n";
+    }
+
+    // 3. Check All Classrooms with similar name in school
+    $out .= "\n--- 3. All Classrooms with 'TAV' in name ---\n";
+    $tavClasses = \App\Models\Classroom::where('class_name', 'LIKE', '%TAV%')->orWhere('class_code', 'LIKE', '%TAV%')->get();
+    foreach ($tavClasses as $tc) {
+        $cnt = \App\Models\StudentClass::where('classroom_id', $tc->id)->count();
+        $out .= "  * Class ID {$tc->id}: '{$tc->class_name}' ({$tc->class_code}) - School ID: {$tc->school_id}, Academic Year: {$tc->academic_year_id}, Students in pivot: {$cnt}\n";
+    }
+
+    // 4. Check Student count per School ID in database
+    $out .= "\n--- 4. Student Distribution by School ID in students table ---\n";
+    $schoolDistribution = \App\Models\Student::select('school_id', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
+        ->groupBy('school_id')
+        ->get();
+    foreach ($schoolDistribution as $sd) {
+        $schName = \App\Models\School::find($sd->school_id)?->name ?? 'Unknown';
+        $out .= "  * School ID {$sd->school_id} ({$schName}): {$sd->total} students\n";
+    }
+
+    // 5. Check Schools Table
+    $out .= "\n--- 5. Schools in Database ---\n";
+    $allSchools = \App\Models\School::all();
+    foreach ($allSchools as $s) {
+        $out .= "  * School ID {$s->id}: {$s->name} ({$s->type})\n";
+    }
+
     return response($out, 200, ['Content-Type' => 'text/plain; charset=utf-8']);
 });
 
