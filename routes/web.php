@@ -1124,30 +1124,18 @@ Route::get('/debug-assignment-412', function () {
     }
     $assignment = \App\Models\LmsAssignment::find(412);
     $course = $assignment->course;
+    $ctrl = app(\App\Http\Controllers\Guru\LmsAssignmentController::class);
+    $refMethod = new \ReflectionMethod($ctrl, 'getEnrolledStudentsForCourse');
+    $refMethod->setAccessible(true);
+    $students = $refMethod->invoke($ctrl, $course);
 
     $out = "=== DIAGNOSTIC REPORT ===\n";
-    $out .= "Course ID: {$course->id} | School: {$course->school_id} | Classroom: {$course->classroom_id}\n\n";
-
-    // 1. Check Class 367
-    $c367 = \App\Models\Classroom::find(367);
-    $sc367Count = \App\Models\StudentClass::where('classroom_id', 367)->count();
-    $out .= "Class 367: '{$c367?->class_name}' | School: {$c367?->school_id} | Academic Year: {$c367?->academic_year_id} | Students in pivot: {$sc367Count}\n";
-
-    // 2. Check all students in School 4 vs School 7
-    $s4Count = \App\Models\Student::where('school_id', 4)->count();
-    $s7Count = \App\Models\Student::where('school_id', 7)->count();
-    $out .= "Students with School ID 4: {$s4Count}\n";
-    $out .= "Students with School ID 7: {$s7Count}\n\n";
-
-    // 3. Check All Schools
-    $out .= "Schools List:\n";
-    foreach (\App\Models\School::all() as $sch) {
-        $out .= "  * School ID {$sch->id}: '{$sch->name}' ({$sch->type})\n";
+    $out .= "Course: {$course->course_name} (ID: {$course->id})\n";
+    $out .= "Total Students Resolved: " . $students->count() . "\n\n";
+    foreach ($students->take(20) as $idx => $s) {
+        $name = $s->user->name ?? $s->full_name;
+        $out .= ($idx + 1) . ". {$name} (ID: {$s->id}, NISN: {$s->nisn}, School: {$s->school_id})\n";
     }
-
-    // 4. Check Teacher Yulianus Zega
-    $teacher = $course->teacher;
-    $out .= "\nTeacher ID: {$teacher->id} | Name: {$teacher->full_name} | School ID: {$teacher->school_id}\n";
 
     return response($out, 200, ['Content-Type' => 'text/plain; charset=utf-8']);
 });
