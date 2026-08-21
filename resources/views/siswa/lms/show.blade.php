@@ -1120,14 +1120,14 @@ if (!function_exists('balanceHtmlTags')) {
 <div x-data="gamePlayer()" 
     @open-game-player.window="loadGame($event.detail)" 
     x-show="open" 
-    class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;"
+    class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 999999 !important;"
     x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
 
-    {{-- Dark backdrop (clickable to close) --}}
-    <div class="fixed inset-0" style="background: rgba(10,8,30,0.92); z-index: 99999 !important;" @click="closeGame()"></div>
+    {{-- Dark backdrop (clickable to close, placed underneath modal content) --}}
+    <div class="fixed inset-0 bg-slate-950/85 backdrop-blur-md transition-opacity" @click="closeGame()"></div>
 
     {{-- Floating particles (decorative, pointer-events-none) --}}
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-10">
         <div class="particle-float absolute top-[10%] left-[8%] w-2 h-2 rounded-full bg-violet-400 opacity-40"></div>
         <div class="particle-float absolute top-[30%] right-[10%] w-3 h-3 rounded-full bg-pink-400 opacity-30" style="animation-delay:1s"></div>
         <div class="particle-float absolute bottom-[20%] left-[15%] w-2 h-2 rounded-full bg-cyan-400 opacity-40" style="animation-delay:2s"></div>
@@ -1135,53 +1135,53 @@ if (!function_exists('balanceHtmlTags')) {
     </div>
 
     {{-- Centered modal card --}}
-    <div class="flex items-center justify-center min-h-screen p-0 sm:p-4">
+    <div class="flex items-center justify-center min-h-screen p-2 sm:p-4 relative z-20">
         <div x-show="open"
             x-transition:enter="ease-out duration-400"
             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-            class="relative w-full max-w-4xl flex flex-col game-card-glow sm:rounded-3xl overflow-hidden h-screen sm:h-auto sm:max-h-[90vh] z-10"
-            style="background: linear-gradient(180deg, #1a1535 0%, #0f0c29 100%)">
+            class="relative w-full max-w-4xl flex flex-col game-card-glow rounded-2xl sm:rounded-3xl overflow-hidden min-h-[520px] max-h-[96vh] sm:max-h-[90vh] z-30 shadow-2xl"
+            style="background: linear-gradient(180deg, #1e1b4b 0%, #0f172a 100%); border: 1px solid rgba(255,255,255,0.2);">
 
 
             {{-- Animated gradient ring top --}}
-            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-pink-500 via-50% to-cyan-500"></div>
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-violet-500 via-pink-500 via-50% to-cyan-500"></div>
 
             {{-- HEADER --}}
-            <div class="relative shrink-0 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-20" style="background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.1)">
+            <div class="relative shrink-0 px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between z-20" style="background: rgba(255,255,255,0.08); border-bottom: 1px solid rgba(255,255,255,0.15)">
                 {{-- Game Icon + Title --}}
                 <div class="flex items-center gap-3">
                     <div class="relative w-11 h-11 rounded-2xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, #7c3aed, #ec4899); box-shadow: 0 0 20px rgba(124,58,237,0.6)">
                         <i class="fas fa-gamepad text-white text-lg"></i>
                     </div>
                     <div>
-                        <h3 class="font-black text-white text-sm sm:text-base leading-tight" x-text="game.title"></h3>
+                        <h3 class="font-extrabold text-white text-sm sm:text-base leading-tight" style="color: #ffffff !important;" x-text="game.title"></h3>
                         <div class="flex items-center gap-2 mt-0.5">
-                            <span class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full" style="background: rgba(139,92,246,0.3); color: #a78bfa; border: 1px solid rgba(139,92,246,0.4)" x-text="game.type.replace('_', ' ')"></span>
+                            <span class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full" style="background: rgba(139,92,246,0.4); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.6)" x-text="game.type.replace('_', ' ')"></span>
                         </div>
                     </div>
                 </div>
 
                 {{-- EXP Badge + Close --}}
                 <div class="flex items-center gap-2 sm:gap-3">
-                    <div class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-2xl" style="background: rgba(251,191,36,0.15); border: 1px solid rgba(251,191,36,0.3)" x-show="!completed">
+                    <div class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-2xl" style="background: rgba(251,191,36,0.2); border: 1px solid rgba(251,191,36,0.5)" x-show="!completed">
                         <i class="fas fa-bolt text-yellow-400 text-sm"></i>
                         <span class="text-yellow-300 font-black text-sm">+<span x-text="game.reward"></span> EXP</span>
                     </div>
                     {{-- Progress dots for multi-item games --}}
                     <div class="hidden sm:flex items-center gap-1" x-show="!completed && totalItems > 1 && game.type !== 'spin_wheel'">
                         <template x-for="i in Math.min(totalItems, 8)" :key="i">
-                            <div class="w-1.5 h-1.5 rounded-full transition-all duration-300" :class="i-1 < currentIndex ? 'bg-violet-400' : (i-1 === currentIndex ? 'bg-white scale-125' : 'bg-white/20')"></div>
+                            <div class="w-2 h-2 rounded-full transition-all duration-300" :class="i-1 < currentIndex ? 'bg-violet-400' : (i-1 === currentIndex ? 'bg-white scale-125' : 'bg-white/20')"></div>
                         </template>
                     </div>
-                    <button @click="closeGame()" class="w-10 h-10 rounded-2xl flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all">
+                    <button @click="closeGame()" class="w-10 h-10 rounded-2xl flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-all">
                         <i class="fas fa-times text-lg"></i>
                     </button>
                 </div>
             </div>
 
             {{-- Progress Bar --}}
-            <div class="h-1 w-full shrink-0" style="background: rgba(255,255,255,0.05)" x-show="!completed && totalItems > 1 && game.type !== 'spin_wheel'">
+            <div class="h-1.5 w-full shrink-0" style="background: rgba(255,255,255,0.08)" x-show="!completed && totalItems > 1 && game.type !== 'spin_wheel'">
                 <div class="h-full transition-all duration-700 ease-out" style="background: linear-gradient(90deg, #7c3aed, #ec4899)" :style="`width: ${((currentIndex + 1) / Math.max(totalItems, 1)) * 100}%`"></div>
             </div>
 
@@ -1207,15 +1207,15 @@ if (!function_exists('balanceHtmlTags')) {
                     {{-- ══════════════════════════════ --}}
                     {{-- HARDCORE MODE STATUS BAR --}}
                     {{-- ══════════════════════════════ --}}
-                    <div x-show="['quiz', 'true_false', 'word_guess', 'scramble', 'sequence'].includes(game.type) && !completed && !loading" class="w-full max-w-3xl mx-auto mb-6 flex items-center justify-between gap-4 p-4 rounded-3xl" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); display: none;">
+                    <div x-show="['quiz', 'true_false', 'word_guess', 'scramble', 'sequence'].includes(game.type) && !completed && !loading" class="w-full max-w-3xl mx-auto mb-6 flex items-center justify-between gap-4 p-4 rounded-3xl" style="background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); display: none;">
                         
                         {{-- Timer --}}
                         <div x-show="timeLimit > 0" class="flex-1">
-                            <div class="flex items-center justify-between text-xs font-bold text-white/70 mb-1">
+                            <div class="flex items-center justify-between text-xs font-bold text-white/90 mb-1">
                                 <span><i class="fas fa-stopwatch text-rose-400 mr-1"></i> Waktu</span>
-                                <span x-text="timeRemaining + 's'"></span>
+                                <span class="text-white font-black" x-text="timeRemaining + 's'"></span>
                             </div>
-                            <div class="w-full h-2 rounded-full overflow-hidden bg-white/10">
+                            <div class="w-full h-2.5 rounded-full overflow-hidden bg-white/10">
                                 <div class="h-full transition-all duration-1000 ease-linear" :style="'width: ' + ((timeRemaining/timeLimit)*100) + '%; background: ' + (timeRemaining <= 5 ? '#ef4444' : 'linear-gradient(90deg, #f43f5e, #ec4899)')"></div>
                             </div>
                         </div>
@@ -1224,7 +1224,7 @@ if (!function_exists('balanceHtmlTags')) {
                         <div x-show="!timeLimit || timeLimit <= 0" class="flex-1"></div>
 
                         {{-- Combo --}}
-                        <div x-show="currentCombo > 0" class="px-3 py-1 rounded-xl bg-orange-500/20 border border-orange-500/40 relative mx-4 shrink-0">
+                        <div x-show="currentCombo > 0" class="px-3 py-1 rounded-xl bg-orange-500/30 border border-orange-500/50 relative mx-4 shrink-0">
                             <div x-show="showComboEffect" class="absolute -inset-2 bg-orange-400 opacity-20 blur-xl rounded-full transition-opacity duration-300"></div>
                             <span class="text-orange-400 font-black text-sm tracking-wide animate-pulse">🔥 COMBO x<span x-text="currentCombo"></span></span>
                         </div>
@@ -1243,7 +1243,7 @@ if (!function_exists('balanceHtmlTags')) {
                     <div x-show="game.type === 'flashcard' && !loading && !completed" class="w-full max-w-2xl mx-auto flex flex-col items-center">
                         {{-- Counter + Progress --}}
                         <div class="mb-5 w-full flex items-center justify-between">
-                            <span class="text-white/40 text-xs font-bold uppercase tracking-widest">Kartu</span>
+                            <span class="text-white/60 text-xs font-bold uppercase tracking-widest">Kartu</span>
                             <span class="text-white font-black text-sm"><span x-text="currentIndex + 1"></span> / <span x-text="totalItems"></span></span>
                         </div>
 
@@ -1251,31 +1251,31 @@ if (!function_exists('balanceHtmlTags')) {
                         <div class="flashcard-scene w-full mb-8 cursor-pointer" style="height: 280px; min-height: 200px" @click="flipCard()">
                             <div class="flashcard-inner w-full h-full relative" :class="isFlipped ? 'flipped' : ''">
                                 {{-- Front --}}
-                                <div class="flashcard-face absolute inset-0 rounded-3xl flex flex-col" style="background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(236,72,153,0.15)); border: 1px solid rgba(139,92,246,0.4); box-shadow: 0 0 30px rgba(124,58,237,0.2)">
+                                <div class="flashcard-face absolute inset-0 rounded-3xl flex flex-col" style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.9), rgba(49, 46, 129, 0.8)); border: 2px solid rgba(139,92,246,0.6); box-shadow: 0 0 30px rgba(124,58,237,0.3)">
                                     {{-- Label bar --}}
-                                    <div class="shrink-0 flex items-center justify-between px-5 pt-4 pb-3" style="border-bottom: 1px solid rgba(139,92,246,0.2)">
-                                        <span class="text-[9px] font-black tracking-[0.2em] uppercase" style="color: rgba(167,139,250,0.8)">❓ PERTANYAAN</span>
-                                        <span class="text-xs font-black px-2.5 py-0.5 rounded-full" style="background: rgba(139,92,246,0.3); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3)" x-text="(currentIndex + 1) + ' / ' + totalItems"></span>
+                                    <div class="shrink-0 flex items-center justify-between px-5 pt-4 pb-3" style="border-bottom: 1px solid rgba(139,92,246,0.3)">
+                                        <span class="text-[10px] font-black tracking-[0.2em] uppercase" style="color: #c4b5fd;">❓ PERTANYAAN</span>
+                                        <span class="text-xs font-black px-2.5 py-0.5 rounded-full" style="background: rgba(139,92,246,0.4); color: #e9d5ff; border: 1px solid rgba(139,92,246,0.5)" x-text="(currentIndex + 1) + ' / ' + totalItems"></span>
                                     </div>
                                     {{-- Scrollable content --}}
                                     <div class="flex-1 overflow-y-auto flex items-center justify-center p-6 text-center">
-                                        <h2 class="font-black text-white leading-snug break-words" style="font-size: clamp(1.1rem, 3vw, 2rem)" x-text="currentFlashcard.term"></h2>
+                                        <h2 class="font-extrabold text-white leading-snug break-words" style="color: #ffffff !important; font-size: clamp(1.1rem, 3vw, 2rem)" x-text="currentFlashcard.term"></h2>
                                     </div>
                                     {{-- Hint footer --}}
-                                    <div class="shrink-0 flex items-center justify-center gap-2 pb-3 text-white/25 text-xs font-bold">
+                                    <div class="shrink-0 flex items-center justify-center gap-2 pb-3 text-white/50 text-xs font-bold">
                                         <i class="fas fa-sync-alt"></i> Klik kartu untuk melihat jawaban
                                     </div>
                                 </div>
                                 {{-- Back --}}
-                                <div class="flashcard-face flashcard-back absolute inset-0 rounded-3xl flex flex-col" style="background: linear-gradient(135deg, rgba(16,185,129,0.25), rgba(6,182,212,0.15)); border: 1px solid rgba(16,185,129,0.4); box-shadow: 0 0 30px rgba(16,185,129,0.2)">
+                                <div class="flashcard-face flashcard-back absolute inset-0 rounded-3xl flex flex-col" style="background: linear-gradient(135deg, rgba(6, 78, 59, 0.9), rgba(15, 118, 110, 0.85)); border: 2px solid rgba(16,185,129,0.6); box-shadow: 0 0 30px rgba(16,185,129,0.3)">
                                     {{-- Label bar --}}
-                                    <div class="shrink-0 flex items-center justify-between px-5 pt-4 pb-3" style="border-bottom: 1px solid rgba(16,185,129,0.2)">
-                                        <span class="text-[9px] font-black tracking-[0.2em] uppercase" style="color: rgba(52,211,153,0.9)">✅ JAWABAN</span>
+                                    <div class="shrink-0 flex items-center justify-between px-5 pt-4 pb-3" style="border-bottom: 1px solid rgba(16,185,129,0.3)">
+                                        <span class="text-[10px] font-black tracking-[0.2em] uppercase" style="color: #6ee7b7;">✅ JAWABAN</span>
                                         <i class="fas fa-check-circle text-emerald-400"></i>
                                     </div>
                                     {{-- Scrollable content --}}
                                     <div class="flex-1 overflow-y-auto flex items-center justify-center p-6 text-center">
-                                        <h2 class="font-black text-white leading-snug break-words" style="font-size: clamp(1.1rem, 3vw, 2rem)" x-text="currentFlashcard.definition"></h2>
+                                        <h2 class="font-extrabold text-white leading-snug break-words" style="color: #ffffff !important; font-size: clamp(1.1rem, 3vw, 2rem)" x-text="currentFlashcard.definition"></h2>
                                     </div>
                                     <div class="shrink-0 flex items-center justify-center gap-3 pb-4 px-4" @click.stop>
                                         <button @click="answerFlashcard(false)" class="flex-1 py-3 rounded-xl font-bold text-white transition-all hover:scale-105 shadow-md" style="background: linear-gradient(135deg, #ef4444, #b91c1c); border: 1px solid rgba(239,68,68,0.5)">
@@ -1291,18 +1291,14 @@ if (!function_exists('balanceHtmlTags')) {
 
                         {{-- Flashcard Navigation (Hidden when flipped) --}}
                         <div class="flex items-center gap-4 w-full max-w-sm transition-opacity duration-300" :class="isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'">
-                            <button @click="prevCard(); $event.stopPropagation()" :disabled="currentIndex === 0" class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold transition-all disabled:opacity-30 hover:scale-110" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white">
+                            <button @click="prevCard(); $event.stopPropagation()" :disabled="currentIndex === 0" class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold transition-all disabled:opacity-30 hover:scale-110" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
-                            <div class="flex-1 h-2 rounded-full overflow-hidden" style="background: rgba(255,255,255,0.1)">
+                            <div class="flex-1 h-2 rounded-full overflow-hidden" style="background: rgba(255,255,255,0.15)">
                                 <div class="h-full rounded-full transition-all duration-500" style="background: linear-gradient(90deg, #7c3aed, #ec4899)" :style="`width: ${((currentIndex + 1) / totalItems) * 100}%`"></div>
                             </div>
                             <button @click="nextCard(); $event.stopPropagation()" :disabled="currentIndex === totalItems - 1" class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold transition-all disabled:opacity-30 hover:scale-110" style="background: linear-gradient(135deg, #7c3aed, #ec4899); color: white">
                                 <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                            <button @click="finishGame()" class="px-8 py-4 rounded-2xl font-black text-white text-lg flex items-center gap-3 transition-all hover:scale-105" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 30px rgba(16,185,129,0.4)">
-                                <i class="fas fa-flag-checkered"></i> Selesaikan!
                             </button>
                         </div>
                     </div>
@@ -1312,19 +1308,19 @@ if (!function_exists('balanceHtmlTags')) {
                     {{-- ══════════════════════════════ --}}
                     <div x-show="game.type === 'match' && !loading && !completed" class="w-full max-w-4xl mx-auto flex flex-col items-center">
                         {{-- Cara Bermain --}}
-                        <div class="w-full mb-6 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3)">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(139,92,246,0.3)">
-                                <i class="fas fa-info-circle text-violet-400 text-lg"></i>
+                        <div class="w-full mb-6 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.4)">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(139,92,246,0.4)">
+                                <i class="fas fa-info-circle text-violet-300 text-lg"></i>
                             </div>
                             <div class="text-left">
-                                <div class="text-[10px] font-black uppercase tracking-widest text-violet-400 mb-0.5">CARA BERMAIN</div>
-                                <div class="font-bold text-white text-sm leading-snug">Pilih satu kotak di kiri dan pasangkan dengan jawaban yang tepat di kanan.</div>
+                                <div class="text-[10px] font-black uppercase tracking-widest text-violet-300 mb-0.5">CARA BERMAIN</div>
+                                <div class="font-bold text-white text-sm leading-snug" style="color: #ffffff !important;">Pilih satu kotak di kiri dan pasangkan dengan jawaban yang tepat di kanan.</div>
                             </div>
                         </div>
 
                         <div class="w-full mb-6 flex items-center justify-between">
-                            <h4 class="text-white/80 font-bold text-sm">🔗 Cocokkan Pasangan</h4>
-                            <div class="px-4 py-2 rounded-xl font-black text-sm flex items-center gap-2" style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3)">
+                            <h4 class="text-white font-bold text-sm" style="color: #ffffff !important;">🔗 Cocokkan Pasangan</h4>
+                            <div class="px-4 py-2 rounded-xl font-black text-sm flex items-center gap-2" style="background: rgba(16,185,129,0.25); color: #34d399; border: 1px solid rgba(16,185,129,0.4)">
                                 <i class="fas fa-check-double"></i> <span x-text="matchedPairs.length"></span>/<span x-text="totalItems"></span>
                             </div>
                         </div>
@@ -1337,7 +1333,7 @@ if (!function_exists('balanceHtmlTags')) {
                                             'opacity-50 cursor-default': matchedPairs.includes(item.id),
                                             'scale-105': selectedTerm === item && !matchedPairs.includes(item.id)
                                         }"
-                                        :style="matchedPairs.includes(item.id) ? 'background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); color: #34d399' : (selectedTerm === item ? 'background: linear-gradient(135deg,#7c3aed,#6d28d9); border: 1px solid rgba(139,92,246,0.8); color:white; box-shadow: 0 0 25px rgba(124,58,237,0.5)' : 'background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.9)')">
+                                        :style="matchedPairs.includes(item.id) ? 'background: rgba(16,185,129,0.3); border: 2px solid rgba(16,185,129,0.6); color: #6ee7b7' : (selectedTerm === item ? 'background: linear-gradient(135deg,#7c3aed,#6d28d9); border: 2px solid rgba(139,92,246,0.9); color:white; box-shadow: 0 0 25px rgba(124,58,237,0.5)' : 'background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #ffffff')">
                                         <span x-text="item.text"></span>
                                     </button>
                                 </template>
@@ -1350,7 +1346,7 @@ if (!function_exists('balanceHtmlTags')) {
                                             'opacity-50 cursor-default': matchedPairs.includes(item.id),
                                             'scale-105': selectedDef === item && !matchedPairs.includes(item.id)
                                         }"
-                                        :style="matchedPairs.includes(item.id) ? 'background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); color: #34d399' : (selectedDef === item ? 'background: linear-gradient(135deg,#ec4899,#be185d); border: 1px solid rgba(236,72,153,0.8); color:white; box-shadow: 0 0 25px rgba(236,72,153,0.5)' : 'background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.9)')">
+                                        :style="matchedPairs.includes(item.id) ? 'background: rgba(16,185,129,0.3); border: 2px solid rgba(16,185,129,0.6); color: #6ee7b7' : (selectedDef === item ? 'background: linear-gradient(135deg,#ec4899,#be185d); border: 2px solid rgba(236,72,153,0.9); color:white; box-shadow: 0 0 25px rgba(236,72,153,0.5)' : 'background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #ffffff')">
                                         <span x-text="item.text"></span>
                                     </button>
                                 </template>
@@ -1363,13 +1359,13 @@ if (!function_exists('balanceHtmlTags')) {
                     {{-- ══════════════════════════════ --}}
                     <div x-show="game.type === 'spin_wheel' && !loading && !completed" class="w-full max-w-lg mx-auto flex flex-col items-center">
                         {{-- Cara Bermain --}}
-                        <div class="w-full mb-6 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(236,72,153,0.15); border: 1px solid rgba(236,72,153,0.3)">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(236,72,153,0.3)">
-                                <i class="fas fa-info-circle text-pink-400 text-lg"></i>
+                        <div class="w-full mb-6 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(236,72,153,0.2); border: 1px solid rgba(236,72,153,0.4)">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(236,72,153,0.4)">
+                                <i class="fas fa-info-circle text-pink-300 text-lg"></i>
                             </div>
                             <div class="text-left">
-                                <div class="text-[10px] font-black uppercase tracking-widest text-pink-400 mb-0.5">CARA BERMAIN</div>
-                                <div class="font-bold text-white text-sm leading-snug">Klik tombol putar dan tunggu untuk melihat hadiah apa yang akan kamu dapatkan!</div>
+                                <div class="text-[10px] font-black uppercase tracking-widest text-pink-300 mb-0.5">CARA BERMAIN</div>
+                                <div class="font-bold text-white text-sm leading-snug" style="color: #ffffff !important;">Klik tombol putar dan tunggu untuk melihat hadiah apa yang akan kamu dapatkan!</div>
                             </div>
                         </div>
 
@@ -1380,7 +1376,7 @@ if (!function_exists('balanceHtmlTags')) {
                             <div class="absolute -top-6 left-1/2 -translate-x-1/2 z-30 text-4xl drop-shadow-lg" style="filter: drop-shadow(0 0 8px rgba(239,68,68,0.8))">▼</div>
                             {{-- Wheel --}}
                             <div class="relative w-[280px] h-[280px] sm:w-[360px] sm:h-[360px] rounded-full overflow-hidden"
-                                 style="border: 8px solid rgba(255,255,255,0.15); box-shadow: 0 0 60px rgba(124,58,237,0.4), inset 0 0 30px rgba(0,0,0,0.4)"
+                                 style="border: 8px solid rgba(255,255,255,0.2); box-shadow: 0 0 60px rgba(124,58,237,0.4), inset 0 0 30px rgba(0,0,0,0.4)"
                                  :style="`transform: rotate(${wheelRotation}deg); transition: transform ${wheelSpinning ? '4s' : '0s'} cubic-bezier(0.1, 0.7, 0.1, 1)`">
                                 <template x-if="game.data.items">
                                     <template x-for="(item, index) in (game.data.items || [])" :key="index">
@@ -1397,7 +1393,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     </template>
                                 </template>
                                 {{-- Center Hub --}}
-                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full z-20 flex items-center justify-center" style="background: linear-gradient(135deg, #1a1535, #0f0c29); border: 4px solid rgba(255,255,255,0.25); box-shadow: 0 0 20px rgba(0,0,0,0.6)">
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full z-20 flex items-center justify-center" style="background: linear-gradient(135deg, #1a1535, #0f0c29); border: 4px solid rgba(255,255,255,0.3); box-shadow: 0 0 20px rgba(0,0,0,0.6)">
                                     <i class="fas fa-star text-yellow-400 text-xl" style="filter: drop-shadow(0 0 6px gold)"></i>
                                 </div>
                             </div>
@@ -1409,8 +1405,8 @@ if (!function_exists('balanceHtmlTags')) {
                         </button>
                         
                         {{-- Spin Result & Execution Button --}}
-                        <div x-show="spinResult" x-transition.scale class="mt-8 flex flex-col items-center text-center p-6 rounded-3xl" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2)">
-                            <p class="text-white/70 font-bold uppercase tracking-widest text-xs mb-2">HASIL PUTARAN</p>
+                        <div x-show="spinResult" x-transition.scale class="mt-8 flex flex-col items-center text-center p-6 rounded-3xl" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3)">
+                            <p class="text-white/80 font-bold uppercase tracking-widest text-xs mb-2">HASIL PUTARAN</p>
                             <h2 class="text-3xl sm:text-4xl font-black text-yellow-300 mb-6 drop-shadow-md" x-text="spinResult"></h2>
                             
                             <button @click="finishGame()" class="px-8 py-4 rounded-2xl font-black text-white text-lg flex items-center gap-3 transition-all hover:scale-105" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 30px rgba(16,185,129,0.4)">
@@ -1424,38 +1420,38 @@ if (!function_exists('balanceHtmlTags')) {
                     {{-- ══════════════════════════════ --}}
                     <div x-show="game.type === 'quiz' && !loading && !completed" class="w-full max-w-2xl mx-auto flex flex-col items-center" style="display: none;">
                         {{-- Cara Bermain --}}
-                        <div class="w-full mb-6 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3)">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(16,185,129,0.3)">
-                                <i class="fas fa-info-circle text-emerald-400 text-lg"></i>
+                        <div class="w-full mb-6 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4)">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(16,185,129,0.4)">
+                                <i class="fas fa-info-circle text-emerald-300 text-lg"></i>
                             </div>
                             <div class="text-left">
-                                <div class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-0.5">CARA BERMAIN</div>
-                                <div class="font-bold text-white text-sm leading-snug">Baca pertanyaan dengan saksama dan pilih satu jawaban yang paling tepat dari pilihan yang tersedia.</div>
+                                <div class="text-[10px] font-black uppercase tracking-widest text-emerald-300 mb-0.5">CARA BERMAIN</div>
+                                <div class="font-bold text-white text-sm leading-snug" style="color: #ffffff !important;">Baca pertanyaan dengan saksama dan pilih satu jawaban yang paling tepat dari pilihan yang tersedia.</div>
                             </div>
                         </div>
                         
                         {{-- Question Card --}}
-                        <div class="w-full mb-8 p-6 sm:p-8 rounded-3xl text-center" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2)">
-                            <span class="inline-block text-[10px] font-black uppercase tracking-[0.2em] mb-4 px-3 py-1 rounded-full" style="background: rgba(16,185,129,0.3); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.5)">Soal <span x-text="currentIndex + 1"></span> dari <span x-text="totalItems"></span></span>
-                            <h2 class="text-2xl sm:text-4xl font-black text-white leading-tight" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5)" x-text="currentQuiz.question"></h2>
+                        <div class="w-full mb-8 p-6 sm:p-8 rounded-3xl text-center" style="background: rgba(30, 27, 75, 0.7); border: 2px solid rgba(139, 92, 246, 0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.3)">
+                            <span class="inline-block text-[10px] font-black uppercase tracking-[0.2em] mb-4 px-3 py-1 rounded-full" style="background: rgba(16,185,129,0.4); color: #a7f3d0; border: 1px solid rgba(16,185,129,0.6)">Soal <span x-text="currentIndex + 1"></span> dari <span x-text="totalItems"></span></span>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-white leading-snug" style="color: #ffffff !important; text-shadow: 0 2px 6px rgba(0,0,0,0.5)" x-text="currentQuiz.question"></h2>
                         </div>
                         {{-- Options --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                             <template x-for="(opt, idx) in (currentQuiz.options || [])" :key="idx">
                                 <button @click="answerQuiz(idx)" :disabled="selectedAnswer !== null"
-                                    class="quiz-opt relative p-5 sm:p-6 rounded-2xl font-black text-left flex items-center gap-5 min-h-[90px] overflow-hidden transition-all hover:scale-[1.02]"
+                                    class="quiz-opt relative p-5 sm:p-6 rounded-2xl font-bold text-left flex items-center gap-4 min-h-[90px] overflow-hidden transition-all hover:scale-[1.02]"
                                     :class="{'correct-flash': selectedAnswer === idx && isCorrect, 'wrong-flash': selectedAnswer === idx && !isCorrect}"
-                                    :style="selectedAnswer === null ? 'background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.1)' : (selectedAnswer === idx && isCorrect ? 'background: rgba(16,185,129,0.35); border: 3px solid #10b981; color: #6ee7b7' : (selectedAnswer === idx && !isCorrect ? 'background: rgba(239,68,68,0.35); border: 3px solid #ef4444; color: #fca5a5' : (idx === currentQuiz.answer && selectedAnswer !== null ? 'background: rgba(16,185,129,0.3); border: 3px solid rgba(16,185,129,0.7); color: #6ee7b7' : 'background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6)')))">
+                                    :style="selectedAnswer === null ? 'background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.25); color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.2)' : (selectedAnswer === idx && isCorrect ? 'background: #059669; border: 3px solid #34d399; color: #ffffff' : (selectedAnswer === idx && !isCorrect ? 'background: #dc2626; border: 3px solid #f87171; color: #ffffff' : (idx === currentQuiz.answer && selectedAnswer !== null ? 'background: #059669; border: 3px solid #34d399; color: #ffffff' : 'background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5)')))">
                                     <div class="w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg shrink-0 shadow-inner"
-                                        :style="selectedAnswer === null ? 'background: rgba(139,92,246,0.5); color: #ffffff' : (selectedAnswer === idx && isCorrect ? 'background: #10b981; color: white' : (selectedAnswer === idx && !isCorrect ? 'background: #ef4444; color: white' : (idx === currentQuiz.answer && selectedAnswer !== null ? 'background: rgba(16,185,129,0.5); color: white' : 'background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.5)')))"
+                                        :style="selectedAnswer === null ? 'background: rgba(139,92,246,0.6); color: #ffffff' : (selectedAnswer === idx && isCorrect ? 'background: #10b981; color: white' : (selectedAnswer === idx && !isCorrect ? 'background: #ef4444; color: white' : (idx === currentQuiz.answer && selectedAnswer !== null ? 'background: #10b981; color: white' : 'background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.5)')))"
                                         x-text="['A','B','C','D'][idx]"></div>
-                                    <span class="leading-tight text-base sm:text-lg flex-1" x-text="opt"></span>
+                                    <span class="leading-tight text-base sm:text-lg flex-1 font-bold text-white" style="color: #ffffff !important;" x-text="opt"></span>
                                     {{-- Correct/Wrong indicator --}}
                                     <div class="ml-auto shrink-0" x-show="selectedAnswer !== null && selectedAnswer === idx">
-                                        <i class="text-lg" :class="isCorrect ? 'fas fa-check-circle text-emerald-400' : 'fas fa-times-circle text-rose-400'"></i>
+                                        <i class="text-xl" :class="isCorrect ? 'fas fa-check-circle text-emerald-300' : 'fas fa-times-circle text-rose-300'"></i>
                                     </div>
                                     <div class="ml-auto shrink-0" x-show="selectedAnswer !== null && selectedAnswer !== idx && idx === currentQuiz.answer">
-                                        <i class="fas fa-check-circle text-emerald-400 text-lg"></i>
+                                        <i class="fas fa-check-circle text-emerald-300 text-xl"></i>
                                     </div>
                                 </button>
                             </template>
@@ -1472,45 +1468,43 @@ if (!function_exists('balanceHtmlTags')) {
                     {{-- ══════════════════════════════ --}}
                     <div x-show="game.type === 'true_false' && !loading && !completed" class="w-full max-w-2xl mx-auto flex flex-col items-center" style="display: none;">
                         {{-- Cara Bermain --}}
-                        <div class="w-full mb-6 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3)">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(59,130,246,0.3)">
-                                <i class="fas fa-info-circle text-blue-400 text-lg"></i>
+                        <div class="w-full mb-6 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(30, 58, 138, 0.5); border: 1px solid rgba(96, 165, 250, 0.4)">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(59,130,246,0.4)">
+                                <i class="fas fa-info-circle text-blue-300 text-lg"></i>
                             </div>
                             <div class="text-left">
-                                <div class="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-0.5">CARA BERMAIN</div>
-                                <div class="font-bold text-white text-sm leading-snug">Baca pernyataan di bawah ini dengan teliti. Tentukan apakah pernyataan tersebut BENAR atau SALAH.</div>
+                                <div class="text-[10px] font-black uppercase tracking-widest text-blue-300 mb-0.5">CARA BERMAIN</div>
+                                <div class="font-bold text-white text-sm leading-snug" style="color: #ffffff !important;">Baca pernyataan di bawah ini dengan teliti. Tentukan apakah pernyataan tersebut BENAR atau SALAH.</div>
                             </div>
                         </div>
 
                         {{-- Statement --}}
-                        <div class="w-full mb-10 p-8 sm:p-12 rounded-3xl text-center" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.2)">
-                            <span class="inline-block text-[10px] font-black uppercase tracking-[0.2em] mb-6 px-4 py-1.5 rounded-full" style="background: rgba(59,130,246,0.3); color: #93c5fd; border: 1px solid rgba(59,130,246,0.5)">Pernyataan <span x-text="currentIndex + 1"></span> / <span x-text="totalItems"></span></span>
-                            <h2 class="text-2xl sm:text-4xl font-black text-white leading-tight" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5)" x-text="currentTf.statement"></h2>
+                        <div class="w-full mb-8 p-6 sm:p-10 rounded-3xl text-center" style="background: rgba(30, 27, 75, 0.7); border: 2px solid rgba(139, 92, 246, 0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.4)">
+                            <span class="inline-block text-xs font-black uppercase tracking-[0.2em] mb-4 px-4 py-1.5 rounded-full" style="background: rgba(59,130,246,0.4); color: #bfdbfe; border: 1px solid rgba(59,130,246,0.6)">Pernyataan <span x-text="currentIndex + 1"></span> / <span x-text="totalItems"></span></span>
+                            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-wide" style="color: #ffffff !important; text-shadow: 0 2px 8px rgba(0,0,0,0.6)" x-text="currentTf.statement"></h2>
                         </div>
                         {{-- BENAR / SALAH Buttons --}}
-                        <div class="flex gap-6 w-full justify-center">
+                        <div class="flex gap-4 sm:gap-6 w-full justify-center">
                             <button @click="answerTf(true)" :disabled="selectedAnswer !== null"
-                                class="tf-btn flex-1 max-w-[280px] p-8 rounded-3xl flex flex-col items-center justify-center gap-4 font-black text-2xl cursor-pointer transition-all hover:-translate-y-2"
-                                :style="selectedAnswer === null ? 'background: rgba(16,185,129,0.2); border: 3px solid rgba(16,185,129,0.5); color: #6ee7b7; box-shadow: 0 10px 25px rgba(16,185,129,0.2)' : (selectedAnswer === true && isCorrect ? 'background: rgba(16,185,129,0.4); border: 3px solid #10b981; color: #6ee7b7; box-shadow: 0 0 40px rgba(16,185,129,0.5)' : (selectedAnswer === true && !isCorrect ? 'background: rgba(239,68,68,0.35); border: 3px solid #ef4444; color: #fca5a5' : (selectedAnswer !== null && selectedAnswer !== true && isCorrect === false ? 'background: rgba(16,185,129,0.3); border: 3px solid rgba(16,185,129,0.6); color: #6ee7b7' : 'background: rgba(255,255,255,0.05); border: 3px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.4)')))"
-                                :disabled="selectedAnswer !== null">
-                                <div class="w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-inner" style="background: rgba(16,185,129,0.3)">
+                                class="tf-btn flex-1 max-w-[280px] p-6 sm:p-8 rounded-3xl flex flex-col items-center justify-center gap-4 font-black text-2xl cursor-pointer transition-all hover:-translate-y-2"
+                                :style="selectedAnswer === null ? 'background: linear-gradient(135deg, rgba(16,185,129,0.35), rgba(5,150,105,0.45)); border: 3px solid #10b981; color: #a7f3d0; box-shadow: 0 10px 25px rgba(16,185,129,0.3)' : (selectedAnswer === true && isCorrect ? 'background: #059669; border: 3px solid #34d399; color: #ffffff; box-shadow: 0 0 40px rgba(16,185,129,0.7)' : (selectedAnswer === true && !isCorrect ? 'background: #dc2626; border: 3px solid #f87171; color: #ffffff' : (selectedAnswer !== null && selectedAnswer !== true && isCorrect === false ? 'background: #059669; border: 3px solid #34d399; color: #ffffff' : 'background: rgba(255,255,255,0.05); border: 3px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.4)')))">
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-3xl sm:text-4xl shadow-lg" style="background: rgba(16,185,129,0.5); color: #ffffff;">
                                     <i class="fas fa-check"></i>
                                 </div>
-                                BENAR
+                                <span class="text-white font-black text-2xl tracking-wide" style="color: #ffffff !important;">BENAR</span>
                             </button>
                             <button @click="answerTf(false)" :disabled="selectedAnswer !== null"
-                                class="tf-btn flex-1 max-w-[280px] p-8 rounded-3xl flex flex-col items-center justify-center gap-4 font-black text-2xl cursor-pointer transition-all hover:-translate-y-2"
-                                :style="selectedAnswer === null ? 'background: rgba(239,68,68,0.2); border: 3px solid rgba(239,68,68,0.5); color: #fca5a5; box-shadow: 0 10px 25px rgba(239,68,68,0.2)' : (selectedAnswer === false && isCorrect ? 'background: rgba(16,185,129,0.4); border: 3px solid #10b981; color: #6ee7b7; box-shadow: 0 0 40px rgba(16,185,129,0.5)' : (selectedAnswer === false && !isCorrect ? 'background: rgba(239,68,68,0.35); border: 3px solid #ef4444; color: #fca5a5' : (selectedAnswer !== null && selectedAnswer !== false && isCorrect === false ? 'background: rgba(16,185,129,0.3); border: 3px solid rgba(16,185,129,0.6); color: #6ee7b7' : 'background: rgba(255,255,255,0.05); border: 3px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.4)')))"
-                                :disabled="selectedAnswer !== null">
-                                <div class="w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-inner" style="background: rgba(239,68,68,0.3)">
+                                class="tf-btn flex-1 max-w-[280px] p-6 sm:p-8 rounded-3xl flex flex-col items-center justify-center gap-4 font-black text-2xl cursor-pointer transition-all hover:-translate-y-2"
+                                :style="selectedAnswer === null ? 'background: linear-gradient(135deg, rgba(239,68,68,0.35), rgba(220,38,38,0.45)); border: 3px solid #ef4444; color: #fecaca; box-shadow: 0 10px 25px rgba(239,68,68,0.3)' : (selectedAnswer === false && isCorrect ? 'background: #059669; border: 3px solid #34d399; color: #ffffff; box-shadow: 0 0 40px rgba(16,185,129,0.7)' : (selectedAnswer === false && !isCorrect ? 'background: #dc2626; border: 3px solid #f87171; color: #ffffff' : (selectedAnswer !== null && selectedAnswer !== false && isCorrect === false ? 'background: #059669; border: 3px solid #34d399; color: #ffffff' : 'background: rgba(255,255,255,0.05); border: 3px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.4)')))">
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-3xl sm:text-4xl shadow-lg" style="background: rgba(239,68,68,0.5); color: #ffffff;">
                                     <i class="fas fa-times"></i>
                                 </div>
-                                SALAH
+                                <span class="text-white font-black text-2xl tracking-wide" style="color: #ffffff !important;">SALAH</span>
                             </button>
                         </div>
                         {{-- Result feedback --}}
-                        <div x-show="selectedAnswer !== null" class="mt-6 w-full p-4 rounded-2xl text-center" :style="isCorrect ? 'background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3)' : 'background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3)'">
-                            <p class="font-black text-lg" :class="isCorrect ? 'text-emerald-400' : 'text-rose-400'" x-text="isCorrect ? '✅ Jawaban Benar!' : '❌ Jawaban Salah!'"></p>
+                        <div x-show="selectedAnswer !== null" class="mt-6 w-full p-4 rounded-2xl text-center" :style="isCorrect ? 'background: rgba(16,185,129,0.25); border: 2px solid rgba(16,185,129,0.5)' : 'background: rgba(239,68,68,0.25); border: 2px solid rgba(239,68,68,0.5)'">
+                            <p class="font-black text-xl" :class="isCorrect ? 'text-emerald-300' : 'text-rose-300'" x-text="isCorrect ? '✅ Jawaban Benar!' : '❌ Jawaban Salah!'"></p>
                         </div>
                         <div x-show="selectedAnswer !== null" class="mt-6">
                             <button @click="nextTf()" class="px-8 py-4 rounded-2xl font-black text-white flex items-center gap-3 text-lg transition-all hover:scale-105" style="background: linear-gradient(135deg, #3b82f6, #6366f1); box-shadow: 0 0 30px rgba(59,130,246,0.4)">
@@ -1524,26 +1518,26 @@ if (!function_exists('balanceHtmlTags')) {
                     {{-- ══════════════════════════════ --}}
                     <div x-show="game.type === 'word_guess' && !loading && !completed" class="w-full max-w-3xl mx-auto flex flex-col items-center" style="display: none;">
                         {{-- Cara Bermain --}}
-                        <div class="w-full mb-6 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(251,191,36,0.15); border: 1px solid rgba(251,191,36,0.3)">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(251,191,36,0.3)">
-                                <i class="fas fa-info-circle text-yellow-400 text-lg"></i>
+                        <div class="w-full mb-6 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(245,158,11,0.25); border: 1px solid rgba(245,158,11,0.5)">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(245,158,11,0.4)">
+                                <i class="fas fa-info-circle text-amber-300 text-lg"></i>
                             </div>
                             <div class="text-left">
-                                <div class="text-[10px] font-black uppercase tracking-widest text-yellow-400 mb-0.5">CARA BERMAIN</div>
-                                <div class="font-bold text-white text-sm leading-snug">Tebak kata rahasia dengan memilih huruf pada keyboard di bawah. Perhatikan petunjuk yang diberikan!</div>
+                                <div class="text-[10px] font-black uppercase tracking-widest text-amber-300 mb-0.5">CARA BERMAIN</div>
+                                <div class="font-bold text-white text-sm leading-snug" style="color: #ffffff !important;">Tebak kata rahasia dengan memilih huruf pada keyboard di bawah. Perhatikan petunjuk yang diberikan!</div>
                             </div>
                         </div>
 
                         {{-- Top bar: Hint + Lives --}}
                         <div class="w-full mb-8 flex flex-col sm:flex-row items-stretch gap-3">
                             {{-- Hint --}}
-                            <div class="flex-1 flex items-center gap-3 p-5 rounded-2xl" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2)">
-                                <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-inner" style="background: rgba(251,191,36,0.4)">
+                            <div class="flex-1 flex items-center gap-3 p-5 rounded-2xl" style="background: rgba(30, 27, 75, 0.7); border: 2px solid rgba(245, 158, 11, 0.4)">
+                                <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-inner" style="background: rgba(245,158,11,0.4)">
                                     <i class="fas fa-lightbulb text-yellow-300 text-2xl"></i>
                                 </div>
                                 <div>
-                                    <div class="text-[10px] font-black uppercase tracking-widest text-yellow-400 mb-1">💡 PETUNJUK</div>
-                                    <div class="font-black text-white text-lg sm:text-xl leading-tight" style="text-shadow: 0 2px 4px rgba(0,0,0,0.3)" x-text="currentGuess.hint || 'Tebak kata rahasia!'"></div>
+                                    <div class="text-[10px] font-black uppercase tracking-widest text-yellow-300 mb-1">💡 PETUNJUK</div>
+                                    <div class="font-extrabold text-white text-lg sm:text-xl leading-tight" style="color: #ffffff !important; text-shadow: 0 2px 4px rgba(0,0,0,0.5)" x-text="currentGuess.hint || 'Tebak kata rahasia!'"></div>
                                 </div>
                             </div>
                         </div>
@@ -1554,7 +1548,7 @@ if (!function_exists('balanceHtmlTags')) {
                                 <div class="word-tile rounded-2xl flex items-center justify-center font-black uppercase shadow-lg"
                                      style="width: 56px; height: 68px; font-size: 2rem"
                                      :class="char === ' ' ? '' : ''"
-                                     :style="char === ' ' ? 'width: 24px; background: transparent; border: none; box-shadow: none' : (guessedLetters.includes(char.toUpperCase()) ? 'background: rgba(139,92,246,0.5); border-bottom-color: #8b5cf6; color: white; box-shadow: 0 4px 20px rgba(139,92,246,0.6), inset 0 2px 0 rgba(255,255,255,0.2)' : (lives === 0 && !guessedLetters.includes(char.toUpperCase()) ? 'background: rgba(239,68,68,0.4); border-bottom-color: #ef4444; color: #fca5a5' : 'background: rgba(255,255,255,0.15); border-bottom-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.9)'))"
+                                     :style="char === ' ' ? 'width: 24px; background: transparent; border: none; box-shadow: none' : (guessedLetters.includes(char.toUpperCase()) ? 'background: #059669; border-bottom: 5px solid #34d399; color: #ffffff; box-shadow: 0 4px 20px rgba(16,185,129,0.6)' : (lives === 0 && !guessedLetters.includes(char.toUpperCase()) ? 'background: #dc2626; border-bottom: 5px solid #f87171; color: #ffffff' : 'background: rgba(255,255,255,0.18); border-bottom: 5px solid rgba(255,255,255,0.4); color: #ffffff'))"
                                      x-text="char === ' ' ? '' : (guessedLetters.includes(char.toUpperCase()) || lives === 0 ? char.toUpperCase() : '?')"
                                 ></div>
                             </template>
@@ -1568,7 +1562,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     <button @click="guessLetter(letter)" :disabled="guessedLetters.includes(letter) || isCorrect || lives === 0"
                                         class="keyboard-key rounded-xl font-black flex items-center justify-center select-none shadow-md transition-all active:scale-95 hover:-translate-y-1"
                                         style="width: 9.2%; max-width: 60px; min-width: 32px; height: 64px; font-size: 1.4rem"
-                                        :style="guessedLetters.includes(letter) ? ((currentGuess.word || '').toUpperCase().includes(letter) ? 'background: rgba(16,185,129,0.7); color: white; border: 2px solid rgba(16,185,129,1); box-shadow: 0 0 20px rgba(16,185,129,0.5)' : 'background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); border: 2px solid rgba(255,255,255,0.1)') : 'background: rgba(255,255,255,0.25); color: white; border: 2px solid rgba(255,255,255,0.4); cursor: pointer'"
+                                        :style="guessedLetters.includes(letter) ? ((currentGuess.word || '').toUpperCase().includes(letter) ? 'background: #059669; color: white; border: 2px solid #34d399; box-shadow: 0 0 20px rgba(16,185,129,0.5)' : 'background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.08)') : 'background: #334155; color: #ffffff; border: 2px solid #64748b; cursor: pointer; box-shadow: 0 4px 0 #1e293b;'"
                                         x-text="letter">
                                     </button>
                                 </template>
@@ -1579,7 +1573,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     <button @click="guessLetter(letter)" :disabled="guessedLetters.includes(letter) || isCorrect || lives === 0"
                                         class="keyboard-key rounded-xl font-black flex items-center justify-center select-none shadow-md transition-all active:scale-95 hover:-translate-y-1"
                                         style="width: 9.2%; max-width: 60px; min-width: 32px; height: 64px; font-size: 1.4rem"
-                                        :style="guessedLetters.includes(letter) ? ((currentGuess.word || '').toUpperCase().includes(letter) ? 'background: rgba(16,185,129,0.7); color: white; border: 2px solid rgba(16,185,129,1); box-shadow: 0 0 20px rgba(16,185,129,0.5)' : 'background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); border: 2px solid rgba(255,255,255,0.1)') : 'background: rgba(255,255,255,0.25); color: white; border: 2px solid rgba(255,255,255,0.4); cursor: pointer'"
+                                        :style="guessedLetters.includes(letter) ? ((currentGuess.word || '').toUpperCase().includes(letter) ? 'background: #059669; color: white; border: 2px solid #34d399; box-shadow: 0 0 20px rgba(16,185,129,0.5)' : 'background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.08)') : 'background: #334155; color: #ffffff; border: 2px solid #64748b; cursor: pointer; box-shadow: 0 4px 0 #1e293b;'"
                                         x-text="letter">
                                     </button>
                                 </template>
@@ -1590,7 +1584,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     <button @click="guessLetter(letter)" :disabled="guessedLetters.includes(letter) || isCorrect || lives === 0"
                                         class="keyboard-key rounded-xl font-black flex items-center justify-center select-none shadow-md transition-all active:scale-95 hover:-translate-y-1"
                                         style="width: 9.2%; max-width: 60px; min-width: 32px; height: 64px; font-size: 1.4rem"
-                                        :style="guessedLetters.includes(letter) ? ((currentGuess.word || '').toUpperCase().includes(letter) ? 'background: rgba(16,185,129,0.7); color: white; border: 2px solid rgba(16,185,129,1); box-shadow: 0 0 20px rgba(16,185,129,0.5)' : 'background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); border: 2px solid rgba(255,255,255,0.1)') : 'background: rgba(255,255,255,0.25); color: white; border: 2px solid rgba(255,255,255,0.4); cursor: pointer'"
+                                        :style="guessedLetters.includes(letter) ? ((currentGuess.word || '').toUpperCase().includes(letter) ? 'background: #059669; color: white; border: 2px solid #34d399; box-shadow: 0 0 20px rgba(16,185,129,0.5)' : 'background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.08)') : 'background: #334155; color: #ffffff; border: 2px solid #64748b; cursor: pointer; box-shadow: 0 4px 0 #1e293b;'"
                                         x-text="letter">
                                     </button>
                                 </template>
@@ -1598,10 +1592,10 @@ if (!function_exists('balanceHtmlTags')) {
                         </div>
 
                         {{-- Result popup --}}
-                        <div x-show="isCorrect || lives === 0" class="mt-8 w-full p-6 rounded-3xl text-center score-pop" :style="isCorrect ? 'background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4)' : 'background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4)'">
+                        <div x-show="isCorrect || lives === 0" class="mt-8 w-full p-6 rounded-3xl text-center score-pop" :style="isCorrect ? 'background: rgba(16,185,129,0.25); border: 2px solid rgba(16,185,129,0.5)' : 'background: rgba(239,68,68,0.25); border: 2px solid rgba(239,68,68,0.5)'">
                             <div class="text-5xl mb-3" x-text="isCorrect ? '🎉' : '💀'"></div>
-                            <h3 class="text-2xl font-black mb-1" :class="isCorrect ? 'text-emerald-400' : 'text-rose-400'" x-text="isCorrect ? 'Tepat Sekali! 🎊' : 'Sayang Sekali...'"></h3>
-                            <p x-show="!isCorrect" class="text-white/60 text-sm mb-4">Kata yang benar: <strong class="text-white font-black text-base" x-text="currentGuess.word"></strong></p>
+                            <h3 class="text-2xl font-black mb-1" :class="isCorrect ? 'text-emerald-300' : 'text-rose-300'" x-text="isCorrect ? 'Tepat Sekali! 🎊' : 'Sayang Sekali...'"></h3>
+                            <p x-show="!isCorrect" class="text-white/80 text-sm mb-4">Kata yang benar: <strong class="text-white font-black text-base" x-text="currentGuess.word"></strong></p>
                             <button @click="nextGuess()" class="px-8 py-3 rounded-2xl font-black text-white transition-all hover:scale-105" :style="isCorrect ? 'background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 25px rgba(16,185,129,0.5)' : 'background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 0 25px rgba(245,158,11,0.4)'">
                                 Kata Berikutnya <i class="fas fa-arrow-right ml-1"></i>
                             </button>
@@ -1613,30 +1607,30 @@ if (!function_exists('balanceHtmlTags')) {
                     {{-- ══════════════════════════════ --}}
                     <div x-show="game.type === 'scramble' && !loading && !completed" class="w-full max-w-3xl mx-auto flex flex-col items-center" style="display: none;">
                         {{-- Cara Bermain --}}
-                        <div class="w-full mb-6 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.3)">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(249,115,22,0.3)">
-                                <i class="fas fa-info-circle text-orange-400 text-lg"></i>
+                        <div class="w-full mb-6 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(249,115,22,0.2); border: 1px solid rgba(249,115,22,0.4)">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(249,115,22,0.4)">
+                                <i class="fas fa-info-circle text-orange-300 text-lg"></i>
                             </div>
                             <div class="text-left">
-                                <div class="text-[10px] font-black uppercase tracking-widest text-orange-400 mb-0.5">CARA BERMAIN</div>
-                                <div class="font-bold text-white text-sm leading-snug">Klik huruf-huruf yang teracak untuk menyusunnya menjadi sebuah kata yang benar!</div>
+                                <div class="text-[10px] font-black uppercase tracking-widest text-orange-300 mb-0.5">CARA BERMAIN</div>
+                                <div class="font-bold text-white text-sm leading-snug" style="color: #ffffff !important;">Klik huruf-huruf yang teracak untuk menyusunnya menjadi sebuah kata yang benar!</div>
                             </div>
                         </div>
 
                         {{-- Top bar: Hint --}}
-                        <div class="w-full mb-8 flex items-center gap-3 p-5 rounded-2xl" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2)">
+                        <div class="w-full mb-8 flex items-center gap-3 p-5 rounded-2xl" style="background: rgba(30, 27, 75, 0.7); border: 2px solid rgba(249, 115, 22, 0.4)">
                             <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-inner" style="background: rgba(249,115,22,0.4)">
                                 <i class="fas fa-lightbulb text-orange-300 text-2xl"></i>
                             </div>
                             <div>
-                                <div class="text-[10px] font-black uppercase tracking-widest text-orange-400 mb-1">💡 PETUNJUK</div>
-                                <div class="font-black text-white text-lg sm:text-xl leading-tight" style="text-shadow: 0 2px 4px rgba(0,0,0,0.3)" x-text="currentScramble.hint || 'Susun huruf menjadi kata yang benar!'"></div>
+                                <div class="text-[10px] font-black uppercase tracking-widest text-orange-300 mb-1">💡 PETUNJUK</div>
+                                <div class="font-extrabold text-white text-lg sm:text-xl leading-tight" style="color: #ffffff !important; text-shadow: 0 2px 4px rgba(0,0,0,0.5)" x-text="currentScramble.hint || 'Susun huruf menjadi kata yang benar!'"></div>
                             </div>
                         </div>
 
                         {{-- Selected Letters (Answer Box) --}}
                         <div class="w-full mb-8 p-8 rounded-3xl" style="background: rgba(255,255,255,0.08); border: 2px dashed rgba(255,255,255,0.3); min-height: 140px">
-                            <div class="text-[12px] font-black uppercase tracking-widest text-white mb-6 text-center shadow-sm">J A W A B A N  K A M U</div>
+                            <div class="text-[12px] font-black uppercase tracking-widest text-white mb-6 text-center shadow-sm" style="color: #ffffff !important;">J A W A B A N  K A M U</div>
                             <div class="flex flex-wrap justify-center gap-3">
                                 <template x-for="(letter, idx) in selectedLetters" :key="letter.id">
                                     <button @click="undoScrambleLetter(letter)" 
@@ -1658,16 +1652,16 @@ if (!function_exists('balanceHtmlTags')) {
                                 <button @click="selectScrambleLetter(letter)" :disabled="letter.used || isCorrect"
                                         class="rounded-2xl flex items-center justify-center font-black uppercase transition-all hover:-translate-y-2 hover:shadow-xl active:scale-95"
                                         style="width: 64px; height: 74px; font-size: 2rem"
-                                        :style="letter.used ? 'background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.1); cursor: default; transform: scale(0.95)' : 'background: rgba(255,255,255,1); color: #4338ca; border-bottom: 6px solid #a5b4fc; cursor: pointer; box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2)'"
+                                        :style="letter.used ? 'background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.08); cursor: default; transform: scale(0.95)' : 'background: #ffffff; color: #3730a3; border-bottom: 6px solid #818cf8; cursor: pointer; box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.3)'"
                                         x-text="letter.char">
                                 </button>
                             </template>
                         </div>
 
                         {{-- Result popup --}}
-                        <div x-show="isCorrect" class="mt-4 w-full p-6 rounded-3xl text-center score-pop" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4)">
+                        <div x-show="isCorrect" class="mt-4 w-full p-6 rounded-3xl text-center score-pop" style="background: rgba(16,185,129,0.25); border: 2px solid rgba(16,185,129,0.5)">
                             <div class="text-5xl mb-3">🎉</div>
-                            <h3 class="text-2xl font-black mb-1 text-emerald-400">Tepat Sekali! 🎊</h3>
+                            <h3 class="text-2xl font-black mb-1 text-emerald-300">Tepat Sekali! 🎊</h3>
                             <button @click="nextScramble()" class="mt-4 px-8 py-3 rounded-2xl font-black text-white transition-all hover:scale-105" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 25px rgba(16,185,129,0.5)">
                                 Lanjut <i class="fas fa-arrow-right ml-1"></i>
                             </button>
@@ -2608,7 +2602,7 @@ function gamePlayer() {
 }
 
 function trackMaterial(materialId, status = 'viewed') {
-    fetch(`/pembdahub/public/siswa/lms/materials/${materialId}/track`, {
+    fetch(`/siswa/lms/materials/${materialId}/track`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
@@ -2649,7 +2643,7 @@ function spawnConfetti(event) {
 function completeMaterial(materialId) {
     if(!confirm('Tandai materi ini sebagai selesai?')) return;
     
-    fetch(`/pembdahub/public/siswa/lms/materials/${materialId}/track`, {
+    fetch(`/siswa/lms/materials/${materialId}/track`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
@@ -2669,7 +2663,7 @@ function completeMaterial(materialId) {
 }
 
 function reactMaterial(materialId, type, event) {
-    fetch(`/pembdahub/public/siswa/lms/materials/${materialId}/react`, {
+    fetch(`/siswa/lms/materials/${materialId}/react`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
