@@ -372,6 +372,7 @@
                 </div>
                 @endif
             </div>
+            @endif
             {{-- Pembimbing PKL Management --}}
             @if(($pklPlacementsCount ?? 0) > 0 || ($pklSupervisorHours ?? 0) > 0)
             <div class="bg-white rounded-3xl shadow-xl border-2 border-black p-6 relative overflow-hidden" style="background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);">
