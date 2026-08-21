@@ -154,10 +154,10 @@ class ClassroomController extends Controller
             $query->where('class_name', $request->input('class_name'));
         }
         
-        // Get schools list for filter dropdown
+        // Get schools list for filter dropdown (3 Unit Sekolah Aktif)
         $schools = $user->isSuperAdmin()
-            ? School::where('type', '!=', 'yayasan')->orderBy('name')->get()
-            : School::where('id', $user->school_id)->where('type', '!=', 'yayasan')->get();
+            ? School::schoolsOnly()->orderBy('name')->get()
+            : School::where('id', $user->school_id)->schoolsOnly()->get();
         
         // Determine school type (SMP, SMA, or SMK)
         $schoolType = null;
@@ -216,7 +216,7 @@ class ClassroomController extends Controller
 
     public function create()
     {
-        $schools = School::where('type', '!=', 'yayasan')->orderBy('name')->get();
+        $schools = School::schoolsOnly()->orderBy('name')->get();
         $academicYears = AcademicYear::orderBy('year', 'desc')->get();
 
         // Default to the currently active academic year (if any)
@@ -301,7 +301,7 @@ class ClassroomController extends Controller
 
     public function edit(Classroom $classroom)
     {
-        $schools = School::where('type', '!=', 'yayasan')->orderBy('name')->get();
+        $schools = School::schoolsOnly()->orderBy('name')->get();
         $academicYears = AcademicYear::orderBy('year', 'desc')->get();
 
         // Preload majors for the classroom's school so the form shows the current options immediately

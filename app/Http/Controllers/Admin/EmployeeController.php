@@ -304,8 +304,8 @@ class EmployeeController extends Controller
             'yayasan' => (clone $baseQuery)->yayasanStaff()->count(),
         ];
 
-        // Per school breakdown
-        $schoolsQuery = School::withCount(['teachers' => fn($q) => $q->whereHas('employee', fn($e) => $e->where('is_active', true))]);
+        // Per school breakdown (Hanya 3 Unit Sekolah Aktif)
+        $schoolsQuery = School::schoolsOnly()->orderBy('name')->withCount(['teachers' => fn($q) => $q->whereHas('employee', fn($e) => $e->where('is_active', true))]);
         if (!$user->isSuperAdmin() && !$user->isKetuaYayasan()) {
             $schoolsQuery->where('id', $user->school_id);
         }

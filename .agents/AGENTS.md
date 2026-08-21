@@ -63,6 +63,12 @@ Setiap kali selesai melakukan pengerjaan fitur, perbaikan bug, atau perubahan ko
 - Jika perlu menghapus data, selalu konfirmasi ke pengguna terlebih dahulu
 - Untuk operasi berbahaya, tambahkan flag `?dry_run=1` agar bisa preview dulu tanpa eksekusi
 
+### 🏫 Aturan Unit Sekolah & Entitas Yayasan
+- **3 Unit Sekolah Aktif**: Di bawah Yayasan hanya terdapat 3 unit sekolah aktif (karena unit sore SMAS Pembda 2 & SMPS Pembda 1 telah digabungkan ke unit pagi SMAS Pembda 1 & SMPS Pembda 2).
+- **Pemisahan Fitur Akademik vs Administrative Oversight**:
+  - **Fitur Akademik & Operasional Sekolah** (Penugasan Mengajar, Jadwal Pelajaran, Data Siswa, Data Guru, LMS, Rapor, CBT, PSB): **JANGAN PERNAH** menyertakan Yayasan sebagai opsi pilihan sekolah/unit. Selalu filter menggunakan `School::schoolsOnly()` (`type != 'yayasan'` & `is_active = true`).
+  - **Fitur Kepegawaian, Keuangan, & Monitoring**: Yayasan dapat dianggap sebagai entitas induk (*parent oversight body*) dengan kewenangan tertinggi, namun rekapitulasi 3 unit sekolah aktif harus tetap dipisahkan secara rapi dari struktur Yayasan.
+
 ## Bahasa & Komunikasi
 - Komunikasi dengan pengguna menggunakan **Bahasa Indonesia**
 - Komentar kode boleh dalam Bahasa Indonesia atau Inggris

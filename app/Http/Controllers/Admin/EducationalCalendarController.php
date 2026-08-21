@@ -35,7 +35,7 @@ class EducationalCalendarController extends Controller
             } else {
                 $school = null; // null means fetch ALL events across all school units!
             }
-            $schools = School::orderBy('name')->get();
+            $schools = School::schoolsOnly()->orderBy('name')->get();
         } else {
             $school = $user->school;
             $schools = collect($school ? [$school] : []);

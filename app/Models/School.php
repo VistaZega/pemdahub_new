@@ -261,12 +261,20 @@ class School extends Model
     }
 
     /**
-     * Scope: Only actual schools (exclude yayasan).
-     * Use this when listing schools for academic features.
+     * Scope: Only actual active unit schools (exclude yayasan and inactive schools).
+     * Use this when listing schools for academic/operational features.
      */
     public function scopeSchoolsOnly($query)
     {
-        return $query->where('type', '!=', 'yayasan');
+        return $query->where('type', '!=', 'yayasan')->where('is_active', true);
+    }
+
+    /**
+     * Scope: Alias for active unit schools only.
+     */
+    public function scopeActiveSchoolsOnly($query)
+    {
+        return $query->where('type', '!=', 'yayasan')->where('is_active', true);
     }
 
     /**
