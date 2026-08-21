@@ -1118,6 +1118,48 @@ Route::prefix('mentor')->name('mentor.')->group(function () {
     Route::post('/pkl/{token}/grade', [App\Http\Controllers\PklMentorController::class, 'submitGrade'])->name('pkl.grade.store');
 });
 
+Route::get('/debug-zega-classes', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Unauthorized.');
+    }
+    $assignment = \App\Models\LmsAssignment::find(412);
+    $course = $assignment->course;
+    $teacher = $course->teacher;
+
+    $out = "=== TEACHER & COURSE BREAKDOWN ===\n";
+    $out .= "Teacher: {$teacher->full_name} (ID: {$teacher->id})\n";
+    $out .= "Course: {$course->course_name} (ID: {$course->id})\n";
+    $out .= "Course classroom_id: {$course->classroom_id}\n\n";
+
+    // 1. Teaching Assignments
+    $out .= "--- Teaching Assignments for this Teacher ---\n";
+    $tas = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)->with(['classroom', 'subject'])->get();
+    foreach ($tas as $ta) {
+        $c = $ta->classroom;
+        $cnt = $c ? \App\Models\StudentClass::where('classroom_id', $c->id)->count() : 0;
+        $out .= "  * TA ID {$ta->id}: Subject '{$ta->subject?->subject_name}' | Classroom '{$c?->class_name}' (ID: {$c?->id}, School: {$c?->school_id}) | Students: {$cnt}\n";
+    }
+
+    // 2. LMS Classes attached to Course 313
+    $out .= "\n--- LMS Classes in Course {$course->id} ---\n";
+    $lmsClasses = \App\Models\LmsClass::where('course_id', $course->id)->with('classroom')->get();
+    foreach ($lmsClasses as $lc) {
+        $c = $lc->classroom;
+        $cnt = $c ? \App\Models\StudentClass::where('classroom_id', $c->id)->count() : 0;
+        $out .= "  * LMS Class ID {$lc->id}: Classroom '{$c?->class_name}' (ID: {$lc->classroom_id}, School: {$c?->school_id}) | Students in StudentClass: {$cnt}\n";
+    }
+
+    // 3. Check All Classrooms of SMK with student counts
+    $out .= "\n--- All SMK Classrooms with ~28 Students ---\n";
+    $smkClasses = \App\Models\Classroom::where('school_id', 7)->get();
+    foreach ($smkClasses as $sc) {
+        $cnt = \App\Models\StudentClass::where('classroom_id', $sc->id)->count();
+        $out .= "  * Classroom ID {$sc->id}: '{$sc->class_name}' ({$sc->class_code}) | Students: {$cnt}\n";
+    }
+
+    return response($out, 200, ['Content-Type' => 'text/plain; charset=utf-8']);
+});
+
 Route::get('/run-migrations', function () {
     if (request('secret') !== 'pembda99') {
         abort(403, 'Unauthorized.');
