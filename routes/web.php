@@ -1118,28 +1118,6 @@ Route::prefix('mentor')->name('mentor.')->group(function () {
     Route::post('/pkl/{token}/grade', [App\Http\Controllers\PklMentorController::class, 'submitGrade'])->name('pkl.grade.store');
 });
 
-Route::get('/debug-assignment-412', function () {
-    if (request('secret') !== 'pembda99') {
-        abort(403, 'Unauthorized.');
-    }
-    $assignment = \App\Models\LmsAssignment::find(412);
-    $course = $assignment->course;
-    $ctrl = app(\App\Http\Controllers\Guru\LmsAssignmentController::class);
-    $refMethod = new \ReflectionMethod($ctrl, 'getEnrolledStudentsForCourse');
-    $refMethod->setAccessible(true);
-    $students = $refMethod->invoke($ctrl, $course);
-
-    $out = "=== DIAGNOSTIC REPORT ===\n";
-    $out .= "Course: {$course->course_name} (ID: {$course->id})\n";
-    $out .= "Total Students Resolved: " . $students->count() . "\n\n";
-    foreach ($students->take(20) as $idx => $s) {
-        $name = $s->user->name ?? $s->full_name;
-        $out .= ($idx + 1) . ". {$name} (ID: {$s->id}, NISN: {$s->nisn}, School: {$s->school_id})\n";
-    }
-
-    return response($out, 200, ['Content-Type' => 'text/plain; charset=utf-8']);
-});
-
 Route::get('/run-migrations', function () {
     if (request('secret') !== 'pembda99') {
         abort(403, 'Unauthorized.');
