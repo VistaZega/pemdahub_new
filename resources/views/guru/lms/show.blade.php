@@ -263,6 +263,10 @@ if (!function_exists('balanceHtmlTags')) {
             <button @click="tab = 'discussions'" :class="tab === 'discussions' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
                 <i class="fas fa-comments text-xs"></i> <span class="hidden sm:inline">Diskusi</span>
             </button>
+            <button @click="tab = 'groups'" :class="tab === 'groups' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <i class="fas fa-users text-xs"></i> <span class="hidden sm:inline">Kelompok</span>
+                @if(($course->course_groups_count ?? 0) > 0)<span class="rounded-full px-2 py-0.5 text-[10px] font-black border border-black" style="background-color: #a855f7 !important; color: #ffffff !important;">{{ $course->course_groups_count }}</span>@endif
+            </button>
             <button @click="tab = 'analytics'" :class="tab === 'analytics' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
                 <i class="fas fa-chart-line text-xs"></i> <span class="hidden sm:inline">Analitik</span>
             </button>
@@ -933,6 +937,207 @@ if (!function_exists('balanceHtmlTags')) {
                 <a href="{{ route('guru.lms.discussions.index', $course->id) }}" class="inline-flex items-center gap-2 bg-black text-white hover:bg-amber-400 hover:text-black border-2 border-black px-8 py-3.5 rounded-2xl font-black transition shadow-md uppercase tracking-wider text-xs">
                     Buka Portal Forum Diskusi <i class="fas fa-arrow-right text-xs"></i>
                 </a>
+            </div>
+        </div>
+
+        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- TAB: COURSE MASTER GROUPS (KELOMPOK BELAJAR) --}}
+        {{-- ═══════════════════════════════════════════════ --}}
+        @php
+            $courseMasterGroups = $course->courseGroups ?? collect();
+            $groupedStudentIdsInCourse = $courseMasterGroups->flatMap(function($grp) {
+                return $grp->members->pluck('id')->push($grp->leader_id);
+            })->unique()->filter()->toArray();
+
+            $availableStudentsInCourse = $allEnrolledStudents->reject(fn($s) => in_array($s->id, $groupedStudentIdsInCourse))->values();
+        @endphp
+        <div x-show="tab === 'groups'" class="mt-6 space-y-6 tab-content" x-data="{ showAddGroup: false, showAutoGroup: false }">
+            {{-- Header Card --}}
+            <div class="bg-white rounded-3xl shadow-md border-2 border-black p-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-gray-100 pb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-purple-600 text-white rounded-2xl flex items-center justify-center border-2 border-black shadow-sm text-xl font-black">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-black text-black uppercase tracking-wider">Master Kelompok Belajar Kursus</h3>
+                            <p class="text-xs font-bold text-gray-500">Bagi kelompok siswa satu kali di sini untuk otomatis digunakan pada seluruh tugas kelompok kursus ini.</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if($availableStudentsInCourse->isNotEmpty())
+                        <button type="button" @click="showAddGroup = !showAddGroup; showAutoGroup = false"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-purple-600 text-white hover:bg-purple-700 border-2 border-black transition shadow-sm">
+                            <i class="fas fa-plus"></i> <span x-text="showAddGroup ? 'Batal' : 'Tambah Kelompok Manual'"></span>
+                        </button>
+                        <button type="button" @click="showAutoGroup = !showAutoGroup; showAddGroup = false"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-black hover:bg-amber-500 border-2 border-black transition shadow-sm">
+                            <i class="fas fa-magic"></i> <span x-text="showAutoGroup ? 'Batal' : 'Bagi Otomatis'"></span>
+                        </button>
+                        @else
+                        <span class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black bg-emerald-100 text-emerald-800 border-2 border-emerald-400">
+                            <i class="fas fa-check-double text-emerald-600"></i> Seluruh Siswa Sudah Masuk Kelompok
+                        </span>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Status Stats Bar --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+                    <div class="bg-slate-50 border-2 border-black rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 border border-black flex items-center justify-center font-black">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-gray-500">Total Siswa Terdaftar</div>
+                            <div class="text-lg font-black text-black">{{ $allEnrolledStudents->count() }} Orang</div>
+                        </div>
+                    </div>
+                    <div class="bg-emerald-50 border-2 border-black rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-200 text-emerald-800 border border-black flex items-center justify-center font-black">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-gray-500">Sudah Masuk Kelompok</div>
+                            <div class="text-lg font-black text-emerald-800">{{ count($groupedStudentIdsInCourse) }} Orang</div>
+                        </div>
+                    </div>
+                    <div class="bg-amber-50 border-2 border-black rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-200 text-amber-900 border border-black flex items-center justify-center font-black">
+                            <i class="fas fa-user-clock"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-gray-500">Belum Punya Kelompok</div>
+                            <div class="text-lg font-black text-amber-900">{{ $availableStudentsInCourse->count() }} Orang</div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Form Tambah Kelompok Manual --}}
+                <div x-show="showAddGroup" x-cloak class="mt-6 p-5 rounded-2xl border-2 border-purple-400 bg-purple-50 space-y-4">
+                    <h4 class="text-xs font-black text-purple-900 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-user-plus"></i> Tambah Master Kelompok Kursus
+                    </h4>
+                    <form action="{{ route('guru.lms.groups.store', $course->id) }}" method="POST" class="space-y-4">
+                        @csrf
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-black text-gray-800 mb-1">Nama Kelompok <span class="text-rose-600">*</span></label>
+                                <input type="text" name="name" required placeholder="Contoh: Kelompok 1" value="Kelompok {{ $courseMasterGroups->count() + 1 }}"
+                                       class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-black text-gray-800 mb-1">Pilih Ketua Kelompok <span class="text-rose-600">* (Koordinator Kelompok)</span></label>
+                                <select name="leader_id" required class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
+                                    <option value="">— Pilih Ketua (Tersedia: {{ $availableStudentsInCourse->count() }} Siswa) —</option>
+                                    @forelse($availableStudentsInCourse as $std)
+                                    <option value="{{ $std->id }}">{{ $std->user->name ?? $std->full_name }} (NISN: {{ $std->nisn ?? '-' }})</option>
+                                    @empty
+                                    <option value="" disabled>Semua siswa sudah terdaftar di kelompok lain</option>
+                                    @endforelse
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-black text-gray-800">Pilih Anggota Kelompok (Centang Siswa):</label>
+                                <span class="text-[11px] font-bold text-purple-700">Tersedia: {{ $availableStudentsInCourse->count() }} Orang dari {{ $allEnrolledStudents->count() }} Siswa</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-56 overflow-y-auto p-3 bg-white border-2 border-black rounded-xl">
+                                @forelse($availableStudentsInCourse as $std)
+                                <label class="flex items-center gap-2 text-xs font-bold text-gray-700 hover:bg-purple-100 p-1.5 rounded-lg cursor-pointer transition">
+                                    <input type="checkbox" name="member_ids[]" value="{{ $std->id }}" class="rounded text-purple-600 focus:ring-0">
+                                    <span class="truncate">{{ $std->user->name ?? $std->full_name }}</span>
+                                </label>
+                                @empty
+                                <div class="col-span-full py-4 text-center text-xs text-emerald-800 font-bold bg-emerald-100 rounded-lg border border-emerald-300">
+                                    <i class="fas fa-check-circle mr-1 text-emerald-600"></i> Seluruh {{ $allEnrolledStudents->count() }} siswa sudah terbagi ke dalam kelompok.
+                                </div>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="button" @click="showAddGroup = false" class="px-4 py-2 rounded-xl text-xs font-bold bg-gray-200 text-gray-700 hover:bg-gray-300">Batal</button>
+                            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-black bg-purple-600 text-white hover:bg-purple-700 border-2 border-black shadow-sm">Simpan Master Kelompok</button>
+                        </div>
+                    </form>
+                </div>
+
+                {{-- Form Bagi Otomatis --}}
+                <div x-show="showAutoGroup" x-cloak class="mt-6 p-5 rounded-2xl border-2 border-amber-400 bg-amber-50 space-y-4">
+                    <h4 class="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-magic"></i> Bagi Seluruh Siswa Kursus Menjadi N Kelompok
+                    </h4>
+                    <form action="{{ route('guru.lms.groups.autoGenerate', $course->id) }}" method="POST" class="space-y-4">
+                        @csrf
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-black text-gray-800 mb-1">Jumlah Kelompok yang Diinginkan <span class="text-rose-600">*</span></label>
+                                <input type="number" name="group_count" min="2" max="20" value="4" required
+                                       class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+                            </div>
+                            <div class="flex items-end">
+                                <button type="submit" class="w-full px-5 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-black hover:bg-amber-500 border-2 border-black shadow-sm">
+                                    <i class="fas fa-random mr-1"></i> Acak & Bentuk Kelompok Kursus
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {{-- Cards Daftar Kelompok Kursus --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @forelse($courseMasterGroups as $grp)
+                <div class="p-5 rounded-2xl border-2 border-black bg-white hover:border-purple-600 transition-all shadow-md flex flex-col justify-between space-y-3">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <span class="text-xs font-black text-purple-900 uppercase tracking-wider bg-purple-100 px-3 py-1 rounded-xl border border-purple-300">
+                                {{ $grp->name }}
+                            </span>
+                            <form action="{{ route('guru.lms.groups.destroy', [$course->id, $grp->id]) }}" method="POST" onsubmit="return confirm('Hapus kelompok {{ $grp->name }} dari kursus?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="text-gray-400 hover:text-rose-600 text-xs p-1" title="Hapus Kelompok">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="space-y-1.5 text-xs">
+                            <div class="flex items-center gap-1.5 font-black text-gray-900">
+                                <span class="text-amber-500">👑 Ketua:</span>
+                                <span class="truncate">{{ $grp->leader?->user?->name ?? $grp->leader?->full_name ?? '-' }}</span>
+                            </div>
+                            <div class="text-gray-600 font-bold text-[11px] pt-1">
+                                <span>Anggota ({{ $grp->members->count() }} orang):</span>
+                                <div class="mt-1 flex flex-wrap gap-1">
+                                    @foreach($grp->members as $mem)
+                                    <span class="bg-gray-100 border border-gray-300 text-gray-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                                        {{ $mem->user->name ?? $mem->full_name }}
+                                    </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @empty
+                <div class="col-span-full py-12 text-center bg-white rounded-3xl border-2 border-black shadow-md p-8">
+                    <div class="w-16 h-16 bg-purple-100 text-purple-700 border-2 border-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-users-slash text-2xl"></i>
+                    </div>
+                    <h4 class="text-base font-black text-black">Belum Ada Master Kelompok Kursus</h4>
+                    <p class="text-xs font-bold text-gray-500 max-w-md mx-auto mt-1 mb-6">
+                        Buat kelompok manual atau klik "Bagi Otomatis" untuk membagi siswa ke dalam kelompok kursus ini.
+                    </p>
+                    <button type="button" @click="showAutoGroup = true; showAddGroup = false"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-black hover:bg-amber-500 border-2 border-black transition shadow-sm">
+                        <i class="fas fa-magic"></i> Bagi {{ $allEnrolledStudents->count() }} Siswa Secara Otomatis
+                    </button>
+                </div>
+                @endforelse
             </div>
         </div>
 

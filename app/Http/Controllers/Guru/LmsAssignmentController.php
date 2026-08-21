@@ -280,7 +280,7 @@ class LmsAssignmentController extends Controller
 
         // Load groups if group assignment
         if ($assignment->isGroupAssignment()) {
-            $assignment->load(['groups.leader.user', 'groups.members.user', 'groups.submission.student.user']);
+            $assignment->load(['groups.leader.user', 'groups.members.user', 'groups.submission.student.user', 'course.courseGroups']);
         }
 
         $totalSubmissions = $assignment->submissions->where('status', '!=', 'draft')->count();
@@ -419,7 +419,7 @@ class LmsAssignmentController extends Controller
         }
 
         $request->validate([
-            'group_count' => 'required|integer|min:2|max:30',
+            'group_count' => 'required|integer|min:1|max:30',
             'classroom_id' => 'nullable|exists:classrooms,id',
         ]);
 

@@ -470,4 +470,64 @@ class LmsGroupAssignmentTest extends TestCase
         $response2->assertSessionHas('error');
         $this->assertDatabaseCount('lms_assignment_groups', 1);
     }
+
+    /**
+     * 9. Test Guru Membuat Kelompok di Tingkat Kursus & Bagi Otomatis
+     */
+    public function test_guru_can_manage_course_master_groups()
+    {
+        // 1. Tambah kelompok manual di tingkat kursus
+        $response = $this->actingAs($this->guruUser)
+            ->post(route('guru.lms.groups.store', $this->course->id), [
+                'name' => 'Master Kelompok 1',
+                'leader_id' => $this->leaderStudent->id,
+                'member_ids' => [$this->leaderStudent->id, $this->memberStudent->id],
+            ]);
+
+        $response->assertRedirect(route('guru.lms.show', ['course' => $this->course->id, 'tab' => 'groups']));
+        $this->assertDatabaseHas('lms_course_groups', [
+            'course_id' => $this->course->id,
+            'name' => 'Master Kelompok 1',
+            'leader_id' => $this->leaderStudent->id,
+        ]);
+
+        // 2. Bagi otomatis sisa siswa pada kursus
+        $autoResponse = $this->actingAs($this->guruUser)
+            ->post(route('guru.lms.groups.autoGenerate', $this->course->id), [
+                'group_count' => 1,
+            ]);
+
+        $autoResponse->assertRedirect(route('guru.lms.show', ['course' => $this->course->id, 'tab' => 'groups']));
+        $this->assertDatabaseCount('lms_course_groups', 2);
+    }
+
+    /**
+     * 10. Test Guru Mengimpor Master Kelompok Kursus ke Tugas (1-Click Apply)
+     */
+    public function test_guru_can_import_course_master_groups_to_assignment()
+    {
+        // Buat master kelompok di kursus
+        $cGroup = $this->course->courseGroups()->create([
+            'name' => 'Kelompok Praktikum A',
+            'leader_id' => $this->leaderStudent->id,
+        ]);
+        $cGroup->members()->sync([$this->leaderStudent->id, $this->memberStudent->id]);
+
+        // Impor ke tugas
+        $response = $this->actingAs($this->guruUser)
+            ->post(route('guru.lms.assignments.groups.importCourseGroups', $this->assignment->id));
+
+        $response->assertRedirect(route('guru.lms.assignments.show', $this->assignment->id));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('lms_assignment_groups', [
+            'assignment_id' => $this->assignment->id,
+            'name' => 'Kelompok Praktikum A',
+            'leader_id' => $this->leaderStudent->id,
+        ]);
+
+        $assignmentGroup = $this->assignment->groups()->where('name', 'Kelompok Praktikum A')->first();
+        $this->assertTrue($assignmentGroup->hasMember($this->leaderStudent->id));
+        $this->assertTrue($assignmentGroup->hasMember($this->memberStudent->id));
+    }
 }

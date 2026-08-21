@@ -235,7 +235,16 @@
                 <p class="text-xs font-bold text-gray-500">Tentukan kelompok, tunjuk ketua kelompok, dan atur anggota. Hanya ketua kelompok yang akan mengunggah berkas.</p>
             </div>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
+            @if($course->courseGroups && $course->courseGroups->isNotEmpty() && $assignment->groups->isEmpty())
+            <form action="{{ route('guru.lms.assignments.groups.importCourseGroups', $assignment->id) }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm"
+                        onclick="return confirm('Terapkan {{ $course->courseGroups->count() }} kelompok dari Master Kelompok Kursus ke tugas ini?')">
+                    <i class="fas fa-file-import"></i> <span>Gunakan Kelompok Kursus ({{ $course->courseGroups->count() }})</span>
+                </button>
+            </form>
+            @endif
             @if($availableStudents->isNotEmpty())
             <button type="button" @click="showAddGroup = !showAddGroup; showAutoGroup = false"
                     class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black bg-purple-600 text-white hover:bg-purple-700 transition shadow-sm">

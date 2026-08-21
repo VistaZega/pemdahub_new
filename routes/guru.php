@@ -142,8 +142,14 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::post('/assignments/{assignment}/groups', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'storeGroup'])->name('assignments.groups.store');
         Route::delete('/assignments/{assignment}/groups/{group}', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'deleteGroup'])->name('assignments.groups.destroy');
         Route::post('/assignments/{assignment}/groups/auto-generate', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'autoGenerateGroups'])->name('assignments.groups.autoGenerate');
+        Route::post('/assignments/{assignment}/groups/import-course-groups', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'importToAssignment'])->name('assignments.groups.importCourseGroups');
         Route::post('/submissions/{submission}/grade', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'grade'])->name('submissions.grade');
         Route::get('/submissions/{submission}/download', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'downloadSubmission'])->name('submissions.download');
+
+        // Course Master Groups (Kelompok Belajar Tingkat Kursus)
+        Route::post('/{course}/groups', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'store'])->name('groups.store');
+        Route::delete('/{course}/groups/{group}', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'destroy'])->name('groups.destroy');
+        Route::post('/{course}/groups/auto-generate', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'autoGenerate'])->name('groups.autoGenerate');
 
         // Quizzes
         Route::get('/{course}/quizzes/create', [App\Http\Controllers\Guru\LmsQuizController::class, 'create'])->name('quizzes.create');

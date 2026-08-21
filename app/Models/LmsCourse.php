@@ -431,6 +431,14 @@ class LmsCourse extends Model
     }
 
     /**
+     * Relationship: Course has many course groups (Master Kelompok Belajar)
+     */
+    public function courseGroups()
+    {
+        return $this->hasMany(LmsCourseGroup::class, 'course_id');
+    }
+
+    /**
      * Relationship: Course has many discussions
      */
     public function discussions()

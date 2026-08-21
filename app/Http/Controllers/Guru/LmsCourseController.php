@@ -275,19 +275,19 @@ class LmsCourseController extends Controller
             'quizzes' => fn($q) => $q->orderByDesc('created_at')->withCount('attempts'),
             'lmsClasses.classroom',
             'announcements' => fn($q) => $q->with('author')->orderByDesc('is_pinned')->orderByDesc('created_at'),
+            'courseGroups' => fn($q) => $q->with(['leader.user', 'members.user']),
         ]);
 
-        $course->loadCount(['materials', 'assignments', 'quizzes', 'discussions', 'announcements']);
+        $course->loadCount(['materials', 'assignments', 'quizzes', 'discussions', 'announcements', 'courseGroups']);
 
-        // Count total enrolled students
-        $totalStudents = 0;
-        if ($course->lmsClasses->isNotEmpty()) {
-            $totalStudents = LmsEnrollment::whereIn('lms_class_id', $course->lmsClasses->pluck('id'))
-                ->whereIn('status', ['enrolled', 'in_progress'])
-                ->count();
-        }
+        // Ambil data siswa untuk tab manajemen kelompok kursus
+        $assignmentCtrl = app(LmsAssignmentController::class);
+        $refMethod = new \ReflectionMethod($assignmentCtrl, 'getEnrolledStudentsForCourse');
+        $refMethod->setAccessible(true);
+        $allEnrolledStudents = $refMethod->invoke($assignmentCtrl, $course);
+        $totalStudents = $allEnrolledStudents->count();
 
-        return view('guru.lms.show', compact('teacher', 'course', 'totalStudents'));
+        return view('guru.lms.show', compact('teacher', 'course', 'totalStudents', 'allEnrolledStudents'));
     }
 
     /**
