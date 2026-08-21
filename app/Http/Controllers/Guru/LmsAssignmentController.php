@@ -97,6 +97,75 @@ class LmsAssignmentController extends Controller
     /**
      * Show assignment detail with submissions, filtered by classroom if provided
      */
+    /**
+     * Helper to get all students associated with the course and classroom(s)
+     */
+    private function getEnrolledStudentsForCourse(LmsCourse $course, ?int $selectedClassroomId = null)
+    {
+        // 1. Sinkronisasi otomatis enrollments kursus
+        try {
+            app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($course);
+        } catch (\Throwable $e) {
+            \Log::warning('LMS syncCourseEnrollments warning: ' . $e->getMessage());
+        }
+
+        // 2. Ambil semua ID rombel yang terhubung ke course
+        $classrooms = \App\Models\LmsClass::where('course_id', $course->id)
+            ->with('classroom')
+            ->get()
+            ->pluck('classroom')
+            ->filter()
+            ->values();
+
+        if ($classrooms->isEmpty() && $course->classroom) {
+            $classrooms = collect([$course->classroom]);
+        }
+
+        $allClassroomIds = $classrooms->pluck('id')->filter()->values()->toArray();
+        if ($course->classroom_id && !in_array($course->classroom_id, $allClassroomIds)) {
+            $allClassroomIds[] = $course->classroom_id;
+        }
+
+        $targetClassroomIds = $selectedClassroomId ? [$selectedClassroomId] : $allClassroomIds;
+
+        // 3. Ambil siswa via LmsEnrollment
+        $fromEnrollment = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
+            $q->where('course_id', $course->id);
+            if ($selectedClassroomId) {
+                $q->where('classroom_id', $selectedClassroomId);
+            }
+        })->with('student.user')->get()->pluck('student')->filter();
+
+        // 4. Ambil siswa langsung dari Classroom
+        $fromDirectClassroom = !empty($targetClassroomIds)
+            ? \App\Models\Student::whereIn('classroom_id', $targetClassroomIds)
+                ->where('status', 'aktif')
+                ->with('user')
+                ->get()
+            : collect();
+
+        // 5. Ambil siswa dari StudentClass (riwayat penempatan kelas aktif)
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $fromStudentClass = !empty($targetClassroomIds)
+            ? \App\Models\Student::whereHas('studentClasses', function ($q) use ($targetClassroomIds, $activeYear) {
+                $q->whereIn('classroom_id', $targetClassroomIds)
+                  ->where('status', 'aktif')
+                  ->when($activeYear, fn($sq) => $sq->where('academic_year_id', $activeYear->id));
+            })->with('user')->get()
+            : collect();
+
+        // Gabungkan, deduplikasi, dan urutkan berdasarkan nama
+        return $fromEnrollment
+            ->merge($fromDirectClassroom)
+            ->merge($fromStudentClass)
+            ->unique('id')
+            ->sortBy(fn($s) => strtolower($s->user->name ?? $s->full_name ?? ''))
+            ->values();
+    }
+
+    /**
+     * Show assignment detail with submissions, filtered by classroom if provided
+     */
     public function show(Request $request, LmsAssignment $assignment)
     {
         $teacher = $this->getTeacher();
@@ -114,11 +183,19 @@ class LmsAssignmentController extends Controller
             ->filter()
             ->values();
 
+        if ($classrooms->isEmpty() && $course->classroom) {
+            $classrooms = collect([$course->classroom]);
+        }
+
         // Filter per rombel jika dipilih
         $selectedClassroomId = $request->query('classroom_id');
         $selectedClassroom = $selectedClassroomId
             ? $classrooms->firstWhere('id', $selectedClassroomId)
             : null;
+
+        // Ambil semua siswa terdaftar untuk kursus ini
+        $allEnrolledStudents = $this->getEnrolledStudentsForCourse($course, $selectedClassroomId ? (int)$selectedClassroomId : null);
+        $enrolledStudentIds = $allEnrolledStudents->pluck('id')->toArray();
 
         // Load submissions, filter by classroom students jika ada filter
         $submissionsQuery = $assignment->submissions()
@@ -126,11 +203,6 @@ class LmsAssignmentController extends Controller
             ->orderByDesc('submitted_at');
 
         if ($selectedClassroomId && $selectedClassroom) {
-            // Dapatkan student_id yang ada di rombel ini via enrollments
-            $enrolledStudentIds = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
-                $q->where('course_id', $course->id)->where('classroom_id', $selectedClassroomId);
-            })->pluck('student_id');
-
             $submissionsQuery->where(function ($q) use ($enrolledStudentIds) {
                 $q->whereIn('student_id', $enrolledStudentIds)
                   ->orWhereHas('group.members', function ($gq) use ($enrolledStudentIds) {
@@ -145,14 +217,6 @@ class LmsAssignmentController extends Controller
         if ($assignment->isGroupAssignment()) {
             $assignment->load(['groups.leader.user', 'groups.members.user', 'groups.submission.student.user']);
         }
-
-        // Ambil semua siswa terdaftar untuk pembuatan kelompok manual/otomatis
-        $allEnrolledStudents = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
-            $q->where('course_id', $course->id);
-            if ($selectedClassroomId) {
-                $q->where('classroom_id', $selectedClassroomId);
-            }
-        })->with('student.user')->get()->pluck('student')->filter()->unique('id')->values();
 
         $totalSubmissions = $assignment->submissions->where('status', '!=', 'draft')->count();
         $gradedCount = $assignment->submissions->where('status', 'graded')->count();
@@ -283,12 +347,7 @@ class LmsAssignmentController extends Controller
 
         $classroomId = $request->classroom_id;
 
-        $students = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $classroomId) {
-            $q->where('course_id', $course->id);
-            if ($classroomId) {
-                $q->where('classroom_id', $classroomId);
-            }
-        })->with('student')->get()->pluck('student')->filter()->unique('id')->values()->shuffle();
+        $students = $this->getEnrolledStudentsForCourse($course, $classroomId ? (int)$classroomId : null)->shuffle();
 
         if ($students->isEmpty()) {
             return redirect()->back()->with('error', 'Tidak ada siswa yang terdaftar untuk dibagi kelompok.');

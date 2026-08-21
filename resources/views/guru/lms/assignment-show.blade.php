@@ -45,22 +45,22 @@
 <div class="space-y-6">
 
 {{-- =============================== HEADER =============================== --}}
-<div class="rounded-xl p-6 md:p-8 shadow-md border border-gray-200 relative overflow-hidden" >
+<div class="rounded-2xl p-6 md:p-8 shadow-lg border-2 border-slate-800 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
 
     {{-- Breadcrumb --}}
-    <nav class="relative flex items-center gap-2 text-xs font-semibold text-amber-500 mb-4 tracking-wide">
+    <nav class="relative flex items-center gap-2 text-xs font-bold text-amber-400 mb-4 tracking-wide">
         <i class="fas fa-graduation-cap"></i>
         <a href="{{ route('guru.lms.show', $course->id) }}?tab=assignments"
-           class="hover:underline text-amber-500">{{ $course->name }}</a>
+           class="hover:underline text-amber-400 font-bold">{{ $course->name }}</a>
         <i class="fas fa-chevron-right text-[10px] opacity-70"></i>
-        <span class="text-white">Penugasan Siswa</span>
+        <span class="text-slate-300">Penugasan Siswa</span>
         <i class="fas fa-chevron-right text-[10px] opacity-70"></i>
-        <span class="text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700">{{ Str::limit($assignment->title, 35) }}</span>
+        <span class="text-white bg-slate-800/90 px-2.5 py-0.5 rounded-lg border border-slate-700 font-bold">{{ Str::limit($assignment->title, 35) }}</span>
     </nav>
 
     <div class="relative flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div class="flex-1 min-w-0">
-            <h1 class="text-2xl lg:text-3xl font-semibold text-white leading-tight tracking-wide">{{ $assignment->title }}</h1>
+            <h1 class="text-2xl lg:text-3xl font-black text-white leading-tight tracking-wide">{{ $assignment->title }}</h1>
             @if($assignment->description)
                 <p class="text-amber-300 text-xs font-bold mt-2 line-clamp-2 max-w-3xl">{{ $assignment->description }}</p>
             @endif
@@ -110,7 +110,7 @@
     </div>
 
     @if($assignment->description)
-    <div class="relative mt-5 p-4 bg-slate-900 rounded-xl border-2 border-slate-800">
+    <div class="relative mt-5 p-4 bg-slate-950/80 rounded-xl border border-slate-700">
         <p class="text-slate-200 text-xs font-bold leading-relaxed whitespace-pre-line">{{ $assignment->description }}</p>
     </div>
     @endif
@@ -256,23 +256,32 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Pilih Ketua Kelompok <span class="text-rose-600">* (Yang berhak upload berkas)</span></label>
                     <select name="leader_id" required class="w-full border-2 border-gray-300 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
-                        <option value="">— Pilih Siswa Sebagai Ketua —</option>
-                        @foreach($allEnrolledStudents as $std)
+                        <option value="">— Pilih Siswa Sebagai Ketua (Total: {{ $allEnrolledStudents->count() }} Siswa) —</option>
+                        @forelse($allEnrolledStudents as $std)
                         <option value="{{ $std->id }}">{{ $std->user->name ?? $std->full_name }} (NISN: {{ $std->nisn ?? '-' }})</option>
-                        @endforeach
+                        @empty
+                        <option value="" disabled>Belum ada data siswa pada rombel ini</option>
+                        @endforelse
                     </select>
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 mb-2">Pilih Anggota Kelompok (Centang Siswa):</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-3 bg-white border border-gray-200 rounded-xl">
-                    @foreach($allEnrolledStudents as $std)
-                    <label class="flex items-center gap-2 text-xs font-bold text-gray-700 hover:bg-purple-50 p-1.5 rounded-lg cursor-pointer">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-xs font-bold text-gray-700">Pilih Anggota Kelompok (Centang Siswa):</label>
+                    <span class="text-[11px] font-bold text-purple-700">Total Siswa Terdaftar: {{ $allEnrolledStudents->count() }} Orang</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-56 overflow-y-auto p-3 bg-white border border-gray-200 rounded-xl">
+                    @forelse($allEnrolledStudents as $std)
+                    <label class="flex items-center gap-2 text-xs font-bold text-gray-700 hover:bg-purple-50 p-1.5 rounded-lg cursor-pointer transition">
                         <input type="checkbox" name="member_ids[]" value="{{ $std->id }}" class="rounded text-purple-600 focus:ring-0">
                         <span class="truncate">{{ $std->user->name ?? $std->full_name }}</span>
                     </label>
-                    @endforeach
+                    @empty
+                    <div class="col-span-full py-4 text-center text-xs text-amber-800 font-bold bg-amber-50 rounded-lg border border-amber-200">
+                        <i class="fas fa-exclamation-triangle mr-1 text-amber-600"></i> Belum ada siswa terdaftar pada kelas kursus ini.
+                    </div>
+                    @endforelse
                 </div>
             </div>
 
