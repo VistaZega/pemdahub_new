@@ -103,7 +103,10 @@ class LmsAssignmentController extends Controller
     private function getEnrolledStudentsForCourse(LmsCourse $course, ?int $selectedClassroomId = null)
     {
         $teacher = $this->getTeacher();
-        $schoolId = $course->school_id ?? $teacher?->school_id;
+        $schoolId = $course->school_id 
+            ?? $course->classroom?->school_id 
+            ?? $teacher?->school_id 
+            ?? auth()->user()?->school_id;
 
         // 1. Sinkronisasi otomatis enrollments kursus
         try {
@@ -132,7 +135,7 @@ class LmsAssignmentController extends Controller
             $allClassroomIds[] = $course->classroom_id;
         }
 
-        // Tambahkan juga rombel dari penugasan mengajar guru untuk mapel ini jika belum ada
+        // Tambahkan juga rombel dari penugasan mengajar guru untuk mapel ini jika ada
         if ($teacher && $course->subject_id) {
             $teachingClassroomIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
                 ->where('subject_id', $course->subject_id)
@@ -187,8 +190,25 @@ class LmsAssignmentController extends Controller
             ->unique('id')
             ->values();
 
-        // 7. ULTIMATE FALLBACK: Jika daftar siswa masih kosong (misal rombel belum ada data di tabel pivot),
-        // ambil semua siswa aktif di unit sekolah kursus/guru tersebut
+        // 7. Jika masih kosong, cari rombel dengan nama kelas serupa (misal X TAV / XTAV)
+        if ($students->isEmpty() && $course->classroom) {
+            $className = trim($course->classroom->class_name);
+            $similarClassroomIds = \App\Models\Classroom::where('class_name', 'LIKE', "%{$className}%")
+                ->orWhere('class_code', 'LIKE', "%{$className}%")
+                ->pluck('id')
+                ->toArray();
+            if (!empty($similarClassroomIds)) {
+                $students = \App\Models\StudentClass::whereIn('classroom_id', $similarClassroomIds)
+                    ->with('student.user')
+                    ->get()
+                    ->pluck('student')
+                    ->filter()
+                    ->unique('id')
+                    ->values();
+            }
+        }
+
+        // 8. ULTIMATE FALLBACK: Jika daftar siswa masih kosong sama sekali, ambil semua siswa aktif di unit sekolah
         if ($students->isEmpty() && $schoolId) {
             $students = \App\Models\Student::where('school_id', $schoolId)
                 ->where(function ($q) {
@@ -199,17 +219,57 @@ class LmsAssignmentController extends Controller
                 ->get();
         }
 
-        // Filter unit sekolah agar tidak campur antar sekolah
+        // 9. Jika masih kosong tanpa schoolId sekalipun, ambil seluruh siswa aktif
+        if ($students->isEmpty()) {
+            $students = \App\Models\Student::where(function ($q) {
+                $q->whereNull('status')
+                  ->orWhereNotIn('status', ['lulus', 'keluar', 'pindah', 'dropout']);
+            })->with('user')->take(100)->get();
+        }
+
+        // Filter unit sekolah jika ada agar tidak campur antar sekolah
         if ($schoolId && $students->isNotEmpty()) {
             $students = $students->filter(function ($s) use ($schoolId) {
                 return !$s->school_id || $s->school_id == $schoolId;
             });
         }
 
-        return $students
+        $finalStudents = $students
             ->filter(fn($s) => $s && $s->id)
             ->sortBy(fn($s) => strtolower($s->user->name ?? $s->full_name ?? ''))
             ->values();
+
+        // 10. Otomatis daftarkan siswa ke LmsEnrollment agar sinkron 100%
+        if ($finalStudents->isNotEmpty()) {
+            try {
+                $firstLmsClass = \App\Models\LmsClass::where('course_id', $course->id)->first();
+                if (!$firstLmsClass && $course->classroom_id) {
+                    $firstLmsClass = \App\Models\LmsClass::firstOrCreate([
+                        'course_id' => $course->id,
+                        'classroom_id' => $course->classroom_id,
+                    ], [
+                        'school_id' => $schoolId,
+                        'status' => 'active',
+                    ]);
+                }
+                if ($firstLmsClass) {
+                    foreach ($finalStudents as $std) {
+                        if (!$std || !$std->id) continue;
+                        \App\Models\LmsEnrollment::firstOrCreate([
+                            'lms_class_id' => $firstLmsClass->id,
+                            'student_id' => $std->id,
+                        ], [
+                            'status' => 'enrolled',
+                            'enrolled_at' => now(),
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Auto enroll student warning: ' . $e->getMessage());
+            }
+        }
+
+        return $finalStudents;
     }
 
     /**
