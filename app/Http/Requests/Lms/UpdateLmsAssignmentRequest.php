@@ -18,6 +18,7 @@ class UpdateLmsAssignmentRequest extends FormRequest
             'title' => 'required|string|max:200',
             'description' => 'nullable|string',
             'assignment_type' => 'nullable|in:file,text,file_text,link',
+            'is_group_assignment' => 'nullable|boolean',
             'due_date' => 'nullable|date',
             'max_score' => 'required|numeric|min:1|max:100',
             'allow_resubmit' => 'sometimes|boolean',

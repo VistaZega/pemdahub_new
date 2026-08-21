@@ -385,28 +385,40 @@ class GradeService
             return null;
         }
 
-        // Check if already synced
-        $existing = Grade::where('lms_source_type', 'submission')
-            ->where('lms_source_id', $submission->id)
-            ->first();
-
-        if ($existing) {
-            $existing->update(['score' => $normalizedScore]);
-            return $existing;
+        // Collect all student IDs who should receive this grade
+        $studentIds = collect([$submission->student_id]);
+        if ($submission->group_id && $submission->group) {
+            $memberIds = $submission->group->members()->pluck('students.id');
+            $studentIds = $studentIds->merge($memberIds)->unique();
         }
 
-        return Grade::create([
-            'student_id' => $submission->student_id,
-            'subject_id' => $course->subject_id,
-            'teacher_id' => $teacherId,
-            'semester_id' => $semesterId,
-            'grade_type' => 'tugas',
-            'score' => $normalizedScore,
-            'is_remedial' => false,
-            'created_by' => $submission->graded_by,
-            'notes' => "LMS Tugas: {$assignment->title}",
-            'lms_source_type' => 'submission',
-            'lms_source_id' => $submission->id,
-        ]);
+        $lastGrade = null;
+        foreach ($studentIds as $sId) {
+            $existing = Grade::where('lms_source_type', 'submission')
+                ->where('lms_source_id', $submission->id)
+                ->where('student_id', $sId)
+                ->first();
+
+            if ($existing) {
+                $existing->update(['score' => $normalizedScore]);
+                $lastGrade = $existing;
+            } else {
+                $lastGrade = Grade::create([
+                    'student_id' => $sId,
+                    'subject_id' => $course->subject_id,
+                    'teacher_id' => $teacherId,
+                    'semester_id' => $semesterId,
+                    'grade_type' => 'tugas',
+                    'score' => $normalizedScore,
+                    'is_remedial' => false,
+                    'created_by' => $submission->graded_by,
+                    'notes' => "LMS Tugas: {$assignment->title}" . ($submission->group ? " (Kelompok: {$submission->group->name})" : ""),
+                    'lms_source_type' => 'submission',
+                    'lms_source_id' => $submission->id,
+                ]);
+            }
+        }
+
+        return $lastGrade;
     }
 }

@@ -20,6 +20,7 @@ class LmsAssignment extends Model
         'title',
         'description',
         'assignment_type',
+        'is_group_assignment',
         'file_path',
         'deadline',
         'due_date',
@@ -32,6 +33,7 @@ class LmsAssignment extends Model
     protected $casts = [
         'deadline' => 'datetime',
         'is_published' => 'boolean',
+        'is_group_assignment' => 'boolean',
         'max_score' => 'float',
         'allow_resubmit' => 'boolean',
         'max_resubmissions' => 'integer',
@@ -82,6 +84,35 @@ class LmsAssignment extends Model
     public function submissions()
     {
         return $this->hasMany(LmsSubmission::class, 'assignment_id');
+    }
+
+    /**
+     * Relationship: Assignment has many groups
+     */
+    public function groups()
+    {
+        return $this->hasMany(LmsAssignmentGroup::class, 'assignment_id');
+    }
+
+    /**
+     * Helper: Check if assignment is group work
+     */
+    public function isGroupAssignment(): bool
+    {
+        return (bool) $this->is_group_assignment;
+    }
+
+    /**
+     * Helper: Find the group for a specific student
+     */
+    public function getStudentGroup(int $studentId): ?LmsAssignmentGroup
+    {
+        return $this->groups()
+            ->where(function ($q) use ($studentId) {
+                $q->where('leader_id', $studentId)
+                  ->orWhereHas('members', fn($mq) => $mq->where('students.id', $studentId));
+            })
+            ->first();
     }
 
     /**

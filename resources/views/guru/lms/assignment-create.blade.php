@@ -54,6 +54,27 @@
                               placeholder="Jelaskan instruksi tugas yang harus dikerjakan siswa..."></textarea>
                 </div>
 
+                {{-- Mode Penugasan: Individu vs Kelompok --}}
+                <div class="p-5 rounded-2xl border-2 border-black bg-slate-50 space-y-3">
+                    <label class="block text-xs font-black text-black uppercase tracking-wider">Mode Penugasan <span class="text-rose-600">*</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <label class="flex items-start gap-3 p-4 rounded-xl border-2 border-black bg-white cursor-pointer hover:bg-amber-50 transition-all shadow-xs">
+                            <input type="radio" name="is_group_assignment" value="0" {{ old('is_group_assignment', '0') == '0' ? 'checked' : '' }} class="mt-1 w-4 h-4 text-black border-2 border-black focus:ring-0">
+                            <div>
+                                <span class="font-black text-black text-sm block">👤 Tugas Individu</span>
+                                <span class="text-xs font-bold text-gray-500">Setiap siswa mengumpulkan tugas masing-masing secara terpisah.</span>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-3 p-4 rounded-xl border-2 border-black bg-white cursor-pointer hover:bg-amber-50 transition-all shadow-xs">
+                            <input type="radio" name="is_group_assignment" value="1" {{ old('is_group_assignment') == '1' ? 'checked' : '' }} class="mt-1 w-4 h-4 text-black border-2 border-black focus:ring-0">
+                            <div>
+                                <span class="font-black text-black text-sm block">👥 Tugas Kelompok</span>
+                                <span class="text-xs font-bold text-gray-500">Hanya Ketua Kelompok yang mengumpulkan 1 berkas. Nilai otomatis masuk ke seluruh anggota kelompok.</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div>
                         <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">Tipe Pengumpulan <span class="text-rose-600">*</span></label>

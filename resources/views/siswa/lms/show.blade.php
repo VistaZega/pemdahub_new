@@ -690,21 +690,29 @@ if (!function_exists('balanceHtmlTags')) {
         @forelse($course->assignments as $assignment)
         @php
             $sub = $submissionMap[$assignment->id] ?? null;
+            $myGroup = $studentGroupMap[$assignment->id] ?? null;
+            $isGroupWork = $assignment->isGroupAssignment();
+            $isLeader = $myGroup && $myGroup->isLeader($student->id);
             $hasModule = (bool)$assignment->module;
             $qModColor = $hasModule ? ($assignment->module->color ?? 'purple') : 'purple';
             $qColorClasses = \App\Models\LmsCourse::getColorClasses($qModColor);
             $hasModule = false; // Force light theme for nested elements
         @endphp
-        <div class="rounded-2xl shadow-sm border p-5 hover:shadow-md transition-all bg-white border-l-4 {{ str_replace('200', '500', $qColorClasses['border'] ?? 'border-blue-500') }} text-gray-800 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 opacity-[0.03] rounded-bl-full {{ $qColorClasses['bg'] ?? 'bg-blue-600' }}"></div>
+        <div class="rounded-2xl shadow-sm border p-5 hover:shadow-md transition-all bg-white border-l-4 {{ $isGroupWork ? 'border-purple-600' : str_replace('200', '500', $qColorClasses['border'] ?? 'border-blue-500') }} text-gray-800 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 opacity-[0.03] rounded-bl-full {{ $isGroupWork ? 'bg-purple-600' : ($qColorClasses['bg'] ?? 'bg-blue-600') }}"></div>
             <div class="flex items-start justify-between mb-3">
                 <div class="flex items-start gap-4 flex-1 min-w-0">
-                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border {{ $hasModule ? 'bg-white/20 text-white border-white/20 shadow-sm' : 'bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600 border-emerald-100 shadow-md' }}">
-                        <i class="fas fa-tasks text-2xl"></i>
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border {{ $isGroupWork ? 'bg-gradient-to-br from-purple-50 to-purple-100 text-purple-600 border-purple-200 shadow-md' : 'bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600 border-emerald-100 shadow-md' }}">
+                        <i class="fas {{ $isGroupWork ? 'fa-users' : 'fa-tasks' }} text-2xl"></i>
                     </div>
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2 flex-wrap mb-2">
                             <h4 class="font-extrabold text-xl leading-tight {{ $hasModule ? 'text-white' : 'text-gray-900' }}">{{ $assignment->title }}</h4>
+                            @if($isGroupWork)
+                            <span class="bg-purple-100 text-purple-800 text-[10px] font-extrabold px-3 py-1 rounded-full border border-purple-300 uppercase tracking-widest shadow-sm flex items-center gap-1">
+                                <i class="fas fa-users text-xs"></i> TUGAS KELOMPOK
+                            </span>
+                            @endif
                             @if($assignment->allow_resubmit)
                             <span class="bg-blue-50 text-blue-700 text-[10px] font-extrabold px-3 py-1 rounded-full border border-blue-200 uppercase tracking-widest shadow-sm">REVISI OK</span>
                             @endif
@@ -740,6 +748,38 @@ if (!function_exists('balanceHtmlTags')) {
                                 <span class="text-[11px] font-extrabold uppercase tracking-wide ml-2 {{ $pipelineStep === 2 ? ($hasModule ? 'text-emerald-300' : 'text-emerald-600') : ($hasModule ? 'text-white/60' : 'text-gray-400') }} hidden sm:inline">Dinilai</span>
                             </div>
                         </div>
+
+                        {{-- Group Assignment Info Card --}}
+                        @if($isGroupWork)
+                            @if($myGroup)
+                            <div class="p-4 rounded-2xl border-2 border-purple-200 bg-purple-50/80 mb-4 space-y-2">
+                                <div class="flex items-center justify-between flex-wrap gap-2">
+                                    <div class="flex items-center gap-2 font-black text-purple-900 text-sm">
+                                        <i class="fas fa-users text-purple-600"></i>
+                                        <span>{{ $myGroup->name }}</span>
+                                        @if($isLeader)
+                                        <span class="bg-amber-400 text-black text-[10px] px-2.5 py-0.5 rounded-full border border-black uppercase tracking-wider font-extrabold shadow-xs">👑 Anda Ketua Kelompok</span>
+                                        @else
+                                        <span class="bg-purple-200 text-purple-800 text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Anggota</span>
+                                        @endif
+                                    </div>
+                                    <div class="text-xs font-bold text-gray-600">
+                                        Ketua Kelompok: <strong class="text-gray-900">{{ $myGroup->leader?->user?->name ?? $myGroup->leader?->full_name ?? 'Belum Ditunjuk' }}</strong>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-gray-700 font-medium">
+                                    <span class="font-bold text-purple-900">Daftar Anggota Kelompok:</span>
+                                    <span class="text-gray-600">{{ $myGroup->members->pluck('user.name')->filter()->implode(', ') ?: ($myGroup->members->pluck('full_name')->filter()->implode(', ') ?: '—') }}</span>
+                                </div>
+                            </div>
+                            @else
+                            <div class="p-4 rounded-2xl border-2 border-amber-300 bg-amber-50 text-amber-900 mb-4 text-xs font-bold flex items-center gap-2">
+                                <i class="fas fa-exclamation-triangle text-amber-600 text-lg flex-shrink-0"></i>
+                                <span>Anda belum dimasukkan ke dalam kelompok tugas oleh Guru. Silakan hubungi Guru Anda untuk dimasukkan ke kelompok.</span>
+                            </div>
+                            @endif
+                        @endif
+
                         @if($assignment->description)
                             <div class="text-sm font-bold mt-2 mb-4 p-3 rounded-xl border-l-4 shadow-sm {{ $hasModule ? 'bg-white/10 border-white/20 text-white/90' : 'bg-gray-50 border-emerald-300 text-gray-800' }}">{!! balanceHtmlTags($assignment->description) !!}</div>
                         @endif
@@ -792,7 +832,7 @@ if (!function_exists('balanceHtmlTags')) {
                 @if($sub && ($sub->status === 'graded' || $sub->score !== null))
                 <div class="text-center ml-4 flex-shrink-0 bg-emerald-50 rounded-2xl p-4 border-2 border-emerald-100 shadow-sm">
                     <div class="text-3xl font-extrabold leading-none text-emerald-600">{{ $sub->score }}</div>
-                    <div class="text-[11px] font-extrabold mt-1.5 uppercase tracking-widest text-emerald-800/80">NILAI ANDA</div>
+                    <div class="text-[11px] font-extrabold mt-1.5 uppercase tracking-widest text-emerald-800/80">{{ $isGroupWork ? 'NILAI KELOMPOK' : 'NILAI ANDA' }}</div>
                 </div>
                 @elseif($sub && $sub->status !== 'draft')
                 <span class="px-4 py-2 rounded-xl text-xs font-extrabold border-2 uppercase tracking-widest ml-4 flex-shrink-0 shadow-sm bg-blue-50 text-blue-700 border-blue-200">{{ $sub->getStatusLabel() }}</span>
@@ -824,7 +864,12 @@ if (!function_exists('balanceHtmlTags')) {
 
             @if($sub && ($sub->submission_text || $sub->file_path))
             <div class="border border-gray-100 bg-gray-50 rounded-xl p-4 mb-3">
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2"><i class="fas fa-paperclip"></i> Jawaban / Tugas Anda</p>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
+                    <i class="fas fa-paperclip"></i> {{ $isGroupWork ? 'Jawaban / Berkas Tugas Kelompok' : 'Jawaban / Tugas Anda' }}
+                    @if($isGroupWork && $sub->student)
+                    <span class="text-[10px] font-semibold text-purple-700 ml-1">(Dikumpulkan oleh: {{ $sub->student->user->name ?? $sub->student->full_name }})</span>
+                    @endif
+                </p>
                 @if($sub->submission_text)
                 <div class="bg-white border border-gray-200 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap mb-3">{!! $sub->submission_text !!}</div>
                 @endif
@@ -837,14 +882,44 @@ if (!function_exists('balanceHtmlTags')) {
             @endif
 
             @php
-                $canSubmit = !$sub || $sub->status === 'draft';
-                $canRevise = $sub && ($sub->status === 'revision_requested' || ($sub->status === 'graded' && $assignment->allow_resubmit && $assignment->canResubmit($sub->student_id ?? null)));
+                $canSubmit = false;
+                $canRevise = false;
+                if ($isGroupWork) {
+                    if ($myGroup && $isLeader) {
+                        $canSubmit = !$sub || $sub->status === 'draft';
+                        $canRevise = $sub && ($sub->status === 'revision_requested' || ($sub->status === 'graded' && $assignment->allow_resubmit && $assignment->canResubmit($sub->student_id ?? null)));
+                    }
+                } else {
+                    $canSubmit = !$sub || $sub->status === 'draft';
+                    $canRevise = $sub && ($sub->status === 'revision_requested' || ($sub->status === 'graded' && $assignment->allow_resubmit && $assignment->canResubmit($sub->student_id ?? null)));
+                }
             @endphp
+
+            {{-- Group Member Notice (If not leader and group work) --}}
+            @if($isGroupWork && $myGroup && !$isLeader)
+            <div class="p-4 rounded-2xl border-2 border-purple-200 bg-purple-50/60 mb-3 flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <i class="fas fa-info text-xs"></i>
+                </div>
+                <div class="text-xs text-purple-900">
+                    <p class="font-extrabold">Informasi Pengumpulan Tugas Kelompok</p>
+                    @if($sub && $sub->status !== 'draft')
+                    <p class="font-medium text-purple-800 mt-0.5">
+                        Tugas kelompok ini <strong class="text-emerald-700">sudah dikumpulkan</strong> oleh Ketua Kelompok Anda (<strong class="text-gray-900">{{ $myGroup->leader?->user?->name ?? 'Ketua' }}</strong>). Anda tidak perlu mengunggah berkas lagi.
+                    </p>
+                    @else
+                    <p class="font-medium text-purple-800 mt-0.5">
+                        Pengunggahan berkas tugas dilakukan oleh Ketua Kelompok (<strong class="text-gray-900">{{ $myGroup->leader?->user?->name ?? 'Ketua Kelompok' }}</strong>). Nilai dari guru akan otomatis masuk ke akun Anda.
+                    </p>
+                    @endif
+                </div>
+            </div>
+            @endif
 
             @if($canSubmit || $canRevise)
             <details class="group/submit" open>
                 <summary class="cursor-pointer text-base font-extrabold flex items-center gap-2 transition-colors {{ $hasModule ? 'text-white hover:text-white/80' : 'text-blue-600 hover:text-blue-700' }}">
-                    <i class="fas fa-upload text-sm"></i> {{ $canRevise ? 'Kirim Revisi Tugas' : 'Kumpulkan Tugas Sekarang' }}
+                    <i class="fas fa-upload text-sm"></i> {{ $canRevise ? 'Kirim Revisi Tugas' : ($isGroupWork ? 'Kumpulkan Tugas Kelompok (Sebagai Ketua)' : 'Kumpulkan Tugas Sekarang') }}
                     @if($canRevise && $assignment->max_resubmissions)
                     <span class="text-xs font-normal {{ $hasModule ? 'text-white/70' : 'text-gray-400' }}">(Percobaan {{ ($sub->attempt_number ?? 1) + 1 }} dari {{ $assignment->max_resubmissions + 1 }})</span>
                     @endif
@@ -852,6 +927,12 @@ if (!function_exists('balanceHtmlTags')) {
                 </summary>
                 <form action="{{ route('siswa.lms.assignments.submit', $assignment->id) }}" method="POST" enctype="multipart/form-data" onsubmit="return handleLmsAssignmentSubmit(this)" class="mt-4 p-5 rounded-2xl space-y-4 border-2 shadow-sm {{ $hasModule ? 'bg-white/15 border-white/10 text-white' : 'bg-blue-50 border-blue-100 text-gray-800' }}">
                     @csrf
+                    @if($isGroupWork && $myGroup)
+                    <div class="p-3.5 rounded-xl text-xs font-bold bg-purple-100/80 border border-purple-300 text-purple-900 flex items-center gap-2">
+                        <i class="fas fa-users text-purple-700 text-base flex-shrink-0"></i>
+                        <span>Anda mengunggah tugas mewakili <strong>{{ $myGroup->name }}</strong> ({{ $myGroup->members->count() }} Anggota). Berkas jawaban akan terhubung ke semua anggota.</span>
+                    </div>
+                    @endif
                     @php
                         $aType = $assignment->assignment_type ?? 'file_text';
                     @endphp

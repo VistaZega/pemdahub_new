@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Lms\StoreLmsAssignmentRequest;
 use App\Http\Requests\Lms\UpdateLmsAssignmentRequest;
 use App\Models\LmsAssignment;
+use App\Models\LmsAssignmentGroup;
 use App\Models\LmsCourse;
 use App\Models\LmsSubmission;
 use App\Models\Teacher;
@@ -60,6 +61,7 @@ class LmsAssignmentController extends Controller
             'title' => $request->title,
             'description' => $request->description,
             'assignment_type' => $request->assignment_type ?? 'file_text',
+            'is_group_assignment' => $request->boolean('is_group_assignment'),
             'deadline' => $request->due_date,
             'max_score' => $request->max_score,
             'file_path' => $filePath,
@@ -88,8 +90,8 @@ class LmsAssignmentController extends Controller
             \Log::error('LMS assignment notification failed: ' . $e->getMessage());
         }
 
-        return redirect()->route('guru.lms.show', $course->id)
-            ->with('success', 'Tugas berhasil dibuat.');
+        return redirect()->route('guru.lms.assignments.show', $assignment->id)
+            ->with('success', 'Tugas berhasil dibuat.' . ($assignment->isGroupAssignment() ? ' Silakan atur pembagian kelompok di bawah.' : ''));
     }
 
     /**
@@ -119,7 +121,9 @@ class LmsAssignmentController extends Controller
             : null;
 
         // Load submissions, filter by classroom students jika ada filter
-        $submissionsQuery = $assignment->submissions()->with('student.user')->orderByDesc('submitted_at');
+        $submissionsQuery = $assignment->submissions()
+            ->with(['student.user', 'group.members.user', 'group.leader.user'])
+            ->orderByDesc('submitted_at');
 
         if ($selectedClassroomId && $selectedClassroom) {
             // Dapatkan student_id yang ada di rombel ini via enrollments
@@ -127,10 +131,28 @@ class LmsAssignmentController extends Controller
                 $q->where('course_id', $course->id)->where('classroom_id', $selectedClassroomId);
             })->pluck('student_id');
 
-            $submissionsQuery->whereIn('student_id', $enrolledStudentIds);
+            $submissionsQuery->where(function ($q) use ($enrolledStudentIds) {
+                $q->whereIn('student_id', $enrolledStudentIds)
+                  ->orWhereHas('group.members', function ($gq) use ($enrolledStudentIds) {
+                      $gq->whereIn('students.id', $enrolledStudentIds);
+                  });
+            });
         }
 
         $assignment->setRelation('submissions', $submissionsQuery->get());
+
+        // Load groups if group assignment
+        if ($assignment->isGroupAssignment()) {
+            $assignment->load(['groups.leader.user', 'groups.members.user', 'groups.submission.student.user']);
+        }
+
+        // Ambil semua siswa terdaftar untuk pembuatan kelompok manual/otomatis
+        $allEnrolledStudents = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
+            $q->where('course_id', $course->id);
+            if ($selectedClassroomId) {
+                $q->where('classroom_id', $selectedClassroomId);
+            }
+        })->with('student.user')->get()->pluck('student')->filter()->unique('id')->values();
 
         $totalSubmissions = $assignment->submissions->where('status', '!=', 'draft')->count();
         $gradedCount = $assignment->submissions->where('status', 'graded')->count();
@@ -138,7 +160,8 @@ class LmsAssignmentController extends Controller
         return view('guru.lms.assignment-show', compact(
             'teacher', 'course', 'assignment',
             'totalSubmissions', 'gradedCount',
-            'classrooms', 'selectedClassroomId', 'selectedClassroom'
+            'classrooms', 'selectedClassroomId', 'selectedClassroom',
+            'allEnrolledStudents'
         ));
     }
 
@@ -172,6 +195,7 @@ class LmsAssignmentController extends Controller
             'title' => $request->title,
             'description' => $request->description,
             'assignment_type' => $request->assignment_type ?? $assignment->assignment_type,
+            'is_group_assignment' => $request->boolean('is_group_assignment'),
             'deadline' => $request->due_date,
             'max_score' => $request->max_score,
             'allow_resubmit' => $request->boolean('allow_resubmit'),
@@ -190,6 +214,102 @@ class LmsAssignmentController extends Controller
 
         return redirect()->route('guru.lms.assignments.show', $assignment->id)
             ->with('success', 'Tugas berhasil diperbarui.');
+    }
+
+    /**
+     * Store new group for group assignment
+     */
+    public function storeGroup(Request $request, LmsAssignment $assignment)
+    {
+        $teacher = $this->getTeacher();
+        $course = $assignment->course;
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'leader_id' => 'required|exists:students,id',
+            'member_ids' => 'nullable|array',
+            'member_ids.*' => 'exists:students,id',
+        ]);
+
+        $group = $assignment->groups()->create([
+            'name' => $request->name,
+            'leader_id' => $request->leader_id,
+        ]);
+
+        // Sync members (including leader)
+        $memberIds = collect($request->member_ids ?? [])->push($request->leader_id)->unique()->filter()->values()->toArray();
+        $group->members()->sync($memberIds);
+
+        return redirect()->route('guru.lms.assignments.show', $assignment->id)
+            ->with('success', "Kelompok '{$group->name}' berhasil ditambahkan.");
+    }
+
+    /**
+     * Delete a group from assignment
+     */
+    public function deleteGroup(LmsAssignment $assignment, LmsAssignmentGroup $group)
+    {
+        $teacher = $this->getTeacher();
+        $course = $assignment->course;
+        if (!$teacher || !$this->authorizeAccess($course, $teacher) || $group->assignment_id !== $assignment->id) {
+            abort(403);
+        }
+
+        $groupName = $group->name;
+        $group->delete();
+
+        return redirect()->route('guru.lms.assignments.show', $assignment->id)
+            ->with('success', "Kelompok '{$groupName}' berhasil dihapus.");
+    }
+
+    /**
+     * Auto generate groups for assignment from enrolled students
+     */
+    public function autoGenerateGroups(Request $request, LmsAssignment $assignment)
+    {
+        $teacher = $this->getTeacher();
+        $course = $assignment->course;
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        $request->validate([
+            'group_count' => 'required|integer|min:2|max:30',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+        ]);
+
+        $classroomId = $request->classroom_id;
+
+        $students = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $classroomId) {
+            $q->where('course_id', $course->id);
+            if ($classroomId) {
+                $q->where('classroom_id', $classroomId);
+            }
+        })->with('student')->get()->pluck('student')->filter()->unique('id')->values()->shuffle();
+
+        if ($students->isEmpty()) {
+            return redirect()->back()->with('error', 'Tidak ada siswa yang terdaftar untuk dibagi kelompok.');
+        }
+
+        $numGroups = min((int)$request->group_count, $students->count());
+        $chunks = $students->split($numGroups);
+
+        $startIdx = $assignment->groups()->count();
+        foreach ($chunks as $idx => $chunk) {
+            $groupNum = $startIdx + $idx + 1;
+            $leader = $chunk->first();
+            $group = $assignment->groups()->create([
+                'name' => 'Kelompok ' . $groupNum,
+                'leader_id' => $leader->id,
+            ]);
+            $group->members()->sync($chunk->pluck('id')->toArray());
+        }
+
+        return redirect()->route('guru.lms.assignments.show', $assignment->id)
+            ->with('success', "Berhasil membuat {$numGroups} kelompok secara otomatis.");
     }
 
     /**

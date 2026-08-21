@@ -131,6 +131,25 @@ class LmsController extends Controller
             ->get()
             ->keyBy('assignment_id');
 
+        // Map student groups and group submissions for group assignments
+        $studentGroupMap = [];
+        foreach ($course->assignments as $assignment) {
+            if ($assignment->isGroupAssignment()) {
+                $group = $assignment->getStudentGroup($student->id);
+                if ($group) {
+                    $studentGroupMap[$assignment->id] = $group;
+                    // Ambil submission kelompok jika ada
+                    $groupSub = LmsSubmission::where('assignment_id', $assignment->id)
+                        ->where('group_id', $group->id)
+                        ->with('student.user')
+                        ->first();
+                    if ($groupSub) {
+                        $submissionMap[$assignment->id] = $groupSub;
+                    }
+                }
+            }
+        }
+
         // Get student's quiz attempts
         $attemptMap = LmsQuizAttempt::where('student_id', $student->id)
             ->whereIn('quiz_id', $course->quizzes->pluck('id'))
@@ -168,7 +187,7 @@ class LmsController extends Controller
             ->keyBy('material_id');
 
         return view('siswa.lms.show', compact(
-            'student', 'course', 'submissionMap', 'attemptMap', 'gameAttemptMap',
+            'student', 'course', 'submissionMap', 'studentGroupMap', 'attemptMap', 'gameAttemptMap',
             'materialProgressMap', 'courseProgress', 'discussionCount',
             'reactionsMap', 'completedMaterialIds'
         ));
@@ -439,10 +458,23 @@ class LmsController extends Controller
             return redirect()->back()->with('error', 'Gagal mengumpulkan tugas: ' . $errors)->withInput();
         }
 
+        // If this is a group assignment, verify student's group & leadership
+        $group = null;
+        if ($assignment->isGroupAssignment()) {
+            $group = $assignment->getStudentGroup($student->id);
+            if (!$group) {
+                return redirect()->back()->with('error', 'Anda belum terdaftar dalam kelompok manapun pada tugas ini. Silakan hubungi Guru.');
+            }
+            if (!$group->isLeader($student->id)) {
+                $leaderName = $group->leader?->user?->name ?? $group->leader?->full_name ?? 'Ketua Kelompok';
+                return redirect()->back()->with('error', "Pengumpulan tugas kelompok '{$group->name}' hanya dapat dilakukan oleh Ketua Kelompok ({$leaderName}).");
+            }
+        }
+
         // Check if resubmission
-        $existing = LmsSubmission::where('assignment_id', $assignment->id)
-            ->where('student_id', $student->id)
-            ->first();
+        $existing = $assignment->isGroupAssignment()
+            ? LmsSubmission::where('assignment_id', $assignment->id)->where('group_id', $group->id)->first()
+            : LmsSubmission::where('assignment_id', $assignment->id)->where('student_id', $student->id)->first();
 
         if ($existing && $existing->status !== 'draft') {
             // This is a resubmission
@@ -504,9 +536,15 @@ class LmsController extends Controller
         $isLate = $assignment->deadline && now()->isAfter($assignment->deadline);
         $attemptNumber = $existing ? $existing->attempt_number + ($existing->status !== 'draft' ? 1 : 0) : 1;
 
+        $lookup = $assignment->isGroupAssignment()
+            ? ['assignment_id' => $assignment->id, 'group_id' => $group->id]
+            : ['assignment_id' => $assignment->id, 'student_id' => $student->id];
+
         $sub = LmsSubmission::updateOrCreate(
-            ['assignment_id' => $assignment->id, 'student_id' => $student->id],
+            $lookup,
             [
+                'student_id' => $student->id,
+                'group_id' => $assignment->isGroupAssignment() ? $group->id : null,
                 'submission_text' => $request->submission_text,
                 'file_path' => $filePath ?? ($existing ? $existing->file_path : null),
                 'file_size' => $fileSize ?? ($existing ? $existing->file_size : null),

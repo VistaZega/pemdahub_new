@@ -17,6 +17,7 @@ class LmsSubmission extends Model
     protected $fillable = [
         'assignment_id',
         'student_id',
+        'group_id',
         'submission_text',
         'file_path',
         'file_size',
@@ -54,11 +55,19 @@ class LmsSubmission extends Model
     }
 
     /**
-     * Relationship: Submission belongs to Student
+     * Relationship: Submission belongs to Student (who submitted, or group leader)
      */
     public function student()
     {
         return $this->belongsTo(Student::class);
+    }
+
+    /**
+     * Relationship: Submission belongs to Group (if group assignment)
+     */
+    public function group()
+    {
+        return $this->belongsTo(LmsAssignmentGroup::class, 'group_id');
     }
 
     /**

@@ -139,6 +139,9 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::get('/assignments/{assignment}/edit', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'edit'])->name('assignments.edit');
         Route::put('/assignments/{assignment}', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'update'])->name('assignments.update');
         Route::delete('/assignments/{assignment}', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'destroy'])->name('assignments.destroy');
+        Route::post('/assignments/{assignment}/groups', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'storeGroup'])->name('assignments.groups.store');
+        Route::delete('/assignments/{assignment}/groups/{group}', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'deleteGroup'])->name('assignments.groups.destroy');
+        Route::post('/assignments/{assignment}/groups/auto-generate', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'autoGenerateGroups'])->name('assignments.groups.autoGenerate');
         Route::post('/submissions/{submission}/grade', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'grade'])->name('submissions.grade');
         Route::get('/submissions/{submission}/download', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'downloadSubmission'])->name('submissions.download');
 
