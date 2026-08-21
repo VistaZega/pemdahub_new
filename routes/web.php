@@ -1118,6 +1118,39 @@ Route::prefix('mentor')->name('mentor.')->group(function () {
     Route::post('/pkl/{token}/grade', [App\Http\Controllers\PklMentorController::class, 'submitGrade'])->name('pkl.grade.store');
 });
 
+Route::get('/debug-assignment-412', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Unauthorized.');
+    }
+    $assignment = \App\Models\LmsAssignment::find(412);
+    if (!$assignment) {
+        return response()->json(['error' => 'Assignment 412 not found']);
+    }
+    $course = $assignment->course;
+    $ctrl = app(\App\Http\Controllers\Guru\LmsAssignmentController::class);
+    $refMethod = new \ReflectionMethod($ctrl, 'getEnrolledStudentsForCourse');
+    $refMethod->setAccessible(true);
+    $students = $refMethod->invoke($ctrl, $course);
+    
+    return response()->json([
+        'assignment_id' => $assignment->id,
+        'assignment_title' => $assignment->title,
+        'is_group_assignment' => $assignment->is_group_assignment,
+        'course_id' => $course->id,
+        'course_name' => $course->course_name,
+        'school_id' => $course->school_id,
+        'classroom_id' => $course->classroom_id,
+        'lms_classes' => $course->lmsClasses,
+        'students_count' => $students->count(),
+        'students' => $students->map(fn($s) => [
+            'id' => $s->id,
+            'name' => $s->user->name ?? $s->full_name,
+            'nisn' => $s->nisn,
+            'school_id' => $s->school_id,
+        ]),
+    ]);
+});
+
 Route::get('/run-migrations', function () {
     if (request('secret') !== 'pembda99') {
         abort(403, 'Unauthorized.');
@@ -1126,6 +1159,9 @@ Route::get('/run-migrations', function () {
         echo "<pre style='background:#111; color:#0f0; padding:20px; border-radius:10px; font-size:14px; font-family:monospace;'>";
         echo "<h1>=== RUNNING DATABASE MIGRATIONS ===</h1>\n";
         
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+
         $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $output = \Illuminate\Support\Facades\Artisan::output();
         
