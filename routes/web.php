@@ -1125,6 +1125,44 @@ Route::get('/debug-zega-classes', function () {
     $assignment = \App\Models\LmsAssignment::find(412);
     $course = $assignment->course;
 
+    // 1. Update Course 313 to point to Classroom 370 (XI Teknik Rekayasa DPIB, TAV)
+    $c370 = \App\Models\Classroom::find(370);
+    $course->update([
+        'classroom_id' => 370,
+        'school_id' => 7,
+    ]);
+
+    // 2. Update or create LmsClass for Classroom 370
+    $lmsClass = \App\Models\LmsClass::firstOrCreate([
+        'course_id' => $course->id,
+        'classroom_id' => 370,
+    ], [
+        'school_id' => 7,
+        'status' => 'active',
+    ]);
+
+    // Hapus LmsClass 369 jika ada
+    \App\Models\LmsClass::where('course_id', $course->id)->where('classroom_id', '!=', 370)->delete();
+
+    // 3. Ambil 28 student ID dari Classroom 370
+    $validStudentIds = \App\Models\StudentClass::where('classroom_id', 370)->pluck('student_id')->toArray();
+
+    // 4. Bersihkan LmsEnrollment di luar 28 siswa ini untuk Course 313
+    \App\Models\LmsEnrollment::where('lms_class_id', $lmsClass->id)
+        ->whereNotIn('student_id', $validStudentIds)
+        ->delete();
+
+    // 5. Daftarkan tepat 28 siswa ini
+    foreach ($validStudentIds as $sid) {
+        \App\Models\LmsEnrollment::firstOrCreate([
+            'lms_class_id' => $lmsClass->id,
+            'student_id' => $sid,
+        ], [
+            'status' => 'enrolled',
+            'enrolled_at' => now(),
+        ]);
+    }
+
     $ctrl = app(\App\Http\Controllers\Guru\LmsAssignmentController::class);
     $refMethod = new \ReflectionMethod($ctrl, 'getEnrolledStudentsForCourse');
     $refMethod->setAccessible(true);
