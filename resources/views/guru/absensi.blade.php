@@ -410,7 +410,7 @@
 
                                             {{-- Catatan / Keterangan --}}
                                             <td class="px-4 py-3">
-                                                <input type="text" name="notes[{{ $st->id }}]" value="{{ $att->notes ?? '' }}" 
+                                                <input type="text" name="notes[{{ $st->id }}]" value="{{ $att?->notes ?? '' }}" 
                                                     placeholder="Contoh: Surat dokter, izin keluarga..." 
                                                     class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none">
                                             </td>
@@ -566,7 +566,7 @@
 
                                             {{-- Catatan --}}
                                             <td class="px-4 py-3 text-xs text-slate-600">
-                                                {{ $att->notes ?: '—' }}
+                                                {{ $att?->notes ?: '—' }}
                                             </td>
                                         </tr>
                                     @empty
