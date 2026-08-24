@@ -626,6 +626,9 @@
     <!-- Mathematical & Science Symbols Toolbar & Formula Palette Modal -->
     @include('partials.math-toolbar-modal')
 
+    <!-- Form Upload Guard & Session Keepalive -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
         // ═════════════════════════════════════════════════════════════════
         // FORM UPLOAD GUARD & SESSION KEEPALIVE (Mencegah Error 419)
         // ═════════════════════════════════════════════════════════════════
