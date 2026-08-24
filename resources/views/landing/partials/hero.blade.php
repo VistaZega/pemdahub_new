@@ -1,372 +1,214 @@
-{{-- HERO SECTION — Impeccable Next-Gen Split Bento Design --}}
+{{-- HERO SECTION — Bold Indigo Theme --}}
 <style>
-    .hero-container {
-        position: relative;
-        overflow: hidden;
-        min-height: 92vh;
-        display: flex;
-        align-items: center;
-        padding-top: 130px;
-        padding-bottom: 90px;
-        background: radial-gradient(1200px circle at 50% 10%, #1e1b4b 0%, #0f172a 70%, #090d16 100%);
-    }
-
-    .hero-mesh-glow {
-        position: absolute;
-        top: -20%;
-        left: 20%;
-        width: 60vw;
-        height: 60vw;
-        max-width: 900px;
-        max-height: 900px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(245, 158, 11, 0.08) 45%, transparent 70%);
-        filter: blur(80px);
-        pointer-events: none;
-        z-index: 0;
-    }
-
-    .hero-split-grid {
-        display: grid;
-        grid-template-columns: 1.15fr 0.85fr;
-        gap: 48px;
-        align-items: center;
-        position: relative;
-        z-index: 1;
-    }
-
-    @media (max-width: 1100px) {
-        .hero-split-grid {
-            grid-template-columns: 1fr;
-            text-align: center;
-            gap: 40px;
-        }
-        .hero-cta-group, .hero-stat-row {
-            justify-content: center !important;
-        }
-    }
-
-    /* Badge */
-    .hero-pill-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 20px;
-        border-radius: 100px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1.5px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(16px);
-        font-size: 13px;
-        font-weight: 700;
-        color: #ffffff;
-        margin-bottom: 24px;
-    }
-
-    .hero-title-main {
-        font-size: clamp(36px, 4.5vw, 62px);
-        font-weight: 900;
-        line-height: 1.12;
-        letter-spacing: -0.03em;
-        color: #ffffff;
-        margin-bottom: 20px;
-    }
-
-    .hero-title-gradient {
-        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fcd34d 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .hero-desc-text {
-        font-size: 17px;
-        line-height: 1.75;
-        color: #cbd5e1;
-        font-weight: 500;
-        max-width: 620px;
-        margin-bottom: 36px;
-    }
-
-    @media (max-width: 1100px) {
-        .hero-desc-text {
-            margin-left: auto;
-            margin-right: auto;
-        }
-    }
-
-    .hero-cta-group {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-        margin-bottom: 44px;
-    }
-
-    /* Live Trust Stats Bar */
-    .hero-stat-row {
-        display: flex;
-        align-items: center;
-        gap: 28px;
-        flex-wrap: wrap;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
-        padding-top: 24px;
-    }
-
-    .hero-stat-box {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .hero-stat-num {
-        font-size: 26px;
-        font-weight: 900;
-        color: #fbbf24;
-        line-height: 1.1;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .hero-stat-title {
-        font-size: 12px;
-        font-weight: 700;
-        color: #94a3b8;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    /* Right Glassmorphism App Console Showcase */
-    .hero-console-card {
-        background: rgba(15, 23, 42, 0.85);
-        border: 1.5px solid rgba(255, 255, 255, 0.18);
-        border-radius: 28px;
-        padding: 24px;
-        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 40px rgba(99, 102, 241, 0.15);
-        backdrop-filter: blur(20px);
-        transition: var(--transition-smooth);
-        position: relative;
-    }
-
-    .hero-console-card:hover {
-        border-color: rgba(99, 102, 241, 0.45);
-        transform: translateY(-4px);
-        box-shadow: 0 35px 70px -15px rgba(0, 0, 0, 0.7), 0 0 50px rgba(99, 102, 241, 0.25);
-    }
-
-    .console-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-bottom: 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        margin-bottom: 20px;
-    }
-
-    .console-dots {
-        display: flex;
-        gap: 7px;
-    }
-
-    .console-dot {
-        width: 11px;
-        height: 11px;
-        border-radius: 50%;
-    }
-
-    .console-bento-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-    }
-
-    .console-tile {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 18px;
-        padding: 18px;
-        transition: var(--transition-smooth);
-        text-align: left;
-    }
-
-    .console-tile:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.25);
-        transform: translateY(-2px);
-    }
-
-    .console-tile.tile-wide {
-        grid-column: span 2;
-    }
-
-    .console-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 12px;
+    .hero-card-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.15);
         display: flex;
         align-items: center;
         justify-content: center;
+        margin-bottom: 14px;
+        font-size: 20px;
+        color: #fff;
+    }
+    .hero-card-title {
         font-size: 17px;
-        margin-bottom: 12px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 8px;
+        letter-spacing: -0.01em;
+    }
+    .hero-card-desc {
+        font-size: 13.5px;
+        color: rgba(255,255,255,0.92);
+        line-height: 1.6;
+        font-weight: 500;
+    }
+    .live-stat-strip {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        margin-top: 52px;
+        flex-wrap: wrap;
+    }
+    .live-stat-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 28px;
+        background: rgba(255,255,255,0.08);
+        border: 1.5px solid rgba(255,255,255,0.18);
+        border-radius: 100px;
+        backdrop-filter: blur(12px);
+        transition: var(--transition-smooth);
+    }
+    .live-stat-item:hover {
+        background: rgba(255,255,255,0.15);
+        border-color: rgba(255,255,255,0.35);
+        transform: translateY(-2px);
+    }
+    .live-stat-val {
+        font-size: 26px;
+        font-weight: 900;
+        color: var(--gold-bright);
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+    }
+    .live-stat-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #ffffff;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+    @media (max-width: 768px) {
+        .hero-cards-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        .live-stat-strip { gap: 16px; }
+        .live-stat-item { padding: 10px 16px; }
+    }
+    @media (max-width: 480px) {
+        .hero-cards-grid { grid-template-columns: 1fr !important; }
     }
 </style>
 
-<section id="beranda" class="hero-container">
-    {{-- Ambient Lighting --}}
-    <div class="hero-mesh-glow"></div>
+<section id="beranda" class="hero-section">
+    {{-- Background elements --}}
+    <div class="hero-grid"></div>
+    <div class="hero-glow-1"></div>
+    <div class="hero-glow-2"></div>
+    <div class="hero-glow-3"></div>
+    {{-- Animated rings --}}
+    <div class="hero-ring" style="width:300px; height:300px; top:10%; left:2%; animation-delay:0s;"></div>
+    <div class="hero-ring" style="width:500px; height:500px; top:5%; left:-5%; animation-delay:2s; border-color:rgba(245,158,11,0.04);"></div>
+    <div class="hero-ring" style="width:200px; height:200px; bottom:15%; right:10%; animation-delay:3s;"></div>
 
-    <div class="fw">
-        <div class="hero-split-grid">
-            
-            {{-- LEFT COLUMN: Powerful Brand & Narrative --}}
-            <div data-aos="fade-right">
-                
-                {{-- Status Pill --}}
-                <div class="hero-pill-badge">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block" style="width:9px; height:9px; background:#10b981; border-radius:50%;"></span>
-                    <span>Ekosistem Digital Terpadu TP. 2026/2027</span>
-                </div>
+    {{-- Floating particles --}}
+    <div class="particle-container" style="position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0;">
+        <div class="particle" style="width: 8px; height: 8px; left: 10%; animation-delay: 0s; animation-duration: 12s;"></div>
+        <div class="particle" style="width: 6px; height: 6px; left: 25%; animation-delay: 2s; animation-duration: 16s;"></div>
+        <div class="particle" style="width: 10px; height: 10px; left: 40%; animation-delay: 4s; animation-duration: 14s;"></div>
+        <div class="particle" style="width: 5px; height: 5px; left: 55%; animation-delay: 1s; animation-duration: 18s;"></div>
+        <div class="particle" style="width: 7px; height: 7px; left: 70%; animation-delay: 5s; animation-duration: 13s;"></div>
+        <div class="particle" style="width: 9px; height: 9px; left: 85%; animation-delay: 3s; animation-duration: 15s;"></div>
+    </div>
 
-                {{-- Headline --}}
-                <h1 class="hero-title-main">
-                    Sistem Manajemen Sekolah Cerdas <br>
-                    <span class="hero-title-gradient">Perguruan PEMBDA Nias</span>
-                </h1>
+    <div class="fw" style="width:100%; position:relative; z-index:1;">
+        {{-- Main headline --}}
+        <div data-aos="fade-up" style="text-align:center; margin-bottom:60px;">
 
-                {{-- Subtitle --}}
-                <p class="hero-desc-text">
-                    Satu platform terintegrasi yang menyatukan tata kelola akademik, presensi RFID biometrik, LMS interaktif, CBT, dan keuangan untuk <strong class="text-white font-bold" style="color:#ffffff;">SMAS Pembda 1</strong>, <strong class="text-white font-bold" style="color:#ffffff;">SMPS Pembda 2</strong>, dan <strong class="text-white font-bold" style="color:#ffffff;">SMKS Pembda Nias</strong>.
-                </p>
+            {{-- Badge --}}
+            <div class="badge" style="margin-bottom:28px;">
+                <div class="pulse" style="background:#10b981;"></div>
+                <span>Ekosistem Pendidikan Digital Terpadu</span>
+            </div>
 
-                {{-- CTA Action Group --}}
-                <div class="hero-cta-group">
+            {{-- Main Title --}}
+            <h1 class="display" style="margin-bottom:16px; color:#ffffff;">
+                Pembda<span style="color:#ef4444; -webkit-text-fill-color:#ef4444;">HUB</span>
+            </h1>
+
+            {{-- Red underline decoration --}}
+            <div style="width:120px; height:4px; background:linear-gradient(90deg, #ef4444, #f87171, #ef4444); border-radius:2px; margin: 0 auto 28px; opacity:0.9;"></div>
+
+            <p class="body-lg" style="max-width:760px; margin:0 auto 14px; font-size:22px; color:#ffffff; min-height: 66px; line-height: 1.4; font-weight:700;">
+                Dimana Teknologi Bertemu Pendidikan Berkualitas:<br>
+                <span class="typewriter-text" style="color:#fbbf24; font-weight:900; border-right: 2px solid #fbbf24; padding-right: 5px;"></span><span class="typewriter-cursor" style="border-right: 2px solid #fbbf24;"></span>
+            </p>
+            <p style="max-width:680px; margin:0 auto 36px; font-size:16px; color:rgba(255,255,255,0.85); line-height:1.75; font-weight:500;">
+                Menghubungkan <strong style="color:#ffffff; font-weight:800;">{{ $totalSchools }} unit sekolah</strong>,
+                <strong style="color:#ffffff; font-weight:800;">{{ number_format($totalStudents, 0, ',', '.') }} siswa aktif</strong>,
+                dan ratusan pendidik dalam satu platform pintar tanpa batas.
+            </p>
+
+            {{-- CTA Buttons --}}
+            <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
+                @if(isset($activeWave) && $activeWave)
+                <a href="{{ route('public.registration.index') }}" class="btn btn-gold">
+                    <i class="fa-solid fa-user-plus"></i> Bergabung Bersama Kami
+                </a>
+                <a href="#platform" class="btn btn-ghost-white">
+                    <i class="fa-solid fa-arrow-down"></i> Eksplorasi Ekosistem
+                </a>
+                @else
                     @auth
                     <a href="{{ route('dashboard') }}" class="btn btn-gold">
                         <i class="fa-solid fa-gauge-high"></i> Buka Dashboard
                     </a>
                     @else
-                        @if(isset($activeWave) && $activeWave)
-                        <a href="{{ route('public.registration.index') }}" class="btn btn-gold">
-                            <i class="fa-solid fa-user-plus"></i> Daftar PSB Sekarang
-                        </a>
-                        @else
-                        <a href="{{ route('login') }}" class="btn btn-gold">
-                            <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Portal
-                        </a>
-                        @endif
+                    <a href="{{ route('login') }}" class="btn btn-gold">
+                        <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Portal
+                    </a>
                     @endauth
-
                     <a href="#platform" class="btn btn-ghost-white">
                         <i class="fa-solid fa-compass"></i> Eksplorasi Ekosistem
                     </a>
-                </div>
-
-                {{-- Real-time Stats Strip --}}
-                <div class="hero-stat-row">
-                    <div class="hero-stat-box">
-                        <span class="hero-stat-num" data-count="{{ $totalStudents }}">{{ number_format($totalStudents, 0, ',', '.') }}</span>
-                        <span class="hero-stat-title">Siswa Aktif</span>
-                    </div>
-                    <div style="width:1px; height:32px; background:rgba(255,255,255,0.15);"></div>
-                    <div class="hero-stat-box">
-                        <span class="hero-stat-num" data-count="{{ $totalTeachers }}">{{ $totalTeachers }}</span>
-                        <span class="hero-stat-title">Tenaga Pendidik</span>
-                    </div>
-                    <div style="width:1px; height:32px; background:rgba(255,255,255,0.15);"></div>
-                    <div class="hero-stat-box">
-                        <span class="hero-stat-num">{{ $totalSchools }}</span>
-                        <span class="hero-stat-title">Unit Sekolah</span>
-                    </div>
-                    <div style="width:1px; height:32px; background:rgba(255,255,255,0.15);"></div>
-                    <div class="hero-stat-box">
-                        <span class="hero-stat-num">5</span>
-                        <span class="hero-stat-title">Jurusan SMK</span>
-                    </div>
-                </div>
+                @endif
             </div>
 
-            {{-- RIGHT COLUMN: Next-Gen Bento Console UI Preview --}}
-            <div data-aos="fade-left" data-aos-delay="150">
-                <div class="hero-console-card">
-                    
-                    {{-- Console Window Bar --}}
-                    <div class="console-header">
-                        <div class="console-dots">
-                            <span class="console-dot" style="background:#ef4444;"></span>
-                            <span class="console-dot" style="background:#f59e0b;"></span>
-                            <span class="console-dot" style="background:#10b981;"></span>
-                        </div>
-                        <div style="font-size:11px; font-weight:800; color:#94a3b8; letter-spacing:0.06em; text-transform:uppercase;">
-                            <i class="fa-solid fa-shield-halved" style="color:#6366f1; margin-right:4px;"></i> PembdaHUB Core Console
-                        </div>
-                        <div style="display:inline-flex; align-items:center; gap:5px; background:rgba(16,185,129,0.15); color:#34d399; font-size:10px; font-weight:800; padding:3px 10px; border-radius:100px;">
-                            <span style="width:6px; height:6px; background:#10b981; border-radius:50%;"></span> ONLINE
-                        </div>
-                    </div>
-
-                    {{-- Bento Showcase Grid --}}
-                    <div class="console-bento-grid">
-                        
-                        {{-- Tile 1: 3 Unit Sekolah Terpadu (Wide) --}}
-                        <div class="console-tile tile-wide">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-                                <div style="display:flex; align-items:center; gap:10px;">
-                                    <div class="console-icon" style="background:rgba(99,102,241,0.2); color:#818cf8; margin-bottom:0;">
-                                        <i class="fa-solid fa-school"></i>
-                                    </div>
-                                    <div>
-                                        <div style="font-size:14.5px; font-weight:800; color:#ffffff;">3 Unit Sekolah Terpadu</div>
-                                        <div style="font-size:11px; color:#94a3b8; font-weight:600;">Pendidikan Dasar & Vokasi</div>
-                                    </div>
-                                </div>
-                                <span style="background:rgba(99,102,241,0.25); color:#c7d2fe; font-size:10.5px; font-weight:800; padding:4px 10px; border-radius:8px;">Terpusat</span>
-                            </div>
-                            
-                            {{-- Mini Unit Tags --}}
-                            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
-                                <div style="background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.3); padding:8px; border-radius:10px; text-align:center;">
-                                    <div style="font-size:12px; font-weight:800; color:#93c5fd;">SMAS 1</div>
-                                    <div style="font-size:9.5px; color:#bfdbfe; font-weight:600;">Akademik</div>
-                                </div>
-                                <div style="background:rgba(5,150,105,0.15); border:1px solid rgba(5,150,105,0.3); padding:8px; border-radius:10px; text-align:center;">
-                                    <div style="font-size:12px; font-weight:800; color:#6ee7b7;">SMPS 2</div>
-                                    <div style="font-size:9.5px; color:#a7f3d0; font-weight:600;">Karakter</div>
-                                </div>
-                                <div style="background:rgba(217,119,6,0.15); border:1px solid rgba(217,119,6,0.3); padding:8px; border-radius:10px; text-align:center;">
-                                    <div style="font-size:12px; font-weight:800; color:#fde047;">SMKS</div>
-                                    <div style="font-size:9.5px; color:#fef08a; font-weight:600;">5 Kejuruan</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Tile 2: Presensi RFID & Notifikasi --}}
-                        <div class="console-tile">
-                            <div class="console-icon" style="background:rgba(16,185,129,0.2); color:#34d399;">
-                                <i class="fa-solid fa-id-card-clip"></i>
-                            </div>
-                            <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:4px;">Presensi RFID</div>
-                            <div style="font-size:11.5px; color:#94a3b8; line-height:1.5; font-weight:500;">Tap instan kartu siswa & guru dengan rekap otomatis.</div>
-                        </div>
-
-                        {{-- Tile 3: LMS & CBT Interaktif --}}
-                        <div class="console-tile">
-                            <div class="console-icon" style="background:rgba(245,158,11,0.2); color:#fbbf24;">
-                                <i class="fa-solid fa-laptop-code"></i>
-                            </div>
-                            <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:4px;">LMS &amp; CBT</div>
-                            <div style="font-size:11.5px; color:#94a3b8; line-height:1.5; font-weight:500;">Bank soal, ujian aman, dan modul pembelajaran.</div>
-                        </div>
-
-                    </div>
-
-                    {{-- Footer Mini Alert --}}
-                    <div style="margin-top:16px; background:rgba(255,255,255,0.03); border:1px dashed rgba(255,255,255,0.12); padding:10px 14px; border-radius:12px; display:flex; align-items:center; justify-content:space-between;">
-                        <span style="font-size:11.5px; color:#cbd5e1; font-weight:600;">
-                            <i class="fa-solid fa-circle-nodes" style="color:#6366f1; margin-right:6px;"></i> Akses Guru, Siswa &amp; Orang Tua
-                        </span>
-                        <a href="{{ route('login') }}" style="font-size:11px; font-weight:800; color:#fbbf24; text-decoration:none;">Masuk &rarr;</a>
-                    </div>
-
+            {{-- Live Stat Strip --}}
+            <div class="live-stat-strip" data-aos="fade-up" data-aos-delay="150">
+                <div class="live-stat-item">
+                    <div class="live-stat-val" data-count="{{ $totalStudents }}">0</div>
+                    <div class="live-stat-label">Siswa Aktif</div>
+                </div>
+                <div class="live-stat-item">
+                    <div class="live-stat-val" data-count="{{ $totalTeachers }}">0</div>
+                    <div class="live-stat-label">Tenaga Pendidik</div>
+                </div>
+                <div class="live-stat-item">
+                    <div class="live-stat-val" data-count="{{ $totalAlumni }}">0</div>
+                    <div class="live-stat-label">Alumni Terdata</div>
                 </div>
             </div>
+        </div>
 
+        {{-- Hero Feature Cards - Vibrant Solid Colors --}}
+        <div class="hero-cards-grid" data-aos="fade-up" data-aos-delay="250" style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; max-width:1680px; margin:0 auto;">
+
+            {{-- Card 1: Multi-Akses --}}
+            <div class="hero-card hero-card-blue shimmer-card">
+                <div class="hero-card-icon">
+                    <i class="fa-solid fa-users-between-lines"></i>
+                </div>
+                <div class="hero-card-title">Portal Kolaboratif</div>
+                <p class="hero-card-desc">Akses terdedikasi dan terpisah untuk Siswa, Guru, dan Orang Tua.</p>
+            </div>
+
+            {{-- Card 2: 3 Unit Sekolah --}}
+            <div class="hero-card hero-card-emerald shimmer-card">
+                <div class="hero-card-icon">
+                    <i class="fa-solid fa-school-flag"></i>
+                </div>
+                <div class="hero-card-title">Terintegrasi Penuh</div>
+                <p class="hero-card-desc">Sinergi antara SMP, SMA, dan SMK dalam satu manajemen terpusat.</p>
+            </div>
+
+            {{-- Card 3: Smart System --}}
+            <div class="hero-card hero-card-gold shimmer-card">
+                <div class="hero-card-icon">
+                    <i class="fa-solid fa-microchip"></i>
+                </div>
+                <div class="hero-card-title">Otomasi Cerdas</div>
+                <p class="hero-card-desc">Modul cerdas LMS, CBT, serta instrumen presensi RFID biometrik.</p>
+            </div>
+
+            {{-- Card 4: Real-time --}}
+            <div class="hero-card hero-card-coral shimmer-card">
+                <div class="hero-card-icon">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div class="hero-card-title">Analitik Otomatis</div>
+                <p class="hero-card-desc">Pemantauan progres nilai harian dan dashboard performa sekolah.</p>
+            </div>
         </div>
     </div>
 </section>
+
+{{-- Wave transition from hero to content --}}
+<div class="wave-top">
+    <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <path d="M0,30 C360,60 1080,0 1440,30 L1440,0 L0,0 Z"/>
+    </svg>
+</div>
