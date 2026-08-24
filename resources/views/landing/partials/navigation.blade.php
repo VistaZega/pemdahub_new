@@ -1,247 +1,206 @@
-{{-- NAVIGATION — Khan Academy Authentic Navbar --}}
+{{-- NAVIGATION — Prestigious Campus & Modern School Style --}}
 <style>
-    .khan-navbar {
+    .campus-navbar {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         z-index: 100;
-        height: 68px;
-        background: #ffffff;
+        height: 74px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         border-bottom: 1px solid #e2e8f0;
         display: flex;
         align-items: center;
-        transition: box-shadow 0.25s ease;
+        transition: all 0.3s ease;
     }
 
-    .khan-navbar.scrolled {
-        box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+    .campus-navbar.scrolled {
+        height: 66px;
+        background: #ffffff;
+        box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
+        border-bottom-color: #cbd5e1;
     }
 
-    .khan-nav-inner {
+    .campus-nav-inner {
         width: 100%;
         max-width: 1680px;
         margin: 0 auto;
-        padding: 0 28px;
+        padding: 0 32px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 20px;
     }
 
-    /* Left: Explore & Search */
-    .khan-nav-left {
+    @media (max-width: 768px) {
+        .campus-nav-inner {
+            padding: 0 20px;
+        }
+    }
+
+    /* Brand Logo */
+    .campus-brand {
         display: flex;
         align-items: center;
         gap: 14px;
-        flex: 1;
+        text-decoration: none;
     }
 
-    .khan-explore-btn {
-        display: inline-flex;
+    .campus-brand-logo {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        padding: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .campus-brand-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .campus-brand-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .campus-brand-name {
+        font-size: 17px;
+        font-weight: 900;
+        color: #0f172a;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+    }
+
+    .campus-brand-name span {
+        color: #2563eb;
+    }
+
+    .campus-brand-sub {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        letter-spacing: 0.02em;
+    }
+
+    /* Center Nav Links */
+    .campus-nav-links {
+        display: flex;
         align-items: center;
         gap: 6px;
+    }
+
+    .campus-nav-link {
         font-size: 14.5px;
         font-weight: 700;
-        color: #1865f2;
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        padding: 8px 12px;
-        border-radius: 8px;
-        transition: background 0.2s;
+        color: #334155;
         text-decoration: none;
-    }
-
-    .khan-explore-btn:hover {
-        background: #f0f4ff;
-    }
-
-    .khan-search-bar {
-        position: relative;
-        width: 100%;
-        max-width: 240px;
-    }
-
-    .khan-search-input {
-        width: 100%;
-        height: 40px;
-        background: #f0f4f8;
-        border: 1px solid #e2e8f0;
+        padding: 8px 16px;
         border-radius: 10px;
-        padding: 0 16px 0 38px;
-        font-size: 13.5px;
-        font-weight: 500;
-        color: #0f172a;
-        outline: none;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
     }
 
-    .khan-search-input:focus {
-        background: #ffffff;
-        border-color: #1865f2;
-        box-shadow: 0 0 0 3px rgba(24, 101, 242, 0.15);
+    .campus-nav-link:hover {
+        color: #2563eb;
+        background: #eff6ff;
     }
 
-    .khan-search-icon {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #64748b;
-        font-size: 14px;
-        pointer-events: none;
-    }
-
-    /* Center: Brand Logo */
-    .khan-nav-center {
+    /* Right Action Button */
+    .campus-nav-actions {
         display: flex;
         align-items: center;
-        justify-content: center;
-        text-decoration: none;
+        gap: 12px;
     }
 
-    .khan-brand-logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: #0b2149;
-        font-weight: 900;
-        font-size: 20px;
-        letter-spacing: -0.02em;
-    }
-
-    .khan-brand-logo span {
-        color: #1865f2;
-    }
-
-    .khan-logo-badge {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        background: #f0fdf4;
-        border: 1.5px solid #86efac;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #10b981;
-        font-size: 18px;
-    }
-
-    /* Right: Actions */
-    .khan-nav-right {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 16px;
-        flex: 1;
-    }
-
-    .khan-nav-link {
-        font-size: 14px;
-        font-weight: 700;
-        color: #1865f2;
-        text-decoration: none;
-        padding: 8px 12px;
-        border-radius: 8px;
-        transition: background 0.2s;
-    }
-
-    .khan-nav-link:hover {
-        background: #f0f4ff;
-    }
-
-    .khan-btn-signup {
-        background: #1865f2;
+    .campus-btn-login {
+        background: #1e3a8a;
         color: #ffffff !important;
         font-size: 14px;
         font-weight: 800;
-        padding: 9px 20px;
-        border-radius: 10px;
+        padding: 10px 22px;
+        border-radius: 12px;
         text-decoration: none;
-        border: none;
-        cursor: pointer;
-        transition: background 0.2s, transform 0.2s;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
+        box-shadow: 0 4px 14px rgba(30, 58, 138, 0.25);
+        transition: all 0.25s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .khan-btn-signup:hover {
-        background: #144bc8;
-        transform: translateY(-1px);
+    .campus-btn-login:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(37, 99, 235, 0.35);
     }
 
-    /* Mobile toggle */
-    .khan-mobile-btn {
+    .campus-mobile-btn {
         display: none;
         background: none;
         border: none;
-        font-size: 20px;
-        color: #0b2149;
+        font-size: 22px;
+        color: #0f172a;
         cursor: pointer;
         padding: 6px;
     }
 
-    @media (max-width: 960px) {
-        .khan-search-bar, .khan-nav-right .khan-nav-link {
+    @media (max-width: 1024px) {
+        .campus-nav-links {
             display: none;
         }
-        .khan-mobile-btn {
+        .campus-mobile-btn {
             display: block;
         }
     }
 </style>
 
-<nav class="khan-navbar" id="navbar">
-    <div class="khan-nav-inner">
+<nav class="campus-navbar" id="navbar">
+    <div class="campus-nav-inner">
         
-        {{-- Left: Explore & Search --}}
-        <div class="khan-nav-left">
-            <a href="#sekolah" class="khan-explore-btn">
-                <span>Jelajahi</span>
-                <i class="fa-solid fa-chevron-down" style="font-size: 11px;"></i>
-            </a>
-            <div class="khan-search-bar">
-                <i class="fa-solid fa-magnifying-glass khan-search-icon"></i>
-                <input type="text" class="khan-search-input" placeholder="Cari materi, guru, jurusan..." id="navSearchInput" onkeydown="if(event.key==='Enter'){ window.location.href='#sekolah'; }">
+        {{-- Brand Logo --}}
+        <a href="{{ route('home') }}" class="campus-brand">
+            <div class="campus-brand-logo">
+                <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Perguruan PEMBDA Nias"
+                     onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'color:#1e3a8a; font-size:20px;\'></i>';">
             </div>
-        </div>
-
-        {{-- Center: Khan Academy Styled Brand Logo --}}
-        <a href="{{ route('home') }}" class="khan-nav-center">
-            <div class="khan-brand-logo">
-                <div class="khan-logo-badge">
-                    <i class="fa-solid fa-seedling"></i>
-                </div>
-                <div>Perguruan <span>PEMBDA</span></div>
+            <div class="campus-brand-info">
+                <div class="campus-brand-name">Perguruan <span>PEMBDA</span> Nias</div>
+                <div class="campus-brand-sub">Yayasan Pendidikan Sejak 1970 • 3 Unit Sekolah</div>
             </div>
         </a>
 
-        {{-- Right: Direct Actions --}}
-        <div class="khan-nav-right">
+        {{-- Navigation Menu --}}
+        <div class="campus-nav-links">
+            <a href="#beranda" class="campus-nav-link">Beranda</a>
+            <a href="#sekolah" class="campus-nav-link">3 Unit Sekolah</a>
+            <a href="#features" class="campus-nav-link">Keunggulan KBM</a>
+            <a href="#prestasi" class="campus-nav-link">Prestasi Siswa</a>
+            <a href="#berita" class="campus-nav-link">Berita &amp; Artikel</a>
+            <a href="#kontak" class="campus-nav-link">Hubungi Kami</a>
+        </div>
+
+        {{-- Right CTA Actions --}}
+        <div class="campus-nav-actions">
             @auth
-                <a href="{{ route('dashboard') }}" class="khan-btn-signup">
+                <a href="{{ route('dashboard') }}" class="campus-btn-login">
                     <i class="fa-solid fa-gauge-high"></i> Dashboard
                 </a>
             @else
-                <a href="{{ route('public.registration.check') }}" class="khan-nav-link" style="color:#64748b;">
+                <a href="{{ route('public.registration.check') }}" class="campus-nav-link" style="color:#64748b; font-size:13.5px;" title="Cek Status Pendaftaran">
                     Cek PSB
                 </a>
-                <a href="{{ route('login') }}" class="khan-nav-link">
-                    Masuk
+                <a href="{{ route('login') }}" class="campus-btn-login">
+                    <i class="fa-solid fa-right-to-bracket"></i> Masuk Portal
                 </a>
-                @if(isset($activeWave) && $activeWave)
-                    <a href="{{ route('public.registration.index') }}" class="khan-btn-signup">
-                        Daftar PSB
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" class="khan-btn-signup">
-                        Masuk Portal
-                    </a>
-                @endif
             @endauth
-            <button class="khan-mobile-btn" id="mobile-menu-btn">
+            <button class="campus-mobile-btn" id="mobile-menu-btn">
                 <i class="fa-solid fa-bars"></i>
             </button>
         </div>
@@ -253,19 +212,18 @@
 <div class="mobile-overlay" id="mobile-overlay">
     <button class="mobile-close" id="mobile-close"><i class="fa-solid fa-xmark"></i></button>
     <a href="#beranda">Beranda</a>
-    <a href="#features">Fitur Platform</a>
-    <a href="#profil">Profil Yayasan</a>
     <a href="#sekolah">3 Unit Sekolah</a>
-    <a href="#program">Program Unggulan</a>
+    <a href="#features">Keunggulan KBM</a>
+    <a href="#prestasi">Prestasi Siswa</a>
     <a href="#berita">Berita &amp; Artikel</a>
-    <a href="#kontak">Kontak</a>
+    <a href="#kontak">Hubungi Kami</a>
     <div style="margin-top:24px; display:flex; flex-direction:column; align-items:center; gap:12px;">
         @auth
-            <a href="{{ route('dashboard') }}" class="khan-btn-signup" style="padding:12px 32px; font-size:16px;">
+            <a href="{{ route('dashboard') }}" class="campus-btn-login" style="padding:12px 32px; font-size:16px;">
                 <i class="fa-solid fa-gauge-high"></i> Dashboard
             </a>
         @else
-            <a href="{{ route('login') }}" class="khan-btn-signup" style="padding:12px 32px; font-size:16px;">
+            <a href="{{ route('login') }}" class="campus-btn-login" style="padding:12px 32px; font-size:16px;">
                 <i class="fa-solid fa-right-to-bracket"></i> Masuk Portal
             </a>
         @endauth
