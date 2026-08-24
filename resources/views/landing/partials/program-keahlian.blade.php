@@ -1,178 +1,307 @@
+{{-- PROGRAM KEAHLIAN — Modern, Clean & Non-Rigid Bento Design --}}
 <style>
+    .program-section {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        padding: 85px 0 95px 0;
+        position: relative;
+    }
+
     .program-grid-4 {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
+        gap: 24px;
     }
-    @media (max-width: 1024px) {
+
+    @media (max-width: 1200px) {
         .program-grid-4 {
             grid-template-columns: repeat(2, 1fr);
             gap: 20px;
         }
     }
+
     @media (max-width: 640px) {
         .program-grid-4 {
             grid-template-columns: 1fr;
-            gap: 16px;
+            gap: 18px;
         }
+    }
+
+    .program-card {
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 28px 24px;
+        box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.05);
+        transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .program-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.12);
+        border-color: #cbd5e1;
+    }
+
+    .program-card-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 22px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .program-icon-box {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .program-title {
+        font-size: 18px;
+        font-weight: 900;
+        color: #0f172a;
+        margin-bottom: 4px;
+        letter-spacing: -0.02em;
+    }
+
+    .program-badge {
+        font-size: 11px;
+        font-weight: 800;
+        padding: 3px 10px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .subprogram-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .subprogram-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px 16px;
+        transition: all 0.2s ease;
+    }
+
+    .subprogram-item:hover {
+        background: #ffffff;
+        border-color: #93c5fd;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06);
+    }
+
+    .subprogram-name {
+        font-size: 14px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .subprogram-desc {
+        font-size: 12px;
+        font-weight: 500;
+        color: #64748b;
+        line-height: 1.5;
+    }
+
+    .program-card-footer {
+        padding-top: 14px;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        font-weight: 800;
     }
 </style>
 
-{{-- PROGRAM KEAHLIAN — Full-Width Screen Enlarged Edition --}}
-<section id="program" class="section" style="background: var(--bg); padding: 80px 0; width: 100%;">
-    <div style="width: 100%; max-width: 1680px; margin: 0 auto; padding: 0 32px;">
+<section id="program" class="program-section">
+    <div class="fw">
         
         {{-- Section Header --}}
         <div style="text-align: center; max-width: 800px; margin: 0 auto 56px;" data-aos="fade-up">
-            <div style="display: inline-flex; align-items: center; gap: 8px; background: #000000; color: #fbbf24; font-size: 12px; font-weight: 900; padding: 7px 18px; border-radius: 20px; border: 2px solid #000000; text-transform: uppercase; margin-bottom: 16px; box-shadow: 3px 3px 0 #fbbf24;">
-                <i class="fa-solid fa-bolt" style="color: #fbbf24;"></i> Program Keahlian Unggulan
+            <div class="section-label" style="justify-content: center; margin-bottom: 14px;">
+                <div class="section-label-dot" style="background: #d97706;"></div>
+                <span class="section-label-text" style="color: #b45309;">Pendidikan Vokasi Terpadu</span>
             </div>
-            <h2 style="font-size: 36px; font-weight: 900; color: #000000; letter-spacing: -0.5px; margin-bottom: 14px;">
-                Program Keahlian <span style="color: var(--indigo);">SMKS Pembda Nias</span>
+            
+            <h2 class="h1" style="font-size: clamp(30px, 4vw, 44px); font-weight: 900; color: #0f172a; letter-spacing: -0.025em; margin-bottom: 14px;">
+                Konsentrasi Keahlian <span style="background: linear-gradient(135deg, #d97706, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">SMKS Pembda Nias</span>
             </h2>
-            <p style="font-size: 16px; color: var(--text-secondary); font-weight: 600; line-height: 1.6;">
-                Mencetak lulusan berketerampilan tinggi, siap kerja, dan berdaya saing global di bidang teknik dan teknologi digital.
+            
+            <p class="body-lg" style="color: #475569; max-width: 700px; margin: 0 auto;">
+                Mencetak lulusan terampil, bersertifikasi keahlian, siap kerja langsung di dunia industri (DUDI), dan berdaya saing global di bidang rekayasa teknik dan teknologi informasi.
             </p>
         </div>
 
-        {{-- Full-Width Grid Showcase (Enlarged Cards) --}}
+        {{-- 4 Modern Bento Program Cards --}}
         <div class="program-grid-4" data-aos="fade-up" data-aos-delay="100">
             
-            {{-- 1. Teknik Otomotif (Vibrant Rose Red) --}}
-            <div style="background: linear-gradient(135deg, #e11d48, #be123c); border: 3.5px solid #000000; border-radius: 32px; padding: 26px 20px; color: #ffffff; box-shadow: 10px 10px 0 #000000; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between;" 
-                 onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='14px 14px 0 #000000';" 
-                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='10px 10px 0 #000000';">
-                
+            {{-- 1. TEKNIK OTOMOTIF --}}
+            <div class="program-card">
                 <div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; border-bottom: 2.5px solid rgba(0,0,0,0.3); padding-bottom: 18px;">
-                        <div style="display: flex; align-items: center; gap: 16px;">
-                            <div style="width: 56px; height: 56px; background: #fbbf24; border: 3px solid #000000; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #000000; box-shadow: 3px 3px 0 #000;">
-                                <i class="fa-solid fa-car"></i>
-                            </div>
-                            <div>
-                                <h3 style="font-size: 21px; font-weight: 900; color: #ffffff; margin: 0;">Teknik Otomotif</h3>
-                                <span style="font-size: 12px; font-weight: 800; color: #fecdd3;">2 Konsentrasi Unggulan</span>
-                            </div>
+                    <div class="program-card-header">
+                        <div class="program-icon-box" style="background: #fff1f2; color: #e11d48;">
+                            <i class="fa-solid fa-car-side"></i>
+                        </div>
+                        <div>
+                            <h3 class="program-title">Teknik Otomotif</h3>
+                            <span class="program-badge" style="background: #ffe4e6; color: #be123c;">2 Konsentrasi</span>
                         </div>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 14px;">
-                        <div style="background: #ffffff; color: #000000; border: 2.5px solid #000000; border-radius: 18px; padding: 14px 18px; display: flex; align-items: flex-start; gap: 14px; box-shadow: 2px 2px 0 #000;">
-                            <div style="width: 36px; height: 36px; background: #fff1f2; border: 2px solid #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #e11d48; font-size: 16px; shrink: 0;">
-                                <i class="fa-solid fa-truck-pickup"></i>
+                    <div class="subprogram-list">
+                        <div class="subprogram-item">
+                            <div class="subprogram-name">
+                                <i class="fa-solid fa-truck-pickup" style="color: #e11d48; font-size: 13px;"></i>
+                                <span>Teknik Kendaraan Ringan (TKR)</span>
                             </div>
-                            <div>
-                                <div style="font-weight: 900; font-size: 14px; color: #000000;">Teknik Kendaraan Ringan (TKR)</div>
-                                <div style="font-size: 12px; font-weight: 700; color: #475569;">Perawatan & perbaikan mesin mobil roda empat</div>
-                            </div>
+                            <div class="subprogram-desc">Perawatan, overhaul mesin, sistem kelistrikan, &amp; diagnostik mobil roda empat modern.</div>
                         </div>
 
-                        <div style="background: #ffffff; color: #000000; border: 2.5px solid #000000; border-radius: 18px; padding: 14px 18px; display: flex; align-items: flex-start; gap: 14px; box-shadow: 2px 2px 0 #000;">
-                            <div style="width: 36px; height: 36px; background: #fff1f2; border: 2px solid #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #e11d48; font-size: 16px; shrink: 0;">
-                                <i class="fa-solid fa-motorcycle"></i>
+                        <div class="subprogram-item">
+                            <div class="subprogram-name">
+                                <i class="fa-solid fa-motorcycle" style="color: #e11d48; font-size: 13px;"></i>
+                                <span>Teknik Sepeda Motor (TBSM)</span>
                             </div>
-                            <div>
-                                <div style="font-weight: 900; font-size: 14px; color: #000000;">Teknik Sepeda Motor (TSM)</div>
-                                <div style="font-size: 12px; font-weight: 700; color: #475569;">Perawatan, servis & sistem injeksi sepeda motor</div>
-                            </div>
+                            <div class="subprogram-desc">Servis berkala, sistem transmisi otomatis, &amp; teknologi injeksi motor terkini.</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {{-- 2. Teknik Elektronika (Vibrant Indigo Purple) --}}
-            <div style="background: linear-gradient(135deg, #4f46e5, #3730a3); border: 3.5px solid #000000; border-radius: 32px; padding: 26px 20px; color: #ffffff; box-shadow: 10px 10px 0 #000000; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between;" 
-                 onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='14px 14px 0 #000000';" 
-                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='10px 10px 0 #000000';">
-                
-                <div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; border-bottom: 2.5px solid rgba(0,0,0,0.3); padding-bottom: 18px;">
-                        <div style="display: flex; align-items: center; gap: 16px;">
-                            <div style="width: 56px; height: 56px; background: #38bdf8; border: 3px solid #000000; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #000000; box-shadow: 3px 3px 0 #000;">
-                                <i class="fa-solid fa-tv"></i>
-                            </div>
-                            <div>
-                                <h3 style="font-size: 21px; font-weight: 900; color: #ffffff; margin: 0;">Teknik Elektronika</h3>
-                                <span style="font-size: 12px; font-weight: 800; color: #c7d2fe;">1 Konsentrasi Unggulan</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 14px;">
-                        <div style="background: #ffffff; color: #000000; border: 2.5px solid #000000; border-radius: 18px; padding: 14px 18px; display: flex; align-items: flex-start; gap: 14px; box-shadow: 2px 2px 0 #000;">
-                            <div style="width: 36px; height: 36px; background: #e0e7ff; border: 2px solid #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #4338ca; font-size: 16px; shrink: 0;">
-                                <i class="fa-solid fa-volume-high"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 900; font-size: 14px; color: #000000;">Teknik Audio Video</div>
-                                <div style="font-size: 12px; font-weight: 700; color: #475569;">Instalasi, perbaikan & pemrosesan perangkat sistem audio-video</div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="program-card-footer">
+                    <span style="color: #059669;"><i class="fa-solid fa-circle-check"></i> Bengkel Praktik Standar</span>
+                    <span style="color: #e11d48;">Siap Kerja &rarr;</span>
                 </div>
             </div>
 
-            {{-- 3. Teknik Jaringan (Vibrant Teal Emerald) --}}
-            <div style="background: linear-gradient(135deg, #0d9488, #0f766e); border: 3.5px solid #000000; border-radius: 32px; padding: 26px 20px; color: #ffffff; box-shadow: 10px 10px 0 #000000; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between;" 
-                 onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='14px 14px 0 #000000';" 
-                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='10px 10px 0 #000000';">
-                
+            {{-- 2. TEKNIK KOMPUTER & INFORMATIKA --}}
+            <div class="program-card">
                 <div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; border-bottom: 2.5px solid rgba(0,0,0,0.3); padding-bottom: 18px;">
-                        <div style="display: flex; align-items: center; gap: 16px;">
-                            <div style="width: 56px; height: 56px; background: #a7f3d0; border: 3px solid #000000; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #000000; box-shadow: 3px 3px 0 #000;">
-                                <i class="fa-solid fa-network-wired"></i>
-                            </div>
-                            <div>
-                                <h3 style="font-size: 20px; font-weight: 900; color: #ffffff; margin: 0;">Teknik Jaringan & IT</h3>
-                                <span style="font-size: 12px; font-weight: 800; color: #99f6e4;">1 Konsentrasi Unggulan</span>
-                            </div>
+                    <div class="program-card-header">
+                        <div class="program-icon-box" style="background: #eff6ff; color: #2563eb;">
+                            <i class="fa-solid fa-laptop-code"></i>
+                        </div>
+                        <div>
+                            <h3 class="program-title">Teknologi Informasi</h3>
+                            <span class="program-badge" style="background: #dbeafe; color: #1d4ed8;">2 Konsentrasi</span>
                         </div>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 14px;">
-                        <div style="background: #ffffff; color: #000000; border: 2.5px solid #000000; border-radius: 18px; padding: 14px 18px; display: flex; align-items: flex-start; gap: 14px; box-shadow: 2px 2px 0 #000;">
-                            <div style="width: 36px; height: 36px; background: #ccfbf1; border: 2px solid #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #0f766e; font-size: 16px; shrink: 0;">
-                                <i class="fa-solid fa-server"></i>
+                    <div class="subprogram-list">
+                        <div class="subprogram-item">
+                            <div class="subprogram-name">
+                                <i class="fa-solid fa-code" style="color: #2563eb; font-size: 13px;"></i>
+                                <span>Rekayasa Perangkat Lunak (RPL)</span>
                             </div>
-                            <div>
-                                <div style="font-weight: 900; font-size: 14px; color: #000000;">Teknik Komputer & Jaringan (TKJ)</div>
-                                <div style="font-size: 12px; font-weight: 700; color: #475569;">Pengelolaan server, jaringan fiber optic, & infrastruktur IT digital</div>
+                            <div class="subprogram-desc">Pemrograman web modern, aplikasi mobile, manajemen basis data, &amp; UI/UX design.</div>
+                        </div>
+
+                        <div class="subprogram-item">
+                            <div class="subprogram-name">
+                                <i class="fa-solid fa-network-wired" style="color: #2563eb; font-size: 13px;"></i>
+                                <span>Teknik Komputer &amp; Jaringan (TKJ)</span>
                             </div>
+                            <div class="subprogram-desc">Administrasi server, instalasi jaringan fiber optic, routing, &amp; keamanan siber.</div>
                         </div>
                     </div>
                 </div>
+
+                <div class="program-card-footer">
+                    <span style="color: #059669;"><i class="fa-solid fa-circle-check"></i> Lab Komputer Canggih</span>
+                    <span style="color: #2563eb;">Digital Talent &rarr;</span>
+                </div>
             </div>
 
-            {{-- 4. Teknik Konstruksi & DPIB (Vibrant Golden Amber) --}}
-            <div style="background: linear-gradient(135deg, #fbbf24, #d97706); border: 3.5px solid #000000; border-radius: 32px; padding: 26px 20px; color: #000000; box-shadow: 10px 10px 0 #000000; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between;" 
-                 onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='14px 14px 0 #000000';" 
-                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='10px 10px 0 #000000';">
-                
+            {{-- 3. TEKNIK ALAT BERAT & ELEKTRONIKA --}}
+            <div class="program-card">
                 <div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; border-bottom: 2.5px solid #000000; padding-bottom: 18px;">
-                        <div style="display: flex; align-items: center; gap: 16px;">
-                            <div style="width: 56px; height: 56px; background: #000000; border: 3px solid #000000; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fbbf24; box-shadow: 3px 3px 0 #fff;">
-                                <i class="fa-solid fa-building"></i>
-                            </div>
-                            <div>
-                                <h3 style="font-size: 20px; font-weight: 900; color: #000000; margin: 0;">Teknik Konstruksi & Properti</h3>
-                                <span style="font-size: 12px; font-weight: 800; color: #78350f;">1 Konsentrasi Unggulan</span>
-                            </div>
+                    <div class="program-card-header">
+                        <div class="program-icon-box" style="background: #f5f3ff; color: #7c3aed;">
+                            <i class="fa-solid fa-gears"></i>
+                        </div>
+                        <div>
+                            <h3 class="program-title">Alat Berat &amp; Audio Video</h3>
+                            <span class="program-badge" style="background: #ede9fe; color: #6d28d9;">Vokasi Khusus</span>
                         </div>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 14px;">
-                        <div style="background: #ffffff; color: #000000; border: 2.5px solid #000000; border-radius: 18px; padding: 14px 18px; display: flex; align-items: flex-start; gap: 14px; box-shadow: 2px 2px 0 #000;">
-                            <div style="width: 36px; height: 36px; background: #fef3c7; border: 2px solid #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #b45309; font-size: 16px; shrink: 0;">
-                                <i class="fa-solid fa-drafting-compass"></i>
+                    <div class="subprogram-list">
+                        <div class="subprogram-item">
+                            <div class="subprogram-name">
+                                <i class="fa-solid fa-tractor" style="color: #7c3aed; font-size: 13px;"></i>
+                                <span>Teknik Alat Berat (TAB)</span>
                             </div>
-                            <div>
-                                <div style="font-weight: 900; font-size: 14px; color: #000000;">Desain Pemodelan Bangunan (DPIB)</div>
-                                <div style="font-size: 12px; font-weight: 700; color: #475569;">Desain arsitektur, CAD 3D, & pemodelan gedung digital</div>
+                            <div class="subprogram-desc">Pemeliharaan sistem hidrolik, diesel industri, transmisi, &amp; alat berat konstruksi.</div>
+                        </div>
+
+                        <div class="subprogram-item">
+                            <div class="subprogram-name">
+                                <i class="fa-solid fa-volume-high" style="color: #7c3aed; font-size: 13px;"></i>
+                                <span>Teknik Audio Video (TAV)</span>
                             </div>
+                            <div class="subprogram-desc">Instalasi, kalibrasi sistem elektro-akustik, &amp; pemeliharaan perangkat penyiaran digital.</div>
                         </div>
                     </div>
+                </div>
+
+                <div class="program-card-footer">
+                    <span style="color: #059669;"><i class="fa-solid fa-circle-check"></i> Praktik Terpadu</span>
+                    <span style="color: #7c3aed;">Ahli Mesin &rarr;</span>
+                </div>
+            </div>
+
+            {{-- 4. TEKNIK KONSTRUKSI & DPIB --}}
+            <div class="program-card">
+                <div>
+                    <div class="program-card-header">
+                        <div class="program-icon-box" style="background: #fffbeb; color: #d97706;">
+                            <i class="fa-solid fa-compass-drafting"></i>
+                        </div>
+                        <div>
+                            <h3 class="program-title">Konstruksi &amp; Desain</h3>
+                            <span class="program-badge" style="background: #fef3c7; color: #b45309;">Arsitektur CAD</span>
+                        </div>
+                    </div>
+
+                    <div class="subprogram-list">
+                        <div class="subprogram-item">
+                            <div class="subprogram-name">
+                                <i class="fa-solid fa-building" style="color: #d97706; font-size: 13px;"></i>
+                                <span>Desain Pemodelan Bangunan (DPIB)</span>
+                            </div>
+                            <div class="subprogram-desc">Perancangan arsitektur digital, gambar teknik CAD 2D/3D, BIM, &amp; perhitungan RAB gedung.</div>
+                        </div>
+
+                        <div class="subprogram-item">
+                            <div class="subprogram-name">
+                                <i class="fa-solid fa-helmet-safety" style="color: #d97706; font-size: 13px;"></i>
+                                <span>Manajemen Konstruksi Lapangan</span>
+                            </div>
+                            <div class="subprogram-desc">Penerapan K3 konstruksi, pengawasan struktur, serta estimasi material bangunan.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="program-card-footer">
+                    <span style="color: #059669;"><i class="fa-solid fa-circle-check"></i> Studio Desain CAD</span>
+                    <span style="color: #d97706;">Arsitek Muda &rarr;</span>
                 </div>
             </div>
 
