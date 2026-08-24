@@ -13,55 +13,53 @@
         color: #fff;
     }
     .hero-card-title {
-        font-size: 17px;
+        font-size: 16px;
         font-weight: 800;
-        color: #ffffff;
-        margin-bottom: 8px;
+        color: #fff;
+        margin-bottom: 6px;
         letter-spacing: -0.01em;
     }
     .hero-card-desc {
-        font-size: 13.5px;
-        color: rgba(255,255,255,0.92);
-        line-height: 1.6;
-        font-weight: 500;
+        font-size: 13px;
+        color: rgba(255,255,255,0.75);
+        line-height: 1.5;
     }
     .live-stat-strip {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 24px;
-        margin-top: 52px;
+        gap: 32px;
+        margin-top: 48px;
         flex-wrap: wrap;
     }
     .live-stat-item {
         display: flex;
         align-items: center;
-        gap: 14px;
-        padding: 14px 28px;
-        background: rgba(255,255,255,0.08);
-        border: 1.5px solid rgba(255,255,255,0.18);
+        gap: 12px;
+        padding: 12px 24px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
         border-radius: 100px;
-        backdrop-filter: blur(12px);
+        backdrop-filter: blur(8px);
         transition: var(--transition-smooth);
     }
     .live-stat-item:hover {
-        background: rgba(255,255,255,0.15);
-        border-color: rgba(255,255,255,0.35);
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.2);
         transform: translateY(-2px);
     }
     .live-stat-val {
-        font-size: 26px;
-        font-weight: 900;
+        font-size: 24px;
+        font-weight: 800;
         color: var(--gold-bright);
         line-height: 1;
-        font-variant-numeric: tabular-nums;
     }
     .live-stat-label {
-        font-size: 13px;
-        font-weight: 700;
-        color: #ffffff;
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.8);
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.05em;
     }
     @media (max-width: 768px) {
         .hero-cards-grid { grid-template-columns: repeat(2, 1fr) !important; }
@@ -112,13 +110,13 @@
             {{-- Red underline decoration --}}
             <div style="width:120px; height:4px; background:linear-gradient(90deg, #ef4444, #f87171, #ef4444); border-radius:2px; margin: 0 auto 28px; opacity:0.9;"></div>
 
-            <p class="body-lg" style="max-width:760px; margin:0 auto 14px; font-size:22px; color:#ffffff; min-height: 66px; line-height: 1.4; font-weight:700;">
+            <p class="body-lg" style="max-width:720px; margin:0 auto 14px; font-size:22px; color:rgba(255,255,255,0.92); min-height: 66px; line-height: 1.4;">
                 Dimana Teknologi Bertemu Pendidikan Berkualitas:<br>
-                <span class="typewriter-text" style="color:#fbbf24; font-weight:900; border-right: 2px solid #fbbf24; padding-right: 5px;"></span><span class="typewriter-cursor" style="border-right: 2px solid #fbbf24;"></span>
+                <span class="typewriter-text" style="color:#fbbf24; font-weight:800; border-right: 2px solid #fbbf24; padding-right: 5px;"></span><span class="typewriter-cursor" style="border-right: 2px solid #fbbf24;"></span>
             </p>
-            <p style="max-width:680px; margin:0 auto 36px; font-size:16px; color:rgba(255,255,255,0.85); line-height:1.75; font-weight:500;">
-                Menghubungkan <strong style="color:#ffffff; font-weight:800;">{{ $totalSchools }} unit sekolah</strong>,
-                <strong style="color:#ffffff; font-weight:800;">{{ number_format($totalStudents, 0, ',', '.') }} siswa aktif</strong>,
+            <p style="max-width:640px; margin:0 auto 32px; font-size:16px; color:rgba(255,255,255,0.6); line-height:1.7;">
+                Menghubungkan <strong style="color:rgba(255,255,255,0.85);">{{ $totalSchools }} unit sekolah</strong>,
+                <strong style="color:rgba(255,255,255,0.85);">{{ number_format($totalStudents, 0, ',', '.') }} siswa aktif</strong>,
                 dan ratusan pendidik dalam satu platform pintar tanpa batas.
             </p>
 

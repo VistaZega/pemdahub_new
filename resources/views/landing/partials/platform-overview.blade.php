@@ -47,30 +47,30 @@
         {{-- Three Pillars --}}
         <div class="bento bento-3" style="max-width:1680px; margin:0 auto;" data-aos="fade-up" data-aos-delay="100">
             {{-- Pillar 1: Administrasi --}}
-            <div class="bcard" style="text-align:center; padding:44px 32px;">
-                <div class="icon-circle pillar-icon" style="background:#eff6ff; color:#2563eb; width:68px; height:68px; border-radius:20px; font-size:30px; margin-bottom:24px; box-shadow:0 4px 16px rgba(37,99,235,0.15);">
+            <div class="bcard" style="text-align:center; padding:36px 28px;">
+                <div class="icon-circle pillar-icon" style="background:var(--blue-bg); color:var(--blue);">
                     <i class="fa-solid fa-building-columns"></i>
                 </div>
-                <h3 class="h3" style="margin-bottom:12px; font-size:19px; font-weight:800; color:#0f172a;">Administrasi &amp; Kepegawaian</h3>
-                <p class="body" style="font-size:14.5px; line-height:1.65; color:#334155; font-weight:500;">Data pegawai, jabatan, surat-menyurat, presensi RFID guru, dan pengelolaan SDM yayasan terintegrasi.</p>
+                <h3 class="h3" style="margin-bottom:8px; font-size:17px;">Administrasi &amp; Kepegawaian</h3>
+                <p class="body" style="font-size:13px;">Data pegawai, jabatan, surat-menyurat, dan pengelolaan SDM terintegrasi.</p>
             </div>
 
             {{-- Pillar 2: Keuangan --}}
-            <div class="bcard" style="text-align:center; padding:44px 32px;">
-                <div class="icon-circle pillar-icon" style="background:#ecfdf5; color:#059669; width:68px; height:68px; border-radius:20px; font-size:30px; margin-bottom:24px; box-shadow:0 4px 16px rgba(5,150,105,0.15);">
+            <div class="bcard" style="text-align:center; padding:36px 28px;">
+                <div class="icon-circle pillar-icon" style="background:var(--emerald-bg); color:var(--emerald);">
                     <i class="fa-solid fa-coins"></i>
                 </div>
-                <h3 class="h3" style="margin-bottom:12px; font-size:19px; font-weight:800; color:#0f172a;">Keuangan &amp; SPP</h3>
-                <p class="body" style="font-size:14.5px; line-height:1.65; color:#334155; font-weight:500;">Pembayaran SPP digital, kwitansi online, laporan keuangan yayasan, dan rekap tagihan otomatis real-time.</p>
+                <h3 class="h3" style="margin-bottom:8px; font-size:17px;">Keuangan</h3>
+                <p class="body" style="font-size:13px;">Pembayaran SPP, tagihan digital, laporan keuangan, dan rekap otomatis.</p>
             </div>
 
             {{-- Pillar 3: Akademik --}}
-            <div class="bcard" style="text-align:center; padding:44px 32px;">
-                <div class="icon-circle pillar-icon" style="background:#f5f3ff; color:#7c3aed; width:68px; height:68px; border-radius:20px; font-size:30px; margin-bottom:24px; box-shadow:0 4px 16px rgba(124,58,237,0.15);">
+            <div class="bcard" style="text-align:center; padding:36px 28px;">
+                <div class="icon-circle pillar-icon" style="background:var(--violet-bg); color:var(--violet);">
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
-                <h3 class="h3" style="margin-bottom:12px; font-size:19px; font-weight:800; color:#0f172a;">Akademik, LMS &amp; CBT</h3>
-                <p class="body" style="font-size:14.5px; line-height:1.65; color:#334155; font-weight:500;">Pembelajaran digital, ujian online CBT, penjadwalan kelas, jurnal mengajar, dan monitoring rapor siswa.</p>
+                <h3 class="h3" style="margin-bottom:8px; font-size:17px;">Akademik</h3>
+                <p class="body" style="font-size:13px;">Pembelajaran, penilaian, penjadwalan, dan monitoring perkembangan siswa.</p>
             </div>
         </div>
 

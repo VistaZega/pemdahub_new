@@ -44,41 +44,39 @@
                     }
                 @endphp
                 
-                <div class="bcard unit-card" style="padding:0; overflow:hidden;">
-                    <div class="unit-header" style="background:{{ $bgHeader }}; padding:32px 28px; position:relative; overflow:hidden; border-radius:18px 18px 0 0;">
-                        <div style="position:absolute; top:-15px; right:-15px; width:90px; height:90px; border-radius:50%; background:rgba(255,255,255,0.12);"></div>
-                        <i class="{{ $iconClass }}" style="font-size:44px; color:#ffffff; position:relative; z-index:1;"></i>
+                <div class="bcard unit-card">
+                    <div class="unit-header" style="background:{{ $bgHeader }};">
+                        <div style="position:absolute; top:-15px; right:-15px; width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,0.08);"></div>
+                        <i class="{{ $iconClass }}" style="font-size:48px; color:rgba(255,255,255,0.85);"></i>
                     </div>
                     
-                    <div style="padding:28px 28px 24px;">
-                        <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
-                            <span class="feature-pill" style="background:{{ $pillBg }}; color:{{ $pillColor }}; font-weight:800; font-size:12px; padding:6px 14px; border-radius:8px;">
-                                {{ $school->type }} Swasta
-                            </span>
-                            @if($school->npsn)
-                            <span class="feature-pill" style="background:#f1f5f9; color:#334155; font-weight:700; font-size:12px; padding:6px 14px; border-radius:8px; border:1px solid #cbd5e1;">
-                                NPSN: {{ $school->npsn }}
-                            </span>
-                            @endif
+                    <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+                        <span class="feature-pill" style="background:{{ $pillBg }}; color:{{ $pillColor }};">
+                            {{ $school->type }} Swasta
+                        </span>
+                        @if($school->npsn)
+                        <span class="feature-pill" style="background:var(--bg); color:var(--text-secondary); border: 1px solid var(--border);">
+                            NPSN: {{ $school->npsn }}
+                        </span>
+                        @endif
+                    </div>
+                    
+                    <h3 class="h3" style="margin-bottom:8px;">{{ $school->name }}</h3>
+                    <p class="body" style="margin-bottom: 20px;">{{ $school->psb_description ?: $defaultDesc }}</p>
+                    
+                    {{-- Realtime Stats Line --}}
+                    <div style="display:flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 16px;">
+                        <div style="text-align:center;">
+                            <div style="font-size:18px; font-weight:800; color:var(--text-primary);">{{ number_format($school->students_count ?? 0, 0, ',', '.') }}</div>
+                            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); text-transform:uppercase;">Siswa</div>
                         </div>
-                        
-                        <h3 class="h3" style="margin-bottom:10px; font-size:20px; font-weight:900; color:#0f172a;">{{ $school->name }}</h3>
-                        <p class="body" style="margin-bottom:24px; font-size:14px; line-height:1.65; color:#334155; font-weight:500;">{{ $school->psb_description ?: $defaultDesc }}</p>
-                        
-                        {{-- Realtime Stats Line --}}
-                        <div style="display:flex; justify-content:space-between; border-top:1px solid #e2e8f0; padding-top:18px; margin-top:auto;">
-                            <div style="text-align:center;">
-                                <div style="font-size:20px; font-weight:900; color:#0f172a; font-variant-numeric:tabular-nums;">{{ number_format($school->students_count ?? 0, 0, ',', '.') }}</div>
-                                <div style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em;">Siswa Aktif</div>
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-size:20px; font-weight:900; color:#0f172a; font-variant-numeric:tabular-nums;">{{ $school->teachers_count ?? 0 }}</div>
-                                <div style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em;">Tenaga Guru</div>
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-size:20px; font-weight:900; color:#0f172a; font-variant-numeric:tabular-nums;">{{ $school->classrooms_count ?? 0 }}</div>
-                                <div style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em;">Rombel Kelas</div>
-                            </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:18px; font-weight:800; color:var(--text-primary);">{{ $school->teachers_count ?? 0 }}</div>
+                            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); text-transform:uppercase;">Guru</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:18px; font-weight:800; color:var(--text-primary);">{{ $school->classrooms_count ?? 0 }}</div>
+                            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); text-transform:uppercase;">Kelas</div>
                         </div>
                     </div>
                 </div>
