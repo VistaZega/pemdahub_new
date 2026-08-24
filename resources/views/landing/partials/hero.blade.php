@@ -61,6 +61,27 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
+    .hero-photo-backdrop {
+        position: absolute;
+        inset: 0;
+        background-image: url('{{ asset('images/hero-pembda-assembly.jpg') }}');
+        background-size: cover;
+        background-position: center 30%;
+        background-repeat: no-repeat;
+        opacity: 0.22;
+        filter: saturate(110%) contrast(110%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .hero-photo-gradient-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(30, 27, 75, 0.72) 0%, rgba(30, 27, 75, 0.82) 45%, rgba(15, 23, 42, 0.95) 100%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
     @media (max-width: 768px) {
         .hero-cards-grid { grid-template-columns: repeat(2, 1fr) !important; }
         .live-stat-strip { gap: 16px; }
@@ -72,6 +93,10 @@
 </style>
 
 <section id="beranda" class="hero-section">
+    {{-- Authentic School Courtyard Assembly Photo Backdrop --}}
+    <div class="hero-photo-backdrop"></div>
+    <div class="hero-photo-gradient-overlay"></div>
+
     {{-- Background elements --}}
     <div class="hero-grid"></div>
     <div class="hero-glow-1"></div>
