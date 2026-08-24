@@ -85,25 +85,47 @@
     .nav-cta-actions {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 12px;
     }
     .nav-cta {
-        padding: 10px 22px !important;
-        font-size: 13px !important;
+        padding: 12px 24px !important;
+        font-size: 14px !important;
+        font-weight: 800 !important;
         border-radius: 12px !important;
+        letter-spacing: -0.01em;
+    }
+    .nav-link {
+        padding: 8px 16px !important;
+        border-radius: 10px;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        color: rgba(255, 255, 255, 0.88) !important;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .nav-link:hover {
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.15) !important;
     }
     .mobile-login-link {
-        font-size: 18px !important;
-        font-weight: 600 !important;
-        color: rgba(255,255,255,0.7) !important;
-        border: 1.5px solid rgba(255,255,255,0.15);
-        padding: 12px 36px !important;
-        border-radius: 14px;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1.5px solid rgba(255, 255, 255, 0.25);
+        padding: 14px 36px !important;
+        border-radius: 16px;
         transition: all 0.25s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        max-width: 240px;
     }
     .mobile-login-link:hover {
         color: #fff !important;
-        background: rgba(255,255,255,0.1);
-        border-color: rgba(255,255,255,0.3);
+        background: rgba(255, 255, 255, 0.18);
+        border-color: rgba(255, 255, 255, 0.5);
     }
 </style>

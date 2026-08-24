@@ -72,24 +72,26 @@
     color: var(--emerald, #10b981);
 }
 .pkl-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: var(--text-primary, #0f0d2e);
+    font-size: clamp(2rem, 3.5vw, 2.75rem);
+    font-weight: 900;
+    color: #0f172a;
     margin: 0 0 0.75rem 0;
     line-height: 1.2;
+    letter-spacing: -0.02em;
 }
 .pkl-title span {
-    background: linear-gradient(135deg, var(--indigo, #6366f1), var(--emerald, #10b981));
+    background: linear-gradient(135deg, #4338ca, #059669);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 .pkl-subtitle {
     font-size: 1.1rem;
-    color: var(--text-secondary, #5b6478);
+    color: #334155;
     max-width: 640px;
     margin: 0 auto;
-    line-height: 1.7;
+    line-height: 1.75;
+    font-weight: 500;
 }
 
 /* Stats Bar */
@@ -101,42 +103,44 @@
     margin: 0 auto 3rem;
 }
 .pkl-stat-card {
-    background: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.95);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(224,221,247,0.6);
-    border-radius: 16px;
-    padding: 1.25rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 1.5rem 1rem;
     text-align: center;
-    transition: all 0.3s ease;
+    transition: var(--transition-smooth);
+    box-shadow: 0 4px 16px rgba(15,23,42,0.04);
 }
 .pkl-stat-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 24px -8px rgba(99,102,241,0.15);
-    border-color: rgba(99,102,241,0.3);
+    box-shadow: 0 12px 24px -8px rgba(99,102,241,0.18);
+    border-color: rgba(99,102,241,0.35);
 }
 .pkl-stat-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 20px;
     margin-bottom: 0.75rem;
 }
 .pkl-stat-number {
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: var(--text-primary, #0f0d2e);
+    font-size: 2rem;
+    font-weight: 900;
+    color: #0f172a;
     line-height: 1;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.35rem;
+    font-variant-numeric: tabular-nums;
 }
 .pkl-stat-label {
     font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-secondary, #5b6478);
+    font-weight: 700;
+    color: #475569;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
 }
 
 /* Carousel Container */
