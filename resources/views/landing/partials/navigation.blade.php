@@ -5,10 +5,10 @@
             <a href="{{ route('home') }}" class="nav-brand">
                 <div class="nav-logo">
                     <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo" style="width:100%; height:100%; object-fit:contain; padding:4px;"
-                         onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'color:#fff; font-size:18px;\'></i>';">
+                         onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'color:#2563eb; font-size:18px;\'></i>';">
                 </div>
                 <div class="nav-brand-text">
-                    <div class="nav-brand-name" style="color:#ffffff; font-weight:900;">Pembda<span style="color:#ef4444; font-weight:900;">HUB</span></div>
+                    <div class="nav-brand-name" style="color:#0f172a; font-weight:900;">Pembda<span style="color:#ef4444; font-weight:900;">HUB</span></div>
                     <div class="nav-brand-sub">Smart School Management</div>
                 </div>
             </a>
