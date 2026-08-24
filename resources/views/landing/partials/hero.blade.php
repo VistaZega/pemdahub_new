@@ -8,7 +8,7 @@
         align-items: center;
         padding-top: 140px;
         padding-bottom: 90px;
-        background: var(--bg-hero, linear-gradient(135deg, #ffffff 0%, #f0fdf4 30%, #eff6ff 65%, #fefce8 100%));
+        background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 30%, #eff6ff 65%, #fefce8 100%);
     }
 
     .hero-sun-glow {
@@ -83,7 +83,7 @@
     }
 
     .hero-title-gradient {
-        background: var(--primary-gradient, linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%));
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;

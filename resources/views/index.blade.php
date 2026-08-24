@@ -35,14 +35,31 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
     <style>
-        {!! \App\Services\ThemeService::generateCssVariables() !!}
-
         :root {
-            /* Radius & Global Structural Tokens */
+            /* === BOLD INDIGO & HIGH-CONTRAST DESIGN SYSTEM === */
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #0f172a; /* Slate 900 - Deep, Crisp & Clear */
+            --text-secondary: #334155; /* Slate 700 - Highly Legible */
+            --text-muted: #64748b; /* Slate 500 - Never washed out */
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
             --radius: 20px;
             --radius-sm: 14px;
             --shadow-card: 0 4px 20px -2px rgba(15,23,42,0.06), 0 2px 6px -1px rgba(15,23,42,0.04);
             --shadow-hover: 0 20px 40px -15px rgba(79,46,209,0.20);
+
+            /* Brand - Indigo family */
+            --indigo: #4338ca;
+            --indigo-dark: #0f172a;
+            --indigo-mid: #312e81;
+            --indigo-light: #4f46e5;
+            --indigo-bg: #eef2ff;
+
+            /* Gold accent */
+            --gold: #f59e0b;
+            --gold-bright: #fbbf24;
+            --gold-bg: #fffbeb;
 
             /* Feature colors */
             --coral: #ef4444;
