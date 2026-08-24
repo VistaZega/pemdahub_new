@@ -1,4 +1,4 @@
-{{-- HERO SECTION — Khan Academy Bright Educational Dashboard Style --}}
+{{-- HERO SECTION — Khan Academy & Stripe Bright Educational Aesthetic --}}
 <style>
     .hero-container {
         position: relative;
@@ -11,7 +11,7 @@
         background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 30%, #eff6ff 65%, #f8fafc 100%);
     }
 
-    /* Ambient Soft Mesh Glows */
+    /* Ambient Soft Mesh Glows (Stripe-inspired) */
     .hero-sun-glow {
         position: absolute;
         top: -15%;
@@ -40,8 +40,8 @@
 
     .hero-split-grid {
         display: grid;
-        grid-template-columns: 1.1fr 0.9fr;
-        gap: 44px;
+        grid-template-columns: 1.12fr 0.88fr;
+        gap: 48px;
         align-items: center;
         position: relative;
         z-index: 1;
@@ -156,88 +156,81 @@
         letter-spacing: 0.05em;
     }
 
-    /* Khan Academy Style Learning Dashboard Mockup */
-    .khan-dashboard-card {
-        background: #ffffff;
+    /* Right Glassmorphism App Console Showcase (Stripe Inspired) */
+    .hero-console-card {
+        background: rgba(255, 255, 255, 0.96);
         border: 2px solid #e2e8f0;
-        border-radius: 24px;
-        padding: 24px;
-        box-shadow: 0 20px 50px -10px rgba(37, 99, 235, 0.12), 0 0 20px rgba(16, 185, 129, 0.06);
+        border-radius: 28px;
+        padding: 26px;
+        box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.12), 0 0 30px rgba(245, 158, 11, 0.06);
+        backdrop-filter: blur(20px);
         transition: var(--transition-smooth);
         position: relative;
-        text-align: left;
     }
 
-    .khan-dashboard-card:hover {
+    .hero-console-card:hover {
         border-color: #93c5fd;
         transform: translateY(-4px);
-        box-shadow: 0 30px 60px -10px rgba(37, 99, 235, 0.18);
+        box-shadow: 0 35px 70px -15px rgba(37, 99, 235, 0.18);
     }
 
-    .khan-user-header {
+    .console-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding-bottom: 16px;
-        border-bottom: 1.5px solid #f1f5f9;
+        border-bottom: 1px solid #e2e8f0;
         margin-bottom: 18px;
     }
 
-    .khan-avatar {
-        width: 44px;
-        height: 44px;
+    .console-dots {
+        display: flex;
+        gap: 7px;
+    }
+
+    .console-dot {
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
+    }
+
+    .console-bento-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .console-tile {
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 16px;
+        transition: var(--transition-smooth);
+        text-align: left;
+    }
+
+    .console-tile:hover {
+        background: #ffffff;
+        border-color: #93c5fd;
+        box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .console-tile.tile-wide {
+        grid-column: span 2;
         background: #eff6ff;
-        border: 2px solid #93c5fd;
+        border-color: #bfdbfe;
+    }
+
+    .console-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
-        color: #2563eb;
-    }
-
-    .khan-energy-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: #fef3c7;
-        border: 1px solid #fde047;
-        color: #b45309;
-        font-size: 11.5px;
-        font-weight: 800;
-        padding: 5px 12px;
-        border-radius: 100px;
-    }
-
-    /* Khan Academy Subject & Module Progress Card */
-    .khan-module-card {
-        background: #f8fafc;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 16px;
-        margin-bottom: 12px;
-        transition: var(--transition-smooth);
-    }
-
-    .khan-module-card:hover {
-        background: #ffffff;
-        border-color: #93c5fd;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
-    }
-
-    .khan-progress-bar-bg {
-        width: 100%;
-        height: 8px;
-        background: #e2e8f0;
-        border-radius: 10px;
-        overflow: hidden;
-        margin-top: 10px;
-    }
-
-    .khan-progress-bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #10b981, #059669);
-        border-radius: 10px;
+        font-size: 18px;
+        margin-bottom: 10px;
     }
 </style>
 
@@ -313,87 +306,89 @@
                 </div>
             </div>
 
-            {{-- RIGHT COLUMN: Khan Academy Inspired Learning Dashboard Mockup --}}
+            {{-- RIGHT COLUMN: Stripe-Inspired Interactive Console Showcase --}}
             <div data-aos="fade-left" data-aos-delay="150">
-                <div class="khan-dashboard-card">
+                <div class="hero-console-card">
                     
-                    {{-- User Greeting & Energy Points Bar --}}
-                    <div class="khan-user-header">
-                        <div class="flex items-center gap-3">
-                            <div class="khan-avatar">
-                                <i class="fa-solid fa-user-graduate"></i>
-                            </div>
-                            <div>
-                                <div style="font-size:15px; font-weight:900; color:#0f172a;">Semangat Belajar, Siswa Pembda!</div>
-                                <div style="font-size:11.5px; color:#64748b; font-weight:600;">TP. 2026/2027 • Portal Pembelajaran Terpadu</div>
-                            </div>
+                    {{-- Console Window Bar --}}
+                    <div class="console-header">
+                        <div class="console-dots">
+                            <span class="console-dot" style="background:#ef4444;"></span>
+                            <span class="console-dot" style="background:#f59e0b;"></span>
+                            <span class="console-dot" style="background:#10b981;"></span>
                         </div>
-                        <div class="khan-energy-badge">
-                            <i class="fa-solid fa-star text-amber-500"></i>
-                            <span>1.450 Poin Prestasi</span>
+                        <div style="font-size:12px; font-weight:800; color:#475569; letter-spacing:0.04em; text-transform:uppercase;">
+                            <i class="fa-solid fa-shield-halved" style="color:#2563eb; margin-right:4px;"></i> PembdaHUB Smart Core
+                        </div>
+                        <div style="display:inline-flex; align-items:center; gap:6px; background:#dcfce7; color:#15803d; font-size:10.5px; font-weight:800; padding:4px 12px; border-radius:100px; border:1px solid #86efac;">
+                            <span style="width:6px; height:6px; background:#16a34a; border-radius:50%;"></span> AKTIF &amp; SYNC
                         </div>
                     </div>
 
-                    {{-- 3 Unit Sekolah Navigation Tabs --}}
-                    <div style="margin-bottom:14px;">
-                        <div style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:#64748b; margin-bottom:8px;">Pilih Unit Sekolah:</div>
-                        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
-                            <div style="background:#eff6ff; border:1.5px solid #93c5fd; padding:10px 8px; border-radius:14px; text-align:center;">
-                                <div style="font-size:13px; font-weight:900; color:#1d4ed8;">SMAS 1</div>
-                                <div style="font-size:10px; color:#3b82f6; font-weight:700;">Akademik</div>
+                    {{-- Bento Showcase Grid --}}
+                    <div class="console-bento-grid">
+                        
+                        {{-- Tile 1: 3 Unit Sekolah Terpadu (Wide) --}}
+                        <div class="console-tile tile-wide">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div class="console-icon" style="background:#dbeafe; color:#2563eb; margin-bottom:0;">
+                                        <i class="fa-solid fa-school"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-size:15px; font-weight:900; color:#0f172a;">3 Unit Sekolah Terpadu</div>
+                                        <div style="font-size:11.5px; color:#475569; font-weight:600;">Pendidikan Dasar, Menengah &amp; Vokasi</div>
+                                    </div>
+                                </div>
+                                <span style="background:#dbeafe; color:#1d4ed8; font-size:10.5px; font-weight:800; padding:4px 10px; border-radius:8px;">Terpusat</span>
                             </div>
-                            <div style="background:#ecfdf5; border:1.5px solid #86efac; padding:10px 8px; border-radius:14px; text-align:center;">
-                                <div style="font-size:13px; font-weight:900; color:#15803d;">SMPS 2</div>
-                                <div style="font-size:10px; color:#10b981; font-weight:700;">Karakter</div>
-                            </div>
-                            <div style="background:#fffbeb; border:1.5px solid #fde047; padding:10px 8px; border-radius:14px; text-align:center;">
-                                <div style="font-size:13px; font-weight:900; color:#b45309;">SMKS</div>
-                                <div style="font-size:10px; color:#d97706; font-weight:700;">5 Kejuruan</div>
+                            
+                            {{-- Mini Unit Tags --}}
+                            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
+                                <div style="background:#ffffff; border:1.5px solid #93c5fd; padding:10px 8px; border-radius:12px; text-align:center; box-shadow:0 2px 6px rgba(37,99,235,0.08);">
+                                    <div style="font-size:13px; font-weight:900; color:#1d4ed8;">SMAS 1</div>
+                                    <div style="font-size:10px; color:#3b82f6; font-weight:700;">Akademik &amp; PTN</div>
+                                </div>
+                                <div style="background:#ffffff; border:1.5px solid #86efac; padding:10px 8px; border-radius:12px; text-align:center; box-shadow:0 2px 6px rgba(16,185,129,0.08);">
+                                    <div style="font-size:13px; font-weight:900; color:#15803d;">SMPS 2</div>
+                                    <div style="font-size:10px; color:#10b981; font-weight:700;">Karakter Unggul</div>
+                                </div>
+                                <div style="background:#ffffff; border:1.5px solid #fde047; padding:10px 8px; border-radius:12px; text-align:center; box-shadow:0 2px 6px rgba(245,158,11,0.08);">
+                                    <div style="font-size:13px; font-weight:900; color:#b45309;">SMKS</div>
+                                    <div style="font-size:10px; color:#d97706; font-weight:700;">5 Kejuruan DUDI</div>
+                                </div>
                             </div>
                         </div>
+
+                        {{-- Tile 2: Presensi RFID & Notifikasi --}}
+                        <div class="console-tile">
+                            <div class="console-icon" style="background:#dcfce7; color:#16a34a;">
+                                <i class="fa-solid fa-id-card-clip"></i>
+                            </div>
+                            <div style="font-size:14px; font-weight:900; color:#0f172a; margin-bottom:4px;">Presensi RFID</div>
+                            <div style="font-size:12px; color:#475569; line-height:1.5; font-weight:500;">Tap kartu otomatis, rekap real-time, dan notifikasi kehadiran.</div>
+                        </div>
+
+                        {{-- Tile 3: LMS & CBT Interaktif --}}
+                        <div class="console-tile">
+                            <div class="console-icon" style="background:#fef3c7; color:#d97706;">
+                                <i class="fa-solid fa-laptop-code"></i>
+                            </div>
+                            <div style="font-size:14px; font-weight:900; color:#0f172a; margin-bottom:4px;">LMS &amp; Ujian CBT</div>
+                            <div style="font-size:12px; color:#475569; line-height:1.5; font-weight:500;">Modul materi, bank soal ujian online aman, dan penilaian.</div>
+                        </div>
+
                     </div>
 
-                    {{-- Learning Progress Mastery Card 1: LMS --}}
-                    <div class="khan-module-card">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <div style="width:36px; height:36px; border-radius:10px; background:#ecfdf5; color:#059669; display:flex; align-items:center; justify-content:center; font-size:16px;">
-                                    <i class="fa-solid fa-book-open"></i>
-                                </div>
-                                <div>
-                                    <div style="font-size:13.5px; font-weight:800; color:#0f172a;">LMS &amp; Bank Soal CBT</div>
-                                    <div style="font-size:11px; color:#64748b; font-weight:600;">4 Modul KBM Aktif • Siap Dikerjakan</div>
-                                </div>
-                            </div>
-                            <span style="font-size:12px; font-weight:900; color:#059669;">85%</span>
-                        </div>
-                        <div class="khan-progress-bar-bg">
-                            <div class="khan-progress-bar-fill" style="width:85%;"></div>
-                        </div>
+                    {{-- Footer Mini Alert --}}
+                    <div style="margin-top:16px; background:#f1f5f9; border:1.5px solid #e2e8f0; padding:12px 16px; border-radius:14px; display:flex; align-items:center; justify-content:space-between;">
+                        <span style="font-size:12px; color:#334155; font-weight:700;">
+                            <i class="fa-solid fa-circle-nodes" style="color:#2563eb; margin-right:6px;"></i> Akses Guru, Siswa &amp; Orang Tua
+                        </span>
+                        <a href="{{ route('login') }}" style="font-size:12px; font-weight:900; color:#2563eb; text-decoration:none; display:flex; align-items:center; gap:4px;">
+                            Masuk Portal &rarr;
+                        </a>
                     </div>
-
-                    {{-- Learning Progress Card 2: RFID Presensi --}}
-                    <div class="khan-module-card" style="margin-bottom:16px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:16px;">
-                                    <i class="fa-solid fa-id-card-clip"></i>
-                                </div>
-                                <div>
-                                    <div style="font-size:13.5px; font-weight:800; color:#0f172a;">Presensi Kehadiran RFID</div>
-                                    <div style="font-size:11px; color:#64748b; font-weight:600;">Hadir Hari Ini (07:15 WIB)</div>
-                                </div>
-                            </div>
-                            <span style="background:#dcfce7; color:#15803d; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; border:1px solid #86efac;">
-                                <i class="fa-solid fa-circle-check mr-1"></i> Tepat Waktu
-                            </span>
-                        </div>
-                    </div>
-
-                    {{-- Khan Academy Bottom Link --}}
-                    <a href="{{ route('login') }}" class="btn btn-gold" style="width:100%; border-radius:14px; padding:14px; font-size:14.5px; font-weight:900; display:flex; justify-content:center; text-decoration:none;">
-                        <i class="fa-solid fa-graduation-cap"></i> Buka Portal Pembelajaran &rarr;
-                    </a>
 
                 </div>
             </div>
