@@ -1,32 +1,32 @@
-{{-- EKSTRAKURIKULER & KEGIATAN SISWA — With Marching Band & Student Activity Silhouette Backdrop --}}
+{{-- EKSTRAKURIKULER & KEGIATAN SISWA — Real Photo Backdrop with 50% Opacity --}}
 <style>
     .ekskul-section {
         position: relative;
         overflow: hidden;
-        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        background: #ffffff;
         padding: 90px 0 100px 0;
         border-bottom: 1px solid var(--border);
     }
 
-    /* Siluet Nyata Foto Marching Band / Kegiatan Siswa Pembda */
-    .ekskul-silhouette-backdrop {
+    /* Foto Asli Marching Band / Kegiatan Siswa dengan Opacity 50% */
+    .ekskul-photo-backdrop {
         position: absolute;
         inset: 0;
         background-image: url('{{ asset('images/marching-band-pembda.jpg') }}');
         background-size: cover;
-        background-position: center 65%;
+        background-position: center 60%;
         background-repeat: no-repeat;
-        opacity: 0.12;
-        filter: grayscale(100%) contrast(170%) brightness(105%);
-        mix-blend-mode: multiply;
+        opacity: 0.50;
         pointer-events: none;
         z-index: 0;
-        transition: opacity 0.4s ease, transform 0.4s ease;
     }
 
-    .ekskul-section:hover .ekskul-silhouette-backdrop {
-        opacity: 0.18;
-        transform: scale(1.01);
+    .ekskul-photo-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.45) 50%, rgba(255, 255, 255, 0.8) 100%);
+        pointer-events: none;
+        z-index: 0;
     }
 
     .ekskul-content-wrap {
@@ -35,7 +35,7 @@
     }
 
     .ekskul-card {
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.92);
         backdrop-filter: blur(12px);
         border: 1.5px solid rgba(226, 232, 240, 0.9);
         border-radius: 24px;
@@ -44,7 +44,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        box-shadow: 0 8px 24px -6px rgba(15, 23, 42, 0.04);
+        box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -52,7 +52,7 @@
         background: #ffffff;
         border-color: #cbd5e1;
         transform: translateY(-6px);
-        box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.1);
+        box-shadow: 0 18px 40px -8px rgba(15, 23, 42, 0.15);
     }
 
     .ekskul-icon-box {
@@ -64,6 +64,7 @@
         justify-content: center;
         font-size: 24px;
         margin-bottom: 18px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
         transition: all 0.3s ease;
     }
 
@@ -81,8 +82,9 @@
 </style>
 
 <section id="kegiatan" class="ekskul-section">
-    {{-- Siluet Background Foto Marching Band --}}
-    <div class="ekskul-silhouette-backdrop"></div>
+    {{-- Foto Asli Marching Band Opacity 50% --}}
+    <div class="ekskul-photo-backdrop"></div>
+    <div class="ekskul-photo-overlay"></div>
 
     <div class="fw ekskul-content-wrap">
         {{-- Section Header --}}
@@ -96,7 +98,7 @@
                 Ekstrakurikuler &amp; <span style="background:linear-gradient(135deg, #4f46e5, #7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Minat Bakat</span>
             </h2>
             
-            <p class="body-lg" style="max-width:680px; margin:0 auto; color:#475569;">
+            <p class="body-lg" style="max-width:680px; margin:0 auto; color:#334155; font-weight:600;">
                 Mengembangkan potensi, kepemimpinan, kreativitas seni, dan kebugaran jasmani siswa melalui ragam kegiatan ekstrakurikuler unggulan.
             </p>
         </div>
