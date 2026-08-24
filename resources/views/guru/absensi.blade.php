@@ -20,6 +20,10 @@
                         <span class="px-3 py-1 rounded-xl bg-amber-400 text-purple-950 font-black text-xs border-2 border-black shadow-sm flex items-center gap-1.5">
                             <i class="fas fa-crown text-amber-900"></i> Wali Kelas
                         </span>
+                    @else
+                        <span class="px-3 py-1 rounded-xl bg-purple-800 text-purple-200 font-bold text-xs border border-purple-600 shadow-sm flex items-center gap-1.5">
+                            <i class="fas fa-chalkboard-teacher"></i> Guru Pengampu
+                        </span>
                     @endif
                 </div>
                 <p class="text-xs md:text-sm font-bold text-purple-200 mt-1" style="color: #e9d5ff !important;">
@@ -87,7 +91,7 @@
         }" class="space-y-5">
 
             {{-- ═════════════════════════════════════════════════════════════════ --}}
-            {{-- REKAP KEHADIRAN HARIAN REAL-TIME (5 KARTU SEJAJAR)                --}}
+            {{-- REKAP KEHADIRAN HARIAN REAL-TIME (5 KARTU SEJAJAR 1 BARIS)        --}}
             {{-- ═════════════════════════════════════════════════════════════════ --}}
             <div class="bg-white rounded-3xl p-5 border-2 border-slate-200 shadow-sm space-y-4 print-hide">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -121,11 +125,12 @@
                     </div>
                 </div>
 
-                {{-- 5 Equal Cards in 1 Row on Desktop --}}
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {{-- 5 Equal Cards in 1 Row (Flex-nowrap) --}}
+                <div class="flex flex-wrap lg:flex-nowrap gap-3 items-stretch w-full">
                     {{-- 1. Hadir --}}
                     <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'hadir' ? 'all' : 'hadir')" 
                         :class="statusFilter === 'hadir' ? 'border-2 border-emerald-600 bg-emerald-50 shadow-md ring-2 ring-emerald-400' : 'border border-slate-200 bg-slate-50 hover:bg-emerald-50/50'"
+                        style="flex: 1 1 0; min-width: 140px;"
                         class="p-4 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center">
                         <div class="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center mb-2 text-emerald-600">
                             <i class="fas fa-check-circle text-lg"></i>
@@ -137,6 +142,7 @@
                     {{-- 2. Sakit --}}
                     <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'sakit' ? 'all' : 'sakit')" 
                         :class="statusFilter === 'sakit' ? 'border-2 border-amber-500 bg-amber-50 shadow-md ring-2 ring-amber-400' : 'border border-slate-200 bg-slate-50 hover:bg-amber-50/50'"
+                        style="flex: 1 1 0; min-width: 140px;"
                         class="p-4 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center">
                         <div class="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center mb-2 text-amber-600">
                             <i class="fas fa-briefcase-medical text-lg"></i>
@@ -148,6 +154,7 @@
                     {{-- 3. Izin --}}
                     <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'izin' ? 'all' : 'izin')" 
                         :class="statusFilter === 'izin' ? 'border-2 border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-400' : 'border border-slate-200 bg-slate-50 hover:bg-blue-50/50'"
+                        style="flex: 1 1 0; min-width: 140px;"
                         class="p-4 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center">
                         <div class="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center mb-2 text-blue-600">
                             <i class="fas fa-envelope-open-text text-lg"></i>
@@ -159,6 +166,7 @@
                     {{-- 4. Alpha --}}
                     <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'alpha' ? 'all' : 'alpha')" 
                         :class="statusFilter === 'alpha' ? 'border-2 border-rose-600 bg-rose-50 shadow-md ring-2 ring-rose-400' : 'border border-slate-200 bg-slate-50 hover:bg-rose-50/50'"
+                        style="flex: 1 1 0; min-width: 140px;"
                         class="p-4 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center">
                         <div class="w-9 h-9 bg-rose-100 rounded-xl flex items-center justify-center mb-2 text-rose-600">
                             <i class="fas fa-times-circle text-lg"></i>
@@ -170,7 +178,8 @@
                     {{-- 5. Belum Presensi / Scan --}}
                     <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'unscanned' ? 'all' : 'unscanned')" 
                         :class="statusFilter === 'unscanned' ? 'border-2 border-purple-700 bg-purple-50 shadow-md ring-2 ring-purple-400' : 'border-2 border-dashed border-amber-400 bg-amber-50/40 hover:bg-amber-50'"
-                        class="p-4 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center col-span-2 sm:col-span-1">
+                        style="flex: 1 1 0; min-width: 140px;"
+                        class="p-4 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center">
                         <div class="w-9 h-9 bg-amber-200/80 rounded-xl flex items-center justify-center mb-2 text-amber-800">
                             <i class="fas fa-clock text-lg"></i>
                         </div>
@@ -181,7 +190,7 @@
             </div>
 
             {{-- ═════════════════════════════════════════════════════════════════ --}}
-            {{-- TAB CONTROLS (HIGH CONTRAST & CLEAR LABELS)                       --}}
+            {{-- TAB CONTROLS                                                      --}}
             {{-- ═════════════════════════════════════════════════════════════════ --}}
             <div class="flex items-center justify-between gap-4 flex-wrap bg-white p-2.5 rounded-2xl border-2 border-slate-200 shadow-sm print-hide">
                 <div class="flex items-center gap-2 flex-wrap">
@@ -190,7 +199,11 @@
                         :style="viewMode === 'daily' ? 'background-color: #1e1b4b !important; color: #ffffff !important; border-color: #0f172a !important;' : 'background-color: #f8fafc !important; color: #0f172a !important; border-color: #cbd5e1 !important;'"
                         class="px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-2 border-2 cursor-pointer shadow-sm">
                         <i class="fas fa-clipboard-check text-amber-400 text-sm"></i>
-                        <span>Presensi Harian Siswa (Wali Kelas)</span>
+                        @if(isset($isHomeroom) && $isHomeroom)
+                            <span>Presensi Harian Siswa (Wali Kelas)</span>
+                        @else
+                            <span>Pantauan Kehadiran Harian Siswa</span>
+                        @endif
                     </button>
 
                     {{-- Tab 2: Matriks Bulanan --}}
@@ -217,212 +230,357 @@
             </div>
 
             {{-- ═════════════════════════════════════════════════════════════════ --}}
-            {{-- 1. TAB PRESENSI HARIAN KELAS (WALI KELAS & REAL-TIME EDIT)         --}}
+            {{-- 1. TAB PRESENSI HARIAN KELAS                                      --}}
             {{-- ═════════════════════════════════════════════════════════════════ --}}
             <div x-show="viewMode === 'daily'" class="bg-white rounded-3xl shadow-sm border-2 border-slate-200 overflow-hidden space-y-0">
-                <form action="{{ route('guru.absensi.storeDaily') }}" method="POST" id="formPresensiHarian">
-                    @csrf
-                    <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
-                    <input type="hidden" name="date" value="{{ $selectedDailyDate }}">
+                @if(isset($isHomeroom) && $isHomeroom)
+                    {{-- ── A. FORM EDIT KHUSUS WALI KELAS ── --}}
+                    <form action="{{ route('guru.absensi.storeDaily') }}" method="POST" id="formPresensiHarian">
+                        @csrf
+                        <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
+                        <input type="hidden" name="date" value="{{ $selectedDailyDate }}">
 
-                    {{-- Toolbar Presensi Harian --}}
-                    <div class="px-6 py-4 bg-purple-50 border-b-2 border-purple-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                        <div>
-                            <h2 class="text-base font-black text-purple-950 flex items-center gap-2">
-                                <i class="fas fa-calendar-check text-purple-700"></i>
-                                <span>Presensi Harian: {{ \Carbon\Carbon::parse($selectedDailyDate)->translatedFormat('l, d F Y') }}</span>
-                            </h2>
-                            <p class="text-xs text-purple-900 font-bold mt-0.5">
-                                Kelas: <strong>{{ $selectedClassroom->class_name }}</strong> · Total: <strong>{{ $classroomStudents->count() }} Siswa</strong>
-                                @if(isset($isHomeroom) && $isHomeroom)
+                        {{-- Toolbar Presensi Harian --}}
+                        <div class="px-6 py-4 bg-purple-50 border-b-2 border-purple-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                            <div>
+                                <h2 class="text-base font-black text-purple-950 flex items-center gap-2">
+                                    <i class="fas fa-calendar-check text-purple-700"></i>
+                                    <span>Presensi Harian: {{ \Carbon\Carbon::parse($selectedDailyDate)->translatedFormat('l, d F Y') }}</span>
+                                </h2>
+                                <p class="text-xs text-purple-900 font-bold mt-0.5">
+                                    Kelas: <strong>{{ $selectedClassroom->class_name }}</strong> · Total: <strong>{{ $classroomStudents->count() }} Siswa</strong>
                                     <span class="text-purple-950 bg-amber-300 border border-amber-500 px-2 py-0.5 rounded-md text-[10px] ml-1 font-black">👑 Akses Wali Kelas Aktif</span>
-                                @endif
-                            </p>
-                        </div>
-
-                        {{-- Action Buttons & Filter Chips --}}
-                        <div class="flex items-center gap-2 flex-wrap">
-                            {{-- Fast Filter Chips --}}
-                            <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-purple-200 shadow-2xs">
-                                <button type="button" @click="statusFilter = 'all'" 
-                                    :style="statusFilter === 'all' ? 'background-color: #581c87 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
-                                    class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer">
-                                    Semua ({{ $classroomStudents->count() }})
-                                </button>
-                                <button type="button" @click="statusFilter = 'unscanned'" 
-                                    :style="statusFilter === 'unscanned' ? 'background-color: #b45309 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #b45309 !important;'"
-                                    class="px-2.5 py-1 rounded-lg text-xs font-black transition flex items-center gap-1 cursor-pointer">
-                                    <i class="fas fa-clock text-[10px]"></i> Belum Scan ({{ $dailySummary['unscanned'] }})
-                                </button>
-                                <button type="button" @click="statusFilter = 'hadir'" 
-                                    :style="statusFilter === 'hadir' ? 'background-color: #047857 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #047857 !important;'"
-                                    class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
-                                    Hadir ({{ $dailySummary['present'] }})
-                                </button>
-                                <button type="button" @click="statusFilter = 'sakit'" 
-                                    :style="statusFilter === 'sakit' ? 'background-color: #d97706 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #b45309 !important;'"
-                                    class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
-                                    Sakit ({{ $dailySummary['sick'] }})
-                                </button>
-                                <button type="button" @click="statusFilter = 'izin'" 
-                                    :style="statusFilter === 'izin' ? 'background-color: #1d4ed8 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #1d4ed8 !important;'"
-                                    class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
-                                    Izin ({{ $dailySummary['permission'] }})
-                                </button>
-                                <button type="button" @click="statusFilter = 'alpha'" 
-                                    :style="statusFilter === 'alpha' ? 'background-color: #be123c !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #be123c !important;'"
-                                    class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
-                                    Alpha ({{ $dailySummary['absent'] }})
-                                </button>
+                                </p>
                             </div>
 
-                            {{-- Bulk Helper: Hadirkan Semua yang Belum Scan --}}
-                            <button type="button" onclick="markAllUnscannedDailyHadir()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800 cursor-pointer" style="color: #ffffff !important;" title="Otomatis isi Hadir bagi semua siswa yang belum scan">
-                                <i class="fas fa-check-double"></i> Hadirkan Belum Scan
-                            </button>
+                            {{-- Action Buttons & Filter Chips --}}
+                            <div class="flex items-center gap-2 flex-wrap">
+                                {{-- Fast Filter Chips --}}
+                                <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-purple-200 shadow-2xs">
+                                    <button type="button" @click="statusFilter = 'all'" 
+                                        :style="statusFilter === 'all' ? 'background-color: #581c87 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
+                                        class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer">
+                                        Semua ({{ $classroomStudents->count() }})
+                                    </button>
+                                    <button type="button" @click="statusFilter = 'unscanned'" 
+                                        :style="statusFilter === 'unscanned' ? 'background-color: #b45309 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #b45309 !important;'"
+                                        class="px-2.5 py-1 rounded-lg text-xs font-black transition flex items-center gap-1 cursor-pointer">
+                                        <i class="fas fa-clock text-[10px]"></i> Belum Scan ({{ $dailySummary['unscanned'] }})
+                                    </button>
+                                    <button type="button" @click="statusFilter = 'hadir'" 
+                                        :style="statusFilter === 'hadir' ? 'background-color: #047857 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #047857 !important;'"
+                                        class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
+                                        Hadir ({{ $dailySummary['present'] }})
+                                    </button>
+                                    <button type="button" @click="statusFilter = 'sakit'" 
+                                        :style="statusFilter === 'sakit' ? 'background-color: #d97706 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #b45309 !important;'"
+                                        class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
+                                        Sakit ({{ $dailySummary['sick'] }})
+                                    </button>
+                                    <button type="button" @click="statusFilter = 'izin'" 
+                                        :style="statusFilter === 'izin' ? 'background-color: #1d4ed8 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #1d4ed8 !important;'"
+                                        class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
+                                        Izin ({{ $dailySummary['permission'] }})
+                                    </button>
+                                    <button type="button" @click="statusFilter = 'alpha'" 
+                                        :style="statusFilter === 'alpha' ? 'background-color: #be123c !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #be123c !important;'"
+                                        class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
+                                        Alpha ({{ $dailySummary['absent'] }})
+                                    </button>
+                                </div>
 
-                            {{-- Submit Button --}}
-                            <button type="submit" class="px-5 py-2 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-2 cursor-pointer" style="color: #000000 !important; background-color: #fbbf24 !important;">
-                                <i class="fas fa-save text-sm text-black"></i> Simpan Presensi Harian
-                            </button>
+                                {{-- Bulk Helper: Hadirkan Semua yang Belum Scan --}}
+                                <button type="button" onclick="markAllUnscannedDailyHadir()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800 cursor-pointer" style="color: #ffffff !important;" title="Otomatis isi Hadir bagi semua siswa yang belum scan">
+                                    <i class="fas fa-check-double"></i> Hadirkan Belum Scan
+                                </button>
+
+                                {{-- Submit Button --}}
+                                <button type="submit" class="px-5 py-2 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-2 cursor-pointer" style="color: #000000 !important; background-color: #fbbf24 !important;">
+                                    <i class="fas fa-save text-sm text-black"></i> Simpan Presensi Harian
+                                </button>
+                            </div>
                         </div>
-                    </div>
 
-                    {{-- Table List of Students --}}
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead>
-                                <tr class="bg-slate-900 text-white font-bold text-xs uppercase" style="background-color: #0f172a !important; color: #ffffff !important;">
-                                    <th class="px-4 py-3 text-center border-r border-slate-700 w-12 text-white">No</th>
-                                    <th class="px-4 py-3 border-r border-slate-700 min-w-[220px] text-white">Nama Siswa</th>
-                                    <th class="px-4 py-3 border-r border-slate-700 min-w-[180px] text-white">Status & Asal Catatan</th>
-                                    <th class="px-4 py-3 border-r border-slate-700 min-w-[240px] text-center text-white">Tentukan Status (Wali Kelas)</th>
-                                    <th class="px-4 py-3 min-w-[220px] text-white">Keterangan / Alasan</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                @forelse($classroomStudents as $idx => $st)
-                                    @php
-                                        $att = $dailySchoolAttendances->get($st->id);
-                                        $currentStatus = $att ? $att->status : '';
-                                        $stGroup = $studentBlockGroups[$st->id] ?? null;
-                                    @endphp
-                                    <tr x-data="{ rowStatus: '{{ $currentStatus }}' }"
-                                        x-show="statusFilter === 'all' || (statusFilter === 'unscanned' && !rowStatus) || (statusFilter === rowStatus)"
-                                        @mark-unscanned-daily-hadir.window="if (!rowStatus) rowStatus = 'hadir'"
-                                        class="hover:bg-purple-50/40 transition">
-                                        
-                                        <td class="px-4 py-3 text-center font-bold text-slate-500 border-r border-gray-100">
-                                            {{ $idx + 1 }}
-                                        </td>
+                        {{-- Table List of Students (Edit Mode) --}}
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead>
+                                    <tr class="bg-slate-900 text-white font-bold text-xs uppercase" style="background-color: #0f172a !important; color: #ffffff !important;">
+                                        <th class="px-4 py-3 text-center border-r border-slate-700 w-12 text-white">No</th>
+                                        <th class="px-4 py-3 border-r border-slate-700 min-w-[220px] text-white">Nama Siswa</th>
+                                        <th class="px-4 py-3 border-r border-slate-700 min-w-[180px] text-white">Status & Asal Catatan</th>
+                                        <th class="px-4 py-3 border-r border-slate-700 min-w-[240px] text-center text-white">Tentukan Status (Wali Kelas)</th>
+                                        <th class="px-4 py-3 min-w-[220px] text-white">Keterangan / Alasan</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @forelse($classroomStudents as $idx => $st)
+                                        @php
+                                            $att = $dailySchoolAttendances->get($st->id);
+                                            $currentStatus = $att ? $att->status : '';
+                                            $stGroup = $studentBlockGroups[$st->id] ?? null;
+                                        @endphp
+                                        <tr x-data="{ rowStatus: '{{ $currentStatus }}' }"
+                                            x-show="statusFilter === 'all' || (statusFilter === 'unscanned' && !rowStatus) || (statusFilter === rowStatus)"
+                                            @mark-unscanned-daily-hadir.window="if (!rowStatus) rowStatus = 'hadir'"
+                                            class="hover:bg-purple-50/40 transition">
+                                            
+                                            <td class="px-4 py-3 text-center font-bold text-slate-500 border-r border-gray-100">
+                                                {{ $idx + 1 }}
+                                            </td>
 
-                                        <td class="px-4 py-3 border-r border-gray-100 font-bold">
-                                            <div class="flex items-center gap-3">
-                                                <img src="{{ $st->photo_url }}" alt="{{ $st->full_name }}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-gray-200 shadow-2xs" onerror="this.src='{{ asset('images/default-student.jpg') }}'">
-                                                <div class="truncate max-w-[200px]" title="{{ $st->full_name }}">
-                                                    <div class="text-xs font-bold text-gray-900 truncate">{{ $st->full_name }}</div>
-                                                    <div class="text-[10px] text-gray-400 font-medium">NISN: {{ $st->nisn ?? '-' }}</div>
-                                                    @if($stGroup)
-                                                        <span class="inline-block mt-0.5 text-[9px] font-black px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200">Grup {{ $stGroup }}</span>
-                                                    @endif
+                                            <td class="px-4 py-3 border-r border-gray-100 font-bold">
+                                                <div class="flex items-center gap-3">
+                                                    <img src="{{ $st->photo_url }}" alt="{{ $st->full_name }}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-gray-200 shadow-2xs" onerror="this.src='{{ asset('images/default-student.jpg') }}'">
+                                                    <div class="truncate max-w-[200px]" title="{{ $st->full_name }}">
+                                                        <div class="text-xs font-bold text-gray-900 truncate">{{ $st->full_name }}</div>
+                                                        <div class="text-[10px] text-gray-400 font-medium">NISN: {{ $st->nisn ?? '-' }}</div>
+                                                        @if($stGroup)
+                                                            <span class="inline-block mt-0.5 text-[9px] font-black px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200">Grup {{ $stGroup }}</span>
+                                                        @endif
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </td>
+                                            </td>
 
-                                        {{-- Status & Asal Catatan --}}
-                                        <td class="px-4 py-3 border-r border-gray-100">
-                                            @if($att)
-                                                @if($att->recorded_via === 'rfid' || $att->recorded_via === 'barcode' || $att->recorded_via === 'qr')
-                                                    <div class="space-y-0.5">
-                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-950 border border-emerald-300 font-black text-xs">
-                                                            <i class="fas fa-id-card text-emerald-700"></i> Scan Gerbang
-                                                        </span>
-                                                        <div class="text-[10px] text-emerald-800 font-bold">
-                                                            Pukul {{ $att->time_in ? substr($att->time_in, 0, 5) . ' WIB' : '-' }}
+                                            {{-- Status & Asal Catatan --}}
+                                            <td class="px-4 py-3 border-r border-gray-100">
+                                                @if($att)
+                                                    @if($att->recorded_via === 'rfid' || $att->recorded_via === 'barcode' || $att->recorded_via === 'qr')
+                                                        <div class="space-y-0.5">
+                                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-950 border border-emerald-300 font-black text-xs">
+                                                                <i class="fas fa-id-card text-emerald-700"></i> Scan Gerbang
+                                                            </span>
+                                                            <div class="text-[10px] text-emerald-800 font-bold">
+                                                                Pukul {{ $att->time_in ? substr($att->time_in, 0, 5) . ' WIB' : '-' }}
+                                                            </div>
                                                         </div>
-                                                    </div>
+                                                    @else
+                                                        <div class="space-y-0.5">
+                                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-100 text-blue-950 border border-blue-300 font-black text-xs">
+                                                                <i class="fas fa-user-edit text-blue-700"></i> Manual / Wali Kelas
+                                                            </span>
+                                                            <div class="text-[10px] text-blue-800 font-bold capitalize">
+                                                                Status: {{ $att->status }}
+                                                            </div>
+                                                        </div>
+                                                    @endif
                                                 @else
-                                                    <div class="space-y-0.5">
-                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-100 text-blue-950 border border-blue-300 font-black text-xs">
-                                                            <i class="fas fa-user-edit text-blue-700"></i> Manual / Wali Kelas
-                                                        </span>
-                                                        <div class="text-[10px] text-blue-800 font-bold capitalize">
-                                                            Status: {{ $att->status }}
-                                                        </div>
-                                                    </div>
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-950 border border-amber-300 font-black text-xs">
+                                                        <i class="fas fa-clock text-amber-700"></i> Belum Scan / Presensi
+                                                    </span>
                                                 @endif
-                                            @else
-                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-950 border border-amber-300 font-black text-xs">
-                                                    <i class="fas fa-clock text-amber-700"></i> Belum Scan / Presensi
-                                                </span>
-                                            @endif
-                                        </td>
+                                            </td>
 
-                                        {{-- Toggle Status Buttons (H, S, I, A, Clear) --}}
-                                        <td class="px-4 py-3 border-r border-gray-100 text-center">
-                                            <input type="hidden" name="statuses[{{ $st->id }}]" :value="rowStatus">
-                                            <div class="inline-flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-300 shadow-2xs">
-                                                {{-- Hadir --}}
-                                                <button type="button" @click="rowStatus = 'hadir'" 
-                                                    :style="rowStatus === 'hadir' ? 'background-color: #059669 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
-                                                    class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Hadir">
-                                                    Hadir
-                                                </button>
-                                                {{-- Sakit --}}
-                                                <button type="button" @click="rowStatus = 'sakit'" 
-                                                    :style="rowStatus === 'sakit' ? 'background-color: #d97706 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
-                                                    class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Sakit">
-                                                    Sakit
-                                                </button>
-                                                {{-- Izin --}}
-                                                <button type="button" @click="rowStatus = 'izin'" 
-                                                    :style="rowStatus === 'izin' ? 'background-color: #2563eb !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
-                                                    class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Izin">
-                                                    Izin
-                                                </button>
-                                                {{-- Alpha --}}
-                                                <button type="button" @click="rowStatus = 'alpha'" 
-                                                    :style="rowStatus === 'alpha' ? 'background-color: #e11d48 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
-                                                    class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Alpha (Tanpa Keterangan)">
-                                                    Alpha
-                                                </button>
-                                                {{-- Reset --}}
-                                                <button type="button" @click="rowStatus = ''" 
-                                                    :style="!rowStatus ? 'background-color: #94a3b8 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #64748b !important;'"
-                                                    class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Kosongkan / Reset Status">
-                                                    —
-                                                </button>
-                                            </div>
-                                        </td>
+                                            {{-- Toggle Status Buttons (H, S, I, A, Clear) --}}
+                                            <td class="px-4 py-3 border-r border-gray-100 text-center">
+                                                <input type="hidden" name="statuses[{{ $st->id }}]" :value="rowStatus">
+                                                <div class="inline-flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-300 shadow-2xs">
+                                                    {{-- Hadir --}}
+                                                    <button type="button" @click="rowStatus = 'hadir'" 
+                                                        :style="rowStatus === 'hadir' ? 'background-color: #059669 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
+                                                        class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Hadir">
+                                                        Hadir
+                                                    </button>
+                                                    {{-- Sakit --}}
+                                                    <button type="button" @click="rowStatus = 'sakit'" 
+                                                        :style="rowStatus === 'sakit' ? 'background-color: #d97706 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
+                                                        class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Sakit">
+                                                        Sakit
+                                                    </button>
+                                                    {{-- Izin --}}
+                                                    <button type="button" @click="rowStatus = 'izin'" 
+                                                        :style="rowStatus === 'izin' ? 'background-color: #2563eb !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
+                                                        class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Izin">
+                                                        Izin
+                                                    </button>
+                                                    {{-- Alpha --}}
+                                                    <button type="button" @click="rowStatus = 'alpha'" 
+                                                        :style="rowStatus === 'alpha' ? 'background-color: #e11d48 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
+                                                        class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Alpha (Tanpa Keterangan)">
+                                                        Alpha
+                                                    </button>
+                                                    {{-- Reset --}}
+                                                    <button type="button" @click="rowStatus = ''" 
+                                                        :style="!rowStatus ? 'background-color: #94a3b8 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #64748b !important;'"
+                                                        class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Kosongkan / Reset Status">
+                                                        —
+                                                    </button>
+                                                </div>
+                                            </td>
 
-                                        {{-- Catatan / Keterangan --}}
-                                        <td class="px-4 py-3">
-                                            <input type="text" name="notes[{{ $st->id }}]" value="{{ $att->notes ?? '' }}" 
-                                                placeholder="Contoh: Surat dokter, izin keluarga..." 
-                                                class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none">
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="p-8 text-center text-gray-400 font-bold">
-                                            Tidak ada data siswa aktif pada kelas ini.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Footer Action Bar --}}
-                    <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <div class="text-xs text-slate-600 font-bold">
-                            💡 Data yang disimpan akan langsung terhubung ke rekapitulasi harian sekolah dan matriks bulanan.
+                                            {{-- Catatan / Keterangan --}}
+                                            <td class="px-4 py-3">
+                                                <input type="text" name="notes[{{ $st->id }}]" value="{{ $att->notes ?? '' }}" 
+                                                    placeholder="Contoh: Surat dokter, izin keluarga..." 
+                                                    class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none">
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="p-8 text-center text-gray-400 font-bold">
+                                                Tidak ada data siswa aktif pada kelas ini.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
                         </div>
-                        <button type="submit" class="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-2 cursor-pointer" style="color: #000000 !important; background-color: #fbbf24 !important;">
-                            <i class="fas fa-save text-sm text-black"></i> Simpan Presensi Harian Kelas
-                        </button>
+
+                        {{-- Footer Action Bar --}}
+                        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                            <div class="text-xs text-slate-600 font-bold">
+                                💡 Data yang disimpan akan langsung terhubung ke rekapitulasi harian sekolah dan matriks bulanan.
+                            </div>
+                            <button type="submit" class="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-2 cursor-pointer" style="color: #000000 !important; background-color: #fbbf24 !important;">
+                                <i class="fas fa-save text-sm text-black"></i> Simpan Presensi Harian Kelas
+                            </button>
+                        </div>
+                    </form>
+                @else
+                    {{-- ── B. READ-ONLY VIEW UNTUK GURU PENGAMPU (BUKAN WALI KELAS) ── --}}
+                    <div class="p-6 space-y-4">
+                        {{-- Info Alert: Read-Only --}}
+                        <div class="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl flex items-start gap-3 text-amber-950 text-xs shadow-2xs">
+                            <div class="w-8 h-8 rounded-xl bg-amber-400 text-black flex items-center justify-center text-sm font-black flex-shrink-0 mt-0.5">
+                                <i class="fas fa-info-circle text-black"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="font-black text-sm text-amber-950">Mode Pantauan Kehadiran Harian (Hanya Lihat)</div>
+                                <p class="text-xs text-amber-900 font-medium">
+                                    Anda membuka kelas ini sebagai <strong>Guru Pengampu Mata Pelajaran</strong>. Pengisian dan pengeditan Presensi Harian Sekolah dikelola khusus oleh Wali Kelas 
+                                    (<strong>{{ $selectedClassroom->homeroomTeacher?->full_name ?? 'Wali Kelas' }}</strong>) atau Petugas Admin Sekolah.
+                                </p>
+                                <p class="text-[11px] text-amber-800 font-bold">
+                                    👉 Untuk menginput absensi jam pelajaran yang Anda ampu di kelas ini, silakan klik tab <strong>"Kehadiran Pelajaran Saya"</strong> di atas.
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- Fast Filter Chips for Read-Only Mode --}}
+                        <div class="flex items-center gap-1.5 flex-wrap bg-slate-50 p-2 rounded-2xl border border-slate-200">
+                            <span class="text-xs font-bold text-slate-600 mr-1">Filter:</span>
+                            <button type="button" @click="statusFilter = 'all'" 
+                                :style="statusFilter === 'all' ? 'background-color: #581c87 !important; color: #ffffff !important;' : 'background-color: #ffffff !important; color: #334155 !important;'"
+                                class="px-3 py-1 rounded-xl text-xs font-bold border border-slate-300 transition cursor-pointer">
+                                Semua ({{ $classroomStudents->count() }})
+                            </button>
+                            <button type="button" @click="statusFilter = 'unscanned'" 
+                                :style="statusFilter === 'unscanned' ? 'background-color: #b45309 !important; color: #ffffff !important;' : 'background-color: #ffffff !important; color: #b45309 !important;'"
+                                class="px-3 py-1 rounded-xl text-xs font-bold border border-slate-300 transition cursor-pointer">
+                                Belum Scan ({{ $dailySummary['unscanned'] }})
+                            </button>
+                            <button type="button" @click="statusFilter = 'hadir'" 
+                                :style="statusFilter === 'hadir' ? 'background-color: #047857 !important; color: #ffffff !important;' : 'background-color: #ffffff !important; color: #047857 !important;'"
+                                class="px-3 py-1 rounded-xl text-xs font-bold border border-slate-300 transition cursor-pointer">
+                                Hadir ({{ $dailySummary['present'] }})
+                            </button>
+                            <button type="button" @click="statusFilter = 'sakit'" 
+                                :style="statusFilter === 'sakit' ? 'background-color: #d97706 !important; color: #ffffff !important;' : 'background-color: #ffffff !important; color: #b45309 !important;'"
+                                class="px-3 py-1 rounded-xl text-xs font-bold border border-slate-300 transition cursor-pointer">
+                                Sakit ({{ $dailySummary['sick'] }})
+                            </button>
+                            <button type="button" @click="statusFilter = 'izin'" 
+                                :style="statusFilter === 'izin' ? 'background-color: #1d4ed8 !important; color: #ffffff !important;' : 'background-color: #ffffff !important; color: #1d4ed8 !important;'"
+                                class="px-3 py-1 rounded-xl text-xs font-bold border border-slate-300 transition cursor-pointer">
+                                Izin ({{ $dailySummary['permission'] }})
+                            </button>
+                            <button type="button" @click="statusFilter = 'alpha'" 
+                                :style="statusFilter === 'alpha' ? 'background-color: #be123c !important; color: #ffffff !important;' : 'background-color: #ffffff !important; color: #be123c !important;'"
+                                class="px-3 py-1 rounded-xl text-xs font-bold border border-slate-300 transition cursor-pointer">
+                                Alpha ({{ $dailySummary['absent'] }})
+                            </button>
+                        </div>
+
+                        {{-- Read-Only Student Table --}}
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                            <table class="w-full text-sm text-left">
+                                <thead>
+                                    <tr class="bg-slate-900 text-white font-bold text-xs uppercase" style="background-color: #0f172a !important; color: #ffffff !important;">
+                                        <th class="px-4 py-3 text-center border-r border-slate-700 w-12 text-white">No</th>
+                                        <th class="px-4 py-3 border-r border-slate-700 min-w-[220px] text-white">Nama Siswa</th>
+                                        <th class="px-4 py-3 border-r border-slate-700 min-w-[180px] text-white">Status Kehadiran Hari Ini</th>
+                                        <th class="px-4 py-3 min-w-[220px] text-white">Keterangan / Catatan</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @forelse($classroomStudents as $idx => $st)
+                                        @php
+                                            $att = $dailySchoolAttendances->get($st->id);
+                                            $currentStatus = $att ? $att->status : '';
+                                            $stGroup = $studentBlockGroups[$st->id] ?? null;
+                                        @endphp
+                                        <tr x-show="statusFilter === 'all' || (statusFilter === 'unscanned' && '{{ $currentStatus }}' === '') || (statusFilter === '{{ $currentStatus }}')"
+                                            class="hover:bg-slate-50 transition">
+                                            
+                                            <td class="px-4 py-3 text-center font-bold text-slate-500 border-r border-gray-100">
+                                                {{ $idx + 1 }}
+                                            </td>
+
+                                            <td class="px-4 py-3 border-r border-gray-100 font-bold">
+                                                <div class="flex items-center gap-3">
+                                                    <img src="{{ $st->photo_url }}" alt="{{ $st->full_name }}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-gray-200 shadow-2xs" onerror="this.src='{{ asset('images/default-student.jpg') }}'">
+                                                    <div class="truncate max-w-[220px]" title="{{ $st->full_name }}">
+                                                        <div class="text-xs font-bold text-gray-900 truncate">{{ $st->full_name }}</div>
+                                                        <div class="text-[10px] text-gray-400 font-medium">NISN: {{ $st->nisn ?? '-' }}</div>
+                                                        @if($stGroup)
+                                                            <span class="inline-block mt-0.5 text-[9px] font-black px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200">Grup {{ $stGroup }}</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            {{-- Status Kehadiran --}}
+                                            <td class="px-4 py-3 border-r border-gray-100">
+                                                @if($att)
+                                                    @if($att->status === 'hadir' || $att->status === 'terlambat')
+                                                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-950 border border-emerald-300 font-black text-xs">
+                                                            <i class="fas fa-check-circle text-emerald-600"></i>
+                                                            <span>Hadir {{ $att->time_in ? '('.substr($att->time_in, 0, 5).' WIB)' : '' }}</span>
+                                                        </div>
+                                                    @elseif($att->status === 'sakit')
+                                                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100 text-amber-950 border border-amber-300 font-black text-xs">
+                                                            <i class="fas fa-briefcase-medical text-amber-600"></i>
+                                                            <span>Sakit</span>
+                                                        </div>
+                                                    @elseif($att->status === 'izin')
+                                                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-100 text-blue-950 border border-blue-300 font-black text-xs">
+                                                            <i class="fas fa-envelope-open-text text-blue-600"></i>
+                                                            <span>Izin</span>
+                                                        </div>
+                                                    @elseif($att->status === 'alpha')
+                                                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-100 text-rose-950 border border-rose-300 font-black text-xs">
+                                                            <i class="fas fa-times-circle text-rose-600"></i>
+                                                            <span>Alpha</span>
+                                                        </div>
+                                                    @else
+                                                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 border border-slate-300 font-black text-xs capitalize">
+                                                            <span>{{ $att->status }}</span>
+                                                        </div>
+                                                    @endif
+                                                @else
+                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100 text-amber-950 border border-amber-300 font-black text-xs">
+                                                        <i class="fas fa-clock text-amber-600"></i> Belum Presensi / Scan
+                                                    </span>
+                                                @endif
+                                            </td>
+
+                                            {{-- Catatan --}}
+                                            <td class="px-4 py-3 text-xs text-slate-600">
+                                                {{ $att->notes ?: '—' }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="p-8 text-center text-gray-400 font-bold">
+                                                Tidak ada data siswa aktif pada kelas ini.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </form>
+                @endif
             </div>
 
             {{-- ═════════════════════════════════════════════════════════════════ --}}

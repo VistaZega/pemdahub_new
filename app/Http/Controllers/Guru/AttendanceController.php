@@ -305,18 +305,23 @@ class AttendanceController extends Controller
         ]);
 
         $teacher = $this->getTeacher();
-        $activeYear = $this->getActiveYear();
-        $classrooms = $this->getTeacherClassrooms($teacher, $activeYear);
+        $classroom = Classroom::with('homeroomTeacher')->find($request->classroom_id);
 
-        // Verify teacher has access to this classroom
-        if (!$classrooms->contains('id', (int) $request->classroom_id)) {
-            return back()->withErrors(['classroom_id' => 'Anda tidak memiliki akses ke kelas ini.'])->withInput();
+        if (!$classroom) {
+            return back()->withErrors(['classroom_id' => 'Kelas tidak ditemukan.'])->withInput();
+        }
+
+        // Strict Check: Hanya Wali Kelas yang berhak menyimpan/mengubah presensi harian sekolah
+        if ($classroom->homeroom_teacher_id !== $teacher->id) {
+            $homeroomName = $classroom->homeroomTeacher?->full_name ?? 'Wali Kelas';
+            return back()->withErrors([
+                'attendance' => "Akses Ditolak: Anda bukan Wali Kelas dari kelas {$classroom->class_name}. Presensi harian sekolah hanya dapat diisi dan diubah oleh Wali Kelas ({$homeroomName}) atau Admin Sekolah."
+            ])->withInput();
         }
 
         try {
             $count = 0;
-            $classroom = Classroom::find($request->classroom_id);
-            $classroomName = $classroom ? $classroom->class_name : 'Kelas';
+            $classroomName = $classroom->class_name;
             $date = $request->date;
 
             foreach ($request->statuses as $studentId => $status) {
