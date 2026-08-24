@@ -632,8 +632,12 @@ Route::get('/', function () {
         ->orderBy('type')
         ->get();
 
-    // PSB
-    $activeWave = \App\Models\RegistrationWave::where('is_active', true)->first();
+    // PSB - Active Wave (hanya jika aktif, tanggal berlaku, dan unit sekolah membuka PSB)
+    $activeWave = \App\Models\RegistrationWave::where('is_active', true)
+        ->whereDate('start_date', '<=', now())
+        ->whereDate('end_date', '>=', now())
+        ->whereHas('school', fn($q) => $q->where('is_active', true)->where('psb_is_active', true))
+        ->first();
     $totalApplicants = $activeAcademicYear
         ? \App\Models\Applicant::where('academic_year_id', $activeAcademicYear->id)->count()
         : 0;
