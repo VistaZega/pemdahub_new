@@ -292,6 +292,126 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Store or update Daily School Attendance (Kehadiran Harian Sekolah) by Homeroom Teacher (Wali Kelas) or Authorized Teacher.
+     */
+    public function storeDaily(Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'classroom_id' => 'required|exists:classrooms,id',
+            'statuses' => 'required|array',
+            'statuses.*' => 'nullable|in:hadir,izin,sakit,alpha,terlambat,',
+            'notes' => 'nullable|array',
+        ]);
+
+        $teacher = $this->getTeacher();
+        $activeYear = $this->getActiveYear();
+        $classrooms = $this->getTeacherClassrooms($teacher, $activeYear);
+
+        // Verify teacher has access to this classroom
+        if (!$classrooms->contains('id', (int) $request->classroom_id)) {
+            return back()->withErrors(['classroom_id' => 'Anda tidak memiliki akses ke kelas ini.'])->withInput();
+        }
+
+        try {
+            $count = 0;
+            $classroom = Classroom::find($request->classroom_id);
+            $classroomName = $classroom ? $classroom->class_name : 'Kelas';
+            $date = $request->date;
+
+            foreach ($request->statuses as $studentId => $status) {
+                $note = $request->notes[$studentId] ?? null;
+
+                $existing = Attendance::where('student_id', $studentId)
+                    ->where('classroom_id', $request->classroom_id)
+                    ->where('date', $date)
+                    ->whereNull('schedule_id')
+                    ->first();
+
+                if (empty($status)) {
+                    // If status was cleared and it was created manually or by wali kelas, we can delete it
+                    if ($existing && in_array($existing->recorded_via, ['manual', 'wali_kelas', null])) {
+                        $existing->delete();
+                    }
+                    continue;
+                }
+
+                // If existing was recorded via RFID device, update status and note, keep time_in
+                $timeIn = $existing?->time_in ?? ($status === 'hadir' ? now()->format('H:i:s') : null);
+
+                $attendance = Attendance::updateOrCreate(
+                    [
+                        'student_id' => $studentId,
+                        'classroom_id' => $request->classroom_id,
+                        'date' => $date,
+                        'schedule_id' => null, // Kehadiran Harian Sekolah
+                    ],
+                    [
+                        'status' => $status,
+                        'time_in' => $timeIn,
+                        'notes' => $note,
+                        'recorded_via' => $existing?->recorded_via ?? 'wali_kelas',
+                        'created_by' => $existing?->created_by ?? Auth::id(),
+                    ]
+                );
+
+                // Reputation Hook for Student
+                $student = \App\Models\Student::find($studentId);
+                if ($student && $student->user_id) {
+                    $points = match($status) {
+                        'hadir' => 10,
+                        'alpha' => -10,
+                        default => 0
+                    };
+                    $desc = "Kehadiran harian di kelas " . $classroomName . " (" . ucfirst($status) . ")";
+                    
+                    $alreadyLoggedOtherDate = \App\Models\ReputationLog::where('user_id', $student->user_id)
+                        ->where('category', 'attendance')
+                        ->whereDate('created_at', $date)
+                        ->where(function($q) use ($attendance) {
+                            $q->where('reference_type', '!=', get_class($attendance))
+                              ->orWhere('reference_id', '!=', $attendance->id);
+                        })
+                        ->exists();
+
+                    if (!$alreadyLoggedOtherDate && $points !== 0) {
+                        \App\Models\ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
+                    }
+                }
+
+                $count++;
+            }
+
+            // Reputation Hook for Teacher (Wali Kelas)
+            $teacherAlreadyLoggedToday = \App\Models\ReputationLog::where('user_id', Auth::id())
+                ->where('category', 'attendance_daily_input')
+                ->whereDate('created_at', $date)
+                ->exists();
+
+            if (!$teacherAlreadyLoggedToday) {
+                \App\Models\ReputationLog::log(
+                    Auth::id(), 
+                    20, 
+                    'attendance_daily_input', 
+                    "Melakukan pembaruan presensi harian kelas {$classroomName} ({$date})"
+                );
+            }
+
+            $dateCarbon = \Carbon\Carbon::parse($date);
+            return redirect()->route('guru.absensi', [
+                'classroom_id' => $request->classroom_id,
+                'daily_date' => $date,
+                'month' => $dateCarbon->format('n'),
+                'year' => $dateCarbon->format('Y'),
+                'viewMode' => 'daily',
+            ])->with('success', "Presensi harian sekolah berhasil disimpan untuk {$count} siswa.");
+        } catch (\Exception $e) {
+            Log::error('Wali Kelas gagal menyimpan presensi harian: ' . $e->getMessage());
+            return back()->withErrors(['attendance' => 'Gagal menyimpan presensi harian. Silakan coba lagi.'])->withInput();
+        }
+    }
+
+    /**
      * Hapus seluruh data absensi pada tanggal tertentu yang diinput oleh guru ini.
      */
     public function destroyDate(Request $request)

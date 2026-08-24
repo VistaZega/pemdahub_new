@@ -921,23 +921,58 @@ class DashboardController extends Controller
 
                 $isTodayScheduled = in_array(date('Y-m-d'), $scheduledFullDates);
 
-                // Filter Ringkasan Kartu Atas (Summary)
-                $summary = [
-                    'present' => $attendances->where('status', 'hadir')->count(),
-                    'sick' => $attendances->where('status', 'sakit')->count(),
-                    'permission' => $attendances->where('status', 'izin')->count(),
-                    'absent' => $attendances->where('status', 'alpha')->count(),
-                    'total' => $attendances->count(),
+                // Kehadiran Harian Sekolah pada Tanggal Terpilih (Default: Hari Ini)
+                $selectedDailyDate = $request->get('daily_date', date('Y-m-d'));
+                $dailySchoolAttendances = Attendance::where('classroom_id', $selectedClassroomId)
+                    ->whereDate('date', $selectedDailyDate)
+                    ->whereNull('schedule_id')
+                    ->get()
+                    ->keyBy('student_id');
+
+                $totalActiveStudents = $classroomStudents->count();
+                $dailyPresentCount = $dailySchoolAttendances->whereIn('status', ['hadir', 'terlambat'])->count();
+                $dailySickCount = $dailySchoolAttendances->where('status', 'sakit')->count();
+                $dailyPermissionCount = $dailySchoolAttendances->where('status', 'izin')->count();
+                $dailyAbsentCount = $dailySchoolAttendances->where('status', 'alpha')->count();
+                $dailyUnscannedCount = max(0, $totalActiveStudents - ($dailyPresentCount + $dailySickCount + $dailyPermissionCount + $dailyAbsentCount));
+
+                $dailySummary = [
+                    'present' => $dailyPresentCount,
+                    'sick' => $dailySickCount,
+                    'permission' => $dailyPermissionCount,
+                    'absent' => $dailyAbsentCount,
+                    'unscanned' => $dailyUnscannedCount,
+                    'total' => $totalActiveStudents,
+                    'percentage' => $totalActiveStudents > 0 ? round(($dailyPresentCount / $totalActiveStudents) * 100, 1) : 0,
                 ];
-                $summary['percentage'] = $summary['total'] > 0
-                    ? round(($summary['present'] / $summary['total']) * 100, 1) : 0;
+
+                $isHomeroom = $selectedClassroom && ($selectedClassroom->homeroom_teacher_id === $teacher->id);
+
+                // Rekap Bulanan Kehadiran Harian Sekolah
+                $monthlySummary = [
+                    'present' => $monthlyAttendances->whereIn('status', ['hadir', 'terlambat'])->count(),
+                    'sick' => $monthlyAttendances->where('status', 'sakit')->count(),
+                    'permission' => $monthlyAttendances->where('status', 'izin')->count(),
+                    'absent' => $monthlyAttendances->where('status', 'alpha')->count(),
+                    'total' => $monthlyAttendances->count(),
+                ];
+                $monthlySummary['percentage'] = $monthlySummary['total'] > 0
+                    ? round(($monthlySummary['present'] / $monthlySummary['total']) * 100, 1) : 0;
+
+                // Filter Ringkasan Kartu Atas (Summary default)
+                $summary = $monthlySummary;
             }
         } else {
             $selectedInputDate = date('Y-m-d');
+            $selectedDailyDate = date('Y-m-d');
             $isTodayScheduled = false;
             $scheduledStudentIds = [];
             $studentBlockGroups = [];
             $targetGroup = null;
+            $dailySummary = ['present' => 0, 'sick' => 0, 'permission' => 0, 'absent' => 0, 'unscanned' => 0, 'total' => 0, 'percentage' => 0];
+            $dailySchoolAttendances = collect();
+            $isHomeroom = false;
+            $monthlySummary = ['present' => 0, 'sick' => 0, 'permission' => 0, 'absent' => 0, 'total' => 0, 'percentage' => 0];
         }
 
         return view('guru.absensi', compact(
@@ -947,7 +982,8 @@ class DashboardController extends Controller
             'classroomStudents', 'matrixMap', 'studentStats',
             'lessonMatrixMap', 'lessonStudentStats', 'wajibStudentIds',
             'assignmentInfo', 'lessonDates', 'selectedInputDate', 'isTodayScheduled',
-            'scheduledStudentIds', 'studentBlockGroups', 'targetGroup'
+            'scheduledStudentIds', 'studentBlockGroups', 'targetGroup',
+            'dailySummary', 'dailySchoolAttendances', 'selectedDailyDate', 'isHomeroom', 'monthlySummary'
         ));
     }
 

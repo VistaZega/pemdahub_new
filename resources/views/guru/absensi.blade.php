@@ -3,21 +3,27 @@
 
 @section('content')
 
-
 <div class="space-y-6">
 
     {{-- Header Banner (Neo-Brutalism) --}}
     <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black print-hide" style="background: linear-gradient(135deg, #090d16 0%, #311b92 50%, #4a148c 100%) !important;">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
-                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
-                        <i class="fas fa-clipboard-check text-black"></i>
-                    </div>
-                    Absensi & Rekap Kehadiran Siswa
-                </h1>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
+                        <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg flex-shrink-0">
+                            <i class="fas fa-clipboard-check text-black"></i>
+                        </div>
+                        <span>Absensi & Rekap Kehadiran Siswa</span>
+                    </h1>
+                    @if(isset($isHomeroom) && $isHomeroom)
+                        <span class="px-3 py-1 rounded-xl bg-amber-400 text-purple-950 font-black text-xs border-2 border-black shadow-sm flex items-center gap-1.5">
+                            <i class="fas fa-crown text-amber-900"></i> Wali Kelas
+                        </span>
+                    @endif
+                </div>
                 <p class="text-xs md:text-sm font-bold text-purple-200 mt-1" style="color: #e9d5ff !important;">
-                    Rekapitulasi dan catatan kehadiran siswa @if($selectedClassroom) · {{ $selectedClassroom->class_name }} @endif @if($activeYear) ({{ $activeYear->year }}) @endif
+                    Rekapitulasi dan catatan kehadiran siswa @if($selectedClassroom) · <span class="text-amber-300 font-extrabold">{{ $selectedClassroom->class_name }}</span> @endif @if($activeYear) ({{ $activeYear->year }}) @endif
                 </p>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
@@ -74,45 +80,322 @@
             <p class="text-gray-500 font-bold">Kelas tidak ditemukan atau Anda tidak mengajar di kelas ini.</p>
         </div>
     @else
-        {{-- Summary Cards --}}
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            @php
-                $items = [
-                    ['label' => 'Hadir', 'value' => $summary['present'], 'color' => 'green', 'icon' => 'check-circle'],
-                    ['label' => 'Sakit', 'value' => $summary['sick'], 'color' => 'yellow', 'icon' => 'briefcase-medical'],
-                    ['label' => 'Izin', 'value' => $summary['permission'], 'color' => 'blue', 'icon' => 'envelope'],
-                    ['label' => 'Alpha', 'value' => $summary['absent'], 'color' => 'red', 'icon' => 'times-circle'],
-                    ['label' => 'Persentase', 'value' => $summary['percentage'].'%', 'color' => 'purple', 'icon' => 'percentage'],
-                ];
-            @endphp
-            @foreach($items as $item)
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center print-no-bg">
-                    <div class="w-8 h-8 bg-{{ $item['color'] }}-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                        <i class="fas fa-{{ $item['icon'] }} text-{{ $item['color'] }}-600 text-sm"></i>
-                    </div>
-                    <p class="text-xl font-bold text-gray-800">{{ $item['value'] }}</p>
-                    <p class="text-xs text-gray-500">{{ $item['label'] }} ({{ $monthsList[$selectedMonth] ?? '' }})</p>
-                </div>
-            @endforeach
-        </div>
+        <div x-data="{ 
+            viewMode: '{{ request('viewMode', 'daily') }}', 
+            statusFilter: 'all',
+            editModeLesson: {{ ($isTodayScheduled ?? false) ? 'true' : 'false' }}
+        }" class="space-y-5">
 
-        {{-- Tab Controls & Action --}}
-        <div x-data="{ viewMode: '{{ request('viewMode', request('input_date') ? 'log' : 'matrix') }}', editMode: {{ ($isTodayScheduled ?? false) ? 'true' : 'false' }} }" class="space-y-4">
-            <div class="flex items-center justify-between gap-4 flex-wrap bg-white p-2 rounded-2xl border border-gray-100 shadow-sm print-hide">
-                <div class="flex items-center gap-2">
-                    <button @click="viewMode = 'matrix'" :class="viewMode === 'matrix' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 border border-black">
-                        <i class="fas fa-table"></i> Kehadiran Harian (Sekolah)
+            {{-- ═════════════════════════════════════════════════════════════════ --}}
+            {{-- REKAP KEHADIRAN HARIAN REAL-TIME (HARI INI / TANGGAL TERPILIH)   --}}
+            {{-- ═════════════════════════════════════════════════════════════════ --}}
+            <div class="bg-white rounded-3xl p-5 border-2 border-slate-200 shadow-sm space-y-4 print-hide">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-black">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                                Rekap Kehadiran Harian Siswa
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold uppercase">Real-Time Gerbang & Kelas</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 font-medium">Klik pada kartu status di bawah untuk memfilter daftar siswa</p>
+                        </div>
+                    </div>
+
+                    {{-- Pemilih Tanggal Harian --}}
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-600 flex items-center gap-1">
+                            <i class="fas fa-calendar-day text-purple-600"></i> Tanggal:
+                        </span>
+                        <input type="date" value="{{ $selectedDailyDate }}" 
+                            onchange="window.location.href='?classroom_id={{ $selectedClassroomId }}&month={{ $selectedMonth }}&year={{ $selectedYear }}&daily_date=' + this.value + '&viewMode=daily'"
+                            class="text-xs font-black border-2 border-purple-200 rounded-xl px-3 py-1.5 bg-purple-50/50 text-purple-950 shadow-2xs outline-none focus:border-purple-600 cursor-pointer">
+                        @if($selectedDailyDate !== date('Y-m-d'))
+                            <a href="?classroom_id={{ $selectedClassroomId }}&month={{ date('n') }}&year={{ date('Y') }}&daily_date={{ date('Y-m-d') }}&viewMode=daily" 
+                               class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-2xs transition" title="Kembali ke Hari Ini">
+                                Hari Ini
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Interactive Real-Time Summary Cards --}}
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                    {{-- 1. Hadir --}}
+                    <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'hadir' ? 'all' : 'hadir')" 
+                        :class="statusFilter === 'hadir' ? 'ring-2 ring-emerald-500 border-emerald-500 bg-emerald-50/70' : 'border-slate-200 bg-slate-50/50 hover:bg-emerald-50/40'"
+                        class="p-4 rounded-2xl border text-center transition-all cursor-pointer shadow-2xs">
+                        <div class="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-emerald-600">
+                            <i class="fas fa-check-circle text-base"></i>
+                        </div>
+                        <p class="text-2xl font-black text-slate-900">{{ $dailySummary['present'] }}</p>
+                        <p class="text-xs font-bold text-emerald-700 mt-0.5">Hadir ({{ $dailySummary['percentage'] }}%)</p>
                     </button>
-                    <button @click="viewMode = 'log'" :class="viewMode === 'log' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 border border-black">
-                        <i class="fas fa-list-ul"></i> Kehadiran Pelajaran Saya
+
+                    {{-- 2. Sakit --}}
+                    <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'sakit' ? 'all' : 'sakit')" 
+                        :class="statusFilter === 'sakit' ? 'ring-2 ring-amber-500 border-amber-500 bg-amber-50/70' : 'border-slate-200 bg-slate-50/50 hover:bg-amber-50/40'"
+                        class="p-4 rounded-2xl border text-center transition-all cursor-pointer shadow-2xs">
+                        <div class="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-amber-600">
+                            <i class="fas fa-briefcase-medical text-base"></i>
+                        </div>
+                        <p class="text-2xl font-black text-slate-900">{{ $dailySummary['sick'] }}</p>
+                        <p class="text-xs font-bold text-amber-700 mt-0.5">Sakit</p>
+                    </button>
+
+                    {{-- 3. Izin --}}
+                    <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'izin' ? 'all' : 'izin')" 
+                        :class="statusFilter === 'izin' ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50/70' : 'border-slate-200 bg-slate-50/50 hover:bg-blue-50/40'"
+                        class="p-4 rounded-2xl border text-center transition-all cursor-pointer shadow-2xs">
+                        <div class="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-blue-600">
+                            <i class="fas fa-envelope-open-text text-base"></i>
+                        </div>
+                        <p class="text-2xl font-black text-slate-900">{{ $dailySummary['permission'] }}</p>
+                        <p class="text-xs font-bold text-blue-700 mt-0.5">Izin</p>
+                    </button>
+
+                    {{-- 4. Alpha --}}
+                    <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'alpha' ? 'all' : 'alpha')" 
+                        :class="statusFilter === 'alpha' ? 'ring-2 ring-rose-500 border-rose-500 bg-rose-50/70' : 'border-slate-200 bg-slate-50/50 hover:bg-rose-50/40'"
+                        class="p-4 rounded-2xl border text-center transition-all cursor-pointer shadow-2xs">
+                        <div class="w-8 h-8 bg-rose-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-rose-600">
+                            <i class="fas fa-times-circle text-base"></i>
+                        </div>
+                        <p class="text-2xl font-black text-slate-900">{{ $dailySummary['absent'] }}</p>
+                        <p class="text-xs font-bold text-rose-700 mt-0.5">Alpha</p>
+                    </button>
+
+                    {{-- 5. Belum Presensi / Belum Scan --}}
+                    <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'unscanned' ? 'all' : 'unscanned')" 
+                        :class="statusFilter === 'unscanned' ? 'ring-2 ring-purple-600 border-purple-600 bg-purple-50/70' : 'border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50/80'"
+                        class="p-4 rounded-2xl border-2 text-center transition-all cursor-pointer shadow-2xs col-span-2 sm:col-span-1">
+                        <div class="w-8 h-8 bg-amber-200/80 rounded-xl flex items-center justify-center mx-auto mb-2 text-amber-800">
+                            <i class="fas fa-user-clock text-base"></i>
+                        </div>
+                        <p class="text-2xl font-black text-amber-950">{{ $dailySummary['unscanned'] }}</p>
+                        <p class="text-xs font-black text-amber-800 mt-0.5">Belum Presensi / Scan</p>
                     </button>
                 </div>
-                <a href="{{ route('guru.absensi.print', request()->all()) }}" target="_blank" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition flex items-center gap-2 border border-purple-800">
+            </div>
+
+            {{-- ═════════════════════════════════════════════════════════════════ --}}
+            {{-- TAB CONTROLS                                                      --}}
+            {{-- ═════════════════════════════════════════════════════════════════ --}}
+            <div class="flex items-center justify-between gap-4 flex-wrap bg-white p-2.5 rounded-2xl border border-gray-100 shadow-sm print-hide">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button @click="viewMode = 'daily'" :class="viewMode === 'daily' ? 'bg-purple-900 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-2 border border-purple-950 cursor-pointer">
+                        <i class="fas fa-clipboard-user text-amber-400"></i> Presensi Harian Kelas & Input Wali Kelas
+                    </button>
+                    <button @click="viewMode = 'matrix'" :class="viewMode === 'matrix' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-2 border border-black cursor-pointer">
+                        <i class="fas fa-table"></i> Matriks Bulanan (Sekolah)
+                    </button>
+                    <button @click="viewMode = 'log'" :class="viewMode === 'log' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-2 border border-black cursor-pointer">
+                        <i class="fas fa-chalkboard-user"></i> Kehadiran Pelajaran Saya
+                    </button>
+                </div>
+                <a href="{{ route('guru.absensi.print', request()->all()) }}" target="_blank" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition flex items-center gap-2 border border-purple-800">
                     <i class="fas fa-print"></i> Cetak Rekap
                 </a>
             </div>
 
-            {{-- 1. TAB MATRIKS BULANAN --}}
+            {{-- ═════════════════════════════════════════════════════════════════ --}}
+            {{-- 1. TAB PRESENSI HARIAN KELAS (WALI KELAS & REAL-TIME EDIT)         --}}
+            {{-- ═════════════════════════════════════════════════════════════════ --}}
+            <div x-show="viewMode === 'daily'" class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden space-y-0">
+                <form action="{{ route('guru.absensi.storeDaily') }}" method="POST" id="formPresensiHarian">
+                    @csrf
+                    <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
+                    <input type="hidden" name="date" value="{{ $selectedDailyDate }}">
+
+                    {{-- Toolbar Presensi Harian --}}
+                    <div class="px-6 py-4 bg-gradient-to-r from-purple-50 via-indigo-50/60 to-purple-50 border-b border-purple-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div>
+                            <h2 class="text-base font-black text-purple-950 flex items-center gap-2">
+                                <i class="fas fa-calendar-check text-purple-600"></i>
+                                <span>Presensi Harian: {{ \Carbon\Carbon::parse($selectedDailyDate)->translatedFormat('l, d F Y') }}</span>
+                            </h2>
+                            <p class="text-xs text-purple-800 font-semibold mt-0.5">
+                                Kelas: <strong>{{ $selectedClassroom->class_name }}</strong> · Total: <strong>{{ $classroomStudents->count() }} Siswa</strong>
+                                @if(isset($isHomeroom) && $isHomeroom)
+                                    <span class="text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md text-[10px] ml-1 font-bold">Akses Wali Kelas Aktif</span>
+                                @endif
+                            </p>
+                        </div>
+
+                        {{-- Action Buttons --}}
+                        <div class="flex items-center gap-2 flex-wrap">
+                            {{-- Fast Filter Chips --}}
+                            <div class="flex items-center gap-1 bg-white/80 p-1 rounded-xl border border-purple-200">
+                                <button type="button" @click="statusFilter = 'all'" :class="statusFilter === 'all' ? 'bg-purple-700 text-white' : 'text-slate-600 hover:bg-purple-50'" class="px-2.5 py-1 rounded-lg text-xs font-bold transition">
+                                    Semua ({{ $classroomStudents->count() }})
+                                </button>
+                                <button type="button" @click="statusFilter = 'unscanned'" :class="statusFilter === 'unscanned' ? 'bg-amber-600 text-white' : 'text-amber-800 hover:bg-amber-50'" class="px-2.5 py-1 rounded-lg text-xs font-black transition flex items-center gap-1">
+                                    <i class="fas fa-clock text-[10px]"></i> Belum Scan ({{ $dailySummary['unscanned'] }})
+                                </button>
+                                <button type="button" @click="statusFilter = 'hadir'" :class="statusFilter === 'hadir' ? 'bg-emerald-600 text-white' : 'text-emerald-800 hover:bg-emerald-50'" class="px-2 py-1 rounded-lg text-xs font-bold transition">
+                                    Hadir ({{ $dailySummary['present'] }})
+                                </button>
+                                <button type="button" @click="statusFilter = 'sakit'" :class="statusFilter === 'sakit' ? 'bg-yellow-500 text-black' : 'text-yellow-800 hover:bg-yellow-50'" class="px-2 py-1 rounded-lg text-xs font-bold transition">
+                                    Sakit ({{ $dailySummary['sick'] }})
+                                </button>
+                                <button type="button" @click="statusFilter = 'izin'" :class="statusFilter === 'izin' ? 'bg-blue-600 text-white' : 'text-blue-800 hover:bg-blue-50'" class="px-2 py-1 rounded-lg text-xs font-bold transition">
+                                    Izin ({{ $dailySummary['permission'] }})
+                                </button>
+                                <button type="button" @click="statusFilter = 'alpha'" :class="statusFilter === 'alpha' ? 'bg-rose-600 text-white' : 'text-rose-800 hover:bg-rose-50'" class="px-2 py-1 rounded-lg text-xs font-bold transition">
+                                    Alpha ({{ $dailySummary['absent'] }})
+                                </button>
+                            </div>
+
+                            {{-- Bulk Helper: Hadirkan Semua yang Belum Scan --}}
+                            <button type="button" onclick="markAllUnscannedDailyHadir()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800 cursor-pointer" title="Otomatis isi Hadir bagi semua siswa yang belum scan">
+                                <i class="fas fa-check-double"></i> Hadirkan Belum Scan
+                            </button>
+
+                            {{-- Submit Button --}}
+                            <button type="submit" class="px-5 py-2 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-2 cursor-pointer">
+                                <i class="fas fa-save text-sm"></i> Simpan Presensi Harian
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Table List of Students --}}
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead>
+                                <tr class="bg-slate-900 text-white font-bold text-xs uppercase">
+                                    <th class="px-4 py-3 text-center border-r border-slate-700 w-12">No</th>
+                                    <th class="px-4 py-3 border-r border-slate-700 min-w-[220px]">Nama Siswa</th>
+                                    <th class="px-4 py-3 border-r border-slate-700 min-w-[180px]">Status & Asal Catatan</th>
+                                    <th class="px-4 py-3 border-r border-slate-700 min-w-[240px] text-center">Tentukan Status (Wali Kelas)</th>
+                                    <th class="px-4 py-3 min-w-[220px]">Keterangan / Alasan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @forelse($classroomStudents as $idx => $st)
+                                    @php
+                                        $att = $dailySchoolAttendances->get($st->id);
+                                        $currentStatus = $att ? $att->status : '';
+                                        $statusKey = $currentStatus ?: 'unscanned';
+                                        $stGroup = $studentBlockGroups[$st->id] ?? null;
+                                    @endphp
+                                    <tr x-data="{ rowStatus: '{{ $currentStatus }}' }"
+                                        x-show="statusFilter === 'all' || (statusFilter === 'unscanned' && !rowStatus) || (statusFilter === rowStatus)"
+                                        @mark-unscanned-daily-hadir.window="if (!rowStatus) rowStatus = 'hadir'"
+                                        class="hover:bg-purple-50/40 transition">
+                                        
+                                        <td class="px-4 py-3 text-center font-bold text-slate-500 border-r border-gray-100">
+                                            {{ $idx + 1 }}
+                                        </td>
+
+                                        <td class="px-4 py-3 border-r border-gray-100 font-bold">
+                                            <div class="flex items-center gap-3">
+                                                <img src="{{ $st->photo_url }}" alt="{{ $st->full_name }}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-gray-200 shadow-2xs" onerror="this.src='{{ asset('images/default-student.jpg') }}'">
+                                                <div class="truncate max-w-[200px]" title="{{ $st->full_name }}">
+                                                    <div class="text-xs font-bold text-gray-900 truncate">{{ $st->full_name }}</div>
+                                                    <div class="text-[10px] text-gray-400 font-medium">NISN: {{ $st->nisn ?? '-' }}</div>
+                                                    @if($stGroup)
+                                                        <span class="inline-block mt-0.5 text-[9px] font-black px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200">Grup {{ $stGroup }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        {{-- Status & Asal Catatan --}}
+                                        <td class="px-4 py-3 border-r border-gray-100">
+                                            @if($att)
+                                                @if($att->recorded_via === 'rfid' || $att->recorded_via === 'barcode' || $att->recorded_via === 'qr')
+                                                    <div class="space-y-0.5">
+                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 font-black text-xs">
+                                                            <i class="fas fa-id-card text-emerald-600"></i> Scan Gerbang
+                                                        </span>
+                                                        <div class="text-[10px] text-emerald-700 font-bold">
+                                                            Pukul {{ $att->time_in ? substr($att->time_in, 0, 5) . ' WIB' : '-' }}
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="space-y-0.5">
+                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-100 text-blue-900 border border-blue-300 font-black text-xs">
+                                                            <i class="fas fa-user-pen text-blue-600"></i> Manual / Wali Kelas
+                                                        </span>
+                                                        <div class="text-[10px] text-blue-700 font-bold capitalize">
+                                                            Status: {{ $att->status }}
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            @else
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-black text-xs">
+                                                    <i class="fas fa-clock text-amber-600"></i> Belum Scan / Presensi
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        {{-- Toggle Status Buttons (H, S, I, A, Clear) --}}
+                                        <td class="px-4 py-3 border-r border-gray-100 text-center">
+                                            <input type="hidden" name="statuses[{{ $st->id }}]" :value="rowStatus">
+                                            <div class="inline-flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-2xs">
+                                                <button type="button" @click="rowStatus = 'hadir'" 
+                                                    :class="rowStatus === 'hadir' ? 'bg-emerald-600 text-white font-black shadow-xs' : 'text-slate-600 hover:bg-white font-bold'" 
+                                                    class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer" title="Hadir">
+                                                    Hadir
+                                                </button>
+                                                <button type="button" @click="rowStatus = 'sakit'" 
+                                                    :class="rowStatus === 'sakit' ? 'bg-amber-400 text-black font-black shadow-xs' : 'text-slate-600 hover:bg-white font-bold'" 
+                                                    class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer" title="Sakit">
+                                                    Sakit
+                                                </button>
+                                                <button type="button" @click="rowStatus = 'izin'" 
+                                                    :class="rowStatus === 'izin' ? 'bg-blue-600 text-white font-black shadow-xs' : 'text-slate-600 hover:bg-white font-bold'" 
+                                                    class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer" title="Izin">
+                                                    Izin
+                                                </button>
+                                                <button type="button" @click="rowStatus = 'alpha'" 
+                                                    :class="rowStatus === 'alpha' ? 'bg-rose-600 text-white font-black shadow-xs' : 'text-slate-600 hover:bg-white font-bold'" 
+                                                    class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer" title="Alpha (Tanpa Keterangan)">
+                                                    Alpha
+                                                </button>
+                                                <button type="button" @click="rowStatus = ''" 
+                                                    :class="!rowStatus ? 'bg-slate-300 text-slate-800 font-black' : 'text-slate-400 hover:bg-white font-bold'" 
+                                                    class="px-2 py-1 rounded-lg text-xs transition cursor-pointer" title="Kosongkan / Reset Status">
+                                                    —
+                                                </button>
+                                            </div>
+                                        </td>
+
+                                        {{-- Catatan / Keterangan --}}
+                                        <td class="px-4 py-3">
+                                            <input type="text" name="notes[{{ $st->id }}]" value="{{ $att->notes ?? '' }}" 
+                                                placeholder="Contoh: Surat dokter, izin keluarga..." 
+                                                class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none">
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="p-8 text-center text-gray-400">
+                                            Tidak ada data siswa aktif pada kelas ini.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- Footer Action Bar --}}
+                    <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div class="text-xs text-slate-500 font-medium">
+                            💡 Data yang disimpan akan langsung terhubung ke rekapitulasi harian sekolah dan matriks bulanan.
+                        </div>
+                        <button type="submit" class="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-2 cursor-pointer">
+                            <i class="fas fa-save text-sm"></i> Simpan Presensi Harian Kelas
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- ═════════════════════════════════════════════════════════════════ --}}
+            {{-- 2. TAB MATRIKS KEHADIRAN HARIAN SEKOLAH (1 BULAN)                  --}}
+            {{-- ═════════════════════════════════════════════════════════════════ --}}
             <div x-show="viewMode === 'matrix'" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print-force-show print-no-bg">
                 <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h2 class="font-bold text-gray-800 flex items-center gap-2 text-sm md:text-base">
@@ -196,7 +479,9 @@
                 </div>
             </div>
 
-            {{-- 2. TAB KEHADIRAN PELAJARAN SAYA (INPUT & REKAP) --}}
+            {{-- ═════════════════════════════════════════════════════════════════ --}}
+            {{-- 3. TAB KEHADIRAN PELAJARAN SAYA (INPUT & REKAP)                    --}}
+            {{-- ═════════════════════════════════════════════════════════════════ --}}
             <div x-show="viewMode === 'log'" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <form action="{{ route('guru.absensi.store') }}" method="POST" id="formInputAbsensi">
                     @csrf
@@ -208,13 +493,13 @@
                                 <i class="fas fa-chalkboard-teacher text-purple-500"></i> Rekap & Input Kehadiran Pelajaran Saya
                             </h2>
                             <div class="mt-1">
-                                <button type="button" @click="editMode = !editMode" 
-                                    :class="editMode ? 'bg-amber-400 hover:bg-amber-300 text-black border-2 border-black' : 'bg-gray-900 hover:bg-gray-800 text-white border-2 border-black'"
-                                    class="px-3.5 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-2 shadow-sm print-hide">
-                                    <template x-if="!editMode">
+                                <button type="button" @click="editModeLesson = !editModeLesson" 
+                                    :class="editModeLesson ? 'bg-amber-400 hover:bg-amber-300 text-black border-2 border-black' : 'bg-gray-900 hover:bg-gray-800 text-white border-2 border-black'"
+                                    class="px-3.5 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-2 shadow-sm print-hide cursor-pointer">
+                                    <template x-if="!editModeLesson">
                                         <span class="flex items-center gap-1.5"><i class="fas fa-lock text-amber-400"></i> Mode Terkunci (Klik untuk Buka Mode Edit)</span>
                                     </template>
-                                    <template x-if="editMode">
+                                    <template x-if="editModeLesson">
                                         <span class="flex items-center gap-1.5"><i class="fas fa-unlock text-black"></i> Mode Edit Aktif (Klik untuk Kunci Kembali)</span>
                                     </template>
                                 </button>
@@ -232,13 +517,13 @@
                         </div>
                     </div>
 
-                    {{-- Toolbar Form Input (Hanya Muncul saat editMode = true) --}}
+                    {{-- Toolbar Form Input Pelajaran (Hanya Muncul saat editModeLesson = true) --}}
                     @php
                         $inputDay = (int)\Carbon\Carbon::parse($selectedInputDate)->format('j');
                         $inputMonth = (int)\Carbon\Carbon::parse($selectedInputDate)->format('n');
                         $inputYear = (int)\Carbon\Carbon::parse($selectedInputDate)->format('Y');
                     @endphp
-                    <div x-show="editMode" x-transition class="px-5 py-3 bg-purple-100/60 border-b border-purple-200 flex flex-wrap items-center justify-between gap-3 print-hide">
+                    <div x-show="editModeLesson" x-transition class="px-5 py-3 bg-purple-100/60 border-b border-purple-200 flex flex-wrap items-center justify-between gap-3 print-hide">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-xs font-black text-purple-950 uppercase tracking-wider flex items-center gap-1.5">
                                 <i class="fas fa-edit text-purple-600"></i> Tanggal:
@@ -252,21 +537,21 @@
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             @if($targetGroup && count($scheduledStudentIds) < $classroomStudents->count())
-                                <button type="button" onclick="markScheduledHadir()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800" title="Hadirkan hanya kelompok siswa yang terjadwal aktif di kelas ini">
+                                <button type="button" onclick="markScheduledHadir()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800 cursor-pointer" title="Hadirkan hanya kelompok siswa yang terjadwal aktif di kelas ini">
                                     <i class="fas fa-check-double"></i> Hadirkan Grup Terjadwal (Grup {{ $targetGroup }}: {{ count($scheduledStudentIds) }})
                                 </button>
-                                <button type="button" onclick="markAllHadir()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-indigo-800" title="Hadirkan semua siswa di kelas ini jika seluruh kelas masuk">
+                                <button type="button" onclick="markAllHadir()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-indigo-800 cursor-pointer" title="Hadirkan semua siswa di kelas ini jika seluruh kelas masuk">
                                     <i class="fas fa-users"></i> Hadirkan Semua Siswa Kelas ({{ $classroomStudents->count() }})
                                 </button>
                             @else
-                                <button type="button" onclick="markAllHadir()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800">
+                                <button type="button" onclick="markAllHadir()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800 cursor-pointer">
                                     <i class="fas fa-check-double"></i> Hadirkan Semua Siswa ({{ $classroomStudents->count() }})
                                 </button>
                             @endif
-                            <button type="submit" class="px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-1.5">
+                            <button type="submit" class="px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-1.5 cursor-pointer">
                                 <i class="fas fa-save text-black"></i> Simpan Absensi
                             </button>
-                            <button type="button" onclick="confirmDeleteSelectedDate()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-rose-800" title="Hapus seluruh absensi pada tanggal terpilih">
+                            <button type="button" onclick="confirmDeleteSelectedDate()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-rose-800 cursor-pointer" title="Hapus seluruh absensi pada tanggal terpilih">
                                 <i class="fas fa-trash-alt"></i> Hapus Absen Tgl Ini
                             </button>
                         </div>
@@ -340,23 +625,23 @@
                                             @endphp
                                             <td class="px-1 py-1.5 text-center border-r border-gray-100 {{ $isInputCol ? 'bg-amber-50/80 border-x-2 border-amber-300' : '' }}">
                                                 @if($isInputCol)
-                                                    {{-- Mode Edit (editMode = true) --}}
+                                                    {{-- Mode Edit Pelajaran (editModeLesson = true) --}}
                                                     @php
                                                         $currVal = $stStatus ?? ($isScheduled ? 'hadir' : '');
                                                     @endphp
-                                                    <div x-show="editMode" x-transition x-data="{ status: '{{ $currVal }}' }" 
+                                                    <div x-show="editModeLesson" x-transition x-data="{ status: '{{ $currVal }}' }" 
                                                         @mark-scheduled-hadir.window="if ({{ $isScheduled ? 'true' : 'false' }}) status = 'hadir'" 
                                                         @mark-all-hadir.window="status = 'hadir'" 
                                                         class="inline-flex items-center gap-0.5 bg-white p-0.5 rounded-lg border {{ $isScheduled ? 'border-purple-200 shadow-sm' : 'border-rose-300 bg-rose-50/40' }} print-hide">
                                                         <input type="hidden" name="statuses[{{ $st->id }}]" :value="status">
-                                                        <button type="button" @click="status = 'hadir'" :class="status === 'hadir' ? 'bg-green-500 text-white font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Hadir">H</button>
-                                                        <button type="button" @click="status = 'sakit'" :class="status === 'sakit' ? 'bg-yellow-400 text-black font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Sakit">S</button>
-                                                        <button type="button" @click="status = 'izin'" :class="status === 'izin' ? 'bg-blue-500 text-white font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Izin">I</button>
-                                                        <button type="button" @click="status = 'alpha'" :class="status === 'alpha' ? 'bg-red-500 text-white font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Alpha">A</button>
-                                                        <button type="button" @click="status = ''" :class="status === '' ? 'bg-slate-300 text-slate-700 font-black' : 'text-gray-300 hover:bg-gray-100'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition" title="Tidak Hadir / Kosongkan">—</button>
+                                                        <button type="button" @click="status = 'hadir'" :class="status === 'hadir' ? 'bg-green-500 text-white font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition cursor-pointer" title="Hadir">H</button>
+                                                        <button type="button" @click="status = 'sakit'" :class="status === 'sakit' ? 'bg-yellow-400 text-black font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition cursor-pointer" title="Sakit">S</button>
+                                                        <button type="button" @click="status = 'izin'" :class="status === 'izin' ? 'bg-blue-500 text-white font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition cursor-pointer" title="Izin">I</button>
+                                                        <button type="button" @click="status = 'alpha'" :class="status === 'alpha' ? 'bg-red-500 text-white font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition cursor-pointer" title="Alpha">A</button>
+                                                        <button type="button" @click="status = ''" :class="status === '' ? 'bg-slate-300 text-slate-700 font-black' : 'text-gray-300 hover:bg-gray-100'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition cursor-pointer" title="Tidak Hadir / Kosongkan">—</button>
                                                     </div>
-                                                    {{-- Mode Terkunci (editMode = false) --}}
-                                                    <div x-show="!editMode">
+                                                    {{-- Mode Terkunci Pelajaran (editModeLesson = false) --}}
+                                                    <div x-show="!editModeLesson">
                                                         @if($stStatus)
                                                             <span class="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black {{ $stBadge }}">{{ $stChar }}</span>
                                                         @elseif(!$isScheduled)
@@ -412,6 +697,10 @@ function markScheduledHadir() {
 
 function markAllHadir() {
     window.dispatchEvent(new CustomEvent('mark-all-hadir'));
+}
+
+function markAllUnscannedDailyHadir() {
+    window.dispatchEvent(new CustomEvent('mark-unscanned-daily-hadir'));
 }
 
 function confirmDeleteSelectedDate() {
