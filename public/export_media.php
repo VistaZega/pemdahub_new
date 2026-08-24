@@ -11,8 +11,12 @@ if (($_GET['token'] ?? '') !== 'pembda2026export') {
 }
 
 // Set time and memory limits for large zips
-@ini_set('max_execution_time', 600);
-@ini_set('memory_limit', '512M');
+@set_time_limit(0);
+@ini_set('max_execution_time', 0);
+@ini_set('memory_limit', '1024M');
+
+// LiteSpeed anti-timeout
+header('X-LiteSpeed-NoAbort: 1');
 
 // Tentukan path storage public di server
 $possiblePaths = [

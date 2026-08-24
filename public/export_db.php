@@ -9,6 +9,16 @@ if (($_GET['token'] ?? '') !== 'pembda2026export') {
     die('Forbidden');
 }
 
+// Set unlimited time & memory limits
+@set_time_limit(0);
+@ini_set('max_execution_time', 0);
+@ini_set('memory_limit', '512M');
+@ini_set('zlib.output_compression', '0');
+
+// LiteSpeed & Nginx anti-timeout headers
+header('X-LiteSpeed-NoAbort: 1');
+header('X-Accel-Buffering: no');
+
 // Bootstrap Laravel
 require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
@@ -19,6 +29,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 try {
+    // Disable output buffering for real-time streaming
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+
     $dbName = DB::connection()->getDatabaseName();
     $tables = DB::select('SHOW TABLES');
     $tableKey = 'Tables_in_' . $dbName;
@@ -30,6 +45,7 @@ try {
     echo "-- Generated: " . date('Y-m-d H:i:s') . "\n";
     echo "-- Database: " . $dbName . "\n\n";
     echo "SET FOREIGN_KEY_CHECKS=0;\n\n";
+    flush();
     
     // Daftar tabel sementara/ephemeral yang TIDAK boleh di-export datanya (hanya strukturnya saja)
     $ignoreDataTables = [
@@ -72,13 +88,16 @@ try {
             if (count($buffer) >= 100) {
                 echo "INSERT INTO `$table` VALUES \n" . implode(",\n", $buffer) . ";\n";
                 $buffer = [];
+                flush();
             }
         }
         if (!empty($buffer)) {
             echo "INSERT INTO `$table` VALUES \n" . implode(",\n", $buffer) . ";\n\n";
+            flush();
         } else {
             echo "\n";
         }
+        flush();
     }
     
     echo "SET FOREIGN_KEY_CHECKS=1;\n";
