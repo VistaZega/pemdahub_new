@@ -307,12 +307,19 @@
 
                 <!-- MC Options -->
                 <div x-show="qtype === 'multiple_choice'" class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Opsi Jawaban</label>
+                    <label class="text-sm font-medium text-gray-700 flex items-center justify-between">
+                        <span>Opsi Jawaban</span>
+                        <span class="text-xs text-purple-600 font-normal"><i class="fas fa-info-circle mr-1"></i>Klik tombol Simbol untuk menyisipkan rumus/pangkat di opsi</span>
+                    </label>
                     @foreach(['A', 'B', 'C', 'D', 'E'] as $key)
                     <div class="flex gap-2 items-center">
                         <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold">{{ $key }}</span>
                         <input type="hidden" name="options[{{ $loop->index }}][key]" value="{{ $key }}">
-                        <input type="text" name="options[{{ $loop->index }}][text]" placeholder="Opsi {{ $key }}" class="flex-1 border rounded-lg px-3 py-2 text-sm">
+                        <input type="text" name="options[{{ $loop->index }}][text]" id="create_opt_{{ $key }}" placeholder="Opsi {{ $key }}" class="flex-1 border rounded-lg px-3 py-2 text-sm math-support-input">
+                        <button type="button" onclick="window.openMathPalette(document.getElementById('create_opt_{{ $key }}'))" title="Sisipkan Simbol / Rumus ke Opsi {{ $key }}" class="px-2.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-xs font-bold transition-all shadow-2xs flex items-center gap-1">
+                            <i class="fas fa-square-root-variable text-[11px]"></i>
+                            <span>Simbol</span>
+                        </button>
                     </div>
                     @endforeach
                 </div>
@@ -470,12 +477,19 @@
                 <!-- MC Options -->
                 <template x-if="question_type === 'multiple_choice'">
                     <div class="space-y-2">
-                        <label class="text-sm font-medium text-gray-700">Opsi Jawaban</label>
+                        <label class="text-sm font-medium text-gray-700 flex items-center justify-between">
+                            <span>Opsi Jawaban</span>
+                            <span class="text-xs text-purple-600 font-normal"><i class="fas fa-info-circle mr-1"></i>Klik tombol Simbol untuk menyisipkan rumus/pangkat</span>
+                        </label>
                         <template x-for="(opt, index) in options" :key="index">
                             <div class="flex gap-2 items-center">
                                 <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold" x-text="opt.key"></span>
                                 <input type="hidden" :name="'options['+index+'][key]'" :value="opt.key">
-                                <input type="text" :name="'options['+index+'][text]'" x-model="opt.text" required class="flex-1 border rounded-lg px-3 py-2 text-sm">
+                                <input type="text" :name="'options['+index+'][text]'" x-model="opt.text" required class="flex-1 border rounded-lg px-3 py-2 text-sm math-support-input">
+                                <button type="button" @click="window.openMathPalette($event.target.closest('.flex').querySelector('input[type=text]'))" :title="'Sisipkan Simbol ke Opsi ' + opt.key" class="px-2.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-xs font-bold transition-all shadow-2xs flex items-center gap-1">
+                                    <i class="fas fa-square-root-variable text-[11px]"></i>
+                                    <span>Simbol</span>
+                                </button>
                             </div>
                         </template>
                     </div>

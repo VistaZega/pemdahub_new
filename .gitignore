@@ -62,4 +62,10 @@ Daftar Akun*
 /whatsapp-server/auth_info_baileys/
 /whatsapp-server/package-lock.json
 
-
+# Storage framework cache/sessions
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore

@@ -53,7 +53,7 @@
                 <h2 class="text-lg font-bold text-gray-900">Teks Soal</h2>
             </div>
             <textarea name="question_text" rows="4" required
-                class="w-full rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3">{{ $question->question_text }}</textarea>
+                class="w-full rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 math-support">{{ $question->question_text }}</textarea>
             
             <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-xl text-base text-indigo-700">
@@ -153,8 +153,12 @@
                     <div class="flex items-center gap-3">
                         <input type="hidden" name="options[{{ $idx }}][label]" value="{{ $opt->option_label }}">
                         <div class="w-10 h-10 rounded-xl border-2 flex items-center justify-center text-base font-bold flex-shrink-0 {{ $opt->is_correct ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-gray-800 border-gray-300' }}">{{ $opt->option_label }}</div>
-                        <input type="text" name="options[{{ $idx }}][text]" value="{{ $opt->option_text }}"
-                            class="flex-1 rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-2.5">
+                        <input type="text" name="options[{{ $idx }}][text]" id="cbt_edit_opt_{{ $idx }}" value="{{ $opt->option_text }}"
+                            class="flex-1 rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-2.5 math-support-input">
+                        <button type="button" onclick="window.openMathPalette(document.getElementById('cbt_edit_opt_{{ $idx }}'))" title="Sisipkan Simbol/Rumus" class="px-2.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1">
+                            <i class="fas fa-square-root-variable text-[11px]"></i>
+                            <span class="hidden sm:inline">Simbol</span>
+                        </button>
                         <label class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-gray-200 cursor-pointer hover:bg-emerald-50 hover:border-emerald-200 transition">
                             <input type="radio" name="correct_option" value="{{ $idx }}" {{ $opt->is_correct ? 'checked' : '' }} class="text-emerald-600 focus:ring-emerald-500">
                             <span class="text-base font-bold text-gray-800">Benar</span>

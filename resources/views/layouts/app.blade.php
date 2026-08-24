@@ -623,73 +623,8 @@
     }
     </script>
     @include('partials.ux-scripts')
-    <!-- Mathematical Symbols Toolbar Helper -->
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Function to insert text at cursor position
-        window.insertAtCursor = function(myField, myValue) {
-            if (document.selection) {
-                myField.focus();
-                sel = document.selection.createRange();
-                sel.text = myValue;
-            } else if (myField.selectionStart || myField.selectionStart == '0') {
-                var startPos = myField.selectionStart;
-                var endPos = myField.selectionEnd;
-                myField.value = myField.value.substring(0, startPos)
-                    + myValue
-                    + myField.value.substring(endPos, myField.value.length);
-                myField.selectionStart = startPos + myValue.length;
-                myField.selectionEnd = startPos + myValue.length;
-            } else {
-                myField.value += myValue;
-            }
-            myField.focus();
-            // Trigger input event for Alpine.js / x-model binding
-            myField.dispatchEvent(new Event('input'));
-        };
-
-        // Auto-generate toolbars for math-support fields
-        function initMathToolbars() {
-            const fields = document.querySelectorAll('.math-support:not([data-math-initialized])');
-            fields.forEach((field, i) => {
-                field.setAttribute('data-math-initialized', 'true');
-                if (!field.id) {
-                    field.id = 'math_field_' + Math.random().toString(36).substr(2, 9);
-                }
-                
-                const toolbar = document.createElement('div');
-                toolbar.className = 'flex flex-wrap gap-1.5 mb-1.5 p-1.5 bg-slate-50 border border-slate-200 rounded-t-xl items-center';
-                
-                const symbols = ['√', 'π', '±', '÷', '×', '²', '³', 'α', 'β', 'γ', 'θ', 'λ', 'Σ', 'Δ', '∞', '≠', '≤', '≥', '∫', '°'];
-                
-                const label = document.createElement('span');
-                label.className = 'text-[9px] font-bold text-slate-400 px-1.5 uppercase tracking-wider select-none';
-                label.textContent = 'Simbol Mat & Fisika:';
-                toolbar.appendChild(label);
-                
-                symbols.forEach(sym => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'px-2 py-1 bg-white hover:bg-purple-50 hover:text-purple-600 border border-slate-200 rounded-lg text-xs font-bold transition-all shadow-sm focus:outline-none';
-                    btn.textContent = sym;
-                    btn.onclick = (e) => {
-                        e.preventDefault();
-                        window.insertAtCursor(field, sym);
-                    };
-                    toolbar.appendChild(btn);
-                });
-                
-                field.parentNode.insertBefore(toolbar, field);
-                field.classList.add('rounded-t-none');
-            });
-        }
-
-        // Auto-run initialization
-        initMathToolbars();
-
-        // Re-run when DOM changes (e.g. Alpine.js modal opening or dynamic questions)
-        const observer = new MutationObserver(initMathToolbars);
-        observer.observe(document.body, { childList: true, subtree: true });
+    <!-- Mathematical & Science Symbols Toolbar & Formula Palette Modal -->
+    @include('partials.math-toolbar-modal')
 
         // ═════════════════════════════════════════════════════════════════
         // FORM UPLOAD GUARD & SESSION KEEPALIVE (Mencegah Error 419)

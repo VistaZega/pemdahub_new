@@ -1,4 +1,4 @@
-﻿@extends('layouts.guru')
+@extends('layouts.guru')
 @section('title', 'Tambah Soal - ' . $bank->bank_name)
 
 @push('styles')
@@ -67,7 +67,7 @@
                 </div>
                 <div class="p-6">
                     <textarea name="question_text" rows="5" required
-                        class="w-full border-none bg-emerald-50/30 rounded-2xl focus:ring-2 focus:ring-emerald-500/20 p-5 text-lg text-gray-700 placeholder-gray-300 font-medium"
+                        class="w-full border-none bg-emerald-50/30 rounded-2xl focus:ring-2 focus:ring-emerald-500/20 p-5 text-lg text-gray-700 placeholder-gray-300 font-medium math-support"
                         placeholder="Ketik pertanyaan di sini...">{{ old('question_text') }}</textarea>
                     
                     <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,15 +135,21 @@
                                             <span class="text-base mt-1 hidden peer-checked:block uppercase">KUNCI</span>
                                         </div>
                                     </div>
-                                    <div class="flex-1 rounded-xl px-5 py-4 border-2 transition-all flex items-center justify-between"
+                                    <div class="flex-1 rounded-xl px-5 py-4 border-2 transition-all flex items-center justify-between gap-2"
                                         :class="opt.is_correct ? 'bg-emerald-50 border-emerald-500 shadow-sm' : 'bg-gray-50 border-gray-200 group-hover:border-gray-200'">
                                         <input type="text" :name="'options['+idx+'][text]'" x-model="opt.text"
                                             :disabled="questionType !== 'multiple_choice'"
-                                            class="w-full bg-transparent border-none focus:ring-0 p-0 text-base font-bold text-gray-700 placeholder-gray-300"
+                                            class="w-full bg-transparent border-none focus:ring-0 p-0 text-base font-bold text-gray-700 placeholder-gray-300 math-support-input"
                                             :placeholder="'Isi jawaban ' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[idx] + '...'">
                                         
-                                        <div x-show="opt.is_correct" class="text-emerald-600 ml-2 animate-bounce-short">
-                                            <i class="fas fa-check-circle"></i>
+                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                            <button type="button" @click.stop.prevent="window.openMathPalette($event.target.closest('.group').querySelector('input[type=text]'))" title="Sisipkan Simbol/Rumus" class="px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-2xs flex items-center gap-1">
+                                                <i class="fas fa-square-root-variable text-[11px]"></i>
+                                                <span class="hidden sm:inline">Simbol</span>
+                                            </button>
+                                            <div x-show="opt.is_correct" class="text-emerald-600 animate-bounce-short">
+                                                <i class="fas fa-check-circle"></i>
+                                            </div>
                                         </div>
                                     </div>
                                     <button type="button" @click="options.splice(idx, 1)" x-show="options.length > 2" class="text-gray-200 hover:text-red-500 transition-colors">

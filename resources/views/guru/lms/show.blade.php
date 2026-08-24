@@ -1688,13 +1688,15 @@ if (!function_exists('balanceHtmlTags')) {
                                         <button type="button" @click="removeQuizQuestion(index)" class="absolute top-2 right-2 w-6 h-6 rounded flex items-center justify-center text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition"><i class="fas fa-times text-xs"></i></button>
                                         <div class="flex gap-2 items-center mb-3">
                                             <div class="w-6 h-6 rounded bg-emerald-50 flex items-center justify-center text-emerald-500 font-bold text-xs" x-text="index + 1"></div>
-                                            <input type="text" x-model="quizQuestions[index].question" placeholder="Pertanyaan..." class="flex-1 rounded-lg border-gray-200 text-sm focus:border-emerald-500 focus:ring-emerald-500 font-medium">
+                                            <input type="text" x-model="quizQuestions[index].question" placeholder="Pertanyaan..." class="flex-1 rounded-lg border-gray-200 text-sm focus:border-emerald-500 focus:ring-emerald-500 font-medium math-support-input">
+                                            <button type="button" @click="window.openMathPalette($event.target.closest('.flex').querySelector('input[type=text]'))" title="Sisipkan Simbol" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold border border-emerald-200"><i class="fas fa-square-root-variable"></i></button>
                                         </div>
                                         <div class="grid grid-cols-2 gap-2 pl-8">
                                             <template x-for="(opt, optIdx) in q.options" :key="optIdx">
                                                 <div class="flex items-center gap-2">
                                                     <input type="radio" :name="'correct_answer_'+index" :value="optIdx" x-model.number="quizQuestions[index].answer" class="text-emerald-500 focus:ring-emerald-500 w-4 h-4">
-                                                    <input type="text" x-model="quizQuestions[index].options[optIdx]" :placeholder="'Opsi ' + ['A','B','C','D'][optIdx]" class="flex-1 rounded-md border-gray-200 text-xs focus:border-emerald-500 focus:ring-emerald-500">
+                                                    <input type="text" x-model="quizQuestions[index].options[optIdx]" :placeholder="'Opsi ' + ['A','B','C','D'][optIdx]" class="flex-1 rounded-md border-gray-200 text-xs focus:border-emerald-500 focus:ring-emerald-500 math-support-input">
+                                                    <button type="button" @click="window.openMathPalette($event.target.closest('.flex').querySelector('input[type=text]'))" title="Sisipkan Simbol" class="p-1 text-slate-400 hover:text-emerald-600"><i class="fas fa-square-root-variable text-xs"></i></button>
                                                 </div>
                                             </template>
                                         </div>
