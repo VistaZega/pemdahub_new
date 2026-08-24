@@ -147,10 +147,12 @@
         
         {{-- Search & Live Preview Strip --}}
         <div class="px-5 py-3 bg-slate-50 border-b border-slate-200 space-y-2 flex-shrink-0">
-            {{-- Search Bar --}}
+            {{-- Search Bar with Generous Icon Spacing --}}
             <div class="relative w-full">
-                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                <input type="text" id="math-search-input" onkeyup="window.filterMathSymbols(this.value)" placeholder="Cari simbol atau rumus (contoh: akar, integral, sudut, alfa, pangkat, pecahan, matriks)..." class="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none shadow-2xs">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-purple-600 text-sm pointer-events-none flex items-center justify-center w-5 h-5">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" id="math-search-input" onkeyup="window.filterMathSymbols(this.value)" placeholder="Cari simbol atau rumus (contoh: akar, integral, sudut, alfa, pangkat, pecahan, matriks)..." class="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-300 rounded-2xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none shadow-2xs">
             </div>
             
             {{-- Live KaTeX Preview Strip --}}
@@ -164,34 +166,47 @@
             </div>
         </div>
 
-        {{-- Category Tabs --}}
-        <div class="flex overflow-x-auto math-no-scrollbar px-5 pt-2.5 pb-2 border-b border-slate-200 bg-white gap-1.5 select-none flex-shrink-0">
-            <button type="button" onclick="window.switchMathTab('popular')" class="math-tab-btn active px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border" data-tab="popular" style="background-color: #6b21a8; color: #ffffff; border-color: #581c87;">
-                <i class="fas fa-star text-amber-400 text-xs"></i> Populer
+        {{-- Category Tabs with Left & Right Arrow Navigation --}}
+        <div class="relative flex items-center border-b border-slate-200 bg-white px-2 py-1.5 flex-shrink-0">
+            <!-- Left Scroll Button -->
+            <button type="button" onclick="window.scrollMathTabs(-200)" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-purple-100 hover:text-purple-700 text-slate-600 border border-slate-200 flex items-center justify-center transition-all flex-shrink-0 shadow-2xs mr-1 z-10 cursor-pointer" title="Geser Kategori ke Kiri">
+                <i class="fas fa-chevron-left text-[10px]"></i>
             </button>
-            <button type="button" onclick="window.switchMathTab('powers')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="powers">
-                <i class="fas fa-superscript text-indigo-500 text-xs"></i> Pangkat & Indeks
-            </button>
-            <button type="button" onclick="window.switchMathTab('fractions')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="fractions">
-                <i class="fas fa-divide text-emerald-500 text-xs"></i> Pecahan & Aritmatika
-            </button>
-            <button type="button" onclick="window.switchMathTab('geometry')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="geometry">
-                <i class="fas fa-shapes text-cyan-500 text-xs"></i> Geometri & Sudut
-            </button>
-            <button type="button" onclick="window.switchMathTab('sets')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="sets">
-                <i class="fas fa-project-diagram text-rose-500 text-xs"></i> Himpunan & Logika
-            </button>
-            <button type="button" onclick="window.switchMathTab('calculus')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="calculus">
-                <i class="fas fa-wave-square text-violet-500 text-xs"></i> Kalkulus & Matriks
-            </button>
-            <button type="button" onclick="window.switchMathTab('greek')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="greek">
-                <i class="fas fa-font text-teal-500 text-xs"></i> Huruf Yunani
-            </button>
-            <button type="button" onclick="window.switchMathTab('science')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="science">
-                <i class="fas fa-flask text-amber-600 text-xs"></i> Fisika & Kimia
-            </button>
-            <button type="button" onclick="window.switchMathTab('guide')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 ml-auto" data-tab="guide">
-                <i class="fas fa-circle-info text-blue-600 text-xs"></i> Panduan
+
+            <!-- Scrollable Category Tabs List -->
+            <div id="math-tabs-container" class="flex-1 flex overflow-x-auto math-no-scrollbar gap-1.5 select-none scroll-smooth py-0.5">
+                <button type="button" onclick="window.switchMathTab('popular')" class="math-tab-btn active px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border flex-shrink-0" data-tab="popular" style="background-color: #6b21a8; color: #ffffff; border-color: #581c87;">
+                    <i class="fas fa-star text-amber-400 text-xs"></i> Populer
+                </button>
+                <button type="button" onclick="window.switchMathTab('powers')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent flex-shrink-0" data-tab="powers">
+                    <i class="fas fa-superscript text-indigo-500 text-xs"></i> Pangkat & Indeks
+                </button>
+                <button type="button" onclick="window.switchMathTab('fractions')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent flex-shrink-0" data-tab="fractions">
+                    <i class="fas fa-divide text-emerald-500 text-xs"></i> Pecahan & Aritmatika
+                </button>
+                <button type="button" onclick="window.switchMathTab('geometry')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent flex-shrink-0" data-tab="geometry">
+                    <i class="fas fa-shapes text-cyan-500 text-xs"></i> Geometri & Sudut
+                </button>
+                <button type="button" onclick="window.switchMathTab('sets')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent flex-shrink-0" data-tab="sets">
+                    <i class="fas fa-project-diagram text-rose-500 text-xs"></i> Himpunan & Logika
+                </button>
+                <button type="button" onclick="window.switchMathTab('calculus')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent flex-shrink-0" data-tab="calculus">
+                    <i class="fas fa-wave-square text-violet-500 text-xs"></i> Kalkulus & Matriks
+                </button>
+                <button type="button" onclick="window.switchMathTab('greek')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent flex-shrink-0" data-tab="greek">
+                    <i class="fas fa-font text-teal-500 text-xs"></i> Huruf Yunani
+                </button>
+                <button type="button" onclick="window.switchMathTab('science')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent flex-shrink-0" data-tab="science">
+                    <i class="fas fa-flask text-amber-600 text-xs"></i> Fisika & Kimia
+                </button>
+                <button type="button" onclick="window.switchMathTab('guide')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 flex-shrink-0" data-tab="guide">
+                    <i class="fas fa-circle-info text-blue-600 text-xs"></i> Panduan
+                </button>
+            </div>
+
+            <!-- Right Scroll Button -->
+            <button type="button" onclick="window.scrollMathTabs(200)" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-purple-100 hover:text-purple-700 text-slate-600 border border-slate-200 flex items-center justify-center transition-all flex-shrink-0 shadow-2xs ml-1 z-10 cursor-pointer" title="Geser Kategori ke Kanan">
+                <i class="fas fa-chevron-right text-[10px]"></i>
             </button>
         </div>
 
@@ -754,19 +769,33 @@
         }
     });
 
-    // Tab switcher with resilient styling
+    // Tab Scroll Navigation Helper
+    window.scrollMathTabs = function(delta) {
+        const container = document.getElementById('math-tabs-container');
+        if (container) {
+            container.scrollBy({ left: delta, behavior: 'smooth' });
+        }
+    };
+
+    // Tab switcher with resilient styling and auto-scroll into view
     window.switchMathTab = function(tabName) {
+        let activeTabElement = null;
         document.querySelectorAll('.math-tab-btn').forEach(btn => {
             if (btn.getAttribute('data-tab') === tabName) {
                 btn.style.backgroundColor = '#6b21a8';
                 btn.style.color = '#ffffff';
                 btn.style.borderColor = '#581c87';
+                activeTabElement = btn;
             } else {
                 btn.style.backgroundColor = '#f1f5f9';
                 btn.style.color = '#334155';
                 btn.style.borderColor = 'transparent';
             }
         });
+
+        if (activeTabElement) {
+            activeTabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
 
         document.querySelectorAll('.math-tab-content').forEach(c => c.classList.add('hidden'));
         const targetTab = document.getElementById('tab-' + tabName);
@@ -1350,6 +1379,17 @@
         populateModalGrids();
         initMathToolbars();
         initDraggableWindow();
+
+        // Horizontal mouse wheel scrolling for category tabs
+        const tabsContainer = document.getElementById('math-tabs-container');
+        if (tabsContainer) {
+            tabsContainer.addEventListener('wheel', function(e) {
+                if (e.deltaY !== 0) {
+                    e.preventDefault();
+                    tabsContainer.scrollLeft += e.deltaY * 1.5;
+                }
+            }, { passive: false });
+        }
 
         // Observe dynamic DOM changes (e.g. Alpine.js modal openings, dynamic question adding)
         const observer = new MutationObserver(function() {
