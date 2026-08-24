@@ -131,7 +131,7 @@
 
                     <ul class="khan-unit-checklist">
                         <li><i class="fa-solid fa-circle-check"></i> Bimbingan Bakat &amp; Minat Akademik / Non-Akademik</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Budaya Riset, Penelitian &amp; Karya Ilmiah Remaja (KIR)</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Budaya Riset &amp; Penelitian Siswa Terarah</li>
                         <li><i class="fa-solid fa-circle-check"></i> Pendampingan Sukses Lolos PTN &amp; Sekolah Kedinasan</li>
                     </ul>
                 </div>
