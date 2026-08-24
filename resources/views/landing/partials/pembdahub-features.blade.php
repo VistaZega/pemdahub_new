@@ -1,90 +1,13 @@
 {{-- PEMBDAHUB FEATURES — Bold Indigo Theme --}}
-<style>
-    .vibrant-cards-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 24px;
-        margin-bottom: 64px;
-    }
-
-    @media (max-width: 960px) {
-        .vibrant-cards-grid {
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-    }
-</style>
-
 <section id="features" class="section" style="background:var(--bg);">
     <div class="fw">
-        <div style="text-align:center; margin-bottom:56px;" data-aos="fade-up">
+        <div style="text-align:center; margin-bottom:64px;" data-aos="fade-up">
             <div class="section-label" style="justify-content:center;">
                 <div class="section-label-dot" style="background:var(--indigo-light);"></div>
-                <span class="section-label-text" style="color:var(--indigo);">Modul &amp; Fitur PembdaHUB</span>
+                <span class="section-label-text" style="color:var(--indigo);">Modul & Fitur PembdaHUB</span>
             </div>
-            <h2 class="h1" style="margin-bottom:12px;">Fitur &amp; <span style="background:linear-gradient(135deg,var(--indigo),var(--indigo-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Ekosistem</span> Sistem</h2>
+            <h2 class="h1" style="margin-bottom:12px;">Fitur & <span style="background:linear-gradient(135deg,var(--indigo),var(--indigo-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Ekosistem</span> Sistem</h2>
             <p class="body-lg" style="max-width:680px; margin:0 auto;">Seluruh layanan PembdaHUB dikelompokkan dalam modul-modul utama untuk mendukung kegiatan akademik, operasional, dan pengembangan kompetensi.</p>
-        </div>
-
-        {{-- KHAN ACADEMY STYLE 3 VIBRANT STORY CARDS --}}
-        <div style="margin-bottom:72px;" data-aos="fade-up">
-            <div style="text-align:center; max-width:800px; margin:0 auto 36px auto;">
-                <h3 style="font-size:clamp(26px, 3.5vw, 36px); font-weight:900; color:#0f172a; letter-spacing:-0.025em; margin-bottom:12px;">
-                    Bagaimana PembdaHUB Dirasakan dalam Praktik Nyata.
-                </h3>
-                <p style="font-size:16.5px; color:#475569; line-height:1.65;">
-                    Pengalaman nyata dan dampak positif transformasi digital dari sudut pandang pimpinan sekolah, tenaga pendidik, dan keluarga siswa.
-                </p>
-            </div>
-
-            <div class="vibrant-cards-grid">
-                
-                {{-- CARD 1: ADMINISTRATOR (MUSTARD YELLOW) --}}
-                <div style="background:#fbbf24; border-radius:24px; padding:40px 32px; display:flex; flex-direction:column; justify-content:space-between; min-height:360px; box-shadow:0 12px 30px -5px rgba(245,158,11,0.25); transition:all 0.3s ease;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 40px -5px rgba(245,158,11,0.35)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 12px 30px -5px rgba(245,158,11,0.25)'">
-                    <div>
-                        <div style="font-size:13px; font-weight:900; letter-spacing:0.08em; text-transform:uppercase; color:rgba(15,23,42,0.8); margin-bottom:20px;">
-                            ADMINISTRATOR
-                        </div>
-                        <p style="font-size:18.5px; font-weight:800; line-height:1.55; color:#0f172a; margin-bottom:24px;">
-                            “Ketika digitalisasi dimulai, awalnya terasa adaptasi baru, tetapi koordinasi 3 unit sekolah kini jauh lebih terukur, transparan, dan terpusat dalam satu kontrol.”
-                        </p>
-                    </div>
-                    <div style="font-size:14.5px; font-style:italic; font-weight:800; color:#0f172a;">
-                        — Pimpinan Yayasan &amp; Kepala Sekolah
-                    </div>
-                </div>
-
-                {{-- CARD 2: TEACHER (LEAF MINT GREEN) --}}
-                <div style="background:#34d399; border-radius:24px; padding:40px 32px; display:flex; flex-direction:column; justify-content:space-between; min-height:360px; box-shadow:0 12px 30px -5px rgba(16,185,129,0.25); transition:all 0.3s ease;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 40px -5px rgba(16,185,129,0.35)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 12px 30px -5px rgba(16,185,129,0.25)'">
-                    <div>
-                        <div style="font-size:13px; font-weight:900; letter-spacing:0.08em; text-transform:uppercase; color:rgba(15,23,42,0.8); margin-bottom:20px;">
-                            TEACHER
-                        </div>
-                        <p style="font-size:18.5px; font-weight:800; line-height:1.55; color:#0f172a; margin-bottom:24px;">
-                            “PembdaHUB bukan sekadar aplikasi edtech biasa, melainkan bagian dari budaya belajar kami: rekap presensi instan dan pengolahan rapor kurikulum merdeka jadi sangat mudah.”
-                        </p>
-                    </div>
-                    <div style="font-size:14.5px; font-style:italic; font-weight:800; color:#0f172a;">
-                        — Guru Pengajar SMAS, SMPS &amp; SMKS
-                    </div>
-                </div>
-
-                {{-- CARD 3: FAMILIES (CORAL ORANGE) --}}
-                <div style="background:#fb923c; border-radius:24px; padding:40px 32px; display:flex; flex-direction:column; justify-content:space-between; min-height:360px; box-shadow:0 12px 30px -5px rgba(249,115,22,0.25); transition:all 0.3s ease;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 40px -5px rgba(249,115,22,0.35)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 12px 30px -5px rgba(249,115,22,0.25)'">
-                    <div>
-                        <div style="font-size:13px; font-weight:900; letter-spacing:0.08em; text-transform:uppercase; color:rgba(15,23,42,0.8); margin-bottom:20px;">
-                            FAMILIES
-                        </div>
-                        <p style="font-size:18.5px; font-weight:800; line-height:1.55; color:#0f172a; margin-bottom:24px;">
-                            “Menerima notifikasi otomatis saat anak tap kartu RFID di gerbang sekolah memberikan ketenangan luar biasa bagi kami sebagai orang tua setiap hari.”
-                        </p>
-                    </div>
-                    <div style="font-size:14.5px; font-style:italic; font-weight:800; color:#0f172a;">
-                        — Orang Tua / Wali Siswa
-                    </div>
-                </div>
-
-            </div>
         </div>
 
         {{-- CATEGORY 1: MANAJEMEN SEKOLAH --}}
