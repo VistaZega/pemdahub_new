@@ -1,4 +1,4 @@
-{{-- HERO SECTION — Bright & Cheerful Luminous Design --}}
+{{-- HERO SECTION — Impeccable Next-Gen Split Bento Design --}}
 <style>
     .hero-container {
         position: relative;
@@ -6,40 +6,29 @@
         min-height: 92vh;
         display: flex;
         align-items: center;
-        padding-top: 140px;
+        padding-top: 130px;
         padding-bottom: 90px;
-        background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 30%, #eff6ff 65%, #fefce8 100%);
+        background: radial-gradient(1200px circle at 50% 10%, #1e1b4b 0%, #0f172a 70%, #090d16 100%);
     }
 
-    .hero-sun-glow {
+    .hero-mesh-glow {
         position: absolute;
-        top: -15%;
-        right: 10%;
-        width: 550px;
-        height: 550px;
+        top: -20%;
+        left: 20%;
+        width: 60vw;
+        height: 60vw;
+        max-width: 900px;
+        max-height: 900px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(251, 191, 36, 0.25) 0%, rgba(59, 130, 246, 0.12) 50%, transparent 70%);
-        filter: blur(60px);
-        pointer-events: none;
-        z-index: 0;
-    }
-
-    .hero-emerald-glow {
-        position: absolute;
-        bottom: -10%;
-        left: -5%;
-        width: 450px;
-        height: 450px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(99, 102, 241, 0.1) 50%, transparent 70%);
-        filter: blur(50px);
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(245, 158, 11, 0.08) 45%, transparent 70%);
+        filter: blur(80px);
         pointer-events: none;
         z-index: 0;
     }
 
     .hero-split-grid {
         display: grid;
-        grid-template-columns: 1.12fr 0.88fr;
+        grid-template-columns: 1.15fr 0.85fr;
         gap: 48px;
         align-items: center;
         position: relative;
@@ -57,42 +46,42 @@
         }
     }
 
-    /* Cheerful Badge */
+    /* Badge */
     .hero-pill-badge {
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        padding: 8px 22px;
+        padding: 8px 20px;
         border-radius: 100px;
-        background: #ffffff;
-        border: 1.5px solid #c7d2fe;
-        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.12);
-        font-size: 13.5px;
-        font-weight: 800;
-        color: #4338ca;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1.5px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(16px);
+        font-size: 13px;
+        font-weight: 700;
+        color: #ffffff;
         margin-bottom: 24px;
     }
 
     .hero-title-main {
-        font-size: clamp(34px, 4.5vw, 58px);
+        font-size: clamp(36px, 4.5vw, 62px);
         font-weight: 900;
-        line-height: 1.15;
+        line-height: 1.12;
         letter-spacing: -0.03em;
-        color: #0f172a;
+        color: #ffffff;
         margin-bottom: 20px;
     }
 
     .hero-title-gradient {
-        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fcd34d 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
 
     .hero-desc-text {
-        font-size: 17.5px;
+        font-size: 17px;
         line-height: 1.75;
-        color: #334155;
+        color: #cbd5e1;
         font-weight: 500;
         max-width: 620px;
         margin-bottom: 36px;
@@ -117,54 +106,49 @@
     .hero-stat-row {
         display: flex;
         align-items: center;
-        gap: 24px;
+        gap: 28px;
         flex-wrap: wrap;
-        border-top: 1.5px solid #e2e8f0;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
         padding-top: 24px;
     }
 
     .hero-stat-box {
         display: flex;
         flex-direction: column;
-        background: #ffffff;
-        padding: 10px 18px;
-        border-radius: 14px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 2px 8px rgba(15,23,42,0.04);
     }
 
     .hero-stat-num {
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 900;
-        color: #2563eb;
+        color: #fbbf24;
         line-height: 1.1;
         font-variant-numeric: tabular-nums;
     }
 
     .hero-stat-title {
-        font-size: 11px;
-        font-weight: 800;
-        color: #64748b;
+        font-size: 12px;
+        font-weight: 700;
+        color: #94a3b8;
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
 
-    /* Right Glassmorphism App Console Showcase (Bright White Card) */
+    /* Right Glassmorphism App Console Showcase */
     .hero-console-card {
-        background: rgba(255, 255, 255, 0.95);
-        border: 2px solid #e2e8f0;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1.5px solid rgba(255, 255, 255, 0.18);
         border-radius: 28px;
-        padding: 28px;
-        box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.12), 0 0 30px rgba(245, 158, 11, 0.08);
+        padding: 24px;
+        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 40px rgba(99, 102, 241, 0.15);
         backdrop-filter: blur(20px);
         transition: var(--transition-smooth);
         position: relative;
     }
 
     .hero-console-card:hover {
-        border-color: #93c5fd;
+        border-color: rgba(99, 102, 241, 0.45);
         transform: translateY(-4px);
-        box-shadow: 0 35px 70px -15px rgba(37, 99, 235, 0.18);
+        box-shadow: 0 35px 70px -15px rgba(0, 0, 0, 0.7), 0 0 50px rgba(99, 102, 241, 0.25);
     }
 
     .console-header {
@@ -172,7 +156,7 @@
         align-items: center;
         justify-content: space-between;
         padding-bottom: 16px;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         margin-bottom: 20px;
     }
 
@@ -182,8 +166,8 @@
     }
 
     .console-dot {
-        width: 12px;
-        height: 12px;
+        width: 11px;
+        height: 11px;
         border-radius: 50%;
     }
 
@@ -194,8 +178,8 @@
     }
 
     .console-tile {
-        background: #f8fafc;
-        border: 1.5px solid #e2e8f0;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 18px;
         padding: 18px;
         transition: var(--transition-smooth);
@@ -203,56 +187,52 @@
     }
 
     .console-tile:hover {
-        background: #ffffff;
-        border-color: #93c5fd;
-        box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.1);
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.25);
         transform: translateY(-2px);
     }
 
     .console-tile.tile-wide {
         grid-column: span 2;
-        background: #eff6ff;
-        border-color: #bfdbfe;
     }
 
     .console-icon {
-        width: 42px;
-        height: 42px;
+        width: 38px;
+        height: 38px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
+        font-size: 17px;
         margin-bottom: 12px;
     }
 </style>
 
 <section id="beranda" class="hero-container">
-    {{-- Cheerful Luminous Ambient Glows --}}
-    <div class="hero-sun-glow"></div>
-    <div class="hero-emerald-glow"></div>
+    {{-- Ambient Lighting --}}
+    <div class="hero-mesh-glow"></div>
 
     <div class="fw">
         <div class="hero-split-grid">
             
-            {{-- LEFT COLUMN: Bright, Cheerful Headline & Narrative --}}
+            {{-- LEFT COLUMN: Powerful Brand & Narrative --}}
             <div data-aos="fade-right">
                 
                 {{-- Status Pill --}}
                 <div class="hero-pill-badge">
-                    <span style="width:10px; height:10px; background:#10b981; border-radius:50%; box-shadow:0 0 10px #10b981;"></span>
-                    <span>Ekosistem Sekolah Cerdas Terpadu • TP 2026/2027</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block" style="width:9px; height:9px; background:#10b981; border-radius:50%;"></span>
+                    <span>Ekosistem Digital Terpadu TP. 2026/2027</span>
                 </div>
 
                 {{-- Headline --}}
                 <h1 class="hero-title-main">
-                    Membangun Generasi Emas &amp; Berkarakter <br>
+                    Sistem Manajemen Sekolah Cerdas <br>
                     <span class="hero-title-gradient">Perguruan PEMBDA Nias</span>
                 </h1>
 
                 {{-- Subtitle --}}
                 <p class="hero-desc-text">
-                    Satu ekosistem digital terintegrasi untuk pengelolaan KBM, presensi RFID biometrik, LMS cerdas, ujian CBT, dan keuangan bagi <strong style="color:#2563eb; font-weight:800;">SMAS Pembda 1</strong>, <strong style="color:#059669; font-weight:800;">SMPS Pembda 2</strong>, dan <strong style="color:#d97706; font-weight:800;">SMKS Pembda Nias</strong>.
+                    Satu platform terintegrasi yang menyatukan tata kelola akademik, presensi RFID biometrik, LMS interaktif, CBT, dan keuangan untuk <strong class="text-white font-bold" style="color:#ffffff;">SMAS Pembda 1</strong>, <strong class="text-white font-bold" style="color:#ffffff;">SMPS Pembda 2</strong>, dan <strong class="text-white font-bold" style="color:#ffffff;">SMKS Pembda Nias</strong>.
                 </p>
 
                 {{-- CTA Action Group --}}
@@ -268,38 +248,41 @@
                         </a>
                         @else
                         <a href="{{ route('login') }}" class="btn btn-gold">
-                            <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Portal Sistem &rarr;
+                            <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Portal
                         </a>
                         @endif
                     @endauth
 
-                    <a href="#sekolah" class="btn btn-ghost" style="background:#ffffff; border-color:#cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
-                        <i class="fa-solid fa-school" style="color:#2563eb;"></i> Unit Sekolah
+                    <a href="#platform" class="btn btn-ghost-white">
+                        <i class="fa-solid fa-compass"></i> Eksplorasi Ekosistem
                     </a>
                 </div>
 
                 {{-- Real-time Stats Strip --}}
                 <div class="hero-stat-row">
                     <div class="hero-stat-box">
-                        <span class="hero-stat-num" data-count="{{ $totalStudents }}" style="color:#2563eb;">{{ number_format($totalStudents, 0, ',', '.') }}</span>
+                        <span class="hero-stat-num" data-count="{{ $totalStudents }}">{{ number_format($totalStudents, 0, ',', '.') }}</span>
                         <span class="hero-stat-title">Siswa Aktif</span>
                     </div>
+                    <div style="width:1px; height:32px; background:rgba(255,255,255,0.15);"></div>
                     <div class="hero-stat-box">
-                        <span class="hero-stat-num" data-count="{{ $totalTeachers }}" style="color:#059669;">{{ $totalTeachers }}</span>
+                        <span class="hero-stat-num" data-count="{{ $totalTeachers }}">{{ $totalTeachers }}</span>
                         <span class="hero-stat-title">Tenaga Pendidik</span>
                     </div>
+                    <div style="width:1px; height:32px; background:rgba(255,255,255,0.15);"></div>
                     <div class="hero-stat-box">
-                        <span class="hero-stat-num" style="color:#7c3aed;">{{ $totalSchools }}</span>
+                        <span class="hero-stat-num">{{ $totalSchools }}</span>
                         <span class="hero-stat-title">Unit Sekolah</span>
                     </div>
+                    <div style="width:1px; height:32px; background:rgba(255,255,255,0.15);"></div>
                     <div class="hero-stat-box">
-                        <span class="hero-stat-num" style="color:#d97706;">5</span>
+                        <span class="hero-stat-num">5</span>
                         <span class="hero-stat-title">Jurusan SMK</span>
                     </div>
                 </div>
             </div>
 
-            {{-- RIGHT COLUMN: Bright Interactive Console Showcase --}}
+            {{-- RIGHT COLUMN: Next-Gen Bento Console UI Preview --}}
             <div data-aos="fade-left" data-aos-delay="150">
                 <div class="hero-console-card">
                     
@@ -310,11 +293,11 @@
                             <span class="console-dot" style="background:#f59e0b;"></span>
                             <span class="console-dot" style="background:#10b981;"></span>
                         </div>
-                        <div style="font-size:12px; font-weight:800; color:#475569; letter-spacing:0.04em; text-transform:uppercase;">
-                            <i class="fa-solid fa-shield-halved" style="color:#2563eb; margin-right:4px;"></i> PembdaHUB Smart Core
+                        <div style="font-size:11px; font-weight:800; color:#94a3b8; letter-spacing:0.06em; text-transform:uppercase;">
+                            <i class="fa-solid fa-shield-halved" style="color:#6366f1; margin-right:4px;"></i> PembdaHUB Core Console
                         </div>
-                        <div style="display:inline-flex; align-items:center; gap:6px; background:#dcfce7; color:#15803d; font-size:10.5px; font-weight:800; padding:4px 12px; border-radius:100px; border:1px solid #86efac;">
-                            <span style="width:6px; height:6px; background:#16a34a; border-radius:50%;"></span> AKTIF &amp; SYNC
+                        <div style="display:inline-flex; align-items:center; gap:5px; background:rgba(16,185,129,0.15); color:#34d399; font-size:10px; font-weight:800; padding:3px 10px; border-radius:100px;">
+                            <span style="width:6px; height:6px; background:#10b981; border-radius:50%;"></span> ONLINE
                         </div>
                     </div>
 
@@ -323,64 +306,62 @@
                         
                         {{-- Tile 1: 3 Unit Sekolah Terpadu (Wide) --}}
                         <div class="console-tile tile-wide">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
                                 <div style="display:flex; align-items:center; gap:10px;">
-                                    <div class="console-icon" style="background:#dbeafe; color:#2563eb; margin-bottom:0;">
+                                    <div class="console-icon" style="background:rgba(99,102,241,0.2); color:#818cf8; margin-bottom:0;">
                                         <i class="fa-solid fa-school"></i>
                                     </div>
                                     <div>
-                                        <div style="font-size:15px; font-weight:900; color:#0f172a;">3 Unit Sekolah Terpadu</div>
-                                        <div style="font-size:11.5px; color:#475569; font-weight:600;">Pendidikan Dasar, Menengah &amp; Vokasi</div>
+                                        <div style="font-size:14.5px; font-weight:800; color:#ffffff;">3 Unit Sekolah Terpadu</div>
+                                        <div style="font-size:11px; color:#94a3b8; font-weight:600;">Pendidikan Dasar & Vokasi</div>
                                     </div>
                                 </div>
-                                <span style="background:#dbeafe; color:#1d4ed8; font-size:10.5px; font-weight:800; padding:4px 10px; border-radius:8px;">Terpusat</span>
+                                <span style="background:rgba(99,102,241,0.25); color:#c7d2fe; font-size:10.5px; font-weight:800; padding:4px 10px; border-radius:8px;">Terpusat</span>
                             </div>
                             
                             {{-- Mini Unit Tags --}}
                             <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
-                                <div style="background:#ffffff; border:1.5px solid #93c5fd; padding:10px 8px; border-radius:12px; text-align:center; box-shadow:0 2px 6px rgba(37,99,235,0.08);">
-                                    <div style="font-size:13px; font-weight:900; color:#1d4ed8;">SMAS 1</div>
-                                    <div style="font-size:10px; color:#3b82f6; font-weight:700;">Akademik &amp; PTN</div>
+                                <div style="background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.3); padding:8px; border-radius:10px; text-align:center;">
+                                    <div style="font-size:12px; font-weight:800; color:#93c5fd;">SMAS 1</div>
+                                    <div style="font-size:9.5px; color:#bfdbfe; font-weight:600;">Akademik</div>
                                 </div>
-                                <div style="background:#ffffff; border:1.5px solid #86efac; padding:10px 8px; border-radius:12px; text-align:center; box-shadow:0 2px 6px rgba(16,185,129,0.08);">
-                                    <div style="font-size:13px; font-weight:900; color:#15803d;">SMPS 2</div>
-                                    <div style="font-size:10px; color:#10b981; font-weight:700;">Karakter Unggul</div>
+                                <div style="background:rgba(5,150,105,0.15); border:1px solid rgba(5,150,105,0.3); padding:8px; border-radius:10px; text-align:center;">
+                                    <div style="font-size:12px; font-weight:800; color:#6ee7b7;">SMPS 2</div>
+                                    <div style="font-size:9.5px; color:#a7f3d0; font-weight:600;">Karakter</div>
                                 </div>
-                                <div style="background:#ffffff; border:1.5px solid #fde047; padding:10px 8px; border-radius:12px; text-align:center; box-shadow:0 2px 6px rgba(245,158,11,0.08);">
-                                    <div style="font-size:13px; font-weight:900; color:#b45309;">SMKS</div>
-                                    <div style="font-size:10px; color:#d97706; font-weight:700;">5 Kejuruan DUDI</div>
+                                <div style="background:rgba(217,119,6,0.15); border:1px solid rgba(217,119,6,0.3); padding:8px; border-radius:10px; text-align:center;">
+                                    <div style="font-size:12px; font-weight:800; color:#fde047;">SMKS</div>
+                                    <div style="font-size:9.5px; color:#fef08a; font-weight:600;">5 Kejuruan</div>
                                 </div>
                             </div>
                         </div>
 
                         {{-- Tile 2: Presensi RFID & Notifikasi --}}
                         <div class="console-tile">
-                            <div class="console-icon" style="background:#dcfce7; color:#16a34a;">
+                            <div class="console-icon" style="background:rgba(16,185,129,0.2); color:#34d399;">
                                 <i class="fa-solid fa-id-card-clip"></i>
                             </div>
-                            <div style="font-size:14px; font-weight:900; color:#0f172a; margin-bottom:4px;">Presensi RFID</div>
-                            <div style="font-size:12px; color:#475569; line-height:1.5; font-weight:500;">Tap kartu otomatis, rekap real-time, dan notifikasi kehadiran.</div>
+                            <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:4px;">Presensi RFID</div>
+                            <div style="font-size:11.5px; color:#94a3b8; line-height:1.5; font-weight:500;">Tap instan kartu siswa & guru dengan rekap otomatis.</div>
                         </div>
 
                         {{-- Tile 3: LMS & CBT Interaktif --}}
                         <div class="console-tile">
-                            <div class="console-icon" style="background:#fef3c7; color:#d97706;">
+                            <div class="console-icon" style="background:rgba(245,158,11,0.2); color:#fbbf24;">
                                 <i class="fa-solid fa-laptop-code"></i>
                             </div>
-                            <div style="font-size:14px; font-weight:900; color:#0f172a; margin-bottom:4px;">LMS &amp; Ujian CBT</div>
-                            <div style="font-size:12px; color:#475569; line-height:1.5; font-weight:500;">Modul materi, bank soal ujian online aman, dan penilaian.</div>
+                            <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:4px;">LMS &amp; CBT</div>
+                            <div style="font-size:11.5px; color:#94a3b8; line-height:1.5; font-weight:500;">Bank soal, ujian aman, dan modul pembelajaran.</div>
                         </div>
 
                     </div>
 
                     {{-- Footer Mini Alert --}}
-                    <div style="margin-top:18px; background:#f1f5f9; border:1.5px solid #e2e8f0; padding:12px 16px; border-radius:14px; display:flex; align-items:center; justify-content:space-between;">
-                        <span style="font-size:12px; color:#334155; font-weight:700;">
-                            <i class="fa-solid fa-circle-nodes" style="color:#2563eb; margin-right:6px;"></i> Akses Guru, Siswa &amp; Orang Tua
+                    <div style="margin-top:16px; background:rgba(255,255,255,0.03); border:1px dashed rgba(255,255,255,0.12); padding:10px 14px; border-radius:12px; display:flex; align-items:center; justify-content:space-between;">
+                        <span style="font-size:11.5px; color:#cbd5e1; font-weight:600;">
+                            <i class="fa-solid fa-circle-nodes" style="color:#6366f1; margin-right:6px;"></i> Akses Guru, Siswa &amp; Orang Tua
                         </span>
-                        <a href="{{ route('login') }}" style="font-size:12px; font-weight:900; color:#2563eb; text-decoration:none; display:flex; align-items:center; gap:4px;">
-                            Masuk Portal &rarr;
-                        </a>
+                        <a href="{{ route('login') }}" style="font-size:11px; font-weight:800; color:#fbbf24; text-decoration:none;">Masuk &rarr;</a>
                     </div>
 
                 </div>
