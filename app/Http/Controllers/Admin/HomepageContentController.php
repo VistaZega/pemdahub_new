@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Services\ThemeService;
 use Illuminate\Http\Request;
 
 class HomepageContentController extends Controller
@@ -27,15 +28,19 @@ class HomepageContentController extends Controller
             'psb_periode' => Setting::getValue('psb_periode', '1 Feb – 30 Jun 2026'),
             'psb_status' => Setting::getValue('psb_status', 'Dibuka'),
 
-            // Tema Beranda Hari Besar (Event Theme)
-            'homepage_theme' => Setting::getValue('homepage_theme', 'regular'),
+            // Global Theme Studio
+            'homepage_theme' => ThemeService::getActiveThemeKey(),
         ];
 
-        return view('admin.homepage.content', compact('settings'));
+        $themes = ThemeService::getThemes();
+
+        return view('admin.homepage.content', compact('settings', 'themes'));
     }
 
     public function update(Request $request)
     {
+        $allowedThemes = implode(',', array_keys(ThemeService::getThemes())) . ',regular';
+
         $validated = $request->validate([
             // Statistik
             'stat_tahun' => 'required|string',
@@ -53,8 +58,8 @@ class HomepageContentController extends Controller
             'psb_periode' => 'required|string|max:100',
             'psb_status' => 'required|string|max:50',
 
-            // Tema Beranda
-            'homepage_theme' => 'required|string|in:regular,kemerdekaan,paskah,natal,pahlawan,pendidikan',
+            // Global Theme Studio
+            'homepage_theme' => 'required|string|in:' . $allowedThemes,
         ]);
 
         foreach ($validated as $key => $value) {
@@ -62,6 +67,6 @@ class HomepageContentController extends Controller
         }
 
         return redirect()->route('admin.homepage-content.index')
-            ->with('success', 'Konten umum homepage berhasil diperbarui!');
+            ->with('success', 'Tema PembdaHUB dan konten beranda berhasil diperbarui!');
     }
 }
