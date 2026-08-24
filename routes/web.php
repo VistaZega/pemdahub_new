@@ -597,6 +597,7 @@ Route::get('/', function () {
         })->count() 
         : 0;
     $totalTeachers = \App\Models\Teacher::where('is_active', true)->count();
+    $totalSchools = \App\Models\School::schoolsOnly()->where('is_active', true)->count();
     $totalAlumni = \App\Models\Student::where('status', 'lulus')->count() 
         + \App\Models\Alumni::count() 
         + \App\Models\AlumniDirectory::where('is_approved', true)->count();
