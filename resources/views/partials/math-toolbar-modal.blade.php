@@ -1,9 +1,9 @@
 {{-- 
     Interactive Math & Science Toolbar & Formula Palette
-    Provides rich symbols, KaTeX formulas, Greek alphabet, superscripts/subscripts, fractions, matrices, and live KaTeX preview.
+    Draggable, Resizable & Floating Window with KaTeX Live Preview
 --}}
 <style>
-/* Custom Scrollbars and Styles for Math Palette Modal */
+/* Custom Scrollbars and Resizable Styles for Math Palette */
 .math-modal-scroll::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -76,267 +76,309 @@
 .math-tmpl-card:active {
     transform: scale(0.98);
 }
+
+/* Floating Window Drag & Resize Rules */
+#math-palette-modal {
+    resize: both;
+    overflow: hidden;
+    min-width: 380px;
+    min-height: 280px;
+    max-width: 98vw;
+    max-height: 96vh;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(124, 58, 237, 0.25);
+}
+#math-palette-header {
+    cursor: move;
+    cursor: grab;
+}
+#math-palette-header:active {
+    cursor: grabbing;
+}
+.math-resize-handle {
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    width: 14px;
+    height: 14px;
+    cursor: se-resize;
+    opacity: 0.5;
+    pointer-events: none;
+}
 </style>
 
-<div id="math-palette-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/70 backdrop-blur-xs hidden transition-all duration-200" aria-labelledby="math-modal-title" role="dialog" aria-modal="true">
-    <div class="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
-        
-        {{-- Header with Solid Gradient & High Contrast --}}
-        <div class="px-6 py-5 text-white flex items-center justify-between shadow-md" style="background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #059669 100%) !important;">
-            <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/25 shadow-inner">
-                    <i class="fas fa-square-root-variable text-xl text-amber-300"></i>
-                </div>
-                <div>
-                    <h3 id="math-modal-title" class="text-lg font-black text-white tracking-wide flex items-center gap-2.5">
-                        Palet Simbol & Rumus Matematika / Sains
-                        <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-400 text-purple-950 font-black uppercase tracking-wider shadow-2xs">KaTeX Ready</span>
-                    </h3>
-                    <div class="text-xs text-purple-100 font-medium mt-1 flex items-center gap-2">
-                        <span>Target Input:</span>
-                        <span id="math-target-indicator" class="font-bold text-amber-200 bg-black/30 px-2.5 py-0.5 rounded-lg border border-white/15">Pertanyaan / Opsi</span>
-                    </div>
+{{-- Floating Draggable & Resizable Window (Non-blocking: guru bisa tetap mengetik di halaman) --}}
+<div id="math-palette-modal" class="fixed z-50 hidden rounded-3xl bg-white flex flex-col transition-shadow animate-in fade-in zoom-in-95 duration-150" style="top: 75px; left: 50%; transform: translateX(-50%); width: 880px; height: 580px;" role="dialog" aria-labelledby="math-modal-title">
+    
+    {{-- Header (Draggable Handle) --}}
+    <div id="math-palette-header" class="px-5 py-3.5 text-white flex items-center justify-between shadow-sm select-none rounded-t-3xl flex-shrink-0" style="background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #059669 100%) !important;" title="Klik dan tahan (drag) untuk menggeser posisi jendela">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/25 shadow-inner flex-shrink-0">
+                <i class="fas fa-square-root-variable text-base text-amber-300"></i>
+            </div>
+            <div>
+                <h3 id="math-modal-title" class="text-sm font-black text-white tracking-wide flex items-center gap-2">
+                    Palet Simbol & Rumus Matematika
+                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-400 text-purple-950 font-black uppercase tracking-wider">KaTeX</span>
+                </h3>
+                <div class="text-[11px] text-purple-100 font-medium flex items-center gap-1.5 mt-0.5">
+                    <span>Target:</span>
+                    <span id="math-target-indicator" class="font-bold text-amber-200 bg-black/30 px-2 py-0.5 rounded-md border border-white/15 text-[10px] truncate max-w-[200px]">Pertanyaan / Opsi</span>
+                    <span class="text-purple-200/60 hidden sm:inline">• Geser & perbesar jendela bebas</span>
                 </div>
             </div>
-            <button type="button" onclick="window.closeMathPalette()" class="w-10 h-10 rounded-2xl bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition-all focus:outline-none cursor-pointer" title="Tutup (Esc)">
-                <i class="fas fa-times text-base"></i>
+        </div>
+        
+        {{-- Window Control Buttons (Minimize, Maximize, Close) --}}
+        <div class="flex items-center gap-1.5" onclick="event.stopPropagation()">
+            <button type="button" id="math-min-btn" onclick="window.toggleMinimizeMathPalette()" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition-all focus:outline-none cursor-pointer" title="Minimize / Lipat jendela">
+                <i class="fas fa-minus text-xs"></i>
+            </button>
+            <button type="button" id="math-max-btn" onclick="window.toggleMaximizeMathPalette()" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition-all focus:outline-none cursor-pointer" title="Maximize / Perbesar layar penuh">
+                <i class="fas fa-expand text-xs"></i>
+            </button>
+            <button type="button" onclick="window.closeMathPalette()" class="w-8 h-8 rounded-xl bg-rose-500/80 hover:bg-rose-600 text-white flex items-center justify-center transition-all focus:outline-none cursor-pointer ml-1" title="Tutup Palet (Esc)">
+                <i class="fas fa-times text-xs"></i>
             </button>
         </div>
+    </div>
 
+    {{-- Modal Body Wrapper (Collapsible when minimized) --}}
+    <div id="math-modal-body" class="flex-1 flex flex-col min-h-0 bg-white overflow-hidden rounded-b-3xl">
+        
         {{-- Search & Live Preview Strip --}}
-        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 space-y-3">
+        <div class="px-5 py-3 bg-slate-50 border-b border-slate-200 space-y-2 flex-shrink-0">
             {{-- Search Bar --}}
             <div class="relative w-full">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                <input type="text" id="math-search-input" onkeyup="window.filterMathSymbols(this.value)" placeholder="Cari simbol atau rumus (contoh: akar, integral, sudut, alfa, pangkat, pecahan, matriks)..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-300 rounded-2xl text-sm font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none shadow-2xs">
+                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="math-search-input" onkeyup="window.filterMathSymbols(this.value)" placeholder="Cari simbol atau rumus (contoh: akar, integral, sudut, alfa, pangkat, pecahan, matriks)..." class="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none shadow-2xs">
             </div>
             
             {{-- Live KaTeX Preview Strip --}}
-            <div class="w-full flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-purple-200/80 shadow-2xs min-h-[42px] overflow-x-auto math-no-scrollbar">
-                <span class="text-[11px] font-bold text-purple-700 uppercase tracking-wider flex-shrink-0 flex items-center gap-1.5 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100">
-                    <i class="fas fa-eye text-purple-600"></i> Preview Terpilih:
+            <div class="w-full flex items-center gap-2.5 bg-white px-3.5 py-1.5 rounded-xl border border-purple-200/80 shadow-2xs min-h-[36px] overflow-x-auto math-no-scrollbar">
+                <span class="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex-shrink-0 flex items-center gap-1 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100">
+                    <i class="fas fa-eye text-purple-600 text-[10px]"></i> Preview Terpilih:
                 </span>
-                <div id="math-modal-preview" class="text-sm font-semibold text-slate-800 flex-1 overflow-x-auto">
-                    <span class="text-slate-400 text-xs italic">Klik simbol atau rumus di bawah untuk langsung menyisipkan ke kursor</span>
+                <div id="math-modal-preview" class="text-xs font-semibold text-slate-800 flex-1 overflow-x-auto">
+                    <span class="text-slate-400 text-[11px] italic">Klik simbol atau rumus di bawah untuk langsung menyisipkan</span>
                 </div>
             </div>
         </div>
 
         {{-- Category Tabs --}}
-        <div class="flex overflow-x-auto math-no-scrollbar px-6 pt-3 pb-2.5 border-b border-slate-200 bg-white gap-2 select-none">
-            <button type="button" onclick="window.switchMathTab('popular')" class="math-tab-btn active px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border" data-tab="popular" style="background-color: #6b21a8; color: #ffffff; border-color: #581c87;">
-                <i class="fas fa-star text-amber-400"></i> Populer
+        <div class="flex overflow-x-auto math-no-scrollbar px-5 pt-2.5 pb-2 border-b border-slate-200 bg-white gap-1.5 select-none flex-shrink-0">
+            <button type="button" onclick="window.switchMathTab('popular')" class="math-tab-btn active px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border" data-tab="popular" style="background-color: #6b21a8; color: #ffffff; border-color: #581c87;">
+                <i class="fas fa-star text-amber-400 text-xs"></i> Populer
             </button>
-            <button type="button" onclick="window.switchMathTab('powers')" class="math-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="powers">
-                <i class="fas fa-superscript text-indigo-500"></i> Pangkat & Indeks
+            <button type="button" onclick="window.switchMathTab('powers')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="powers">
+                <i class="fas fa-superscript text-indigo-500 text-xs"></i> Pangkat & Indeks
             </button>
-            <button type="button" onclick="window.switchMathTab('fractions')" class="math-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="fractions">
-                <i class="fas fa-divide text-emerald-500"></i> Pecahan & Aritmatika
+            <button type="button" onclick="window.switchMathTab('fractions')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="fractions">
+                <i class="fas fa-divide text-emerald-500 text-xs"></i> Pecahan & Aritmatika
             </button>
-            <button type="button" onclick="window.switchMathTab('geometry')" class="math-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="geometry">
-                <i class="fas fa-shapes text-cyan-500"></i> Geometri & Sudut
+            <button type="button" onclick="window.switchMathTab('geometry')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="geometry">
+                <i class="fas fa-shapes text-cyan-500 text-xs"></i> Geometri & Sudut
             </button>
-            <button type="button" onclick="window.switchMathTab('sets')" class="math-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="sets">
-                <i class="fas fa-project-diagram text-rose-500"></i> Himpunan & Logika
+            <button type="button" onclick="window.switchMathTab('sets')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="sets">
+                <i class="fas fa-project-diagram text-rose-500 text-xs"></i> Himpunan & Logika
             </button>
-            <button type="button" onclick="window.switchMathTab('calculus')" class="math-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="calculus">
-                <i class="fas fa-wave-square text-violet-500"></i> Kalkulus & Matriks
+            <button type="button" onclick="window.switchMathTab('calculus')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="calculus">
+                <i class="fas fa-wave-square text-violet-500 text-xs"></i> Kalkulus & Matriks
             </button>
-            <button type="button" onclick="window.switchMathTab('greek')" class="math-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="greek">
-                <i class="fas fa-font text-teal-500"></i> Huruf Yunani
+            <button type="button" onclick="window.switchMathTab('greek')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="greek">
+                <i class="fas fa-font text-teal-500 text-xs"></i> Huruf Yunani
             </button>
-            <button type="button" onclick="window.switchMathTab('science')" class="math-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="science">
-                <i class="fas fa-flask text-amber-600"></i> Fisika & Kimia
+            <button type="button" onclick="window.switchMathTab('science')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-transparent" data-tab="science">
+                <i class="fas fa-flask text-amber-600 text-xs"></i> Fisika & Kimia
             </button>
-            <button type="button" onclick="window.switchMathTab('guide')" class="math-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 ml-auto" data-tab="guide">
-                <i class="fas fa-circle-info text-blue-600"></i> Panduan
+            <button type="button" onclick="window.switchMathTab('guide')" class="math-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 ml-auto" data-tab="guide">
+                <i class="fas fa-circle-info text-blue-600 text-xs"></i> Panduan
             </button>
         </div>
 
-        {{-- Symbol Grid Content (Spacious & Clean) --}}
-        <div class="p-6 overflow-y-auto flex-1 bg-slate-50/60 math-modal-scroll max-h-[50vh]" id="math-symbols-container">
+        {{-- Symbol Grid Content (Scrollable) --}}
+        <div class="p-5 overflow-y-auto flex-1 bg-slate-50/60 math-modal-scroll min-h-0" id="math-symbols-container">
             
             {{-- TAB: Populer --}}
-            <div class="math-tab-content space-y-5" id="tab-popular">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+            <div class="math-tab-content space-y-4" id="tab-popular">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-bolt text-amber-500"></i> Simbol & Operator Paling Sering Digunakan
                     </h4>
-                    <div class="flex flex-wrap gap-2.5" id="grid-popular">
+                    <div class="flex flex-wrap gap-2" id="grid-popular">
                         {{-- Injected by JS --}}
                     </div>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-magic text-purple-500"></i> Template Rumus KaTeX Cepat
                     </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="grid-popular-templates">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5" id="grid-popular-templates">
                         {{-- Injected by JS --}}
                     </div>
                 </div>
             </div>
 
             {{-- TAB: Pangkat & Indeks --}}
-            <div class="math-tab-content space-y-5 hidden" id="tab-powers">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+            <div class="math-tab-content space-y-4 hidden" id="tab-powers">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-superscript text-indigo-500"></i> Pangkat Atas (Superscript)
                     </h4>
-                    <div class="flex flex-wrap gap-2.5" id="grid-powers-super"></div>
+                    <div class="flex flex-wrap gap-2" id="grid-powers-super"></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-subscript text-indigo-500"></i> Indeks Bawah (Subscript)
                     </h4>
-                    <div class="flex flex-wrap gap-2.5" id="grid-powers-sub"></div>
+                    <div class="flex flex-wrap gap-2" id="grid-powers-sub"></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-code text-purple-500"></i> Format KaTeX Pangkat & Indeks
                     </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="grid-powers-templates"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5" id="grid-powers-templates"></div>
                 </div>
             </div>
 
             {{-- TAB: Pecahan & Aritmatika --}}
-            <div class="math-tab-content space-y-5 hidden" id="tab-fractions">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+            <div class="math-tab-content space-y-4 hidden" id="tab-fractions">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-divide text-emerald-500"></i> Pecahan Biasa (Unicode)
                     </h4>
-                    <div class="flex flex-wrap gap-2.5" id="grid-fractions-uni"></div>
+                    <div class="flex flex-wrap gap-2" id="grid-fractions-uni"></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-calculator text-emerald-500"></i> Simbol Operasi & Perbandingan
                     </h4>
-                    <div class="flex flex-wrap gap-2.5" id="grid-fractions-ops"></div>
+                    <div class="flex flex-wrap gap-2" id="grid-fractions-ops"></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-layer-group text-purple-500"></i> Pecahan Bertingkat & KaTeX
                     </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="grid-fractions-templates"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5" id="grid-fractions-templates"></div>
                 </div>
             </div>
 
             {{-- TAB: Geometri & Sudut --}}
-            <div class="math-tab-content space-y-5 hidden" id="tab-geometry">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+            <div class="math-tab-content space-y-4 hidden" id="tab-geometry">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-draw-polygon text-cyan-500"></i> Simbol Sudut, Bangun & Relasi
                     </h4>
-                    <div class="flex flex-wrap gap-2.5" id="grid-geometry-symbols"></div>
+                    <div class="flex flex-wrap gap-2" id="grid-geometry-symbols"></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-wave-square text-cyan-600"></i> Fungsi Trigonometri (KaTeX)
                     </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="grid-trig-templates"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5" id="grid-trig-templates"></div>
                 </div>
             </div>
 
             {{-- TAB: Himpunan & Logika --}}
-            <div class="math-tab-content space-y-5 hidden" id="tab-sets">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+            <div class="math-tab-content space-y-4 hidden" id="tab-sets">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-circle-nodes text-rose-500"></i> Notasi Himpunan & Operasi
                     </h4>
-                    <div class="flex flex-wrap gap-2.5" id="grid-sets-symbols"></div>
+                    <div class="flex flex-wrap gap-2" id="grid-sets-symbols"></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-brain text-rose-500"></i> Logika Matematika & Simbol Bilangan
                     </h4>
-                    <div class="flex flex-wrap gap-2.5" id="grid-logic-symbols"></div>
+                    <div class="flex flex-wrap gap-2" id="grid-logic-symbols"></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-code text-purple-500"></i> Template Notasi Himpunan KaTeX
                     </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="grid-sets-templates"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5" id="grid-sets-templates"></div>
                 </div>
             </div>
 
             {{-- TAB: Kalkulus & Matriks --}}
-            <div class="math-tab-content space-y-5 hidden" id="tab-calculus">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+            <div class="math-tab-content space-y-4 hidden" id="tab-calculus">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-infinity text-violet-500"></i> Simbol Kalkulus & Diferensial
                     </h4>
-                    <div class="flex flex-wrap gap-2.5" id="grid-calculus-symbols"></div>
+                    <div class="flex flex-wrap gap-2" id="grid-calculus-symbols"></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-table-cells text-violet-600"></i> Template Kalkulus, Matriks & Vektor
                     </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="grid-calculus-templates"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5" id="grid-calculus-templates"></div>
                 </div>
             </div>
 
             {{-- TAB: Huruf Yunani --}}
-            <div class="math-tab-content space-y-5 hidden" id="tab-greek">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+            <div class="math-tab-content space-y-4 hidden" id="tab-greek">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-font text-teal-500"></i> Huruf Yunani Kecil (Lowercase)
                     </h4>
-                    <div class="flex flex-wrap gap-2.5" id="grid-greek-lower"></div>
+                    <div class="flex flex-wrap gap-2" id="grid-greek-lower"></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-bold text-teal-500"></i> Huruf Yunani Kapital (Uppercase)
                     </h4>
-                    <div class="flex flex-wrap gap-2.5" id="grid-greek-upper"></div>
+                    <div class="flex flex-wrap gap-2" id="grid-greek-upper"></div>
                 </div>
             </div>
 
             {{-- TAB: Fisika & Kimia --}}
-            <div class="math-tab-content space-y-5 hidden" id="tab-science">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+            <div class="math-tab-content space-y-4 hidden" id="tab-science">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-temperature-high text-amber-600"></i> Satuan & Konstanta Fisika
                     </h4>
-                    <div class="flex flex-wrap gap-2.5" id="grid-science-symbols"></div>
+                    <div class="flex flex-wrap gap-2" id="grid-science-symbols"></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fas fa-vial text-emerald-600"></i> Panah Reaksi & Senyawa Kimia
                     </h4>
-                    <div class="flex flex-wrap gap-2.5 mb-3" id="grid-chem-arrows"></div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="grid-chem-templates"></div>
+                    <div class="flex flex-wrap gap-2 mb-3" id="grid-chem-arrows"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5" id="grid-chem-templates"></div>
                 </div>
             </div>
 
             {{-- TAB: Panduan & Tips Penggunaan --}}
-            <div class="math-tab-content space-y-5 hidden" id="tab-guide">
-                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-2xl border border-blue-200 text-slate-700">
-                    <h4 class="text-sm font-bold text-blue-900 mb-1.5 flex items-center gap-2">
+            <div class="math-tab-content space-y-4 hidden" id="tab-guide">
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl border border-blue-200 text-slate-700">
+                    <h4 class="text-sm font-bold text-blue-900 mb-1 flex items-center gap-2">
                         <i class="fas fa-circle-info text-blue-600"></i> Panduan Pengetikan Simbol & Rumus Matematika / Sains
                     </h4>
                     <p class="text-xs text-slate-600 leading-relaxed">
-                        Fasilitas ini dirancang khusus untuk mempermudah Bapak/Ibu Guru dalam membuat soal kuis, tugas, dan ujian berbasis matematika dan sains secara presisi dan terstruktur.
+                        Jendela ini dapat <strong>digeser (drag)</strong> dan <strong>diperbesar/diperkecil</strong> sesuka hati agar tidak menutupi soal saat Anda mengetik.
                     </p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
                         <div class="font-bold text-xs text-purple-800 flex items-center gap-2">
-                            <span class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">1</span>
+                            <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">1</span>
                             <span>Menyisipkan Simbol ke Pertanyaan & Opsi Jawaban</span>
                         </div>
-                        <ul class="list-disc pl-5 text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                        <ul class="list-disc pl-5 text-xs text-slate-600 space-y-1 leading-relaxed">
                             <li>Klik tombol simbol di bilah toolbar atas untuk menyisipkan ke kotak pertanyaan.</li>
-                            <li>Pada pilihan ganda (A, B, C, D, E), klik tombol <strong>[Simbol]</strong> di sebelah kanan kotak jawaban untuk menyisipkan simbol langsung ke pilihan tersebut.</li>
+                            <li>Pada pilihan ganda (A-E), klik tombol <strong>[Simbol]</strong> di baris opsi jawaban untuk menyisipkan langsung.</li>
                         </ul>
                     </div>
 
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
                         <div class="font-bold text-xs text-emerald-800 flex items-center gap-2">
-                            <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">2</span>
+                            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">2</span>
                             <span>Penulisan Rumus KaTeX ($ ... $)</span>
                         </div>
-                        <ul class="list-disc pl-5 text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                        <ul class="list-disc pl-5 text-xs text-slate-600 space-y-1 leading-relaxed">
                             <li>Ketik rumus diapit tanda dolar: <code>$rumus$</code>.</li>
                             <li><strong>Pecahan:</strong> <code>$\frac{a}{b}$</code> → $\frac{a}{b}$</li>
                             <li><strong>Akar:</strong> <code>$\sqrt{x}$</code> atau <code>$\sqrt[3]{8}$</code> → $\sqrt[3]{8}$</li>
@@ -344,23 +386,24 @@
                         </ul>
                     </div>
 
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
                         <div class="font-bold text-xs text-indigo-800 flex items-center gap-2">
-                            <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">3</span>
-                            <span>Fitur Live Preview & Palet Simbol Lengkap</span>
+                            <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">3</span>
+                            <span>Fitur Geser, Resize, & Live Preview</span>
                         </div>
-                        <ul class="list-disc pl-5 text-xs text-slate-600 space-y-1.5 leading-relaxed">
-                            <li>Klik tombol <strong>[Live Preview]</strong> untuk melihat langsung wujud rumus saat Anda mengetik.</li>
-                            <li>Gunakan <strong>Pencarian Cepat</strong> di palet untuk mencari nama simbol (contoh: <em>integral, alpha, sudut, pecahan</em>).</li>
+                        <ul class="list-disc pl-5 text-xs text-slate-600 space-y-1 leading-relaxed">
+                            <li>Tahan dan geser bilah atas untuk memindahkan jendela.</li>
+                            <li>Tarik ujung kanan-bawah untuk mengubah ukuran jendela.</li>
+                            <li>Gunakan tombol [ — ] untuk melipat dan [ 🗖 ] untuk layar penuh.</li>
                         </ul>
                     </div>
 
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
                         <div class="font-bold text-xs text-amber-800 flex items-center gap-2">
-                            <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">4</span>
+                            <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">4</span>
                             <span>Dukungan Rumus Fisika & Kimia</span>
                         </div>
-                        <ul class="list-disc pl-5 text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                        <ul class="list-disc pl-5 text-xs text-slate-600 space-y-1 leading-relaxed">
                             <li><strong>Fisika:</strong> Suhu ($25^\circ\text{C}$), Hambatan ($10\Omega$), Mikro ($\mu$).</li>
                             <li><strong>Kimia:</strong> Senyawa (<code>$H_2O$</code>, <code>$CO_2$</code>), Ion (<code>$Ca^{2+}$</code>), Reaksi (<code>$2H_2 + O_2 \rightarrow 2H_2O$</code>).</li>
                         </ul>
@@ -369,27 +412,29 @@
             </div>
 
             {{-- Search Results Container --}}
-            <div id="math-search-results" class="hidden space-y-4">
+            <div id="math-search-results" class="hidden space-y-3">
                 <h4 class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-2 flex items-center gap-2">
                     <i class="fas fa-filter text-purple-600"></i> Hasil Pencarian Simbol / Rumus:
                 </h4>
-                <div class="flex flex-wrap gap-2.5 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs" id="search-grid-symbols"></div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="search-grid-templates"></div>
+                <div class="flex flex-wrap gap-2 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs" id="search-grid-symbols"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5" id="search-grid-templates"></div>
             </div>
         </div>
 
         {{-- Footer Guidance & Action --}}
-        <div class="px-6 py-4 bg-slate-100/90 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
-            <div class="flex items-center gap-2">
-                <span class="px-2.5 py-1 bg-purple-100 text-purple-800 rounded-lg font-bold text-[10px] uppercase">Tips KaTeX</span>
-                <span class="text-slate-600 leading-normal">Ketik rumus dengan format <code class="px-1.5 py-0.5 bg-white border border-slate-300 rounded-md text-purple-700 font-mono font-bold">$rumus$</code> untuk tampilan matematika yang rapi.</span>
+        <div class="px-5 py-3 bg-slate-100/90 border-t border-slate-200 flex items-center justify-between gap-2 text-xs text-slate-600 flex-shrink-0 select-none relative">
+            <div class="flex items-center gap-2 truncate">
+                <span class="px-2 py-0.5 bg-purple-100 text-purple-800 rounded-md font-bold text-[9px] uppercase flex-shrink-0">Tips</span>
+                <span class="text-slate-600 truncate text-[11px]">Ketik rumus diapit <code class="px-1 py-0.5 bg-white border border-slate-300 rounded text-purple-700 font-mono font-bold">$rumus$</code></span>
             </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-                <button type="button" onclick="window.closeMathPalette()" class="px-6 py-2.5 text-white font-bold rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer" style="background: linear-gradient(135deg, #6b21a8 0%, #4338ca 100%) !important;">
+            <div class="flex items-center gap-2 flex-shrink-0 pr-4">
+                <button type="button" onclick="window.closeMathPalette()" class="px-4 py-1.5 text-white font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer text-xs" style="background: linear-gradient(135deg, #6b21a8 0%, #4338ca 100%) !important;">
                     <span>Selesai</span>
-                    <i class="fas fa-check text-xs"></i>
+                    <i class="fas fa-check text-[10px]"></i>
                 </button>
             </div>
+            {{-- Resize Handle Icon --}}
+            <div class="math-resize-handle text-slate-400 text-xs font-black flex items-center justify-center">⇲</div>
         </div>
 
     </div>
@@ -491,7 +536,186 @@
         }
     }
 
-    // Modal Control
+    // ═════════════════════════════════════════════════════════════════
+    // DRAGGABLE & RESIZABLE WINDOW LOGIC
+    // ═════════════════════════════════════════════════════════════════
+    let isDragging = false;
+    let startX, startY, initialLeft, initialTop;
+    let isMaximized = false;
+    let isMinimized = false;
+    let preMaxStyle = {};
+    let preMinStyle = {};
+
+    function initDraggableWindow() {
+        const header = document.getElementById('math-palette-header');
+        const modal = document.getElementById('math-palette-modal');
+        if (!header || !modal) return;
+
+        // Mouse Drag Handlers
+        header.addEventListener('mousedown', function(e) {
+            if (e.target.closest('button') || e.target.closest('input')) return;
+            if (isMaximized) return; // Disable dragging when maximized
+
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+
+            const rect = modal.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+
+            modal.style.transform = 'none';
+            modal.style.left = initialLeft + 'px';
+            modal.style.top = initialTop + 'px';
+
+            document.body.style.userSelect = 'none';
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            let newLeft = initialLeft + dx;
+            let newTop = initialTop + dy;
+
+            // Constrain within viewport bounds
+            const maxX = window.innerWidth - 80;
+            const maxY = window.innerHeight - 50;
+            newLeft = Math.max(10, Math.min(newLeft, maxX));
+            newTop = Math.max(10, Math.min(newTop, maxY));
+
+            modal.style.left = newLeft + 'px';
+            modal.style.top = newTop + 'px';
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                document.body.style.userSelect = '';
+            }
+        });
+
+        // Touch Drag Handlers (Tablet / Mobile support)
+        header.addEventListener('touchstart', function(e) {
+            if (e.target.closest('button') || e.target.closest('input')) return;
+            if (isMaximized) return;
+            const touch = e.touches[0];
+            isDragging = true;
+            startX = touch.clientX;
+            startY = touch.clientY;
+
+            const rect = modal.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+
+            modal.style.transform = 'none';
+            modal.style.left = initialLeft + 'px';
+            modal.style.top = initialTop + 'px';
+        }, { passive: true });
+
+        document.addEventListener('touchmove', function(e) {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - startX;
+            const dy = touch.clientY - startY;
+
+            let newLeft = initialLeft + dx;
+            let newTop = initialTop + dy;
+
+            const maxX = window.innerWidth - 80;
+            const maxY = window.innerHeight - 50;
+            newLeft = Math.max(10, Math.min(newLeft, maxX));
+            newTop = Math.max(10, Math.min(newTop, maxY));
+
+            modal.style.left = newLeft + 'px';
+            modal.style.top = newTop + 'px';
+        }, { passive: true });
+
+        document.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+    }
+
+    // Maximize / Restore Toggle
+    window.toggleMaximizeMathPalette = function() {
+        const modal = document.getElementById('math-palette-modal');
+        const maxBtn = document.getElementById('math-max-btn');
+        if (!modal) return;
+
+        if (isMinimized) {
+            window.toggleMinimizeMathPalette(); // Unminimize first
+        }
+
+        if (!isMaximized) {
+            preMaxStyle = {
+                left: modal.style.left,
+                top: modal.style.top,
+                width: modal.style.width,
+                height: modal.style.height,
+                transform: modal.style.transform
+            };
+            modal.style.transform = 'none';
+            modal.style.left = '16px';
+            modal.style.top = '16px';
+            modal.style.width = 'calc(100vw - 32px)';
+            modal.style.height = 'calc(100vh - 32px)';
+            isMaximized = true;
+            if (maxBtn) maxBtn.innerHTML = '<i class="fas fa-compress text-xs"></i>';
+        } else {
+            modal.style.left = preMaxStyle.left || '50%';
+            modal.style.top = preMaxStyle.top || '75px';
+            modal.style.width = preMaxStyle.width || '880px';
+            modal.style.height = preMaxStyle.height || '580px';
+            modal.style.transform = preMaxStyle.transform || 'translateX(-50%)';
+            isMaximized = false;
+            if (maxBtn) maxBtn.innerHTML = '<i class="fas fa-expand text-xs"></i>';
+        }
+    };
+
+    // Minimize / Collapse Toggle (Docks neatly to bottom corner)
+    window.toggleMinimizeMathPalette = function() {
+        const modal = document.getElementById('math-palette-modal');
+        const bodyContent = document.getElementById('math-modal-body');
+        const minBtn = document.getElementById('math-min-btn');
+        if (!modal || !bodyContent) return;
+
+        if (!isMinimized) {
+            preMinStyle = {
+                left: modal.style.left,
+                top: modal.style.top,
+                width: modal.style.width,
+                height: modal.style.height,
+                transform: modal.style.transform
+            };
+            bodyContent.classList.add('hidden');
+            modal.style.transform = 'none';
+            modal.style.left = 'auto';
+            modal.style.right = '20px';
+            modal.style.top = 'auto';
+            modal.style.bottom = '20px';
+            modal.style.width = '340px';
+            modal.style.height = 'auto';
+            modal.style.resize = 'none';
+            isMinimized = true;
+            if (minBtn) minBtn.innerHTML = '<i class="fas fa-chevron-up text-xs"></i>';
+        } else {
+            bodyContent.classList.remove('hidden');
+            modal.style.left = preMinStyle.left || '50%';
+            modal.style.top = preMinStyle.top || '75px';
+            modal.style.right = 'auto';
+            modal.style.bottom = 'auto';
+            modal.style.width = preMinStyle.width || '880px';
+            modal.style.height = preMinStyle.height || '580px';
+            modal.style.transform = preMinStyle.transform || 'translateX(-50%)';
+            modal.style.resize = 'both';
+            isMinimized = false;
+            if (minBtn) minBtn.innerHTML = '<i class="fas fa-minus text-xs"></i>';
+        }
+    };
+
+    // Modal Open & Close Controls
     window.openMathPalette = function(targetField) {
         if (targetField) {
             window.lastActiveMathField = targetField;
@@ -499,8 +723,10 @@
         }
         const modal = document.getElementById('math-palette-modal');
         if (modal) {
+            if (isMinimized) {
+                window.toggleMinimizeMathPalette();
+            }
             modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
             setTimeout(() => {
                 const searchInp = document.getElementById('math-search-input');
                 if (searchInp) searchInp.focus();
@@ -512,23 +738,19 @@
         const modal = document.getElementById('math-palette-modal');
         if (modal) {
             modal.classList.add('hidden');
-            document.body.style.overflow = '';
             if (window.lastActiveMathField) {
                 window.lastActiveMathField.focus();
             }
         }
     };
 
-    // Close on Escape key or backdrop click
+    // Close on Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            window.closeMathPalette();
-        }
-    });
-
-    document.getElementById('math-palette-modal')?.addEventListener('click', function(e) {
-        if (e.target === this) {
-            window.closeMathPalette();
+            const modal = document.getElementById('math-palette-modal');
+            if (modal && !modal.classList.contains('hidden')) {
+                window.closeMathPalette();
+            }
         }
     });
 
@@ -990,7 +1212,7 @@
             btnPalette.type = 'button';
             btnPalette.className = 'ml-auto px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-black transition-all shadow-xs flex items-center gap-1.5 focus:outline-none cursor-pointer';
             btnPalette.innerHTML = '<i class="fas fa-palette text-[10px] text-amber-300"></i> <span>Palet Lengkap</span>';
-            btnPalette.title = 'Buka Palet Simbol & Rumus Matematika Lengkap';
+            btnPalette.title = 'Buka Palet Simbol & Rumus Matematika Lengkap (Dapat digeser & diubah ukuran)';
             btnPalette.onclick = function(e) {
                 e.preventDefault();
                 window.openMathPalette(textarea);
@@ -1127,6 +1349,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         populateModalGrids();
         initMathToolbars();
+        initDraggableWindow();
 
         // Observe dynamic DOM changes (e.g. Alpine.js modal openings, dynamic question adding)
         const observer = new MutationObserver(function() {
