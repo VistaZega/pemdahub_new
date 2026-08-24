@@ -40,13 +40,13 @@
                     @if($selectedClassroomId)
                     <select name="month" onchange="this.form.submit()" class="text-xs font-black border-2 border-black rounded-2xl px-3 py-2.5 shadow-sm outline-none cursor-pointer" style="color: #000000 !important; background-color: #ffffff !important;">
                         @foreach($monthsList as $mNum => $mName)
-                            <option value="{{ $mNum }}" {{ $selectedMonth == $mNum ? 'selected' : '' }}>{{ $mName }}</option>
+                            <option value="{{ $mNum }}" {{ $selectedMonth == $mNum ? 'selected' : '' }} style="color: #000000 !important;">{{ $mName }}</option>
                         @endforeach
                     </select>
 
                     <select name="year" onchange="this.form.submit()" class="text-xs font-black border-2 border-black rounded-2xl px-3 py-2.5 shadow-sm outline-none cursor-pointer" style="color: #000000 !important; background-color: #ffffff !important;">
                         @for($y = date('Y'); $y >= date('Y') - 2; $y--)
-                            <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
+                            <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }} style="color: #000000 !important;">{{ $y }}</option>
                         @endfor
                     </select>
                     @endif
@@ -87,48 +87,48 @@
         }" class="space-y-5">
 
             {{-- ═════════════════════════════════════════════════════════════════ --}}
-            {{-- REKAP KEHADIRAN HARIAN REAL-TIME (HARI INI / TANGGAL TERPILIH)   --}}
+            {{-- REKAP KEHADIRAN HARIAN REAL-TIME (5 KARTU SEJAJAR)                --}}
             {{-- ═════════════════════════════════════════════════════════════════ --}}
             <div class="bg-white rounded-3xl p-5 border-2 border-slate-200 shadow-sm space-y-4 print-hide">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-black">
+                        <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-black flex-shrink-0">
                             <i class="fas fa-chart-pie"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
-                                Rekap Kehadiran Harian Siswa
-                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold uppercase">Real-Time Gerbang & Kelas</span>
+                            <h3 class="text-sm font-black text-slate-900 flex items-center gap-2 flex-wrap">
+                                <span>Rekap Kehadiran Harian Siswa</span>
+                                <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200 font-black uppercase">Real-Time Gerbang & Kelas</span>
                             </h3>
-                            <p class="text-xs text-slate-500 font-medium">Klik pada kartu status di bawah untuk memfilter daftar siswa</p>
+                            <p class="text-xs text-slate-500 font-medium">Klik pada salah satu kartu status untuk memfilter daftar siswa di bawah</p>
                         </div>
                     </div>
 
                     {{-- Pemilih Tanggal Harian --}}
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-slate-600 flex items-center gap-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-xs font-bold text-slate-700 flex items-center gap-1">
                             <i class="fas fa-calendar-day text-purple-600"></i> Tanggal:
                         </span>
                         <input type="date" value="{{ $selectedDailyDate }}" 
                             onchange="window.location.href='?classroom_id={{ $selectedClassroomId }}&month={{ $selectedMonth }}&year={{ $selectedYear }}&daily_date=' + this.value + '&viewMode=daily'"
-                            class="text-xs font-black border-2 border-purple-200 rounded-xl px-3 py-1.5 bg-purple-50/50 text-purple-950 shadow-2xs outline-none focus:border-purple-600 cursor-pointer">
+                            class="text-xs font-black border-2 border-purple-300 rounded-xl px-3 py-1.5 bg-white text-slate-900 shadow-sm outline-none focus:border-purple-600 cursor-pointer">
                         @if($selectedDailyDate !== date('Y-m-d'))
                             <a href="?classroom_id={{ $selectedClassroomId }}&month={{ date('n') }}&year={{ date('Y') }}&daily_date={{ date('Y-m-d') }}&viewMode=daily" 
-                               class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-2xs transition" title="Kembali ke Hari Ini">
+                               class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm transition" title="Kembali ke Hari Ini">
                                 Hari Ini
                             </a>
                         @endif
                     </div>
                 </div>
 
-                {{-- Interactive Real-Time Summary Cards --}}
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                {{-- 5 Equal Cards in 1 Row on Desktop --}}
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                     {{-- 1. Hadir --}}
                     <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'hadir' ? 'all' : 'hadir')" 
-                        :class="statusFilter === 'hadir' ? 'ring-2 ring-emerald-500 border-emerald-500 bg-emerald-50/70' : 'border-slate-200 bg-slate-50/50 hover:bg-emerald-50/40'"
-                        class="p-4 rounded-2xl border text-center transition-all cursor-pointer shadow-2xs">
-                        <div class="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-emerald-600">
-                            <i class="fas fa-check-circle text-base"></i>
+                        :class="statusFilter === 'hadir' ? 'border-2 border-emerald-600 bg-emerald-50 shadow-md ring-2 ring-emerald-400' : 'border border-slate-200 bg-slate-50 hover:bg-emerald-50/50'"
+                        class="p-4 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center">
+                        <div class="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center mb-2 text-emerald-600">
+                            <i class="fas fa-check-circle text-lg"></i>
                         </div>
                         <p class="text-2xl font-black text-slate-900">{{ $dailySummary['present'] }}</p>
                         <p class="text-xs font-bold text-emerald-700 mt-0.5">Hadir ({{ $dailySummary['percentage'] }}%)</p>
@@ -136,10 +136,10 @@
 
                     {{-- 2. Sakit --}}
                     <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'sakit' ? 'all' : 'sakit')" 
-                        :class="statusFilter === 'sakit' ? 'ring-2 ring-amber-500 border-amber-500 bg-amber-50/70' : 'border-slate-200 bg-slate-50/50 hover:bg-amber-50/40'"
-                        class="p-4 rounded-2xl border text-center transition-all cursor-pointer shadow-2xs">
-                        <div class="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-amber-600">
-                            <i class="fas fa-briefcase-medical text-base"></i>
+                        :class="statusFilter === 'sakit' ? 'border-2 border-amber-500 bg-amber-50 shadow-md ring-2 ring-amber-400' : 'border border-slate-200 bg-slate-50 hover:bg-amber-50/50'"
+                        class="p-4 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center">
+                        <div class="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center mb-2 text-amber-600">
+                            <i class="fas fa-briefcase-medical text-lg"></i>
                         </div>
                         <p class="text-2xl font-black text-slate-900">{{ $dailySummary['sick'] }}</p>
                         <p class="text-xs font-bold text-amber-700 mt-0.5">Sakit</p>
@@ -147,10 +147,10 @@
 
                     {{-- 3. Izin --}}
                     <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'izin' ? 'all' : 'izin')" 
-                        :class="statusFilter === 'izin' ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50/70' : 'border-slate-200 bg-slate-50/50 hover:bg-blue-50/40'"
-                        class="p-4 rounded-2xl border text-center transition-all cursor-pointer shadow-2xs">
-                        <div class="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-blue-600">
-                            <i class="fas fa-envelope-open-text text-base"></i>
+                        :class="statusFilter === 'izin' ? 'border-2 border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-400' : 'border border-slate-200 bg-slate-50 hover:bg-blue-50/50'"
+                        class="p-4 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center">
+                        <div class="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center mb-2 text-blue-600">
+                            <i class="fas fa-envelope-open-text text-lg"></i>
                         </div>
                         <p class="text-2xl font-black text-slate-900">{{ $dailySummary['permission'] }}</p>
                         <p class="text-xs font-bold text-blue-700 mt-0.5">Izin</p>
@@ -158,44 +158,60 @@
 
                     {{-- 4. Alpha --}}
                     <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'alpha' ? 'all' : 'alpha')" 
-                        :class="statusFilter === 'alpha' ? 'ring-2 ring-rose-500 border-rose-500 bg-rose-50/70' : 'border-slate-200 bg-slate-50/50 hover:bg-rose-50/40'"
-                        class="p-4 rounded-2xl border text-center transition-all cursor-pointer shadow-2xs">
-                        <div class="w-8 h-8 bg-rose-100 rounded-xl flex items-center justify-center mx-auto mb-2 text-rose-600">
-                            <i class="fas fa-times-circle text-base"></i>
+                        :class="statusFilter === 'alpha' ? 'border-2 border-rose-600 bg-rose-50 shadow-md ring-2 ring-rose-400' : 'border border-slate-200 bg-slate-50 hover:bg-rose-50/50'"
+                        class="p-4 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center">
+                        <div class="w-9 h-9 bg-rose-100 rounded-xl flex items-center justify-center mb-2 text-rose-600">
+                            <i class="fas fa-times-circle text-lg"></i>
                         </div>
                         <p class="text-2xl font-black text-slate-900">{{ $dailySummary['absent'] }}</p>
                         <p class="text-xs font-bold text-rose-700 mt-0.5">Alpha</p>
                     </button>
 
-                    {{-- 5. Belum Presensi / Belum Scan --}}
+                    {{-- 5. Belum Presensi / Scan --}}
                     <button type="button" @click="viewMode = 'daily'; statusFilter = (statusFilter === 'unscanned' ? 'all' : 'unscanned')" 
-                        :class="statusFilter === 'unscanned' ? 'ring-2 ring-purple-600 border-purple-600 bg-purple-50/70' : 'border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50/80'"
-                        class="p-4 rounded-2xl border-2 text-center transition-all cursor-pointer shadow-2xs col-span-2 sm:col-span-1">
-                        <div class="w-8 h-8 bg-amber-200/80 rounded-xl flex items-center justify-center mx-auto mb-2 text-amber-800">
-                            <i class="fas fa-user-clock text-base"></i>
+                        :class="statusFilter === 'unscanned' ? 'border-2 border-purple-700 bg-purple-50 shadow-md ring-2 ring-purple-400' : 'border-2 border-dashed border-amber-400 bg-amber-50/40 hover:bg-amber-50'"
+                        class="p-4 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center col-span-2 sm:col-span-1">
+                        <div class="w-9 h-9 bg-amber-200/80 rounded-xl flex items-center justify-center mb-2 text-amber-800">
+                            <i class="fas fa-clock text-lg"></i>
                         </div>
                         <p class="text-2xl font-black text-amber-950">{{ $dailySummary['unscanned'] }}</p>
-                        <p class="text-xs font-black text-amber-800 mt-0.5">Belum Presensi / Scan</p>
+                        <p class="text-xs font-black text-amber-800 mt-0.5">Belum Scan / Presensi</p>
                     </button>
                 </div>
             </div>
 
             {{-- ═════════════════════════════════════════════════════════════════ --}}
-            {{-- TAB CONTROLS                                                      --}}
+            {{-- TAB CONTROLS (HIGH CONTRAST & CLEAR LABELS)                       --}}
             {{-- ═════════════════════════════════════════════════════════════════ --}}
-            <div class="flex items-center justify-between gap-4 flex-wrap bg-white p-2.5 rounded-2xl border border-gray-100 shadow-sm print-hide">
+            <div class="flex items-center justify-between gap-4 flex-wrap bg-white p-2.5 rounded-2xl border-2 border-slate-200 shadow-sm print-hide">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <button @click="viewMode = 'daily'" :class="viewMode === 'daily' ? 'bg-purple-900 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-2 border border-purple-950 cursor-pointer">
-                        <i class="fas fa-clipboard-user text-amber-400"></i> Presensi Harian Kelas & Input Wali Kelas
+                    {{-- Tab 1: Presensi Harian --}}
+                    <button type="button" @click="viewMode = 'daily'" 
+                        :style="viewMode === 'daily' ? 'background-color: #1e1b4b !important; color: #ffffff !important; border-color: #0f172a !important;' : 'background-color: #f8fafc !important; color: #0f172a !important; border-color: #cbd5e1 !important;'"
+                        class="px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-2 border-2 cursor-pointer shadow-sm">
+                        <i class="fas fa-clipboard-check text-amber-400 text-sm"></i>
+                        <span>Presensi Harian Siswa (Wali Kelas)</span>
                     </button>
-                    <button @click="viewMode = 'matrix'" :class="viewMode === 'matrix' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-2 border border-black cursor-pointer">
-                        <i class="fas fa-table"></i> Matriks Bulanan (Sekolah)
+
+                    {{-- Tab 2: Matriks Bulanan --}}
+                    <button type="button" @click="viewMode = 'matrix'" 
+                        :style="viewMode === 'matrix' ? 'background-color: #1e1b4b !important; color: #ffffff !important; border-color: #0f172a !important;' : 'background-color: #f8fafc !important; color: #0f172a !important; border-color: #cbd5e1 !important;'"
+                        class="px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-2 border-2 cursor-pointer shadow-sm">
+                        <i class="fas fa-table text-indigo-400 text-sm"></i>
+                        <span>Matriks Bulanan (Sekolah)</span>
                     </button>
-                    <button @click="viewMode = 'log'" :class="viewMode === 'log' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-2 border border-black cursor-pointer">
-                        <i class="fas fa-chalkboard-user"></i> Kehadiran Pelajaran Saya
+
+                    {{-- Tab 3: Pelajaran Saya --}}
+                    <button type="button" @click="viewMode = 'log'" 
+                        :style="viewMode === 'log' ? 'background-color: #1e1b4b !important; color: #ffffff !important; border-color: #0f172a !important;' : 'background-color: #f8fafc !important; color: #0f172a !important; border-color: #cbd5e1 !important;'"
+                        class="px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-2 border-2 cursor-pointer shadow-sm">
+                        <i class="fas fa-chalkboard-teacher text-emerald-400 text-sm"></i>
+                        <span>Kehadiran Pelajaran Saya</span>
                     </button>
                 </div>
-                <a href="{{ route('guru.absensi.print', request()->all()) }}" target="_blank" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition flex items-center gap-2 border border-purple-800">
+
+                <a href="{{ route('guru.absensi.print', request()->all()) }}" target="_blank" 
+                   class="px-4 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-2 border-2 border-purple-900" style="color: #ffffff !important;">
                     <i class="fas fa-print"></i> Cetak Rekap
                 </a>
             </div>
@@ -203,59 +219,71 @@
             {{-- ═════════════════════════════════════════════════════════════════ --}}
             {{-- 1. TAB PRESENSI HARIAN KELAS (WALI KELAS & REAL-TIME EDIT)         --}}
             {{-- ═════════════════════════════════════════════════════════════════ --}}
-            <div x-show="viewMode === 'daily'" class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden space-y-0">
+            <div x-show="viewMode === 'daily'" class="bg-white rounded-3xl shadow-sm border-2 border-slate-200 overflow-hidden space-y-0">
                 <form action="{{ route('guru.absensi.storeDaily') }}" method="POST" id="formPresensiHarian">
                     @csrf
                     <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
                     <input type="hidden" name="date" value="{{ $selectedDailyDate }}">
 
                     {{-- Toolbar Presensi Harian --}}
-                    <div class="px-6 py-4 bg-gradient-to-r from-purple-50 via-indigo-50/60 to-purple-50 border-b border-purple-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div class="px-6 py-4 bg-purple-50 border-b-2 border-purple-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                         <div>
                             <h2 class="text-base font-black text-purple-950 flex items-center gap-2">
-                                <i class="fas fa-calendar-check text-purple-600"></i>
+                                <i class="fas fa-calendar-check text-purple-700"></i>
                                 <span>Presensi Harian: {{ \Carbon\Carbon::parse($selectedDailyDate)->translatedFormat('l, d F Y') }}</span>
                             </h2>
-                            <p class="text-xs text-purple-800 font-semibold mt-0.5">
+                            <p class="text-xs text-purple-900 font-bold mt-0.5">
                                 Kelas: <strong>{{ $selectedClassroom->class_name }}</strong> · Total: <strong>{{ $classroomStudents->count() }} Siswa</strong>
                                 @if(isset($isHomeroom) && $isHomeroom)
-                                    <span class="text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md text-[10px] ml-1 font-bold">Akses Wali Kelas Aktif</span>
+                                    <span class="text-purple-950 bg-amber-300 border border-amber-500 px-2 py-0.5 rounded-md text-[10px] ml-1 font-black">👑 Akses Wali Kelas Aktif</span>
                                 @endif
                             </p>
                         </div>
 
-                        {{-- Action Buttons --}}
+                        {{-- Action Buttons & Filter Chips --}}
                         <div class="flex items-center gap-2 flex-wrap">
                             {{-- Fast Filter Chips --}}
-                            <div class="flex items-center gap-1 bg-white/80 p-1 rounded-xl border border-purple-200">
-                                <button type="button" @click="statusFilter = 'all'" :class="statusFilter === 'all' ? 'bg-purple-700 text-white' : 'text-slate-600 hover:bg-purple-50'" class="px-2.5 py-1 rounded-lg text-xs font-bold transition">
+                            <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-purple-200 shadow-2xs">
+                                <button type="button" @click="statusFilter = 'all'" 
+                                    :style="statusFilter === 'all' ? 'background-color: #581c87 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer">
                                     Semua ({{ $classroomStudents->count() }})
                                 </button>
-                                <button type="button" @click="statusFilter = 'unscanned'" :class="statusFilter === 'unscanned' ? 'bg-amber-600 text-white' : 'text-amber-800 hover:bg-amber-50'" class="px-2.5 py-1 rounded-lg text-xs font-black transition flex items-center gap-1">
+                                <button type="button" @click="statusFilter = 'unscanned'" 
+                                    :style="statusFilter === 'unscanned' ? 'background-color: #b45309 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #b45309 !important;'"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-black transition flex items-center gap-1 cursor-pointer">
                                     <i class="fas fa-clock text-[10px]"></i> Belum Scan ({{ $dailySummary['unscanned'] }})
                                 </button>
-                                <button type="button" @click="statusFilter = 'hadir'" :class="statusFilter === 'hadir' ? 'bg-emerald-600 text-white' : 'text-emerald-800 hover:bg-emerald-50'" class="px-2 py-1 rounded-lg text-xs font-bold transition">
+                                <button type="button" @click="statusFilter = 'hadir'" 
+                                    :style="statusFilter === 'hadir' ? 'background-color: #047857 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #047857 !important;'"
+                                    class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
                                     Hadir ({{ $dailySummary['present'] }})
                                 </button>
-                                <button type="button" @click="statusFilter = 'sakit'" :class="statusFilter === 'sakit' ? 'bg-yellow-500 text-black' : 'text-yellow-800 hover:bg-yellow-50'" class="px-2 py-1 rounded-lg text-xs font-bold transition">
+                                <button type="button" @click="statusFilter = 'sakit'" 
+                                    :style="statusFilter === 'sakit' ? 'background-color: #d97706 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #b45309 !important;'"
+                                    class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
                                     Sakit ({{ $dailySummary['sick'] }})
                                 </button>
-                                <button type="button" @click="statusFilter = 'izin'" :class="statusFilter === 'izin' ? 'bg-blue-600 text-white' : 'text-blue-800 hover:bg-blue-50'" class="px-2 py-1 rounded-lg text-xs font-bold transition">
+                                <button type="button" @click="statusFilter = 'izin'" 
+                                    :style="statusFilter === 'izin' ? 'background-color: #1d4ed8 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #1d4ed8 !important;'"
+                                    class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
                                     Izin ({{ $dailySummary['permission'] }})
                                 </button>
-                                <button type="button" @click="statusFilter = 'alpha'" :class="statusFilter === 'alpha' ? 'bg-rose-600 text-white' : 'text-rose-800 hover:bg-rose-50'" class="px-2 py-1 rounded-lg text-xs font-bold transition">
+                                <button type="button" @click="statusFilter = 'alpha'" 
+                                    :style="statusFilter === 'alpha' ? 'background-color: #be123c !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #be123c !important;'"
+                                    class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
                                     Alpha ({{ $dailySummary['absent'] }})
                                 </button>
                             </div>
 
                             {{-- Bulk Helper: Hadirkan Semua yang Belum Scan --}}
-                            <button type="button" onclick="markAllUnscannedDailyHadir()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800 cursor-pointer" title="Otomatis isi Hadir bagi semua siswa yang belum scan">
+                            <button type="button" onclick="markAllUnscannedDailyHadir()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800 cursor-pointer" style="color: #ffffff !important;" title="Otomatis isi Hadir bagi semua siswa yang belum scan">
                                 <i class="fas fa-check-double"></i> Hadirkan Belum Scan
                             </button>
 
                             {{-- Submit Button --}}
-                            <button type="submit" class="px-5 py-2 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-2 cursor-pointer">
-                                <i class="fas fa-save text-sm"></i> Simpan Presensi Harian
+                            <button type="submit" class="px-5 py-2 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-2 cursor-pointer" style="color: #000000 !important; background-color: #fbbf24 !important;">
+                                <i class="fas fa-save text-sm text-black"></i> Simpan Presensi Harian
                             </button>
                         </div>
                     </div>
@@ -264,12 +292,12 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead>
-                                <tr class="bg-slate-900 text-white font-bold text-xs uppercase">
-                                    <th class="px-4 py-3 text-center border-r border-slate-700 w-12">No</th>
-                                    <th class="px-4 py-3 border-r border-slate-700 min-w-[220px]">Nama Siswa</th>
-                                    <th class="px-4 py-3 border-r border-slate-700 min-w-[180px]">Status & Asal Catatan</th>
-                                    <th class="px-4 py-3 border-r border-slate-700 min-w-[240px] text-center">Tentukan Status (Wali Kelas)</th>
-                                    <th class="px-4 py-3 min-w-[220px]">Keterangan / Alasan</th>
+                                <tr class="bg-slate-900 text-white font-bold text-xs uppercase" style="background-color: #0f172a !important; color: #ffffff !important;">
+                                    <th class="px-4 py-3 text-center border-r border-slate-700 w-12 text-white">No</th>
+                                    <th class="px-4 py-3 border-r border-slate-700 min-w-[220px] text-white">Nama Siswa</th>
+                                    <th class="px-4 py-3 border-r border-slate-700 min-w-[180px] text-white">Status & Asal Catatan</th>
+                                    <th class="px-4 py-3 border-r border-slate-700 min-w-[240px] text-center text-white">Tentukan Status (Wali Kelas)</th>
+                                    <th class="px-4 py-3 min-w-[220px] text-white">Keterangan / Alasan</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -277,7 +305,6 @@
                                     @php
                                         $att = $dailySchoolAttendances->get($st->id);
                                         $currentStatus = $att ? $att->status : '';
-                                        $statusKey = $currentStatus ?: 'unscanned';
                                         $stGroup = $studentBlockGroups[$st->id] ?? null;
                                     @endphp
                                     <tr x-data="{ rowStatus: '{{ $currentStatus }}' }"
@@ -307,26 +334,26 @@
                                             @if($att)
                                                 @if($att->recorded_via === 'rfid' || $att->recorded_via === 'barcode' || $att->recorded_via === 'qr')
                                                     <div class="space-y-0.5">
-                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 font-black text-xs">
-                                                            <i class="fas fa-id-card text-emerald-600"></i> Scan Gerbang
+                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-950 border border-emerald-300 font-black text-xs">
+                                                            <i class="fas fa-id-card text-emerald-700"></i> Scan Gerbang
                                                         </span>
-                                                        <div class="text-[10px] text-emerald-700 font-bold">
+                                                        <div class="text-[10px] text-emerald-800 font-bold">
                                                             Pukul {{ $att->time_in ? substr($att->time_in, 0, 5) . ' WIB' : '-' }}
                                                         </div>
                                                     </div>
                                                 @else
                                                     <div class="space-y-0.5">
-                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-100 text-blue-900 border border-blue-300 font-black text-xs">
-                                                            <i class="fas fa-user-pen text-blue-600"></i> Manual / Wali Kelas
+                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-100 text-blue-950 border border-blue-300 font-black text-xs">
+                                                            <i class="fas fa-user-edit text-blue-700"></i> Manual / Wali Kelas
                                                         </span>
-                                                        <div class="text-[10px] text-blue-700 font-bold capitalize">
+                                                        <div class="text-[10px] text-blue-800 font-bold capitalize">
                                                             Status: {{ $att->status }}
                                                         </div>
                                                     </div>
                                                 @endif
                                             @else
-                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-black text-xs">
-                                                    <i class="fas fa-clock text-amber-600"></i> Belum Scan / Presensi
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-950 border border-amber-300 font-black text-xs">
+                                                    <i class="fas fa-clock text-amber-700"></i> Belum Scan / Presensi
                                                 </span>
                                             @endif
                                         </td>
@@ -334,30 +361,35 @@
                                         {{-- Toggle Status Buttons (H, S, I, A, Clear) --}}
                                         <td class="px-4 py-3 border-r border-gray-100 text-center">
                                             <input type="hidden" name="statuses[{{ $st->id }}]" :value="rowStatus">
-                                            <div class="inline-flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-2xs">
+                                            <div class="inline-flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-300 shadow-2xs">
+                                                {{-- Hadir --}}
                                                 <button type="button" @click="rowStatus = 'hadir'" 
-                                                    :class="rowStatus === 'hadir' ? 'bg-emerald-600 text-white font-black shadow-xs' : 'text-slate-600 hover:bg-white font-bold'" 
-                                                    class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer" title="Hadir">
+                                                    :style="rowStatus === 'hadir' ? 'background-color: #059669 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
+                                                    class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Hadir">
                                                     Hadir
                                                 </button>
+                                                {{-- Sakit --}}
                                                 <button type="button" @click="rowStatus = 'sakit'" 
-                                                    :class="rowStatus === 'sakit' ? 'bg-amber-400 text-black font-black shadow-xs' : 'text-slate-600 hover:bg-white font-bold'" 
-                                                    class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer" title="Sakit">
+                                                    :style="rowStatus === 'sakit' ? 'background-color: #d97706 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
+                                                    class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Sakit">
                                                     Sakit
                                                 </button>
+                                                {{-- Izin --}}
                                                 <button type="button" @click="rowStatus = 'izin'" 
-                                                    :class="rowStatus === 'izin' ? 'bg-blue-600 text-white font-black shadow-xs' : 'text-slate-600 hover:bg-white font-bold'" 
-                                                    class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer" title="Izin">
+                                                    :style="rowStatus === 'izin' ? 'background-color: #2563eb !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
+                                                    class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Izin">
                                                     Izin
                                                 </button>
+                                                {{-- Alpha --}}
                                                 <button type="button" @click="rowStatus = 'alpha'" 
-                                                    :class="rowStatus === 'alpha' ? 'bg-rose-600 text-white font-black shadow-xs' : 'text-slate-600 hover:bg-white font-bold'" 
-                                                    class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer" title="Alpha (Tanpa Keterangan)">
+                                                    :style="rowStatus === 'alpha' ? 'background-color: #e11d48 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
+                                                    class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Alpha (Tanpa Keterangan)">
                                                     Alpha
                                                 </button>
+                                                {{-- Reset --}}
                                                 <button type="button" @click="rowStatus = ''" 
-                                                    :class="!rowStatus ? 'bg-slate-300 text-slate-800 font-black' : 'text-slate-400 hover:bg-white font-bold'" 
-                                                    class="px-2 py-1 rounded-lg text-xs transition cursor-pointer" title="Kosongkan / Reset Status">
+                                                    :style="!rowStatus ? 'background-color: #94a3b8 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #64748b !important;'"
+                                                    class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Kosongkan / Reset Status">
                                                     —
                                                 </button>
                                             </div>
@@ -367,12 +399,12 @@
                                         <td class="px-4 py-3">
                                             <input type="text" name="notes[{{ $st->id }}]" value="{{ $att->notes ?? '' }}" 
                                                 placeholder="Contoh: Surat dokter, izin keluarga..." 
-                                                class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none">
+                                                class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none">
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="p-8 text-center text-gray-400">
+                                        <td colspan="5" class="p-8 text-center text-gray-400 font-bold">
                                             Tidak ada data siswa aktif pada kelas ini.
                                         </td>
                                     </tr>
@@ -383,11 +415,11 @@
 
                     {{-- Footer Action Bar --}}
                     <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <div class="text-xs text-slate-500 font-medium">
+                        <div class="text-xs text-slate-600 font-bold">
                             💡 Data yang disimpan akan langsung terhubung ke rekapitulasi harian sekolah dan matriks bulanan.
                         </div>
-                        <button type="submit" class="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-2 cursor-pointer">
-                            <i class="fas fa-save text-sm"></i> Simpan Presensi Harian Kelas
+                        <button type="submit" class="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-2 cursor-pointer" style="color: #000000 !important; background-color: #fbbf24 !important;">
+                            <i class="fas fa-save text-sm text-black"></i> Simpan Presensi Harian Kelas
                         </button>
                     </div>
                 </form>
@@ -396,7 +428,7 @@
             {{-- ═════════════════════════════════════════════════════════════════ --}}
             {{-- 2. TAB MATRIKS KEHADIRAN HARIAN SEKOLAH (1 BULAN)                  --}}
             {{-- ═════════════════════════════════════════════════════════════════ --}}
-            <div x-show="viewMode === 'matrix'" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print-force-show print-no-bg">
+            <div x-show="viewMode === 'matrix'" class="bg-white rounded-2xl shadow-sm border-2 border-slate-200 overflow-hidden print-force-show print-no-bg">
                 <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h2 class="font-bold text-gray-800 flex items-center gap-2 text-sm md:text-base">
                         <i class="fas fa-calendar-check text-purple-600"></i> Matriks Kehadiran Harian (Sekolah) — Bulan {{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }} ({{ $selectedClassroom->class_name }})
@@ -469,7 +501,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ $daysInMonth + 7 }}" class="p-8 text-center text-gray-400">
+                                    <td colspan="{{ $daysInMonth + 7 }}" class="p-8 text-center text-gray-400 font-bold">
                                         Tidak ada data siswa aktif pada kelas ini.
                                     </td>
                                 </tr>
@@ -482,7 +514,7 @@
             {{-- ═════════════════════════════════════════════════════════════════ --}}
             {{-- 3. TAB KEHADIRAN PELAJARAN SAYA (INPUT & REKAP)                    --}}
             {{-- ═════════════════════════════════════════════════════════════════ --}}
-            <div x-show="viewMode === 'log'" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div x-show="viewMode === 'log'" class="bg-white rounded-2xl shadow-sm border-2 border-slate-200 overflow-hidden">
                 <form action="{{ route('guru.absensi.store') }}" method="POST" id="formInputAbsensi">
                     @csrf
                     <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
@@ -537,21 +569,21 @@
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             @if($targetGroup && count($scheduledStudentIds) < $classroomStudents->count())
-                                <button type="button" onclick="markScheduledHadir()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800 cursor-pointer" title="Hadirkan hanya kelompok siswa yang terjadwal aktif di kelas ini">
+                                <button type="button" onclick="markScheduledHadir()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800 cursor-pointer" style="color: #ffffff !important;" title="Hadirkan hanya kelompok siswa yang terjadwal aktif di kelas ini">
                                     <i class="fas fa-check-double"></i> Hadirkan Grup Terjadwal (Grup {{ $targetGroup }}: {{ count($scheduledStudentIds) }})
                                 </button>
-                                <button type="button" onclick="markAllHadir()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-indigo-800 cursor-pointer" title="Hadirkan semua siswa di kelas ini jika seluruh kelas masuk">
+                                <button type="button" onclick="markAllHadir()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-indigo-800 cursor-pointer" style="color: #ffffff !important;" title="Hadirkan semua siswa di kelas ini jika seluruh kelas masuk">
                                     <i class="fas fa-users"></i> Hadirkan Semua Siswa Kelas ({{ $classroomStudents->count() }})
                                 </button>
                             @else
-                                <button type="button" onclick="markAllHadir()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800 cursor-pointer">
+                                <button type="button" onclick="markAllHadir()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-emerald-800 cursor-pointer" style="color: #ffffff !important;">
                                     <i class="fas fa-check-double"></i> Hadirkan Semua Siswa ({{ $classroomStudents->count() }})
                                 </button>
                             @endif
-                            <button type="submit" class="px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-1.5 cursor-pointer">
+                            <button type="submit" class="px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition flex items-center gap-1.5 cursor-pointer" style="color: #000000 !important; background-color: #fbbf24 !important;">
                                 <i class="fas fa-save text-black"></i> Simpan Absensi
                             </button>
-                            <button type="button" onclick="confirmDeleteSelectedDate()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-rose-800 cursor-pointer" title="Hapus seluruh absensi pada tanggal terpilih">
+                            <button type="button" onclick="confirmDeleteSelectedDate()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center gap-1.5 border border-rose-800 cursor-pointer" style="color: #ffffff !important;" title="Hapus seluruh absensi pada tanggal terpilih">
                                 <i class="fas fa-trash-alt"></i> Hapus Absen Tgl Ini
                             </button>
                         </div>
@@ -560,17 +592,17 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead>
-                                <tr class="bg-slate-900 text-white font-bold text-xs">
-                                    <th class="px-3 py-3 text-center border-r border-slate-700 w-10">No</th>
-                                    <th class="px-4 py-3 text-left border-r border-slate-700 min-w-[240px]">Nama Siswa</th>
+                                <tr class="bg-slate-900 text-white font-bold text-xs" style="background-color: #0f172a !important; color: #ffffff !important;">
+                                    <th class="px-3 py-3 text-center border-r border-slate-700 w-10 text-white">No</th>
+                                    <th class="px-4 py-3 text-left border-r border-slate-700 min-w-[240px] text-white">Nama Siswa</th>
                                     @foreach($lessonDates ?? [] as $d)
-                                        <th class="px-1 py-2 text-center border-r border-slate-700 min-w-[24px] {{ $d == $inputDay ? 'bg-amber-400 text-black' : '' }}">{{ $d }}</th>
+                                        <th class="px-1 py-2 text-center border-r border-slate-700 min-w-[24px] text-white {{ $d == $inputDay ? 'bg-amber-400 text-black' : '' }}">{{ $d }}</th>
                                     @endforeach
-                                    <th class="px-2 py-2 text-center bg-green-900/60">H</th>
-                                    <th class="px-2 py-2 text-center bg-yellow-900/60">S</th>
-                                    <th class="px-2 py-2 text-center bg-blue-900/60">I</th>
-                                    <th class="px-2 py-2 text-center bg-red-900/60">A</th>
-                                    <th class="px-2 py-2 text-center bg-purple-900/60">%</th>
+                                    <th class="px-2 py-2 text-center bg-green-900/60 text-white">H</th>
+                                    <th class="px-2 py-2 text-center bg-yellow-900/60 text-white">S</th>
+                                    <th class="px-2 py-2 text-center bg-blue-900/60 text-white">I</th>
+                                    <th class="px-2 py-2 text-center bg-red-900/60 text-white">A</th>
+                                    <th class="px-2 py-2 text-center bg-purple-900/60 text-white">%</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -588,7 +620,7 @@
                                                 <div class="truncate max-w-[190px]" title="{{ $st->full_name }}">
                                                     <div class="flex items-center gap-1.5 flex-wrap">
                                                         <span class="{{ !$isScheduled ? 'text-rose-900 font-extrabold' : 'text-gray-900 font-bold' }}">
-                                                            {{ $st->full_name }}
+                                                             {{ $st->full_name }}
                                                         </span>
                                                         @if($stGroup)
                                                             @if($isScheduled)
@@ -669,7 +701,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ count($lessonDates ?? []) + 7 }}" class="p-8 text-center text-gray-400">
+                                        <td colspan="{{ count($lessonDates ?? []) + 7 }}" class="p-8 text-center text-gray-400 font-bold">
                                             Tidak ada data siswa aktif pada kelas ini.
                                         </td>
                                     </tr>
