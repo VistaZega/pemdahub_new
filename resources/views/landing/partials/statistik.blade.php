@@ -67,8 +67,8 @@
             
             {{-- Stat 8: Program --}}
             <div class="stat-card" style="background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.25);">
-                <div class="stat-card__value" style="color:#fde68a;" data-count="5"></div>
-                <div class="stat-card__label">Program Keahlian SMK</div>
+                <div class="stat-card__value" style="color:#fde68a;" data-count="{{ \App\Models\KonsentrasiKeahlian::where('is_active', true)->count() ?: 5 }}"></div>
+                <div class="stat-card__label">Konsentrasi Keahlian SMK</div>
                 <div class="stat-card__line" style="background:linear-gradient(90deg,#f59e0b,#fde68a);"></div>
             </div>
         </div>
