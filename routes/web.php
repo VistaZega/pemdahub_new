@@ -713,6 +713,11 @@ Route::get('/', function () {
         $homepageTheme = 'regular';
     }
 
+    // Program & Konsentrasi Keahlian SMKS Pembda Nias (Database Asli)
+    $smkProgramKeahlians = \App\Models\ProgramKeahlian::with(['konsentrasiKeahlians' => function($q) {
+        $q->where('is_active', true);
+    }])->where('is_active', true)->get();
+
     // Pastikan halaman beranda tidak dicache oleh server (LiteSpeed) maupun browser
     // agar status tombol "Login" vs "Dashboard" selalu ter-update secara real-time.
     return response(view('index', compact(
@@ -723,7 +728,8 @@ Route::get('/', function () {
         'schools', 'activeWave', 'totalApplicants',
         'recentAlumnis',
         'pklShowcase', 'totalApprovedLogs', 'totalMonitorings', 'totalDudi',
-        'topStudentsElite', 'topTeachersElite', 'homepageTheme'
+        'topStudentsElite', 'topTeachersElite', 'homepageTheme',
+        'smkProgramKeahlians'
     )))
         ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
         ->header('Pragma', 'no-cache')
