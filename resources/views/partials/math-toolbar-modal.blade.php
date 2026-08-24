@@ -70,6 +70,9 @@
             <button type="button" onclick="window.switchMathTab('science')" class="math-tab-btn px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-purple-50 hover:text-purple-700 border border-transparent flex items-center gap-1.5 transition-all whitespace-nowrap" data-tab="science">
                 <i class="fas fa-flask text-amber-600"></i> Fisika & Kimia
             </button>
+            <button type="button" onclick="window.switchMathTab('guide')" class="math-tab-btn px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 flex items-center gap-1.5 transition-all whitespace-nowrap ml-auto" data-tab="guide">
+                <i class="fas fa-circle-info text-blue-600"></i> Panduan
+            </button>
         </div>
 
         {{-- Symbol Grid Content --}}
@@ -224,6 +227,66 @@
                     </h4>
                     <div class="flex flex-wrap gap-2 mb-3" id="grid-chem-arrows"></div>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="grid-chem-templates"></div>
+                </div>
+            </div>
+
+            {{-- TAB: Panduan & Tips Penggunaan --}}
+            <div class="math-tab-content space-y-4 hidden" id="tab-guide">
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl border border-blue-200 text-slate-700">
+                    <h4 class="text-sm font-bold text-blue-900 mb-1.5 flex items-center gap-2">
+                        <i class="fas fa-circle-info text-blue-600"></i> Panduan Pengetikan Simbol & Rumus Matematika / Sains
+                    </h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Fasilitas ini dirancang khusus untuk mempermudah Bapak/Ibu Guru dalam membuat soal kuis, tugas, dan ujian berbasis matematika dan sains secara presisi dan terstruktur.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+                        <div class="font-bold text-xs text-purple-800 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold">1</span>
+                            <span>Menyisipkan Simbol ke Pertanyaan & Opsi Jawaban</span>
+                        </div>
+                        <ul class="list-disc pl-5 text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                            <li>Klik tombol simbol di bilah toolbar atas untuk menyisipkan ke kotak pertanyaan.</li>
+                            <li>Pada pilihan ganda (A, B, C, D, E), klik tombol <strong>[Simbol]</strong> di sebelah kanan kotak jawaban untuk menyisipkan simbol langsung ke pilihan tersebut.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+                        <div class="font-bold text-xs text-emerald-800 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">2</span>
+                            <span>Penulisan Rumus KaTeX ($ ... $)</span>
+                        </div>
+                        <ul class="list-disc pl-5 text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                            <li>Ketik rumus diapit tanda dolar: <code>$rumus$</code>.</li>
+                            <li><strong>Pecahan:</strong> <code>$\frac{a}{b}$</code> → $\frac{a}{b}$</li>
+                            <li><strong>Akar:</strong> <code>$\sqrt{x}$</code> atau <code>$\sqrt[3]{8}$</code> → $\sqrt[3]{8}$</li>
+                            <li><strong>Pangkat & Indeks:</strong> <code>$x^2 + y_1^2$</code></li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+                        <div class="font-bold text-xs text-indigo-800 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold">3</span>
+                            <span>Fitur Live Preview & Palet Simbol Lengkap</span>
+                        </div>
+                        <ul class="list-disc pl-5 text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                            <li>Klik tombol <strong>[Live Preview]</strong> untuk melihat langsung wujud rumus saat Anda mengetik.</li>
+                            <li>Gunakan <strong>Pencarian Cepat</strong> di palet untuk mencari nama simbol (contoh: <em>integral, alpha, sudut, pecahan</em>).</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+                        <div class="font-bold text-xs text-amber-800 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold">4</span>
+                            <span>Dukungan Rumus Fisika & Kimia</span>
+                        </div>
+                        <ul class="list-disc pl-5 text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                            <li><strong>Fisika:</strong> Suhu ($25^\circ\text{C}$), Hambatan ($10\Omega$), Mikro ($\mu$).</li>
+                            <li><strong>Kimia:</strong> Senyawa (<code>$H_2O$</code>, <code>$CO_2$</code>), Ion (<code>$Ca^{2+}$</code>), Reaksi (<code>$2H_2 + O_2 \rightarrow 2H_2O$</code>).</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
@@ -787,9 +850,17 @@
 
             // Category badge
             const badge = document.createElement('span');
-            badge.className = 'text-[9px] font-black text-purple-700 bg-purple-100/80 px-2 py-1 rounded-lg uppercase tracking-wider flex items-center gap-1 mr-1 border border-purple-200/60';
+            badge.className = 'text-[9px] font-black text-purple-700 bg-purple-100/80 px-2 py-1 rounded-lg uppercase tracking-wider flex items-center gap-1 mr-0.5 border border-purple-200/60';
             badge.innerHTML = '<i class="fas fa-square-root-variable text-[10px] text-purple-600"></i> Simbol & Rumus:';
             toolbar.appendChild(badge);
+
+            // (i) Guide Toggle Button (Default: hidden guide)
+            const btnGuide = document.createElement('button');
+            btnGuide.type = 'button';
+            btnGuide.className = 'w-5 h-5 rounded-full bg-white hover:bg-blue-100 text-blue-600 hover:text-blue-800 border border-blue-200 font-bold text-[10px] flex items-center justify-center transition-all shadow-2xs focus:outline-none flex-shrink-0 cursor-pointer mr-1.5';
+            btnGuide.innerHTML = '<i class="fas fa-info text-[9px]"></i>';
+            btnGuide.title = 'Petunjuk & Panduan Simbol Matematika (Klik untuk melihat)';
+            toolbar.appendChild(btnGuide);
 
             // High frequency quick symbols
             const quickSymbols = ['√', 'π', '±', '÷', '×', '²', '³', '⁴', 'ⁿ', '½', '¼', '¾', 'α', 'β', 'γ', 'θ', 'λ', 'Σ', 'Δ', '∞', '≠', '≤', '≥', '≈', '∈', '∪', '∩', '∠', '°', '∫'];
@@ -893,14 +964,77 @@
             };
             toolbar.appendChild(btnPreview);
 
+            // Collapsible Guide Box (Default: Hidden / Bersih)
+            const guideBox = document.createElement('div');
+            guideBox.className = 'mt-1.5 p-3.5 bg-gradient-to-br from-indigo-50/95 via-purple-50/90 to-emerald-50/80 border border-indigo-200 rounded-2xl text-xs text-slate-700 shadow-xs hidden transition-all space-y-2.5';
+            guideBox.innerHTML = `
+                <div class="flex items-center justify-between border-b border-indigo-200/60 pb-1.5">
+                    <div class="font-bold text-indigo-950 flex items-center gap-1.5 text-xs">
+                        <i class="fas fa-circle-info text-indigo-600"></i>
+                        <span>Petunjuk Penggunaan Simbol & Rumus Matematika</span>
+                    </div>
+                    <button type="button" class="guide-close-btn text-slate-400 hover:text-rose-600 text-[11px] font-bold px-2 py-0.5 rounded-lg hover:bg-white/80 transition flex items-center gap-1">
+                        <i class="fas fa-times"></i> Tutup
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-[11px]">
+                    <div class="bg-white/85 p-2.5 rounded-xl border border-indigo-100 shadow-2xs">
+                        <div class="font-bold text-purple-900 mb-1 flex items-center gap-1">
+                            <i class="fas fa-keyboard text-purple-600"></i> 1. Sisip Simbol & Opsi
+                        </div>
+                        <p class="text-slate-600 leading-relaxed">
+                            Klik tombol simbol di atas untuk menyisipkan ke soal. Pada pilihan ganda <strong>A-E</strong>, klik tombol <strong>[Simbol]</strong> di samping kotak opsi untuk menyisipkan ke pilihan tersebut.
+                        </p>
+                    </div>
+                    <div class="bg-white/85 p-2.5 rounded-xl border border-indigo-100 shadow-2xs">
+                        <div class="font-bold text-emerald-900 mb-1 flex items-center gap-1">
+                            <i class="fas fa-code text-emerald-600"></i> 2. Format KaTeX ($...$)
+                        </div>
+                        <p class="text-slate-600 leading-relaxed">
+                            Ketik rumus di antara tanda dolar: <code class="font-mono bg-purple-50 text-purple-700 px-1 rounded font-bold">$x^2 + y^2 = r^2$</code> atau <code class="font-mono bg-purple-50 text-purple-700 px-1 rounded font-bold">$\\frac{a}{b}$</code> untuk pecahan.
+                        </p>
+                    </div>
+                    <div class="bg-white/85 p-2.5 rounded-xl border border-indigo-100 shadow-2xs">
+                        <div class="font-bold text-blue-900 mb-1 flex items-center gap-1">
+                            <i class="fas fa-eye text-blue-600"></i> 3. Live Preview & Palet
+                        </div>
+                        <p class="text-slate-600 leading-relaxed">
+                            Klik <strong>[Palet Lengkap]</strong> untuk memilih ratusan simbol/rumus terstruktur. Klik <strong>[Live Preview]</strong> untuk melihat hasil render rumus seketika.
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            btnGuide.onclick = function(e) {
+                e.preventDefault();
+                guideBox.classList.toggle('hidden');
+                if (!guideBox.classList.contains('hidden')) {
+                    btnGuide.className = 'w-5 h-5 rounded-full bg-blue-600 text-white border border-blue-700 font-bold text-[10px] flex items-center justify-center transition-all shadow-2xs focus:outline-none flex-shrink-0 cursor-pointer mr-1.5 ring-2 ring-blue-300';
+                } else {
+                    btnGuide.className = 'w-5 h-5 rounded-full bg-white hover:bg-blue-100 text-blue-600 hover:text-blue-800 border border-blue-200 font-bold text-[10px] flex items-center justify-center transition-all shadow-2xs focus:outline-none flex-shrink-0 cursor-pointer mr-1.5';
+                }
+            };
+
+            const closeBtn = guideBox.querySelector('.guide-close-btn');
+            if (closeBtn) {
+                closeBtn.onclick = function(e) {
+                    e.preventDefault();
+                    guideBox.classList.add('hidden');
+                    btnGuide.className = 'w-5 h-5 rounded-full bg-white hover:bg-blue-100 text-blue-600 hover:text-blue-800 border border-blue-200 font-bold text-[10px] flex items-center justify-center transition-all shadow-2xs focus:outline-none flex-shrink-0 cursor-pointer mr-1.5';
+                };
+            }
+
             // Insert toolbar before textarea
             textarea.parentNode.insertBefore(toolbar, textarea);
             textarea.classList.add('rounded-t-none');
 
-            // Insert previewBox after textarea
-            if (textarea.nextSibling) {
-                textarea.parentNode.insertBefore(previewBox, textarea.nextSibling);
+            // Insert guideBox and previewBox after textarea
+            const insertRef = textarea.nextSibling;
+            if (insertRef) {
+                textarea.parentNode.insertBefore(guideBox, insertRef);
+                textarea.parentNode.insertBefore(previewBox, insertRef);
             } else {
+                textarea.parentNode.appendChild(guideBox);
                 textarea.parentNode.appendChild(previewBox);
             }
         });
