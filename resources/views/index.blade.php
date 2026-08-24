@@ -24,9 +24,9 @@
     <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
 
     <script>
-      if ('serviceWorker' in navigator) {
+      if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js');
+          navigator.serviceWorker.register('{{ asset("sw.js") }}').catch(function(){});
         });
       }
     </script>
@@ -836,8 +836,7 @@
     {{-- FLOATING AUDIO PLAYER (MARS YAYASAN) --}}
     <div id="mars-player" class="floating-audio">
         <audio id="mars-audio" loop preload="none">
-            {{-- Menggunakan absolute path '/' agar selalu mengarah ke root public_html di server --}}
-            <source src="/audio/mars-pembda.mp4" type="audio/mp4">
+            <source src="{{ asset('audio/mars-pembda.mp4') }}" type="audio/mp4">
             Your browser does not support the audio element.
         </audio>
         <button id="mars-toggle" class="audio-toggle" title="Putar Mars Yayasan">
