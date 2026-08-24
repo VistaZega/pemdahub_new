@@ -13,18 +13,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
 
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">    <!-- PWA Manifest & App Shell Meta Tags -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- PWA Manifest & App Shell Meta Tags -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="theme-color" content="#6366f1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PembdaHUB">
     <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
 
     <script>
-      if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+      if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('{{ asset("sw.js") }}').catch(function(){});
+          navigator.serviceWorker.register('/sw.js');
         });
       }
     </script>
@@ -34,69 +36,56 @@
 
     <style>
         :root {
-            /* === KHAN ACADEMY & STRIPE DESIGN SYSTEM === */
-            --bg: #f8fafc;
+            /* === BOLD INDIGO PREMIUM THEME === */
+            --bg: #f4f3ff;
             --bg-card: #ffffff;
-            --text-primary: #0f172a; /* Slate 900 */
-            --text-secondary: #334155; /* Slate 700 */
-            --text-muted: #64748b; /* Slate 500 */
-            --border: #e2e8f0;
-            --border-strong: #cbd5e1;
+            --text-primary: #0f0d2e;
+            --text-secondary: #5b6478;
+            --text-muted: #9ca3af;
+            --border: #e0ddf7;
             --radius: 20px;
             --radius-sm: 14px;
-            --shadow-card: 0 4px 20px -2px rgba(15,23,42,0.05), 0 2px 6px -1px rgba(15,23,42,0.03);
-            --shadow-hover: 0 20px 40px -10px rgba(37,99,235,0.15);
+            --shadow-card: 0 1px 4px rgba(79,46,209,0.06), 0 4px 16px rgba(79,46,209,0.05);
+            --shadow-hover: 0 20px 60px -15px rgba(79,46,209,0.22);
 
-            /* Brand Colors */
-            --primary: #2563eb;
-            --primary-dark: #1e3a8a;
-            --primary-gradient: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%);
-            --indigo: #4338ca;
+            /* Brand - Indigo family */
+            --indigo: #4f2ed1;
+            --indigo-dark: #1e1b4b;
+            --indigo-mid: #3730a3;
             --indigo-light: #6366f1;
-            --indigo-bg: #eff6ff;
+            --indigo-bg: #eef2ff;
 
-            /* Gold & Sun Accent */
+            /* Gold accent */
             --gold: #f59e0b;
             --gold-bright: #fbbf24;
             --gold-bg: #fffbeb;
 
-            /* Feature Colors (Khan Academy Pastel Palette) */
+            /* Feature colors */
             --coral: #ef4444;
-            --coral-bg: #fef2f2;
-            --blue: #2563eb;
+            --coral-bg: #fff1f2;
+            --blue: #3b82f6;
             --blue-bg: #eff6ff;
-            --emerald: #059669;
+            --emerald: #10b981;
             --emerald-bg: #ecfdf5;
-            --amber: #d97706;
+            --amber: #f59e0b;
             --amber-bg: #fffbeb;
-            --violet: #7c3aed;
+            --violet: #8b5cf6;
             --violet-bg: #f5f3ff;
-            --cyan: #0284c7;
-            --cyan-bg: #f0f9ff;
-            --navy: #0f172a;
+            --cyan: #06b6d4;
+            --cyan-bg: #ecfeff;
+            --navy: #1e1b4b;
 
             /* Glassmorphism */
-            --glass-bg: rgba(255,255,255,0.85);
-            --glass-border: rgba(226,232,240,0.8);
-            --glass-blur: blur(20px);
+            --glass-bg: rgba(255,255,255,0.06);
+            --glass-border: rgba(255,255,255,0.1);
+            --glass-blur: blur(12px);
 
             /* Transitions */
-            --transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-            --transition-fast: all 0.2s ease;
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-fast: all 0.25s ease;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        ::selection {
-            background: #2563eb;
-            color: #ffffff;
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 9px; height: 9px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -118,7 +107,7 @@
         @media (max-width: 768px) { .section { padding: 64px 0; } }
 
         /* Bento Grid */
-        .bento { display: grid; gap: 20px; }
+        .bento { display: grid; gap: 16px; }
         .bento-2 { grid-template-columns: repeat(2, 1fr); }
         .bento-3 { grid-template-columns: repeat(3, 1fr); }
         .bento-4 { grid-template-columns: repeat(4, 1fr); }
@@ -133,82 +122,78 @@
         .bcard {
             background: var(--bg-card);
             border-radius: var(--radius);
+            padding: 32px;
+            box-shadow: var(--shadow-card);
             border: 1px solid var(--border);
-            padding: 36px 32px;
             transition: var(--transition-smooth);
             position: relative;
             overflow: hidden;
-            box-shadow: var(--shadow-card);
         }
         .bcard:hover {
-            transform: translateY(-4px);
+            transform: translateY(-5px) scale(1.005);
             box-shadow: var(--shadow-hover);
-            border-color: rgba(37,99,235,0.3);
+            border-color: rgba(99,102,241,0.35);
         }
         .bcard.span-2 { grid-column: span 2; }
         .bcard.span-3 { grid-column: span 3; }
         @media (max-width: 640px) {
-            .bcard.span-2, .bcard.span-3 { grid-column: span 1; padding: 28px 20px; }
+            .bcard.span-2, .bcard.span-3 { grid-column: span 1; }
         }
 
         /* Typography */
-        .display { font-size: clamp(40px, 5.5vw, 68px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.1; color: #0f172a; }
-        .h1 { font-size: clamp(32px, 4vw, 48px); font-weight: 900; letter-spacing: -0.025em; line-height: 1.15; color: var(--text-primary); }
-        .h2 { font-size: clamp(24px, 3vw, 36px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; color: var(--text-primary); }
-        .h3 { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; color: var(--text-primary); }
-        .body-lg { font-size: 17.5px; line-height: 1.75; color: var(--text-secondary); }
+        .display { font-size: clamp(48px, 6vw, 80px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.05; }
+        .h1 { font-size: clamp(32px, 4vw, 48px); font-weight: 800; letter-spacing: -0.025em; line-height: 1.1; }
+        .h2 { font-size: clamp(24px, 3vw, 36px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+        .h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+        .body-lg { font-size: 18px; line-height: 1.7; color: var(--text-secondary); }
         .body { font-size: 15px; line-height: 1.7; color: var(--text-secondary); }
-        .caption { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+        .caption { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
 
-        /* Badges */
+        /* Badge - hero context (on dark bg) */
         .badge {
-            display: inline-flex; align-items: center; gap: 10px;
-            padding: 8px 22px; border-radius: 100px;
-            font-size: 13.5px; font-weight: 800;
-            border: 1.5px solid #bfdbfe;
-            background: #ffffff;
-            color: #1d4ed8;
-            box-shadow: 0 4px 12px rgba(37,99,235,0.08);
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 22px; border-radius: 100px;
+            font-size: 13px; font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
         }
 
-        /* Buttons — Khan Academy & Stripe Spacious Styling */
+        /* Buttons */
         .btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 12px;
-            padding: 16px 36px; border-radius: 14px;
-            font-weight: 800; font-size: 15px;
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 16px 32px; border-radius: 14px;
+            font-weight: 700; font-size: 15px;
             text-decoration: none; border: none; cursor: pointer;
-            transition: var(--transition-smooth);
-            line-height: 1;
+            transition: all 0.3s ease;
         }
-        /* Gold - Primary Hero CTA */
+        /* Gold - primary hero CTA */
         .btn-gold {
             background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            color: #0f172a !important;
-            font-weight: 900;
-            box-shadow: 0 6px 20px rgba(245,158,11,0.4);
+            color: #1e1b4b;
+            box-shadow: 0 4px 20px rgba(245,158,11,0.45);
         }
-        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(245,158,11,0.55); filter: brightness(1.03); }
-        /* Ghost white / Light secondary */
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(245,158,11,0.55); filter: brightness(1.05); }
+        /* Ghost white - secondary on dark bg */
         .btn-ghost-white {
-            background: #ffffff;
-            color: #0f172a !important;
-            font-weight: 700;
-            border: 1.5px solid #cbd5e1;
-            box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.92);
+            border: 1.5px solid rgba(255,255,255,0.25);
+            backdrop-filter: blur(10px);
         }
-        .btn-ghost-white:hover { background: #eff6ff; border-color: #93c5fd; color: #2563eb !important; transform: translateY(-2px); }
-        /* Dark CTA */
+        .btn-ghost-white:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.5); color: #fff; }
+        /* Dark - nav CTA on light sections */
         .btn-dark {
-            background: #0f172a; color: #fff !important; font-weight: 800;
+            background: var(--indigo-dark); color: #fff;
         }
-        .btn-dark:hover { background: #1e3a8a; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,0.3); }
-        /* Ghost - Light Section Secondary */
+        .btn-dark:hover { background: var(--indigo-mid); transform: translateY(-2px); box-shadow: 0 8px 30px -8px rgba(30,27,75,0.4); }
+        /* Ghost - light section secondary */
         .btn-ghost {
-            background: #ffffff; color: var(--text-primary) !important;
-            border: 1.5px solid #cbd5e1;
-            font-weight: 700;
+            background: transparent; color: var(--text-primary);
+            border: 1.5px solid var(--border);
         }
-        .btn-ghost:hover { border-color: #93c5fd; color: #2563eb !important; background: #eff6ff; transform: translateY(-2px); }
+        .btn-ghost:hover { border-color: var(--indigo-light); color: var(--indigo); background: var(--indigo-bg); }
 
         /* Section Label */
         .section-label {
@@ -219,92 +204,93 @@
             width: 8px; height: 8px; border-radius: 50%;
         }
         .section-label-text {
-            font-size: 13px; font-weight: 800;
+            font-size: 13px; font-weight: 700;
             text-transform: uppercase; letter-spacing: 0.1em;
         }
 
         /* Icon circle */
         .icon-circle {
-            width: 56px; height: 56px; border-radius: 18px;
+            width: 52px; height: 52px; border-radius: 16px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 24px; flex-shrink: 0;
+            font-size: 22px; flex-shrink: 0;
         }
 
         /* Stat */
         .stat-num {
-            font-size: clamp(38px, 5vw, 54px); font-weight: 900;
-            letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums;
+            font-size: clamp(40px, 5vw, 56px); font-weight: 900;
+            letter-spacing: -0.03em; line-height: 1;
         }
 
         /* ============================================================
-           NAVBAR — Khan Academy & Stripe Luminous Light Glass
+           NAVBAR — Bold Indigo (always dark background)
            ============================================================ */
         .navbar {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-            padding: 14px 0;
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.85);
-            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
+            transition: background 0.35s ease, padding 0.35s ease, box-shadow 0.35s ease; padding: 18px 0;
+            background: rgba(30,27,75,0.0); /* transparent initially, same indigo bg as hero */
         }
-        body.has-event-banner .hero-section,
-        body.has-event-banner .hero-container {
-            padding-top: 150px !important;
+        body.has-event-banner .hero-section {
+            padding-top: 138px !important;
         }
         .navbar.scrolled {
-            background: rgba(255, 255, 255, 0.98);
-            border-bottom: 1px solid #cbd5e1;
-            box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
-            padding: 10px 0;
+            background: rgba(30, 27, 75, 0.96);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            padding: 12px 0;
+            box-shadow: 0 4px 32px rgba(30,27,75,0.35);
         }
         .nav-inner {
             display: flex; align-items: center; justify-content: space-between;
         }
-        .nav-links { display: flex; gap: 4px; align-items: center; }
+        .nav-links { display: flex; gap: 2px; align-items: center; }
         .nav-link {
-            padding: 8px 16px; border-radius: 12px;
-            font-size: 14.5px; font-weight: 700; color: #334155 !important;
+            padding: 8px 14px; border-radius: 10px;
+            font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.72);
             text-decoration: none; transition: all 0.2s ease;
         }
-        .nav-link:hover { color: #2563eb !important; background: #eff6ff !important; }
+        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.1); }
         .nav-brand {
             display: flex; align-items: center; gap: 12px;
-            text-decoration: none; color: #0f172a;
+            text-decoration: none; color: #fff;
         }
         .nav-brand-text { display: flex; flex-direction: column; }
         .nav-brand-name {
-            font-size: 18px; font-weight: 900; letter-spacing: -0.02em; color: #0f172a; line-height: 1.1;
+            font-size: 16px; font-weight: 800; letter-spacing: -0.02em; color: #fff; line-height: 1.1;
         }
         .nav-brand-name span { color: #ef4444; }
-        .nav-brand-sub { font-size: 11px; color: #64748b; font-weight: 700; }
+        .nav-brand-sub { font-size: 10px; color: rgba(255,255,255,0.45); font-weight: 500; }
         .nav-logo {
-            width: 44px; height: 44px; border-radius: 14px;
+            width: 40px; height: 40px; border-radius: 12px;
             overflow: hidden; display: flex; align-items: center; justify-content: center;
-            background: #ffffff;
-            border: 1.5px solid #e2e8f0;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
         }
 
         /* Mobile nav */
-        .mobile-menu-btn { display: none; background: none; border: none; font-size: 22px; color: #0f172a; cursor: pointer; padding: 8px; }
+        .mobile-menu-btn { display: none; background: none; border: none; font-size: 22px; color: rgba(255,255,255,0.85); cursor: pointer; padding: 8px; }
         .mobile-overlay {
             display: none; position: fixed; inset: 0; z-index: 999;
-            background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(30px);
+            background: rgba(18, 16, 55, 0.98); backdrop-filter: blur(30px);
             flex-direction: column; align-items: center; justify-content: center; gap: 8px;
         }
         .mobile-overlay.active { display: flex; }
         .mobile-overlay a {
-            font-size: 20px; font-weight: 800; color: #0f172a;
+            font-size: 22px; font-weight: 700; color: rgba(255,255,255,0.85);
             text-decoration: none; padding: 12px 28px; border-radius: 14px;
             transition: background 0.2s;
         }
-        .mobile-overlay a:hover { background: #eff6ff; color: #2563eb; }
-        .mobile-close { position: absolute; top: 20px; right: 24px; font-size: 28px; background: none; border: none; cursor: pointer; color: #64748b; }
+        .mobile-overlay a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .mobile-close { position: absolute; top: 20px; right: 24px; font-size: 28px; background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.6); }
 
         @media (max-width: 900px) {
             .nav-links { display: none; }
             .mobile-menu-btn { display: block; }
+        }
+
+        /* Feature pill */
+        .feature-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 10px;
             font-size: 12px; font-weight: 600;
         }
 
