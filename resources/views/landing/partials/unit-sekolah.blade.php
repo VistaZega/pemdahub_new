@@ -126,13 +126,13 @@
                     </div>
 
                     <p class="khan-unit-headline">
-                        “Pusat Keunggulan Akademik Berakreditasi A yang membentuk generasi unggul, berkarakter mulia, dan siap menembus Perguruan Tinggi Negeri (PTN) terfavorit di Indonesia.”
+                        “Keseimbangan sejati antara keunggulan akademik dan non-akademik, di mana setiap siswa dibimbing dan diasah secara terarah sesuai bakat, minat, serta potensi terbaik yang dimilikinya.”
                     </p>
 
                     <ul class="khan-unit-checklist">
-                        <li><i class="fa-solid fa-circle-check"></i> Kurikulum Merdeka &amp; Peminatan Sains PTN</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Bimbingan Intensif SNBP &amp; UTBK-SNBT</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Laboratorium Komputer &amp; Praktikum Modern</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Bimbingan Bakat &amp; Minat Akademik / Non-Akademik</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Budaya Riset, Penelitian &amp; Karya Ilmiah Remaja (KIR)</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Pendampingan Sukses Lolos PTN &amp; Sekolah Kedinasan</li>
                     </ul>
                 </div>
 
