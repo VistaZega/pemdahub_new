@@ -1,4 +1,4 @@
-{{-- PROGRAM KEAHLIAN — Official Major Colors (Khan Academy Vibrant Style) --}}
+{{-- PROGRAM KEAHLIAN — Official Major Colors with Custom Major Silhouettes --}}
 <style>
     .program-section {
         background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
@@ -41,6 +41,30 @@
         transform: translateY(-6px);
     }
 
+    /* Silhouette Artwork for Majors */
+    .program-silhouette {
+        position: absolute;
+        right: -15px;
+        bottom: -15px;
+        width: 160px;
+        height: 160px;
+        opacity: 0.12;
+        color: #0f172a;
+        pointer-events: none;
+        z-index: 0;
+        transition: all 0.35s ease;
+    }
+
+    .vibrant-program-card:hover .program-silhouette {
+        opacity: 0.22;
+        transform: scale(1.08) rotate(-4deg);
+    }
+
+    .program-card-content {
+        position: relative;
+        z-index: 1;
+    }
+
     .program-card-header {
         display: flex;
         align-items: center;
@@ -48,6 +72,8 @@
         margin-bottom: 20px;
         padding-bottom: 16px;
         border-bottom: 1.5px solid rgba(15, 23, 42, 0.12);
+        position: relative;
+        z-index: 1;
     }
 
     .program-icon-box {
@@ -83,6 +109,8 @@
         flex-direction: column;
         gap: 12px;
         margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
     }
 
     .subprogram-item {
@@ -124,6 +152,8 @@
         font-size: 12px;
         font-weight: 800;
         color: #0f172a;
+        position: relative;
+        z-index: 1;
     }
 
     /* Single Line Title */
@@ -164,11 +194,11 @@
             </p>
         </div>
 
-        {{-- Syarat 2: 4 Program & 5 Konsentrasi Keahlian dengan Warna Resmi Jurusan --}}
+        {{-- Syarat 2: 4 Program & 5 Konsentrasi Keahlian dengan Warna & Siluet Resmi Jurusan --}}
         <div class="program-grid-4" data-aos="fade-up" data-aos-delay="100">
             
             @php
-                // Pemetaan Warna Resmi Jurusan SMKS Pembda Nias:
+                // Pemetaan Warna & Siluet Resmi Jurusan SMKS Pembda Nias:
                 // 1. Otomotif (TO) -> Orange (#fb923c)
                 // 2. Elektronika (TE) -> Merah (#f87171)
                 // 3. Komputer (TJKT) -> Biru (#60a5fa)
@@ -183,7 +213,13 @@
                         'icon_color' => '#ea580c',
                         'item_icon' => 'fa-solid fa-wrench',
                         'tag' => 'Otomotif & Mesin',
-                        'color_badge' => 'Warna: Orange'
+                        'silhouette_svg' => '
+                            <path d="M20 120 L50 70 L150 70 L180 120 L195 135 L195 160 L180 160 C180 145 160 145 160 160 L40 160 C40 145 20 145 20 160 L5 160 L5 135 Z"/>
+                            <circle cx="40" cy="160" r="18" fill="currentColor"/>
+                            <circle cx="160" cy="160" r="18" fill="currentColor"/>
+                            <path d="M70 20 L95 45 L80 60 L55 35 Z" opacity="0.6"/>
+                            <circle cx="150" cy="40" r="22" opacity="0.5"/>
+                        '
                     ],
                     'TE' => [
                         'card_bg' => '#f87171',
@@ -194,7 +230,12 @@
                         'icon_color' => '#dc2626',
                         'item_icon' => 'fa-solid fa-microchip',
                         'tag' => 'Elektronika',
-                        'color_badge' => 'Warna: Merah'
+                        'silhouette_svg' => '
+                            <rect x="25" y="40" width="150" height="100" rx="16"/>
+                            <circle cx="100" cy="90" r="32" fill="none" stroke="currentColor" stroke-width="10"/>
+                            <path d="M10 90 L30 90 M170 90 L190 90 M100 10 L100 30 M100 150 L100 170" stroke="currentColor" stroke-width="8"/>
+                            <path d="M60 160 L140 160 L120 180 L80 180 Z" opacity="0.7"/>
+                        '
                     ],
                     'TJKT' => [
                         'card_bg' => '#60a5fa',
@@ -205,7 +246,15 @@
                         'icon_color' => '#1d4ed8',
                         'item_icon' => 'fa-solid fa-server',
                         'tag' => 'Jaringan & IT',
-                        'color_badge' => 'Warna: Biru'
+                        'silhouette_svg' => '
+                            <rect x="40" y="25" width="120" height="35" rx="8"/>
+                            <rect x="40" y="70" width="120" height="35" rx="8"/>
+                            <rect x="40" y="115" width="120" height="35" rx="8"/>
+                            <circle cx="65" cy="42" r="5" fill="#ffffff"/>
+                            <circle cx="65" cy="87" r="5" fill="#ffffff"/>
+                            <circle cx="65" cy="132" r="5" fill="#ffffff"/>
+                            <path d="M100 150 L100 175 M30 175 L170 175 M50 175 L50 190 M150 175 L150 190" stroke="currentColor" stroke-width="6"/>
+                        '
                     ],
                     'TKP' => [
                         'card_bg' => '#fbbf24',
@@ -216,7 +265,14 @@
                         'icon_color' => '#b45309',
                         'item_icon' => 'fa-solid fa-building',
                         'tag' => 'Arsitektur CAD',
-                        'color_badge' => 'Warna: Kuning'
+                        'silhouette_svg' => '
+                            <rect x="25" y="70" width="45" height="110" rx="4"/>
+                            <rect x="78" y="30" width="55" height="150" rx="4"/>
+                            <rect x="140" y="90" width="40" height="90" rx="4"/>
+                            <path d="M100 10 L105 30 L95 30 Z"/>
+                            <!-- Compass drafting arm -->
+                            <path d="M30 30 L90 80 M150 30 L90 80" stroke="currentColor" stroke-width="8" opacity="0.6"/>
+                        '
                     ],
                 ];
 
@@ -238,7 +294,7 @@
                         'icon_color' => '#475569',
                         'item_icon' => 'fa-solid fa-check',
                         'tag' => 'Vokasi',
-                        'color_badge' => 'Vokasi'
+                        'silhouette_svg' => '<circle cx="100" cy="100" r="50"/>'
                     ];
                 @endphp
 
@@ -246,7 +302,13 @@
                      style="background: {{ $cfg['card_bg'] }}; box-shadow: 0 14px 32px -6px {{ $cfg['card_shadow'] }};"
                      onmouseover="this.style.boxShadow='0 22px 45px -6px {{ $cfg['hover_shadow'] }}'"
                      onmouseout="this.style.boxShadow='0 14px 32px -6px {{ $cfg['card_shadow'] }}'">
-                    <div>
+                    
+                    {{-- Siluet Kejuruan Spesifik --}}
+                    <svg class="program-silhouette" viewBox="0 0 200 200" fill="currentColor">
+                        {!! $cfg['silhouette_svg'] !!}
+                    </svg>
+
+                    <div class="program-card-content">
                         {{-- Card Header --}}
                         <div class="program-card-header">
                             <div class="program-icon-box" style="background: {{ $cfg['icon_bg'] }}; color: {{ $cfg['icon_color'] }};">
