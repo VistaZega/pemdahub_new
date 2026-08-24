@@ -122,12 +122,27 @@
 
             {{-- CTA Buttons --}}
             <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
+                @if(isset($activeWave) && $activeWave)
                 <a href="{{ route('public.registration.index') }}" class="btn btn-gold">
                     <i class="fa-solid fa-user-plus"></i> Bergabung Bersama Kami
                 </a>
                 <a href="#platform" class="btn btn-ghost-white">
                     <i class="fa-solid fa-arrow-down"></i> Eksplorasi Ekosistem
                 </a>
+                @else
+                    @auth
+                    <a href="{{ route('dashboard') }}" class="btn btn-gold">
+                        <i class="fa-solid fa-gauge-high"></i> Buka Dashboard
+                    </a>
+                    @else
+                    <a href="{{ route('login') }}" class="btn btn-gold">
+                        <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Portal
+                    </a>
+                    @endauth
+                    <a href="#platform" class="btn btn-ghost-white">
+                        <i class="fa-solid fa-compass"></i> Eksplorasi Ekosistem
+                    </a>
+                @endif
             </div>
 
             {{-- Live Stat Strip --}}

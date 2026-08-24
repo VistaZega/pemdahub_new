@@ -134,6 +134,29 @@
             </div>
         @endif
 
+        @if($schools->isEmpty())
+        {{-- ========== CLOSED / COMPLETED STATE ========== --}}
+        <div class="section-card p-12 text-center max-w-2xl mx-auto space-y-6 bg-white rounded-3xl border border-slate-200/80 shadow-xl my-12">
+            <div class="w-20 h-20 bg-amber-50 text-amber-500 rounded-3xl flex items-center justify-center mx-auto text-3xl shadow-lg shadow-amber-500/10 border border-amber-200/60">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="space-y-3">
+                <span class="inline-block px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-amber-100 text-amber-800">Pendaftaran Selesai</span>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-900">Penerimaan Siswa Baru Telah Ditutup</h2>
+                <p class="text-sm font-medium text-slate-500 leading-relaxed max-w-lg mx-auto">
+                    Saat ini proses pendaftaran siswa baru untuk tahun ajaran aktif telah selesai dan <strong class="text-slate-800">Kegiatan Belajar Mengajar (KBM) Semester Ganjil TP. 2026/2027</strong> sedang berlangsung aktif. Pendaftaran gelombang baru akan dibuka pada periode penerimaan berikutnya.
+                </p>
+            </div>
+            <div class="pt-4 flex flex-wrap gap-4 justify-center">
+                <a href="{{ route('public.registration.check') }}" class="btn-primary">
+                    <i class="fas fa-search mr-2"></i> Cek Status Pendaftar
+                </a>
+                <a href="{{ route('home') }}" class="px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all inline-flex items-center">
+                    <i class="fas fa-home mr-2"></i> Kembali ke Beranda
+                </a>
+            </div>
+        </div>
+        @else
         {{-- ========== HERO COMPACT ========== --}}
         {{-- ========== HERO RE-DESIGN ========== --}}
         <div class="relative overflow-hidden section-card p-8 md:p-12 text-center !bg-transparent !border-0 !shadow-none !mb-0">
@@ -863,6 +886,7 @@
                 </div>
             </div>
         </form>
+        @endif
     </div>
 
     <footer class="mt-16 border-t border-slate-100 bg-white relative overflow-hidden">
@@ -942,43 +966,50 @@
     {{-- ========== JAVASCRIPT ========== --}}
     <script>
         // Photo preview
-        document.getElementById('photo-input').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('photo-preview').src = e.target.result;
-                    document.getElementById('photo-preview').classList.remove('hidden');
-                    document.getElementById('preview-placeholder').classList.add('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+        const photoInput = document.getElementById('photo-input');
+        if (photoInput) {
+            photoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('photo-preview').src = e.target.result;
+                        document.getElementById('photo-preview').classList.remove('hidden');
+                        document.getElementById('preview-placeholder').classList.add('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
 
-        // === Elements ===
-        const schoolIdSelect = document.getElementById('school_id');
-        const admissionPathSelect = document.getElementById('admission_path');
-        const prestasiSection = document.getElementById('prestasi-section');
-        const prestasiFormSmaSmk = document.getElementById('prestasi-form-sma-smk');
-        const prestasiFormSmps = document.getElementById('prestasi-form-smps');
-        const certificateUpload = document.getElementById('prestasi-certificate-upload');
-        const fromSmpsRadios = document.querySelectorAll('input[name="from_smps_pembda"]');
-        const fromSmpsFields = document.getElementById('from-smps-fields');
-        const fromOtherSmpFields = document.getElementById('from-other-smp-fields');
-        const smkSection = document.getElementById('smk-program-section');
-        const programSelect = document.getElementById('program_keahlian_id');
-        const konsentrasiSelect = document.getElementById('konsentrasi_keahlian_id');
+        // === Elements & Form Listeners ===
+        const regForm = document.getElementById('regForm');
+        if (regForm) {
+            const schoolIdSelect = document.getElementById('school_id');
+            const admissionPathSelect = document.getElementById('admission_path');
+            const prestasiSection = document.getElementById('prestasi-section');
+            const prestasiFormSmaSmk = document.getElementById('prestasi-form-sma-smk');
+            const prestasiFormSmps = document.getElementById('prestasi-form-smps');
+            const certificateUpload = document.getElementById('prestasi-certificate-upload');
+            const fromSmpsRadios = document.querySelectorAll('input[name="from_smps_pembda"]');
+            const fromSmpsFields = document.getElementById('from-smps-fields');
+            const fromOtherSmpFields = document.getElementById('from-other-smp-fields');
+            const smkSection = document.getElementById('smk-program-section');
+            const programSelect = document.getElementById('program_keahlian_id');
+            const konsentrasiSelect = document.getElementById('konsentrasi_keahlian_id');
 
-        // === Admission path toggle ===
-        admissionPathSelect.addEventListener('change', function() {
-            if (this.value === 'prestasi') {
-                prestasiSection.classList.remove('hidden');
-                updatePrestasiForm();
-            } else {
-                prestasiSection.classList.add('hidden');
-                resetPrestasiForm();
+            // === Admission path toggle ===
+            if (admissionPathSelect) {
+                admissionPathSelect.addEventListener('change', function() {
+                    if (this.value === 'prestasi') {
+                        prestasiSection.classList.remove('hidden');
+                        updatePrestasiForm();
+                    } else {
+                        prestasiSection.classList.add('hidden');
+                        resetPrestasiForm();
+                    }
+                });
             }
-        });
 
         // === School change ===
         schoolIdSelect.addEventListener('change', function() {
@@ -1150,6 +1181,7 @@
             // If all validations pass, set isSubmitting to true
             if (data) data.isSubmitting = true;
         });
+        }
         // === Auto-show form if errors exist ===
         document.addEventListener('DOMContentLoaded', function() {
             @if($errors->any() || session('error') || session('success'))

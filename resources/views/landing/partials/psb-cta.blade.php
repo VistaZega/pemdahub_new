@@ -57,20 +57,24 @@
                     </div>
                 @else
                     <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:8px 24px; border-radius:100px; margin-bottom:28px;">
-                        <span style="color:#fca5a5; font-size:13px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase;"><i class="fa-solid fa-lock" style="margin-right:6px;"></i> Pendaftaran Ditutup</span>
+                        <span style="color:#fca5a5; font-size:13px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase;"><i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Pendaftaran Telah Selesai</span>
                     </div>
 
                     <h2 style="font-size:clamp(32px,5vw,48px); font-weight:900; color:#fff; letter-spacing:-0.02em; line-height:1.1; margin-bottom:16px;">
                         Penerimaan Siswa Baru
                     </h2>
 
-                    <p style="font-size:18px; color:#94a3b8; line-height:1.6; margin-bottom:40px;">
-                        Saat ini tidak ada gelombang pendaftaran yang aktif.<br>Silakan pantau terus informasi dari Yayasan Perguruan PEMBDA Nias.
+                    <p style="font-size:17px; color:#94a3b8; line-height:1.6; margin-bottom:36px; max-width:580px; margin-left:auto; margin-right:auto;">
+                        Proses penerimaan siswa baru telah selesai dan <strong style="color:#f8fafc;">Kegiatan Belajar Mengajar (KBM) Semester Ganjil TP. 2026/2027</strong> sedang berlangsung aktif.<br>
+                        Informasi gelombang pendaftaran baru akan diumumkan menjelang periode tahun ajaran berikutnya.
                     </p>
 
                     <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
-                        <a href="{{ route('public.registration.check') }}" class="btn btn-ghost-white" style="padding:18px 40px; font-size:16px;">
-                            <i class="fa-solid fa-magnifying-glass" style="margin-right:8px;"></i> Cek Status Pendaftar Sebelumnya
+                        <a href="{{ route('public.registration.check') }}" class="btn btn-gold" style="padding:16px 36px; font-size:15px;">
+                            <i class="fa-solid fa-magnifying-glass" style="margin-right:8px;"></i> Cek Status Pendaftar
+                        </a>
+                        <a href="#kontak" class="btn btn-ghost-white" style="padding:16px 36px; font-size:15px;">
+                            <i class="fa-solid fa-headset" style="margin-right:8px;"></i> Hubungi Sekretariat
                         </a>
                     </div>
                 @endif

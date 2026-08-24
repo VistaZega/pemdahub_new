@@ -29,10 +29,17 @@
                     <i class="fa-solid fa-gauge-high"></i> Dashboard
                 </a>
                 @else
-                <a href="{{ route('login') }}" class="nav-link" style="font-size:13px;">Login</a>
-                <a href="{{ route('public.registration.index') }}" class="btn btn-gold nav-cta">
-                    <i class="fa-solid fa-user-plus"></i> Daftar PSB
-                </a>
+                    @if(isset($activeWave) && $activeWave)
+                    <a href="{{ route('login') }}" class="nav-link" style="font-size:13px;">Login</a>
+                    <a href="{{ route('public.registration.index') }}" class="btn btn-gold nav-cta">
+                        <i class="fa-solid fa-user-plus"></i> Daftar PSB
+                    </a>
+                    @else
+                    <a href="{{ route('public.registration.check') }}" class="nav-link" style="font-size:13px;" title="Cek Status Pendaftaran">Cek PSB</a>
+                    <a href="{{ route('login') }}" class="btn btn-gold nav-cta">
+                        <i class="fa-solid fa-right-to-bracket"></i> Masuk Portal
+                    </a>
+                    @endif
                 @endauth
                 <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="fa-solid fa-bars"></i></button>
             </div>
@@ -55,12 +62,21 @@
             <i class="fa-solid fa-gauge-high"></i> Dashboard
         </a>
         @else
-        <a href="{{ route('login') }}" class="mobile-login-link">
-            <i class="fa-solid fa-right-to-bracket"></i> Login
-        </a>
-        <a href="{{ route('public.registration.index') }}" class="btn btn-gold">
-            <i class="fa-solid fa-user-plus"></i> Daftar PSB
-        </a>
+            @if(isset($activeWave) && $activeWave)
+            <a href="{{ route('login') }}" class="mobile-login-link">
+                <i class="fa-solid fa-right-to-bracket"></i> Login
+            </a>
+            <a href="{{ route('public.registration.index') }}" class="btn btn-gold">
+                <i class="fa-solid fa-user-plus"></i> Daftar PSB
+            </a>
+            @else
+            <a href="{{ route('login') }}" class="btn btn-gold" style="width: 100%; max-width: 240px; justify-content: center;">
+                <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Portal
+            </a>
+            <a href="{{ route('public.registration.check') }}" class="mobile-login-link" style="font-size: 14px !important; padding: 10px 24px !important;">
+                <i class="fa-solid fa-magnifying-glass"></i> Cek Status PSB
+            </a>
+            @endif
         @endauth
     </div>
 </div>
