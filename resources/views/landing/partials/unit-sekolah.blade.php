@@ -117,8 +117,8 @@
         {{-- 3 Solid-Vibrant Khan Academy Cards --}}
         <div class="khan-units-grid" data-aos="fade-up" data-aos-delay="100">
             
-            {{-- CARD 1: SMAS PEMBDA 1 (MUSTARD YELLOW) --}}
-            <div class="khan-unit-card" style="background:#fbbf24; box-shadow:0 16px 36px -8px rgba(245,158,11,0.32);" onmouseover="this.style.boxShadow='0 24px 50px -8px rgba(245,158,11,0.45)'" onmouseout="this.style.boxShadow='0 16px 36px -8px rgba(245,158,11,0.32)'">
+            {{-- CARD 1: SMAS PEMBDA 1 (HIJAU RESMI) --}}
+            <div class="khan-unit-card" style="background:#34d399; box-shadow:0 16px 36px -8px rgba(16,185,129,0.32);" onmouseover="this.style.boxShadow='0 24px 50px -8px rgba(16,185,129,0.45)'" onmouseout="this.style.boxShadow='0 16px 36px -8px rgba(16,185,129,0.32)'">
                 <div>
                     <div class="khan-unit-role">
                         <i class="fa-solid fa-graduation-cap"></i>
@@ -146,8 +146,8 @@
                 </div>
             </div>
 
-            {{-- CARD 2: SMPS PEMBDA 2 (LEAF MINT GREEN) --}}
-            <div class="khan-unit-card" style="background:#34d399; box-shadow:0 16px 36px -8px rgba(16,185,129,0.32);" onmouseover="this.style.boxShadow='0 24px 50px -8px rgba(16,185,129,0.45)'" onmouseout="this.style.boxShadow='0 16px 36px -8px rgba(16,185,129,0.32)'">
+            {{-- CARD 2: SMPS PEMBDA 2 (BIRU RESMI) --}}
+            <div class="khan-unit-card" style="background:#60a5fa; box-shadow:0 16px 36px -8px rgba(37,99,235,0.32);" onmouseover="this.style.boxShadow='0 24px 50px -8px rgba(37,99,235,0.45)'" onmouseout="this.style.boxShadow='0 16px 36px -8px rgba(37,99,235,0.32)'">
                 <div>
                     <div class="khan-unit-role">
                         <i class="fa-solid fa-seedling"></i>
@@ -175,8 +175,8 @@
                 </div>
             </div>
 
-            {{-- CARD 3: SMKS PEMBDA NIAS (WARM CORAL ORANGE) --}}
-            <div class="khan-unit-card" style="background:#fb923c; box-shadow:0 16px 36px -8px rgba(249,115,22,0.32);" onmouseover="this.style.boxShadow='0 24px 50px -8px rgba(249,115,22,0.45)'" onmouseout="this.style.boxShadow='0 16px 36px -8px rgba(249,115,22,0.32)'">
+            {{-- CARD 3: SMKS PEMBDA NIAS (COKLAT RESMI) --}}
+            <div class="khan-unit-card" style="background:#d97706; box-shadow:0 16px 36px -8px rgba(217,119,6,0.32);" onmouseover="this.style.boxShadow='0 24px 50px -8px rgba(217,119,6,0.45)'" onmouseout="this.style.boxShadow='0 16px 36px -8px rgba(217,119,6,0.32)'">
                 <div>
                     <div class="khan-unit-role">
                         <i class="fa-solid fa-gears"></i>
