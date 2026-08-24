@@ -709,6 +709,9 @@ Route::get('/', function () {
 
     // Tema Beranda Hari Besar (Event Theme)
     $homepageTheme = \App\Models\Setting::getValue('homepage_theme', 'regular');
+    if (!in_array($homepageTheme, ['regular', 'kemerdekaan', 'paskah', 'natal', 'pahlawan', 'pendidikan'])) {
+        $homepageTheme = 'regular';
+    }
 
     // Pastikan halaman beranda tidak dicache oleh server (LiteSpeed) maupun browser
     // agar status tombol "Login" vs "Dashboard" selalu ter-update secara real-time.
