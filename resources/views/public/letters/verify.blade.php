@@ -37,7 +37,7 @@
             {{-- Kop Surat Resmi Yayasan --}}
             <div class="border-b-4 border-double border-gray-900 pb-6 text-center relative">
                 <div class="flex flex-col md:flex-row items-center justify-center gap-4">
-                    <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Yayasan" class="w-16 md:w-20 h-auto max-h-24 object-contain flex-shrink-0">
+                    <img src="{{ asset('images/logo_yayasan.png') }}" alt="Logo Yayasan" class="w-16 md:w-20 h-auto max-h-24 object-contain flex-shrink-0">
                     <div class="text-center">
                         <h1 class="text-base md:text-lg font-extrabold uppercase tracking-tight text-gray-900 leading-tight whitespace-nowrap">Yayasan Perguruan Pembangunan Daerah Nias</h1>
                         <h1 class="text-xl md:text-2xl font-black uppercase tracking-widest text-gray-950 my-0.5">( P E M B D A )</h1>

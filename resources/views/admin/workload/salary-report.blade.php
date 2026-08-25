@@ -145,7 +145,7 @@
             <table class="w-full border-collapse">
                 <tr>
                     <td class="text-left align-middle" style="width: 110px; padding-left: 20px;">
-                        <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Yayasan" class="w-20 h-auto" style="max-width: 80px;">
+                        <img src="{{ asset('images/logo_yayasan.png') }}" alt="Logo Yayasan" class="w-20 h-auto" style="max-width: 80px;">
                     </td>
                     <td class="text-center align-middle">
                         <h1 class="text-xl font-bold uppercase tracking-wide" style="font-family: 'Times New Roman', Times, serif; font-size: 16pt; margin: 0;">

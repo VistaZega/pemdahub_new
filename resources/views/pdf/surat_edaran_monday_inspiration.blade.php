@@ -214,10 +214,19 @@
     {{-- Kop Surat --}}
     <div class="kop-surat">
         @php
-            $logoPath = public_path('images/logo-pembda.png');
+            $possibleLogoPaths = [
+                public_path('images/logo_yayasan.png'),
+                public_path('images/logo-yayasan.png'),
+                base_path('public/images/logo_yayasan.png'),
+                base_path('../public_html/images/logo_yayasan.png'),
+            ];
+            $logoPath = '';
+            foreach ($possibleLogoPaths as $p) {
+                if (file_exists($p)) { $logoPath = $p; break; }
+            }
         @endphp
-        @if(file_exists($logoPath))
-            <img src="{{ $logoPath }}" class="logo" alt="Logo Pembda">
+        @if(!empty($logoPath) && file_exists($logoPath))
+            <img src="{{ $logoPath }}" class="logo" alt="Logo Yayasan Pembda">
         @endif
         <div style="margin-left: 95px; margin-right: 0;">
             <div class="yayasan-name">Yayasan Perguruan Pembangunan Daerah Nias</div>

@@ -211,7 +211,7 @@
         <table class="kop-table">
             <tr>
                 <td style="width: 85px; text-align: left; padding-left: 10px;">
-                    <img src="{{ asset('images/logo-pembda.png') }}" style="width: 70px; height: auto;" alt="Logo PEMBDA">
+                    <img src="{{ asset('images/logo_yayasan.png') }}" style="width: 70px; height: auto;" alt="Logo Yayasan PEMBDA">
                 </td>
                 <td class="kop-title">
                     <h2>YAYASAN PERGURUAN PEMBANGUNAN DAERAH NIAS</h2>

@@ -18,7 +18,7 @@
         {{-- Kop --}}
         <div class="border-b-4 border-double border-gray-900 pb-6 mb-8 text-center">
             <div class="flex flex-col md:flex-row items-center justify-center gap-4">
-                <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Yayasan" class="w-16 md:w-20 h-auto max-h-24 object-contain flex-shrink-0">
+                <img src="{{ asset('images/logo_yayasan.png') }}" alt="Logo Yayasan" class="w-16 md:w-20 h-auto max-h-24 object-contain flex-shrink-0">
                 <div class="text-center">
                     <h2 class="text-base md:text-lg font-extrabold text-gray-900 uppercase tracking-tight whitespace-nowrap">Yayasan Perguruan Pembangunan Daerah Nias</h2>
                     <h2 class="text-xl md:text-2xl font-black text-gray-950 tracking-widest uppercase my-0.5">( P E M B D A )</h2>
