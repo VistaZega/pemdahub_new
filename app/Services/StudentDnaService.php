@@ -19,7 +19,12 @@ class StudentDnaService
      */
     public function analyze(Student $student): array
     {
-        $student->loadMissing(['school', 'classrooms']);
+        $student->loadMissing([
+            'school.principal',
+            'currentClassroom.homeroomTeacher',
+            'classrooms.homeroomTeacher',
+            'applicant',
+        ]);
         $schoolType = strtoupper($student->school->type ?? 'SMA');
 
         // 1. Ambil data nilai akademik
@@ -74,6 +79,25 @@ class StudentDnaService
         // Hasilkan Rekomendasi Karir & Jurusan
         $recommendations = $this->generateRecommendations($dimensionScores, $schoolType, $diagnostic);
 
+        // Identitas & Konteks Database Resmi
+        $parentName = $student->parent_name 
+            ?: ($student->guardian_name 
+            ?: ($student->applicant ? ($student->applicant->father_name ?: $student->applicant->mother_name) : null)
+            ?: '-');
+
+        $principalName = $student->school?->principal?->full_name 
+            ?: ($student->school?->principal_name ?: 'Kepala Sekolah');
+
+        $foundationName = \App\Models\School::where('type', 'yayasan')->value('name')
+            ?: 'YAYASAN PERGURUAN PEMBANGUNAN DAERAH NIAS (PEMBDA)';
+
+        $homeroomTeacher = $student->currentClassroom->first()?->homeroomTeacher?->full_name 
+            ?: ($student->classrooms->first()?->homeroomTeacher?->full_name ?: '-');
+
+        $classroomName = $student->currentClassroom->first()?->class_name 
+            ?: ($student->currentClassroom->first()?->name 
+            ?: ($student->classrooms->first()?->class_name ?: '-'));
+
         return [
             'student' => $student,
             'school_type' => $schoolType,
@@ -91,6 +115,18 @@ class StudentDnaService
                 'counseling_sessions' => $counselingCount,
             ],
             'diagnostic' => $diagnostic,
+            'database_identity' => [
+                'parent_name' => $parentName,
+                'principal_name' => $principalName,
+                'foundation_name' => $foundationName,
+                'homeroom_teacher' => $homeroomTeacher,
+                'classroom_name' => $classroomName,
+                'school_name' => $student->school?->name ?? '-',
+                'school_npsn' => $student->school?->npsn ?? '-',
+                'school_address' => $student->school?->address ?? '-',
+                'school_phone' => $student->school?->phone ?? '-',
+                'student_address' => $student->address ?: ($student->guardian_address ?: '-'),
+            ],
         ];
     }
 

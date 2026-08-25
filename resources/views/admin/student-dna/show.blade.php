@@ -222,7 +222,7 @@
                 @endif
             </div>
 
-            {{-- 5 Pilar Data Nyata yang Membentuk DNA --}}
+            {{-- Rekam Jejak Data Riil PembdaHUB --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
                 <h3 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
                     <i class="fas fa-database text-indigo-600"></i> Rekam Jejak Data Riil PembdaHUB
@@ -244,6 +244,36 @@
                     <div class="p-3 bg-gray-50 rounded-xl">
                         <p class="text-gray-400 text-[10px] font-bold">Reputasi</p>
                         <p class="text-base font-bold text-purple-600 mt-0.5">{{ $analysis['metrics']['reputation_points'] }} Poin</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Identitas Resmi Siswa, Sekolah & Yayasan (100% Database) --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+                <h3 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
+                    <i class="fas fa-id-card text-fuchsia-600"></i> Identitas & Konteks Pembelajaran (Data Riil Database)
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Identitas Peserta Didik</p>
+                        <p class="font-bold text-slate-900 text-sm">{{ $student->full_name }}</p>
+                        <div class="text-slate-600 space-y-1">
+                            <p><b>NISN / NIS:</b> {{ $student->nisn ?: '-' }} / {{ $student->nis ?: '-' }}</p>
+                            <p><b>Orang Tua / Wali:</b> <span class="font-semibold text-slate-800">{{ $analysis['database_identity']['parent_name'] }}</span></p>
+                            <p><b>Alamat Siswa:</b> {{ $analysis['database_identity']['student_address'] }}</p>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Unit Pendidikan & Pengampu</p>
+                        <p class="font-bold text-slate-900 text-sm">{{ $analysis['database_identity']['school_name'] }}</p>
+                        <div class="text-slate-600 space-y-1">
+                            <p><b>Naungan:</b> {{ $analysis['database_identity']['foundation_name'] }}</p>
+                            <p><b>NPSN / Alamat:</b> {{ $analysis['database_identity']['school_npsn'] }} &bull; {{ $analysis['database_identity']['school_address'] }}</p>
+                            <p><b>Kepala Sekolah:</b> <span class="font-semibold text-slate-800">{{ $analysis['database_identity']['principal_name'] }}</span></p>
+                            <p><b>Wali Kelas:</b> <span class="font-semibold text-slate-800">{{ $analysis['database_identity']['homeroom_teacher'] }}</span></p>
+                        </div>
                     </div>
                 </div>
             </div>
