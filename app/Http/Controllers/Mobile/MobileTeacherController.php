@@ -1922,4 +1922,133 @@ class MobileTeacherController extends Controller
 
         return back()->with('success', 'Nilai dan evaluasi ujian sidang berhasil disimpan.');
     }
+
+    /**
+     * Mobile: Direktori Ekstrakurikuler Guru, PKS, & Pembina
+     */
+    public function ekskulIndex(Request $request)
+    {
+        $user = Auth::user();
+        $isGlobal = $user && ($user->canAccessAllSchools() || $user->isOwnerOrSuperAdmin() || in_array($user->role, ['superadmin', 'admin_yayasan', 'yayasan', 'ketua_yayasan']));
+        $schoolId = $user->school_id ?: ($this->getTeacher()?->school_id);
+
+        $query = \App\Models\Extracurricular::with(['school', 'advisor', 'leader', 'activeMembers'])
+            ->withCount(['members', 'activeMembers', 'activities']);
+
+        if (!$isGlobal && $schoolId) {
+            $query->where(function ($q) use ($schoolId) {
+                $q->where('school_id', $schoolId)
+                  ->orWhere('scope', 'yayasan')
+                  ->orWhereNull('school_id');
+            });
+        }
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        $ekskuls = $query->orderByRaw("CASE WHEN scope = 'yayasan' THEN 0 ELSE 1 END")
+            ->orderBy('name')
+            ->get();
+
+        $pendingClaimsCount = \App\Models\ExtracurricularMember::where('status', 'pending')
+            ->when(!$isGlobal && $schoolId, function ($q) use ($schoolId) {
+                $q->whereHas('extracurricular', fn($sq) => $sq->where('school_id', $schoolId)->orWhere('scope', 'yayasan')->orWhereNull('school_id'));
+            })
+            ->count();
+
+        return view('mobile.guru.ekskul.index', compact('ekskuls', 'pendingClaimsCount', 'isGlobal'));
+    }
+
+    /**
+     * Mobile: Detail Unit Ekstrakurikuler & Manajemen Anggota/Latihan
+     */
+    public function ekskulShow(\App\Models\Extracurricular $extracurricular)
+    {
+        $extracurricular->load([
+            'school',
+            'advisor',
+            'leader',
+            'secretary',
+            'treasurer',
+            'forumGroup',
+            'members.student.currentClassroom',
+            'members.student.school',
+            'activities'
+        ]);
+
+        return view('mobile.guru.ekskul.show', compact('extracurricular'));
+    }
+
+    /**
+     * Mobile: Setujui Klaim Keanggotaan Ekskul (+15 Poin Reputasi)
+     */
+    public function ekskulApproveMember(Request $request, \App\Models\Extracurricular $extracurricular, \App\Models\ExtracurricularMember $member)
+    {
+        $ekskulService = app(\App\Services\ExtracurricularService::class);
+        $ekskulService->approveMember($member, Auth::id());
+
+        return back()->with('success', "Keanggotaan {$member->student->full_name} telah disetujui (+15 Poin Reputasi).");
+    }
+
+    /**
+     * Mobile: Catat Log Latihan / Kegiatan Baru
+     */
+    public function ekskulAddActivity(Request $request, \App\Models\Extracurricular $extracurricular)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'activity_date' => 'required|date',
+            'location' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $validated['extracurricular_id'] = $extracurricular->id;
+        $validated['created_by'] = Auth::id();
+
+        \App\Models\ExtracurricularActivity::create($validated);
+
+        return back()->with('success', 'Log kegiatan latihan berhasil dicatat.');
+    }
+
+    /**
+     * Mobile: DNA Akademik 360° Directory Guru & Pembina
+     */
+    public function dnaIndex(Request $request)
+    {
+        $user = Auth::user();
+        $isGlobal = $user && ($user->canAccessAllSchools() || $user->isOwnerOrSuperAdmin() || in_array($user->role, ['superadmin', 'admin_yayasan', 'yayasan', 'ketua_yayasan']));
+        $schoolId = $user->school_id ?: ($this->getTeacher()?->school_id);
+
+        $query = Student::with(['school', 'currentClassroom'])
+            ->where('status', 'aktif');
+
+        if (!$isGlobal && $schoolId) {
+            $query->where('school_id', $schoolId);
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('full_name', 'LIKE', "%{$s}%")
+                  ->orWhere('nisn', 'LIKE', "%{$s}%")
+                  ->orWhere('nis', 'LIKE', "%{$s}%");
+            });
+        }
+
+        $students = $query->orderBy('full_name')->paginate(15)->withQueryString();
+
+        return view('mobile.guru.dna.index', compact('students', 'isGlobal'));
+    }
+
+    /**
+     * Mobile: Detail DNA Siswa 360°
+     */
+    public function dnaShow(Student $student)
+    {
+        $dnaService = app(\App\Services\StudentDnaService::class);
+        $dnaAnalysis = $dnaService->analyze($student);
+
+        return view('mobile.student.dna', compact('student', 'dnaAnalysis'));
+    }
 }

@@ -378,6 +378,23 @@
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">CBT</span>
             </a>
+
+            <!-- Ekskul -->
+            <a href="{{ route('mobile.guru.ekskul') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-orange flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                    🎨
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Ekskul</span>
+            </a>
+
+            <!-- DNA 360° -->
+            <a href="{{ route('mobile.guru.dna') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition relative">
+                    <span class="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-gradient-to-r from-fuchsia-600 to-indigo-600 text-white text-[7px] font-black shadow-xs">360°</span>
+                    🧬
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">DNA 360°</span>
+            </a>
         </div>
         @endif
     </div>

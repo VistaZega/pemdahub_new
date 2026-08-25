@@ -149,6 +149,16 @@ Route::prefix('m')->name('mobile.')->group(function () {
             // Project Akhir / Penelitian Akhir Ujian Guru (Penguji)
             Route::get('/final-projects/ujian', [MobileTeacherController::class, 'finalProjectUjianIndex'])->name('final-projects.ujian');
             Route::post('/final-projects/ujian/{project}/grade', [MobileTeacherController::class, 'gradeFinalProject'])->name('final-projects.ujian.grade');
+
+            // Ekstrakurikuler & Non-Akademik Guru, Pembina, & PKS
+            Route::get('/ekskul', [MobileTeacherController::class, 'ekskulIndex'])->name('ekskul');
+            Route::get('/ekskul/{extracurricular}', [MobileTeacherController::class, 'ekskulShow'])->name('ekskul.show');
+            Route::post('/ekskul/{extracurricular}/approve/{member}', [MobileTeacherController::class, 'ekskulApproveMember'])->name('ekskul.member.approve');
+            Route::post('/ekskul/{extracurricular}/activity', [MobileTeacherController::class, 'ekskulAddActivity'])->name('ekskul.activity.store');
+
+            // DNA Potensi Belajar & Minat Karier 360° Siswa
+            Route::get('/dna', [MobileTeacherController::class, 'dnaIndex'])->name('dna');
+            Route::get('/dna/{student}', [MobileTeacherController::class, 'dnaShow'])->name('dna.show');
         });
 
         // Modul Panitia PKL & Panitia Final Project
