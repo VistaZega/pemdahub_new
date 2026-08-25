@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 | Middleware: auth, role:superadmin,admin_sekolah,kepala_sekolah
 */
 
-Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admin_sekolah,kepala_sekolah,panitia_cbt,panitia_pkl,panitia_ta,pks,piket,guru,guru_bk')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admin_sekolah,kepala_sekolah,panitia_cbt,panitia_pkl,panitia_ta,pks,piket,guru,guru_bk,admin_yayasan,yayasan,ketua_yayasan,bendahara,pegawai')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
     // Accessibility endpoint for automated checks (only in testing or when enabled via env)

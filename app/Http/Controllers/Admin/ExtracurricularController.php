@@ -25,7 +25,23 @@ class ExtracurricularController extends Controller
     private function isGlobalAdmin(): bool
     {
         $user = Auth::user();
-        return $user && in_array($user->role, ['superadmin', 'admin_yayasan', 'yayasan', 'ketua_yayasan']);
+        if (!$user) {
+            return false;
+        }
+
+        return $user->canAccessAllSchools()
+            || $user->isOwnerOrSuperAdmin()
+            || in_array($user->role, ['superadmin', 'admin_yayasan', 'yayasan', 'ketua_yayasan', 'pengurus_yayasan'])
+            || empty($user->school_id);
+    }
+
+    private function getUserSchoolId(): ?int
+    {
+        $user = Auth::user();
+        if (!$user) return null;
+        if ($user->school_id) return (int)$user->school_id;
+        if ($user->teacher && $user->teacher->school_id) return (int)$user->teacher->school_id;
+        return null;
     }
 
     private function checkSchoolAccess(?int $schoolId): void
@@ -44,7 +60,8 @@ class ExtracurricularController extends Controller
             return;
         }
 
-        if (!$user->school_id || (int)$user->school_id !== (int)$schoolId) {
+        $userSchoolId = $this->getUserSchoolId();
+        if ($userSchoolId && (int)$userSchoolId !== (int)$schoolId) {
             abort(403, 'Akses Ditolak: Kewenangan PKS dan Guru terbatas hanya pada unit sekolah Anda sendiri.');
         }
     }

@@ -85,6 +85,16 @@ class CheckRole
                     $allowed = true;
                 }
                 
+                // Ekstrakurikuler & Non-Akademik (Dapat dikelola oleh PKS, Guru, Pembina, Admin Sekolah/Yayasan)
+                if (str_starts_with($routeName, 'admin.extracurricular.') || str_starts_with($path, 'admin/extracurricular')) {
+                    $allowed = true;
+                }
+
+                // DNA Akademik 360° (Dapat dilihat oleh Guru, PKS, Pembina, Admin)
+                if (str_starts_with($routeName, 'admin.dna.') || str_starts_with($path, 'admin/dna')) {
+                    $allowed = true;
+                }
+
                 // PKS & Guru Piket (Catatan Perkembangan Siswa, Konseling, & Lihat Data Siswa untuk input kasus)
                 if ($user->isPksOrPiket() && (
                     str_starts_with($routeName, 'admin.counseling.') || str_starts_with($path, 'admin/counseling') ||
@@ -92,12 +102,12 @@ class CheckRole
                 )) {
                     $allowed = true;
                 }
-                
+
                 // Dashboard Admin untuk melihat overview
                 if ($routeName === 'admin.dashboard' || $path === 'admin/dashboard') {
                     $allowed = true;
                 }
-                
+
                 if (!$allowed) {
                     abort(403, 'Akses Ditolak: Sebagai Guru dengan Tugas Tambahan/Panitia, Anda hanya diperbolehkan mengelola modul kegiatan yang ditugaskan kepada Anda.');
                 }

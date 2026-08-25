@@ -66,6 +66,12 @@
                     <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-fuchsia-500 to-indigo-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-fingerprint text-[10px]"></i></div>
                     <span>DNA Akademik 360°</span>
                 </a>
+
+                <!-- Ekstrakurikuler & Marching Band -->
+                <a href="{{ route('admin.extracurricular.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.extracurricular.*') ? $ac : $nc }}">
+                    <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-rose-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-palette text-[10px]"></i></div>
+                    <span>Ekstrakurikuler & MB</span>
+                </a>
             </div>
         </div>
 
