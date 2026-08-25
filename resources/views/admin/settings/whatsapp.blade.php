@@ -74,7 +74,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Card 1: Fonnte -->
             @php $isFonnteActive = ($currentProvider === 'fonnte'); @endphp
-            <div class="relative rounded-2xl p-5 border-2 transition-all {{ $isFonnteActive ? 'border-emerald-500 bg-emerald-50/30 shadow-md shadow-emerald-500/10' : 'border-gray-200 bg-gray-50/50 opacity-80 hover:opacity-100' }}">
+            <div class="relative rounded-2xl p-5 border-2 transition-all {{ $isFonnteActive ? 'border-emerald-500 bg-emerald-50/30 shadow-md shadow-emerald-500/10' : 'border-gray-200 bg-gray-50/50 opacity-90 hover:opacity-100' }}">
                 @if($isFonnteActive)
                 <div class="absolute -top-3 right-4 px-3 py-0.5 bg-emerald-600 text-white rounded-full text-[11px] font-bold shadow-sm">
                     ✓ SEDANG DIGUNAKAN
@@ -91,36 +91,49 @@
                         </div>
                     </div>
                 </div>
-                <div class="space-y-1 text-xs text-gray-600 mb-4 bg-white/80 rounded-xl p-3 border border-gray-100">
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Endpoint:</span>
-                        <code class="text-[11px] text-gray-700 font-mono">api.fonnte.com</code>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Status Token:</span>
-                        <span class="{{ !empty(config('services.whatsapp.providers.fonnte.api_token')) ? 'text-emerald-600 font-semibold' : 'text-amber-600 font-semibold' }}">
-                            {{ !empty(config('services.whatsapp.providers.fonnte.api_token')) ? '✓ Terkonfigurasi' : '⚠️ Belum Diisi' }}
-                        </span>
-                    </div>
-                </div>
-                @if(!$isFonnteActive)
-                <form action="{{ route('admin.settings.whatsapp.switch_provider') }}" method="POST">
+
+                <!-- Input Form Token Fonnte Langsung di Web -->
+                <form action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="mb-4 bg-white/90 rounded-xl p-3 border border-gray-200/80 space-y-2">
                     @csrf
                     <input type="hidden" name="provider" value="fonnte">
-                    <button type="submit" onclick="return confirm('Beralih ke provider Fonnte?')" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-toggle-on"></i> Aktifkan Fonnte
-                    </button>
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[11px] font-bold text-gray-700">
+                            <i class="fas fa-key text-amber-500 mr-1"></i> API Token Fonnte:
+                        </label>
+                        @if(!empty($providersInfo['fonnte']['has_token']))
+                            <span class="text-[10px] text-emerald-600 font-bold">✓ Token Tersimpan</span>
+                        @else
+                            <span class="text-[10px] text-amber-600 font-bold">⚠️ Masukkan Token</span>
+                        @endif
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" name="api_token" value="{{ $providersInfo['fonnte']['api_token'] ?? '' }}" placeholder="Paste API Token dari fonnte.com..." class="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-mono focus:outline-none focus:border-emerald-500 bg-white">
+                        <button type="submit" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold shadow-sm transition-all whitespace-nowrap">
+                            <i class="fas fa-save"></i> Simpan
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-gray-400">Token didapat dari dashboard <a href="https://fonnte.com" target="_blank" class="text-emerald-600 underline font-semibold">fonnte.com</a> setelah scan QR.</p>
                 </form>
-                @else
-                <a href="https://fonnte.com" target="_blank" class="w-full py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
-                    <i class="fas fa-external-link-alt"></i> Buka Dashboard Fonnte
-                </a>
-                @endif
+
+                <div class="flex gap-2">
+                    @if(!$isFonnteActive)
+                    <form action="{{ route('admin.settings.whatsapp.switch_provider') }}" method="POST" class="flex-1">
+                        @csrf
+                        <input type="hidden" name="provider" value="fonnte">
+                        <button type="submit" onclick="return confirm('Beralih ke provider Fonnte?')" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-toggle-on"></i> Aktifkan Fonnte
+                        </button>
+                    </form>
+                    @endif
+                    <a href="https://fonnte.com" target="_blank" class="{{ $isFonnteActive ? 'w-full' : 'px-4' }} py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-external-link-alt"></i> Dashboard Fonnte
+                    </a>
+                </div>
             </div>
 
             <!-- Card 2: Self-Hosted Baileys -->
             @php $isBaileysActive = ($currentProvider === 'selfhosted'); @endphp
-            <div class="relative rounded-2xl p-5 border-2 transition-all {{ $isBaileysActive ? 'border-emerald-500 bg-emerald-50/30 shadow-md shadow-emerald-500/10' : 'border-gray-200 bg-gray-50/50 opacity-80 hover:opacity-100' }}">
+            <div class="relative rounded-2xl p-5 border-2 transition-all {{ $isBaileysActive ? 'border-emerald-500 bg-emerald-50/30 shadow-md shadow-emerald-500/10' : 'border-gray-200 bg-gray-50/50 opacity-90 hover:opacity-100' }}">
                 @if($isBaileysActive)
                 <div class="absolute -top-3 right-4 px-3 py-0.5 bg-emerald-600 text-white rounded-full text-[11px] font-bold shadow-sm">
                     ✓ SEDANG DIGUNAKAN
@@ -137,18 +150,28 @@
                         </div>
                     </div>
                 </div>
-                <div class="space-y-1 text-xs text-gray-600 mb-4 bg-white/80 rounded-xl p-3 border border-gray-100">
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Endpoint:</span>
-                        <code class="text-[11px] text-gray-700 font-mono">{{ config('services.whatsapp.providers.selfhosted.api_url', 'http://localhost:3000') }}</code>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Status Server:</span>
-                        <span class="{{ $isBaileysActive && $isConnected ? 'text-emerald-600 font-semibold' : 'text-gray-500' }}">
+
+                <!-- Input Form Endpoint Baileys -->
+                <form action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="mb-4 bg-white/90 rounded-xl p-3 border border-gray-200/80 space-y-2">
+                    @csrf
+                    <input type="hidden" name="provider" value="selfhosted">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[11px] font-bold text-gray-700">
+                            <i class="fas fa-link text-blue-500 mr-1"></i> Baileys Server URL:
+                        </label>
+                        <span class="text-[10px] {{ $isBaileysActive && $isConnected ? 'text-emerald-600 font-bold' : 'text-gray-500' }}">
                             {{ $isBaileysActive ? ($isConnected ? '✓ Ready' : '🟡 Perlu Scan QR') : 'Standby' }}
                         </span>
                     </div>
-                </div>
+                    <div class="flex gap-2">
+                        <input type="text" name="api_url" value="{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3000' }}" placeholder="http://localhost:3000" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-mono focus:outline-none focus:border-emerald-500 bg-white">
+                        <button type="submit" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold shadow-sm transition-all whitespace-nowrap">
+                            <i class="fas fa-save"></i> Simpan
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-gray-400">Endpoint Node.js Baileys engine yang berjalan di server.</p>
+                </form>
+
                 <div class="flex gap-2">
                     @if(!$isBaileysActive)
                     <form action="{{ route('admin.settings.whatsapp.switch_provider') }}" method="POST" class="flex-1">
@@ -159,7 +182,7 @@
                         </button>
                     </form>
                     @endif
-                    <a href="{{ config('services.whatsapp.providers.selfhosted.api_url', 'http://localhost:3000') }}/qr" target="_blank" class="{{ $isBaileysActive ? 'w-full' : 'px-3' }} py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                    <a href="{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3000' }}/qr" target="_blank" class="{{ $isBaileysActive ? 'w-full' : 'px-3' }} py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
                         <i class="fas fa-qrcode"></i> Scan QR Baileys
                     </a>
                 </div>

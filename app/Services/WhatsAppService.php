@@ -29,15 +29,17 @@ class WhatsAppService implements WhatsAppServiceInterface
 
         // Ambil config sesuai provider aktif
         $providerConfig = config("services.whatsapp.providers.{$this->activeProvider}");
+        $dbToken = Setting::getValue("wa_{$this->activeProvider}_token");
+        $dbUrl = Setting::getValue("wa_{$this->activeProvider}_url");
 
         if ($providerConfig) {
-            $this->apiUrl = $providerConfig['api_url'] ?? '';
-            $this->apiToken = $providerConfig['api_token'] ?? '';
+            $this->apiUrl = !empty($dbUrl) ? $dbUrl : ($providerConfig['api_url'] ?? '');
+            $this->apiToken = !empty($dbToken) ? $dbToken : ($providerConfig['api_token'] ?? '');
             $this->providerLabel = $providerConfig['label'] ?? $this->activeProvider;
         } else {
             // Fallback ke config lama (backward compatibility)
-            $this->apiUrl = config('services.whatsapp.api_url', '');
-            $this->apiToken = config('services.whatsapp.api_token', '');
+            $this->apiUrl = !empty($dbUrl) ? $dbUrl : config('services.whatsapp.api_url', '');
+            $this->apiToken = !empty($dbToken) ? $dbToken : config('services.whatsapp.api_token', '');
             $this->providerLabel = $this->activeProvider;
         }
     }
@@ -85,12 +87,19 @@ class WhatsAppService implements WhatsAppServiceInterface
         $result = [];
 
         foreach ($providers as $key => $providerConfig) {
+            $dbToken = Setting::getValue("wa_{$key}_token");
+            $dbUrl = Setting::getValue("wa_{$key}_url");
+            $token = !empty($dbToken) ? $dbToken : ($providerConfig['api_token'] ?? '');
+            $url = !empty($dbUrl) ? $dbUrl : ($providerConfig['api_url'] ?? '');
+
             $result[$key] = [
                 'key' => $key,
                 'label' => $providerConfig['label'] ?? $key,
-                'api_url' => $providerConfig['api_url'] ?? '',
+                'api_url' => $url,
+                'api_token' => $token,
                 'is_active' => ($key === $this->activeProvider),
-                'has_token' => !empty($providerConfig['api_token']),
+                'has_token' => !empty($token),
+                'is_custom_token' => !empty($dbToken),
             ];
         }
 

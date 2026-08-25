@@ -331,6 +331,36 @@ class SettingsController extends Controller
     }
 
     /**
+     * Update WhatsApp Provider Credentials (Token & API URL) from Web UI
+     */
+    public function updateWhatsappCredentials(Request $request)
+    {
+        $this->authorizeFeatureAccess();
+
+        $request->validate([
+            'provider' => 'required|string|in:fonnte,selfhosted',
+            'api_token' => 'nullable|string',
+            'api_url' => 'nullable|string',
+        ]);
+
+        $provider = $request->input('provider');
+
+        if ($request->has('api_token')) {
+            $token = trim((string)$request->input('api_token'));
+            Setting::setValue("wa_{$provider}_token", $token, 'string', 'whatsapp');
+        }
+
+        if ($request->filled('api_url')) {
+            $url = rtrim(trim((string)$request->input('api_url')), '/');
+            Setting::setValue("wa_{$provider}_url", $url, 'string', 'whatsapp');
+        }
+
+        return redirect()
+            ->route('admin.settings.whatsapp')
+            ->with('success', "Konfigurasi token & API URL untuk " . strtoupper($provider) . " berhasil disimpan!");
+    }
+
+    /**
      * Update WhatsApp Automation Settings
      */
     public function updateWhatsapp(Request $request)
