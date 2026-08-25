@@ -895,4 +895,87 @@ class SettingsController extends Controller
             ->route('admin.settings.whatsapp')
             ->with('error', 'Gagal mengeksekusi Laporan Eksekutif: ' . ($res['message'] ?? 'Error'));
     }
+
+    /**
+     * Display Error Alerts & Service Monitoring Settings page
+     */
+    public function errorAlerts()
+    {
+        $this->authorizeFeatureAccess();
+
+        $alertService = app(\App\Services\ErrorAlertService::class);
+        $alertConfig = $alertService->getAlertConfig();
+        $recentLogs = $alertService->getRecentErrorLogs(25);
+        $waService = app(\App\Services\WhatsAppService::class);
+
+        return view('admin.settings.error-alerts', compact('alertConfig', 'recentLogs', 'waService'));
+    }
+
+    /**
+     * Update Error Alerts Settings
+     */
+    public function updateErrorAlerts(Request $request)
+    {
+        $this->authorizeFeatureAccess();
+
+        Setting::setValue('error_alerts_enabled', $request->boolean('error_alerts_enabled'), 'boolean', 'alerts');
+        Setting::setValue('error_alert_cooldown_minutes', (int) $request->input('error_alert_cooldown_minutes', 5), 'integer', 'alerts');
+
+        // WhatsApp Channel
+        Setting::setValue('wa_alert_enabled', $request->boolean('wa_alert_enabled'), 'boolean', 'alerts');
+        if ($request->has('wa_alert_phone')) {
+            Setting::setValue('wa_alert_phone', trim((string)$request->input('wa_alert_phone')), 'string', 'alerts');
+        }
+
+        // Telegram Channel
+        Setting::setValue('telegram_alert_enabled', $request->boolean('telegram_alert_enabled'), 'boolean', 'alerts');
+        if ($request->has('telegram_alert_bot_token')) {
+            Setting::setValue('telegram_alert_bot_token', trim((string)$request->input('telegram_alert_bot_token')), 'string', 'alerts');
+        }
+        if ($request->has('telegram_alert_chat_id')) {
+            Setting::setValue('telegram_alert_chat_id', trim((string)$request->input('telegram_alert_chat_id')), 'string', 'alerts');
+        }
+
+        return redirect()
+            ->route('admin.settings.error_alerts')
+            ->with('success', 'Konfigurasi Notifikasi Laporan Error ke Super Admin berhasil disimpan!');
+    }
+
+    /**
+     * Test Sending Error Alert to WhatsApp or Telegram
+     */
+    public function testErrorAlertChannel(Request $request)
+    {
+        $this->authorizeFeatureAccess();
+
+        $channel = $request->input('channel', 'all');
+        $alertService = app(\App\Services\ErrorAlertService::class);
+        $results = $alertService->sendTestAlert($channel);
+
+        $successMsgs = [];
+        $errorMsgs = [];
+
+        foreach ($results as $ch => $res) {
+            if (!empty($res['success'])) {
+                $successMsgs[] = $res['message'];
+            } else {
+                $errorMsgs[] = $res['message'] ?? "Gagal mengirim test alert ke {$ch}";
+            }
+        }
+
+        if (!empty($errorMsgs) && empty($successMsgs)) {
+            return redirect()
+                ->route('admin.settings.error_alerts')
+                ->with('error', implode(' | ', $errorMsgs));
+        }
+
+        $finalMsg = implode(' | ', $successMsgs);
+        if (!empty($errorMsgs)) {
+            $finalMsg .= ' (Catatan: ' . implode(' | ', $errorMsgs) . ')';
+        }
+
+        return redirect()
+            ->route('admin.settings.error_alerts')
+            ->with('success', $finalMsg ?: 'Pemeriksaan alert selesai.');
+    }
 }

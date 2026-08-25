@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -36,7 +37,7 @@ class ErrorAlertService
         }
 
         $signature = $this->getErrorSignature($exception);
-        $cooldownMinutes = (int) config('services.alerts.cooldown_minutes', 5);
+        $cooldownMinutes = (int) $this->getCooldownMinutes();
 
         // Anti-Spam / Debounce Check
         $cacheKey = 'err_alert_' . $signature;
@@ -66,7 +67,7 @@ class ErrorAlertService
      */
     public function shouldAlert(Throwable $exception): bool
     {
-        if (!config('services.alerts.enabled', true)) {
+        if (!$this->isEnabled()) {
             return false;
         }
 
@@ -87,6 +88,56 @@ class ErrorAlertService
     }
 
     /**
+     * Check if master error alerting is enabled (DB setting priority > .env)
+     */
+    public function isEnabled(): bool
+    {
+        try {
+            $dbSetting = Setting::getValue('error_alerts_enabled');
+            if ($dbSetting !== null) {
+                return (bool) $dbSetting;
+            }
+        } catch (Throwable $e) {}
+
+        return (bool) config('services.alerts.enabled', true);
+    }
+
+    /**
+     * Get cooldown duration in minutes
+     */
+    public function getCooldownMinutes(): int
+    {
+        try {
+            $dbCooldown = Setting::getValue('error_alert_cooldown_minutes');
+            if ($dbCooldown !== null && is_numeric($dbCooldown)) {
+                return (int) $dbCooldown;
+            }
+        } catch (Throwable $e) {}
+
+        return (int) config('services.alerts.cooldown_minutes', 5);
+    }
+
+    /**
+     * Get alert configuration settings for display in Admin Panel
+     */
+    public function getAlertConfig(): array
+    {
+        return [
+            'enabled' => $this->isEnabled(),
+            'cooldown_minutes' => $this->getCooldownMinutes(),
+            'whatsapp' => [
+                'enabled' => (bool) (Setting::getValue('wa_alert_enabled') ?? config('services.alerts.whatsapp.enabled', false)),
+                'admin_phone' => Setting::getValue('wa_alert_phone') ?: config('services.alerts.whatsapp.admin_phone', ''),
+            ],
+            'telegram' => [
+                'enabled' => (bool) (Setting::getValue('telegram_alert_enabled') ?? config('services.alerts.telegram.enabled', false)),
+                'bot_token' => Setting::getValue('telegram_alert_bot_token') ?: config('services.alerts.telegram.bot_token', ''),
+                'chat_id' => Setting::getValue('telegram_alert_chat_id') ?: config('services.alerts.telegram.chat_id', ''),
+            ],
+        ];
+    }
+
+    /**
      * Generate unique signature hash for an error.
      */
     protected function getErrorSignature(Throwable $exception): string
@@ -102,24 +153,24 @@ class ErrorAlertService
     /**
      * Send alert via Telegram Bot.
      */
-    protected function sendTelegramAlert(Throwable $exception): void
+    public function sendTelegramAlert(Throwable $exception): array
     {
-        $enabled = config('services.alerts.telegram.enabled', false);
-        $botToken = config('services.alerts.telegram.bot_token');
-        $chatId = config('services.alerts.telegram.chat_id');
+        $enabled = (bool) (Setting::getValue('telegram_alert_enabled') ?? config('services.alerts.telegram.enabled', false));
+        $botToken = Setting::getValue('telegram_alert_bot_token') ?: config('services.alerts.telegram.bot_token');
+        $chatId = Setting::getValue('telegram_alert_chat_id') ?: config('services.alerts.telegram.chat_id');
 
         if (!$enabled || empty($botToken) || empty($chatId)) {
-            return;
+            return ['success' => false, 'message' => 'Telegram alert belum diaktifkan atau konfigurasi token/chat ID belum lengkap'];
         }
 
         try {
             $user = auth()->user();
             $request = request();
 
-            $url = $request ? $request->fullUrl() : 'CLI / Background';
+            $url = $request ? $request->fullUrl() : 'CLI / Background Task';
             $method = $request ? $request->method() : 'CLI';
             $ip = $request ? $request->ip() : '127.0.0.1';
-            $userInfo = $user ? "#{$user->id} {$user->name} ({$user->role})" : 'Guest / System';
+            $userInfo = $user ? "#{$user->id} {$user->name} ({$user->role})" : 'Guest / Sistem Otomatis';
             $appName = config('app.name', 'PembdaHUB');
             $appEnv = strtoupper(config('app.env', 'production'));
             $timestamp = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s T');
@@ -136,38 +187,47 @@ class ErrorAlertService
             $message .= "━━━━━━━━━━━━━━━━━━━━━\n";
             $message .= "ℹ️ <i>Pemberitahuan otomatis dari sistem pemantau PembdaHUB.</i>";
 
-            Http::timeout(5)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+            $response = Http::timeout(6)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                 'chat_id' => $chatId,
                 'text' => $message,
                 'parse_mode' => 'HTML',
                 'disable_web_page_preview' => true,
             ]);
 
-            Log::channel('daily')->info('Telegram error alert sent successfully');
+            $isSuccess = $response->successful() && ($response->json('ok') === true);
+
+            if ($isSuccess) {
+                Log::channel('daily')->info('Telegram error alert sent successfully');
+                return ['success' => true, 'message' => 'Test alert Telegram berhasil terkirim ke Chat ID: ' . $chatId];
+            } else {
+                $errorDesc = $response->json('description') ?? 'Gagal mengirim pesan Telegram';
+                return ['success' => false, 'message' => 'Telegram API Error: ' . $errorDesc];
+            }
         } catch (Throwable $e) {
             Log::channel('daily')->warning('Failed to send Telegram error alert: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Koneksi Telegram Error: ' . $e->getMessage()];
         }
     }
 
     /**
      * Send alert via WhatsApp Admin.
      */
-    protected function sendWhatsAppAlert(Throwable $exception): void
+    public function sendWhatsAppAlert(Throwable $exception): array
     {
-        $enabled = config('services.alerts.whatsapp.enabled', false);
-        $adminPhone = config('services.alerts.whatsapp.admin_phone');
+        $enabled = (bool) (Setting::getValue('wa_alert_enabled') ?? config('services.alerts.whatsapp.enabled', false));
+        $adminPhone = Setting::getValue('wa_alert_phone') ?: config('services.alerts.whatsapp.admin_phone');
 
         if (!$enabled || empty($adminPhone)) {
-            return;
+            return ['success' => false, 'message' => 'WhatsApp alert belum diaktifkan atau nomor HP Super Admin belum diisi'];
         }
 
         try {
             $user = auth()->user();
             $request = request();
 
-            $url = $request ? $request->fullUrl() : 'CLI / Background';
+            $url = $request ? $request->fullUrl() : 'CLI / Background Task';
             $method = $request ? $request->method() : 'CLI';
-            $userInfo = $user ? "#{$user->id} {$user->name} ({$user->role})" : 'Guest / System';
+            $userInfo = $user ? "#{$user->id} {$user->name} ({$user->role})" : 'Guest / Sistem Otomatis';
             $appName = config('app.name', 'PembdaHUB');
             $appEnv = strtoupper(config('app.env', 'production'));
             $timestamp = now()->setTimezone('Asia/Jakarta')->format('d/m/Y H:i:s');
@@ -182,13 +242,114 @@ class ErrorAlertService
             $msg .= "🔗 *Route:* {$method} {$url}\n";
             $msg .= "👤 *User:* {$userInfo}\n";
             $msg .= "━━━━━━━━━━━━━━━━━━━\n";
-            $msg .= "⚠️ Segera periksa log server untuk detail exception.";
+            $msg .= "⚠️ Segera periksa server log atau dashboard pemantau PembdaHUB.";
 
-            app(WhatsAppService::class)->sendMessage($adminPhone, $msg);
-            Log::channel('daily')->info('WhatsApp error alert sent successfully');
+            $waService = app(WhatsAppService::class);
+            $result = $waService->sendMessage($adminPhone, $msg);
+
+            if (!empty($result['success'])) {
+                Log::channel('daily')->info('WhatsApp error alert sent successfully');
+                return ['success' => true, 'message' => "Test alert WhatsApp berhasil dikirim ke nomor {$adminPhone} via " . $waService->getProviderLabel()];
+            } else {
+                $err = $result['error'] ?? $result['response']['message'] ?? 'Gagal mengirim pesan WhatsApp';
+                return ['success' => false, 'message' => "WhatsApp Alert Error: {$err}"];
+            }
         } catch (Throwable $e) {
             Log::channel('daily')->warning('Failed to send WhatsApp error alert: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Koneksi WhatsApp Alert Error: ' . $e->getMessage()];
         }
+    }
+
+    /**
+     * Send direct test error alert to verified channels
+     */
+    public function sendTestAlert(string $channel = 'all'): array
+    {
+        $testException = new \RuntimeException('[TEST ALERT] Ini adalah simulasi peringatan error dari Sistem Monitoring PembdaHUB. Sistem bekerja dengan normal!');
+
+        $results = [];
+
+        if ($channel === 'all' || $channel === 'whatsapp') {
+            $results['whatsapp'] = $this->sendWhatsAppAlert($testException);
+        }
+
+        if ($channel === 'all' || $channel === 'telegram') {
+            $results['telegram'] = $this->sendTelegramAlert($testException);
+        }
+
+        return $results;
+    }
+
+    /**
+     * Parse recent error logs from Laravel log storage
+     */
+    public function getRecentErrorLogs(int $limit = 20): array
+    {
+        $logs = [];
+        $logPath = storage_path('logs/laravel.log');
+
+        // Check if file exists, if not check daily log files
+        if (!file_exists($logPath)) {
+            $dailyFiles = glob(storage_path('logs/laravel-*.log'));
+            if (!empty($dailyFiles)) {
+                rsort($dailyFiles);
+                $logPath = $dailyFiles[0];
+            }
+        }
+
+        if (!file_exists($logPath) || filesize($logPath) === 0) {
+            return [];
+        }
+
+        try {
+            // Read last 200KB of log file for performance
+            $maxBytes = 200 * 1024;
+            $fileSize = filesize($logPath);
+            $fp = fopen($logPath, 'r');
+
+            if ($fileSize > $maxBytes) {
+                fseek($fp, $fileSize - $maxBytes);
+                fgets($fp); // discard partial line
+            }
+
+            $content = fread($fp, $maxBytes);
+            fclose($fp);
+
+            // Pattern to match Laravel log entries
+            $pattern = '/\[(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}[\.\d\s\+\-:]*)\]\s+([a-zA-Z0-9_\-]+)\.([A-Z]+):\s+(.*?)(?=\n\[\d{4}-\d{2}-\d{2}|$)/s';
+            preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
+
+            if (!empty($matches)) {
+                $matches = array_reverse($matches); // newest first
+                $count = 0;
+
+                foreach ($matches as $match) {
+                    $level = strtoupper($match[3] ?? 'INFO');
+                    // Filter to ERROR, CRITICAL, EMERGENCY, ALERT
+                    if (in_array($level, ['ERROR', 'CRITICAL', 'EMERGENCY', 'ALERT'])) {
+                        $fullMessage = trim($match[4] ?? '');
+                        $firstLine = strtok($fullMessage, "\n");
+                        
+                        $logs[] = [
+                            'timestamp' => $match[1] ?? '',
+                            'environment' => $match[2] ?? 'production',
+                            'level' => $level,
+                            'short_message' => mb_substr($firstLine, 0, 180),
+                            'full_message' => mb_substr($fullMessage, 0, 1000),
+                        ];
+
+                        $count++;
+                        if ($count >= $limit) {
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            Log::warning('Error parsing log file: ' . $e->getMessage());
+        }
+
+        return $logs;
     }
 
     /**

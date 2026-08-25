@@ -1,0 +1,273 @@
+@extends('layouts.admin')
+
+@section('title', 'Notifikasi Error & Monitoring Sistem')
+
+@section('content')
+<div class="space-y-6">
+    <!-- Header & Breadcrumb -->
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 shadow-lg shadow-rose-500/20">
+                <i class="fas fa-bell text-white text-3xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Laporan & Notifikasi Error ke Super Admin</h1>
+                <p class="text-sm text-gray-500">Pemantau otomatis kegagalan sistem (500 Error, Query Exception) langsung ke WhatsApp dan Telegram Super Admin</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('admin.settings.whatsapp') }}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2">
+                <i class="fab fa-whatsapp"></i> Gateway WhatsApp
+            </a>
+            <a href="{{ route('admin.settings.index') }}" class="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    @if(session('success'))
+    <div class="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-xl flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-check-circle text-emerald-600 text-lg"></i>
+            <p class="text-emerald-800 font-semibold text-sm">{{ session('success') }}</p>
+        </div>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="p-4 bg-rose-50 border-l-4 border-rose-500 rounded-xl flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-exclamation-triangle text-rose-600 text-lg"></i>
+            <p class="text-rose-800 font-semibold text-sm">{{ session('error') }}</p>
+        </div>
+    </div>
+    @endif
+
+    <!-- Form Pengaturan Notifikasi Error -->
+    <form action="{{ route('admin.settings.error_alerts.update') }}" method="POST" class="space-y-6">
+        @csrf
+        @method('PUT')
+
+        <!-- Master Switch & Cooldown Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-5 mb-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 rounded-full {{ $alertConfig['enabled'] ? 'bg-rose-500 animate-pulse' : 'bg-gray-400' }}"></div>
+                    <div>
+                        <h3 class="text-base font-bold text-gray-900">Saklar Utama Pemantau Error Sistem</h3>
+                        <p class="text-xs text-gray-500">Jika aktif, setiap terjadi error server kritis 500 akan otomatis dikirimkan laporannya ke saluran yang aktif</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="error_alerts_enabled" value="1" class="sr-only peer" {{ $alertConfig['enabled'] ? 'checked' : '' }}>
+                        <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-rose-600"></div>
+                    </label>
+                    <span class="text-xs font-bold {{ $alertConfig['enabled'] ? 'text-rose-600' : 'text-gray-400' }}">
+                        {{ $alertConfig['enabled'] ? 'AKTIF (MONITORING ON)' : 'NONAKTIF' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center bg-gray-50/70 p-4 rounded-xl border border-gray-200/70 text-xs">
+                <div>
+                    <label class="font-bold text-gray-700 block mb-1">
+                        <i class="fas fa-clock text-amber-500 mr-1"></i> Jeda Waktu Anti-Spam (Cooldown):
+                    </label>
+                    <p class="text-gray-500 text-[11px]">Mencegah banjir notifikasi saat error yang sama terjadi berulang kali dalam waktu singkat.</p>
+                </div>
+                <div class="flex items-center gap-2 justify-end">
+                    <input type="number" name="error_alert_cooldown_minutes" value="{{ $alertConfig['cooldown_minutes'] }}" min="1" max="60" class="w-24 px-3 py-2 bg-white rounded-lg border border-gray-300 font-bold text-sm text-center focus:outline-none focus:border-rose-500">
+                    <span class="font-semibold text-gray-600">Menit per Error Signature</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2 Saluran Pengiriman: WhatsApp & Telegram -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Saluran 1: WhatsApp Super Admin -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xl">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-900">Saluran WhatsApp Super Admin</h3>
+                            <p class="text-[11px] text-gray-500">Kirim laporan error instan ke nomor WhatsApp Anda</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="wa_alert_enabled" value="1" class="sr-only peer" {{ $alertConfig['whatsapp']['enabled'] ? 'checked' : '' }}>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">
+                            <i class="fas fa-phone text-emerald-600 mr-1"></i> Nomor WhatsApp HP Tujuan Super Admin:
+                        </label>
+                        <input type="text" name="wa_alert_phone" value="{{ $alertConfig['whatsapp']['admin_phone'] }}" placeholder="Contoh: 088991144184 atau 628..." class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:border-emerald-500 font-mono">
+                        <p class="text-[10px] text-gray-400 mt-1">Nomor WhatsApp yang akan menerima pesan peringatan saat terjadi error server.</p>
+                    </div>
+
+                    <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs text-gray-600 space-y-1">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Gateway Pengirim Aktif:</span>
+                            <span class="font-bold text-emerald-700">{{ $waService->getProviderLabel() }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Status Gateway:</span>
+                            <span class="{{ $waService->isEnabled() ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold' }}">
+                                {{ $waService->isEnabled() ? '✓ Siap Mengirim' : '⚠️ Gateway Nonaktif' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saluran 2: Telegram Bot Super Admin -->
+            <div x-data="{ showToken: false }" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-xl">
+                            <i class="fab fa-telegram-plane"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-900">Saluran Telegram Bot</h3>
+                            <p class="text-[11px] text-gray-500">Kirim laporan error ke Chat ID pribadi / grup teknisi</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="telegram_alert_enabled" value="1" class="sr-only peer" {{ $alertConfig['telegram']['enabled'] ? 'checked' : '' }}>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
+                    </label>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">
+                            <i class="fas fa-robot text-sky-600 mr-1"></i> Telegram Bot Token:
+                        </label>
+                        <div class="flex gap-2">
+                            <input :type="showToken ? 'text' : 'password'" name="telegram_alert_bot_token" value="{{ $alertConfig['telegram']['bot_token'] }}" placeholder="123456789:ABCdefGHIjklMNOpqr..." class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-sky-500 font-mono">
+                            <button type="button" @click="showToken = !showToken" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-xl text-xs text-gray-600 font-semibold transition" title="Lihat/Sembunyikan">
+                                <i class="fas" :class="showToken ? 'fa-eye-slash text-rose-500' : 'fa-eye'"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">
+                            <i class="fas fa-comments text-sky-600 mr-1"></i> Telegram Chat ID (Pribadi / Grup):
+                        </label>
+                        <input type="text" name="telegram_alert_chat_id" value="{{ $alertConfig['telegram']['chat_id'] }}" placeholder="Contoh: 123456789 atau -100123456789" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-sky-500 font-mono">
+                        <p class="text-[10px] text-gray-400 mt-1">Chat ID didapat dari bot Telegram atau @userinfobot.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tombol Simpan Konfigurasi -->
+        <div class="flex items-center justify-between pt-2">
+            <p class="text-xs text-gray-500">
+                <i class="fas fa-shield-alt text-rose-600 mr-1"></i> Error 404, validasi form, dan token CSRF kedaluwarsa <b>otomatis diabaikan</b> agar tidak mengganggu.
+            </p>
+            <button type="submit" class="px-7 py-3 bg-slate-900 hover:bg-black text-white rounded-xl font-bold text-sm shadow-md transition-all flex items-center gap-2">
+                <i class="fas fa-save"></i> Simpan Konfigurasi Notifikasi Error
+            </button>
+        </div>
+    </form>
+
+    <!-- Bar Uji Coba Pengiriman Notifikasi (Live Testing) -->
+    <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h3 class="text-base font-bold flex items-center gap-2">
+                    <i class="fas fa-vial text-amber-400"></i> Uji Coba Pengiriman Laporan Error
+                </h3>
+                <p class="text-xs text-slate-300">Kirim simulasi laporan error secara instan untuk memastikan nomor WA dan Telegram Anda berhasil menerima notifikasi</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <form action="{{ route('admin.settings.error_alerts.test') }}" method="POST" class="inline-block">
+                    @csrf
+                    <input type="hidden" name="channel" value="whatsapp">
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                        <i class="fab fa-whatsapp"></i> Tes WhatsApp Saja
+                    </button>
+                </form>
+
+                <form action="{{ route('admin.settings.error_alerts.test') }}" method="POST" class="inline-block">
+                    @csrf
+                    <input type="hidden" name="channel" value="telegram">
+                    <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                        <i class="fab fa-telegram-plane"></i> Tes Telegram Saja
+                    </button>
+                </form>
+
+                <form action="{{ route('admin.settings.error_alerts.test') }}" method="POST" class="inline-block">
+                    @csrf
+                    <input type="hidden" name="channel" value="all">
+                    <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                        <i class="fas fa-paper-plane"></i> Tes Keduanya (Semua Saluran)
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Riwayat Error Terakhir (Live Error Logs Viewer) -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+            <div>
+                <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fas fa-clipboard-list text-rose-600"></i> Riwayat Log Error Sistem Terkini (Live Logs)
+                </h3>
+                <p class="text-xs text-gray-500">Merekam riwayat exception kritis terakhir yang tercatat di server storage PembdaHUB</p>
+            </div>
+            <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-mono font-bold">
+                {{ count($recentLogs) }} Log Terkini
+            </span>
+        </div>
+
+        @if(empty($recentLogs))
+        <div class="p-8 text-center bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-2">
+            <i class="fas fa-check-circle text-emerald-500 text-3xl"></i>
+            <h4 class="text-sm font-bold text-emerald-900">Sistem Berjalan Mulus Tanpa Error Kritis</h4>
+            <p class="text-xs text-emerald-700">Tidak ada catatan exception kritis atau database failure di log server saat ini.</p>
+        </div>
+        @else
+        <div class="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden text-xs">
+            @foreach($recentLogs as $log)
+            <div x-data="{ expanded: false }" class="p-4 hover:bg-gray-50 transition">
+                <div class="flex items-start justify-between gap-3 cursor-pointer" @click="expanded = !expanded">
+                    <div class="space-y-1 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono {{ $log['level'] === 'CRITICAL' || $log['level'] === 'EMERGENCY' ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-amber-100 text-amber-800 border border-amber-200' }}">
+                                {{ $log['level'] }}
+                            </span>
+                            <span class="font-mono text-gray-400 text-[11px]">{{ $log['timestamp'] }}</span>
+                            <span class="text-gray-400">•</span>
+                            <span class="text-gray-500 font-mono text-[10px] uppercase">Env: {{ $log['environment'] }}</span>
+                        </div>
+                        <p class="font-mono font-semibold text-gray-900 leading-snug break-all">{{ $log['short_message'] }}</p>
+                    </div>
+                    <button type="button" class="text-gray-400 hover:text-gray-600 text-xs px-2 py-1 bg-gray-100 rounded">
+                        <span x-text="expanded ? 'Tutup Trace' : 'Lihat Detail'"></span>
+                    </button>
+                </div>
+                <div x-show="expanded" style="display: none;" class="mt-3 p-3 bg-slate-900 text-slate-200 rounded-xl font-mono text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed">
+                    {{ $log['full_message'] }}
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+    </div>
+</div>
+@endsection

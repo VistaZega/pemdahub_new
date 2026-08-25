@@ -66,6 +66,16 @@
             </div>
             <h3 class="text-lg font-bold text-gray-900 mb-2">Konversi Predikat Rapor</h3>
             <p class="text-sm text-gray-600">Konfigurasi rumus konversi nilai angka ke predikat (A, B, C, D) per tingkat kelas SMP & SMA/SMK.</p>
+        <!-- Kartu Pintasan Pengaturan: Notifikasi Error & Monitoring -->
+        <a href="{{ route('admin.settings.error_alerts') }}" class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block border-t-4 border-rose-500">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <span class="text-gray-400"><i class="fas fa-chevron-right"></i></span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Notifikasi Error & Monitoring</h3>
+            <p class="text-sm text-gray-600">Laporan otomatis kegagalan sistem (500 Error) langsung ke WhatsApp dan Telegram Super Admin.</p>
         </a>
 
         <!-- Tempat placeholder untuk pengaturan lain -->

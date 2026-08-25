@@ -318,6 +318,9 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::get('settings/whatsapp/templates', [App\Http\Controllers\Admin\SettingsController::class, 'whatsappTemplates'])->name('settings.whatsapp.templates');
     Route::put('settings/whatsapp/templates', [App\Http\Controllers\Admin\SettingsController::class, 'updateWhatsappTemplates'])->name('settings.whatsapp.templates.update');
     Route::post('settings/whatsapp/digest-test', [App\Http\Controllers\Admin\SettingsController::class, 'testExecutiveDigest'])->name('settings.whatsapp.digest.test');
+    Route::get('settings/error-alerts', [App\Http\Controllers\Admin\SettingsController::class, 'errorAlerts'])->name('settings.error_alerts');
+    Route::put('settings/error-alerts', [App\Http\Controllers\Admin\SettingsController::class, 'updateErrorAlerts'])->name('settings.error_alerts.update');
+    Route::post('settings/error-alerts/test', [App\Http\Controllers\Admin\SettingsController::class, 'testErrorAlertChannel'])->name('settings.error_alerts.test');
     Route::get('settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     
     // Report Cards (Rapor Digital)
