@@ -1,4 +1,4 @@
-@extends('layouts.mobile')
+@extends('mobile.layouts.app')
 
 @section('title', 'Manajemen Ekstrakurikuler')
 
