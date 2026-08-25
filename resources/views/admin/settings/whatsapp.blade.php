@@ -92,28 +92,77 @@
                     </div>
                 </div>
 
-                <!-- Input Form Token Fonnte Langsung di Web -->
-                <form action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="mb-4 bg-white/90 rounded-xl p-3 border border-gray-200/80 space-y-2">
+                <!-- Token Fonnte: Locked & Protected State -->
+                @if(!empty($providersInfo['fonnte']['has_token']))
+                <div x-data="{ editing: false, showToken: false }" class="mb-4 bg-white/95 rounded-xl p-3 border border-gray-200 shadow-sm space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5">
+                            <i class="fas fa-key text-amber-500"></i> API Token Fonnte:
+                        </label>
+                        <span class="text-[10px] text-emerald-700 bg-emerald-100 font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200">
+                            <i class="fas fa-lock text-[9px]"></i> Terkunci & Aman
+                        </span>
+                    </div>
+
+                    <!-- Locked View (Masked) -->
+                    <div x-show="!editing" class="flex items-center justify-between bg-gray-50 border border-gray-200/80 rounded-lg px-3 py-1.5">
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <i class="fas fa-shield-alt text-emerald-600 text-xs"></i>
+                            <span class="font-mono text-xs text-gray-600 tracking-wider select-none truncate" x-show="!showToken">
+                                {{ strlen($providersInfo['fonnte']['api_token']) > 8 ? substr($providersInfo['fonnte']['api_token'], 0, 4) . '••••••••••••' . substr($providersInfo['fonnte']['api_token'], -4) : '••••••••••••••••' }}
+                            </span>
+                            <span class="font-mono text-xs text-gray-900 select-all truncate" x-show="showToken" style="display: none;">
+                                {{ $providersInfo['fonnte']['api_token'] }}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-1.5 ml-2">
+                            <button type="button" @click="showToken = !showToken" class="p-1.5 px-2 bg-white hover:bg-gray-100 border border-gray-200 rounded text-xs text-gray-600 font-semibold transition" title="Lihat/Sembunyikan">
+                                <i class="fas" :class="showToken ? 'fa-eye-slash text-rose-500' : 'fa-eye text-gray-500'"></i>
+                            </button>
+                            <button type="button" @click="editing = true" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded text-[11px] font-bold transition flex items-center gap-1 shadow-sm whitespace-nowrap">
+                                <i class="fas fa-lock-open text-[10px]"></i> Buka / Ganti
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Form Edit (Muncul jika klik 'Buka / Ganti') -->
+                    <form x-show="editing" style="display: none;" action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="space-y-2 pt-1">
+                        @csrf
+                        <input type="hidden" name="provider" value="fonnte">
+                        <div class="flex gap-2">
+                            <input type="password" name="api_token" placeholder="Paste Token Fonnte Baru..." class="w-full px-3 py-1.5 rounded-lg border border-emerald-400 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white" required>
+                            <button type="submit" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition whitespace-nowrap">
+                                <i class="fas fa-save"></i> Simpan
+                            </button>
+                            <button type="button" @click="editing = false" class="px-2.5 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-xs font-bold transition">
+                                Batal
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-gray-400">Token baru akan disimpan dan otomatis terkunci kembali.</p>
+                    </form>
+                </div>
+                @else
+                <!-- Form Input Pertama Kali (Belum ada token) -->
+                <form action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="mb-4 bg-white/95 rounded-xl p-3 border border-amber-200 shadow-sm space-y-2">
                     @csrf
                     <input type="hidden" name="provider" value="fonnte">
                     <div class="flex items-center justify-between">
-                        <label class="block text-[11px] font-bold text-gray-700">
-                            <i class="fas fa-key text-amber-500 mr-1"></i> API Token Fonnte:
+                        <label class="block text-[11px] font-bold text-gray-700 flex items-center gap-1.5">
+                            <i class="fas fa-key text-amber-500"></i> API Token Fonnte:
                         </label>
-                        @if(!empty($providersInfo['fonnte']['has_token']))
-                            <span class="text-[10px] text-emerald-600 font-bold">✓ Token Tersimpan</span>
-                        @else
-                            <span class="text-[10px] text-amber-600 font-bold">⚠️ Masukkan Token</span>
-                        @endif
+                        <span class="text-[10px] text-amber-700 bg-amber-100 font-bold px-2 py-0.5 rounded-full">
+                            ⚠️ Belum Diisi
+                        </span>
                     </div>
                     <div class="flex gap-2">
-                        <input type="text" name="api_token" value="{{ $providersInfo['fonnte']['api_token'] ?? '' }}" placeholder="Paste API Token dari fonnte.com..." class="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-mono focus:outline-none focus:border-emerald-500 bg-white">
-                        <button type="submit" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold shadow-sm transition-all whitespace-nowrap">
-                            <i class="fas fa-save"></i> Simpan
+                        <input type="password" name="api_token" placeholder="Paste API Token dari fonnte.com..." class="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-mono focus:outline-none focus:border-emerald-500 bg-white" required>
+                        <button type="submit" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold shadow-sm transition whitespace-nowrap">
+                            <i class="fas fa-save"></i> Simpan & Kunci
                         </button>
                     </div>
                     <p class="text-[10px] text-gray-400">Token didapat dari dashboard <a href="https://fonnte.com" target="_blank" class="text-emerald-600 underline font-semibold">fonnte.com</a> setelah scan QR.</p>
                 </form>
+                @endif
 
                 @if($isFonnteActive && !empty($accountInfo['success']) && !empty($accountInfo['data']['device']))
                 <div class="mb-4 bg-emerald-50/90 rounded-xl p-3 border border-emerald-200 space-y-1.5 text-xs text-emerald-900">
@@ -168,26 +217,43 @@
                     </div>
                 </div>
 
-                <!-- Input Form Endpoint Baileys -->
-                <form action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="mb-4 bg-white/90 rounded-xl p-3 border border-gray-200/80 space-y-2">
-                    @csrf
-                    <input type="hidden" name="provider" value="selfhosted">
+                <!-- Endpoint Baileys: Protected View -->
+                <div x-data="{ editing: false }" class="mb-4 bg-white/95 rounded-xl p-3 border border-gray-200 shadow-sm space-y-2">
                     <div class="flex items-center justify-between">
-                        <label class="block text-[11px] font-bold text-gray-700">
-                            <i class="fas fa-link text-blue-500 mr-1"></i> Baileys Server URL:
+                        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5">
+                            <i class="fas fa-link text-blue-500"></i> Baileys Server URL:
                         </label>
-                        <span class="text-[10px] {{ $isBaileysActive && $isConnected ? 'text-emerald-600 font-bold' : 'text-gray-500' }}">
-                            {{ $isBaileysActive ? ($isConnected ? '✓ Ready' : '🟡 Perlu Scan QR') : 'Standby' }}
+                        <span class="text-[10px] {{ $isBaileysActive && $isConnected ? 'text-emerald-700 bg-emerald-100 border-emerald-200' : 'text-gray-600 bg-gray-100 border-gray-200' }} font-bold px-2 py-0.5 rounded-full border">
+                            {{ $isBaileysActive ? ($isConnected ? '✓ Ready' : '🟡 Standby') : 'Tersimpan' }}
                         </span>
                     </div>
-                    <div class="flex gap-2">
-                        <input type="text" name="api_url" value="{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3000' }}" placeholder="http://localhost:3000" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-mono focus:outline-none focus:border-emerald-500 bg-white">
-                        <button type="submit" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold shadow-sm transition-all whitespace-nowrap">
-                            <i class="fas fa-save"></i> Simpan
+
+                    <!-- Locked URL Display -->
+                    <div x-show="!editing" class="flex items-center justify-between bg-gray-50 border border-gray-200/80 rounded-lg px-3 py-1.5">
+                        <div class="flex items-center gap-2 truncate">
+                            <i class="fas fa-network-wired text-blue-500 text-xs"></i>
+                            <code class="font-mono text-xs text-gray-700 truncate">{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3000' }}</code>
+                        </div>
+                        <button type="button" @click="editing = true" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded text-[11px] font-bold transition flex items-center gap-1 shadow-sm whitespace-nowrap ml-2">
+                            <i class="fas fa-edit text-[10px]"></i> Ubah
                         </button>
                     </div>
-                    <p class="text-[10px] text-gray-400">Endpoint Node.js Baileys engine yang berjalan di server.</p>
-                </form>
+
+                    <!-- Form Edit URL Baileys -->
+                    <form x-show="editing" style="display: none;" action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="space-y-2 pt-1">
+                        @csrf
+                        <input type="hidden" name="provider" value="selfhosted">
+                        <div class="flex gap-2">
+                            <input type="text" name="api_url" value="{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3000' }}" placeholder="http://localhost:3000" class="w-full px-3 py-1.5 rounded-lg border border-blue-400 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white" required>
+                            <button type="submit" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm transition whitespace-nowrap">
+                                <i class="fas fa-save"></i> Simpan
+                            </button>
+                            <button type="button" @click="editing = false" class="px-2.5 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-xs font-bold transition">
+                                Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
                 <div class="flex gap-2">
                     @if(!$isBaileysActive)
