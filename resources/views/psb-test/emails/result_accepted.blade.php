@@ -142,7 +142,7 @@
             </div>
 
             <center>
-                <a href="{{ route('public.registration.check-status') }}" class="btn">Unduh SK Kelulusan & Daftar Ulang</a>
+                <a href="{{ route('public.registration.check') }}" class="btn">Unduh SK Kelulusan & Daftar Ulang</a>
             </center>
         </div>
 

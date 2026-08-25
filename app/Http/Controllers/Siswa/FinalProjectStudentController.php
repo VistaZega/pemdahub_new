@@ -208,7 +208,13 @@ class FinalProjectStudentController extends Controller
         list($student, $classroom) = $this->getStudentAndClassroom();
         $year = $classroom->academicYear->year ?? date('Y');
         
-        $pdf = Pdf::loadView('pdf.panduan_penelitian', compact('year'));
+        $schoolCode = strtolower($student->school->code ?? '');
+        $viewName = str_contains($schoolCode, 'smk') ? 'pdf.panduan_smk' : 'pdf.panduan_sma';
+        if (!view()->exists($viewName)) {
+            $viewName = 'pdf.panduan_penelitian';
+        }
+        
+        $pdf = Pdf::loadView($viewName, compact('year', 'student'));
         return $pdf->download('Buku_Panduan_Penyusunan_Penelitian_dan_Tugas_Akhir.pdf');
     }
 

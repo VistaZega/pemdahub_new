@@ -113,7 +113,7 @@
             </div>
 
             <center>
-                <a href="{{ route('public.registration.check-status') }}" class="btn">Lihat Lokasi & Cetak Kartu</a>
+                <a href="{{ route('public.registration.check') }}" class="btn">Lihat Lokasi & Cetak Kartu</a>
             </center>
         </div>
 

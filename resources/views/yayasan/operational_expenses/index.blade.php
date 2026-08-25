@@ -245,7 +245,7 @@
     </div>
 
     {{-- FORM INPUT RENCANA BELANJA OPERASIONAL KELOMPOK PER UNIT SEKOLAH --}}
-    <form action="{{ route('yayasan.operational_expenses.store') }}" method="POST">
+    <form action="{{ route('yayasan.rab.store') }}" method="POST">
         @csrf
         <input type="hidden" name="academic_year_id" value="{{ $currentYear->id ?? '' }}">
 

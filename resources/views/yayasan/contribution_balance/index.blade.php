@@ -384,7 +384,7 @@
             </button>
         </div>
 
-        <form method="POST" action="{{ route('yayasan.contribution_balance.store') }}" class="mt-4 space-y-4">
+        <form method="POST" action="{{ route('yayasan.rab.store') }}" class="mt-4 space-y-4">
             @csrf
             <input type="hidden" name="school_id" id="modalSchoolId">
             <input type="hidden" name="academic_year_id" value="{{ $currentYear->id ?? '' }}">

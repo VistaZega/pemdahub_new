@@ -119,7 +119,7 @@
             </div>
 
             <center>
-                <a href="{{ route('public.registration.check-status') }}" class="btn">Cek Status Pendaftaran</a>
+                <a href="{{ route('public.registration.check') }}" class="btn">Cek Status Pendaftaran</a>
             </center>
         </div>
 

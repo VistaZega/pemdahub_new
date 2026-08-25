@@ -104,7 +104,7 @@
             </p>
 
             <center>
-                <a href="{{ route('public.registration.check-status') }}" class="btn">Unduh Kartu Peserta Ujian</a>
+                <a href="{{ route('public.registration.check') }}" class="btn">Unduh Kartu Peserta Ujian</a>
             </center>
         </div>
 

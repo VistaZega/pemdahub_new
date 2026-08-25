@@ -61,12 +61,12 @@
                    class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl hover:shadow-lg transition">
                     <i class="fas fa-file-pdf mr-2"></i> Cetak PDF
                 </button>
-                <a href="{{ route('treasurer.workload.salary-report.export', ['school_id' => $schoolId, 'academic_year_id' => $yearId, 'semester_id' => $semesterId]) }}"
+                <a href="{{ route('treasurer.salary-report.export', ['school_id' => $schoolId, 'academic_year_id' => $yearId, 'semester_id' => $semesterId]) }}"
                    class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-lg transition">
                     <i class="fas fa-file-csv mr-2"></i> Export CSV
                 </a>
                 @endif
-                <a href="{{ route('treasurer.workload.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50">
+                <a href="{{ route('treasurer.dashboard') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50">
                     <i class="fas fa-arrow-left mr-2"></i> Kembali
                 </a>
             </div>
