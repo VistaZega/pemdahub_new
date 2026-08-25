@@ -67,41 +67,55 @@
     </div>
 
     {{-- Filters --}}
-    <div class="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-sm">
-        <form method="GET" class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+    <div class="bg-white p-4 sm:p-5 rounded-3xl border-2 border-slate-200 shadow-sm">
+        <form method="GET" class="grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center">
             @if(in_array(auth()->user()->role, ['superadmin', 'admin_yayasan', 'yayasan']))
             <div class="sm:col-span-4">
-                <select name="school_id" onchange="this.form.submit()" class="w-full text-xs font-black rounded-2xl border-2 border-slate-300 bg-slate-50 py-3 px-3.5 focus:bg-white text-slate-900">
-                    <option value="">-- Seluruh Unit Sekolah (3 Sekolah Aktif) --</option>
-                    @foreach($schools as $sch)
-                    <option value="{{ $sch->id }}" {{ request('school_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name }}</option>
-                    @endforeach
-                </select>
+                <div class="relative">
+                    <select name="school_id" onchange="this.form.submit()" class="w-full text-sm font-bold rounded-2xl border-2 border-slate-300 bg-slate-50 py-3.5 pl-5 pr-10 focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 text-slate-900 transition shadow-2xs appearance-none cursor-pointer">
+                        <option value="">-- Seluruh Unit Sekolah (3 Sekolah Aktif) --</option>
+                        @foreach($schools as $sch)
+                        <option value="{{ $sch->id }}" {{ request('school_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name }}</option>
+                        @endforeach
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-4.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                </div>
             </div>
             @endif
 
-            <div class="sm:col-span-3">
-                <select name="category" onchange="this.form.submit()" class="w-full text-xs font-black rounded-2xl border-2 border-slate-300 bg-slate-50 py-3 px-3.5 focus:bg-white text-slate-900">
-                    <option value="">-- Semua Kategori --</option>
-                    <option value="marching_band" {{ request('category') == 'marching_band' ? 'selected' : '' }}>🥁 Marching Band / Korsik</option>
-                    <option value="pramuka" {{ request('category') == 'pramuka' ? 'selected' : '' }}>⚜️ Gerakan Pramuka</option>
-                    <option value="paskibraka" {{ request('category') == 'paskibraka' ? 'selected' : '' }}>🇮🇩 Paskibraka</option>
-                    <option value="seni_budaya" {{ request('category') == 'seni_budaya' ? 'selected' : '' }}>🎭 Seni & Budaya</option>
-                    <option value="olahraga" {{ request('category') == 'olahraga' ? 'selected' : '' }}>⚽ Olahraga & Atletik</option>
-                    <option value="sains_it" {{ request('category') == 'sains_it' ? 'selected' : '' }}>💻 Sains & IT</option>
-                    <option value="keagamaan" {{ request('category') == 'keagamaan' ? 'selected' : '' }}>✝️ Keagamaan</option>
-                </select>
-            </div>
-
-            <div class="sm:col-span-4">
+            <div class="{{ in_array(auth()->user()->role, ['superadmin', 'admin_yayasan', 'yayasan']) ? 'sm:col-span-3' : 'sm:col-span-4' }}">
                 <div class="relative">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama unit / pembina..." class="w-full text-xs font-bold rounded-2xl border-2 border-slate-300 bg-slate-50 py-3 pl-10 pr-4 focus:bg-white text-slate-900 placeholder:text-slate-400">
-                    <i class="fas fa-search absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                    <select name="category" onchange="this.form.submit()" class="w-full text-sm font-bold rounded-2xl border-2 border-slate-300 bg-slate-50 py-3.5 pl-5 pr-10 focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 text-slate-900 transition shadow-2xs appearance-none cursor-pointer">
+                        <option value="">-- Semua Kategori --</option>
+                        <option value="marching_band" {{ request('category') == 'marching_band' ? 'selected' : '' }}>🥁 Marching Band / Korsik</option>
+                        <option value="pramuka" {{ request('category') == 'pramuka' ? 'selected' : '' }}>⚜️ Gerakan Pramuka</option>
+                        <option value="paskibraka" {{ request('category') == 'paskibraka' ? 'selected' : '' }}>🇮🇩 Paskibraka</option>
+                        <option value="seni_budaya" {{ request('category') == 'seni_budaya' ? 'selected' : '' }}>🎭 Seni & Budaya</option>
+                        <option value="olahraga" {{ request('category') == 'olahraga' ? 'selected' : '' }}>⚽ Olahraga & Atletik</option>
+                        <option value="sains_it" {{ request('category') == 'sains_it' ? 'selected' : '' }}>💻 Sains & IT</option>
+                        <option value="keagamaan" {{ request('category') == 'keagamaan' ? 'selected' : '' }}>✝️ Keagamaan</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-4.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
                 </div>
             </div>
 
-            <div class="sm:col-span-1 flex gap-2">
-                <button type="submit" class="w-full py-3 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl text-xs font-black hover:from-indigo-900 hover:to-purple-950 transition shadow-sm">Cari</button>
+            <div class="{{ in_array(auth()->user()->role, ['superadmin', 'admin_yayasan', 'yayasan']) ? 'sm:col-span-4' : 'sm:col-span-6' }}">
+                <div class="relative">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama unit / pembina..." class="w-full text-sm font-semibold rounded-2xl border-2 border-slate-300 bg-slate-50 py-3.5 pl-12 pr-4 focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 text-slate-900 placeholder:text-slate-400 transition shadow-2xs">
+                    <i class="fas fa-search absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+                </div>
+            </div>
+
+            <div class="{{ in_array(auth()->user()->role, ['superadmin', 'admin_yayasan', 'yayasan']) ? 'sm:col-span-1' : 'sm:col-span-2' }} flex gap-2">
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl text-sm font-black hover:from-indigo-900 hover:to-purple-950 transition shadow-sm flex items-center justify-center gap-1.5 active:scale-95">
+                    <i class="fas fa-search text-xs"></i>
+                    <span class="{{ in_array(auth()->user()->role, ['superadmin', 'admin_yayasan', 'yayasan']) ? 'hidden xl:inline' : 'inline' }}">Cari</span>
+                </button>
+                @if(request('school_id') || request('category') || request('search'))
+                <a href="{{ route('admin.extracurricular.index') }}" class="py-3.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl transition border-2 border-slate-200 flex items-center justify-center text-xs font-bold" title="Reset Filter">
+                    <i class="fas fa-times"></i>
+                </a>
+                @endif
             </div>
         </form>
     </div>
@@ -228,65 +242,71 @@
 
             @if($isGlobal)
             <div>
-                <label class="block font-black text-slate-800 text-xs mb-1">Unit Naungan Sekolah / Yayasan *</label>
-                <select name="school_id" class="w-full rounded-2xl border-2 border-slate-300 font-bold text-slate-900 text-xs p-3">
-                    <option value="">🏛️ Tingkat Yayasan (Marching Band / Lintas Unit)</option>
-                    @foreach($schools as $sch)
-                    <option value="{{ $sch->id }}">{{ $sch->name }}</option>
-                    @endforeach
-                </select>
+                <label class="block font-black text-slate-800 text-xs mb-1.5 pl-1">Unit Naungan Sekolah / Yayasan *</label>
+                <div class="relative">
+                    <select name="school_id" class="w-full rounded-2xl border-2 border-slate-300 font-bold text-slate-900 text-sm py-3 pl-4.5 pr-10 bg-slate-50 focus:bg-white focus:border-indigo-600 appearance-none cursor-pointer">
+                        <option value="">🏛️ Tingkat Yayasan (Marching Band / Lintas Unit)</option>
+                        @foreach($schools as $sch)
+                        <option value="{{ $sch->id }}">{{ $sch->name }}</option>
+                        @endforeach
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                </div>
             </div>
             @else
             <input type="hidden" name="school_id" value="{{ auth()->user()->school_id }}">
             @endif
 
             <div>
-                <label class="block font-black text-slate-800 text-xs mb-1">Nama Unit Kegiatan *</label>
-                <input type="text" name="name" required placeholder="Contoh: Sanggar Seni Budaya Nias" class="w-full rounded-2xl border-2 border-slate-300 font-bold text-slate-900 text-xs p-3">
+                <label class="block font-black text-slate-800 text-xs mb-1.5 pl-1">Nama Unit Kegiatan *</label>
+                <input type="text" name="name" required placeholder="Contoh: Sanggar Seni Budaya Nias" class="w-full rounded-2xl border-2 border-slate-300 font-bold text-slate-900 text-sm py-3 px-4.5 bg-slate-50 focus:bg-white focus:border-indigo-600">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block font-black text-slate-800 text-xs mb-1">Kategori *</label>
-                    <select name="category" required class="w-full rounded-2xl border-2 border-slate-300 font-bold text-slate-900 text-xs p-3">
-                        <option value="marching_band">🥁 Marching Band / Korsik</option>
-                        <option value="pramuka">⚜️ Gerakan Pramuka</option>
-                        <option value="paskibraka">🇮🇩 Paskibraka</option>
-                        <option value="seni_budaya">🎭 Seni & Budaya / Sanggar</option>
-                        <option value="olahraga">⚽ Olahraga & Atletik</option>
-                        <option value="sains_it">💻 Sains & IT Club</option>
-                        <option value="keagamaan">✝️ Keagamaan</option>
-                        <option value="jurnalistik">📰 Jurnalistik</option>
-                        <option value="umum">🎨 Umum</option>
-                    </select>
+                    <label class="block font-black text-slate-800 text-xs mb-1.5 pl-1">Kategori *</label>
+                    <div class="relative">
+                        <select name="category" required class="w-full rounded-2xl border-2 border-slate-300 font-bold text-slate-900 text-sm py-3 pl-4.5 pr-10 bg-slate-50 focus:bg-white focus:border-indigo-600 appearance-none cursor-pointer">
+                            <option value="marching_band">🥁 Marching Band / Korsik</option>
+                            <option value="pramuka">⚜️ Gerakan Pramuka</option>
+                            <option value="paskibraka">🇮🇩 Paskibraka</option>
+                            <option value="seni_budaya">🎭 Seni & Budaya / Sanggar</option>
+                            <option value="olahraga">⚽ Olahraga & Atletik</option>
+                            <option value="sains_it">💻 Sains & IT Club</option>
+                            <option value="keagamaan">✝️ Keagamaan</option>
+                            <option value="jurnalistik">📰 Jurnalistik</option>
+                            <option value="umum">🎨 Umum</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block font-black text-slate-800 text-xs mb-1">Emoji / Icon</label>
-                    <input type="text" name="icon" placeholder="Contoh: 🎭 atau 🥁" class="w-full rounded-2xl border-2 border-slate-300 font-bold text-slate-900 text-xs p-3">
+                    <label class="block font-black text-slate-800 text-xs mb-1.5 pl-1">Emoji / Icon</label>
+                    <input type="text" name="icon" placeholder="Contoh: 🎭 atau 🥁" class="w-full rounded-2xl border-2 border-slate-300 font-bold text-slate-900 text-sm py-3 px-4.5 bg-slate-50 focus:bg-white focus:border-indigo-600">
                 </div>
             </div>
 
             <div>
-                <label class="block font-black text-slate-800 text-xs mb-1">Deskripsi Kegiatan</label>
-                <textarea name="description" rows="3" placeholder="Uraian visi, misi, dan aktivitas unit ekskul..." class="w-full rounded-2xl border-2 border-slate-300 text-slate-900 text-xs p-3"></textarea>
+                <label class="block font-black text-slate-800 text-xs mb-1.5 pl-1">Deskripsi Kegiatan</label>
+                <textarea name="description" rows="3" placeholder="Uraian visi, misi, dan aktivitas unit ekskul..." class="w-full rounded-2xl border-2 border-slate-300 text-slate-900 text-sm p-4 bg-slate-50 focus:bg-white focus:border-indigo-600 leading-relaxed"></textarea>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block font-black text-slate-800 text-xs mb-1">Jadwal Latihan</label>
-                    <input type="text" name="schedule_day_time" placeholder="Contoh: Sabtu, 15:00 - 17:00" class="w-full rounded-2xl border-2 border-slate-300 font-bold text-slate-900 text-xs p-3">
+                    <label class="block font-black text-slate-800 text-xs mb-1.5 pl-1">Jadwal Latihan</label>
+                    <input type="text" name="schedule_day_time" placeholder="Contoh: Sabtu, 15:00 - 17:00" class="w-full rounded-2xl border-2 border-slate-300 font-bold text-slate-900 text-sm py-3 px-4.5 bg-slate-50 focus:bg-white focus:border-indigo-600">
                 </div>
 
                 <div>
-                    <label class="block font-black text-slate-800 text-xs mb-1">Lokasi Latihan</label>
-                    <input type="text" name="location" placeholder="Contoh: Lapangan Utama Pembda" class="w-full rounded-2xl border-2 border-slate-300 font-bold text-slate-900 text-xs p-3">
+                    <label class="block font-black text-slate-800 text-xs mb-1.5 pl-1">Lokasi Latihan</label>
+                    <input type="text" name="location" placeholder="Contoh: Lapangan Utama Pembda" class="w-full rounded-2xl border-2 border-slate-300 font-bold text-slate-900 text-sm py-3 px-4.5 bg-slate-50 focus:bg-white focus:border-indigo-600">
                 </div>
             </div>
 
             <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
                 <button type="button" onclick="document.getElementById('modalAddEkskul').classList.add('hidden')" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl font-bold transition">Batal</button>
-                <button type="submit" class="px-6 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white rounded-2xl font-black transition shadow-md active:scale-95">Simpan Unit Baru</button>
+                <button type="submit" class="px-6 py-3.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white rounded-2xl font-black text-sm transition shadow-md active:scale-95">Simpan Unit Baru</button>
             </div>
         </form>
     </div>
