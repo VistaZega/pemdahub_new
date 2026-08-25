@@ -331,16 +331,28 @@ class Student extends Model
      */
     public function getPhotoUrlAttribute(): string
     {
-        if ($this->photo && Storage::disk('public')->exists($this->photo)) {
-            return asset('storage/' . $this->photo);
+        if (!empty($this->photo)) {
+            if (filter_var($this->photo, FILTER_VALIDATE_URL) || str_starts_with($this->photo, 'http://') || str_starts_with($this->photo, 'https://')) {
+                return $this->photo;
+            }
+            if (str_starts_with($this->photo, 'storage/')) {
+                return asset($this->photo);
+            }
+            return asset('storage/' . ltrim($this->photo, '/'));
         }
 
-        if ($this->applicant && $this->applicant->photo_path && Storage::disk('public')->exists($this->applicant->photo_path)) {
-            return asset('storage/' . $this->applicant->photo_path);
+        if ($this->applicant && !empty($this->applicant->photo_path)) {
+            if (filter_var($this->applicant->photo_path, FILTER_VALIDATE_URL) || str_starts_with($this->applicant->photo_path, 'http://') || str_starts_with($this->applicant->photo_path, 'https://')) {
+                return $this->applicant->photo_path;
+            }
+            return asset('storage/' . ltrim($this->applicant->photo_path, '/'));
         }
 
-        if ($this->user && $this->user->photo && Storage::disk('public')->exists($this->user->photo)) {
-            return asset('storage/' . $this->user->photo);
+        if ($this->user && !empty($this->user->photo)) {
+            if (filter_var($this->user->photo, FILTER_VALIDATE_URL) || str_starts_with($this->user->photo, 'http://') || str_starts_with($this->user->photo, 'https://')) {
+                return $this->user->photo;
+            }
+            return asset('storage/' . ltrim($this->user->photo, '/'));
         }
 
         return asset('images/default-student.jpg');

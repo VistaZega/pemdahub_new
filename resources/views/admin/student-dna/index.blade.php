@@ -259,8 +259,15 @@
                     <tr class="hover:bg-slate-50/80 transition">
                         <td class="p-4 text-center font-bold text-slate-400">{{ $students->firstItem() + $idx }}</td>
                         <td class="p-4">
-                            <p class="font-bold text-slate-900 text-sm leading-snug">{{ $s->full_name }}</p>
-                            <p class="text-[11px] text-slate-500 font-mono">NISN: {{ $s->nisn ?: '-' }} &bull; NIS: {{ $s->formatted_nis ?: ($s->nis ?: '-') }}</p>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shadow-2xs flex-shrink-0">
+                                    <img src="{{ $s->photo_url }}" class="w-full h-full object-cover" alt="{{ $s->full_name }}" onerror="this.onerror=null; this.src='{{ asset('images/default-student.jpg') }}';">
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="font-bold text-slate-900 text-sm leading-snug truncate">{{ $s->full_name }}</p>
+                                    <p class="text-[11px] text-slate-500 font-mono">NISN: {{ $s->nisn ?: '-' }} &bull; NIS: {{ $s->formatted_nis ?: ($s->nis ?: '-') }}</p>
+                                </div>
+                            </div>
                         </td>
                         <td class="p-4">
                             <p class="font-bold text-slate-800 text-xs">{{ $classroomName }}</p>

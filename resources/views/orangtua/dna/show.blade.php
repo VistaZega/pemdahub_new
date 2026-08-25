@@ -17,15 +17,20 @@
                 <span class="text-slate-500">/</span>
                 <span class="text-purple-300 font-bold">DNA Potensi Anak</span>
             </div>
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div class="space-y-1.5">
-                    <span class="px-3 py-1 bg-gradient-to-r {{ $analysis['archetype']['color'] }} text-white rounded-full text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm">
-                        <i class="fas {{ $analysis['archetype']['badge_icon'] }}"></i> {{ $analysis['archetype']['title'] }}
-                    </span>
-                    <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ $student->full_name }}</h1>
-                    <p class="text-xs sm:text-sm text-slate-200 font-medium">
-                        Profil Bakat & Karakter Belajar: <b class="text-white">"{{ $analysis['archetype']['tagline'] }}"</b>
-                    </p>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-white/30 shadow-lg flex-shrink-0 bg-slate-800">
+                        <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='{{ asset('images/default-student.jpg') }}';">
+                    </div>
+                    <div class="space-y-1.5">
+                        <span class="px-3 py-1 bg-gradient-to-r {{ $analysis['archetype']['color'] }} text-white rounded-full text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm">
+                            <i class="fas {{ $analysis['archetype']['badge_icon'] }}"></i> {{ $analysis['archetype']['title'] }}
+                        </span>
+                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ $student->full_name }}</h1>
+                        <p class="text-xs sm:text-sm text-slate-200 font-medium">
+                            Profil Bakat & Karakter Belajar: <b class="text-white">"{{ $analysis['archetype']['tagline'] }}"</b>
+                        </p>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2">
                     <a href="{{ route('orangtua.anak.dna.pdf', $student) }}" class="px-5 py-2.5 bg-white text-indigo-900 hover:bg-gray-50 rounded-xl font-bold transition flex items-center gap-2 text-xs shadow-md active:scale-95">
