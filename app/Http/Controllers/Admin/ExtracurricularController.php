@@ -22,22 +22,48 @@ class ExtracurricularController extends Controller
         $this->ekskulService = $ekskulService;
     }
 
+    private function isGlobalAdmin(): bool
+    {
+        $user = Auth::user();
+        return $user && in_array($user->role, ['superadmin', 'admin_yayasan', 'yayasan', 'ketua_yayasan']);
+    }
+
+    private function checkSchoolAccess(int $schoolId): void
+    {
+        $user = Auth::user();
+        if (!$user) {
+            abort(403, 'Akses Ditolak: Anda belum login.');
+        }
+
+        if ($this->isGlobalAdmin()) {
+            return;
+        }
+
+        if (!$user->school_id || (int)$user->school_id !== (int)$schoolId) {
+            abort(403, 'Akses Ditolak: Kewenangan PKS dan Guru terbatas hanya pada unit sekolah Anda sendiri.');
+        }
+    }
+
     /**
      * Display list of Extracurricular units.
      */
     public function index(Request $request)
     {
         $user = Auth::user();
-        $schoolId = $request->get('school_id');
+        $isGlobal = $this->isGlobalAdmin();
 
         $query = Extracurricular::with(['school', 'advisor', 'leader', 'secretary', 'treasurer', 'activeMembers'])
             ->withCount(['members', 'activeMembers', 'activities']);
 
-        // Filter school: if regular school admin / teacher, restrict to their school
-        if ($user && $user->school_id && !in_array($user->role, ['superadmin', 'admin_yayasan', 'yayasan'])) {
-            $query->where('school_id', $user->school_id);
-        } elseif ($schoolId) {
+        // Strict school filtering: PKS / Guru / Admin Sekolah can ONLY see their own school
+        if (!$isGlobal) {
+            $schoolId = $user->school_id;
             $query->where('school_id', $schoolId);
+        } else {
+            $schoolId = $request->get('school_id');
+            if ($schoolId) {
+                $query->where('school_id', $schoolId);
+            }
         }
 
         if ($request->filled('category')) {
@@ -55,19 +81,33 @@ class ExtracurricularController extends Controller
 
         $extracurriculars = $query->orderBy('name')->paginate(12)->withQueryString();
 
-        // 3 Active Schools only (excluding Yayasan oversight entity)
-        $schools = School::schoolsOnly()->get();
-        if ($schools->isEmpty()) {
-            $schools = School::where('type', '!=', 'yayasan')->get();
+        // Schools list: Global admins get all active schools, PKS only gets their own school
+        if ($isGlobal) {
+            $schools = School::schoolsOnly()->get();
+            if ($schools->isEmpty()) {
+                $schools = School::where('type', '!=', 'yayasan')->get();
+            }
+        } else {
+            $schools = School::where('id', $user->school_id)->get();
+        }
+
+        $statsQuery = Extracurricular::where('is_active', true);
+        $membersQuery = ExtracurricularMember::where('status', 'approved');
+        $activitiesQuery = ExtracurricularActivity::query();
+
+        if (!$isGlobal && $user->school_id) {
+            $statsQuery->where('school_id', $user->school_id);
+            $membersQuery->whereHas('extracurricular', fn($q) => $q->where('school_id', $user->school_id));
+            $activitiesQuery->whereHas('extracurricular', fn($q) => $q->where('school_id', $user->school_id));
         }
 
         $stats = [
-            'total_units' => Extracurricular::where('is_active', true)->count(),
-            'total_members' => ExtracurricularMember::where('status', 'approved')->count(),
-            'total_activities' => ExtracurricularActivity::count(),
+            'total_units' => $statsQuery->count(),
+            'total_members' => $membersQuery->count(),
+            'total_activities' => $activitiesQuery->count(),
         ];
 
-        return view('admin.extracurricular.index', compact('extracurriculars', 'schools', 'stats', 'schoolId'));
+        return view('admin.extracurricular.index', compact('extracurriculars', 'schools', 'stats', 'schoolId', 'isGlobal'));
     }
 
     /**
@@ -75,8 +115,11 @@ class ExtracurricularController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
+        $isGlobal = $this->isGlobalAdmin();
+
         $validated = $request->validate([
-            'school_id' => 'required|exists:schools,id',
+            'school_id' => $isGlobal ? 'required|exists:schools,id' : 'nullable',
             'name' => 'required|string|max:255',
             'category' => 'required|string',
             'description' => 'nullable|string',
@@ -91,6 +134,11 @@ class ExtracurricularController extends Controller
             'treasurer_student_id' => 'nullable|exists:students,id',
             'is_active' => 'boolean',
         ]);
+
+        // Force school_id for non-global admins
+        if (!$isGlobal) {
+            $validated['school_id'] = $user->school_id;
+        }
 
         if (empty($validated['advisor_name']) && !empty($validated['advisor_teacher_id'])) {
             $teacher = Teacher::find($validated['advisor_teacher_id']);
@@ -108,6 +156,8 @@ class ExtracurricularController extends Controller
      */
     public function show(Extracurricular $extracurricular)
     {
+        $this->checkSchoolAccess($extracurricular->school_id);
+
         $extracurricular->load([
             'school',
             'advisor',
@@ -137,6 +187,8 @@ class ExtracurricularController extends Controller
      */
     public function update(Request $request, Extracurricular $extracurricular)
     {
+        $this->checkSchoolAccess($extracurricular->school_id);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|string',
@@ -168,6 +220,8 @@ class ExtracurricularController extends Controller
      */
     public function assignLeadership(Request $request, Extracurricular $extracurricular)
     {
+        $this->checkSchoolAccess($extracurricular->school_id);
+
         $validated = $request->validate([
             'advisor_teacher_id' => 'nullable|exists:teachers,id',
             'advisor_name' => 'nullable|string|max:255',
@@ -191,6 +245,8 @@ class ExtracurricularController extends Controller
      */
     public function approveMember(Request $request, ExtracurricularMember $member)
     {
+        $this->checkSchoolAccess($member->extracurricular->school_id);
+
         $this->ekskulService->approveMember($member, Auth::id());
 
         return back()->with('success', "Keanggotaan {$member->student->full_name} telah disetujui (+15 Poin Reputasi).");
@@ -201,6 +257,8 @@ class ExtracurricularController extends Controller
      */
     public function addMember(Request $request, Extracurricular $extracurricular)
     {
+        $this->checkSchoolAccess($extracurricular->school_id);
+
         $validated = $request->validate([
             'student_id' => 'required|exists:students,id',
             'role' => 'required|string',
@@ -208,6 +266,10 @@ class ExtracurricularController extends Controller
         ]);
 
         $student = Student::findOrFail($validated['student_id']);
+        if ((int)$student->school_id !== (int)$extracurricular->school_id) {
+            return back()->with('error', 'Siswa harus berasal dari unit sekolah yang sama dengan unit ekstrakurikuler.');
+        }
+
         $this->ekskulService->claimMembership($student, $extracurricular, $validated['role'], $validated['notes'] ?? null);
 
         return back()->with('success', "Siswa {$student->full_name} berhasil ditambahkan sebagai {$validated['role']}.");
@@ -218,6 +280,8 @@ class ExtracurricularController extends Controller
      */
     public function removeMember(ExtracurricularMember $member)
     {
+        $this->checkSchoolAccess($member->extracurricular->school_id);
+
         $name = $member->student?->full_name ?? 'Siswa';
         $member->delete();
 
@@ -229,6 +293,8 @@ class ExtracurricularController extends Controller
      */
     public function addActivity(Request $request, Extracurricular $extracurricular)
     {
+        $this->checkSchoolAccess($extracurricular->school_id);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'activity_date' => 'required|date',

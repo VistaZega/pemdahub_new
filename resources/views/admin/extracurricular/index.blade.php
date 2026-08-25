@@ -203,6 +203,7 @@
         <form action="{{ route('admin.extracurricular.store') }}" method="POST" class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
             @csrf
 
+            @if($isGlobal)
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Unit Sekolah *</label>
                 <select name="school_id" required class="w-full rounded-xl border-slate-300 font-semibold text-slate-800">
@@ -211,6 +212,15 @@
                     @endforeach
                 </select>
             </div>
+            @else
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Unit Sekolah</label>
+                <div class="p-2.5 bg-slate-100 rounded-xl font-bold text-slate-800 border border-slate-200">
+                    🏫 {{ $schools->first()->name ?? 'Unit Sekolah Anda' }}
+                </div>
+                <input type="hidden" name="school_id" value="{{ auth()->user()->school_id }}">
+            </div>
+            @endif
 
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Nama Unit Kegiatan *</label>
