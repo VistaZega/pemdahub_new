@@ -6,254 +6,281 @@
 <div class="space-y-6" x-data="{ activeTab: 'members', showDeleteModal: false }">
 
     {{-- Breadcrumb & Back --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-        <a href="{{ route('admin.extracurricular.index') }}" class="font-black text-indigo-700 hover:text-indigo-900 flex items-center gap-2 transition text-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <a href="{{ route('admin.extracurricular.index') }}" class="font-extrabold text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition text-sm">
             <i class="fas fa-arrow-left"></i>
             <span>Kembali ke Katalog Ekstrakurikuler</span>
         </a>
-        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border-2 border-indigo-100 shadow-xs text-slate-800 font-bold">
-            <span class="text-slate-500">🏫 Unit Sekolah:</span>
-            <span class="text-indigo-800 font-black text-xs">{{ $extracurricular->school->name ?? 'Yayasan Perguruan Pembda (Lintas Unit Sekolah)' }}</span>
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 shadow-2xs text-slate-700">
+            <span class="text-slate-400 font-bold">Unit Naungan:</span>
+            <span class="text-indigo-900 font-black text-xs">{{ $extracurricular->school->name ?? 'Yayasan Perguruan Pembda (Lintas 3 Unit Sekolah)' }}</span>
         </div>
     </div>
 
-    {{-- Hero Banner (VIBRANT ROYAL GRADIENT - ULTRA HIGH CONTRAST) --}}
-    <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-2xl border-2 border-indigo-400/40">
-        <div class="absolute -top-12 -right-12 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute bottom-0 right-1/4 w-60 h-60 bg-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
-
-        <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+    {{-- Hero Card (UI/UX PRO MAX: CLEAN LIGHT THEME WITH MAXIMUM CONTRAST & ZERO BLUR) --}}
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm relative overflow-hidden space-y-6">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div class="flex items-start gap-4 sm:gap-6">
-                <div class="w-18 h-18 sm:w-22 sm:h-22 rounded-3xl bg-white text-slate-900 border-4 border-white/80 flex items-center justify-center text-4xl sm:text-5xl shadow-2xl flex-shrink-0">
+                {{-- Big Icon --}}
+                <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-3xl bg-indigo-50 border-2 border-indigo-100 text-indigo-600 flex items-center justify-center text-4xl sm:text-5xl shadow-inner flex-shrink-0">
                     {{ $extracurricular->display_icon }}
                 </div>
+
+                {{-- Unit Title & Info --}}
                 <div class="space-y-2">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-white text-indigo-900 shadow-md">
+                        <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-indigo-100 text-indigo-900 border border-indigo-200">
                             {{ $extracurricular->category_label }}
                         </span>
                         @if($extracurricular->isFoundationLevel())
-                        <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-300 text-amber-950 shadow-md border border-amber-400">
-                            🏛️ LINTAS UNIT YAYASAN
+                        <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                            🏛️ Lintas Unit Yayasan
                         </span>
                         @else
-                        <span class="px-3.5 py-1 rounded-full text-xs font-black bg-indigo-950/80 text-white border border-white/30 shadow-sm">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
                             {{ $extracurricular->school->short_name ?? ($extracurricular->school->name ?? 'Unit Sekolah') }}
                         </span>
                         @endif
                     </div>
-                    <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight drop-shadow-md">{{ $extracurricular->name }}</h1>
-                    <p class="text-sm sm:text-base text-white font-medium max-w-3xl leading-relaxed drop-shadow-xs">
-                        {{ $extracurricular->description ?: 'Unit kegiatan pembinaan bakat, minat, dan kepemimpinan siswa.' }}
+
+                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                        {{ $extracurricular->name }}
+                    </h1>
+
+                    <p class="text-sm text-slate-600 font-medium max-w-3xl leading-relaxed">
+                        {{ $extracurricular->description ?: 'Unit kegiatan pembinaan bakat, minat, kedisiplinan, dan kepemimpinan siswa Perguruan Pembda.' }}
                     </p>
                 </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
+            {{-- Action Buttons --}}
+            <div class="flex flex-wrap items-center gap-2.5 flex-shrink-0">
                 @if($extracurricular->forum_group_id)
-                <a href="{{ route('forum.index', ['group' => $extracurricular->forum_group_id]) }}" class="px-4 py-2.5 bg-purple-500 hover:bg-purple-600 text-white rounded-2xl font-black text-xs shadow-lg transition flex items-center gap-2 active:scale-95 border border-purple-300/40">
-                    <i class="fas fa-comments text-sm"></i>
+                <a href="{{ route('forum.index', ['group' => $extracurricular->forum_group_id]) }}" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-sm transition flex items-center gap-2 active:scale-95">
+                    <i class="fas fa-comments"></i>
                     <span>Kanal Space Ekskul</span>
                 </a>
                 @endif
 
-                <button onclick="document.getElementById('modalAssignLeadership').classList.remove('hidden')" class="px-4 py-2.5 bg-white text-slate-900 hover:bg-slate-100 rounded-2xl font-black text-xs shadow-lg transition flex items-center gap-2 active:scale-95 border border-slate-200">
-                    <i class="fas fa-user-gear text-indigo-600 text-sm"></i>
+                <button onclick="document.getElementById('modalAssignLeadership').classList.remove('hidden')" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-sm transition flex items-center gap-2 active:scale-95">
+                    <i class="fas fa-user-gear"></i>
                     <span>Struktur Pengurus</span>
                 </button>
 
-                {{-- Tombol Hapus Unit --}}
-                <button @click="showDeleteModal = true" class="px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-black text-xs transition flex items-center gap-2 shadow-lg active:scale-95 border border-rose-300/40" title="Hapus Unit Ekstrakurikuler">
-                    <i class="fas fa-trash-alt text-sm"></i>
+                <button @click="showDeleteModal = true" class="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-xs transition flex items-center gap-1.5 active:scale-95" title="Hapus Unit">
+                    <i class="fas fa-trash-alt"></i>
                     <span>Hapus Unit</span>
                 </button>
             </div>
         </div>
 
-        {{-- Meta Badges Bar (CERAH, JELAS, ULTRA KONTRAS) --}}
-        <div class="mt-6 pt-6 border-t border-white/30 grid grid-cols-2 sm:grid-cols-4 gap-3.5 text-xs">
-            <div class="bg-white/20 backdrop-blur-md p-4 rounded-2xl border border-white/40 shadow-inner">
-                <p class="text-[11px] text-amber-200 font-black uppercase tracking-wider flex items-center gap-1.5">
-                    <span>📅</span> JADWAL LATIHAN
+        {{-- 4 Metric Stat Cards (CRYSTAL CLEAR HIGH CONTRAST) --}}
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-4 border-t border-slate-100">
+            <div class="bg-indigo-50/60 p-4 rounded-2xl border border-indigo-100">
+                <p class="text-[11px] font-black text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>📅</span> Jadwal Latihan
                 </p>
-                <p class="font-black text-white mt-1 text-sm truncate">{{ $extracurricular->schedule_day_time ?: 'Fleksibel / Sesuai Jadwal' }}</p>
+                <p class="font-extrabold text-slate-900 mt-1 text-sm truncate">
+                    {{ $extracurricular->schedule_day_time ?: 'Fleksibel' }}
+                </p>
             </div>
-            <div class="bg-white/20 backdrop-blur-md p-4 rounded-2xl border border-white/40 shadow-inner">
-                <p class="text-[11px] text-cyan-200 font-black uppercase tracking-wider flex items-center gap-1.5">
-                    <span>📍</span> LOKASI / TEMPAT
+
+            <div class="bg-blue-50/60 p-4 rounded-2xl border border-blue-100">
+                <p class="text-[11px] font-black text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>📍</span> Lokasi Latihan
                 </p>
-                <p class="font-black text-white mt-1 text-sm truncate">{{ $extracurricular->location ?: 'Kampus Pembda' }}</p>
+                <p class="font-extrabold text-slate-900 mt-1 text-sm truncate">
+                    {{ $extracurricular->location ?: 'Kampus Pembda' }}
+                </p>
             </div>
-            <div class="bg-white/20 backdrop-blur-md p-4 rounded-2xl border border-white/40 shadow-inner">
-                <p class="text-[11px] text-emerald-200 font-black uppercase tracking-wider flex items-center gap-1.5">
-                    <span>👥</span> TOTAL ANGGOTA
+
+            <div class="bg-amber-50/60 p-4 rounded-2xl border border-amber-200">
+                <p class="text-[11px] font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>👥</span> Total Anggota
                 </p>
-                <p class="font-black text-amber-300 mt-1 text-sm">{{ $extracurricular->members->where('status', 'approved')->count() }} Siswa Aktif</p>
+                <p class="font-black text-amber-900 mt-1 text-sm">
+                    {{ $extracurricular->members->where('status', 'approved')->count() }} <span class="text-xs font-semibold text-amber-700">Siswa Aktif</span>
+                </p>
             </div>
-            <div class="bg-white/20 backdrop-blur-md p-4 rounded-2xl border border-white/40 shadow-inner">
-                <p class="text-[11px] text-pink-200 font-black uppercase tracking-wider flex items-center gap-1.5">
-                    <span>🚩</span> SESI LATIHAN
+
+            <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-100">
+                <p class="text-[11px] font-black text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>🚩</span> Sesi Latihan
                 </p>
-                <p class="font-black text-purple-200 mt-1 text-sm">{{ $extracurricular->activities->count() }} Kegiatan Tercatat</p>
+                <p class="font-black text-emerald-900 mt-1 text-sm">
+                    {{ $extracurricular->activities->count() }} <span class="text-xs font-semibold text-emerald-700">Kegiatan Tercatat</span>
+                </p>
             </div>
         </div>
     </div>
 
-    {{-- 4-Card Leadership Structure (VIBRANT & BOLD) --}}
-    <div>
-        <div class="flex items-center justify-between mb-3">
+    {{-- 4-Card Leadership Structure --}}
+    <div class="space-y-3">
+        <div class="flex items-center justify-between">
             <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                 <i class="fas fa-sitemap text-indigo-600"></i> Struktur Pengurus Unit Kegiatan
             </h2>
-            <button onclick="document.getElementById('modalAssignLeadership').classList.remove('hidden')" class="text-xs font-black text-indigo-700 hover:text-indigo-900 flex items-center gap-1">
-                <i class="fas fa-edit"></i> Ubah Struktur Pengurus
+            <button onclick="document.getElementById('modalAssignLeadership').classList.remove('hidden')" class="text-xs font-bold text-indigo-600 hover:text-indigo-800">
+                <i class="fas fa-edit"></i> Ubah Struktur
             </button>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {{-- Pembina / Manager --}}
-            <div class="bg-white p-5 rounded-3xl border-2 border-indigo-200/80 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-                <div class="w-13 h-13 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-2xl shadow-md flex-shrink-0">
+            <div class="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center text-xl flex-shrink-0 border border-indigo-100">
                     👨‍🏫
                 </div>
                 <div class="min-w-0">
-                    <p class="text-[11px] font-black text-indigo-700 uppercase tracking-wider">{{ $extracurricular->isFoundationLevel() ? 'Manager Marching Band' : 'Pembina Guru / PKS' }}</p>
-                    <p class="text-sm font-black text-slate-900 truncate mt-0.5">{{ $extracurricular->manager_name ?: ($extracurricular->advisor_name ?: ($extracurricular->advisor->full_name ?? 'PKS Kesiswaan')) }}</p>
+                    <p class="text-[10px] font-black text-indigo-700 uppercase tracking-wider">
+                        {{ $extracurricular->isFoundationLevel() ? 'Manager Marching Band' : 'Pembina Guru / PKS' }}
+                    </p>
+                    <p class="text-xs font-black text-slate-900 truncate mt-0.5">
+                        {{ $extracurricular->manager_name ?: ($extracurricular->advisor_name ?: ($extracurricular->advisor->full_name ?? 'PKS Kesiswaan')) }}
+                    </p>
                 </div>
             </div>
 
             {{-- Ketua --}}
-            <div class="bg-white p-5 rounded-3xl border-2 border-amber-200/80 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-                <div class="w-13 h-13 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl shadow-md flex-shrink-0">
+            <div class="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-xl flex-shrink-0 border border-amber-200">
                     👑
                 </div>
                 <div class="min-w-0">
-                    <p class="text-[11px] font-black text-amber-700 uppercase tracking-wider">{{ $extracurricular->isFoundationLevel() ? 'Field Commander / Gitapati' : 'Ketua Siswa' }}</p>
-                    <p class="text-sm font-black text-slate-900 truncate mt-0.5">{{ $extracurricular->leader->full_name ?? 'Belum Ditentukan' }}</p>
+                    <p class="text-[10px] font-black text-amber-700 uppercase tracking-wider">
+                        {{ $extracurricular->isFoundationLevel() ? 'Field Commander / Gitapati' : 'Ketua Siswa' }}
+                    </p>
+                    <p class="text-xs font-black text-slate-900 truncate mt-0.5">
+                        {{ $extracurricular->leader->full_name ?? 'Belum Ditentukan' }}
+                    </p>
                 </div>
             </div>
 
             {{-- Sekretaris --}}
-            <div class="bg-white p-5 rounded-3xl border-2 border-purple-200/80 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-                <div class="w-13 h-13 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-2xl shadow-md flex-shrink-0">
+            <div class="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center text-xl flex-shrink-0 border border-purple-100">
                     📝
                 </div>
                 <div class="min-w-0">
-                    <p class="text-[11px] font-black text-purple-700 uppercase tracking-wider">Sekretaris Siswa</p>
-                    <p class="text-sm font-black text-slate-900 truncate mt-0.5">{{ $extracurricular->secretary->full_name ?? 'Belum Ditentukan' }}</p>
+                    <p class="text-[10px] font-black text-purple-700 uppercase tracking-wider">Sekretaris Siswa</p>
+                    <p class="text-xs font-black text-slate-900 truncate mt-0.5">
+                        {{ $extracurricular->secretary->full_name ?? 'Belum Ditentukan' }}
+                    </p>
                 </div>
             </div>
 
             {{-- Bendahara --}}
-            <div class="bg-white p-5 rounded-3xl border-2 border-emerald-200/80 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-                <div class="w-13 h-13 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl shadow-md flex-shrink-0">
+            <div class="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl flex-shrink-0 border border-emerald-100">
                     💰
                 </div>
                 <div class="min-w-0">
-                    <p class="text-[11px] font-black text-emerald-700 uppercase tracking-wider">Bendahara Siswa</p>
-                    <p class="text-sm font-black text-slate-900 truncate mt-0.5">{{ $extracurricular->treasurer->full_name ?? 'Belum Ditentukan' }}</p>
+                    <p class="text-[10px] font-black text-emerald-700 uppercase tracking-wider">Bendahara Siswa</p>
+                    <p class="text-xs font-black text-slate-900 truncate mt-0.5">
+                        {{ $extracurricular->treasurer->full_name ?? 'Belum Ditentukan' }}
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Tabs Navigation (Members, Activities, Settings) --}}
-    <div class="bg-white rounded-3xl border-2 border-slate-200 shadow-sm overflow-hidden">
-        <div class="bg-slate-100 p-2 border-b border-slate-200 flex flex-wrap items-center gap-2">
-            <button @click="activeTab = 'members'" :class="activeTab === 'members' ? 'bg-indigo-600 text-white shadow-md font-black' : 'text-slate-700 hover:text-slate-900 font-bold'" class="px-5 py-3 rounded-2xl transition flex items-center gap-2 text-xs">
+    {{-- Tabs Navigation --}}
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-slate-50/80 px-6 py-3 border-b border-slate-200 flex flex-wrap items-center gap-2">
+            <button @click="activeTab = 'members'" :class="activeTab === 'members' ? 'bg-white text-indigo-700 shadow-xs border border-slate-200' : 'text-slate-600 hover:text-slate-900'" class="px-4 py-2 rounded-xl font-extrabold text-xs transition flex items-center gap-2">
                 <i class="fas fa-users"></i>
                 <span>Anggota Siswa ({{ $extracurricular->members->count() }})</span>
             </button>
-            <button @click="activeTab = 'activities'" :class="activeTab === 'activities' ? 'bg-indigo-600 text-white shadow-md font-black' : 'text-slate-700 hover:text-slate-900 font-bold'" class="px-5 py-3 rounded-2xl transition flex items-center gap-2 text-xs">
+            <button @click="activeTab = 'activities'" :class="activeTab === 'activities' ? 'bg-white text-indigo-700 shadow-xs border border-slate-200' : 'text-slate-600 hover:text-slate-900'" class="px-4 py-2 rounded-xl font-extrabold text-xs transition flex items-center gap-2">
                 <i class="fas fa-calendar-check"></i>
                 <span>Log Latihan & Kegiatan ({{ $extracurricular->activities->count() }})</span>
             </button>
-            <button @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-md font-black' : 'text-slate-700 hover:text-slate-900 font-bold'" class="px-5 py-3 rounded-2xl transition flex items-center gap-2 text-xs">
+            <button @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'bg-white text-indigo-700 shadow-xs border border-slate-200' : 'text-slate-600 hover:text-slate-900'" class="px-4 py-2 rounded-xl font-extrabold text-xs transition flex items-center gap-2">
                 <i class="fas fa-cog"></i>
                 <span>Pengaturan & Hapus Unit</span>
             </button>
         </div>
 
         {{-- TAB 1: MEMBERS --}}
-        <div x-show="activeTab === 'members'" class="p-6 sm:p-8 space-y-5">
+        <div x-show="activeTab === 'members'" class="p-6 space-y-4">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
-                    <h3 class="text-base font-black text-slate-900">Daftar Anggota & Klaim Keanggotaan</h3>
-                    <p class="text-xs text-slate-600 font-medium mt-0.5">Siswa yang disetujui otomatis mendapatkan +15 Poin Reputasi dan terkoneksi ke grup Pembda Space.</p>
+                    <h3 class="text-sm font-black text-slate-900">Daftar Anggota & Klaim Keanggotaan</h3>
+                    <p class="text-xs text-slate-500 font-medium">Siswa yang disetujui otomatis mendapatkan +15 Poin Reputasi dan terkoneksi ke grup Pembda Space.</p>
                 </div>
-                <button onclick="document.getElementById('modalAddMember').classList.remove('hidden')" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-xs shadow-md transition flex items-center gap-2 active:scale-95">
+                <button onclick="document.getElementById('modalAddMember').classList.remove('hidden')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-xs transition flex items-center gap-1.5 active:scale-95">
                     <i class="fas fa-user-plus"></i>
                     <span>Tambah Siswa Manual</span>
                 </button>
             </div>
 
-            <div class="overflow-x-auto rounded-2xl border-2 border-slate-200 shadow-2xs">
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
                 <table class="w-full text-left text-xs border-collapse">
                     <thead>
-                        <tr class="bg-slate-900 text-white font-black uppercase text-[11px] tracking-wider">
-                            <th class="p-4 w-12 text-center">#</th>
-                            <th class="p-4">Nama Siswa</th>
-                            <th class="p-4">Sekolah & Kelas</th>
-                            <th class="p-4 text-center">Section / Alat</th>
-                            <th class="p-4 text-center">Jabatan</th>
-                            <th class="p-4 text-center">Status</th>
-                            <th class="p-4 text-center">Reward Poin</th>
-                            <th class="p-4 text-right">Aksi</th>
+                        <tr class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                            <th class="p-3.5 w-12 text-center">#</th>
+                            <th class="p-3.5">Nama Siswa</th>
+                            <th class="p-3.5">Sekolah & Kelas</th>
+                            <th class="p-3.5 text-center">Section / Alat</th>
+                            <th class="p-3.5 text-center">Jabatan</th>
+                            <th class="p-3.5 text-center">Status</th>
+                            <th class="p-3.5 text-center">Reward Poin</th>
+                            <th class="p-3.5 text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200 bg-white">
+                    <tbody class="divide-y divide-slate-100 bg-white">
                         @forelse($extracurricular->members as $idx => $member)
-                        <tr class="hover:bg-indigo-50/40 transition">
-                            <td class="p-4 text-center font-black text-slate-500">{{ $idx + 1 }}</td>
-                            <td class="p-4">
-                                <div class="flex items-center gap-3.5">
-                                    <div class="w-11 h-11 rounded-2xl overflow-hidden bg-slate-100 border-2 border-slate-200 flex-shrink-0 shadow-xs">
+                        <tr class="hover:bg-slate-50/70 transition">
+                            <td class="p-3.5 text-center font-bold text-slate-400">{{ $idx + 1 }}</td>
+                            <td class="p-3.5">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 flex-shrink-0">
                                         <img src="{{ $member->student->photo_url }}" class="w-full h-full object-cover" alt="{{ $member->student->full_name }}" onerror="this.onerror=null; this.src='{{ asset('images/default-student.jpg') }}';">
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="font-black text-slate-900 text-sm">{{ $member->student->full_name }}</p>
-                                        <p class="text-xs text-slate-600 font-mono mt-0.5 font-bold">NISN: {{ $member->student->nisn ?: '-' }} &bull; NIS: {{ $member->student->nis ?: '-' }}</p>
+                                        <p class="font-black text-slate-900 text-xs">{{ $member->student->full_name }}</p>
+                                        <p class="text-[10px] text-slate-500 font-mono">NISN: {{ $member->student->nisn ?: '-' }}</p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="p-4 text-slate-800">
-                                <div class="font-black text-slate-900 text-xs">{{ $member->student->school->short_name ?: $member->student->school->name }}</div>
-                                <div class="text-xs text-indigo-700 font-bold mt-0.5">{{ $member->student->currentClassroom->first()->class_name ?? ($member->student->classroom->class_name ?? '-') }}</div>
+                            <td class="p-3.5 text-slate-800">
+                                <div class="font-bold text-slate-900">{{ $member->student->school->short_name ?: $member->student->school->name }}</div>
+                                <div class="text-[11px] text-slate-500 font-medium">{{ $member->student->currentClassroom->first()->class_name ?? ($member->student->classroom->class_name ?? '-') }}</div>
                             </td>
-                            <td class="p-4 text-center">
+                            <td class="p-3.5 text-center">
                                 @if($member->section)
-                                <span class="px-3 py-1 rounded-full text-xs font-black bg-purple-100 text-purple-950 border border-purple-300 shadow-2xs">
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-purple-100 text-purple-900 border border-purple-200">
                                     🎺 {{ $member->section }}
                                 </span>
                                 @else
-                                <span class="text-slate-400 font-bold">-</span>
+                                <span class="text-slate-400">-</span>
                                 @endif
                             </td>
-                            <td class="p-4 text-center">
-                                <span class="px-3 py-1 rounded-full text-xs font-black text-white bg-gradient-to-r {{ $member->role_badge_color }} shadow-2xs">
+                            <td class="p-3.5 text-center">
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white bg-gradient-to-r {{ $member->role_badge_color }} shadow-2xs">
                                     {{ $member->role_label }}
                                 </span>
                             </td>
-                            <td class="p-4 text-center">
+                            <td class="p-3.5 text-center">
                                 @if($member->status === 'approved')
-                                <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-950 border border-emerald-300">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                                     ✓ Aktif
                                 </span>
                                 @else
-                                <span class="px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-950 border border-amber-300">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
                                     Menunggu Approval
                                 </span>
                                 @endif
                             </td>
-                            <td class="p-4 text-center font-black text-indigo-700 text-sm">
+                            <td class="p-3.5 text-center font-black text-indigo-700">
                                 +{{ $member->points_awarded }} Poin
                             </td>
-                            <td class="p-4 text-right">
-                                <div class="flex items-center justify-end gap-2">
+                            <td class="p-3.5 text-right">
+                                <div class="flex items-center justify-end gap-1.5">
                                     @if($member->status !== 'approved')
                                     <form action="{{ route('admin.extracurricular.members.approve', $member) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs transition shadow-md" title="Setujui Klaim">
+                                        <button type="submit" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[11px] transition shadow-2xs" title="Setujui Klaim">
                                             Setujui
                                         </button>
                                     </form>
@@ -262,8 +289,8 @@
                                     <form action="{{ route('admin.extracurricular.members.remove', $member) }}" method="POST" onsubmit="return confirm('Hapus siswa ini dari unit ekskul?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="p-2 text-rose-600 hover:bg-rose-100 rounded-xl transition" title="Hapus Anggota">
-                                            <i class="fas fa-trash-alt text-sm"></i>
+                                        <button type="submit" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition" title="Hapus Anggota">
+                                            <i class="fas fa-trash-alt text-xs"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -271,7 +298,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="p-10 text-center text-slate-500 text-sm font-bold bg-slate-50">
+                            <td colspan="8" class="p-8 text-center text-slate-400 text-xs">
                                 Belum ada siswa yang mendaftar di unit ekstrakurikuler ini.
                             </td>
                         </tr>
@@ -282,34 +309,34 @@
         </div>
 
         {{-- TAB 2: ACTIVITIES --}}
-        <div x-show="activeTab === 'activities'" class="p-6 sm:p-8 space-y-5" style="display: none;">
+        <div x-show="activeTab === 'activities'" class="p-6 space-y-4" style="display: none;">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
-                    <h3 class="text-base font-black text-slate-900">Catatan Kegiatan, Sesi Latihan & Prestasi</h3>
-                    <p class="text-xs text-slate-600 font-medium mt-0.5">Dokumentasi resmi aktivitas ekskul yang merefleksikan portofolio siswa Pembda.</p>
+                    <h3 class="text-sm font-black text-slate-900">Catatan Kegiatan, Sesi Latihan & Prestasi</h3>
+                    <p class="text-xs text-slate-500 font-medium">Dokumentasi resmi aktivitas ekskul yang merefleksikan portofolio siswa Pembda.</p>
                 </div>
-                <button onclick="document.getElementById('modalAddActivity').classList.remove('hidden')" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-xs shadow-md transition flex items-center gap-2 active:scale-95">
+                <button onclick="document.getElementById('modalAddActivity').classList.remove('hidden')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-xs transition flex items-center gap-1.5 active:scale-95">
                     <i class="fas fa-plus"></i>
                     <span>Catat Kegiatan Baru</span>
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @forelse($extracurricular->activities as $act)
-                <div class="p-5 bg-slate-50 rounded-3xl border-2 border-slate-200 space-y-3 shadow-xs">
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
                     <div class="flex items-center justify-between">
-                        <span class="px-3 py-1 rounded-full text-xs font-black bg-indigo-100 text-indigo-950 border border-indigo-200">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-200">
                             {{ $act->activity_date->translatedFormat('l, d F Y') }}
                         </span>
-                        <span class="text-xs text-slate-700 font-bold flex items-center gap-1.5">
+                        <span class="text-[11px] text-slate-500 font-semibold flex items-center gap-1">
                             <i class="fas fa-location-dot text-rose-500"></i> {{ $act->location ?: 'Kampus Pembda' }}
                         </span>
                     </div>
-                    <h4 class="font-black text-slate-900 text-sm leading-snug">{{ $act->title }}</h4>
-                    <p class="text-xs text-slate-700 leading-relaxed font-normal">{{ $act->description ?: 'Kegiatan latihan rutin unit ekstrakurikuler.' }}</p>
+                    <h4 class="font-black text-slate-900 text-xs">{{ $act->title }}</h4>
+                    <p class="text-[11px] text-slate-600 leading-relaxed font-normal">{{ $act->description ?: 'Kegiatan latihan rutin unit ekstrakurikuler.' }}</p>
                 </div>
                 @empty
-                <div class="col-span-full py-12 text-center text-slate-500 text-sm bg-slate-50 rounded-3xl border-2 border-dashed border-slate-300 font-bold">
+                <div class="col-span-full py-8 text-center text-slate-400 text-xs bg-slate-50 rounded-2xl border border-dashed border-slate-200 font-medium">
                     Belum ada log kegiatan latihan yang dicatat. Klik 'Catat Kegiatan Baru' di atas.
                 </div>
                 @endforelse
@@ -317,23 +344,23 @@
         </div>
 
         {{-- TAB 3: SETTINGS & DANGER ZONE --}}
-        <div x-show="activeTab === 'settings'" class="p-6 sm:p-8 max-w-3xl space-y-8" style="display: none;">
+        <div x-show="activeTab === 'settings'" class="p-6 max-w-2xl space-y-6" style="display: none;">
             <div>
-                <h3 class="text-base font-black text-slate-900 border-b border-slate-200 pb-3">Edit Informasi Unit Ekstrakurikuler</h3>
+                <h3 class="text-sm font-black text-slate-900 border-b border-slate-200 pb-3">Edit Informasi Unit Ekstrakurikuler</h3>
 
-                <form action="{{ route('admin.extracurricular.update', $extracurricular) }}" method="POST" class="space-y-4 text-xs mt-5">
+                <form action="{{ route('admin.extracurricular.update', $extracurricular) }}" method="POST" class="space-y-4 text-xs mt-4">
                     @csrf
                     @method('PUT')
 
                     <div>
-                        <label class="block font-black text-slate-800 text-xs mb-1">Nama Unit Kegiatan *</label>
-                        <input type="text" name="name" value="{{ old('name', $extracurricular->name) }}" required class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-sm p-3 focus:border-indigo-600">
+                        <label class="block font-bold text-slate-700 mb-1">Nama Unit Kegiatan *</label>
+                        <input type="text" name="name" value="{{ old('name', $extracurricular->name) }}" required class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block font-black text-slate-800 text-xs mb-1">Kategori *</label>
-                            <select name="category" required class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3 focus:border-indigo-600">
+                            <label class="block font-bold text-slate-700 mb-1">Kategori *</label>
+                            <select name="category" required class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
                                 <option value="marching_band" {{ $extracurricular->category == 'marching_band' ? 'selected' : '' }}>🥁 Marching Band / Korsik Yayasan</option>
                                 <option value="pramuka" {{ $extracurricular->category == 'pramuka' ? 'selected' : '' }}>⚜️ Gerakan Pramuka</option>
                                 <option value="paskibraka" {{ $extracurricular->category == 'paskibraka' ? 'selected' : '' }}>🇮🇩 Paskibraka</option>
@@ -347,31 +374,31 @@
                         </div>
 
                         <div>
-                            <label class="block font-black text-slate-800 text-xs mb-1">Emoji / Icon Simbol</label>
-                            <input type="text" name="icon" value="{{ old('icon', $extracurricular->icon) }}" placeholder="Contoh: 🥁 atau 🎭" class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3 focus:border-indigo-600">
+                            <label class="block font-bold text-slate-700 mb-1">Emoji / Icon Simbol</label>
+                            <input type="text" name="icon" value="{{ old('icon', $extracurricular->icon) }}" placeholder="Contoh: 🥁 atau 🎭" class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block font-black text-slate-800 text-xs mb-1">Deskripsi Kegiatan</label>
-                        <textarea name="description" rows="3" class="w-full rounded-2xl border-2 border-slate-300 text-slate-900 text-xs font-semibold p-3 leading-relaxed focus:border-indigo-600">{{ old('description', $extracurricular->description) }}</textarea>
+                        <label class="block font-bold text-slate-700 mb-1">Deskripsi Kegiatan</label>
+                        <textarea name="description" rows="3" class="w-full rounded-xl border-slate-300 text-slate-900 text-xs font-normal">{{ old('description', $extracurricular->description) }}</textarea>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block font-black text-slate-800 text-xs mb-1">Jadwal Latihan</label>
-                            <input type="text" name="schedule_day_time" value="{{ old('schedule_day_time', $extracurricular->schedule_day_time) }}" class="w-full rounded-2xl border-2 border-slate-300 text-slate-900 text-xs font-bold p-3 focus:border-indigo-600">
+                            <label class="block font-bold text-slate-700 mb-1">Jadwal Latihan</label>
+                            <input type="text" name="schedule_day_time" value="{{ old('schedule_day_time', $extracurricular->schedule_day_time) }}" class="w-full rounded-xl border-slate-300 text-slate-900 font-medium">
                         </div>
 
                         <div>
-                            <label class="block font-black text-slate-800 text-xs mb-1">Lokasi Latihan</label>
-                            <input type="text" name="location" value="{{ old('location', $extracurricular->location) }}" class="w-full rounded-2xl border-2 border-slate-300 text-slate-900 text-xs font-bold p-3 focus:border-indigo-600">
+                            <label class="block font-bold text-slate-700 mb-1">Lokasi Latihan</label>
+                            <input type="text" name="location" value="{{ old('location', $extracurricular->location) }}" class="w-full rounded-xl border-slate-300 text-slate-900 font-medium">
                         </div>
                     </div>
 
-                    <div class="pt-3 flex justify-end">
-                        <button type="submit" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-xs transition shadow-md active:scale-95">
-                            Simpan Perubahan Unit
+                    <div class="pt-2 flex justify-end">
+                        <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition shadow-sm active:scale-95">
+                            Simpan Perubahan
                         </button>
                     </div>
                 </form>
@@ -379,16 +406,16 @@
 
             {{-- ZONA BAHAYA (HAPUS UNIT) --}}
             <div class="pt-6 border-t border-slate-200">
-                <div class="bg-rose-50 rounded-3xl border-2 border-rose-200 p-6 space-y-3">
+                <div class="bg-rose-50 rounded-2xl border border-rose-200 p-5 space-y-3">
                     <div class="flex items-center gap-2 text-rose-800">
-                        <i class="fas fa-exclamation-triangle text-lg"></i>
-                        <h4 class="font-black text-sm uppercase tracking-wider">Zona Bahaya: Hapus Unit Kegiatan</h4>
+                        <i class="fas fa-exclamation-triangle text-base"></i>
+                        <h4 class="font-black text-xs uppercase tracking-wider">Zona Bahaya: Hapus Unit Kegiatan</h4>
                     </div>
-                    <p class="text-xs text-rose-800 leading-relaxed font-semibold">
+                    <p class="text-xs text-rose-700 leading-relaxed font-medium">
                         Menghapus unit ini akan menghapus seluruh data sesi latihan dan melepaskan keanggotaan siswa yang terdaftar. Data poin reputasi siswa yang telah diberikan sebelumnya akan tetap tersimpan aman di log reputasi.
                     </p>
                     <div class="pt-2 flex justify-end">
-                        <button @click="showDeleteModal = true" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black text-xs transition shadow-md flex items-center gap-2 active:scale-95">
+                        <button @click="showDeleteModal = true" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs transition shadow-xs flex items-center gap-1.5 active:scale-95">
                             <i class="fas fa-trash-alt"></i>
                             <span>Hapus Unit Ekstrakurikuler Ini</span>
                         </button>
@@ -398,28 +425,28 @@
         </div>
     </div>
 
-    {{-- MODAL HAPUS UNIT (CONFIRMATION) --}}
-    <div x-show="showDeleteModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-        <div @click.away="showDeleteModal = false" class="bg-white w-full max-w-md rounded-3xl shadow-2xl border-2 border-slate-200 overflow-hidden flex flex-col p-6 space-y-4">
-            <div class="w-16 h-16 rounded-3xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mx-auto shadow-inner">
+    {{-- MODAL HAPUS UNIT --}}
+    <div x-show="showDeleteModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;">
+        <div @click.away="showDeleteModal = false" class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col p-6 space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl mx-auto">
                 <i class="fas fa-trash-alt"></i>
             </div>
 
-            <div class="text-center space-y-2">
-                <h3 class="font-black text-slate-900 text-lg">Konfirmasi Hapus Unit</h3>
-                <p class="text-xs text-slate-600 leading-relaxed font-medium">
+            <div class="text-center space-y-1.5">
+                <h3 class="font-black text-slate-900 text-base">Konfirmasi Hapus Unit</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">
                     Apakah Anda yakin ingin menghapus unit <b>"{{ $extracurricular->name }}"</b>? Tindakan ini tidak dapat dibatalkan.
                 </p>
             </div>
 
-            <div class="flex items-center gap-3 pt-3">
-                <button type="button" @click="showDeleteModal = false" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl font-black text-xs transition">
+            <div class="flex items-center gap-2 pt-2">
+                <button type="button" @click="showDeleteModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs transition">
                     Batal
                 </button>
                 <form action="{{ route('admin.extracurricular.destroy', $extracurricular) }}" method="POST" class="flex-1">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black text-xs transition shadow-md active:scale-95">
+                    <button type="submit" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs transition shadow-sm active:scale-95">
                         Ya, Hapus Unit
                     </button>
                 </form>
@@ -430,14 +457,14 @@
 </div>
 
 {{-- Modal Tetapkan Pengurus --}}
-<div id="modalAssignLeadership" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border-2 border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
-        <div class="bg-gradient-to-r from-blue-700 to-indigo-900 p-6 text-white flex items-center justify-between">
-            <div class="flex items-center gap-3">
+<div id="modalAssignLeadership" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
                 <span class="text-2xl">👥</span>
-                <h3 class="font-black text-base text-white">Tetapkan Struktur Pengurus Ekskul</h3>
+                <h3 class="font-black text-sm text-white">Tetapkan Struktur Pengurus Ekskul</h3>
             </div>
-            <button onclick="document.getElementById('modalAssignLeadership').classList.add('hidden')" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
+            <button onclick="document.getElementById('modalAssignLeadership').classList.add('hidden')" class="text-slate-400 hover:text-white text-lg">&times;</button>
         </div>
 
         <form action="{{ route('admin.extracurricular.leadership', $extracurricular) }}" method="POST" class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
@@ -445,14 +472,14 @@
 
             @if($extracurricular->isFoundationLevel() || $extracurricular->category === 'marching_band')
             <div>
-                <label class="block font-black text-slate-800 mb-1 text-xs">Nama Manager Unit Yayasan</label>
-                <input type="text" name="manager_name" value="{{ old('manager_name', $extracurricular->manager_name) }}" placeholder="Contoh: Manager Marching Band Yayasan Pembda" class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3">
+                <label class="block font-bold text-slate-700 mb-1">Nama Manager Unit Yayasan</label>
+                <input type="text" name="manager_name" value="{{ old('manager_name', $extracurricular->manager_name) }}" placeholder="Contoh: Manager Marching Band Yayasan Pembda" class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
             </div>
             @endif
 
             <div>
-                <label class="block font-black text-slate-800 mb-1 text-xs">Guru Pembina / Pelatih</label>
-                <select name="advisor_teacher_id" class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3">
+                <label class="block font-bold text-slate-700 mb-1">Guru Pembina / Pelatih</label>
+                <select name="advisor_teacher_id" class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
                     <option value="">-- Manual / Pembina Luar --</option>
                     @foreach($teachers as $t)
                     <option value="{{ $t->id }}" {{ $extracurricular->advisor_teacher_id == $t->id ? 'selected' : '' }}>{{ $t->full_name }}</option>
@@ -461,8 +488,8 @@
             </div>
 
             <div>
-                <label class="block font-black text-slate-800 mb-1 text-xs">{{ $extracurricular->isFoundationLevel() ? 'Field Commander / Gitapati Siswa' : 'Ketua / Koordinator Siswa' }}</label>
-                <select name="leader_student_id" class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3">
+                <label class="block font-bold text-slate-700 mb-1">{{ $extracurricular->isFoundationLevel() ? 'Field Commander / Gitapati Siswa' : 'Ketua / Koordinator Siswa' }}</label>
+                <select name="leader_student_id" class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
                     <option value="">-- Pilih Siswa (Boleh Kosong) --</option>
                     @foreach($students as $s)
                     <option value="{{ $s->id }}" {{ $extracurricular->leader_student_id == $s->id ? 'selected' : '' }}>{{ $s->full_name }} ({{ $s->school->short_name ?? '' }})</option>
@@ -471,8 +498,8 @@
             </div>
 
             <div>
-                <label class="block font-black text-slate-800 mb-1 text-xs">Sekretaris Siswa</label>
-                <select name="secretary_student_id" class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3">
+                <label class="block font-bold text-slate-700 mb-1">Sekretaris Siswa</label>
+                <select name="secretary_student_id" class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
                     <option value="">-- Pilih Siswa (Boleh Kosong) --</option>
                     @foreach($students as $s)
                     <option value="{{ $s->id }}" {{ $extracurricular->secretary_student_id == $s->id ? 'selected' : '' }}>{{ $s->full_name }} ({{ $s->school->short_name ?? '' }})</option>
@@ -481,8 +508,8 @@
             </div>
 
             <div>
-                <label class="block font-black text-slate-800 mb-1 text-xs">Bendahara Siswa</label>
-                <select name="treasurer_student_id" class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3">
+                <label class="block font-bold text-slate-700 mb-1">Bendahara Siswa</label>
+                <select name="treasurer_student_id" class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
                     <option value="">-- Pilih Siswa (Boleh Kosong) --</option>
                     @foreach($students as $s)
                     <option value="{{ $s->id }}" {{ $extracurricular->treasurer_student_id == $s->id ? 'selected' : '' }}>{{ $s->full_name }} ({{ $s->school->short_name ?? '' }})</option>
@@ -490,28 +517,28 @@
                 </select>
             </div>
 
-            <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
-                <button type="button" onclick="document.getElementById('modalAssignLeadership').classList.add('hidden')" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl font-bold transition">Batal</button>
-                <button type="submit" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black transition shadow-md active:scale-95">Simpan Struktur</button>
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="document.getElementById('modalAssignLeadership').classList.add('hidden')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition">Batal</button>
+                <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow-sm">Simpan Struktur</button>
             </div>
         </form>
     </div>
 </div>
 
 {{-- Modal Tambah Member Manual --}}
-<div id="modalAddMember" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border-2 border-slate-200 overflow-hidden flex flex-col">
-        <div class="bg-gradient-to-r from-blue-700 to-indigo-900 p-6 text-white flex items-center justify-between">
-            <h3 class="font-black text-base text-white">Tambah Anggota Siswa Manual</h3>
-            <button onclick="document.getElementById('modalAddMember').classList.add('hidden')" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
+<div id="modalAddMember" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+        <div class="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white flex items-center justify-between">
+            <h3 class="font-black text-sm text-white">Tambah Anggota Siswa Manual</h3>
+            <button onclick="document.getElementById('modalAddMember').classList.add('hidden')" class="text-slate-400 hover:text-white">&times;</button>
         </div>
 
         <form action="{{ route('admin.extracurricular.members.add', $extracurricular) }}" method="POST" class="p-6 space-y-4 text-xs">
             @csrf
 
             <div>
-                <label class="block font-black text-slate-800 mb-1 text-xs">Pilih Siswa *</label>
-                <select name="student_id" required class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3">
+                <label class="block font-bold text-slate-700 mb-1">Pilih Siswa *</label>
+                <select name="student_id" required class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
                     @foreach($students as $s)
                     <option value="{{ $s->id }}">{{ $s->full_name }} ({{ $s->school->short_name ?? '' }} - NISN: {{ $s->nisn ?: '-' }})</option>
                     @endforeach
@@ -520,8 +547,8 @@
 
             @if(!empty($extracurricular->section_list))
             <div>
-                <label class="block font-black text-slate-800 mb-1 text-xs">Section / Alat Musik</label>
-                <select name="section" class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3">
+                <label class="block font-bold text-slate-700 mb-1">Section / Alat Musik</label>
+                <select name="section" class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
                     <option value="">-- Pilih Section (Opsional) --</option>
                     @foreach($extracurricular->section_list as $secKey => $secVal)
                     <option value="{{ is_numeric($secKey) ? $secVal : $secKey }}">{{ $secVal }}</option>
@@ -531,8 +558,8 @@
             @endif
 
             <div>
-                <label class="block font-black text-slate-800 mb-1 text-xs">Peran / Jabatan *</label>
-                <select name="role" required class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3">
+                <label class="block font-bold text-slate-700 mb-1">Peran / Jabatan *</label>
+                <select name="role" required class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
                     <option value="anggota">Anggota Aktif</option>
                     <option value="sie_kegiatan">Seksi Kegiatan / Section Leader</option>
                     <option value="ketua">Ketua / Field Commander</option>
@@ -541,50 +568,50 @@
                 </select>
             </div>
 
-            <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
-                <button type="button" onclick="document.getElementById('modalAddMember').classList.add('hidden')" class="px-5 py-3 bg-slate-100 text-slate-800 rounded-2xl font-bold">Batal</button>
-                <button type="submit" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black shadow-md active:scale-95">Tambahkan Siswa</button>
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="document.getElementById('modalAddMember').classList.add('hidden')" class="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold">Batal</button>
+                <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm">Tambahkan Siswa</button>
             </div>
         </form>
     </div>
 </div>
 
 {{-- Modal Catat Kegiatan --}}
-<div id="modalAddActivity" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border-2 border-slate-200 overflow-hidden flex flex-col">
-        <div class="bg-gradient-to-r from-blue-700 to-indigo-900 p-6 text-white flex items-center justify-between">
-            <h3 class="font-black text-base text-white">Catat Log Kegiatan / Latihan</h3>
-            <button onclick="document.getElementById('modalAddActivity').classList.add('hidden')" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
+<div id="modalAddActivity" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+        <div class="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white flex items-center justify-between">
+            <h3 class="font-black text-sm text-white">Catat Log Kegiatan / Latihan</h3>
+            <button onclick="document.getElementById('modalAddActivity').classList.add('hidden')" class="text-slate-400 hover:text-white">&times;</button>
         </div>
 
         <form action="{{ route('admin.extracurricular.activities.add', $extracurricular) }}" method="POST" class="p-6 space-y-4 text-xs">
             @csrf
 
             <div>
-                <label class="block font-black text-slate-800 mb-1 text-xs">Nama / Topik Kegiatan *</label>
-                <input type="text" name="title" required placeholder="Contoh: Latihan Baris-Berbaris Persiapan Upacara" class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3">
+                <label class="block font-bold text-slate-700 mb-1">Nama / Topik Kegiatan *</label>
+                <input type="text" name="title" required placeholder="Contoh: Latihan Baris-Berbaris Persiapan Upacara" class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block font-black text-slate-800 mb-1 text-xs">Tanggal Kegiatan *</label>
-                    <input type="date" name="activity_date" value="{{ date('Y-m-d') }}" required class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3">
+                    <label class="block font-bold text-slate-700 mb-1">Tanggal Kegiatan *</label>
+                    <input type="date" name="activity_date" value="{{ date('Y-m-d') }}" required class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
                 </div>
 
                 <div>
-                    <label class="block font-black text-slate-800 mb-1 text-xs">Lokasi Latihan</label>
-                    <input type="text" name="location" value="{{ $extracurricular->location ?: 'Kampus Pembda' }}" class="w-full rounded-2xl border-2 border-slate-300 font-black text-slate-900 text-xs p-3">
+                    <label class="block font-bold text-slate-700 mb-1">Lokasi Latihan</label>
+                    <input type="text" name="location" value="{{ $extracurricular->location ?: 'Kampus Pembda' }}" class="w-full rounded-xl border-slate-300 font-semibold text-slate-900">
                 </div>
             </div>
 
             <div>
-                <label class="block font-black text-slate-800 mb-1 text-xs">Deskripsi / Hasil Latihan</label>
-                <textarea name="description" rows="3" placeholder="Uraian ringkas materi yang dilatih dan catatan kehadiran anggota..." class="w-full rounded-2xl border-2 border-slate-300 text-slate-900 text-xs font-semibold p-3"></textarea>
+                <label class="block font-bold text-slate-700 mb-1">Deskripsi / Hasil Latihan</label>
+                <textarea name="description" rows="3" placeholder="Uraian ringkas materi yang dilatih dan catatan kehadiran anggota..." class="w-full rounded-xl border-slate-300 text-slate-900"></textarea>
             </div>
 
-            <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
-                <button type="button" onclick="document.getElementById('modalAddActivity').classList.add('hidden')" class="px-5 py-3 bg-slate-100 text-slate-800 rounded-2xl font-bold">Batal</button>
-                <button type="submit" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black shadow-md active:scale-95">Simpan Kegiatan</button>
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="document.getElementById('modalAddActivity').classList.add('hidden')" class="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold">Batal</button>
+                <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm">Simpan Kegiatan</button>
             </div>
         </form>
     </div>
