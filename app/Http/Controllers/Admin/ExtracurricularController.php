@@ -348,6 +348,36 @@ class ExtracurricularController extends Controller
 
         ExtracurricularActivity::create($validated);
 
-        return back()->with('success', 'Kegiatan latihan / event ekstrakurikuler berhasil dicatat.');
+        return back()->with('success', 'Catatan aktivitas latihan berhasil disimpan.');
+    }
+
+    /**
+     * Delete Extracurricular unit.
+     */
+    public function destroy(Extracurricular $extracurricular)
+    {
+        $this->checkSchoolAccess($extracurricular->school_id);
+
+        $name = $extracurricular->name;
+
+        // Delete associated activities & members safely
+        $extracurricular->activities()->delete();
+        $extracurricular->members()->delete();
+
+        // If connected to forum group, remove forum group cleanly
+        if ($extracurricular->forum_group_id) {
+            $group = \App\Models\ForumGroup::find($extracurricular->forum_group_id);
+            if ($group) {
+                $group->delete();
+            }
+        }
+
+        $extracurricular->delete();
+
+        $redirectRoute = (Auth::user()->role === 'guru' && !in_array(Auth::user()->role, ['superadmin', 'admin_sekolah'])) 
+            ? 'guru.extracurricular.index' 
+            : 'admin.extracurricular.index';
+
+        return redirect()->route($redirectRoute)->with('success', "Unit Ekstrakurikuler '{$name}' berhasil dihapus.");
     }
 }

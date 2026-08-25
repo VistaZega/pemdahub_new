@@ -379,6 +379,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::post('/members/{member}/approve', [App\Http\Controllers\Admin\ExtracurricularController::class, 'approveMember'])->name('members.approve');
         Route::delete('/members/{member}', [App\Http\Controllers\Admin\ExtracurricularController::class, 'removeMember'])->name('members.remove');
         Route::post('/{extracurricular}/activities', [App\Http\Controllers\Admin\ExtracurricularController::class, 'addActivity'])->name('activities.add');
+        Route::delete('/{extracurricular}', [App\Http\Controllers\Admin\ExtracurricularController::class, 'destroy'])->name('destroy');
     });
     
 

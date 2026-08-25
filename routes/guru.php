@@ -288,6 +288,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::post('/members/{member}/approve', [App\Http\Controllers\Admin\ExtracurricularController::class, 'approveMember'])->name('members.approve');
         Route::delete('/members/{member}', [App\Http\Controllers\Admin\ExtracurricularController::class, 'removeMember'])->name('members.remove');
         Route::post('/{extracurricular}/activities', [App\Http\Controllers\Admin\ExtracurricularController::class, 'addActivity'])->name('activities.add');
+        Route::delete('/{extracurricular}', [App\Http\Controllers\Admin\ExtracurricularController::class, 'destroy'])->name('destroy');
     });
 });
 

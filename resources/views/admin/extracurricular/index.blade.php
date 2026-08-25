@@ -158,7 +158,7 @@
                 </div>
             </div>
 
-            <div class="bg-slate-50/80 px-5 py-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            <div class="bg-slate-50 px-5 py-3 border-t border-slate-200 flex items-center justify-between gap-2">
                 @if($ekskul->forum_group_id)
                 <a href="{{ route('forum.index', ['group' => $ekskul->forum_group_id]) }}" class="text-xs font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1.5" title="Kanal Diskusi Pembda Space">
                     <i class="fas fa-comments text-purple-600"></i> Space Group
@@ -167,10 +167,20 @@
                 <span></span>
                 @endif
 
-                <a href="{{ route('admin.extracurricular.show', $ekskul) }}" class="px-4 py-2 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
-                    <span>Kelola Unit</span>
-                    <i class="fas fa-arrow-right text-[10px]"></i>
-                </a>
+                <div class="flex items-center gap-1.5">
+                    <form action="{{ route('admin.extracurricular.destroy', $ekskul) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus unit {{ addslashes($ekskul->name) }}?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="p-2 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-xl transition" title="Hapus Unit Ekstrakurikuler">
+                            <i class="fas fa-trash-alt text-xs"></i>
+                        </button>
+                    </form>
+
+                    <a href="{{ route('admin.extracurricular.show', $ekskul) }}" class="px-3.5 py-1.5 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+                        <span>Kelola</span>
+                        <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
             </div>
         </div>
         @empty
