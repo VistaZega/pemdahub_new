@@ -367,6 +367,19 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::put('/{record}', [App\Http\Controllers\Admin\StudentCounselingController::class, 'update'])->name('update');
         Route::delete('/{record}', [App\Http\Controllers\Admin\StudentCounselingController::class, 'destroy'])->name('destroy');
     });
+
+    // Extracurricular Management (Kegiatan Non-Akademik / Ekskul)
+    Route::prefix('extracurricular')->name('extracurricular.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\ExtracurricularController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Admin\ExtracurricularController::class, 'store'])->name('store');
+        Route::get('/{extracurricular}', [App\Http\Controllers\Admin\ExtracurricularController::class, 'show'])->name('show');
+        Route::put('/{extracurricular}', [App\Http\Controllers\Admin\ExtracurricularController::class, 'update'])->name('update');
+        Route::post('/{extracurricular}/leadership', [App\Http\Controllers\Admin\ExtracurricularController::class, 'assignLeadership'])->name('leadership');
+        Route::post('/{extracurricular}/members', [App\Http\Controllers\Admin\ExtracurricularController::class, 'addMember'])->name('members.add');
+        Route::post('/members/{member}/approve', [App\Http\Controllers\Admin\ExtracurricularController::class, 'approveMember'])->name('members.approve');
+        Route::delete('/members/{member}', [App\Http\Controllers\Admin\ExtracurricularController::class, 'removeMember'])->name('members.remove');
+        Route::post('/{extracurricular}/activities', [App\Http\Controllers\Admin\ExtracurricularController::class, 'addActivity'])->name('activities.add');
+    });
     
 
 

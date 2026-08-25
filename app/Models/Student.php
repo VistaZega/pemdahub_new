@@ -245,6 +245,24 @@ class Student extends Model
         return $this->hasOne(Alumni::class);
     }
 
+    /**
+     * Relationship: Extracurricular Memberships
+     */
+    public function extracurricularMembers()
+    {
+        return $this->hasMany(ExtracurricularMember::class, 'student_id');
+    }
+
+    /**
+     * Relationship: Active Extracurriculars
+     */
+    public function extracurriculars()
+    {
+        return $this->belongsToMany(Extracurricular::class, 'extracurricular_members', 'student_id', 'extracurricular_id')
+            ->withPivot(['role', 'status', 'joined_date', 'notes', 'points_awarded'])
+            ->withTimestamps();
+    }
+
     // ─── Student Development Relationships ──────────────────────
 
     /**

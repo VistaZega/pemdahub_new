@@ -295,9 +295,17 @@
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">DNA 360°</span>
             </a>
 
+            <!-- Ekskul -->
+            <a href="{{ route('mobile.ekskul') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-orange flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                    🎨
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Ekskul</span>
+            </a>
+
             <!-- Fame -->
             <a href="{{ route('mobile.hall-of-fame') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-12 h-12 rounded-full clay-orange flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                <div class="w-12 h-12 rounded-full clay-pink flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     👑
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Fame</span>

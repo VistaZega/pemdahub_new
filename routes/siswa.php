@@ -28,6 +28,12 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
         Route::post('/diagnostic', [App\Http\Controllers\Siswa\StudentDnaPortalController::class, 'saveDiagnostic'])->name('diagnostic.save');
         Route::get('/pdf', [App\Http\Controllers\Siswa\StudentDnaPortalController::class, 'printPdf'])->name('pdf');
     });
+
+    // Ekstrakurikuler Siswa (Kegiatan Non-Akademik)
+    Route::prefix('ekskul')->name('ekskul.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Siswa\StudentExtracurricularController::class, 'index'])->name('index');
+        Route::post('/{extracurricular}/claim', [App\Http\Controllers\Siswa\StudentExtracurricularController::class, 'claim'])->name('claim');
+    });
  
     // CBT Routes (Siswa)
     Route::prefix('cbt')->name('cbt.')->middleware('feature:siswa_access_cbt')->group(function () {

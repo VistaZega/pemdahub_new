@@ -38,6 +38,11 @@
         <span class="font-bold text-indigo-950">DNA Akademik 360°</span>
     </a>
 
+    <a href="{{ route('siswa.ekskul.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.ekskul.*') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white"><i class="fas fa-palette text-[10px]"></i></div>
+        <span class="font-bold text-slate-900">Ekstrakurikuler</span>
+    </a>
+
     <a href="{{ route('siswa.tagihan') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.tagihan') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-red-400 to-rose-600 flex items-center justify-center text-white"><i class="fas fa-file-invoice-dollar text-[10px]"></i></div>
         <span>Biaya Pendidikan</span>

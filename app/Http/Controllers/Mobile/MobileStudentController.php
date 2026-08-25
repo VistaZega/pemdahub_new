@@ -876,5 +876,52 @@ class MobileStudentController extends Controller
         return redirect()->route('mobile.dna')
             ->with('success', 'Kuesioner minat berhasil diperbarui! Profil DNA Anda telah dikalibrasi ulang.');
     }
+
+    /**
+     * Tampilan Mobile Ekstrakurikuler Siswa
+     */
+    public function ekskul()
+    {
+        $student = $this->getStudent();
+        if (!$student) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Profil siswa tidak ditemukan.');
+        }
+
+        $myMemberships = \App\Models\ExtracurricularMember::with(['extracurricular.advisor', 'extracurricular.leader', 'extracurricular.activities'])
+            ->where('student_id', $student->id)
+            ->get();
+
+        $joinedEkskulIds = $myMemberships->pluck('extracurricular_id')->toArray();
+
+        $availableEkskuls = \App\Models\Extracurricular::with(['advisor', 'leader', 'secretary', 'treasurer', 'activeMembers'])
+            ->withCount(['activeMembers', 'activities'])
+            ->where('school_id', $student->school_id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('mobile.student.ekskul', compact('student', 'myMemberships', 'availableEkskuls', 'joinedEkskulIds'));
+    }
+
+    /**
+     * Klaim / Bergabung Ekskul dari Mobile
+     */
+    public function claimEkskul(Request $request, \App\Models\Extracurricular $extracurricular)
+    {
+        $student = $this->getStudent();
+        if (!$student) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Profil siswa tidak ditemukan.');
+        }
+
+        if ($extracurricular->school_id !== $student->school_id) {
+            return back()->with('error', 'Anda hanya dapat mendaftar di unit sekolah Anda.');
+        }
+
+        $ekskulService = app(\App\Services\ExtracurricularService::class);
+        $ekskulService->claimMembership($student, $extracurricular, 'anggota', $request->input('notes'));
+
+        return redirect()->route('mobile.ekskul')
+            ->with('success', "Selamat! Kamu resmi bergabung di {$extracurricular->name} (+15 Poin Reputasi). Kanal Space kamu telah aktif!");
+    }
 }
 

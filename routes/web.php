@@ -1183,6 +1183,12 @@ Route::get('/run-migrations', function () {
         echo "<h1>=== RUNNING SURAT EDARAN HUT RI SEEDER ===</h1>\n";
         $hutRiSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'FoundationLetterHutRiSeeder', '--force' => true]);
         echo \Illuminate\Support\Facades\Artisan::output();
+
+        echo "<h1>=== RUNNING EXTRACURRICULAR SEEDER ===</h1>\n";
+        $ekskulSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'ExtracurricularSeeder', '--force' => true]);
+        echo \Illuminate\Support\Facades\Artisan::output();
+        echo "\nExtracurricular Seeder Exit Code: " . $ekskulSeederExitCode . "\n\n";
+
         echo "<h1>=== UPDATING HOMEPAGE SAMBUTAN SETTINGS ===</h1>\n";
         \App\Models\Setting::setValue('ketua_nama', 'Yulianus Zega, S.Kom, M.Pd.T');
         \App\Models\Setting::setValue('ketua_jabatan', 'Ketua Yayasan Perguruan PEMBDA Nias');

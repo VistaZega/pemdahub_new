@@ -178,12 +178,70 @@
                     <i class="fas fa-radar"></i> Lihat Analisis Lengkap 360°
                 </a>
                 <a href="{{ route('siswa.dna.pdf') }}" class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-xs font-bold transition text-center flex items-center justify-center gap-2">
-                    <i class="fas fa-file-pdf text-rose-400"></i> Unduh Lembar Rapor DNA (PDF)
+                    <i class="fas fa-file-pdf"></i> Unduh Dokumen PDF
                 </a>
             </div>
         </div>
     </div>
     @endif
+
+    {{-- Widget Ekstrakurikuler & Non-Akademik Siswa --}}
+    @php
+        $myEkskuls = $student->extracurricularMembers()->where('status', 'approved')->with('extracurricular')->get();
+    @endphp
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-lg shadow-sm">
+                    🎨
+                </div>
+                <div>
+                    <h3 class="font-black text-slate-900 text-sm">Kegiatan Ekstrakurikuler & Karakter Non-Akademik</h3>
+                    <p class="text-xs text-slate-500">Unit kegiatan yang diikuti dan kanal koordinasi di Pembda Space</p>
+                </div>
+            </div>
+            <a href="{{ route('siswa.ekskul.index') }}" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                <span>Katalog Lengkap</span>
+                <i class="fas fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+
+        @if($myEkskuls->isNotEmpty())
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+            @foreach($myEkskuls as $m)
+            @php $e = $m->extracurricular; @endphp
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-xl flex-shrink-0 shadow-2xs">
+                        {{ $e->display_icon }}
+                    </div>
+                    <div class="min-w-0">
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold text-white bg-gradient-to-r {{ $m->role_badge_color }}">
+                            {{ $m->role_label }}
+                        </span>
+                        <p class="font-bold text-slate-900 text-xs truncate mt-0.5">{{ $e->name }}</p>
+                    </div>
+                </div>
+                @if($e->forum_group_id)
+                <a href="{{ route('space.index', ['group' => $e->forum_group_id]) }}" class="px-2.5 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg text-xs font-bold transition flex items-center gap-1 flex-shrink-0" title="Buka Kanal Space">
+                    <i class="fas fa-comments"></i>
+                </a>
+                @endif
+            </div>
+            @endforeach
+        </div>
+        @else
+        <div class="p-4 bg-amber-50/60 rounded-xl border border-amber-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2.5 text-amber-950">
+                <span class="text-lg">⚜️</span>
+                <span>Kamu belum memilih ekstrakurikuler. Bergabunglah untuk mendapatkan reward <b>+15 Poin Reputasi</b> dan meningkatkan skor DNA karaktermu!</span>
+            </div>
+            <a href="{{ route('siswa.ekskul.index') }}" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold flex-shrink-0 transition shadow-2xs">
+                Pilih Ekskul Sekarang
+            </a>
+        </div>
+        @endif
+    </div>
 
     {{-- Main Content: Timeline + Courses --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

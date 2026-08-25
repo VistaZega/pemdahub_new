@@ -417,6 +417,10 @@
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-chart-line text-[10px]"></i></div>
             <span>Perkembangan Siswa</span>
         </a>
+        <a href="{{ route('admin.extracurricular.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.extracurricular.*') ? $ac : $nc }}">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white"><i class="fas fa-palette text-[10px]"></i></div>
+            <span>Ekstrakurikuler</span>
+        </a>
     </div>
 </div>
 @endif

@@ -196,6 +196,10 @@
         <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #9333ea !important; color: #ffffff !important;"><i class="fas fa-dna text-[10px] text-white"></i></div>
         <span>DNA Akademik 360°</span>
     </a>
+    <a href="{{ route('guru.extracurricular.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.extracurricular.*') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #6366f1 !important; color: #ffffff !important;"><i class="fas fa-palette text-[10px] text-white"></i></div>
+        <span>Ekstrakurikuler</span>
+    </a>
 
     <!-- Monitoring PKL -->
     @php

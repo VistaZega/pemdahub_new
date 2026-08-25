@@ -91,7 +91,8 @@ class StudentDnaService
             $positivePoints,
             $negativePoints,
             $diagnostic,
-            $schoolType
+            $schoolType,
+            $student
         );
 
         $dimensionScores = $dimensionCalculation['scores'];
@@ -138,6 +139,7 @@ class StudentDnaService
             'confidence_label' => $this->getConfidenceLabel($confidenceScore),
             'archetype' => $archetype,
             'recommendations' => $recommendations,
+            'extracurriculars' => $student->extracurricularMembers()->where('status', 'approved')->with('extracurricular')->get(),
             'metrics' => [
                 'total_grades' => $grades->count(),
                 'attendance_rate' => $attendanceRate ?? 85,
@@ -177,7 +179,8 @@ class StudentDnaService
         int $positivePoints,
         int $negativePoints,
         ?StudentDiagnosticAssessment $diagnostic,
-        string $schoolType
+        string $schoolType,
+        ?Student $student = null
     ): array {
         // Kelompokkan nilai mapel dari database
         $logicGrades = [];
@@ -207,6 +210,15 @@ class StudentDnaService
         }
 
         $overallGpa = !empty($allScores) ? (array_sum($allScores) / count($allScores)) : 75;
+
+        // Ambil Data Keaktifan Ekstrakurikuler Riil dari Database
+        $activeEkskuls = collect();
+        if ($student) {
+            $activeEkskuls = $student->extracurricularMembers()
+                ->where('status', 'approved')
+                ->with('extracurricular')
+                ->get();
+        }
 
         // 1. Logika & Analitik
         if (!empty($logicGrades)) {
@@ -240,6 +252,11 @@ class StudentDnaService
             $techBase = $schoolType === 'SMK' ? min(90, $overallGpa + 2) : $overallGpa;
             $techSource = !empty($allScores) ? 'Estimasi Profil ' . $schoolType . ' (' . count($allScores) . ' Mapel DB)' : 'Belum Ada Input Nilai Kejuruan di Database';
         }
+        $techEkskuls = $activeEkskuls->filter(fn($m) => in_array($m->extracurricular->category ?? '', ['sains_it']));
+        if ($techEkskuls->isNotEmpty()) {
+            $techBase = min(98, $techBase + 6);
+            $techSource .= ' & Aktif ' . $techEkskuls->first()->extracurricular->name;
+        }
         $tech = $diagnostic ? round(($techBase * 0.7) + ($diagnostic->technical_self_score * 0.3)) : round($techBase);
 
         // 4. Sosial & Kepemimpinan
@@ -255,6 +272,15 @@ class StudentDnaService
             $socialBase = min(98, $socialBase + $bonus);
             $socialSource .= ' + ' . $positivePoints . ' Poin Reputasi Positif';
         }
+        $leadershipRoles = $activeEkskuls->filter(fn($m) => in_array($m->role, ['ketua', 'wakil_ketua', 'sekretaris', 'bendahara']));
+        if ($leadershipRoles->isNotEmpty()) {
+            $socialBase = min(98, $socialBase + 10);
+            $firstLeader = $leadershipRoles->first();
+            $socialSource .= ' & ' . $firstLeader->role_label . ' ' . $firstLeader->extracurricular->name;
+        } elseif ($activeEkskuls->isNotEmpty()) {
+            $socialBase = min(98, $socialBase + 4);
+            $socialSource .= ' & Anggota ' . $activeEkskuls->first()->extracurricular->name;
+        }
         $social = $diagnostic ? round(($socialBase * 0.7) + ($diagnostic->social_self_score * 0.3)) : round($socialBase);
 
         // 5. Kreativitas & Inovasi
@@ -265,6 +291,11 @@ class StudentDnaService
             $creativeBase = $overallGpa;
             $creativeSource = !empty($allScores) ? 'Estimasi Rerata Umum (' . count($allScores) . ' Mapel DB)' : 'Belum Ada Input Nilai Seni di Database';
         }
+        $artsEkskuls = $activeEkskuls->filter(fn($m) => in_array($m->extracurricular->category ?? '', ['seni_budaya', 'jurnalistik']));
+        if ($artsEkskuls->isNotEmpty()) {
+            $creativeBase = min(98, max($creativeBase, 82) + 6);
+            $creativeSource = 'Data Riil: ' . $artsEkskuls->first()->extracurricular->name . ($creativeGrades ? ' & ' . count($creativeGrades) . ' Mapel Seni' : '');
+        }
         $creative = $diagnostic ? round(($creativeBase * 0.7) + ($diagnostic->creative_self_score * 0.3)) : round($creativeBase);
 
         // 6. Kedisiplinan & Ketekunan
@@ -274,6 +305,11 @@ class StudentDnaService
         } else {
             $discBase = 85;
             $discSource = 'Belum Ada Data Presensi (Standar Baseline 85%)';
+        }
+        $scoutPaskibra = $activeEkskuls->filter(fn($m) => in_array($m->extracurricular->category ?? '', ['pramuka', 'paskibraka', 'olahraga']));
+        if ($scoutPaskibra->isNotEmpty()) {
+            $discBase = min(98, $discBase + 5);
+            $discSource .= ' & Aktif ' . $scoutPaskibra->first()->extracurricular->name;
         }
         if ($negativePoints < 0) {
             $penalty = min(20, abs($negativePoints));
