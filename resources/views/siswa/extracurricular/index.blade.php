@@ -50,12 +50,12 @@
             <div class="bg-white rounded-3xl border-2 border-indigo-200 shadow-sm p-6 flex flex-col justify-between hover:shadow-lg transition">
                 <div class="space-y-4">
                     <div class="flex items-start justify-between gap-2">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-3xl shadow-sm flex-shrink-0">
+                        <div class="flex items-start" style="gap: 1.25rem;">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-3xl shadow-sm flex-shrink-0" style="margin-right: 1.25rem;">
                                 {{ $ekskul->display_icon }}
                             </div>
-                            <div>
-                                <div class="flex flex-wrap items-center gap-1.5">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-1.5" style="margin-bottom: 0.5rem;">
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white bg-gradient-to-r {{ $membership->role_badge_color }} shadow-2xs">
                                         {{ $membership->role_label }}
                                     </span>
@@ -121,12 +121,12 @@
             @php $isJoined = in_array($ekskul->id, $joinedEkskulIds); @endphp
             <div class="bg-white rounded-3xl border-2 {{ $ekskul->isFoundationLevel() ? 'border-amber-400 ring-4 ring-amber-50' : 'border-indigo-100 hover:border-indigo-400' }} shadow-sm p-6 flex flex-col justify-between hover:shadow-xl transition duration-200 group">
                 <div class="space-y-4">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-3xl group-hover:scale-105 transition flex-shrink-0 shadow-sm">
+                    <div class="flex items-start" style="gap: 1.25rem;">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-3xl group-hover:scale-105 transition flex-shrink-0 shadow-sm" style="margin-right: 1.25rem;">
                             {{ $ekskul->display_icon }}
                         </div>
-                        <div>
-                            <div class="flex flex-wrap items-center gap-1.5">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-1.5" style="margin-bottom: 0.5rem;">
                                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-2xs">
                                     {{ $ekskul->category_label }}
                                 </span>
