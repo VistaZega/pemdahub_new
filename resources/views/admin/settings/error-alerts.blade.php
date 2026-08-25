@@ -97,7 +97,7 @@
                         </div>
                         <div>
                             <h3 class="text-base font-bold text-gray-900">Saluran WhatsApp Super Admin</h3>
-                            <p class="text-[11px] text-gray-500 mt-0.5">Kirim laporan error instan ke nomor WhatsApp Anda</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">Kirim laporan error instan ke nomor WhatsApp Super Admin</p>
                         </div>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -107,12 +107,58 @@
                 </div>
 
                 <div class="space-y-4">
+                    <!-- Deteksi Otomatis Akun Super Admin dari Database -->
+                    <div class="p-4 bg-emerald-50/70 rounded-2xl border border-emerald-200/80 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-emerald-950 flex items-center gap-2">
+                                <i class="fas fa-users-cog text-emerald-600"></i> Akun Super Admin Terdeteksi (Otomatis):
+                            </span>
+                            <span class="text-[10px] font-bold text-emerald-800 bg-emerald-200/80 px-2.5 py-0.5 rounded-full">
+                                {{ count($alertConfig['super_admin_recipients']) }} Akun Aktif
+                            </span>
+                        </div>
+
+                        <div class="space-y-2">
+                            @forelse($alertConfig['super_admin_recipients'] as $sa)
+                            <div class="flex items-center justify-between p-2.5 bg-white/95 rounded-xl border border-emerald-100 shadow-sm text-xs">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+                                        <i class="fas fa-user-shield text-[11px]"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-900 leading-tight">{{ $sa['name'] }}</p>
+                                        <p class="text-[10px] text-gray-400 font-mono">{{ $sa['username'] }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    @if($sa['has_phone'])
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg font-mono font-bold text-[11px]">
+                                        <i class="fab fa-whatsapp text-emerald-600"></i> {{ $sa['phone'] }}
+                                    </span>
+                                    @else
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-semibold">
+                                        ⚠️ Belum ada No HP
+                                    </span>
+                                    @endif
+                                </div>
+                            </div>
+                            @empty
+                            <p class="text-xs text-amber-700 italic">Tidak ditemukan akun Super Admin aktif di database.</p>
+                            @endforelse
+                        </div>
+
+                        <p class="text-[11px] text-emerald-800/80 leading-relaxed">
+                            💡 <b>Otomatis:</b> Sistem akan mengirimkan laporan error ke nomor WhatsApp seluruh akun Super Admin di atas tanpa perlu ketik manual.
+                        </p>
+                    </div>
+
+                    <!-- Input Nomor Tambahan / Custom Override (Opsional) -->
                     <div>
                         <label class="block text-xs font-bold text-gray-800 mb-2 flex items-center gap-2">
-                            <i class="fas fa-phone text-emerald-600"></i> Nomor WhatsApp HP Tujuan Super Admin:
+                            <i class="fas fa-plus-circle text-gray-500"></i> Nomor WhatsApp Tambahan / Tim Luar (Opsional):
                         </label>
-                        <input type="text" name="wa_alert_phone" value="{{ $alertConfig['whatsapp']['admin_phone'] }}" placeholder="Contoh: 088991144184 atau 628..." class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono shadow-sm">
-                        <p class="text-[11px] text-gray-400 mt-1.5 leading-relaxed">Nomor WhatsApp yang akan menerima pesan peringatan saat terjadi error server.</p>
+                        <input type="text" name="wa_alert_phone" value="{{ $alertConfig['whatsapp']['admin_phone'] }}" placeholder="Opsional: 08... (Isi jika ingin kirim salinan ke nomor tambahan)" class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono shadow-sm">
+                        <p class="text-[11px] text-gray-400 mt-1.5 leading-relaxed">Kosongkan jika hanya ingin mengirimkan laporan ke akun Super Admin yang terdaftar di sistem.</p>
                     </div>
 
                     <div class="p-4 bg-gray-50/80 rounded-2xl border border-gray-100 text-xs text-gray-600 space-y-2">

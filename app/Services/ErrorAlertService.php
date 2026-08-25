@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -118,6 +119,68 @@ class ErrorAlertService
     }
 
     /**
+     * Get all active Super Admin users with their auto-detected phone numbers
+     */
+    public function getSuperAdminRecipients(): array
+    {
+        $recipients = [];
+        try {
+            $superAdmins = User::whereIn('role', ['super_admin', 'superadmin'])
+                ->where('is_active', true)
+                ->with(['employee', 'teacher.employee'])
+                ->get();
+
+            foreach ($superAdmins as $sa) {
+                $phone = $sa->phone 
+                    ?? $sa->employee?->phone 
+                    ?? $sa->teacher?->phone 
+                    ?? $sa->teacher?->employee?->phone 
+                    ?? null;
+
+                $recipients[] = [
+                    'id' => $sa->id,
+                    'name' => $sa->name,
+                    'username' => $sa->username,
+                    'email' => $sa->email,
+                    'phone' => $phone,
+                    'has_phone' => !empty($phone),
+                ];
+            }
+        } catch (Throwable $e) {
+            Log::warning('Failed fetching Super Admin recipients: ' . $e->getMessage());
+        }
+
+        return $recipients;
+    }
+
+    /**
+     * Resolve all recipient phone numbers (Auto-detect Super Admin accounts + Custom/Fallback phone)
+     */
+    public function getResolvedTargetPhones(): array
+    {
+        $phones = [];
+
+        // 1. Fetch from registered Super Admin users in DB
+        $superAdmins = $this->getSuperAdminRecipients();
+        foreach ($superAdmins as $sa) {
+            if (!empty($sa['phone'])) {
+                $cleanPhone = preg_replace('/[^0-9]/', '', (string)$sa['phone']);
+                if (strlen($cleanPhone) >= 9) {
+                    $phones[$sa['phone']] = $sa['name'];
+                }
+            }
+        }
+
+        // 2. Add manual override / custom phone if filled in Settings
+        $customPhone = Setting::getValue('wa_alert_phone') ?: config('services.alerts.whatsapp.admin_phone');
+        if (!empty($customPhone) && !isset($phones[$customPhone])) {
+            $phones[$customPhone] = 'Nomor Khusus / Tambahan';
+        }
+
+        return $phones;
+    }
+
+    /**
      * Get alert configuration settings for display in Admin Panel
      */
     public function getAlertConfig(): array
@@ -125,6 +188,8 @@ class ErrorAlertService
         return [
             'enabled' => $this->isEnabled(),
             'cooldown_minutes' => $this->getCooldownMinutes(),
+            'super_admin_recipients' => $this->getSuperAdminRecipients(),
+            'resolved_phones' => $this->getResolvedTargetPhones(),
             'whatsapp' => [
                 'enabled' => (bool) (Setting::getValue('wa_alert_enabled') ?? config('services.alerts.whatsapp.enabled', false)),
                 'admin_phone' => Setting::getValue('wa_alert_phone') ?: config('services.alerts.whatsapp.admin_phone', ''),
@@ -210,15 +275,22 @@ class ErrorAlertService
     }
 
     /**
-     * Send alert via WhatsApp Admin.
+     * Send alert via WhatsApp Admin (Auto-detect Super Admin numbers + Custom Phone).
      */
     public function sendWhatsAppAlert(Throwable $exception): array
     {
         $enabled = (bool) (Setting::getValue('wa_alert_enabled') ?? config('services.alerts.whatsapp.enabled', false));
-        $adminPhone = Setting::getValue('wa_alert_phone') ?: config('services.alerts.whatsapp.admin_phone');
+        if (!$enabled) {
+            return ['success' => false, 'message' => 'WhatsApp alert belum diaktifkan di pengaturan sistem'];
+        }
 
-        if (!$enabled || empty($adminPhone)) {
-            return ['success' => false, 'message' => 'WhatsApp alert belum diaktifkan atau nomor HP Super Admin belum diisi'];
+        $targetPhones = $this->getResolvedTargetPhones();
+
+        if (empty($targetPhones)) {
+            return [
+                'success' => false, 
+                'message' => 'Tidak ditemukan nomor WhatsApp Super Admin (baik dari profil akun Super Admin di database maupun dari kolom nomor khusus)'
+            ];
         }
 
         try {
@@ -245,14 +317,29 @@ class ErrorAlertService
             $msg .= "⚠️ Segera periksa server log atau dashboard pemantau PembdaHUB.";
 
             $waService = app(WhatsAppService::class);
-            $result = $waService->sendMessage($adminPhone, $msg);
+            $sentCount = 0;
+            $failedCount = 0;
+            $details = [];
 
-            if (!empty($result['success'])) {
-                Log::channel('daily')->info('WhatsApp error alert sent successfully');
-                return ['success' => true, 'message' => "Test alert WhatsApp berhasil dikirim ke nomor {$adminPhone} via " . $waService->getProviderLabel()];
+            foreach ($targetPhones as $phone => $name) {
+                $result = $waService->sendMessage($phone, $msg);
+                if (!empty($result['success'])) {
+                    $sentCount++;
+                    $details[] = "{$name} ({$phone}): ✓";
+                } else {
+                    $failedCount++;
+                    $details[] = "{$name} ({$phone}): ✗";
+                }
+            }
+
+            if ($sentCount > 0) {
+                Log::channel('daily')->info("WhatsApp error alerts sent to {$sentCount} recipient(s)");
+                return [
+                    'success' => true, 
+                    'message' => "Laporan error berhasil dikirim via {$waService->getProviderLabel()} ke {$sentCount} Super Admin: [" . implode(', ', $details) . ']'
+                ];
             } else {
-                $err = $result['error'] ?? $result['response']['message'] ?? 'Gagal mengirim pesan WhatsApp';
-                return ['success' => false, 'message' => "WhatsApp Alert Error: {$err}"];
+                return ['success' => false, 'message' => "Gagal mengirim WhatsApp alert ke penerima: " . implode(', ', $details)];
             }
         } catch (Throwable $e) {
             Log::channel('daily')->warning('Failed to send WhatsApp error alert: ' . $e->getMessage());
