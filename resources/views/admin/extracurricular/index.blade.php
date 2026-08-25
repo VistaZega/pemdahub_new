@@ -112,22 +112,22 @@
         <div class="bg-white rounded-3xl border-2 {{ $ekskul->isFoundationLevel() ? 'border-amber-400 ring-4 ring-amber-100' : 'border-indigo-100 hover:border-indigo-400' }} shadow-sm overflow-hidden flex flex-col hover:shadow-xl transition duration-200 group">
             <div class="p-6 flex-1 space-y-4">
                 <div class="flex items-start justify-between gap-3">
-                    <div class="flex items-center gap-3.5">
+                    <div class="flex items-start gap-4 flex-1 min-w-0">
                         <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-3xl shadow-md group-hover:scale-105 transition flex-shrink-0">
                             {{ $ekskul->display_icon }}
                         </div>
-                        <div>
-                            <div class="flex flex-wrap items-center gap-1.5">
-                                <span class="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-2xs">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-1.5 mb-2.5">
+                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-2xs">
                                     {{ $ekskul->category_label }}
                                 </span>
                                 @if($ekskul->isFoundationLevel())
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-2xs">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-2xs">
                                     🏛️ Yayasan
                                 </span>
                                 @endif
                             </div>
-                            <h3 class="font-black text-slate-950 text-base mt-1.5 leading-snug group-hover:text-indigo-600 transition">
+                            <h3 class="font-black text-slate-950 text-base leading-snug group-hover:text-indigo-600 transition">
                                 {{ $ekskul->name }}
                             </h3>
                         </div>

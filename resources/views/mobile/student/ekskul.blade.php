@@ -72,7 +72,7 @@
                     {{ $ekskul->display_icon }}
                 </div>
                 <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-1">
+                    <div class="flex flex-wrap items-center gap-1 mb-1.5">
                         <span class="px-2 py-0.5 rounded-full text-[9px] font-bold text-white bg-gradient-to-r {{ $membership->role_badge_color }} shadow-2xs">
                             {{ $membership->role_label }}
                         </span>
@@ -82,7 +82,7 @@
                         </span>
                         @endif
                     </div>
-                    <h3 class="font-black text-slate-900 text-xs mt-1 leading-snug">{{ $ekskul->name }}</h3>
+                    <h3 class="font-black text-slate-900 text-xs leading-snug">{{ $ekskul->name }}</h3>
                 </div>
             </div>
 
@@ -132,7 +132,7 @@
                     {{ $ekskul->display_icon }}
                 </div>
                 <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-1">
+                    <div class="flex flex-wrap items-center gap-1 mb-1.5">
                         <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-800">
                             {{ $ekskul->category_label }}
                         </span>
@@ -142,7 +142,7 @@
                         </span>
                         @endif
                     </div>
-                    <h3 class="font-black text-slate-900 text-xs mt-1 leading-snug">{{ $ekskul->name }}</h3>
+                    <h3 class="font-black text-slate-900 text-xs leading-snug">{{ $ekskul->name }}</h3>
                 </div>
             </div>
 

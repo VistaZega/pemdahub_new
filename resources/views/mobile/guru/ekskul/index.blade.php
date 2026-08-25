@@ -66,12 +66,12 @@
             @forelse($ekskuls as $ekskul)
             <a href="{{ route('mobile.guru.ekskul.show', $ekskul) }}" class="block bg-white p-4.5 rounded-3xl border-2 {{ $ekskul->isFoundationLevel() ? 'border-amber-300 ring-2 ring-amber-50' : 'border-slate-200' }} shadow-xs active:scale-[0.98] transition">
                 <div class="flex items-start justify-between gap-3">
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-start gap-3 flex-1 min-w-0">
                         <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-2xl shadow-2xs flex-shrink-0">
                             {{ $ekskul->display_icon }}
                         </div>
-                        <div>
-                            <div class="flex flex-wrap items-center gap-1">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-1 mb-1.5">
                                 <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-800">
                                     {{ $ekskul->category_label }}
                                 </span>
@@ -81,7 +81,7 @@
                                 </span>
                                 @endif
                             </div>
-                            <h3 class="font-black text-slate-900 text-xs mt-1 leading-snug">{{ $ekskul->name }}</h3>
+                            <h3 class="font-black text-slate-900 text-xs leading-snug">{{ $ekskul->name }}</h3>
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-right text-slate-400 text-xs mt-2"></i>

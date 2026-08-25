@@ -50,22 +50,22 @@
             <div class="bg-white rounded-3xl border-2 border-indigo-200 shadow-sm p-6 flex flex-col justify-between hover:shadow-lg transition">
                 <div class="space-y-4">
                     <div class="flex items-start justify-between gap-2">
-                        <div class="flex items-start" style="gap: 1.25rem;">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-3xl shadow-sm flex-shrink-0" style="margin-right: 1.25rem;">
+                        <div class="flex items-start gap-4 flex-1 min-w-0">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-3xl shadow-sm flex-shrink-0">
                                 {{ $ekskul->display_icon }}
                             </div>
                             <div class="flex-1 min-w-0">
-                                <div class="flex flex-wrap items-center gap-1.5" style="margin-bottom: 0.5rem;">
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white bg-gradient-to-r {{ $membership->role_badge_color }} shadow-2xs">
+                                <div class="flex flex-wrap items-center gap-1.5 mb-2.5">
+                                    <span class="px-3 py-1 rounded-full text-[10px] font-bold text-white bg-gradient-to-r {{ $membership->role_badge_color }} shadow-2xs">
                                         {{ $membership->role_label }}
                                     </span>
                                     @if($membership->section)
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-purple-100 to-pink-100 text-purple-950 border border-purple-300">
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-gradient-to-r from-purple-100 to-pink-100 text-purple-950 border border-purple-300">
                                         🎺 {{ $membership->section }}
                                     </span>
                                     @endif
                                 </div>
-                                <h3 class="font-black text-slate-900 text-sm mt-1 leading-snug">{{ $ekskul->name }}</h3>
+                                <h3 class="font-black text-slate-900 text-sm leading-snug">{{ $ekskul->name }}</h3>
                             </div>
                         </div>
                     </div>
@@ -121,22 +121,22 @@
             @php $isJoined = in_array($ekskul->id, $joinedEkskulIds); @endphp
             <div class="bg-white rounded-3xl border-2 {{ $ekskul->isFoundationLevel() ? 'border-amber-400 ring-4 ring-amber-50' : 'border-indigo-100 hover:border-indigo-400' }} shadow-sm p-6 flex flex-col justify-between hover:shadow-xl transition duration-200 group">
                 <div class="space-y-4">
-                    <div class="flex items-start" style="gap: 1.25rem;">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-3xl group-hover:scale-105 transition flex-shrink-0 shadow-sm" style="margin-right: 1.25rem;">
+                    <div class="flex items-start gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-3xl group-hover:scale-105 transition flex-shrink-0 shadow-sm">
                             {{ $ekskul->display_icon }}
                         </div>
                         <div class="flex-1 min-w-0">
-                            <div class="flex flex-wrap items-center gap-1.5" style="margin-bottom: 0.5rem;">
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-2xs">
+                            <div class="flex flex-wrap items-center gap-1.5 mb-2.5">
+                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-2xs">
                                     {{ $ekskul->category_label }}
                                 </span>
                                 @if($ekskul->isFoundationLevel())
-                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-2xs">
+                                <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-2xs">
                                     🏛️ Lintas Yayasan
                                 </span>
                                 @endif
                             </div>
-                            <h3 class="font-black text-slate-900 text-base mt-1 leading-snug group-hover:text-indigo-600 transition">
+                            <h3 class="font-black text-slate-900 text-base leading-snug group-hover:text-indigo-600 transition">
                                 {{ $ekskul->name }}
                             </h3>
                         </div>
