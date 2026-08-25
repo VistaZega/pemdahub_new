@@ -33,6 +33,11 @@
         <span>Nilai & Rapor</span>
     </a>
 
+    <a href="{{ route('siswa.dna.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.dna.*') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-fuchsia-500 to-indigo-600 flex items-center justify-center text-white"><i class="fas fa-dna text-[10px]"></i></div>
+        <span class="font-bold text-indigo-950">DNA Akademik 360°</span>
+    </a>
+
     <a href="{{ route('siswa.tagihan') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.tagihan') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-red-400 to-rose-600 flex items-center justify-center text-white"><i class="fas fa-file-invoice-dollar text-[10px]"></i></div>
         <span>Biaya Pendidikan</span>

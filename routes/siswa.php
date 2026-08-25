@@ -21,6 +21,13 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
     Route::post('/attendance/gps-scan', [App\Http\Controllers\Api\AttendanceController::class, 'handleGpsScan'])->name('attendance.gps-scan');
     Route::get('/profil', [App\Http\Controllers\Siswa\DashboardController::class, 'profil'])->name('profil');
     Route::get('/konseling', [App\Http\Controllers\Siswa\DashboardController::class, 'konseling'])->name('konseling');
+
+    // DNA Akademik Siswa 360°
+    Route::prefix('dna')->name('dna.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Siswa\StudentDnaPortalController::class, 'index'])->name('index');
+        Route::post('/diagnostic', [App\Http\Controllers\Siswa\StudentDnaPortalController::class, 'saveDiagnostic'])->name('diagnostic.save');
+        Route::get('/pdf', [App\Http\Controllers\Siswa\StudentDnaPortalController::class, 'printPdf'])->name('pdf');
+    });
  
     // CBT Routes (Siswa)
     Route::prefix('cbt')->name('cbt.')->middleware('feature:siswa_access_cbt')->group(function () {

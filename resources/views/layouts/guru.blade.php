@@ -192,9 +192,9 @@
         <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #e11d48 !important; color: #ffffff !important;"><i class="fas fa-file-alt text-[10px] text-white"></i></div>
         <span>Raport Akademik</span>
     </a>
-    <a href="{{ route('guru.p5.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.p5.*') ? $ac : $nc }}">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #7c3aed !important; color: #ffffff !important;"><i class="fas fa-shapes text-[10px] text-white"></i></div>
-        <span>Projek P5 (Kurikulum Merdeka)</span>
+    <a href="{{ route('guru.dna.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.dna.*') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #9333ea !important; color: #ffffff !important;"><i class="fas fa-dna text-[10px] text-white"></i></div>
+        <span>DNA Akademik 360°</span>
     </a>
 
     <!-- Monitoring PKL -->

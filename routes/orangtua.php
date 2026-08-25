@@ -19,4 +19,6 @@ Route::prefix('orang-tua')->name('orangtua.')->middleware('auth', 'role:orang_tu
     Route::get('/anak/{student}/absensi', [App\Http\Controllers\OrangTua\DashboardController::class, 'absensi'])->name('anak.absensi');
     Route::get('/anak/{student}/jadwal', [App\Http\Controllers\OrangTua\DashboardController::class, 'jadwal'])->name('anak.jadwal');
     Route::get('/anak/{student}/konseling', [App\Http\Controllers\OrangTua\DashboardController::class, 'konseling'])->name('anak.konseling');
+    Route::get('/anak/{student}/dna', [App\Http\Controllers\OrangTua\ParentStudentDnaController::class, 'show'])->name('anak.dna');
+    Route::get('/anak/{student}/dna/pdf', [App\Http\Controllers\OrangTua\ParentStudentDnaController::class, 'printPdf'])->name('anak.dna.pdf');
 });

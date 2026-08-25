@@ -243,15 +243,11 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::post('/question-generator/save', [App\Http\Controllers\Guru\AiQuestionGeneratorController::class, 'save'])->name('question-generator.save');
     });
 
-    // Projek P5 (Penguatan Profil Pelajar Pancasila - Guru & Fasilitator)
-    Route::prefix('p5')->name('p5.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Admin\P5ProjectController::class, 'index'])->name('index');
-        Route::get('/create', [App\Http\Controllers\Admin\P5ProjectController::class, 'create'])->name('create');
-        Route::post('/', [App\Http\Controllers\Admin\P5ProjectController::class, 'store'])->name('store');
-        Route::get('/{project}', [App\Http\Controllers\Admin\P5ProjectController::class, 'show'])->name('show');
-        Route::get('/{project}/assess', [App\Http\Controllers\Admin\P5ProjectController::class, 'assessForm'])->name('assess');
-        Route::post('/{project}/assess', [App\Http\Controllers\Admin\P5ProjectController::class, 'assessStore'])->name('assess.store');
-        Route::get('/{project}/raport/{student}', [App\Http\Controllers\Admin\P5ProjectController::class, 'printRaport'])->name('raport.print');
+    // DNA Akademik Siswa 360° (Guru / Wali Kelas)
+    Route::prefix('dna')->name('dna.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Guru\TeacherStudentDnaController::class, 'index'])->name('index');
+        Route::get('/{student}', [App\Http\Controllers\Guru\TeacherStudentDnaController::class, 'show'])->name('show');
+        Route::get('/{student}/pdf', [App\Http\Controllers\Guru\TeacherStudentDnaController::class, 'printPdf'])->name('pdf');
     });
 
     // Employee Leave / Cuti Mandiri Routes

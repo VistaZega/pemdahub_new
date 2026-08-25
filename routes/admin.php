@@ -530,6 +530,13 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::get('surveys/{survey}/results/pdf', [App\Http\Controllers\Admin\SurveyController::class, 'downloadPdf'])->name('surveys.results.pdf');
     Route::post('surveys/answers/{answer}/score', [App\Http\Controllers\Admin\SurveyController::class, 'updateEssayScore'])->name('surveys.answers.score');
     Route::delete('surveys/responses/{response}', [App\Http\Controllers\Admin\SurveyController::class, 'destroyResponse'])->name('surveys.responses.destroy');
+
+    // DNA Akademik Siswa 360° (Student Academic DNA)
+    Route::prefix('dna')->name('dna.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\StudentDnaController::class, 'index'])->name('index');
+        Route::get('/{student}', [App\Http\Controllers\Admin\StudentDnaController::class, 'show'])->name('show');
+        Route::get('/{student}/pdf', [App\Http\Controllers\Admin\StudentDnaController::class, 'printPdf'])->name('pdf');
+    });
 });
 
 // Student Management routes with broader role permissions

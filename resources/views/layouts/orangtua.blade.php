@@ -1,4 +1,4 @@
-﻿{{--
+{{--
     Orang Tua Layout — extends unified master layout
     Theme: Blue (Parent Portal)
 --}}
@@ -33,6 +33,10 @@
                     <a href="{{ route('orangtua.anak.nilai', $child->id) }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('orangtua.anak.nilai') && request()->route('student') == $child->id ? $ac : $nc }}">
                         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white"><i class="fas fa-chart-bar text-[10px]"></i></div>
                         <span>Nilai</span>
+                    </a>
+                    <a href="{{ route('orangtua.anak.dna', $child->id) }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('orangtua.anak.dna') && request()->route('student') == $child->id ? $ac : $nc }}">
+                        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-fuchsia-500 to-indigo-600 flex items-center justify-center text-white"><i class="fas fa-dna text-[10px]"></i></div>
+                        <span class="font-bold text-indigo-950">DNA Potensi 360°</span>
                     </a>
                     <a href="{{ route('orangtua.anak.tagihan', $child->id) }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('orangtua.anak.tagihan') && request()->route('student') == $child->id ? $ac : $nc }}">
                         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center text-white"><i class="fas fa-file-invoice-dollar text-[10px]"></i></div>
