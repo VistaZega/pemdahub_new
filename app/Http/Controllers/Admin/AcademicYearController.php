@@ -131,42 +131,29 @@ class AcademicYearController extends Controller
     {
         $this->authorizeAccess();
 
-        // Hitung data terkait sebelum menghapus
-        $relatedData = [
-            'Semester' => $academicYear->semesters()->count(),
-            'Kelas (Classroom)' => \DB::table('classrooms')->where('academic_year_id', $academicYear->id)->count(),
-            'Penempatan Siswa' => \DB::table('student_classes')->where('academic_year_id', $academicYear->id)->count(),
-            'Tagihan Siswa' => \DB::table('student_bills')->where('academic_year_id', $academicYear->id)->count(),
-            'Jadwal' => \DB::table('schedules')->where('academic_year_id', $academicYear->id)->count(),
-            'Penugasan Guru' => \DB::table('teaching_assignments')->where('academic_year_id', $academicYear->id)->count(),
-            'Rapor' => \DB::table('report_cards')->where('academic_year_id', $academicYear->id)->count(),
-            'Jabatan Pegawai' => \DB::table('employee_positions')->where('academic_year_id', $academicYear->id)->count(),
-        ];
+        // KEAMANAN DATA (KRITIS):
+        // Penghapusan Tahun Pelajaran DILARANG karena 20+ tabel memiliki
+        // ON DELETE CASCADE pada academic_year_id. Penghapusan akan menghancurkan:
+        // - Data PSB (applicants, admission_fees, admission_tests, registration_waves)
+        // - Data Akademik (student_promotions, achievements, final_projects, p5_projects, pkl_placements)
+        // - Data BK (counseling_records, recommendations, development_notes)
+        // - Data CBT (question_banks, exams)
+        // - Data Keuangan (fee_exemption_rules, school_contributions)
+        // - Data Kepegawaian (workload_summaries, performance_contracts)
+        //
+        // CATATAN HISTORIS: Pada Juli 2026, penghapusan TP 2026/2027 menyebabkan
+        // kehilangan data masif dan harus restore dari backup.
+        //
+        // Jika TP perlu "dihapus", cukup nonaktifkan (is_active = false).
 
-        $totalRelated = array_sum($relatedData);
+        $message = 'Penghapusan Tahun Pelajaran "' . $academicYear->year . '" TIDAK DIIZINKAN demi keamanan data. '
+                 . 'Tahun Pelajaran terhubung dengan 20+ tabel data (PSB, CBT, BK, PKL, Keuangan, dll). '
+                 . 'Gunakan tombol nonaktifkan untuk menonaktifkan TP yang tidak digunakan.';
 
-        // Jika ada data terkait, TOLAK penghapusan
-        if ($totalRelated > 0) {
-            $details = [];
-            foreach ($relatedData as $label => $count) {
-                if ($count > 0) {
-                    $details[] = "$label: $count data";
-                }
-            }
-            $message = 'TIDAK DAPAT MENGHAPUS tahun ajaran "' . $academicYear->year . '" karena masih memiliki data terkait: ' . implode(', ', $details) . '. Hapus data terkait terlebih dahulu atau hubungi administrator.';
-
-            if ($request->wantsJson() || $request->ajax()) {
-                return response()->json(['error' => $message], 422);
-            }
-            return redirect()->route('admin.academic-years.index')->with('error', $message);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['error' => $message], 403);
         }
 
-        try {
-            $academicYear->delete();
-            return redirect()->route('admin.academic-years.index')->with('success', 'Tahun ajaran berhasil dihapus.');
-        } catch (\Illuminate\Database\QueryException $e) {
-            return redirect()->route('admin.academic-years.index')
-                ->with('error', 'Tidak dapat menghapus tahun ajaran karena masih digunakan dalam data lain.');
-        }
+        return redirect()->route('admin.academic-years.index')->with('error', $message);
     }
 }

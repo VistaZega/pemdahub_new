@@ -11,7 +11,9 @@ use Illuminate\Validation\Rules\Password;
 use App\Events\ModelActivityLogged;
 use App\Listeners\LogModelActivity;
 use App\Models\Employee;
+use App\Models\AcademicYear;
 use App\Observers\EmployeeObserver;
+use App\Observers\AcademicYearObserver;
 use App\Repositories\StudentRepository;
 use App\Repositories\GradeRepository;
 use App\Repositories\AttendanceRepository;
@@ -100,6 +102,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Register Observers
         Employee::observe(EmployeeObserver::class);
+        AcademicYear::observe(AcademicYearObserver::class);
     }
 
     /**
