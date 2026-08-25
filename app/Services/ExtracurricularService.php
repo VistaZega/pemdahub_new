@@ -83,9 +83,14 @@ class ExtracurricularService
     /**
      * Student claims or enrolls in an Extracurricular unit.
      */
-    public function claimMembership(Student $student, Extracurricular $ekskul, string $role = 'anggota', ?string $notes = null): ExtracurricularMember
-    {
-        return DB::transaction(function () use ($student, $ekskul, $role, $notes) {
+    public function claimMembership(
+        Student $student,
+        Extracurricular $ekskul,
+        string $role = 'anggota',
+        ?string $notes = null,
+        ?string $section = null
+    ): ExtracurricularMember {
+        return DB::transaction(function () use ($student, $ekskul, $role, $notes, $section) {
             $activeYear = AcademicYear::where('is_active', true)->first();
 
             $existing = ExtracurricularMember::where('extracurricular_id', $ekskul->id)
@@ -93,12 +98,13 @@ class ExtracurricularService
                 ->first();
 
             if ($existing) {
-                if ($existing->status === 'rejected') {
+                if ($existing->status === 'rejected' || ($section && $existing->section !== $section)) {
                     $existing->update([
                         'status' => 'approved',
                         'role' => $role,
+                        'section' => $section ?: $existing->section,
                         'joined_date' => now(),
-                        'notes' => $notes,
+                        'notes' => $notes ?: $existing->notes,
                     ]);
                     $this->grantMemberRewards($existing);
                 }
@@ -110,6 +116,7 @@ class ExtracurricularService
                 'student_id' => $student->id,
                 'academic_year_id' => $activeYear?->id,
                 'role' => $role,
+                'section' => $section,
                 'status' => 'approved', // Langsung aktif & terdaftar
                 'joined_date' => now(),
                 'notes' => $notes,
@@ -167,12 +174,13 @@ class ExtracurricularService
         if ($student->user_id && $member->points_awarded == 0) {
             $points = in_array($member->role, ['ketua', 'wakil_ketua', 'sekretaris', 'bendahara']) ? 30 : 15;
             $roleLabel = $member->role_label;
+            $sectionInfo = $member->section ? " (Section: {$member->section})" : "";
 
             ReputationLog::log(
                 $student->user_id,
                 $points,
                 'extracurricular',
-                "Aktif bergabung di {$ekskul->name} ({$roleLabel})",
+                "Aktif bergabung di {$ekskul->name} - {$roleLabel}{$sectionInfo}",
                 $member
             );
 

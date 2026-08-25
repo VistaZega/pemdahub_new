@@ -28,7 +28,7 @@ class ExtracurricularController extends Controller
         return $user && in_array($user->role, ['superadmin', 'admin_yayasan', 'yayasan', 'ketua_yayasan']);
     }
 
-    private function checkSchoolAccess(int $schoolId): void
+    private function checkSchoolAccess(?int $schoolId): void
     {
         $user = Auth::user();
         if (!$user) {
@@ -36,6 +36,11 @@ class ExtracurricularController extends Controller
         }
 
         if ($this->isGlobalAdmin()) {
+            return;
+        }
+
+        // If unit is foundation-level (empty school_id), allow access
+        if (empty($schoolId)) {
             return;
         }
 
@@ -55,10 +60,14 @@ class ExtracurricularController extends Controller
         $query = Extracurricular::with(['school', 'advisor', 'leader', 'secretary', 'treasurer', 'activeMembers'])
             ->withCount(['members', 'activeMembers', 'activities']);
 
-        // Strict school filtering: PKS / Guru / Admin Sekolah can ONLY see their own school
+        // Strict school filtering: PKS / Guru / Admin Sekolah can see their school + Yayasan units
         if (!$isGlobal) {
             $schoolId = $user->school_id;
-            $query->where('school_id', $schoolId);
+            $query->where(function ($q) use ($schoolId) {
+                $q->where('school_id', $schoolId)
+                  ->orWhere('scope', 'yayasan')
+                  ->orWhereNull('school_id');
+            });
         } else {
             $schoolId = $request->get('school_id');
             if ($schoolId) {
@@ -79,7 +88,10 @@ class ExtracurricularController extends Controller
             });
         }
 
-        $extracurriculars = $query->orderBy('name')->paginate(12)->withQueryString();
+        $extracurriculars = $query->orderByRaw("CASE WHEN scope = 'yayasan' THEN 0 ELSE 1 END")
+            ->orderBy('name')
+            ->paginate(12)
+            ->withQueryString();
 
         // Schools list: Global admins get all active schools, PKS only gets their own school
         if ($isGlobal) {
@@ -96,9 +108,9 @@ class ExtracurricularController extends Controller
         $activitiesQuery = ExtracurricularActivity::query();
 
         if (!$isGlobal && $user->school_id) {
-            $statsQuery->where('school_id', $user->school_id);
-            $membersQuery->whereHas('extracurricular', fn($q) => $q->where('school_id', $user->school_id));
-            $activitiesQuery->whereHas('extracurricular', fn($q) => $q->where('school_id', $user->school_id));
+            $statsQuery->where(function ($q) use ($user) {
+                $q->where('school_id', $user->school_id)->orWhere('scope', 'yayasan')->orWhereNull('school_id');
+            });
         }
 
         $stats = [
@@ -119,7 +131,8 @@ class ExtracurricularController extends Controller
         $isGlobal = $this->isGlobalAdmin();
 
         $validated = $request->validate([
-            'school_id' => $isGlobal ? 'required|exists:schools,id' : 'nullable',
+            'school_id' => $isGlobal ? 'nullable|exists:schools,id' : 'nullable',
+            'scope' => 'nullable|string',
             'name' => 'required|string|max:255',
             'category' => 'required|string',
             'description' => 'nullable|string',
@@ -127,6 +140,7 @@ class ExtracurricularController extends Controller
             'color' => 'nullable|string|max:50',
             'schedule_day_time' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
+            'manager_name' => 'nullable|string|max:255',
             'advisor_teacher_id' => 'nullable|exists:teachers,id',
             'advisor_name' => 'nullable|string|max:255',
             'leader_student_id' => 'nullable|exists:students,id',
@@ -138,6 +152,7 @@ class ExtracurricularController extends Controller
         // Force school_id for non-global admins
         if (!$isGlobal) {
             $validated['school_id'] = $user->school_id;
+            $validated['scope'] = 'sekolah';
         }
 
         if (empty($validated['advisor_name']) && !empty($validated['advisor_teacher_id'])) {
@@ -166,18 +181,24 @@ class ExtracurricularController extends Controller
             'treasurer',
             'forumGroup',
             'members.student.currentClassroom',
+            'members.student.school',
             'activities.creator'
         ]);
 
-        $students = Student::where('school_id', $extracurricular->school_id)
-            ->where('status', 'aktif')
-            ->orderBy('full_name')
-            ->get();
+        if ($extracurricular->isFoundationLevel()) {
+            $students = Student::with('school')->where('status', 'aktif')->orderBy('full_name')->get();
+            $teachers = Teacher::with('school')->where('is_active', true)->orderBy('full_name')->get();
+        } else {
+            $students = Student::with('school')->where('school_id', $extracurricular->school_id)
+                ->where('status', 'aktif')
+                ->orderBy('full_name')
+                ->get();
 
-        $teachers = Teacher::where('school_id', $extracurricular->school_id)
-            ->where('is_active', true)
-            ->orderBy('full_name')
-            ->get();
+            $teachers = Teacher::with('school')->where('school_id', $extracurricular->school_id)
+                ->where('is_active', true)
+                ->orderBy('full_name')
+                ->get();
+        }
 
         return view('admin.extracurricular.show', compact('extracurricular', 'students', 'teachers'));
     }
@@ -197,6 +218,7 @@ class ExtracurricularController extends Controller
             'color' => 'nullable|string|max:50',
             'schedule_day_time' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
+            'manager_name' => 'nullable|string|max:255',
             'advisor_teacher_id' => 'nullable|exists:teachers,id',
             'advisor_name' => 'nullable|string|max:255',
             'leader_student_id' => 'nullable|exists:students,id',
@@ -223,6 +245,7 @@ class ExtracurricularController extends Controller
         $this->checkSchoolAccess($extracurricular->school_id);
 
         $validated = $request->validate([
+            'manager_name' => 'nullable|string|max:255',
             'advisor_teacher_id' => 'nullable|exists:teachers,id',
             'advisor_name' => 'nullable|string|max:255',
             'leader_student_id' => 'nullable|exists:students,id',
@@ -262,15 +285,16 @@ class ExtracurricularController extends Controller
         $validated = $request->validate([
             'student_id' => 'required|exists:students,id',
             'role' => 'required|string',
+            'section' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
 
         $student = Student::findOrFail($validated['student_id']);
-        if ((int)$student->school_id !== (int)$extracurricular->school_id) {
+        if (!$extracurricular->isFoundationLevel() && (int)$student->school_id !== (int)$extracurricular->school_id) {
             return back()->with('error', 'Siswa harus berasal dari unit sekolah yang sama dengan unit ekstrakurikuler.');
         }
 
-        $this->ekskulService->claimMembership($student, $extracurricular, $validated['role'], $validated['notes'] ?? null);
+        $this->ekskulService->claimMembership($student, $extracurricular, $validated['role'], $validated['notes'] ?? null, $validated['section'] ?? null);
 
         return back()->with('success', "Siswa {$student->full_name} berhasil ditambahkan sebagai {$validated['role']}.");
     }

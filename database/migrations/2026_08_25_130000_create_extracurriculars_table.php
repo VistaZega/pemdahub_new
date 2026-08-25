@@ -11,29 +11,45 @@ return new class extends Migration
         if (!Schema::hasTable('extracurriculars')) {
             Schema::create('extracurriculars', function (Blueprint $table) {
                 $table->id();
-                $table->unsignedBigInteger('school_id')->nullable();
+                $table->unsignedBigInteger('school_id')->nullable(); // null jika tingkat Yayasan
+                $table->string('scope')->default('sekolah'); // 'sekolah' atau 'yayasan' (Marching Band dll.)
                 $table->string('name');
                 $table->string('slug')->nullable();
-                $table->string('category')->default('umum'); // pramuka, paskibraka, seni_budaya, olahraga, sains_it, keagamaan, jurnalistik, umum
+                $table->string('category')->default('umum'); // pramuka, paskibraka, seni_budaya, marching_band, olahraga, sains_it, keagamaan, jurnalistik, umum
                 $table->text('description')->nullable();
-                $table->string('icon')->nullable(); // fa icon or emoji
-                $table->string('color')->default('indigo'); // tailwind color prefix
+                $table->string('icon')->nullable();
+                $table->string('color')->default('indigo');
                 $table->string('cover_image')->nullable();
-                $table->string('schedule_day_time')->nullable(); // e.g. "Jumat, 15:00 - 17:00"
-                $table->string('location')->nullable(); // e.g. "Lapangan Utama Pembda"
+                $table->string('schedule_day_time')->nullable();
+                $table->string('location')->nullable();
+                $table->string('manager_name')->nullable(); // Khusus unit Yayasan (Manager Marching Band dll.)
                 $table->unsignedBigInteger('advisor_teacher_id')->nullable(); // Guru / Pembina Ekskul
-                $table->string('advisor_name')->nullable(); // Nama pembina (manual/eksternal)
-                $table->unsignedBigInteger('leader_student_id')->nullable(); // Ketua / Koordinator Siswa
-                $table->unsignedBigInteger('secretary_student_id')->nullable(); // Sekretaris Siswa
-                $table->unsignedBigInteger('treasurer_student_id')->nullable(); // Bendahara Siswa
-                $table->unsignedBigInteger('forum_group_id')->nullable(); // Link otomatis ke Space
+                $table->string('advisor_name')->nullable();
+                $table->unsignedBigInteger('leader_student_id')->nullable(); // Ketua / Field Commander Siswa
+                $table->unsignedBigInteger('secretary_student_id')->nullable();
+                $table->unsignedBigInteger('treasurer_student_id')->nullable();
+                $table->json('available_sections')->nullable(); // Daftar section (misal: Tenor, Brass, dll.)
+                $table->unsignedBigInteger('forum_group_id')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->unsignedBigInteger('created_by')->nullable();
                 $table->timestamps();
 
                 $table->index('school_id');
+                $table->index('scope');
                 $table->index('category');
                 $table->index('is_active');
+            });
+        } else {
+            Schema::table('extracurriculars', function (Blueprint $table) {
+                if (!Schema::hasColumn('extracurriculars', 'scope')) {
+                    $table->string('scope')->default('sekolah')->after('school_id');
+                }
+                if (!Schema::hasColumn('extracurriculars', 'manager_name')) {
+                    $table->string('manager_name')->nullable()->after('location');
+                }
+                if (!Schema::hasColumn('extracurriculars', 'available_sections')) {
+                    $table->json('available_sections')->nullable()->after('treasurer_student_id');
+                }
             });
         }
 
@@ -43,7 +59,8 @@ return new class extends Migration
                 $table->unsignedBigInteger('extracurricular_id');
                 $table->unsignedBigInteger('student_id');
                 $table->unsignedBigInteger('academic_year_id')->nullable();
-                $table->string('role')->default('anggota'); // ketua, wakil_ketua, sekretaris, bendahara, sie_kegiatan, anggota
+                $table->string('role')->default('anggota'); // ketua, wakil_ketua, sekretaris, bendahara, section_leader, anggota
+                $table->string('section')->nullable(); // Tenor, Brass, Colour Guard, Bass, Bellyra, Marching Bells, Mayoret
                 $table->string('status')->default('approved'); // pending, approved, rejected, alumni
                 $table->date('joined_date')->nullable();
                 $table->unsignedBigInteger('approved_by')->nullable();
@@ -54,6 +71,13 @@ return new class extends Migration
                 $table->index(['extracurricular_id', 'student_id']);
                 $table->index('status');
                 $table->index('role');
+                $table->index('section');
+            });
+        } else {
+            Schema::table('extracurricular_members', function (Blueprint $table) {
+                if (!Schema::hasColumn('extracurricular_members', 'section')) {
+                    $table->string('section')->nullable()->after('role');
+                }
             });
         }
 

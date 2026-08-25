@@ -37,11 +37,16 @@ class StudentExtracurricularController extends Controller
 
         $joinedEkskulIds = $myMemberships->pluck('extracurricular_id')->toArray();
 
-        // Katalog Ekskul Tersedia di Sekolah Siswa
-        $availableEkskuls = Extracurricular::with(['advisor', 'leader', 'secretary', 'treasurer', 'activeMembers'])
+        // Katalog Ekskul Tersedia: Unit Sekolah Siswa + Unit Tingkat Yayasan (Marching Band dll.)
+        $availableEkskuls = Extracurricular::with(['school', 'advisor', 'leader', 'secretary', 'treasurer', 'activeMembers'])
             ->withCount(['activeMembers', 'activities'])
-            ->where('school_id', $student->school_id)
+            ->where(function ($q) use ($student) {
+                $q->where('school_id', $student->school_id)
+                  ->orWhere('scope', 'yayasan')
+                  ->orWhereNull('school_id');
+            })
             ->where('is_active', true)
+            ->orderByRaw("CASE WHEN scope = 'yayasan' THEN 0 ELSE 1 END")
             ->orderBy('name')
             ->get();
 
@@ -60,13 +65,15 @@ class StudentExtracurricularController extends Controller
             return back()->with('error', 'Profil siswa tidak ditemukan.');
         }
 
-        if ($extracurricular->school_id !== $student->school_id) {
-            return back()->with('error', 'Anda hanya dapat mendaftar ekstrakurikuler di unit sekolah Anda.');
+        if (!$extracurricular->isFoundationLevel() && $extracurricular->school_id !== $student->school_id) {
+            return back()->with('error', 'Anda hanya dapat mendaftar ekstrakurikuler di unit sekolah Anda atau unit naungan Yayasan.');
         }
 
+        $section = $request->input('section');
         $notes = $request->input('notes');
-        $this->ekskulService->claimMembership($student, $extracurricular, 'anggota', $notes);
+        $this->ekskulService->claimMembership($student, $extracurricular, 'anggota', $notes, $section);
 
-        return back()->with('success', "Selamat! Anda resmi terdaftar sebagai anggota {$extracurricular->name} (+15 Poin Reputasi). Kanal Pembda Space Anda kini telah aktif!");
+        $sectionMsg = $section ? " (Section: {$section})" : "";
+        return back()->with('success', "Selamat! Anda resmi terdaftar sebagai anggota {$extracurricular->name}{$sectionMsg} (+15 Poin Reputasi). Kanal Pembda Space Anda kini telah aktif!");
     }
 }

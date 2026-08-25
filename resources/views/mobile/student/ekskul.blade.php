@@ -76,9 +76,16 @@
                         {{ $ekskul->display_icon }}
                     </div>
                     <div>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase text-white bg-gradient-to-r {{ $membership->role_badge_color }} shadow-2xs">
-                            {{ $membership->role_label }}
-                        </span>
+                        <div class="flex flex-wrap items-center gap-1">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase text-white bg-gradient-to-r {{ $membership->role_badge_color }} shadow-2xs">
+                                {{ $membership->role_label }}
+                            </span>
+                            @if($membership->section)
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-100 text-purple-800 border border-purple-200">
+                                🎺 {{ $membership->section }}
+                            </span>
+                            @endif
+                        </div>
                         <h3 class="font-black text-slate-900 text-sm mt-1 leading-snug">{{ $ekskul->name }}</h3>
                     </div>
                 </div>
@@ -94,8 +101,8 @@
                     <span class="font-bold text-slate-800">{{ $ekskul->location ?: 'Kampus Pembda' }}</span>
                 </div>
                 <div class="flex items-center justify-between">
-                    <span class="text-slate-400">👨‍🏫 Pembina:</span>
-                    <span class="font-bold text-slate-800 truncate max-w-[160px]">{{ $ekskul->advisor_name ?: 'PKS Kesiswaan' }}</span>
+                    <span class="text-slate-400">👨‍🏫 Pembina / Manager:</span>
+                    <span class="font-bold text-slate-800 truncate max-w-[160px]">{{ $ekskul->manager_name ?: ($ekskul->advisor_name ?: 'PKS Kesiswaan') }}</span>
                 </div>
             </div>
 
@@ -125,15 +132,22 @@
     <div x-show="activeTab === 'explore'" class="space-y-3" x-transition.duration.200ms style="display: none;">
         @foreach($availableEkskuls as $ekskul)
         @php $isJoined = in_array($ekskul->id, $joinedEkskulIds); @endphp
-        <div class="bg-white p-4.5 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
+        <div class="bg-white p-4.5 rounded-3xl border {{ $ekskul->isFoundationLevel() ? 'border-amber-300 ring-2 ring-amber-50' : 'border-slate-200/80' }} shadow-xs space-y-3">
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-slate-200 flex items-center justify-center text-2xl shadow-2xs flex-shrink-0">
                     {{ $ekskul->display_icon }}
                 </div>
                 <div class="min-w-0 flex-1">
-                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-700">
-                        {{ $ekskul->category_label }}
-                    </span>
+                    <div class="flex flex-wrap items-center gap-1">
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-700">
+                            {{ $ekskul->category_label }}
+                        </span>
+                        @if($ekskul->isFoundationLevel())
+                        <span class="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+                            🏛️ Yayasan
+                        </span>
+                        @endif
+                    </div>
                     <h3 class="font-black text-slate-900 text-xs mt-1 leading-snug truncate">{{ $ekskul->name }}</h3>
                 </div>
             </div>
@@ -153,14 +167,25 @@
                 </div>
             </div>
 
-            <div class="pt-1 flex items-center justify-between">
+            <div class="pt-1">
                 @if($isJoined)
-                <span class="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-[11px] font-bold flex items-center gap-1.5">
+                <span class="inline-flex px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-[11px] font-bold items-center gap-1.5">
                     <i class="fa-solid fa-circle-check"></i> Sudah Terdaftar
                 </span>
                 @else
-                <form action="{{ route('mobile.ekskul.claim', $ekskul) }}" method="POST" class="w-full">
+                <form action="{{ route('mobile.ekskul.claim', $ekskul) }}" method="POST" class="space-y-2">
                     @csrf
+                    @if(!empty($ekskul->section_list))
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-700 mb-1">Pilih Section / Alat Musik *</label>
+                        <select name="section" required class="w-full text-xs font-semibold rounded-xl border-slate-300 py-1.5 px-2 bg-slate-50 focus:bg-white text-slate-800">
+                            <option value="">-- Pilih Section (Tenor, Brass, dll.) --</option>
+                            @foreach($ekskul->section_list as $secKey => $secVal)
+                            <option value="{{ is_numeric($secKey) ? $secVal : $secKey }}">{{ $secVal }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
                     <button type="submit" onclick="return confirm('Daftar ke unit {{ $ekskul->name }}?')" class="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs font-bold shadow-xs active:scale-95 transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-plus"></i>
                         <span>Gabung / Klaim Ekskul Ini</span>

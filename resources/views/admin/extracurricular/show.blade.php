@@ -11,7 +11,7 @@
             <i class="fas fa-arrow-left"></i>
             <span>Kembali ke Daftar Ekstrakurikuler</span>
         </a>
-        <span class="text-slate-400 font-medium">Unit: <b>{{ $extracurricular->school->name }}</b></span>
+        <span class="text-slate-400 font-medium">Unit: <b>{{ $extracurricular->school->name ?? 'Yayasan Perguruan Pembda (Lintas Unit Sekolah)' }}</b></span>
     </div>
 
     {{-- Hero Banner --}}
@@ -27,7 +27,7 @@
                         <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500 text-white shadow-xs">
                             {{ $extracurricular->category_label }}
                         </span>
-                        <span class="text-xs text-indigo-300 font-semibold">{{ $extracurricular->school->short_name ?: $extracurricular->school->name }}</span>
+                        <span class="text-xs text-indigo-300 font-semibold">{{ $extracurricular->school->short_name ?? ($extracurricular->school->name ?? 'Tingkat Yayasan') }}</span>
                     </div>
                     <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ $extracurricular->name }}</h1>
                     <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
@@ -83,14 +83,14 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {{-- Pembina --}}
+            {{-- Pembina / Manager --}}
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
                 <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg flex-shrink-0">
                     👨‍🏫
                 </div>
                 <div class="min-w-0">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pembina Guru / PKS</p>
-                    <p class="text-xs font-black text-slate-900 truncate">{{ $extracurricular->advisor_name ?: ($extracurricular->advisor->full_name ?? 'PKS Kesiswaan') }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ $extracurricular->isFoundationLevel() ? 'Manager Marching Band' : 'Pembina Guru / PKS' }}</p>
+                    <p class="text-xs font-black text-slate-900 truncate">{{ $extracurricular->manager_name ?: ($extracurricular->advisor_name ?: ($extracurricular->advisor->full_name ?? 'PKS Kesiswaan')) }}</p>
                 </div>
             </div>
 
@@ -100,22 +100,19 @@
                     👑
                 </div>
                 <div class="min-w-0">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ketua / Koordinator</p>
-                    <p class="text-xs font-black text-slate-900 truncate">{{ $extracurricular->leader->full_name ?? '(Belum Ditetapkan)' }}</p>
-                    @if($extracurricular->leader)
-                    <p class="text-[10px] text-slate-400 font-mono">NISN: {{ $extracurricular->leader->nisn ?: '-' }}</p>
-                    @endif
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ $extracurricular->isFoundationLevel() ? 'Field Commander / Gitapati' : 'Ketua Siswa' }}</p>
+                    <p class="text-xs font-black text-slate-900 truncate">{{ $extracurricular->leader->full_name ?? 'Belum Ditentukan' }}</p>
                 </div>
             </div>
 
             {{-- Sekretaris --}}
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
-                <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg flex-shrink-0">
+                <div class="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg flex-shrink-0">
                     📝
                 </div>
                 <div class="min-w-0">
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sekretaris Siswa</p>
-                    <p class="text-xs font-black text-slate-900 truncate">{{ $extracurricular->secretary->full_name ?? '(Belum Ditetapkan)' }}</p>
+                    <p class="text-xs font-black text-slate-900 truncate">{{ $extracurricular->secretary->full_name ?? 'Belum Ditentukan' }}</p>
                 </div>
             </div>
 
@@ -126,26 +123,26 @@
                 </div>
                 <div class="min-w-0">
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bendahara Siswa</p>
-                    <p class="text-xs font-black text-slate-900 truncate">{{ $extracurricular->treasurer->full_name ?? '(Belum Ditetapkan)' }}</p>
+                    <p class="text-xs font-black text-slate-900 truncate">{{ $extracurricular->treasurer->full_name ?? 'Belum Ditentukan' }}</p>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Tabs Navigation --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div class="flex border-b border-slate-100 px-4 bg-slate-50/50">
-            <button @click="activeTab = 'members'" :class="activeTab === 'members' ? 'border-indigo-600 text-indigo-600 font-black' : 'border-transparent text-slate-500 font-bold hover:text-slate-700'" class="px-5 py-3.5 border-b-2 text-xs transition flex items-center gap-2">
+    {{-- Tabs Navigation (Members, Activities, Settings) --}}
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="border-b border-slate-200 bg-slate-50/50 px-5 flex items-center gap-6 text-xs font-bold">
+            <button @click="activeTab = 'members'" :class="activeTab === 'members' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="py-4 border-b-2 transition flex items-center gap-2">
                 <i class="fas fa-users"></i>
-                <span>Daftar Anggota Siswa ({{ $extracurricular->members->count() }})</span>
+                <span>Anggota Siswa ({{ $extracurricular->members->count() }})</span>
             </button>
-            <button @click="activeTab = 'activities'" :class="activeTab === 'activities' ? 'border-indigo-600 text-indigo-600 font-black' : 'border-transparent text-slate-500 font-bold hover:text-slate-700'" class="px-5 py-3.5 border-b-2 text-xs transition flex items-center gap-2">
+            <button @click="activeTab = 'activities'" :class="activeTab === 'activities' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="py-4 border-b-2 transition flex items-center gap-2">
                 <i class="fas fa-calendar-check"></i>
                 <span>Log Latihan & Kegiatan ({{ $extracurricular->activities->count() }})</span>
             </button>
-            <button @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'border-indigo-600 text-indigo-600 font-black' : 'border-transparent text-slate-500 font-bold hover:text-slate-700'" class="px-5 py-3.5 border-b-2 text-xs transition flex items-center gap-2">
+            <button @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="py-4 border-b-2 transition flex items-center gap-2">
                 <i class="fas fa-cog"></i>
-                <span>Edit Info Unit</span>
+                <span>Pengaturan Unit</span>
             </button>
         </div>
 
@@ -168,8 +165,9 @@
                         <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                             <th class="p-3.5 w-12 text-center">#</th>
                             <th class="p-3.5">Nama Siswa</th>
-                            <th class="p-3.5">Kelas</th>
-                            <th class="p-3.5 text-center">Jabatan / Peran</th>
+                            <th class="p-3.5">Sekolah & Kelas</th>
+                            <th class="p-3.5 text-center">Section / Alat</th>
+                            <th class="p-3.5 text-center">Jabatan</th>
                             <th class="p-3.5 text-center">Status</th>
                             <th class="p-3.5 text-center">Reward Poin</th>
                             <th class="p-3.5 text-right">Aksi</th>
@@ -191,7 +189,17 @@
                                 </div>
                             </td>
                             <td class="p-3.5 text-slate-700 font-semibold">
-                                {{ $member->student->currentClassroom->first()->class_name ?? ($member->student->classroom->class_name ?? '-') }}
+                                <div>{{ $member->student->school->short_name ?: $member->student->school->name }}</div>
+                                <div class="text-[10px] text-slate-400 font-normal">{{ $member->student->currentClassroom->first()->class_name ?? ($member->student->classroom->class_name ?? '-') }}</div>
+                            </td>
+                            <td class="p-3.5 text-center">
+                                @if($member->section)
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-200">
+                                    🎺 {{ $member->section }}
+                                </span>
+                                @else
+                                <span class="text-slate-400">-</span>
+                                @endif
                             </td>
                             <td class="p-3.5 text-center">
                                 <span class="px-2.5 py-1 rounded-full text-[10px] font-bold text-white bg-gradient-to-r {{ $member->role_badge_color }} shadow-2xs">
@@ -353,10 +361,17 @@
         <form action="{{ route('admin.extracurricular.leadership', $extracurricular) }}" method="POST" class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
             @csrf
 
+            @if($extracurricular->isFoundationLevel() || $extracurricular->category === 'marching_band')
             <div>
-                <label class="block font-bold text-slate-700 mb-1">Guru Pembina / PKS Kesiswaan</label>
+                <label class="block font-bold text-slate-700 mb-1">Nama Manager Unit Yayasan</label>
+                <input type="text" name="manager_name" value="{{ old('manager_name', $extracurricular->manager_name) }}" placeholder="Contoh: Manager Marching Band Yayasan Pembda" class="w-full rounded-xl border-slate-300 font-semibold">
+            </div>
+            @endif
+
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Guru Pembina / Pelatih</label>
                 <select name="advisor_teacher_id" class="w-full rounded-xl border-slate-300 font-semibold">
-                    <option value="">-- Manual / Tim PKS Kesiswaan --</option>
+                    <option value="">-- Manual / Pembina Luar --</option>
                     @foreach($teachers as $t)
                     <option value="{{ $t->id }}" {{ $extracurricular->advisor_teacher_id == $t->id ? 'selected' : '' }}>{{ $t->full_name }}</option>
                     @endforeach
@@ -364,11 +379,11 @@
             </div>
 
             <div>
-                <label class="block font-bold text-slate-700 mb-1">Ketua / Koordinator Siswa</label>
+                <label class="block font-bold text-slate-700 mb-1">{{ $extracurricular->isFoundationLevel() ? 'Field Commander / Gitapati Siswa' : 'Ketua / Koordinator Siswa' }}</label>
                 <select name="leader_student_id" class="w-full rounded-xl border-slate-300 font-semibold">
                     <option value="">-- Pilih Siswa (Boleh Kosong) --</option>
                     @foreach($students as $s)
-                    <option value="{{ $s->id }}" {{ $extracurricular->leader_student_id == $s->id ? 'selected' : '' }}>{{ $s->full_name }} (NISN: {{ $s->nisn ?: '-' }})</option>
+                    <option value="{{ $s->id }}" {{ $extracurricular->leader_student_id == $s->id ? 'selected' : '' }}>{{ $s->full_name }} ({{ $s->school->short_name ?? '' }})</option>
                     @endforeach
                 </select>
             </div>
@@ -378,7 +393,7 @@
                 <select name="secretary_student_id" class="w-full rounded-xl border-slate-300 font-semibold">
                     <option value="">-- Pilih Siswa (Boleh Kosong) --</option>
                     @foreach($students as $s)
-                    <option value="{{ $s->id }}" {{ $extracurricular->secretary_student_id == $s->id ? 'selected' : '' }}>{{ $s->full_name }}</option>
+                    <option value="{{ $s->id }}" {{ $extracurricular->secretary_student_id == $s->id ? 'selected' : '' }}>{{ $s->full_name }} ({{ $s->school->short_name ?? '' }})</option>
                     @endforeach
                 </select>
             </div>
@@ -388,7 +403,7 @@
                 <select name="treasurer_student_id" class="w-full rounded-xl border-slate-300 font-semibold">
                     <option value="">-- Pilih Siswa (Boleh Kosong) --</option>
                     @foreach($students as $s)
-                    <option value="{{ $s->id }}" {{ $extracurricular->treasurer_student_id == $s->id ? 'selected' : '' }}>{{ $s->full_name }}</option>
+                    <option value="{{ $s->id }}" {{ $extracurricular->treasurer_student_id == $s->id ? 'selected' : '' }}>{{ $s->full_name }} ({{ $s->school->short_name ?? '' }})</option>
                     @endforeach
                 </select>
             </div>
@@ -416,17 +431,29 @@
                 <label class="block font-bold text-slate-700 mb-1">Pilih Siswa *</label>
                 <select name="student_id" required class="w-full rounded-xl border-slate-300 font-semibold">
                     @foreach($students as $s)
-                    <option value="{{ $s->id }}">{{ $s->full_name }} (NISN: {{ $s->nisn ?: '-' }})</option>
+                    <option value="{{ $s->id }}">{{ $s->full_name }} ({{ $s->school->short_name ?? '' }} - NISN: {{ $s->nisn ?: '-' }})</option>
                     @endforeach
                 </select>
             </div>
+
+            @if(!empty($extracurricular->section_list))
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Section / Alat Musik</label>
+                <select name="section" class="w-full rounded-xl border-slate-300 font-semibold">
+                    <option value="">-- Pilih Section (Opsional) --</option>
+                    @foreach($extracurricular->section_list as $secKey => $secVal)
+                    <option value="{{ is_numeric($secKey) ? $secVal : $secKey }}">{{ $secVal }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
 
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Peran / Jabatan *</label>
                 <select name="role" required class="w-full rounded-xl border-slate-300 font-semibold">
                     <option value="anggota">Anggota Aktif</option>
-                    <option value="sie_kegiatan">Seksi Kegiatan</option>
-                    <option value="ketua">Ketua / Koordinator</option>
+                    <option value="sie_kegiatan">Seksi Kegiatan / Section Leader</option>
+                    <option value="ketua">Ketua / Field Commander</option>
                     <option value="sekretaris">Sekretaris</option>
                     <option value="bendahara">Bendahara</option>
                 </select>

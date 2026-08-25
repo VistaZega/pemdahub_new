@@ -16,6 +16,7 @@ class ExtracurricularMember extends Model
         'student_id',
         'academic_year_id',
         'role',
+        'section',
         'status',
         'joined_date',
         'approved_by',

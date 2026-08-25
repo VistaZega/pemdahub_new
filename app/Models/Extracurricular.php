@@ -14,6 +14,7 @@ class Extracurricular extends Model
 
     protected $fillable = [
         'school_id',
+        'scope',
         'name',
         'slug',
         'category',
@@ -23,11 +24,13 @@ class Extracurricular extends Model
         'cover_image',
         'schedule_day_time',
         'location',
+        'manager_name',
         'advisor_teacher_id',
         'advisor_name',
         'leader_student_id',
         'secretary_student_id',
         'treasurer_student_id',
+        'available_sections',
         'forum_group_id',
         'is_active',
         'created_by',
@@ -35,6 +38,7 @@ class Extracurricular extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'available_sections' => 'array',
     ];
 
     protected static function boot()
@@ -132,12 +136,42 @@ class Extracurricular extends Model
         return $this->belongsTo(ForumGroup::class, 'forum_group_id');
     }
 
+    public function isFoundationLevel(): bool
+    {
+        return $this->scope === 'yayasan' || empty($this->school_id);
+    }
+
+    /**
+     * Get section list (default for marching band or custom)
+     */
+    public function getSectionListAttribute(): array
+    {
+        if (!empty($this->available_sections) && is_array($this->available_sections)) {
+            return $this->available_sections;
+        }
+
+        if ($this->category === 'marching_band' || str_contains(strtolower($this->name), 'marching')) {
+            return [
+                'Mayoret' => '👑 Mayoret / Gitapati',
+                'Tenor' => '🥁 Tenor / Triotom',
+                'Brass' => '🎺 Brass (Terompet/Trombone/Tuba)',
+                'Colour Guard' => '🚩 Colour Guard (Bendera & Visual)',
+                'Bass' => '🥁 Bass Drum',
+                'Bellyra' => '🔔 Bellyra',
+                'Marching Bells' => '🎶 Marching Bells / Pit',
+            ];
+        }
+
+        return [];
+    }
+
     /**
      * Category Label & Badge Helper
      */
     public function getCategoryLabelAttribute(): string
     {
         return match($this->category) {
+            'marching_band' => 'Marching Band Yayasan',
             'pramuka' => 'Gerakan Pramuka',
             'paskibraka' => 'Paskibraka',
             'seni_budaya' => 'Seni & Budaya',
@@ -159,6 +193,7 @@ class Extracurricular extends Model
         }
 
         return match($this->category) {
+            'marching_band' => '🥁',
             'pramuka' => '⚜️',
             'paskibraka' => '🇮🇩',
             'seni_budaya' => '🎭',

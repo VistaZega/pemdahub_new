@@ -13,12 +13,46 @@ class ExtracurricularSeeder extends Seeder
 {
     public function run(): void
     {
+        $ekskulService = app(ExtracurricularService::class);
+
+        // 1. SEED UNIT TINGKAT YAYASAN (LINTAS 3 SEKOLAH): MARCHING BAND GITA PEMBDA
+        $yayasanSchool = School::where('type', 'yayasan')->first();
+        $marchingBand = Extracurricular::where('scope', 'yayasan')
+            ->where('name', 'LIKE', '%Marching Band%')
+            ->first();
+
+        if (!$marchingBand) {
+            $sections = [
+                'Mayoret' => '👑 Mayoret / Gitapati',
+                'Tenor' => '🥁 Tenor / Triotom',
+                'Brass' => '🎺 Brass (Terompet/Trombone/Tuba)',
+                'Colour Guard' => '🚩 Colour Guard (Bendera & Visual)',
+                'Bass' => '🥁 Bass Drum',
+                'Bellyra' => '🔔 Bellyra',
+                'Marching Bells' => '🎶 Marching Bells / Pit',
+            ];
+
+            $ekskulService->createExtracurricular([
+                'school_id' => $yayasanSchool?->id,
+                'scope' => 'yayasan',
+                'name' => 'Marching Band Gita Pembda (Korsik Yayasan)',
+                'category' => 'marching_band',
+                'description' => 'Korps Musik Instrumental & Marching Band Kebanggaan Yayasan Perguruan Pembda Nias yang beranggotakan siswa-siswi pilihan dari SMKS Pembda, SMAS Pembda 1, dan SMPS Pembda 2.',
+                'icon' => '🥁',
+                'color' => 'rose',
+                'schedule_day_time' => 'Jumat & Sabtu, 14:30 - 17:00',
+                'location' => 'Pelataran Gedung Yayasan Pembda',
+                'manager_name' => 'Manager Marching Band Yayasan Pembda',
+                'available_sections' => $sections,
+                'is_active' => true,
+            ]);
+        }
+
+        // 2. SEED UNIT EKSKUL PER SEKOLAH (3 SEKOLAH AKTIF)
         $schools = School::schoolsOnly()->get();
         if ($schools->isEmpty()) {
             $schools = School::where('type', '!=', 'yayasan')->get();
         }
-
-        $ekskulService = app(ExtracurricularService::class);
 
         $templates = [
             [
@@ -47,15 +81,6 @@ class ExtracurricularSeeder extends Seeder
                 'color' => 'purple',
                 'schedule_day_time' => 'Kamis, 14:30 - 16:30',
                 'location' => 'Aula Serbaguna & Ruang Sanggar',
-            ],
-            [
-                'name_suffix' => 'Marching Band Gita',
-                'category' => 'seni_budaya',
-                'description' => 'Korp musik instrumental, brass band, percussion, dan colour guard untuk festival dan upacara resmi Yayasan Pembda.',
-                'icon' => '🥁',
-                'color' => 'indigo',
-                'schedule_day_time' => 'Jumat, 14:00 - 16:30',
-                'location' => 'Pelataran Gedung Pembda',
             ],
             [
                 'name_suffix' => 'Klub Futsal & Atletik',
@@ -110,6 +135,7 @@ class ExtracurricularSeeder extends Seeder
 
                     $ekskulService->createExtracurricular([
                         'school_id' => $sch->id,
+                        'scope' => 'sekolah',
                         'name' => $fullName,
                         'category' => $tpl['category'],
                         'description' => $tpl['description'],
