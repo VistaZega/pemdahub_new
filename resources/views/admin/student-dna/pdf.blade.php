@@ -143,7 +143,7 @@
             <td style="width: 40%; font-weight: bold; text-transform: uppercase;">{{ $student->full_name }}</td>
             <td style="width: 18%; font-weight: bold;">Kelas / Rombel</td>
             <td style="width: 2%;">:</td>
-            <td style="width: 20%;">{{ $student->currentClassroom->first()->name ?? '-' }}</td>
+            <td style="width: 20%;">{{ $student->currentClassroom->first()->class_name ?? $student->currentClassroom->first()->name ?? '-' }}</td>
         </tr>
         <tr>
             <td style="font-weight: bold;">NISN / NIS</td>

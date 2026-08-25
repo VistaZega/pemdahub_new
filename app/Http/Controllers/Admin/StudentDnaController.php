@@ -52,7 +52,7 @@ class StudentDnaController extends Controller
         $schools = School::schoolsOnly()->get();
         $classrooms = Classroom::where('is_active', true)
             ->when(!$user->isSuperAdmin() && $user->school_id, fn($q) => $q->where('school_id', $user->school_id))
-            ->orderBy('name')
+            ->orderBy('class_name')
             ->get();
 
         return view('admin.student-dna.index', compact('students', 'schools', 'classrooms'));

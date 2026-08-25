@@ -73,7 +73,7 @@ class P5ProjectController extends Controller
 
         $schools = School::schoolsOnly()->get();
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
-        $classrooms = Classroom::where('is_active', true)->orderBy('name')->get();
+        $classrooms = Classroom::where('is_active', true)->orderBy('class_name')->get();
 
         return view('admin.p5.index', compact('projects', 'schools', 'academicYears', 'classrooms'));
     }
@@ -91,7 +91,7 @@ class P5ProjectController extends Controller
         if (!$user->isSuperAdmin() && $user->school_id) {
             $classroomQuery->where('school_id', $user->school_id);
         }
-        $classrooms = $classroomQuery->orderBy('name')->get();
+        $classrooms = $classroomQuery->orderBy('class_name')->get();
 
         $dimensions = self::$dimensions;
         $themes = self::$themes;

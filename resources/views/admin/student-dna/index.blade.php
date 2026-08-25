@@ -47,7 +47,7 @@
                     <option value="">-- Semua Kelas --</option>
                     @foreach($classrooms as $cls)
                     <option value="{{ $cls->id }}" {{ request('classroom_id') == $cls->id ? 'selected' : '' }}>
-                        {{ $cls->name }} ({{ $cls->school->code ?? '' }})
+                        {{ $cls->class_name ?? $cls->name }} ({{ $cls->school->code ?? '' }})
                     </option>
                     @endforeach
                 </select>
@@ -100,7 +100,7 @@
                             <p class="text-[10px] text-gray-400 font-mono">NISN: {{ $s->nisn ?: '-' }} &bull; NIS: {{ $s->nis ?: '-' }}</p>
                         </td>
                         <td class="p-4">
-                            <p class="font-bold text-gray-800">{{ $s->currentClassroom->first()->name ?? '-' }}</p>
+                            <p class="font-bold text-gray-800">{{ $s->currentClassroom->first()->class_name ?? $s->currentClassroom->first()->name ?? '-' }}</p>
                             <p class="text-[10px] text-gray-500">{{ $s->school->name ?? '-' }}</p>
                         </td>
                         <td class="p-4 text-center">

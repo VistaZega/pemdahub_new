@@ -26,7 +26,7 @@
                     </span>
                     <h1 class="text-2xl sm:text-3xl font-black">{{ $student->full_name }}</h1>
                     <p class="text-xs sm:text-sm text-purple-100 font-medium">
-                        {{ $analysis['archetype']['tagline'] }} &bull; Kelas: <b>{{ $student->currentClassroom->first()->name ?? '-' }}</b> ({{ $student->school->name ?? '-' }})
+                        {{ $analysis['archetype']['tagline'] }} &bull; Kelas: <b>{{ $student->currentClassroom->first()->class_name ?? $student->currentClassroom->first()->name ?? '-' }}</b> ({{ $student->school->name ?? '-' }})
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
