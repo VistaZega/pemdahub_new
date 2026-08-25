@@ -156,7 +156,7 @@
         </div>
     </div>
 
-    {{-- 4. JADWAL PELAJARAN HARI INI (ULTRA-SPACIOUS, ATTRACTIVE & BEAUTIFULLY SPACED) --}}
+    {{-- 4. JADWAL PELAJARAN HARI INI (ULTRA-SPACIOUS, NO-CLIP, ATTRACTIVE & BEAUTIFULLY SPACED) --}}
     <div class="bg-white rounded-3xl border-2 border-indigo-100 shadow-xl overflow-hidden">
         {{-- Header Bar with Generous Padding --}}
         <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 p-8 sm:p-10 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -190,10 +190,10 @@
             </div>
         </div>
 
-        {{-- Interactive Schedule Cards Grid with Large Gaps --}}
+        {{-- Interactive Schedule Cards Grid with Guaranteed Generous Inset --}}
         <div class="p-8 sm:p-10 space-y-8">
             @if($groupedTodaySchedules->count() > 0)
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style="gap: 2rem;">
                     @php
                         $colorPalettes = [
                             ['border' => 'border-blue-300', 'bg' => 'from-blue-500 to-indigo-600', 'pill' => 'bg-blue-100 text-blue-900 border-blue-200', 'icon' => '📐', 'tag' => 'blue'],
@@ -224,12 +224,12 @@
                             $cIdx++;
                         @endphp
 
-                        <div class="rounded-3xl border-2 {{ $isCurrent ? 'border-emerald-500 ring-4 ring-emerald-100 shadow-xl bg-white scale-[1.02]' : ($isNext ? 'border-amber-400 ring-2 ring-amber-100 shadow-md bg-white' : ($isPast ? 'border-slate-200 bg-slate-50/70 opacity-80' : 'border-indigo-100 shadow-sm bg-white hover:border-indigo-300 hover:shadow-lg')) }} p-7 sm:p-8 flex flex-col justify-between transition duration-200 relative overflow-hidden space-y-5">
+                        <div class="rounded-3xl border-2 {{ $isCurrent ? 'border-emerald-500 ring-4 ring-emerald-100 shadow-xl bg-white scale-[1.02]' : ($isNext ? 'border-amber-400 ring-2 ring-amber-100 shadow-md bg-white' : ($isPast ? 'border-slate-200 bg-slate-50/70 opacity-80' : 'border-indigo-100 shadow-sm bg-white hover:border-indigo-300 hover:shadow-lg')) }} flex flex-col justify-between transition duration-200" style="padding: 1.75rem;">
                             
-                            {{-- Top Status Pill & Time Badge --}}
-                            <div class="flex items-center justify-between gap-3 pb-2 border-b border-slate-100">
+                            {{-- Top Status Pill & Time Badge (WITH GUARANTEED MARGIN FROM BORDER) --}}
+                            <div class="flex items-center justify-between gap-3" style="margin-bottom: 1.25rem; padding-bottom: 0.85rem; border-bottom: 2px solid #f1f5f9;">
                                 <div>
-                                    <span class="px-4 py-2 rounded-2xl bg-slate-900 text-white font-black text-xs flex items-center gap-2 shadow-sm">
+                                    <span class="px-3.5 py-1.5 rounded-xl bg-slate-900 text-white font-black text-xs inline-flex items-center gap-2 shadow-sm">
                                         <i class="far fa-clock text-amber-400"></i>
                                         <span>{{ $sStart }} - {{ $sEnd }}</span>
                                     </span>
@@ -237,45 +237,45 @@
 
                                 <div>
                                     @if($isCurrent)
-                                    <span class="px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500 text-white shadow-sm flex items-center gap-1.5 animate-pulse">
+                                    <span class="px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500 text-white shadow-sm inline-flex items-center gap-1.5 animate-pulse">
                                         <i class="fas fa-circle text-[6px]"></i> Berlangsung
                                     </span>
                                     @elseif($isNext)
-                                    <span class="px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-500 text-white shadow-sm">
+                                    <span class="px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-500 text-white shadow-sm inline-flex items-center gap-1">
                                         ⏳ Berikutnya
                                     </span>
                                     @elseif($isPast)
-                                    <span class="px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-slate-200 text-slate-700">
+                                    <span class="px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-slate-200 text-slate-700 inline-flex items-center gap-1">
                                         ✓ Selesai
                                     </span>
                                     @else
-                                    <span class="px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                    <span class="px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 inline-flex items-center gap-1">
                                         Mendatang
                                     </span>
                                     @endif
                                 </div>
                             </div>
 
-                            {{-- Subject Content with Wide Margins --}}
-                            <div class="space-y-4 my-2">
+                            {{-- Subject Content with Wide Margins & Inset --}}
+                            <div class="space-y-4" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
                                 @foreach($schedulesAtTime as $s)
-                                <div class="flex items-start gap-5" style="gap: 1.5rem;">
+                                <div class="flex items-start" style="gap: 1.25rem;">
                                     <div class="w-14 h-14 rounded-2xl bg-gradient-to-br {{ $palette['bg'] }} text-white flex items-center justify-center text-3xl shadow-md flex-shrink-0" style="margin-right: 1.25rem;">
                                         {{ $palette['icon'] }}
                                     </div>
-                                    <div class="min-w-0 flex-1 space-y-1.5" style="padding-left: 0.25rem;">
-                                        <h3 class="text-base sm:text-lg font-black text-slate-900 leading-snug group-hover:text-indigo-600 transition truncate">
+                                    <div class="min-w-0 flex-1" style="padding-top: 0.15rem;">
+                                        <h3 class="text-base sm:text-lg font-black text-slate-900 leading-snug group-hover:text-indigo-600 transition truncate" style="margin-bottom: 0.35rem;">
                                             {{ $s->subject->subject_name ?? ($s->subject->name ?? 'Mata Pelajaran') }}
                                         </h3>
-                                        <p class="text-xs text-slate-600 font-bold flex items-center gap-2 truncate">
+                                        <p class="text-xs text-slate-600 font-bold flex items-center gap-1.5 truncate">
                                             <i class="fas fa-chalkboard-teacher text-indigo-500"></i>
                                             <span>{{ $s->teacher->user->name ?? ($s->teacher->full_name ?? 'Guru Pengampu') }}</span>
                                         </p>
                                     </div>
                                 </div>
 
-                                {{-- Room & Class info pill --}}
-                                <div class="flex items-center justify-between text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200 mt-3" style="margin-top: 1rem;">
+                                {{-- Room & Class info pill (CLEANLY INSET) --}}
+                                <div class="flex items-center justify-between text-xs bg-slate-50 rounded-2xl border border-slate-200" style="padding: 0.75rem 1rem; margin-top: 1rem;">
                                     <span class="font-bold text-slate-700 flex items-center gap-2">
                                         <i class="fas fa-door-open text-rose-500"></i>
                                         <span>Ruang: {{ $s->room ?: 'Kelas ' . ($classroom->class_name ?? 'Utama') }}</span>
@@ -287,15 +287,15 @@
                                 @endforeach
                             </div>
 
-                            {{-- Action Footer --}}
-                            <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3 mt-3">
-                                <a href="{{ route('siswa.lms.index') }}" class="text-xs font-black text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 transition">
+                            {{-- Action Footer (GUARANTEED MARGIN FROM BOTTOM & LEFT BORDER) --}}
+                            <div class="flex items-center justify-between gap-3" style="margin-top: 1.25rem; padding-top: 0.85rem; border-top: 2px solid #f1f5f9;">
+                                <a href="{{ route('siswa.lms.index') }}" class="text-xs font-black text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-2 transition">
                                     <i class="fas fa-book-open"></i>
                                     <span>Materi & Tugas</span>
                                 </a>
 
                                 @if($isCurrent)
-                                <a href="{{ route('siswa.lms.index') }}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition active:scale-95 flex items-center gap-1.5">
+                                <a href="{{ route('siswa.lms.index') }}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition active:scale-95 inline-flex items-center gap-1.5">
                                     <span>Masuk LMS</span> &rarr;
                                 </a>
                                 @endif
