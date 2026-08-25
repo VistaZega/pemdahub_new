@@ -17,11 +17,25 @@ class StudentDnaController extends Controller
     ) {}
 
     /**
+     * Helper: Check if user is SuperAdmin or Foundation Executive
+     */
+    private function isFoundationOrSuperAdmin($user): bool
+    {
+        return $user->isSuperAdmin() 
+            || in_array($user->role, ['superadmin', 'yayasan', 'ketua_yayasan', 'pengurus_yayasan']);
+    }
+
+    /**
      * Display listing of students with DNA summary overview.
+     * Kewenangan:
+     * - Super Admin & Yayasan: Akses seluruh unit sekolah (3 unit aktif).
+     * - Admin Sekolah & Kepala Sekolah: Terkunci pada unit sekolahnya saja.
      */
     public function index(Request $request)
     {
         $user = auth()->user();
+        $isGlobal = $this->isFoundationOrSuperAdmin($user);
+
         $query = Student::with(['school', 'currentClassroom', 'classrooms']);
 
         // Inclusive active/enrolled status filter
@@ -30,15 +44,15 @@ class StudentDnaController extends Controller
               ->orWhereIn('status', ['aktif', 'Aktif', 'active', 'ACTIVE', 'calon', 'naik', 'enrolled']);
         });
 
-        // Filter by classroom (via student_classes pivot)
+        // Filter unit sekolah & kelas sesuai kewenangan
         if ($request->filled('classroom_id')) {
             $classroomId = $request->classroom_id;
             $query->whereHas('studentClasses', function ($scq) use ($classroomId) {
                 $scq->where('classroom_id', $classroomId);
             });
-        } elseif ($request->filled('school_id') && $user->isSuperAdmin()) {
+        } elseif ($isGlobal && $request->filled('school_id')) {
             $query->where('school_id', $request->school_id);
-        } elseif (!$user->isSuperAdmin() && $user->school_id) {
+        } elseif (!$isGlobal && $user->school_id) {
             $query->where('school_id', $user->school_id);
         }
 
@@ -53,10 +67,10 @@ class StudentDnaController extends Controller
 
         $students = $query->orderBy('full_name')->paginate(15)->withQueryString();
 
-        $schools = School::schoolsOnly()->get();
+        $schools = $isGlobal ? School::schoolsOnly()->get() : collect();
         $classrooms = Classroom::with('school')
-            ->when(!$user->isSuperAdmin() && $user->school_id, fn($q) => $q->where('school_id', $user->school_id))
-            ->when($request->filled('school_id') && $user->isSuperAdmin(), fn($q) => $q->where('school_id', $request->school_id))
+            ->when(!$isGlobal && $user->school_id, fn($q) => $q->where('school_id', $user->school_id))
+            ->when($isGlobal && $request->filled('school_id'), fn($q) => $q->where('school_id', $request->school_id))
             ->orderBy('class_name')
             ->get();
 
@@ -68,6 +82,7 @@ class StudentDnaController extends Controller
      */
     public function show(Student $student)
     {
+        $this->authorizeAccess($student);
         $analysis = $this->dnaService->analyze($student);
 
         return view('admin.student-dna.show', compact('student', 'analysis'));
@@ -78,6 +93,7 @@ class StudentDnaController extends Controller
      */
     public function printPdf(Student $student)
     {
+        $this->authorizeAccess($student);
         $analysis = $this->dnaService->analyze($student);
 
         $pdf = Pdf::loadView('admin.student-dna.pdf', compact('student', 'analysis'))
@@ -85,5 +101,21 @@ class StudentDnaController extends Controller
 
         $cleanName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $student->full_name);
         return $pdf->download("DNA_Akademik_{$cleanName}.pdf");
+    }
+
+    /**
+     * Validasi otorisasi akses spesifik siswa
+     */
+    private function authorizeAccess(Student $student): void
+    {
+        $user = auth()->user();
+        if ($this->isFoundationOrSuperAdmin($user)) {
+            return;
+        }
+
+        // Admin Sekolah / Kepala Sekolah hanya berhak melihat siswa di unit sekolahnya
+        if ($user->school_id && $student->school_id != $user->school_id) {
+            abort(403, 'Akses Ditolak: Anda hanya berwenang mengakses data DNA siswa di unit sekolah Anda.');
+        }
     }
 }

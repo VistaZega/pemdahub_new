@@ -21,6 +21,10 @@ class TeacherStudentDnaController extends Controller
 
     /**
      * Display list of students in teacher's assigned classrooms or homeroom.
+     * Kewenangan:
+     * - Guru Pengampu: Hanya siswa pada kelas/jadwal ajar aktif.
+     * - Wali Kelas: Siswa pada rombel perwalian & kelas ajar aktif.
+     * - Kepala Sekolah & Guru BK: Seluruh siswa di unit sekolahnya.
      */
     public function index(Request $request)
     {
@@ -114,6 +118,7 @@ class TeacherStudentDnaController extends Controller
      */
     public function show(Student $student)
     {
+        $this->authorizeStudentAccess($student);
         $analysis = $this->dnaService->analyze($student);
 
         return view('admin.student-dna.show', compact('student', 'analysis'));
@@ -124,6 +129,7 @@ class TeacherStudentDnaController extends Controller
      */
     public function printPdf(Student $student)
     {
+        $this->authorizeStudentAccess($student);
         $analysis = $this->dnaService->analyze($student);
 
         $pdf = Pdf::loadView('admin.student-dna.pdf', compact('student', 'analysis'))
@@ -131,5 +137,48 @@ class TeacherStudentDnaController extends Controller
 
         $cleanName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $student->full_name);
         return $pdf->download("DNA_Akademik_{$cleanName}.pdf");
+    }
+
+    /**
+     * Verifikasi otorisasi akses guru terhadap DNA siswa tertentu
+     */
+    private function authorizeStudentAccess(Student $student): void
+    {
+        $user = auth()->user();
+        $teacher = Teacher::where('user_id', $user->id)->first();
+        $schoolId = $this->getEffectiveSchoolId($teacher);
+
+        // SuperAdmin, Kepala Sekolah, Guru BK, Admin Sekolah memiliki kewenangan di unit sekolahnya
+        if ($user->isSuperAdmin() 
+            || $user->hasAnyRole(['kepala_sekolah', 'guru_bk', 'superadmin', 'admin_sekolah'])
+            || ($teacher && method_exists($teacher, 'isPrincipal') && $teacher->isPrincipal())) {
+            if (!$user->isSuperAdmin() && $schoolId && $student->school_id != $schoolId) {
+                abort(403, 'Akses Ditolak: Anda tidak memiliki kewenangan mengakses DNA siswa di luar unit sekolah Anda.');
+            }
+            return;
+        }
+
+        // Guru Pengampu & Wali Kelas: Pastikan siswa terdaftar pada kelas yang diampu guru pada TP aktif
+        $activeYear = AcademicYear::where('is_active', true)->first();
+        $allowedClassroomIds = Classroom::where('is_active', true)
+            ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+            ->when($activeYear, fn($yq) => $yq->where('academic_year_id', $activeYear->id)->orWhereNull('academic_year_id'))
+            ->where(function ($q) use ($teacher) {
+                if ($teacher) {
+                    $q->whereHas('schedules', fn($sq) => $sq->where('teacher_id', $teacher->id))
+                      ->orWhereHas('teachingAssignments', fn($tq) => $tq->where('teacher_id', $teacher->id)->where('is_active', true))
+                      ->orWhere('homeroom_teacher_id', $teacher->id);
+                }
+            })
+            ->pluck('id')
+            ->toArray();
+
+        $isStudentInClass = $student->studentClasses()
+            ->whereIn('classroom_id', $allowedClassroomIds)
+            ->exists();
+
+        if (!$isStudentInClass) {
+            abort(403, 'Akses Dibatasi: Anda hanya berwenang mengakses profil DNA siswa yang Anda ajar atau bimbing pada Tahun Pelajaran aktif.');
+        }
     }
 }
