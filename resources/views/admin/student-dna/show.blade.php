@@ -259,7 +259,7 @@
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Identitas Peserta Didik</p>
                         <p class="font-bold text-slate-900 text-sm">{{ $student->full_name }}</p>
                         <div class="text-slate-600 space-y-1">
-                            <p><b>NISN / NIS:</b> {{ $student->nisn ?: '-' }} / {{ $student->nis ?: '-' }}</p>
+                            <p><b>NISN / NIS:</b> {{ $student->nisn ?: '-' }} / {{ $student->formatted_nis ?: ($student->nis ?: '-') }}</p>
                             <p><b>Orang Tua / Wali:</b> <span class="font-semibold text-slate-800">{{ $analysis['database_identity']['parent_name'] }}</span></p>
                             <p><b>Alamat Siswa:</b> {{ $analysis['database_identity']['student_address'] }}</p>
                         </div>

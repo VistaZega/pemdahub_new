@@ -134,6 +134,7 @@ class StudentDnaService
                 'school_address' => $student->school?->address ?? '-',
                 'school_phone' => $student->school?->phone ?? '-',
                 'student_address' => $student->address ?: ($student->guardian_address ?: '-'),
+                'student_nis' => $student->formatted_nis ?: ($student->nis ?: '-'),
             ],
         ];
     }

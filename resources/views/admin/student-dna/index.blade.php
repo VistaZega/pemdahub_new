@@ -104,7 +104,7 @@
                         <td class="p-4 text-center font-bold text-slate-400">{{ $students->firstItem() + $idx }}</td>
                         <td class="p-4">
                             <p class="font-bold text-slate-900 text-sm leading-snug">{{ $s->full_name }}</p>
-                            <p class="text-[11px] text-slate-500 font-mono">NISN: {{ $s->nisn ?: '-' }} &bull; NIS: {{ $s->nis ?: '-' }}</p>
+                            <p class="text-[11px] text-slate-500 font-mono">NISN: {{ $s->nisn ?: '-' }} &bull; NIS: {{ $s->formatted_nis ?: ($s->nis ?: '-') }}</p>
                         </td>
                         <td class="p-4">
                             <p class="font-bold text-slate-800 text-xs">{{ $classroomName }}</p>
