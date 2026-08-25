@@ -101,68 +101,86 @@
         <!-- Simulator Cards Grid -->
         <div class="mb-12">
             <h2 class="text-sm uppercase tracking-wider text-gray-500 font-bold mb-6 flex items-center gap-2">
-                <i class="fas fa-cubes text-emerald-400"></i> Pilih Simulator
+                <i class="fas fa-cubes text-emerald-400"></i> Pilih Platform Lab
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Mikrokontroler Simulator (ACTIVE) -->
-                <a href="{{ route('simlab.editor', 'new') }}" class="sim-card rounded-2xl p-6 flex flex-col justify-between group cursor-pointer">
+                <!-- Arduino Uno Studio (ACTIVE) -->
+                <a href="{{ route('simlab.editor', 'blink') }}" class="sim-card rounded-2xl p-6 flex flex-col justify-between group cursor-pointer">
                     <div>
                         <div class="flex items-center justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white text-2xl shadow-lg shadow-cyan-500/20">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white text-2xl shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
                                 <i class="fas fa-microchip"></i>
                             </div>
                             <span class="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700 text-[10px] font-bold uppercase tracking-wider">Aktif</span>
                         </div>
-                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors">Mikrokontroler Simulator</h3>
-                        <p class="text-gray-400 text-sm mb-4">Rancang rangkaian elektronika, tulis kode Arduino C++, dan jalankan simulasi mikrokontroler secara real-time di browser.</p>
+                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">Arduino Uno Studio</h3>
+                        <p class="text-gray-400 text-sm mb-4">Laboratorium mikrokontroler standar industri pendidikan. Rancang sirkuit visual dan tulis kode C++ interaktif.</p>
                         <div class="flex flex-wrap gap-1.5 mb-3">
-                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-cyan-400 font-bold border border-gray-700">Arduino Uno</span>
-                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-emerald-400 font-bold border border-gray-700">Arduino Nano</span>
-                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-amber-400 font-bold border border-gray-700">ESP32</span>
-                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-gray-400 font-mono border border-gray-700">23+ Komponen</span>
+                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-cyan-400 font-bold border border-gray-700">ATmega328P</span>
+                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-gray-300 font-medium border border-gray-700">14 Digital I/O</span>
+                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-gray-300 font-medium border border-gray-700">6 Analog In</span>
+                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-emerald-400 font-mono border border-gray-700">23+ Modul</span>
                         </div>
                     </div>
                     <div class="pt-4 border-t border-gray-700/50 flex items-center justify-between">
-                        <span class="text-xs text-gray-500"><i class="fas fa-tools text-emerald-400 mr-1"></i> Rangkaian + Kode + Simulasi</span>
-                        <span class="px-3 py-1 rounded-lg bg-emerald-500 text-black text-xs font-bold flex items-center gap-1 group-hover:bg-emerald-400">
-                            Mulai <i class="fas fa-arrow-right text-[10px]"></i>
+                        <span class="text-xs text-gray-500"><i class="fas fa-bolt text-cyan-400 mr-1"></i> Rangkaian + C++</span>
+                        <span class="px-3 py-1 rounded-lg bg-cyan-500 text-black text-xs font-bold flex items-center gap-1 group-hover:bg-cyan-400 transition-colors">
+                            Mulai Uno <i class="fas fa-arrow-right text-[10px]"></i>
                         </span>
                     </div>
                 </a>
 
-                <!-- Logic Gate Simulator (COMING SOON) -->
-                <div class="sim-card disabled rounded-2xl p-6 flex flex-col justify-between">
+                <!-- Arduino Nano Workspace (ACTIVE) -->
+                <a href="{{ route('simlab.editor', 'ultrasonic') }}" class="sim-card rounded-2xl p-6 flex flex-col justify-between group cursor-pointer">
                     <div>
                         <div class="flex items-center justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-500 to-violet-600 flex items-center justify-center text-white text-2xl shadow-lg shadow-purple-500/20">
-                                <i class="fas fa-project-diagram"></i>
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white text-2xl shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+                                <i class="fas fa-robot"></i>
                             </div>
-                            <span class="px-2.5 py-1 rounded-full bg-gray-800 text-gray-500 border border-gray-700 text-[10px] font-bold uppercase tracking-wider">Segera Hadir</span>
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700 text-[10px] font-bold uppercase tracking-wider">Aktif</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-400 mb-2">Gerbang Logika Simulator</h3>
-                        <p class="text-gray-500 text-sm mb-4">Bangun dan simulasikan rangkaian gerbang logika digital (AND, OR, NOT, NAND, NOR, XOR, XNOR) secara visual.</p>
+                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors">Arduino Nano Workspace</h3>
+                        <p class="text-gray-400 text-sm mb-4">Simulator mikrokontroler ringkas untuk proyek robotika, sensorik cerdas, dan sistem otomasi tertanam.</p>
+                        <div class="flex flex-wrap gap-1.5 mb-3">
+                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-emerald-400 font-bold border border-gray-700">Compact Nano</span>
+                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-gray-300 font-medium border border-gray-700">Breadboard Ready</span>
+                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-gray-300 font-medium border border-gray-700">PWM Control</span>
+                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-teal-400 font-mono border border-gray-700">Robotika</span>
+                        </div>
                     </div>
-                    <div class="pt-4 border-t border-gray-800 flex items-center justify-between">
-                        <span class="text-xs text-gray-600"><i class="fas fa-clock mr-1"></i> Dalam Pengembangan</span>
+                    <div class="pt-4 border-t border-gray-700/50 flex items-center justify-between">
+                        <span class="text-xs text-gray-500"><i class="fas fa-microchip text-emerald-400 mr-1"></i> Sensorik & Robotik</span>
+                        <span class="px-3 py-1 rounded-lg bg-emerald-500 text-black text-xs font-bold flex items-center gap-1 group-hover:bg-emerald-400 transition-colors">
+                            Mulai Nano <i class="fas fa-arrow-right text-[10px]"></i>
+                        </span>
                     </div>
-                </div>
+                </a>
 
-                <!-- Sensor Playground (COMING SOON) -->
-                <div class="sim-card disabled rounded-2xl p-6 flex flex-col justify-between">
+                <!-- ESP32 IoT Lab (ACTIVE) -->
+                <a href="{{ route('simlab.editor', 'dht11') }}" class="sim-card rounded-2xl p-6 flex flex-col justify-between group cursor-pointer">
                     <div>
                         <div class="flex items-center justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white text-2xl shadow-lg shadow-amber-500/20">
-                                <i class="fas fa-temperature-high"></i>
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white text-2xl shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
+                                <i class="fas fa-wifi"></i>
                             </div>
-                            <span class="px-2.5 py-1 rounded-full bg-gray-800 text-gray-500 border border-gray-700 text-[10px] font-bold uppercase tracking-wider">Segera Hadir</span>
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700 text-[10px] font-bold uppercase tracking-wider">Aktif</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-400 mb-2">Sensor Playground</h3>
-                        <p class="text-gray-500 text-sm mb-4">Eksplorasi dan pelajari karakteristik berbagai sensor (suhu, jarak, cahaya, gerak) secara interaktif tanpa kode.</p>
+                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-amber-400 transition-colors">ESP32 IoT & Smart Device</h3>
+                        <p class="text-gray-400 text-sm mb-4">Eksperimen mikrokontroler bertenaga tinggi dengan modul Wi-Fi/Bluetooth, display visual, dan integrasi IoT.</p>
+                        <div class="flex flex-wrap gap-1.5 mb-3">
+                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-amber-400 font-bold border border-gray-700">Dual-Core 240MHz</span>
+                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-gray-300 font-medium border border-gray-700">Wi-Fi + BLE</span>
+                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-gray-300 font-medium border border-gray-700">36 GPIO</span>
+                            <span class="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-orange-400 font-mono border border-gray-700">IoT System</span>
+                        </div>
                     </div>
-                    <div class="pt-4 border-t border-gray-800 flex items-center justify-between">
-                        <span class="text-xs text-gray-600"><i class="fas fa-clock mr-1"></i> Dalam Pengembangan</span>
+                    <div class="pt-4 border-t border-gray-700/50 flex items-center justify-between">
+                        <span class="text-xs text-gray-500"><i class="fas fa-cloud text-amber-400 mr-1"></i> IoT & Smart Home</span>
+                        <span class="px-3 py-1 rounded-lg bg-amber-500 text-black text-xs font-bold flex items-center gap-1 group-hover:bg-amber-400 transition-colors">
+                            Mulai ESP32 <i class="fas fa-arrow-right text-[10px]"></i>
+                        </span>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
 
