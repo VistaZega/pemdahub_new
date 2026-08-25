@@ -14,14 +14,135 @@ class Teacher extends Model
 {
     use HasFactory;
 
+    // ====================================================================
+    // BIODATA DELEGATION: Employee sebagai Single Source of Truth
+    // ====================================================================
+    // Kolom biodata (full_name, gender, birth_place, birth_date, religion,
+    // address, phone, photo) ada di KEDUA tabel teachers dan employees.
+    // Untuk mencegah "data drift" (nama di Rapor berbeda dengan Slip Gaji),
+    // accessor ini mendelegasikan pembacaan ke tabel employees.
+    // Fallback ke kolom lokal jika employee belum ter-link.
+    // ====================================================================
+
+    /**
+     * Daftar kolom biodata yang didelegasikan ke Employee.
+     */
+    public const DELEGATED_BIODATA_FIELDS = [
+        'full_name',
+        'gender',
+        'birth_place',
+        'birth_date',
+        'religion',
+        'address',
+        'phone',
+        'photo',
+        'is_active',
+    ];
+
+    /**
+     * Get full_name dari Employee (source of truth), fallback ke kolom lokal.
+     */
+    public function getFullNameAttribute(): string
+    {
+        return $this->employee?->full_name
+            ?? $this->attributes['full_name']
+            ?? '';
+    }
+
+    /**
+     * Get gender dari Employee (source of truth), fallback ke kolom lokal.
+     */
+    public function getGenderAttribute(): ?string
+    {
+        return $this->employee?->gender
+            ?? $this->attributes['gender']
+            ?? null;
+    }
+
+    /**
+     * Get birth_place dari Employee (source of truth), fallback ke kolom lokal.
+     */
+    public function getBirthPlaceAttribute(): ?string
+    {
+        return $this->employee?->birth_place
+            ?? $this->attributes['birth_place']
+            ?? null;
+    }
+
+    /**
+     * Get birth_date dari Employee (source of truth), fallback ke kolom lokal.
+     */
+    public function getBirthDateAttribute()
+    {
+        $value = $this->employee?->getRawOriginal('birth_date')
+            ?? $this->attributes['birth_date']
+            ?? null;
+
+        return $value ? \Illuminate\Support\Carbon::parse($value) : null;
+    }
+
+    /**
+     * Get religion dari Employee (source of truth), fallback ke kolom lokal.
+     */
+    public function getReligionAttribute(): ?string
+    {
+        return $this->employee?->religion
+            ?? $this->attributes['religion']
+            ?? null;
+    }
+
+    /**
+     * Get address dari Employee (source of truth), fallback ke kolom lokal.
+     */
+    public function getAddressAttribute(): ?string
+    {
+        return $this->employee?->address
+            ?? $this->attributes['address']
+            ?? null;
+    }
+
+    /**
+     * Get phone dari Employee (source of truth), fallback ke kolom lokal.
+     */
+    public function getPhoneAttribute(): ?string
+    {
+        return $this->employee?->phone
+            ?? $this->attributes['phone']
+            ?? null;
+    }
+
+    /**
+     * Get photo dari Employee (source of truth), fallback ke kolom lokal.
+     */
+    public function getPhotoAttribute(): ?string
+    {
+        return $this->employee?->getRawOriginal('photo')
+            ?? $this->attributes['photo']
+            ?? null;
+    }
+
+    /**
+     * Get is_active dari Employee (source of truth), fallback ke kolom lokal.
+     */
+    public function getIsActiveAttribute(): bool
+    {
+        if ($this->employee) {
+            return (bool) $this->employee->is_active;
+        }
+
+        return (bool) ($this->attributes['is_active'] ?? true);
+    }
+
     /**
      * Get the teacher's photo URL.
      * Returns the default photo if no photo is uploaded.
      */
     public function getPhotoUrlAttribute(): string
     {
-        if ($this->photo && Storage::disk('public')->exists($this->photo)) {
-            return asset('storage/' . $this->photo);
+        $photo = $this->photo; // Sudah didelegasikan ke Employee via accessor
+
+        if ($photo && Storage::disk('public')->exists($photo)) {
+            return asset('storage/' . $photo);
         }
 
         return asset('images/default-student.jpg');
