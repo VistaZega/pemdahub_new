@@ -1,8 +1,8 @@
 # DOKUMENTASI TEKNIS 03: MODULE PSB (PENERIMAAN SISWA BARU)
 
 **Sistem Manajemen Sekolah Yayasan Perguruan Pembangunan Daerah Nias (PEMBDA)**  
-**Versi:** 1.0  
-**Tanggal:** 8 Februari 2026
+**Versi:** 3.0.0  
+**Tanggal:** 25 Agustus 2026
 
 ---
 

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.0] - 2026-08-25
+
+### 🛡️ Enterprise Stability & Security Hardening
+- **AcademicYear 3-Layer Protection**: SoftDeletes trait + AcademicYearObserver interceptor + Controller rejection to eliminate risk of cascade deletion disasters.
+- **Teacher-Employee Unified Architecture**: Delegated accessors in Teacher model reading directly from Employee as Single Source of Truth, paired with auto-sync observer on Employee updates to eliminate data drift.
+- **Asynchronous Background Processing**: Scheduled database queue worker configured for instant non-blocking user experience on PDF bulk generation & WhatsApp notifications.
+- **Pristine Project Structure**: Cleaned up and organized 160+ ad-hoc debug/test/backup files from root into isolated `tools/` and `archive/` directories.
+
+### 🌟 Features & Ecosystem Integration (v3.0.0 Milestone)
+- **AI Integration (Google Gemini)**: AI RPP/Lesson Plan Generator & AI CBT Question Generator.
+- **Virtual Video Classrooms**: Direct embedded Jitsi Meet integration for live distance learning.
+- **P5 Assessment Module**: Projek Penguatan Profil Pelajar Pancasila (Kurikulum Merdeka) digital assessment & report cards.
+- **PKL Industrial Mentorship Portal**: Secure Signed URL access for DUDI mentors without registration.
+- **Pembda Colabs & Reputation Gamification**: Points reward & penalty system, Leaderboards, Charity fundraising, and Menara Prestasi (Pembda Tower).
+- **SimLab Virtual Microcontroller**: Interactive IoT simulator supporting Arduino Uno, Nano, and ESP32 with 23+ sensors/actuators.
+
+---
+
 ## [2.5.0] - 2026-02-21
 
 ### 🎨 UI Enhancement: Classroom Management

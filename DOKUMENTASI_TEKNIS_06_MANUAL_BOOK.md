@@ -4,7 +4,7 @@
 **Yayasan Perguruan Pembangunan Daerah Nias (PEMBDA)**  
 **Alamat:** Jl. Pelita No.9 Kelurahan Ilir Kota Gunungsitoli Propinsi Sumatera Utara (22815)  
 **Versi:** 3.0.0  
-**Tanggal:** 11 Juni 2026  
+**Tanggal:** 25 Agustus 2026  
 **Status:** Production Ready (Overhauled)  
 
 ---

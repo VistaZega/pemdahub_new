@@ -1,8 +1,8 @@
 # DOKUMENTASI TEKNIS 02: DATABASE SCHEMA DETAIL
 
 **Sistem Manajemen Sekolah Yayasan Perguruan Pembangunan Daerah Nias (PEMBDA)**  
-**Versi:** 1.0  
-**Tanggal:** 8 Februari 2026  
+**Versi:** 3.0.0  
+**Tanggal:** 25 Agustus 2026  
 **Database:** pembda_hub (MySQL)
 
 ---

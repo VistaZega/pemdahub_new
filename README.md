@@ -1,6 +1,6 @@
 # 🎓 PEMBDA HUB - Sistem Manajemen Sekolah
 
-**Version 2.4.0** | **384+ Tests Passing** | **Production Ready**
+**Version 3.0.0** | **384+ Tests Passing** | **Production Ready**
 
 Sistem manajemen terpadu untuk 3 sekolah di Yayasan Perguruan Pembangunan Daerah Nias (PEMBDA):
 
