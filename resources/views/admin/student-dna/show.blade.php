@@ -79,65 +79,71 @@
                     <i class="fas fa-sliders text-indigo-600"></i> Rincian Skor Tiap Dimensi
                 </h3>
 
-                <div class="space-y-3 text-xs">
+                <div class="space-y-3.5 text-xs">
                     <div>
                         <div class="flex justify-between font-bold mb-1">
                             <span class="text-gray-700">🧮 Logika & Analitik</span>
-                            <span class="text-indigo-600">{{ $analysis['scores']['logic'] }}/100</span>
+                            <span class="text-indigo-600 font-extrabold">{{ $analysis['scores']['logic'] }}/100</span>
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                             <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $analysis['scores']['logic'] }}%"></div>
                         </div>
+                        <p class="text-[10px] text-slate-500 mt-1">{{ $analysis['dimension_sources']['logic'] }}</p>
                     </div>
 
                     <div>
                         <div class="flex justify-between font-bold mb-1">
                             <span class="text-gray-700">🗣️ Komunikasi & Bahasa</span>
-                            <span class="text-indigo-600">{{ $analysis['scores']['communication'] }}/100</span>
+                            <span class="text-emerald-600 font-extrabold">{{ $analysis['scores']['communication'] }}/100</span>
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                             <div class="bg-emerald-500 h-2 rounded-full" style="width: {{ $analysis['scores']['communication'] }}%"></div>
                         </div>
+                        <p class="text-[10px] text-slate-500 mt-1">{{ $analysis['dimension_sources']['communication'] }}</p>
                     </div>
 
                     <div>
                         <div class="flex justify-between font-bold mb-1">
                             <span class="text-gray-700">🛠️ Keahlian Vokasi & Terapan</span>
-                            <span class="text-indigo-600">{{ $analysis['scores']['technical'] }}/100</span>
+                            <span class="text-indigo-600 font-extrabold">{{ $analysis['scores']['technical'] }}/100</span>
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                             <div class="bg-indigo-600 h-2 rounded-full" style="width: {{ $analysis['scores']['technical'] }}%"></div>
                         </div>
+                        <p class="text-[10px] text-slate-500 mt-1">{{ $analysis['dimension_sources']['technical'] }}</p>
                     </div>
 
                     <div>
                         <div class="flex justify-between font-bold mb-1">
                             <span class="text-gray-700">🤝 Sosial & Kepemimpinan</span>
-                            <span class="text-indigo-600">{{ $analysis['scores']['social'] }}/100</span>
+                            <span class="text-amber-600 font-extrabold">{{ $analysis['scores']['social'] }}/100</span>
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                             <div class="bg-amber-500 h-2 rounded-full" style="width: {{ $analysis['scores']['social'] }}%"></div>
                         </div>
+                        <p class="text-[10px] text-slate-500 mt-1">{{ $analysis['dimension_sources']['social'] }}</p>
                     </div>
 
                     <div>
                         <div class="flex justify-between font-bold mb-1">
                             <span class="text-gray-700">🎨 Kreativitas & Inovasi</span>
-                            <span class="text-indigo-600">{{ $analysis['scores']['creative'] }}/100</span>
+                            <span class="text-purple-600 font-extrabold">{{ $analysis['scores']['creative'] }}/100</span>
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                             <div class="bg-purple-600 h-2 rounded-full" style="width: {{ $analysis['scores']['creative'] }}%"></div>
                         </div>
+                        <p class="text-[10px] text-slate-500 mt-1">{{ $analysis['dimension_sources']['creative'] }}</p>
                     </div>
 
                     <div>
                         <div class="flex justify-between font-bold mb-1">
                             <span class="text-gray-700">⏱️ Kedisiplinan & Ketekunan</span>
-                            <span class="text-indigo-600">{{ $analysis['scores']['discipline'] }}/100</span>
+                            <span class="text-rose-600 font-extrabold">{{ $analysis['scores']['discipline'] }}/100</span>
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                             <div class="bg-rose-500 h-2 rounded-full" style="width: {{ $analysis['scores']['discipline'] }}%"></div>
                         </div>
+                        <p class="text-[10px] text-slate-500 mt-1">{{ $analysis['dimension_sources']['discipline'] }}</p>
                     </div>
                 </div>
             </div>

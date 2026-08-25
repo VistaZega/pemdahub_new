@@ -46,24 +46,17 @@ class Student extends Model
     ];
 
     /**
-     * Get clean formatted NIS (cleans Excel float import commas like 12607,25 -> 12607/25 or 12607,00 -> 12607).
+     * Get clean formatted NIS (cleans Excel float import commas and slash artifacts like 12608,25 or 12608/25 -> 12608).
      */
     public function getFormattedNisAttribute(): string
     {
         if (empty($this->nis)) return '-';
         $nis = trim((string)$this->nis);
         
-        // Bersihkan desimal nol (misal: 12607,00 atau 12607.0 -> 12607)
-        if (preg_match('/^(\d+)[,.](0|00)$/', $nis, $m)) {
+        // Ambil murni angka utama nomor induk sebelum tanda koma, titik desimal, atau slash tahun
+        // Contoh: 12608,25 -> 12608 | 12608/25 -> 12608 | 12608.00 -> 12608
+        if (preg_match('/^(\d+)[,.\/]/', $nis, $m)) {
             return $m[1];
-        }
-        
-        // Ubah format koma menjadi garis miring resmi (misal: 12607,25 -> 12607/25)
-        if (str_contains($nis, ',')) {
-            $parts = explode(',', $nis);
-            if (count($parts) === 2) {
-                return trim($parts[0]) . '/' . trim($parts[1]);
-            }
         }
         
         return $nis;

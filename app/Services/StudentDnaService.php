@@ -4,12 +4,14 @@ namespace App\Services;
 
 use App\Models\Student;
 use App\Models\Grade;
+use App\Models\FinalGrade;
 use App\Models\Attendance;
 use App\Models\LmsSubmission;
 use App\Models\CbtExamResult;
 use App\Models\ReputationLog;
 use App\Models\StudentDiagnosticAssessment;
 use App\Models\StudentCounselingRecord;
+use App\Models\School;
 use Illuminate\Support\Collection;
 
 class StudentDnaService
@@ -27,21 +29,43 @@ class StudentDnaService
         ]);
         $schoolType = strtoupper($student->school->type ?? 'SMA');
 
-        // 1. Ambil data nilai akademik
-        $grades = Grade::where('student_id', $student->id)->with('subject')->get();
+        // 1. Ambil data nilai akademik dari tabel grades dan final_grades
+        $regularGrades = Grade::where('student_id', $student->id)->with('subject')->get();
+        $finalGrades = FinalGrade::where('student_id', $student->id)->whereNotNull('final_score')->with('subject')->get();
+
+        // Gabungkan nilai unik per mapel
+        $grades = collect();
+        foreach ($regularGrades as $g) {
+            $grades->push((object)[
+                'subject_id' => $g->subject_id,
+                'subject' => $g->subject,
+                'score' => (float)$g->score,
+                'type' => $g->grade_type,
+            ]);
+        }
+        foreach ($finalGrades as $fg) {
+            if (!$grades->contains('subject_id', $fg->subject_id)) {
+                $grades->push((object)[
+                    'subject_id' => $fg->subject_id,
+                    'subject' => $fg->subject,
+                    'score' => (float)$fg->final_score,
+                    'type' => 'final',
+                ]);
+            }
+        }
         
-        // 2. Ambil data presensi
+        // 2. Ambil data presensi riil dari database (RFID & Presensi Harian)
         $totalAttendance = Attendance::where('student_id', $student->id)->count();
         $presentAttendance = Attendance::where('student_id', $student->id)
             ->whereIn('status', ['present', 'hadir', 'h', 'H'])
             ->count();
         $attendanceRate = $totalAttendance > 0 ? round(($presentAttendance / $totalAttendance) * 100, 1) : null;
 
-        // 3. Ambil data CBT (gunakan final_score atau percentage_score)
+        // 3. Ambil data Ujian CBT riil dari database
         $cbtAvg = CbtExamResult::where('student_id', $student->id)->avg('final_score')
             ?? CbtExamResult::where('student_id', $student->id)->avg('percentage_score');
 
-        // 4. Ambil data Reputasi Gamifikasi
+        // 4. Ambil data Reputasi Gamifikasi riil dari database
         $positivePoints = 0;
         $negativePoints = 0;
         if ($student->user_id) {
@@ -59,8 +83,8 @@ class StudentDnaService
         // 6. Ambil Catatan Konseling BK
         $counselingCount = StudentCounselingRecord::where('student_id', $student->id)->count();
 
-        // Hitung Skor Tiap Dimensi (0 - 100)
-        $dimensionScores = $this->calculateDimensions(
+        // Hitung Skor Tiap Dimensi & Keterangan Sumber Data Riil Database
+        $dimensionCalculation = $this->calculateDimensions(
             $grades,
             $attendanceRate,
             $cbtAvg,
@@ -70,7 +94,10 @@ class StudentDnaService
             $schoolType
         );
 
-        // Hitung Confidence Score (Akurasi Data)
+        $dimensionScores = $dimensionCalculation['scores'];
+        $dimensionSources = $dimensionCalculation['sources'];
+
+        // Hitung Confidence Score (Akurasi Kalibrasi Data)
         $confidenceScore = $this->calculateConfidenceScore($grades, $attendanceRate, $cbtAvg, $diagnostic);
 
         // Tentukan Tipe DNA Pembelajar (Archetype)
@@ -88,10 +115,10 @@ class StudentDnaService
         $principalName = $student->school?->principal?->full_name 
             ?: ($student->school?->principal_name ?: 'Kepala Sekolah');
 
-        $yayasan = \App\Models\School::where('type', 'yayasan')->first();
+        $yayasan = School::where('type', 'yayasan')->first();
         $foundationName = $yayasan?->name ?: 'YAYASAN PERGURUAN PEMBANGUNAN DAERAH NIAS (PEMBDA)';
         $foundationAddress = $yayasan?->address ?: 'Jl. Pelita No. 9 Kelurahan Ilir, Kota Gunungsitoli, Sumatera Utara (22815)';
-        $foundationEmail = $yayasan?->email ?: 'yayasanperguruanpembda@gmail.com';
+        $foundationEmail = 'perguruanpembdanias@gmail.com';
         $foundationPhone = $yayasan?->phone ?: '0812-6088-2999';
         $foundationWebsite = $yayasan?->website ?: 'https://perguruanpembda.com';
 
@@ -106,6 +133,7 @@ class StudentDnaService
             'student' => $student,
             'school_type' => $schoolType,
             'scores' => $dimensionScores,
+            'dimension_sources' => $dimensionSources,
             'confidence_score' => $confidenceScore,
             'confidence_label' => $this->getConfidenceLabel($confidenceScore),
             'archetype' => $archetype,
@@ -140,7 +168,7 @@ class StudentDnaService
     }
 
     /**
-     * Calculate scores for the 6 core DNA dimensions.
+     * Calculate scores and rigorous data sources for the 6 core DNA dimensions.
      */
     private function calculateDimensions(
         Collection $grades,
@@ -151,17 +179,19 @@ class StudentDnaService
         ?StudentDiagnosticAssessment $diagnostic,
         string $schoolType
     ): array {
-        // Kelompokkan nilai mapel
+        // Kelompokkan nilai mapel dari database
         $logicGrades = [];
         $commGrades = [];
         $techGrades = [];
         $socialGrades = [];
         $creativeGrades = [];
+        $allScores = [];
 
         foreach ($grades as $g) {
             $name = strtolower($g->subject->subject_name ?? '');
             $code = strtolower($g->subject->subject_code ?? '');
             $score = (float)$g->score;
+            $allScores[] = $score;
 
             if (str_contains($name, 'matematika') || str_contains($name, 'fisika') || str_contains($name, 'kimia') || str_contains($name, 'ipa') || str_contains($name, 'algoritma')) {
                 $logicGrades[] = $score;
@@ -176,47 +206,99 @@ class StudentDnaService
             }
         }
 
+        $overallGpa = !empty($allScores) ? (array_sum($allScores) / count($allScores)) : 75;
+
         // 1. Logika & Analitik
-        $logicBase = !empty($logicGrades) ? (array_sum($logicGrades) / count($logicGrades)) : ($cbtAvg ?: 75);
-        if ($cbtAvg) {
-            $logicBase = ($logicBase * 0.7) + ($cbtAvg * 0.3);
+        if (!empty($logicGrades)) {
+            $logicAvg = array_sum($logicGrades) / count($logicGrades);
+            $logicBase = $cbtAvg ? (($logicAvg * 0.6) + ($cbtAvg * 0.4)) : $logicAvg;
+            $logicSource = 'Data Riil: ' . count($logicGrades) . ' Mapel Eksakta (Rerata: ' . round($logicAvg, 1) . ')' . ($cbtAvg ? ' & CBT (' . round($cbtAvg, 1) . ')' : '');
+        } elseif ($cbtAvg !== null) {
+            $logicBase = $cbtAvg;
+            $logicSource = 'Data Riil: Rerata Ujian CBT (' . round($cbtAvg, 1) . ')';
+        } else {
+            $logicBase = $overallGpa;
+            $logicSource = !empty($allScores) ? 'Estimasi Rerata Umum (' . count($allScores) . ' Mapel DB)' : 'Belum Ada Input Nilai Mapel di Database';
         }
         $logic = $diagnostic ? round(($logicBase * 0.7) + ($diagnostic->logic_self_score * 0.3)) : round($logicBase);
 
         // 2. Komunikasi & Bahasa
-        $commBase = !empty($commGrades) ? (array_sum($commGrades) / count($commGrades)) : 76;
+        if (!empty($commGrades)) {
+            $commBase = array_sum($commGrades) / count($commGrades);
+            $commSource = 'Data Riil: ' . count($commGrades) . ' Mapel Bahasa (Rerata: ' . round($commBase, 1) . ')';
+        } else {
+            $commBase = $overallGpa;
+            $commSource = !empty($allScores) ? 'Estimasi Rerata Umum (' . count($allScores) . ' Mapel DB)' : 'Belum Ada Input Nilai Bahasa di Database';
+        }
         $comm = $diagnostic ? round(($commBase * 0.7) + ($diagnostic->communication_self_score * 0.3)) : round($commBase);
 
         // 3. Keahlian Vokasi & Teknis Terapan
-        $techBase = !empty($techGrades) ? (array_sum($techGrades) / count($techGrades)) : ($schoolType === 'SMK' ? 80 : 74);
+        if (!empty($techGrades)) {
+            $techBase = array_sum($techGrades) / count($techGrades);
+            $techSource = 'Data Riil: ' . count($techGrades) . ' Mapel Produktif Kejuruan (Rerata: ' . round($techBase, 1) . ')';
+        } else {
+            $techBase = $schoolType === 'SMK' ? min(90, $overallGpa + 2) : $overallGpa;
+            $techSource = !empty($allScores) ? 'Estimasi Profil ' . $schoolType . ' (' . count($allScores) . ' Mapel DB)' : 'Belum Ada Input Nilai Kejuruan di Database';
+        }
         $tech = $diagnostic ? round(($techBase * 0.7) + ($diagnostic->technical_self_score * 0.3)) : round($techBase);
 
         // 4. Sosial & Kepemimpinan
-        $socialBase = !empty($socialGrades) ? (array_sum($socialGrades) / count($socialGrades)) : 75;
+        if (!empty($socialGrades)) {
+            $socialBase = array_sum($socialGrades) / count($socialGrades);
+            $socialSource = 'Data Riil: ' . count($socialGrades) . ' Mapel Sosial (Rerata: ' . round($socialBase, 1) . ')';
+        } else {
+            $socialBase = $overallGpa;
+            $socialSource = !empty($allScores) ? 'Estimasi Rerata Umum (' . count($allScores) . ' Mapel DB)' : 'Belum Ada Input Nilai Sosial di Database';
+        }
         if ($positivePoints > 0) {
-            $socialBase = min(98, $socialBase + min(10, $positivePoints / 10));
+            $bonus = min(10, $positivePoints / 10);
+            $socialBase = min(98, $socialBase + $bonus);
+            $socialSource .= ' + ' . $positivePoints . ' Poin Reputasi Positif';
         }
         $social = $diagnostic ? round(($socialBase * 0.7) + ($diagnostic->social_self_score * 0.3)) : round($socialBase);
 
         // 5. Kreativitas & Inovasi
-        $creativeBase = !empty($creativeGrades) ? (array_sum($creativeGrades) / count($creativeGrades)) : 75;
+        if (!empty($creativeGrades)) {
+            $creativeBase = array_sum($creativeGrades) / count($creativeGrades);
+            $creativeSource = 'Data Riil: ' . count($creativeGrades) . ' Mapel Seni/Prakarya (Rerata: ' . round($creativeBase, 1) . ')';
+        } else {
+            $creativeBase = $overallGpa;
+            $creativeSource = !empty($allScores) ? 'Estimasi Rerata Umum (' . count($allScores) . ' Mapel DB)' : 'Belum Ada Input Nilai Seni di Database';
+        }
         $creative = $diagnostic ? round(($creativeBase * 0.7) + ($diagnostic->creative_self_score * 0.3)) : round($creativeBase);
 
         // 6. Kedisiplinan & Ketekunan
-        $att = $attendanceRate ?? 85;
-        $discBase = $att;
+        if ($attendanceRate !== null) {
+            $discBase = $attendanceRate;
+            $discSource = 'Data Riil: Presensi RFID Mesin (' . $attendanceRate . '% Kehadiran)';
+        } else {
+            $discBase = 85;
+            $discSource = 'Belum Ada Data Presensi (Standar Baseline 85%)';
+        }
         if ($negativePoints < 0) {
-            $discBase = max(50, $discBase - abs($negativePoints));
+            $penalty = min(20, abs($negativePoints));
+            $discBase = max(50, $discBase - $penalty);
+            $discSource .= ' - ' . abs($negativePoints) . ' Poin Pelanggaran';
         }
         $discipline = $diagnostic ? round(($discBase * 0.7) + ($diagnostic->discipline_self_score * 0.3)) : round($discBase);
 
         return [
-            'logic' => min(98, max(50, $logic)),
-            'communication' => min(98, max(50, $comm)),
-            'technical' => min(98, max(50, $tech)),
-            'social' => min(98, max(50, $social)),
-            'creative' => min(98, max(50, $creative)),
-            'discipline' => min(98, max(50, $discipline)),
+            'scores' => [
+                'logic' => min(98, max(50, (int)$logic)),
+                'communication' => min(98, max(50, (int)$comm)),
+                'technical' => min(98, max(50, (int)$tech)),
+                'social' => min(98, max(50, (int)$social)),
+                'creative' => min(98, max(50, (int)$creative)),
+                'discipline' => min(98, max(50, (int)$discipline)),
+            ],
+            'sources' => [
+                'logic' => $logicSource,
+                'communication' => $commSource,
+                'technical' => $techSource,
+                'social' => $socialSource,
+                'creative' => $creativeSource,
+                'discipline' => $discSource,
+            ]
         ];
     }
 
@@ -229,186 +311,108 @@ class StudentDnaService
         ?float $cbtAvg,
         ?StudentDiagnosticAssessment $diagnostic
     ): int {
-        $score = 30; // base confidence
-        if ($grades->count() >= 5) $score += 25;
+        $score = 25; // base confidence
+        if ($grades->count() >= 5) $score += 30;
         elseif ($grades->count() > 0) $score += 15;
 
-        if ($attendanceRate !== null) $score += 15;
+        if ($attendanceRate !== null) $score += 20;
         if ($cbtAvg !== null) $score += 15;
-        if ($diagnostic !== null) $score += 15;
+        if ($diagnostic !== null) $score += 10;
 
         return min(100, $score);
     }
 
     private function getConfidenceLabel(int $score): string
     {
-        if ($score >= 85) return 'Tinggi (Data Komprehensif)';
+        if ($score >= 85) return 'Tinggi (Data Riil Komprehensif)';
         if ($score >= 60) return 'Sedang (Data Terkalibrasi)';
-        return 'Eksplorasi (Data Awal Berkembang)';
+        return 'Eksplorasi (Menunggu Kelengkapan Nilai)';
     }
 
     /**
-     * Determine student learning archetype based on dominant dimensions.
+     * Determine student's dominant DNA archetype.
      */
     private function determineArchetype(array $scores, string $schoolType): array
     {
-        $tech = $scores['technical'];
-        $logic = $scores['logic'];
-        $creative = $scores['creative'];
-        $social = $scores['social'];
-        $comm = $scores['communication'];
-        $disc = $scores['discipline'];
+        $maxKey = array_keys($scores, max($scores))[0];
 
-        if ($tech >= 82 && $logic >= 80) {
-            return [
-                'title' => 'The Master Engineer',
-                'tagline' => 'Praktisi Ahli & Pemecah Masalah Teknis',
-                'color' => 'from-blue-600 to-indigo-700',
-                'badge_icon' => 'fa-screwdriver-wrench',
-                'description' => 'Siswa memiliki bakat kuat dalam logika analitis dan rekayasa praktis. Sangat cepat memahami sistem mekanikal, komputasi, dan solusi terapan.',
-            ];
-        }
-
-        if ($creative >= 82 && $comm >= 80) {
-            return [
-                'title' => 'The Visionary Innovator',
-                'tagline' => 'Kreator Gagasan & Komunikator Orisinal',
-                'color' => 'from-purple-600 to-pink-600',
-                'badge_icon' => 'fa-lightbulb',
-                'description' => 'Siswa unggul dalam menghasilkan karya kreatif, ekspresi visual, dan kemampuan menyampaikan ide secara memikat dan persuasif.',
-            ];
-        }
-
-        if ($social >= 82 && $comm >= 80) {
-            return [
-                'title' => 'The Dynamic Leader',
-                'tagline' => 'Pemimpin Kolaboratif & Penggerak Tim',
-                'color' => 'from-amber-500 to-orange-600',
-                'badge_icon' => 'fa-crown',
-                'description' => 'Siswa berbakat dalam kepemimpinan, komunikasi publik, kepekaan sosial, dan mengorganisir kerja sama kelompok.',
-            ];
-        }
-
-        if ($logic >= 82 && $disc >= 82) {
-            return [
-                'title' => 'The Strategic Analyst',
-                'tagline' => 'Pemikir Sistematis & Peneliti Presisi',
-                'color' => 'from-emerald-600 to-teal-700',
+        $archetypes = [
+            'logic' => [
+                'title' => 'Algorithmic Thinker & Strategist',
                 'badge_icon' => 'fa-brain',
-                'description' => 'Siswa memiliki ketelitian tinggi, disiplin kokoh, daya konsentrasi tajam, dan kemampuan menuntaskan persoalan kompleks langkah demi langkah.',
-            ];
-        }
+                'color' => 'from-blue-600 to-indigo-600',
+                'tagline' => 'Pemikir Kritis, Analitis, & Berorientasi Solusi Presisi',
+                'description' => 'Siswa memiliki penalaran logika eksakta yang sangat kuat, tajam dalam menganalisis data, dan unggul dalam pemecahan masalah teknis komputasi.',
+            ],
+            'communication' => [
+                'title' => 'Master Communicator & Diplomat',
+                'badge_icon' => 'fa-comments',
+                'color' => 'from-emerald-600 to-teal-600',
+                'tagline' => 'Artikulator Unggul, Negosiator, & Pembangun Relasi',
+                'description' => 'Kemampuan bahasa, literasi, dan artikulasi ide sangat menonjol. Mampu menyampaikan gagasan kompleks secara persuasif dan menginspirasi orang lain.',
+            ],
+            'technical' => [
+                'title' => 'Applied Engineer & Builder',
+                'badge_icon' => 'fa-tools',
+                'color' => 'from-indigo-600 to-purple-600',
+                'tagline' => 'Praktisi Handal, Pengembang Solusi, & Inovator Terapan',
+                'description' => 'Sangat mahir dalam penguasaan kompetensi kejuruan, keterampilan laboratorium, implementasi perangkat lunak/keras, dan eksekusi proyek nyata.',
+            ],
+            'social' => [
+                'title' => 'Inspiring Leader & Facilitator',
+                'badge_icon' => 'fa-users',
+                'color' => 'from-amber-600 to-orange-600',
+                'tagline' => 'Pemimpin Kolaboratif, Berempati, & Penggerak Komunitas',
+                'description' => 'Memiliki kecerdasan emosional dan sosial yang tinggi. Cakap memimpin tim, memediasi konflik, dan membawa dampak positif bagi lingkungan sekitar.',
+            ],
+            'creative' => [
+                'title' => 'Visionary Creator & Innovator',
+                'badge_icon' => 'fa-palette',
+                'color' => 'from-purple-600 to-pink-600',
+                'tagline' => 'Pencipta Kreatif, Desainer Solusi, & Pemikir Out-of-the-Box',
+                'description' => 'Daya imajinasi dan estetika yang luar biasa. Selalu mencari cara-cara baru yang orisinal dalam berkarya dan memecahkan tantangan.',
+            ],
+            'discipline' => [
+                'title' => 'Disciplined Achiever & Executor',
+                'badge_icon' => 'fa-award',
+                'color' => 'from-rose-600 to-red-600',
+                'tagline' => 'Tekun, Berintegritas Tinggi, & Konsisten Mencapai Target',
+                'description' => 'Tingkat kehadiran presensi dan ketepatan pengumpulan tugas sempurna. Memiliki komitmen tinggi terhadap tanggung jawab akademik.',
+            ],
+        ];
 
-        if ($tech >= 80 && $creative >= 80) {
+        return $archetypes[$maxKey] ?? $archetypes['technical'];
+    }
+
+    /**
+     * Generate future study / career track recommendations based on DNA.
+     */
+    private function generateRecommendations(array $scores, string $schoolType, ?StudentDiagnosticAssessment $diagnostic): array
+    {
+        if ($schoolType === 'SMK') {
             return [
-                'title' => 'The Applied Craftsman',
-                'tagline' => 'Kreator Terapan & Eksekutor Desain',
-                'color' => 'from-cyan-600 to-blue-700',
-                'badge_icon' => 'fa-cube',
-                'description' => 'Siswa memadukan estetika dengan keterampilan fisik nyata, mampu merancang produk fungsional berkualitas tinggi.',
+                'career_tracks' => [
+                    [
+                        'title' => 'Teknisi Sistem & Jaringan Terapan (Industri 4.0)',
+                        'readiness' => 'Tinggi',
+                        'description' => 'Sesuai dengan skor teknis ' . $scores['technical'] . ' dan logika ' . $scores['logic'] . ', siswa sangat siap terjun ke dunia industri teknologi.',
+                    ],
+                    [
+                        'title' => 'Spesialis Operasional & Pemeliharaan Perangkat',
+                        'readiness' => 'Optimal',
+                        'description' => 'Kombinasi kedisiplinan ' . $scores['discipline'] . '% dan keahlian vokasi membuka peluang besar di perusahaan mitra nasional.',
+                    ],
+                ],
+                'pkl_recommendation' => 'Industri Mitra Telekomunikasi, Software House, atau Divisi IT Perusahaan BUMN',
             ];
         }
 
         return [
-            'title' => 'The Versatile Achiever',
-            'tagline' => 'Pembelajar Adaptif & Berwawasan Luas',
-            'color' => 'from-violet-600 to-indigo-600',
-            'badge_icon' => 'fa-dna',
-            'description' => 'Siswa memiliki profil kompetensi yang seimbang di berbagai aspek kognitif, sosial, dan ketekunan belajar.',
+            'college_majors' => [
+                ['major' => 'Teknik Informatika / Ilmu Komputer', 'cluster' => 'Saintek / Rekayasa', 'readiness' => 'Sangat Siap'],
+                ['major' => 'Sistem Informasi & Bisnis Digital', 'cluster' => 'Saintek & Soshum', 'readiness' => 'Siap Optimal'],
+                ['major' => 'Ilmu Komunikasi / Manajemen', 'cluster' => 'Soshum', 'readiness' => 'Kompatibel'],
+            ],
         ];
-    }
-
-    /**
-     * Generate personalized career & college recommendations.
-     */
-    private function generateRecommendations(
-        array $scores,
-        string $schoolType,
-        ?StudentDiagnosticAssessment $diagnostic
-    ): array {
-        $recs = [];
-
-        if ($schoolType === 'SMK') {
-            // Rekomendasi Jalur Karier SMK
-            if ($scores['technical'] >= 80 || $scores['logic'] >= 80) {
-                $recs['career_tracks'][] = [
-                    'title' => 'Teknisi Sistem & Jaringan / Software Engineer',
-                    'relevance' => 'Sangat Tinggi (95%)',
-                    'description' => 'Sangat cocok untuk industri teknologi, pemeliharaan infrastruktur digital, dan otomatisasi manufaktur.',
-                ];
-                $recs['certifications'][] = 'Sertifikasi BNSP / MikroTik MTCNA / Cisco CCNA / Junior Web Developer';
-                $recs['pkl_recommendation'] = 'Perusahaan Telekomunikasi, Software House, Divisi IT Instansi Pemerintah, atau Industri Manufaktur Modern.';
-            }
-
-            if ($scores['creative'] >= 78 || $scores['communication'] >= 78) {
-                $recs['career_tracks'][] = [
-                    'title' => 'Digital Content Creator & UI/UX Multimedia Specialist',
-                    'relevance' => 'Tinggi (90%)',
-                    'description' => 'Sangat menjanjikan di agensi kreatif, media penyiaran, branding digital, dan industri periklanan modern.',
-                ];
-                $recs['certifications'][] = 'Sertifikasi BNSP Desain Grafis / Adobe Certified Professional';
-                $recs['pkl_recommendation'] = 'Media Digital, Studio Percetakan/Desain, Biro Komunikasi Publik, atau Production House.';
-            }
-
-            if ($scores['social'] >= 78 || $scores['discipline'] >= 82) {
-                $recs['career_tracks'][] = [
-                    'title' => 'Supervisi Operasional & Layanan Pelanggan Korporat',
-                    'relevance' => 'Tinggi (88%)',
-                    'description' => 'Memiliki ketelitian administrasi dan kehandalan dalam manajemen inventaris dan relasi klien.',
-                ];
-                $recs['certifications'][] = 'Sertifikasi Administrasi Perkantoran & Supply Chain Management';
-                $recs['pkl_recommendation'] = 'Perbankan, Lembaga Keuangan, Logistik, dan Kantor Administrasi Daerah.';
-            }
-        } else {
-            // Rekomendasi Jurusan Kuliah (SMA)
-            if ($scores['logic'] >= 80 && $scores['technical'] >= 75) {
-                $recs['college_majors'][] = [
-                    'major' => 'Teknik Informatika / Ilmu Komputer / Sains Data',
-                    'cluster' => 'Sains & Teknologi',
-                    'readiness' => 'Sangat Siap',
-                ];
-                $recs['college_majors'][] = [
-                    'major' => 'Teknik Elektro / Teknik Mesin / Teknik Sipil',
-                    'cluster' => 'Rekayasa & Keteknikan',
-                    'readiness' => 'Sangat Siap',
-                ];
-            }
-
-            if ($scores['logic'] >= 82 && $scores['discipline'] >= 85) {
-                $recs['college_majors'][] = [
-                    'major' => 'Pendidikan Dokter / Farmasi / Biomedis',
-                    'cluster' => 'Kesehatan & Hayati',
-                    'readiness' => 'Tinggi',
-                ];
-            }
-
-            if ($scores['social'] >= 78 && $scores['communication'] >= 78) {
-                $recs['college_majors'][] = [
-                    'major' => 'Ilmu Hukum / Hubungan Internasional / Ilmu Komunikasi',
-                    'cluster' => 'Sosial & Humaniora',
-                    'readiness' => 'Sangat Siap',
-                ];
-                $recs['college_majors'][] = [
-                    'major' => 'Manajemen Bisnis / Akuntansi / Ekonomi Pembangunan',
-                    'cluster' => 'Ekonomi & Bisnis',
-                    'readiness' => 'Tinggi',
-                ];
-            }
-
-            if ($scores['creative'] >= 78) {
-                $recs['college_majors'][] = [
-                    'major' => 'Desain Komunikasi Visual (DKV) / Arsitektur / Animasi Digital',
-                    'cluster' => 'Seni & Desain Terapan',
-                    'readiness' => 'Tinggi',
-                ];
-            }
-        }
-
-        // Catatan Aspirasi Mandiri jika siswa sudah mengisi kuesioner
-        if ($diagnostic && $diagnostic->career_aspiration) {
-            $recs['student_dream'] = $diagnostic->career_aspiration;
-        }
-
-        return $recs;
     }
 }

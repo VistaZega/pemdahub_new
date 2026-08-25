@@ -202,9 +202,9 @@
         <thead>
             <tr>
                 <th style="width: 5%;">No</th>
-                <th style="width: 32%;">Sumbu Dimensi Potensi</th>
+                <th style="width: 30%;">Sumbu Dimensi Potensi</th>
                 <th style="width: 14%;">Skor (0-100)</th>
-                <th style="width: 49%;">Indikator & Sumber Data Riil PembdaHUB</th>
+                <th style="width: 51%;">Indikator & Sumber Data Riil Database</th>
             </tr>
         </thead>
         <tbody>
@@ -212,37 +212,37 @@
                 <td style="text-align: center; font-weight: bold;">1</td>
                 <td><b>Logika & Analitik</b></td>
                 <td style="text-align: center; font-weight: bold; font-size: 9pt; color: #2563eb;">{{ $analysis['scores']['logic'] }}</td>
-                <td>Nilai Rerata Eksakta (Matematika/IPA) & Ketajaman Penalaran Ujian CBT</td>
+                <td>{{ $analysis['dimension_sources']['logic'] }}</td>
             </tr>
             <tr>
                 <td style="text-align: center; font-weight: bold;">2</td>
                 <td><b>Komunikasi & Bahasa</b></td>
                 <td style="text-align: center; font-weight: bold; font-size: 9pt; color: #059669;">{{ $analysis['scores']['communication'] }}</td>
-                <td>Nilai Bahasa Indonesia, Bahasa Inggris & Partisipasi Diskusi LMS</td>
+                <td>{{ $analysis['dimension_sources']['communication'] }}</td>
             </tr>
             <tr>
                 <td style="text-align: center; font-weight: bold;">3</td>
                 <td><b>Keahlian Vokasi & Terapan</b></td>
                 <td style="text-align: center; font-weight: bold; font-size: 9pt; color: #4f46e5;">{{ $analysis['scores']['technical'] }}</td>
-                <td>Capaian Mapel Produktif Kejuruan, Praktik Laboratorium & SimLab</td>
+                <td>{{ $analysis['dimension_sources']['technical'] }}</td>
             </tr>
             <tr>
                 <td style="text-align: center; font-weight: bold;">4</td>
                 <td><b>Sosial & Kepemimpinan</b></td>
                 <td style="text-align: center; font-weight: bold; font-size: 9pt; color: #d97706;">{{ $analysis['scores']['social'] }}</td>
-                <td>Nilai Mapel Sosial, Kolaborasi Kelompok & Log Poin Reputasi Positif</td>
+                <td>{{ $analysis['dimension_sources']['social'] }}</td>
             </tr>
             <tr>
                 <td style="text-align: center; font-weight: bold;">5</td>
                 <td><b>Kreativitas & Daya Inovasi</b></td>
                 <td style="text-align: center; font-weight: bold; font-size: 9pt; color: #9333ea;">{{ $analysis['scores']['creative'] }}</td>
-                <td>Seni Budaya, Karya Desain, Eksplorasi Mandiri & Portofolio</td>
+                <td>{{ $analysis['dimension_sources']['creative'] }}</td>
             </tr>
             <tr>
                 <td style="text-align: center; font-weight: bold;">6</td>
                 <td><b>Kedisiplinan & Ketekunan</b></td>
                 <td style="text-align: center; font-weight: bold; font-size: 9pt; color: #e11d48;">{{ $analysis['scores']['discipline'] }}</td>
-                <td>Presensi RFID Mesin ({{ $analysis['metrics']['attendance_rate'] }}%) & Ketepatan Pengumpulan Tugas</td>
+                <td>{{ $analysis['dimension_sources']['discipline'] }}</td>
             </tr>
         </tbody>
     </table>
