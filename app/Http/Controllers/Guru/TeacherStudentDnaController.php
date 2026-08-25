@@ -6,38 +6,90 @@ use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Classroom;
 use App\Models\Teacher;
+use App\Models\AcademicYear;
 use App\Services\StudentDnaService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class TeacherStudentDnaController extends Controller
 {
+    use HasMultiSchool;
+
     public function __construct(
         protected StudentDnaService $dnaService
     ) {}
 
     /**
-     * Display list of students in teacher's school or homeroom.
+     * Display list of students in teacher's assigned classrooms or homeroom.
      */
     public function index(Request $request)
     {
         $user = auth()->user();
         $teacher = Teacher::where('user_id', $user->id)->first();
-        $schoolId = $user->school_id ?? $teacher?->school_id;
+        $activeYear = AcademicYear::where('is_active', true)->first();
+        $schoolId = $this->getEffectiveSchoolId($teacher);
 
+        // Cek apakah user memiliki hak akses menyeluruh (Kepala Sekolah, Guru BK, Superadmin)
+        $isPrincipalOrBk = $user->isSuperAdmin() 
+            || $user->hasRole(['kepala_sekolah', 'guru_bk', 'superadmin', 'admin_sekolah'])
+            || ($teacher && method_exists($teacher, 'isPrincipal') && $teacher->isPrincipal());
+
+        // 1. Dapatkan daftar kelas berdasarkan Penugasan Mengajar & Tahun Pelajaran Aktif
+        if ($isPrincipalOrBk) {
+            $classroomsQuery = Classroom::with('school')->where('is_active', true);
+            if ($schoolId) {
+                $classroomsQuery->where('school_id', $schoolId);
+            }
+            if ($activeYear) {
+                $classroomsQuery->where(function ($yq) use ($activeYear) {
+                    $yq->where('academic_year_id', $activeYear->id)
+                       ->orWhereNull('academic_year_id');
+                });
+            }
+            $classrooms = $classroomsQuery->orderBy('class_name')->get();
+        } else {
+            // Guru Pengampu / Wali Kelas: Ambil kelas sesuai Penugasan Mengajar, Jadwal, atau Wali Kelas di TP aktif
+            $classrooms = Classroom::where('is_active', true)
+                ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                ->when($activeYear, function ($yq) use ($activeYear) {
+                    $yq->where('academic_year_id', $activeYear->id)
+                       ->orWhereNull('academic_year_id');
+                })
+                ->where(function ($q) use ($teacher) {
+                    if ($teacher) {
+                        $q->whereHas('schedules', fn($sq) => $sq->where('teacher_id', $teacher->id))
+                          ->orWhereHas('teachingAssignments', fn($tq) => $tq->where('teacher_id', $teacher->id)->where('is_active', true))
+                          ->orWhere('homeroom_teacher_id', $teacher->id);
+                    }
+                })
+                ->with('school')
+                ->orderBy('class_name')
+                ->get();
+
+            // Fallback: Jika guru belum memiliki penugasan spesifik di TP aktif, tampilkan kelas dari unit sekolahnya
+            if ($classrooms->isEmpty() && $schoolId) {
+                $classrooms = Classroom::with('school')
+                    ->where('school_id', $schoolId)
+                    ->where('is_active', true)
+                    ->orderBy('class_name')
+                    ->get();
+            }
+        }
+
+        // 2. Query Siswa berdasarkan Penugasan Mengajar / Filter Kelas
         $query = Student::with(['school', 'currentClassroom', 'classrooms']);
 
-        // Inclusive active/enrolled status filter
-        $query->where(function ($q) {
-            $q->whereNull('status')
-              ->orWhereIn('status', ['aktif', 'Aktif', 'active', 'ACTIVE', 'calon', 'naik', 'enrolled']);
-        });
-
-        // Filter by classroom (via student_classes pivot)
         if ($request->filled('classroom_id')) {
+            // Jika memilih kelas spesifik dari dropdown
             $classroomId = $request->classroom_id;
             $query->whereHas('studentClasses', function ($scq) use ($classroomId) {
                 $scq->where('classroom_id', $classroomId);
+            });
+        } elseif (!$isPrincipalOrBk && $classrooms->isNotEmpty()) {
+            // Guru Pengampu: Hanya tampilkan siswa di rombel/kelas yang diampu guru tersebut
+            $teacherClassroomIds = $classrooms->pluck('id')->toArray();
+            $query->whereHas('studentClasses', function ($scq) use ($teacherClassroomIds) {
+                $scq->whereIn('classroom_id', $teacherClassroomIds);
             });
         } elseif ($schoolId) {
             $query->where('school_id', $schoolId);
@@ -53,12 +105,6 @@ class TeacherStudentDnaController extends Controller
         }
 
         $students = $query->orderBy('full_name')->paginate(15)->withQueryString();
-
-        $classroomsQuery = Classroom::with('school');
-        if ($schoolId) {
-            $classroomsQuery->where('school_id', $schoolId);
-        }
-        $classrooms = $classroomsQuery->orderBy('class_name')->get();
 
         return view('admin.student-dna.index', compact('students', 'classrooms'));
     }
