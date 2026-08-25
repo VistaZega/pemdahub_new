@@ -276,62 +276,118 @@
     <!-- Grid Container: Automation Toggles & Live Test Form -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        <!-- Form Saklar Master Otomatisasi (2 Cols) -->
-        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
-            <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+        <!-- Form Saklar Master Otomatisasi Terkelompok (2 Cols) -->
+        <div x-data="{
+            activeTab: 'all',
+            searchQuery: '',
+            toggleAllInGroup(groupKey, state) {
+                const container = document.getElementById('group-' + groupKey);
+                if (container) {
+                    const checkboxes = container.querySelectorAll('input[type=checkbox]');
+                    checkboxes.forEach(cb => cb.checked = state);
+                }
+            },
+            matchesSearch(text, key, desc) {
+                if (!this.searchQuery.trim()) return true;
+                const q = this.searchQuery.toLowerCase();
+                return (text && text.toLowerCase().includes(q)) || 
+                       (key && key.toLowerCase().includes(q)) || 
+                       (desc && desc.toLowerCase().includes(q));
+            }
+        }" class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+            
+            <!-- Section Header & Search -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
                 <div>
                     <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                        <i class="fas fa-toggle-on text-emerald-600"></i> Daftar Otomatisasi Pengiriman Pesan
+                        <i class="fas fa-tasks text-emerald-600"></i> Otomatisasi Pengiriman Berdasarkan Target
                     </h2>
-                    <p class="text-xs text-gray-500">Aktifkan atau nonaktifkan pengiriman WhatsApp otomatis per modul</p>
+                    <p class="text-xs text-gray-500">Pilih target penerima pesan WhatsApp dan atur saklar (On/Off) setiap modul</p>
+                </div>
+                <div class="relative w-full sm:w-64">
+                    <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+                    <input type="text" x-model="searchQuery" placeholder="Cari notifikasi / modul..." class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-emerald-500 bg-gray-50/50">
                 </div>
             </div>
 
-            <form action="{{ route('admin.settings.whatsapp.update') }}" method="POST" class="space-y-4">
+            <!-- Target Category Filter Pills -->
+            <div class="flex flex-wrap gap-1.5 pb-2 border-b border-gray-100">
+                <button type="button" @click="activeTab = 'all'" :class="activeTab === 'all' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fas fa-th-large"></i> Semua Target
+                </button>
+                @foreach($groupedSettings as $gKey => $group)
+                <button type="button" @click="activeTab = '{{ $gKey }}'" :class="activeTab === '{{ $gKey }}' ? 'bg-slate-800 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                    <i class="{{ $group['icon'] }}"></i> {{ $group['badge'] }}
+                    <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold" :class="activeTab === '{{ $gKey }}' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'">
+                        {{ count($group['items']) }}
+                    </span>
+                </button>
+                @endforeach
+            </div>
+
+            <form action="{{ route('admin.settings.whatsapp.update') }}" method="POST" class="space-y-6">
                 @csrf
                 @method('PUT')
 
-                <div class="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
-                    @foreach($settings as $key => $item)
-                    <div class="p-4 flex items-center justify-between hover:bg-gray-50/80 transition-colors">
+                @foreach($groupedSettings as $gKey => $group)
+                <div id="group-{{ $gKey }}" x-show="activeTab === 'all' || activeTab === '{{ $gKey }}'" class="space-y-3 pt-2">
+                    <!-- Group Header Card -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-gradient-to-r from-gray-50 to-white p-3.5 rounded-xl border border-gray-200/80">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
-                                @if(str_contains($key, 'attendance'))
-                                    <i class="fas fa-user-check"></i>
-                                @elseif(str_contains($key, 'payment'))
-                                    <i class="fas fa-receipt"></i>
-                                @elseif(str_contains($key, 'grade'))
-                                    <i class="fas fa-graduation-cap"></i>
-                                @elseif(str_contains($key, 'counseling'))
-                                    <i class="fas fa-user-shield"></i>
-                                @elseif(str_contains($key, 'award'))
-                                    <i class="fas fa-trophy"></i>
-                                @elseif(str_contains($key, 'psb'))
-                                    <i class="fas fa-user-plus"></i>
-                                @else
-                                    <i class="fas fa-bell"></i>
-                                @endif
+                            <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center text-sm shadow-sm">
+                                <i class="{{ $group['icon'] }}"></i>
                             </div>
                             <div>
-                                <label for="{{ $key }}" class="text-sm font-semibold text-gray-900 cursor-pointer block">
-                                    {{ $item['label'] }}
-                                </label>
-                                <span class="text-[11px] text-gray-400 font-mono">{{ $key }}</span>
+                                <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                                    {{ $group['target'] }}
+                                    <span class="px-2 py-0.5 bg-gray-200/80 text-gray-700 text-[10px] font-bold rounded-full">
+                                        {{ count($group['items']) }} Pemicu
+                                    </span>
+                                </h3>
+                                <p class="text-[11px] text-gray-500">{{ $group['description'] }}</p>
                             </div>
                         </div>
-
-                        <!-- Toggle Switch -->
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="{{ $key }}" name="{{ $key }}" value="1" class="sr-only peer" {{ $item['enabled'] ? 'checked' : '' }}>
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                        </label>
+                        <div class="flex items-center gap-2 self-end sm:self-center">
+                            <button type="button" @click="toggleAllInGroup('{{ $gKey }}', true)" class="px-2.5 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition border border-emerald-200">
+                                Aktifkan Semua
+                            </button>
+                            <button type="button" @click="toggleAllInGroup('{{ $gKey }}', false)" class="px-2.5 py-1 text-[11px] font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition border border-gray-200">
+                                Matikan
+                            </button>
+                        </div>
                     </div>
-                    @endforeach
-                </div>
 
-                <div class="pt-4 flex justify-end">
+                    <!-- Group Toggles List -->
+                    <div class="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden bg-white">
+                        @foreach($group['items'] as $itemKey => $item)
+                        <div x-show="matchesSearch('{{ addslashes($item['label']) }}', '{{ $itemKey }}', '{{ addslashes($item['desc'] ?? '') }}')" class="p-3.5 flex items-center justify-between hover:bg-gray-50/80 transition-colors">
+                            <div class="pr-4 space-y-0.5">
+                                <label for="{{ $itemKey }}" class="text-xs font-bold text-gray-900 cursor-pointer block hover:text-emerald-600 transition">
+                                    {{ $item['label'] }}
+                                </label>
+                                @if(!empty($item['desc']))
+                                <p class="text-[11px] text-gray-500 leading-snug">{{ $item['desc'] }}</p>
+                                @endif
+                                <span class="text-[10px] text-gray-400 font-mono inline-block">{{ $itemKey }}</span>
+                            </div>
+
+                            <!-- Toggle Switch -->
+                            <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                                <input type="checkbox" id="{{ $itemKey }}" name="{{ $itemKey }}" value="1" class="sr-only peer" {{ $item['enabled'] ? 'checked' : '' }}>
+                                <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endforeach
+
+                <div class="pt-4 flex items-center justify-between border-t border-gray-100">
+                    <p class="text-xs text-gray-500">
+                        <i class="fas fa-info-circle text-emerald-600"></i> Pastikan saklar yang dibutuhkan dalam posisi <b>Hijau (Aktif)</b>.
+                    </p>
                     <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2">
-                        <i class="fas fa-save"></i> Simpan Pengaturan Otomatisasi
+                        <i class="fas fa-save"></i> Simpan Semua Pengaturan
                     </button>
                 </div>
             </form>

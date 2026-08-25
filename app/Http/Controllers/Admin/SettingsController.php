@@ -273,28 +273,24 @@ class SettingsController extends Controller
     {
         $this->authorizeFeatureAccess();
 
-        $waKeys = [
-            'wa_send_attendance_alert' => 'Notifikasi Absensi Siswa (Hadir / Terlambat / Alpa)',
-            'wa_send_payment_receipt' => 'Notifikasi Kwitansi Pembayaran SPP Lunas',
-            'wa_send_payment_reminder' => 'Notifikasi Pengingat Tagihan SPP Jatuh Tempo',
-            'wa_send_grade_published' => 'Notifikasi Penerbitan Nilai & Rapor',
-            'wa_send_counseling_record' => 'Notifikasi Catatan Pembinaan BK (Bimbingan Konseling)',
-            'wa_send_reputation_award' => 'Notifikasi Apresiasi Penghargaan & Poin Siswa',
-            'wa_send_psb_registration' => 'Notifikasi Pendaftaran Siswa Baru (PSB)',
-            'wa_send_psb_payment' => 'Notifikasi Pembayaran Pendaftaran PSB',
-            'wa_send_psb_test_schedule' => 'Notifikasi Jadwal Tes Masuk PSB',
-            'wa_send_psb_acceptance' => 'Notifikasi Pengumuman Kelulusan PSB',
-            'wa_send_lms_notification' => 'Notifikasi LMS (Materi, Tugas, & Kuis Baru)',
-            'wa_send_teaching_reminder' => 'Notifikasi Pengingat Jadwal Mengajar Guru',
-        ];
+        $automationGroups = $this->getWhatsappAutomationGroups();
 
-        $settings = [];
-        foreach ($waKeys as $key => $label) {
-            $settings[$key] = [
-                'label' => $label,
-                'enabled' => Setting::getValue($key, true),
-            ];
+        // Populate enabled state from database settings
+        $groupedSettings = [];
+        $allSettingsFlat = [];
+        foreach ($automationGroups as $groupKey => $group) {
+            $groupedSettings[$groupKey] = $group;
+            foreach ($group['items'] as $itemKey => $item) {
+                $isEnabled = Setting::getValue($itemKey, true);
+                $groupedSettings[$groupKey]['items'][$itemKey]['enabled'] = $isEnabled;
+                $allSettingsFlat[$itemKey] = [
+                    'label' => $item['label'],
+                    'enabled' => $isEnabled,
+                ];
+            }
         }
+
+        $settings = $allSettingsFlat;
 
         $service = new \App\Services\WhatsAppService();
         $accountInfo = $service->getAccountInfo();
@@ -303,7 +299,313 @@ class SettingsController extends Controller
         $providersInfo = $service->getProvidersInfo();
         $waEnabled = $service->isEnabled();
 
-        return view('admin.settings.whatsapp', compact('settings', 'accountInfo', 'activeProvider', 'providerLabel', 'providersInfo', 'waEnabled'));
+        return view('admin.settings.whatsapp', compact('settings', 'groupedSettings', 'accountInfo', 'activeProvider', 'providerLabel', 'providersInfo', 'waEnabled'));
+    }
+
+    /**
+     * Get categorized WhatsApp automations grouped by target audience
+     */
+    protected function getWhatsappAutomationGroups(): array
+    {
+        return [
+            'siswa' => [
+                'target' => 'Ke Siswa & Wali Murid',
+                'description' => 'Otomatisasi pengiriman pesan ke nomor HP Siswa dan Orang Tua / Wali Murid',
+                'icon' => 'fas fa-user-graduate',
+                'color' => 'emerald',
+                'badge' => 'Siswa & Wali',
+                'items' => [
+                    'wa_send_attendance_alert' => [
+                        'label' => 'Presensi Siswa Harian (Hadir / Terlambat / Alpa)',
+                        'desc' => 'Notifikasi instan ke WhatsApp orang tua saat siswa tap kartu RFID / presensi dicatat guru.',
+                    ],
+                    'wa_send_payment_receipt' => [
+                        'label' => 'Kwitansi Pembayaran SPP & Iuran Sekolah Lunas',
+                        'desc' => 'Bukti tanda terima pembayaran SPP dan rincian transaksi dikirim ke wali murid.',
+                    ],
+                    'wa_send_payment_reminder' => [
+                        'label' => 'Pengingat Tagihan SPP Jatuh Tempo',
+                        'desc' => 'Peringatan otomatis sebelum tanggal jatuh tempo pembayaran SPP bulanan.',
+                    ],
+                    'wa_send_grade_published' => [
+                        'label' => 'Penerbitan Nilai & Rapor Digital',
+                        'desc' => 'Pemberitahuan saat nilai tugas, PTS, PAS, atau Rapor semester telah difinalisasi.',
+                    ],
+                    'wa_send_reputation_award' => [
+                        'label' => 'Poin Prestasi & Penghargaan Siswa',
+                        'desc' => 'Apresiasi dan ucapan selamat kepada orang tua saat siswa meraih prestasi atau poin positif.',
+                    ],
+                    'wa_send_lms_notification' => [
+                        'label' => 'Aktivitas LMS (Materi Baru, Tugas, & Kuis)',
+                        'desc' => 'Pemberitahuan materi belajar, tugas rumah, atau kuis baru yang diunggah guru.',
+                    ],
+                    'wa_send_psb_registration' => [
+                        'label' => 'Konfirmasi Pendaftaran Calon Siswa Baru (PSB)',
+                        'desc' => 'Kirim nomor pendaftaran dan panduan langkah selanjutnya ke nomor pendaftar.',
+                    ],
+                    'wa_send_psb_payment' => [
+                        'label' => 'Konfirmasi Pembayaran Formulir PSB',
+                        'desc' => 'Kwitansi verifikasi pembayaran formulir pendaftaran siswa baru.',
+                    ],
+                    'wa_send_psb_test_schedule' => [
+                        'label' => 'Jadwal Tes Seleksi & Wawancara PSB',
+                        'desc' => 'Pemberitahuan waktu, ruangan, dan tata tertib ujian masuk calon siswa.',
+                    ],
+                    'wa_send_psb_acceptance' => [
+                        'label' => 'Pengumuman Hasil Kelulusan PSB',
+                        'desc' => 'Informasi kelulusan penerimaan dan panduan daftar ulang.',
+                    ],
+                ],
+            ],
+
+            'guru' => [
+                'target' => 'Ke Guru (Tenaga Pendidik)',
+                'description' => 'Otomatisasi pengiriman pesan ke nomor WhatsApp Guru dan Pengajar Mata Pelajaran',
+                'icon' => 'fas fa-chalkboard-teacher',
+                'color' => 'indigo',
+                'badge' => 'Dewan Guru',
+                'items' => [
+                    'wa_send_teaching_reminder' => [
+                        'label' => 'Pengingat Jadwal Mengajar Harian (Pagi)',
+                        'desc' => 'Pengingat jam mengajar, kelas rombel, dan mata pelajaran yang diampu hari ini.',
+                    ],
+                    'wa_send_guru_lms_submission' => [
+                        'label' => 'Notifikasi Pengumpulan Tugas & Kuis Siswa',
+                        'desc' => 'Pemberitahuan rekap saat seluruh siswa kelas telah mengumpulkan tugas di LMS.',
+                    ],
+                    'wa_send_guru_meeting_alert' => [
+                        'label' => 'Undangan Rapat Dewan Guru & Jadwal Piket',
+                        'desc' => 'Pemberitahuan agenda rapat dinas, briefing dewan guru, dan jadwal piket harian.',
+                    ],
+                    'wa_send_guru_training_alert' => [
+                        'label' => 'Jadwal Pelatihan & Supervisi Akademik',
+                        'desc' => 'Pemberitahuan jadwal supervisi kelas oleh Pengawas/Kepsek dan agenda workshop guru.',
+                    ],
+                ],
+            ],
+
+            'wali_kelas' => [
+                'target' => 'Ke Wali Kelas',
+                'description' => 'Laporan rekapitulasi berkala kondisi kelas binaan kepada masing-masing Wali Kelas',
+                'icon' => 'fas fa-user-friends',
+                'color' => 'teal',
+                'badge' => 'Wali Kelas',
+                'items' => [
+                    'wa_send_homeroom_attendance' => [
+                        'label' => 'Laporan Rekap Presensi Harian Siswa Binaan',
+                        'desc' => 'Rekap harian (Hadir, Sakit, Izin, Alpa) seluruh siswa di kelas binaan pada pukul 08:00.',
+                    ],
+                    'wa_send_homeroom_spp' => [
+                        'label' => 'Laporan Rekap Pembayaran SPP Kelas Binaan',
+                        'desc' => 'Daftar siswa yang sudah lunas dan yang masih memiliki tunggakan SPP bulanan.',
+                    ],
+                    'wa_send_homeroom_lms' => [
+                        'label' => 'Laporan Keaktifan & Ranking LMS Kelas',
+                        'desc' => 'Rekapitulasi siswa paling aktif dan yang belum mengerjakan tugas di LMS.',
+                    ],
+                    'wa_send_homeroom_bk_alert' => [
+                        'label' => 'Notifikasi Catatan Pembinaan BK Siswa Binaan',
+                        'desc' => 'Pemberitahuan langsung jika salah satu siswa di kelas binaan mendapat catatan khusus BK.',
+                    ],
+                ],
+            ],
+
+            'pegawai' => [
+                'target' => 'Ke Pegawai / Tenaga Kependidikan',
+                'description' => 'Otomatisasi pengingat kehadiran dan kedinasan staf Tata Usaha, Keamanan, dan Karyawan',
+                'icon' => 'fas fa-id-badge',
+                'color' => 'sky',
+                'badge' => 'Tendik / Staf',
+                'items' => [
+                    'wa_send_staff_attendance_reminder' => [
+                        'label' => 'Pengingat Presensi Masuk & Pulang Kerja',
+                        'desc' => 'Pengingat tap presensi kehadiran staf sebelum jam kerja dimulai dan saat jam pulang.',
+                    ],
+                    'wa_send_staff_payroll_notice' => [
+                        'label' => 'Pemberitahuan Penerbitan Slip Gaji Bulanan',
+                        'desc' => 'Notifikasi bahwa slip honorarium / gaji dan tunjangan telah diproses bagian keuangan.',
+                    ],
+                    'wa_send_staff_announcement' => [
+                        'label' => 'Pengumuman Kedinasan & Jam Operasional Tendik',
+                        'desc' => 'Informasi kedinasan khusus tenaga kependidikan dan penyesuaian jam kerja kantor.',
+                    ],
+                ],
+            ],
+
+            'kepala_sekolah' => [
+                'target' => 'Ke Kepala Sekolah',
+                'description' => 'Laporan eksekutif ringkas harian/mingguan langsung ke WhatsApp Kepala Sekolah',
+                'icon' => 'fas fa-user-tie',
+                'color' => 'amber',
+                'badge' => 'Kepala Sekolah',
+                'items' => [
+                    'wa_send_principal_attendance' => [
+                        'label' => 'Rekap Eksekutif Presensi Harian Sekolah (07:45 WIB)',
+                        'desc' => 'Persentase kehadiran siswa, guru hadir, dan guru izin/piket dikirim setiap pagi.',
+                    ],
+                    'wa_send_principal_spp' => [
+                        'label' => 'Rekap Eksekutif Realisasi SPP & Keuangan Bulanan',
+                        'desc' => 'Ringkasan total penerimaan SPP, target bulanan, dan persentase kepatuhan bayar.',
+                    ],
+                    'wa_send_principal_lms' => [
+                        'label' => 'Rekap Kinerja Pembelajaran Guru & LMS Mingguan',
+                        'desc' => 'Monitoring guru yang aktif mengunggah materi, kuis, dan interaksi pembelajaran.',
+                    ],
+                    'wa_send_principal_critical_cases' => [
+                        'label' => 'Laporan Insiden Kritis & Kasus Kedisiplinan Berat',
+                        'desc' => 'Pemberitahuan darurat bila terjadi pelanggaran berat atau kasus siswa yang butuh atensi pimpinan.',
+                    ],
+                ],
+            ],
+
+            'bk' => [
+                'target' => 'Ke Guru BK (Bimbingan Konseling)',
+                'description' => 'Peringatan dini dan catatan konseling untuk Guru Bimbingan Konseling',
+                'icon' => 'fas fa-user-shield',
+                'color' => 'purple',
+                'badge' => 'Bimbingan Konseling',
+                'items' => [
+                    'wa_send_counseling_record' => [
+                        'label' => 'Notifikasi Catatan Konseling & Pembinaan Siswa',
+                        'desc' => 'Pengarsipan dan konfirmasi sesi konseling yang telah dilaksanakan.',
+                    ],
+                    'wa_send_bk_chronic_absenteeism' => [
+                        'label' => 'Peringatan Dini Siswa Alpa / Bolos Berulang (Early Warning)',
+                        'desc' => 'Peringatan otomatis saat siswa tidak hadir berturut-turut 3 hari tanpa keterangan.',
+                    ],
+                    'wa_send_bk_parent_summons' => [
+                        'label' => 'Notifikasi Penerbitan Surat Panggilan Orang Tua / Home Visit',
+                        'desc' => 'Pemberitahuan kepada guru BK saat surat panggilan wali murid diterbitkan sistem.',
+                    ],
+                ],
+            ],
+
+            'panitia_pkl' => [
+                'target' => 'Ke Panitia PKL (Prakerin / Magang)',
+                'description' => 'Otomatisasi alur kerja Praktek Kerja Lapangan bagi Koordinator dan Pembimbing PKL SMK',
+                'icon' => 'fas fa-industry',
+                'color' => 'blue',
+                'badge' => 'Panitia PKL',
+                'items' => [
+                    'wa_send_pkl_registration' => [
+                        'label' => 'Pengajuan Lokasi & Verifikasi DUDI PKL',
+                        'desc' => 'Pemberitahuan pengajuan tempat magang baru oleh siswa ke panitia PKL.',
+                    ],
+                    'wa_send_pkl_supervisor_assigned' => [
+                        'label' => 'Penugasan Guru Pembimbing Monitoring PKL',
+                        'desc' => 'Pemberitahuan penugasan guru pembimbing untuk memonitoring siswa di instansi mitra.',
+                    ],
+                    'wa_send_pkl_journal_submission' => [
+                        'label' => 'Laporan Mingguan & Jurnal Masuk Siswa PKL',
+                        'desc' => 'Rekap pengumpulan jurnal kegiatan harian siswa di tempat kerja praktek.',
+                    ],
+                    'wa_send_pkl_grading_ready' => [
+                        'label' => 'Pengisian Nilai Mentor & Penerbitan Sertifikat PKL',
+                        'desc' => 'Notifikasi saat mentor industri telah menginput nilai dan sertifikat siap dicetak.',
+                    ],
+                ],
+            ],
+
+            'panitia_project' => [
+                'target' => 'Ke Panitia Project Akhir',
+                'description' => 'Otomatisasi pengajuan judul, pembimbingan, dan sidang Project Akhir Kejuruan',
+                'icon' => 'fas fa-project-diagram',
+                'color' => 'rose',
+                'badge' => 'Project Akhir',
+                'items' => [
+                    'wa_send_final_project_submission' => [
+                        'label' => 'Pengajuan Judul & Proposal Project Akhir',
+                        'desc' => 'Pemberitahuan proposal karya akhir baru yang diajukan siswa untuk direview panitia.',
+                    ],
+                    'wa_send_final_project_mentor_assigned' => [
+                        'label' => 'Penunjukan Guru Pembimbing Project Akhir',
+                        'desc' => 'Pemberitahuan kepada guru yang ditunjuk sebagai pembimbing teknis karya project.',
+                    ],
+                    'wa_send_final_project_exam_schedule' => [
+                        'label' => 'Jadwal Sidang & Uji Kelayakan Project',
+                        'desc' => 'Pemberitahuan waktu, ruangan, dan dewan penguji sidang karya akhir.',
+                    ],
+                    'wa_send_final_project_approval' => [
+                        'label' => 'Pengesahan Naskah & Nilai Kelulusan Project',
+                        'desc' => 'Notifikasi saat karya project akhir dinyatakan lulus dan disahkan dewan penguji.',
+                    ],
+                ],
+            ],
+
+            'panitia_penelitian' => [
+                'target' => 'Ke Panitia Penelitian Akhir',
+                'description' => 'Otomatisasi pengajuan riset ilmiah, seminar hasil, dan publikasi penelitian',
+                'icon' => 'fas fa-microscope',
+                'color' => 'violet',
+                'badge' => 'Penelitian Akhir',
+                'items' => [
+                    'wa_send_research_proposal_submitted' => [
+                        'label' => 'Pengajuan Izin Riset & Naskah Penelitian',
+                        'desc' => 'Pemberitahuan berkas proposal penelitian ilmiah yang masuk ke sekretariat riset.',
+                    ],
+                    'wa_send_research_instrument_reviewed' => [
+                        'label' => 'Validasi Instrumen & Uji Kelayakan Penelitian',
+                        'desc' => 'Pemberitahuan hasil review kuisioner/alat uji oleh dewan pakar penelitian.',
+                    ],
+                    'wa_send_research_seminar_schedule' => [
+                        'label' => 'Jadwal Seminar Hasil & Sidang Riset',
+                        'desc' => 'Pemberitahuan agenda seminar hasil penelitian kepada penguji dan peserta.',
+                    ],
+                    'wa_send_research_final_published' => [
+                        'label' => 'Pengesahan Publikasi & Repositori Ilmiah',
+                        'desc' => 'Notifikasi penyerahan laporan akhir penelitian ke perpustakaan/repositori.',
+                    ],
+                ],
+            ],
+
+            'yayasan' => [
+                'target' => 'Ke Yayasan (Badan Pengurus)',
+                'description' => 'Laporan eksekutif lintas 3 unit sekolah (SMA, SMP, SMK) dan undangan rapat pengurus',
+                'icon' => 'fas fa-landmark',
+                'color' => 'orange',
+                'badge' => 'Yayasan Pembda',
+                'items' => [
+                    'wa_send_yayasan_monthly_digest' => [
+                        'label' => 'Rekapitulasi Eksekutif Bulanan 3 Unit Sekolah',
+                        'desc' => 'Rangkuman rekapitulasi data siswa, keuangan, dan guru dari ketiga unit sekolah.',
+                    ],
+                    'wa_send_yayasan_meeting_invitation' => [
+                        'label' => 'Undangan Rapat Kerja & Sidang Pleno Yayasan',
+                        'desc' => 'Undangan otomatis dan konfirmasi kehadiran rapat pengurus yayasan.',
+                    ],
+                    'wa_send_yayasan_budget_alert' => [
+                        'label' => 'Pengajuan Anggaran & Pencairan Dana Unit',
+                        'desc' => 'Notifikasi permohonan dana operasional/investasi dari kepala sekolah ke yayasan.',
+                    ],
+                    'wa_send_yayasan_psb_report' => [
+                        'label' => 'Laporan Statistik Penerimaan Siswa Baru (PSB)',
+                        'desc' => 'Update mingguan grafik pendaftar PSB di seluruh unit di bawah naungan yayasan.',
+                    ],
+                ],
+            ],
+
+            'semua' => [
+                'target' => 'Semua / Siaran Massal',
+                'description' => 'Pesan pengumuman umum dan kedaruratan kepada seluruh sivitas akademika',
+                'icon' => 'fas fa-bullhorn',
+                'color' => 'red',
+                'badge' => 'Siaran Massal',
+                'items' => [
+                    'wa_send_broadcast_official_letter' => [
+                        'label' => 'Siaran Surat Edaran Resmi Sekolah / Yayasan',
+                        'desc' => 'Pengiriman surat edaran resmi terlampir PDF kepada seluruh guru, staf, dan wali murid.',
+                    ],
+                    'wa_send_broadcast_emergency_holiday' => [
+                        'label' => 'Notifikasi Darurat Bencana & Libur Mendadak',
+                        'desc' => 'Peringatan kilat bila terjadi kondisi cuaca ekstrem, force majeure, atau libur darurat.',
+                    ],
+                    'wa_send_broadcast_event_announcement' => [
+                        'label' => 'Pengumuman Hari Besar Nasional & Upacara Sekolah',
+                        'desc' => 'Informasi upacara bendera, perayaan hari besar nasional, dan agenda akbar yayasan.',
+                    ],
+                ],
+            ],
+        ];
     }
 
     /**
@@ -367,28 +669,19 @@ class SettingsController extends Controller
     {
         $this->authorizeFeatureAccess();
 
-        $waKeys = [
-            'wa_send_attendance_alert',
-            'wa_send_payment_receipt',
-            'wa_send_payment_reminder',
-            'wa_send_grade_published',
-            'wa_send_counseling_record',
-            'wa_send_reputation_award',
-            'wa_send_psb_registration',
-            'wa_send_psb_payment',
-            'wa_send_psb_test_schedule',
-            'wa_send_psb_acceptance',
-            'wa_send_lms_notification',
-            'wa_send_teaching_reminder',
-        ];
+        $groups = $this->getWhatsappAutomationGroups();
+        $savedCount = 0;
 
-        foreach ($waKeys as $key) {
-            Setting::setValue($key, $request->boolean($key), 'boolean', 'features');
+        foreach ($groups as $group) {
+            foreach ($group['items'] as $key => $item) {
+                Setting::setValue($key, $request->boolean($key), 'boolean', 'features');
+                $savedCount++;
+            }
         }
 
         return redirect()
             ->route('admin.settings.whatsapp')
-            ->with('success', 'Pengaturan otomatisasi pengiriman WhatsApp berhasil disimpan!');
+            ->with('success', "Pengaturan {$savedCount} saklar otomatisasi WhatsApp berhasil disimpan!");
     }
 
     /**
