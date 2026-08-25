@@ -108,7 +108,7 @@ function formatJid(phone) {
 // -------------------------------------------------------------
 
 // Health & Status Check
-app.get('/device', (req, res) => {
+const handleDeviceCheck = (req, res) => {
   res.json({
     success: true,
     status: connectionStatus,
@@ -118,7 +118,9 @@ app.get('/device', (req, res) => {
     } : null,
     provider: 'Self-Hosted Baileys ($0 Cost)'
   });
-});
+};
+app.get('/device', handleDeviceCheck);
+app.post('/device', handleDeviceCheck);
 
 app.get('/status', (req, res) => {
   res.json({

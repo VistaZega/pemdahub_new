@@ -328,20 +328,45 @@ class WhatsAppService implements WhatsAppServiceInterface
             return ['success' => false, 'message' => 'Service disabled'];
         }
 
+        if (empty($this->apiToken) && $this->activeProvider === 'fonnte') {
+            return ['success' => false, 'message' => 'Token Fonnte belum diisi'];
+        }
+
         try {
             /** @var Response $response */
-            $response = Http::timeout($this->timeout)
-                ->connectTimeout(5)
-                ->withHeaders([
-                    'Authorization' => $this->apiToken,
-                ])
-                ->get($this->apiUrl . '/device');
+            if ($this->activeProvider === 'fonnte') {
+                // Fonnte API requires POST method for /device
+                $response = Http::timeout($this->timeout)
+                    ->connectTimeout(5)
+                    ->withHeaders([
+                        'Authorization' => $this->apiToken,
+                    ])
+                    ->post($this->apiUrl . '/device');
+            } else {
+                // Selfhosted Baileys
+                $response = Http::timeout($this->timeout)
+                    ->connectTimeout(5)
+                    ->withHeaders([
+                        'Authorization' => $this->apiToken,
+                    ])
+                    ->get($this->apiUrl . '/device');
+            }
+
+            $jsonData = $response->json();
+            $isSuccessful = $response->successful();
+
+            if ($this->activeProvider === 'fonnte') {
+                $deviceStatus = $jsonData['device_status'] ?? '';
+                $isSuccessful = $isSuccessful && (($jsonData['status'] ?? false) === true || $deviceStatus === 'connect');
+            } elseif ($this->activeProvider === 'selfhosted') {
+                $isSuccessful = $isSuccessful && (($jsonData['status'] ?? '') === 'connected');
+            }
 
             return [
-                'success' => $response->successful(),
+                'success' => (bool)$isSuccessful,
                 'provider' => $this->activeProvider,
                 'label' => $this->providerLabel,
-                'data' => $response->json(),
+                'data' => $jsonData,
             ];
         } catch (\Exception $e) {
             Log::channel('whatsapp')->error('WhatsApp getAccountInfo failed', [

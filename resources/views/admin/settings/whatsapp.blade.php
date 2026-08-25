@@ -115,6 +115,23 @@
                     <p class="text-[10px] text-gray-400">Token didapat dari dashboard <a href="https://fonnte.com" target="_blank" class="text-emerald-600 underline font-semibold">fonnte.com</a> setelah scan QR.</p>
                 </form>
 
+                @if($isFonnteActive && !empty($accountInfo['success']) && !empty($accountInfo['data']['device']))
+                <div class="mb-4 bg-emerald-50/90 rounded-xl p-3 border border-emerald-200 space-y-1.5 text-xs text-emerald-900">
+                    <div class="flex justify-between items-center">
+                        <span class="text-emerald-700 font-medium">Perangkat:</span>
+                        <span class="font-bold">{{ $accountInfo['data']['name'] ?? '' }} ({{ $accountInfo['data']['device'] ?? '' }})</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-emerald-700 font-medium">Sisa Kuota Pesan:</span>
+                        <span class="font-bold bg-emerald-200/70 text-emerald-900 px-2 py-0.5 rounded-md">{{ $accountInfo['data']['quota'] ?? '0' }} Pesan ({{ $accountInfo['data']['package'] ?? 'Paket' }})</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-emerald-700 font-medium">Masa Berlaku:</span>
+                        <span class="font-semibold">{{ $accountInfo['data']['expired'] ?? '-' }}</span>
+                    </div>
+                </div>
+                @endif
+
                 <div class="flex gap-2">
                     @if(!$isFonnteActive)
                     <form action="{{ route('admin.settings.whatsapp.switch_provider') }}" method="POST" class="flex-1">
