@@ -31,7 +31,7 @@ class TeacherStudentDnaController extends Controller
 
         // Cek apakah user memiliki hak akses menyeluruh (Kepala Sekolah, Guru BK, Superadmin)
         $isPrincipalOrBk = $user->isSuperAdmin() 
-            || $user->hasRole(['kepala_sekolah', 'guru_bk', 'superadmin', 'admin_sekolah'])
+            || $user->hasAnyRole(['kepala_sekolah', 'guru_bk', 'superadmin', 'admin_sekolah'])
             || ($teacher && method_exists($teacher, 'isPrincipal') && $teacher->isPrincipal());
 
         // 1. Dapatkan daftar kelas berdasarkan Penugasan Mengajar & Tahun Pelajaran Aktif
