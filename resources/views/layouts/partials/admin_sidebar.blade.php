@@ -505,6 +505,10 @@
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-file-lines text-[10px]"></i></div>
             <span>Rapor Digital</span>
         </a>
+        <a href="{{ route('admin.p5.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.p5.*') ? $ac : $nc }}">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white"><i class="fas fa-shapes text-[10px]"></i></div>
+            <span>Projek P5 (Rapor P5)</span>
+        </a>
         @if($isSA || $isAdmin)
         <a href="{{ route('admin.settings.report-cards') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.settings.report-cards*') ? $ac : $nc }}">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-indigo-600 flex items-center justify-center text-white"><i class="fas fa-cog text-[10px]"></i></div>

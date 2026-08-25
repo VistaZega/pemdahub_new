@@ -333,6 +333,18 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::patch('report-cards/{reportCard}/publish', [App\Http\Controllers\Admin\ReportCardController::class, 'publish'])->name('report_cards.publish');
     Route::get('report-cards/{reportCard}/print', [App\Http\Controllers\Admin\ReportCardController::class, 'print'])->name('report_cards.print');
     Route::post('report-cards/bulk-download', [App\Http\Controllers\Admin\ReportCardController::class, 'bulkDownload'])->name('report_cards.bulk_download');
+
+    // Projek P5 (Penguatan Profil Pelajar Pancasila - Kurikulum Merdeka)
+    Route::prefix('p5')->name('p5.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\P5ProjectController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\P5ProjectController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\P5ProjectController::class, 'store'])->name('store');
+        Route::get('/{project}', [App\Http\Controllers\Admin\P5ProjectController::class, 'show'])->name('show');
+        Route::get('/{project}/assess', [App\Http\Controllers\Admin\P5ProjectController::class, 'assessForm'])->name('assess');
+        Route::post('/{project}/assess', [App\Http\Controllers\Admin\P5ProjectController::class, 'assessStore'])->name('assess.store');
+        Route::get('/{project}/raport/{student}', [App\Http\Controllers\Admin\P5ProjectController::class, 'printRaport'])->name('raport.print');
+        Route::delete('/{project}', [App\Http\Controllers\Admin\P5ProjectController::class, 'destroy'])->name('destroy');
+    });
     
 
     Route::prefix('promotions')->name('promotions.')->group(function () {

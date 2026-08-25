@@ -35,7 +35,7 @@
 
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between">
                     <span class="text-[10px] text-emerald-600 font-black"><i class="fa-solid fa-circle text-[8px] mr-1"></i>Ujian Aktif</span>
-                    <a href="#" onclick="alert('Fitur pengerjaan ujian segera hadir'); return false;"
+                    <a href="{{ route('siswa.cbt.show', $exam->id) }}"
                        class="clay-btn px-4 py-2 text-white font-black text-xs">
                         Mulai Ujian
                     </a>

@@ -6,10 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Applicant;
 use App\Models\AcademicYear;
 use App\Models\School;
+use App\Models\ProgramKeahlian;
+use App\Models\KonsentrasiKeahlian;
+use App\Models\PsbWave;
 use App\Services\ApplicantService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ApplicantController extends Controller
 {
@@ -239,25 +243,106 @@ class ApplicantController extends Controller
     public function edit(Applicant $applicant)
     {
         $this->authorizeApplicant($applicant);
+        $applicant->load(['school', 'academicYear', 'programKeahlian', 'konsentrasiKeahlian']);
         $schools = School::schoolsOnly()->get();
+        $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
+        $programKeahlians = ProgramKeahlian::where('school_id', $applicant->school_id)->get();
+        $konsentrasiKeahlians = KonsentrasiKeahlian::where('program_keahlian_id', $applicant->program_keahlian_id)->get();
+        $waves = \App\Models\PsbWave::where('school_id', $applicant->school_id)->get();
 
-        return view('admin.psb.edit', compact('applicant', 'schools'));
+        return view('admin.psb.edit', compact('applicant', 'schools', 'academicYears', 'programKeahlians', 'konsentrasiKeahlians', 'waves'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Applicant $applicant)
     {
-        //
+        $this->authorizeApplicant($applicant);
+
+        $validated = $request->validate([
+            'full_name' => 'required|string|max:255',
+            'nisn' => 'nullable|string|max:20',
+            'gender' => 'required|in:L,P',
+            'birth_place' => 'required|string|max:100',
+            'birth_date' => 'required|date',
+            'religion' => 'required|string|max:50',
+            'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'address' => 'required|string',
+            'previous_school' => 'required|string|max:255',
+            'school_id' => 'required|exists:schools,id',
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'wave_id' => 'nullable|exists:psb_waves,id',
+            'admission_path' => 'nullable|string|max:50',
+            'program_keahlian_id' => 'nullable|exists:program_keahlians,id',
+            'konsentrasi_keahlian_id' => 'nullable|exists:konsentrasi_keahlians,id',
+            'father_name' => 'nullable|string|max:255',
+            'father_phone' => 'nullable|string|max:20',
+            'father_occupation' => 'nullable|string|max:100',
+            'mother_name' => 'nullable|string|max:255',
+            'mother_phone' => 'nullable|string|max:20',
+            'mother_occupation' => 'nullable|string|max:100',
+            'parent_income' => 'nullable|string|max:100',
+            'status' => 'required|in:draft,submitted,verified,tested,accepted,rejected,re-registered,withdrawn',
+            'notes' => 'nullable|string',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        if ($request->hasFile('photo')) {
+            if ($applicant->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($applicant->photo_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($applicant->photo_path);
+            }
+            $path = $request->file('photo')->store('applicants/photos', 'public');
+            $validated['photo_path'] = $path;
+        }
+
+        unset($validated['photo']);
+        $applicant->update($validated);
+
+        return redirect()->route('admin.psb.applicants.show', $applicant)
+            ->with('success', "Data pendaftar {$applicant->full_name} ({$applicant->registration_number}) berhasil diperbarui.");
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Applicant $applicant)
     {
-        //
+        $this->authorizeApplicant($applicant);
+
+        // Keamanan: Cek apakah sudah dimigrasi ke Siswa
+        if ($applicant->student_id || $applicant->status === 're-registered') {
+            return back()->with('error', 'Pendaftar tidak dapat dihapus karena sudah dimigrasikan menjadi Siswa Aktif.');
+        }
+
+        try {
+            $regNumber = $applicant->registration_number;
+            $name = $applicant->full_name;
+
+            // Hapus file foto jika ada
+            if ($applicant->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($applicant->photo_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($applicant->photo_path);
+            }
+
+            // Hapus berkas pendukung
+            foreach ($applicant->documents as $doc) {
+                if ($doc->file_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($doc->file_path)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($doc->file_path);
+                }
+                $doc->delete();
+            }
+
+            $applicant->testScores()->delete();
+            $applicant->achievements()->delete();
+            $applicant->delete();
+
+            return redirect()->route('admin.psb.applicants.index')
+                ->with('success', "Data pendaftar {$name} ({$regNumber}) berhasil dihapus dari sistem.");
+        } catch (\Throwable $e) {
+            Log::error('Error deleting applicant: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menghapus pendaftar: ' . $e->getMessage());
+        }
     }
 
     /**

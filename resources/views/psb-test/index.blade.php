@@ -325,10 +325,39 @@
             window.open(url, '_blank', 'width=800,height=600');
         }
 
-        function simulateFullFlow() {
-            if (confirm('Simulasi akan membuat log untuk semua fase notifikasi. Lanjutkan?')) {
-                alert('Simulasi lengkap akan dibuat! (Feature dalam development)');
-                // TODO: Implement full flow simulation
+        async function simulateFullFlow() {
+            if (!currentRegNumber) {
+                alert('Pilih salah satu pendaftar terlebih dahulu.');
+                return;
+            }
+
+            if (confirm('Jalankan simulasi pengiriman seluruh alur notifikasi (Registrasi, Pembayaran, Dokumen, Jadwal Tes, Kelulusan) untuk pendaftar ini?')) {
+                const types = ['registration', 'payment_verified', 'document_verified', 'test_schedule', 'result_accepted'];
+                let logs = [];
+
+                for (const type of types) {
+                    try {
+                        const res = await fetch('{{ route("psb.test.simulate") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                registration_number: currentRegNumber,
+                                notification_type: type
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            logs.push(`✓ [${type}] Berhasil disimulasikan`);
+                        }
+                    } catch (e) {
+                        logs.push(`✗ [${type}] Gagal: ${e.message}`);
+                    }
+                }
+
+                alert(`Simulasi Selesai!\n\n${logs.join('\n')}\n\nLog simulasi lengkap tersimpan di storage/logs/psb-notification-simulation.log`);
             }
         }
 
