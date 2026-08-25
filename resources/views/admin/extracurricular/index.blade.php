@@ -160,7 +160,7 @@
 
             <div class="bg-slate-50/80 px-5 py-3 border-t border-slate-100 flex items-center justify-between gap-2">
                 @if($ekskul->forum_group_id)
-                <a href="{{ route('space.index', ['group' => $ekskul->forum_group_id]) }}" class="text-xs font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1.5" title="Kanal Diskusi Pembda Space">
+                <a href="{{ route('forum.index', ['group' => $ekskul->forum_group_id]) }}" class="text-xs font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1.5" title="Kanal Diskusi Pembda Space">
                     <i class="fas fa-comments text-purple-600"></i> Space Group
                 </a>
                 @else

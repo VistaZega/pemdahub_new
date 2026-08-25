@@ -38,7 +38,7 @@
 
             <div class="flex flex-wrap items-center gap-2.5 flex-shrink-0">
                 @if($extracurricular->forum_group_id)
-                <a href="{{ route('space.index', ['group' => $extracurricular->forum_group_id]) }}" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center gap-2 active:scale-95">
+                <a href="{{ route('forum.index', ['group' => $extracurricular->forum_group_id]) }}" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center gap-2 active:scale-95">
                     <i class="fas fa-comments"></i>
                     <span>Kanal Space Ekskul</span>
                 </a>

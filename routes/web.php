@@ -1066,7 +1066,10 @@ Route::middleware('auth')->group(function () {
     // Reputation & Hall of Fame
     Route::get('/hall-of-fame', [App\Http\Controllers\Reputation\LeaderboardController::class, 'index'])->name('reputation.leaderboard');
 
-    // Hub Forum
+    // Pembda Space (Alias & Main Route)
+    Route::get('/space', [App\Http\Controllers\ForumController::class, 'index'])->name('space.index');
+
+    // Hub Forum (Pembda Space)
     Route::prefix('forum')->name('forum.')->group(function () {
         Route::get('/', [App\Http\Controllers\ForumController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\ForumController::class, 'create'])->name('create');

@@ -223,7 +223,7 @@
                     </div>
                 </div>
                 @if($e->forum_group_id)
-                <a href="{{ route('space.index', ['group' => $e->forum_group_id]) }}" class="px-2.5 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg text-xs font-bold transition flex items-center gap-1 flex-shrink-0" title="Buka Kanal Space">
+                <a href="{{ route('forum.index', ['group' => $e->forum_group_id]) }}" class="px-2.5 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg text-xs font-bold transition flex items-center gap-1 flex-shrink-0" title="Buka Kanal Space">
                     <i class="fas fa-comments"></i>
                 </a>
                 @endif

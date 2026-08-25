@@ -87,10 +87,8 @@
                 <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                     <span class="text-xs font-bold text-indigo-600 flex items-center gap-1">
                         <i class="fas fa-star text-amber-500"></i> +{{ $membership->points_awarded }} Poin Reputasi
-                    </span>
-
-                    @if($ekskul->forum_group_id)
-                    <a href="{{ route('space.index', ['group' => $ekskul->forum_group_id]) }}" class="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs active:scale-95">
+                         @if($ekskul->forum_group_id)
+                    <a href="{{ route('forum.index', ['group' => $ekskul->forum_group_id]) }}" class="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs active:scale-95">
                         <i class="fas fa-comments"></i>
                         <span>Buka Space</span>
                     </a>
@@ -129,7 +127,7 @@
                                     {{ $ekskul->category_label }}
                                 </span>
                                 @if($ekskul->isFoundationLevel())
-                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
                                     🏛️ Lintas Unit Yayasan
                                 </span>
                                 @endif
@@ -167,7 +165,7 @@
                             <i class="fas fa-check-circle"></i> Sudah Terdaftar
                         </span>
                         @if($ekskul->forum_group_id)
-                        <a href="{{ route('space.index', ['group' => $ekskul->forum_group_id]) }}" class="text-xs font-bold text-purple-700 hover:text-purple-900">
+                        <a href="{{ route('forum.index', ['group' => $ekskul->forum_group_id]) }}" class="text-xs font-bold text-purple-700 hover:text-purple-900">
                             Buka Space &rarr;
                         </a>
                         @endif
