@@ -266,8 +266,13 @@
                     </div>
 
                     <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Unit Pendidikan & Pengampu</p>
-                        <p class="font-bold text-slate-900 text-sm">{{ $analysis['database_identity']['school_name'] }}</p>
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Unit Pendidikan & Pengampu</p>
+                                <p class="font-bold text-slate-900 text-sm">{{ $analysis['database_identity']['school_name'] }}</p>
+                            </div>
+                            <img src="{{ asset('images/logo_yayasan.png') }}" class="w-10 h-12 object-contain flex-shrink-0" alt="Logo Yayasan Pembda">
+                        </div>
                         <div class="text-slate-600 space-y-1">
                             <p><b>Naungan:</b> {{ $analysis['database_identity']['foundation_name'] }}</p>
                             <p><b>Alamat Yayasan:</b> {{ $analysis['database_identity']['foundation_address'] }}</p>
