@@ -21,7 +21,7 @@ class TeacherStudentDnaController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Student::with(['school', 'currentClassroom'])->where('is_active', true);
+        $query = Student::with(['school', 'currentClassroom'])->active();
 
         if ($user->school_id) {
             $query->where('school_id', $user->school_id);

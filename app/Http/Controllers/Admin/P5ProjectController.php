@@ -159,7 +159,7 @@ class P5ProjectController extends Controller
         
         $students = Student::whereHas('classrooms', function ($q) use ($project) {
             $q->where('classrooms.id', $project->classroom_id);
-        })->where('is_active', true)->orderBy('full_name')->get();
+        })->active()->orderBy('full_name')->get();
 
         $assessments = P5Assessment::where('p5_project_id', $project->id)->get()->groupBy('student_id');
         $notes = P5ProjectNote::where('p5_project_id', $project->id)->get()->keyBy('student_id');
@@ -176,7 +176,7 @@ class P5ProjectController extends Controller
 
         $students = Student::whereHas('classrooms', function ($q) use ($project) {
             $q->where('classrooms.id', $project->classroom_id);
-        })->where('is_active', true)->orderBy('full_name')->get();
+        })->active()->orderBy('full_name')->get();
 
         $existingAssessments = P5Assessment::where('p5_project_id', $project->id)
             ->get()

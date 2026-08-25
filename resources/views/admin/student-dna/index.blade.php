@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(request()->routeIs('guru.*') ? 'layouts.guru' : 'layouts.admin')
 
 @section('title', 'DNA Akademik Siswa 360°')
 
@@ -9,7 +9,7 @@
         <div class="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-xl"></div>
         <div class="relative">
             <div class="flex items-center text-sm text-white/70 mb-2 gap-2">
-                <a href="{{ route('admin.dashboard') }}" class="hover:text-white transition">Dashboard</a>
+                <a href="{{ request()->routeIs('guru.*') ? route('guru.dashboard') : route('admin.dashboard') }}" class="hover:text-white transition">Dashboard</a>
                 <span>/</span>
                 <span class="text-white font-semibold">DNA Akademik 360°</span>
             </div>
@@ -119,10 +119,10 @@
                         </td>
                         <td class="p-4 text-right whitespace-nowrap">
                             <div class="inline-flex items-center gap-1.5">
-                                <a href="{{ route('admin.dna.show', $s) }}" class="px-3.5 py-1.5 bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700 rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1">
+                                <a href="{{ request()->routeIs('guru.*') ? route('guru.dna.show', $s) : route('admin.dna.show', $s) }}" class="px-3.5 py-1.5 bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700 rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1">
                                     <i class="fas fa-radar"></i> Detail 360°
                                 </a>
-                                <a href="{{ route('admin.dna.pdf', $s) }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition shadow-2xs" title="Cetak PDF">
+                                <a href="{{ request()->routeIs('guru.*') ? route('guru.dna.pdf', $s) : route('admin.dna.pdf', $s) }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition shadow-2xs" title="Cetak PDF">
                                     <i class="fas fa-file-pdf text-rose-500"></i>
                                 </a>
                             </div>

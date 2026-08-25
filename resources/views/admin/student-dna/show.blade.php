@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(request()->routeIs('guru.*') ? 'layouts.guru' : 'layouts.admin')
 
 @section('title', 'Profil DNA Akademik 360° - ' . $student->full_name)
 
@@ -13,9 +13,9 @@
         <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-2xl"></div>
         <div class="relative">
             <div class="flex items-center text-sm text-white/70 mb-2 gap-2">
-                <a href="{{ route('admin.dashboard') }}" class="hover:text-white transition">Dashboard</a>
+                <a href="{{ request()->routeIs('guru.*') ? route('guru.dashboard') : route('admin.dashboard') }}" class="hover:text-white transition">Dashboard</a>
                 <span>/</span>
-                <a href="{{ route('admin.dna.index') }}" class="hover:text-white transition">DNA Akademik</a>
+                <a href="{{ request()->routeIs('guru.*') ? route('guru.dna.index') : route('admin.dna.index') }}" class="hover:text-white transition">DNA Akademik</a>
                 <span>/</span>
                 <span class="text-white font-semibold">Profil 360°</span>
             </div>
@@ -30,10 +30,10 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('admin.dna.pdf', $student) }}" class="px-5 py-2.5 bg-white text-indigo-900 hover:bg-gray-50 rounded-xl font-bold transition flex items-center gap-2 text-xs shadow-md active:scale-95">
+                    <a href="{{ request()->routeIs('guru.*') ? route('guru.dna.pdf', $student) : route('admin.dna.pdf', $student) }}" class="px-5 py-2.5 bg-white text-indigo-900 hover:bg-gray-50 rounded-xl font-bold transition flex items-center gap-2 text-xs shadow-md active:scale-95">
                         <i class="fas fa-file-pdf text-rose-600"></i> Cetak Laporan DNA (PDF)
                     </a>
-                    <a href="{{ route('admin.dna.index') }}" class="px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-xl font-semibold transition flex items-center gap-2 text-xs shadow-sm">
+                    <a href="{{ request()->routeIs('guru.*') ? route('guru.dna.index') : route('admin.dna.index') }}" class="px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-xl font-semibold transition flex items-center gap-2 text-xs shadow-sm">
                         <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                 </div>
