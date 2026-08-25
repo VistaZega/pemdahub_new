@@ -270,7 +270,8 @@
                         <p class="font-bold text-slate-900 text-sm">{{ $analysis['database_identity']['school_name'] }}</p>
                         <div class="text-slate-600 space-y-1">
                             <p><b>Naungan:</b> {{ $analysis['database_identity']['foundation_name'] }}</p>
-                            <p><b>NPSN / Alamat:</b> {{ $analysis['database_identity']['school_npsn'] }} &bull; {{ $analysis['database_identity']['school_address'] }}</p>
+                            <p><b>Alamat Yayasan:</b> {{ $analysis['database_identity']['foundation_address'] }}</p>
+                            <p><b>Email Yayasan:</b> {{ $analysis['database_identity']['foundation_email'] }}</p>
                             <p><b>Kepala Sekolah:</b> <span class="font-semibold text-slate-800">{{ $analysis['database_identity']['principal_name'] }}</span></p>
                             <p><b>Wali Kelas:</b> <span class="font-semibold text-slate-800">{{ $analysis['database_identity']['homeroom_teacher'] }}</span></p>
                         </div>

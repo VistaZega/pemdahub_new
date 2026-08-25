@@ -5,7 +5,7 @@
     <title>DNA AKADEMIK 360° - {{ $student->full_name }}</title>
     <style>
         @page {
-            margin: 15mm 15mm 15mm 15mm;
+            margin: 14mm 15mm 14mm 15mm;
             size: a4 portrait;
         }
         body {
@@ -16,26 +16,27 @@
         }
         .header-table {
             width: 100%;
-            border-bottom: 2px solid #0f172a;
+            border-bottom: 2.5px solid #0f172a;
             padding-bottom: 6px;
             margin-bottom: 10px;
         }
         .header-table td {
             vertical-align: middle;
         }
+        .foundation-name {
+            font-size: 8.5pt;
+            font-weight: bold;
+            color: #334155;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
         .school-name {
             font-size: 13pt;
             font-weight: bold;
             text-transform: uppercase;
             color: #0f172a;
-            margin: 0;
-        }
-        .foundation-name {
-            font-size: 8.5pt;
-            font-weight: bold;
-            color: #475569;
-            margin: 0;
-            text-transform: uppercase;
+            margin: 2px 0 0 0;
         }
         .report-title {
             text-align: center;
@@ -118,17 +119,25 @@
 </head>
 <body>
 
-    {{-- Kop Yayasan & Sekolah (100% Database) --}}
+    @php
+        $logoPath = public_path('images/logo-pembda.png');
+        $logoData = file_exists($logoPath) ? base64_encode(file_get_contents($logoPath)) : '';
+        $logoSrc = $logoData ? 'data:image/png;base64,' . $logoData : '';
+    @endphp
+
+    {{-- Kop Yayasan & Unit Sekolah (100% Data Riil Database & Logo Yayasan) --}}
     <table class="header-table">
         <tr>
             <td style="width: 15%; text-align: center;">
-                <img src="{{ public_path('images/logo_yayasan.png') }}" style="height: 52px;" alt="Logo" onerror="this.style.display='none'">
+                @if($logoSrc)
+                    <img src="{{ $logoSrc }}" style="height: 56px; max-width: 65px;" alt="Logo Yayasan Pembda">
+                @endif
             </td>
             <td style="width: 85%; text-align: center;">
                 <div class="foundation-name">{{ $analysis['database_identity']['foundation_name'] }}</div>
                 <div class="school-name">{{ $analysis['database_identity']['school_name'] }}</div>
-                <div style="font-size: 7.5pt; color: #475569;">
-                    {{ $analysis['database_identity']['school_address'] }} &bull; NPSN: {{ $analysis['database_identity']['school_npsn'] }} &bull; Telp: {{ $analysis['database_identity']['school_phone'] }}
+                <div style="font-size: 7.5pt; color: #475569; margin-top: 2px;">
+                    {{ $analysis['database_identity']['foundation_address'] }} &bull; Email: {{ $analysis['database_identity']['foundation_email'] }} &bull; Website: {{ $analysis['database_identity']['foundation_website'] }}
                 </div>
             </td>
         </tr>
@@ -154,7 +163,7 @@
             <td>{{ $student->nisn ?: '-' }} / {{ $student->nis ?: '-' }}</td>
             <td style="font-weight: bold;">Orang Tua / Wali</td>
             <td>:</td>
-            <td>{{ $analysis['database_identity']['parent_name'] }}</td>
+            <td><b>{{ $analysis['database_identity']['parent_name'] }}</b></td>
         </tr>
         <tr>
             <td style="font-weight: bold;">Unit Sekolah</td>

@@ -88,8 +88,12 @@ class StudentDnaService
         $principalName = $student->school?->principal?->full_name 
             ?: ($student->school?->principal_name ?: 'Kepala Sekolah');
 
-        $foundationName = \App\Models\School::where('type', 'yayasan')->value('name')
-            ?: 'YAYASAN PERGURUAN PEMBANGUNAN DAERAH NIAS (PEMBDA)';
+        $yayasan = \App\Models\School::where('type', 'yayasan')->first();
+        $foundationName = $yayasan?->name ?: 'YAYASAN PERGURUAN PEMBANGUNAN DAERAH NIAS (PEMBDA)';
+        $foundationAddress = $yayasan?->address ?: 'Jl. Pelita No. 9 Kelurahan Ilir, Kota Gunungsitoli, Sumatera Utara (22815)';
+        $foundationEmail = $yayasan?->email ?: 'yayasanperguruanpembda@gmail.com';
+        $foundationPhone = $yayasan?->phone ?: '0812-6088-2999';
+        $foundationWebsite = $yayasan?->website ?: 'https://perguruanpembda.com';
 
         $homeroomTeacher = $student->currentClassroom->first()?->homeroomTeacher?->full_name 
             ?: ($student->classrooms->first()?->homeroomTeacher?->full_name ?: '-');
@@ -119,6 +123,10 @@ class StudentDnaService
                 'parent_name' => $parentName,
                 'principal_name' => $principalName,
                 'foundation_name' => $foundationName,
+                'foundation_address' => $foundationAddress,
+                'foundation_email' => $foundationEmail,
+                'foundation_phone' => $foundationPhone,
+                'foundation_website' => $foundationWebsite,
                 'homeroom_teacher' => $homeroomTeacher,
                 'classroom_name' => $classroomName,
                 'school_name' => $student->school?->name ?? '-',
