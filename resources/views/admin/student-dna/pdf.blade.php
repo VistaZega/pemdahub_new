@@ -275,25 +275,25 @@
     </div>
 
     {{-- Tanda Tangan Resmi (100% Database) --}}
-    <table class="signature-table">
+    <table class="signature-table" style="width: 100%; margin-top: 36px; font-size: 8pt; border-collapse: collapse; page-break-inside: avoid;">
         <tr>
-            <td>
+            <td style="width: 33.33%; text-align: center; vertical-align: top;">
                 Mengetahui,<br>
-                Orang Tua / Wali Murid
-                <br><br><br><br>
-                <b>( {{ $analysis['database_identity']['parent_name'] !== '-' ? $analysis['database_identity']['parent_name'] : '..................................................' }} )</b>
+                <b>Orang Tua / Wali Murid</b>
+                <div style="height: 72px;"></div>
+                <u><b>( {{ $analysis['database_identity']['parent_name'] !== '-' ? $analysis['database_identity']['parent_name'] : '..................................................' }} )</b></u>
             </td>
-            <td>
+            <td style="width: 33.33%; text-align: center; vertical-align: top;">
                 Gunungsitoli, {{ now()->translatedFormat('d F Y') }}<br>
-                Wali Kelas / Guru Pembimbing
-                <br><br><br><br>
-                <b>( {{ $analysis['database_identity']['homeroom_teacher'] !== '-' ? $analysis['database_identity']['homeroom_teacher'] : '..................................................' }} )</b>
+                <b>Wali Kelas / Guru Pembimbing</b>
+                <div style="height: 72px;"></div>
+                <u><b>( {{ $analysis['database_identity']['homeroom_teacher'] !== '-' ? $analysis['database_identity']['homeroom_teacher'] : '..................................................' }} )</b></u>
             </td>
-            <td>
+            <td style="width: 33.33%; text-align: center; vertical-align: top;">
                 Mengetahui,<br>
-                Kepala Sekolah
-                <br><br><br><br>
-                <b>( {{ $analysis['database_identity']['principal_name'] !== 'Kepala Sekolah' ? $analysis['database_identity']['principal_name'] : '..................................................' }} )</b>
+                <b>Kepala Sekolah</b>
+                <div style="height: 72px;"></div>
+                <u><b>( {{ $analysis['database_identity']['principal_name'] !== 'Kepala Sekolah' ? $analysis['database_identity']['principal_name'] : '..................................................' }} )</b></u>
             </td>
         </tr>
     </table>
