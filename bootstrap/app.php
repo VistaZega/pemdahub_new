@@ -118,7 +118,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return null; // Let Laravel handle it
         });
 
-        // Report exceptions (log critical errors)
+        // Report exceptions (log critical errors & dispatch alerts to Telegram/WhatsApp)
         $exceptions->report(function (\Throwable $e) {
             if ($e instanceof \Illuminate\Database\QueryException) {
                 \Illuminate\Support\Facades\Log::channel('daily')->critical('Database Error', [
@@ -126,6 +126,13 @@ return Application::configure(basePath: dirname(__DIR__))
                     'sql' => method_exists($e, 'getSql') ? $e->getSql() : 'N/A',
                     'trace' => $e->getTraceAsString(),
                 ]);
+            }
+
+            // Real-time Critical Error Alert Notification (Telegram / WhatsApp)
+            try {
+                app(\App\Services\ErrorAlertService::class)->notify($e);
+            } catch (\Throwable $alertEx) {
+                // Never allow alerting failure to affect normal error handling
             }
         });
     })->create();

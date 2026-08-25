@@ -46,10 +46,11 @@ return [
     */
     'whatsapp' => [
         'enabled' => env('WHATSAPP_ENABLED', false),
-        'provider' => env('WHATSAPP_PROVIDER', 'fonnte'), // fonnte, wablas, twilio
+        'provider' => env('WHATSAPP_PROVIDER', 'fonnte'), // fontte, selfhosted (Baileys), wablas, twilio
         'api_url' => env('WHATSAPP_API_URL', 'https://api.fonnte.com'),
         'api_token' => env('WHATSAPP_API_TOKEN'),
         'sender' => env('WHATSAPP_SENDER', '088991144184'), // Nomor pengirim
+        'timeout' => env('WHATSAPP_TIMEOUT', 15),
     ],
 
     /*
@@ -78,6 +79,25 @@ return [
     */
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | System Error Alert Notifications (Telegram & WhatsApp)
+    |--------------------------------------------------------------------------
+    */
+    'alerts' => [
+        'enabled' => env('ERROR_ALERTS_ENABLED', true),
+        'cooldown_minutes' => env('ERROR_ALERT_COOLDOWN_MINUTES', 5),
+        'telegram' => [
+            'enabled' => env('TELEGRAM_ALERT_ENABLED', false),
+            'bot_token' => env('TELEGRAM_ALERT_BOT_TOKEN'),
+            'chat_id' => env('TELEGRAM_ALERT_CHAT_ID'),
+        ],
+        'whatsapp' => [
+            'enabled' => env('WHATSAPP_ALERT_ENABLED', false),
+            'admin_phone' => env('WHATSAPP_ALERT_PHONE', env('WHATSAPP_ADMIN_PHONE')),
+        ],
     ],
 
 ];

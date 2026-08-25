@@ -1418,6 +1418,61 @@ Route::get('/process-queue', function () {
     echo "</pre>";
 });
 
+// Test Error Alert Notifications (Telegram & WhatsApp)
+Route::get('/test-error-alert', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Unauthorized.');
+    }
+
+    echo "<pre style='background:#1a0a0a; color:#ff6b6b; padding:20px; border-radius:10px; font-size:14px; font-family:monospace;'>";
+    echo "<h1>🚨 TEST ERROR ALERT NOTIFICATION</h1>\n";
+    echo "Mengirim test alert ke channel yang aktif...\n\n";
+
+    $telegramEnabled = config('services.alerts.telegram.enabled');
+    $whatsappEnabled = config('services.alerts.whatsapp.enabled');
+    $globalEnabled = config('services.alerts.enabled');
+
+    echo "Global Alerts Enabled: <b>" . ($globalEnabled ? '✅ YES' : '❌ NO') . "</b>\n";
+    echo "Telegram Enabled:      <b>" . ($telegramEnabled ? '✅ YES' : '❌ NO') . "</b>\n";
+    echo "WhatsApp Enabled:      <b>" . ($whatsappEnabled ? '✅ YES' : '❌ NO') . "</b>\n\n";
+
+    if (!$globalEnabled) {
+        echo "<span style='color:#ffd93d;'>⚠️ ERROR_ALERTS_ENABLED=false. Set ke true di .env</span>\n</pre>";
+        return;
+    }
+
+    if (!$telegramEnabled && !$whatsappEnabled) {
+        echo "<span style='color:#ffd93d;'>⚠️ Tidak ada channel alert yang aktif.</span>\n";
+        echo "Set TELEGRAM_ALERT_ENABLED=true dan/atau WHATSAPP_ALERT_ENABLED=true di .env\n</pre>";
+        return;
+    }
+
+    try {
+        $testException = new \RuntimeException('[TEST] Ini adalah test error alert dari PembdaHUB - abaikan pesan ini.');
+
+        $alertService = app(\App\Services\ErrorAlertService::class);
+
+        // Bypass cooldown for test by checking dry_run
+        if (request('dry_run') == '1') {
+            echo "🔍 DRY RUN - Hanya mengecek konfigurasi, tidak mengirim alert.\n";
+            echo "Config OK. Hapus ?dry_run=1 untuk mengirim test alert sebenarnya.\n</pre>";
+            return;
+        }
+
+        $alertService->notify($testException);
+
+        echo "<span style='color:#51cf66;'>✅ Test alert berhasil dikirim!</span>\n";
+        echo "Cek Telegram / WhatsApp Anda untuk memverifikasi.\n";
+        echo "\n<span style='color:#8696a0;'>Catatan: Alert yang sama tidak akan terkirim ulang selama ";
+        echo config('services.alerts.cooldown_minutes', 5) . " menit (anti-spam).</span>\n";
+    } catch (\Throwable $e) {
+        echo "<span style='color:#ff0000;'>❌ Error: " . htmlspecialchars($e->getMessage()) . "</span>\n";
+    }
+
+    echo "</pre>";
+});
+
+
 Route::get('/sync-lms-enrollments', function () {
     if (request('secret') !== 'pembda99') {
         abort(403, 'Akses Ditolak.');
