@@ -9,22 +9,22 @@
 @section('content')
 <div class="space-y-6">
     {{-- Hero Archetype Banner --}}
-    <div class="bg-gradient-to-r {{ $analysis['archetype']['color'] }} rounded-2xl p-6 sm:p-7 text-white relative overflow-hidden shadow-sm">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-2xl"></div>
-        <div class="relative">
-            <div class="flex items-center text-sm text-white/70 mb-2 gap-2">
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 rounded-2xl p-6 sm:p-7 text-white relative overflow-hidden shadow-md border border-slate-800">
+        <div class="absolute -top-12 -right-12 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10">
+            <div class="flex items-center text-xs text-slate-300 font-semibold mb-2.5 gap-2">
                 <a href="{{ route('siswa.dashboard') }}" class="hover:text-white transition">Dashboard</a>
-                <span>/</span>
-                <span class="text-white font-semibold">DNA Akademik 360°</span>
+                <span class="text-slate-500">/</span>
+                <span class="text-purple-300 font-bold">DNA Akademik 360°</span>
             </div>
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div class="space-y-1">
-                    <span class="px-3 py-1 bg-white/20 rounded-full text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5">
+                <div class="space-y-1.5">
+                    <span class="px-3 py-1 bg-gradient-to-r {{ $analysis['archetype']['color'] }} text-white rounded-full text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm">
                         <i class="fas {{ $analysis['archetype']['badge_icon'] }}"></i> {{ $analysis['archetype']['title'] }}
                     </span>
-                    <h1 class="text-2xl sm:text-3xl font-black">Halo, {{ $student->full_name }}! 👋</h1>
-                    <p class="text-xs sm:text-sm text-purple-100 font-medium">
-                        Tipe DNA Belajar Anda: <b>"{{ $analysis['archetype']['tagline'] }}"</b>
+                    <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Halo, {{ $student->full_name }}! 👋</h1>
+                    <p class="text-xs sm:text-sm text-slate-200 font-medium">
+                        Tipe DNA Belajar Anda: <b class="text-white">"{{ $analysis['archetype']['tagline'] }}"</b>
                     </p>
                 </div>
                 <div class="flex items-center gap-2">

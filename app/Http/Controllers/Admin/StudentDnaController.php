@@ -22,24 +22,34 @@ class StudentDnaController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Student::with(['school', 'currentClassroom'])->active();
+        $query = Student::with(['school', 'currentClassroom', 'classrooms']);
 
-        if (!$user->isSuperAdmin() && $user->school_id) {
+        // Inclusive active/enrolled status filter
+        $query->where(function ($q) {
+            $q->whereNull('status')
+              ->orWhereIn('status', ['aktif', 'Aktif', 'active', 'ACTIVE', 'calon', 'naik', 'enrolled']);
+        });
+
+        // Filter by classroom (checks all student-classroom relationships)
+        if ($request->filled('classroom_id')) {
+            $classroomId = $request->classroom_id;
+            $query->where(function ($q) use ($classroomId) {
+                $q->whereHas('classrooms', function ($cq) use ($classroomId) {
+                    $cq->where('classrooms.id', $classroomId);
+                })
+                ->orWhereHas('studentClasses', function ($scq) use ($classroomId) {
+                    $scq->where('classroom_id', $classroomId);
+                })
+                ->orWhere('classroom_id', $classroomId);
+            });
+        } elseif ($request->filled('school_id') && $user->isSuperAdmin()) {
+            $query->where('school_id', $request->school_id);
+        } elseif (!$user->isSuperAdmin() && $user->school_id) {
             $query->where('school_id', $user->school_id);
         }
 
-        if ($request->filled('school_id') && $user->isSuperAdmin()) {
-            $query->where('school_id', $request->school_id);
-        }
-
-        if ($request->filled('classroom_id')) {
-            $query->whereHas('classrooms', function ($q) use ($request) {
-                $q->where('classrooms.id', $request->classroom_id);
-            });
-        }
-
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
                   ->orWhere('nisn', 'like', "%{$search}%")
@@ -50,8 +60,9 @@ class StudentDnaController extends Controller
         $students = $query->orderBy('full_name')->paginate(15)->withQueryString();
 
         $schools = School::schoolsOnly()->get();
-        $classrooms = Classroom::where('is_active', true)
+        $classrooms = Classroom::with('school')
             ->when(!$user->isSuperAdmin() && $user->school_id, fn($q) => $q->where('school_id', $user->school_id))
+            ->when($request->filled('school_id') && $user->isSuperAdmin(), fn($q) => $q->where('school_id', $request->school_id))
             ->orderBy('class_name')
             ->get();
 

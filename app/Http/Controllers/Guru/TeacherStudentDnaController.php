@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Guru;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Classroom;
+use App\Models\Teacher;
 use App\Services\StudentDnaService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -21,32 +22,49 @@ class TeacherStudentDnaController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Student::with(['school', 'currentClassroom'])->active();
+        $teacher = Teacher::where('user_id', $user->id)->first();
+        $schoolId = $user->school_id ?? $teacher?->school_id;
 
-        if ($user->school_id) {
-            $query->where('school_id', $user->school_id);
-        }
+        $query = Student::with(['school', 'currentClassroom', 'classrooms']);
 
+        // Inclusive active/enrolled status filter
+        $query->where(function ($q) {
+            $q->whereNull('status')
+              ->orWhereIn('status', ['aktif', 'Aktif', 'active', 'ACTIVE', 'calon', 'naik', 'enrolled']);
+        });
+
+        // Filter by classroom (checks all student-classroom relationships)
         if ($request->filled('classroom_id')) {
-            $query->whereHas('classrooms', function ($q) use ($request) {
-                $q->where('classrooms.id', $request->classroom_id);
+            $classroomId = $request->classroom_id;
+            $query->where(function ($q) use ($classroomId) {
+                $q->whereHas('classrooms', function ($cq) use ($classroomId) {
+                    $cq->where('classrooms.id', $classroomId);
+                })
+                ->orWhereHas('studentClasses', function ($scq) use ($classroomId) {
+                    $scq->where('classroom_id', $classroomId);
+                })
+                ->orWhere('classroom_id', $classroomId);
             });
+        } elseif ($schoolId) {
+            $query->where('school_id', $schoolId);
         }
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
-                  ->orWhere('nisn', 'like', "%{$search}%");
+                  ->orWhere('nisn', 'like', "%{$search}%")
+                  ->orWhere('nis', 'like', "%{$search}%");
             });
         }
 
         $students = $query->orderBy('full_name')->paginate(15)->withQueryString();
 
-        $classrooms = Classroom::where('is_active', true)
-            ->when($user->school_id, fn($q) => $q->where('school_id', $user->school_id))
-            ->orderBy('class_name')
-            ->get();
+        $classroomsQuery = Classroom::with('school');
+        if ($schoolId) {
+            $classroomsQuery->where('school_id', $schoolId);
+        }
+        $classrooms = $classroomsQuery->orderBy('class_name')->get();
 
         return view('admin.student-dna.index', compact('students', 'classrooms'));
     }
