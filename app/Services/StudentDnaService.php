@@ -7,7 +7,7 @@ use App\Models\Grade;
 use App\Models\Attendance;
 use App\Models\LmsSubmission;
 use App\Models\CbtExamResult;
-use App\Models\ReputationPoint;
+use App\Models\ReputationLog;
 use App\Models\StudentDiagnosticAssessment;
 use App\Models\StudentCounselingRecord;
 use Illuminate\Support\Collection;
@@ -32,16 +32,21 @@ class StudentDnaService
             ->count();
         $attendanceRate = $totalAttendance > 0 ? round(($presentAttendance / $totalAttendance) * 100, 1) : null;
 
-        // 3. Ambil data CBT
-        $cbtAvg = CbtExamResult::where('student_id', $student->id)->avg('score');
+        // 3. Ambil data CBT (gunakan final_score atau percentage_score)
+        $cbtAvg = CbtExamResult::where('student_id', $student->id)->avg('final_score')
+            ?? CbtExamResult::where('student_id', $student->id)->avg('percentage_score');
 
         // 4. Ambil data Reputasi Gamifikasi
-        $positivePoints = ReputationPoint::where('student_id', $student->id)
-            ->where('points', '>', 0)
-            ->sum('points');
-        $negativePoints = ReputationPoint::where('student_id', $student->id)
-            ->where('points', '<', 0)
-            ->sum('points');
+        $positivePoints = 0;
+        $negativePoints = 0;
+        if ($student->user_id) {
+            $positivePoints = (int) ReputationLog::where('user_id', $student->user_id)
+                ->where('points', '>', 0)
+                ->sum('points');
+            $negativePoints = (int) ReputationLog::where('user_id', $student->user_id)
+                ->where('points', '<', 0)
+                ->sum('points');
+        }
 
         // 5. Ambil data Asesmen Diagnostik Mandiri
         $diagnostic = StudentDiagnosticAssessment::where('student_id', $student->id)->first();
