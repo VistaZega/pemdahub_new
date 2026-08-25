@@ -357,6 +357,11 @@ class MobileDashboardController extends Controller
             ->take(5)
             ->get();
 
+        $dnaAnalysis = null;
+        if ($student) {
+            $dnaAnalysis = app(\App\Services\StudentDnaService::class)->analyze($student);
+        }
+
         return view('mobile.dashboard', compact(
             'user',
             'student',
@@ -380,7 +385,8 @@ class MobileDashboardController extends Controller
             'hasProjectBimbingan',
             'hasProjectUjian',
             'isPanitiaPkl',
-            'isPanitiaProyek'
+            'isPanitiaProyek',
+            'dnaAnalysis'
         ));
     }
 }

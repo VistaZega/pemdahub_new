@@ -286,6 +286,15 @@
             </a>
             @endif
 
+            <!-- DNA 360° -->
+            <a href="{{ route('mobile.dna') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition relative">
+                    <span class="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-gradient-to-r from-fuchsia-600 to-indigo-600 text-white text-[7px] font-black shadow-xs">360°</span>
+                    🧬
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">DNA 360°</span>
+            </a>
+
             <!-- Fame -->
             <a href="{{ route('mobile.hall-of-fame') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
                 <div class="w-12 h-12 rounded-full clay-orange flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
@@ -364,6 +373,60 @@
         </div>
         @endif
     </div>
+
+    <!-- 🧬 DNA Potensi Belajar & Minat Karier 360° Siswa (Mobile Widget) -->
+    @if($activeRole === 'siswa' && isset($dnaAnalysis) && $dnaAnalysis)
+    <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 p-4.5 rounded-2xl shadow-lg border-2 border-slate-700 text-white relative overflow-hidden space-y-3">
+        <div class="absolute -right-8 -top-8 w-36 h-36 bg-fuchsia-500/20 rounded-full blur-xl pointer-events-none"></div>
+        <div class="relative z-10 flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl overflow-hidden border border-white/30 shadow-md bg-slate-800 shrink-0">
+                    <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5 mb-0.5">
+                        <span class="px-2 py-0.5 rounded-full bg-gradient-to-r {{ $dnaAnalysis['archetype']['color'] }} text-white text-[8px] font-black uppercase tracking-wider shadow-xs">
+                            <i class="fas {{ $dnaAnalysis['archetype']['badge_icon'] }}"></i> {{ $dnaAnalysis['archetype']['title'] }}
+                        </span>
+                        <span class="text-[9px] font-bold text-slate-300 bg-white/10 px-1.5 py-0.5 rounded-full">
+                            {{ $dnaAnalysis['confidence_score'] }}%
+                        </span>
+                    </div>
+                    <h3 class="text-xs font-black text-white leading-tight">DNA Akademik 360°</h3>
+                </div>
+            </div>
+            <a href="{{ route('mobile.dna') }}" class="px-3 py-1.5 bg-gradient-to-r from-fuchsia-500 to-indigo-500 hover:from-fuchsia-600 hover:to-indigo-600 text-white text-[10px] font-black rounded-xl shadow-sm transition active:scale-95 flex items-center gap-1">
+                <span>Detail</span> <i class="fa-solid fa-chevron-right text-[8px]"></i>
+            </a>
+        </div>
+
+        <p class="text-[11px] text-slate-200 leading-snug font-medium italic">
+            "{{ $dnaAnalysis['archetype']['tagline'] }}"
+        </p>
+
+        <!-- 6 Dimensi Grid Ringkas -->
+        <div class="grid grid-cols-3 gap-1.5 text-[9px] pt-1">
+            <div class="bg-white/10 rounded-lg p-1.5 text-center border border-white/10">
+                <span class="text-slate-300">Logika:</span> <b class="text-blue-300">{{ $dnaAnalysis['scores']['logic'] }}</b>
+            </div>
+            <div class="bg-white/10 rounded-lg p-1.5 text-center border border-white/10">
+                <span class="text-slate-300">Bahasa:</span> <b class="text-emerald-300">{{ $dnaAnalysis['scores']['communication'] }}</b>
+            </div>
+            <div class="bg-white/10 rounded-lg p-1.5 text-center border border-white/10">
+                <span class="text-slate-300">Vokasi:</span> <b class="text-indigo-300">{{ $dnaAnalysis['scores']['technical'] }}</b>
+            </div>
+            <div class="bg-white/10 rounded-lg p-1.5 text-center border border-white/10">
+                <span class="text-slate-300">Sosial:</span> <b class="text-amber-300">{{ $dnaAnalysis['scores']['social'] }}</b>
+            </div>
+            <div class="bg-white/10 rounded-lg p-1.5 text-center border border-white/10">
+                <span class="text-slate-300">Kreatif:</span> <b class="text-purple-300">{{ $dnaAnalysis['scores']['creative'] }}</b>
+            </div>
+            <div class="bg-white/10 rounded-lg p-1.5 text-center border border-white/10">
+                <span class="text-slate-300">Disiplin:</span> <b class="text-rose-300">{{ $dnaAnalysis['scores']['discipline'] }}</b>
+            </div>
+        </div>
+    </div>
+    @endif
 
 
 

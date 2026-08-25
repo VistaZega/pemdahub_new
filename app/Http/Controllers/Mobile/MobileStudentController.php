@@ -828,5 +828,53 @@ class MobileStudentController extends Controller
             'stats'
         ));
     }
+
+    /**
+     * DNA Akademik Siswa 360° Mobile.
+     */
+    public function dna()
+    {
+        $student = $this->getStudent();
+        if (!$student) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Profil siswa tidak ditemukan.');
+        }
+
+        $dnaService = app(\App\Services\StudentDnaService::class);
+        $analysis = $dnaService->analyze($student);
+
+        return view('mobile.student.dna', compact('student', 'analysis'));
+    }
+
+    /**
+     * Simpan kuesioner minat mandiri DNA di Mobile.
+     */
+    public function saveDnaDiagnostic(Request $request)
+    {
+        $student = $this->getStudent();
+        if (!$student) {
+            return redirect()->route('mobile.dashboard')->with('error', 'Profil siswa tidak ditemukan.');
+        }
+
+        $validated = $request->validate([
+            'work_style_preference' => 'required|string|max:100',
+            'favorite_subject_cluster' => 'required|string|max:100',
+            'career_aspiration' => 'required|string|max:255',
+            'interests' => 'nullable|array',
+            'logic_self_score' => 'required|integer|min:50|max:100',
+            'creative_self_score' => 'required|integer|min:50|max:100',
+            'communication_self_score' => 'required|integer|min:50|max:100',
+            'technical_self_score' => 'required|integer|min:50|max:100',
+            'social_self_score' => 'required|integer|min:50|max:100',
+            'discipline_self_score' => 'required|integer|min:50|max:100',
+        ]);
+
+        \App\Models\StudentDiagnosticAssessment::updateOrCreate(
+            ['student_id' => $student->id],
+            $validated
+        );
+
+        return redirect()->route('mobile.dna')
+            ->with('success', 'Kuesioner minat berhasil diperbarui! Profil DNA Anda telah dikalibrasi ulang.');
+    }
 }
 

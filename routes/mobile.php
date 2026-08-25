@@ -85,6 +85,8 @@ Route::prefix('m')->name('mobile.')->group(function () {
         Route::get('/prestasi', fn() => redirect()->route('mobile.catatan'))->name('prestasi');
         Route::get('/tagihan', [MobileStudentController::class, 'tagihan'])->name('tagihan');
         Route::get('/cbt', [MobileStudentController::class, 'cbt'])->name('cbt');
+        Route::get('/dna', [MobileStudentController::class, 'dna'])->name('dna');
+        Route::post('/dna/diagnostic', [MobileStudentController::class, 'saveDnaDiagnostic'])->name('dna.diagnostic.save');
         
         // PKL Siswa (Khusus Kelas XII SMK)
         Route::get('/pkl', [MobileStudentController::class, 'pkl'])->name('pkl');

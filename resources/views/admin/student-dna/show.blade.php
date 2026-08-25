@@ -19,15 +19,20 @@
                 <span class="text-slate-500">/</span>
                 <span class="text-purple-300 font-bold">Profil 360°</span>
             </div>
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div class="space-y-1.5">
-                    <span class="px-3 py-1 bg-gradient-to-r {{ $analysis['archetype']['color'] }} text-white rounded-full text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm">
-                        <i class="fas {{ $analysis['archetype']['badge_icon'] }}"></i> {{ $analysis['archetype']['title'] }}
-                    </span>
-                    <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ $student->full_name }}</h1>
-                    <p class="text-xs sm:text-sm text-slate-200 font-medium">
-                        {{ $analysis['archetype']['tagline'] }} &bull; Kelas: <b class="text-white">{{ $student->currentClassroom->first()->class_name ?? $student->currentClassroom->first()->name ?? ($student->classrooms->first()->class_name ?? ($student->classroom->class_name ?? '-')) }}</b> ({{ $student->school->name ?? '-' }})
-                    </p>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-white/30 shadow-lg flex-shrink-0 bg-slate-800">
+                        <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="space-y-1.5">
+                        <span class="px-3 py-1 bg-gradient-to-r {{ $analysis['archetype']['color'] }} text-white rounded-full text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm">
+                            <i class="fas {{ $analysis['archetype']['badge_icon'] }}"></i> {{ $analysis['archetype']['title'] }}
+                        </span>
+                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ $student->full_name }}</h1>
+                        <p class="text-xs sm:text-sm text-slate-200 font-medium">
+                            {{ $analysis['archetype']['tagline'] }} &bull; Kelas: <b class="text-white">{{ $student->currentClassroom->first()->class_name ?? $student->currentClassroom->first()->name ?? ($student->classrooms->first()->class_name ?? ($student->classroom->class_name ?? '-')) }}</b> ({{ $student->school->name ?? '-' }})
+                        </p>
+                    </div>
                 </div>
                 <div class="flex items-center gap-3">
                     <a href="{{ request()->routeIs('guru.*') ? route('guru.dna.pdf', $student) : route('admin.dna.pdf', $student) }}" class="px-5 py-2.5 bg-white text-indigo-900 hover:bg-gray-50 rounded-xl font-bold transition flex items-center gap-2 text-xs shadow-md active:scale-95">
@@ -262,9 +267,14 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Identitas Peserta Didik</p>
-                        <p class="font-bold text-slate-900 text-sm">{{ $student->full_name }}</p>
-                        <div class="text-slate-600 space-y-1">
+                        <div class="flex items-center gap-3">
+                            <img src="{{ $student->photo_url }}" class="w-11 h-13 object-cover rounded-lg border border-slate-300 shadow-xs flex-shrink-0" alt="{{ $student->full_name }}">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Identitas Peserta Didik</p>
+                                <p class="font-bold text-slate-900 text-sm">{{ $student->full_name }}</p>
+                            </div>
+                        </div>
+                        <div class="text-slate-600 space-y-1 pt-1">
                             <p><b>NISN / NIS:</b> {{ $student->nisn ?: '-' }} / {{ $student->formatted_nis ?: ($student->nis ?: '-') }}</p>
                             <p><b>Orang Tua / Wali:</b> <span class="font-semibold text-slate-800">{{ $analysis['database_identity']['parent_name'] }}</span></p>
                             <p><b>Alamat Siswa:</b> {{ $analysis['database_identity']['student_address'] }}</p>
