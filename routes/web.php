@@ -1473,6 +1473,136 @@ Route::get('/test-error-alert', function () {
 });
 
 
+// Switch WhatsApp Provider (Fonnte ↔ Baileys) — Dashboard & Switcher
+Route::get('/switch-wa-provider', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Unauthorized.');
+    }
+
+    $waService = app(\App\Services\WhatsAppService::class);
+    $activeProvider = $waService->getActiveProvider();
+    $providers = $waService->getProvidersInfo();
+    $isEnabled = $waService->isEnabled();
+
+    // Handle switch action
+    $switchTo = request('to');
+    $switched = null;
+    if ($switchTo && in_array($switchTo, ['fonnte', 'selfhosted'])) {
+        $switched = \App\Services\WhatsAppService::switchProvider($switchTo);
+        // Re-read after switch
+        $waService = new \App\Services\WhatsAppService();
+        $activeProvider = $waService->getActiveProvider();
+        $providers = $waService->getProvidersInfo();
+    }
+
+    // Handle test connection
+    $testResult = null;
+    if (request('test') === '1') {
+        $testResult = $waService->getAccountInfo();
+    }
+
+    $html = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>WhatsApp Provider Switch</title>";
+    $html .= "<style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; padding: 30px; margin: 0; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #38bdf8; font-size: 24px; }
+        .card { background: #1e293b; border-radius: 12px; padding: 20px; margin: 16px 0; border: 2px solid #334155; }
+        .card.active { border-color: #22c55e; box-shadow: 0 0 20px rgba(34,197,94,0.2); }
+        .card h3 { margin: 0 0 8px 0; font-size: 18px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .badge-green { background: #166534; color: #4ade80; }
+        .badge-gray { background: #374151; color: #9ca3af; }
+        .badge-yellow { background: #713f12; color: #fbbf24; }
+        .btn { display: inline-block; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; margin: 4px; }
+        .btn-switch { background: #2563eb; color: white; }
+        .btn-switch:hover { background: #1d4ed8; }
+        .btn-test { background: #0d9488; color: white; }
+        .btn-test:hover { background: #0f766e; }
+        .btn-disabled { background: #374151; color: #6b7280; cursor: not-allowed; }
+        .info { color: #94a3b8; font-size: 13px; margin: 6px 0; }
+        .alert { padding: 14px; border-radius: 8px; margin: 12px 0; }
+        .alert-success { background: #14532d; color: #4ade80; border: 1px solid #166534; }
+        .alert-error { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
+        .alert-info { background: #0c4a6e; color: #7dd3fc; border: 1px solid #0369a1; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        td { padding: 6px 0; border-bottom: 1px solid #334155; }
+        td:first-child { color: #94a3b8; width: 140px; }
+    </style></head><body><div class='container'>";
+
+    $html .= "<h1>📱 WhatsApp Provider Switch</h1>";
+    $html .= "<p class='info'>Ganti provider WhatsApp dengan satu klik. Perubahan langsung berlaku tanpa restart.</p>";
+
+    // Show switch result
+    if ($switched) {
+        if ($switched['success']) {
+            $html .= "<div class='alert alert-success'>✅ {$switched['message']}</div>";
+        } else {
+            $html .= "<div class='alert alert-error'>❌ {$switched['message']}</div>";
+        }
+    }
+
+    // Show test result
+    if ($testResult !== null) {
+        if ($testResult['success']) {
+            $html .= "<div class='alert alert-success'>✅ Koneksi ke {$activeProvider} berhasil! " . json_encode($testResult['data'] ?? []) . "</div>";
+        } else {
+            $err = $testResult['error'] ?? $testResult['message'] ?? 'Unknown';
+            $html .= "<div class='alert alert-error'>❌ Koneksi gagal: {$err}</div>";
+        }
+    }
+
+    // Global status
+    $statusBadge = $isEnabled
+        ? "<span class='badge badge-green'>ENABLED</span>"
+        : "<span class='badge badge-yellow'>DISABLED</span>";
+    $html .= "<div class='card'><table>";
+    $html .= "<tr><td>Status WA</td><td>{$statusBadge}</td></tr>";
+    $html .= "<tr><td>Provider Aktif</td><td><b>" . strtoupper($activeProvider) . "</b></td></tr>";
+    $html .= "<tr><td>Nomor Pengirim</td><td>" . config('services.whatsapp.sender') . "</td></tr>";
+    $html .= "</table></div>";
+
+    // Provider cards
+    foreach ($providers as $key => $prov) {
+        $isActive = $prov['is_active'];
+        $cardClass = $isActive ? 'card active' : 'card';
+        $badge = $isActive
+            ? "<span class='badge badge-green'>✅ AKTIF</span>"
+            : "<span class='badge badge-gray'>Tidak Aktif</span>";
+        $tokenBadge = $prov['has_token']
+            ? "<span class='badge badge-green'>Token Ada</span>"
+            : "<span class='badge badge-yellow'>⚠️ Token Kosong</span>";
+
+        $html .= "<div class='{$cardClass}'>";
+        $html .= "<h3>{$prov['label']} {$badge}</h3>";
+        $html .= "<table>";
+        $html .= "<tr><td>Key</td><td><code>{$key}</code></td></tr>";
+        $html .= "<tr><td>API URL</td><td><code>{$prov['api_url']}</code></td></tr>";
+        $html .= "<tr><td>API Token</td><td>{$tokenBadge}</td></tr>";
+        $html .= "</table>";
+
+        if ($isActive) {
+            $html .= "<a href='/switch-wa-provider?secret=pembda99&test=1' class='btn btn-test'>🔍 Test Koneksi</a>";
+        } else {
+            $html .= "<a href='/switch-wa-provider?secret=pembda99&to={$key}' class='btn btn-switch' onclick=\"return confirm('Yakin ganti ke {$prov['label']}?')\">⚡ Aktifkan Provider Ini</a>";
+        }
+
+        $html .= "</div>";
+    }
+
+    // Tips
+    $html .= "<div class='alert alert-info'>";
+    $html .= "<b>💡 Tips:</b><br>";
+    $html .= "• Jika langganan <b>Fonnte habis</b> → klik Aktifkan pada Baileys (pastikan Node.js server berjalan)<br>";
+    $html .= "• Jika ingin kembali ke <b>Fontte</b> → klik Aktifkan pada Fonnte<br>";
+    $html .= "• Perubahan <b>langsung berlaku</b> tanpa perlu edit .env atau restart<br>";
+    $html .= "• Config disimpan di database (tabel settings, key: <code>wa_active_provider</code>)";
+    $html .= "</div>";
+
+    $html .= "</div></body></html>";
+
+    return $html;
+});
+
 Route::get('/sync-lms-enrollments', function () {
     if (request('secret') !== 'pembda99') {
         abort(403, 'Akses Ditolak.');

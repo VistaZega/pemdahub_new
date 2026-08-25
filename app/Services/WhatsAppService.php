@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\WhatsAppServiceInterface;
 use App\Exceptions\TemplateNotFoundException;
 use App\Jobs\SendWhatsAppMessage;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Client\Response;
@@ -15,13 +16,113 @@ class WhatsAppService implements WhatsAppServiceInterface
     protected string $apiToken;
     protected bool $enabled;
     protected int $timeout;
+    protected string $activeProvider;
+    protected string $providerLabel;
 
     public function __construct()
     {
-        $this->apiUrl = config('services.whatsapp.api_url', '');
-        $this->apiToken = config('services.whatsapp.api_token', '');
         $this->enabled = config('services.whatsapp.enabled', false);
         $this->timeout = config('services.whatsapp.timeout', 15);
+
+        // Tentukan provider aktif: prioritas DB Setting > .env
+        $this->activeProvider = $this->resolveActiveProvider();
+
+        // Ambil config sesuai provider aktif
+        $providerConfig = config("services.whatsapp.providers.{$this->activeProvider}");
+
+        if ($providerConfig) {
+            $this->apiUrl = $providerConfig['api_url'] ?? '';
+            $this->apiToken = $providerConfig['api_token'] ?? '';
+            $this->providerLabel = $providerConfig['label'] ?? $this->activeProvider;
+        } else {
+            // Fallback ke config lama (backward compatibility)
+            $this->apiUrl = config('services.whatsapp.api_url', '');
+            $this->apiToken = config('services.whatsapp.api_token', '');
+            $this->providerLabel = $this->activeProvider;
+        }
+    }
+
+    /**
+     * Resolve the active WhatsApp provider.
+     * Priority: Database Setting > .env WHATSAPP_PROVIDER
+     */
+    protected function resolveActiveProvider(): string
+    {
+        try {
+            $dbOverride = Setting::getValue('wa_active_provider');
+            if ($dbOverride && in_array($dbOverride, ['fonnte', 'selfhosted'])) {
+                return $dbOverride;
+            }
+        } catch (\Throwable $e) {
+            // Table might not exist yet during migrations
+        }
+
+        return config('services.whatsapp.active_provider', 'fonnte');
+    }
+
+    /**
+     * Get the currently active provider name.
+     */
+    public function getActiveProvider(): string
+    {
+        return $this->activeProvider;
+    }
+
+    /**
+     * Get the human-readable label of the active provider.
+     */
+    public function getProviderLabel(): string
+    {
+        return $this->providerLabel;
+    }
+
+    /**
+     * Get info about all available providers and which is active.
+     */
+    public function getProvidersInfo(): array
+    {
+        $providers = config('services.whatsapp.providers', []);
+        $result = [];
+
+        foreach ($providers as $key => $providerConfig) {
+            $result[$key] = [
+                'key' => $key,
+                'label' => $providerConfig['label'] ?? $key,
+                'api_url' => $providerConfig['api_url'] ?? '',
+                'is_active' => ($key === $this->activeProvider),
+                'has_token' => !empty($providerConfig['api_token']),
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Switch the active provider (persists to database).
+     */
+    public static function switchProvider(string $provider): array
+    {
+        $validProviders = array_keys(config('services.whatsapp.providers', []));
+
+        if (!in_array($provider, $validProviders)) {
+            return [
+                'success' => false,
+                'message' => "Provider '{$provider}' tidak valid. Pilihan: " . implode(', ', $validProviders),
+            ];
+        }
+
+        Setting::setValue('wa_active_provider', $provider, 'string', 'whatsapp');
+
+        $label = config("services.whatsapp.providers.{$provider}.label", $provider);
+
+        Log::channel('whatsapp')->info("WhatsApp provider switched to: {$provider} ({$label})");
+
+        return [
+            'success' => true,
+            'provider' => $provider,
+            'label' => $label,
+            'message' => "Provider WhatsApp berhasil diganti ke: {$label}",
+        ];
     }
 
     /**
@@ -75,6 +176,7 @@ class WhatsAppService implements WhatsAppServiceInterface
             $result = $response->json();
 
             Log::channel('whatsapp')->info('WhatsApp message sent', [
+                'provider' => $this->activeProvider,
                 'phone' => $phone,
                 'status' => $response->successful() ? 'success' : 'failed',
                 'status_code' => $response->status(),
@@ -83,27 +185,32 @@ class WhatsAppService implements WhatsAppServiceInterface
 
             return [
                 'success' => $response->successful(),
+                'provider' => $this->activeProvider,
                 'response' => $result,
                 'status_code' => $response->status(),
             ];
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             Log::channel('whatsapp')->error('WhatsApp connection timeout', [
+                'provider' => $this->activeProvider,
                 'phone' => $phone,
                 'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'error' => 'Connection timeout: ' . $e->getMessage(),
+                'provider' => $this->activeProvider,
+                'error' => "Connection timeout ({$this->providerLabel}): " . $e->getMessage(),
             ];
         } catch (\Exception $e) {
             Log::channel('whatsapp')->error('WhatsApp send failed', [
+                'provider' => $this->activeProvider,
                 'phone' => $phone,
                 'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
+                'provider' => $this->activeProvider,
                 'error' => $e->getMessage(),
             ];
         }
@@ -128,7 +235,7 @@ class WhatsAppService implements WhatsAppServiceInterface
     private function renderTemplate(string $templateName, array $variables): string
     {
         $settingKey = 'wa_tpl_' . str_replace('.', '_', $templateName);
-        $customTemplate = \App\Models\Setting::getValue($settingKey, null);
+        $customTemplate = Setting::getValue($settingKey, null);
 
         if ($customTemplate) {
             $template = $customTemplate;
@@ -190,14 +297,16 @@ class WhatsAppService implements WhatsAppServiceInterface
         }
 
         Log::channel('whatsapp')->info('Bulk WhatsApp messages queued', [
+            'provider' => $this->activeProvider,
             'total' => $dispatched,
             'delay_between' => $delay . 's',
         ]);
 
         return [
             'success' => true,
+            'provider' => $this->activeProvider,
             'dispatched' => $dispatched,
-            'message' => "{$dispatched} messages queued for delivery",
+            'message' => "{$dispatched} messages queued for delivery via {$this->providerLabel}",
         ];
     }
 
@@ -221,15 +330,19 @@ class WhatsAppService implements WhatsAppServiceInterface
 
             return [
                 'success' => $response->successful(),
+                'provider' => $this->activeProvider,
+                'label' => $this->providerLabel,
                 'data' => $response->json(),
             ];
         } catch (\Exception $e) {
             Log::channel('whatsapp')->error('WhatsApp getAccountInfo failed', [
+                'provider' => $this->activeProvider,
                 'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
+                'provider' => $this->activeProvider,
                 'error' => $e->getMessage(),
             ];
         }

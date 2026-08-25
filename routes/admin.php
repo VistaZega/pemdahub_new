@@ -313,6 +313,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::get('settings/whatsapp', [App\Http\Controllers\Admin\SettingsController::class, 'whatsapp'])->name('settings.whatsapp');
     Route::put('settings/whatsapp', [App\Http\Controllers\Admin\SettingsController::class, 'updateWhatsapp'])->name('settings.whatsapp.update');
     Route::post('settings/whatsapp/test', [App\Http\Controllers\Admin\SettingsController::class, 'testWhatsapp'])->name('settings.whatsapp.test');
+    Route::post('settings/whatsapp/switch-provider', [App\Http\Controllers\Admin\SettingsController::class, 'switchWhatsappProvider'])->name('settings.whatsapp.switch_provider');
     Route::get('settings/whatsapp/templates', [App\Http\Controllers\Admin\SettingsController::class, 'whatsappTemplates'])->name('settings.whatsapp.templates');
     Route::put('settings/whatsapp/templates', [App\Http\Controllers\Admin\SettingsController::class, 'updateWhatsappTemplates'])->name('settings.whatsapp.templates.update');
     Route::post('settings/whatsapp/digest-test', [App\Http\Controllers\Admin\SettingsController::class, 'testExecutiveDigest'])->name('settings.whatsapp.digest.test');

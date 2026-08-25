@@ -298,8 +298,36 @@ class SettingsController extends Controller
 
         $service = new \App\Services\WhatsAppService();
         $accountInfo = $service->getAccountInfo();
+        $activeProvider = $service->getActiveProvider();
+        $providerLabel = $service->getProviderLabel();
+        $providersInfo = $service->getProvidersInfo();
+        $waEnabled = $service->isEnabled();
 
-        return view('admin.settings.whatsapp', compact('settings', 'accountInfo'));
+        return view('admin.settings.whatsapp', compact('settings', 'accountInfo', 'activeProvider', 'providerLabel', 'providersInfo', 'waEnabled'));
+    }
+
+    /**
+     * Switch WhatsApp Gateway Provider (Fonnte <-> Selfhosted Baileys)
+     */
+    public function switchWhatsappProvider(Request $request)
+    {
+        $this->authorizeFeatureAccess();
+
+        $request->validate([
+            'provider' => 'required|string|in:fonnte,selfhosted',
+        ]);
+
+        $result = \App\Services\WhatsAppService::switchProvider($request->input('provider'));
+
+        if ($result['success']) {
+            return redirect()
+                ->route('admin.settings.whatsapp')
+                ->with('success', $result['message']);
+        }
+
+        return redirect()
+            ->route('admin.settings.whatsapp')
+            ->with('error', $result['message'] ?? 'Gagal mengganti provider');
     }
 
     /**

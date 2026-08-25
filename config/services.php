@@ -46,11 +46,25 @@ return [
     */
     'whatsapp' => [
         'enabled' => env('WHATSAPP_ENABLED', false),
-        'provider' => env('WHATSAPP_PROVIDER', 'fonnte'), // fontte, selfhosted (Baileys), wablas, twilio
-        'api_url' => env('WHATSAPP_API_URL', 'https://api.fonnte.com'),
-        'api_token' => env('WHATSAPP_API_TOKEN'),
-        'sender' => env('WHATSAPP_SENDER', '088991144184'), // Nomor pengirim
+        'active_provider' => env('WHATSAPP_PROVIDER', 'fonnte'), // Override via DB Setting: wa_active_provider
+        'sender' => env('WHATSAPP_SENDER', '088991144184'),
         'timeout' => env('WHATSAPP_TIMEOUT', 15),
+
+        // Provider A: Fonnte (Berbayar, cocok untuk production/shared hosting)
+        'providers' => [
+            'fonnte' => [
+                'label' => 'Fonnte (Cloud API)',
+                'api_url' => env('FONNTE_API_URL', 'https://api.fonnte.com'),
+                'api_token' => env('FONNTE_API_TOKEN', env('WHATSAPP_API_TOKEN')),
+            ],
+
+            // Provider B: Self-hosted Baileys ($0, butuh Node.js berjalan)
+            'selfhosted' => [
+                'label' => 'Self-Hosted Baileys (Gratis)',
+                'api_url' => env('BAILEYS_API_URL', 'http://localhost:3000'),
+                'api_token' => env('BAILEYS_API_TOKEN', 'y7xhSUrJ37wpRykg15kc'),
+            ],
+        ],
     ],
 
     /*
