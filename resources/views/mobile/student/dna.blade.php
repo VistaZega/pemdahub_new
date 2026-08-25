@@ -195,6 +195,7 @@
             </h3>
 
             <!-- Jalur Karier -->
+            @if(!empty($analysis['career_recommendations']))
             <div class="p-3 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-1.5">
                 <h4 class="text-xs font-black text-indigo-950 flex items-center gap-1.5">
                     <span>🚀 Pilihan Karier / Bidang Relevan:</span>
@@ -207,8 +208,10 @@
                     @endforeach
                 </div>
             </div>
+            @endif
 
             <!-- Program Kuliah -->
+            @if(!empty($analysis['college_recommendations']))
             <div class="p-3 bg-purple-50/60 rounded-2xl border border-purple-100 space-y-1.5">
                 <h4 class="text-xs font-black text-purple-950 flex items-center gap-1.5">
                     <span>🎓 Rekomendasi Jurusan / Kuliah:</span>
@@ -221,8 +224,10 @@
                     @endforeach
                 </div>
             </div>
+            @endif
 
             <!-- Strategi Belajar -->
+            @if(!empty($analysis['learning_strategy']))
             <div class="p-3 bg-amber-50/60 rounded-2xl border border-amber-200 space-y-1.5">
                 <h4 class="text-xs font-black text-amber-950 flex items-center gap-1.5">
                     <span>💡 Tips Strategi Belajar Personal:</span>
@@ -231,6 +236,7 @@
                     {{ $analysis['learning_strategy'] }}
                 </p>
             </div>
+            @endif
         </div>
     </div>
 

@@ -389,30 +389,90 @@ class StudentDnaService
      */
     private function generateRecommendations(array $scores, string $schoolType, ?StudentDiagnosticAssessment $diagnostic): array
     {
-        if ($schoolType === 'SMK') {
-            return [
-                'career_tracks' => [
-                    [
-                        'title' => 'Teknisi Sistem & Jaringan Terapan (Industri 4.0)',
-                        'readiness' => 'Tinggi',
-                        'description' => 'Sesuai dengan skor teknis ' . $scores['technical'] . ' dan logika ' . $scores['logic'] . ', siswa sangat siap terjun ke dunia industri teknologi.',
-                    ],
-                    [
-                        'title' => 'Spesialis Operasional & Pemeliharaan Perangkat',
-                        'readiness' => 'Optimal',
-                        'description' => 'Kombinasi kedisiplinan ' . $scores['discipline'] . '% dan keahlian vokasi membuka peluang besar di perusahaan mitra nasional.',
-                    ],
-                ],
-                'pkl_recommendation' => 'Industri Mitra Telekomunikasi, Software House, atau Divisi IT Perusahaan BUMN',
-            ];
-        }
+        $maxKey = array_keys($scores, max($scores))[0];
 
-        return [
-            'college_majors' => [
+        $careerMap = [
+            'logic' => ['Software Developer & Programmer', 'Data Analyst & Riset Sains', 'Network & Cloud Specialist', 'Akuntan & Analis Keuangan', 'Teknisi Komputasi Cerdas'],
+            'communication' => ['Public Relations (Humas)', 'Jurnalis & Media Konten', 'Digital Marketer & Sales Strategist', 'Konsultan Hukum & Negosiator', 'Hubungan Internasional'],
+            'technical' => ['Teknisi Sistem & Jaringan Industri', 'Spesialis IoT & Hardware Terapan', 'Mekanik & Teknisi Otomotif', 'Quality Assurance Manufaktur', 'Teknisi Lapangan Telekomunikasi'],
+            'social' => ['Human Resource Specialist', 'Guru & Fasilitator Edukasi', 'Manajer Operasional Proyek', 'Community Manager', 'Konselor & Pegawai Pelayanan Publik'],
+            'creative' => ['Desainer UI/UX & Multimedia', 'Arsitek & Desainer Interior', 'Motion Graphic Designer', 'Creative Director & Animator', 'Spesialis Branding Visual'],
+            'discipline' => ['Administrator Perkantoran', 'Manajer Logistik & Supply Chain', 'Auditor Kepatuhan & Regulasi', 'Analis Tata Kelola Keuangan', 'Aparatur Sipil / Kedinasan (TNI-Polri)'],
+        ];
+
+        $majorMap = [
+            'logic' => [
                 ['major' => 'Teknik Informatika / Ilmu Komputer', 'cluster' => 'Saintek / Rekayasa', 'readiness' => 'Sangat Siap'],
-                ['major' => 'Sistem Informasi & Bisnis Digital', 'cluster' => 'Saintek & Soshum', 'readiness' => 'Siap Optimal'],
-                ['major' => 'Ilmu Komunikasi / Manajemen', 'cluster' => 'Soshum', 'readiness' => 'Kompatibel'],
+                ['major' => 'Matematika Terapan / Sains Data', 'cluster' => 'Saintek', 'readiness' => 'Optimal'],
+                ['major' => 'Sistem Informasi & Bisnis Digital', 'cluster' => 'Saintek & Soshum', 'readiness' => 'Kompatibel'],
+            ],
+            'communication' => [
+                ['major' => 'Ilmu Komunikasi & Hubungan Masyarakat', 'cluster' => 'Soshum', 'readiness' => 'Sangat Siap'],
+                ['major' => 'Sastra Inggris & Bahasa Terapan', 'cluster' => 'Bahasa & Sastra', 'readiness' => 'Optimal'],
+                ['major' => 'Ilmu Hukum & Tata Kelola Bisnis', 'cluster' => 'Soshum', 'readiness' => 'Kompatibel'],
+            ],
+            'technical' => [
+                ['major' => 'Teknik Komputer & Jaringan Terapan', 'cluster' => 'Vokasi / Teknik', 'readiness' => 'Sangat Siap'],
+                ['major' => 'Teknik Otomasi & Mesin Industri', 'cluster' => 'Vokasi / Rekayasa', 'readiness' => 'Optimal'],
+                ['major' => 'Teknologi Rekayasa Perangkat Keras', 'cluster' => 'Vokasi', 'readiness' => 'Kompatibel'],
+            ],
+            'social' => [
+                ['major' => 'Manajemen Bisnis & Kepemimpinan', 'cluster' => 'Soshum', 'readiness' => 'Sangat Siap'],
+                ['major' => 'Psikologi / Bimbingan Konseling', 'cluster' => 'Soshum', 'readiness' => 'Optimal'],
+                ['major' => 'Administrasi Publik & Kebijakan', 'cluster' => 'Soshum', 'readiness' => 'Kompatibel'],
+            ],
+            'creative' => [
+                ['major' => 'Desain Komunikasi Visual (DKV)', 'cluster' => 'Seni & Desain', 'readiness' => 'Sangat Siap'],
+                ['major' => 'Arsitektur & Desain Produk Kreatif', 'cluster' => 'Saintek / Seni', 'readiness' => 'Optimal'],
+                ['major' => 'Animasi & Produksi Media Digital', 'cluster' => 'Industri Kreatif', 'readiness' => 'Kompatibel'],
+            ],
+            'discipline' => [
+                ['major' => 'Akuntansi Sektor Publik & Perpajakan', 'cluster' => 'Ekonomi & Bisnis', 'readiness' => 'Sangat Siap'],
+                ['major' => 'Manajemen Logistik & Distribusi', 'cluster' => 'Vokasi / Bisnis', 'readiness' => 'Optimal'],
+                ['major' => 'Ilmu Pemerintahan & Sekolah Kedinasan', 'cluster' => 'Kedinasan / Soshum', 'readiness' => 'Kompatibel'],
             ],
         ];
+
+        $learningStrategyMap = [
+            'logic' => 'Fokus pada pemahaman logika konsep dasar yang kuat dan latihan pemecahan masalah algoritma/eksakta secara teratur.',
+            'communication' => 'Perbanyak presentasi lisan, diskusi kelompok, membaca literatur komprehensif, dan menyusun ringkasan terstruktur.',
+            'technical' => 'Tingkatkan jam praktik di laboratorium, bongkar pasang perangkat/proyek nyata, dan terapkan langsung teori ke studi kasus terapan.',
+            'social' => 'Gunakan metode belajar kelompok (peer learning), pimpin proyek tim, dan diskusikan materi pelajaran bersama rekan sejawat.',
+            'creative' => 'Gunakan peta pikiran visual (mind mapping), visualisasikan konsep rumit dalam bentuk infografis/karya, dan hindari metode hafalan kaku.',
+            'discipline' => 'Pertahankan rutinitas belajar yang teratur dengan target checklist tugas berkala, dan jaga konsistensi presensi prima.',
+        ];
+
+        $careers = $careerMap[$maxKey] ?? $careerMap['technical'];
+        $majors = $majorMap[$maxKey] ?? $majorMap['technical'];
+        $strategy = $learningStrategyMap[$maxKey] ?? $learningStrategyMap['technical'];
+
+        $careerTracks = [
+            [
+                'title' => $careers[0],
+                'relevance' => 'Sangat Relevan',
+                'readiness' => 'Tinggi',
+                'description' => 'Sesuai dengan skor potensi dominan siswa (' . max($scores) . '/100), jalur ini membuka prospek keberhasilan optimal.',
+            ],
+            [
+                'title' => $careers[1],
+                'relevance' => 'Relevan',
+                'readiness' => 'Optimal',
+                'description' => 'Kombinasi kedisiplinan dan kompetensi siswa memberikan modal berharga untuk bersaing di industri modern.',
+            ],
+        ];
+
+        $result = [
+            'career_tracks' => $careerTracks,
+            'career_recommendations' => $careers,
+            'college_recommendations' => array_column($majors, 'major'),
+            'college_majors' => $majors,
+            'learning_strategy' => $strategy,
+        ];
+
+        if ($schoolType === 'SMK') {
+            $result['pkl_recommendation'] = 'Industri Mitra Teknologi, Perusahaan Mitra BUMN, Bengkel Resmi, atau Software House Rekanan Sekolah';
+        }
+
+        return $result;
     }
 }
