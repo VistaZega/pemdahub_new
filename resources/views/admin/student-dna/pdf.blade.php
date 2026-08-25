@@ -85,8 +85,10 @@
         }
         .signature-table {
             width: 100%;
-            margin-top: 12px;
-            font-size: 7.5pt;
+            margin-top: 40px;
+            font-size: 8pt;
+            border-collapse: collapse;
+            page-break-inside: avoid;
         }
         .signature-table td {
             text-align: center;
@@ -99,17 +101,20 @@
 
     @php
         $possibleLogoPaths = [
-            public_path('images/logo-pembda.png'),
-            public_path('images/app-logo.png'),
-            base_path('public/images/logo-pembda.png'),
-            base_path('../public_html/images/logo-pembda.png'),
-            base_path('../images/logo-pembda.png'),
-            isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] . '/images/logo-pembda.png' : '',
-            isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] . '/pembdahub/public/images/logo-pembda.png' : '',
+            public_path('images/logo_yayasan.png'),
+            public_path('images/logo-yayasan.png'),
+            public_path('images/logo_yayasan.jpg'),
+            public_path('images/logo-yayasan.jpg'),
+            base_path('public/images/logo_yayasan.png'),
+            base_path('public/images/logo-yayasan.png'),
+            base_path('../public_html/images/logo_yayasan.png'),
+            base_path('../public_html/images/logo-yayasan.png'),
+            isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] . '/images/logo_yayasan.png' : '',
+            isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] . '/images/logo-yayasan.png' : '',
         ];
         $logoData = '';
         foreach ($possibleLogoPaths as $path) {
-            if (!empty($path) && file_exists($path)) {
+            if (!empty($path) && file_exists($path) && filesize($path) > 100) {
                 $raw = @file_get_contents($path);
                 if ($raw) {
                     $logoData = base64_encode($raw);
@@ -120,18 +125,16 @@
         $logoSrc = $logoData ? 'data:image/png;base64,' . $logoData : '';
     @endphp
 
-    {{-- Kop Yayasan & Unit Sekolah (Tata Letak Resmi Nasional / Yayasan Pembda) --}}
+    {{-- Kop Yayasan & Unit Sekolah (Tata Letak Resmi Standar Yayasan Pembda) --}}
     <table style="width: 100%; border-bottom: 3px double #0f172a; padding-bottom: 8px; margin-bottom: 10px; border-collapse: collapse;">
         <tr>
+            @if($logoSrc)
             <td style="width: 14%; text-align: center; vertical-align: middle;">
-                @if($logoSrc)
-                    <img src="{{ $logoSrc }}" style="height: 60px; width: auto; max-width: 65px;" alt="Logo Yayasan PEMBDA">
-                @else
-                    <div style="width: 50px; height: 50px; border: 1px dashed #94a3b8; line-height: 50px; text-align: center; font-size: 8pt; color: #94a3b8;">LOGO</div>
-                @endif
+                <img src="{{ $logoSrc }}" style="height: 62px; width: auto; max-width: 68px;" alt="Logo Yayasan PEMBDA">
             </td>
-            <td style="width: 86%; text-align: center; vertical-align: middle; padding-left: 5px;">
-                <div style="font-size: 10pt; font-weight: bold; color: #1e293b; letter-spacing: 0.5px; text-transform: uppercase;">
+            @endif
+            <td style="width: {{ $logoSrc ? '86%' : '100%' }}; text-align: center; vertical-align: middle; padding-left: 5px;">
+                <div style="font-size: 10.5pt; font-weight: bold; color: #1e293b; letter-spacing: 0.5px; text-transform: uppercase;">
                     {{ $analysis['database_identity']['foundation_name'] }}
                 </div>
                 <div style="font-size: 13.5pt; font-weight: 800; color: #0f172a; text-transform: uppercase; margin: 1px 0;">
@@ -275,24 +278,24 @@
     </div>
 
     {{-- Tanda Tangan Resmi (100% Database) --}}
-    <table class="signature-table" style="width: 100%; margin-top: 36px; font-size: 8pt; border-collapse: collapse; page-break-inside: avoid;">
+    <table class="signature-table">
         <tr>
-            <td style="width: 33.33%; text-align: center; vertical-align: top;">
+            <td>
                 Mengetahui,<br>
                 <b>Orang Tua / Wali Murid</b>
-                <div style="height: 72px;"></div>
+                <div style="height: 80px;"></div>
                 <u><b>( {{ $analysis['database_identity']['parent_name'] !== '-' ? $analysis['database_identity']['parent_name'] : '..................................................' }} )</b></u>
             </td>
-            <td style="width: 33.33%; text-align: center; vertical-align: top;">
+            <td>
                 Gunungsitoli, {{ now()->translatedFormat('d F Y') }}<br>
                 <b>Wali Kelas / Guru Pembimbing</b>
-                <div style="height: 72px;"></div>
+                <div style="height: 80px;"></div>
                 <u><b>( {{ $analysis['database_identity']['homeroom_teacher'] !== '-' ? $analysis['database_identity']['homeroom_teacher'] : '..................................................' }} )</b></u>
             </td>
-            <td style="width: 33.33%; text-align: center; vertical-align: top;">
+            <td>
                 Mengetahui,<br>
                 <b>Kepala Sekolah</b>
-                <div style="height: 72px;"></div>
+                <div style="height: 80px;"></div>
                 <u><b>( {{ $analysis['database_identity']['principal_name'] !== 'Kepala Sekolah' ? $analysis['database_identity']['principal_name'] : '..................................................' }} )</b></u>
             </td>
         </tr>
