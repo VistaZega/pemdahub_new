@@ -197,6 +197,7 @@ class DashboardController extends Controller
             ->first();
 
         $showReportCard = \App\Models\Setting::getValue('show_report_card', false);
+        $dnaAnalysis = app(\App\Services\StudentDnaService::class)->analyze($student);
 
         return view('siswa.dashboard', compact(
             'student', 'classroom', 'activeYear', 'activeSemester',
@@ -204,7 +205,7 @@ class DashboardController extends Controller
             'todaySchedules', 'groupedTodaySchedules', 'currentTime', 'currentSchedule', 'nextSchedule',
             'latestReportCard', 'courses', 'courseProgress',
             'reputation', 'reputationLogs', 'rank', 'todayAttendance', 'attendanceHistory',
-            'showReportCard'
+            'showReportCard', 'dnaAnalysis'
         ));
     }
 

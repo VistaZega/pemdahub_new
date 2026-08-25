@@ -123,6 +123,68 @@
         </div>
     </div>
 
+    {{-- Widget DNA Potensi & Karir Siswa 360° --}}
+    @if(isset($dnaAnalysis))
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 rounded-2xl p-6 text-white relative overflow-hidden shadow-lg border border-slate-800">
+        <div class="absolute -right-8 -top-8 w-48 h-48 bg-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+            <div class="space-y-2 max-w-xl">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="px-3 py-1 bg-gradient-to-r {{ $dnaAnalysis['archetype']['color'] }} text-white rounded-full text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm">
+                        <i class="fas {{ $dnaAnalysis['archetype']['badge_icon'] }}"></i> {{ $dnaAnalysis['archetype']['title'] }}
+                    </span>
+                    <span class="text-[11px] font-bold text-slate-300 bg-white/10 px-2.5 py-1 rounded-full">
+                        Akurasi: {{ $dnaAnalysis['confidence_score'] }}%
+                    </span>
+                </div>
+                <h2 class="text-lg sm:text-xl font-black text-white tracking-tight">
+                    DNA Potensi Belajar & Minat Karier 360°
+                </h2>
+                <p class="text-xs text-slate-200 leading-relaxed font-normal">
+                    "{{ $dnaAnalysis['archetype']['tagline'] }}" &mdash; {{ $dnaAnalysis['archetype']['description'] }}
+                </p>
+
+                {{-- Mini 6 Dimension Meters --}}
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2 text-[10px]">
+                    <div class="bg-white/10 rounded-lg p-2 text-center border border-white/10">
+                        <p class="text-slate-300 font-bold">Logika</p>
+                        <p class="text-sm font-black text-blue-300">{{ $dnaAnalysis['scores']['logic'] }}</p>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-2 text-center border border-white/10">
+                        <p class="text-slate-300 font-bold">Bahasa</p>
+                        <p class="text-sm font-black text-emerald-300">{{ $dnaAnalysis['scores']['communication'] }}</p>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-2 text-center border border-white/10">
+                        <p class="text-slate-300 font-bold">Vokasi</p>
+                        <p class="text-sm font-black text-indigo-300">{{ $dnaAnalysis['scores']['technical'] }}</p>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-2 text-center border border-white/10">
+                        <p class="text-slate-300 font-bold">Sosial</p>
+                        <p class="text-sm font-black text-amber-300">{{ $dnaAnalysis['scores']['social'] }}</p>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-2 text-center border border-white/10">
+                        <p class="text-slate-300 font-bold">Kreatif</p>
+                        <p class="text-sm font-black text-purple-300">{{ $dnaAnalysis['scores']['creative'] }}</p>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-2 text-center border border-white/10">
+                        <p class="text-slate-300 font-bold">Disiplin</p>
+                        <p class="text-sm font-black text-rose-300">{{ $dnaAnalysis['scores']['discipline'] }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row md:flex-col gap-2.5 w-full md:w-auto flex-shrink-0">
+                <a href="{{ route('siswa.dna.index') }}" class="px-5 py-2.5 bg-gradient-to-r from-fuchsia-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition text-center shadow-md flex items-center justify-center gap-2">
+                    <i class="fas fa-radar"></i> Lihat Analisis Lengkap 360°
+                </a>
+                <a href="{{ route('siswa.dna.pdf') }}" class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-xs font-bold transition text-center flex items-center justify-center gap-2">
+                    <i class="fas fa-file-pdf text-rose-400"></i> Unduh Lembar Rapor DNA (PDF)
+                </a>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- Main Content: Timeline + Courses --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Jadwal Hari Ini - Timeline style --}}
