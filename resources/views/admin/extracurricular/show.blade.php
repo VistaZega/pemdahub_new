@@ -24,16 +24,16 @@
 
         <div class="p-8 sm:p-10 space-y-8">
             <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-                <div class="flex flex-col sm:flex-row items-start gap-6 sm:gap-8 flex-1">
-                    {{-- Big 3D Colorful Icon Container --}}
-                    <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-4xl sm:text-5xl shadow-xl border-4 border-white flex-shrink-0">
+                <div class="flex flex-col sm:flex-row items-start flex-1" style="gap: 2rem;">
+                    {{-- Big 3D Colorful Icon Container (WITH GUARANTEED MARGIN) --}}
+                    <div class="w-22 h-22 sm:w-26 sm:h-26 rounded-3xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-4xl sm:text-5xl shadow-xl border-4 border-white flex-shrink-0" style="margin-right: 1.75rem; min-width: 5.5rem; min-height: 5.5rem;">
                         {{ $extracurricular->display_icon }}
                     </div>
 
                     {{-- Unit Title & Info with Generous Margins & Line Height --}}
-                    <div class="space-y-4 flex-1">
+                    <div class="flex-1 min-w-0" style="padding-left: 0.25rem;">
                         {{-- Badges Row --}}
-                        <div class="flex flex-wrap items-center gap-2.5">
+                        <div class="flex flex-wrap items-center gap-2.5" style="margin-bottom: 0.85rem;">
                             <span class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm">
                                 {{ $extracurricular->category_label }}
                             </span>
@@ -48,13 +48,13 @@
                             @endif
                         </div>
 
-                        {{-- Spacious Title --}}
-                        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 leading-snug sm:leading-snug tracking-normal py-1">
+                        {{-- Spacious Title (GUARANTEED LINE-HEIGHT & MARGIN) --}}
+                        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-normal" style="line-height: 1.45; margin-top: 0.5rem; margin-bottom: 0.85rem;">
                             {{ $extracurricular->name }}
                         </h1>
 
                         {{-- Description --}}
-                        <p class="text-sm sm:text-base text-slate-600 font-semibold max-w-3xl leading-relaxed">
+                        <p class="text-sm sm:text-base text-slate-600 font-semibold max-w-3xl leading-relaxed" style="margin-top: 0.5rem; line-height: 1.6;">
                             {{ $extracurricular->description ?: 'Unit kegiatan pembinaan bakat, minat, kreativitas, dan kepemimpinan siswa Perguruan Pembda.' }}
                         </p>
                     </div>
@@ -82,7 +82,7 @@
             </div>
 
             {{-- 4 Solid Vibrant Metric Blocks --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 pt-6 border-t-2 border-slate-100">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 pt-8 border-t-2 border-slate-100" style="margin-top: 2rem;">
                 {{-- Jadwal (Sky Blue) --}}
                 <div class="bg-gradient-to-br from-sky-500 to-blue-600 text-white p-5 rounded-3xl shadow-md border-2 border-sky-400/40 space-y-1.5">
                     <p class="text-[11px] font-black text-sky-100 uppercase tracking-wider flex items-center gap-1.5">
