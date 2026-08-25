@@ -33,17 +33,11 @@ class TeacherStudentDnaController extends Controller
               ->orWhereIn('status', ['aktif', 'Aktif', 'active', 'ACTIVE', 'calon', 'naik', 'enrolled']);
         });
 
-        // Filter by classroom (checks all student-classroom relationships)
+        // Filter by classroom (via student_classes pivot)
         if ($request->filled('classroom_id')) {
             $classroomId = $request->classroom_id;
-            $query->where(function ($q) use ($classroomId) {
-                $q->whereHas('classrooms', function ($cq) use ($classroomId) {
-                    $cq->where('classrooms.id', $classroomId);
-                })
-                ->orWhereHas('studentClasses', function ($scq) use ($classroomId) {
-                    $scq->where('classroom_id', $classroomId);
-                })
-                ->orWhere('classroom_id', $classroomId);
+            $query->whereHas('studentClasses', function ($scq) use ($classroomId) {
+                $scq->where('classroom_id', $classroomId);
             });
         } elseif ($schoolId) {
             $query->where('school_id', $schoolId);
