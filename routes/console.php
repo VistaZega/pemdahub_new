@@ -18,6 +18,12 @@ Artisan::command('inspire', function () {
 |
 */
 
+// Auto process queued background jobs (WhatsApp, Bulk Reports, etc.)
+Schedule::command('queue:work --stop-when-empty --max-time=50')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->description('Process pending database queue jobs');
+
 // Auto close survey and notify via WhatsApp
 Schedule::command('surveys:close-and-notify')
     ->everyMinute()

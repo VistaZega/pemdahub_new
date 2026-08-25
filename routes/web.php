@@ -1387,6 +1387,37 @@ Route::get('/run-migrations', function () {
     }
 });
 
+Route::get('/process-queue', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Unauthorized.');
+    }
+    echo "<pre style='background:#111; color:#0f0; padding:20px; border-radius:10px; font-size:14px; font-family:monospace;'>";
+    echo "<h1>=== PROCESSING DATABASE QUEUE JOBS ===</h1>\n";
+    
+    $pendingBefore = \Illuminate\Support\Facades\DB::table('jobs')->count();
+    $failedBefore = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
+    echo "Pending Jobs Before: <b>{$pendingBefore}</b>\n";
+    echo "Failed Jobs Before:  <b>{$failedBefore}</b>\n\n";
+
+    $exitCode = \Illuminate\Support\Facades\Artisan::call('queue:work', [
+        '--stop-when-empty' => true,
+        '--max-time' => 50,
+        '--tries' => 3
+    ]);
+    
+    $output = \Illuminate\Support\Facades\Artisan::output();
+    echo $output ?: "(No jobs processed or jobs processed silently)\n";
+
+    $pendingAfter = \Illuminate\Support\Facades\DB::table('jobs')->count();
+    $failedAfter = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
+    echo "\n----------------------------------------\n";
+    echo "Exit Code: {$exitCode}\n";
+    echo "Pending Jobs Remaining: <b>{$pendingAfter}</b>\n";
+    echo "Failed Jobs:            <b>{$failedAfter}</b>\n";
+    echo "========================================\n";
+    echo "</pre>";
+});
+
 Route::get('/sync-lms-enrollments', function () {
     if (request('secret') !== 'pembda99') {
         abort(403, 'Akses Ditolak.');

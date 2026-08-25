@@ -419,8 +419,15 @@ if (isset($_GET['migrate']) && $_GET['migrate'] === 'yes') {
     echo "<a class='btn' style='background:#00e676;' href='/restore-tp-2026?secret=pembda99' target='_blank'>▶️ Restore Sekarang</a><br><br>";
     echo "<b>Restore TP 2025/2026:</b> ";
     echo "<a class='btn' style='background:#ff9800;' href='/restore-tp-2025?secret=pembda99&dry_run=1' target='_blank'>🔍 Test Dry Run (Simulasi)</a>";
-    echo "<a class='btn' style='background:#ff5722;' href='/restore-tp-2025?secret=pembda99' target='_blank'>▶️ Restore Sekarang</a>";
-    echo "<p class='info'>Klik tombol di atas untuk menjalankan migrasi atau memulihkan data TP dari backup.</p>";
+    echo "<a class='btn' style='background:#ff5722;' href='/restore-tp-2025?secret=pembda99' target='_blank'>▶️ Restore Sekarang</a><br><br>";
+    echo "<b>⚡ Background Queue Jobs:</b> ";
+    try {
+        $qPending = \Illuminate\Support\Facades\DB::table('jobs')->count();
+        $qFailed = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
+        echo "<span class='info'>[Pending: {$qPending} | Failed: {$qFailed}]</span> ";
+    } catch (\Throwable $e) {}
+    echo "<a class='btn' style='background:#e040fb; color:#fff;' href='/process-queue?secret=pembda99' target='_blank'>▶️ Proses Antrean Jobs Sekarang</a>";
+    echo "<p class='info'>Klik tombol di atas untuk menjalankan migrasi, memproses antrean background jobs, atau memulihkan data TP dari backup.</p>";
 }
 
 // Step 4: Diagnostics
