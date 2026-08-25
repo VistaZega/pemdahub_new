@@ -50,13 +50,13 @@
         @method('PUT')
 
         <!-- Master Switch & Cooldown Card -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-5 mb-5">
-                <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 rounded-full {{ $alertConfig['enabled'] ? 'bg-rose-500 animate-pulse' : 'bg-gray-400' }}"></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-7">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 border-b border-gray-100 pb-6 mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-3.5 h-3.5 rounded-full {{ $alertConfig['enabled'] ? 'bg-rose-500 animate-pulse' : 'bg-gray-400' }}"></div>
                     <div>
                         <h3 class="text-base font-bold text-gray-900">Saklar Utama Pemantau Error Sistem</h3>
-                        <p class="text-xs text-gray-500">Jika aktif, setiap terjadi error server kritis 500 akan otomatis dikirimkan laporannya ke saluran yang aktif</p>
+                        <p class="text-xs text-gray-500 mt-1">Jika aktif, setiap terjadi error server kritis 500 akan otomatis dikirimkan laporannya ke saluran yang aktif</p>
                     </div>
                 </div>
 
@@ -65,22 +65,22 @@
                         <input type="checkbox" name="error_alerts_enabled" value="1" class="sr-only peer" {{ $alertConfig['enabled'] ? 'checked' : '' }}>
                         <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-rose-600"></div>
                     </label>
-                    <span class="text-xs font-bold {{ $alertConfig['enabled'] ? 'text-rose-600' : 'text-gray-400' }}">
+                    <span class="text-xs font-bold tracking-wide {{ $alertConfig['enabled'] ? 'text-rose-600' : 'text-gray-400' }}">
                         {{ $alertConfig['enabled'] ? 'AKTIF (MONITORING ON)' : 'NONAKTIF' }}
                     </span>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center bg-gray-50/70 p-4 rounded-xl border border-gray-200/70 text-xs">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-center bg-gray-50/80 p-5 rounded-2xl border border-gray-200/70 text-xs">
                 <div>
-                    <label class="font-bold text-gray-700 block mb-1">
-                        <i class="fas fa-clock text-amber-500 mr-1"></i> Jeda Waktu Anti-Spam (Cooldown):
+                    <label class="font-bold text-gray-800 flex items-center gap-2 mb-1.5 text-xs">
+                        <i class="fas fa-clock text-amber-500"></i> Jeda Waktu Anti-Spam (Cooldown):
                     </label>
-                    <p class="text-gray-500 text-[11px]">Mencegah banjir notifikasi saat error yang sama terjadi berulang kali dalam waktu singkat.</p>
+                    <p class="text-gray-500 text-[11px] leading-relaxed">Mencegah banjir notifikasi saat error yang sama terjadi berulang kali dalam waktu singkat.</p>
                 </div>
-                <div class="flex items-center gap-2 justify-end">
-                    <input type="number" name="error_alert_cooldown_minutes" value="{{ $alertConfig['cooldown_minutes'] }}" min="1" max="60" class="w-24 px-3 py-2 bg-white rounded-lg border border-gray-300 font-bold text-sm text-center focus:outline-none focus:border-rose-500">
-                    <span class="font-semibold text-gray-600">Menit per Error Signature</span>
+                <div class="flex items-center gap-3 justify-start md:justify-end">
+                    <input type="number" name="error_alert_cooldown_minutes" value="{{ $alertConfig['cooldown_minutes'] }}" min="1" max="60" class="w-24 px-4 py-2.5 bg-white rounded-xl border border-gray-300 font-bold text-sm text-center focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 shadow-sm">
+                    <span class="font-semibold text-gray-700">Menit per Error Signature</span>
                 </div>
             </div>
         </div>
@@ -89,39 +89,39 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             <!-- Saluran 1: WhatsApp Super Admin -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
-                <div class="flex items-center justify-between border-b border-gray-100 pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xl">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-7 space-y-6">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-5">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-2xl shadow-sm shadow-emerald-500/10">
                             <i class="fab fa-whatsapp"></i>
                         </div>
                         <div>
                             <h3 class="text-base font-bold text-gray-900">Saluran WhatsApp Super Admin</h3>
-                            <p class="text-[11px] text-gray-500">Kirim laporan error instan ke nomor WhatsApp Anda</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">Kirim laporan error instan ke nomor WhatsApp Anda</p>
                         </div>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="wa_alert_enabled" value="1" class="sr-only peer" {{ $alertConfig['whatsapp']['enabled'] ? 'checked' : '' }}>
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                     </label>
                 </div>
 
-                <div class="space-y-3">
+                <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">
-                            <i class="fas fa-phone text-emerald-600 mr-1"></i> Nomor WhatsApp HP Tujuan Super Admin:
+                        <label class="block text-xs font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-phone text-emerald-600"></i> Nomor WhatsApp HP Tujuan Super Admin:
                         </label>
-                        <input type="text" name="wa_alert_phone" value="{{ $alertConfig['whatsapp']['admin_phone'] }}" placeholder="Contoh: 088991144184 atau 628..." class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:border-emerald-500 font-mono">
-                        <p class="text-[10px] text-gray-400 mt-1">Nomor WhatsApp yang akan menerima pesan peringatan saat terjadi error server.</p>
+                        <input type="text" name="wa_alert_phone" value="{{ $alertConfig['whatsapp']['admin_phone'] }}" placeholder="Contoh: 088991144184 atau 628..." class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono shadow-sm">
+                        <p class="text-[11px] text-gray-400 mt-1.5 leading-relaxed">Nomor WhatsApp yang akan menerima pesan peringatan saat terjadi error server.</p>
                     </div>
 
-                    <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs text-gray-600 space-y-1">
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Gateway Pengirim Aktif:</span>
-                            <span class="font-bold text-emerald-700">{{ $waService->getProviderLabel() }}</span>
+                    <div class="p-4 bg-gray-50/80 rounded-2xl border border-gray-100 text-xs text-gray-600 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400 font-medium">Gateway Pengirim Aktif:</span>
+                            <span class="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">{{ $waService->getProviderLabel() }}</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Status Gateway:</span>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400 font-medium">Status Gateway:</span>
                             <span class="{{ $waService->isEnabled() ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold' }}">
                                 {{ $waService->isEnabled() ? '✓ Siap Mengirim' : '⚠️ Gateway Nonaktif' }}
                             </span>
@@ -131,42 +131,42 @@
             </div>
 
             <!-- Saluran 2: Telegram Bot Super Admin -->
-            <div x-data="{ showToken: false }" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
-                <div class="flex items-center justify-between border-b border-gray-100 pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-xl">
+            <div x-data="{ showToken: false }" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-7 space-y-6">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-5">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-2xl shadow-sm shadow-sky-500/10">
                             <i class="fab fa-telegram-plane"></i>
                         </div>
                         <div>
                             <h3 class="text-base font-bold text-gray-900">Saluran Telegram Bot</h3>
-                            <p class="text-[11px] text-gray-500">Kirim laporan error ke Chat ID pribadi / grup teknisi</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">Kirim laporan error ke Chat ID pribadi / grup teknisi</p>
                         </div>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="telegram_alert_enabled" value="1" class="sr-only peer" {{ $alertConfig['telegram']['enabled'] ? 'checked' : '' }}>
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
+                        <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
                     </label>
                 </div>
 
-                <div class="space-y-3">
+                <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">
-                            <i class="fas fa-robot text-sky-600 mr-1"></i> Telegram Bot Token:
+                        <label class="block text-xs font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-robot text-sky-600"></i> Telegram Bot Token:
                         </label>
-                        <div class="flex gap-2">
-                            <input :type="showToken ? 'text' : 'password'" name="telegram_alert_bot_token" value="{{ $alertConfig['telegram']['bot_token'] }}" placeholder="123456789:ABCdefGHIjklMNOpqr..." class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-sky-500 font-mono">
-                            <button type="button" @click="showToken = !showToken" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-xl text-xs text-gray-600 font-semibold transition" title="Lihat/Sembunyikan">
+                        <div class="flex gap-2.5">
+                            <input :type="showToken ? 'text' : 'password'" name="telegram_alert_bot_token" value="{{ $alertConfig['telegram']['bot_token'] }}" placeholder="123456789:ABCdefGHIjklMNOpqr..." class="w-full px-4 py-3 rounded-xl border border-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 font-mono shadow-sm">
+                            <button type="button" @click="showToken = !showToken" class="px-4 py-3 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-xl text-sm text-gray-600 font-semibold transition flex items-center justify-center shadow-sm" title="Lihat/Sembunyikan">
                                 <i class="fas" :class="showToken ? 'fa-eye-slash text-rose-500' : 'fa-eye'"></i>
                             </button>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">
-                            <i class="fas fa-comments text-sky-600 mr-1"></i> Telegram Chat ID (Pribadi / Grup):
+                        <label class="block text-xs font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-comments text-sky-600"></i> Telegram Chat ID (Pribadi / Grup):
                         </label>
-                        <input type="text" name="telegram_alert_chat_id" value="{{ $alertConfig['telegram']['chat_id'] }}" placeholder="Contoh: 123456789 atau -100123456789" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-sky-500 font-mono">
-                        <p class="text-[10px] text-gray-400 mt-1">Chat ID didapat dari bot Telegram atau @userinfobot.</p>
+                        <input type="text" name="telegram_alert_chat_id" value="{{ $alertConfig['telegram']['chat_id'] }}" placeholder="Contoh: 123456789 atau -100123456789" class="w-full px-4 py-3 rounded-xl border border-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 font-mono shadow-sm">
+                        <p class="text-[11px] text-gray-400 mt-1.5">Chat ID didapat dari bot Telegram atau @userinfobot.</p>
                     </div>
                 </div>
             </div>
@@ -174,47 +174,51 @@
         </div>
 
         <!-- Tombol Simpan Konfigurasi -->
-        <div class="flex items-center justify-between pt-2">
-            <p class="text-xs text-gray-500">
-                <i class="fas fa-shield-alt text-rose-600 mr-1"></i> Error 404, validasi form, dan token CSRF kedaluwarsa <b>otomatis diabaikan</b> agar tidak mengganggu.
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-gray-100">
+            <p class="text-xs text-gray-500 flex items-center gap-2">
+                <i class="fas fa-shield-alt text-rose-600 text-sm"></i> Error 404, validasi form, dan token CSRF kedaluwarsa <b>otomatis diabaikan</b> agar tidak mengganggu.
             </p>
-            <button type="submit" class="px-7 py-3 bg-slate-900 hover:bg-black text-white rounded-xl font-bold text-sm shadow-md transition-all flex items-center gap-2">
-                <i class="fas fa-save"></i> Simpan Konfigurasi Notifikasi Error
+            <button type="submit" class="w-full sm:w-auto px-8 py-3.5 bg-slate-900 hover:bg-black text-white rounded-xl font-bold text-sm shadow-lg shadow-slate-900/10 hover:shadow-slate-900/20 transition-all flex items-center justify-center gap-3">
+                <i class="fas fa-save text-base"></i>
+                <span>Simpan Konfigurasi Notifikasi Error</span>
             </button>
         </div>
     </form>
 
     <!-- Bar Uji Coba Pengiriman Notifikasi (Live Testing) -->
-    <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-                <h3 class="text-base font-bold flex items-center gap-2">
-                    <i class="fas fa-vial text-amber-400"></i> Uji Coba Pengiriman Laporan Error
+    <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 sm:p-7 text-white space-y-5 shadow-lg shadow-slate-900/10">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div class="space-y-1">
+                <h3 class="text-base font-bold flex items-center gap-2.5 text-white">
+                    <i class="fas fa-vial text-amber-400 text-lg"></i> Uji Coba Pengiriman Laporan Error
                 </h3>
-                <p class="text-xs text-slate-300">Kirim simulasi laporan error secara instan untuk memastikan nomor WA dan Telegram Anda berhasil menerima notifikasi</p>
+                <p class="text-xs text-slate-300 leading-relaxed">Kirim simulasi laporan error secara instan untuk memastikan nomor WA dan Telegram Anda berhasil menerima notifikasi</p>
             </div>
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap items-center gap-3">
                 <form action="{{ route('admin.settings.error_alerts.test') }}" method="POST" class="inline-block">
                     @csrf
                     <input type="hidden" name="channel" value="whatsapp">
-                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
-                        <i class="fab fa-whatsapp"></i> Tes WhatsApp Saja
+                    <button type="submit" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2.5 shadow-md shadow-emerald-600/20">
+                        <i class="fab fa-whatsapp text-sm"></i>
+                        <span>Tes WhatsApp Saja</span>
                     </button>
                 </form>
 
                 <form action="{{ route('admin.settings.error_alerts.test') }}" method="POST" class="inline-block">
                     @csrf
                     <input type="hidden" name="channel" value="telegram">
-                    <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
-                        <i class="fab fa-telegram-plane"></i> Tes Telegram Saja
+                    <button type="submit" class="px-5 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2.5 shadow-md shadow-sky-600/20">
+                        <i class="fab fa-telegram-plane text-sm"></i>
+                        <span>Tes Telegram Saja</span>
                     </button>
                 </form>
 
                 <form action="{{ route('admin.settings.error_alerts.test') }}" method="POST" class="inline-block">
                     @csrf
                     <input type="hidden" name="channel" value="all">
-                    <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
-                        <i class="fas fa-paper-plane"></i> Tes Keduanya (Semua Saluran)
+                    <button type="submit" class="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition flex items-center gap-2.5 shadow-md shadow-amber-500/20">
+                        <i class="fas fa-paper-plane text-sm"></i>
+                        <span>Tes Keduanya (Semua Saluran)</span>
                     </button>
                 </form>
             </div>
