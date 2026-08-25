@@ -1,4 +1,0 @@
-School ID: 1 | Name: SMPS Pembda 2 Gunungsitoli | Total Subjects: 16 | Missing Codes: 16
-School ID: 2 | Name: SMAS Pembda 1 Gunungsitoli | Total Subjects: 12 | Missing Codes: 12
-School ID: 3 | Name: SMKS Pembda Nias | Total Subjects: 48 | Missing Codes: 2
-School ID: 4 | Name: Yayasan Perguruan Pembda Nias | Total Subjects: 0 | Missing Codes: 0

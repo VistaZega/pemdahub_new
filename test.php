@@ -1,5 +1,0 @@
-<?php
-$c = file_get_contents(__DIR__.'/public/full_auto_plot.php');
-$start = strpos($c, "'XII TE' =>");
-$end = strpos($c, "'XII TJKT' =>");
-echo substr($c, $start, $end - $start);

@@ -26,34 +26,16 @@ Thumbs.db
 *.sql
 *.docx
 *.xlsx
+*.zip
+*.txt
+*.py
 temp_*.html
 test_results*.txt
 Daftar Akun*
 
-# Development/debug scripts (root level)
-/check_*.php
-/debug_*.php
-/find_*.php
-/list_*.php
-/extract_*.php
-/compare.php
-/dump_*.php
-/full_*.php
-/get_*.php
-/map_*.php
-/migrasi_*.php
-/normalize_*.php
-/restore_*.php
-
-# Data & backup files
-/curr_teachers.txt
-/schemas.txt
-/tables.txt
-/strs.json
-/roster_data.json
-/vendor.zip
-
-# Development folders
+# Development/debug scripts & archive folders
+/tools/
+/archive/
 /development_backup/
 /roster_unzipped/
 /tmp/

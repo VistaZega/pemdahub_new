@@ -1,4 +1,0 @@
-Asset: http://localhost/pembdahub/public/storage/teachers/test.jpg
-Storage URL: http://localhost/pembdahub/public/storage/teachers/test.jpg
-App URL: http://localhost/pembdahub/public
-Public Folder Path: C:\xampp\htdocs\pembdahub\public\storage/teachers/test.jpg
