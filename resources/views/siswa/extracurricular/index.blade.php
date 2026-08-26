@@ -25,13 +25,13 @@
                 </p>
             </div>
             
-            <div class="flex items-center gap-4 bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-4.5 rounded-3xl shadow-md border-2 border-indigo-300/40 flex-shrink-0">
-                <div class="w-13 h-13 rounded-2xl bg-white text-indigo-700 flex items-center justify-center text-3xl shadow-sm">
+            <div class="flex items-center gap-4 bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-700 text-white px-6 py-4 rounded-3xl shadow-md border border-indigo-300/30 shrink-0">
+                <div class="w-12 h-12 rounded-2xl bg-white text-indigo-700 flex items-center justify-center text-2xl shadow-sm shrink-0">
                     🏆
                 </div>
-                <div>
-                    <p class="text-[10px] text-indigo-100 font-black uppercase tracking-wider">Keaktifan Saya</p>
-                    <p class="text-lg font-black text-white">{{ $myMemberships->count() }} <span class="text-xs font-bold text-indigo-200">Unit Diikuti</span></p>
+                <div class="pr-2">
+                    <p class="text-[11px] text-indigo-100 font-black uppercase tracking-wider whitespace-nowrap mb-0.5">Keaktifan Saya</p>
+                    <p class="text-xl font-black text-white whitespace-nowrap leading-tight">{{ $myMemberships->count() }} <span class="text-xs font-bold text-indigo-200 ml-0.5">Unit Diikuti</span></p>
                 </div>
             </div>
         </div>
