@@ -433,4 +433,79 @@ class FinalProjectTest extends TestCase
             'category' => 'examination',
         ]);
     }
+
+    public function test_admin_can_create_cross_class_final_project_group_for_smk()
+    {
+        // 1. Create a second SMK Grade 12 classroom (XII TKJ 2)
+        $smkClass2 = Classroom::create([
+            'school_id' => $this->smk->id,
+            'academic_year_id' => $this->academicYear->id,
+            'class_code' => 'XII-TKJ-2',
+            'class_name' => 'XII TKJ 2',
+            'class_type' => 'reguler',
+            'grade_level' => 12,
+            'is_active' => true,
+        ]);
+
+        // 2. Create second SMK student in XII TKJ 2
+        $smkUser2 = User::create([
+            'name' => 'Siswa SMK Kelas Lain',
+            'email' => 'siswasmk2@smkpembda.sch.id',
+            'password' => bcrypt('password'),
+            'role' => 'siswa',
+            'school_id' => $this->smk->id,
+            'must_change_password' => false,
+        ]);
+
+        $smkStudent2 = Student::create([
+            'school_id' => $this->smk->id,
+            'user_id' => $smkUser2->id,
+            'student_code' => 'S-SMK-2',
+            'full_name' => 'Siswa SMK Kelas Lain',
+            'gender' => 'L',
+        ]);
+
+        StudentClass::create([
+            'student_id' => $smkStudent2->id,
+            'classroom_id' => $smkClass2->id,
+            'academic_year_id' => $this->academicYear->id,
+            'status' => 'aktif',
+        ]);
+
+        // 3. Admin submits project proposal with members from 2 different classes ($this->smkStudent & $smkStudent2)
+        $response = $this->actingAs($this->smkAdminUser)
+            ->post(route('admin.final-projects.proposals.store'), [
+                'title' => 'Project Akhir Lintas Kelas IoT Smart Home',
+                'abstract' => 'Project kolaborasi antara XII TKJ 1 dan XII TKJ 2',
+                'advisor_id' => $this->smkTeacher->id,
+                'member_ids' => [$this->smkStudent->id, $smkStudent2->id],
+                'leader_id' => $this->smkStudent->id,
+            ]);
+
+        $response->assertRedirect(route('admin.final-projects.proposals.index'));
+
+        // Assert FinalProject was created
+        $this->assertDatabaseHas('final_projects', [
+            'student_id' => $this->smkStudent->id,
+            'title' => 'Project Akhir Lintas Kelas IoT Smart Home',
+            'type' => 'project_akhir',
+            'advisor_id' => $this->smkTeacher->id,
+            'status' => 'approved',
+        ]);
+
+        $project = FinalProject::where('title', 'Project Akhir Lintas Kelas IoT Smart Home')->first();
+
+        // Assert 2 members from different classes were created
+        $this->assertDatabaseHas('final_project_members', [
+            'final_project_id' => $project->id,
+            'student_id' => $this->smkStudent->id,
+            'role' => 'leader',
+        ]);
+
+        $this->assertDatabaseHas('final_project_members', [
+            'final_project_id' => $project->id,
+            'student_id' => $smkStudent2->id,
+            'role' => 'member',
+        ]);
+    }
 }

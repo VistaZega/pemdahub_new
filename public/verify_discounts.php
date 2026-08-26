@@ -209,7 +209,7 @@ foreach ($discountedStudents as $ds) {
                 <div class="text-xs text-emerald-700 mt-1 font-medium">Diskon sudah konsisten sampai akhir tahun ajaran (Juni 2027)</div>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border <?= $totalPendingSync > 0 ? 'border-amber-200 bg-amber-50/20' : 'border-gray-100' }} shadow-sm">
+            <div class="bg-white rounded-2xl p-5 border <?= $totalPendingSync > 0 ? 'border-amber-200 bg-amber-50/20' : 'border-gray-100' ?> shadow-sm">
                 <div class="text-xs font-bold <?= $totalPendingSync > 0 ? 'text-amber-600' : 'text-gray-400' ?> uppercase">Belum Sinkron (Sudah Dibayar)</div>
                 <div class="text-3xl font-black <?= $totalPendingSync > 0 ? 'text-amber-600' : 'text-gray-800' ?> mt-1"><?= $totalPendingSync ?> Siswa</div>
                 <div class="text-xs text-gray-500 mt-1 font-medium">Dikunci karena transaksi bulan tsb sudah dibayar/lunas</div>

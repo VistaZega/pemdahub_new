@@ -255,6 +255,12 @@
                             
                             {{-- Kolom Kelompok & Anggota --}}
                             <td class="py-4.5 pl-6 pr-4 align-top min-w-[240px] max-w-[320px]">
+                                @php
+                                    $memberClassroomIds = $p->members->map(function($m) {
+                                        return $m->student->currentClassroom->first()?->id ?? $m->student->classroom_id;
+                                    })->filter()->unique();
+                                    $isCrossClass = $memberClassroomIds->count() > 1;
+                                @endphp
                                 <div class="flex items-start gap-3">
                                     <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0 text-sm font-black shadow-md shadow-indigo-500/20 border-2 border-white">
                                         <i class="fas fa-users"></i>
@@ -264,9 +270,15 @@
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-black">
                                                 <i class="fas fa-crown text-amber-500 text-[9px]"></i> Ketua
                                             </span>
-                                            <span class="text-xs font-black text-slate-900 truncate" title="{{ $p->student->full_name }}">
-                                                {{ $p->student->full_name }}
-                                            </span>
+                                            @if($isCrossClass)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 border border-purple-200 text-[10px] font-black" title="Kelompok memiliki anggota dari kelas berbeda">
+                                                    <i class="fas fa-sparkles text-amber-500 text-[9px]"></i> Lintas Kelas
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="text-xs font-black text-slate-900 truncate" title="{{ $p->student->full_name }}">
+                                            {{ $p->student->full_name }}
+                                            <span class="text-[11px] font-bold text-indigo-600">({{ $p->student->currentClassroom->first()?->class_name ?? 'XII' }})</span>
                                         </div>
 
                                         @if($p->members && $p->members->count() > 1)
@@ -275,9 +287,15 @@
                                                     Anggota ({{ $p->members->where('role', 'member')->count() }} siswa):
                                                 </span>
                                                 @foreach($p->members->where('role', 'member') as $member)
+                                                    @php
+                                                        $mClass = $member->student->currentClassroom->first()?->class_name;
+                                                    @endphp
                                                     <div class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5 truncate" title="{{ $member->student->full_name }}">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></span>
                                                         <span class="truncate">{{ $member->student->full_name }}</span>
+                                                        @if($mClass)
+                                                            <span class="text-[10px] text-slate-500 font-bold flex-shrink-0">({{ $mClass }})</span>
+                                                        @endif
                                                     </div>
                                                 @endforeach
                                             </div>
