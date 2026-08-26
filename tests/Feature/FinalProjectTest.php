@@ -300,7 +300,7 @@ class FinalProjectTest extends TestCase
         // Advisor reviews log
         $reviewResponse = $this->actingAs($this->smaTeacherUser)
             ->post(route('guru.final-projects.bimbingan.review-log', [$project->id, $log->id]), [
-                'status' => 'reviewed',
+                'status' => 'approved',
                 'advisor_feedback' => 'Pertanyaan wawancara sudah baik, lanjutkan tabulasi data.',
             ]);
 
@@ -308,7 +308,7 @@ class FinalProjectTest extends TestCase
         $this->assertDatabaseHas('final_project_logs', [
             'id' => $log->id,
             'advisor_feedback' => 'Pertanyaan wawancara sudah baik, lanjutkan tabulasi data.',
-            'status' => 'reviewed',
+            'status' => 'approved',
         ]);
 
         // Assert reputation points for advisor (+15 points)
@@ -351,14 +351,14 @@ class FinalProjectTest extends TestCase
         $examiner = Teacher::create([
             'school_id' => $this->sma->id,
             'user_id' => User::create([
-                'name' => 'Guru Penguji',
-                'email' => 'penguji@sma1pembda.sch.id',
+                'name' => 'Guru Penguji Ujian',
+                'email' => 'penguji_ujian@sma1pembda.sch.id',
                 'password' => bcrypt('password'),
                 'role' => 'guru',
                 'school_id' => $this->sma->id,
             ])->id,
-            'teacher_code' => 'T-PENGUJI',
-            'full_name' => 'Guru Penguji',
+            'teacher_code' => 'T-PENGUJI2',
+            'full_name' => 'Guru Penguji Ujian',
             'gender' => 'L',
         ]);
 
@@ -439,21 +439,59 @@ class FinalProjectTest extends TestCase
 
     public function test_admin_can_create_cross_class_final_project_group_for_smk()
     {
-        // 1. Create a second SMK Grade 12 classroom (XII TKJ 2)
-        $smkClass2 = Classroom::create([
+        // 1. Create two SMK Grade 12 classrooms (XII TKJ 1 & XII TKJ 2)
+        $smkClass1 = Classroom::create([
             'school_id' => $this->smk->id,
             'academic_year_id' => $this->academicYear->id,
-            'class_code' => 'XII-TKJ-2',
-            'class_name' => 'XII TKJ 2',
+            'class_code' => 'XII-TKJ-1B',
+            'class_name' => 'XII TKJ 1B',
             'class_type' => 'reguler',
             'grade_level' => 12,
             'is_active' => true,
         ]);
 
-        // 2. Create second SMK student in XII TKJ 2
+        $smkClass2 = Classroom::create([
+            'school_id' => $this->smk->id,
+            'academic_year_id' => $this->academicYear->id,
+            'class_code' => 'XII-TKJ-2B',
+            'class_name' => 'XII TKJ 2B',
+            'class_type' => 'reguler',
+            'grade_level' => 12,
+            'is_active' => true,
+        ]);
+
+        // 2. Create fresh SMK students in Class 1 & Class 2
+        $smkUser1 = User::create([
+            'name' => 'Siswa SMK Kelas A',
+            'email' => 'siswasmk1b@smkpembda.sch.id',
+            'password' => bcrypt('password'),
+            'role' => 'siswa',
+            'school_id' => $this->smk->id,
+            'must_change_password' => false,
+        ]);
+
+        $smkStudent1 = Student::create([
+            'school_id' => $this->smk->id,
+            'user_id' => $smkUser1->id,
+            'student_code' => 'S-SMK-1B',
+            'nisn' => '9988776611',
+            'nis' => '20887711',
+            'full_name' => 'Siswa SMK Kelas A',
+            'gender' => 'L',
+            'entry_year' => 2024,
+            'status' => 'aktif',
+        ]);
+
+        StudentClass::create([
+            'student_id' => $smkStudent1->id,
+            'classroom_id' => $smkClass1->id,
+            'academic_year_id' => $this->academicYear->id,
+            'status' => 'aktif',
+        ]);
+
         $smkUser2 = User::create([
-            'name' => 'Siswa SMK Kelas Lain',
-            'email' => 'siswasmk2@smkpembda.sch.id',
+            'name' => 'Siswa SMK Kelas B',
+            'email' => 'siswasmk2b@smkpembda.sch.id',
             'password' => bcrypt('password'),
             'role' => 'siswa',
             'school_id' => $this->smk->id,
@@ -463,10 +501,10 @@ class FinalProjectTest extends TestCase
         $smkStudent2 = Student::create([
             'school_id' => $this->smk->id,
             'user_id' => $smkUser2->id,
-            'student_code' => 'S-SMK-2',
+            'student_code' => 'S-SMK-2B',
             'nisn' => '9988776655',
             'nis' => '20887766',
-            'full_name' => 'Siswa SMK Kelas Lain',
+            'full_name' => 'Siswa SMK Kelas B',
             'gender' => 'L',
             'entry_year' => 2024,
             'status' => 'aktif',
