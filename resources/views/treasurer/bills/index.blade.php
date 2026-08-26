@@ -341,15 +341,19 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                                     </svg>
                                 </a>
-                                @if(isset($group['first_bill']) && $group['first_bill'] && $group['first_bill']->paid_amount == 0)
-                                <a href="{{ route('treasurer.bills.edit', $group['first_bill']->id) }}" 
+                                @php
+                                    $editableBill = collect($group['monthly_data'] ?? [])->filter(fn($b) => $b && $b->paid_amount == 0)->first() 
+                                        ?? (isset($group['first_bill']) && $group['first_bill'] && $group['first_bill']->paid_amount == 0 ? $group['first_bill'] : null);
+                                @endphp
+                                @if($editableBill)
+                                <a href="{{ route('treasurer.bills.edit', $editableBill->id) }}" 
                                     class="w-7 h-7 flex items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 text-white hover:scale-110 transform transition-all shadow-md hover:shadow-lg"
-                                    title="Edit Tagihan">
+                                    title="Edit Nominal Tagihan ({{ $editableBill->month ? 'Bulan ' . $editableBill->month : '' }})">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
                                 </a>
-                                <form action="{{ route('treasurer.bills.destroy', $group['first_bill']->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tagihan ini?')">
+                                <form action="{{ route('treasurer.bills.destroy', $editableBill->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tagihan ini?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" 
