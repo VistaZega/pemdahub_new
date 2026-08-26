@@ -122,6 +122,17 @@ class StudentBillController extends Controller
 
                 $totalAmount = $bills->sum('amount');
                 $totalPaid = $bills->sum('paid_amount');
+                
+                // Logika Tunggakan yang Tepat: Hanya tagihan yang lewat jatuh tempo / s.d. bulan berkenaan yang belum dibayar
+                $outstanding = $bills->filter(function($b) {
+                    if ($b->status === 'lunas') return false;
+                    if ($b->isOverdue()) return true;
+                    if ($b->month && $b->year) {
+                        $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
+                        return now()->isAfter($dueDate);
+                    }
+                    return false;
+                })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
 
                 $groupedBills->push([
                     'student' => $firstBill->student,
@@ -130,7 +141,7 @@ class StudentBillController extends Controller
                     'monthly_data' => $monthlyData,
                     'total_amount' => $totalAmount,
                     'total_paid' => $totalPaid,
-                    'outstanding' => $totalAmount - $totalPaid,
+                    'outstanding' => $outstanding,
                     'bill_count' => $bills->count(),
                     'is_first_row' => $isFirstRowForStudent,
                     'rowspan' => $rowCount,
@@ -143,7 +154,15 @@ class StudentBillController extends Controller
 
         // Summary calculations
         $totalStudents = $studentGroups->count();
-        $totalOutstanding = $allBills->sum(fn($b) => $b->amount - $b->paid_amount);
+        $totalOutstanding = $allBills->filter(function($b) {
+            if ($b->status === 'lunas') return false;
+            if ($b->isOverdue()) return true;
+            if ($b->month && $b->year) {
+                $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
+                return now()->isAfter($dueDate);
+            }
+            return false;
+        })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
         $totalPaid = $allBills->sum('paid_amount');
         $totalBillsCount = $allBills->sum('amount');
 

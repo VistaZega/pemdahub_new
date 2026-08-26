@@ -82,7 +82,17 @@ class StudentBillController extends Controller
                 // Calculate totals
                 $totalAmount = $bills->sum('amount');
                 $totalPaid = $bills->sum('paid_amount');
-                $outstanding = $totalAmount - $totalPaid;
+                
+                // Logika Tunggakan yang Tepat: Hanya tagihan yang lewat jatuh tempo / s.d. bulan berkenaan yang belum dibayar
+                $outstanding = $bills->filter(function($b) {
+                    if ($b->status === 'lunas') return false;
+                    if ($b->isOverdue()) return true;
+                    if ($b->month && $b->year) {
+                        $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
+                        return now()->isAfter($dueDate);
+                    }
+                    return false;
+                })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
                 
                 $groupedBills->push([
                     'student' => $firstBill->student,
