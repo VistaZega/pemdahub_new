@@ -20,9 +20,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Create schools under Yayasan Perguruan Pembda Nias
-        $school1 = School::create([
+        $school1 = School::firstOrCreate(['type' => 'SMP'], [
             'name' => 'SMP Swasta Pembda 2 Gunungsitoli',
-            'type' => 'SMP',
             'npsn' => '20220001',
             'address' => 'Jl. Pelita No.09',
             'city' => 'Gunungsitoli',
@@ -36,9 +35,8 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $school2 = School::create([
+        $school2 = School::firstOrCreate(['type' => 'SMA'], [
             'name' => 'SMA Swasta Pembda 1 Gunungsitoli',
-            'type' => 'SMA',
             'npsn' => '20220002',
             'address' => 'Jl. Pelita No.09',
             'city' => 'Gunungsitoli',
@@ -52,9 +50,8 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $school3 = School::create([
+        $school3 = School::firstOrCreate(['type' => 'SMK'], [
             'name' => 'SMK Swasta Pembda Nias',
-            'type' => 'SMK',
             'npsn' => '20220003',
             'address' => 'Jl. Pelita No.09',
             'city' => 'Gunungsitoli',
@@ -69,9 +66,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create SuperAdmin
-        User::create([
+        User::firstOrCreate(['email' => 'superadmin@pembdahub.com'], [
             'name' => 'SuperAdmin',
-            'email' => 'superadmin@pembdahub.com',
             'password' => Hash::make('Superadmin@2026!'),
             'role' => 'superadmin',
             'is_active' => true,
@@ -79,9 +75,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create Admin Sekolah for each school
-        User::create([
+        User::firstOrCreate(['email' => 'admin@smp2pembda.sch.id'], [
             'name' => 'Admin SMP Pembda 2',
-            'email' => 'admin@smp2pembda.sch.id',
             'password' => Hash::make('AdminSMP@2026!'),
             'role' => 'admin_sekolah',
             'school_id' => $school1->id,
@@ -89,9 +84,8 @@ class DatabaseSeeder extends Seeder
             'must_change_password' => true,
         ]);
 
-        User::create([
+        User::firstOrCreate(['email' => 'admin@sma1pembda.sch.id'], [
             'name' => 'Admin SMA Pembda 1',
-            'email' => 'admin@sma1pembda.sch.id',
             'password' => Hash::make('AdminSMA@2026!'),
             'role' => 'admin_sekolah',
             'school_id' => $school2->id,
@@ -99,9 +93,8 @@ class DatabaseSeeder extends Seeder
             'must_change_password' => true,
         ]);
 
-        User::create([
+        User::firstOrCreate(['email' => 'admin@smkpembda.sch.id'], [
             'name' => 'Admin SMK Pembda',
-            'email' => 'admin@smkpembda.sch.id',
             'password' => Hash::make('AdminSMK@2026!'),
             'role' => 'admin_sekolah',
             'school_id' => $school3->id,
@@ -110,9 +103,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create sample Guru
-        User::create([
+        User::firstOrCreate(['email' => 'ama.zega@sma1pembda.sch.id'], [
             'name' => 'Bapak Ama Zega',
-            'email' => 'ama.zega@sma1pembda.sch.id',
             'password' => Hash::make('Guru@2026!'),
             'role' => 'guru',
             'school_id' => $school2->id,
@@ -121,9 +113,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create sample Siswa
-        User::create([
+        User::firstOrCreate(['email' => 'ferdinan@student.smp2pembda.sch.id'], [
             'name' => 'Ferdinan Zega',
-            'email' => 'ferdinan@student.smp2pembda.sch.id',
             'password' => Hash::make('Siswa@2026!'),
             'role' => 'siswa',
             'school_id' => $school1->id,
@@ -132,9 +123,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create sample Orang Tua
-        User::create([
+        User::firstOrCreate(['email' => 'ama.ferdinan@parent.sch.id'], [
             'name' => 'Ama Ferdinan',
-            'email' => 'ama.ferdinan@parent.sch.id',
             'password' => Hash::make('OrangTua@2026!'),
             'role' => 'orang_tua',
             'school_id' => $school1->id,
