@@ -712,6 +712,8 @@
                         
                         $catColor = match($thread->category) {
                             'diskusi' => 'bg-indigo-50 text-indigo-600 border-indigo-200',
+                            'ekskul_showcase' => 'bg-purple-100 text-purple-900 border-purple-300 font-black',
+                            'ekskul_recruit' => 'bg-amber-100 text-amber-900 border-amber-300 font-black',
                             'sharing' => 'bg-emerald-50 text-emerald-600 border-emerald-200',
                             'info' => 'bg-amber-50 text-amber-600 border-amber-200',
                             'performance' => 'bg-purple-50 text-purple-600 border-purple-200',
@@ -749,6 +751,15 @@
                                             <span class="text-[10px] px-2 py-0.5 rounded-md border font-bold tracking-wider {{ $catColor }}">
                                                 {{ $catLabel }}
                                             </span>
+                                            @if($thread->category === 'ekskul_showcase')
+                                                <span class="text-[10px] px-2 py-0.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-md font-black shadow-2xs flex items-center gap-1">
+                                                    🏆 Official Ekskul
+                                                </span>
+                                            @elseif($thread->category === 'ekskul_recruit')
+                                                <span class="text-[10px] px-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-md font-black shadow-2xs flex items-center gap-1 animate-pulse">
+                                                    📢 Open Recruitment
+                                                </span>
+                                            @endif
                                             @if($thread->category === 'tanya_jawab')
                                                 @if($thread->hasAcceptedReply())
                                                     <span class="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md font-bold flex items-center gap-1">
@@ -863,6 +874,25 @@
                                             <i class="ph-bold ph-copy"></i> Salin ID
                                         </button>
                                         @endif
+                                    </div>
+                                @endif
+
+                                <!-- Ekskul Showcase & Recruitment Action Card -->
+                                @if(in_array($thread->category, ['ekskul_showcase', 'ekskul_recruit']))
+                                    <div class="mt-3 p-3.5 bg-gradient-to-r from-purple-50 via-indigo-50 to-pink-50 border border-purple-200 rounded-2xl flex items-center justify-between gap-3 shadow-2xs">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-lg flex-shrink-0 shadow-xs">
+                                                🏆
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="text-xs font-black text-purple-950 truncate">{{ $thread->group ? $thread->group->name : 'Ekstrakurikuler Yayasan Pembda' }}</div>
+                                                <div class="text-[11px] font-bold text-purple-700">Official Squad Showcase & Recruitment</div>
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('siswa.ekskul.index') }}" onclick="event.stopPropagation()" class="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 flex-shrink-0 shadow-xs active:scale-95">
+                                            <i class="ph-bold ph-sitemap"></i>
+                                            <span>Lihat Squad</span> &rarr;
+                                        </a>
                                     </div>
                                 @endif
 

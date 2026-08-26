@@ -44,6 +44,8 @@ class ForumThread extends Model
     public const CATEGORIES = [
         'diskusi' => '💬 Wall Diskusi Publik',
         'info' => '📢 Wall Pengumuman',
+        'ekskul_showcase' => '🏆 Ekskul & Prestasi',
+        'ekskul_recruit' => '📢 Open Recruitment Ekskul',
         'tanya_jawab' => '❓ Tanya Jawab',
         'sharing' => '📁 Bank File',
         'art_gallery' => '🎨 Karya Seni',
@@ -58,6 +60,7 @@ class ForumThread extends Model
 
     public const CHANNEL_GROUPS = [
         '🧱 WALL OBROLAN' => ['diskusi', 'info'],
+        '🏆 EKSTRAKURIKULER' => ['ekskul_showcase', 'ekskul_recruit'],
         '📚 AKADEMIK' => ['tanya_jawab', 'sharing'],
         '🎨 SHOWCASE' => ['art_gallery', 'talent', 'performance'],
         '🎮 HANGOUT' => ['gaming', 'trending'],

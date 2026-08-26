@@ -67,7 +67,19 @@ class StudentExtracurricularController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('siswa.extracurricular.index', compact('student', 'myMemberships', 'availableEkskuls', 'joinedEkskulIds'));
+        // Sorotan Update & Showcase Ekskul dari Pembda Space
+        $showcaseThreads = \App\Models\ForumThread::with(['user', 'group'])
+            ->where(function ($q) {
+                $q->whereIn('category', ['ekskul_showcase', 'ekskul_recruit'])
+                  ->orWhereHas('group', function ($gq) {
+                      $gq->where('type', 'extracurricular');
+                  });
+            })
+            ->latest()
+            ->take(4)
+            ->get();
+
+        return view('siswa.extracurricular.index', compact('student', 'myMemberships', 'availableEkskuls', 'joinedEkskulIds', 'showcaseThreads'));
     }
 
     /**

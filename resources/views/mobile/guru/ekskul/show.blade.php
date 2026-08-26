@@ -197,6 +197,14 @@
                     <textarea name="description" rows="2" placeholder="Catatan jalannya latihan..." class="w-full rounded-xl border-slate-300 text-slate-900"></textarea>
                 </div>
 
+                <div class="p-2.5 bg-purple-50 border border-purple-200 rounded-xl flex items-start gap-2.5">
+                    <input type="checkbox" name="broadcast_to_space" value="1" id="m_chk_broadcast" checked class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 mt-0.5">
+                    <label for="m_chk_broadcast" class="text-[11px] font-bold text-purple-950 cursor-pointer">
+                        <span>📢 Siarkan ke Pembda Space</span>
+                        <p class="text-[10px] font-normal text-purple-800">Otomatis diposting sebagai showcase ekskul.</p>
+                    </label>
+                </div>
+
                 <div class="pt-2 flex items-center justify-end gap-2">
                     <button type="button" @click="showAddActivityModal = false" class="px-3.5 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold">Batal</button>
                     <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-xs">Simpan</button>

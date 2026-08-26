@@ -225,6 +225,47 @@
         @endif
     </div>
 
+    {{-- SECTION: SOROTAN KEGIATAN & SHOWCASE EKSKUL TERKINI (PEMBDA SPACE INTEGRATION) --}}
+    @if(isset($showcaseThreads) && $showcaseThreads->isNotEmpty())
+    <div class="space-y-3 pt-2">
+        <div class="flex items-center justify-between">
+            <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <span class="p-1.5 rounded-lg bg-purple-100 text-purple-700 text-xs">🔥</span>
+                <span>Sorotan Kegiatan & Cerita Ekskul di Pembda Space</span>
+            </h2>
+            <a href="{{ route('forum.index', ['category' => 'ekskul_showcase']) }}" class="text-xs font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1">
+                <span>Lihat Semua Cerita</span> &rarr;
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @foreach($showcaseThreads as $scThread)
+            <a href="{{ route('forum.show', $scThread) }}" class="p-4 bg-gradient-to-r from-purple-50 via-indigo-50/50 to-white rounded-2xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-md transition flex items-start gap-3.5 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white text-lg font-black flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition">
+                    {{ $scThread->group?->icon ?? '🏆' }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                        <span class="px-2 py-0.5 rounded-md bg-purple-200 text-purple-950 font-black text-[10px]">
+                            {{ $scThread->group?->name ?? 'Official Ekskul' }}
+                        </span>
+                        <span class="text-[10px] text-slate-500 font-medium">
+                            {{ $scThread->created_at->diffForHumans() }}
+                        </span>
+                    </div>
+                    <h3 class="text-xs font-black text-slate-900 group-hover:text-purple-700 line-clamp-1 transition">
+                        {{ $scThread->title }}
+                    </h3>
+                    <p class="text-[11px] text-slate-600 font-medium line-clamp-2 mt-0.5 leading-snug">
+                        {{ Str::limit(strip_tags($scThread->content), 120) }}
+                    </p>
+                </div>
+            </a>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     {{-- SECTION 2: KATALOG EKSKUL TERSEDIA (VIBRANT) --}}
     <div class="space-y-3 pt-4">
         <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">

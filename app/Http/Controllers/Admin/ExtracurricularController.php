@@ -341,14 +341,20 @@ class ExtracurricularController extends Controller
             'activity_date' => 'required|date',
             'location' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'broadcast_to_space' => 'nullable|boolean',
         ]);
 
         $validated['extracurricular_id'] = $extracurricular->id;
         $validated['created_by'] = Auth::id();
 
-        ExtracurricularActivity::create($validated);
+        $activity = ExtracurricularActivity::create($validated);
 
-        return back()->with('success', 'Catatan aktivitas latihan berhasil disimpan.');
+        if ($request->boolean('broadcast_to_space')) {
+            $service = app(\App\Services\ExtracurricularService::class);
+            $service->broadcastActivityToSpace($activity, Auth::user());
+        }
+
+        return back()->with('success', 'Catatan aktivitas latihan berhasil disimpan' . ($request->boolean('broadcast_to_space') ? ' dan disiarkan ke Pembda Space.' : '.'));
     }
 
     /**

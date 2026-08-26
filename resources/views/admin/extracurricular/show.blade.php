@@ -621,6 +621,17 @@
                 <textarea name="description" rows="3" placeholder="Uraian ringkas materi yang dilatih dan catatan kehadiran anggota..." class="w-full rounded-2xl border-2 border-slate-300 text-slate-900 p-3"></textarea>
             </div>
 
+            <div class="p-3.5 bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-2xl flex items-start gap-3">
+                <input type="checkbox" name="broadcast_to_space" value="1" id="chk_broadcast" checked class="w-5 h-5 rounded-lg border-2 border-purple-400 text-purple-600 focus:ring-purple-500 mt-0.5 cursor-pointer">
+                <label for="chk_broadcast" class="cursor-pointer">
+                    <div class="font-black text-purple-950 text-xs flex items-center gap-1.5">
+                        <span>📢 Siarkan ke Feed Pembda Space</span>
+                        <span class="px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 text-[10px] font-black">Showcase</span>
+                    </div>
+                    <p class="text-[11px] text-purple-800 font-medium mt-0.5">Otomatis membuat postingan showcase di Pembda Space agar dapat dilihat dan diapresiasi seluruh siswa/guru.</p>
+                </label>
+            </div>
+
             <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
                 <button type="button" onclick="document.getElementById('modalAddActivity').classList.add('hidden')" class="px-5 py-3 bg-slate-100 text-slate-800 rounded-2xl font-bold">Batal</button>
                 <button type="submit" class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-2xl font-black shadow-md active:scale-95">Simpan Kegiatan</button>

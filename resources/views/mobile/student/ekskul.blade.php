@@ -50,6 +50,34 @@
         </div>
     </div>
 
+    {{-- Sorotan Cerita Ekskul di Pembda Space --}}
+    @if(isset($showcaseThreads) && $showcaseThreads->isNotEmpty())
+    <div class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                <span>🔥</span>
+                <span>Sorotan Kegiatan Ekskul</span>
+            </h3>
+            <a href="{{ route('mobile.space.index') }}" class="text-[10px] font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1">
+                <span>Buka Space</span> &rarr;
+            </a>
+        </div>
+
+        <div class="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+            @foreach($showcaseThreads as $scThread)
+            <a href="{{ route('mobile.space.show', $scThread) }}" class="min-w-[220px] max-w-[240px] p-3 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 shadow-2xs space-y-1.5 shrink-0 block active:scale-95 transition">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-sm p-1 rounded-lg bg-white shadow-2xs">{{ $scThread->group?->icon ?? '🏆' }}</span>
+                    <span class="text-[9px] font-black text-purple-950 truncate">{{ $scThread->group?->name ?? 'Ekskul Resmi' }}</span>
+                </div>
+                <h4 class="text-[11px] font-bold text-slate-900 line-clamp-1">{{ $scThread->title }}</h4>
+                <p class="text-[10px] text-slate-500 line-clamp-1 font-medium">{{ Str::limit(strip_tags($scThread->content), 60) }}</p>
+            </a>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     {{-- Tabs Segmented Control --}}
     <div class="bg-slate-100 p-1 rounded-2xl flex text-xs font-bold border border-slate-200 shadow-2xs">
         <button @click="activeTab = 'my'" :class="activeTab === 'my' ? 'bg-white text-indigo-800 shadow-xs font-black border border-slate-200' : 'text-slate-600'" class="flex-1 py-2 rounded-xl transition flex items-center justify-center gap-1.5">

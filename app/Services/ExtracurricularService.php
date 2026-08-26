@@ -249,4 +249,34 @@ class ExtracurricularService
         $ekskul->update(['forum_group_id' => $forumGroup->id]);
         return $forumGroup;
     }
+
+    /**
+     * Broadcast an extracurricular activity to Pembda Space as a showcase post.
+     */
+    public function broadcastActivityToSpace(ExtracurricularActivity $activity, User $author): ForumThread
+    {
+        $ekskul = $activity->extracurricular;
+        $forumGroup = $this->ensureForumGroup($ekskul);
+
+        $dateFormatted = \Carbon\Carbon::parse($activity->activity_date)->locale('id')->isoFormat('D MMMM Y');
+        $locationText = $activity->location ? "📍 **Lokasi:** {$activity->location}\n" : "";
+
+        $content = "🏆 **DOKUMENTASI & CATATAN KEGIATAN EKSKUL**\n\n" .
+            "📅 **Tanggal Kegiatan:** {$dateFormatted}\n" .
+            $locationText .
+            ($activity->description ? "\n📝 **Catatan & Ringkasan Aktivitas:**\n" . $activity->description . "\n\n" : "\n") .
+            "---\n" .
+            "✨ *Dipublikasikan secara resmi oleh Pembina " . ($ekskul->name) . " melalui Pembda Space.*";
+
+        return ForumThread::create([
+            'user_id' => $author->id,
+            'group_id' => $forumGroup->id,
+            'title' => "🏆 [SHOWCASE " . strtoupper($ekskul->name) . "] " . $activity->title,
+            'content' => $content,
+            'category' => 'ekskul_showcase',
+            'status' => 'active',
+            'is_pinned' => false,
+            'views_count' => 1,
+        ]);
+    }
 }

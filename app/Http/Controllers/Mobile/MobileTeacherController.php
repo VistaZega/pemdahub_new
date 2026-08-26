@@ -2059,14 +2059,20 @@ class MobileTeacherController extends Controller
             'activity_date' => 'required|date',
             'location' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'broadcast_to_space' => 'nullable|boolean',
         ]);
 
         $validated['extracurricular_id'] = $extracurricular->id;
         $validated['created_by'] = Auth::id();
 
-        \App\Models\ExtracurricularActivity::create($validated);
+        $activity = \App\Models\ExtracurricularActivity::create($validated);
 
-        return back()->with('success', 'Log kegiatan latihan berhasil dicatat.');
+        if ($request->boolean('broadcast_to_space')) {
+            $service = app(\App\Services\ExtracurricularService::class);
+            $service->broadcastActivityToSpace($activity, Auth::user());
+        }
+
+        return back()->with('success', 'Log kegiatan latihan berhasil dicatat' . ($request->boolean('broadcast_to_space') ? ' dan disiarkan ke Pembda Space.' : '.'));
     }
 
     /**
