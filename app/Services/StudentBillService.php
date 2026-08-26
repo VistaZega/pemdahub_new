@@ -49,12 +49,14 @@ class StudentBillService
 
         $paymentType = PaymentType::find($validated['payment_type_id']);
         
-        // Use custom amount if provided, otherwise fallback to payment type default
+        // Use custom amount if provided, otherwise fallback to payment type default or bill amount
         $yayasanShareAmount = null;
-        if (array_key_exists('monthly_yayasan_share_amount', $validated) && $validated['monthly_yayasan_share_amount'] !== null) {
-            $yayasanShareAmount = $validated['monthly_yayasan_share_amount'];
+        if (array_key_exists('monthly_yayasan_share_amount', $validated) && $validated['monthly_yayasan_share_amount'] !== null && $validated['monthly_yayasan_share_amount'] !== '') {
+            $yayasanShareAmount = (float) $validated['monthly_yayasan_share_amount'];
         } elseif ($paymentType) {
-            $yayasanShareAmount = $paymentType->yayasan_share_amount;
+            $yayasanShareAmount = (float) ($paymentType->yayasan_share_amount ?? $paymentType->amount ?? $amount);
+        } else {
+            $yayasanShareAmount = (float) $amount;
         }
         $billsCreated = 0;
 
@@ -152,12 +154,14 @@ class StudentBillService
         
         $paymentType = PaymentType::find($validated['payment_type_id']);
         
-        // Use custom amount if provided, otherwise fallback to payment type default
+        // Use custom amount if provided, otherwise fallback to payment type default or bill amount
         $yayasanShareAmount = null;
-        if (array_key_exists('yayasan_share_amount', $validated) && $validated['yayasan_share_amount'] !== null) {
-            $yayasanShareAmount = $validated['yayasan_share_amount'];
+        if (array_key_exists('yayasan_share_amount', $validated) && $validated['yayasan_share_amount'] !== null && $validated['yayasan_share_amount'] !== '') {
+            $yayasanShareAmount = (float) $validated['yayasan_share_amount'];
         } elseif ($paymentType) {
-            $yayasanShareAmount = $paymentType->yayasan_share_amount;
+            $yayasanShareAmount = (float) ($paymentType->yayasan_share_amount ?? $paymentType->amount ?? $amount);
+        } else {
+            $yayasanShareAmount = (float) $amount;
         }
 
         $billsCreated = 0;

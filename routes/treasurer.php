@@ -34,9 +34,12 @@ Route::prefix('bendahara')->name('treasurer.')->middleware('auth', 'treasurer')-
     // Reports
     Route::get('reports', [App\Http\Controllers\Treasurer\ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/export', [App\Http\Controllers\Treasurer\ReportController::class, 'export'])->name('reports.export');
+    Route::get('reports/bku', [App\Http\Controllers\Treasurer\ReportController::class, 'bku'])->name('reports.bku');
+    Route::get('reports/bku/pdf', [App\Http\Controllers\Treasurer\ReportController::class, 'exportBkuPdf'])->name('reports.bku.pdf');
     
     // Yayasan Consolidation Report
     Route::get('konsolidasi-yayasan', [App\Http\Controllers\Treasurer\ConsolidationReportController::class, 'index'])->name('consolidation.index');
+    Route::get('konsolidasi-yayasan/pdf', [App\Http\Controllers\Treasurer\ConsolidationReportController::class, 'exportPdf'])->name('consolidation.export_pdf');
     
     // Kepegawaian & Penugasan Jabatan (Read-Only)
     Route::get('assignments/positions', [App\Http\Controllers\Treasurer\PositionAssignmentController::class, 'index'])->name('assignments.positions.index');

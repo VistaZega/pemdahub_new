@@ -7,9 +7,14 @@
             <h1 class="text-2xl font-bold text-gray-800">Laporan Konsolidasi Yayasan</h1>
             <p class="text-gray-500 text-sm mt-1">Laporan Keuangan Bulanan dari Bendahara ke Yayasan</p>
         </div>
-        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors flex items-center gap-2">
-            <i class="fas fa-print"></i> Cetak Laporan
-        </button>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('treasurer.consolidation.export_pdf', ['month' => $month, 'year' => $year]) }}" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors flex items-center gap-2">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </a>
+            <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors flex items-center gap-2">
+                <i class="fas fa-print"></i> Cetak Laporan
+            </button>
+        </div>
     </div>
 
     <!-- Filter Bar -->

@@ -421,6 +421,12 @@ class StudentBillController extends Controller
                 $months = [null];
             }
 
+            // Determine yayasan share amount
+            $paymentType = PaymentType::find($request->payment_type_id);
+            $yayasanShareAmount = $request->billing_type == 'monthly'
+                ? ($request->filled('monthly_yayasan_share_amount') ? (float)$request->monthly_yayasan_share_amount : (float)($paymentType?->yayasan_share_amount ?? $paymentType?->amount ?? $amount))
+                : ($request->filled('yayasan_share_amount') ? (float)$request->yayasan_share_amount : (float)($paymentType?->yayasan_share_amount ?? $paymentType?->amount ?? $amount));
+
             foreach ($students as $student) {
                 foreach ($months as $month) {
                     // Determine year based on month using academic year base
@@ -449,6 +455,7 @@ class StudentBillController extends Controller
                             'month' => $month,
                             'year' => $year,
                             'amount' => $amount,
+                            'yayasan_share_amount' => $yayasanShareAmount,
                             'paid_amount' => 0,
                             'status' => 'belum_bayar',
                         ]);

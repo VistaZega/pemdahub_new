@@ -218,4 +218,157 @@ class ReportController extends Controller
             'laporan-pembayaran-' . now()->format('Y-m-d') . '.xlsx'
         );
     }
+
+    /**
+     * Laporan Buku Kas Umum (BKU) Unit Sekolah
+     */
+    public function bku(Request $request)
+    {
+        $schoolId = auth()->user()->school_id;
+        $school = \App\Models\School::findOrFail($schoolId);
+
+        $month = (int) $request->get('month', now()->month);
+        $year = (int) $request->get('year', now()->year);
+
+        $bkuData = $this->getBkuData($schoolId, $month, $year);
+
+        return view('treasurer.reports.bku', array_merge($bkuData, compact('school', 'month', 'year')));
+    }
+
+    /**
+     * Export Buku Kas Umum (BKU) ke PDF
+     */
+    public function exportBkuPdf(Request $request)
+    {
+        $schoolId = auth()->user()->school_id;
+        $school = \App\Models\School::findOrFail($schoolId);
+
+        $month = (int) $request->get('month', now()->month);
+        $year = (int) $request->get('year', now()->year);
+
+        $bkuData = $this->getBkuData($schoolId, $month, $year);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('treasurer.reports.bku_pdf', array_merge($bkuData, compact('school', 'month', 'year')));
+        $pdf->setPaper('A4', 'landscape');
+
+        $fileName = 'Buku-Kas-Umum-' . str_replace(' ', '-', $school->name) . "-{$month}-{$year}.pdf";
+
+        return $pdf->download($fileName);
+    }
+
+    /**
+     * Helper penghimpun data BKU
+     */
+    private function getBkuData(int $schoolId, int $month, int $year): array
+    {
+        // 1. Kas Masuk Pembayaran Siswa
+        $studentPayments = Payment::with(['bill.paymentType', 'student'])
+            ->whereHas('student', fn($q) => $q->where('school_id', $schoolId))
+            ->whereMonth('payment_date', $month)
+            ->whereYear('payment_date', $year)
+            ->where('is_verified', true)
+            ->get();
+
+        // 2. Kas Masuk PSB
+        $psbPayments = \App\Models\ApplicantPayment::with('applicant')
+            ->whereHas('applicant', fn($q) => $q->where('school_id', $schoolId))
+            ->whereNotNull('verified_at')
+            ->whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->get();
+
+        // 3. Kas Keluar Operasional
+        $opsExpenses = \App\Models\OperationalExpense::with('expenseCategory')
+            ->where('school_id', $schoolId)
+            ->whereMonth('expense_date', $month)
+            ->whereYear('expense_date', $year)
+            ->get();
+
+        // 4. Kas Keluar Gaji
+        $activeYear = AcademicYear::where('is_active', true)->first();
+        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+        $assignmentService = app(\App\Services\EmployeeAssignmentService::class);
+
+        $employees = \App\Models\Employee::where('school_id', $schoolId)->where('is_active', true)->get();
+        $salaryTotal = 0;
+        if ($activeYear && $activeSemester) {
+            foreach ($employees as $emp) {
+                $sal = $assignmentService->calculateFullSalary($emp, $activeYear, $activeSemester, null, $schoolId);
+                $salaryTotal += (float)($sal['thp'] ?? 0);
+            }
+        }
+
+        // Susun Jurnal Kronologis
+        $transactions = collect();
+
+        foreach ($studentPayments as $p) {
+            $typeName = $p->bill->paymentType->type_name ?? 'Pembayaran';
+            $studentName = $p->student->full_name ?? '-';
+            $transactions->push([
+                'date' => $p->payment_date ? \Carbon\Carbon::parse($p->payment_date)->format('Y-m-d') : now()->format('Y-m-d'),
+                'ref_no' => $p->receipt_number ?? "PAY-{$p->id}",
+                'description' => "Penerimaan {$typeName} a.n. {$studentName}",
+                'type' => 'in',
+                'debit' => (float)$p->amount_paid,
+                'credit' => 0,
+            ]);
+        }
+
+        foreach ($psbPayments as $psb) {
+            $applicantName = $psb->applicant->full_name ?? '-';
+            $transactions->push([
+                'date' => $psb->created_at ? $psb->created_at->format('Y-m-d') : now()->format('Y-m-d'),
+                'ref_no' => $psb->transaction_id ?? "PSB-{$psb->id}",
+                'description' => "Penerimaan Pendaftaran Siswa Baru (PSB) a.n. {$applicantName}",
+                'type' => 'in',
+                'debit' => (float)$psb->amount,
+                'credit' => 0,
+            ]);
+        }
+
+        foreach ($opsExpenses as $exp) {
+            $catName = $exp->expenseCategory->name ?? 'Operasional';
+            $transactions->push([
+                'date' => $exp->expense_date ? \Carbon\Carbon::parse($exp->expense_date)->format('Y-m-d') : now()->format('Y-m-d'),
+                'ref_no' => "EXP-{$exp->id}",
+                'description' => "Pengeluaran {$catName}: {$exp->title}",
+                'type' => 'out',
+                'debit' => 0,
+                'credit' => (float)$exp->amount,
+            ]);
+        }
+
+        if ($salaryTotal > 0) {
+            $lastDay = \Carbon\Carbon::create($year, $month, 1)->endOfMonth()->format('Y-m-d');
+            $transactions->push([
+                'date' => $lastDay,
+                'ref_no' => "GAJI-{$year}-{$month}",
+                'description' => "Pengeluaran Gaji & Tunjangan Pegawai Bulan " . \Carbon\Carbon::create($year, $month, 1)->translatedFormat('F Y'),
+                'type' => 'out',
+                'debit' => 0,
+                'credit' => $salaryTotal,
+            ]);
+        }
+
+        $sortedTransactions = $transactions->sortBy('date')->values();
+
+        $totalDebit = $sortedTransactions->sum('debit');
+        $totalCredit = $sortedTransactions->sum('credit');
+        $netEndingBalance = $totalDebit - $totalCredit;
+
+        // Hitung Running Balance
+        $runningBalance = 0;
+        $formattedJournal = $sortedTransactions->map(function ($item) use (&$runningBalance) {
+            $runningBalance += ($item['debit'] - $item['credit']);
+            $item['balance'] = $runningBalance;
+            return $item;
+        });
+
+        return [
+            'transactions' => $formattedJournal,
+            'totalDebit' => $totalDebit,
+            'totalCredit' => $totalCredit,
+            'netEndingBalance' => $netEndingBalance,
+        ];
+    }
 }

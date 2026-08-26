@@ -38,7 +38,18 @@ class ConsolidationReportController extends Controller
             ->where('is_verified', true)
             ->get();
 
-        $grossIncome = $payments->sum('amount_paid');
+        // 1b. Pendapatan Pendaftaran Siswa Baru (PSB) Terverifikasi
+        $psbPayments = \App\Models\ApplicantPayment::with('applicant')
+            ->whereHas('applicant', function ($query) use ($schoolId) {
+                $query->where('school_id', $schoolId);
+            })
+            ->whereNotNull('verified_at')
+            ->whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->get();
+
+        $psbIncomeTotal = $psbPayments->sum('amount');
+        $grossIncome = $payments->sum('amount_paid') + $psbIncomeTotal;
         
         // Menghitung Kas Sekolah (Selisih dari tagihan kotor vs porsi yayasan)
         // Jika yayasan_share_amount null, maka tidak ada kas sekolah (seluruhnya yayasan)
@@ -79,12 +90,6 @@ class ConsolidationReportController extends Controller
                 }
             }
             
-            // Hitung school share untuk payment ini
-            // Asumsi: Jika payment_amount >= bill->amount, maka school share full.
-            // Jika parsial, proporsional atau kita hitung selisih dari bill->yayasan_share_amount
-            // Paling aman: School Share = bill->amount - bill->yayasan_share_amount (batas max),
-            // Tapi karena pembayaran bisa sebagian, kita ambil (amount_paid - yayasan_share_amount).
-            // Jika amount_paid < yayasan_share_amount, maka 0 (prioritas bayar yayasan dulu).
             $yayasanShare = $bill->yayasan_share_amount ?? $bill->amount;
             
             if ($paymentAmount > $yayasanShare) {
@@ -113,6 +118,10 @@ class ConsolidationReportController extends Controller
                 $displayKey = $key . " (" . $data['count'] . " Transaksi)";
             }
             $incomeDetails[$displayKey] = $data['amount'];
+        }
+
+        if ($psbIncomeTotal > 0) {
+            $incomeDetails["Pendaftaran Siswa Baru (PSB) (" . $psbPayments->count() . " Transaksi)"] = $psbIncomeTotal;
         }
 
         // 2. PENGELUARAN GAJI

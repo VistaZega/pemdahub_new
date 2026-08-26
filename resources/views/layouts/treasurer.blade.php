@@ -93,6 +93,10 @@
                     <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-400 to-red-600 flex items-center justify-center text-white"><i class="fas fa-file-invoice-dollar text-[10px]"></i></div>
                     <span>Laporan Konsolidasi Yayasan</span>
                 </a>
+                <a href="{{ route('treasurer.reports.bku') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('treasurer.reports.bku*') ? $ac : $nc }}">
+                    <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-book-bookmark text-[10px]"></i></div>
+                    <span>Buku Kas Umum (BKU)</span>
+                </a>
             </div>
         </div>
 

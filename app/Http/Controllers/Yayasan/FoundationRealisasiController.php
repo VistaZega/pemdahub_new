@@ -232,13 +232,13 @@ class FoundationRealisasiController extends Controller
             $sumSalaryPeriod = $sumSalaryMonthly * $multiplier;
             $grandTotalSalary += $sumSalaryPeriod;
 
-            // Operasional
+            // Operasional Pagu (RAB)
             $contribution = SchoolContribution::where('school_id', $school->id)
                 ->where('academic_year_id', $activeYear->id ?? 0)
                 ->first();
 
             $rawSavedDetails = $contribution->expense_details ?? [];
-            $sumOpsMonthly = 0;
+            $sumOpsMonthlyRab = 0;
             
             $opsBreakdown = [];
             foreach ($operationalAccounts as $code => $acc) {
@@ -250,16 +250,32 @@ class FoundationRealisasiController extends Controller
                 } else {
                     $amt = 0;
                 }
-                $sumOpsMonthly += $amt;
+                $sumOpsMonthlyRab += $amt;
                 $opsBreakdown[$code] = [
                     'name' => $acc['name'],
                     'amount' => $amt * $multiplier
                 ];
             }
-            $sumOpsPeriod = $sumOpsMonthly * $multiplier;
-            $grandTotalOperational += $sumOpsPeriod;
+            $sumOpsPeriodRab = $sumOpsMonthlyRab * $multiplier;
 
-            $totalExpensePeriod = $sumSalaryPeriod + $sumOpsPeriod;
+            // Operasional Riil (Realisasi Pengeluaran Riil Sekolah)
+            $realizedOpsQuery = \App\Models\OperationalExpense::where('school_id', $school->id);
+            if ($periodMode === 'annual') {
+                if ($activeYear) {
+                    $realizedOpsQuery->where('academic_year_id', $activeYear->id);
+                }
+            } else {
+                $realizedOpsQuery->whereMonth('expense_date', $month)->whereYear('expense_date', $year);
+            }
+            $sumOpsPeriodRealized = (float) $realizedOpsQuery->sum('amount');
+            
+            // Ops yang digunakan untuk total pengeluaran kas:
+            // Jika ada transaksi riil operational_expenses, gunakan nilai riil. Jika belum ada, gunakan pagu RAB sebagai acuan.
+            $effectiveOpsPeriod = $sumOpsPeriodRealized > 0 ? $sumOpsPeriodRealized : $sumOpsPeriodRab;
+
+            $grandTotalOperational += $effectiveOpsPeriod;
+
+            $totalExpensePeriod = $sumSalaryPeriod + $effectiveOpsPeriod;
             $grandTotalExpense += $totalExpensePeriod;
 
             $schoolIncome = $incomeData[$school->id]['income_total'] ?? 0;
@@ -270,8 +286,10 @@ class FoundationRealisasiController extends Controller
                 'emp_count' => $empCount,
                 'salary_monthly' => $sumSalaryMonthly,
                 'salary_period' => $sumSalaryPeriod,
-                'ops_monthly' => $sumOpsMonthly,
-                'ops_period' => $sumOpsPeriod,
+                'ops_rab_period' => $sumOpsPeriodRab,
+                'ops_realized_period' => $sumOpsPeriodRealized,
+                'ops_period' => $effectiveOpsPeriod,
+                'ops_variance' => $sumOpsPeriodRab - $sumOpsPeriodRealized,
                 'ops_breakdown' => $opsBreakdown,
                 'total_expense' => $totalExpensePeriod,
                 'income' => $schoolIncome,
