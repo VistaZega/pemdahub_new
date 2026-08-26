@@ -1328,6 +1328,64 @@ class MobileTeacherController extends Controller
     }
 
     /**
+     * Justifikasi Prestasi Siswa oleh Wali Kelas di Mobile
+     */
+    public function justifyPrestasi(Request $request, $id)
+    {
+        $achievement = StudentAchievement::with('student')->findOrFail($id);
+        $student = $achievement->student;
+
+        $action = $request->input('action', 'approve');
+        $notes = $request->input('notes');
+
+        if ($action === 'reject' && empty(trim($notes ?? ''))) {
+            return back()->with('error', 'Alasan penolakan wajib diisi saat menolak prestasi.');
+        }
+
+        if ($action === 'approve') {
+            $achievement->update([
+                'status'             => 'verified',
+                'verified_by'        => Auth::id(),
+                'verified_at'        => now(),
+                'verification_notes' => $notes ?? 'Prestasi telah diverifikasi dan diakui oleh Wali Kelas.',
+            ]);
+
+            if ($student?->user_id) {
+                ReputationLog::log(
+                    $student->user_id,
+                    $achievement->points,
+                    'achievement',
+                    "Penghargaan Prestasi: {$achievement->title} (" . strtoupper($achievement->level_label) . ")",
+                    $achievement
+                );
+            }
+
+            return back()->with('success', "Prestasi '{$achievement->title}' berhasil DIAKUI. Poin reputasi (+{$achievement->points} Pts) tetap sah!");
+        }
+
+        if ($action === 'reject') {
+            $achievement->update([
+                'status'             => 'rejected',
+                'verified_by'        => Auth::id(),
+                'verified_at'        => now(),
+                'verification_notes' => $notes,
+            ]);
+
+            if ($student?->user_id) {
+                ReputationLog::removeLog(
+                    $student->user_id,
+                    StudentAchievement::class,
+                    $achievement->id
+                );
+            }
+
+            return back()->with('success', "Prestasi '{$achievement->title}' TIDAK DIAKUI. Poin reputasi ({$achievement->points} Pts) telah ditarik kembali.");
+        }
+
+        return back();
+    }
+
+    /**
      * Hapus Catatan Prestasi
      */
     public function destroyPrestasi($id)

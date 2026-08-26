@@ -709,6 +709,7 @@ class DashboardController extends Controller
     public function konseling()
     {
         $student = $this->getStudent();
+        $student->load(['user.reputation', 'school']);
         $classroom = $this->getCurrentClassroom($student);
 
         $counselingRecords = $student->counselingRecords()
@@ -721,11 +722,90 @@ class DashboardController extends Controller
             ->get();
 
         $achievements = \App\Models\StudentAchievement::where('student_id', $student->id)
-            ->with(['academicYear'])
+            ->with(['academicYear', 'verifiedBy'])
             ->orderByDesc('achievement_date')
+            ->orderByDesc('id')
             ->get();
 
-        return view('siswa.konseling', compact('student', 'classroom', 'counselingRecords', 'achievements'));
+        $stats = [
+            'total_achievements' => $achievements->count(),
+            'verified_count'     => $achievements->where('status', 'verified')->count(),
+            'pending_count'      => $achievements->where('status', 'pending')->count(),
+            'rejected_count'     => $achievements->where('status', 'rejected')->count(),
+            'reputation_points'  => $student->user?->reputation?->total_points ?? 0,
+            'level_name'         => $student->user?->reputation?->level_name ?? 'Newbie',
+            'level_color'        => $student->user?->reputation?->level_color ?? 'slate',
+        ];
+
+        return view('siswa.konseling', compact('student', 'classroom', 'counselingRecords', 'achievements', 'stats'));
+    }
+
+    /**
+     * Upload Prestasi Mandiri oleh Siswa
+     */
+    public function storePrestasi(Request $request)
+    {
+        $student = $this->getStudent();
+
+        $validated = $request->validate([
+            'title'            => 'required|string|max:255',
+            'type'             => 'required|in:academic,sport,art,competition,other',
+            'level'            => 'required|in:school,district,city,province,national,international',
+            'rank'             => 'nullable|in:winner,runner_up,third_place,participant',
+            'achievement_date' => 'required|date|before_or_equal:today',
+            'description'      => 'nullable|string|max:1000',
+            'certificate_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ], [
+            'title.required'            => 'Nama prestasi atau kejuaraan wajib diisi.',
+            'type.required'             => 'Kategori/bidang prestasi wajib dipilih.',
+            'level.required'            => 'Tingkat kejuaraan wajib dipilih.',
+            'achievement_date.required' => 'Tanggal perolehan prestasi wajib diisi.',
+            'achievement_date.before_or_equal' => 'Tanggal perolehan tidak boleh melebihi hari ini.',
+            'certificate_file.required' => 'Dokumen bukti/sertifikat/piagam wajib diunggah.',
+            'certificate_file.mimes'    => 'Format dokumen harus berupa PDF, JPG, JPEG, atau PNG.',
+            'certificate_file.max'      => 'Ukuran file dokumen bukti maksimal 10MB.',
+        ]);
+
+        $certificatePath = null;
+        if ($request->hasFile('certificate_file')) {
+            $certificatePath = $request->file('certificate_file')->store('achievements', 'public');
+        }
+
+        $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
+        $points = \App\Models\StudentAchievement::calculatePoints($validated['level'], $validated['rank'] ?? null);
+
+        $achievement = \App\Models\StudentAchievement::create([
+            'student_id'       => $student->id,
+            'academic_year_id' => $activeYear?->id,
+            'title'            => $validated['title'],
+            'type'             => $validated['type'],
+            'level'            => $validated['level'],
+            'rank'             => $validated['rank'] ?? null,
+            'achievement_date' => $validated['achievement_date'],
+            'description'      => $validated['description'] ?? null,
+            'certificate_file' => $certificatePath,
+            'status'           => 'pending',
+            'points'           => $points,
+            'created_by'       => Auth::id(),
+        ]);
+
+        // Langsung berikan poin reputasi seketika kepada siswa
+        try {
+            if ($student->user_id) {
+                \App\Models\ReputationLog::log(
+                    $student->user_id,
+                    $points,
+                    'achievement',
+                    "Penghargaan Prestasi: {$achievement->title} (" . strtoupper($achievement->level_label) . ")",
+                    $achievement
+                );
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Pencatatan poin reputasi prestasi siswa gagal: ' . $e->getMessage());
+        }
+
+        return redirect()->route('siswa.konseling')
+            ->with('success', "Prestasi '{$achievement->title}' berhasil diunggah! Poin reputasi (+{$points} Poin) telah otomatis aktif di akun Anda dan menunggu justifikasi oleh Wali Kelas.");
     }
 
     /**

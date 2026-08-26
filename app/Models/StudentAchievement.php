@@ -21,11 +21,18 @@ class StudentAchievement extends Model
         'achievement_date',
         'description',
         'certificate_file',
+        'status',
+        'points',
+        'verified_by',
+        'verified_at',
+        'verification_notes',
         'created_by',
     ];
 
     protected $casts = [
         'achievement_date' => 'date',
+        'verified_at'      => 'datetime',
+        'points'           => 'integer',
     ];
 
     /**
@@ -50,6 +57,65 @@ class StudentAchievement extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Relationship: Achievement verified by Homeroom Teacher / Admin
+     */
+    public function verifiedBy()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    /**
+     * Calculate Standard Reputation Points based on Level & Rank
+     */
+    public static function calculatePoints(string $level, ?string $rank = null): int
+    {
+        $levelPoints = [
+            'international' => 500,
+            'national'      => 400,
+            'province'      => 300,
+            'city'          => 200,
+            'district'      => 100,
+            'school'        => 50,
+        ];
+
+        $rankBonus = [
+            'winner'      => 50,
+            'runner_up'   => 30,
+            'third_place' => 20,
+            'participant' => 0,
+        ];
+
+        $base = $levelPoints[$level] ?? 50;
+        $bonus = $rank ? ($rankBonus[$rank] ?? 0) : 0;
+
+        return $base + $bonus;
+    }
+
+    /**
+     * Get status label in Indonesian
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return match($this->status) {
+            'verified' => 'Diakui oleh Wali Kelas',
+            'rejected' => 'Tidak Diakui (Poin Ditarik)',
+            default    => 'Menunggu Justifikasi',
+        };
+    }
+
+    /**
+     * Get status badge styling
+     */
+    public function getStatusBadgeAttribute(): string
+    {
+        return match($this->status) {
+            'verified' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
+            'rejected' => 'bg-rose-100 text-rose-800 border-rose-300',
+            default    => 'bg-amber-100 text-amber-800 border-amber-300',
+        };
     }
 
     /**
@@ -134,5 +200,29 @@ class StudentAchievement extends Model
     public function scopeByAcademicYear($query, $academicYearId)
     {
         return $query->where('academic_year_id', $academicYearId);
+    }
+
+    /**
+     * Scope: Filter pending verification
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    /**
+     * Scope: Filter verified
+     */
+    public function scopeVerified($query)
+    {
+        return $query->where('status', 'verified');
+    }
+
+    /**
+     * Scope: Filter rejected
+     */
+    public function scopeRejected($query)
+    {
+        return $query->where('status', 'rejected');
     }
 }

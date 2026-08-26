@@ -21,6 +21,7 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
     Route::post('/attendance/gps-scan', [App\Http\Controllers\Api\AttendanceController::class, 'handleGpsScan'])->name('attendance.gps-scan');
     Route::get('/profil', [App\Http\Controllers\Siswa\DashboardController::class, 'profil'])->name('profil');
     Route::get('/konseling', [App\Http\Controllers\Siswa\DashboardController::class, 'konseling'])->name('konseling');
+    Route::post('/prestasi', [App\Http\Controllers\Siswa\DashboardController::class, 'storePrestasi'])->name('prestasi.store');
 
     // DNA Akademik Siswa 360°
     Route::prefix('dna')->name('dna.')->group(function () {

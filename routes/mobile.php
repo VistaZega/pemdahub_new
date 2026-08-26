@@ -120,6 +120,7 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::get('/raport', [MobileTeacherController::class, 'raport'])->name('raport');
             Route::get('/catatan-siswa', [MobileTeacherController::class, 'catatanIndex'])->name('catatan-siswa');
             Route::post('/catatan-siswa/prestasi', [MobileTeacherController::class, 'storePrestasi'])->name('catatan-siswa.prestasi.store');
+            Route::post('/catatan-siswa/prestasi/{id}/justify', [MobileTeacherController::class, 'justifyPrestasi'])->name('catatan-siswa.prestasi.justify');
             Route::post('/catatan-siswa/pembinaan', [MobileTeacherController::class, 'storePembinaan'])->name('catatan-siswa.pembinaan.store');
             Route::post('/catatan-siswa/perkembangan', [MobileTeacherController::class, 'storePerkembangan'])->name('catatan-siswa.perkembangan.store');
             Route::delete('/catatan-siswa/prestasi/{id}', [MobileTeacherController::class, 'destroyPrestasi'])->name('catatan-siswa.prestasi.destroy');

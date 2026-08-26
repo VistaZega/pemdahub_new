@@ -22,12 +22,19 @@
         $nc = 'text-slate-900 font-bold hover:bg-slate-100 hover:text-black';
         
         $isWaliKelas = false;
+        $pendingPrestasiCount = 0;
         $activeYearId = \App\Models\AcademicYear::where('is_active', true)->value('id');
         $teacherId = \App\Models\Teacher::where('user_id', auth()->id())->value('id');
         if (!$isPegawaiOnly && $activeYearId && $teacherId) {
-            $isWaliKelas = \App\Models\Classroom::where('homeroom_teacher_id', $teacherId)
+            $homeroomClassIds = \App\Models\Classroom::where('homeroom_teacher_id', $teacherId)
                 ->where('academic_year_id', $activeYearId)
-                ->exists();
+                ->pluck('id');
+            $isWaliKelas = $homeroomClassIds->isNotEmpty();
+            if ($isWaliKelas) {
+                $pendingPrestasiCount = \App\Models\StudentAchievement::whereHas('student.classrooms', function($q) use ($homeroomClassIds) {
+                    $q->whereIn('classrooms.id', $homeroomClassIds);
+                })->where('status', 'pending')->count();
+            }
         }
     @endphp
 
@@ -67,6 +74,19 @@
     </a>
 
     @if($isWaliKelas)
+    <!-- Justifikasi Prestasi Siswa (Wali Kelas) -->
+    <a href="{{ route('guru.prestasi-siswa.index') }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.prestasi-siswa.*') ? $ac : $nc }}">
+        <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #d97706 !important; color: #ffffff !important;"><i class="fas fa-trophy text-[10px] text-white"></i></div>
+            <span>Justifikasi Prestasi</span>
+        </div>
+        @if(isset($pendingPrestasiCount) && $pendingPrestasiCount > 0)
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-black border border-black animate-pulse">
+                {{ $pendingPrestasiCount }}
+            </span>
+        @endif
+    </a>
+
     <!-- Biaya Pendidikan -->
     <a href="{{ route('guru.tagihan-siswa') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.tagihan-siswa') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #0891b2 !important; color: #ffffff !important;"><i class="fas fa-file-invoice-dollar text-[10px] text-white"></i></div>

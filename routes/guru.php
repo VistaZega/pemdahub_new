@@ -20,6 +20,12 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
     
     // Tagihan Siswa (Wali Kelas)
     Route::get('/tagihan-siswa', [App\Http\Controllers\Guru\StudentBillingController::class, 'index'])->name('tagihan-siswa');
+    
+    // Justifikasi Prestasi Siswa (Wali Kelas)
+    Route::prefix('prestasi-siswa')->name('prestasi-siswa.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Guru\StudentAchievementController::class, 'index'])->name('index');
+        Route::post('/{achievement}/justify', [App\Http\Controllers\Guru\StudentAchievementController::class, 'justify'])->name('justify');
+    });
     Route::get('/nilai', [App\Http\Controllers\Guru\DashboardController::class, 'nilai'])->name('nilai');
     Route::get('/nilai/details', [App\Http\Controllers\Guru\DashboardController::class, 'gradeDetails'])->name('nilai.details');
     

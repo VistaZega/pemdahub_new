@@ -390,34 +390,97 @@
             <!-- Tab 1: Prestasi List -->
             <div x-show="activeTab === 'prestasi'" x-transition class="space-y-3">
                 @forelse($achievements as $ach)
-                    <div class="clay-card p-4 space-y-2.5 bg-white border-2 border-amber-200 rounded-3xl shadow-sm">
+                    @php
+                        $isPending = ($ach->status === 'pending');
+                        $isVerified = ($ach->status === 'verified');
+                        $isRejected = ($ach->status === 'rejected');
+                    @endphp
+                    <div class="clay-card p-4 space-y-3 bg-white border-2 {{ $isVerified ? 'border-emerald-300 bg-emerald-50/20' : ($isRejected ? 'border-rose-300 bg-rose-50/20' : 'border-amber-300 bg-amber-50/20') }} rounded-3xl shadow-sm">
                         <div class="flex items-start justify-between gap-2">
                             <div class="flex items-start gap-2.5 min-w-0">
                                 <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-lg shrink-0">
                                     {{ $ach->rank === 'winner' ? '🥇' : ($ach->rank === 'runner_up' ? '🥈' : ($ach->rank === 'third_place' ? '🥉' : '🎖️')) }}
                                 </div>
                                 <div class="min-w-0">
-                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300">
-                                        Tingkat {{ $ach->level_label }}
-                                    </span>
+                                    <div class="flex flex-wrap items-center gap-1">
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300">
+                                            Tingkat {{ $ach->level_label }}
+                                        </span>
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black {{ $isVerified ? 'bg-emerald-100 text-emerald-800' : ($isRejected ? 'bg-rose-100 text-rose-800' : 'bg-amber-200 text-amber-900') }}">
+                                            {{ $ach->status_label }}
+                                        </span>
+                                    </div>
                                     <h4 class="text-xs font-black text-slate-900 mt-1 leading-snug">{{ $ach->title }}</h4>
-                                    <p class="text-[10px] font-bold text-slate-400">{{ $ach->rank_label }} • {{ $ach->achievement_date ? $ach->achievement_date->translatedFormat('d M Y') : '-' }}</p>
+                                    <p class="text-[10px] font-bold text-slate-500">
+                                        {{ $ach->rank_label }} • {{ $ach->achievement_date ? $ach->achievement_date->translatedFormat('d M Y') : '-' }} • 
+                                        <strong class="{{ $isRejected ? 'line-through text-slate-400' : 'text-amber-700' }}">+{{ $ach->points ?? 50 }} Pts</strong>
+                                    </p>
                                 </div>
                             </div>
 
                             <form action="{{ route('mobile.guru.catatan-siswa.prestasi.destroy', $ach->id) }}" method="POST" onsubmit="return confirm('Hapus catatan prestasi ini?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="p-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 active:scale-95 transition">
+                                <button type="submit" class="p-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 active:scale-95 transition" title="Hapus">
                                     <i class="fa-solid fa-trash-can text-xs"></i>
                                 </button>
                             </form>
                         </div>
+
                         @if($ach->description)
-                            <p class="p-2.5 rounded-xl bg-amber-50 text-[11px] text-slate-700 font-semibold border border-amber-100">
+                            <p class="p-2.5 rounded-xl bg-white text-[11px] text-slate-700 font-semibold border border-slate-200">
                                 {{ $ach->description }}
                             </p>
                         @endif
+
+                        @if($ach->verification_notes)
+                            <p class="p-2 rounded-xl text-[10px] font-bold {{ $isRejected ? 'bg-rose-100 text-rose-900' : 'bg-emerald-100 text-emerald-900' }}">
+                                <strong>Catatan Wali Kelas:</strong> {{ $ach->verification_notes }}
+                            </p>
+                        @endif
+
+                        <!-- Proof Link & Justification Buttons -->
+                        <div class="pt-1 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
+                            @if($ach->certificate_file)
+                                <a href="{{ asset('storage/' . $ach->certificate_file) }}" target="_blank" class="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-800 text-[10px] font-black border border-slate-300 flex items-center gap-1 hover:bg-slate-200">
+                                    <i class="fa-solid fa-paperclip"></i>
+                                    <span>Lihat Bukti</span>
+                                </a>
+                            @else
+                                <span class="text-[10px] text-slate-400 italic">Tanpa dokumen</span>
+                            @endif
+
+                            <div class="flex items-center gap-1.5">
+                                @if($isPending)
+                                    <form action="{{ route('mobile.guru.catatan-siswa.prestasi.justify', $ach->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        <input type="hidden" name="action" value="approve">
+                                        <input type="hidden" name="notes" value="Diverifikasi dan diakui oleh Wali Kelas di Mobile.">
+                                        <button type="submit" class="px-2.5 py-1 rounded-xl bg-emerald-500 text-white font-black text-[10px] shadow-xs active:scale-95 transition">
+                                            ✓ Akui
+                                        </button>
+                                    </form>
+
+                                    <form action="{{ route('mobile.guru.catatan-siswa.prestasi.justify', $ach->id) }}" method="POST" class="inline" onsubmit="var n = prompt('Masukkan alasan penolakan prestasi:'); if(!n) return false; this.notes.value = n;">
+                                        @csrf
+                                        <input type="hidden" name="action" value="reject">
+                                        <input type="hidden" name="notes" value="">
+                                        <button type="submit" class="px-2.5 py-1 rounded-xl bg-rose-500 text-white font-black text-[10px] shadow-xs active:scale-95 transition">
+                                            ✕ Tolak & Tarik
+                                        </button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('mobile.guru.catatan-siswa.prestasi.justify', $ach->id) }}" method="POST" class="inline" onsubmit="if('{{ $isVerified }}' === '1') { var n = prompt('Tolak prestasi dan tarik kembali poin? Masukkan alasan:'); if(!n) return false; this.notes.value = n; }">
+                                        @csrf
+                                        <input type="hidden" name="action" value="{{ $isVerified ? 'reject' : 'approve' }}">
+                                        <input type="hidden" name="notes" value="{{ $isVerified ? '' : 'Diverifikasi kembali oleh Wali Kelas.' }}">
+                                        <button type="submit" class="px-2.5 py-1 rounded-xl bg-slate-200 text-slate-800 font-bold text-[10px] hover:bg-slate-300">
+                                            Ubah Status
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 @empty
                     <div class="p-6 text-center text-slate-400 text-xs font-bold clay-card bg-white rounded-3xl">
