@@ -101,25 +101,51 @@ class DashboardController extends Controller
             $totalAmount = $allBills->sum('amount');
             $totalPaidAmount = $allBills->sum('paid_amount');
             
+            // Helper to resolve accurate bill year even if year column in DB is 0, null, or corrupted (e.g. 2001)
+            $getResolvedYear = function($b) use ($activeYear) {
+                $yr = (int)$b->year;
+                if ($yr >= 2024 && $yr <= 2035) {
+                    return $yr;
+                }
+                if (!empty($b->due_date)) {
+                    $parsedYear = (int)\Carbon\Carbon::parse($b->due_date)->format('Y');
+                    if ($parsedYear >= 2024 && $parsedYear <= 2035) {
+                        return $parsedYear;
+                    }
+                }
+                $ayName = $b->academicYear?->year ?? $activeYear?->year ?? '2026/2027';
+                if (preg_match('/(20\d{2})/', $ayName, $m)) {
+                    $startYear = (int)$m[1];
+                    $mNum = (int)$b->month;
+                    return ($mNum >= 7 && $mNum <= 12) ? $startYear : $startYear + 1;
+                }
+                return (int)date('Y');
+            };
+
+            $getDueDate = function($b) use ($getResolvedYear) {
+                if ($b->due_date) {
+                    return \Carbon\Carbon::parse($b->due_date)->endOfDay();
+                }
+                if ($b->month) {
+                    $year = $getResolvedYear($b);
+                    return \Carbon\Carbon::create($year, (int)$b->month, 10)->endOfDay();
+                }
+                return null;
+            };
+
             // Logika Tunggakan yang Tepat: Hanya tagihan yang lewat jatuh tempo / s.d. bulan berkenaan yang belum dibayar
-            $tunggakanAmount = $allBills->filter(function($b) {
+            $tunggakanAmount = $allBills->filter(function($b) use ($getDueDate) {
                 if ($b->status === 'lunas') return false;
                 if ($b->isOverdue()) return true;
-                if ($b->month && $b->year) {
-                    $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
-                    return now()->isAfter($dueDate);
-                }
-                return false;
+                $dueDate = $getDueDate($b);
+                return $dueDate ? now()->isAfter($dueDate) : false;
             })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
 
-            $upcomingAmount = $allBills->filter(function($b) {
+            $upcomingAmount = $allBills->filter(function($b) use ($getDueDate) {
                 if ($b->status === 'lunas') return false;
                 if ($b->isOverdue()) return false;
-                if ($b->month && $b->year) {
-                    $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
-                    return !now()->isAfter($dueDate);
-                }
-                return true;
+                $dueDate = $getDueDate($b);
+                return $dueDate ? !now()->isAfter($dueDate) : true;
             })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
 
             $totalOutstanding = $tunggakanAmount;
@@ -540,25 +566,51 @@ class DashboardController extends Controller
         // Month labels (Juli-Juni for typical academic year)
         $months = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
 
+        // Helper to resolve accurate bill year even if year column in DB is 0, null, or corrupted (e.g. 2001)
+        $getResolvedYear = function($b) use ($activeYear) {
+            $yr = (int)$b->year;
+            if ($yr >= 2024 && $yr <= 2035) {
+                return $yr;
+            }
+            if (!empty($b->due_date)) {
+                $parsedYear = (int)\Carbon\Carbon::parse($b->due_date)->format('Y');
+                if ($parsedYear >= 2024 && $parsedYear <= 2035) {
+                    return $parsedYear;
+                }
+            }
+            $ayName = $b->academicYear?->year ?? $activeYear?->year ?? '2026/2027';
+            if (preg_match('/(20\d{2})/', $ayName, $m)) {
+                $startYear = (int)$m[1];
+                $mNum = (int)$b->month;
+                return ($mNum >= 7 && $mNum <= 12) ? $startYear : $startYear + 1;
+            }
+            return (int)date('Y');
+        };
+
+        $getDueDate = function($b) use ($getResolvedYear) {
+            if ($b->due_date) {
+                return \Carbon\Carbon::parse($b->due_date)->endOfDay();
+            }
+            if ($b->month) {
+                $year = $getResolvedYear($b);
+                return \Carbon\Carbon::create($year, (int)$b->month, 10)->endOfDay();
+            }
+            return null;
+        };
+
         // Tunggakan amount (Hanya s.d. bulan berkenaan / lewat jatuh tempo)
-        $tunggakanAmount = $bills->filter(function($b) {
+        $tunggakanAmount = $bills->filter(function($b) use ($getDueDate) {
             if ($b->status === 'lunas') return false;
             if ($b->isOverdue()) return true;
-            if ($b->month && $b->year) {
-                $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
-                return now()->isAfter($dueDate);
-            }
-            return false;
+            $dueDate = $getDueDate($b);
+            return $dueDate ? now()->isAfter($dueDate) : false;
         })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
 
-        $upcomingAmount = $bills->filter(function($b) {
+        $upcomingAmount = $bills->filter(function($b) use ($getDueDate) {
             if ($b->status === 'lunas') return false;
             if ($b->isOverdue()) return false;
-            if ($b->month && $b->year) {
-                $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
-                return !now()->isAfter($dueDate);
-            }
-            return true;
+            $dueDate = $getDueDate($b);
+            return $dueDate ? !now()->isAfter($dueDate) : true;
         })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
 
         return view('siswa.tagihan', compact(

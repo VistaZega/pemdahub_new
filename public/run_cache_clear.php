@@ -47,6 +47,23 @@ if (isset($_GET['run']) && $_GET['run'] === 'yes') {
             echo "❌ Error running {$cmd}: " . $e->getMessage() . "\n";
         }
     }
+
+    // Auto-repair corrupt bill years in database
+    try {
+        $repaired = \DB::table('student_bills')
+            ->where(function($q) {
+                $q->whereNull('year')
+                  ->orWhere('year', '<', 2024)
+                  ->orWhere('year', '>', 2035);
+            })
+            ->update([
+                'year' => \DB::raw("CASE WHEN month >= 7 AND month <= 12 THEN 2026 WHEN month >= 1 AND month <= 6 THEN 2027 ELSE 2026 END"),
+                'due_date' => \DB::raw("CASE WHEN month >= 7 AND month <= 12 THEN CONCAT('2026-', LPAD(month, 2, '0'), '-10') WHEN month >= 1 AND month <= 6 THEN CONCAT('2027-', LPAD(month, 2, '0'), '-10') ELSE due_date END")
+            ]);
+        echo '<span class="info">[Database Repair]</span> Auto-fixed ' . $repaired . " corrupt bill years & due dates.\n";
+    } catch (\Exception $e) {
+        echo "❌ DB Repair warning: " . $e->getMessage() . "\n";
+    }
     
     echo '</pre>';
     echo '<p class="ok">✅ Semua cache berhasil dibersihkan!</p>';

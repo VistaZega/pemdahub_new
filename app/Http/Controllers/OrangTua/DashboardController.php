@@ -244,16 +244,20 @@ class DashboardController extends Controller
         $totalBayar = $bills->sum('paid_amount');
         $totalSisa = $bills->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
 
-        // Helper to resolve accurate bill year even if year column in DB is 0 or null
+        // Helper to resolve accurate bill year even if year column in DB is 0, null, or corrupted (e.g. 2001)
         $getResolvedYear = function($b) use ($activeYear) {
-            if (!empty($b->year) && (int)$b->year > 2000) {
-                return (int)$b->year;
+            $yr = (int)$b->year;
+            if ($yr >= 2024 && $yr <= 2035) {
+                return $yr;
             }
-            if ($b->due_date) {
-                return (int)\Carbon\Carbon::parse($b->due_date)->format('Y');
+            if (!empty($b->due_date)) {
+                $parsedYear = (int)\Carbon\Carbon::parse($b->due_date)->format('Y');
+                if ($parsedYear >= 2024 && $parsedYear <= 2035) {
+                    return $parsedYear;
+                }
             }
-            $ayName = $b->academicYear?->year ?? $activeYear?->year ?? '';
-            if (preg_match('/(\d{4})/', $ayName, $m)) {
+            $ayName = $b->academicYear?->year ?? $activeYear?->year ?? '2026/2027';
+            if (preg_match('/(20\d{2})/', $ayName, $m)) {
                 $startYear = (int)$m[1];
                 $mNum = (int)$b->month;
                 return ($mNum >= 7 && $mNum <= 12) ? $startYear : $startYear + 1;
