@@ -564,7 +564,7 @@
                         <div class="relative z-10 flex items-start justify-between gap-2 border-b border-white/15 pb-2">
                             <div class="flex items-center gap-2">
                                 <div class="w-7 h-7 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-0.5 shadow-inner">
-                                    <img src="{{ asset('images/logo_yayasan.png') }}" alt="Logo Yayasan" class="w-6 h-6 object-contain" onerror="this.src='{{ asset('images/logo-pembda.png') }}'">
+                                    <img src="{{ asset('images/logo_yayasan.png') }}" crossorigin="anonymous" alt="Logo Yayasan" class="w-6 h-6 object-contain" onerror="this.src='{{ asset('images/logo-pembda.png') }}'">
                                 </div>
                                 <div>
                                     <h4 class="text-[9px] font-black uppercase tracking-wider text-amber-300 leading-tight">
@@ -585,7 +585,7 @@
                         {{-- Card Body --}}
                         <div class="relative z-10 my-2.5 flex items-center gap-3">
                             <div class="relative shrink-0">
-                                <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-14 h-14 rounded-xl object-cover border-2 {{ $isLeader ? 'border-amber-400' : 'border-indigo-400' }} bg-white" style="width: 56px; height: 56px; min-width: 56px; max-width: 56px;">
+                                <img src="{{ $student->photo_url }}" crossorigin="anonymous" alt="{{ $student->full_name }}" class="w-14 h-14 rounded-xl object-cover border-2 {{ $isLeader ? 'border-amber-400' : 'border-indigo-400' }} bg-white" style="width: 56px; height: 56px; min-width: 56px; max-width: 56px;">
                                 <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[6px] border border-slate-900">
                                     <i class="fa-solid fa-check"></i>
                                 </span>
@@ -624,6 +624,7 @@
                         <div class="relative z-10 pt-2 border-t border-white/15 flex items-center justify-between gap-2 text-[7px] text-slate-300">
                             <div class="flex items-center gap-1.5">
                                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=PEMBDA-EKS-{{ $membership->id }}-{{ $student->nisn }}&color=ffffff&bgcolor=00000000" 
+                                     crossorigin="anonymous"
                                      alt="QR" 
                                      class="w-6 h-6 object-contain rounded bg-white/10 p-0.5 border border-white/20 shrink-0" 
                                      style="width: 24px; height: 24px; min-width: 24px; max-width: 24px;">
@@ -646,17 +647,17 @@
                 </div>
 
                 {{-- Modal Action Buttons --}}
-                <div class="bg-white p-3.5 border-t border-slate-200 flex items-center justify-between gap-2">
+                <div class="bg-white p-4 border-t border-slate-200 flex items-center justify-between gap-3">
                     <button type="button" 
-                            onclick="window.downloadEcard('mobile-ecard-card-{{ $membership->id }}', 'E-Card_{{ Str::slug($student->full_name) }}_{{ Str::slug($ekskul->name) }}.png')"
-                            class="flex-1 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs font-black transition shadow-xs active:scale-95 flex items-center justify-center gap-1.5">
+                            onclick="downloadEcardCard('mobile-ecard-card-{{ $membership->id }}', 'E-Card_{{ Str::slug($student->full_name) }}_{{ Str::slug($ekskul->name) }}.png')"
+                            class="flex-1 py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl text-xs font-black transition shadow-sm active:scale-95 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-download"></i>
-                        <span>Unduh Gambar</span>
+                        <span>Unduh Gambar (PNG)</span>
                     </button>
 
                     <button type="button" 
-                            onclick="window.shareEcard('mobile-ecard-card-{{ $membership->id }}', 'E-Card {{ $ekskul->name }} - {{ $student->full_name }}', 'Saya resmi terdaftar sebagai anggota {{ $ekskul->name }} di Yayasan Perguruan Pembda!')"
-                            class="px-3.5 py-2.5 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-black transition flex items-center gap-1 active:scale-95">
+                            onclick="shareEcardCard('mobile-ecard-card-{{ $membership->id }}', 'E-Card {{ $ekskul->name }} - {{ $student->full_name }}')"
+                            class="py-3 px-5 bg-emerald-50 text-emerald-800 border-2 border-emerald-300 rounded-2xl text-xs font-black transition flex items-center justify-center gap-1.5 active:scale-95">
                         <i class="fa-solid fa-share-nodes"></i>
                         <span>Share</span>
                     </button>
@@ -668,4 +669,101 @@
     @endforeach
 
 </div>
+
+{{-- SCRIPT DEDIKASI GENERATE E-CARD HD DENGAN HTML2CANVAS --}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb5hBydBmJaUU118Gm1N8oWOqqJf8tdCXGg53G566nq7jPVYao07XgQ6PN8mFvlb5630Ymw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+async function downloadEcardCard(elementId, filename) {
+    const card = document.getElementById(elementId);
+    if (!card) {
+        alert('Elemen kartu #' + elementId + ' tidak ditemukan.');
+        return;
+    }
+
+    const btn = window.event ? window.event.currentTarget : null;
+    const oldHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> <span>Merender HD...</span>';
+    }
+
+    try {
+        if (typeof html2canvas === 'undefined') {
+            throw new Error('Library renderer belum siap. Silakan refresh halaman.');
+        }
+
+        const canvas = await html2canvas(card, {
+            scale: 3,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: null,
+            logging: false,
+        });
+
+        const imageUri = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.download = filename || 'E-Card-Ekskul-Pembda.png';
+        downloadLink.href = imageUri;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> <span>Tersimpan!</span>';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = oldHtml;
+            }, 3000);
+        }
+    } catch (err) {
+        console.error('Download E-Card Error:', err);
+        alert('Gagal mengunduh kartu: ' + err.message);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = oldHtml;
+        }
+    }
+}
+
+async function shareEcardCard(elementId, title) {
+    const card = document.getElementById(elementId);
+    if (!card) return;
+
+    if (navigator.share) {
+        try {
+            if (typeof html2canvas !== 'undefined') {
+                const canvas = await html2canvas(card, { scale: 2, useCORS: true, allowTaint: true });
+                canvas.toBlob(async (blob) => {
+                    if (blob && navigator.canShare && navigator.canShare({ files: [new File([blob], 'ecard.png', { type: 'image/png' })] })) {
+                        const file = new File([blob], 'ecard-pembda.png', { type: 'image/png' });
+                        await navigator.share({
+                            title: title,
+                            text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda',
+                            files: [file]
+                        });
+                        return;
+                    }
+                    await navigator.share({
+                        title: title,
+                        text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda - https://perguruanpembda.com',
+                        url: window.location.href
+                    });
+                });
+            } else {
+                await navigator.share({
+                    title: title,
+                    text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda',
+                    url: window.location.href
+                });
+            }
+        } catch (e) {
+            console.log('Share error or dismissed', e);
+        }
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Tautan halaman ekstrakurikuler telah disalin ke clipboard!');
+    }
+}
+</script>
 @endsection
