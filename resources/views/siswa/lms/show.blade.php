@@ -148,12 +148,8 @@ if (!function_exists('balanceHtmlTags')) {
 
             {{-- Course Info --}}
             <div class="flex items-start gap-4 mb-5">
-                <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md flex-shrink-0 border-2 border-black" style="background-color: {{ $course->getActiveThemeHexColor() }} !important; color: #ffffff !important;">
-                    @if($scientist)
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
-                    @else
-                        <i class="fas fa-graduation-cap text-2xl text-white"></i>
-                    @endif
+                <div class="w-14 h-14 rounded-2xl overflow-hidden shadow-md flex-shrink-0 border-2 border-black bg-white">
+                    <img src="{{ $course->getTeacherPhotoUrl() }}" alt="{{ $course->teacher->user->name ?? 'Guru Pengajar' }}" class="w-full h-full object-cover object-center" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($course->teacher->user->name ?? 'Guru') }}&background=0f172a&color=ffffff&bold=true'">
                 </div>
                 <div>
                     <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight leading-tight">{{ $course->course_name ?? $course->name }}</h1>

@@ -709,4 +709,25 @@ class LmsCourse extends Model
 
         return $colorMap[strtolower($firstModule->color)] ?? '#4f46e5';
     }
+
+    /**
+     * Get teacher profile photo / avatar URL for course display
+     */
+    public function getTeacherPhotoUrl(): string
+    {
+        if ($this->teacher && $this->teacher->user && !empty($this->teacher->user->avatar_url)) {
+            return $this->teacher->user->avatar_url;
+        }
+
+        if ($this->teacher && !empty($this->teacher->photo)) {
+            $p = $this->teacher->photo;
+            if (\Illuminate\Support\Str::startsWith($p, ['http://', 'https://'])) {
+                return $p;
+            }
+            return asset('storage/' . ltrim($p, '/'));
+        }
+
+        $name = $this->teacher?->user?->name ?? $this->teacher?->full_name ?? 'Guru Pengajar';
+        return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=0f172a&color=ffffff&bold=true';
+    }
 }

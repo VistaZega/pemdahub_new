@@ -255,12 +255,8 @@
 
                     <div class="relative z-10">
                         <div class="flex items-start gap-3 mb-3">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-black flex-shrink-0 shadow-md" style="background-color: #fbbf24 !important; color: #000000 !important;">
-                                @if($scientist)
-                                <svg class="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
-                                @else
-                                <i class="fas fa-graduation-cap text-black text-xl"></i>
-                                @endif
+                            <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-black flex-shrink-0 shadow-md bg-white">
+                                <img src="{{ $course->getTeacherPhotoUrl() }}" alt="{{ $course->teacher->user->name ?? 'Guru Pengajar' }}" class="w-full h-full object-cover object-center" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($course->teacher->user->name ?? 'Guru') }}&background=0f172a&color=ffffff&bold=true'">
                             </div>
                             <div class="min-w-0 flex-1">
                                 <h3 class="font-black text-white text-base leading-snug line-clamp-2">{{ $course->course_name ?? $course->name }}</h3>
