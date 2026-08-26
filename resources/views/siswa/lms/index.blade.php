@@ -155,44 +155,69 @@
     @endif
 
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- GAMIFICATION LEADERBOARD WIDGET --}}
+    {{-- GAMIFICATION LEADERBOARD WIDGET (CERAH & BERKONTRAS TINGGI) --}}
     {{-- ═══════════════════════════════════════════════ --}}
     @if(isset($leaderboard) && $leaderboard->count() > 0)
-    <div class="rounded-3xl p-6 shadow-xl border-2 border-black text-white" style="background-color: #090d16 !important;">
-        <div class="flex items-center justify-between mb-4">
+    <div class="bg-gradient-to-r from-amber-50/90 via-orange-50/80 to-amber-100/70 rounded-3xl p-6 shadow-xl border-2 border-black">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-2xl flex items-center justify-center font-black shadow-md border-2 border-black shrink-0" style="background-color: #fbbf24 !important; color: #000000 !important;">
-                    <i class="fas fa-trophy text-black text-xl"></i>
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-md border-2 border-black shrink-0" style="background-color: #fbbf24 !important; color: #000000 !important;">
+                    <i class="fas fa-trophy text-black text-2xl animate-bounce" style="animation-duration: 2s;"></i>
                 </div>
                 <div>
-                    <h3 class="text-base font-black text-white">Papan Peringkat Pembelajar Teraktif</h3>
-                    <p class="text-xs text-amber-400 font-bold">Siswa dengan perolehan Poin EXP terbanyak minggu ini</p>
+                    <h3 class="text-lg font-black text-black tracking-tight">Papan Peringkat Pembelajar Teraktif</h3>
+                    <p class="text-xs text-amber-900 font-extrabold">Siswa dengan perolehan Poin EXP terbanyak minggu ini</p>
                 </div>
             </div>
-            <span class="px-3.5 py-1 bg-amber-400 text-black text-xs font-black rounded-xl border border-black uppercase tracking-wider">
-                Top 5 Siswa 🏆
-            </span>
+            <div>
+                <span class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-black text-amber-300 text-xs font-black rounded-xl border-2 border-black uppercase tracking-wider shadow-sm">
+                    <span>👑 Top 5 Siswa</span>
+                </span>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             @foreach($leaderboard as $lb)
             @php
-                $rankBadge = match($loop->iteration) {
+                $isCurrentUser = ($lb->user_id === auth()->id()) || (isset($student) && $lb->user_id === $student->user_id);
+                
+                $cardBg = match($loop->iteration) {
+                    1 => 'background: linear-gradient(135deg, #fef08a 0%, #fde047 50%, #f59e0b 100%) !important; color: #000000 !important;',
+                    2 => 'background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%) !important; color: #000000 !important;',
+                    3 => 'background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 50%, #fdba74 100%) !important; color: #000000 !important;',
+                    default => 'background: #ffffff !important; color: #000000 !important;',
+                };
+                
+                $badgeBg = match($loop->iteration) {
+                    1 => 'background-color: #000000 !important; color: #fde047 !important;',
+                    2 => 'background-color: #000000 !important; color: #ffffff !important;',
+                    3 => 'background-color: #000000 !important; color: #fed7aa !important;',
+                    default => 'background-color: #f1f5f9 !important; color: #000000 !important;',
+                };
+                
+                $rankIcon = match($loop->iteration) {
                     1 => '🥇 #1',
                     2 => '🥈 #2',
                     3 => '🥉 #3',
                     default => '#' . $loop->iteration,
                 };
             @endphp
-            <div class="bg-slate-800 border-2 border-slate-700 p-3.5 rounded-2xl flex items-center gap-3 shadow-md">
-                <div class="w-10 h-10 rounded-xl bg-amber-400 text-black flex items-center justify-center font-black text-xs shadow-sm flex-shrink-0 border border-black">
-                    {{ $rankBadge }}
+            <div class="border-2 border-black p-3.5 rounded-2xl flex items-center gap-3 shadow-md hover:scale-105 transition-all duration-200 relative overflow-hidden" style="{{ $cardBg }}">
+                @if($isCurrentUser)
+                <span class="absolute top-1 right-2 text-[8px] font-black uppercase bg-black text-amber-300 px-1.5 py-0.5 rounded-md border border-black">Kamu</span>
+                @endif
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shadow-xs flex-shrink-0 border-2 border-black" style="{{ $badgeBg }}">
+                    {{ $rankIcon }}
                 </div>
                 <div class="min-w-0 flex-1">
-                    <h4 class="font-black text-white text-xs truncate">{{ $lb->user->name ?? 'Siswa' }}</h4>
-                    <p class="text-[10px] text-amber-300 font-black flex items-center gap-1 mt-0.5">
-                        <i class="fas fa-star text-[9px] text-amber-400"></i> {{ number_format($lb->total_points) }} EXP
-                    </p>
+                    <h4 class="font-black text-xs truncate leading-snug" style="color: #000000 !important;" title="{{ $lb->user->name ?? 'Siswa' }}">
+                        {{ $lb->user->name ?? 'Siswa' }}
+                    </h4>
+                    <div class="mt-1">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black border border-black shadow-2xs" style="background-color: #000000 !important; color: #fde047 !important;">
+                            <i class="fas fa-bolt text-[9px] text-amber-400"></i> {{ number_format($lb->total_points) }} EXP
+                        </span>
+                    </div>
                 </div>
             </div>
             @endforeach
