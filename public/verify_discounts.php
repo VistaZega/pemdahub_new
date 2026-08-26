@@ -157,14 +157,14 @@ foreach ($discountedStudents as $ds) {
 <body class="p-4 md:p-8 text-gray-800">
     <div class="max-w-7xl mx-auto space-y-6">
         
-        {{-- Header Bar --}}
+        <!-- Header Bar -->
         <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 text-white rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h1 class="text-xl md:text-2xl font-black flex items-center gap-2">
                     <i class="fas fa-shield-check text-emerald-400"></i> Audit & Laporan Bukti Diskon Siswa
                 </h1>
                 <p class="text-xs text-blue-200 mt-1">
-                    Verifikasi kepatuhan potongan nominal khusus dari bulan Juli hingga akhir Tahun Pelajaran {{ $academicYear->year ?? '2026/2027' }}
+                    Verifikasi kepatuhan potongan nominal khusus dari bulan Juli hingga akhir Tahun Pelajaran <?= htmlspecialchars($academicYear->year ?? '2026/2027') ?>
                 </p>
             </div>
 
@@ -178,40 +178,40 @@ foreach ($discountedStudents as $ds) {
             </div>
         </div>
 
-        @if($actionMsg)
-            <div class="p-4 rounded-xl shadow-sm border font-semibold text-sm {{ str_contains($actionMsg, '✅') ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200' }}">
-                {{ $actionMsg }}
+        <?php if($actionMsg): ?>
+            <div class="p-4 rounded-xl shadow-sm border font-semibold text-sm <?= str_contains($actionMsg, '✅') ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200' ?>">
+                <?= htmlspecialchars($actionMsg) ?>
             </div>
-        @endif
+        <?php endif; ?>
 
-        {{-- KPI Cards --}}
+        <!-- KPI Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div class="text-xs font-bold text-gray-400 uppercase">Siswa dengan Potongan Khusus (Juli)</div>
-                <div class="text-3xl font-black text-indigo-700 mt-1">{{ count($auditResults) }} Siswa</div>
+                <div class="text-3xl font-black text-indigo-700 mt-1"><?= count($auditResults) ?> Siswa</div>
                 <div class="text-xs text-gray-500 mt-1 font-medium">Terdeteksi nominal di bawah tarif master default</div>
             </div>
 
             <div class="bg-white rounded-2xl p-5 border border-emerald-100 shadow-sm bg-emerald-50/20">
                 <div class="text-xs font-bold text-emerald-600 uppercase">100% Terverifikasi Diskon 12 Bulan</div>
-                <div class="text-3xl font-black text-emerald-600 mt-1">{{ $totalVerified }} Siswa</div>
+                <div class="text-3xl font-black text-emerald-600 mt-1"><?= $totalVerified ?> Siswa</div>
                 <div class="text-xs text-emerald-700 mt-1 font-medium">Diskon sudah konsisten sampai akhir tahun ajaran (Juni 2027)</div>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border {{ $totalPendingSync > 0 ? 'border-amber-200 bg-amber-50/20' : 'border-gray-100' }} shadow-sm">
-                <div class="text-xs font-bold {{ $totalPendingSync > 0 ? 'text-amber-600' : 'text-gray-400' }} uppercase">Perlu Sinkronisasi Bulan Berikutnya</div>
-                <div class="text-3xl font-black {{ $totalPendingSync > 0 ? 'text-amber-600' : 'text-gray-800' }} mt-1">{{ $totalPendingSync }} Siswa</div>
+            <div class="bg-white rounded-2xl p-5 border <?= $totalPendingSync > 0 ? 'border-amber-200 bg-amber-50/20' : 'border-gray-100' ?> shadow-sm">
+                <div class="text-xs font-bold <?= $totalPendingSync > 0 ? 'text-amber-600' : 'text-gray-400' ?> uppercase">Perlu Sinkronisasi Bulan Berikutnya</div>
+                <div class="text-3xl font-black <?= $totalPendingSync > 0 ? 'text-amber-600' : 'text-gray-800' ?> mt-1"><?= $totalPendingSync ?> Siswa</div>
                 <div class="text-xs text-gray-500 mt-1 font-medium">Klik "Sinkronkan Diskon" di atas untuk menyelaraskan otomatis</div>
             </div>
         </div>
 
-        {{-- Audit Matrix Table --}}
+        <!-- Audit Matrix Table -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h2 class="font-bold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-list-check text-indigo-600"></i> Matriks Verifikasi Diskon Bulan per Bulan (Juli 2026 s.d. Juni 2027)
                 </h2>
-                <span class="text-xs text-gray-400 font-semibold">TP {{ $academicYear->year ?? '2026/2027' }}</span>
+                <span class="text-xs text-gray-400 font-semibold">TP <?= htmlspecialchars($academicYear->year ?? '2026/2027') ?></span>
             </div>
 
             <div class="overflow-x-auto">
@@ -222,69 +222,69 @@ foreach ($discountedStudents as $ds) {
                             <th class="px-4 py-3">Siswa & Unit Sekolah</th>
                             <th class="px-4 py-3 text-right">Tarif Default</th>
                             <th class="px-4 py-3 text-right">Diskon Juli</th>
-                            @foreach($months as $m)
-                                <th class="px-2 py-3 text-center min-w-[70px]">{{ $monthNames[$m] }}</th>
-                            @endforeach
+                            <?php foreach($months as $m): ?>
+                                <th class="px-2 py-3 text-center min-w-[70px]"><?= $monthNames[$m] ?></th>
+                            <?php endforeach; ?>
                             <th class="px-4 py-3 text-center">Status Audit</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        @forelse($auditResults as $idx => $row)
-                            @php
-                                $s = $row['student'];
-                            @endphp
-                            <tr class="hover:bg-gray-50/80 transition-colors">
-                                <td class="px-4 py-3 text-gray-400 font-semibold">{{ $idx + 1 }}</td>
-                                <td class="px-4 py-3">
-                                    <div class="font-bold text-gray-900">{{ $s->full_name }}</div>
-                                    <div class="text-[10px] text-gray-400">{{ $s->school_name }} · {{ $s->type_name }}</div>
-                                </td>
-                                <td class="px-4 py-3 text-right font-semibold text-gray-400 line-through">
-                                    Rp {{ number_format($s->default_amount, 0, ',', '.') }}
-                                </td>
-                                <td class="px-4 py-3 text-right font-black text-indigo-700 bg-indigo-50/50">
-                                    Rp {{ number_format($s->july_amount, 0, ',', '.') }}
-                                </td>
-
-                                {{-- Month Columns --}}
-                                @foreach($months as $m)
-                                    @php $mInfo = $row['months'][$m]; @endphp
-                                    <td class="px-1 py-3 text-center">
-                                        @if($mInfo['exists'])
-                                            @if($mInfo['is_discounted'])
-                                                <span class="inline-block px-1.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs" title="Semua cocok! Billed: Rp {{ number_format($mInfo['amount'], 0, ',', '.') }}">
-                                                    ✓ Rp {{ number_format($mInfo['amount'] / 1000, 0) }}k
-                                                </span>
-                                            @else
-                                                <span class="inline-block px-1.5 py-1 rounded-lg text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 shadow-2xs" title="Tidak cocok! Tagihan: Rp {{ number_format($mInfo['amount'], 0, ',', '.') }}">
-                                                    ⚠️ Rp {{ number_format($mInfo['amount'] / 1000, 0) }}k
-                                                </span>
-                                            @endif
-                                        @else
-                                            <span class="text-gray-300 font-medium text-[10px]">-</span>
-                                        @endif
-                                    </td>
-                                @endforeach
-
-                                <td class="px-4 py-3 text-center">
-                                    @if($row['is_all_synced'])
-                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                            ✓ 100% OK
-                                        </span>
-                                    @else
-                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">
-                                            ⚠️ Perlu Sync
-                                        </span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
+                        <?php if(empty($auditResults)): ?>
                             <tr>
                                 <td colspan="18" class="p-8 text-center text-gray-400">
                                     Tidak ada data potongan khusus siswa yang ditemukan.
                                 </td>
                             </tr>
-                        @endforelse
+                        <?php else: ?>
+                            <?php foreach($auditResults as $idx => $row): ?>
+                                <?php $s = $row['student']; ?>
+                                <tr class="hover:bg-gray-50/80 transition-colors">
+                                    <td class="px-4 py-3 text-gray-400 font-semibold"><?= $idx + 1 ?></td>
+                                    <td class="px-4 py-3">
+                                        <div class="font-bold text-gray-900"><?= htmlspecialchars($s->full_name) ?></div>
+                                        <div class="text-[10px] text-gray-400"><?= htmlspecialchars($s->school_name) ?> · <?= htmlspecialchars($s->type_name) ?></div>
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-semibold text-gray-400 line-through">
+                                        Rp <?= number_format($s->default_amount, 0, ',', '.') ?>
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-black text-indigo-700 bg-indigo-50/50">
+                                        Rp <?= number_format($s->july_amount, 0, ',', '.') ?>
+                                    </td>
+
+                                    <!-- Month Columns -->
+                                    <?php foreach($months as $m): ?>
+                                        <?php $mInfo = $row['months'][$m]; ?>
+                                        <td class="px-1 py-3 text-center">
+                                            <?php if($mInfo['exists']): ?>
+                                                <?php if($mInfo['is_discounted']): ?>
+                                                    <span class="inline-block px-1.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs" title="Semua cocok! Billed: Rp <?= number_format($mInfo['amount'], 0, ',', '.') ?>">
+                                                        ✓ Rp <?= number_format($mInfo['amount'] / 1000, 0) ?>k
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="inline-block px-1.5 py-1 rounded-lg text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 shadow-2xs" title="Tidak cocok! Tagihan: Rp <?= number_format($mInfo['amount'], 0, ',', '.') ?>">
+                                                        ⚠️ Rp <?= number_format($mInfo['amount'] / 1000, 0) ?>k
+                                                    </span>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <span class="text-gray-300 font-medium text-[10px]">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    <?php endforeach; ?>
+
+                                    <td class="px-4 py-3 text-center">
+                                        <?php if($row['is_all_synced']): ?>
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                                ✓ 100% OK
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">
+                                                ⚠️ Perlu Sync
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
