@@ -86,15 +86,15 @@
 
             <div class="p-4 pt-1 space-y-3">
                 {{-- Member Profile Header --}}
-                <div class="flex items-center gap-3 bg-indigo-50/50 p-2.5 rounded-2xl border border-indigo-100/70">
-                    <div class="relative shrink-0 w-10 h-10">
+                <div class="flex items-center gap-3.5 bg-indigo-50/50 p-3 rounded-2xl border border-indigo-100/70">
+                    <div class="relative shrink-0 w-10 h-10 mr-1.5">
                         <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-10 h-10 rounded-xl object-cover border {{ $isLeader ? 'border-amber-400' : 'border-indigo-300' }} shadow-2xs bg-white" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;">
-                        <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[7px] border border-white">
+                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[6px] border border-white">
                             <i class="fa-solid fa-check"></i>
                         </span>
                     </div>
-                    <div class="min-w-0 flex-1">
-                        <div class="flex flex-wrap items-center gap-1 mb-0.5">
+                    <div class="min-w-0 flex-1 pl-0.5">
+                        <div class="flex flex-wrap items-center gap-1.5 mb-1">
                             <span class="px-2 py-0.5 rounded-full text-[8px] font-black text-white bg-gradient-to-r {{ $membership->role_badge_color }} shadow-2xs">
                                 {{ $isLeader ? '👑 ' : '' }}{{ $membership->role_label }}
                             </span>
@@ -109,12 +109,12 @@
                 </div>
 
                 {{-- Ekskul Title --}}
-                <div class="flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-2xl shadow-2xs shrink-0" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;">
+                <div class="flex items-start gap-3.5">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-2xl shadow-2xs shrink-0 mr-1.5" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;">
                         {{ $ekskul->display_icon }}
                     </div>
-                    <div class="min-w-0 flex-1">
-                        <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 block">
+                    <div class="min-w-0 flex-1 pl-0.5">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 block mb-0.5">
                             {{ $ekskul->category_label }}
                         </span>
                         <h3 class="font-black text-slate-900 text-sm leading-snug">{{ $ekskul->name }}</h3>

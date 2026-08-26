@@ -89,15 +89,15 @@
                     
                     <div class="space-y-4">
                         {{-- Student Member Profile Header (Pride Factor) --}}
-                        <div class="flex items-center gap-3.5 bg-gradient-to-r from-slate-50 via-indigo-50/40 to-purple-50/30 p-3.5 rounded-2xl border border-indigo-100/80">
-                            <div class="relative shrink-0 w-12 h-12">
+                        <div class="flex items-center gap-4 bg-gradient-to-r from-slate-50 via-indigo-50/40 to-purple-50/30 p-4 rounded-2xl border border-indigo-100/80">
+                            <div class="relative shrink-0 w-12 h-12 mr-2">
                                 <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-12 h-12 rounded-2xl object-cover border-2 {{ $isLeader ? 'border-amber-400 shadow-amber-200' : 'border-indigo-400 shadow-indigo-100' }} shadow-md bg-white" style="width: 48px; height: 48px; min-width: 48px; max-width: 48px;">
-                                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] shadow-sm border border-white" title="Anggota Terverifikasi">
+                                <span class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px] shadow-sm border border-white" title="Anggota Terverifikasi">
                                     <i class="fas fa-check"></i>
                                 </span>
                             </div>
-                            <div class="min-w-0 flex-1">
-                                <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                            <div class="min-w-0 flex-1 pl-1">
+                                <div class="flex flex-wrap items-center gap-2 mb-1.5">
                                     <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black text-white bg-gradient-to-r {{ $membership->role_badge_color }} shadow-2xs">
                                         {{ $isLeader ? '👑 ' : '' }}{{ $membership->role_label }}
                                     </span>
@@ -107,20 +107,20 @@
                                     </span>
                                     @endif
                                 </div>
-                                <h4 class="font-black text-slate-900 text-xs sm:text-sm truncate">{{ $student->full_name }}</h4>
-                                <p class="text-[10px] text-slate-500 font-bold">
+                                <h4 class="font-black text-slate-900 text-sm leading-tight truncate">{{ $student->full_name }}</h4>
+                                <p class="text-[11px] text-slate-500 font-bold mt-1">
                                     NISN: {{ $student->nisn ?: '-' }} &bull; {{ $student->classroom->class_name ?? ($student->school->short_name ?? 'Pembda') }}
                                 </p>
                             </div>
                         </div>
 
                         {{-- Ekskul Title & Category --}}
-                        <div class="flex items-start gap-3.5">
-                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-2xl shadow-sm shrink-0 group-hover:scale-105 transition" style="width: 48px; height: 48px; min-width: 48px; max-width: 48px;">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-2xl shadow-sm shrink-0 mr-2 group-hover:scale-105 transition" style="width: 48px; height: 48px; min-width: 48px; max-width: 48px;">
                                 {{ $ekskul->display_icon }}
                             </div>
-                            <div class="min-w-0 flex-1">
-                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-700 block mb-0.5">
+                            <div class="min-w-0 flex-1 pl-1">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-700 block mb-1">
                                     {{ $ekskul->category_label }}
                                 </span>
                                 <h3 class="font-black text-slate-900 text-base leading-snug group-hover:text-indigo-600 transition">
