@@ -51,7 +51,7 @@ class LmsController extends Controller
                     });
                 }
             })
-            ->with(['lmsClass.course' => fn($q) => $q->with(['subject', 'teacher.user'])
+            ->with(['lmsClass.course' => fn($q) => $q->with(['subject', 'teacher.user', 'modules' => fn($mq) => $mq->orderBy('sequence')])
                 ->withCount(['modules', 'materials', 'assignments', 'quizzes', 'discussions']),
                     'lmsClass.classroom'])
             ->get();

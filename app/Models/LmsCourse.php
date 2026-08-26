@@ -676,4 +676,37 @@ class LmsCourse extends Model
 
         return $map[$color] ?? $map['blue'];
     }
+
+    /**
+     * Get theme hex color based on modules.
+     * Default before any module is created: Light Gray (#94a3b8 / Abu Muda).
+     * Once a module is created, returns the hex code matching the module's chosen color.
+     */
+    public function getActiveThemeHexColor(): string
+    {
+        $firstModule = $this->relationLoaded('modules')
+            ? $this->modules->first()
+            : $this->modules()->orderBy('sequence')->first();
+
+        if (!$firstModule || !$firstModule->color) {
+            return '#94a3b8'; // Abu Muda (Default sebelum dibuat modul)
+        }
+
+        $colorMap = [
+            'indigo'  => '#4f46e5',
+            'emerald' => '#059669',
+            'rose'    => '#e11d48',
+            'amber'   => '#d97706',
+            'blue'    => '#2563eb',
+            'purple'  => '#9333ea',
+            'cyan'    => '#0891b2',
+            'orange'  => '#ea580c',
+            'teal'    => '#0d9488',
+            'violet'  => '#7c3aed',
+            'fuchsia' => '#c026d3',
+            'gray'    => '#94a3b8',
+        ];
+
+        return $colorMap[strtolower($firstModule->color)] ?? '#4f46e5';
+    }
 }

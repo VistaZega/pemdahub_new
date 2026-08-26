@@ -210,11 +210,12 @@
             $scientist = $course->getScientistConfig();
             $consolidatedSchedules = $course->getConsolidatedSchedule();
             $progress = $courseProgress[$course->id] ?? 0;
+            $themeColor = $course->getActiveThemeHexColor();
         @endphp
         <div class="course-card group">
             <div class="bg-white rounded-3xl border-2 border-black overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-                {{-- Card Header (Solid Dark Header) --}}
-                <div class="relative p-5 overflow-hidden border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
+                {{-- Card Header (Dynamic Header Color based on Module, default Abu Muda) --}}
+                <div class="relative p-5 overflow-hidden border-b-2 border-black text-white" style="background-color: {{ $themeColor }} !important;">
                     @if($course->meeting_active)
                     <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" id="live-badge-{{ $course->id }}" class="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-rose-600 text-white px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border border-black shadow-md">
                         <span class="w-2 h-2 bg-white rounded-full inline-block animate-ping"></span>
@@ -239,13 +240,13 @@
                             <div class="min-w-0 flex-1">
                                 <h3 class="font-black text-white text-base leading-snug line-clamp-2">{{ $course->course_name ?? $course->name }}</h3>
                                 <div class="flex items-center gap-2 mt-1">
-                                    <span class="bg-slate-800 text-amber-300 px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border border-slate-700">{{ $course->getShortCode() }}</span>
+                                    <span class="bg-slate-900 text-amber-300 px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border border-black">{{ $course->getShortCode() }}</span>
                                 </div>
                             </div>
                         </div>
 
                         {{-- Teacher --}}
-                        <div class="flex items-center gap-2 text-amber-400 text-xs font-black">
+                        <div class="flex items-center gap-2 text-white text-xs font-black">
                             <i class="fas fa-chalkboard-teacher text-xs"></i>
                             <span class="truncate">Pengajar: {{ $course->teacher->user->name ?? '-' }}</span>
                         </div>
@@ -293,7 +294,8 @@
                     {{-- CTA --}}
                     <div class="mt-auto">
                         <a href="{{ route('siswa.lms.show', $course->id) }}"
-                           class="flex items-center justify-center gap-2 w-full bg-black hover:bg-amber-400 hover:text-black text-white px-4 py-3.5 rounded-2xl transition-all shadow-md text-xs font-black uppercase tracking-wider border-2 border-black">
+                           class="flex items-center justify-center gap-2 w-full text-white px-4 py-3.5 rounded-2xl transition-all shadow-md text-xs font-black uppercase tracking-wider border-2 border-black hover:opacity-90"
+                           style="background-color: {{ $themeColor }} !important;">
                             <i class="fas fa-door-open text-xs"></i> Masuk Ruang Belajar
                         </a>
                     </div>
