@@ -419,10 +419,6 @@
                             <i class="ph-bold ph-x-circle"></i> Reset Filter
                         </a>
                     @endif
-                    <button onclick="triggerPwaInstall()" 
-                            class="flex px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md shadow-emerald-500/20 hover:scale-105 transition-all duration-200 items-center gap-2 whitespace-nowrap">
-                        <i class="ph-bold ph-cellphone-charging text-lg text-white"></i> <span class="text-white font-extrabold">Install APK</span>
-                    </button>
                     <a href="{{ route('forum.create', (isset($activeGroup) && $activeGroup) ? ['group' => $activeGroup->id] : []) }}" 
                        class="flex px-6 py-2.5 rounded-full bg-gradient-to-r from-red-600 via-red-500 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-extrabold text-sm shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-600/40 hover:scale-105 transition-all duration-200 items-center gap-2 whitespace-nowrap">
                         <i class="ph-bold ph-plus text-base text-white"></i> <span class="text-white font-extrabold">{{ isset($activeGroup) && $activeGroup ? 'Tulis di Squad' : 'Buat Post' }}</span>
