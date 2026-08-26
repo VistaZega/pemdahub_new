@@ -178,6 +178,10 @@
                         <i class="fa-solid fa-star text-amber-500"></i> +{{ $membership->points_awarded }} Poin
                     </span>
                     <div class="flex items-center gap-1.5">
+                        <button type="button" @click="activeModal = 'ecard-{{ $membership->id }}'" class="px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 text-white rounded-xl text-xs font-black shadow-xs flex items-center gap-1 active:scale-95">
+                            <i class="fa-solid fa-id-card"></i>
+                            <span>E-Card</span>
+                        </button>
                         <button type="button" @click="activeModal = 'squad-{{ $ekskul->id }}'" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-black transition flex items-center gap-1 active:scale-95">
                             <i class="fa-solid fa-sitemap text-indigo-600"></i>
                             <span>Struktur</span>
@@ -478,6 +482,183 @@
                     @endif
                     <button type="button" @click="activeModal = null" class="ml-auto px-4 py-2 bg-slate-200 text-slate-800 rounded-xl text-xs font-black active:scale-95">
                         Tutup
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    @endforeach
+
+    {{-- MODAL PREVIEW & DOWNLOAD VIP E-CARD DIGITAL (MOBILE) --}}
+    @foreach($myMemberships as $membership)
+    @php
+        $ekskul = $membership->extracurricular;
+        $isLeader = in_array($membership->role, ['ketua', 'wakil_ketua', 'sekretaris', 'bendahara']);
+    @endphp
+    <div x-show="activeModal === 'ecard-{{ $membership->id }}'" 
+         x-cloak 
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         role="dialog" 
+         aria-modal="true"
+         @keydown.escape.window="activeModal = null">
+        
+        {{-- Backdrop --}}
+        <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity" 
+             x-show="activeModal === 'ecard-{{ $membership->id }}'"
+             x-transition:enter="ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="activeModal = null"></div>
+
+        {{-- Modal Panel --}}
+        <div class="min-h-full flex items-end sm:items-center justify-center p-0 sm:p-4 text-center">
+            <div class="relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl text-left shadow-2xl overflow-hidden border-t-2 sm:border-2 border-indigo-200 transform transition-all flex flex-col"
+                 x-show="activeModal === 'ecard-{{ $membership->id }}'"
+                 x-transition:enter="ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-6"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="ease-in duration-150"
+                 x-transition:leave-start="opacity-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 translate-y-6"
+                 @click.away="activeModal = null">
+
+                {{-- Header --}}
+                <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 text-white p-4.5 flex items-center justify-between border-b border-indigo-900/50">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center text-lg shadow-sm">
+                            💳
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-white leading-tight">
+                                Digital Member E-Card
+                            </h3>
+                            <p class="text-[10px] text-indigo-200 font-medium truncate max-w-[200px]">
+                                {{ $ekskul->name }}
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" @click="activeModal = null" class="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center text-xs active:scale-95">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                {{-- Canvas Area (Horizontal Scroll on small screens) --}}
+                <div class="p-4 bg-slate-100/90 flex flex-col items-center justify-center overflow-x-auto">
+                    
+                    {{-- THE OFFICIAL E-CARD COMPONENT --}}
+                    <div id="mobile-ecard-card-{{ $membership->id }}" 
+                         class="relative w-[340px] max-w-[340px] rounded-2xl p-4 text-white shadow-2xl overflow-hidden select-none border-2 border-amber-400/50 flex flex-col justify-between"
+                         style="background: linear-gradient(135deg, #090d16 0%, #1e153a 50%, #2e0854 100%); min-height: 220px;">
+                        
+                        {{-- Background Hologram --}}
+                        <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-purple-500/10 blur-xl pointer-events-none"></div>
+                        <div class="absolute right-2 bottom-1 text-7xl opacity-[0.05] pointer-events-none font-sans font-black">
+                            {{ $ekskul->display_icon }}
+                        </div>
+
+                        {{-- Card Header --}}
+                        <div class="relative z-10 flex items-start justify-between gap-2 border-b border-white/15 pb-2">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-0.5 shadow-inner">
+                                    <img src="{{ asset('images/logo_yayasan.png') }}" alt="Logo Yayasan" class="w-6 h-6 object-contain" onerror="this.src='{{ asset('images/logo-pembda.png') }}'">
+                                </div>
+                                <div>
+                                    <h4 class="text-[9px] font-black uppercase tracking-wider text-amber-300 leading-tight">
+                                        YAYASAN PEMBDA
+                                    </h4>
+                                    <p class="text-[7px] text-indigo-100 font-bold uppercase tracking-wide">
+                                        SQUAD PASS &bull; EKSTRAKURIKULER
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-block px-1.5 py-0.2 rounded-full text-[7px] font-mono font-black bg-amber-400 text-slate-950">
+                                    #EKS-{{ str_pad($ekskul->id, 2, '0', STR_PAD_LEFT) }}-{{ str_pad($membership->id, 4, '0', STR_PAD_LEFT) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Card Body --}}
+                        <div class="relative z-10 my-2.5 flex items-center gap-3">
+                            <div class="relative shrink-0">
+                                <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-14 h-14 rounded-xl object-cover border-2 {{ $isLeader ? 'border-amber-400' : 'border-indigo-400' }} bg-white" style="width: 56px; height: 56px; min-width: 56px; max-width: 56px;">
+                                <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[6px] border border-slate-900">
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                            </div>
+
+                            <div class="min-w-0 flex-1 space-y-0.5">
+                                <div class="flex items-center gap-1">
+                                    <span class="px-1.5 py-0.2 rounded text-[7px] font-black uppercase tracking-wider text-white bg-gradient-to-r {{ $membership->role_badge_color }}">
+                                        {{ $isLeader ? '👑 ' : '' }}{{ $membership->role_label }}
+                                    </span>
+                                    @if($membership->section)
+                                    <span class="px-1 py-0.2 rounded text-[7px] font-black uppercase tracking-wider bg-purple-200/90 text-purple-950">
+                                        🎺 {{ $membership->section }}
+                                    </span>
+                                    @endif
+                                </div>
+
+                                <h3 class="font-black text-white text-xs leading-tight truncate">
+                                    {{ $student->full_name }}
+                                </h3>
+
+                                <p class="text-[9px] text-indigo-200 font-medium truncate">
+                                    NISN: {{ $student->nisn ?: '-' }} &bull; {{ $student->school->short_name ?? 'Pembda' }}
+                                </p>
+
+                                <div class="pt-0.5 flex items-center gap-1">
+                                    <span class="text-[10px]">{{ $ekskul->display_icon }}</span>
+                                    <span class="text-[10px] font-black text-amber-300 truncate">
+                                        {{ $ekskul->name }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Card Footer --}}
+                        <div class="relative z-10 pt-2 border-t border-white/15 flex items-center justify-between gap-2 text-[7px] text-slate-300">
+                            <div class="flex items-center gap-1.5">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=PEMBDA-EKS-{{ $membership->id }}-{{ $student->nisn }}&color=ffffff&bgcolor=00000000" 
+                                     alt="QR" 
+                                     class="w-6 h-6 object-contain rounded bg-white/10 p-0.5 border border-white/20 shrink-0" 
+                                     style="width: 24px; height: 24px; min-width: 24px; max-width: 24px;">
+                                <div class="leading-tight">
+                                    <p class="font-black text-white">VERIFIED</p>
+                                    <p class="text-slate-400 font-mono">perguruanpembda.com</p>
+                                </div>
+                            </div>
+
+                            <div class="text-right leading-tight">
+                                <p class="text-slate-400">Pembina / Kesiswaan</p>
+                                <p class="font-black text-white truncate max-w-[90px]">
+                                    {{ $ekskul->manager_name ?: ($ekskul->advisor_name ?: ($ekskul->advisor->full_name ?? 'PKS Kesiswaan')) }}
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {{-- Modal Action Buttons --}}
+                <div class="bg-white p-3.5 border-t border-slate-200 flex items-center justify-between gap-2">
+                    <button type="button" 
+                            onclick="window.downloadEcard('mobile-ecard-card-{{ $membership->id }}', 'E-Card_{{ Str::slug($student->full_name) }}_{{ Str::slug($ekskul->name) }}.png')"
+                            class="flex-1 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs font-black transition shadow-xs active:scale-95 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Unduh Gambar</span>
+                    </button>
+
+                    <button type="button" 
+                            onclick="window.shareEcard('mobile-ecard-card-{{ $membership->id }}', 'E-Card {{ $ekskul->name }} - {{ $student->full_name }}', 'Saya resmi terdaftar sebagai anggota {{ $ekskul->name }} di Yayasan Perguruan Pembda!')"
+                            class="px-3.5 py-2.5 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-black transition flex items-center gap-1 active:scale-95">
+                        <i class="fa-solid fa-share-nodes"></i>
+                        <span>Share</span>
                     </button>
                 </div>
 
