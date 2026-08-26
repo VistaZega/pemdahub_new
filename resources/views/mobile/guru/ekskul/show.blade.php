@@ -124,7 +124,7 @@
                     ✓ Aktif
                 </span>
                 @else
-                <form action="{{ route('mobile.guru.ekskul.approve', $member) }}" method="POST">
+                <form action="{{ route('mobile.guru.ekskul.member.approve', [$extracurricular, $member]) }}" method="POST">
                     @csrf
                     <button type="submit" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10px] shadow-2xs active:scale-95 transition">
                         Setujui
@@ -175,7 +175,7 @@
                 <button @click="showAddActivityModal = false" class="text-slate-400 hover:text-slate-700 text-lg">&times;</button>
             </div>
 
-            <form action="{{ route('mobile.guru.ekskul.activity', $extracurricular) }}" method="POST" class="space-y-3">
+            <form action="{{ route('mobile.guru.ekskul.activity.store', $extracurricular) }}" method="POST" class="space-y-3">
                 @csrf
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nama / Topik Kegiatan *</label>
