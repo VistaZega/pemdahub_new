@@ -97,16 +97,40 @@ class DashboardController extends Controller
             $billsQuery = StudentBill::where('student_id', $student->id)
                 ->where('academic_year_id', $activeYear->id);
             
-            $totalAmount = (clone $billsQuery)->sum('amount');
-            $totalPaidAmount = (clone $billsQuery)->sum('paid_amount');
-            $totalOutstanding = $totalAmount - $totalPaidAmount;
+            $allBills = (clone $billsQuery)->get();
+            $totalAmount = $allBills->sum('amount');
+            $totalPaidAmount = $allBills->sum('paid_amount');
+            
+            // Logika Tunggakan yang Tepat: Hanya tagihan yang lewat jatuh tempo / s.d. bulan berkenaan yang belum dibayar
+            $tunggakanAmount = $allBills->filter(function($b) {
+                if ($b->status === 'lunas') return false;
+                if ($b->isOverdue()) return true;
+                if ($b->month && $b->year) {
+                    $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
+                    return now()->isAfter($dueDate);
+                }
+                return false;
+            })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+
+            $upcomingAmount = $allBills->filter(function($b) {
+                if ($b->status === 'lunas') return false;
+                if ($b->isOverdue()) return false;
+                if ($b->month && $b->year) {
+                    $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
+                    return !now()->isAfter($dueDate);
+                }
+                return true;
+            })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+
+            $totalOutstanding = $tunggakanAmount;
             
             $studentBillingStats = [
-                'total_bills' => (clone $billsQuery)->count(),
-                'paid_bills' => (clone $billsQuery)->where('status', 'lunas')->count(),
+                'total_bills' => $allBills->count(),
+                'paid_bills' => $allBills->where('status', 'lunas')->count(),
                 'total_amount' => $totalAmount,
                 'paid_amount' => $totalPaidAmount,
-                'outstanding' => $totalOutstanding,
+                'outstanding' => $tunggakanAmount,
+                'upcoming' => $upcomingAmount,
                 'percentage' => $totalAmount > 0 ? round(($totalPaidAmount / $totalAmount) * 100, 1) : 0,
             ];
         }
@@ -516,9 +540,26 @@ class DashboardController extends Controller
         // Month labels (Juli-Juni for typical academic year)
         $months = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
 
-        // Tunggakan amount
-        $tunggakanAmount = $bills->filter(fn($b) => $b->isOverdue())->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
-        $upcomingAmount = $bills->filter(fn($b) => !$b->isOverdue() && $b->status !== 'lunas')->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+        // Tunggakan amount (Hanya s.d. bulan berkenaan / lewat jatuh tempo)
+        $tunggakanAmount = $bills->filter(function($b) {
+            if ($b->status === 'lunas') return false;
+            if ($b->isOverdue()) return true;
+            if ($b->month && $b->year) {
+                $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
+                return now()->isAfter($dueDate);
+            }
+            return false;
+        })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+
+        $upcomingAmount = $bills->filter(function($b) {
+            if ($b->status === 'lunas') return false;
+            if ($b->isOverdue()) return false;
+            if ($b->month && $b->year) {
+                $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
+                return !now()->isAfter($dueDate);
+            }
+            return true;
+        })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
 
         return view('siswa.tagihan', compact(
             'student', 'bills', 'academicYears', 'selectedYearId',

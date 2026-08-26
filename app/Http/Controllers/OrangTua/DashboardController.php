@@ -110,11 +110,21 @@ class DashboardController extends Controller
                     ->avg('score') ?? 0;
             }
 
-            // Outstanding bills - use DB aggregation instead of loading into memory
-            $outstanding = StudentBill::where('student_id', $student->id)
+            // Outstanding bills (Tunggakan s.d. bulan berkenaan / lewat jatuh tempo)
+            $childBills = StudentBill::where('student_id', $student->id)
                 ->where('status', '!=', 'lunas')
-                ->selectRaw('COALESCE(SUM(amount - paid_amount), 0) as total')
-                ->value('total') ?? 0;
+                ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                ->get();
+
+            $outstanding = $childBills->filter(function($b) {
+                if ($b->status === 'lunas') return false;
+                if ($b->isOverdue()) return true;
+                if ($b->month && $b->year) {
+                    $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
+                    return now()->isAfter($dueDate);
+                }
+                return false;
+            })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
 
             // Attendance percentage - single query instead of two
             $attPct = 0;
