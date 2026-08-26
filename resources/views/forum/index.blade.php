@@ -261,27 +261,28 @@
                 <div class="mb-5 rounded-2xl p-4 sm:p-5 shadow-sm transition border-2" 
                      style="background: linear-gradient(135deg, #ffffff 0%, #fbfaff 60%, #f5f3ff 100%); border-color: #c4b5fd;">
                     
-                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                         <!-- Left: Info & Roster Meta -->
-                        <div class="flex items-start gap-3.5 min-w-0 flex-1">
-                            <!-- Icon Box -->
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-xs shrink-0 border"
+                        <div class="flex items-start gap-4 sm:gap-5 min-w-0 flex-1">
+                            <!-- Icon Box with generous padding -->
+                            <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shadow-xs shrink-0 border"
                                  style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-color: #c4b5fd;">
                                 {{ $activeGroup->icon ?? '💬' }}
                             </div>
 
-                            <div class="min-w-0 space-y-1.5 flex-1">
-                                <!-- Top Tags -->
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-extrabold"
+                            <div class="min-w-0 space-y-2 flex-1">
+                                <!-- Top Tags with ample icon/badge spacing -->
+                                <div class="flex items-center gap-2.5 flex-wrap">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-black shadow-2xs"
                                           style="background: #6366f1; color: #ffffff;">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2 shrink-0"></span>
                                         <span>{{ $isEkskulGroup ? 'Squad Lounge' : 'Class Squad' }}</span>
                                     </span>
                                     @if($isEkskulGroup && $ekskulModel)
-                                        <span class="px-2 py-0.5 rounded-md text-[11px] font-bold"
+                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-black shadow-2xs"
                                               style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">
-                                            ⭐ {{ $ekskulModel->scope_label ?? 'Unit Ekskul' }}
+                                            <span class="mr-1.5 text-amber-600 shrink-0">⭐</span>
+                                            <span>{{ $ekskulModel->scope_label ?? 'Unit Ekskul' }}</span>
                                         </span>
                                     @endif
                                 </div>
@@ -298,32 +299,32 @@
                                     </p>
                                 </div>
 
-                                <!-- Info Chips -->
-                                <div class="flex items-center gap-2 pt-0.5 flex-wrap text-[11px] font-bold">
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md"
+                                <!-- Info Chips with generous spacing and icon margin -->
+                                <div class="flex items-center gap-2.5 pt-0.5 flex-wrap text-xs font-bold">
+                                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg shadow-2xs"
                                           style="background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0;">
-                                        <i class="ph-bold ph-users text-indigo-600"></i>
+                                        <i class="ph-bold ph-users text-indigo-600 text-sm mr-2 shrink-0"></i>
                                         <span>{{ $memberCount }} Anggota</span>
                                     </span>
                                     @if($isEkskulGroup && $ekskulModel)
-                                        @if($ekskulModel->advisor)
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md"
+                                        @if($ekskulModel->advisor && trim($ekskulModel->advisor->name ?? ''))
+                                        <span class="inline-flex items-center px-3 py-1.5 rounded-lg shadow-2xs"
                                               style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;">
-                                            <i class="ph-bold ph-chalkboard-teacher text-emerald-600"></i>
+                                            <i class="ph-bold ph-chalkboard-teacher text-emerald-600 text-sm mr-2 shrink-0"></i>
                                             <span>Pembina: {{ $ekskulModel->advisor->name }}</span>
                                         </span>
                                         @endif
-                                        @if($ekskulModel->leader)
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md"
+                                        @if($ekskulModel->leader && trim($ekskulModel->leader->full_name ?? ''))
+                                        <span class="inline-flex items-center px-3 py-1.5 rounded-lg shadow-2xs"
                                               style="background: #fffbeb; color: #92400e; border: 1px solid #fde68a;">
-                                            <i class="ph-bold ph-crown text-amber-600"></i>
+                                            <i class="ph-bold ph-crown text-amber-600 text-sm mr-2 shrink-0"></i>
                                             <span>Ketua: {{ $ekskulModel->leader->full_name }}</span>
                                         </span>
                                         @endif
-                                        @if($ekskulModel->location)
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md"
+                                        @if($ekskulModel->location && trim($ekskulModel->location))
+                                        <span class="inline-flex items-center px-3 py-1.5 rounded-lg shadow-2xs"
                                               style="background: #fff1f2; color: #9f1239; border: 1px solid #fecdd3;">
-                                            <i class="ph-bold ph-map-pin text-rose-600"></i>
+                                            <i class="ph-bold ph-map-pin text-rose-600 text-sm mr-2 shrink-0"></i>
                                             <span>{{ $ekskulModel->location }}</span>
                                         </span>
                                         @endif
@@ -332,27 +333,27 @@
                             </div>
                         </div>
 
-                        <!-- Right: Action Buttons -->
-                        <div class="flex items-center gap-2 shrink-0 w-full md:w-auto pt-2 md:pt-0 justify-end">
+                        <!-- Right: Action Buttons with generous horizontal padding (px-5) -->
+                        <div class="flex items-center gap-2.5 shrink-0 w-full md:w-auto pt-2 md:pt-0 justify-end flex-wrap sm:flex-nowrap">
                             <a href="{{ route('forum.create', ['group' => $activeGroup->id]) }}" 
-                               class="px-4 py-2 rounded-xl text-xs font-black shadow-xs transition flex items-center gap-1.5 active:scale-95"
+                               class="px-5 py-2.5 rounded-xl text-xs font-black shadow-xs transition flex items-center gap-2 active:scale-95 whitespace-nowrap"
                                style="background: linear-gradient(135deg, #7c3aed, #6366f1); color: #ffffff;">
-                                <i class="ph-bold ph-pencil-simple text-sm"></i>
+                                <i class="ph-bold ph-pencil-simple text-sm shrink-0"></i>
                                 <span>Tulis Post</span>
                             </a>
                             @if($isEkskulGroup)
                             <a href="{{ route('siswa.ekskul.index') }}" 
-                               class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95"
+                               class="px-5 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-2 active:scale-95 whitespace-nowrap"
                                style="background: #ffffff; color: #4338ca; border: 1.5px solid #c7d2fe;">
-                                <i class="ph-bold ph-sitemap text-sm"></i>
+                                <i class="ph-bold ph-sitemap text-sm shrink-0"></i>
                                 <span>Roster</span>
                             </a>
                             @endif
                             <a href="{{ route('forum.index') }}" 
-                               class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95"
+                               class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95 whitespace-nowrap"
                                style="background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0;"
                                title="Kembali ke Lobi Utama">
-                                <i class="ph-bold ph-x"></i>
+                                <i class="ph-bold ph-x text-xs shrink-0"></i>
                                 <span>Lobi</span>
                             </a>
                         </div>
