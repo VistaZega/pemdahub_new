@@ -87,8 +87,8 @@
             <div class="p-4 pt-1 space-y-3">
                 {{-- Member Profile Header --}}
                 <div class="flex items-center gap-3 bg-indigo-50/50 p-2.5 rounded-2xl border border-indigo-100/70">
-                    <div class="relative shrink-0">
-                        <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-10 h-10 rounded-xl object-cover border {{ $isLeader ? 'border-amber-400' : 'border-indigo-300' }} shadow-2xs bg-white">
+                    <div class="relative shrink-0 w-10 h-10">
+                        <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-10 h-10 rounded-xl object-cover border {{ $isLeader ? 'border-amber-400' : 'border-indigo-300' }} shadow-2xs bg-white" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;">
                         <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[7px] border border-white">
                             <i class="fa-solid fa-check"></i>
                         </span>
@@ -110,7 +110,7 @@
 
                 {{-- Ekskul Title --}}
                 <div class="flex items-start gap-3">
-                    <div class="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-2xl shadow-2xs shrink-0">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-2xl shadow-2xs shrink-0" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;">
                         {{ $ekskul->display_icon }}
                     </div>
                     <div class="min-w-0 flex-1">
@@ -133,14 +133,14 @@
                     </div>
                     <div class="flex items-center justify-between gap-2">
                         <div class="flex items-center -space-x-2 py-0.5">
-                            <img class="inline-block h-6 w-6 rounded-full ring-1 ring-white object-cover shadow-2xs" src="{{ $student->photo_url }}" title="Kamu">
+                            <img class="inline-block h-6 w-6 rounded-full ring-1 ring-white object-cover shadow-2xs" src="{{ $student->photo_url }}" title="Kamu" style="width: 24px; height: 24px; min-width: 24px; max-width: 24px;">
                             @foreach($otherSquad->take(3) as $sm)
                                 @if($sm->student)
-                                <img class="inline-block h-6 w-6 rounded-full ring-1 ring-white object-cover shadow-2xs" src="{{ $sm->student->photo_url }}" title="{{ $sm->student->full_name }}">
+                                <img class="inline-block h-6 w-6 rounded-full ring-1 ring-white object-cover shadow-2xs" src="{{ $sm->student->photo_url }}" title="{{ $sm->student->full_name }}" style="width: 24px; height: 24px; min-width: 24px; max-width: 24px;">
                                 @endif
                             @endforeach
                             @if($otherSquad->count() > 3)
-                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-[8px] font-black text-white ring-1 ring-white">
+                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-[8px] font-black text-white ring-1 ring-white" style="width: 24px; height: 24px; min-width: 24px; max-width: 24px;">
                                 +{{ $otherSquad->count() - 3 }}
                             </span>
                             @endif

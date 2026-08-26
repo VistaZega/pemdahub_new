@@ -90,8 +90,8 @@
                     <div class="space-y-4">
                         {{-- Student Member Profile Header (Pride Factor) --}}
                         <div class="flex items-center gap-3.5 bg-gradient-to-r from-slate-50 via-indigo-50/40 to-purple-50/30 p-3.5 rounded-2xl border border-indigo-100/80">
-                            <div class="relative shrink-0">
-                                <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-13 h-13 rounded-2xl object-cover border-2 {{ $isLeader ? 'border-amber-400 shadow-amber-200' : 'border-indigo-400 shadow-indigo-100' }} shadow-md bg-white">
+                            <div class="relative shrink-0 w-12 h-12">
+                                <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-12 h-12 rounded-2xl object-cover border-2 {{ $isLeader ? 'border-amber-400 shadow-amber-200' : 'border-indigo-400 shadow-indigo-100' }} shadow-md bg-white" style="width: 48px; height: 48px; min-width: 48px; max-width: 48px;">
                                 <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] shadow-sm border border-white" title="Anggota Terverifikasi">
                                     <i class="fas fa-check"></i>
                                 </span>
@@ -116,7 +116,7 @@
 
                         {{-- Ekskul Title & Category --}}
                         <div class="flex items-start gap-3.5">
-                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-2xl shadow-sm shrink-0 group-hover:scale-105 transition">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-2xl shadow-sm shrink-0 group-hover:scale-105 transition" style="width: 48px; height: 48px; min-width: 48px; max-width: 48px;">
                                 {{ $ekskul->display_icon }}
                             </div>
                             <div class="min-w-0 flex-1">
@@ -143,17 +143,17 @@
                             <div class="flex items-center justify-between gap-2 pt-1">
                                 <div class="flex items-center -space-x-2 overflow-hidden py-1">
                                     {{-- Current Student Avatar --}}
-                                    <img class="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover shadow-2xs" src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" title="Kamu ({{ $student->full_name }})">
+                                    <img class="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover shadow-2xs" src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" title="Kamu ({{ $student->full_name }})" style="width: 32px; height: 32px; min-width: 32px; max-width: 32px;">
                                     
                                     {{-- Other Teammates --}}
                                     @foreach($otherSquad->take(4) as $squadMember)
                                         @if($squadMember->student)
-                                        <img class="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover shadow-2xs" src="{{ $squadMember->student->photo_url }}" alt="{{ $squadMember->student->full_name }}" title="{{ $squadMember->student->full_name }} ({{ $squadMember->role_label }})">
+                                        <img class="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover shadow-2xs" src="{{ $squadMember->student->photo_url }}" alt="{{ $squadMember->student->full_name }}" title="{{ $squadMember->student->full_name }} ({{ $squadMember->role_label }})" style="width: 32px; height: 32px; min-width: 32px; max-width: 32px;">
                                         @endif
                                     @endforeach
 
                                     @if($otherSquad->count() > 4)
-                                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-black text-white ring-2 ring-white shadow-2xs">
+                                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-black text-white ring-2 ring-white shadow-2xs" style="width: 32px; height: 32px; min-width: 32px; max-width: 32px;">
                                         +{{ $otherSquad->count() - 4 }}
                                     </span>
                                     @endif
@@ -267,7 +267,7 @@
                                 <div class="flex items-center -space-x-1.5">
                                     @foreach($ekskul->activeMembers->take(3) as $m)
                                         @if($m->student)
-                                        <img class="inline-block h-5 w-5 rounded-full ring-1 ring-white object-cover" src="{{ $m->student->photo_url }}" title="{{ $m->student->full_name }}">
+                                        <img class="inline-block h-5 w-5 rounded-full ring-1 ring-white object-cover" src="{{ $m->student->photo_url }}" title="{{ $m->student->full_name }}" style="width: 20px; height: 20px; min-width: 20px; max-width: 20px;">
                                         @endif
                                     @endforeach
                                 </div>
