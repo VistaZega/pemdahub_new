@@ -531,7 +531,7 @@ class FinalProjectTest extends TestCase
 
         // Assert FinalProject was created
         $this->assertDatabaseHas('final_projects', [
-            'student_id' => $this->smkStudent->id,
+            'student_id' => $smkStudent1->id,
             'title' => 'Project Akhir Lintas Kelas IoT Smart Home',
             'type' => 'project_akhir',
             'advisor_id' => $this->smkTeacher->id,
@@ -543,7 +543,7 @@ class FinalProjectTest extends TestCase
         // Assert 2 members from different classes were created
         $this->assertDatabaseHas('final_project_members', [
             'final_project_id' => $project->id,
-            'student_id' => $this->smkStudent->id,
+            'student_id' => $smkStudent1->id,
             'role' => 'leader',
         ]);
 
