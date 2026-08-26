@@ -232,9 +232,7 @@ class DashboardController extends Controller
             : ($activeYear?->id ?? null);
 
         $query = StudentBill::where('student_id', $student->id)
-            ->with(['paymentType', 'payments', 'academicYear', 'semester'])
-            ->orderByDesc('year')
-            ->orderByDesc('month');
+            ->with(['paymentType', 'payments', 'academicYear', 'semester']);
 
         if ($selectedYearId) {
             $query->where('academic_year_id', $selectedYearId);
@@ -244,11 +242,86 @@ class DashboardController extends Controller
 
         $totalTagihan = $bills->sum('amount');
         $totalBayar = $bills->sum('paid_amount');
-        $totalSisa = $bills->sum(fn($b) => $b->amount - $b->paid_amount);
+        $totalSisa = $bills->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+
+        // Calculate Tunggakan s.d. Bulan Ini vs Mendatang
+        $tunggakanAmount = $bills->filter(function($b) {
+            if ($b->status === 'lunas') return false;
+            if ($b->isOverdue()) return true;
+            if ($b->month && $b->year) {
+                $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
+                return now()->isAfter($dueDate);
+            }
+            return false;
+        })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+
+        $upcomingAmount = $bills->filter(function($b) {
+            if ($b->status === 'lunas') return false;
+            if ($b->isOverdue()) return false;
+            if ($b->month && $b->year) {
+                $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
+                return !now()->isAfter($dueDate);
+            }
+            return true;
+        })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+
+        // Group monthly bills per month (academic year sequence: 7,8,9,10,11,12,1,2,3,4,5,6)
+        $academicMonths = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
+
+        $monthlyBills = $bills->filter(fn($b) => $b->month !== null && $b->month > 0);
+        $nonMonthlyBills = $bills->filter(fn($b) => $b->month === null || $b->month == 0);
+
+        $byMonthKey = $monthlyBills->groupBy(fn($b) => $b->year . '_' . str_pad($b->month, 2, '0', STR_PAD_LEFT));
+
+        $sortedMonthKeys = $byMonthKey->keys()->sort(function($a, $b) use ($academicMonths) {
+            list($yearA, $monthA) = explode('_', $a);
+            list($yearB, $monthB) = explode('_', $b);
+            $mA = (int)$monthA;
+            $mB = (int)$monthB;
+            
+            if ($yearA != $yearB) {
+                return $yearA <=> $yearB;
+            }
+            $posA = array_search($mA, $academicMonths);
+            $posB = array_search($mB, $academicMonths);
+            return ($posA !== false && $posB !== false) ? ($posA <=> $posB) : ($mA <=> $mB);
+        });
+
+        $monthlyGroupedData = collect();
+        foreach ($sortedMonthKeys as $key) {
+            $items = $byMonthKey[$key];
+            $first = $items->first();
+            $monthNum = (int)$first->month;
+            $yearNum = (int)$first->year;
+            
+            $monthTotal = $items->sum('amount');
+            $monthPaid = $items->sum('paid_amount');
+            $monthRemaining = max(0, $monthTotal - $monthPaid);
+            
+            $dueDate = \Carbon\Carbon::create($yearNum, $monthNum, 10)->endOfDay();
+            $isOverdue = $monthRemaining > 0 && now()->isAfter($dueDate);
+            $isPaid = $monthRemaining == 0;
+
+            $monthlyGroupedData->push([
+                'key' => $key,
+                'month' => $monthNum,
+                'year' => $yearNum,
+                'month_name' => \Carbon\Carbon::create()->month($monthNum)->translatedFormat('F'),
+                'label' => \Carbon\Carbon::create()->month($monthNum)->translatedFormat('F') . ' ' . $yearNum,
+                'items' => $items,
+                'total_amount' => $monthTotal,
+                'paid_amount' => $monthPaid,
+                'remaining_amount' => $monthRemaining,
+                'is_paid' => $isPaid,
+                'is_overdue' => $isOverdue,
+                'due_date' => $dueDate,
+            ]);
+        }
 
         return view('orangtua.tagihan', compact(
             'student', 'classroom', 'children', 'bills', 'academicYears', 'selectedYearId',
-            'totalTagihan', 'totalBayar', 'totalSisa'
+            'totalTagihan', 'totalBayar', 'totalSisa', 'tunggakanAmount', 'upcomingAmount',
+            'monthlyGroupedData', 'nonMonthlyBills'
         ));
     }
 
