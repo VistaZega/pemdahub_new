@@ -244,34 +244,60 @@ class DashboardController extends Controller
         $totalBayar = $bills->sum('paid_amount');
         $totalSisa = $bills->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
 
+        // Helper to resolve accurate bill year even if year column in DB is 0 or null
+        $getResolvedYear = function($b) use ($activeYear) {
+            if (!empty($b->year) && (int)$b->year > 2000) {
+                return (int)$b->year;
+            }
+            if ($b->due_date) {
+                return (int)\Carbon\Carbon::parse($b->due_date)->format('Y');
+            }
+            $ayName = $b->academicYear?->year ?? $activeYear?->year ?? '';
+            if (preg_match('/(\d{4})/', $ayName, $m)) {
+                $startYear = (int)$m[1];
+                $mNum = (int)$b->month;
+                return ($mNum >= 7 && $mNum <= 12) ? $startYear : $startYear + 1;
+            }
+            return (int)date('Y');
+        };
+
+        // Helper to get due date of a bill
+        $getDueDate = function($b) use ($getResolvedYear) {
+            if ($b->due_date) {
+                return \Carbon\Carbon::parse($b->due_date)->endOfDay();
+            }
+            if ($b->month) {
+                $year = $getResolvedYear($b);
+                return \Carbon\Carbon::create($year, (int)$b->month, 10)->endOfDay();
+            }
+            return null;
+        };
+
         // Calculate Tunggakan s.d. Bulan Ini vs Mendatang
-        $tunggakanAmount = $bills->filter(function($b) {
+        $tunggakanAmount = $bills->filter(function($b) use ($getDueDate) {
             if ($b->status === 'lunas') return false;
             if ($b->isOverdue()) return true;
-            if ($b->month && $b->year) {
-                $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
-                return now()->isAfter($dueDate);
-            }
-            return false;
+            $dueDate = $getDueDate($b);
+            return $dueDate ? now()->isAfter($dueDate) : false;
         })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
 
-        $upcomingAmount = $bills->filter(function($b) {
+        $upcomingAmount = $bills->filter(function($b) use ($getDueDate) {
             if ($b->status === 'lunas') return false;
             if ($b->isOverdue()) return false;
-            if ($b->month && $b->year) {
-                $dueDate = \Carbon\Carbon::create($b->year, $b->month, 10)->endOfDay();
-                return !now()->isAfter($dueDate);
-            }
-            return true;
+            $dueDate = $getDueDate($b);
+            return $dueDate ? !now()->isAfter($dueDate) : true;
         })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
 
         // Group monthly bills per month (academic year sequence: 7,8,9,10,11,12,1,2,3,4,5,6)
         $academicMonths = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
 
-        $monthlyBills = $bills->filter(fn($b) => $b->month !== null && $b->month > 0);
-        $nonMonthlyBills = $bills->filter(fn($b) => $b->month === null || $b->month == 0);
+        $monthlyBills = $bills->filter(fn($b) => $b->month !== null && (int)$b->month > 0);
+        $nonMonthlyBills = $bills->filter(fn($b) => $b->month === null || (int)$b->month == 0);
 
-        $byMonthKey = $monthlyBills->groupBy(fn($b) => $b->year . '_' . str_pad($b->month, 2, '0', STR_PAD_LEFT));
+        $byMonthKey = $monthlyBills->groupBy(function($b) use ($getResolvedYear) {
+            $year = $getResolvedYear($b);
+            return $year . '_' . str_pad($b->month, 2, '0', STR_PAD_LEFT);
+        });
 
         $sortedMonthKeys = $byMonthKey->keys()->sort(function($a, $b) use ($academicMonths) {
             list($yearA, $monthA) = explode('_', $a);
@@ -292,7 +318,7 @@ class DashboardController extends Controller
             $items = $byMonthKey[$key];
             $first = $items->first();
             $monthNum = (int)$first->month;
-            $yearNum = (int)$first->year;
+            $yearNum = $getResolvedYear($first);
             
             $monthTotal = $items->sum('amount');
             $monthPaid = $items->sum('paid_amount');
