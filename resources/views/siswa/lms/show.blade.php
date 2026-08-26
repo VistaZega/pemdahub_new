@@ -137,29 +137,42 @@ if (!function_exists('balanceHtmlTags')) {
     @endif
 
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- COURSE HERO BANNER (100% SOLID UI UX PRO MAX) --}}
+    {{-- COURSE HERO BANNER (CERAH, ENERGIK & MODERN) --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl border-2 border-black">
+    @php
+        $design = $course->design ?? null;
+        $gradientTheme = $design['gradient'] ?? $colorConfig['gradient'] ?? 'from-indigo-600 via-purple-600 to-pink-600';
+    @endphp
+    <div class="relative bg-gradient-to-r {{ $gradientTheme }} rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl shadow-indigo-200/40 text-white">
+        {{-- Decorative shapes --}}
+        <div class="absolute -right-8 -bottom-8 w-60 h-60 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute right-1/3 -top-10 w-48 h-48 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+
         <div class="relative z-10">
-            {{-- Back --}}
-            <a href="{{ route('siswa.lms.index') }}" class="inline-flex items-center gap-2 bg-black text-white border-2 border-black px-4 py-2 rounded-xl text-xs font-black hover:bg-amber-400 hover:text-black transition-all shadow-md mb-5">
+            {{-- Back Button --}}
+            <a href="{{ route('siswa.lms.index') }}" class="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white backdrop-blur-md border border-white/30 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm mb-5">
                 <i class="fas fa-arrow-left text-xs"></i> Kembali ke Daftar Ruang Belajar
             </a>
 
             {{-- Course Info --}}
             <div class="flex items-start gap-4 mb-5">
-                <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md flex-shrink-0 border-2 border-black" style="background-color: #1e3a8a !important; color: #ffffff !important;">
+                <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg flex-shrink-0 text-white">
                     @if($scientist)
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
+                    @elseif(isset($design['icon']))
+                        <i class="{{ $design['icon'] }} text-2xl text-white"></i>
                     @else
                         <i class="fas fa-graduation-cap text-2xl text-white"></i>
                     @endif
                 </div>
                 <div>
-                    <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight leading-tight">{{ $course->course_name ?? $course->name }}</h1>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight drop-shadow-xs">{{ $course->course_name ?? $course->name }}</h1>
                     <div class="flex flex-wrap items-center gap-3 mt-2">
-                        <span class="border-2 border-black px-3 py-1 rounded-xl text-xs font-black" style="background-color: #fbbf24 !important; color: #000000 !important;">{{ $course->subject->subject_name ?? '' }}</span>
-                        <span class="text-black text-xs font-black flex items-center gap-1.5"><i class="fas fa-user-tie text-black text-sm"></i> Pengajar: {{ $course->teacher->user->name ?? '-' }}</span>
+                        <span class="bg-white/20 backdrop-blur-md border border-white/30 px-3 py-1 rounded-xl text-xs font-extrabold text-white">{{ $course->subject->subject_name ?? '' }}</span>
+                        <span class="text-white/90 text-xs font-semibold flex items-center gap-1.5"><i class="fas fa-user-tie text-white/80 text-sm"></i> Pengajar: {{ $course->teacher->user->name ?? '-' }}</span>
+                        @if(isset($design['category']))
+                        <span class="text-white/80 text-xs font-medium bg-black/15 px-2.5 py-0.5 rounded-lg backdrop-blur-sm">{{ $design['category'] }}</span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -167,36 +180,36 @@ if (!function_exists('balanceHtmlTags')) {
             {{-- Progress + Quick Stats --}}
             <div class="flex flex-wrap items-center gap-4">
                 {{-- Progress Ring --}}
-                <div class="bg-blue-100 border-2 border-black rounded-2xl px-5 py-3 flex items-center gap-3 shadow-md">
+                <div class="bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl px-5 py-3 flex items-center gap-3 shadow-sm text-white">
                     <div class="relative w-12 h-12">
                         <svg class="w-12 h-12 progress-ring" viewBox="0 0 36 36">
-                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#000000" stroke-width="4"/>
-                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#2563eb" stroke-width="4" stroke-dasharray="{{ $courseProgress }}, 100" stroke-linecap="round"/>
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="4"/>
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#ffffff" stroke-width="4" stroke-dasharray="{{ $courseProgress }}, 100" stroke-linecap="round"/>
                         </svg>
-                        <span class="absolute inset-0 flex items-center justify-center text-xs font-black text-black">{{ number_format($courseProgress) }}%</span>
+                        <span class="absolute inset-0 flex items-center justify-center text-xs font-extrabold text-white">{{ number_format($courseProgress) }}%</span>
                     </div>
                     <div>
-                        <div class="text-[10px] font-black uppercase tracking-widest text-black">Progress Belajar</div>
-                        <div class="text-sm font-black text-black">{{ $courseProgress >= 80 ? 'Hampir Selesai!' : ($courseProgress >= 40 ? 'Lanjutkan Belajar!' : ($courseProgress > 0 ? 'Baru Mulai' : 'Mulai Belajar')) }}</div>
+                        <div class="text-[10px] font-bold uppercase tracking-widest text-white/80">Progress Belajar</div>
+                        <div class="text-sm font-black text-white drop-shadow-xs">{{ $courseProgress >= 80 ? '🔥 Hampir Selesai!' : ($courseProgress >= 40 ? '📖 Lanjutkan Belajar!' : ($courseProgress > 0 ? '🚀 Baru Mulai' : '📚 Mulai Belajar')) }}</div>
                     </div>
                 </div>
 
-                <div class="bg-white border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md">
-                    <div class="text-xl font-black leading-none text-black">{{ $course->modules->count() }}</div>
-                    <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Modul Ajar</div>
+                <div class="bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-sm text-white">
+                    <div class="text-xl font-black leading-none text-white drop-shadow-xs">{{ $course->modules->count() }}</div>
+                    <div class="text-[10px] font-bold uppercase tracking-widest text-white/80 mt-1">Modul Ajar</div>
                 </div>
 
                 @if($pendingAssignments > 0)
-                <div class="border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md" style="background-color: #fef08a !important;">
-                    <div class="text-xl font-black leading-none text-black">{{ $pendingAssignments }}</div>
-                    <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Tugas Pending</div>
+                <div class="bg-amber-400 text-slate-950 border border-amber-300 rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md shadow-amber-500/20">
+                    <div class="text-xl font-black leading-none text-slate-950">{{ $pendingAssignments }}</div>
+                    <div class="text-[10px] font-extrabold uppercase tracking-widest text-slate-900 mt-1">Tugas Pending</div>
                 </div>
                 @endif
 
                 @if($availableQuizzes > 0)
-                <div class="border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md" style="background-color: #e9d5ff !important;">
-                    <div class="text-xl font-black leading-none text-black">{{ $availableQuizzes }}</div>
-                    <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Quiz Tersedia</div>
+                <div class="bg-purple-300 text-purple-950 border border-purple-200 rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md shadow-purple-500/20">
+                    <div class="text-xl font-black leading-none text-purple-950">{{ $availableQuizzes }}</div>
+                    <div class="text-[10px] font-extrabold uppercase tracking-widest text-purple-900 mt-1">Quiz Tersedia</div>
                 </div>
                 @endif
             </div>
@@ -224,22 +237,22 @@ if (!function_exists('balanceHtmlTags')) {
     {{-- ═══════════════════════════════════════════════ --}}
     {{-- TAB NAVIGATION --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="bg-white rounded-2xl shadow-md border-2 border-black p-1.5 flex flex-wrap gap-1.5 sticky top-0 z-20">
-        <button @click="tab = 'modules'" :class="tab === 'modules' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-1.5 flex flex-wrap gap-1.5 sticky top-0 z-20 backdrop-blur-md bg-white/95">
+        <button @click="tab = 'modules'" :class="tab === 'modules' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-200 font-extrabold' : 'bg-slate-50 text-slate-600 hover:bg-indigo-50/70 hover:text-indigo-600 font-bold'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
             <i class="fas fa-book-open text-sm"></i> <span class="hidden sm:inline">Modul</span>
         </button>
-        <button @click="tab = 'assignments'" :class="tab === 'assignments' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
+        <button @click="tab = 'assignments'" :class="tab === 'assignments' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-200 font-extrabold' : 'bg-slate-50 text-slate-600 hover:bg-indigo-50/70 hover:text-indigo-600 font-bold'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
             <i class="fas fa-tasks text-sm"></i> <span class="hidden sm:inline">Tugas</span>
-            @if($pendingAssignments > 0)<span class="rounded-full px-2 py-0.5 text-[10px] font-black border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">{{ $pendingAssignments }}</span>@endif
+            @if($pendingAssignments > 0)<span class="rounded-full px-2 py-0.5 text-[10px] font-extrabold bg-rose-500 text-white shadow-xs">{{ $pendingAssignments }}</span>@endif
         </button>
-        <button @click="tab = 'quizzes'" :class="tab === 'quizzes' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
+        <button @click="tab = 'quizzes'" :class="tab === 'quizzes' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-200 font-extrabold' : 'bg-slate-50 text-slate-600 hover:bg-indigo-50/70 hover:text-indigo-600 font-bold'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
             <i class="fas fa-question-circle text-sm"></i> <span class="hidden sm:inline">Quiz</span>
-            @if($availableQuizzes > 0)<span class="rounded-full px-2 py-0.5 text-[10px] font-black border border-black" style="background-color: #c084fc !important; color: #000000 !important;">{{ $availableQuizzes }}</span>@endif
+            @if($availableQuizzes > 0)<span class="rounded-full px-2 py-0.5 text-[10px] font-extrabold bg-purple-500 text-white shadow-xs">{{ $availableQuizzes }}</span>@endif
         </button>
-        <button @click="tab = 'announcements'" :class="tab === 'announcements' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
+        <button @click="tab = 'announcements'" :class="tab === 'announcements' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-200 font-extrabold' : 'bg-slate-50 text-slate-600 hover:bg-indigo-50/70 hover:text-indigo-600 font-bold'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
             <i class="fas fa-bullhorn text-sm"></i> <span class="hidden sm:inline">Info</span>
         </button>
-        <button @click="tab = 'discussions'" :class="tab === 'discussions' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
+        <button @click="tab = 'discussions'" :class="tab === 'discussions' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-200 font-extrabold' : 'bg-slate-50 text-slate-600 hover:bg-indigo-50/70 hover:text-indigo-600 font-bold'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
             <i class="fas fa-comments text-sm"></i> <span class="hidden sm:inline">Diskusi</span>
         </button>
     </div>
@@ -249,44 +262,44 @@ if (!function_exists('balanceHtmlTags')) {
     {{-- ═══════════════════════════════════════════════ --}}
     <div x-show="tab === 'modules'" class="space-y-6 tab-content">
         {{-- Panduan Penyelesaian Modul untuk Siswa --}}
-        <div class="bg-white rounded-3xl p-6 border-2 border-black text-black shadow-lg relative overflow-hidden">
+        <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 rounded-3xl p-6 border border-indigo-100/80 text-slate-800 shadow-sm relative overflow-hidden">
             <div class="relative z-10 space-y-3">
                 <div class="flex items-center gap-3">
-                    <span class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-base font-black border-2 border-black shrink-0" style="background-color: #1e3a8a !important; color: #ffffff !important;">
+                    <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-base font-bold shadow-sm shrink-0">
                         <i class="fas fa-info-circle text-white"></i>
                     </span>
-                    <h4 class="font-black text-base uppercase tracking-wider text-black">Panduan Penyelesaian Modul Pembelajaran</h4>
+                    <h4 class="font-extrabold text-base uppercase tracking-wider text-slate-900">Panduan Penyelesaian Modul Pembelajaran</h4>
                 </div>
-                <p class="text-xs font-bold text-black leading-relaxed">
+                <p class="text-xs font-semibold text-slate-600 leading-relaxed">
                     Untuk menyukseskan pembelajaran Anda dan memperoleh progress 100%, ikuti 4 langkah mudah berikut pada setiap modul:
                 </p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-                    <div class="bg-slate-100 rounded-2xl p-4 border-2 border-black shadow-sm flex items-start gap-3">
-                        <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 border-2 border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">1</span>
+                    <div class="bg-white rounded-2xl p-4 border border-indigo-100/80 shadow-xs flex items-start gap-3 hover:shadow-md transition-shadow">
+                        <span class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center font-black text-sm flex-shrink-0 shadow-sm">1</span>
                         <div>
-                            <p class="text-xs font-black text-black uppercase">Pelajari Materi</p>
-                            <p class="text-[11px] text-black leading-snug mt-1 font-bold">Simak PDF, Video, atau Link sesuai waktu belajar minimal yang ditentukan.</p>
+                            <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Pelajari Materi</p>
+                            <p class="text-[11px] text-slate-600 leading-snug mt-1 font-medium">Simak PDF, Video, atau Link sesuai waktu belajar minimal yang ditentukan.</p>
                         </div>
                     </div>
-                    <div class="bg-slate-100 rounded-2xl p-4 border-2 border-black shadow-sm flex items-start gap-3">
-                        <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 border-2 border-black" style="background-color: #93c5fd !important; color: #000000 !important;">2</span>
+                    <div class="bg-white rounded-2xl p-4 border border-indigo-100/80 shadow-xs flex items-start gap-3 hover:shadow-md transition-shadow">
+                        <span class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 text-white flex items-center justify-center font-black text-sm flex-shrink-0 shadow-sm">2</span>
                         <div>
-                            <p class="text-xs font-black text-black uppercase">Verifikasi Selesai</p>
-                            <p class="text-[11px] text-black leading-snug mt-1 font-bold">Centang kotak pernyataan verifikasi aktif, lalu klik tombol <b>Tandai Selesai</b>.</p>
+                            <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Verifikasi Selesai</p>
+                            <p class="text-[11px] text-slate-600 leading-snug mt-1 font-medium">Centang kotak pernyataan verifikasi aktif, lalu klik tombol <b>Tandai Selesai</b>.</p>
                         </div>
                     </div>
-                    <div class="bg-slate-100 rounded-2xl p-4 border-2 border-black shadow-sm flex items-start gap-3">
-                        <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 border-2 border-black" style="background-color: #fcd34d !important; color: #000000 !important;">3</span>
+                    <div class="bg-white rounded-2xl p-4 border border-indigo-100/80 shadow-xs flex items-start gap-3 hover:shadow-md transition-shadow">
+                        <span class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center font-black text-sm flex-shrink-0 shadow-sm">3</span>
                         <div>
-                            <p class="text-xs font-black text-black uppercase">Mainkan Game</p>
-                            <p class="text-[11px] text-black leading-snug mt-1 font-bold">Uji daya ingat dan kumpulkan EXP / skor dengan memainkan mini game interaktif.</p>
+                            <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Mainkan Game</p>
+                            <p class="text-[11px] text-slate-600 leading-snug mt-1 font-medium">Uji daya ingat dan kumpulkan EXP / skor dengan memainkan mini game interaktif.</p>
                         </div>
                     </div>
-                    <div class="bg-slate-100 rounded-2xl p-4 border-2 border-black shadow-sm flex items-start gap-3">
-                        <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 border-2 border-black" style="background-color: #e9d5ff !important; color: #000000 !important;">4</span>
+                    <div class="bg-white rounded-2xl p-4 border border-indigo-100/80 shadow-xs flex items-start gap-3 hover:shadow-md transition-shadow">
+                        <span class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 text-white flex items-center justify-center font-black text-sm flex-shrink-0 shadow-sm">4</span>
                         <div>
-                            <p class="text-xs font-black text-black uppercase">Kuis & Tugas</p>
-                            <p class="text-[11px] text-black leading-snug mt-1 font-bold">Selesaikan Kuis Evaluasi dan kirim Tugas pada tab menu di atas tepat waktu.</p>
+                            <p class="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Kuis & Tugas</p>
+                            <p class="text-[11px] text-slate-600 leading-snug mt-1 font-medium">Selesaikan Kuis Evaluasi dan kirim Tugas pada tab menu di atas tepat waktu.</p>
                         </div>
                     </div>
                 </div>
@@ -758,7 +771,7 @@ if (!function_exists('balanceHtmlTags')) {
                                         <i class="fas fa-users text-purple-600"></i>
                                         <span>{{ $myGroup->name }}</span>
                                         @if($isLeader)
-                                        <span class="bg-amber-400 text-black text-[10px] px-2.5 py-0.5 rounded-full border border-black uppercase tracking-wider font-extrabold shadow-xs">👑 Anda Ketua Kelompok</span>
+                                        <span class="bg-amber-400 text-slate-950 text-[10px] px-2.5 py-0.5 rounded-full border border-amber-300 uppercase tracking-wider font-extrabold shadow-xs">👑 Anda Ketua Kelompok</span>
                                         @else
                                         <span class="bg-purple-200 text-purple-800 text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Anggota</span>
                                         @endif
