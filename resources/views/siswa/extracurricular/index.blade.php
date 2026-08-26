@@ -385,6 +385,7 @@
     @endphp
     <div x-show="activeModal === 'squad-{{ $modalEkskul->id }}'" 
          x-cloak 
+         style="display: none;"
          class="fixed inset-0 z-50 overflow-y-auto" 
          role="dialog" 
          aria-modal="true"
@@ -598,6 +599,7 @@
     @endphp
     <div x-show="activeModal === 'ecard-{{ $membership->id }}'" 
          x-cloak 
+         style="display: none;"
          class="fixed inset-0 z-50 overflow-y-auto" 
          role="dialog" 
          aria-modal="true"
