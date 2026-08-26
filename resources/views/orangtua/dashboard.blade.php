@@ -49,7 +49,7 @@
                             <p class="text-xl font-bold {{ $data['outstanding'] > 0 ? 'text-red-600' : 'text-green-600' }}">
                                 {{ $data['outstanding'] > 0 ? 'Rp '.number_format($data['outstanding'], 0, ',', '.') : '✅ Lunas' }}
                             </p>
-                            <p class="text-xs text-gray-500">Tagihan</p>
+                            <p class="text-xs text-gray-500">Tunggakan s.d. Bulan Ini</p>
                         </div>
                     </div>
 

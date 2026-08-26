@@ -137,10 +137,10 @@
             </div>
         </div>
 
-        {{-- Card 4: Jadwal / Keuangan (Purple/Rose Theme) --}}
+        {{-- Card 4: Status Pembayaran Biaya (Purple/Rose Theme) --}}
         <div class="bg-gradient-to-br from-purple-600 to-pink-600 text-white shadow-lg" style="padding: 1.75rem; border-radius: 1.75rem; border: 2px solid rgba(232, 121, 249, 0.5); display: flex; flex-direction: column; justify-content: space-between; min-height: 160px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                <span style="font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #fae8ff;">Status Pembayaran</span>
+                <span style="font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #fae8ff;">Status Biaya Pendidikan</span>
                 <div style="width: 3rem; height: 3rem; border-radius: 1rem; background-color: #ffffff; color: #9333ea; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex-shrink: 0;">
                     <i class="fas fa-wallet"></i>
                 </div>
@@ -148,10 +148,10 @@
             <div>
                 @if($totalOutstanding > 0)
                 <p style="font-size: 1.75rem; font-weight: 900; color: #ffffff; line-height: 1.1;">Rp {{ number_format($totalOutstanding, 0, ',', '.') }}</p>
-                <p style="font-size: 0.75rem; font-weight: 700; color: #fbcfe8; margin-top: 0.6rem; line-height: 1.4;">Ada tagihan belum lunas</p>
+                <p style="font-size: 0.75rem; font-weight: 700; color: #fbcfe8; margin-top: 0.6rem; line-height: 1.4;">Tunggakan s.d. Bulan Ini</p>
                 @else
-                <p style="font-size: 1.75rem; font-weight: 900; color: #ffffff; line-height: 1.1;">Lunas 100%</p>
-                <p style="font-size: 0.75rem; font-weight: 700; color: #a7f3d0; margin-top: 0.6rem; line-height: 1.4;">Bebas tunggakan SPP</p>
+                <p style="font-size: 1.75rem; font-weight: 900; color: #ffffff; line-height: 1.1;">Lunas s.d. Bulan Ini</p>
+                <p style="font-size: 0.75rem; font-weight: 700; color: #a7f3d0; margin-top: 0.6rem; line-height: 1.4;">Bebas tunggakan seluruh biaya (SPP, OSIS, dll.)</p>
                 @endif
             </div>
         </div>
