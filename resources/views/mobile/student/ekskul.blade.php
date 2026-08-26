@@ -3,7 +3,7 @@
 @section('title', 'Ekstrakurikuler Siswa')
 
 @section('content')
-<div class="space-y-4 pb-20" x-data="{ activeTab: 'my' }">
+<div class="space-y-4 pb-20" x-data="{ activeTab: 'my', activeModal: null }">
 
     {{-- Top Bar --}}
     <div class="flex items-center justify-between pt-1">
@@ -121,14 +121,15 @@
                     </div>
                 </div>
 
-                {{-- Squad Teammates Avatar Stack --}}
-                <div class="bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80 space-y-1.5">
+                {{-- Squad Teammates Avatar Stack (Clickable) --}}
+                <div class="bg-slate-50 hover:bg-indigo-50/50 p-2.5 rounded-2xl border border-slate-200/80 space-y-1.5 transition cursor-pointer active:scale-98" @click="activeModal = 'squad-{{ $ekskul->id }}'">
                     <div class="flex items-center justify-between text-[10px]">
                         <span class="font-black text-slate-700 flex items-center gap-1">
                             <i class="fa-solid fa-users text-indigo-600"></i> Rekan Squad
                         </span>
-                        <span class="font-extrabold text-indigo-700 bg-indigo-100 px-1.5 py-0.2 rounded-md">
-                            {{ $activeSquad->count() }} Anggota
+                        <span class="font-extrabold text-indigo-700 bg-indigo-100 px-1.5 py-0.2 rounded-md flex items-center gap-0.5">
+                            <span>{{ $activeSquad->count() }} Anggota</span>
+                            <i class="fa-solid fa-arrow-right text-[7px]"></i>
                         </span>
                     </div>
                     <div class="flex items-center justify-between gap-2">
@@ -172,16 +173,22 @@
                 </div>
 
                 {{-- Card Actions --}}
-                <div class="pt-1 flex items-center justify-between border-t border-slate-100">
+                <div class="pt-1 flex flex-wrap items-center justify-between gap-1.5 border-t border-slate-100">
                     <span class="text-[11px] font-black text-indigo-700 flex items-center gap-1">
-                        <i class="fa-solid fa-star text-amber-500"></i> +{{ $membership->points_awarded }} Poin Reputasi
+                        <i class="fa-solid fa-star text-amber-500"></i> +{{ $membership->points_awarded }} Poin
                     </span>
-                    @if($ekskul->forum_group_id)
-                    <a href="{{ route('mobile.space.index') }}" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 text-white rounded-xl text-xs font-black shadow-xs active:scale-95 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-comments"></i>
-                        <span>Space</span>
-                    </a>
-                    @endif
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" @click="activeModal = 'squad-{{ $ekskul->id }}'" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-black transition flex items-center gap-1 active:scale-95">
+                            <i class="fa-solid fa-sitemap text-indigo-600"></i>
+                            <span>Struktur</span>
+                        </button>
+                        @if($ekskul->forum_group_id)
+                        <a href="{{ route('mobile.space.index') }}" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 text-white rounded-xl text-xs font-black shadow-xs active:scale-95 transition flex items-center gap-1">
+                            <i class="fa-solid fa-comments"></i>
+                            <span>Space</span>
+                        </a>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -237,7 +244,14 @@
                 </div>
             </div>
 
-            <div class="pt-1 border-t border-slate-100">
+            <div class="pt-1 border-t border-slate-100 space-y-2">
+                <div class="flex items-center justify-between">
+                    <button type="button" @click="activeModal = 'squad-{{ $ekskul->id }}'" class="text-xs font-black text-indigo-700 hover:text-indigo-900 flex items-center gap-1 active:scale-95" title="Lihat Struktur & Roster">
+                        <i class="fa-solid fa-sitemap text-indigo-500"></i>
+                        <span>Lihat Struktur & Roster</span> &rarr;
+                    </button>
+                </div>
+
                 @if($isJoined)
                 <div class="flex items-center justify-between">
                     <span class="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-black flex items-center gap-1.5">
@@ -274,6 +288,203 @@
         </div>
         @endforeach
     </div>
+
+    {{-- MODAL DETAIL SQUAD ROSTER & STRUKTUR ORGANISASI (MOBILE) --}}
+    @php
+        $modalEkskuls = $availableEkskuls->merge($myMemberships->pluck('extracurricular'))->unique('id');
+    @endphp
+    @foreach($modalEkskuls as $modalEkskul)
+    @php 
+        $squadList = $modalEkskul->activeMembers ?? collect();
+    @endphp
+    <div x-show="activeModal === 'squad-{{ $modalEkskul->id }}'" 
+         x-cloak 
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         role="dialog" 
+         aria-modal="true"
+         @keydown.escape.window="activeModal = null">
+        
+        {{-- Backdrop --}}
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" 
+             x-show="activeModal === 'squad-{{ $modalEkskul->id }}'"
+             x-transition:enter="ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="activeModal = null"></div>
+
+        {{-- Modal Panel --}}
+        <div class="min-h-full flex items-end sm:items-center justify-center p-0 sm:p-4 text-center">
+            <div class="relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl text-left shadow-2xl overflow-hidden border-t-2 sm:border-2 border-indigo-200 transform transition-all flex flex-col max-h-[85vh]"
+                 x-show="activeModal === 'squad-{{ $modalEkskul->id }}'"
+                 x-transition:enter="ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-6"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="ease-in duration-150"
+                 x-transition:leave-start="opacity-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 translate-y-6"
+                 @click.away="activeModal = null">
+
+                {{-- Header --}}
+                <div class="bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 text-white p-4.5 flex items-start justify-between gap-3 shrink-0">
+                    <div class="flex items-start gap-3">
+                        <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-xs border border-white/30 text-white flex items-center justify-center text-2xl shadow-2xs shrink-0" style="width: 44px; height: 44px; min-width: 44px; max-width: 44px;">
+                            {{ $modalEkskul->display_icon }}
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-[8px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full text-white inline-block mb-1">
+                                {{ $modalEkskul->category_label }}
+                            </span>
+                            <h3 class="text-base font-black text-white leading-tight">
+                                {{ $modalEkskul->name }}
+                            </h3>
+                            <p class="text-[10px] text-indigo-100 font-medium mt-0.5">
+                                👥 {{ $squadList->count() }} Anggota &bull; 📍 {{ $modalEkskul->location ?: 'Kampus Pembda' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <button type="button" @click="activeModal = null" class="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center text-xs active:scale-95 shrink-0">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                {{-- Content --}}
+                <div class="p-4 space-y-4 overflow-y-auto flex-1">
+                    
+                    {{-- Leadership --}}
+                    <div class="space-y-2">
+                        <h4 class="text-[11px] font-black uppercase tracking-wider text-purple-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-crown text-amber-500"></i> Dewan Pembina & Ketua
+                        </h4>
+                        
+                        <div class="grid grid-cols-1 gap-2">
+                            {{-- Pembina --}}
+                            <div class="bg-indigo-50/70 p-3 rounded-2xl border border-indigo-100 flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg shrink-0" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;">
+                                    👨‍🏫
+                                </div>
+                                <div class="min-w-0 flex-1 pl-0.5">
+                                    <span class="text-[8px] font-black uppercase tracking-wider text-indigo-700 block">Pembina / Manager</span>
+                                    <p class="font-black text-slate-900 text-xs truncate">
+                                        {{ $modalEkskul->manager_name ?: ($modalEkskul->advisor_name ?: ($modalEkskul->advisor->full_name ?? 'PKS Kesiswaan')) }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {{-- Ketua --}}
+                            <div class="bg-amber-50/70 p-3 rounded-2xl border border-amber-200 flex items-center gap-3">
+                                <div class="relative shrink-0 w-10 h-10" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;">
+                                    @if($modalEkskul->leader && $modalEkskul->leader->photo_url)
+                                        <img src="{{ $modalEkskul->leader->photo_url }}" alt="{{ $modalEkskul->leader->full_name }}" class="w-10 h-10 rounded-xl object-cover border-2 border-amber-400 bg-white" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;">
+                                    @else
+                                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;">
+                                            👑
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="min-w-0 flex-1 pl-0.5">
+                                    <span class="text-[8px] font-black uppercase tracking-wider text-amber-800 block">Ketua / Koordinator</span>
+                                    <p class="font-black text-slate-900 text-xs truncate">
+                                        {{ $modalEkskul->leader->full_name ?? 'Akan Ditunjuk Pembina' }}
+                                    </p>
+                                    <p class="text-[9px] text-slate-500 font-semibold">
+                                        {{ $modalEkskul->leader->classroom->class_name ?? ($modalEkskul->leader ? 'Siswa Aktif' : 'Struktur Rintisan') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Sections --}}
+                    @if(!empty($modalEkskul->section_list) && count($modalEkskul->section_list) > 0)
+                    <div class="space-y-2">
+                        <h4 class="text-[11px] font-black uppercase tracking-wider text-purple-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-layer-group text-purple-600"></i> Divisi & Section
+                        </h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            @foreach($modalEkskul->section_list as $secKey => $secLabel)
+                            @php 
+                                $secName = is_numeric($secKey) ? $secLabel : $secKey;
+                                $countInSec = $squadList->where('section', $secName)->count();
+                            @endphp
+                            <div class="p-2.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-1.5">
+                                <span class="text-xs font-black text-slate-800 truncate">{{ $secLabel }}</span>
+                                <span class="px-1.5 py-0.2 rounded-md text-[9px] font-black bg-purple-100 text-purple-900 shrink-0">
+                                    {{ $countInSec }} Siswa
+                                </span>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Roster --}}
+                    <div class="space-y-2">
+                        <h4 class="text-[11px] font-black uppercase tracking-wider text-purple-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-users text-indigo-600"></i> Daftar Anggota ({{ $squadList->count() }})
+                        </h4>
+
+                        @if($squadList->isNotEmpty())
+                        <div class="space-y-2 max-h-56 overflow-y-auto pr-0.5">
+                            @foreach($squadList as $squadItem)
+                            @php 
+                                $isMe = ($squadItem->student_id === $student->id);
+                            @endphp
+                            <div class="p-2.5 rounded-2xl border {{ $isMe ? 'bg-indigo-50/90 border-indigo-300 ring-2 ring-indigo-200' : 'bg-white border-slate-200' }} flex items-center gap-3">
+                                <div class="relative shrink-0 w-9 h-9" style="width: 36px; height: 36px; min-width: 36px; max-width: 36px;">
+                                    <img src="{{ $squadItem->student->photo_url ?? asset('images/default-avatar.png') }}" alt="{{ $squadItem->student->full_name ?? 'Siswa' }}" class="w-9 h-9 rounded-xl object-cover border {{ $isMe ? 'border-indigo-500' : 'border-slate-300' }} bg-slate-100" style="width: 36px; height: 36px; min-width: 36px; max-width: 36px;">
+                                    @if($isMe)
+                                    <span class="absolute -bottom-1 -right-1 px-1 py-0.2 rounded-md bg-indigo-600 text-white font-black text-[6px]">Kamu</span>
+                                    @endif
+                                </div>
+                                <div class="min-w-0 flex-1 pl-0.5">
+                                    <div class="flex items-center gap-1 mb-0.5">
+                                        <span class="px-1.5 py-0.2 rounded-full text-[7px] font-black text-white bg-gradient-to-r {{ $squadItem->role_badge_color }}">
+                                            {{ $squadItem->role_label }}
+                                        </span>
+                                        @if($squadItem->section)
+                                        <span class="px-1 py-0.2 rounded-full text-[7px] font-black bg-purple-100 text-purple-900">
+                                            🎺 {{ $squadItem->section }}
+                                        </span>
+                                        @endif
+                                    </div>
+                                    <p class="font-black text-slate-900 text-xs truncate">
+                                        {{ $squadItem->student->full_name ?? 'Siswa' }}
+                                    </p>
+                                    <p class="text-[9px] text-slate-500 font-semibold truncate">
+                                        {{ $squadItem->student->school->short_name ?? ($squadItem->student->school->name ?? 'Pembda') }} &bull; {{ $squadItem->student->classroom->class_name ?? 'Siswa' }}
+                                    </p>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        @else
+                        <p class="text-xs text-slate-500 italic p-3 text-center bg-slate-50 rounded-2xl">Belum ada anggota.</p>
+                        @endif
+                    </div>
+
+                </div>
+
+                {{-- Footer --}}
+                <div class="bg-slate-50 p-3.5 border-t border-slate-200 flex items-center justify-between gap-2 shrink-0">
+                    @if($modalEkskul->forum_group_id)
+                    <a href="{{ route('mobile.space.index') }}" class="px-3 py-2 bg-purple-600 text-white rounded-xl text-xs font-black flex items-center gap-1">
+                        <i class="fa-solid fa-comments"></i>
+                        <span>Buka Space</span>
+                    </a>
+                    @endif
+                    <button type="button" @click="activeModal = null" class="ml-auto px-4 py-2 bg-slate-200 text-slate-800 rounded-xl text-xs font-black active:scale-95">
+                        Tutup
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    @endforeach
 
 </div>
 @endsection

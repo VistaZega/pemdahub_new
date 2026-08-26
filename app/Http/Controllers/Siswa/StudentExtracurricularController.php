@@ -34,7 +34,9 @@ class StudentExtracurricularController extends Controller
         $myMemberships = ExtracurricularMember::with([
             'extracurricular.school',
             'extracurricular.advisor',
-            'extracurricular.leader',
+            'extracurricular.leader.classroom',
+            'extracurricular.secretary.classroom',
+            'extracurricular.treasurer.classroom',
             'extracurricular.activeMembers.student.school',
             'extracurricular.activeMembers.student.classroom',
             'extracurricular.activities'
@@ -48,10 +50,11 @@ class StudentExtracurricularController extends Controller
         $availableEkskuls = Extracurricular::with([
             'school',
             'advisor',
-            'leader',
-            'secretary',
-            'treasurer',
-            'activeMembers.student.school'
+            'leader.classroom',
+            'secretary.classroom',
+            'treasurer.classroom',
+            'activeMembers.student.school',
+            'activeMembers.student.classroom'
         ])
             ->withCount(['activeMembers', 'activities'])
             ->where(function ($q) use ($student) {

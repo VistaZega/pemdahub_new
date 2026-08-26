@@ -3,7 +3,7 @@
 @section('title', 'Ekstrakurikuler & Unit Kegiatan Siswa')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-6" x-data="{ activeModal: null, searchSquad: '' }">
 
     {{-- Hero Card (VIBRANT & COLORFUL RAINBOW BENTO HEADER) --}}
     <div class="bg-white rounded-3xl border-2 border-indigo-100 shadow-md relative overflow-hidden space-y-4">
@@ -129,14 +129,17 @@
                             </div>
                         </div>
 
-                        {{-- Squad Teammates (Avatar Stack & Social Proof) --}}
-                        <div class="bg-indigo-50/50 rounded-2xl p-3.5 border border-indigo-100/70 space-y-2">
+                        {{-- Squad Teammates (Avatar Stack & Social Proof - CLICKABLE FOR MODAL) --}}
+                        <div class="bg-indigo-50/50 hover:bg-indigo-50/80 rounded-2xl p-3.5 border border-indigo-100/70 space-y-2 transition cursor-pointer group/squad" 
+                             @click="activeModal = 'squad-{{ $ekskul->id }}'"
+                             title="Klik untuk melihat struktur kepengurusan & roster squad lengkap">
                             <div class="flex items-center justify-between text-xs">
                                 <span class="font-black text-slate-800 flex items-center gap-1.5">
                                     <i class="fas fa-users text-indigo-600"></i> Rekan Squad
                                 </span>
-                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900">
-                                    {{ $activeSquad->count() }} Anggota Aktif
+                                <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 group-hover/squad:bg-indigo-600 group-hover/squad:text-white transition flex items-center gap-1">
+                                    <span>{{ $activeSquad->count() }} Anggota</span>
+                                    <i class="fas fa-arrow-right text-[8px]"></i>
                                 </span>
                             </div>
                             
@@ -158,7 +161,7 @@
                                     </span>
                                     @endif
                                 </div>
-                                <p class="text-[10px] text-slate-600 font-bold text-right leading-tight">
+                                <p class="text-[10px] text-slate-600 font-bold text-right leading-tight group-hover/squad:text-indigo-700 transition">
                                     @if($otherSquad->count() > 0)
                                         Bersama <b>{{ $otherSquad->first()->student->full_name ?? 'teman' }}</b> & {{ $otherSquad->count() }} lainnya
                                     @else
@@ -186,17 +189,24 @@
                     </div>
 
                     {{-- Card Footer --}}
-                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 mt-3">
+                    <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 mt-3">
                         <span class="text-xs font-black text-indigo-700 flex items-center gap-1.5 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-xl">
-                            <i class="fas fa-award text-amber-500"></i> +{{ $membership->points_awarded }} Poin Reputasi
+                            <i class="fas fa-award text-amber-500"></i> +{{ $membership->points_awarded }} Poin
                         </span>
 
-                        @if($ekskul->forum_group_id)
-                        <a href="{{ route('forum.index', ['group' => $ekskul->forum_group_id]) }}" class="px-4 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
-                            <i class="fas fa-comments"></i>
-                            <span>Buka Space</span>
-                        </a>
-                        @endif
+                        <div class="flex items-center gap-2">
+                            <button type="button" @click="activeModal = 'squad-{{ $ekskul->id }}'" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-black transition flex items-center gap-1.5 active:scale-95 cursor-pointer" title="Lihat Struktur & Roster Lengkap">
+                                <i class="fas fa-sitemap text-indigo-600"></i>
+                                <span>Struktur</span>
+                            </button>
+
+                            @if($ekskul->forum_group_id)
+                            <a href="{{ route('forum.index', ['group' => $ekskul->forum_group_id]) }}" class="px-3.5 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
+                                <i class="fas fa-comments"></i>
+                                <span>Space</span>
+                            </a>
+                            @endif
+                        </div>
                     </div>
 
                 </div>
@@ -277,7 +287,14 @@
                     </div>
                 </div>
 
-                <div class="mt-4 pt-3.5 border-t border-slate-100">
+                <div class="mt-4 pt-3.5 border-t border-slate-100 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <button type="button" @click="activeModal = 'squad-{{ $ekskul->id }}'" class="text-xs font-black text-indigo-700 hover:text-indigo-900 flex items-center gap-1 cursor-pointer" title="Lihat Struktur & Roster">
+                            <i class="fas fa-sitemap text-indigo-500"></i>
+                            <span>Lihat Struktur & Roster</span> &rarr;
+                        </button>
+                    </div>
+
                     @if($isJoined)
                     <div class="flex items-center justify-between">
                         <span class="px-3.5 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-black flex items-center gap-1.5">
@@ -315,6 +332,223 @@
             @endforeach
         </div>
     </div>
+
+    {{-- MODAL DETAIL SQUAD ROSTER & STRUKTUR ORGANISASI UNTUK SETIAP EKSKUL --}}
+    @php
+        $modalEkskuls = $availableEkskuls->merge($myMemberships->pluck('extracurricular'))->unique('id');
+    @endphp
+    @foreach($modalEkskuls as $modalEkskul)
+    @php 
+        $squadList = $modalEkskul->activeMembers ?? collect();
+    @endphp
+    <div x-show="activeModal === 'squad-{{ $modalEkskul->id }}'" 
+         x-cloak 
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         role="dialog" 
+         aria-modal="true"
+         @keydown.escape.window="activeModal = null">
+        
+        {{-- Backdrop with Blur --}}
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" 
+             x-show="activeModal === 'squad-{{ $modalEkskul->id }}'"
+             x-transition:enter="ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="activeModal = null"></div>
+
+        {{-- Modal Panel --}}
+        <div class="min-h-full flex items-center justify-center p-3 sm:p-6 text-center">
+            <div class="relative w-full max-w-3xl bg-white rounded-3xl text-left shadow-2xl overflow-hidden border-2 border-indigo-200 transform transition-all flex flex-col max-h-[90vh]"
+                 x-show="activeModal === 'squad-{{ $modalEkskul->id }}'"
+                 x-transition:enter="ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-150"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
+                 @click.away="activeModal = null">
+
+                {{-- Modal Header Ribbon --}}
+                <div class="bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 text-white p-5 sm:p-6 flex items-start justify-between gap-4 shrink-0">
+                    <div class="flex items-start gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white flex items-center justify-center text-3xl shadow-sm shrink-0" style="width: 56px; height: 56px; min-width: 56px; max-width: 56px;">
+                            {{ $modalEkskul->display_icon }}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/20 text-white border border-white/30">
+                                    {{ $modalEkskul->category_label }}
+                                </span>
+                                @if($modalEkskul->isFoundationLevel())
+                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 shadow-2xs">
+                                    🏛️ Lintas Yayasan
+                                </span>
+                                @endif
+                            </div>
+                            <h3 class="text-xl sm:text-2xl font-black text-white leading-tight">
+                                {{ $modalEkskul->name }}
+                            </h3>
+                            <p class="text-xs text-indigo-100 font-medium mt-1">
+                                👥 {{ $squadList->count() }} Anggota Terdaftar &bull; 📍 {{ $modalEkskul->location ?: 'Kampus Pembda' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- Close Button --}}
+                    <button type="button" @click="activeModal = null" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition shrink-0 active:scale-95 cursor-pointer">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+
+                {{-- Scrollable Modal Content --}}
+                <div class="p-5 sm:p-7 overflow-y-auto space-y-6 flex-1 text-slate-800">
+                    
+                    {{-- Seksi 1: Dewan Pembina & Pengurus Inti (Leadership Team) --}}
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-purple-700 flex items-center gap-2">
+                            <i class="fas fa-crown text-amber-500"></i> Dewan Pembina & Pengurus Inti
+                        </h4>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            {{-- Pembina / Pelatih --}}
+                            <div class="bg-gradient-to-br from-indigo-50/80 to-purple-50/50 p-4 rounded-2xl border border-indigo-100 flex items-center gap-3.5">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white flex items-center justify-center text-xl shadow-xs shrink-0" style="width: 48px; height: 48px; min-width: 48px; max-width: 48px;">
+                                    👨‍🏫
+                                </div>
+                                <div class="min-w-0 flex-1 pl-1">
+                                    <span class="text-[9px] font-black uppercase tracking-wider text-indigo-700 block mb-0.5">Pembina / Manager</span>
+                                    <p class="font-black text-slate-900 text-xs sm:text-sm truncate">
+                                        {{ $modalEkskul->manager_name ?: ($modalEkskul->advisor_name ?: ($modalEkskul->advisor->full_name ?? 'PKS Kesiswaan')) }}
+                                    </p>
+                                    <p class="text-[10px] text-slate-500 font-semibold">Dewan Pengampu</p>
+                                </div>
+                            </div>
+
+                            {{-- Ketua / Koordinator Siswa --}}
+                            <div class="bg-gradient-to-br from-amber-50/80 to-orange-50/50 p-4 rounded-2xl border border-amber-200 flex items-center gap-3.5">
+                                <div class="relative shrink-0 w-12 h-12" style="width: 48px; height: 48px; min-width: 48px; max-width: 48px;">
+                                    @if($modalEkskul->leader && $modalEkskul->leader->photo_url)
+                                        <img src="{{ $modalEkskul->leader->photo_url }}" alt="{{ $modalEkskul->leader->full_name }}" class="w-12 h-12 rounded-xl object-cover border-2 border-amber-400 bg-white" style="width: 48px; height: 48px; min-width: 48px; max-width: 48px;">
+                                    @else
+                                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center text-xl shadow-xs" style="width: 48px; height: 48px; min-width: 48px; max-width: 48px;">
+                                            👑
+                                        </div>
+                                    @endif
+                                    <span class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[7px] border border-white">
+                                        <i class="fas fa-crown"></i>
+                                    </span>
+                                </div>
+                                <div class="min-w-0 flex-1 pl-1">
+                                    <span class="text-[9px] font-black uppercase tracking-wider text-amber-800 block mb-0.5">Ketua / Koordinator</span>
+                                    <p class="font-black text-slate-900 text-xs sm:text-sm truncate">
+                                        {{ $modalEkskul->leader->full_name ?? 'Akan Ditunjuk Pembina' }}
+                                    </p>
+                                    <p class="text-[10px] text-slate-500 font-semibold">
+                                        {{ $modalEkskul->leader->classroom->class_name ?? ($modalEkskul->leader ? 'Siswa Aktif' : 'Struktur Rintisan') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Seksi 2: Pembagian Section / Alat Musik (Khusus Marching Band / Unit Bersection) --}}
+                    @if(!empty($modalEkskul->section_list) && count($modalEkskul->section_list) > 0)
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-purple-700 flex items-center gap-2">
+                            <i class="fas fa-layer-group text-purple-600"></i> Divisi & Section Alat
+                        </h4>
+                        
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                            @foreach($modalEkskul->section_list as $secKey => $secLabel)
+                            @php 
+                                $secName = is_numeric($secKey) ? $secLabel : $secKey;
+                                $countInSec = $squadList->where('section', $secName)->count();
+                            @endphp
+                            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-2">
+                                <span class="text-xs font-black text-slate-800 truncate">{{ $secLabel }}</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-900 shrink-0">
+                                    {{ $countInSec }} Siswa
+                                </span>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Seksi 3: Daftar Anggota Squad Terverifikasi --}}
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-purple-700 flex items-center gap-2">
+                                <i class="fas fa-users text-indigo-600"></i> Direktori Anggota Squad ({{ $squadList->count() }})
+                            </h4>
+                        </div>
+
+                        @if($squadList->isNotEmpty())
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
+                            @foreach($squadList as $squadItem)
+                            @php 
+                                $isMe = ($squadItem->student_id === $student->id);
+                            @endphp
+                            <div class="p-3 rounded-2xl border {{ $isMe ? 'bg-indigo-50/90 border-indigo-300 ring-2 ring-indigo-200' : 'bg-white border-slate-200 hover:border-indigo-200' }} flex items-center gap-3.5 transition shadow-2xs">
+                                <div class="relative shrink-0 w-10 h-10" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;">
+                                    <img src="{{ $squadItem->student->photo_url ?? asset('images/default-avatar.png') }}" alt="{{ $squadItem->student->full_name ?? 'Siswa' }}" class="w-10 h-10 rounded-xl object-cover border {{ $isMe ? 'border-indigo-500' : 'border-slate-300' }} bg-slate-100" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px;">
+                                    @if($isMe)
+                                    <span class="absolute -bottom-1 -right-1 px-1 py-0.2 rounded-md bg-indigo-600 text-white font-black text-[7px]">Kamu</span>
+                                    @endif
+                                </div>
+                                <div class="min-w-0 flex-1 pl-1">
+                                    <div class="flex items-center gap-1.5 mb-0.5">
+                                        <span class="px-2 py-0.2 rounded-full text-[8px] font-black text-white bg-gradient-to-r {{ $squadItem->role_badge_color }} shadow-2xs">
+                                            {{ $squadItem->role_label }}
+                                        </span>
+                                        @if($squadItem->section)
+                                        <span class="px-1.5 py-0.2 rounded-full text-[8px] font-black bg-purple-100 text-purple-900 border border-purple-200">
+                                            🎺 {{ $squadItem->section }}
+                                        </span>
+                                        @endif
+                                    </div>
+                                    <h5 class="font-black text-slate-900 text-xs truncate">
+                                        {{ $squadItem->student->full_name ?? 'Nama Siswa' }}
+                                    </h5>
+                                    <p class="text-[10px] text-slate-500 font-semibold truncate">
+                                        {{ $squadItem->student->school->short_name ?? ($squadItem->student->school->name ?? 'Pembda') }} &bull; {{ $squadItem->student->classroom->class_name ?? 'Siswa' }}
+                                    </p>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        @else
+                        <p class="text-xs text-slate-500 italic p-4 text-center bg-slate-50 rounded-2xl">Belum ada anggota yang terdaftar di unit ini.</p>
+                        @endif
+                    </div>
+
+                </div>
+
+                {{-- Modal Footer --}}
+                <div class="bg-slate-50 p-4 sm:p-5 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0">
+                    <span class="text-xs font-bold text-slate-500">
+                        <i class="fas fa-shield-alt text-emerald-600 mr-1"></i> Data Terverifikasi Sistem
+                    </span>
+                    <div class="flex items-center gap-2">
+                        @if($modalEkskul->forum_group_id)
+                        <a href="{{ route('forum.index', ['group' => $modalEkskul->forum_group_id]) }}" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
+                            <i class="fas fa-comments"></i>
+                            <span>Buka Pembda Space</span>
+                        </a>
+                        @endif
+                        <button type="button" @click="activeModal = null" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-black transition active:scale-95 cursor-pointer">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    @endforeach
 
 </div>
 @endsection
