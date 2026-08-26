@@ -517,14 +517,14 @@ class FinalProjectTest extends TestCase
             'status' => 'aktif',
         ]);
 
-        // 3. Admin submits project proposal with members from 2 different classes ($this->smkStudent & $smkStudent2)
+        // 3. Admin submits project proposal with members from 2 different classes ($smkStudent1 & $smkStudent2)
         $response = $this->actingAs($this->smkAdminUser)
             ->post(route('admin.final-projects.proposals.store'), [
                 'title' => 'Project Akhir Lintas Kelas IoT Smart Home',
                 'abstract' => 'Project kolaborasi antara XII TKJ 1 dan XII TKJ 2',
                 'advisor_id' => $this->smkTeacher->id,
-                'member_ids' => [$this->smkStudent->id, $smkStudent2->id],
-                'leader_id' => $this->smkStudent->id,
+                'member_ids' => [$smkStudent1->id, $smkStudent2->id],
+                'leader_id' => $smkStudent1->id,
             ]);
 
         $response->assertRedirect(route('admin.final-projects.proposals.index'));
