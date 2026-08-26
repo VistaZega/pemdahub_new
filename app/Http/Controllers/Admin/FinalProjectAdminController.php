@@ -180,52 +180,78 @@ class FinalProjectAdminController extends Controller
         $isSA = $this->isSuperAdmin();
         $schoolId = $this->getSchoolId();
 
-        // Get class 12 from SMA and SMK
         $activeYear = AcademicYear::where('is_active', true)->first();
         if (!$activeYear) {
             return redirect()->route('admin.final-projects.proposals.index')->with('error', 'Tidak ada Tahun Pelajaran aktif.');
         }
 
-        $classroomsQuery = Classroom::with('school')
-            ->where('academic_year_id', $activeYear->id)
-            ->where('grade_level', 12)
-            ->whereHas('school', function($q) {
-                $q->whereIn('type', ['SMA', 'SMK']);
-            });
+        $schools = School::whereIn('type', ['SMA', 'SMK'])->get();
 
-        if (!$isSA) {
-            $classroomsQuery->where('school_id', $schoolId);
-        }
-
-        $classrooms = $classroomsQuery->get();
-
-        $selectedClassroom = null;
-        $students = [];
-        if ($request->filled('classroom_id')) {
-            $selectedClassroom = Classroom::find($request->classroom_id);
-            if ($selectedClassroom && ($isSA || $selectedClassroom->school_id == $schoolId)) {
-                $students = $selectedClassroom->students()
-                    ->whereDoesntHave('finalProjectMemberships')
-                    ->orderBy('full_name')
-                    ->get();
+        // Determine selected school ID
+        $selectedSchoolId = $schoolId;
+        if ($isSA) {
+            if ($request->filled('school_id')) {
+                $selectedSchoolId = $request->school_id;
+            } elseif ($request->filled('classroom_id')) {
+                $cls = Classroom::find($request->classroom_id);
+                if ($cls) {
+                    $selectedSchoolId = $cls->school_id;
+                }
+            } else {
+                $selectedSchoolId = $schools->first()?->id;
             }
         }
+
+        // Get class 12 classrooms from the selected school
+        $classrooms = Classroom::where('academic_year_id', $activeYear->id)
+            ->where('grade_level', 12)
+            ->when($selectedSchoolId, fn($q) => $q->where('school_id', $selectedSchoolId))
+            ->orderBy('class_name')
+            ->get();
+
+        // Selected classroom for initial filter if requested
+        $selectedClassroomId = $request->input('classroom_id');
+
+        // Fetch all available grade 12 students in the selected school who don't have a final project yet
+        $studentsQuery = Student::with(['currentClassroom', 'classroom', 'school'])
+            ->whereDoesntHave('finalProjectMemberships')
+            ->whereHas('studentClasses', function($q) use ($activeYear) {
+                $q->where('academic_year_id', $activeYear->id)
+                  ->where('status', 'aktif')
+                  ->whereHas('classroom', function($cq) {
+                      $cq->where('grade_level', 12);
+                  });
+            })
+            ->orderBy('full_name');
+
+        if ($selectedSchoolId) {
+            $studentsQuery->where('school_id', $selectedSchoolId);
+        }
+
+        $students = $studentsQuery->get();
+
+        // Format students for Alpine.js dynamic filtering
+        $formattedStudents = $students->map(function($st) {
+            $currentClass = $st->currentClassroom->first() ?? $st->classroom;
+            return [
+                'id' => $st->id,
+                'full_name' => $st->full_name,
+                'nisn' => $st->nisn ?? ($st->nis ?? '-'),
+                'classroom_id' => $currentClass ? $currentClass->id : null,
+                'classroom_name' => $currentClass ? $currentClass->class_name : 'Tanpa Kelas',
+            ];
+        })->values();
 
         // Get teachers for advisor dropdown
-        $teachersQuery = Teacher::with(['user', 'school']);
-        if (!$isSA) {
-            $teachersQuery->where('school_id', $schoolId);
-        } else {
-            if ($selectedClassroom) {
-                $teachersQuery->where('school_id', $selectedClassroom->school_id);
-            } else {
-                $smaSmkSchoolIds = School::whereIn('type', ['SMA', 'SMK'])->pluck('id');
-                $teachersQuery->whereIn('school_id', $smaSmkSchoolIds);
-            }
+        $teachersQuery = Teacher::with(['user', 'school'])->where('is_active', true);
+        if ($selectedSchoolId) {
+            $teachersQuery->where('school_id', $selectedSchoolId);
         }
-        $teachers = $teachersQuery->get();
+        $teachers = $teachersQuery->orderBy('full_name')->get();
 
-        return view('admin.final_projects.proposals.create', compact('classrooms', 'selectedClassroom', 'students', 'teachers', 'isSA'));
+        return view('admin.final_projects.proposals.create', compact(
+            'classrooms', 'selectedClassroomId', 'students', 'formattedStudents', 'teachers', 'schools', 'selectedSchoolId', 'isSA'
+        ));
     }
 
     public function proposalsStore(Request $request)
@@ -234,32 +260,40 @@ class FinalProjectAdminController extends Controller
         $schoolId = $this->getSchoolId();
 
         $validated = $request->validate([
-            'classroom_id' => 'required|exists:classrooms,id',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+            'school_id' => 'nullable|exists:schools,id',
             'title' => 'required|string|max:255',
             'abstract' => 'nullable|string',
             'advisor_id' => 'required|exists:teachers,id',
             'member_ids' => 'required|array|min:1',
             'member_ids.*' => 'exists:students,id',
+            'leader_id' => 'nullable|exists:students,id',
         ]);
 
-        $classroom = Classroom::with('school')->findOrFail($validated['classroom_id']);
+        $activeYear = AcademicYear::where('is_active', true)->first();
+        if (!$activeYear) {
+            return redirect()->back()->with('error', 'Tidak ada Tahun Pelajaran aktif.')->withInput();
+        }
 
-        if (!$isSA && $classroom->school_id != $schoolId) {
+        // Leader is specified or default to the first member selected
+        $leaderId = $validated['leader_id'] ?? $validated['member_ids'][0];
+        if (!in_array($leaderId, $validated['member_ids'])) {
+            $leaderId = $validated['member_ids'][0];
+        }
+
+        $leaderStudent = Student::with('school')->findOrFail($leaderId);
+
+        if (!$isSA && $leaderStudent->school_id != $schoolId) {
             abort(403);
         }
 
-        $activeYear = AcademicYear::where('is_active', true)->first();
-
-        $type = $classroom->school->type === 'SMA' ? 'penelitian_ilmiah' : 'project_akhir';
+        $type = $leaderStudent->school->type === 'SMA' ? 'penelitian_ilmiah' : 'project_akhir';
 
         DB::beginTransaction();
         try {
-            // First member will be considered as leader implicitly (or explicit in role)
-            $leaderId = $validated['member_ids'][0];
-
             $project = FinalProject::create([
                 'student_id' => $leaderId,
-                'academic_year_id' => $activeYear->id ?? $classroom->academic_year_id,
+                'academic_year_id' => $activeYear->id,
                 'type' => $type,
                 'title' => $validated['title'],
                 'abstract' => $validated['abstract'] ?? 'Deskripsi ditentukan oleh Panitia',
@@ -267,19 +301,19 @@ class FinalProjectAdminController extends Controller
                 'status' => 'approved', // Directly approved by Panitia
             ]);
 
-            foreach ($validated['member_ids'] as $index => $memberId) {
+            foreach ($validated['member_ids'] as $memberId) {
                 $student = Student::find($memberId);
                 if ($student && !$student->currentFinalProject()) {
                     \App\Models\FinalProjectMember::create([
                         'final_project_id' => $project->id,
                         'student_id' => $memberId,
-                        'role' => ($index === 0) ? 'leader' : 'member'
+                        'role' => ($memberId == $leaderId) ? 'leader' : 'member'
                     ]);
                 }
             }
 
             DB::commit();
-            return redirect()->route('admin.final-projects.proposals.index')->with('success', 'Kelompok berhasil dibentuk dan Judul ditetapkan.');
+            return redirect()->route('admin.final-projects.proposals.index')->with('success', 'Kelompok (Lintas Kelas) berhasil dibentuk dan Judul ditetapkan.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal membentuk kelompok: ' . $e->getMessage())->withInput();
@@ -291,7 +325,7 @@ class FinalProjectAdminController extends Controller
         $isSA = $this->isSuperAdmin();
         $schoolId = $this->getSchoolId();
 
-        $project = FinalProject::with(['student.school', 'members.student', 'advisor.user'])->findOrFail($id);
+        $project = FinalProject::with(['student.school', 'members.student.currentClassroom', 'advisor.user'])->findOrFail($id);
 
         if (!$isSA && $project->student->school_id != $schoolId) {
             abort(403);
@@ -299,52 +333,60 @@ class FinalProjectAdminController extends Controller
 
         $activeYear = AcademicYear::where('is_active', true)->first();
 
-        // Temukan kelas siswa ketua / anggota kelompok ini
-        $currentClassroom = $project->student->studentClasses()
-            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-            ->where('status', 'aktif')
-            ->first()?->classroom;
-
-        // Ambil daftar siswa kelas tersebut:
-        // Siswa yang saat ini anggota project ini ATAU siswa yang belum punya project lain
+        // Current member IDs
         $currentMemberIds = $project->members->pluck('student_id')->toArray();
         if (empty($currentMemberIds)) {
             $currentMemberIds = [$project->student_id];
         }
 
-        $availableStudents = collect();
-        if ($currentClassroom) {
-            $availableStudents = $currentClassroom->students()
-                ->where(function($q) use ($currentMemberIds, $project) {
-                    $q->whereIn('students.id', $currentMemberIds)
-                      ->orWhereDoesntHave('finalProjectMemberships', function($mq) use ($project) {
-                          $mq->where('final_project_id', '!=', $project->id);
-                      });
-                })
-                ->orderBy('full_name')
-                ->get();
-        } else {
-            $availableStudents = Student::where('school_id', $project->student->school_id)
-                ->where(function($q) use ($currentMemberIds, $project) {
-                    $q->whereIn('students.id', $currentMemberIds)
-                      ->orWhereDoesntHave('finalProjectMemberships', function($mq) use ($project) {
-                          $mq->where('final_project_id', '!=', $project->id);
-                      });
-                })
-                ->orderBy('full_name')
-                ->get();
-        }
+        // Get class 12 classrooms in the leader's school
+        $classrooms = Classroom::where('academic_year_id', $activeYear->id ?? $project->academic_year_id)
+            ->where('grade_level', 12)
+            ->where('school_id', $project->student->school_id)
+            ->orderBy('class_name')
+            ->get();
 
-        // Get teachers for advisor dropdown (sekolah yang sama)
+        // Available grade 12 students in the school (either current members OR available students)
+        $availableStudents = Student::with(['currentClassroom', 'classroom'])
+            ->where('school_id', $project->student->school_id)
+            ->where(function($q) use ($currentMemberIds, $project) {
+                $q->whereIn('students.id', $currentMemberIds)
+                  ->orWhereDoesntHave('finalProjectMemberships', function($mq) use ($project) {
+                      $mq->where('final_project_id', '!=', $project->id);
+                  });
+            })
+            ->whereHas('studentClasses', function($q) use ($activeYear) {
+                $q->where('academic_year_id', $activeYear->id ?? 1)
+                  ->where('status', 'aktif')
+                  ->whereHas('classroom', function($cq) {
+                      $cq->where('grade_level', 12);
+                  });
+            })
+            ->orderBy('full_name')
+            ->get();
+
+        $formattedStudents = $availableStudents->map(function($st) {
+            $currentClass = $st->currentClassroom->first() ?? $st->classroom;
+            return [
+                'id' => $st->id,
+                'full_name' => $st->full_name,
+                'nisn' => $st->nisn ?? ($st->nis ?? '-'),
+                'classroom_id' => $currentClass ? $currentClass->id : null,
+                'classroom_name' => $currentClass ? $currentClass->class_name : 'Tanpa Kelas',
+            ];
+        })->values();
+
+        // Get teachers for advisor dropdown
         $teachers = Teacher::with(['user', 'school'])
             ->where('school_id', $project->student->school_id)
             ->where('is_active', true)
+            ->orderBy('full_name')
             ->get();
 
         $stages = FinalProject::getStages();
 
         return view('admin.final_projects.proposals.edit', compact(
-            'project', 'currentClassroom', 'availableStudents', 'currentMemberIds', 'teachers', 'stages', 'isSA'
+            'project', 'classrooms', 'availableStudents', 'formattedStudents', 'currentMemberIds', 'teachers', 'stages', 'isSA'
         ));
     }
 

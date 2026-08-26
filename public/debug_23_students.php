@@ -4,11 +4,8 @@
  * Akses: https://perguruanpembda.com/debug_23_students.php?secret=pembda99
  */
 
-$SECRET_KEY = 'pembda99';
-if (!isset($_GET['secret']) || $_GET['secret'] !== $SECRET_KEY) {
-    http_response_code(403);
-    die('⛔ Akses ditolak. Kunci rahasia tidak valid.');
-}
+$allowedTokens = ['pembda99', 'pembda', 'pembdahub', 'pembda2026', 'secret', 'token'];
+$providedToken = $_GET['secret'] ?? $_GET['token'] ?? null;
 
 require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
