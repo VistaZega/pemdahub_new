@@ -93,7 +93,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('created_by')->nullable();
                 $table->timestamps();
 
-                $table->index(['extracurricular_id', 'activity_date']);
+                $table->index(['extracurricular_id', 'activity_date'], 'ekskul_act_id_date_idx');
             });
         }
     }
