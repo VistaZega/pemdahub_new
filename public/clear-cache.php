@@ -112,6 +112,32 @@ try {
             echo "<span class='warn'>⚠️ LMS Sync Warning: " . htmlspecialchars($e->getMessage()) . "</span>\n";
         }
 
+        // Auto-sync Student Bills (Inherit July Discounts to August)
+        try {
+            $augBills = \App\Models\StudentBill::where('month', 8)->where('status', 'belum_bayar')->get();
+            $syncedCount = 0;
+            foreach ($augBills as $aug) {
+                $july = \App\Models\StudentBill::where('student_id', $aug->student_id)
+                    ->where('payment_type_id', $aug->payment_type_id)
+                    ->where('academic_year_id', $aug->academic_year_id)
+                    ->where('month', 7)
+                    ->first();
+                if ($july && (float)$july->amount != (float)$aug->amount) {
+                    $aug->amount = $july->amount;
+                    if ($july->yayasan_share_amount !== null) {
+                        $aug->yayasan_share_amount = $july->yayasan_share_amount;
+                    }
+                    $aug->save();
+                    $syncedCount++;
+                }
+            }
+            if ($syncedCount > 0) {
+                echo "<span class='ok'>💰 Bill Sync: Berhasil menyinkronkan {$syncedCount} tagihan bulan Agustus agar menggunakan potongan dari bulan Juli!</span>\n";
+            }
+        } catch (\Exception $e) {
+            echo "<span class='warn'>⚠️ Bill Sync Warning: " . htmlspecialchars($e->getMessage()) . "</span>\n";
+        }
+
         // Auto-migrate & seed Pembda Tower (Menara Prestasi)
         if (!\Illuminate\Support\Facades\Schema::hasTable('pembda_tower_bricks')) {
             try {
