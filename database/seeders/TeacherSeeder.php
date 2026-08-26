@@ -69,9 +69,10 @@ class TeacherSeeder extends Seeder
                 $email = $emailName . '@' . $domain;
 
                 // Create User for Teacher
-                $user = User::create([
-                    'name' => $data['name'],
+                $user = User::firstOrCreate([
                     'email' => $email,
+                ], [
+                    'name' => $data['name'],
                     'password' => Hash::make('Guru@2026!'),
                     'role' => 'guru',
                     'school_id' => $school->id,
