@@ -31,13 +31,13 @@
     <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl border-2 border-black">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-                <div class="flex items-center gap-3.5 mb-3">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #1e3a8a !important; color: #ffffff !important;">
+                <div class="flex items-center mb-3" style="display: flex; align-items: center; gap: 1.25rem;">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #1e3a8a !important; color: #ffffff !important; margin-right: 1.25rem; flex-shrink: 0;">
                         <i class="fas fa-graduation-cap text-2xl text-white"></i>
                     </div>
-                    <div>
+                    <div style="min-width: 0; flex: 1;">
                         <p class="text-black text-xs font-black uppercase tracking-[0.2em]">Learning Management System Siswa</p>
-                        <h2 class="text-2xl md:text-3xl font-black text-black tracking-tight">Halo, {{ explode(' ', $student->user->name ?? 'Siswa')[0] }}! 👋</h2>
+                        <h2 class="text-2xl md:text-3xl font-black text-black tracking-tight mt-0.5">Halo, {{ explode(' ', $student->user->name ?? 'Siswa')[0] }}! 👋</h2>
                     </div>
                 </div>
                 <p class="text-black font-bold text-sm max-w-md leading-relaxed">Akses materi modul ajar, selesaikan tugas sekolah, dan jawab quiz evaluasi interaktif.</p>
@@ -87,13 +87,13 @@
     @if((isset($upcomingAssignments) && $upcomingAssignments->count() > 0) || (isset($upcomingQuizzes) && $upcomingQuizzes->count() > 0))
     <div class="bg-white rounded-3xl p-6 shadow-md border-2 border-black">
         <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-2xl bg-black text-amber-400 flex items-center justify-center font-black shadow-md border-2 border-black">
-                    <i class="fas fa-bell text-lg"></i>
+            <div class="flex items-center" style="display: flex; align-items: center; gap: 1.25rem;">
+                <div class="w-12 h-12 rounded-2xl bg-black text-amber-400 flex items-center justify-center font-black shadow-md border-2 border-black shrink-0" style="margin-right: 1.25rem; flex-shrink: 0;">
+                    <i class="fas fa-bell text-xl text-amber-400"></i>
                 </div>
-                <div>
-                    <h3 class="text-base font-black text-black">Tenggat Waktu Minggu Ini</h3>
-                    <p class="text-xs font-bold text-black">Tugas & Kuis yang harus Anda selesaikan segera</p>
+                <div style="min-width: 0; flex: 1;">
+                    <h3 class="text-base font-black text-black leading-tight">Tenggat Waktu Minggu Ini</h3>
+                    <p class="text-xs font-bold text-black mt-0.5">Tugas & Kuis yang harus Anda selesaikan segera</p>
                 </div>
             </div>
             <span class="px-3 py-1 bg-amber-300 text-black text-xs font-black rounded-xl border-2 border-black">
@@ -127,11 +127,11 @@
                 }
             @endphp
             <div class="flex items-start justify-between p-4 rounded-2xl border-2 border-black shadow-sm {{ $isUrgent ? 'bg-rose-100' : 'bg-slate-50' }}">
-                <div class="flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center flex-shrink-0 font-black text-sm border-2 border-black">
+                <div class="flex items-start" style="display: flex; align-items: flex-start; gap: 1rem; flex: 1; min-width: 0;">
+                    <div class="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center flex-shrink-0 font-black text-sm border-2 border-black" style="margin-right: 1rem; flex-shrink: 0;">
                         <i class="fas fa-tasks text-white"></i>
                     </div>
-                    <div>
+                    <div style="min-width: 0; flex: 1;">
                         <span class="text-[10px] font-black uppercase tracking-wider text-black">{{ $asgn->course->subject->subject_name ?? 'Tugas' }}</span>
                         <h4 class="font-black text-black text-sm leading-snug line-clamp-1">{{ $asgn->title }}</h4>
                         <p class="text-xs font-bold text-black mt-0.5">
@@ -139,7 +139,7 @@
                         </p>
                     </div>
                 </div>
-                <div>
+                <div style="margin-left: 0.75rem; flex-shrink: 0;">
                     <span class="px-3 py-1 text-[10px] font-black rounded-xl uppercase tracking-wider border border-black {{ $badgeClass }}">
                         {{ $badgeText }}
                     </span>
@@ -149,11 +149,11 @@
 
             @foreach($upcomingQuizzes as $qz)
             <div class="flex items-start justify-between p-4 rounded-2xl border-2 border-black shadow-sm" style="background-color: #f3e8ff !important;">
-                <div class="flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center flex-shrink-0 font-black text-sm border-2 border-black">
+                <div class="flex items-start" style="display: flex; align-items: flex-start; gap: 1rem; flex: 1; min-width: 0;">
+                    <div class="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center flex-shrink-0 font-black text-sm border-2 border-black" style="margin-right: 1rem; flex-shrink: 0;">
                         <i class="fas fa-question-circle text-white"></i>
                     </div>
-                    <div>
+                    <div style="min-width: 0; flex: 1;">
                         <span class="text-[10px] font-black uppercase tracking-wider text-black">{{ $qz->course->subject->subject_name ?? 'Kuis' }}</span>
                         <h4 class="font-black text-black text-sm leading-snug line-clamp-1">{{ $qz->title }}</h4>
                         <p class="text-xs font-bold text-black mt-0.5">
@@ -161,7 +161,7 @@
                         </p>
                     </div>
                 </div>
-                <div>
+                <div style="margin-left: 0.75rem; flex-shrink: 0;">
                     <span class="px-3 py-1 text-[10px] font-black rounded-xl uppercase tracking-wider bg-black text-white border border-black">
                         Kuis Aktif
                     </span>
@@ -178,13 +178,13 @@
     @if(isset($leaderboard) && $leaderboard->count() > 0)
     <div class="bg-gradient-to-r from-amber-50/90 via-orange-50/80 to-amber-100/70 rounded-3xl p-6 shadow-xl border-2 border-black">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-            <div class="flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-md border-2 border-black shrink-0" style="background-color: #fbbf24 !important; color: #000000 !important;">
+            <div class="flex items-center" style="display: flex; align-items: center; gap: 1.25rem;">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-md border-2 border-black shrink-0" style="background-color: #fbbf24 !important; color: #000000 !important; margin-right: 1.25rem; flex-shrink: 0;">
                     <i class="fas fa-trophy text-black text-2xl animate-bounce" style="animation-duration: 2s;"></i>
                 </div>
-                <div>
+                <div style="min-width: 0; flex: 1;">
                     <h3 class="text-lg font-black text-black tracking-tight">Papan Peringkat Pembelajar Teraktif</h3>
-                    <p class="text-xs text-amber-900 font-extrabold">Siswa dengan perolehan Poin EXP terbanyak minggu ini</p>
+                    <p class="text-xs text-amber-900 font-extrabold mt-0.5">Siswa dengan perolehan Poin EXP terbanyak minggu ini</p>
                 </div>
             </div>
             <div>
@@ -220,14 +220,14 @@
                     default => '#' . $loop->iteration,
                 };
             @endphp
-            <div class="border-2 border-black p-3.5 rounded-2xl flex items-center gap-3 shadow-md hover:scale-105 transition-all duration-200 relative overflow-hidden" style="{{ $cardBg }}">
+            <div class="border-2 border-black p-3.5 rounded-2xl flex items-center shadow-md hover:scale-105 transition-all duration-200 relative overflow-hidden" style="{{ $cardBg }} display: flex; align-items: center; gap: 1rem;">
                 @if($isCurrentUser)
                 <span class="absolute top-1 right-2 text-[8px] font-black uppercase bg-black text-amber-300 px-1.5 py-0.5 rounded-md border border-black">Kamu</span>
                 @endif
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shadow-xs flex-shrink-0 border-2 border-black" style="{{ $badgeBg }}">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shadow-xs flex-shrink-0 border-2 border-black" style="{{ $badgeBg }} margin-right: 0.85rem; flex-shrink: 0;">
                     {{ $rankIcon }}
                 </div>
-                <div class="min-w-0 flex-1">
+                <div class="min-w-0 flex-1" style="min-width: 0; flex: 1;">
                     <h4 class="font-black text-xs truncate leading-snug" style="color: #000000 !important;" title="{{ $lb->user->name ?? 'Siswa' }}">
                         {{ $lb->user->name ?? 'Siswa' }}
                     </h4>
@@ -272,11 +272,11 @@
                     @endif
 
                     <div class="relative z-10">
-                        <div class="flex items-start gap-3 mb-3">
-                            <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-black flex-shrink-0 shadow-md bg-white">
+                        <div class="flex items-start mb-3" style="display: flex; align-items: flex-start; gap: 1rem;">
+                            <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-black flex-shrink-0 shadow-md bg-white" style="margin-right: 1rem; flex-shrink: 0;">
                                 <img src="{{ $course->getTeacherPhotoUrl() }}" alt="{{ $course->teacher->user->name ?? 'Guru Pengajar' }}" class="w-full h-full object-cover object-center" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($course->teacher->user->name ?? 'Guru') }}&background=0f172a&color=ffffff&bold=true'">
                             </div>
-                            <div class="min-w-0 flex-1">
+                            <div class="min-w-0 flex-1" style="min-width: 0; flex: 1;">
                                 <h3 class="font-black text-white text-base leading-snug line-clamp-2">{{ $course->course_name ?? $course->name }}</h3>
                                 <div class="flex items-center gap-2 mt-1">
                                     <span class="bg-slate-900 text-amber-300 px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border border-black">{{ $course->getShortCode() }}</span>
@@ -285,8 +285,8 @@
                         </div>
 
                         {{-- Teacher --}}
-                        <div class="flex items-center gap-2 text-white text-xs font-black">
-                            <i class="fas fa-chalkboard-teacher text-xs"></i>
+                        <div class="flex items-center text-white text-xs font-black" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                            <i class="fas fa-chalkboard-teacher text-xs" style="margin-right: 0.35rem;"></i>
                             <span class="truncate">Pengajar: {{ $course->teacher->user->name ?? '-' }}</span>
                         </div>
                     </div>

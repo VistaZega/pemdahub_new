@@ -147,11 +147,11 @@ if (!function_exists('balanceHtmlTags')) {
             </a>
 
             {{-- Course Info --}}
-            <div class="flex items-start gap-4 mb-5">
-                <div class="w-14 h-14 rounded-2xl overflow-hidden shadow-md flex-shrink-0 border-2 border-black bg-white">
+            <div class="flex items-start mb-5" style="display: flex; align-items: flex-start; gap: 1.25rem;">
+                <div class="w-16 h-16 rounded-2xl overflow-hidden shadow-md flex-shrink-0 border-2 border-black bg-white" style="margin-right: 1.25rem; flex-shrink: 0;">
                     <img src="{{ $course->getTeacherPhotoUrl() }}" alt="{{ $course->teacher->user->name ?? 'Guru Pengajar' }}" class="w-full h-full object-cover object-center" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($course->teacher->user->name ?? 'Guru') }}&background=0f172a&color=ffffff&bold=true'">
                 </div>
-                <div>
+                <div style="min-width: 0; flex: 1;">
                     <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight leading-tight">{{ $course->course_name ?? $course->name }}</h1>
                     <div class="flex flex-wrap items-center gap-3 mt-2">
                         <span class="border-2 border-black px-3 py-1 rounded-xl text-xs font-black" style="background-color: #fbbf24 !important; color: #000000 !important;">{{ $course->subject->subject_name ?? '' }}</span>
