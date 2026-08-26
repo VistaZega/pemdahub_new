@@ -1,7 +1,7 @@
 <?php
 /**
- * Script Verifikasi & Bukti Penerapan Diskon / Potongan Siswa 12 Bulan Penuh
- * Akses via browser: https://perguruanpembda.com/verify_discounts.php?secret=pembda99
+ * Script Verifikasi & Laporan Bukti Penerapan Diskon Siswa 12 Bulan Penuh
+ * Akses: https://perguruanpembda.com/verify_discounts.php?secret=pembda99
  */
 
 $SECRET_KEY = 'pembda99';
@@ -28,7 +28,6 @@ $actionMsg = '';
 if (isset($_POST['action']) && $_POST['action'] === 'sync_all_months') {
     DB::beginTransaction();
     try {
-        // Find all student custom discounts in July (Month 7)
         $julyCustomBills = DB::table('student_bills as sb')
             ->join('payment_types as pt', 'sb.payment_type_id', '=', 'pt.id')
             ->where('sb.academic_year_id', $academicYearId)
@@ -44,7 +43,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'sync_all_months') {
                 ->where('student_id', $cb->student_id)
                 ->where('payment_type_id', $cb->payment_type_id)
                 ->where('month', '!=', 7)
-                ->where('paid_amount', 0) // only update unpaid bills
+                ->where('paid_amount', 0) // strictly only update unpaid bills for audit safety
                 ->update([
                     'amount' => $cb->amount,
                     'yayasan_share_amount' => $cb->yayasan_share_amount,
@@ -89,6 +88,7 @@ $discountedStudents = DB::table('student_bills as sb')
     ->get();
 
 $auditResults = [];
+$unsyncedList = [];
 $totalVerified = 0;
 $totalPendingSync = 0;
 
@@ -101,6 +101,7 @@ foreach ($discountedStudents as $ds) {
         ->keyBy('month');
 
     $monthDetails = [];
+    $reasons = [];
     $isAllSynced = true;
 
     foreach ($months as $m) {
@@ -109,6 +110,11 @@ foreach ($discountedStudents as $ds) {
             $isDiscountMatch = ((float)$bill->amount == (float)$ds->july_amount);
             if (!$isDiscountMatch) {
                 $isAllSynced = false;
+                if ((float)$bill->paid_amount > 0) {
+                    $reasons[] = "Bulan {$monthNames[$m]}: Tagihan Rp " . number_format($bill->amount, 0, ',', '.') . " SUDAH DIBAYAR (Lunas/Cicilan) oleh siswa sehingga dikunci untuk keamanan kwitansi.";
+                } else {
+                    $reasons[] = "Bulan {$monthNames[$m]}: Nominal tagihan (Rp " . number_format($bill->amount, 0, ',', '.') . ") belum sama dengan potongan Juli (Rp " . number_format($ds->july_amount, 0, ',', '.') . ").";
+                }
             }
             $monthDetails[$m] = [
                 'exists' => true,
@@ -119,6 +125,7 @@ foreach ($discountedStudents as $ds) {
             ];
         } else {
             $isAllSynced = false;
+            $reasons[] = "Bulan {$monthNames[$m]}: Tagihan belum terbuat di database.";
             $monthDetails[$m] = [
                 'exists' => false,
                 'amount' => 0,
@@ -133,6 +140,10 @@ foreach ($discountedStudents as $ds) {
         $totalVerified++;
     } else {
         $totalPendingSync++;
+        $unsyncedList[] = [
+            'student' => $ds,
+            'reasons' => $reasons,
+        ];
     }
 
     $auditResults[] = [
@@ -150,9 +161,7 @@ foreach ($discountedStudents as $ds) {
     <title>Audit & Bukti Penerapan Diskon Siswa - PembdaHUB</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f8fafc; }
-    </style>
+    <style>body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; }</style>
 </head>
 <body class="p-4 md:p-8 text-gray-800">
     <div class="max-w-7xl mx-auto space-y-6">
@@ -172,7 +181,7 @@ foreach ($discountedStudents as $ds) {
                 <form method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyinkronkan nominal potongan Juli ke seluruh bulan berikutnya (Agustus s.d. Juni)?');">
                     <input type="hidden" name="action" value="sync_all_months">
                     <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2">
-                        <i class="fas fa-sync-alt"></i> Sinkronkan Diskon ke Semua Bulan
+                        <i class="fas fa-sync-alt"></i> Sinkronkan Diskon (Khusus Tagihan Belum Dibayar)
                     </button>
                 </form>
             </div>
@@ -198,12 +207,57 @@ foreach ($discountedStudents as $ds) {
                 <div class="text-xs text-emerald-700 mt-1 font-medium">Diskon sudah konsisten sampai akhir tahun ajaran (Juni 2027)</div>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border <?= $totalPendingSync > 0 ? 'border-amber-200 bg-amber-50/20' : 'border-gray-100' ?> shadow-sm">
-                <div class="text-xs font-bold <?= $totalPendingSync > 0 ? 'text-amber-600' : 'text-gray-400' ?> uppercase">Perlu Sinkronisasi Bulan Berikutnya</div>
+            <div class="bg-white rounded-2xl p-5 border <?= $totalPendingSync > 0 ? 'border-amber-200 bg-amber-50/20' : 'border-gray-100' }} shadow-sm">
+                <div class="text-xs font-bold <?= $totalPendingSync > 0 ? 'text-amber-600' : 'text-gray-400' ?> uppercase">Belum Sinkron (Sudah Dibayar)</div>
                 <div class="text-3xl font-black <?= $totalPendingSync > 0 ? 'text-amber-600' : 'text-gray-800' ?> mt-1"><?= $totalPendingSync ?> Siswa</div>
-                <div class="text-xs text-gray-500 mt-1 font-medium">Klik "Sinkronkan Diskon" di atas untuk menyelaraskan otomatis</div>
+                <div class="text-xs text-gray-500 mt-1 font-medium">Dikunci karena transaksi bulan tsb sudah dibayar/lunas</div>
             </div>
         </div>
+
+        <!-- SECTION ANALISIS DIAGNOSTIK 23 SISWA BELUM SINKRON (BILA ADA) -->
+        <?php if(!empty($unsyncedList)): ?>
+            <div class="bg-amber-50/60 rounded-2xl border-2 border-amber-200 p-5 space-y-4 shadow-sm">
+                <div class="flex items-center justify-between border-b border-amber-200/80 pb-3">
+                    <div>
+                        <h2 class="text-base font-black text-amber-900 flex items-center gap-2">
+                            <i class="fas fa-exclamation-triangle text-amber-600"></i> Rincian Diagnostik <?= count($unsyncedList) ?> Siswa Belum Sinkron
+                        </h2>
+                        <p class="text-xs text-amber-700 mt-0.5 font-medium">
+                            Penyebab utama: Tagihan pada bulan tersebut <strong>SUDAH DIBAYAR OLEH SISWA</strong>, sehingga sistem mengunci nominal untuk melindungi keabsahan kwitansi & audit keuangan.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <?php foreach($unsyncedList as $uIdx => $uRow): ?>
+                        <?php $us = $uRow['student']; ?>
+                        <div class="bg-white rounded-xl p-4 border border-amber-200 shadow-2xs space-y-2">
+                            <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                                <div>
+                                    <span class="text-[10px] font-black bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md mr-1">#<?= $uIdx + 1 ?></span>
+                                    <span class="font-bold text-gray-900 text-xs"><?= htmlspecialchars($us->full_name) ?></span>
+                                </div>
+                                <span class="text-[10px] text-gray-400 font-semibold"><?= htmlspecialchars($us->school_name) ?></span>
+                            </div>
+
+                            <div class="text-[11px] text-gray-600 flex items-center justify-between">
+                                <span>Nominal Juli: <strong class="text-indigo-700">Rp <?= number_format($us->july_amount, 0, ',', '.') ?></strong></span>
+                                <span class="text-gray-400 line-through text-[10px]">Default: Rp <?= number_format($us->default_amount, 0, ',', '.') ?></span>
+                            </div>
+
+                            <div class="space-y-1 pt-1">
+                                <?php foreach($uRow['reasons'] as $reas): ?>
+                                    <div class="text-[11px] text-rose-700 flex items-start gap-1.5 font-semibold">
+                                        <i class="fas fa-lock text-[10px] mt-0.5 text-rose-500"></i>
+                                        <span><?= htmlspecialchars($reas) ?></span>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
 
         <!-- Audit Matrix Table -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -261,8 +315,8 @@ foreach ($discountedStudents as $ds) {
                                                         ✓ Rp <?= number_format($mInfo['amount'] / 1000, 0) ?>k
                                                     </span>
                                                 <?php else: ?>
-                                                    <span class="inline-block px-1.5 py-1 rounded-lg text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 shadow-2xs" title="Tidak cocok! Tagihan: Rp <?= number_format($mInfo['amount'], 0, ',', '.') ?>">
-                                                        ⚠️ Rp <?= number_format($mInfo['amount'] / 1000, 0) ?>k
+                                                    <span class="inline-block px-1.5 py-1 rounded-lg text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 shadow-2xs" title="Tidak cocok! Tagihan: Rp <?= number_format($mInfo['amount'], 0, ',', '.') ?> (Paid: Rp <?= number_format($mInfo['paid_amount'], 0, ',', '.') ?>)">
+                                                        🔒 Rp <?= number_format($mInfo['amount'] / 1000, 0) ?>k
                                                     </span>
                                                 <?php endif; ?>
                                             <?php else: ?>
@@ -277,8 +331,8 @@ foreach ($discountedStudents as $ds) {
                                                 ✓ 100% OK
                                             </span>
                                         <?php else: ?>
-                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">
-                                                ⚠️ Perlu Sync
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200" title="Ada bulan yang dikunci karena sudah dibayar oleh siswa">
+                                                🔒 Sudah Lunas
                                             </span>
                                         <?php endif; ?>
                                     </td>
