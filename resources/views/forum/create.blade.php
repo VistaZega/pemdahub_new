@@ -79,6 +79,25 @@
     <form action="{{ route('forum.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6 max-w-5xl mx-auto">
         @csrf
 
+        @if(isset($selectedGroup) && $selectedGroup)
+            <input type="hidden" name="group_id" value="{{ $selectedGroup->id }}">
+            <div class="p-4 rounded-2xl bg-gradient-to-r from-purple-900 to-indigo-900 text-white flex items-center justify-between border-2 border-purple-400 shadow-md">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="text-3xl p-2 rounded-xl bg-white/10 shrink-0">{{ $selectedGroup->icon ?? '💬' }}</span>
+                    <div class="min-w-0">
+                        <div class="text-[10px] font-black uppercase text-purple-300 tracking-wider flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>Target Ruang Koordinasi Squad:</span>
+                        </div>
+                        <div class="text-base font-black text-white truncate">{{ $selectedGroup->name }}</div>
+                    </div>
+                </div>
+                <a href="{{ route('forum.create') }}" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-purple-200 transition shrink-0 ml-3">
+                    Batal (Lobi Umum)
+                </a>
+            </div>
+        @endif
+
         <!-- Category Selection -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
             <label class="block text-xs font-bold text-slate-900 uppercase tracking-widest mb-4">Pilih Saluran <span class="text-rose-600">*</span></label>

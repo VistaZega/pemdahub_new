@@ -221,4 +221,32 @@ class ExtracurricularService
             $this->grantMemberRewards($member);
         }
     }
+
+    /**
+     * Ensure forum group exists and return it.
+     */
+    public function ensureForumGroup(Extracurricular $ekskul): ForumGroup
+    {
+        if ($ekskul->forum_group_id && $ekskul->forumGroup) {
+            return $ekskul->forumGroup;
+        }
+
+        $forumGroup = ForumGroup::firstOrCreate(
+            [
+                'name' => $ekskul->name,
+                'type' => 'extracurricular',
+            ],
+            [
+                'school_id' => $ekskul->school_id,
+                'slug' => 'ekskul-' . ($ekskul->slug ?: Str::slug($ekskul->name)),
+                'description' => $ekskul->description ?: 'Squad Lounge & Ruang Koordinasi ' . $ekskul->name,
+                'icon' => $ekskul->display_icon ?: '🏆',
+                'color' => $ekskul->color ?: 'purple',
+                'is_official' => true,
+            ]
+        );
+
+        $ekskul->update(['forum_group_id' => $forumGroup->id]);
+        return $forumGroup;
+    }
 }

@@ -186,12 +186,10 @@
                             <i class="fa-solid fa-sitemap text-indigo-600"></i>
                             <span>Struktur</span>
                         </button>
-                        @if($ekskul->forum_group_id)
-                        <a href="{{ route('mobile.space.index') }}" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 text-white rounded-xl text-xs font-black shadow-xs active:scale-95 transition flex items-center gap-1">
+                        <a href="{{ route('siswa.ekskul.space', $ekskul->id) }}" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 text-white rounded-xl text-xs font-black shadow-xs active:scale-95 transition flex items-center gap-1" title="Buka Squad Lounge Pembda Space">
                             <i class="fa-solid fa-comments"></i>
                             <span>Space</span>
                         </a>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -261,11 +259,9 @@
                     <span class="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-black flex items-center gap-1.5">
                         <i class="fa-solid fa-check-circle"></i> Sudah Terdaftar
                     </span>
-                    @if($ekskul->forum_group_id)
-                    <a href="{{ route('mobile.space.index') }}" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1">
+                    <a href="{{ route('siswa.ekskul.space', $ekskul->id) }}" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1" title="Buka Squad Lounge Pembda Space">
                         <span>Buka Space</span> &rarr;
                     </a>
-                    @endif
                 </div>
                 @else
                 <form action="{{ route('mobile.ekskul.claim', $ekskul) }}" method="POST" class="space-y-2">
@@ -474,12 +470,10 @@
 
                 {{-- Footer --}}
                 <div class="bg-slate-50 p-3.5 border-t border-slate-200 flex items-center justify-between gap-2 shrink-0">
-                    @if($modalEkskul->forum_group_id)
-                    <a href="{{ route('mobile.space.index') }}" class="px-3 py-2 bg-purple-600 text-white rounded-xl text-xs font-black flex items-center gap-1">
+                    <a href="{{ route('siswa.ekskul.space', $modalEkskul->id) }}" class="px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl text-xs font-black flex items-center gap-1 shadow-xs" title="Buka Squad Lounge Pembda Space">
                         <i class="fa-solid fa-comments"></i>
                         <span>Buka Space</span>
                     </a>
-                    @endif
                     <button type="button" @click="activeModal = null" class="ml-auto px-4 py-2 bg-slate-200 text-slate-800 rounded-xl text-xs font-black active:scale-95">
                         Tutup
                     </button>

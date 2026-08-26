@@ -46,6 +46,24 @@ class ForumController extends Controller
             $query->where('category', $category);
         }
 
+        // Scope by Active Group / Squad Lounge
+        $groupId = $request->get('group');
+        $activeGroup = null;
+        if ($groupId) {
+            $activeGroup = \App\Models\ForumGroup::with([
+                'classroom',
+                'subject',
+                'extracurricular.advisor',
+                'extracurricular.leader.classroom',
+                'extracurricular.activeMembers.student.school',
+                'extracurricular.activeMembers.student.classroom',
+            ])->find($groupId);
+
+            if ($activeGroup) {
+                $query->where('group_id', $activeGroup->id);
+            }
+        }
+
         // Scope by search
         if ($search) {
             $query->search($search);
@@ -110,17 +128,19 @@ class ForumController extends Controller
         return view('forum.index', compact(
             'threads', 'counts', 'category', 'search', 
             'topStudents', 'activeCollabs', 'channelGroups',
-            'totalThreads', 'onlineCount', 'latestHighlight', 'trendingHighlight', 'userGroups'
+            'totalThreads', 'onlineCount', 'latestHighlight', 'trendingHighlight', 'userGroups', 'activeGroup'
         ));
     }
 
     /**
      * Create Thread View
      */
-    public function create()
+    public function create(Request $request)
     {
         $user = Auth::user();
         $badges = $user->badges()->get();
+        $groupId = $request->get('group');
+        $selectedGroup = $groupId ? \App\Models\ForumGroup::with('extracurricular')->find($groupId) : null;
         
         $cbtResults = collect([]);
         if ($user->isSiswa() && $user->student) {
@@ -131,7 +151,7 @@ class ForumController extends Controller
                 ->get();
         }
 
-        return view('forum.create', compact('badges', 'cbtResults'));
+        return view('forum.create', compact('badges', 'cbtResults', 'selectedGroup'));
     }
 
     /**
@@ -151,6 +171,7 @@ class ForumController extends Controller
             'title' => 'required|string|min:15|max:255',
             'content' => 'required|string|min:15',
             'category' => 'required|string|in:' . implode(',', $allowedCategories),
+            'group_id' => 'nullable|exists:forum_groups,id',
             'image' => 'nullable|image|max:5120', // 5MB limit
             'attachment' => 'nullable|file|max:10240', // 10MB limit
             
@@ -179,6 +200,7 @@ class ForumController extends Controller
             \Illuminate\Support\Facades\RateLimiter::hit('forum_post:' . $user->id, 300); // 5 menit cooldown
             $threadData = [
                 'user_id' => $user->id,
+                'group_id' => $validated['group_id'] ?? null,
                 'title' => $validated['title'],
                 'content' => $validated['content'],
                 'category' => $validated['category'],

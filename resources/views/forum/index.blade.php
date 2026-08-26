@@ -177,28 +177,29 @@
                                 </span>
                                 <i class="ph-bold ph-caret-down text-purple-600 transition-transform duration-200" :class="expanded ? '' : '-rotate-90'"></i>
                             </button>
-                            <div x-show="expanded" class="space-y-0.5">
-                                @foreach($userGroups as $grp)
-                                    @php
-                                        $grpName = $grp->name ?? 'Class Squad';
-                                        // Strip any leading emojis from name column
-                                        $cleanGrpName = trim(preg_replace('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\s]+/u', '', $grpName));
-                                        $grpIcon = $grp->icon ?? '💬';
-                                        $memberCount = $grp->calculated_member_count ?? count($grp->members ?? []);
-                                    @endphp
-                                    <a href="{{ route('mobile.space.group.show', $grp->id) }}" 
-                                       title="{{ $cleanGrpName }}"
-                                       class="flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 text-slate-900 font-medium channel-hover border-l-2 border-transparent hover:border-purple-600 group">
-                                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                            <span class="text-base shrink-0">{{ $grpIcon }}</span>
-                                            <span class="text-xs truncate font-bold text-slate-900 group-hover:text-purple-700 leading-tight">{{ $cleanGrpName }}</span>
-                                        </div>
-                                        @if($memberCount > 0)
-                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 shrink-0 ml-1.5">{{ $memberCount }}</span>
-                                        @endif
-                                    </a>
-                                @endforeach
-                            </div>
+                                <div x-show="expanded" class="space-y-0.5">
+                                    @foreach($userGroups as $grp)
+                                        @php
+                                            $grpName = $grp->name ?? 'Class Squad';
+                                            // Strip any leading emojis from name column
+                                            $cleanGrpName = trim(preg_replace('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\s]+/u', '', $grpName));
+                                            $grpIcon = $grp->icon ?? '💬';
+                                            $memberCount = $grp->calculated_member_count ?? count($grp->members ?? []);
+                                            $isGroupActive = isset($activeGroup) && $activeGroup && $activeGroup->id === $grp->id;
+                                        @endphp
+                                        <a href="{{ route('forum.index', ['group' => $grp->id]) }}" 
+                                           title="{{ $cleanGrpName }}"
+                                           class="flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 {{ $isGroupActive ? 'channel-active border-l-2 border-purple-600 bg-purple-50 text-purple-900 font-bold' : 'text-slate-900 font-medium channel-hover border-l-2 border-transparent hover:border-purple-600' }} group">
+                                            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                                <span class="text-base shrink-0">{{ $grpIcon }}</span>
+                                                <span class="text-xs truncate font-bold {{ $isGroupActive ? 'text-purple-900' : 'text-slate-900 group-hover:text-purple-700' }} leading-tight">{{ $cleanGrpName }}</span>
+                                            </div>
+                                            @if($memberCount > 0)
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $isGroupActive ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-900' }} shrink-0 ml-1.5">{{ $memberCount }}</span>
+                                            @endif
+                                        </a>
+                                    @endforeach
+                                </div>
                         </div>
                     @endif
 
@@ -250,59 +251,150 @@
         <!-- MAIN FEED (Center) -->
         <div class="flex-1 flex flex-col min-w-[300px] w-full bg-forum-base p-4 sm:p-6 lg:p-8 max-h-[85vh] overflow-y-auto" style="background-image: radial-gradient(rgba(220,38,38,0.03) 2px, transparent 2px); background-size: 24px 24px;">
             
-            <!-- HERO BANNER KEMERDEKAAN -->
-            <div class="mb-6 relative rounded-3xl overflow-hidden shadow-xl border border-red-200">
-                <!-- Red & White Gradient Background -->
-                <div class="absolute inset-0 bg-gradient-to-r from-red-600 via-red-500 to-red-600 opacity-95"></div>
-                <!-- Subtle pattern -->
-                <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, #000 0, #000 2px, transparent 2px, transparent 10px);"></div>
-                <!-- Sunburst Effect (CSS purely) -->
-                <div class="absolute -top-40 -left-40 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl mix-blend-overlay"></div>
-                <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-white opacity-20 rounded-full blur-3xl mix-blend-overlay"></div>
-                
-                <div class="relative p-6 sm:p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                    <div class="flex-1 text-center md:text-left">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-black tracking-widest mb-4 border border-white/30 shadow-sm">
-                            <i class="ph-bold ph-flag"></i> HUT KEMRI KE-81
+            @if(isset($activeGroup) && $activeGroup)
+                @php
+                    $isEkskulGroup = $activeGroup->type === 'extracurricular' || $activeGroup->extracurricular;
+                    $ekskulModel = $activeGroup->extracurricular;
+                @endphp
+                <!-- SQUAD LOUNGE & WAR ROOM HERO BANNER -->
+                <div class="mb-6 relative rounded-3xl overflow-hidden shadow-xl border-2 border-purple-300 bg-gradient-to-r from-purple-950 via-indigo-900 to-slate-900 text-white p-6 sm:p-8">
+                    <!-- Glow background -->
+                    <div class="absolute -top-24 -right-24 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl"></div>
+                    <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl"></div>
+
+                    <div class="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                        <div class="space-y-3 max-w-2xl">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="px-3 py-1 rounded-full bg-purple-500/30 text-purple-200 border border-purple-400/40 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 backdrop-blur-md">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span>{{ $isEkskulGroup ? '🏛️ Official Squad Lounge' : '👥 Official Class Squad' }}</span>
+                                </span>
+                                @if($isEkskulGroup && $ekskulModel)
+                                    <span class="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-xs font-black">
+                                        {{ $ekskulModel->scope_label ?? 'Unit Ekskul' }}
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div class="flex items-center gap-3.5">
+                                <span class="text-4xl sm:text-5xl shrink-0 p-3 rounded-2xl bg-white/10 border border-white/15">{{ $activeGroup->icon ?? '💬' }}</span>
+                                <div>
+                                    <h1 class="text-2xl sm:text-3xl font-black text-white leading-tight font-['Space_Grotesk']">
+                                        {{ $activeGroup->name }}
+                                    </h1>
+                                    <p class="text-purple-200 text-xs sm:text-sm font-medium mt-1 leading-relaxed">
+                                        {{ $activeGroup->description ?: 'Ruang Koordinasi, Berbagi Informasi, dan Diskusi Eksklusif Anggota Squad.' }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Meta Chips -->
+                            @if($isEkskulGroup && $ekskulModel)
+                                <div class="flex items-center gap-2 pt-2 flex-wrap text-xs text-purple-100 font-bold">
+                                    <span class="px-3 py-1 rounded-xl bg-white/10 border border-white/15 flex items-center gap-1.5">
+                                        <i class="ph-bold ph-users text-purple-300"></i>
+                                        <span>{{ $ekskulModel->activeMembers?->count() ?? count($activeGroup->members) }} Anggota Squad</span>
+                                    </span>
+                                    @if($ekskulModel->advisor)
+                                    <span class="px-3 py-1 rounded-xl bg-white/10 border border-white/15 flex items-center gap-1.5">
+                                        <i class="ph-bold ph-chalkboard-teacher text-emerald-300"></i>
+                                        <span>Pembina: {{ $ekskulModel->advisor->name }}</span>
+                                    </span>
+                                    @endif
+                                    @if($ekskulModel->leader)
+                                    <span class="px-3 py-1 rounded-xl bg-white/10 border border-white/15 flex items-center gap-1.5">
+                                        <i class="ph-bold ph-crown text-amber-300"></i>
+                                        <span>Ketua: {{ $ekskulModel->leader->full_name }}</span>
+                                    </span>
+                                    @endif
+                                    @if($ekskulModel->location)
+                                    <span class="px-3 py-1 rounded-xl bg-white/10 border border-white/15 flex items-center gap-1.5">
+                                        <i class="ph-bold ph-map-pin text-rose-300"></i>
+                                        <span>{{ $ekskulModel->location }}</span>
+                                    </span>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
-                        <h2 class="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight leading-tight" style="font-family: 'Space Grotesk', sans-serif; text-shadow: 0 4px 12px rgba(220,38,38,0.4);">
-                            Dirgahayu <span class="text-white italic relative inline-block"><span class="relative z-10">Indonesia!</span><span class="absolute bottom-1 left-0 w-full h-3 bg-red-800/50 -z-0 rounded-full"></span></span>
-                        </h2>
-                        <p class="text-red-50 text-sm md:text-base max-w-xl font-medium leading-relaxed">
-                            Mari kobarkan semangat belajar dan gotong royong di Perguruan Pembda untuk menyongsong Indonesia yang lebih maju. Berkarya untuk negeri! 🇮🇩
-                        </p>
-                    </div>
-                    
-                    <!-- Decorative Element 81 Years -->
-                    <div class="hidden md:flex flex-shrink-0 relative group">
-                        <div class="w-36 h-36 rounded-full border-8 border-white flex items-center justify-center bg-red-600 shadow-2xl group-hover:scale-105 transition-transform duration-500">
-                            <span class="text-7xl font-black text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">81</span>
+
+                        <!-- Action Buttons in Squad Lounge Banner -->
+                        <div class="flex flex-row md:flex-col gap-2.5 shrink-0 w-full md:w-auto">
+                            <a href="{{ route('forum.create', ['group' => $activeGroup->id]) }}" 
+                               class="flex-1 md:flex-none px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-black text-xs shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2 transition hover:scale-105 active:scale-95">
+                                <i class="ph-bold ph-plus text-base"></i>
+                                <span>Tulis ke Squad</span>
+                            </a>
+                            @if($isEkskulGroup)
+                            <a href="{{ route('siswa.ekskul.index') }}" 
+                               class="flex-1 md:flex-none px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs flex items-center justify-center gap-2 transition">
+                                <i class="ph-bold ph-sitemap text-amber-300 text-base"></i>
+                                <span>Portal & Roster</span>
+                            </a>
+                            @endif
+                            <a href="{{ route('forum.index') }}" 
+                               class="flex-1 md:flex-none px-4 py-2 rounded-2xl bg-black/30 hover:bg-black/50 text-purple-200 border border-white/10 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                                <i class="ph-bold ph-arrow-counter-clockwise"></i>
+                                <span>Lobi Utama</span>
+                            </a>
                         </div>
-                        <div class="absolute -bottom-2 -right-2 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg border border-red-100 rotate-12 group-hover:rotate-0 transition-transform duration-500">
-                            <span class="text-2xl font-black text-red-600">TH</span>
-                        </div>
-                        
-                        <!-- Floating ribbons -->
-                        <div class="absolute -top-4 -left-4 text-white text-4xl animate-pulse">🎊</div>
-                        <div class="absolute -top-2 -right-8 text-white text-3xl animate-bounce" style="animation-delay: 500ms;">🎈</div>
                     </div>
                 </div>
-            </div>
+            @else
+                <!-- HERO BANNER KEMERDEKAAN -->
+                <div class="mb-6 relative rounded-3xl overflow-hidden shadow-xl border border-red-200">
+                    <!-- Red & White Gradient Background -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-red-600 via-red-500 to-red-600 opacity-95"></div>
+                    <!-- Subtle pattern -->
+                    <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, #000 0, #000 2px, transparent 2px, transparent 10px);"></div>
+                    <!-- Sunburst Effect (CSS purely) -->
+                    <div class="absolute -top-40 -left-40 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl mix-blend-overlay"></div>
+                    <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-white opacity-20 rounded-full blur-3xl mix-blend-overlay"></div>
+                    
+                    <div class="relative p-6 sm:p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div class="flex-1 text-center md:text-left">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-black tracking-widest mb-4 border border-white/30 shadow-sm">
+                                <i class="ph-bold ph-flag"></i> HUT KEMRI KE-81
+                            </div>
+                            <h2 class="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight leading-tight" style="font-family: 'Space Grotesk', sans-serif; text-shadow: 0 4px 12px rgba(220,38,38,0.4);">
+                                Dirgahayu <span class="text-white italic relative inline-block"><span class="relative z-10">Indonesia!</span><span class="absolute bottom-1 left-0 w-full h-3 bg-red-800/50 -z-0 rounded-full"></span></span>
+                            </h2>
+                            <p class="text-red-50 text-sm md:text-base max-w-xl font-medium leading-relaxed">
+                                Mari kobarkan semangat belajar dan gotong royong di Perguruan Pembda untuk menyongsong Indonesia yang lebih maju. Berkarya untuk negeri! 🇮🇩
+                            </p>
+                        </div>
+                        
+                        <!-- Decorative Element 81 Years -->
+                        <div class="hidden md:flex flex-shrink-0 relative group">
+                            <div class="w-36 h-36 rounded-full border-8 border-white flex items-center justify-center bg-red-600 shadow-2xl group-hover:scale-105 transition-transform duration-500">
+                                <span class="text-7xl font-black text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">81</span>
+                            </div>
+                            <div class="absolute -bottom-2 -right-2 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg border border-red-100 rotate-12 group-hover:rotate-0 transition-transform duration-500">
+                                <span class="text-2xl font-black text-red-600">TH</span>
+                            </div>
+                            
+                            <!-- Floating ribbons -->
+                            <div class="absolute -top-4 -left-4 text-white text-4xl animate-pulse">🎊</div>
+                            <div class="absolute -top-2 -right-8 text-white text-3xl animate-bounce" style="animation-delay: 500ms;">🎈</div>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             <!-- Header & Search -->
             <div class="forum-topbar p-4 mb-6 sticky top-0 z-30 flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <form method="GET" action="{{ route('forum.index') }}" class="w-full sm:max-w-md relative">
                     @if($category) <input type="hidden" name="category" value="{{ $category }}"> @endif
+                    @if(isset($activeGroup) && $activeGroup) <input type="hidden" name="group" value="{{ $activeGroup->id }}"> @endif
                     <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                         <i class="ph-bold ph-magnifying-glass"></i>
                     </div>
                     <input type="text" name="search" value="{{ $search }}" 
                            class="forum-search w-full pl-11 pr-4 py-2.5 rounded-xl text-sm transition outline-none" 
-                           placeholder="Cari obrolan, proyek, atau karya...">
+                           placeholder="{{ isset($activeGroup) && $activeGroup ? 'Cari di ' . $activeGroup->name . '...' : 'Cari obrolan, proyek, atau karya...' }}">
                 </form>
                 
                 <div class="flex items-center gap-3 w-full sm:w-auto">
-                    @if($search || $category)
+                    @if($search || $category || (isset($activeGroup) && $activeGroup))
                         <a href="{{ route('forum.index') }}" class="px-4 py-2 bg-rose-50 text-rose-500 hover:bg-rose-100 border border-rose-200 rounded-xl text-sm font-semibold transition flex items-center gap-2">
                             <i class="ph-bold ph-x-circle"></i> Reset Filter
                         </a>
@@ -311,9 +403,9 @@
                             class="flex px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md shadow-emerald-500/20 hover:scale-105 transition-all duration-200 items-center gap-2 whitespace-nowrap">
                         <i class="ph-bold ph-cellphone-charging text-lg text-white"></i> <span class="text-white font-extrabold">Install APK</span>
                     </button>
-                    <a href="{{ route('forum.create') }}" 
+                    <a href="{{ route('forum.create', (isset($activeGroup) && $activeGroup) ? ['group' => $activeGroup->id] : []) }}" 
                        class="flex px-6 py-2.5 rounded-full bg-gradient-to-r from-red-600 via-red-500 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-extrabold text-sm shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-600/40 hover:scale-105 transition-all duration-200 items-center gap-2 whitespace-nowrap">
-                        <i class="ph-bold ph-plus text-base text-white"></i> <span class="text-white font-extrabold">Buat Post</span>
+                        <i class="ph-bold ph-plus text-base text-white"></i> <span class="text-white font-extrabold">{{ isset($activeGroup) && $activeGroup ? 'Tulis di Squad' : 'Buat Post' }}</span>
                     </a>
                 </div>
             </div>

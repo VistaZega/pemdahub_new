@@ -33,6 +33,7 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
     // Ekstrakurikuler Siswa (Kegiatan Non-Akademik)
     Route::prefix('ekskul')->name('ekskul.')->group(function () {
         Route::get('/', [App\Http\Controllers\Siswa\StudentExtracurricularController::class, 'index'])->name('index');
+        Route::get('/{extracurricular}/space', [App\Http\Controllers\Siswa\StudentExtracurricularController::class, 'openSpace'])->name('space');
         Route::post('/{extracurricular}/claim', [App\Http\Controllers\Siswa\StudentExtracurricularController::class, 'claim'])->name('claim');
     });
  

@@ -62,4 +62,9 @@ class ForumGroup extends Model
     {
         return $this->hasOne(ForumThread::class, 'group_id')->latestOfMany();
     }
+
+    public function extracurricular()
+    {
+        return $this->hasOne(Extracurricular::class, 'forum_group_id');
+    }
 }

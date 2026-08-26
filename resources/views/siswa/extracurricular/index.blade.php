@@ -205,12 +205,10 @@
                                 <span>Struktur</span>
                             </button>
 
-                            @if($ekskul->forum_group_id)
-                            <a href="{{ route('forum.index', ['group' => $ekskul->forum_group_id]) }}" class="px-3.5 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
+                            <a href="{{ route('siswa.ekskul.space', $ekskul->id) }}" class="px-3.5 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95" title="Buka Squad Lounge Pembda Space">
                                 <i class="fas fa-comments"></i>
                                 <span>Space</span>
                             </a>
-                            @endif
                         </div>
                     </div>
 
@@ -305,11 +303,9 @@
                         <span class="px-3.5 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-black flex items-center gap-1.5">
                             <i class="fas fa-check-circle"></i> Sudah Terdaftar
                         </span>
-                        @if($ekskul->forum_group_id)
-                        <a href="{{ route('forum.index', ['group' => $ekskul->forum_group_id]) }}" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1">
+                        <a href="{{ route('siswa.ekskul.space', $ekskul->id) }}" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1" title="Buka Squad Lounge Pembda Space">
                             <span>Buka Space</span> &rarr;
                         </a>
-                        @endif
                     </div>
                     @else
                     <form action="{{ route('siswa.ekskul.claim', $ekskul) }}" method="POST" class="space-y-2.5">
@@ -538,12 +534,10 @@
                         <i class="fas fa-shield-alt text-emerald-600 mr-1"></i> Data Terverifikasi Sistem
                     </span>
                     <div class="flex items-center gap-2">
-                        @if($modalEkskul->forum_group_id)
-                        <a href="{{ route('forum.index', ['group' => $modalEkskul->forum_group_id]) }}" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
+                        <a href="{{ route('siswa.ekskul.space', $modalEkskul->id) }}" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95" title="Buka Squad Lounge Pembda Space">
                             <i class="fas fa-comments"></i>
-                            <span>Buka Pembda Space</span>
+                            <span>Buka Squad Lounge Space</span>
                         </a>
-                        @endif
                         <button type="button" @click="activeModal = null" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-black transition active:scale-95 cursor-pointer">
                             Tutup
                         </button>

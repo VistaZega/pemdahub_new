@@ -93,4 +93,45 @@ class StudentExtracurricularController extends Controller
         $sectionMsg = $section ? " (Section: {$section})" : "";
         return back()->with('success', "Selamat! Anda resmi terdaftar sebagai anggota {$extracurricular->name}{$sectionMsg} (+15 Poin Reputasi). Kanal Pembda Space Anda kini telah aktif!");
     }
+
+    /**
+     * Direct Squad Lounge opener: Auto-provisions forum group, registers member if needed, and redirects.
+     */
+    public function openSpace(Request $request, Extracurricular $extracurricular)
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        // Auto-provision or verify ForumGroup
+        $forumGroup = $this->ekskulService->ensureForumGroup($extracurricular);
+
+        // Ensure user is enrolled into group members
+        if ($user) {
+            $membership = null;
+            if ($student) {
+                $membership = ExtracurricularMember::where('extracurricular_id', $extracurricular->id)
+                    ->where('student_id', $student->id)
+                    ->where('status', 'approved')
+                    ->first();
+            }
+
+            \App\Models\ForumGroupMember::firstOrCreate(
+                [
+                    'group_id' => $forumGroup->id,
+                    'user_id' => $user->id,
+                ],
+                [
+                    'role' => ($membership && in_array($membership->role, ['ketua', 'wakil_ketua', 'sekretaris', 'bendahara'])) ? 'moderator' : 'member',
+                    'joined_at' => now(),
+                ]
+            );
+        }
+
+        // Detect if request is from mobile app/view
+        if ($request->header('User-Agent') && (str_contains(strtolower($request->header('User-Agent')), 'mobile') || str_contains(strtolower($request->header('User-Agent')), 'android') || str_contains(strtolower($request->header('User-Agent')), 'iphone'))) {
+            return redirect()->route('mobile.space.group.show', $forumGroup->id);
+        }
+
+        return redirect()->route('forum.index', ['group' => $forumGroup->id]);
+    }
 }

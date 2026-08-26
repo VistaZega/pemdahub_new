@@ -47,6 +47,15 @@
             </div>
         </div>
 
+        @if($group->type === 'extracurricular')
+            <div class="flex items-center gap-2 pt-1 border-t border-purple-200/60">
+                <a href="{{ (auth()->user()->role ?? '') === 'guru' ? route('mobile.teacher.ekskul') : route('mobile.student.ekskul') }}" class="px-3 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] font-black border border-purple-200 flex items-center gap-1.5 shadow-xs transition">
+                    <i class="fa-solid fa-sitemap text-indigo-600"></i>
+                    <span>Buka Direktori & Roster Ekskul</span>
+                </a>
+            </div>
+        @endif
+
         @if($group->only_admin_can_post)
             <div class="p-2.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black flex items-center gap-2">
                 <i class="fa-solid fa-bullhorn text-amber-700 text-xs"></i>
