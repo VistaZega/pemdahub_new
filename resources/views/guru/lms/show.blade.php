@@ -951,7 +951,7 @@ if (!function_exists('balanceHtmlTags')) {
 
             $availableStudentsInCourse = $allEnrolledStudents->reject(fn($s) => in_array($s->id, $groupedStudentIdsInCourse))->values();
         @endphp
-        <div x-show="tab === 'groups'" class="mt-6 space-y-6 tab-content" x-data="{ showAddGroup: false, showAutoGroup: false }">
+        <div x-show="tab === 'groups'" class="mt-6 space-y-6 tab-content" x-data="{ showAddGroup: false, showAutoGroup: false, showImportExcel: false, selectedClassFilter: '', manualClassFilter: '' }">
             {{-- Header Card --}}
             <div class="bg-white rounded-3xl shadow-md border-2 border-black p-6">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-gray-100 pb-5">
@@ -966,21 +966,47 @@ if (!function_exists('balanceHtmlTags')) {
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         @if($availableStudentsInCourse->isNotEmpty())
-                        <button type="button" @click="showAddGroup = !showAddGroup; showAutoGroup = false"
+                        <button type="button" @click="showAddGroup = !showAddGroup; showAutoGroup = false; showImportExcel = false"
                                 class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-purple-600 text-white hover:bg-purple-700 border-2 border-black transition shadow-sm">
                             <i class="fas fa-plus"></i> <span x-text="showAddGroup ? 'Batal' : 'Tambah Kelompok Manual'"></span>
                         </button>
-                        <button type="button" @click="showAutoGroup = !showAutoGroup; showAddGroup = false"
+                        <button type="button" @click="showAutoGroup = !showAutoGroup; showAddGroup = false; showImportExcel = false"
                                 class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-black hover:bg-amber-500 border-2 border-black transition shadow-sm">
                             <i class="fas fa-magic"></i> <span x-text="showAutoGroup ? 'Batal' : 'Bagi Otomatis'"></span>
                         </button>
-                        @else
-                        <span class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black bg-emerald-100 text-emerald-800 border-2 border-emerald-400">
-                            <i class="fas fa-check-double text-emerald-600"></i> Seluruh Siswa Sudah Masuk Kelompok
-                        </span>
                         @endif
+                        <button type="button" @click="showImportExcel = !showImportExcel; showAddGroup = false; showAutoGroup = false"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-700 border-2 border-black transition shadow-sm">
+                            <i class="fas fa-file-excel"></i> <span x-text="showImportExcel ? 'Batal' : 'Import Excel'"></span>
+                        </button>
                     </div>
                 </div>
+
+                {{-- Baris Filter per Kelas --}}
+                @if(isset($classrooms) && $classrooms->count() > 1)
+                <div class="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 text-xs font-black text-gray-800">
+                        <i class="fas fa-filter text-purple-600"></i> Filter Rombel / Kelas:
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <button type="button" @click="selectedClassFilter = ''; manualClassFilter = ''"
+                                :class="selectedClassFilter === '' ? 'bg-purple-600 text-white border-black shadow-sm' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'"
+                                class="px-3 py-1.5 rounded-xl text-xs font-bold border transition">
+                            Semua Kelas ({{ $allEnrolledStudents->count() }})
+                        </button>
+                        @foreach($classrooms as $c)
+                        @php
+                            $countInClass = $allEnrolledStudents->filter(fn($s) => $s->classroom_id == $c->id || strtolower($s->classroom_name ?? '') === strtolower($c->name))->count();
+                        @endphp
+                        <button type="button" @click="selectedClassFilter = '{{ $c->id }}'; manualClassFilter = '{{ $c->id }}'"
+                                :class="selectedClassFilter == '{{ $c->id }}' ? 'bg-purple-600 text-white border-black shadow-sm' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'"
+                                class="px-3 py-1.5 rounded-xl text-xs font-bold border transition">
+                            {{ $c->name }} ({{ $countInClass }})
+                        </button>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
 
                 {{-- Status Stats Bar --}}
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
@@ -1015,9 +1041,22 @@ if (!function_exists('balanceHtmlTags')) {
 
                 {{-- Form Tambah Kelompok Manual --}}
                 <div x-show="showAddGroup" x-cloak class="mt-6 p-5 rounded-2xl border-2 border-purple-400 bg-purple-50 space-y-4">
-                    <h4 class="text-xs font-black text-purple-900 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fas fa-user-plus"></i> Tambah Master Kelompok Kursus
-                    </h4>
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-black text-purple-900 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-user-plus"></i> Tambah Master Kelompok Kursus
+                        </h4>
+                        @if(isset($classrooms) && $classrooms->count() > 1)
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-bold text-purple-800">Filter Kelas Form:</span>
+                            <select x-model="manualClassFilter" class="text-xs font-bold border border-purple-300 rounded-lg px-2 py-1 bg-white focus:outline-none">
+                                <option value="">Semua Kelas</option>
+                                @foreach($classrooms as $c)
+                                <option value="{{ $c->id }}">{{ $c->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+                    </div>
                     <form action="{{ route('guru.lms.groups.store', $course->id) }}" method="POST" class="space-y-4">
                         @csrf
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1031,7 +1070,9 @@ if (!function_exists('balanceHtmlTags')) {
                                 <select name="leader_id" required class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
                                     <option value="">— Pilih Ketua (Tersedia: {{ $availableStudentsInCourse->count() }} Siswa) —</option>
                                     @forelse($availableStudentsInCourse as $std)
-                                    <option value="{{ $std->id }}">{{ $std->user->name ?? $std->full_name }} (NISN: {{ $std->nisn ?? '-' }})</option>
+                                    <option value="{{ $std->id }}" x-show="!manualClassFilter || '{{ $std->classroom_id }}' == manualClassFilter">
+                                        [{{ $std->classroom_name ?? 'Kelas' }}] {{ $std->user->name ?? $std->full_name }} (NISN: {{ $std->nisn ?? '-' }})
+                                    </option>
                                     @empty
                                     <option value="" disabled>Semua siswa sudah terdaftar di kelompok lain</option>
                                     @endforelse
@@ -1044,10 +1085,12 @@ if (!function_exists('balanceHtmlTags')) {
                                 <label class="block text-xs font-black text-gray-800">Pilih Anggota Kelompok (Centang Siswa):</label>
                                 <span class="text-[11px] font-bold text-purple-700">Tersedia: {{ $availableStudentsInCourse->count() }} Orang dari {{ $allEnrolledStudents->count() }} Siswa</span>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-56 overflow-y-auto p-3 bg-white border-2 border-black rounded-xl">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-3 bg-white border-2 border-black rounded-xl">
                                 @forelse($availableStudentsInCourse as $std)
-                                <label class="flex items-center gap-2 text-xs font-bold text-gray-700 hover:bg-purple-100 p-1.5 rounded-lg cursor-pointer transition">
+                                <label x-show="!manualClassFilter || '{{ $std->classroom_id }}' == manualClassFilter"
+                                       class="flex items-center gap-2 text-xs font-bold text-gray-700 hover:bg-purple-100 p-1.5 rounded-lg cursor-pointer transition">
                                     <input type="checkbox" name="member_ids[]" value="{{ $std->id }}" class="rounded text-purple-600 focus:ring-0">
+                                    <span class="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0.5 rounded font-black border border-blue-200 shrink-0">{{ $std->classroom_name ?? 'Kelas' }}</span>
                                     <span class="truncate">{{ $std->user->name ?? $std->full_name }}</span>
                                 </label>
                                 @empty
@@ -1068,21 +1111,73 @@ if (!function_exists('balanceHtmlTags')) {
                 {{-- Form Bagi Otomatis --}}
                 <div x-show="showAutoGroup" x-cloak class="mt-6 p-5 rounded-2xl border-2 border-amber-400 bg-amber-50 space-y-4">
                     <h4 class="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fas fa-magic"></i> Bagi Seluruh Siswa Kursus Menjadi N Kelompok
+                        <i class="fas fa-magic"></i> Bagi Siswa Menjadi N Kelompok
                     </h4>
                     <form action="{{ route('guru.lms.groups.autoGenerate', $course->id) }}" method="POST" class="space-y-4">
                         @csrf
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            @if(isset($classrooms) && $classrooms->count() > 1)
                             <div>
-                                <label class="block text-xs font-black text-gray-800 mb-1">Jumlah Kelompok yang Diinginkan <span class="text-rose-600">*</span></label>
-                                <input type="number" name="group_count" min="2" max="20" value="4" required
+                                <label class="block text-xs font-black text-gray-800 mb-1">Target Rombel / Kelas</label>
+                                <select name="classroom_id" class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+                                    <option value="">— Semua Kelas (Seluruh Siswa) —</option>
+                                    @foreach($classrooms as $c)
+                                    <option value="{{ $c->id }}">Spesifik Kelas: {{ $c->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
+                            <div>
+                                <label class="block text-xs font-black text-gray-800 mb-1">Jumlah Kelompok <span class="text-rose-600">*</span></label>
+                                <input type="number" name="group_count" min="1" max="30" value="4" required
                                        class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-amber-500 outline-none bg-white">
                             </div>
                             <div class="flex items-end">
                                 <button type="submit" class="w-full px-5 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-black hover:bg-amber-500 border-2 border-black shadow-sm">
-                                    <i class="fas fa-random mr-1"></i> Acak & Bentuk Kelompok Kursus
+                                    <i class="fas fa-random mr-1"></i> Acak & Bentuk Kelompok
                                 </button>
                             </div>
+                        </div>
+                    </form>
+                </div>
+
+                {{-- Form Import Kelompok dari Excel --}}
+                <div x-show="showImportExcel" x-cloak class="mt-6 p-5 rounded-2xl border-2 border-emerald-400 bg-emerald-50 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-emerald-200 pb-3">
+                        <h4 class="text-xs font-black text-emerald-900 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-file-excel text-base text-emerald-700"></i> Import Master Kelompok dari File Excel
+                        </h4>
+                        <a href="{{ route('guru.lms.groups.download-template', $course->id) }}"
+                           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black bg-white text-emerald-800 hover:bg-emerald-100 border-2 border-emerald-400 shadow-sm transition">
+                            <i class="fas fa-download text-emerald-600"></i> Download Template Excel Kelompok
+                        </a>
+                    </div>
+
+                    <p class="text-xs font-bold text-emerald-800 leading-relaxed">
+                        Unduh file template Excel di atas (file ini otomatis terisi draf data seluruh {{ $allEnrolledStudents->count() }} siswa terdaftar kursus ini), kemudian sesuaikan kolom <code class="bg-emerald-100 px-1.5 py-0.5 rounded font-black text-emerald-950">nama_kelompok</code> dan <code class="bg-emerald-100 px-1.5 py-0.5 rounded font-black text-emerald-950">peran</code> (Ketua/Anggota), lalu unggah kembali file tersebut di bawah ini.
+                    </p>
+
+                    <form action="{{ route('guru.lms.groups.import-excel', $course->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                        @csrf
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-black text-gray-800 mb-1">Pilih File Excel (.xlsx / .xls / .csv) <span class="text-rose-600">*</span></label>
+                                <input type="file" name="import_file" required accept=".xlsx,.xls,.csv"
+                                       class="w-full border-2 border-black rounded-xl px-3 py-2 text-xs font-bold text-gray-900 bg-white cursor-pointer">
+                            </div>
+                            <div class="flex items-center pt-4">
+                                <label class="flex items-center gap-2 text-xs font-bold text-gray-800 cursor-pointer">
+                                    <input type="checkbox" name="replace_existing" value="1" class="rounded text-emerald-600 focus:ring-0">
+                                    <span>Hapus & gantikan kelompok lama yang sudah ada di kursus ini</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-2 border-t border-emerald-200">
+                            <button type="button" @click="showImportExcel = false" class="px-4 py-2 rounded-xl text-xs font-bold bg-gray-200 text-gray-700 hover:bg-gray-300">Batal</button>
+                            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-700 border-2 border-black shadow-sm">
+                                <i class="fas fa-upload mr-1"></i> Unggah & Simpan Kelompok
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -1105,17 +1200,29 @@ if (!function_exists('balanceHtmlTags')) {
                             </form>
                         </div>
 
-                        <div class="space-y-1.5 text-xs">
+                        <div class="space-y-2 text-xs">
                             <div class="flex items-center gap-1.5 font-black text-gray-900">
                                 <span class="text-amber-500">👑 Ketua:</span>
+                                @php
+                                    $leaderClassroom = $grp->leader?->studentClasses?->first()?->classroom?->name ?? $grp->leader?->classroom_name ?? null;
+                                @endphp
+                                @if($leaderClassroom)
+                                <span class="bg-purple-100 text-purple-800 text-[10px] px-1.5 py-0.5 rounded font-black border border-purple-200 shrink-0">{{ $leaderClassroom }}</span>
+                                @endif
                                 <span class="truncate">{{ $grp->leader?->user?->name ?? $grp->leader?->full_name ?? '-' }}</span>
                             </div>
                             <div class="text-gray-600 font-bold text-[11px] pt-1">
-                                <span>Anggota ({{ $grp->members->count() }} orang):</span>
-                                <div class="mt-1 flex flex-wrap gap-1">
+                                <span class="block mb-1">Anggota ({{ $grp->members->count() }} orang):</span>
+                                <div class="flex flex-wrap gap-1">
                                     @foreach($grp->members as $mem)
-                                    <span class="bg-gray-100 border border-gray-300 text-gray-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
-                                        {{ $mem->user->name ?? $mem->full_name }}
+                                    @php
+                                        $memClassroom = $mem->studentClasses?->first()?->classroom?->name ?? $mem->classroom_name ?? null;
+                                    @endphp
+                                    <span class="bg-gray-100 border border-gray-300 text-gray-800 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+                                        @if($memClassroom)
+                                        <span class="text-purple-700 font-black">[{{ $memClassroom }}]</span>
+                                        @endif
+                                        <span>{{ $mem->user->name ?? $mem->full_name }}</span>
                                     </span>
                                     @endforeach
                                 </div>
@@ -1130,12 +1237,18 @@ if (!function_exists('balanceHtmlTags')) {
                     </div>
                     <h4 class="text-base font-black text-black">Belum Ada Master Kelompok Kursus</h4>
                     <p class="text-xs font-bold text-gray-500 max-w-md mx-auto mt-1 mb-6">
-                        Buat kelompok manual atau klik "Bagi Otomatis" untuk membagi siswa ke dalam kelompok kursus ini.
+                        Buat kelompok manual, per kelas, klik "Bagi Otomatis", atau gunakan fitur "Import Excel" untuk mengunggah draf kelompok.
                     </p>
-                    <button type="button" @click="showAutoGroup = true; showAddGroup = false"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-black hover:bg-amber-500 border-2 border-black transition shadow-sm">
-                        <i class="fas fa-magic"></i> Bagi {{ $allEnrolledStudents->count() }} Siswa Secara Otomatis
-                    </button>
+                    <div class="flex flex-wrap justify-center gap-2">
+                        <button type="button" @click="showAutoGroup = true; showAddGroup = false; showImportExcel = false"
+                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-black hover:bg-amber-500 border-2 border-black transition shadow-sm">
+                            <i class="fas fa-magic"></i> Bagi {{ $allEnrolledStudents->count() }} Siswa Secara Otomatis
+                        </button>
+                        <button type="button" @click="showImportExcel = true; showAutoGroup = false; showAddGroup = false"
+                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-700 border-2 border-black transition shadow-sm">
+                            <i class="fas fa-file-excel"></i> Import dari Excel
+                        </button>
+                    </div>
                 </div>
                 @endforelse
             </div>

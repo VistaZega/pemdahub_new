@@ -275,10 +275,19 @@ class LmsCourseController extends Controller
             'quizzes' => fn($q) => $q->orderByDesc('created_at')->withCount('attempts'),
             'lmsClasses.classroom',
             'announcements' => fn($q) => $q->with('author')->orderByDesc('is_pinned')->orderByDesc('created_at'),
-            'courseGroups' => fn($q) => $q->with(['leader.user', 'members.user']),
+            'courseGroups' => fn($q) => $q->with(['leader.user', 'leader.studentClasses.classroom', 'members.user', 'members.studentClasses.classroom']),
         ]);
 
         $course->loadCount(['materials', 'assignments', 'quizzes', 'discussions', 'announcements', 'courseGroups']);
+
+        // Ambil daftar rombel/kelas yang terhubung ke course ini
+        $classrooms = $course->lmsClasses->pluck('classroom')->filter()->values();
+        if ($classrooms->isEmpty() && $course->classroom_id) {
+            $c = \App\Models\Classroom::find($course->classroom_id);
+            if ($c) {
+                $classrooms = collect([$c]);
+            }
+        }
 
         // Ambil data siswa untuk tab manajemen kelompok kursus
         $assignmentCtrl = app(LmsAssignmentController::class);
@@ -287,7 +296,7 @@ class LmsCourseController extends Controller
         $allEnrolledStudents = $refMethod->invoke($assignmentCtrl, $course);
         $totalStudents = $allEnrolledStudents->count();
 
-        return view('guru.lms.show', compact('teacher', 'course', 'totalStudents', 'allEnrolledStudents'));
+        return view('guru.lms.show', compact('teacher', 'course', 'totalStudents', 'allEnrolledStudents', 'classrooms'));
     }
 
     /**

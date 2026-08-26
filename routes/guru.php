@@ -151,6 +151,8 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::post('/{course}/groups', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'store'])->name('groups.store');
         Route::delete('/{course}/groups/{group}', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'destroy'])->name('groups.destroy');
         Route::post('/{course}/groups/auto-generate', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'autoGenerate'])->name('groups.autoGenerate');
+        Route::get('/{course}/groups/download-template', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'downloadTemplate'])->name('groups.download-template');
+        Route::post('/{course}/groups/import-excel', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'importExcel'])->name('groups.import-excel');
 
         // Quizzes
         Route::get('/{course}/quizzes/create', [App\Http\Controllers\Guru\LmsQuizController::class, 'create'])->name('quizzes.create');

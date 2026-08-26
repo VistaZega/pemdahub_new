@@ -177,26 +177,43 @@ class LmsAssignmentController extends Controller
         $targetClassroomIds = $selectedClassroomId ? [$selectedClassroomId] : $allClassroomIds;
 
         // 6. Ambil siswa via StudentClass dari rombel target secara tepat
-        $students = \App\Models\StudentClass::whereIn('classroom_id', $targetClassroomIds)
+        $studentClassRecords = \App\Models\StudentClass::whereIn('classroom_id', $targetClassroomIds)
             ->where(function ($q) {
                 $q->whereNull('status')
                   ->orWhereIn('status', ['aktif', 'active', 'Aktif', '']);
             })
-            ->with(['student.user'])
-            ->get()
-            ->pluck('student')
-            ->filter()
-            ->unique('id')
-            ->values();
+            ->with(['student.user', 'classroom'])
+            ->get();
+
+        $students = collect();
+        foreach ($studentClassRecords as $sc) {
+            if ($sc->student) {
+                $std = $sc->student;
+                $std->classroom_id = $sc->classroom_id;
+                $std->classroom_name = $sc->classroom->name ?? null;
+                $students->push($std);
+            }
+        }
+        $students = $students->unique('id')->values();
 
         // 7. Jika dari StudentClass kosong, ambil via LmsEnrollment kursus ini
         if ($students->isEmpty()) {
-            $students = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
+            $enrollments = \App\Models\LmsEnrollment::whereHas('lmsClass', function ($q) use ($course, $selectedClassroomId) {
                 $q->where('course_id', $course->id);
                 if ($selectedClassroomId) {
                     $q->where('classroom_id', $selectedClassroomId);
                 }
-            })->with('student.user')->get()->pluck('student')->filter()->unique('id')->values();
+            })->with(['student.user', 'lmsClass.classroom'])->get();
+
+            foreach ($enrollments as $en) {
+                if ($en->student) {
+                    $std = $en->student;
+                    $std->classroom_id = $en->lmsClass->classroom_id ?? null;
+                    $std->classroom_name = $en->lmsClass->classroom->name ?? null;
+                    $students->push($std);
+                }
+            }
+            $students = $students->unique('id')->values();
         }
 
         $finalStudents = $students

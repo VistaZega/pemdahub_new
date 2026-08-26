@@ -10,6 +10,10 @@ use App\Models\LmsCourse;
 use App\Models\LmsCourseGroup;
 use App\Models\Student;
 use App\Models\Teacher;
+use App\Imports\LmsCourseGroupsImport;
+use App\Exports\LmsCourseGroupsTemplateExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -101,6 +105,8 @@ class LmsCourseGroupController extends Controller
             'classroom_id' => 'nullable|exists:classrooms,id',
         ]);
 
+        $selectedClassroom = $request->classroom_id ? Classroom::find($request->classroom_id) : null;
+
         $assignmentCtrl = app(LmsAssignmentController::class);
         $refMethod = new \ReflectionMethod($assignmentCtrl, 'getEnrolledStudentsForCourse');
         $refMethod->setAccessible(true);
@@ -114,25 +120,175 @@ class LmsCourseGroupController extends Controller
         $availableStudents = $allStudents->reject(fn($s) => in_array($s->id, $alreadyGroupedStudentIds))->shuffle()->values();
 
         if ($availableStudents->isEmpty()) {
-            return redirect()->back()->with('error', 'Semua siswa pada kursus ini sudah memiliki kelompok.');
+            $classMsg = $selectedClassroom ? " pada kelas {$selectedClassroom->name}" : "";
+            return redirect()->back()->with('error', "Semua siswa{$classMsg} pada kursus ini sudah memiliki kelompok.");
         }
 
         $numGroups = min((int)$request->group_count, $availableStudents->count());
         $chunks = $availableStudents->split($numGroups);
 
         $startIdx = $course->courseGroups()->count();
+        $classPrefix = $selectedClassroom ? $selectedClassroom->name . ' - ' : '';
+
         foreach ($chunks as $idx => $chunk) {
             $groupNum = $startIdx + $idx + 1;
             $leader = $chunk->first();
             $group = $course->courseGroups()->create([
-                'name' => 'Kelompok ' . $groupNum,
+                'name' => 'Kelompok ' . $classPrefix . $groupNum,
                 'leader_id' => $leader->id,
             ]);
             $group->members()->sync($chunk->pluck('id')->toArray());
         }
 
+        $targetMsg = $selectedClassroom ? " untuk kelas {$selectedClassroom->name}" : "";
         return redirect()->route('guru.lms.show', ['course' => $course->id, 'tab' => 'groups'])
-            ->with('success', "Berhasil membentuk {$numGroups} kelompok kursus secara otomatis.");
+            ->with('success', "Berhasil membentuk {$numGroups} kelompok kursus secara otomatis{$targetMsg}.");
+    }
+
+    /**
+     * Download Excel Template for Course Groups
+     */
+    public function downloadTemplate(LmsCourse $course)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        $filename = 'Template_Kelompok_LMS_' . Str::slug($course->course_name ?? $course->name ?? 'course') . '.xlsx';
+        return Excel::download(new LmsCourseGroupsTemplateExport($course), $filename);
+    }
+
+    /**
+     * Import Course Groups from Excel file
+     */
+    public function importExcel(Request $request, LmsCourse $course)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        $request->validate([
+            'import_file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+            'replace_existing' => 'nullable|boolean',
+        ]);
+
+        $assignmentCtrl = app(LmsAssignmentController::class);
+        $refMethod = new \ReflectionMethod($assignmentCtrl, 'getEnrolledStudentsForCourse');
+        $refMethod->setAccessible(true);
+        $allEnrolledStudents = $refMethod->invoke($assignmentCtrl, $course);
+
+        // Map lookup siswa berdasarkan nisn, nis, atau nama
+        $studentLookup = [];
+        foreach ($allEnrolledStudents as $std) {
+            if (!empty($std->nisn)) {
+                $studentLookup[trim((string)$std->nisn)] = $std;
+            }
+            if (!empty($std->nis)) {
+                $studentLookup[trim((string)$std->nis)] = $std;
+            }
+            $cleanName = strtolower(trim($std->user->name ?? $std->full_name ?? ''));
+            if (!empty($cleanName)) {
+                $studentLookup['name:' . $cleanName] = $std;
+            }
+        }
+
+        try {
+            $import = new LmsCourseGroupsImport();
+            Excel::import($import, $request->file('import_file'));
+            $rows = $import->getRows();
+
+            if (empty($rows)) {
+                return redirect()->back()->with('error', 'File Excel kosong atau tidak terbaca.');
+            }
+
+            // Hapus kelompok lama jika opsi replace_existing dicentang
+            if ($request->boolean('replace_existing')) {
+                $course->courseGroups()->delete();
+            }
+
+            $groupedData = [];
+            $notFoundIdentifiers = [];
+
+            foreach ($rows as $row) {
+                $groupName = trim($row['nama_kelompok'] ?? $row['kelompok'] ?? $row['group_name'] ?? '');
+                $nisn = trim((string)($row['nisn'] ?? $row['nis'] ?? $row['no_induk'] ?? ''));
+                $studentName = trim((string)($row['nama_siswa'] ?? $row['nama'] ?? $row['full_name'] ?? ''));
+                $peran = strtolower(trim($row['peran'] ?? $row['role'] ?? 'anggota'));
+
+                if (empty($groupName)) continue;
+
+                // Cari siswa berdasarkan NISN, NIS, atau Nama
+                $student = null;
+                if (!empty($nisn) && isset($studentLookup[$nisn])) {
+                    $student = $studentLookup[$nisn];
+                } elseif (!empty($studentName) && isset($studentLookup['name:' . strtolower($studentName)])) {
+                    $student = $studentLookup['name:' . strtolower($studentName)];
+                }
+
+                if (!$student) {
+                    if (!empty($nisn) || !empty($studentName)) {
+                        $notFoundIdentifiers[] = !empty($studentName) ? "{$studentName} ({$nisn})" : $nisn;
+                    }
+                    continue;
+                }
+
+                if (!isset($groupedData[$groupName])) {
+                    $groupedData[$groupName] = [
+                        'leader_id' => null,
+                        'member_ids' => [],
+                    ];
+                }
+
+                if ($peran === 'ketua' || $peran === 'leader' || $groupedData[$groupName]['leader_id'] === null) {
+                    if ($groupedData[$groupName]['leader_id'] === null) {
+                        $groupedData[$groupName]['leader_id'] = $student->id;
+                    }
+                }
+
+                $groupedData[$groupName]['member_ids'][] = $student->id;
+            }
+
+            if (empty($groupedData)) {
+                return redirect()->back()->with('error', 'Tidak ada kelompok atau siswa yang cocok yang dapat diimpor dari file tersebut.');
+            }
+
+            $createdCount = 0;
+            $studentCount = 0;
+
+            foreach ($groupedData as $name => $gInfo) {
+                $memberIds = array_values(array_unique($gInfo['member_ids']));
+                $leaderId = $gInfo['leader_id'] ?? $memberIds[0] ?? null;
+
+                if (!$leaderId) continue;
+
+                $group = $course->courseGroups()->firstOrCreate(
+                    ['name' => $name],
+                    ['leader_id' => $leaderId]
+                );
+
+                if ($group->leader_id !== $leaderId) {
+                    $group->update(['leader_id' => $leaderId]);
+                }
+
+                $group->members()->sync($memberIds);
+                $createdCount++;
+                $studentCount += count($memberIds);
+            }
+
+            $msg = "Berhasil mengimpor {$createdCount} kelompok dengan total {$studentCount} siswa.";
+            if (!empty($notFoundIdentifiers)) {
+                $unmatched = implode(', ', array_unique($notFoundIdentifiers));
+                $msg .= " Catatan: Siswa berikut tidak ditemukan/tidak terdaftar di kursus ini: {$unmatched}.";
+            }
+
+            return redirect()->route('guru.lms.show', ['course' => $course->id, 'tab' => 'groups'])
+                ->with('success', $msg);
+
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Gagal memproses import Excel: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -154,7 +310,6 @@ class LmsCourseGroupController extends Controller
 
         $importedCount = 0;
         foreach ($courseGroups as $cg) {
-            // Hindari duplikasi jika kelompok dengan nama yang sama sudah ada di tugas ini
             $existing = $assignment->groups()->where('name', $cg->name)->first();
             if (!$existing) {
                 $grp = $assignment->groups()->create([
