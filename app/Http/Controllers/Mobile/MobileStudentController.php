@@ -887,14 +887,28 @@ class MobileStudentController extends Controller
             return redirect()->route('mobile.dashboard')->with('error', 'Profil siswa tidak ditemukan.');
         }
 
-        $myMemberships = \App\Models\ExtracurricularMember::with(['extracurricular.advisor', 'extracurricular.leader', 'extracurricular.activities'])
+        $myMemberships = \App\Models\ExtracurricularMember::with([
+            'extracurricular.school',
+            'extracurricular.advisor',
+            'extracurricular.leader',
+            'extracurricular.activeMembers.student.school',
+            'extracurricular.activeMembers.student.classroom',
+            'extracurricular.activities'
+        ])
             ->where('student_id', $student->id)
             ->get();
 
         $joinedEkskulIds = $myMemberships->pluck('extracurricular_id')->toArray();
 
         // Katalog Ekskul Tersedia: Unit Sekolah Siswa + Unit Yayasan (Marching Band dll.)
-        $availableEkskuls = \App\Models\Extracurricular::with(['school', 'advisor', 'leader', 'secretary', 'treasurer', 'activeMembers'])
+        $availableEkskuls = \App\Models\Extracurricular::with([
+            'school',
+            'advisor',
+            'leader',
+            'secretary',
+            'treasurer',
+            'activeMembers.student.school'
+        ])
             ->withCount(['activeMembers', 'activities'])
             ->where(function ($q) use ($student) {
                 $q->where('school_id', $student->school_id)

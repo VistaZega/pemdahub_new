@@ -37,66 +37,168 @@
         </div>
     </div>
 
-    {{-- SECTION 1: UNIT EKSKUL YANG DI SAYA IKUTI --}}
-    <div class="space-y-3">
-        <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-            <i class="fas fa-id-badge text-indigo-600"></i> Ekstrakurikuler yang Saya Ikuti
-        </h2>
+    {{-- SECTION 1: UNIT EKSKUL YANG DI SAYA IKUTI (DIGITAL SQUAD PASS & REPUTASI) --}}
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <i class="fas fa-id-badge text-indigo-600"></i> Ekstrakurikuler yang Saya Ikuti ({{ $myMemberships->count() }})
+            </h2>
+            <span class="text-xs font-bold text-slate-500">
+                <i class="fas fa-shield-alt text-emerald-500"></i> Status Anggota Resmi
+            </span>
+        </div>
 
         @if($myMemberships->isNotEmpty())
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($myMemberships as $membership)
-            @php $ekskul = $membership->extracurricular; @endphp
-            <div class="bg-white rounded-3xl border-2 border-indigo-200 shadow-sm p-6 flex flex-col justify-between hover:shadow-lg transition">
-                <div class="space-y-4">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="flex items-start gap-4 flex-1 min-w-0">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-3xl shadow-sm flex-shrink-0">
-                                {{ $ekskul->display_icon }}
+            @php 
+                $ekskul = $membership->extracurricular;
+                $activeSquad = $ekskul->activeMembers ?? collect();
+                $otherSquad = $activeSquad->where('student_id', '!=', $student->id);
+                $isLeader = in_array($membership->role, ['ketua', 'wakil_ketua', 'sekretaris', 'bendahara']);
+            @endphp
+            <div class="relative bg-white rounded-3xl border-2 {{ $isLeader ? 'border-amber-300 ring-4 ring-amber-100/50 shadow-md' : 'border-indigo-200/80 shadow-md' }} hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group">
+                
+                {{-- Decorative Watermark Background Icon --}}
+                <div class="absolute -right-6 -bottom-8 text-8xl opacity-[0.06] group-hover:opacity-[0.12] transition-opacity duration-300 select-none pointer-events-none">
+                    {{ $ekskul->display_icon }}
+                </div>
+
+                {{-- VIP Squad Pass Ribbon --}}
+                <div class="px-5 py-3 bg-gradient-to-r {{ $isLeader ? 'from-amber-600 via-orange-600 to-purple-700' : 'from-indigo-600 via-purple-600 to-pink-600' }} text-white flex items-center justify-between gap-2 shadow-xs">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-xs border border-white/30 text-white">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            OFFICIAL SQUAD PASS
+                        </span>
+                        <span class="text-[10px] font-bold text-indigo-100/90 font-mono hidden sm:inline">
+                            #EKS-{{ str_pad($ekskul->id, 2, '0', STR_PAD_LEFT) }}-{{ str_pad($membership->id, 4, '0', STR_PAD_LEFT) }}
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        @if($ekskul->isFoundationLevel())
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-400 text-slate-950 shadow-2xs">
+                            🏛️ Yayasan
+                        </span>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Card Body --}}
+                <div class="p-5 sm:p-6 space-y-4 relative z-10 flex-1 flex flex-col justify-between">
+                    
+                    <div class="space-y-4">
+                        {{-- Student Member Profile Header (Pride Factor) --}}
+                        <div class="flex items-center gap-3.5 bg-gradient-to-r from-slate-50 via-indigo-50/40 to-purple-50/30 p-3.5 rounded-2xl border border-indigo-100/80">
+                            <div class="relative shrink-0">
+                                <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-13 h-13 rounded-2xl object-cover border-2 {{ $isLeader ? 'border-amber-400 shadow-amber-200' : 'border-indigo-400 shadow-indigo-100' }} shadow-md bg-white">
+                                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] shadow-sm border border-white" title="Anggota Terverifikasi">
+                                    <i class="fas fa-check"></i>
+                                </span>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex flex-wrap items-center gap-1.5 mb-2.5">
-                                    <span class="px-3 py-1 rounded-full text-[10px] font-bold text-white bg-gradient-to-r {{ $membership->role_badge_color }} shadow-2xs">
-                                        {{ $membership->role_label }}
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black text-white bg-gradient-to-r {{ $membership->role_badge_color }} shadow-2xs">
+                                        {{ $isLeader ? '👑 ' : '' }}{{ $membership->role_label }}
                                     </span>
                                     @if($membership->section)
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-gradient-to-r from-purple-100 to-pink-100 text-purple-950 border border-purple-300">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-gradient-to-r from-purple-100 to-pink-100 text-purple-950 border border-purple-300">
                                         🎺 {{ $membership->section }}
                                     </span>
                                     @endif
                                 </div>
-                                <h3 class="font-black text-slate-900 text-sm leading-snug">{{ $ekskul->name }}</h3>
+                                <h4 class="font-black text-slate-900 text-xs sm:text-sm truncate">{{ $student->full_name }}</h4>
+                                <p class="text-[10px] text-slate-500 font-bold">
+                                    NISN: {{ $student->nisn ?: '-' }} &bull; {{ $student->classroom->class_name ?? ($student->school->short_name ?? 'Pembda') }}
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- Ekskul Title & Category --}}
+                        <div class="flex items-start gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center text-2xl shadow-sm shrink-0 group-hover:scale-105 transition">
+                                {{ $ekskul->display_icon }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-700 block mb-0.5">
+                                    {{ $ekskul->category_label }}
+                                </span>
+                                <h3 class="font-black text-slate-900 text-base leading-snug group-hover:text-indigo-600 transition">
+                                    {{ $ekskul->name }}
+                                </h3>
+                            </div>
+                        </div>
+
+                        {{-- Squad Teammates (Avatar Stack & Social Proof) --}}
+                        <div class="bg-indigo-50/50 rounded-2xl p-3.5 border border-indigo-100/70 space-y-2">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-black text-slate-800 flex items-center gap-1.5">
+                                    <i class="fas fa-users text-indigo-600"></i> Rekan Squad
+                                </span>
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900">
+                                    {{ $activeSquad->count() }} Anggota Aktif
+                                </span>
+                            </div>
+                            
+                            <div class="flex items-center justify-between gap-2 pt-1">
+                                <div class="flex items-center -space-x-2 overflow-hidden py-1">
+                                    {{-- Current Student Avatar --}}
+                                    <img class="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover shadow-2xs" src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" title="Kamu ({{ $student->full_name }})">
+                                    
+                                    {{-- Other Teammates --}}
+                                    @foreach($otherSquad->take(4) as $squadMember)
+                                        @if($squadMember->student)
+                                        <img class="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover shadow-2xs" src="{{ $squadMember->student->photo_url }}" alt="{{ $squadMember->student->full_name }}" title="{{ $squadMember->student->full_name }} ({{ $squadMember->role_label }})">
+                                        @endif
+                                    @endforeach
+
+                                    @if($otherSquad->count() > 4)
+                                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-black text-white ring-2 ring-white shadow-2xs">
+                                        +{{ $otherSquad->count() - 4 }}
+                                    </span>
+                                    @endif
+                                </div>
+                                <p class="text-[10px] text-slate-600 font-bold text-right leading-tight">
+                                    @if($otherSquad->count() > 0)
+                                        Bersama <b>{{ $otherSquad->first()->student->full_name ?? 'teman' }}</b> & {{ $otherSquad->count() }} lainnya
+                                    @else
+                                        Squad baru dibentuk & siap berkembang!
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- Schedule & Advisor Info --}}
+                        <div class="space-y-1.5 text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-200/70 text-slate-700">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-500 flex items-center gap-1.5"><i class="far fa-calendar-alt text-slate-400"></i> Jadwal:</span>
+                                <span class="font-black text-slate-900">{{ $ekskul->schedule_day_time ?: 'Sesuai Arahan Pembina' }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-500 flex items-center gap-1.5"><i class="fas fa-map-marker-alt text-slate-400"></i> Lokasi:</span>
+                                <span class="font-black text-slate-900">{{ $ekskul->location ?: 'Kampus Pembda' }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-500 flex items-center gap-1.5"><i class="fas fa-user-tie text-slate-400"></i> Pembina:</span>
+                                <span class="font-black text-slate-900 truncate max-w-[160px]">{{ $ekskul->manager_name ?: ($ekskul->advisor_name ?: ($ekskul->advisor->full_name ?? 'PKS Kesiswaan')) }}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="space-y-2 text-xs bg-gradient-to-br from-slate-50 to-indigo-50/40 p-4 rounded-2xl border border-indigo-100 text-slate-700">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-500">📅 Jadwal:</span>
-                            <span class="font-black text-slate-900">{{ $ekskul->schedule_day_time ?: 'Sesuai Arahan Pembina' }}</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-500">📍 Lokasi:</span>
-                            <span class="font-black text-slate-900">{{ $ekskul->location ?: 'Kampus Pembda' }}</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-500">👨‍🏫 Pembina / Manager:</span>
-                            <span class="font-black text-slate-900 truncate max-w-[150px]">{{ $ekskul->manager_name ?: ($ekskul->advisor_name ?: 'PKS Kesiswaan') }}</span>
-                        </div>
+                    {{-- Card Footer --}}
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 mt-3">
+                        <span class="text-xs font-black text-indigo-700 flex items-center gap-1.5 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-xl">
+                            <i class="fas fa-award text-amber-500"></i> +{{ $membership->points_awarded }} Poin Reputasi
+                        </span>
+
+                        @if($ekskul->forum_group_id)
+                        <a href="{{ route('forum.index', ['group' => $ekskul->forum_group_id]) }}" class="px-4 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
+                            <i class="fas fa-comments"></i>
+                            <span>Buka Space</span>
+                        </a>
+                        @endif
                     </div>
-                </div>
 
-                <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between">
-                    <span class="text-xs font-black text-indigo-700 flex items-center gap-1">
-                        <i class="fas fa-star text-amber-500"></i> +{{ $membership->points_awarded }} Poin Reputasi
-                    </span>
-
-                    @if($ekskul->forum_group_id)
-                    <a href="{{ route('forum.index', ['group' => $ekskul->forum_group_id]) }}" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
-                        <i class="fas fa-comments"></i>
-                        <span>Buka Space</span>
-                    </a>
-                    @endif
                 </div>
             </div>
             @endforeach
@@ -156,8 +258,21 @@
                             <span class="font-black text-slate-900">{{ $ekskul->location ?: 'Kampus Pembda' }}</span>
                         </div>
                         <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-500">👨‍🏫 Pembina:</span>
+                            <span class="font-black text-slate-900 truncate max-w-[150px]">{{ $ekskul->manager_name ?: ($ekskul->advisor_name ?: ($ekskul->advisor->full_name ?? 'PKS Kesiswaan')) }}</span>
+                        </div>
+                        <div class="flex items-center justify-between pt-1 border-t border-indigo-100/60">
                             <span class="font-bold text-slate-500">👥 Anggota:</span>
-                            <span class="font-black text-indigo-700">{{ $ekskul->active_members_count }} Siswa Aktif</span>
+                            <div class="flex items-center gap-1.5">
+                                <div class="flex items-center -space-x-1.5">
+                                    @foreach($ekskul->activeMembers->take(3) as $m)
+                                        @if($m->student)
+                                        <img class="inline-block h-5 w-5 rounded-full ring-1 ring-white object-cover" src="{{ $m->student->photo_url }}" title="{{ $m->student->full_name }}">
+                                        @endif
+                                    @endforeach
+                                </div>
+                                <span class="font-black text-indigo-700">{{ $ekskul->active_members_count }} Siswa Aktif</span>
+                            </div>
                         </div>
                     </div>
                 </div>

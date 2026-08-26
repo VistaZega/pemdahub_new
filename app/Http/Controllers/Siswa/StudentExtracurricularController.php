@@ -30,15 +30,29 @@ class StudentExtracurricularController extends Controller
             return redirect()->route('siswa.dashboard')->with('error', 'Data profil siswa tidak ditemukan.');
         }
 
-        // Unit Ekskul yang Diikuti Siswa
-        $myMemberships = ExtracurricularMember::with(['extracurricular.advisor', 'extracurricular.leader', 'extracurricular.activities'])
+        // Unit Ekskul yang Diikuti Siswa (dengan eager load Squad Roster & Pembina)
+        $myMemberships = ExtracurricularMember::with([
+            'extracurricular.school',
+            'extracurricular.advisor',
+            'extracurricular.leader',
+            'extracurricular.activeMembers.student.school',
+            'extracurricular.activeMembers.student.classroom',
+            'extracurricular.activities'
+        ])
             ->where('student_id', $student->id)
             ->get();
 
         $joinedEkskulIds = $myMemberships->pluck('extracurricular_id')->toArray();
 
         // Katalog Ekskul Tersedia: Unit Sekolah Siswa + Unit Tingkat Yayasan (Marching Band dll.)
-        $availableEkskuls = Extracurricular::with(['school', 'advisor', 'leader', 'secretary', 'treasurer', 'activeMembers'])
+        $availableEkskuls = Extracurricular::with([
+            'school',
+            'advisor',
+            'leader',
+            'secretary',
+            'treasurer',
+            'activeMembers.student.school'
+        ])
             ->withCount(['activeMembers', 'activities'])
             ->where(function ($q) use ($student) {
                 $q->where('school_id', $student->school_id)
