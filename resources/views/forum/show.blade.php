@@ -154,9 +154,14 @@
                  class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-slate-200 shadow-sm flex-shrink-0 object-cover">
             <div class="flex-1 min-w-0 space-y-2">
                 <!-- Meta -->
-                <div class="flex items-baseline gap-2 flex-wrap">
+                <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="font-bold text-slate-800 text-sm sm:text-base">{{ $thread->user->name }}</span>
                     <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold uppercase tracking-wider">{{ $thread->user->role }}</span>
+                    @if($thread->user->ekskul_flair)
+                    <span class="text-[10px] font-black px-2 py-0.5 rounded-full border {{ $thread->user->ekskul_flair['badge_css'] }}" title="{{ $thread->user->ekskul_flair['label'] }}">
+                        {{ $thread->user->ekskul_flair['label'] }}
+                    </span>
+                    @endif
                     <span class="text-xs text-slate-400">&bull; {{ $thread->created_at->format('H:i • d M Y') }}</span>
                 </div>
                 
@@ -384,10 +389,15 @@
                     <div class="flex-1 min-w-0 space-y-2">
                         <!-- User Info & Edit/Delete -->
                         <div class="flex items-center justify-between gap-2 flex-wrap">
-                            <div class="flex items-baseline gap-2 flex-wrap min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap min-w-0">
                                 <span class="font-bold text-slate-800 text-sm">{{ $reply->user->name }}</span>
                                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold uppercase tracking-wider">{{ $reply->user->role }}</span>
-                                <span class="text-xs text-slate-400">{{ $reply->created_at->format('H:i') }}</span>
+                                @if($reply->user->ekskul_flair)
+                                <span class="text-[10px] font-black px-2 py-0.5 rounded-full border {{ $reply->user->ekskul_flair['badge_css'] }}" title="{{ $reply->user->ekskul_flair['label'] }}">
+                                    {{ $reply->user->ekskul_flair['label'] }}
+                                </span>
+                                @endif
+                                <span class="text-xs text-slate-400">&bull; {{ $reply->created_at->format('H:i') }}</span>
                                 @if($reply->is_accepted)
                                     <span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded flex items-center gap-1 font-bold">
                                         <i class="ph-bold ph-star text-amber-600"></i> Jawaban Terbaik
@@ -524,10 +534,15 @@
                                             <div class="flex items-center justify-between gap-2">
                                                 <div class="flex items-center gap-2.5 min-w-0">
                                                     <img src="{{ $child->user->avatar_url }}" class="w-8 h-8 rounded-full border border-indigo-300 shadow-2xs flex-shrink-0 object-cover">
-                                                    <div class="min-w-0 flex items-baseline gap-1.5 flex-wrap">
+                                                    <div class="min-w-0 flex items-center gap-1.5 flex-wrap">
                                                         <span class="font-black text-slate-800 text-xs sm:text-sm truncate">{{ $child->user->name }}</span>
                                                         <span class="text-[9px] px-1.5 py-0.5 rounded bg-white text-slate-500 font-bold uppercase border border-slate-200">{{ $child->user->role }}</span>
-                                                        <span class="text-[10px] text-slate-400 font-medium">{{ $child->created_at->format('H:i') }}</span>
+                                                        @if($child->user->ekskul_flair)
+                                                        <span class="text-[9px] font-black px-2 py-0.2 rounded-full border {{ $child->user->ekskul_flair['badge_css'] }}" title="{{ $child->user->ekskul_flair['label'] }}">
+                                                            {{ $child->user->ekskul_flair['short_label'] }}
+                                                        </span>
+                                                        @endif
+                                                        <span class="text-[10px] text-slate-400 font-medium">&bull; {{ $child->created_at->format('H:i') }}</span>
                                                     </div>
                                                 </div>
 

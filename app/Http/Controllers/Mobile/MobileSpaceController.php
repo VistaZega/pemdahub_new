@@ -138,7 +138,14 @@ class MobileSpaceController extends Controller
 
         // Ambil postingan / pesan di dalam grup ini
         $threads = ForumThread::where('group_id', $group->id)
-            ->with(['user', 'replies.user', 'poll.options', 'poll.votes'])
+            ->with([
+                'user.student.extracurricularMembers.extracurricular',
+                'user.teacher',
+                'replies.user.student.extracurricularMembers.extracurricular',
+                'replies.user.teacher',
+                'poll.options',
+                'poll.votes'
+            ])
             ->withCount('replies', 'likes')
             ->orderBy('is_pinned', 'desc')
             ->latest()
@@ -376,7 +383,12 @@ class MobileSpaceController extends Controller
 
     public function show($id)
     {
-        $thread = ForumThread::with(['user', 'replies.user'])->findOrFail($id);
+        $thread = ForumThread::with([
+            'user.student.extracurricularMembers.extracurricular',
+            'user.teacher',
+            'replies.user.student.extracurricularMembers.extracurricular',
+            'replies.user.teacher'
+        ])->findOrFail($id);
         $thread->increment('views_count');
 
         $isLiked = ForumLike::where('user_id', Auth::id())

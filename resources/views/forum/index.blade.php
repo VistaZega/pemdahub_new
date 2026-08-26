@@ -627,9 +627,14 @@
                                     <img src="{{ $author->avatar_url }}" 
                                          class="w-10 h-10 rounded-full border-2 border-slate-100 shadow-sm object-cover">
                                     <div>
-                                        <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-1.5 flex-wrap">
                                             <span class="font-bold text-slate-900 text-sm">{{ $author->name }}</span>
                                             <span class="text-[10px] font-bold px-1.5 py-0.5 bg-slate-200 text-slate-900 rounded uppercase tracking-wider">{{ $author->role }}</span>
+                                            @if($author->ekskul_flair)
+                                            <span class="text-[10px] font-black px-2 py-0.5 rounded-full border {{ $author->ekskul_flair['badge_css'] }}" title="{{ $author->ekskul_flair['label'] }}">
+                                                {{ $author->ekskul_flair['label'] }}
+                                            </span>
+                                            @endif
                                             <span class="text-xs text-slate-900 font-medium">&bull; {{ $thread->created_at->diffForHumans() }}</span>
                                         </div>
                                         <div class="flex items-center gap-2 mt-1 flex-wrap">

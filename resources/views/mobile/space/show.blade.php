@@ -30,13 +30,20 @@
         @endphp
 
         <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 min-w-0">
                 <img src="{{ $authorPhoto }}" alt="{{ $authorUser?->name }}"
                      onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($authorUser?->name ?? 'User') }}&background=7c3aed&color=fff&bold=true';"
                      class="w-10 h-10 rounded-2xl object-cover border-2 border-purple-200 shadow-md shrink-0">
-                <div>
-                    <h4 class="text-xs font-black text-slate-900 leading-none">{{ $thread->user->name ?? 'Pengguna' }}</h4>
-                    <span class="text-[10px] text-slate-400 font-bold">{{ $thread->created_at ? $thread->created_at->format('d M Y, H:i') : '' }}</span>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <h4 class="text-xs font-black text-slate-900 leading-none truncate max-w-[150px]">{{ $thread->user->name ?? 'Pengguna' }}</h4>
+                        @if($thread->user?->ekskul_flair)
+                        <span class="text-[8px] font-black px-1.5 py-0.2 rounded-full border {{ $thread->user->ekskul_flair['badge_css'] }}" title="{{ $thread->user->ekskul_flair['label'] }}">
+                            {{ $thread->user->ekskul_flair['short_label'] }}
+                        </span>
+                        @endif
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-bold block mt-0.5">{{ $thread->created_at ? $thread->created_at->format('d M Y, H:i') : '' }}</span>
                 </div>
             </div>
             
@@ -151,13 +158,20 @@
             @endphp
             <div class="clay-card p-4 space-y-2">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2.5">
+                    <div class="flex items-center space-x-2.5 min-w-0">
                         <img src="{{ $replyPhoto }}" alt="{{ $replyUser?->name }}"
                              onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($replyUser?->name ?? 'User') }}&background=7c3aed&color=fff&bold=true';"
                              class="w-8 h-8 rounded-xl object-cover border border-purple-200 shadow-xs shrink-0">
-                        <div>
-                            <h5 class="text-xs font-black text-slate-900 leading-none">{{ $reply->user->name ?? 'Pengguna' }}</h5>
-                            <span class="text-[9px] text-slate-400 font-bold">{{ $reply->created_at ? $reply->created_at->diffForHumans() : '' }}</span>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <h5 class="text-xs font-black text-slate-900 leading-none truncate max-w-[130px]">{{ $reply->user->name ?? 'Pengguna' }}</h5>
+                                @if($reply->user?->ekskul_flair)
+                                <span class="text-[8px] font-black px-1.5 py-0.2 rounded-full border {{ $reply->user->ekskul_flair['badge_css'] }}" title="{{ $reply->user->ekskul_flair['label'] }}">
+                                    {{ $reply->user->ekskul_flair['short_label'] }}
+                                </span>
+                                @endif
+                            </div>
+                            <span class="text-[9px] text-slate-400 font-bold block mt-0.5">{{ $reply->created_at ? $reply->created_at->diffForHumans() : '' }}</span>
                         </div>
                     </div>
                     @if((Auth::id() === $reply->user_id) || in_array(Auth::user()->role ?? '', ['superadmin', 'admin_sekolah']))

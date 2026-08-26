@@ -595,6 +595,11 @@
                                  onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($authorUser?->name ?? 'User') }}&background=7c3aed&color=fff&bold=true';"
                                  class="w-5 h-5 rounded-full object-cover border border-purple-200 shrink-0">
                             <span class="truncate font-black text-slate-800 uppercase tracking-tight text-[10px]">{{ $thread->user->name ?? 'Anonim' }}</span>
+                            @if($authorUser?->ekskul_flair)
+                            <span class="text-[8px] font-black px-1.5 py-0.2 rounded-full border shrink-0 {{ $authorUser->ekskul_flair['badge_css'] }}" title="{{ $authorUser->ekskul_flair['label'] }}">
+                                {{ $authorUser->ekskul_flair['short_label'] }}
+                            </span>
+                            @endif
                         </span>
                         <div class="flex items-center space-x-2 shrink-0">
                             <!-- Direct Like Button (AJAX) -->
@@ -668,6 +673,11 @@
                                  onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($authorUser?->name ?? 'User') }}&background=e11d48&color=fff&bold=true';"
                                  class="w-5 h-5 rounded-full object-cover border border-rose-200 shrink-0">
                             <span class="truncate font-black text-slate-800 uppercase tracking-tight text-[10px]">{{ $thread->user->name ?? 'Anonim' }}</span>
+                            @if($authorUser?->ekskul_flair)
+                            <span class="text-[8px] font-black px-1.5 py-0.2 rounded-full border shrink-0 {{ $authorUser->ekskul_flair['badge_css'] }}" title="{{ $authorUser->ekskul_flair['label'] }}">
+                                {{ $authorUser->ekskul_flair['short_label'] }}
+                            </span>
+                            @endif
                         </span>
                         <div class="flex items-center space-x-2 shrink-0">
                             <!-- Direct Like Button (AJAX) -->

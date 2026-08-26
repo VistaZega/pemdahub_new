@@ -29,8 +29,17 @@ class ForumController extends Controller
         $search = $request->get('search');
         $user = Auth::user();
 
-        $query = ForumThread::with(['user', 'replies', 'likes', 'members', 'reactions', 'poll.options', 'poll.votes'])
-            ->pinnedFirst();
+        $query = ForumThread::with([
+            'user.student.extracurricularMembers.extracurricular',
+            'user.teacher',
+            'replies.user.student.extracurricularMembers.extracurricular',
+            'replies.user.teacher',
+            'likes',
+            'members',
+            'reactions',
+            'poll.options',
+            'poll.votes'
+        ])->pinnedFirst();
 
         // Scope by category
         if ($category && array_key_exists($category, ForumThread::CATEGORIES)) {
@@ -243,7 +252,18 @@ class ForumController extends Controller
     public function show(ForumThread $thread)
     {
         $thread->increment('views_count');
-        $thread->load(['user', 'replies.user', 'replies.parent', 'replies.reactions', 'likes', 'members.user', 'reactions', 'poll.options.votes']);
+        $thread->load([
+            'user.student.extracurricularMembers.extracurricular',
+            'user.teacher',
+            'replies.user.student.extracurricularMembers.extracurricular',
+            'replies.user.teacher',
+            'replies.parent',
+            'replies.reactions',
+            'likes',
+            'members.user',
+            'reactions',
+            'poll.options.votes'
+        ]);
 
         // Build the performance reference view representation if linked
         $perfCard = null;

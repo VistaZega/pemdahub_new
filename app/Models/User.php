@@ -717,4 +717,80 @@ class User extends Authenticatable
 
         return false;
     }
+
+    /**
+     * Get primary extracurricular VIP badge/flair for Pembda Space
+     */
+    public function getEkskulFlairAttribute(): ?array
+    {
+        // 1. If user is Student
+        if ($this->role === 'siswa' && $this->student) {
+            $members = $this->student->relationLoaded('extracurricularMembers')
+                ? $this->student->extracurricularMembers->where('status', 'approved')
+                : $this->student->extracurricularMembers()->where('status', 'approved')->with('extracurricular')->get();
+
+            if ($members->isNotEmpty()) {
+                $member = $members->sortBy(function ($m) {
+                    if (in_array($m->role, ['ketua', 'wakil_ketua', 'sekretaris', 'bendahara'])) return 1;
+                    if (!empty($m->section)) return 2;
+                    return 3;
+                })->first();
+
+                if ($member && $member->extracurricular) {
+                    $ekskul = $member->extracurricular;
+                    $isLeader = in_array($member->role, ['ketua', 'wakil_ketua', 'sekretaris', 'bendahara']);
+
+                    $label = '';
+                    if ($isLeader) {
+                        $label = '👑 ' . $member->role_label . ' • ' . ($member->section ? $member->section . ' ' : '') . $ekskul->name;
+                    } elseif ($member->section) {
+                        $label = ($ekskul->display_icon ?: '🎺') . ' ' . $member->section . ' • ' . $ekskul->name;
+                    } else {
+                        $label = ($ekskul->display_icon ?: '🏆') . ' ' . $ekskul->name;
+                    }
+
+                    return [
+                        'type' => 'student',
+                        'label' => $label,
+                        'short_label' => $isLeader ? ('👑 ' . $member->role_label) : ($member->section ? ($ekskul->display_icon . ' ' . $member->section) : ($ekskul->display_icon . ' ' . $ekskul->name)),
+                        'role' => $member->role,
+                        'role_label' => $member->role_label,
+                        'section' => $member->section,
+                        'ekskul_name' => $ekskul->name,
+                        'icon' => $ekskul->display_icon,
+                        'is_leader' => $isLeader,
+                        'badge_css' => $isLeader 
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-300 shadow-xs' 
+                            : ($member->section 
+                                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-purple-300 shadow-xs' 
+                                : 'bg-purple-50 text-purple-900 border-purple-200'),
+                    ];
+                }
+            }
+        }
+
+        // 2. If user is Teacher & is Advisor
+        if ($this->role === 'guru' && $this->teacher) {
+            $ekskul = \App\Models\Extracurricular::where('advisor_teacher_id', $this->teacher->id)
+                ->where('is_active', true)
+                ->first();
+
+            if ($ekskul) {
+                return [
+                    'type' => 'teacher',
+                    'label' => '👨‍🏫 Pembina • ' . $ekskul->name,
+                    'short_label' => '👨‍🏫 Pembina ' . $ekskul->name,
+                    'role' => 'pembina',
+                    'role_label' => 'Pembina Ekskul',
+                    'section' => null,
+                    'ekskul_name' => $ekskul->name,
+                    'icon' => $ekskul->display_icon,
+                    'is_leader' => true,
+                    'badge_css' => 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white border-emerald-400 shadow-xs',
+                ];
+            }
+        }
+
+        return null;
+    }
 }

@@ -176,12 +176,19 @@
                    class="clay-card p-4.5 block transition relative hover:border-purple-300 space-y-2 bg-white border-2 border-slate-200">
                     
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2.5">
+                        <div class="flex items-center space-x-2.5 min-w-0">
                             <img src="{{ $authorPhoto }}" alt="{{ $authorUser?->name }}"
                                  onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($authorUser?->name ?? 'User') }}&background=7c3aed&color=fff&bold=true';"
                                  class="w-9 h-9 rounded-2xl object-cover border border-purple-200 shadow-xs shrink-0">
-                            <div>
-                                <h4 class="text-xs font-black text-slate-900 leading-none">{{ $authorUser?->name ?? 'Pengguna' }}</h4>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <h4 class="text-xs font-black text-slate-900 leading-none truncate max-w-[140px]">{{ $authorUser?->name ?? 'Pengguna' }}</h4>
+                                    @if($authorUser?->ekskul_flair)
+                                    <span class="text-[8px] font-black px-1.5 py-0.2 rounded-full border {{ $authorUser->ekskul_flair['badge_css'] }}" title="{{ $authorUser->ekskul_flair['label'] }}">
+                                        {{ $authorUser->ekskul_flair['short_label'] }}
+                                    </span>
+                                    @endif
+                                </div>
                                 <span class="text-[9px] text-slate-400 font-bold block mt-0.5">{{ $thread->created_at ? $thread->created_at->diffForHumans() : '' }}</span>
                             </div>
                         </div>
