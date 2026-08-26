@@ -756,10 +756,29 @@
 
 </div>
 
-{{-- SCRIPT DEDIKASI GENERATE E-CARD HD DENGAN HTML2CANVAS --}}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb5hBydBmJaUU118Gm1N8oWOqqJf8tdCXGg53G566nq7jPVYao07XgQ6PN8mFvlb5630Ymw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{{-- SCRIPT DEDIKASI GENERATE E-CARD HD --}}
+<script src="{{ asset('vendor/html2canvas.min.js') }}"></script>
 
 <script>
+function ensureHtml2Canvas() {
+    return new Promise((resolve) => {
+        if (typeof html2canvas !== 'undefined') {
+            return resolve(window.html2canvas);
+        }
+        const s = document.createElement('script');
+        s.src = '{{ asset('vendor/html2canvas.min.js') }}';
+        s.onload = () => resolve(window.html2canvas);
+        s.onerror = () => {
+            const fallback = document.createElement('script');
+            fallback.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+            fallback.onload = () => resolve(window.html2canvas);
+            fallback.onerror = () => resolve(null);
+            document.head.appendChild(fallback);
+        };
+        document.head.appendChild(s);
+    });
+}
+
 async function downloadEcardCard(elementId, filename) {
     const card = document.getElementById(elementId);
     if (!card) {
@@ -775,11 +794,12 @@ async function downloadEcardCard(elementId, filename) {
     }
 
     try {
-        if (typeof html2canvas === 'undefined') {
-            throw new Error('Library renderer belum siap. Silakan refresh halaman.');
+        const h2c = await ensureHtml2Canvas();
+        if (!h2c) {
+            throw new Error('Gagal memuat library pengunduh kartu. Silakan periksa koneksi internet Anda atau gunakan tombol Cetak.');
         }
 
-        const canvas = await html2canvas(card, {
+        const canvas = await h2c(card, {
             scale: 3,
             useCORS: true,
             allowTaint: true,
@@ -869,8 +889,9 @@ async function shareEcardCard(elementId, title) {
 
     if (navigator.share) {
         try {
-            if (typeof html2canvas !== 'undefined') {
-                const canvas = await html2canvas(card, { scale: 2, useCORS: true, allowTaint: true });
+            const h2c = await ensureHtml2Canvas();
+            if (h2c) {
+                const canvas = await h2c(card, { scale: 2, useCORS: true, allowTaint: true });
                 canvas.toBlob(async (blob) => {
                     if (blob && navigator.canShare && navigator.canShare({ files: [new File([blob], 'ecard.png', { type: 'image/png' })] })) {
                         const file = new File([blob], 'ecard-pembda.png', { type: 'image/png' });
