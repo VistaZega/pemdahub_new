@@ -616,36 +616,36 @@
                     
                     {{-- THE OFFICIAL E-CARD COMPONENT (To be captured as image) --}}
                     <div id="ecard-card-{{ $membership->id }}" 
-                         class="relative w-[520px] max-w-[520px] rounded-3xl p-6 text-white shadow-2xl overflow-hidden select-none border-2 border-amber-400/50 flex flex-col justify-between"
-                         style="background: linear-gradient(135deg, #090d16 0%, #1e153a 50%, #2e0854 100%); min-height: 310px;">
+                         class="relative w-[520px] max-w-[520px] rounded-3xl p-6 shadow-2xl overflow-hidden select-none border-2 flex flex-col justify-between"
+                         style="background: linear-gradient(135deg, #090d16 0%, #1e153a 50%, #2e0854 100%); border-color: rgba(251, 191, 36, 0.5); min-height: 310px; color: #ffffff; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;">
                         
                         {{-- Background Holographic Decorative Patterns --}}
-                        <div class="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-purple-500/10 blur-2xl pointer-events-none"></div>
-                        <div class="absolute -left-12 -bottom-12 w-48 h-48 rounded-full bg-amber-500/10 blur-2xl pointer-events-none"></div>
-                        <div class="absolute right-4 bottom-2 text-9xl opacity-[0.05] pointer-events-none font-sans font-black">
+                        <div class="absolute -right-12 -top-12 w-48 h-48 rounded-full pointer-events-none" style="background: rgba(168, 85, 247, 0.15); filter: blur(32px);"></div>
+                        <div class="absolute -left-12 -bottom-12 w-48 h-48 rounded-full pointer-events-none" style="background: rgba(245, 158, 11, 0.15); filter: blur(32px);"></div>
+                        <div class="absolute right-4 bottom-2 text-9xl pointer-events-none font-black" style="opacity: 0.06; color: #ffffff;">
                             {{ $ekskul->display_icon }}
                         </div>
 
                         {{-- Card Header --}}
-                        <div class="relative z-10 flex items-start justify-between gap-3 border-b border-white/15 pb-3">
+                        <div class="relative z-10 flex items-start justify-between gap-3 pb-3" style="border-bottom: 1px solid rgba(255, 255, 255, 0.15);">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-1 shadow-inner">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center p-1" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);">
                                     <img src="{{ asset('images/logo_yayasan.png') }}" crossorigin="anonymous" alt="Logo Yayasan" class="w-8 h-8 object-contain" onerror="this.src='{{ asset('images/logo-pembda.png') }}'">
                                 </div>
                                 <div>
-                                    <h4 class="text-[11px] font-black uppercase tracking-wider text-amber-300">
+                                    <h4 class="text-[11px] font-black uppercase tracking-wider" style="color: #fbbf24; margin: 0;">
                                         YAYASAN PERGURUAN PEMBDA NIAS
                                     </h4>
-                                    <p class="text-[9px] text-indigo-100 font-bold uppercase tracking-wide">
+                                    <p class="text-[9px] font-bold uppercase tracking-wide" style="color: #e0e7ff; margin: 0;">
                                         OFFICIAL SQUAD PASS &bull; EKSTRAKURIKULER
                                     </p>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <span class="inline-block px-2.5 py-0.5 rounded-full text-[8px] font-mono font-black bg-amber-400 text-slate-950 shadow-xs">
+                                <span class="inline-block px-2.5 py-0.5 rounded-full text-[8px] font-mono font-black" style="background-color: #fbbf24; color: #020617;">
                                     #EKS-{{ str_pad($ekskul->id, 2, '0', STR_PAD_LEFT) }}-{{ str_pad($membership->id, 4, '0', STR_PAD_LEFT) }}
                                 </span>
-                                <p class="text-[7px] text-slate-400 font-mono mt-0.5">STATUS: AKTIF</p>
+                                <p class="text-[7px] font-mono mt-0.5" style="color: #94a3b8; margin: 0;">STATUS: AKTIF</p>
                             </div>
                         </div>
 
@@ -653,8 +653,8 @@
                         <div class="relative z-10 my-3 flex items-center gap-4">
                             {{-- Student Photo --}}
                             <div class="relative shrink-0">
-                                <img src="{{ $student->photo_url }}" crossorigin="anonymous" alt="{{ $student->full_name }}" class="w-20 h-20 rounded-2xl object-cover border-2 {{ $isLeader ? 'border-amber-400' : 'border-indigo-400' }} shadow-md bg-white" style="width: 80px; height: 80px; min-width: 80px; max-width: 80px;">
-                                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px] border-2 border-slate-900 shadow-xs">
+                                <img src="{{ $student->photo_url }}" crossorigin="anonymous" alt="{{ $student->full_name }}" class="w-20 h-20 rounded-2xl object-cover" style="width: 80px; height: 80px; min-width: 80px; max-width: 80px; border: 2px solid {{ $isLeader ? '#fbbf24' : '#818cf8' }}; background: #ffffff;">
+                                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[8px]" style="background-color: #10b981; color: #ffffff; border: 2px solid #0f172a;">
                                     <i class="fas fa-check"></i>
                                 </span>
                             </div>
@@ -662,27 +662,27 @@
                             {{-- Student & Ekskul Details --}}
                             <div class="min-w-0 flex-1 space-y-1">
                                 <div class="flex items-center gap-1.5">
-                                    <span class="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider text-white bg-gradient-to-r {{ $membership->role_badge_color }}">
+                                    <span class="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider" style="color: #ffffff; background: {{ $isLeader ? 'linear-gradient(to right, #d97706, #b45309)' : 'linear-gradient(to right, #4f46e5, #7c3aed)' }};">
                                         {{ $isLeader ? '👑 ' : '' }}{{ $membership->role_label }}
                                     </span>
                                     @if($membership->section)
-                                    <span class="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-purple-200/90 text-purple-950">
+                                    <span class="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider" style="background: rgba(233, 213, 255, 0.9); color: #3b0764;">
                                         🎺 {{ $membership->section }}
                                     </span>
                                     @endif
                                 </div>
 
-                                <h3 class="font-black text-white text-base leading-tight truncate">
+                                <h3 class="font-black text-base leading-tight truncate" style="color: #ffffff; margin: 2px 0;">
                                     {{ $student->full_name }}
                                 </h3>
 
-                                <p class="text-[10px] text-indigo-200 font-medium">
+                                <p class="text-[10px] font-medium" style="color: #c7d2fe; margin: 0;">
                                     NISN: <b>{{ $student->nisn ?: '-' }}</b> &bull; {{ $student->classroom->class_name ?? 'Siswa' }} ({{ $student->school->short_name ?? 'Pembda' }})
                                 </p>
 
                                 <div class="pt-1 flex items-center gap-1.5">
                                     <span class="text-xs">{{ $ekskul->display_icon }}</span>
-                                    <span class="text-xs font-black text-amber-300 truncate">
+                                    <span class="text-xs font-black truncate" style="color: #fde047;">
                                         {{ $ekskul->name }}
                                     </span>
                                 </div>
@@ -690,26 +690,26 @@
                         </div>
 
                         {{-- Card Footer --}}
-                        <div class="relative z-10 pt-2.5 border-t border-white/15 flex items-center justify-between gap-3 text-[8px] text-slate-300">
+                        <div class="relative z-10 pt-2.5 flex items-center justify-between gap-3 text-[8px]" style="border-top: 1px solid rgba(255, 255, 255, 0.15); color: #cbd5e1;">
                             <div class="flex items-center gap-2">
                                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=PEMBDA-EKS-{{ $membership->id }}-{{ $student->nisn }}&color=ffffff&bgcolor=00000000" 
                                      crossorigin="anonymous"
                                      alt="QR Verification" 
-                                     class="w-8 h-8 object-contain rounded bg-white/10 p-0.5 border border-white/20 shrink-0" 
-                                     style="width: 32px; height: 32px; min-width: 32px; max-width: 32px;">
+                                     class="w-8 h-8 object-contain rounded p-0.5 shrink-0" 
+                                     style="width: 32px; height: 32px; min-width: 32px; max-width: 32px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
                                 <div class="leading-tight">
-                                    <p class="font-black text-white">TERVERIFIKASI SISTEM</p>
-                                    <p class="text-slate-400 font-mono">perguruanpembda.com</p>
+                                    <p class="font-black" style="color: #ffffff; margin: 0;">TERVERIFIKASI SISTEM</p>
+                                    <p class="font-mono" style="color: #94a3b8; margin: 0;">perguruanpembda.com</p>
                                 </div>
                             </div>
 
-                            <div class="text-center font-bold text-slate-400 italic">
+                            <div class="text-center font-bold italic" style="color: #94a3b8;">
                                 "Disiplin &bull; Kreatif &bull; Berprestasi"
                             </div>
 
                             <div class="text-right leading-tight">
-                                <p class="text-slate-400 font-medium">Pembina / Kesiswaan</p>
-                                <p class="font-black text-white truncate max-w-[130px]">
+                                <p style="color: #94a3b8; margin: 0;">Pembina / Kesiswaan</p>
+                                <p class="font-black truncate max-w-[130px]" style="color: #ffffff; margin: 0;">
                                     {{ $ekskul->manager_name ?: ($ekskul->advisor_name ?: ($ekskul->advisor->full_name ?? 'PKS Kesiswaan')) }}
                                 </p>
                             </div>
@@ -757,24 +757,33 @@
 </div>
 
 {{-- SCRIPT DEDIKASI GENERATE E-CARD HD --}}
+<script src="{{ asset('vendor/html-to-image.js') }}"></script>
 <script src="{{ asset('vendor/html2canvas.min.js') }}"></script>
 
 <script>
-function ensureHtml2Canvas() {
+function ensureRenderer() {
     return new Promise((resolve) => {
+        if (typeof htmlToImage !== 'undefined' && htmlToImage.toPng) {
+            return resolve({ type: 'htmlToImage', fn: htmlToImage });
+        }
+        if (window.htmlToImage && window.htmlToImage.toPng) {
+            return resolve({ type: 'htmlToImage', fn: window.htmlToImage });
+        }
         if (typeof html2canvas !== 'undefined') {
-            return resolve(window.html2canvas);
+            return resolve({ type: 'html2canvas', fn: html2canvas });
         }
         const s = document.createElement('script');
-        s.src = '{{ asset('vendor/html2canvas.min.js') }}';
-        s.onload = () => resolve(window.html2canvas);
-        s.onerror = () => {
-            const fallback = document.createElement('script');
-            fallback.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-            fallback.onload = () => resolve(window.html2canvas);
-            fallback.onerror = () => resolve(null);
-            document.head.appendChild(fallback);
+        s.src = '{{ asset('vendor/html-to-image.js') }}';
+        s.onload = () => {
+            if (typeof htmlToImage !== 'undefined' && htmlToImage.toPng) {
+                resolve({ type: 'htmlToImage', fn: htmlToImage });
+            } else if (window.htmlToImage && window.htmlToImage.toPng) {
+                resolve({ type: 'htmlToImage', fn: window.htmlToImage });
+            } else {
+                resolve(null);
+            }
         };
+        s.onerror = () => resolve(null);
         document.head.appendChild(s);
     });
 }
@@ -794,23 +803,39 @@ async function downloadEcardCard(elementId, filename) {
     }
 
     try {
-        const h2c = await ensureHtml2Canvas();
-        if (!h2c) {
-            throw new Error('Gagal memuat library pengunduh kartu. Silakan periksa koneksi internet Anda atau gunakan tombol Cetak.');
+        const renderer = await ensureRenderer();
+        let dataUrl;
+
+        if (renderer && renderer.type === 'htmlToImage') {
+            dataUrl = await renderer.fn.toPng(card, {
+                pixelRatio: 3,
+                cacheBust: true,
+            });
+        } else if (renderer && renderer.type === 'html2canvas') {
+            const canvas = await renderer.fn(card, {
+                scale: 3,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: null,
+                logging: false,
+            });
+            dataUrl = canvas.toDataURL('image/png');
+        } else if (typeof html2canvas !== 'undefined') {
+            const canvas = await html2canvas(card, {
+                scale: 3,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: null,
+                logging: false,
+            });
+            dataUrl = canvas.toDataURL('image/png');
+        } else {
+            throw new Error('Renderer kartu belum siap. Silakan coba lagi atau gunakan tombol Cetak.');
         }
 
-        const canvas = await h2c(card, {
-            scale: 3,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: null,
-            logging: false,
-        });
-
-        const imageUri = canvas.toDataURL('image/png');
         const downloadLink = document.createElement('a');
         downloadLink.download = filename || 'E-Card-Ekskul-Pembda.png';
-        downloadLink.href = imageUri;
+        downloadLink.href = dataUrl;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -865,7 +890,6 @@ function printEcardCard(elementId) {
                     print-color-adjust: exact;
                 }
             </style>
-            <script src="https://cdn.tailwindcss.com"><\/script>
         </head>
         <body>
             <div style="max-width: 540px; width: 100%;">
@@ -889,32 +913,24 @@ async function shareEcardCard(elementId, title) {
 
     if (navigator.share) {
         try {
-            const h2c = await ensureHtml2Canvas();
-            if (h2c) {
-                const canvas = await h2c(card, { scale: 2, useCORS: true, allowTaint: true });
-                canvas.toBlob(async (blob) => {
-                    if (blob && navigator.canShare && navigator.canShare({ files: [new File([blob], 'ecard.png', { type: 'image/png' })] })) {
-                        const file = new File([blob], 'ecard-pembda.png', { type: 'image/png' });
-                        await navigator.share({
-                            title: title,
-                            text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda',
-                            files: [file]
-                        });
-                        return;
-                    }
+            const renderer = await ensureRenderer();
+            if (renderer && renderer.type === 'htmlToImage') {
+                const blob = await renderer.fn.toBlob(card, { pixelRatio: 2 });
+                if (blob && navigator.canShare && navigator.canShare({ files: [new File([blob], 'ecard.png', { type: 'image/png' })] })) {
+                    const file = new File([blob], 'ecard-pembda.png', { type: 'image/png' });
                     await navigator.share({
                         title: title,
-                        text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda - https://perguruanpembda.com',
-                        url: window.location.href
+                        text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda',
+                        files: [file]
                     });
-                });
-            } else {
-                await navigator.share({
-                    title: title,
-                    text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda',
-                    url: window.location.href
-                });
+                    return;
+                }
             }
+            await navigator.share({
+                title: title,
+                text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda - https://perguruanpembda.com',
+                url: window.location.href
+            });
         } catch (e) {
             console.log('Share error or dismissed', e);
         }

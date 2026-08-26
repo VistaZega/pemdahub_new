@@ -1,6 +1,8 @@
 import './bootstrap';
+import * as htmlToImage from 'html-to-image';
 import html2canvas from 'html2canvas';
 
+window.htmlToImage = htmlToImage;
 window.html2canvas = html2canvas;
 
 window.downloadEcard = async function(elementId, filename = 'E-Card-Ekskul-Pembda.png') {

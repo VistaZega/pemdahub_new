@@ -551,32 +551,32 @@
                     
                     {{-- THE OFFICIAL E-CARD COMPONENT --}}
                     <div id="mobile-ecard-card-{{ $membership->id }}" 
-                         class="relative w-[340px] max-w-[340px] rounded-2xl p-4 text-white shadow-2xl overflow-hidden select-none border-2 border-amber-400/50 flex flex-col justify-between"
-                         style="background: linear-gradient(135deg, #090d16 0%, #1e153a 50%, #2e0854 100%); min-height: 220px;">
+                         class="relative w-[340px] max-w-[340px] rounded-2xl p-4 shadow-2xl overflow-hidden select-none border-2 flex flex-col justify-between"
+                         style="background: linear-gradient(135deg, #090d16 0%, #1e153a 50%, #2e0854 100%); border-color: rgba(251, 191, 36, 0.5); min-height: 220px; color: #ffffff; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;">
                         
                         {{-- Background Hologram --}}
-                        <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-purple-500/10 blur-xl pointer-events-none"></div>
-                        <div class="absolute right-2 bottom-1 text-7xl opacity-[0.05] pointer-events-none font-sans font-black">
+                        <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full pointer-events-none" style="background: rgba(168, 85, 247, 0.15); filter: blur(24px);"></div>
+                        <div class="absolute right-2 bottom-1 text-7xl pointer-events-none font-black" style="opacity: 0.06; color: #ffffff;">
                             {{ $ekskul->display_icon }}
                         </div>
 
                         {{-- Card Header --}}
-                        <div class="relative z-10 flex items-start justify-between gap-2 border-b border-white/15 pb-2">
+                        <div class="relative z-10 flex items-start justify-between gap-2 pb-2" style="border-bottom: 1px solid rgba(255, 255, 255, 0.15);">
                             <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-0.5 shadow-inner">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center p-0.5" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);">
                                     <img src="{{ asset('images/logo_yayasan.png') }}" crossorigin="anonymous" alt="Logo Yayasan" class="w-6 h-6 object-contain" onerror="this.src='{{ asset('images/logo-pembda.png') }}'">
                                 </div>
                                 <div>
-                                    <h4 class="text-[9px] font-black uppercase tracking-wider text-amber-300 leading-tight">
+                                    <h4 class="text-[9px] font-black uppercase tracking-wider leading-tight" style="color: #fbbf24; margin: 0;">
                                         YAYASAN PEMBDA
                                     </h4>
-                                    <p class="text-[7px] text-indigo-100 font-bold uppercase tracking-wide">
+                                    <p class="text-[7px] font-bold uppercase tracking-wide" style="color: #e0e7ff; margin: 0;">
                                         SQUAD PASS &bull; EKSTRAKURIKULER
                                     </p>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <span class="inline-block px-1.5 py-0.2 rounded-full text-[7px] font-mono font-black bg-amber-400 text-slate-950">
+                                <span class="inline-block px-1.5 py-0.2 rounded-full text-[7px] font-mono font-black" style="background-color: #fbbf24; color: #020617;">
                                     #EKS-{{ str_pad($ekskul->id, 2, '0', STR_PAD_LEFT) }}-{{ str_pad($membership->id, 4, '0', STR_PAD_LEFT) }}
                                 </span>
                             </div>
@@ -585,35 +585,35 @@
                         {{-- Card Body --}}
                         <div class="relative z-10 my-2.5 flex items-center gap-3">
                             <div class="relative shrink-0">
-                                <img src="{{ $student->photo_url }}" crossorigin="anonymous" alt="{{ $student->full_name }}" class="w-14 h-14 rounded-xl object-cover border-2 {{ $isLeader ? 'border-amber-400' : 'border-indigo-400' }} bg-white" style="width: 56px; height: 56px; min-width: 56px; max-width: 56px;">
-                                <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[6px] border border-slate-900">
+                                <img src="{{ $student->photo_url }}" crossorigin="anonymous" alt="{{ $student->full_name }}" class="w-14 h-14 rounded-xl object-cover" style="width: 56px; height: 56px; min-width: 56px; max-width: 56px; border: 2px solid {{ $isLeader ? '#fbbf24' : '#818cf8' }}; background: #ffffff;">
+                                <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[6px]" style="background-color: #10b981; color: #ffffff; border: 1px solid #0f172a;">
                                     <i class="fa-solid fa-check"></i>
                                 </span>
                             </div>
 
                             <div class="min-w-0 flex-1 space-y-0.5">
                                 <div class="flex items-center gap-1">
-                                    <span class="px-1.5 py-0.2 rounded text-[7px] font-black uppercase tracking-wider text-white bg-gradient-to-r {{ $membership->role_badge_color }}">
+                                    <span class="px-1.5 py-0.2 rounded text-[7px] font-black uppercase tracking-wider" style="color: #ffffff; background: {{ $isLeader ? 'linear-gradient(to right, #d97706, #b45309)' : 'linear-gradient(to right, #4f46e5, #7c3aed)' }};">
                                         {{ $isLeader ? '👑 ' : '' }}{{ $membership->role_label }}
                                     </span>
                                     @if($membership->section)
-                                    <span class="px-1 py-0.2 rounded text-[7px] font-black uppercase tracking-wider bg-purple-200/90 text-purple-950">
+                                    <span class="px-1 py-0.2 rounded text-[7px] font-black uppercase tracking-wider" style="background: rgba(233, 213, 255, 0.9); color: #3b0764;">
                                         🎺 {{ $membership->section }}
                                     </span>
                                     @endif
                                 </div>
 
-                                <h3 class="font-black text-white text-xs leading-tight truncate">
+                                <h3 class="font-black text-xs leading-tight truncate" style="color: #ffffff; margin: 1px 0;">
                                     {{ $student->full_name }}
                                 </h3>
 
-                                <p class="text-[9px] text-indigo-200 font-medium truncate">
+                                <p class="text-[9px] font-medium truncate" style="color: #c7d2fe; margin: 0;">
                                     NISN: {{ $student->nisn ?: '-' }} &bull; {{ $student->school->short_name ?? 'Pembda' }}
                                 </p>
 
                                 <div class="pt-0.5 flex items-center gap-1">
                                     <span class="text-[10px]">{{ $ekskul->display_icon }}</span>
-                                    <span class="text-[10px] font-black text-amber-300 truncate">
+                                    <span class="text-[10px] font-black truncate" style="color: #fde047;">
                                         {{ $ekskul->name }}
                                     </span>
                                 </div>
@@ -621,22 +621,22 @@
                         </div>
 
                         {{-- Card Footer --}}
-                        <div class="relative z-10 pt-2 border-t border-white/15 flex items-center justify-between gap-2 text-[7px] text-slate-300">
+                        <div class="relative z-10 pt-2 flex items-center justify-between gap-2 text-[7px]" style="border-top: 1px solid rgba(255, 255, 255, 0.15); color: #cbd5e1;">
                             <div class="flex items-center gap-1.5">
                                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=PEMBDA-EKS-{{ $membership->id }}-{{ $student->nisn }}&color=ffffff&bgcolor=00000000" 
                                      crossorigin="anonymous"
                                      alt="QR" 
-                                     class="w-6 h-6 object-contain rounded bg-white/10 p-0.5 border border-white/20 shrink-0" 
-                                     style="width: 24px; height: 24px; min-width: 24px; max-width: 24px;">
+                                     class="w-6 h-6 object-contain rounded p-0.5 shrink-0" 
+                                     style="width: 24px; height: 24px; min-width: 24px; max-width: 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
                                 <div class="leading-tight">
-                                    <p class="font-black text-white">VERIFIED</p>
-                                    <p class="text-slate-400 font-mono">perguruanpembda.com</p>
+                                    <p class="font-black" style="color: #ffffff; margin: 0;">VERIFIED</p>
+                                    <p class="font-mono" style="color: #94a3b8; margin: 0;">perguruanpembda.com</p>
                                 </div>
                             </div>
 
                             <div class="text-right leading-tight">
-                                <p class="text-slate-400">Pembina / Kesiswaan</p>
-                                <p class="font-black text-white truncate max-w-[90px]">
+                                <p style="color: #94a3b8; margin: 0;">Pembina / Kesiswaan</p>
+                                <p class="font-black truncate max-w-[90px]" style="color: #ffffff; margin: 0;">
                                     {{ $ekskul->manager_name ?: ($ekskul->advisor_name ?: ($ekskul->advisor->full_name ?? 'PKS Kesiswaan')) }}
                                 </p>
                             </div>
@@ -671,24 +671,33 @@
 </div>
 
 {{-- SCRIPT DEDIKASI GENERATE E-CARD HD --}}
+<script src="{{ asset('vendor/html-to-image.js') }}"></script>
 <script src="{{ asset('vendor/html2canvas.min.js') }}"></script>
 
 <script>
-function ensureHtml2Canvas() {
+function ensureRenderer() {
     return new Promise((resolve) => {
+        if (typeof htmlToImage !== 'undefined' && htmlToImage.toPng) {
+            return resolve({ type: 'htmlToImage', fn: htmlToImage });
+        }
+        if (window.htmlToImage && window.htmlToImage.toPng) {
+            return resolve({ type: 'htmlToImage', fn: window.htmlToImage });
+        }
         if (typeof html2canvas !== 'undefined') {
-            return resolve(window.html2canvas);
+            return resolve({ type: 'html2canvas', fn: html2canvas });
         }
         const s = document.createElement('script');
-        s.src = '{{ asset('vendor/html2canvas.min.js') }}';
-        s.onload = () => resolve(window.html2canvas);
-        s.onerror = () => {
-            const fallback = document.createElement('script');
-            fallback.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-            fallback.onload = () => resolve(window.html2canvas);
-            fallback.onerror = () => resolve(null);
-            document.head.appendChild(fallback);
+        s.src = '{{ asset('vendor/html-to-image.js') }}';
+        s.onload = () => {
+            if (typeof htmlToImage !== 'undefined' && htmlToImage.toPng) {
+                resolve({ type: 'htmlToImage', fn: htmlToImage });
+            } else if (window.htmlToImage && window.htmlToImage.toPng) {
+                resolve({ type: 'htmlToImage', fn: window.htmlToImage });
+            } else {
+                resolve(null);
+            }
         };
+        s.onerror = () => resolve(null);
         document.head.appendChild(s);
     });
 }
@@ -708,23 +717,39 @@ async function downloadEcardCard(elementId, filename) {
     }
 
     try {
-        const h2c = await ensureHtml2Canvas();
-        if (!h2c) {
-            throw new Error('Gagal memuat library pengunduh kartu. Silakan periksa koneksi internet Anda.');
+        const renderer = await ensureRenderer();
+        let dataUrl;
+
+        if (renderer && renderer.type === 'htmlToImage') {
+            dataUrl = await renderer.fn.toPng(card, {
+                pixelRatio: 3,
+                cacheBust: true,
+            });
+        } else if (renderer && renderer.type === 'html2canvas') {
+            const canvas = await renderer.fn(card, {
+                scale: 3,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: null,
+                logging: false,
+            });
+            dataUrl = canvas.toDataURL('image/png');
+        } else if (typeof html2canvas !== 'undefined') {
+            const canvas = await html2canvas(card, {
+                scale: 3,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: null,
+                logging: false,
+            });
+            dataUrl = canvas.toDataURL('image/png');
+        } else {
+            throw new Error('Renderer kartu belum siap.');
         }
 
-        const canvas = await h2c(card, {
-            scale: 3,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: null,
-            logging: false,
-        });
-
-        const imageUri = canvas.toDataURL('image/png');
         const downloadLink = document.createElement('a');
         downloadLink.download = filename || 'E-Card-Ekskul-Pembda.png';
-        downloadLink.href = imageUri;
+        downloadLink.href = dataUrl;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -752,32 +777,24 @@ async function shareEcardCard(elementId, title) {
 
     if (navigator.share) {
         try {
-            const h2c = await ensureHtml2Canvas();
-            if (h2c) {
-                const canvas = await h2c(card, { scale: 2, useCORS: true, allowTaint: true });
-                canvas.toBlob(async (blob) => {
-                    if (blob && navigator.canShare && navigator.canShare({ files: [new File([blob], 'ecard.png', { type: 'image/png' })] })) {
-                        const file = new File([blob], 'ecard-pembda.png', { type: 'image/png' });
-                        await navigator.share({
-                            title: title,
-                            text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda',
-                            files: [file]
-                        });
-                        return;
-                    }
+            const renderer = await ensureRenderer();
+            if (renderer && renderer.type === 'htmlToImage') {
+                const blob = await renderer.fn.toBlob(card, { pixelRatio: 2 });
+                if (blob && navigator.canShare && navigator.canShare({ files: [new File([blob], 'ecard.png', { type: 'image/png' })] })) {
+                    const file = new File([blob], 'ecard-pembda.png', { type: 'image/png' });
                     await navigator.share({
                         title: title,
-                        text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda - https://perguruanpembda.com',
-                        url: window.location.href
+                        text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda',
+                        files: [file]
                     });
-                });
-            } else {
-                await navigator.share({
-                    title: title,
-                    text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda',
-                    url: window.location.href
-                });
+                    return;
+                }
             }
+            await navigator.share({
+                title: title,
+                text: 'Kartu Anggota Resmi Ekskul Perguruan Pembda - https://perguruanpembda.com',
+                url: window.location.href
+            });
         } catch (e) {
             console.log('Share error or dismissed', e);
         }
