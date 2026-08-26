@@ -83,7 +83,7 @@ class LmsController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $leaderboard = \App\Models\Reputation::with('user')
+        $leaderboard = \App\Models\Reputation::with(['user.student'])
             ->orderByDesc('total_points')
             ->limit(5)
             ->get();

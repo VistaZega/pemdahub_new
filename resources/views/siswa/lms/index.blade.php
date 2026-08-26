@@ -220,12 +220,20 @@
                     default => '#' . $loop->iteration,
                 };
             @endphp
-            <div class="border-2 border-black p-3.5 rounded-2xl flex items-center shadow-md hover:scale-105 transition-all duration-200 relative overflow-hidden" style="{{ $cardBg }} display: flex; align-items: center; gap: 1rem;">
+            <div class="border-2 border-black p-3 rounded-2xl flex items-center shadow-md hover:scale-105 transition-all duration-200 relative overflow-hidden" style="{{ $cardBg }} display: flex; align-items: center; gap: 0.85rem;">
                 @if($isCurrentUser)
-                <span class="absolute top-1 right-2 text-[8px] font-black uppercase bg-black text-amber-300 px-1.5 py-0.5 rounded-md border border-black">Kamu</span>
+                <span class="absolute top-1 right-2 text-[8px] font-black uppercase bg-black text-amber-300 px-1.5 py-0.5 rounded-md border border-black z-10">Kamu</span>
                 @endif
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shadow-xs flex-shrink-0 border-2 border-black" style="{{ $badgeBg }} margin-right: 0.85rem; flex-shrink: 0;">
-                    {{ $rankIcon }}
+                <div class="relative flex-shrink-0" style="margin-right: 0.65rem;">
+                    <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-black shadow-xs bg-white flex-shrink-0">
+                        <img src="{{ $lb->user->avatar_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($lb->user->name ?? 'Siswa') . '&background=0f172a&color=ffffff&bold=true' }}"
+                             alt="{{ $lb->user->name ?? 'Siswa' }}"
+                             class="w-full h-full object-cover object-center"
+                             onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($lb->user->name ?? 'Siswa') }}&background=0f172a&color=ffffff&bold=true'">
+                    </div>
+                    <span class="absolute -bottom-1 -right-1 text-[9px] font-black px-1.5 py-0.2 rounded-md border border-black shadow-xs" style="{{ $badgeBg }} line-height: 1.2;">
+                        {{ $rankIcon }}
+                    </span>
                 </div>
                 <div class="min-w-0 flex-1" style="min-width: 0; flex: 1;">
                     <h4 class="font-black text-xs truncate leading-snug" style="color: #000000 !important;" title="{{ $lb->user->name ?? 'Siswa' }}">
