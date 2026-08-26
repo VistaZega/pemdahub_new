@@ -144,6 +144,30 @@ class StudentBill extends Model
     }
 
     /**
+     * Recalculate paid amount and status based on verified payments
+     */
+    public function recalculateStatus(): self
+    {
+        $verifiedPaid = (float) $this->payments()
+            ->where('is_verified', true)
+            ->sum('amount_paid');
+
+        $this->paid_amount = $verifiedPaid;
+
+        if ($this->amount > 0 && $verifiedPaid >= (float) $this->amount) {
+            $this->status = 'lunas';
+        } elseif ($verifiedPaid > 0) {
+            $this->status = 'cicilan';
+        } else {
+            $this->status = 'belum_bayar';
+        }
+
+        $this->save();
+
+        return $this;
+    }
+
+    /**
      * Accessor: Get status color for UI
      */
     public function getStatusColorAttribute()

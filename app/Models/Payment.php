@@ -55,6 +55,24 @@ class Payment extends Model
     ];
 
     /**
+     * Boot model events to auto-sync parent bill status
+     */
+    protected static function booted()
+    {
+        static::saved(function ($payment) {
+            if ($payment->bill) {
+                $payment->bill->recalculateStatus();
+            }
+        });
+
+        static::deleted(function ($payment) {
+            if ($payment->bill) {
+                $payment->bill->recalculateStatus();
+            }
+        });
+    }
+
+    /**
      * Relationship: Payment belongs to Bill
      */
     public function bill()

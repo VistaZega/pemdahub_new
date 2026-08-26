@@ -90,7 +90,7 @@
     <div class="header">
         <h2>YAYASAN PERGURUAN PEMBDA</h2>
         <h3>LAPORAN REKAPITULASI KONSOLIDASI KEUANGAN PERGURUAN</h3>
-        <p>Tahun Pelajaran: {{ $currentYear->year ?? '-' }} | Periode: {{ $periodMode === 'annual' ? 'Tahunan (12 Bulan)' : 'Bulanan (1 Bulan)' }}</p>
+        <p>Tahun Pelajaran: {{ $currentYear->year ?? '-' }} | Periode: {{ $periodMode === 'annual' ? 'Tahunan (12 Bulan)' : 'Bulanan (1 Bulan)' }} | Metode: {{ ($viewMode ?? 'cash') === 'cash' ? 'Realisasi Kas (Cash Basis)' : 'Proyeksi Potensi (Accrual Basis)' }}</p>
     </div>
 
     <table class="meta-table">

@@ -58,6 +58,7 @@ class FinancialRecapController extends Controller
             : (AcademicYear::where('is_active', true)->first() ?? AcademicYear::first());
 
         $periodMode = $request->query('period_mode', 'annual');
+        $viewMode = $request->query('view_mode', 'cash'); // 'cash' (Realisasi Kas) atau 'accrual' (Potensi Teoretis)
         $multiplier = ($periodMode === 'monthly') ? 1 : 12;
 
         $currentSemester = Semester::where('academic_year_id', $currentYear->id ?? 0)
@@ -66,7 +67,7 @@ class FinancialRecapController extends Controller
             ?? Semester::where('academic_year_id', $currentYear->id ?? 0)->first()
             ?? Semester::first();
 
-        // 1. DITARIK DARI HALAMAN 1: Total Pendapatan SPP Seluruh Unit Sekolah
+        // 1. DITARIK DARI HALAMAN 1: Total Pendapatan Seluruh Unit Sekolah (Cash vs Accrual)
         $schools = School::schoolsOnly()->where('is_active', true)->orderBy('name')->get();
         $schoolSppData = [];
         $grandTotalIncome = 0;
@@ -85,7 +86,7 @@ class FinancialRecapController extends Controller
 
             $masterSppAmount = (float) ($defaultSppType->yayasan_share_amount ?? $defaultSppType->amount ?? 0);
             $levels = $school->getGradeLevels();
-            $schoolTotalIncomeMonthly = 0;
+            $schoolPotentialIncomeMonthly = 0;
             $totalStudentsInSchool = 0;
 
             foreach ($levels as $level) {
@@ -107,17 +108,32 @@ class FinancialRecapController extends Controller
                     $sppMonthly = $masterSppAmount;
                 }
 
-                $schoolTotalIncomeMonthly += ($studentCount * $sppMonthly);
+                $schoolPotentialIncomeMonthly += ($studentCount * $sppMonthly);
                 $totalStudentsInSchool += $studentCount;
             }
 
-            $schoolTotalIncomePeriod = $schoolTotalIncomeMonthly * $multiplier;
+            // Realisasi Uang Kas Masuk Nyata (Verified Payments)
+            $actualRealizedPayment = (float) \App\Models\Payment::whereHas('student', function($q) use ($school) {
+                $q->where('school_id', $school->id);
+            })->whereHas('bill', function($q) use ($currentYear) {
+                $q->where('academic_year_id', $currentYear->id ?? 0);
+            })->where('is_verified', true)->sum('amount_paid');
+
+            if ($viewMode === 'cash') {
+                $schoolTotalIncomePeriod = $actualRealizedPayment;
+                $schoolTotalIncomeMonthly = $schoolTotalIncomePeriod / ($multiplier ?: 1);
+            } else {
+                $schoolTotalIncomeMonthly = $schoolPotentialIncomeMonthly;
+                $schoolTotalIncomePeriod = $schoolPotentialIncomeMonthly * $multiplier;
+            }
 
             $schoolSppData[] = [
                 'school' => $school,
                 'total_students' => $totalStudentsInSchool,
                 'income_monthly' => $schoolTotalIncomeMonthly,
                 'income_total' => $schoolTotalIncomePeriod,
+                'realized_actual' => $actualRealizedPayment,
+                'potential_accrual' => $schoolPotentialIncomeMonthly * $multiplier,
             ];
 
             $grandTotalIncomeMonthly += $schoolTotalIncomeMonthly;
@@ -206,6 +222,7 @@ class FinancialRecapController extends Controller
             'currentYear' => $currentYear,
             'allYears' => $allYears,
             'periodMode' => $periodMode,
+            'viewMode' => $viewMode,
             'multiplier' => $multiplier,
             'schoolSppData' => $schoolSppData,
             'grandTotalIncome' => $grandTotalIncome,

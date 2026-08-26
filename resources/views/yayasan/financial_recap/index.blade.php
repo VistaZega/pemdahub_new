@@ -171,8 +171,16 @@
                     </select>
                 </div>
 
+                <div class="flex flex-col">
+                    <span class="text-[11px] uppercase tracking-wider font-black text-amber-400 mb-1">Metode Pembukuan</span>
+                    <select name="view_mode" onchange="this.form.submit()" class="bg-black text-white border-2 border-amber-400 rounded-xl text-xs px-3.5 py-2.5 font-black focus:ring-2 focus:ring-amber-400 min-w-[190px]">
+                        <option value="cash" {{ ($viewMode ?? 'cash') === 'cash' ? 'selected' : '' }}>💵 Realisasi Kas (Cash Basis)</option>
+                        <option value="accrual" {{ ($viewMode ?? '') === 'accrual' ? 'selected' : '' }}>📊 Proyeksi Potensi (Accrual Basis)</option>
+                    </select>
+                </div>
+
                 <div class="flex flex-col justify-end pt-5">
-                    <a href="{{ route('yayasan.financial_recap.export_pdf', ['academic_year_id' => $currentYear->id, 'period_mode' => $periodMode]) }}" target="_blank"
+                    <a href="{{ route('yayasan.financial_recap.export_pdf', ['academic_year_id' => $currentYear->id, 'period_mode' => $periodMode, 'view_mode' => $viewMode ?? 'cash']) }}" target="_blank"
                        class="px-4 py-2.5 text-white font-black text-xs rounded-xl shadow-lg transition flex items-center gap-2 border-2 border-black" style="background-color: #059669 !important;">
                         <i class="fas fa-file-pdf text-sm text-white"></i> Export PDF
                     </a>
