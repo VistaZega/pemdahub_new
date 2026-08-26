@@ -77,8 +77,29 @@
 
                 {{-- PDF Viewer --}}
                 @if($material->material_type === 'pdf' && $material->file_path)
-                <div class="w-full h-[650px] rounded-2xl overflow-hidden border-2 border-black shadow-md mb-6 bg-white">
-                    <iframe src="{{ asset('storage/' . $material->file_path) }}" class="w-full h-full"></iframe>
+                <div class="mb-6">
+                    <div class="w-full h-[680px] rounded-2xl overflow-hidden border-2 border-black shadow-md mb-3 bg-slate-100 relative">
+                        <iframe src="{{ asset('storage/' . $material->file_path) }}" class="w-full h-full" frameborder="0"></iframe>
+                    </div>
+                    <div class="p-4 rounded-2xl border-2 border-black bg-slate-50 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black border border-black shadow-xs">
+                                <i class="fas fa-file-pdf text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="font-black text-black text-xs">Dokumen Materi PDF</p>
+                                <p class="text-[11px] text-slate-600 font-bold">Jika loading di layar terasa lambat, gunakan opsi di samping</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ asset('storage/' . $material->file_path) }}" target="_blank" class="px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-black transition border border-black shadow-xs flex items-center gap-1.5">
+                                <i class="fas fa-external-link-alt text-xs"></i> Buka Tab Baru
+                            </a>
+                            <a href="{{ route('siswa.lms.materials.download', $material->id) }}" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black transition border border-black shadow-xs flex items-center gap-1.5">
+                                <i class="fas fa-download text-xs"></i> Unduh PDF
+                            </a>
+                        </div>
+                    </div>
                 </div>
                 @endif
 
