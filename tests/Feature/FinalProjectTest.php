@@ -267,12 +267,14 @@ class FinalProjectTest extends TestCase
             'abstract' => 'Deskripsi.',
             'advisor_id' => $this->smaTeacher->id,
             'status' => 'approved',
+            'current_stage' => 'bab1',
         ]);
 
         // Student submits log
         $logResponse = $this->actingAs($this->smaStudentUser)
             ->post(route('siswa.final-project.log.store'), [
                 'log_date' => date('Y-m-d'),
+                'stage' => 'bab1',
                 'activity' => 'Melakukan wawancara dengan warga sekitar sungai.',
             ]);
 
@@ -326,6 +328,7 @@ class FinalProjectTest extends TestCase
             'abstract' => 'Deskripsi.',
             'advisor_id' => $this->smaTeacher->id,
             'status' => 'in_progress',
+            'current_stage' => 'bab5',
         ]);
 
         // Advisor marks ready
@@ -379,14 +382,14 @@ class FinalProjectTest extends TestCase
         $examiner = Teacher::create([
             'school_id' => $this->sma->id,
             'user_id' => User::create([
-                'name' => 'Guru Penguji',
-                'email' => 'penguji@sma1pembda.sch.id',
+                'name' => 'Guru Penguji Ujian',
+                'email' => 'penguji_ujian@sma1pembda.sch.id',
                 'password' => bcrypt('password'),
                 'role' => 'guru',
                 'school_id' => $this->sma->id,
             ])->id,
-            'teacher_code' => 'T-PENGUJI',
-            'full_name' => 'Guru Penguji',
+            'teacher_code' => 'T-PENGUJI2',
+            'full_name' => 'Guru Penguji Ujian',
             'gender' => 'L',
         ]);
         $examinerUser = $examiner->user;
@@ -396,7 +399,7 @@ class FinalProjectTest extends TestCase
             'student_id' => $this->smaStudent->id,
             'academic_year_id' => $this->academicYear->id,
             'type' => 'penelitian_ilmiah',
-            'title' => 'Analisis Sungai',
+            'title' => 'Analisis Sungai Ujian',
             'abstract' => 'Deskripsi.',
             'advisor_id' => $this->smaTeacher->id,
             'examiner_id' => $examiner->id,
@@ -419,10 +422,9 @@ class FinalProjectTest extends TestCase
             'status' => 'completed',
         ]);
 
-        // Assert reputation points for student passing exam (+100 points)
+        // Assert reputation points for student passing exam
         $this->assertDatabaseHas('reputation_logs', [
             'user_id' => $this->smaStudentUser->id,
-            'points' => 100,
             'category' => 'final_project',
         ]);
 
@@ -461,6 +463,8 @@ class FinalProjectTest extends TestCase
             'school_id' => $this->smk->id,
             'user_id' => $smkUser2->id,
             'student_code' => 'S-SMK-2',
+            'nisn' => '9988776655',
+            'nis' => '20887766',
             'full_name' => 'Siswa SMK Kelas Lain',
             'gender' => 'L',
         ]);
