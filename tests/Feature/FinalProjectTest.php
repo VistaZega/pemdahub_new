@@ -300,6 +300,7 @@ class FinalProjectTest extends TestCase
         // Advisor reviews log
         $reviewResponse = $this->actingAs($this->smaTeacherUser)
             ->post(route('guru.final-projects.bimbingan.review-log', [$project->id, $log->id]), [
+                'status' => 'reviewed',
                 'advisor_feedback' => 'Pertanyaan wawancara sudah baik, lanjutkan tabulasi data.',
             ]);
 
@@ -467,6 +468,8 @@ class FinalProjectTest extends TestCase
             'nis' => '20887766',
             'full_name' => 'Siswa SMK Kelas Lain',
             'gender' => 'L',
+            'entry_year' => 2024,
+            'status' => 'aktif',
         ]);
 
         StudentClass::create([
