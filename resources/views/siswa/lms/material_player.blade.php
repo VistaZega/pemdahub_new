@@ -16,9 +16,9 @@
 @section('content')
 <div id="player-wrapper" class="bg-slate-100/70 min-h-screen flex flex-col transition-all duration-300">
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- PLAYER TOOLBAR / HEADER (CERAH & MODERN) --}}
+    {{-- PLAYER TOOLBAR / HEADER (SESUAI DASHBOARD SISWA) --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="px-6 py-4 flex items-center justify-between shadow-md bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 text-white sticky top-0 z-40">
+    <div class="px-6 py-4 flex items-center justify-between shadow-md bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white sticky top-0 z-40 border-b border-indigo-900/20">
         <div class="flex items-center gap-4 min-w-0">
             <a href="{{ route('siswa.lms.show', $course->id) }}" class="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white backdrop-blur-md rounded-xl text-xs font-bold transition border border-white/30 shadow-xs">
                 <i class="fas fa-arrow-left text-xs"></i> <span class="hidden sm:inline">Kembali ke Ruang Belajar</span>

@@ -52,10 +52,10 @@
 @section('content')
 <div class="max-w-4xl mx-auto space-y-8" x-data="{ shown: true }">
 
-    {{-- ===== SCORE HERO SECTION (CERAH, SELEBRATIF & MODERN) ===== --}}
-    <div class="bg-white rounded-3xl shadow-md border border-slate-200/80 overflow-hidden result-fadeIn">
-        {{-- Top accent gradient banner --}}
-        <div class="h-3 bg-gradient-to-r {{ $attempt->is_passed ? 'from-emerald-400 to-teal-500' : 'from-rose-400 to-pink-500' }}"></div>
+    {{-- ===== SCORE HERO SECTION (SESUAI DASHBOARD SISWA) ===== --}}
+    <div class="bg-white rounded-3xl shadow-lg border-2 border-indigo-100 overflow-hidden result-fadeIn" style="border-radius: 1.75rem; border: 2px solid #e0e7ff;">
+        {{-- Rainbow Decorative Stripe --}}
+        <div class="h-3.5 w-full bg-gradient-to-r from-rose-500 via-amber-500 via-emerald-500 via-cyan-500 to-purple-600" style="height: 0.5rem;"></div>
 
         <div class="px-6 sm:px-10 py-10">
             {{-- Score Circle --}}

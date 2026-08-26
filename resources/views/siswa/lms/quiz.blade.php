@@ -130,9 +130,9 @@
 @section('content')
 <div x-data="quizApp()" x-init="initQuiz()" class="relative">
 
-    {{-- ===== FLOATING TIMER BAR (CERAH & MODERN) ===== --}}
+    {{-- ===== FLOATING TIMER BAR (SESUAI DASHBOARD SISWA) ===== --}}
     <div class="sticky top-0 z-50 -mx-4 sm:-mx-6 lg:-mx-8 mb-6">
-        <div class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 text-white">
+        <div class="shadow-lg bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white border-b border-indigo-900/20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between py-3.5">
                     {{-- Left: Course & Quiz info --}}
@@ -365,8 +365,8 @@
         {{-- ===== QUESTION NAVIGATOR — Desktop Sidebar ===== --}}
         <div class="hidden lg:block w-64 flex-shrink-0">
             <div class="sticky top-36 nav-slide">
-                <div class="bg-white rounded-3xl shadow-md border border-slate-200/80 overflow-hidden">
-                    <div class="px-4 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                <div class="bg-white rounded-3xl shadow-md border-2 border-indigo-100 overflow-hidden" style="border-radius: 1.5rem; border: 2px solid #e0e7ff;">
+                    <div class="px-4 py-3.5 bg-gradient-to-r from-blue-700 to-indigo-800 text-white">
                         <div class="flex items-center justify-between">
                             <h3 class="text-white text-xs font-bold uppercase tracking-wider"><i class="fas fa-th mr-1.5 text-amber-300"></i> Navigasi Soal</h3>
                             <span class="text-xs text-amber-200 font-extrabold"><span x-text="answeredCount"></span>/{{ count($questions) }}</span>
