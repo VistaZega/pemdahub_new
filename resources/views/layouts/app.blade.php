@@ -234,7 +234,7 @@
                                 ],
                                 'orang_tua' => [
                                     'title' => 'Orang Tua / Wali',
-                                    'desc' => 'Wali dari Celeste Nibenia Ogaena',
+                                    'desc' => (auth()->user()->username === 'yulzega' || auth()->user()->email === 'yulzega@gmail.com') ? 'Wali dari Celeste Nibenia Ogaena' : 'Monitoring Akademik Siswa',
                                     'icon' => 'fas fa-user-friends',
                                     'color' => 'bg-pink-600 text-white',
                                 ],
@@ -356,7 +356,7 @@
                                                 </div>
                                                 <div>
                                                     <div class="leading-tight font-black">Orang Tua / Wali</div>
-                                                    <div class="text-[10px] {{ $currentRole === 'orang_tua' ? 'text-pink-200' : 'text-slate-400' }} font-normal">Wali: Celeste Nibenia Ogaena</div>
+                                                    <div class="text-[10px] {{ $currentRole === 'orang_tua' ? 'text-pink-200' : 'text-slate-400' }} font-normal">{{ (auth()->user()->username === 'yulzega' || auth()->user()->email === 'yulzega@gmail.com') ? 'Wali: Celeste Nibenia Ogaena' : 'Monitoring Akademik Siswa' }}</div>
                                                 </div>
                                             </div>
                                             @if($currentRole === 'orang_tua')

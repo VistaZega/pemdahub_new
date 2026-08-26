@@ -29,17 +29,17 @@ class DashboardController extends Controller
         $user = Auth::user();
         $parentRecords = ParentModel::where('user_id', $user->id)->with('student.school')->get();
 
-        if ($parentRecords->isEmpty() && ($user->isOwnerOrSuperAdmin() || $user->username === 'yulzega')) {
+        if ($parentRecords->isEmpty() && ($user->username === 'yulzega' || $user->email === 'yulzega@gmail.com')) {
             $celeste = Student::where('full_name', 'LIKE', '%Celeste%')->first();
             if ($celeste) {
-                ParentModel::firstOrCreate(
-                    ['user_id' => $user->id, 'student_id' => $celeste->id],
+                ParentModel::updateOrCreate(
+                    ['student_id' => $celeste->id, 'relation_type' => 'ayah'],
                     [
-                        'relation_type' => 'ayah',
-                        'full_name' => $user->name,
-                        'phone' => $user->phone ?? '-',
-                        'email' => $user->email ?? '-',
-                        'occupation' => 'Ketua Yayasan',
+                        'user_id' => $user->id,
+                        'full_name' => $user->name ?? 'Yulianus Zega, S.Kom, M.Pd.T',
+                        'phone' => !empty($user->phone) && $user->phone !== '-' ? $user->phone : '0821 6853 2567',
+                        'email' => $user->email ?? 'yulzega@gmail.com',
+                        'occupation' => 'Ketua Yayasan / PNS',
                     ]
                 );
                 $parentRecords = ParentModel::where('user_id', $user->id)->with('student.school')->get();
@@ -59,17 +59,17 @@ class DashboardController extends Controller
             ->where('student_id', $studentId)
             ->first();
 
-        if (!$parentRecord && ($user->isOwnerOrSuperAdmin() || $user->username === 'yulzega')) {
+        if (!$parentRecord && ($user->username === 'yulzega' || $user->email === 'yulzega@gmail.com')) {
             $student = Student::find($studentId);
-            if ($student) {
-                $parentRecord = ParentModel::firstOrCreate(
-                    ['user_id' => $user->id, 'student_id' => $student->id],
+            if ($student && str_contains(strtolower($student->full_name), 'celeste')) {
+                $parentRecord = ParentModel::updateOrCreate(
+                    ['student_id' => $student->id, 'relation_type' => 'ayah'],
                     [
-                        'relation_type' => 'ayah',
-                        'full_name' => $user->name,
-                        'phone' => $user->phone ?? '-',
-                        'email' => $user->email ?? '-',
-                        'occupation' => 'Ketua Yayasan',
+                        'user_id' => $user->id,
+                        'full_name' => $user->name ?? 'Yulianus Zega, S.Kom, M.Pd.T',
+                        'phone' => !empty($user->phone) && $user->phone !== '-' ? $user->phone : '0821 6853 2567',
+                        'email' => $user->email ?? 'yulzega@gmail.com',
+                        'occupation' => 'Ketua Yayasan / PNS',
                     ]
                 );
             }

@@ -315,23 +315,20 @@ class AuthController extends Controller
             }
         }
 
-        // Auto-create parent link with Celeste Nibenia Ogaena if switching to orang_tua for Bapak Yulianus Zega / Super Admin
-        if ($targetRole === 'orang_tua' && $user->isOwnerOrSuperAdmin()) {
-            $parentExists = \App\Models\ParentModel::where('user_id', $user->id)->exists();
-            if (!$parentExists) {
-                $celeste = \App\Models\Student::where('full_name', 'LIKE', '%Celeste%')->first();
-                if ($celeste) {
-                    \App\Models\ParentModel::firstOrCreate(
-                        ['user_id' => $user->id, 'student_id' => $celeste->id],
-                        [
-                            'relation_type' => 'ayah',
-                            'full_name' => $user->name,
-                            'phone' => $user->phone ?? '-',
-                            'email' => $user->email ?? '-',
-                            'occupation' => 'Ketua Yayasan',
-                        ]
-                    );
-                }
+        // Auto-create/update parent link with Celeste Nibenia Ogaena strictly for Bapak Yulianus Zega
+        if ($targetRole === 'orang_tua' && ($user->username === 'yulzega' || $user->email === 'yulzega@gmail.com')) {
+            $celeste = \App\Models\Student::where('full_name', 'LIKE', '%Celeste%')->first();
+            if ($celeste) {
+                \App\Models\ParentModel::updateOrCreate(
+                    ['student_id' => $celeste->id, 'relation_type' => 'ayah'],
+                    [
+                        'user_id' => $user->id,
+                        'full_name' => $user->name ?? 'Yulianus Zega, S.Kom, M.Pd.T',
+                        'phone' => !empty($user->phone) && $user->phone !== '-' ? $user->phone : '0821 6853 2567',
+                        'email' => $user->email ?? 'yulzega@gmail.com',
+                        'occupation' => 'Ketua Yayasan / PNS',
+                    ]
+                );
             }
         }
 

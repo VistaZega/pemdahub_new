@@ -156,9 +156,23 @@
                     <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fas fa-user-friends text-blue-500 text-xs"></i> Data Orang Tua / Wali</h3>
                 </div>
                 <div class="p-5">
-                    @if($student->parents && $student->parents->count() > 0)
+                    @php
+                        // Filter & de-duplicate parents: ambil maksimal 1 data paling lengkap per relation_type (ayah, ibu, wali)
+                        $uniqueParents = $student->parents ? $student->parents->groupBy('relation_type')->map(function($group) {
+                            return $group->sortByDesc(function($p) {
+                                $score = 0;
+                                if (!empty($p->user_id)) $score += 10;
+                                if (!empty($p->email) && $p->email !== '-') $score += 5;
+                                if (!empty($p->phone) && $p->phone !== '-') $score += 5;
+                                if (!empty($p->occupation) && $p->occupation !== '-') $score += 2;
+                                return $score;
+                            })->first();
+                        })->values() : collect();
+                    @endphp
+
+                    @if($uniqueParents->isNotEmpty())
                         <div class="space-y-3">
-                            @foreach($student->parents as $parent)
+                            @foreach($uniqueParents as $parent)
                                 <div class="border border-gray-100 rounded-xl p-4">
                                     <div class="flex items-center gap-2 mb-2">
                                         <span class="text-xs font-bold px-2 py-0.5 rounded-full {{ $parent->relation_type === 'ayah' ? 'bg-blue-100 text-blue-700' : ($parent->relation_type === 'ibu' ? 'bg-pink-100 text-pink-700' : 'bg-gray-100 text-gray-700') }}">

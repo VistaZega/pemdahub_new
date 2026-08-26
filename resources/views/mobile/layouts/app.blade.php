@@ -299,7 +299,7 @@
 
                     @if(auth()->user()->isOwnerOrSuperAdmin() || auth()->user()->hasRole('orang_tua') || auth()->user()->parents()->exists())
                         <button type="submit" name="role" value="orang_tua" class="w-full text-left p-3.5 rounded-2xl bg-white border-2 border-slate-200 text-xs font-black hover:bg-pink-50 hover:border-pink-300 transition flex items-center justify-between shadow-sm">
-                            <span>👨‍👩‍👧 Orang Tua (Wali Celeste)</span>
+                            <span>👨‍👩‍👧 Orang Tua {{ (auth()->user()->username === 'yulzega' || auth()->user()->email === 'yulzega@gmail.com') ? '(Wali Celeste)' : '' }}</span>
                             @if($currentRole === 'orang_tua')<i class="fa-solid fa-circle-check text-pink-600 text-base"></i>@endif
                         </button>
                     @endif
