@@ -303,7 +303,8 @@ class FinalProjectAdminController extends Controller
 
             foreach ($validated['member_ids'] as $memberId) {
                 $student = Student::find($memberId);
-                if ($student && !$student->currentFinalProject()) {
+                $existingProject = $student ? $student->currentFinalProject() : null;
+                if ($student && (!$existingProject || $existingProject->id === $project->id)) {
                     \App\Models\FinalProjectMember::create([
                         'final_project_id' => $project->id,
                         'student_id' => $memberId,
