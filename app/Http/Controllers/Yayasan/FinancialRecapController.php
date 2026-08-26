@@ -119,12 +119,19 @@ class FinancialRecapController extends Controller
                 $q->where('academic_year_id', $currentYear->id ?? 0);
             })->where('is_verified', true)->sum('amount_paid');
 
+            // Total Tagihan Bersih Riil (Termasuk Potongan/Diskon Siswa)
+            $actualNetBilled = (float) \App\Models\StudentBill::whereHas('student', function($q) use ($school) {
+                $q->where('school_id', $school->id);
+            })->where('academic_year_id', $currentYear->id ?? 0)->sum('amount');
+
+            $accrualTarget = $actualNetBilled > 0 ? $actualNetBilled : ($schoolPotentialIncomeMonthly * $multiplier);
+
             if ($viewMode === 'cash') {
                 $schoolTotalIncomePeriod = $actualRealizedPayment;
                 $schoolTotalIncomeMonthly = $schoolTotalIncomePeriod / ($multiplier ?: 1);
             } else {
-                $schoolTotalIncomeMonthly = $schoolPotentialIncomeMonthly;
-                $schoolTotalIncomePeriod = $schoolPotentialIncomeMonthly * $multiplier;
+                $schoolTotalIncomePeriod = $accrualTarget;
+                $schoolTotalIncomeMonthly = $schoolTotalIncomePeriod / ($multiplier ?: 1);
             }
 
             $schoolSppData[] = [
@@ -133,7 +140,8 @@ class FinancialRecapController extends Controller
                 'income_monthly' => $schoolTotalIncomeMonthly,
                 'income_total' => $schoolTotalIncomePeriod,
                 'realized_actual' => $actualRealizedPayment,
-                'potential_accrual' => $schoolPotentialIncomeMonthly * $multiplier,
+                'potential_accrual' => $accrualTarget,
+                'actual_billed' => $actualNetBilled,
             ];
 
             $grandTotalIncomeMonthly += $schoolTotalIncomeMonthly;

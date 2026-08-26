@@ -83,6 +83,19 @@ class StudentBillService
                         continue;
                     }
 
+                    // Auto-inherit custom amount/discount from previous bill in the same academic year
+                    $prevBill = StudentBill::where('student_id', $student->id)
+                        ->where('payment_type_id', $validated['payment_type_id'])
+                        ->where('academic_year_id', $validated['academic_year_id'])
+                        ->where('month', '!=', $month)
+                        ->orderBy('created_at', 'desc')
+                        ->first();
+
+                    $billAmount = $prevBill ? (float)$prevBill->amount : $amount;
+                    $billYayasanShare = ($prevBill && $prevBill->yayasan_share_amount !== null)
+                        ? (float)$prevBill->yayasan_share_amount
+                        : $yayasanShareAmount;
+
                     StudentBill::create([
                         'student_id' => $student->id,
                         'payment_type_id' => $validated['payment_type_id'],
@@ -90,8 +103,8 @@ class StudentBillService
                         'semester_id' => $validated['semester_id'] ?? null,
                         'month' => $month,
                         'year' => $year,
-                        'amount' => $amount,
-                        'yayasan_share_amount' => $yayasanShareAmount,
+                        'amount' => $billAmount,
+                        'yayasan_share_amount' => $billYayasanShare,
                         'paid_amount' => 0,
                         'status' => 'belum_bayar',
                         'notes' => $validated['notes'] ?? null,
@@ -165,6 +178,19 @@ class StudentBillService
                     continue;
                 }
 
+                // Auto-inherit custom amount/discount from previous bill in the same academic year
+                $prevBill = StudentBill::where('student_id', $student->id)
+                    ->where('payment_type_id', $validated['payment_type_id'])
+                    ->where('academic_year_id', $validated['academic_year_id'])
+                    ->where('month', '!=', $singleMonth)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                $billAmount = $prevBill ? (float)$prevBill->amount : $amount;
+                $billYayasanShare = ($prevBill && $prevBill->yayasan_share_amount !== null)
+                    ? (float)$prevBill->yayasan_share_amount
+                    : $yayasanShareAmount;
+
                 StudentBill::create([
                     'student_id' => $student->id,
                     'payment_type_id' => $validated['payment_type_id'],
@@ -172,8 +198,8 @@ class StudentBillService
                     'semester_id' => $validated['semester_id'] ?? null,
                     'month' => $singleMonth,
                     'year' => $billYear,
-                    'amount' => $amount,
-                    'yayasan_share_amount' => $yayasanShareAmount,
+                    'amount' => $billAmount,
+                    'yayasan_share_amount' => $billYayasanShare,
                     'paid_amount' => 0,
                     'status' => 'belum_bayar',
                     'notes' => $validated['notes'] ?? null,
