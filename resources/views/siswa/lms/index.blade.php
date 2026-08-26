@@ -104,9 +104,27 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($upcomingAssignments as $asgn)
             @php
-                $diffHours = \Carbon\Carbon::now()->diffInHours(\Carbon\Carbon::parse($asgn->deadline), false);
-                $diffDays = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($asgn->deadline), false);
-                $isUrgent = $diffHours <= 24;
+                $deadlineDate = \Carbon\Carbon::parse($asgn->deadline);
+                $now = \Carbon\Carbon::now();
+                $diffHours = (int) $now->diffInHours($deadlineDate, false);
+                $diffDays = (int) ceil($now->floatDiffInDays($deadlineDate, false));
+                $isOverdue = $now->greaterThan($deadlineDate);
+                $isUrgent = !$isOverdue && ($diffHours <= 24);
+                
+                if ($isOverdue) {
+                    $badgeText = 'Terlewat';
+                    $badgeClass = 'bg-rose-600 text-white';
+                } elseif ($diffHours <= 0 || $diffHours < 1) {
+                    $diffMinutes = (int) $now->diffInMinutes($deadlineDate, false);
+                    $badgeText = $diffMinutes > 0 ? $diffMinutes . ' Mnt lagi' : 'Hari Ini';
+                    $badgeClass = 'bg-rose-600 text-white';
+                } elseif ($diffHours < 24) {
+                    $badgeText = $diffHours . ' Jam lagi';
+                    $badgeClass = 'bg-rose-600 text-white';
+                } else {
+                    $badgeText = $diffDays . ' Hari lagi';
+                    $badgeClass = 'bg-amber-300 text-black';
+                }
             @endphp
             <div class="flex items-start justify-between p-4 rounded-2xl border-2 border-black shadow-sm {{ $isUrgent ? 'bg-rose-100' : 'bg-slate-50' }}">
                 <div class="flex items-start gap-3">
@@ -117,13 +135,13 @@
                         <span class="text-[10px] font-black uppercase tracking-wider text-black">{{ $asgn->course->subject->subject_name ?? 'Tugas' }}</span>
                         <h4 class="font-black text-black text-sm leading-snug line-clamp-1">{{ $asgn->title }}</h4>
                         <p class="text-xs font-bold text-black mt-0.5">
-                            <i class="far fa-clock mr-1 text-black"></i> Deadline: {{ \Carbon\Carbon::parse($asgn->deadline)->translatedFormat('d M Y, H:i') }}
+                            <i class="far fa-clock mr-1 text-black"></i> Deadline: {{ $deadlineDate->translatedFormat('d M Y, H:i') }}
                         </p>
                     </div>
                 </div>
                 <div>
-                    <span class="px-3 py-1 text-[10px] font-black rounded-xl uppercase tracking-wider border border-black {{ $isUrgent ? 'bg-rose-600 text-white' : 'bg-amber-300 text-black' }}">
-                        {{ $diffHours <= 0 ? 'Hari Ini' : ($diffHours < 24 ? $diffHours.' Jam lagi' : $diffDays.' Hari lagi') }}
+                    <span class="px-3 py-1 text-[10px] font-black rounded-xl uppercase tracking-wider border border-black {{ $badgeClass }}">
+                        {{ $badgeText }}
                     </span>
                 </div>
             </div>
