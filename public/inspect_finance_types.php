@@ -2,7 +2,6 @@
 @ini_set('display_errors', '1');
 @error_reporting(E_ALL);
 
-$secret = $_REQUEST['secret'] ?? 'pembda99';
 $possibleEnvPaths = [
     __DIR__ . '/.env',
     __DIR__ . '/../.env',
@@ -37,39 +36,28 @@ $pdo = new PDO("mysql:host={$dbHost};port={$dbPort};dbname={$dbName};charset=utf
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 ]);
 
-echo "<h2>1. ALL PAYMENT TYPES</h2><pre>";
-$pt = $pdo->query("SELECT id, school_id, type_name, amount, is_recurring, is_active FROM payment_types")->fetchAll();
-print_r($pt);
-echo "</pre>";
+echo "=== PAYMENT TYPES ===\n";
+$pt = $pdo->query("SELECT id, school_id, type_name, amount, is_recurring FROM payment_types")->fetchAll();
+foreach ($pt as $p) {
+    echo "PT #{$p['id']} (School {$p['school_id']}): {$p['type_name']} - Rp " . number_format($p['amount']) . " (Recurring: {$p['is_recurring']})\n";
+}
 
-echo "<h2>2. CELESTE BILLS & PAYMENTS CURRENTLY IN DB</h2>";
+echo "\n=== CELESTE STUDENT ===\n";
 $celeste = $pdo->query("SELECT id, full_name, school_id FROM students WHERE full_name LIKE '%CELESTE%'")->fetch();
 if ($celeste) {
-    echo "Siswa: {$celeste['full_name']} (ID: {$celeste['id']}, School: {$celeste['school_id']})<br>";
-    $cBills = $pdo->prepare("SELECT b.*, pt.type_name FROM student_bills b LEFT JOIN payment_types pt ON b.payment_type_id = pt.id WHERE b.student_id = ? ORDER BY b.year ASC, b.month ASC, b.id ASC");
+    echo "ID: {$celeste['id']} | Name: {$celeste['full_name']} | School ID: {$celeste['school_id']}\n\n";
+
+    echo "--- CELESTE BILLS ---\n";
+    $cBills = $pdo->prepare("SELECT b.id, b.payment_type_id, b.month, b.year, b.amount, b.paid_amount, b.status, pt.type_name FROM student_bills b LEFT JOIN payment_types pt ON b.payment_type_id = pt.id WHERE b.student_id = ? ORDER BY b.year ASC, b.month ASC, b.id ASC");
     $cBills->execute([$celeste['id']]);
-    $bList = $cBills->fetchAll();
-    echo "<h3>Bills (" . count($bList) . ")</h3><pre>";
-    print_r($bList);
-    echo "</pre>";
+    foreach ($cBills->fetchAll() as $b) {
+        echo "Bill #{$b['id']}: Month {$b['month']}/{$b['year']} | Type: {$b['type_name']} (ID {$b['payment_type_id']}) | Amt: {$b['amount']} | Paid: {$b['paid_amount']} | Status: {$b['status']}\n";
+    }
 
-    $cPays = $pdo->prepare("SELECT p.*, b.month, b.year, pt.type_name FROM payments p LEFT JOIN student_bills b ON p.bill_id = b.id LEFT JOIN payment_types pt ON b.payment_type_id = pt.id WHERE p.student_id = ?");
+    echo "\n--- CELESTE PAYMENTS ---\n";
+    $cPays = $pdo->prepare("SELECT p.id, p.bill_id, p.amount_paid, p.payment_date, p.receipt_number, b.month, pt.type_name FROM payments p LEFT JOIN student_bills b ON p.bill_id = b.id LEFT JOIN payment_types pt ON b.payment_type_id = pt.id WHERE p.student_id = ?");
     $cPays->execute([$celeste['id']]);
-    $pList = $cPays->fetchAll();
-    echo "<h3>Payments (" . count($pList) . ")</h3><pre>";
-    print_r($pList);
-    echo "</pre>";
+    foreach ($cPays->fetchAll() as $p) {
+        echo "Payment #{$p['id']}: Bill #{$p['bill_id']} | Type: {$p['type_name']} | Month: {$p['month']} | Paid: Rp " . number_format($p['amount_paid']) . " | Rec: {$p['receipt_number']} | Date: {$p['payment_date']}\n";
+    }
 }
-
-echo "<h2>3. CELESTE ACTIVITY LOGS (ANY MODEL)</h2><pre>";
-if ($celeste) {
-    $cLogs = $pdo->prepare("SELECT * FROM activity_logs WHERE changes LIKE ? OR model_id = ? ORDER BY id DESC LIMIT 50");
-    $cLogs->execute(["%{$celeste['id']}%", $celeste['id']]);
-    print_r($cLogs->fetchAll());
-}
-echo "</pre>";
-
-echo "<h2>4. SAMPLE ACTIVITY LOGS WITH 'amount_paid' OR 'Payment'</h2><pre>";
-$payLogs = $pdo->query("SELECT id, action, model_type, model_id, changes FROM activity_logs WHERE (model_type LIKE '%Payment%' OR changes LIKE '%amount_paid%') AND action IN ('deleted','created') ORDER BY id DESC LIMIT 20")->fetchAll();
-print_r($payLogs);
-echo "</pre>";
