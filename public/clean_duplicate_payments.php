@@ -208,7 +208,7 @@ foreach($groupedDuplicates as $payments) {
                 <select name="payment_type_id" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="all" <?= $filterTypeId === 'all' ? 'selected' : '' ?>>-- Semua Jenis Tagihan --</option>
                     <?php foreach($allPaymentTypes as $pt): ?>
-                        <option value="<?= $pt->id ?>" <?= String($filterTypeId) === String($pt->id) ? 'selected' : '' ?>>
+                        <option value="<?= $pt->id ?>" <?= (string)$filterTypeId === (string)$pt->id ? 'selected' : '' ?>>
                             <?= htmlspecialchars($pt->type_name) ?> (Unit ID: <?= $pt->school_id ?>)
                         </option>
                     <?php endforeach; ?>
