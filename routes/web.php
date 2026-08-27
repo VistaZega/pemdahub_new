@@ -721,7 +721,7 @@ Route::get('/', function () {
     }])->where('is_active', true)->get();
 
     // === SHOWCASE FINAL PROJECT (PENELITIAN & PROJECT AKHIR) ===
-    $finalProjectsShowcase = \App\Models\FinalProject::with(['members.student'])
+    $finalProjectsShowcase = \App\Models\FinalProject::with(['student', 'members.student'])
         ->whereIn('status', ['approved', 'in_progress', 'ready_for_exam', 'completed'])
         ->latest('updated_at')
         ->take(12)

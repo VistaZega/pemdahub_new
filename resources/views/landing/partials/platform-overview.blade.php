@@ -25,7 +25,11 @@
     }
 </style>
 
-<section id="platform" class="section" style="background: var(--bg-card, #ffffff);">
+<section id="platform" class="section relative overflow-hidden" style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f5f3ff 100%);">
+    {{-- Decorative Background Blobs --}}
+    <div class="absolute -left-32 top-0 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -right-32 bottom-0 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-sky-300/5 rounded-full blur-3xl pointer-events-none"></div>
     <div class="fw">
         <div style="max-width:900px; margin:0 auto; text-align:center;" data-aos="fade-up">
             {{-- Subtle intro text --}}
@@ -79,7 +83,7 @@
         <div data-aos="fade-up" data-aos-delay="200" style="margin-top:64px; overflow:hidden; position:relative; padding-bottom: 24px;">
             <div class="marquee-fade-left"></div>
             <div class="marquee-fade-right"></div>
-            <div class="marquee-track">
+            <div class="marquee-track" style="animation-duration: 80s;">
                 <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
                     @foreach($finalProjectsShowcase as $fp)
                         <div style="min-width: 450px; max-width: 550px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
@@ -92,7 +96,9 @@
                             {{-- Bagian Bawah: Teks Nama Tim Bergerak Searah dengan Judul --}}
                             <div style="width: 100%; position: relative;">
                                 @php
-                                    $teamNames = $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ');
+                                    $teamNames = $fp->members->isNotEmpty() 
+                                        ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ')
+                                        : ($fp->student->full_name ?? 'Tim Siswa');
                                 @endphp
                                 <div style="font-size: 15px; font-weight: 800; color: var(--indigo); text-align: center; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25);">
                                     <i class="fa-solid fa-users" style="margin-right:8px; color: var(--violet);"></i> {!! $teamNames !!}
