@@ -34,7 +34,7 @@ $restoredBills = 0;
 $log = [];
 
 DB::transaction(function() use ($monthlyTypes, $activeAyId, &$restoredBills, &$log) {
-    $students = Student::where('is_active', true)->get();
+    $students = Student::where('status', 'active')->orWhereNull('status')->get();
     
     foreach ($students as $st) {
         $schoolTypes = $monthlyTypes->where('school_id', $st->school_id);
