@@ -38,20 +38,22 @@ $allPaymentTypes = PaymentType::orderBy('type_name')->get();
 
 /**
  * Helper: Detect Duplicate Bills (student_bills)
+ * Grouping by student_id + payment_type_id + month (ignoring academic_year_id/year discrepancies)
  */
 function getDuplicateBillGroups($typeId = 'all') {
-    $rawDuplicates = StudentBill::select('student_id', 'payment_type_id', 'academic_year_id', 'month', 'year', DB::raw('COUNT(*) as total_count'))
+    $query = DB::table('student_bills')
+        ->select('student_id', 'payment_type_id', 'month', DB::raw('COUNT(*) as total_count'))
         ->when($typeId !== 'all' && is_numeric($typeId), fn($q) => $q->where('payment_type_id', $typeId))
-        ->groupBy('student_id', 'payment_type_id', 'academic_year_id', 'month', 'year')
-        ->havingRaw('COUNT(*) > 1')
-        ->get();
+        ->groupBy('student_id', 'payment_type_id', 'month')
+        ->havingRaw('COUNT(*) > 1');
+
+    $rawDuplicates = $query->get();
 
     $groups = collect();
     foreach ($rawDuplicates as $rd) {
         $bills = StudentBill::with(['student.school', 'paymentType', 'payments'])
             ->where('student_id', $rd->student_id)
             ->where('payment_type_id', $rd->payment_type_id)
-            ->where('academic_year_id', $rd->academic_year_id)
             ->where(function($q) use ($rd) {
                 if (is_null($rd->month)) {
                     $q->whereNull('month');
@@ -59,18 +61,11 @@ function getDuplicateBillGroups($typeId = 'all') {
                     $q->where('month', $rd->month);
                 }
             })
-            ->where(function($q) use ($rd) {
-                if (is_null($rd->year)) {
-                    $q->whereNull('year');
-                } else {
-                    $q->where('year', $rd->year);
-                }
-            })
             ->orderBy('id', 'asc')
             ->get();
 
         if ($bills->count() > 1) {
-            $key = $rd->student_id . '_' . $rd->payment_type_id . '_' . $rd->academic_year_id . '_' . ($rd->month ?? '0') . '_' . ($rd->year ?? '0');
+            $key = $rd->student_id . '_' . $rd->payment_type_id . '_' . ($rd->month ?? '0');
             $groups->put($key, $bills);
         }
     }
@@ -98,9 +93,7 @@ function getDuplicatePaymentGroups($typeId = 'all') {
     $grouped = $payments->groupBy(function($p) {
         $studentId = $p->student_id;
         $payTypeId = $p->bill->payment_type_id ?? 0;
-        $ayId = $p->bill->academic_year_id ?? 0;
         $month = $p->bill->month ?? 0;
-        $year = $p->bill->year ?? 0;
         $billId = $p->bill_id ?? 0;
         return $studentId . '_bill_' . $billId;
     });
@@ -255,7 +248,7 @@ $monthNames = [
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold text-dark mb-1"><i class="fa-solid fa-wrench text-danger me-2"></i> Script Emergency: Pembersihan Tagihan & Pembayaran Ganda</h3>
-            <p class="text-muted mb-0">PembdaHUB Emergency Tool - Pembersihan Tagihan Duplikat (Daftar Tagihan) & Transaksi Ganda</p>
+            <p class="text-muted mb-0">PembdaHUB Emergency Tool - Pembersihan Tagihan Duplikat (Daftar Tagihan Siswa) & Transaksi Pembayaran Ganda</p>
         </div>
         <span class="badge bg-dark px-3 py-2">Token Secret Verified</span>
     </div>
@@ -303,7 +296,7 @@ $monthNames = [
                 <div class="d-flex gap-4">
                     <div>
                         <div class="fs-3 fw-bold text-danger"><?= number_format($totalRedundantBills) ?></div>
-                        <div class="text-muted small">Record Tagihan Duplikat</div>
+                        <div class="text-muted small">Record Tagihan Duplikat (Daftar Tagihan)</div>
                     </div>
                     <div class="border-end"></div>
                     <div>
@@ -340,7 +333,7 @@ $monthNames = [
 
         <!-- SECTION 1: DUPLICATE BILLS (student_bills) -->
         <?php if($totalRedundantBills > 0): ?>
-        <h4 class="fw-bold text-dark mb-3"><i class="fa-solid fa-file-invoice-dollar text-danger me-2"></i> 1. Pembersihan Tagihan Duplikat (Daftar Tagihan Siswa)</h4>
+        <h4 class="fw-bold text-dark mb-3"><i class="fa-solid fa-file-invoice-dollar text-danger me-2"></i> 1. Pembersihan Tagihan Duplikat (Tabel Daftar Tagihan Siswa)</h4>
         
         <?php foreach($groupedDuplicateBills as $groupKey => $bills): ?>
         <?php
@@ -434,7 +427,7 @@ $monthNames = [
         <div class="card card-custom mb-4 overflow-hidden bg-white">
             <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
                 <div>
-                    <span class="badge bg-danger me-2">Ganda {{ $payments->count() }}x</span>
+                    <span class="badge bg-danger me-2">Ganda <?= $payments->count() ?>x</span>
                     <strong class="fs-6 text-dark"><?= htmlspecialchars($student->full_name ?? 'Siswa') ?></strong>
                     <span class="text-muted small ms-2">(Unit: <?= htmlspecialchars($student->school->name ?? '-') ?> | NISN: <?= htmlspecialchars($student->nisn ?? '-') ?>)</span>
                     <div class="text-muted small mt-1">

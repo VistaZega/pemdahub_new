@@ -256,6 +256,11 @@ class PaymentController extends Controller
 
             $bills = $query->orderBy('student_id')->get();
 
+            // Deduplicate per student + month so duplicate bill records are unique in Pembayaran Massal UI
+            $bills = $bills->unique(function($b) {
+                return $b->student_id . '_' . $b->payment_type_id . '_' . ($b->month ?? '0');
+            })->values();
+
             return response()->json([
                 'success' => true,
                 'bills' => $bills
