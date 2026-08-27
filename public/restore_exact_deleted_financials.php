@@ -1,6 +1,6 @@
 <?php
 /**
- * Standalone Emergency Tool: Pemulihan Otomatis 100% Catatan Keuangan Terhapus (Pure PDO)
+ * Standalone Emergency Tool: Pemulihan Otomatis 100% Catatan Keuangan Terhapus
  * Access URL: https://perguruanpembda.com/restore_exact_deleted_financials.php?secret=pembda99
  */
 
@@ -18,30 +18,63 @@ $restoredBills = 0;
 $restoredPayments = 0;
 $log = [];
 
-// Read DB Credentials directly from .env file (Pure PHP - No Laravel overhead)
-$envPath = __DIR__ . '/../.env';
+// Locate .env across all potential server paths on Hostinger
+$possibleEnvPaths = [
+    __DIR__ . '/.env',
+    __DIR__ . '/../.env',
+    __DIR__ . '/pembdahub/.env',
+    '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub/.env',
+    '/home/u474310197/domains/perguruanpembda.com/public_html/.env',
+    'd:/laragon/www/pembdahub/.env',
+];
+
 $dbHost = '127.0.0.1';
 $dbPort = '3306';
-$dbName = '';
-$dbUser = '';
+$dbName = 'u474310197_database';
+$dbUser = 'u474310197_user';
 $dbPass = '';
 
-if (file_exists($envPath)) {
-    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        $line = trim($line);
-        if (str_starts_with($line, '#')) continue;
-        if (str_contains($line, '=')) {
-            list($key, $val) = explode('=', $line, 2);
-            $key = trim($key);
-            $val = trim($val, " \"'");
-            if ($key === 'DB_HOST') $dbHost = $val;
-            if ($key === 'DB_PORT') $dbPort = $val;
-            if ($key === 'DB_DATABASE') $dbName = $val;
-            if ($key === 'DB_USERNAME') $dbUser = $val;
-            if ($key === 'DB_PASSWORD') $dbPass = $val;
+$foundEnv = false;
+foreach ($possibleEnvPaths as $envPath) {
+    if (file_exists($envPath)) {
+        $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (str_starts_with($line, '#')) continue;
+            if (str_contains($line, '=')) {
+                list($key, $val) = explode('=', $line, 2);
+                $key = trim($key);
+                $val = trim($val, " \"'");
+                if ($key === 'DB_HOST') $dbHost = $val;
+                if ($key === 'DB_PORT') $dbPort = $val;
+                if ($key === 'DB_DATABASE') $dbName = $val;
+                if ($key === 'DB_USERNAME') $dbUser = $val;
+                if ($key === 'DB_PASSWORD') $dbPass = $val;
+            }
         }
+        $foundEnv = true;
+        break;
     }
+}
+
+// Fallback: Bootstrap Laravel if .env not parsed
+if (empty($dbName) || empty($dbUser)) {
+    try {
+        $autoloadPath = file_exists(__DIR__.'/../vendor/autoload.php') ? __DIR__.'/../vendor/autoload.php' : __DIR__.'/pembdahub/vendor/autoload.php';
+        $appPath = file_exists(__DIR__.'/../bootstrap/app.php') ? __DIR__.'/../bootstrap/app.php' : __DIR__.'/pembdahub/bootstrap/app.php';
+        
+        if (file_exists($autoloadPath) && file_exists($appPath)) {
+            require_once $autoloadPath;
+            $app = require_once $appPath;
+            $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+            $dbHost = config('database.connections.mysql.host', $dbHost);
+            $dbPort = config('database.connections.mysql.port', $dbPort);
+            $dbName = config('database.connections.mysql.database', $dbName);
+            $dbUser = config('database.connections.mysql.username', $dbUser);
+            $dbPass = config('database.connections.mysql.password', $dbPass);
+        }
+    } catch (\Throwable $e) {}
 }
 
 try {
@@ -49,14 +82,18 @@ try {
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
-} catch (\Exception $e) {
-    die("Database Connection Failed: " . htmlspecialchars($e->getMessage()));
+} catch (\Throwable $e) {
+    die("<div style='font-family:sans-serif;padding:30px;background:#fee2e2;color:#991b1b;border-radius:12px;'>
+        <h3>❌ Gagal Terhubung Ke Database Hostinger</h3>
+        <p>Error: " . htmlspecialchars($e->getMessage()) . "</p>
+        <p>Host: {$dbHost} | Database: {$dbName} | User: {$dbUser}</p>
+    </div>");
 }
 
 // METHOD 1: RESTORE DELETED BILLS & PAYMENTS FROM ACTIVITY LOGS & JOBS
 if ($action === 'restore_from_logs') {
     try {
-        $pdo->exec("SET FOREIGN_KEY_CHECKS=0;");
+        @$pdo->exec("SET FOREIGN_KEY_CHECKS=0;");
 
         // A. Restore StudentBills from activity_logs
         try {
@@ -67,34 +104,36 @@ if ($action === 'restore_from_logs') {
             $insertBillStmt = $pdo->prepare("INSERT IGNORE INTO student_bills (id, student_id, payment_type_id, academic_year_id, month, year, amount, paid_amount, yayasan_share_amount, status, due_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             foreach ($billLogs as $bl) {
-                $data = json_decode($bl['changes'], true);
-                if (is_array($data) && isset($data['id'], $data['student_id'])) {
-                    $bId = $data['id'];
-                    $chk = $pdo->prepare("SELECT id FROM student_bills WHERE id = ?");
-                    $chk->execute([$bId]);
+                try {
+                    $data = json_decode($bl['changes'], true);
+                    if (is_array($data) && isset($data['id'], $data['student_id'])) {
+                        $bId = $data['id'];
+                        $chk = $pdo->prepare("SELECT id FROM student_bills WHERE id = ?");
+                        $chk->execute([$bId]);
 
-                    if (!$chk->fetch()) {
-                        $insertBillStmt->execute([
-                            $data['id'],
-                            $data['student_id'],
-                            $data['payment_type_id'] ?? 1,
-                            $data['academic_year_id'] ?? 1,
-                            $data['month'] ?? null,
-                            $data['year'] ?? null,
-                            $data['amount'] ?? 0,
-                            $data['paid_amount'] ?? 0,
-                            $data['yayasan_share_amount'] ?? 0,
-                            $data['status'] ?? 'belum_bayar',
-                            $data['due_date'] ?? null,
-                            $data['created_at'] ?? date('Y-m-d H:i:s'),
-                            $data['updated_at'] ?? date('Y-m-d H:i:s'),
-                        ]);
-                        $restoredBills++;
-                        $log[] = "MEMULIHKAN TAGIHAN ID #{$bId} (Siswa ID: {$data['student_id']}, Bulan: " . ($data['month'] ?? '-') . ", Nominal: Rp " . number_format($data['amount'] ?? 0, 0, ',', '.') . ")";
+                        if (!$chk->fetch()) {
+                            $insertBillStmt->execute([
+                                $data['id'],
+                                $data['student_id'],
+                                $data['payment_type_id'] ?? 1,
+                                $data['academic_year_id'] ?? 1,
+                                $data['month'] ?? null,
+                                $data['year'] ?? null,
+                                $data['amount'] ?? 0,
+                                $data['paid_amount'] ?? 0,
+                                $data['yayasan_share_amount'] ?? 0,
+                                $data['status'] ?? 'belum_bayar',
+                                $data['due_date'] ?? null,
+                                $data['created_at'] ?? date('Y-m-d H:i:s'),
+                                $data['updated_at'] ?? date('Y-m-d H:i:s'),
+                            ]);
+                            $restoredBills++;
+                            $log[] = "MEMULIHKAN TAGIHAN ID #{$bId} (Siswa ID: {$data['student_id']}, Bulan: " . ($data['month'] ?? '-') . ", Nominal: Rp " . number_format($data['amount'] ?? 0, 0, ',', '.') . ")";
+                        }
                     }
-                }
+                } catch (\Throwable $e) {}
             }
-        } catch (\Exception $e) {}
+        } catch (\Throwable $e) {}
 
         // B. Restore Payments from activity_logs
         try {
@@ -105,37 +144,39 @@ if ($action === 'restore_from_logs') {
             $insertPayStmt = $pdo->prepare("INSERT IGNORE INTO payments (id, bill_id, student_id, amount_paid, payment_method, qris_transaction_id, qris_status, reference_number, receipt_number, payment_date, proof_file, notes, processed_by, is_verified, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             foreach ($payLogs as $pl) {
-                $data = json_decode($pl['changes'], true);
-                if (is_array($data) && isset($data['id'], $data['student_id'])) {
-                    $pId = $data['id'];
-                    $chk = $pdo->prepare("SELECT id FROM payments WHERE id = ?");
-                    $chk->execute([$pId]);
+                try {
+                    $data = json_decode($pl['changes'], true);
+                    if (is_array($data) && isset($data['id'], $data['student_id'])) {
+                        $pId = $data['id'];
+                        $chk = $pdo->prepare("SELECT id FROM payments WHERE id = ?");
+                        $chk->execute([$pId]);
 
-                    if (!$chk->fetch()) {
-                        $insertPayStmt->execute([
-                            $data['id'],
-                            $data['bill_id'] ?? null,
-                            $data['student_id'],
-                            $data['amount_paid'] ?? 0,
-                            $data['payment_method'] ?? 'cash',
-                            $data['qris_transaction_id'] ?? null,
-                            $data['qris_status'] ?? null,
-                            $data['reference_number'] ?? null,
-                            $data['receipt_number'] ?? ('KWT-REC-' . time() . '-' . rand(10, 99)),
-                            $data['payment_date'] ?? date('Y-m-d'),
-                            $data['proof_file'] ?? null,
-                            $data['notes'] ?? 'Restored from activity log',
-                            $data['processed_by'] ?? 1,
-                            $data['is_verified'] ?? 1,
-                            $data['created_at'] ?? date('Y-m-d H:i:s'),
-                            $data['updated_at'] ?? date('Y-m-d H:i:s'),
-                        ]);
-                        $restoredPayments++;
-                        $log[] = "MEMULIHKAN PEMBAYARAN ID #{$pId} (Siswa ID: {$data['student_id']}, Nominal: Rp " . number_format($data['amount_paid'] ?? 0, 0, ',', '.') . ", Kwitansi: " . ($data['receipt_number'] ?? '-') . ")";
+                        if (!$chk->fetch()) {
+                            $insertPayStmt->execute([
+                                $data['id'],
+                                $data['bill_id'] ?? null,
+                                $data['student_id'],
+                                $data['amount_paid'] ?? 0,
+                                $data['payment_method'] ?? 'cash',
+                                $data['qris_transaction_id'] ?? null,
+                                $data['qris_status'] ?? null,
+                                $data['reference_number'] ?? null,
+                                $data['receipt_number'] ?? ('KWT-REC-' . time() . '-' . rand(10, 99)),
+                                $data['payment_date'] ?? date('Y-m-d'),
+                                $data['proof_file'] ?? null,
+                                $data['notes'] ?? 'Restored from activity log',
+                                $data['processed_by'] ?? 1,
+                                $data['is_verified'] ?? 1,
+                                $data['created_at'] ?? date('Y-m-d H:i:s'),
+                                $data['updated_at'] ?? date('Y-m-d H:i:s'),
+                            ]);
+                            $restoredPayments++;
+                            $log[] = "MEMULIHKAN PEMBAYARAN ID #{$pId} (Siswa ID: {$data['student_id']}, Nominal: Rp " . number_format($data['amount_paid'] ?? 0, 0, ',', '.') . ", Kwitansi: " . ($data['receipt_number'] ?? '-') . ")";
+                        }
                     }
-                }
+                } catch (\Throwable $e) {}
             }
-        } catch (\Exception $e) {}
+        } catch (\Throwable $e) {}
 
         // C. Re-sync bill balances & statuses
         try {
@@ -158,12 +199,12 @@ if ($action === 'restore_from_logs') {
 
                 $updStmt->execute([$totalPaid, $status, $b['id']]);
             }
-        } catch (\Exception $e) {}
+        } catch (\Throwable $e) {}
 
-        $pdo->exec("SET FOREIGN_KEY_CHECKS=1;");
+        @$pdo->exec("SET FOREIGN_KEY_CHECKS=1;");
 
         $message = "PEMULIHAN KEUANGAN BERHASIL! Memulihkan {$restoredBills} tagihan dan {$restoredPayments} transaksi pembayaran ke keadaan semula.";
-    } catch (\Exception $e) {
+    } catch (\Throwable $e) {
         $message = "Error: " . htmlspecialchars($e->getMessage());
     }
 }
@@ -173,7 +214,7 @@ if ($action === 'restore_from_logs') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pemulihan Otomatis Catatan Keuangan (Pure PDO) - PembdaHUB</title>
+    <title>Pemulihan Otomatis Catatan Keuangan - PembdaHUB</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -186,7 +227,7 @@ if ($action === 'restore_from_logs') {
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold text-dark mb-1"><i class="fa-solid fa-rotate-left text-success me-2"></i> Tool Emergency: Pemulihan Otomatis Catatan Keuangan 100%</h3>
-            <p class="text-muted mb-0">Mengembalikan seluruh tagihan & transaksi pembayaran terhapus kembali persis ke keadaan semula di database (Mode Pure PDO - Fast & Safe)</p>
+            <p class="text-muted mb-0">Mengembalikan seluruh tagihan & transaksi pembayaran terhapus kembali persis ke keadaan semula di database</p>
         </div>
         <a href="clean_duplicate_payments.php?secret=<?= urlencode($secret) ?>" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Pembersih</a>
     </div>
