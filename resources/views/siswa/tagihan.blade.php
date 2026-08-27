@@ -136,6 +136,9 @@
                         @if($bill && $bill->paid_amount > 0 && $bill->status !== 'lunas')
                             <span class="text-[8px] font-bold text-emerald-600 leading-none">Cicilan</span>
                         @endif
+                        @if($amountText)
+                            <span class="text-[9px] font-bold text-gray-700 tracking-tight whitespace-nowrap mt-0.5">{{ $amountText }}</span>
+                        @endif
                     </div>
                 @endforeach
             </div>
