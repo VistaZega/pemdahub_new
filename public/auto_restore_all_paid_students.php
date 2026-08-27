@@ -75,10 +75,12 @@ if ($action === 'bulk_restore_month' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $pTypes = $pTypesStmt->fetchAll();
 
             foreach ($studentIds as $stId) {
-                $stStmt = $pdo->prepare("SELECT id, school_id, full_name FROM students WHERE id = ?");
+                $stStmt = $pdo->prepare("SELECT id, school_id, name FROM students WHERE id = ?");
                 $stStmt->execute([$stId]);
                 $st = $stStmt->fetch();
                 if (!$st) continue;
+
+                $stName = $st['name'] ?? $st['full_name'] ?? "Siswa ID #{$stId}";
 
                 foreach ($pTypes as $pt) {
                     if ($pt['school_id'] == $st['school_id']) {
@@ -110,7 +112,7 @@ if ($action === 'bulk_restore_month' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                         $updB->execute([$billId]);
                     }
                 }
-                $log[] = "LUNAS BULAN {$targetMonth}: {$st['full_name']}";
+                $log[] = "LUNAS BULAN {$targetMonth}: {$stName}";
             }
 
             @$pdo->exec("SET FOREIGN_KEY_CHECKS=1;");
@@ -135,7 +137,7 @@ try {
 // Fetch students matching filter
 $studentsList = [];
 try {
-    $queryStr = "SELECT id, full_name, school_id, classroom_id FROM students WHERE 1=1";
+    $queryStr = "SELECT * FROM students WHERE 1=1";
     $params = [];
 
     if ($schoolId !== 'all') {
@@ -147,11 +149,13 @@ try {
         $params[] = $classroomId;
     }
 
-    $queryStr .= " ORDER BY full_name ASC LIMIT 500";
+    $queryStr .= " ORDER BY id ASC LIMIT 500";
     $stPrepared = $pdo->prepare($queryStr);
     $stPrepared->execute($params);
     $studentsList = $stPrepared->fetchAll();
-} catch (\Throwable $e) {}
+} catch (\Throwable $e) {
+    $log[] = "Student Query Exception: " . $e->getMessage();
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -252,7 +256,7 @@ try {
                         <?php foreach($studentsList as $idx => $st): ?>
                         <tr>
                             <td><?= $idx + 1 ?></td>
-                            <td class="fw-bold text-dark"><?= htmlspecialchars($st['full_name']) ?></td>
+                            <td class="fw-bold text-dark"><?= htmlspecialchars($st['name'] ?? $st['full_name'] ?? 'Siswa') ?></td>
                             <td><span class="badge bg-secondary">ID #<?= $st['id'] ?></span></td>
                             <td class="text-center">
                                 <input class="form-check-input st-checkbox" type="checkbox" name="student_ids[]" value="<?= $st['id'] ?>">
