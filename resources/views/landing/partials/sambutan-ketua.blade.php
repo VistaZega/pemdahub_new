@@ -22,12 +22,12 @@
                 @if($photoExists)
                     <div style="position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;">
                         
-                        {{-- Compact Half-Body Crop: object-position 20% 10% --}}
+                        {{-- Compact Half-Body Crop: object-position center bottom to align shoulders with bottom edge --}}
                         <img src="{{ asset('images/photo-profile.jpeg') }}?v={{ filemtime($photoPath) }}" 
                              alt="Yulianus Zega, S.Kom, M.Pd.T" 
-                             style="width: 100%; height: 100%; object-fit: cover; object-position: 20% 10%; margin: 0; padding: 0; filter: contrast(1.08) brightness(1.05);
-                                    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 68%, rgba(0,0,0,0) 98%), linear-gradient(to bottom, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
-                                    mask-image: linear-gradient(to right, rgba(0,0,0,1) 68%, rgba(0,0,0,0) 98%), linear-gradient(to bottom, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);" />
+                             style="width: 100%; height: 100%; object-fit: cover; object-position: center bottom; margin: 0; padding: 0; filter: contrast(1.08) brightness(1.05);
+                                    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+                                    mask-image: linear-gradient(to right, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);" />
                     </div>
                 @else
                     <div style="width: 100%; height: 100%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">
