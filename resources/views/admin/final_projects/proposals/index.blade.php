@@ -235,7 +235,7 @@
                         <th class="py-6 px-5">Judul & Pembimbing</th>
                         <th class="py-6 px-5 text-center">Jenis</th>
                         <th class="py-6 px-5 text-center">Status</th>
-                        <th class="py-6 pl-5 pr-8 text-right">Aksi Manajemen</th>
+                        <th class="py-6 px-5 text-center">Aksi Manajemen</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -356,8 +356,8 @@
                             </td>
 
                             {{-- Kolom Aksi --}}
-                            <td class="py-8 pl-5 pr-8 text-right align-top whitespace-nowrap">
-                                <div class="inline-flex items-center justify-end gap-1.5">
+                            <td class="py-8 px-5 text-center align-top whitespace-nowrap">
+                                <div class="inline-flex items-center justify-center gap-2">
                                     
                                     {{-- Tombol Verifikasi Cepat (jika pending) --}}
                                     @if($p->status === 'pending')
