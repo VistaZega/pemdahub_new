@@ -22,90 +22,61 @@ if ($secret !== $VALID_SECRET) {
 }
 
 $action = $_REQUEST['action'] ?? 'preview';
+$filterTypeId = $_REQUEST['payment_type_id'] ?? 'all';
+$filterMode = $_REQUEST['scan_mode'] ?? 'type_year'; // default 'type_year' to catch OSIS & Annual fee duplicates
 $selectedPaymentIds = $_POST['payment_ids'] ?? [];
 
 use App\Models\Payment;
 use App\Models\StudentBill;
+use App\Models\PaymentType;
 use Illuminate\Support\Facades\DB;
 
+// Load all payment types for filter dropdown
+$allPaymentTypes = PaymentType::orderBy('type_name')->get();
+
 /**
- * Helper: Detect all duplicate payment groups (by Bill ID, by Student+PaymentType+Period, or by Student+Amount+Date)
+ * Helper: Detect duplicate payment groups based on scan_mode & payment_type_id
  */
-function getDuplicatePaymentGroups() {
-    // 1. Duplicate payments sharing the exact same bill_id
-    $byBillId = Payment::whereNotNull('bill_id')
-        ->groupBy('bill_id')
-        ->havingRaw('COUNT(*) > 1')
-        ->pluck('bill_id')
-        ->toArray();
+function getDuplicatePaymentGroups($mode = 'type_year', $typeId = 'all') {
+    $query = Payment::with(['student.school', 'bill.paymentType', 'processedBy'])
+        ->whereHas('bill');
 
-    // 2. Duplicate payments for same student + same payment_type_id + same academic_year + same month/year
-    $byTypePeriod = DB::table('payments')
-        ->join('student_bills', 'payments.bill_id', '=', 'student_bills.id')
-        ->select('payments.student_id', 'student_bills.payment_type_id', 'student_bills.academic_year_id', 'student_bills.month', 'student_bills.year')
-        ->groupBy('payments.student_id', 'student_bills.payment_type_id', 'student_bills.academic_year_id', 'student_bills.month', 'student_bills.year')
-        ->havingRaw('COUNT(payments.id) > 1')
-        ->get();
-
-    // 3. Duplicate payments for same student + same amount_paid + same payment_date
-    $byStudentAmountDate = Payment::select('student_id', 'amount_paid', DB::raw('DATE(payment_date) as pdate'))
-        ->groupBy('student_id', 'amount_paid', DB::raw('DATE(payment_date)'))
-        ->havingRaw('COUNT(*) > 1')
-        ->get();
-
-    // Collect all payment IDs involved in duplicates
-    $duplicatePaymentIds = collect();
-
-    // Add payments from Criteria 1
-    if (!empty($byBillId)) {
-        $ids1 = Payment::whereIn('bill_id', $byBillId)->pluck('id');
-        $duplicatePaymentIds = $duplicatePaymentIds->merge($ids1);
+    if ($typeId !== 'all' && is_numeric($typeId)) {
+        $query->whereHas('bill', fn($q) => $q->where('payment_type_id', $typeId));
     }
 
-    // Add payments from Criteria 2
-    foreach ($byTypePeriod as $row) {
-        $ids2 = Payment::whereHas('bill', function($q) use ($row) {
-                $q->where('payment_type_id', $row->payment_type_id)
-                  ->where('academic_year_id', $row->academic_year_id)
-                  ->where('month', $row->month)
-                  ->where('year', $row->year);
-            })
-            ->where('student_id', $row->student_id)
-            ->pluck('id');
-        $duplicatePaymentIds = $duplicatePaymentIds->merge($ids2);
-    }
+    $payments = $query->orderBy('student_id')->orderBy('created_at', 'asc')->get();
 
-    // Add payments from Criteria 3
-    foreach ($byStudentAmountDate as $row) {
-        $ids3 = Payment::where('student_id', $row->student_id)
-            ->where('amount_paid', $row->amount_paid)
-            ->whereDate('payment_date', $row->pdate)
-            ->pluck('id');
-        $duplicatePaymentIds = $duplicatePaymentIds->merge($ids3);
-    }
-
-    $allDuplicateIds = $duplicatePaymentIds->unique()->values();
-
-    if ($allDuplicateIds->isEmpty()) {
+    if ($payments->isEmpty()) {
         return collect();
     }
 
-    // Fetch full Payment records
-    $payments = Payment::with(['student.school', 'bill.paymentType', 'processedBy'])
-        ->whereIn('id', $allDuplicateIds)
-        ->orderBy('student_id')
-        ->orderBy('created_at', 'asc')
-        ->get();
+    // Grouping strategy based on scan_mode
+    $grouped = $payments->groupBy(function($p) use ($mode) {
+        $studentId = $p->student_id;
+        $payTypeId = $p->bill->payment_type_id ?? 0;
+        $ayId = $p->bill->academic_year_id ?? 0;
+        $month = $p->bill->month ?? 0;
+        $year = $p->bill->year ?? 0;
+        $date = $p->payment_date ? $p->payment_date->format('Y-m-d') : 'nodate';
+        $billId = $p->bill_id ?? 0;
 
-    // Group payments logically by student_id + payment_type_id (or bill_id / date)
-    $grouped = $payments->groupBy(function($p) {
-        $typeId = $p->bill->paymentType->id ?? 'no_bill';
-        $month = $p->bill->month ?? 'no_month';
-        $year = $p->bill->year ?? 'no_year';
-        return $p->student_id . '_' . $typeId . '_' . $month . '_' . $year;
+        if ($mode === 'same_bill') {
+            // Group by exact bill_id
+            return $studentId . '_bill_' . $billId;
+        } elseif ($mode === 'month_year') {
+            // Group by Student + PaymentType + AcademicYear + Month + Year
+            return $studentId . '_type_' . $payTypeId . '_ay_' . $ayId . '_m_' . $month . '_y_' . $year;
+        } elseif ($mode === 'same_date') {
+            // Group by Student + Amount + Date
+            return $studentId . '_amt_' . (float)$p->amount_paid . '_dt_' . $date;
+        } else {
+            // Default 'type_year': Group by Student + PaymentType + AcademicYear (CRITICAL FOR IURAN OSIS & Non-Monthly Fees)
+            return $studentId . '_type_' . $payTypeId . '_ay_' . $ayId;
+        }
     });
 
-    // Filter only groups that have > 1 payment record
+    // Filter only groups with > 1 payment record
     return $grouped->filter(function($group) {
         return $group->count() > 1;
     });
@@ -118,7 +89,7 @@ if ($action === 'execute' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $deletedBillCount = 0;
     $affectedBillIds = collect();
 
-    $groupsToProcess = getDuplicatePaymentGroups();
+    $groupsToProcess = getDuplicatePaymentGroups($filterMode, $filterTypeId);
 
     DB::transaction(function () use ($selectedPaymentIds, $groupsToProcess, &$deletedPaymentCount, &$deletedBillCount, &$affectedBillIds, &$executionLog) {
         if (!empty($selectedPaymentIds)) {
@@ -190,7 +161,7 @@ if ($action === 'execute' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Fetch current duplicate payment groups
-$groupedDuplicates = getDuplicatePaymentGroups();
+$groupedDuplicates = getDuplicatePaymentGroups($filterMode, $filterTypeId);
 
 $totalDuplicateGroups = $groupedDuplicates->count();
 $totalRedundantPayments = 0;
@@ -218,12 +189,54 @@ foreach($groupedDuplicates as $payments) {
 </head>
 <body class="py-4">
 <div class="container">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold text-dark mb-1"><i class="fa-solid fa-wrench text-danger me-2"></i> Script Emergency: Pembersihan Pembayaran Ganda</h3>
-            <p class="text-muted mb-0">PembdaHUB Emergency Tool - Pembersihan Kas & Tagihan Ganda (SPP, Iuran OSIS, & Jenis Pembayaran Lain)</p>
+            <p class="text-muted mb-0">PembdaHUB Emergency Tool - Pembersihan Kas & Tagihan Ganda (Iuran OSIS, SPP, Uang Pangkal, dll)</p>
         </div>
         <span class="badge bg-dark px-3 py-2">Token Secret Verified</span>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="card card-custom p-3 mb-4 bg-white">
+        <form action="clean_duplicate_payments.php" method="GET" class="row g-3 align-items-center">
+            <input type="hidden" name="secret" value="<?= htmlspecialchars($secret) ?>">
+            
+            <div class="col-md-5">
+                <label class="form-label fw-bold text-secondary mb-1">Pilih Jenis Tagihan:</label>
+                <select name="payment_type_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="all" <?= $filterTypeId === 'all' ? 'selected' : '' ?>>-- Semua Jenis Tagihan --</option>
+                    <?php foreach($allPaymentTypes as $pt): ?>
+                        <option value="<?= $pt->id ?>" <?= String($filterTypeId) === String($pt->id) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($pt->type_name) ?> (Unit ID: <?= $pt->school_id ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="col-md-5">
+                <label class="form-label fw-bold text-secondary mb-1">Metode/Kategori Pemindaian:</label>
+                <select name="scan_mode" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="type_year" <?= $filterMode === 'type_year' ? 'selected' : '' ?>>
+                        Per Jenis Tagihan & Tahun Ajaran (Rekomendasi Iuran OSIS & Tagihan Tahunan)
+                    </option>
+                    <option value="month_year" <?= $filterMode === 'month_year' ? 'selected' : '' ?>>
+                        Per Bulan & Tahun Ajaran (Untuk SPP Bulanan)
+                    </option>
+                    <option value="same_date" <?= $filterMode === 'same_date' ? 'selected' : '' ?>>
+                        Per Nominal & Tanggal Transaksi Sama (Double Click)
+                    </option>
+                    <option value="same_bill" <?= $filterMode === 'same_bill' ? 'selected' : '' ?>>
+                        Per Bill ID Persis Sama
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fa-solid fa-search me-1"></i> Pindai Ulang</button>
+            </div>
+        </form>
     </div>
 
     <?php if (!empty($executionLog)): ?>
@@ -242,7 +255,7 @@ foreach($groupedDuplicates as $payments) {
     <div class="card card-custom p-4 mb-4 bg-white">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h5 class="fw-bold text-secondary mb-3">Hasil Pemindaian Transaksi Ganda (Semua Jenis Pembayaran)</h5>
+                <h5 class="fw-bold text-secondary mb-3">Hasil Pemindaian Transaksi Ganda</h5>
                 <div class="d-flex gap-4">
                     <div>
                         <div class="fs-3 fw-bold text-dark"><?= number_format($totalDuplicateGroups) ?></div>
@@ -271,6 +284,8 @@ foreach($groupedDuplicates as $payments) {
     <?php if($totalDuplicateGroups > 0): ?>
     <form action="clean_duplicate_payments.php?secret=<?= urlencode($secret) ?>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi pembayaran ganda yang dipilih?');">
         <input type="hidden" name="action" value="execute">
+        <input type="hidden" name="payment_type_id" value="<?= htmlspecialchars($filterTypeId) ?>">
+        <input type="hidden" name="scan_mode" value="<?= htmlspecialchars($filterMode) ?>">
         
         <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded border mb-3">
             <div class="form-check">
@@ -357,8 +372,8 @@ foreach($groupedDuplicates as $payments) {
     <?php else: ?>
     <div class="card card-custom p-5 text-center bg-white">
         <i class="fa-solid fa-circle-check text-success fs-1 mb-3"></i>
-        <h4 class="fw-bold">Tidak Ada Transaksi Pembayaran Ganda Terdeteksi!</h4>
-        <p class="text-muted">Seluruh data transaksi pembayaran kas & tagihan siswa di PembdaHUB (SPP, Iuran OSIS, dll) bersih dan konsisten.</p>
+        <h4 class="fw-bold">Tidak Ada Transaksi Pembayaran Ganda Terdeteksi Untuk Filter Ini!</h4>
+        <p class="text-muted">Cobalah memilih filter Jenis Tagihan khusus (seperti Iuran OSIS) atau pilih Metode Pemindaian <strong>"Per Jenis Tagihan & Tahun Ajaran"</strong> pada form filter di atas.</p>
     </div>
     <?php endif; ?>
 </div>
