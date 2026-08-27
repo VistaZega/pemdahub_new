@@ -91,16 +91,44 @@
 
     {{-- Analytics Dashboard Section --}}
     @if($subjectGrades->count() > 0)
+    
+    {{-- Narrative Insight --}}
+    @if(isset($highestSubject) && isset($lowestSubject))
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-5 mb-6 relative overflow-hidden">
+        <div class="absolute right-0 top-0 opacity-10 pointer-events-none">
+            <i class="fas fa-robot text-8xl -mt-4 -mr-4 text-blue-600"></i>
+        </div>
+        <div class="relative z-10 flex gap-4">
+            <div class="hidden sm:flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 shrink-0">
+                <i class="fas fa-lightbulb text-xl"></i>
+            </div>
+            <div>
+                <h3 class="text-blue-800 font-bold text-lg mb-1">Analisis Pintar (AI Insight)</h3>
+                <p class="text-gray-700 text-sm leading-relaxed">
+                    Halo <strong>{{ $student->name }}</strong>! Saat ini kamu menempuh <strong>{{ $totalSubjects }}</strong> mata pelajaran dengan rata-rata nilai keseluruhan <strong>{{ $overallAvg }}</strong>. 
+                    <br class="hidden sm:block">
+                    Kekuatan utamamu ada di mata pelajaran <strong class="text-emerald-600">{{ $highestSubject['subject']->subject_name ?? $highestSubject['subject']->name ?? '-' }} ({{ $highestSubject['average'] }})</strong>. 
+                    @if($lowestSubject['average'] < 75)
+                        Namun, kamu disarankan untuk lebih fokus belajar pada pelajaran <strong class="text-rose-600">{{ $lowestSubject['subject']->subject_name ?? $lowestSubject['subject']->name ?? '-' }} ({{ $lowestSubject['average'] }})</strong> agar bisa lulus KKM. Terus semangat ya!
+                    @else
+                        Hebatnya, seluruh nilaimu sudah cukup baik dan stabil. Pertahankan terus konsistensi belajarmu!
+                    @endif
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {{-- Radar Chart: Peta Kekuatan Akademik --}}
+        {{-- Horizontal Bar Chart: Top Subjects --}}
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col justify-between">
             <div>
                 <h3 class="font-bold text-gray-800 flex items-center gap-2 mb-1">
-                    <i class="fas fa-chart-pie text-amber-500"></i> Peta Kekuatan Akademik
+                    <i class="fas fa-trophy text-amber-500"></i> Peringkat Kekuatan Mapel
                 </h3>
-                <p class="text-xs text-gray-500">Analisis rata-rata nilai kompetensi per mata pelajaran</p>
+                <p class="text-xs text-gray-500">Mata pelajaran dengan nilai rata-rata tertinggi</p>
             </div>
-            <div class="relative h-64 mt-4 flex items-center justify-center">
+            <div class="relative h-64 mt-4 flex items-center justify-center w-full">
                 <canvas id="radarChart"></canvas>
             </div>
         </div>
@@ -548,33 +576,42 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Radar Chart
+        // Top Subjects Horizontal Bar Chart (Reusing radarChart canvas ID)
         const ctxRadar = document.getElementById('radarChart').getContext('2d');
+        
+        // Sort data for Top 5
+        let rawData = [];
+        let subjects = @json($chartSubjects);
+        let averages = @json($chartAverages);
+        for(let i=0; i<subjects.length; i++) {
+            rawData.push({ subject: subjects[i], avg: averages[i] });
+        }
+        rawData.sort((a, b) => b.avg - a.avg);
+        let topData = rawData.slice(0, 5); // Take top 5
+        
         new Chart(ctxRadar, {
-            type: 'radar',
+            type: 'bar',
             data: {
-                labels: @json($chartSubjects),
+                labels: topData.map(d => d.subject.length > 15 ? d.subject.substring(0, 15) + '...' : d.subject),
                 datasets: [{
                     label: 'Rata-rata Nilai',
-                    data: @json($chartAverages),
-                    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                    borderColor: 'rgba(245, 158, 11, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(245, 158, 11, 1)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(245, 158, 11, 1)'
+                    data: topData.map(d => d.avg),
+                    backgroundColor: 'rgba(245, 158, 11, 0.85)',
+                    borderRadius: 4,
                 }]
             },
             options: {
+                indexAxis: 'y', // Make it horizontal
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    r: {
-                        angleLines: { display: true },
-                        suggestedMin: 0,
-                        suggestedMax: 100,
+                    x: {
+                        beginAtZero: true,
+                        max: 100,
                         ticks: { stepSize: 20 }
+                    },
+                    y: {
+                        ticks: { font: { size: 10 } }
                     }
                 },
                 plugins: {
