@@ -12,7 +12,7 @@ return new class extends Migration
     {
         DB::table('payment_types')
             ->where('type_name', 'like', '%OSIS%')
-            ->update(['is_recurring' => false]);
+            ->update(['is_recurring' => true]);
     }
 
     /**
@@ -22,6 +22,6 @@ return new class extends Migration
     {
         DB::table('payment_types')
             ->where('type_name', 'like', '%OSIS%')
-            ->update(['is_recurring' => true]);
+            ->update(['is_recurring' => false]);
     }
 };

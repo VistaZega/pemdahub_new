@@ -23,7 +23,7 @@ if ($secret !== $VALID_SECRET) {
 
 $action = $_REQUEST['action'] ?? 'preview';
 $filterTypeId = $_REQUEST['payment_type_id'] ?? 'all';
-$filterMode = $_REQUEST['scan_mode'] ?? 'type_year'; // default 'type_year' to catch OSIS & Annual fee duplicates
+$filterMode = $_REQUEST['scan_mode'] ?? 'month_year'; // default 'month_year' for monthly bills (SPP & Iuran OSIS)
 $selectedPaymentIds = $_POST['payment_ids'] ?? [];
 
 use App\Models\Payment;
@@ -31,8 +31,8 @@ use App\Models\StudentBill;
 use App\Models\PaymentType;
 use Illuminate\Support\Facades\DB;
 
-// Auto-ensure OSIS payment types are non-recurring across all schools
-PaymentType::where('type_name', 'like', '%OSIS%')->update(['is_recurring' => false]);
+// Auto-ensure OSIS payment types are marked as recurring (monthly) across all schools
+PaymentType::where('type_name', 'like', '%OSIS%')->update(['is_recurring' => true]);
 
 // Load all payment types for filter dropdown
 $allPaymentTypes = PaymentType::orderBy('type_name')->get();
@@ -221,11 +221,11 @@ foreach($groupedDuplicates as $payments) {
             <div class="col-md-5">
                 <label class="form-label fw-bold text-secondary mb-1">Metode/Kategori Pemindaian:</label>
                 <select name="scan_mode" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="type_year" <?= $filterMode === 'type_year' ? 'selected' : '' ?>>
-                        Per Jenis Tagihan & Tahun Ajaran (Rekomendasi Iuran OSIS & Tagihan Tahunan)
-                    </option>
                     <option value="month_year" <?= $filterMode === 'month_year' ? 'selected' : '' ?>>
-                        Per Bulan & Tahun Ajaran (Untuk SPP Bulanan)
+                        Per Bulan & Tahun Ajaran (Rekomendasi Iuran OSIS & SPP Bulanan)
+                    </option>
+                    <option value="type_year" <?= $filterMode === 'type_year' ? 'selected' : '' ?>>
+                        Per Jenis Tagihan & Tahun Ajaran Overall (Semua Bulan Digabung)
                     </option>
                     <option value="same_date" <?= $filterMode === 'same_date' ? 'selected' : '' ?>>
                         Per Nominal & Tanggal Transaksi Sama (Double Click)

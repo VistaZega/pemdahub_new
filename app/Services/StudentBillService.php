@@ -48,11 +48,6 @@ class StudentBillService
         }
 
         $paymentType = PaymentType::find($validated['payment_type_id']);
-        
-        // Non-recurring payment types (like Iuran OSIS, Uang Pangkal) should only be generated ONCE per academic year
-        if ($paymentType && !$paymentType->is_recurring) {
-            $generateMonths = 1;
-        }
 
         // Use custom amount if provided, otherwise fallback to payment type default or bill amount
         $yayasanShareAmount = null;
