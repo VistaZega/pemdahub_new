@@ -83,7 +83,7 @@
         <div data-aos="fade-up" data-aos-delay="200" style="margin-top:64px; overflow:hidden; position:relative; padding-bottom: 24px;">
             <div class="marquee-fade-left"></div>
             <div class="marquee-fade-right"></div>
-            <div class="marquee-track" style="animation-duration: 360s;">
+            <div class="marquee-track" style="animation-duration: 720s;">
                 <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
                     @foreach($finalProjectsShowcase as $fp)
                         <div style="min-width: 450px; max-width: 550px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
@@ -100,10 +100,10 @@
                             <div style="width: 100%; position: relative;">
                                 @php
                                     $teamNames = $fp->members->isNotEmpty() 
-                                        ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ')
+                                        ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &bull; ')
                                         : ($fp->student->full_name ?? 'Tim Siswa');
                                 @endphp
-                                <div style="font-size: 15px; font-weight: 800; color: var(--indigo); text-align: center; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25);">
+                                <div style="font-size: 15px; font-weight: 800; color: var(--indigo); text-align: center; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25); white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;">
                                     <i class="fa-solid fa-users" style="margin-right:8px; color: var(--violet);"></i> {!! $teamNames !!}
                                 </div>
                             </div>
@@ -124,10 +124,10 @@
                             <div style="width: 100%; position: relative;">
                                 @php
                                     $teamNames = $fp->members->isNotEmpty() 
-                                        ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ')
+                                        ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &bull; ')
                                         : ($fp->student->full_name ?? 'Tim Siswa');
                                 @endphp
-                                <div style="font-size: 15px; font-weight: 800; color: var(--indigo); text-align: center; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25);">
+                                <div style="font-size: 15px; font-weight: 800; color: var(--indigo); text-align: center; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25); white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;">
                                     <i class="fa-solid fa-users" style="margin-right:8px; color: var(--violet);"></i> {!! $teamNames !!}
                                 </div>
                             </div>
