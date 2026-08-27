@@ -71,6 +71,7 @@
                         if (str_contains($schoolName, 'sma') || str_contains($schoolType, 'sma')) {
                             // SMA : HIJAU
                             $unitTheme = [
+                                'base_color' => '#042f2e',
                                 'bg' => 'linear-gradient(145deg, #064e3b 0%, #065f46 50%, #047857 100%)',
                                 'shadow' => 'rgba(16, 185, 129, 0.35)',
                                 'hover_shadow' => 'rgba(16, 185, 129, 0.55)',
@@ -87,6 +88,7 @@
                         } elseif (str_contains($schoolName, 'smp') || str_contains($schoolType, 'smp')) {
                             // SMP : BIRU
                             $unitTheme = [
+                                'base_color' => '#172554',
                                 'bg' => 'linear-gradient(145deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%)',
                                 'shadow' => 'rgba(37, 99, 235, 0.35)',
                                 'hover_shadow' => 'rgba(37, 99, 235, 0.55)',
@@ -103,6 +105,7 @@
                         } else {
                             // SMK : COKLAT
                             $unitTheme = [
+                                'base_color' => '#451a03',
                                 'bg' => 'linear-gradient(145deg, #78350f 0%, #92400e 50%, #b45309 100%)',
                                 'shadow' => 'rgba(217, 119, 6, 0.35)',
                                 'hover_shadow' => 'rgba(217, 119, 6, 0.55)',
@@ -162,62 +165,56 @@
                     <div class="prestasi-item-card" 
                          data-aos="fade-up" 
                          data-aos-delay="{{ $delay }}"
-                         style="background: {{ $unitTheme['bg'] }}; box-shadow: 0 14px 34px -8px {{ $unitTheme['shadow'] }};"
-                         onmouseover="this.style.boxShadow='0 22px 48px -8px {{ $unitTheme['hover_shadow'] }}'"
-                         onmouseout="this.style.boxShadow='0 14px 34px -8px {{ $unitTheme['shadow'] }}'">
+                         style="box-shadow: 0 14px 34px -8px {{ $unitTheme['shadow'] }}; padding: 0; min-height: 420px; background-color: {{ $unitTheme['base_color'] }}; border: 1px solid rgba(255,255,255,0.05);"
+                         onmouseover="this.style.boxShadow='0 22px 48px -8px {{ $unitTheme['hover_shadow'] }}'; this.querySelector('.bg-img').style.transform='scale(1.08)';"
+                         onmouseout="this.style.boxShadow='0 14px 34px -8px {{ $unitTheme['shadow'] }}'; this.querySelector('.bg-img').style.transform='scale(1)';">
                         
-                        <!-- Watermark Piala -->
-                        <i class="fa-solid fa-trophy" style="position:absolute; right:-15px; bottom:-10px; font-size:140px; opacity:0.06; color:#ffffff; transform:rotate(-15deg); pointer-events:none;"></i>
+                        <!-- Background Image Siswa (Top Half & Zoomed out) -->
+                        <img src="{{ $achievement->student?->photo_url ?? asset('assets/img/default-avatar.png') }}" 
+                             class="bg-img"
+                             style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; object-position:top; transition:transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);" 
+                             alt="{{ $achievement->student?->full_name ?? 'Siswa' }}" 
+                             onerror="this.src='{{ asset('assets/img/default-avatar.png') }}'">
                         
-                        <!-- Bintang Hiasan Animasi -->
-                        <i class="fa-solid fa-star" style="position:absolute; top:20px; left:20px; color:#fbbf24; opacity:0.6; font-size:14px; animation: starPulse 2s infinite;"></i>
-                        <i class="fa-solid fa-star" style="position:absolute; top:36px; right:24px; color:#fbbf24; opacity:0.75; font-size:18px; animation: starPulse 2s infinite 1s;"></i>
+                        <!-- Gradient Overlay untuk Membaca Teks (Fade dari warna unit ke transparan) -->
+                        <div style="position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to top, {{ $unitTheme['base_color'] }} 0%, {{ $unitTheme['base_color'] }} 30%, rgba(0,0,0,0.6) 65%, transparent 100%);"></div>
 
                         <!-- Top Badge Tingkat -->
-                        <div style="position:absolute; top:0; left:50%; transform:translateX(-50%); background:{{ $levelStyle['bg'] }}; color:{{ $levelStyle['text'] }}; padding:5px 18px; border-radius:0 0 14px 14px; font-size:11.5px; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; box-shadow:0 4px 10px rgba(0,0,0,0.15);">
-                            <i class="fa-solid fa-globe" style="margin-right:4px;"></i> Tingkat {{ $levelStyle['label'] }}
+                        <div style="position:absolute; top:0; right:20px; background:{{ $levelStyle['bg'] }}; color:{{ $levelStyle['text'] }}; padding:6px 16px; border-radius:0 0 12px 12px; font-size:11.5px; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; box-shadow:0 4px 10px rgba(0,0,0,0.25); z-index:2;">
+                            <i class="fa-solid fa-globe" style="margin-right:4px;"></i> {{ $levelStyle['label'] }}
                         </div>
 
-                        <!-- Foto Siswa dengan Cincin Warna Unit Sekolah -->
-                        <div style="position:relative; width:100px; height:100px; margin:0 auto 16px; border-radius:50%; padding:3px; background:{{ $unitTheme['ring'] }}; box-shadow:0 8px 20px rgba(0,0,0,0.25);">
-                            <img src="{{ $achievement->student?->photo_url ?? asset('assets/img/default-avatar.png') }}" 
-                                 style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2.5px solid #ffffff;" 
-                                 alt="{{ $achievement->student?->full_name ?? 'Siswa' }}" 
-                                 onerror="this.src='{{ asset('assets/img/default-avatar.png') }}'">
+                        <!-- Konten Teks Bawah -->
+                        <div style="position:absolute; bottom:0; left:0; width:100%; padding:24px; display:flex; flex-direction:column; justify-content:flex-end; z-index:2; text-align:left;">
                             
-                            <!-- Ikon Kategori -->
-                            <div style="position:absolute; bottom:-2px; right:-2px; width:34px; height:34px; background:{{ $unitTheme['icon_badge_bg'] }}; color:{{ $unitTheme['icon_badge_color'] }}; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #ffffff; font-size:14px; box-shadow:0 4px 8px rgba(0,0,0,0.2);">
-                                <i class="fa-solid {{ $icon }}"></i>
+                            <!-- Badge Sekolah & Kategori Prestasi -->
+                            <div style="margin-bottom:12px; display:flex; gap:8px; flex-wrap:wrap;">
+                                <span style="background:rgba(255,255,255,0.15); backdrop-filter:blur(4px); color:#ffffff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; border:1px solid rgba(255,255,255,0.2);">
+                                    <i class="fa-solid fa-school" style="margin-right:4px;"></i> {{ $achievement->student?->school?->name ?? $unitTheme['unit_label'] }}
+                                </span>
+                                <span style="background:rgba(255,255,255,0.15); backdrop-filter:blur(4px); color:#ffffff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; border:1px solid rgba(255,255,255,0.2);">
+                                    <i class="fa-solid {{ $icon }}" style="margin-right:4px; color: {{ $unitTheme['rank_color'] }};"></i> {{ ucfirst($achievement->category ?? 'Lainnya') }}
+                                </span>
                             </div>
-                        </div>
 
-                        <!-- Nama Siswa -->
-                        <h4 style="font-size:17.5px; font-weight:900; color:#ffffff; margin-bottom:6px; line-height:1.25; letter-spacing:-0.01em;">
-                            {{ $achievement->student?->full_name ?? 'Siswa/i Pembda' }}
-                        </h4>
-                        
-                        <!-- Badge Sekolah (Warna Unit) -->
-                        <div style="margin-bottom:18px;">
-                            <span style="background:{{ $unitTheme['school_badge_bg'] }}; color:{{ $unitTheme['school_badge_color'] }}; font-size:11.5px; font-weight:800; padding:4px 12px; border-radius:100px; display:inline-flex; align-items:center; gap:6px;">
-                                <i class="fa-solid fa-school"></i>
-                                {{ $achievement->student?->school?->name ?? $unitTheme['unit_label'] }}
-                            </span>
-                        </div>
-                        
-                        <!-- Judul Prestasi -->
-                        <div style="background:rgba(255,255,255,0.12); backdrop-filter:blur(8px); border-radius:14px; padding:14px 12px; border:1px solid rgba(255,255,255,0.2); margin-bottom:20px; flex-grow:1; display:flex; align-items:center; justify-content:center; position:relative; z-index:1;">
-                            <div style="font-size:13.5px; line-height:1.5; color:#ffffff; font-weight:700;">
+                            <!-- Nama Siswa -->
+                            <h4 style="font-size:22px; font-weight:900; color:#ffffff; margin-bottom:10px; line-height:1.2; letter-spacing:-0.01em; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">
+                                {{ $achievement->student?->full_name ?? 'Siswa/i Pembda' }}
+                            </h4>
+                            
+                            <!-- Judul Prestasi -->
+                            <div style="font-size:14.5px; line-height:1.5; color:rgba(255,255,255,0.9); font-weight:600; margin-bottom:20px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">
                                 {{ $achievement->title }}
                             </div>
-                        </div>
-                        
-                        <!-- Footer: Juara & Tanggal -->
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed rgba(255,255,255,0.25); padding-top:14px; position:relative; z-index:1;">
-                            <div style="font-weight:900; color:{{ $unitTheme['rank_color'] }}; font-size:14px; background:{{ $unitTheme['badge_bg'] }}; padding:5px 12px; border-radius:100px;">
-                                <i class="fa-solid fa-award"></i> {{ $rankLabel }}
-                            </div>
-                            <div style="font-size:12px; color:rgba(255,255,255,0.75); font-weight:700;">
-                                <i class="fa-regular fa-calendar-alt" style="margin-right:4px;"></i> {{ \Carbon\Carbon::parse($achievement->incident_date)->translatedFormat('M Y') }}
+                            
+                            <!-- Footer: Juara & Tanggal -->
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.15); padding-top:16px;">
+                                <div style="font-weight:900; color:{{ $unitTheme['rank_color'] }}; font-size:15px; display:flex; align-items:center; gap:6px; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">
+                                    <i class="fa-solid fa-award"></i> {{ $rankLabel }}
+                                </div>
+                                <div style="font-size:12.5px; color:rgba(255,255,255,0.7); font-weight:700;">
+                                    <i class="fa-regular fa-calendar-alt" style="margin-right:4px;"></i> {{ \Carbon\Carbon::parse($achievement->incident_date)->translatedFormat('M Y') }}
+                                </div>
                             </div>
                         </div>
                     </div>
