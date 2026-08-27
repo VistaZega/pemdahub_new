@@ -172,12 +172,12 @@
                         <!-- Background Image Siswa (Top Half & Zoomed out) -->
                         <img src="{{ $achievement->student?->photo_url ?? asset('assets/img/default-avatar.png') }}" 
                              class="bg-img"
-                             style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; object-position:top; transition:transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);" 
+                             style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; object-position:right top; transition:transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);" 
                              alt="{{ $achievement->student?->full_name ?? 'Siswa' }}" 
                              onerror="this.src='{{ asset('assets/img/default-avatar.png') }}'">
                         
-                        <!-- Gradient Overlay untuk Membaca Teks (Fade dari warna unit ke transparan) -->
-                        <div style="position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to top, {{ $unitTheme['base_color'] }} 0%, {{ $unitTheme['base_color'] }} 30%, rgba(0,0,0,0.6) 65%, transparent 100%);"></div>
+                        <!-- Gradient Overlay untuk Membaca Teks (Diturunkan agar tidak menutupi wajah di bagian atas/tengah) -->
+                        <div style="position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to top, {{ $unitTheme['base_color'] }} 0%, rgba(0,0,0,0.8) 45%, transparent 65%);"></div>
 
                         <!-- Top Badge Tingkat -->
                         <div style="position:absolute; top:0; right:20px; background:{{ $levelStyle['bg'] }}; color:{{ $levelStyle['text'] }}; padding:6px 16px; border-radius:0 0 12px 12px; font-size:11.5px; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; box-shadow:0 4px 10px rgba(0,0,0,0.25); z-index:2;">
