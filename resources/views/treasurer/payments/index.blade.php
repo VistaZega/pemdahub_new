@@ -20,12 +20,6 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
-                <a href="{{ route('treasurer.payments.duplicates') }}" 
-                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl font-bold text-xs hover:bg-rose-600 hover:text-white transition-all shadow-sm">
-                    <i class="fas fa-broom"></i>
-                    Cek Pembayaran Ganda
-                </a>
-
                 <a href="{{ route('treasurer.payments.bulk-create') }}" 
                     class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-600 hover:text-white transition-all shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

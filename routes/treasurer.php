@@ -23,8 +23,6 @@ Route::prefix('bendahara')->name('treasurer.')->middleware('auth', 'treasurer')-
     Route::resource('bills', App\Http\Controllers\Treasurer\StudentBillController::class);
     
     // Payments Management
-    Route::get('payments/duplicates', [App\Http\Controllers\Treasurer\PaymentController::class, 'detectDuplicates'])->name('payments.duplicates');
-    Route::post('payments/fix-duplicates', [App\Http\Controllers\Treasurer\PaymentController::class, 'fixDuplicates'])->name('payments.fix_duplicates');
     Route::get('payments/export', [App\Http\Controllers\Treasurer\PaymentController::class, 'export'])->name('payments.export');
     Route::get('payments/bulk-create', [App\Http\Controllers\Treasurer\PaymentController::class, 'bulkCreate'])->name('payments.bulk-create');
     Route::get('payments/fetch-bills', [App\Http\Controllers\Treasurer\PaymentController::class, 'fetchBills'])->name('payments.fetch-bills');
