@@ -83,16 +83,30 @@
         <div data-aos="fade-up" data-aos-delay="200" style="margin-top:64px; overflow:hidden; position:relative; padding-bottom: 24px;">
             <div class="marquee-fade-left"></div>
             <div class="marquee-fade-right"></div>
-            <div class="marquee-track" style="animation-duration: 720s;">
+            <div class="marquee-track" style="animation-duration: 1440s;">
                 <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
                     @foreach($finalProjectsShowcase as $fp)
                         <div style="min-width: 450px; max-width: 550px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
                             @php
                                 $titleColors = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#db2777'];
                                 $color = $titleColors[$loop->index % count($titleColors)];
+                                
+                                $len = strlen($fp->title);
+                                if ($len < 40) $baseSize = ($loop->index % 2 == 0) ? 28 : 26;
+                                elseif ($len < 70) $baseSize = ($loop->index % 2 == 0) ? 24 : 22;
+                                else $baseSize = ($loop->index % 2 == 0) ? 20 : 18;
+                                
+                                $fonts = ['inherit', 'Georgia, serif', 'Impact, sans-serif', '"Courier New", monospace', '"Trebuchet MS", sans-serif'];
+                                $weights = [900, 800, 400, 700, 800];
+                                $styles = ['normal', 'italic', 'normal', 'normal', 'italic'];
+                                
+                                $idx = $loop->index % 5;
+                                $fontFam = $fonts[$idx];
+                                $fontWght = $weights[$idx];
+                                $fontStl = $styles[$idx];
                             @endphp
                             {{-- Bagian Atas: Judul (Besar, Bayangan, Bold, Center) --}}
-                            <h4 style="font-size: 22px; font-weight: 900; color: {{ $color }}; line-height: 1.35; text-shadow: 2px 2px 5px rgba(0,0,0,0.15); margin: 0 0 16px 0; text-align: center; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; padding: 0 10px;">
+                            <h4 style="font-family: {!! $fontFam !!}; font-size: {{ $baseSize }}px; font-weight: {{ $fontWght }}; font-style: {{ $fontStl }}; color: {{ $color }}; line-height: 1.35; text-shadow: 2px 2px 5px rgba(0,0,0,0.15); margin: 0 0 16px 0; text-align: center; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; padding: 0 10px;">
                                 {{ $fp->title }}
                             </h4>
                             
@@ -116,8 +130,22 @@
                             @php
                                 $titleColors = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#db2777'];
                                 $color = $titleColors[$loop->index % count($titleColors)];
+                                
+                                $len = strlen($fp->title);
+                                if ($len < 40) $baseSize = ($loop->index % 2 == 0) ? 28 : 26;
+                                elseif ($len < 70) $baseSize = ($loop->index % 2 == 0) ? 24 : 22;
+                                else $baseSize = ($loop->index % 2 == 0) ? 20 : 18;
+                                
+                                $fonts = ['inherit', 'Georgia, serif', 'Impact, sans-serif', '"Courier New", monospace', '"Trebuchet MS", sans-serif'];
+                                $weights = [900, 800, 400, 700, 800];
+                                $styles = ['normal', 'italic', 'normal', 'normal', 'italic'];
+                                
+                                $idx = $loop->index % 5;
+                                $fontFam = $fonts[$idx];
+                                $fontWght = $weights[$idx];
+                                $fontStl = $styles[$idx];
                             @endphp
-                            <h4 style="font-size: 22px; font-weight: 900; color: {{ $color }}; line-height: 1.35; text-shadow: 2px 2px 5px rgba(0,0,0,0.15); margin: 0 0 16px 0; text-align: center; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; padding: 0 10px;">
+                            <h4 style="font-family: {!! $fontFam !!}; font-size: {{ $baseSize }}px; font-weight: {{ $fontWght }}; font-style: {{ $fontStl }}; color: {{ $color }}; line-height: 1.35; text-shadow: 2px 2px 5px rgba(0,0,0,0.15); margin: 0 0 16px 0; text-align: center; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; padding: 0 10px;">
                                 {{ $fp->title }}
                             </h4>
                             
