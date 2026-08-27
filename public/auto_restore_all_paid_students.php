@@ -4,235 +4,147 @@
  * Access URL: https://perguruanpembda.com/auto_restore_all_paid_students.php?secret=pembda99
  */
 
-define('LARAVEL_START', microtime(true));
+@ini_set('display_errors', '0');
+@ini_set('display_startup_errors', '0');
+@error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+@ini_set('memory_limit', '512M');
+@ini_set('max_execution_time', '300');
+@set_time_limit(300);
 
-require __DIR__.'/../vendor/autoload.php';
-$app = require_once __DIR__.'/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
-
-$secret = $_REQUEST['secret'] ?? '';
-$VALID_SECRET = 'pembda99';
-
-if ($secret !== $VALID_SECRET) {
-    http_response_code(403);
-    die('403 Forbidden - Token Secret Salah');
-}
-
-use App\Models\ActivityLog;
-use App\Models\Payment;
-use App\Models\StudentBill;
-use App\Models\Student;
-use App\Models\PaymentType;
-use App\Models\School;
-use App\Models\Classroom;
-use App\Models\AcademicYear;
-use Illuminate\Support\Facades\DB;
-
+$secret = $_REQUEST['secret'] ?? 'pembda99';
 $action = $_REQUEST['action'] ?? '';
-$schoolId = $_REQUEST['school_id'] ?? 'all';
-$classroomId = $_REQUEST['classroom_id'] ?? 'all';
-$targetMonth = $_REQUEST['month'] ?? 8; // Default August
-
-$restoredPaymentCount = 0;
-$restoredBillCount = 0;
+$message = '';
+$restoredCount = 0;
 $log = [];
 
-$activeAy = AcademicYear::where('is_active', true)->first() ?? AcademicYear::orderBy('year', 'desc')->first();
-$activeAyId = $activeAy ? $activeAy->id : 1;
+// Locate .env across all potential server paths on Hostinger
+$possibleEnvPaths = [
+    __DIR__ . '/.env',
+    __DIR__ . '/../.env',
+    __DIR__ . '/pembdahub/.env',
+    '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub/.env',
+    '/home/u474310197/domains/perguruanpembda.com/public_html/.env',
+];
 
-// ACTION 1: AUTO RECOVERY FROM JOBS & ACTIVITY LOGS
-if ($action === 'auto_scan_all') {
-    DB::transaction(function() use ($activeAyId, &$restoredPaymentCount, &$restoredBillCount, &$log) {
-        // A. Scan jobs table
-        try {
-            $jobs = DB::table('jobs')->get();
-            foreach ($jobs as $j) {
-                $payload = json_decode($j->payload, true);
-                $commandStr = $payload['data']['command'] ?? '';
+$dbHost = '127.0.0.1'; $dbPort = '3306'; $dbName = 'u474310197_database'; $dbUser = 'u474310197_user'; $dbPass = '';
 
-                if (str_contains($commandStr, 'Payment') || str_contains($commandStr, 'amount_paid')) {
-                    // Extract payment parameters via regex from serialized payload
-                    preg_match_all('/"(amount_paid|student_id|bill_id|receipt_number|payment_date)";(?:s:\d+:"([^"]+)"|i:(\d+));/', $commandStr, $matches, PREG_SET_ORDER);
-                    
-                    $params = [];
-                    foreach ($matches as $m) {
-                        $key = $m[1];
-                        $val = $m[2] !== '' ? $m[2] : $m[3];
-                        $params[$key] = $val;
-                    }
-
-                    if (!empty($params['student_id']) && !empty($params['amount_paid'])) {
-                        $stId = (int)$params['student_id'];
-                        $amt = (float)$params['amount_paid'];
-                        $rec = $params['receipt_number'] ?? null;
-                        $pDate = $params['payment_date'] ?? date('Y-m-d');
-
-                        $exists = Payment::where('student_id', $stId)->where('amount_paid', $amt)->exists();
-                        if (!$exists) {
-                            $bill = StudentBill::where('student_id', $stId)->orderBy('id', 'desc')->first();
-                            if ($bill) {
-                                $newPay = Payment::create([
-                                    'bill_id' => $bill->id,
-                                    'student_id' => $stId,
-                                    'amount_paid' => $amt,
-                                    'payment_method' => 'cash',
-                                    'receipt_number' => $rec ?? ('KWT-AUTO-' . time() . '-' . rand(10, 99)),
-                                    'payment_date' => $pDate,
-                                    'notes' => 'Restored automatically from jobs queue',
-                                    'processed_by' => 1,
-                                    'is_verified' => true,
-                                ]);
-                                $restoredPaymentCount++;
-                                $stName = Student::find($stId)->full_name ?? "ID #{$stId}";
-                                $log[] = "Otomatis Memulihkan Pembayaran Siswa: {$stName} (Nominal: Rp " . number_format($amt, 0, ',', '.') . ")";
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (\Exception $e) {}
-
-        // B. Scan activity_logs table
-        $actLogs = ActivityLog::whereIn('action', ['created', 'deleted'])->get();
-        foreach ($actLogs as $al) {
-            $data = json_decode($al->changes, true);
-            if (is_array($data) && isset($data['student_id'], $data['amount_paid'])) {
-                $stId = (int)$data['student_id'];
-                $amt = (float)$data['amount_paid'];
-                $rec = $data['receipt_number'] ?? null;
-                $pDate = $data['payment_date'] ?? $data['created_at'] ?? date('Y-m-d');
-
-                $exists = Payment::where('student_id', $stId)->where('amount_paid', $amt)->exists();
-                if (!$exists) {
-                    $bill = StudentBill::where('student_id', $stId)->orderBy('id', 'desc')->first();
-                    if ($bill) {
-                        Payment::create([
-                            'bill_id' => $bill->id,
-                            'student_id' => $stId,
-                            'amount_paid' => $amt,
-                            'payment_method' => $data['payment_method'] ?? 'cash',
-                            'receipt_number' => $rec ?? ('KWT-LOG-' . time() . '-' . rand(10, 99)),
-                            'payment_date' => $pDate,
-                            'notes' => 'Restored from activity log record',
-                            'processed_by' => 1,
-                            'is_verified' => true,
-                        ]);
-                        $restoredPaymentCount++;
-                        $stName = Student::find($stId)->full_name ?? "ID #{$stId}";
-                        $log[] = "Otomatis Memulihkan Pembayaran ActivityLog Siswa: {$stName} (Nominal: Rp " . number_format($amt, 0, ',', '.') . ")";
-                    }
-                }
+foreach ($possibleEnvPaths as $envPath) {
+    if (file_exists($envPath)) {
+        $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (str_starts_with($line, '#')) continue;
+            if (str_contains($line, '=')) {
+                list($key, $val) = explode('=', $line, 2);
+                if (trim($key) === 'DB_HOST') $dbHost = trim($val, " \"'");
+                if (trim($key) === 'DB_PORT') $dbPort = trim($val, " \"'");
+                if (trim($key) === 'DB_DATABASE') $dbName = trim($val, " \"'");
+                if (trim($key) === 'DB_USERNAME') $dbUser = trim($val, " \"'");
+                if (trim($key) === 'DB_PASSWORD') $dbPass = trim($val, " \"'");
             }
         }
-
-        // C. Re-sync all bill balances & status
-        $bills = StudentBill::all();
-        foreach ($bills as $b) {
-            $totalPaid = (float) Payment::where('bill_id', $b->id)->where('is_verified', true)->sum('amount_paid');
-            if ($totalPaid != $b->paid_amount) {
-                $b->paid_amount = $totalPaid;
-                if ($totalPaid >= $b->amount) {
-                    $b->status = 'lunas';
-                } elseif ($totalPaid > 0) {
-                    $b->status = 'cicilan';
-                } else {
-                    $b->status = 'belum_bayar';
-                }
-                $b->save();
-            }
-        }
-    });
+        break;
+    }
 }
 
-// ACTION 2: BULK RESTORE SELECTED CLASS / ALL STUDENTS FOR TARGET MONTH
+try {
+    $pdo = new PDO("mysql:host={$dbHost};port={$dbPort};dbname={$dbName};charset=utf8mb4", $dbUser, $dbPass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
+} catch (\Throwable $e) {
+    die("DB Error: " . $e->getMessage());
+}
+
+$schoolId = $_REQUEST['school_id'] ?? 'all';
+$classroomId = $_REQUEST['classroom_id'] ?? 'all';
+$targetMonth = (int)($_REQUEST['month'] ?? 8);
+
+// BULK RESTORE SELECTED STUDENTS / CLASS FOR TARGET MONTH (AGUSTUS, SEPTEMBER, OKTOBER)
 if ($action === 'bulk_restore_month' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $selectedStudentIds = $_POST['student_ids'] ?? [];
+    $studentIds = $_POST['student_ids'] ?? [];
+    if (!empty($studentIds)) {
+        @$pdo->exec("SET FOREIGN_KEY_CHECKS=0;");
 
-    if (!empty($selectedStudentIds)) {
-        DB::transaction(function() use ($selectedStudentIds, $targetMonth, $activeAyId, &$restoredPaymentCount, &$log) {
-            $students = Student::whereIn('id', $selectedStudentIds)->get();
-            $monthlyTypes = PaymentType::where('is_recurring', true)->get();
+        $ayStmt = $pdo->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1");
+        $ayRes = $ayStmt->fetch();
+        $activeAyId = $ayRes ? $ayRes['id'] : 1;
 
-            foreach ($students as $st) {
-                $pTypes = $monthlyTypes->where('school_id', $st->school_id);
-                foreach ($pTypes as $pt) {
-                    // Find or create bill for target month
-                    $bill = StudentBill::firstOrCreate(
-                        [
-                            'student_id' => $st->id,
-                            'payment_type_id' => $pt->id,
-                            'month' => $targetMonth,
-                            'year' => 2026,
-                        ],
-                        [
-                            'academic_year_id' => $activeAyId,
-                            'amount' => $pt->amount,
-                            'paid_amount' => 0,
-                            'yayasan_share_amount' => $pt->yayasan_share_amount ?? $pt->amount,
-                            'status' => 'belum_bayar',
-                            'due_date' => '2026-08-10',
-                        ]
-                    );
+        $pTypesStmt = $pdo->query("SELECT id, school_id, type_name, amount, yayasan_share_amount FROM payment_types WHERE is_recurring = 1");
+        $pTypes = $pTypesStmt->fetchAll();
 
-                    if ($bill->status !== 'lunas') {
-                        $unpaid = $bill->amount - $bill->paid_amount;
-                        if ($unpaid > 0) {
-                            Payment::create([
-                                'bill_id' => $bill->id,
-                                'student_id' => $st->id,
-                                'amount_paid' => $unpaid,
-                                'payment_method' => 'cash',
-                                'receipt_number' => 'KWT-BULK-' . date('Ymd') . '-' . rand(1000, 9999),
-                                'payment_date' => date('Y-m-d'),
-                                'notes' => 'Bulk restore lunas bulan ' . $targetMonth,
-                                'processed_by' => auth()->id() ?? 1,
-                                'is_verified' => true,
-                            ]);
+        foreach ($studentIds as $stId) {
+            $stStmt = $pdo->prepare("SELECT id, school_id, full_name FROM students WHERE id = ?");
+            $stStmt->execute([$stId]);
+            $st = $stStmt->fetch();
+            if (!$st) continue;
 
-                            $bill->paid_amount = $bill->amount;
-                            $bill->status = 'lunas';
-                            $bill->save();
+            foreach ($pTypes as $pt) {
+                if ($pt['school_id'] == $st['school_id']) {
+                    // Check or create bill for target month
+                    $chkBill = $pdo->prepare("SELECT id, amount, paid_amount FROM student_bills WHERE student_id = ? AND payment_type_id = ? AND month = ? AND year = 2026");
+                    $chkBill->execute([$stId, $pt['id'], $targetMonth]);
+                    $bill = $chkBill->fetch();
 
-                            $restoredPaymentCount++;
-                            $log[] = "BERHASIL PULIHKAN LUNAS (Bulan {$targetMonth}): Siswa {$st->full_name} - Tagihan {$pt->type_name} (Rp " . number_format($pt->amount, 0, ',', '.') . ")";
-                        }
+                    if (!$bill) {
+                        $dueDate = sprintf('2026-%02d-10', $targetMonth);
+                        $insB = $pdo->prepare("INSERT INTO student_bills (student_id, payment_type_id, academic_year_id, month, year, amount, paid_amount, yayasan_share_amount, status, due_date, created_at, updated_at) VALUES (?, ?, ?, ?, 2026, ?, ?, ?, 'lunas', ?, NOW(), NOW())");
+                        $insB->execute([$stId, $pt['id'], $activeAyId, $targetMonth, $pt['amount'], $pt['amount'], $pt['yayasan_share_amount'] ?? $pt['amount'], $dueDate]);
+                        $billId = $pdo->lastInsertId();
+                    } else {
+                        $billId = $bill['id'];
                     }
+
+                    // Ensure payment exists
+                    $chkPay = $pdo->prepare("SELECT id FROM payments WHERE bill_id = ?");
+                    $chkPay->execute([$billId]);
+                    if (!$chkPay->fetch()) {
+                        $insP = $pdo->prepare("INSERT INTO payments (bill_id, student_id, amount_paid, payment_method, receipt_number, payment_date, notes, processed_by, is_verified, created_at, updated_at) VALUES (?, ?, ?, 'cash', ?, NOW(), 'Pemulihan Masal Lunas Bulan " . $targetMonth . "', 1, 1, NOW(), NOW())");
+                        $insP->execute([$billId, $stId, $pt['amount'], 'KWT-BULK-M' . $targetMonth . '-' . $stId . '-' . $pt['id']]);
+                        $restoredCount++;
+                    }
+
+                    // Update bill status to lunas
+                    $updB = $pdo->prepare("UPDATE student_bills SET paid_amount = amount, status = 'lunas' WHERE id = ?");
+                    $updB->execute([$billId]);
                 }
             }
-        });
+            $log[] = "LUNAS BULAN {$targetMonth}: {$st['full_name']}";
+        }
+
+        @$pdo->exec("SET FOREIGN_KEY_CHECKS=1;");
+        $message = "BERHASIL MEMULIHKAN KEUANGAN! Memproses LUNAS Bulan {$targetMonth} untuk " . count($studentIds) . " siswa yang dipilih.";
     }
 }
 
 // Fetch schools and classrooms for filter
-$schools = School::schoolsOnly()->get();
-$classrooms = Classroom::when($schoolId !== 'all', fn($q) => $q->where('school_id', $schoolId))->orderBy('class_name')->get();
+$schools = $pdo->query("SELECT id, name FROM schools WHERE type != 'yayasan' AND is_active = 1")->fetchAll();
+$classrooms = $pdo->query("SELECT id, school_id, name FROM classrooms ORDER BY school_id ASC, name ASC")->fetchAll();
 
-// Fetch students list for bulk selection
-$studentsQuery = Student::with(['school', 'bills' => fn($q) => $q->where('month', $targetMonth)])
-    ->where('status', 'active');
+// Fetch students matching filter
+$queryStr = "SELECT s.id, s.full_name, s.school_id, c.name as class_name FROM students s LEFT JOIN classrooms c ON s.classroom_id = c.id WHERE 1=1";
+$params = [];
 
 if ($schoolId !== 'all') {
-    $studentsQuery->where('school_id', $schoolId);
+    $queryStr .= " AND s.school_id = ?";
+    $params[] = $schoolId;
 }
-
 if ($classroomId !== 'all') {
-    $studentIdsInClass = DB::table('student_classes')->where('classroom_id', $classroomId)->pluck('student_id');
-    $studentsQuery->whereIn('id', $studentIdsInClass);
+    $queryStr .= " AND s.classroom_id = ?";
+    $params[] = $classroomId;
 }
 
-$studentsList = $studentsQuery->orderBy('full_name')->get();
-
-$monthNames = [
-    7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
-    1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni'
-];
+$queryStr .= " ORDER BY c.name ASC, s.full_name ASC";
+$stPrepared = $pdo->prepare($queryStr);
+$stPrepared->execute($params);
+$studentsList = $stPrepared->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tool Pemulihan Massal Pembayaran Siswa - PembdaHUB</title>
+    <title>Pemulihan Massal Pembayaran Per Bulan - PembdaHUB</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -244,119 +156,92 @@ $monthNames = [
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bold text-dark mb-1"><i class="fa-solid fa-users-gear text-primary me-2"></i> Tool Emergency: Pemulihan Massal Pembayaran Siswa</h3>
-            <p class="text-muted mb-0">Pulihkan pembayaran lunas sekaligus untuk seluruh kelas / seluruh siswa yang pembayarannya sempat terhapus</p>
+            <h3 class="fw-bold text-dark mb-1"><i class="fa-solid fa-list-check text-primary me-2"></i> Tool Pemulihan Massal Pembayaran Per Bulan (Bulan 8, 9, 10)</h3>
+            <p class="text-muted mb-0">Pilih kelas/siswa dan bulan (Agustus, September, Oktober) untuk memulihkan status Lunas secara masal dalam 1 klik</p>
         </div>
-        <a href="clean_duplicate_payments.php?secret=<?= urlencode($secret) ?>" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Tool Pembersih</a>
+        <a href="clean_duplicate_payments.php?secret=<?= urlencode($secret) ?>" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-arrow-left me-1"></i> Kembali</a>
     </div>
 
-    <!-- OPSI A: OTOMATIS SCAN JOBS & LOGS -->
-    <div class="card card-custom p-4 mb-4 bg-white border-primary">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h5 class="fw-bold text-primary mb-1"><i class="fa-solid fa-robot me-2"></i> Opsi A: Otomatis Pindai & Pulihkan Seluruh Record Terhapus di Database</h5>
-                <p class="text-muted mb-0">Memindai antrean jobs & activity logs secara otomatis untuk mengembalikan seluruh pembayaran terhapus tanpa perlu memilih siswa satu per satu.</p>
-            </div>
-            <a href="auto_restore_all_paid_students.php?secret=<?= urlencode($secret) ?>&action=auto_scan_all" class="btn btn-primary font-bold px-4" onclick="return confirm('Apakah Anda yakin ingin menjalankan pemindaian & pemulihan otomatis seluruh transaksi terhapus di database?');">
-                <i class="fa-solid fa-bolt me-1"></i> Jalankan Pemulihan Otomatis Database
-            </a>
-        </div>
-    </div>
-
-    <?php if(!empty($log)): ?>
-    <div class="alert alert-success alert-dismissible fade show card-custom mb-4" role="alert">
-        <h5 class="alert-heading fw-bold"><i class="fa-solid fa-check-circle me-2"></i> Berhasil Memulihkan <?= $restoredPaymentCount ?> Transaksi Pembayaran!</h5>
+    <?php if(!empty($message)): ?>
+    <div class="alert alert-success card-custom mb-4">
+        <h5 class="alert-heading fw-bold"><i class="fa-solid fa-check-circle me-2"></i> Hasil Pemulihan</h5>
+        <p class="mb-2"><?= htmlspecialchars($message) ?></p>
+        <?php if(!empty($log)): ?>
         <hr>
-        <div style="max-height: 250px; overflow-y: auto;" class="font-monospace small">
+        <div class="font-monospace small" style="max-height: 200px; overflow-y: auto;">
             <?php foreach($log as $l): ?>
                 <div>&bull; <?= htmlspecialchars($l) ?></div>
             <?php endforeach; ?>
         </div>
+        <?php endif; ?>
     </div>
     <?php endif; ?>
 
-    <!-- OPSI B: PEMULIHAN MASSAL PER KELAS / SEKOLAH -->
+    <!-- FILTER & BULK FORM -->
     <div class="card card-custom p-4 mb-4 bg-white">
-        <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-list-check me-2"></i> Opsi B: Centang Massal Siswa Per Kelas (Contoh: SMAS Pembda 1 / Kelas XI)</h5>
-        
-        <form action="auto_restore_all_paid_students.php" method="GET" class="row g-3 align-items-center mb-4">
+        <form method="GET" class="row g-3 mb-4">
             <input type="hidden" name="secret" value="<?= htmlspecialchars($secret) ?>">
-            
             <div class="col-md-4">
-                <label class="form-label fw-bold text-secondary">Unit Sekolah:</label>
-                <select name="school_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="all" <?= $schoolId === 'all' ? 'selected' : '' ?>>-- Semua Unit Sekolah --</option>
-                    <?php foreach($schools as $sch): ?>
-                        <option value="<?= $sch->id ?>" <?= (string)$schoolId === (string)$sch->id ? 'selected' : '' ?>><?= htmlspecialchars($sch->name) ?></option>
+                <label class="form-label fw-bold">Pilih Unit Sekolah</label>
+                <select name="school_id" class="form-select" onchange="this.form.submit()">
+                    <option value="all">-- Semua Unit Sekolah --</option>
+                    <?php foreach($schools as $sc): ?>
+                        <option value="<?= $sc['id'] ?>" <?= $schoolId == $sc['id'] ? 'selected' : '' ?>><?= htmlspecialchars($sc['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-
             <div class="col-md-4">
-                <label class="form-label fw-bold text-secondary">Kelas:</label>
-                <select name="classroom_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="all" <?= $classroomId === 'all' ? 'selected' : '' ?>>-- Semua Kelas --</option>
-                    <?php foreach($classrooms as $cls): ?>
-                        <option value="<?= $cls->id ?>" <?= (string)$classroomId === (string)$cls->id ? 'selected' : '' ?>><?= htmlspecialchars($cls->class_name) ?></option>
+                <label class="form-label fw-bold">Pilih Kelas</label>
+                <select name="classroom_id" class="form-select" onchange="this.form.submit()">
+                    <option value="all">-- Semua Kelas --</option>
+                    <?php foreach($classrooms as $cr): ?>
+                        <option value="<?= $cr['id'] ?>" <?= $classroomId == $cr['id'] ? 'selected' : '' ?>><?= htmlspecialchars($cr['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-
             <div class="col-md-4">
-                <label class="form-label fw-bold text-secondary">Bulan Yang Dipulihkan:</label>
-                <select name="month" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <?php foreach($monthNames as $mNum => $mName): ?>
-                        <option value="<?= $mNum ?>" <?= (int)$targetMonth === (int)$mNum ? 'selected' : '' ?>>Bulan <?= $mName ?></option>
-                    <?php endforeach; ?>
+                <label class="form-label fw-bold">Bulan Yang Ingin Dipulihkan Lunas</label>
+                <select name="month" class="form-select" onchange="this.form.submit()">
+                    <option value="7" <?= $targetMonth == 7 ? 'selected' : '' ?>>Juli 2026 (Bulan 7)</option>
+                    <option value="8" <?= $targetMonth == 8 ? 'selected' : '' ?>>Agustus 2026 (Bulan 8)</option>
+                    <option value="9" <?= $targetMonth == 9 ? 'selected' : '' ?>>September 2026 (Bulan 9)</option>
+                    <option value="10" <?= $targetMonth == 10 ? 'selected' : '' ?>>Oktober 2026 (Bulan 10)</option>
                 </select>
             </div>
         </form>
 
-        <?php if($studentsList->isNotEmpty()): ?>
-        <form action="auto_restore_all_paid_students.php?secret=<?= urlencode($secret) ?>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin memulihkan & menandai Lunas Bulan <?= $monthNames[$targetMonth] ?? $targetMonth ?> untuk siswa yang dicentang?');">
+        <form method="POST" action="auto_restore_all_paid_students.php?secret=<?= urlencode($secret) ?>">
             <input type="hidden" name="action" value="bulk_restore_month">
-            <input type="hidden" name="school_id" value="<?= htmlspecialchars($schoolId) ?>">
-            <input type="hidden" name="classroom_id" value="<?= htmlspecialchars($classroomId) ?>">
-            <input type="hidden" name="month" value="<?= htmlspecialchars($targetMonth) ?>">
+            <input type="hidden" name="month" value="<?= $targetMonth ?>">
 
-            <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded border mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="checkAllStudents" onchange="toggleAllStudents(this)">
-                    <label class="form-check-label fw-bold text-uppercase small" for="checkAllStudents">Centang Semua Siswa (<?= $studentsList->count() ?> Siswa)</label>
+                    <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleAll(this)">
+                    <label class="form-check-label fw-bold" for="selectAll">Pilih Semua Siswa (<?= count($studentsList) ?> Siswa)</label>
                 </div>
-                <button type="submit" class="btn btn-success font-bold px-4"><i class="fa-solid fa-rotate-left me-1"></i> Pulihkan & Tandai Lunas Bulan <?= $monthNames[$targetMonth] ?? $targetMonth ?></button>
+                <button type="submit" class="btn btn-success font-bold px-4" onclick="return confirm('Apakah Anda yakin ingin menandai LUNAS bulan <?= $targetMonth ?> untuk siswa yang dipilih?');">
+                    <i class="fa-solid fa-check-double me-1"></i> Pulihkan LUNAS Bulan <?= $targetMonth ?> (1-Klik)
+                </button>
             </div>
 
-            <div class="table-responsive">
+            <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
                 <table class="table table-hover align-middle mb-0 small">
-                    <thead class="table-light text-uppercase">
+                    <thead class="table-light sticky-top">
                         <tr>
-                            <th class="text-center" style="width: 40px;">Pilih</th>
+                            <th width="40">#</th>
                             <th>Nama Siswa</th>
-                            <th>NISN</th>
-                            <th>Unit Sekolah</th>
-                            <th>Status Tagihan Bulan <?= $monthNames[$targetMonth] ?? $targetMonth ?></th>
+                            <th>Kelas</th>
+                            <th class="text-center">Pilih</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach($studentsList as $st): ?>
-                        <?php
-                            $targetBill = $st->bills->first();
-                            $isLunas = $targetBill && $targetBill->status === 'lunas';
-                        ?>
+                        <?php foreach($studentsList as $idx => $st): ?>
                         <tr>
+                            <td><?= $idx + 1 ?></td>
+                            <td class="fw-bold text-dark"><?= htmlspecialchars($st['full_name']) ?></td>
+                            <td><span class="badge bg-secondary"><?= htmlspecialchars($st['class_name'] ?? 'Tanpa Kelas') ?></span></td>
                             <td class="text-center">
-                                <input type="checkbox" name="student_ids[]" value="<?= $st->id ?>" class="form-check-input student-cb" <?= $isLunas ? '' : 'checked' ?>>
-                            </td>
-                            <td class="fw-bold text-dark"><?= htmlspecialchars($st->full_name) ?></td>
-                            <td class="font-monospace text-muted"><?= htmlspecialchars($st->nisn ?? '-') ?></td>
-                            <td><?= htmlspecialchars($st->school->name ?? '-') ?></td>
-                            <td>
-                                <?php if($isLunas): ?>
-                                    <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> LUNAS</span>
-                                <?php else: ?>
-                                    <span class="badge bg-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> BELUM DIBAYAR / PERLU DIPULIHKAN</span>
-                                <?php endif; ?>
+                                <input class="form-check-input st-checkbox" type="checkbox" name="student_ids[]" value="<?= $st['id'] ?>">
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -364,16 +249,13 @@ $monthNames = [
                 </table>
             </div>
         </form>
-        <?php else: ?>
-            <p class="text-center text-muted py-4">Tidak ada data siswa ditemukan untuk filter ini.</p>
-        <?php endif; ?>
     </div>
 </div>
 
 <script>
-function toggleAllStudents(master) {
-    const cbs = document.querySelectorAll('.student-cb');
-    cbs.forEach(c => c.checked = master.checked);
+function toggleAll(master) {
+    const checkboxes = document.querySelectorAll('.st-checkbox');
+    checkboxes.forEach(cb => cb.checked = master.checked);
 }
 </script>
 </body>
