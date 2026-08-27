@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* ============================================================
            RESET & BASE
@@ -178,7 +179,7 @@
         ============================================================ */
         .body-grid {
             display: grid;
-            grid-template-columns: 1fr 320px;
+            grid-template-columns: 1fr 390px;
             gap: 10px;
             min-height: 0;
         }
@@ -447,6 +448,155 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* ============================================================
+           PANEL CARA ABSEN (PANDUAN PRESENSI)
+        ============================================================ */
+        .guide-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-bright);
+            border-radius: 14px;
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            flex-shrink: 0;
+        }
+        .guide-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #2563eb, #10b981, #7c3aed);
+        }
+        .guide-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .guide-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .guide-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .guide-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .guide-list {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+        .guide-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+        .guide-step:hover {
+            background: #ffffff;
+            border-color: #94a3b8;
+            transform: translateX(2px);
+        }
+        .guide-step-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+        .guide-step.rfid .guide-step-icon {
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+        }
+        .guide-step.mobile .guide-step-icon {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+        .guide-step.face .guide-step-icon {
+            background: #faf5ff;
+            color: #7c3aed;
+            border: 1px solid #e9d5ff;
+        }
+        .guide-step-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .guide-step-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .guide-step-title .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            background: #1e293b;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 900;
+            border-radius: 4px;
+        }
+        .guide-step-desc {
+            font-size: 10.5px;
+            color: var(--text-secondary);
+            line-height: 1.3;
+            margin-top: 2px;
+        }
+        .guide-tips {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+            padding: 6px 10px;
+            background: #f8fafc;
+            border: 1px dashed var(--border-bright);
+            border-radius: 8px;
+            font-size: 10px;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+        .guide-tip-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .info-panel {
@@ -880,6 +1030,80 @@
 
         <!-- KOLOM KANAN -->
         <div class="right-col">
+            <!-- PANDUAN CARA ABSEN -->
+            <div class="guide-panel">
+                <div class="guide-header">
+                    <div class="guide-title-wrapper">
+                        <span style="font-size: 15px;">📋</span>
+                        <span class="guide-title">Cara Absen / Presensi</span>
+                    </div>
+                    <span class="guide-badge">Siswa &amp; Guru</span>
+                </div>
+
+                <div class="guide-list">
+                    <!-- Metode 1: Kartu RFID -->
+                    <div class="guide-step rfid">
+                        <div class="guide-step-icon">
+                            <i class="fa-solid fa-id-card"></i>
+                        </div>
+                        <div class="guide-step-body">
+                            <div class="guide-step-title">
+                                <span class="step-num">1</span>
+                                <span>Tempel Kartu RFID (KTA)</span>
+                            </div>
+                            <div class="guide-step-desc">
+                                Tempelkan kartu pada scanner gerbang/lobi hingga berbunyi <em>beep</em> &amp; nama tampil di layar.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metode 2: Mobile App GPS -->
+                    <div class="guide-step mobile">
+                        <div class="guide-step-icon">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                        </div>
+                        <div class="guide-step-body">
+                            <div class="guide-step-title">
+                                <span class="step-num">2</span>
+                                <span>Presensi Mobile (GPS)</span>
+                            </div>
+                            <div class="guide-step-desc">
+                                Buka <strong>perguruanpembda.com/m</strong>, pilih menu <strong>Absensi</strong> &rarr; klik <strong>Presensi GPS</strong> di sekolah.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metode 3: Face Terminal -->
+                    <div class="guide-step face">
+                        <div class="guide-step-icon">
+                            <i class="fa-solid fa-camera"></i>
+                        </div>
+                        <div class="guide-step-body">
+                            <div class="guide-step-title">
+                                <span class="step-num">3</span>
+                                <span>Face Terminal (Kamera)</span>
+                            </div>
+                            <div class="guide-step-desc">
+                                Hadapkan wajah ke terminal kamera kiosk di stasiun presensi untuk pencatatan otomatis.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips & Info -->
+                <div class="guide-tips">
+                    <div class="guide-tip-item">
+                        <span>🟢</span> <span>Masuk Tepat Waktu</span>
+                    </div>
+                    <div class="guide-tip-item">
+                        <span>🚪</span> <span>Tap Saat Pulang</span>
+                    </div>
+                    <div class="guide-tip-item">
+                        <i class="fa-brands fa-whatsapp" style="color:#16a34a; font-size:12px;"></i> <span>Notif WA Instan</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- REKAPITULASI PER UNIT SEKOLAH -->
             <div id="unit-panels" style="display:flex; flex-direction:column; gap:10px; flex:1; overflow-y:auto; padding-right:2px;">
                 <div style="padding:20px;text-align:center;color:var(--text-dim);font-size:14px;background:var(--bg-panel);border-radius:14px;border:1px solid var(--border);">
