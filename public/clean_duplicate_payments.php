@@ -29,37 +29,28 @@ use App\Models\Payment;
 use App\Models\StudentBill;
 use Illuminate\Support\Facades\DB;
 
-// Query duplicate payments (grouping by bill_id having count > 1)
-$duplicatePayments = Payment::with(['student.school', 'bill.paymentType', 'processedBy'])
-    ->whereIn('bill_id', function($sub) {
-        $sub->select('bill_id')
-            ->from('payments')
-            ->whereNotNull('bill_id')
-            ->groupBy('bill_id')
-            ->havingRaw('COUNT(*) > 1');
-    })
-    ->orderBy('bill_id')
-    ->orderBy('created_at', 'asc')
-    ->get();
-
-$groupedDuplicates = $duplicatePayments->groupBy('bill_id');
-
-$totalDuplicateBills = $groupedDuplicates->count();
-$totalRedundantPayments = 0;
-$totalExcessAmount = 0;
-
-foreach($groupedDuplicates as $payments) {
-    $totalRedundantPayments += ($payments->count() - 1);
-    $totalExcessAmount += $payments->slice(1)->sum('amount_paid');
-}
-
 $executionLog = [];
 
 if ($action === 'execute' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $deletedPaymentCount = 0;
     $affectedBillIds = collect();
 
-    DB::transaction(function () use ($selectedPaymentIds, $groupedDuplicates, &$deletedPaymentCount, &$affectedBillIds, &$executionLog) {
+    // Re-fetch duplicates before execution
+    $duplicatePaymentsToProcess = Payment::with(['student.school', 'bill.paymentType', 'processedBy'])
+        ->whereIn('bill_id', function($sub) {
+            $sub->select('bill_id')
+                ->from('payments')
+                ->whereNotNull('bill_id')
+                ->groupBy('bill_id')
+                ->havingRaw('COUNT(*) > 1');
+        })
+        ->orderBy('bill_id')
+        ->orderBy('created_at', 'asc')
+        ->get();
+
+    $groupedToProcess = $duplicatePaymentsToProcess->groupBy('bill_id');
+
+    DB::transaction(function () use ($selectedPaymentIds, $groupedToProcess, &$deletedPaymentCount, &$affectedBillIds, &$executionLog) {
         if (!empty($selectedPaymentIds)) {
             // Delete specific checked payment IDs
             $paymentsToDelete = Payment::whereIn('id', $selectedPaymentIds)->get();
@@ -73,7 +64,7 @@ if ($action === 'execute' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } else {
             // Delete all duplicates automatically (keep first payment)
-            foreach ($groupedDuplicates as $billId => $payments) {
+            foreach ($groupedToProcess as $billId => $payments) {
                 if ($payments->count() <= 1) continue;
                 $affectedBillIds->push($billId);
 
@@ -107,21 +98,30 @@ if ($action === 'execute' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     });
+}
 
-    // Re-fetch duplicates after execution
-    $duplicatePayments = Payment::with(['student.school', 'bill.paymentType', 'processedBy'])
-        ->whereIn('bill_id', function($sub) {
-            $sub->select('bill_id')
-                ->from('payments')
-                ->whereNotNull('bill_id')
-                ->groupBy('bill_id')
-                ->havingRaw('COUNT(*) > 1');
-        })
-        ->orderBy('bill_id')
-        ->orderBy('created_at', 'asc')
-        ->get();
+// Fetch current duplicate payments
+$duplicatePayments = Payment::with(['student.school', 'bill.paymentType', 'processedBy'])
+    ->whereIn('bill_id', function($sub) {
+        $sub->select('bill_id')
+            ->from('payments')
+            ->whereNotNull('bill_id')
+            ->groupBy('bill_id')
+            ->havingRaw('COUNT(*) > 1');
+    })
+    ->orderBy('bill_id')
+    ->orderBy('created_at', 'asc')
+    ->get();
 
-    $groupedDuplicates = $duplicatePayments->groupBy('bill_id');
+$groupedDuplicates = $duplicatePayments->groupBy('bill_id');
+
+$totalDuplicateBills = $groupedDuplicates->count();
+$totalRedundantPayments = 0;
+$totalExcessAmount = 0;
+
+foreach($groupedDuplicates as $payments) {
+    $totalRedundantPayments += ($payments->count() - 1);
+    $totalExcessAmount += $payments->slice(1)->sum('amount_paid');
 }
 ?>
 <!DOCTYPE html>
@@ -149,17 +149,17 @@ if ($action === 'execute' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         <span class="badge bg-dark px-3 py-2">Token Secret Verified</span>
     </div>
 
-    @if (!empty($executionLog))
+    <?php if (!empty($executionLog)): ?>
     <div class="alert alert-success alert-dismissible fade show card-custom mb-4" role="alert">
         <h5 class="alert-heading fw-bold"><i class="fa-solid fa-check-circle me-2"></i> Eksekusi Pembersihan Berhasil!</h5>
         <hr>
         <div style="max-height: 200px; overflow-y: auto;" class="font-monospace small">
-            @foreach($executionLog as $log)
-                <div>&bull; {{ $log }}</div>
-            @endforeach
+            <?php foreach($executionLog as $log): ?>
+                <div>&bull; <?= htmlspecialchars($log) ?></div>
+            <?php endforeach; ?>
         </div>
     </div>
-    @endif
+    <?php endif; ?>
 
     <!-- Summary Box -->
     <div class="card card-custom p-4 mb-4 bg-white">
@@ -168,31 +168,31 @@ if ($action === 'execute' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h5 class="fw-bold text-secondary mb-3">Hasil Pemindaian Transaksi Ganda</h5>
                 <div class="d-flex gap-4">
                     <div>
-                        <div class="fs-3 fw-bold text-dark">{{ $totalDuplicateBills }}</div>
+                        <div class="fs-3 fw-bold text-dark"><?= number_format($totalDuplicateBills) ?></div>
                         <div class="text-muted small">Tagihan Berganda</div>
                     </div>
                     <div class="border-end"></div>
                     <div>
-                        <div class="fs-3 fw-bold text-danger">{{ $totalRedundantPayments }}</div>
+                        <div class="fs-3 fw-bold text-danger"><?= number_format($totalRedundantPayments) ?></div>
                         <div class="text-muted small">Record Duplikat</div>
                     </div>
                     <div class="border-end"></div>
                     <div>
-                        <div class="fs-3 fw-bold text-primary">Rp {{ number_format($totalExcessAmount, 0, ',', '.') }}</div>
+                        <div class="fs-3 fw-bold text-primary">Rp <?= number_format($totalExcessAmount, 0, ',', '.') ?></div>
                         <div class="text-muted small">Nominal Berlebih</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4 text-end">
-                @if($totalDuplicateBills > 0)
+                <?php if($totalDuplicateBills > 0): ?>
                 <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="selectAll(true)"><i class="fa-solid fa-check-double me-1"></i> Pilih Semua Duplikat</button>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
     </div>
 
-    @if($totalDuplicateBills > 0)
-    <form action="clean_duplicate_payments.php?secret={{ urlencode($secret) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi pembayaran ganda yang dipilih?');">
+    <?php if($totalDuplicateBills > 0): ?>
+    <form action="clean_duplicate_payments.php?secret=<?= urlencode($secret) ?>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi pembayaran ganda yang dipilih?');">
         <input type="hidden" name="action" value="execute">
         
         <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded border mb-3">
@@ -203,28 +203,28 @@ if ($action === 'execute' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="btn btn-danger font-bold px-4"><i class="fa-solid fa-trash-can me-2"></i> Eksekusi Hapus Pembayaran Ganda</button>
         </div>
 
-        @foreach($groupedDuplicates as $billId => $payments)
-        @php
+        <?php foreach($groupedDuplicates as $billId => $payments): ?>
+        <?php
             $firstPay = $payments->first();
             $bill = $firstPay->bill;
             $student = $firstPay->student;
             $excessAmount = $payments->slice(1)->sum('amount_paid');
-        @endphp
+        ?>
         <div class="card card-custom mb-4 overflow-hidden bg-white">
             <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
                 <div>
-                    <span class="badge bg-danger me-2">Ganda {{ $payments->count() }}x</span>
-                    <strong class="fs-6 text-dark">{{ $student->full_name ?? 'Siswa' }}</strong>
-                    <span class="text-muted small ms-2">(Unit: {{ $student->school->name ?? '-' }} | NISN: {{ $student->nisn ?? '-' }})</span>
+                    <span class="badge bg-danger me-2">Ganda <?= $payments->count() ?>x</span>
+                    <strong class="fs-6 text-dark"><?= htmlspecialchars($student->full_name ?? 'Siswa') ?></strong>
+                    <span class="text-muted small ms-2">(Unit: <?= htmlspecialchars($student->school->name ?? '-') ?> | NISN: <?= htmlspecialchars($student->nisn ?? '-') ?>)</span>
                     <div class="text-muted small mt-1">
-                        Jenis Tagihan: <strong>{{ $bill->paymentType->type_name ?? 'Tagihan' }}</strong> 
-                        @if($bill->month) - Bulan {{ $bill->month }}/{{ $bill->year }} @endif
-                        | Nominal Tagihan: <strong>Rp {{ number_format($bill->amount, 0, ',', '.') }}</strong>
+                        Jenis Tagihan: <strong><?= htmlspecialchars($bill->paymentType->type_name ?? 'Tagihan') ?></strong> 
+                        <?php if($bill->month): ?> - Bulan <?= $bill->month ?>/<?= $bill->year ?><?php endif; ?>
+                        | Nominal Tagihan: <strong>Rp <?= number_format($bill->amount, 0, ',', '.') ?></strong>
                     </div>
                 </div>
                 <div class="text-end">
                     <span class="text-muted small block">Nominal Berlebih:</span>
-                    <div class="fw-bold text-danger fs-6">Rp {{ number_format($excessAmount, 0, ',', '.') }}</div>
+                    <div class="fw-bold text-danger fs-6">Rp <?= number_format($excessAmount, 0, ',', '.') ?></div>
                 </div>
             </div>
             <div class="table-responsive">
@@ -241,48 +241,48 @@ if ($action === 'execute' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($payments as $idx => $p)
-                        <tr class="{{ $idx == 0 ? 'table-success' : 'table-danger' }}">
+                        <?php foreach($payments as $idx => $p): ?>
+                        <tr class="<?= $idx == 0 ? 'table-success' : 'table-danger' ?>">
                             <td class="text-center">
-                                @if($idx == 0)
+                                <?php if($idx == 0): ?>
                                     <i class="fa-solid fa-lock text-success" title="Pembayaran Utama Sah"></i>
-                                @else
-                                    <input type="checkbox" name="payment_ids[]" value="{{ $p->id }}" class="form-check-input item-check">
-                                @endif
+                                <?php else: ?>
+                                    <input type="checkbox" name="payment_ids[]" value="<?= $p->id ?>" class="form-check-input item-check">
+                                <?php endif; ?>
                             </td>
                             <td>
-                                @if($idx == 0)
+                                <?php if($idx == 0): ?>
                                     <span class="badge-sah"><i class="fa-solid fa-check me-1"></i> Utama (Sah)</span>
-                                @else
-                                    <span class="badge-duplikat"><i class="fa-solid fa-copy me-1"></i> Duplikat Ke-{{ $idx }}</span>
-                                @endif
+                                <?php else: ?>
+                                    <span class="badge-duplikat"><i class="fa-solid fa-copy me-1"></i> Duplikat Ke-<?= $idx ?></span>
+                                <?php endif; ?>
                             </td>
-                            <td>{{ $p->created_at ? $p->created_at->format('d/m/Y H:i:s') : '-' }}</td>
-                            <td class="font-monospace">{{ $p->receipt_number ?? $p->reference_number ?? '-' }}</td>
-                            <td class="text-uppercase fw-bold">{{ $p->payment_method }}</td>
-                            <td>{{ $p->processedBy->full_name ?? 'Sistem' }}</td>
-                            <td class="text-end fw-bold {{ $idx == 0 ? 'text-success' : 'text-danger' }}">
-                                Rp {{ number_format($p->amount_paid, 0, ',', '.') }}
+                            <td><?= $p->created_at ? $p->created_at->format('d/m/Y H:i:s') : '-' ?></td>
+                            <td class="font-monospace"><?= htmlspecialchars($p->receipt_number ?? $p->reference_number ?? '-') ?></td>
+                            <td class="text-uppercase fw-bold"><?= htmlspecialchars($p->payment_method) ?></td>
+                            <td><?= htmlspecialchars($p->processedBy->full_name ?? 'Sistem') ?></td>
+                            <td class="text-end fw-bold <?= $idx == 0 ? 'text-success' : 'text-danger' ?>">
+                                Rp <?= number_format($p->amount_paid, 0, ',', '.') ?>
                             </td>
                         </tr>
-                        @endforeach
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
         </div>
-        @endforeach
+        <?php endforeach; ?>
 
         <div class="d-flex justify-content-end mb-5">
             <button type="submit" class="btn btn-danger btn-lg font-bold shadow"><i class="fa-solid fa-trash-can me-2"></i> Eksekusi Hapus Pembayaran Ganda</button>
         </div>
     </form>
-    @else
+    <?php else: ?>
     <div class="card card-custom p-5 text-center bg-white">
         <i class="fa-solid fa-circle-check text-success fs-1 mb-3"></i>
         <h4 class="fw-bold">Tidak Ada Transaksi Pembayaran Ganda Terdeteksi!</h4>
         <p class="text-muted">Seluruh data transaksi pembayaran kas & tagihan siswa di PembdaHUB bersih dan konsisten.</p>
     </div>
-    @endif
+    <?php endif; ?>
 </div>
 
 <script>
