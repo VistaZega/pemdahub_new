@@ -41,10 +41,12 @@ $allPaymentTypes = PaymentType::orderBy('type_name')->get();
  * Grouping by student_id + payment_type_id + month (ignoring academic_year_id/year discrepancies)
  */
 function getDuplicateBillGroups($typeId = 'all') {
+    // Strictly group duplicate bills by student_id + payment_type_id + month + year
+    // This ensures payments for Month 7 (July) and Month 8 (August) are NEVER grouped together
     $query = DB::table('student_bills')
-        ->select('student_id', 'payment_type_id', 'month', DB::raw('COUNT(*) as total_count'))
+        ->select('student_id', 'payment_type_id', 'month', 'year', DB::raw('COUNT(*) as total_count'))
         ->when($typeId !== 'all' && is_numeric($typeId), fn($q) => $q->where('payment_type_id', $typeId))
-        ->groupBy('student_id', 'payment_type_id', 'month')
+        ->groupBy('student_id', 'payment_type_id', 'month', 'year')
         ->havingRaw('COUNT(*) > 1');
 
     $rawDuplicates = $query->get();
@@ -61,11 +63,18 @@ function getDuplicateBillGroups($typeId = 'all') {
                     $q->where('month', $rd->month);
                 }
             })
+            ->where(function($q) use ($rd) {
+                if (is_null($rd->year)) {
+                    $q->whereNull('year');
+                } else {
+                    $q->where('year', $rd->year);
+                }
+            })
             ->orderBy('id', 'asc')
             ->get();
 
         if ($bills->count() > 1) {
-            $key = $rd->student_id . '_' . $rd->payment_type_id . '_' . ($rd->month ?? '0');
+            $key = $rd->student_id . '_' . $rd->payment_type_id . '_' . ($rd->month ?? '0') . '_' . ($rd->year ?? '0');
             $groups->put($key, $bills);
         }
     }
