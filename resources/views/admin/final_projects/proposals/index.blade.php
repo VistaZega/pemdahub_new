@@ -41,7 +41,7 @@
 @section('title', $pageTitle . ' - Portal Admin')
 
 @section('content')
-<div x-data="proposalManager()" class="space-y-7 pb-10">
+<div x-data="proposalManager()" class="flex flex-col gap-7 pb-10">
 
     {{-- ══════════════════════════════════════════════════════════════════ --}}
     {{-- 1. PLAYFUL HERO HEADER (Claymorphism Style) --}}
@@ -169,16 +169,16 @@
     {{-- 3. FILTER & SEARCH CONTROL BAR --}}
     {{-- ══════════════════════════════════════════════════════════════════ --}}
     <div class="bg-white rounded-3xl p-5 md:p-6 border-2 border-slate-100 shadow-[0_6px_20px_-4px_rgba(0,0,0,0.05)]">
-        <form action="{{ route('admin.final-projects.proposals.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3.5 items-center">
+        <form action="{{ route('admin.final-projects.proposals.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-5 items-center">
             
             {{-- Input Pencarian --}}
             <div class="md:col-span-4 relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                     <i class="fas fa-search text-sm"></i>
                 </div>
                 <input type="text" name="search" value="{{ request('search') }}" 
                        placeholder="Cari judul, nama ketua, atau anggota..." 
-                       class="w-full bg-slate-50 hover:bg-white border-2 border-slate-200 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-2.5 text-xs md:text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-100 transition-all">
+                       class="w-full bg-slate-50 hover:bg-white border-2 border-slate-200 focus:border-indigo-500 rounded-2xl pl-12 pr-4 py-2.5 text-xs md:text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-100 transition-all">
             </div>
 
             {{-- Filter Status --}}
@@ -211,7 +211,7 @@
             @endif
 
             {{-- Tombol Filter & Reset --}}
-            <div class="{{ $isSA ? 'md:col-span-2' : 'md:col-span-5' }} flex items-center gap-2">
+            <div class="{{ $isSA ? 'md:col-span-2' : 'md:col-span-5' }} flex items-center gap-3">
                 <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-2.5 px-4 rounded-2xl text-xs md:text-sm shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5">
                     <i class="fas fa-filter text-xs"></i> Filter
                 </button>
@@ -231,11 +231,11 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-gradient-to-r from-slate-50 to-indigo-50/50 border-b-2 border-slate-200 text-[11px] font-black text-slate-700 uppercase tracking-wider">
-                        <th class="py-4.5 pl-6 pr-4">Kelompok Siswa</th>
-                        <th class="py-4.5 px-4">Judul & Pembimbing</th>
-                        <th class="py-4.5 px-4 text-center">Jenis</th>
-                        <th class="py-4.5 px-4 text-center">Status</th>
-                        <th class="py-4.5 pl-4 pr-6 text-right">Aksi Manajemen</th>
+                        <th class="py-5 pl-6 pr-4">Kelompok Siswa</th>
+                        <th class="py-5 px-4">Judul & Pembimbing</th>
+                        <th class="py-5 px-4 text-center">Jenis</th>
+                        <th class="py-5 px-4 text-center">Status</th>
+                        <th class="py-5 pl-4 pr-6 text-right">Aksi Manajemen</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -254,7 +254,7 @@
                         <tr class="hover:bg-indigo-50/20 transition-all duration-150 group">
                             
                             {{-- Kolom Kelompok & Anggota --}}
-                            <td class="py-4.5 pl-6 pr-4 align-top min-w-[240px] max-w-[320px]">
+                            <td class="py-6 pl-6 pr-4 align-top min-w-[240px] max-w-[320px]">
                                 @php
                                     $memberClassroomIds = $p->members->map(function($m) {
                                         return $m->student->currentClassroom->first()?->id ?? $m->student->classroom_id;
@@ -310,7 +310,7 @@
                             </td>
 
                             {{-- Kolom Judul & Guru Pembimbing --}}
-                            <td class="py-4.5 px-4 align-top min-w-[280px]">
+                            <td class="py-6 px-4 align-top min-w-[280px]">
                                 <div class="space-y-2">
                                     <h4 class="font-extrabold text-slate-900 text-sm leading-snug hover:text-indigo-600 transition-colors" title="{{ $p->title }}">
                                         {{ $p->title }}
@@ -340,7 +340,7 @@
                             </td>
 
                             {{-- Kolom Jenis --}}
-                            <td class="py-4.5 px-4 text-center align-top whitespace-nowrap">
+                            <td class="py-6 px-4 text-center align-top whitespace-nowrap">
                                 <span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider {{ $p->type === 'penelitian_ilmiah' ? 'bg-purple-50 text-purple-800 border border-purple-200' : 'bg-blue-50 text-blue-800 border border-blue-200' }}">
                                     <i class="fas {{ $p->type === 'penelitian_ilmiah' ? 'fa-microscope' : 'fa-screwdriver-wrench' }} text-[10px]"></i>
                                     {{ $p->type === 'penelitian_ilmiah' ? 'Penelitian' : 'Project Akhir' }}
@@ -348,7 +348,7 @@
                             </td>
 
                             {{-- Kolom Status --}}
-                            <td class="py-4.5 px-4 text-center align-top whitespace-nowrap">
+                            <td class="py-6 px-4 text-center align-top whitespace-nowrap">
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border shadow-xs {{ $statusPill['bg'] }}">
                                     <i class="fas {{ $statusPill['icon'] }} text-[11px]"></i>
                                     {{ $statusPill['text'] }}
@@ -356,7 +356,7 @@
                             </td>
 
                             {{-- Kolom Aksi --}}
-                            <td class="py-4.5 pl-4 pr-6 text-right align-top whitespace-nowrap">
+                            <td class="py-6 pl-4 pr-6 text-right align-top whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-1.5">
                                     
                                     {{-- Tombol Verifikasi Cepat (jika pending) --}}
