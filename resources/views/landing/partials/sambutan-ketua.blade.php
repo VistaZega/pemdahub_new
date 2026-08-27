@@ -24,10 +24,10 @@
                                 -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
                                 mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);">
                         
-                        {{-- Compact Half-Body Crop: object-position center 15% to show face and upper body --}}
+                        {{-- Compact Half-Body Crop: object-position center 25% to move photo up slightly --}}
                         <img src="{{ asset('images/photo-profile.jpeg') }}?v={{ filemtime($photoPath) }}" 
                              alt="Yulianus Zega, S.Kom, M.Pd.T" 
-                             style="width: 100%; height: 100%; object-fit: cover; object-position: center 15%; margin: 0; padding: 0; filter: contrast(1.08) brightness(1.05);
+                             style="width: 100%; height: 100%; object-fit: cover; object-position: center 25%; margin: 0; padding: 0; filter: contrast(1.08) brightness(1.05);
                                     -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
                                     mask-image: linear-gradient(to right, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);" />
                     </div>
