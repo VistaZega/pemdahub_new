@@ -85,7 +85,8 @@
             <div class="marquee-fade-right"></div>
             @php
                 // Maintain consistent ultra-slow speed (1200s per item - reduced to 10% per user request)
-                $marqueeDuration = $finalProjectsShowcase->count() * 1200;
+                // Capped at 30,000s to prevent CSS animation max-duration overflow which causes it to fallback to default (very fast).
+                $marqueeDuration = min($finalProjectsShowcase->count() * 1200, 30000);
             @endphp
             <div class="marquee-track" style="animation-duration: {{ $marqueeDuration }}s;">
                 <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
