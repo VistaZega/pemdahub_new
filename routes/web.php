@@ -722,7 +722,7 @@ Route::get('/', function () {
 
     // === SHOWCASE FINAL PROJECT (PENELITIAN & PROJECT AKHIR) ===
     $finalProjectsShowcase = \App\Models\FinalProject::with(['student', 'members.student'])
-        ->whereIn('status', ['approved', 'in_progress', 'ready_for_exam', 'completed'])
+        ->whereNotIn('status', ['rejected', 'draft']) // Tampilkan semua yang sudah disubmit/approved
         ->latest('updated_at')
         ->take(12)
         ->get();
