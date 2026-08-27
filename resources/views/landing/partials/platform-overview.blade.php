@@ -91,19 +91,19 @@
                 <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
                     @foreach($finalProjectsShowcase as $fp)
                         <div style="width: 450px; flex: 0 0 450px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                            {{-- Judul: Elegan, 3 baris maksimal, dengan pemotongan rapi (ellipsis) --}}
-                            <h4 style="width: 100%; font-size: 18px; font-weight: 800; color: var(--indigo); line-height: 1.4; text-align: center; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 16px 0; padding: 0 10px;">
+                            {{-- Judul: Elegan, wrap alami tanpa dipotong --}}
+                            <h4 style="width: 100%; font-size: 18px; font-weight: 800; color: var(--indigo); line-height: 1.4; text-align: center; white-space: normal; word-break: break-word; margin: 0 0 16px 0; padding: 0 10px;">
                                 {{ $fp->title }}
                             </h4>
                             
-                            {{-- Nama Tim: Ukuran tetap terbaca, batas 2 baris --}}
+                            {{-- Nama Tim: Wrap alami tanpa dipotong --}}
                             <div style="width: 100%; position: relative;">
                                 @php
                                     $teamNames = $fp->members->isNotEmpty() 
                                         ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &bull; ')
                                         : ($fp->student->full_name ?? 'Tim Siswa');
                                 @endphp
-                                <div style="font-size: 14px; font-weight: 700; color: #4b5563; text-align: center; padding: 12px 0; border-top: 1px dashed rgba(99,102,241,0.4); border-bottom: 1px dashed rgba(99,102,241,0.4); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                <div style="font-size: 14px; font-weight: 700; color: #4b5563; text-align: center; padding: 12px 0; border-top: 1px dashed rgba(99,102,241,0.4); border-bottom: 1px dashed rgba(99,102,241,0.4); white-space: normal; word-break: break-word;">
                                     <i class="fa-solid fa-users" style="color: #6366f1; margin-right: 6px;"></i> {!! $teamNames !!}
                                 </div>
                             </div>
@@ -113,7 +113,7 @@
                     {{-- Duplicate for seamless loop --}}
                     @foreach($finalProjectsShowcase as $fp)
                         <div style="width: 450px; flex: 0 0 450px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                            <h4 style="width: 100%; font-size: 18px; font-weight: 800; color: var(--indigo); line-height: 1.4; text-align: center; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 16px 0; padding: 0 10px;">
+                            <h4 style="width: 100%; font-size: 18px; font-weight: 800; color: var(--indigo); line-height: 1.4; text-align: center; white-space: normal; word-break: break-word; margin: 0 0 16px 0; padding: 0 10px;">
                                 {{ $fp->title }}
                             </h4>
                             
@@ -123,7 +123,7 @@
                                         ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &bull; ')
                                         : ($fp->student->full_name ?? 'Tim Siswa');
                                 @endphp
-                                <div style="font-size: 14px; font-weight: 700; color: #4b5563; text-align: center; padding: 12px 0; border-top: 1px dashed rgba(99,102,241,0.4); border-bottom: 1px dashed rgba(99,102,241,0.4); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                <div style="font-size: 14px; font-weight: 700; color: #4b5563; text-align: center; padding: 12px 0; border-top: 1px dashed rgba(99,102,241,0.4); border-bottom: 1px dashed rgba(99,102,241,0.4); white-space: normal; word-break: break-word;">
                                     <i class="fa-solid fa-users" style="color: #6366f1; margin-right: 6px;"></i> {!! $teamNames !!}
                                 </div>
                             </div>
