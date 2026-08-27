@@ -74,34 +74,28 @@
             </div>
         </div>
 
-        {{-- Feature keyword marquee -> diganti Showcase Penelitian & Project Akhir --}}
+        {{-- Showcase Penelitian & Project Akhir --}}
         @if(isset($finalProjectsShowcase) && $finalProjectsShowcase->count() > 0)
-        <div data-aos="fade-up" data-aos-delay="200" style="margin-top:56px; overflow:hidden; position:relative; padding-bottom: 24px;">
+        <div data-aos="fade-up" data-aos-delay="200" style="margin-top:64px; overflow:hidden; position:relative; padding-bottom: 24px;">
             <div class="marquee-fade-left"></div>
             <div class="marquee-fade-right"></div>
             <div class="marquee-track">
-                <div class="marquee-content" style="display: flex; gap: 24px; padding-left: 24px;">
+                <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
                     @foreach($finalProjectsShowcase as $fp)
-                        <div class="bcard" style="min-width: 360px; max-width: 400px; border-radius: 24px; background: linear-gradient(135deg, var(--indigo-bg), #ffffff); border: 1px solid var(--indigo-light); box-shadow: 0 10px 30px -10px rgba(99,102,241,0.15); display:flex; flex-direction:column; justify-content:space-between; overflow:hidden;">
+                        <div style="min-width: 450px; max-width: 550px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
                             
-                            {{-- Bagian Atas: Judul (Besar, Blok dengan Bayangan dan Bold) --}}
-                            <div style="padding: 24px 28px; flex-grow: 1;">
-                                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--indigo); margin-bottom: 12px; display:inline-flex; align-items:center; gap:6px;">
-                                    <i class="fa-solid {{ $fp->type === 'penelitian_ilmiah' ? 'fa-microscope' : 'fa-lightbulb' }}"></i> 
-                                    {{ $fp->type === 'penelitian_ilmiah' ? 'Penelitian Ilmiah' : 'Project Akhir' }}
-                                </div>
-                                <h4 style="font-size: 19px; font-weight: 900; color: var(--text-primary); line-height: 1.4; text-shadow: 1px 2px 4px rgba(0,0,0,0.12); margin: 0;">
-                                    {{ $fp->title }}
-                                </h4>
-                            </div>
+                            {{-- Bagian Atas: Judul (Besar, Bayangan, Bold, Center) --}}
+                            <h4 style="font-size: 22px; font-weight: 900; color: var(--text-primary); line-height: 1.35; text-shadow: 2px 2px 5px rgba(0,0,0,0.15); margin: 0 0 16px 0; text-align: center; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; padding: 0 10px;">
+                                {{ $fp->title }}
+                            </h4>
                             
                             {{-- Bagian Bawah: Teks Nama Tim Bergerak Dari Kiri ke Kanan --}}
-                            <div style="background: rgba(99,102,241,0.04); border-top: 1px dashed rgba(99,102,241,0.25); padding: 14px 0;">
+                            <div style="width: 100%; position: relative;">
                                 @php
                                     $teamNames = $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ');
                                 @endphp
-                                <marquee direction="right" scrollamount="4" style="font-size: 13px; font-weight: 700; color: var(--indigo); white-space: nowrap; padding: 0 12px;">
-                                    <i class="fa-solid fa-users" style="margin-right:6px; opacity:0.8;"></i> {!! $teamNames !!}
+                                <marquee direction="right" scrollamount="4" style="font-size: 15px; font-weight: 800; color: var(--indigo); white-space: nowrap; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25);">
+                                    <i class="fa-solid fa-users" style="margin-right:8px; color: var(--violet);"></i> {!! $teamNames !!}
                                 </marquee>
                             </div>
                         </div>
@@ -109,24 +103,18 @@
 
                     {{-- Duplicate for seamless loop --}}
                     @foreach($finalProjectsShowcase as $fp)
-                        <div class="bcard" style="min-width: 360px; max-width: 400px; border-radius: 24px; background: linear-gradient(135deg, var(--indigo-bg), #ffffff); border: 1px solid var(--indigo-light); box-shadow: 0 10px 30px -10px rgba(99,102,241,0.15); display:flex; flex-direction:column; justify-content:space-between; overflow:hidden;">
+                        <div style="min-width: 450px; max-width: 550px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
                             
-                            <div style="padding: 24px 28px; flex-grow: 1;">
-                                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--indigo); margin-bottom: 12px; display:inline-flex; align-items:center; gap:6px;">
-                                    <i class="fa-solid {{ $fp->type === 'penelitian_ilmiah' ? 'fa-microscope' : 'fa-lightbulb' }}"></i> 
-                                    {{ $fp->type === 'penelitian_ilmiah' ? 'Penelitian Ilmiah' : 'Project Akhir' }}
-                                </div>
-                                <h4 style="font-size: 19px; font-weight: 900; color: var(--text-primary); line-height: 1.4; text-shadow: 1px 2px 4px rgba(0,0,0,0.12); margin: 0;">
-                                    {{ $fp->title }}
-                                </h4>
-                            </div>
+                            <h4 style="font-size: 22px; font-weight: 900; color: var(--text-primary); line-height: 1.35; text-shadow: 2px 2px 5px rgba(0,0,0,0.15); margin: 0 0 16px 0; text-align: center; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; padding: 0 10px;">
+                                {{ $fp->title }}
+                            </h4>
                             
-                            <div style="background: rgba(99,102,241,0.04); border-top: 1px dashed rgba(99,102,241,0.25); padding: 14px 0;">
+                            <div style="width: 100%; position: relative;">
                                 @php
                                     $teamNames = $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ');
                                 @endphp
-                                <marquee direction="right" scrollamount="4" style="font-size: 13px; font-weight: 700; color: var(--indigo); white-space: nowrap; padding: 0 12px;">
-                                    <i class="fa-solid fa-users" style="margin-right:6px; opacity:0.8;"></i> {!! $teamNames !!}
+                                <marquee direction="right" scrollamount="4" style="font-size: 15px; font-weight: 800; color: var(--indigo); white-space: nowrap; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25);">
+                                    <i class="fa-solid fa-users" style="margin-right:8px; color: var(--violet);"></i> {!! $teamNames !!}
                                 </marquee>
                             </div>
                         </div>
