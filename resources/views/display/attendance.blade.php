@@ -544,10 +544,10 @@
             color: #16a34a;
             border: 1px solid #bbf7d0;
         }
-        .guide-step.face .guide-step-icon {
-            background: #faf5ff;
-            color: #7c3aed;
-            border: 1px solid #e9d5ff;
+        .guide-step.manual .guide-step-icon {
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fde68a;
         }
         .guide-step-body {
             flex: 1;
@@ -1041,7 +1041,7 @@
                 </div>
 
                 <div class="guide-list">
-                    <!-- Metode 1: Kartu RFID -->
+                    <!-- Metode 1: Scan Kartu RFID -->
                     <div class="guide-step rfid">
                         <div class="guide-step-icon">
                             <i class="fa-solid fa-id-card"></i>
@@ -1049,15 +1049,15 @@
                         <div class="guide-step-body">
                             <div class="guide-step-title">
                                 <span class="step-num">1</span>
-                                <span>Tempel Kartu RFID (KTA)</span>
+                                <span>Scan Kartu RFID</span>
                             </div>
                             <div class="guide-step-desc">
-                                Tempelkan kartu pada scanner gerbang/lobi hingga berbunyi <em>beep</em> &amp; nama tampil di layar.
+                                Tempelkan kartu siswa / KTA RFID pada reader di gerbang sekolah hingga berbunyi <em>beep</em>.
                             </div>
                         </div>
                     </div>
 
-                    <!-- Metode 2: Mobile App GPS -->
+                    <!-- Metode 2: Mobile Phone -->
                     <div class="guide-step mobile">
                         <div class="guide-step-icon">
                             <i class="fa-solid fa-mobile-screen-button"></i>
@@ -1065,26 +1065,26 @@
                         <div class="guide-step-body">
                             <div class="guide-step-title">
                                 <span class="step-num">2</span>
-                                <span>Presensi Mobile (GPS)</span>
+                                <span>Mobile Phone</span>
                             </div>
                             <div class="guide-step-desc">
-                                Buka <strong>perguruanpembda.com/m</strong>, pilih menu <strong>Absensi</strong> &rarr; klik <strong>Presensi GPS</strong> di sekolah.
+                                Buka <strong>perguruanpembda.com/m</strong> di HP &rarr; menu <strong>Absensi</strong> &rarr; klik <strong>Presensi Mandiri GPS</strong>.
                             </div>
                         </div>
                     </div>
 
-                    <!-- Metode 3: Face Terminal -->
-                    <div class="guide-step face">
+                    <!-- Metode 3: Manual -->
+                    <div class="guide-step manual">
                         <div class="guide-step-icon">
-                            <i class="fa-solid fa-camera"></i>
+                            <i class="fa-solid fa-clipboard-user"></i>
                         </div>
                         <div class="guide-step-body">
                             <div class="guide-step-title">
                                 <span class="step-num">3</span>
-                                <span>Face Terminal (Kamera)</span>
+                                <span>Manual</span>
                             </div>
                             <div class="guide-step-desc">
-                                Hadapkan wajah ke terminal kamera kiosk di stasiun presensi untuk pencatatan otomatis.
+                                Jika kartu/HP tertinggal, lapor ke <strong>Guru Piket / Wali Kelas</strong> untuk dicatat manual di sistem.
                             </div>
                         </div>
                     </div>
@@ -1096,10 +1096,10 @@
                         <span>🟢</span> <span>Masuk Tepat Waktu</span>
                     </div>
                     <div class="guide-tip-item">
-                        <span>🚪</span> <span>Tap Saat Pulang</span>
+                        <span>🚪</span> <span>Scan Saat Pulang</span>
                     </div>
                     <div class="guide-tip-item">
-                        <i class="fa-brands fa-whatsapp" style="color:#16a34a; font-size:12px;"></i> <span>Notif WA Instan</span>
+                        <i class="fa-brands fa-whatsapp" style="color:#16a34a; font-size:12px;"></i> <span>Notif WA Otomatis</span>
                     </div>
                 </div>
             </div>
