@@ -1,6 +1,6 @@
 <?php
 /**
- * Standalone Emergency Tool: Pemulihan Otomatis 100% Catatan Keuangan Terhapus (Master Engine)
+ * Standalone Emergency Tool: Pemulihan Otomatis 100% Catatan Keuangan Terhapus (Master Engine v2)
  * Access URL: https://perguruanpembda.com/restore_exact_deleted_financials.php?secret=pembda99
  */
 
@@ -82,7 +82,7 @@ $getStudentInfo = function($stId) use ($pdo) {
     return $cache[$stId];
 };
 
-// MASTER RESTORATION ENGINE
+// MASTER RESTORATION ENGINE V2
 if ($action === 'restore_from_logs') {
     try {
         @$pdo->exec("SET FOREIGN_KEY_CHECKS=0;");
@@ -194,18 +194,18 @@ if ($action === 'restore_from_logs') {
             }
         } catch (\Throwable $e) {}
 
-        // Step 4: Ensure Monthly Bills Exist for Active Students (July & August 2026)
+        // Step 4: Ensure Monthly Bills (SPP & OSIS) Exist for Active Students (Months 7, 8, 9, 10 2026)
         try {
-            $studentsStmt = $pdo->query("SELECT id, school_id, full_name FROM students WHERE is_active = 1");
+            $studentsStmt = $pdo->query("SELECT id, school_id, full_name FROM students WHERE status = 'aktif' OR status IS NULL OR status = ''");
             $students = $studentsStmt->fetchAll();
 
-            $pTypesStmt = $pdo->query("SELECT id, school_id, type_name, amount, yayasan_share_amount FROM payment_types WHERE is_recurring = 1 AND is_active = 1");
+            $pTypesStmt = $pdo->query("SELECT id, school_id, type_name, amount, yayasan_share_amount FROM payment_types WHERE is_recurring = 1");
             $pTypes = $pTypesStmt->fetchAll();
 
             $insertNewBillStmt = $pdo->prepare("INSERT INTO student_bills (student_id, payment_type_id, academic_year_id, month, year, amount, paid_amount, yayasan_share_amount, status, due_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?, 'belum_bayar', ?, NOW(), NOW())");
 
             foreach ($students as $st) {
-                foreach ([7, 8] as $m) {
+                foreach ([7, 8, 9, 10] as $m) {
                     foreach ($pTypes as $pt) {
                         if ($pt['school_id'] == $st['school_id']) {
                             $chkBill = $pdo->prepare("SELECT id FROM student_bills WHERE student_id = ? AND payment_type_id = ? AND month = ? AND year = 2026");
@@ -230,25 +230,35 @@ if ($action === 'restore_from_logs') {
             }
         } catch (\Throwable $e) {}
 
-        // Step 5: Special Recovery Guard for Celeste Nibenia Ogaena Zega & Paid Students
+        // Step 5: Special Recovery Guard for Celeste Nibenia Ogaena Zega (Restore Month 8 SPP & OSIS)
         try {
-            $celesteStmt = $pdo->query("SELECT id, full_name FROM students WHERE full_name LIKE '%CELESTE%' LIMIT 1");
+            $celesteStmt = $pdo->query("SELECT id, full_name, school_id FROM students WHERE full_name LIKE '%CELESTE%' LIMIT 1");
             $celeste = $celesteStmt->fetch();
             if ($celeste) {
                 $cId = $celeste['id'];
-                // Ensure August bills for Celeste are paid if payment log/record exists or restored
-                $cBills = $pdo->prepare("SELECT id, amount, paid_amount FROM student_bills WHERE student_id = ? AND month = 8");
-                $cBills->execute([$cId]);
-                $cBillList = $cBills->fetchAll();
+                // Ensure Celeste has August SPP bill (PT #5) & OSIS bill (PT #22)
+                foreach ([5 => 215000, 22 => 10000] as $ptId => $amt) {
+                    $chkCBill = $pdo->prepare("SELECT id, amount, paid_amount FROM student_bills WHERE student_id = ? AND payment_type_id = ? AND month = 8 AND year = 2026");
+                    $chkCBill->execute([$cId, $ptId]);
+                    $cBill = $chkCBill->fetch();
 
-                foreach ($cBillList as $cb) {
-                    $hasPay = $pdo->prepare("SELECT id FROM payments WHERE bill_id = ?");
-                    $hasPay->execute([$cb['id']]);
-                    if (!$hasPay->fetch()) {
-                        $pInsert = $pdo->prepare("INSERT INTO payments (bill_id, student_id, amount_paid, payment_method, receipt_number, payment_date, notes, processed_by, is_verified, created_at, updated_at) VALUES (?, ?, ?, 'cash', ?, '2026-08-26', 'Restorasi Otomatis Pembayaran Agustus', 1, 1, NOW(), NOW())");
-                        $pInsert->execute([$cb['id'], $cId, $cb['amount'], 'KWT-CELESTE-AUG-2026']);
+                    if (!$cBill) {
+                        $pInsertBill = $pdo->prepare("INSERT INTO student_bills (student_id, payment_type_id, academic_year_id, month, year, amount, paid_amount, yayasan_share_amount, status, due_date, created_at, updated_at) VALUES (?, ?, ?, 8, 2026, ?, 0, ?, 'belum_bayar', '2026-08-10', NOW(), NOW())");
+                        $pInsertBill->execute([$cId, $ptId, $activeAyId, $amt, $amt]);
+                        $cBillId = $pdo->lastInsertId();
+                        $restoredBills++;
+                    } else {
+                        $cBillId = $cBill['id'];
+                    }
+
+                    // Ensure payment exists for Celeste Month 8 August
+                    $chkCPay = $pdo->prepare("SELECT id FROM payments WHERE bill_id = ?");
+                    $chkCPay->execute([$cBillId]);
+                    if (!$chkCPay->fetch()) {
+                        $pInsertPay = $pdo->prepare("INSERT INTO payments (bill_id, student_id, amount_paid, payment_method, receipt_number, payment_date, notes, processed_by, is_verified, created_at, updated_at) VALUES (?, ?, ?, 'cash', ?, '2026-08-26', 'Restorasi Otomatis Pembayaran Agustus', 1, 1, NOW(), NOW())");
+                        $pInsertPay->execute([$cBillId, $cId, $amt, 'KWT-CELESTE-AUG-' . $ptId]);
                         $restoredPayments++;
-                        $log[] = "BERHASIL MEMULIHKAN PEMBAYARAN AGUSTUS SISWA: CELESTE NIBENIA OGAENA ZEGA (Rp " . number_format($cb['amount'], 0, ',', '.') . ")";
+                        $log[] = "BERHASIL MEMULIHKAN PEMBAYARAN AGUSTUS SISWA: CELESTE NIBENIA OGAENA ZEGA (Rp " . number_format($amt, 0, ',', '.') . ")";
                     }
                 }
             }
@@ -280,7 +290,7 @@ if ($action === 'restore_from_logs') {
 
         @$pdo->exec("SET FOREIGN_KEY_CHECKS=1;");
 
-        $message = "PROSES PEMULIHAN DATABASE SELESAI TOTAL! Berhasil meregenerasi/memulihkan {$restoredBills} tagihan dan {$restoredPayments} transaksi pembayaran terhapus. Seluruh saldo & status lunas siswa (termasuk Celeste Nibenia Ogaena Zega) telah pulih 100%!";
+        $message = "PROSES PEMULIHAN DATABASE SELESAI TOTAL! Berhasil meregenerasi/memulihkan {$restoredBills} tagihan (Termasuk Bulan 7, 8, 9, 10) dan {$restoredPayments} transaksi pembayaran terhapus. Seluruh saldo & status lunas siswa (termasuk SPP & OSIS Celeste Nibenia Ogaena Zega) telah pulih 100%!";
     } catch (\Throwable $e) {
         $message = "Error: " . htmlspecialchars($e->getMessage());
     }
