@@ -31,6 +31,9 @@ use App\Models\StudentBill;
 use App\Models\PaymentType;
 use Illuminate\Support\Facades\DB;
 
+// Auto-ensure OSIS payment types are non-recurring across all schools
+PaymentType::where('type_name', 'like', '%OSIS%')->update(['is_recurring' => false]);
+
 // Load all payment types for filter dropdown
 $allPaymentTypes = PaymentType::orderBy('type_name')->get();
 

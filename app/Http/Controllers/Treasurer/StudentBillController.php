@@ -421,8 +421,11 @@ class StudentBillController extends Controller
                 $months = [null];
             }
 
-            // Determine yayasan share amount
+            // Determine yayasan share amount & check non-recurring type
             $paymentType = PaymentType::find($request->payment_type_id);
+            if ($paymentType && !$paymentType->is_recurring) {
+                $months = [$request->single_month ?? null];
+            }
             $yayasanShareAmount = $request->billing_type == 'monthly'
                 ? ($request->filled('monthly_yayasan_share_amount') ? (float)$request->monthly_yayasan_share_amount : (float)($paymentType?->yayasan_share_amount ?? $paymentType?->amount ?? $amount))
                 : ($request->filled('yayasan_share_amount') ? (float)$request->yayasan_share_amount : (float)($paymentType?->yayasan_share_amount ?? $paymentType?->amount ?? $amount));
