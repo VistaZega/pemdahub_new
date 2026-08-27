@@ -135,19 +135,19 @@ try {
 // Fetch students matching filter
 $studentsList = [];
 try {
-    $queryStr = "SELECT s.id, s.full_name, s.school_id, c.name as class_name FROM students s LEFT JOIN classrooms c ON s.classroom_id = c.id WHERE 1=1";
+    $queryStr = "SELECT id, full_name, school_id, classroom_id FROM students WHERE status = 'aktif' OR status IS NULL OR status = ''";
     $params = [];
 
     if ($schoolId !== 'all') {
-        $queryStr .= " AND s.school_id = ?";
+        $queryStr .= " AND school_id = ?";
         $params[] = $schoolId;
     }
     if ($classroomId !== 'all') {
-        $queryStr .= " AND s.classroom_id = ?";
+        $queryStr .= " AND classroom_id = ?";
         $params[] = $classroomId;
     }
 
-    $queryStr .= " ORDER BY s.full_name ASC";
+    $queryStr .= " ORDER BY full_name ASC LIMIT 500";
     $stPrepared = $pdo->prepare($queryStr);
     $stPrepared->execute($params);
     $studentsList = $stPrepared->fetchAll();
@@ -244,7 +244,7 @@ try {
                         <tr>
                             <th width="40">#</th>
                             <th>Nama Siswa</th>
-                            <th>Kelas</th>
+                            <th>ID Siswa</th>
                             <th class="text-center">Pilih</th>
                         </tr>
                     </thead>
@@ -253,7 +253,7 @@ try {
                         <tr>
                             <td><?= $idx + 1 ?></td>
                             <td class="fw-bold text-dark"><?= htmlspecialchars($st['full_name']) ?></td>
-                            <td><span class="badge bg-secondary"><?= htmlspecialchars($st['class_name'] ?? 'Tanpa Kelas') ?></span></td>
+                            <td><span class="badge bg-secondary">ID #<?= $st['id'] ?></span></td>
                             <td class="text-center">
                                 <input class="form-check-input st-checkbox" type="checkbox" name="student_ids[]" value="<?= $st['id'] ?>">
                             </td>
