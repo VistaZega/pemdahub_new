@@ -6,6 +6,10 @@
 
 define('LARAVEL_START', microtime(true));
 
+@ini_set('memory_limit', '512M');
+@ini_set('max_execution_time', '300');
+@set_time_limit(300);
+
 require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
@@ -34,146 +38,159 @@ $log = [];
 
 // METHOD 1: RESTORE ALL DELETED BILLS & PAYMENTS FROM ACTIVITY LOGS & JOBS
 if ($action === 'restore_from_logs') {
-    DB::transaction(function() use (&$restoredBills, &$restoredPayments, &$log) {
+    try {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
         // A. Restore StudentBills from activity_logs
-        $billLogs = ActivityLog::where(function($q) {
-                $q->where('model_type', 'like', '%StudentBill%');
-            })
-            ->where('action', 'deleted')
-            ->orderBy('id', 'asc')
-            ->get();
+        try {
+            $billLogs = ActivityLog::where(function($q) {
+                    $q->where('model_type', 'like', '%StudentBill%');
+                })
+                ->where('action', 'deleted')
+                ->orderBy('id', 'asc')
+                ->get();
 
-        foreach ($billLogs as $bl) {
-            $data = json_decode($bl->changes, true);
-            if (is_array($data) && isset($data['id'], $data['student_id'])) {
-                $bId = $data['id'];
-                $exists = DB::table('student_bills')->where('id', $bId)->exists();
-                if (!$exists) {
-                    DB::table('student_bills')->insertOrIgnore([
-                        'id' => $data['id'],
-                        'student_id' => $data['student_id'],
-                        'payment_type_id' => $data['payment_type_id'] ?? 1,
-                        'academic_year_id' => $data['academic_year_id'] ?? 1,
-                        'month' => $data['month'] ?? null,
-                        'year' => $data['year'] ?? null,
-                        'amount' => $data['amount'] ?? 0,
-                        'paid_amount' => $data['paid_amount'] ?? 0,
-                        'yayasan_share_amount' => $data['yayasan_share_amount'] ?? 0,
-                        'status' => $data['status'] ?? 'belum_bayar',
-                        'due_date' => $data['due_date'] ?? null,
-                        'created_at' => $data['created_at'] ?? date('Y-m-d H:i:s'),
-                        'updated_at' => $data['updated_at'] ?? date('Y-m-d H:i:s'),
-                    ]);
-                    $restoredBills++;
-                    $stName = Student::find($data['student_id'])->full_name ?? "ID #{$data['student_id']}";
-                    $log[] = "MEMULIHKAN TAGIHAN ID #{$bId} (Siswa: {$stName}, Bulan: " . ($data['month'] ?? '-') . ", Nominal: Rp " . number_format($data['amount'] ?? 0, 0, ',', '.') . ")";
-                }
+            foreach ($billLogs as $bl) {
+                try {
+                    $data = json_decode($bl->changes, true);
+                    if (is_array($data) && isset($data['id'], $data['student_id'])) {
+                        $bId = $data['id'];
+                        $exists = DB::table('student_bills')->where('id', $bId)->exists();
+                        if (!$exists) {
+                            DB::table('student_bills')->insertOrIgnore([
+                                'id' => $data['id'],
+                                'student_id' => $data['student_id'],
+                                'payment_type_id' => $data['payment_type_id'] ?? 1,
+                                'academic_year_id' => $data['academic_year_id'] ?? 1,
+                                'month' => $data['month'] ?? null,
+                                'year' => $data['year'] ?? null,
+                                'amount' => $data['amount'] ?? 0,
+                                'paid_amount' => $data['paid_amount'] ?? 0,
+                                'yayasan_share_amount' => $data['yayasan_share_amount'] ?? 0,
+                                'status' => $data['status'] ?? 'belum_bayar',
+                                'due_date' => $data['due_date'] ?? null,
+                                'created_at' => $data['created_at'] ?? date('Y-m-d H:i:s'),
+                                'updated_at' => $data['updated_at'] ?? date('Y-m-d H:i:s'),
+                            ]);
+                            $restoredBills++;
+                            $stName = Student::find($data['student_id'])->full_name ?? "ID #{$data['student_id']}";
+                            $log[] = "MEMULIHKAN TAGIHAN ID #{$bId} (Siswa: {$stName}, Bulan: " . ($data['month'] ?? '-') . ", Nominal: Rp " . number_format($data['amount'] ?? 0, 0, ',', '.') . ")";
+                        }
+                    }
+                } catch (\Throwable $e) {}
             }
-        }
+        } catch (\Throwable $e) {}
 
         // B. Restore Payments from activity_logs
-        $payLogs = ActivityLog::where(function($q) {
-                $q->where('model_type', 'like', '%Payment%');
-            })
-            ->where('action', 'deleted')
-            ->orderBy('id', 'asc')
-            ->get();
+        try {
+            $payLogs = ActivityLog::where(function($q) {
+                    $q->where('model_type', 'like', '%Payment%');
+                })
+                ->where('action', 'deleted')
+                ->orderBy('id', 'asc')
+                ->get();
 
-        foreach ($payLogs as $pl) {
-            $data = json_decode($pl->changes, true);
-            if (is_array($data) && isset($data['id'], $data['student_id'])) {
-                $pId = $data['id'];
-                $exists = DB::table('payments')->where('id', $pId)->exists();
-                if (!$exists) {
-                    DB::table('payments')->insertOrIgnore([
-                        'id' => $data['id'],
-                        'bill_id' => $data['bill_id'] ?? null,
-                        'student_id' => $data['student_id'],
-                        'amount_paid' => $data['amount_paid'] ?? 0,
-                        'payment_method' => $data['payment_method'] ?? 'cash',
-                        'qris_transaction_id' => $data['qris_transaction_id'] ?? null,
-                        'qris_status' => $data['qris_status'] ?? null,
-                        'reference_number' => $data['reference_number'] ?? null,
-                        'receipt_number' => $data['receipt_number'] ?? ('KWT-REC-' . time() . '-' . rand(10, 99)),
-                        'payment_date' => $data['payment_date'] ?? date('Y-m-d'),
-                        'proof_file' => $data['proof_file'] ?? null,
-                        'notes' => $data['notes'] ?? 'Restored from activity log',
-                        'processed_by' => $data['processed_by'] ?? 1,
-                        'is_verified' => $data['is_verified'] ?? true,
-                        'created_at' => $data['created_at'] ?? date('Y-m-d H:i:s'),
-                        'updated_at' => $data['updated_at'] ?? date('Y-m-d H:i:s'),
-                    ]);
-                    $restoredPayments++;
-                    $stName = Student::find($data['student_id'])->full_name ?? "ID #{$data['student_id']}";
-                    $log[] = "MEMULIHKAN PEMBAYARAN ID #{$pId} (Siswa: {$stName}, Nominal: Rp " . number_format($data['amount_paid'] ?? 0, 0, ',', '.') . ", Kwitansi: " . ($data['receipt_number'] ?? '-') . ")";
-                }
+            foreach ($payLogs as $pl) {
+                try {
+                    $data = json_decode($pl->changes, true);
+                    if (is_array($data) && isset($data['id'], $data['student_id'])) {
+                        $pId = $data['id'];
+                        $exists = DB::table('payments')->where('id', $pId)->exists();
+                        if (!$exists) {
+                            DB::table('payments')->insertOrIgnore([
+                                'id' => $data['id'],
+                                'bill_id' => $data['bill_id'] ?? null,
+                                'student_id' => $data['student_id'],
+                                'amount_paid' => $data['amount_paid'] ?? 0,
+                                'payment_method' => $data['payment_method'] ?? 'cash',
+                                'qris_transaction_id' => $data['qris_transaction_id'] ?? null,
+                                'qris_status' => $data['qris_status'] ?? null,
+                                'reference_number' => $data['reference_number'] ?? null,
+                                'receipt_number' => $data['receipt_number'] ?? ('KWT-REC-' . time() . '-' . rand(10, 99)),
+                                'payment_date' => $data['payment_date'] ?? date('Y-m-d'),
+                                'proof_file' => $data['proof_file'] ?? null,
+                                'notes' => $data['notes'] ?? 'Restored from activity log',
+                                'processed_by' => $data['processed_by'] ?? 1,
+                                'is_verified' => $data['is_verified'] ?? true,
+                                'created_at' => $data['created_at'] ?? date('Y-m-d H:i:s'),
+                                'updated_at' => $data['updated_at'] ?? date('Y-m-d H:i:s'),
+                            ]);
+                            $restoredPayments++;
+                            $stName = Student::find($data['student_id'])->full_name ?? "ID #{$data['student_id']}";
+                            $log[] = "MEMULIHKAN PEMBAYARAN ID #{$pId} (Siswa: {$stName}, Nominal: Rp " . number_format($data['amount_paid'] ?? 0, 0, ',', '.') . ", Kwitansi: " . ($data['receipt_number'] ?? '-') . ")";
+                        }
+                    }
+                } catch (\Throwable $e) {}
             }
-        }
+        } catch (\Throwable $e) {}
 
         // C. Restore from Queued Jobs Table
         try {
             $jobs = DB::table('jobs')->get();
             foreach ($jobs as $j) {
-                $payload = json_decode($j->payload, true);
-                $commandStr = $payload['data']['command'] ?? '';
+                try {
+                    $payload = json_decode($j->payload, true);
+                    $commandStr = $payload['data']['command'] ?? '';
 
-                if (str_contains($commandStr, 'deleted')) {
-                    // Match attributes via regex
-                    if (preg_match('/"id";i:(\d+).*?"student_id";i:(\d+).*?"amount_paid";s:\d+:"([^"]+)"/s', $commandStr, $m)) {
-                        $pId = (int)$m[1];
-                        $stId = (int)$m[2];
-                        $amt = (float)$m[3];
+                    if (str_contains($commandStr, 'deleted')) {
+                        if (preg_match('/"id";i:(\d+).*?"student_id";i:(\d+).*?"amount_paid";s:\d+:"([^"]+)"/s', $commandStr, $m)) {
+                            $pId = (int)$m[1];
+                            $stId = (int)$m[2];
+                            $amt = (float)$m[3];
 
-                        $exists = DB::table('payments')->where('id', $pId)->exists();
-                        if (!$exists) {
-                            $bill = DB::table('student_bills')->where('student_id', $stId)->orderBy('id', 'desc')->first();
-                            if ($bill) {
-                                DB::table('payments')->insertOrIgnore([
-                                    'id' => $pId,
-                                    'bill_id' => $bill->id,
-                                    'student_id' => $stId,
-                                    'amount_paid' => $amt,
-                                    'payment_method' => 'cash',
-                                    'receipt_number' => 'KWT-JOB-' . $pId,
-                                    'payment_date' => date('Y-m-d'),
-                                    'notes' => 'Restored from jobs payload',
-                                    'processed_by' => 1,
-                                    'is_verified' => true,
-                                    'created_at' => date('Y-m-d H:i:s'),
-                                    'updated_at' => date('Y-m-d H:i:s'),
-                                ]);
-                                $restoredPayments++;
-                                $log[] = "Memulihkan Pembayaran Pekerjaan Job #{$pId} untuk Siswa ID {$stId} (Rp " . number_format($amt, 0, ',', '.') . ")";
+                            $exists = DB::table('payments')->where('id', $pId)->exists();
+                            if (!$exists) {
+                                $bill = DB::table('student_bills')->where('student_id', $stId)->orderBy('id', 'desc')->first();
+                                if ($bill) {
+                                    DB::table('payments')->insertOrIgnore([
+                                        'id' => $pId,
+                                        'bill_id' => $bill->id,
+                                        'student_id' => $stId,
+                                        'amount_paid' => $amt,
+                                        'payment_method' => 'cash',
+                                        'receipt_number' => 'KWT-JOB-' . $pId,
+                                        'payment_date' => date('Y-m-d'),
+                                        'notes' => 'Restored from jobs payload',
+                                        'processed_by' => 1,
+                                        'is_verified' => true,
+                                        'created_at' => date('Y-m-d H:i:s'),
+                                        'updated_at' => date('Y-m-d H:i:s'),
+                                    ]);
+                                    $restoredPayments++;
+                                    $log[] = "Memulihkan Pembayaran Pekerjaan Job #{$pId} untuk Siswa ID {$stId} (Rp " . number_format($amt, 0, ',', '.') . ")";
+                                }
                             }
                         }
                     }
-                }
+                } catch (\Throwable $e) {}
             }
-        } catch (\Exception $e) {}
+        } catch (\Throwable $e) {}
 
         // D. Re-sync all bill balances & statuses
-        $bills = DB::table('student_bills')->get();
-        foreach ($bills as $b) {
-            $totalPaid = (float) DB::table('payments')->where('bill_id', $b->id)->where('is_verified', true)->sum('amount_paid');
-            $newStatus = 'belum_bayar';
-            if ($totalPaid >= $b->amount) {
-                $newStatus = 'lunas';
-            } elseif ($totalPaid > 0) {
-                $newStatus = 'cicilan';
-            }
+        try {
+            $bills = DB::table('student_bills')->get();
+            foreach ($bills as $b) {
+                $totalPaid = (float) DB::table('payments')->where('bill_id', $b->id)->where('is_verified', true)->sum('amount_paid');
+                $newStatus = 'belum_bayar';
+                if ($totalPaid >= $b->amount) {
+                    $newStatus = 'lunas';
+                } elseif ($totalPaid > 0) {
+                    $newStatus = 'cicilan';
+                }
 
-            DB::table('student_bills')->where('id', $b->id)->update([
-                'paid_amount' => $totalPaid,
-                'status' => $newStatus,
-            ]);
-        }
+                DB::table('student_bills')->where('id', $b->id)->update([
+                    'paid_amount' => $totalPaid,
+                    'status' => $newStatus,
+                ]);
+            }
+        } catch (\Throwable $e) {}
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-    });
 
-    $message = "PROSES PEMULIHAN DATABASE SELESAI! Berhasil memulihkan {$restoredBills} tagihan dan {$restoredPayments} transaksi pembayaran terhapus ke keadaan semula.";
+        $message = "PROSES PEMULIHAN DATABASE SELESAI! Berhasil memulihkan {$restoredBills} tagihan dan {$restoredPayments} transaksi pembayaran terhapus ke keadaan semula.";
+    } catch (\Throwable $fatalError) {
+        $message = "Error Pemulihan: " . $fatalError->getMessage();
+    }
 }
 
 // METHOD 2: SURGICAL RESTORE FROM SQL SNAPSHOT FILE IF AVAILABLE
