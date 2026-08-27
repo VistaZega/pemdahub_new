@@ -83,25 +83,36 @@
         <div data-aos="fade-up" data-aos-delay="200" style="margin-top:64px; overflow:hidden; position:relative; padding-bottom: 24px;">
             <div class="marquee-fade-left"></div>
             <div class="marquee-fade-right"></div>
-            <div class="marquee-track" style="animation-duration: 80s;">
-                <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
+            <div class="marquee-track" style="animation-duration: 360s;">
+                <div class="marquee-content" style="display: flex; gap: 40px; padding-left: 40px; align-items: center;">
+                    @php
+                        $gradients = [
+                            'from-indigo-500 to-purple-600 shadow-purple-500/40',
+                            'from-emerald-400 to-teal-500 shadow-emerald-500/40',
+                            'from-rose-500 to-pink-600 shadow-rose-500/40',
+                            'from-amber-400 to-orange-500 shadow-orange-500/40',
+                            'from-sky-400 to-blue-600 shadow-sky-500/40',
+                            'from-fuchsia-500 to-violet-600 shadow-fuchsia-500/40'
+                        ];
+                    @endphp
                     @foreach($finalProjectsShowcase as $fp)
-                        <div style="min-width: 450px; max-width: 550px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                        @php $grad = $gradients[$loop->index % count($gradients)]; @endphp
+                        <div class="bcard bg-gradient-to-br {{ $grad }}" style="min-width: 420px; max-width: 480px; border-radius: 28px; padding: 36px 24px; border: 1px solid rgba(255,255,255,0.25); box-shadow: 0 12px 35px -10px rgba(0,0,0,0.15); display:flex; flex-direction:column; justify-content:center; align-items:center; transition: transform 0.3s; transform: scale(1);">
                             
-                            {{-- Bagian Atas: Judul (Besar, Bayangan, Bold, Center) --}}
-                            <h4 style="font-size: 22px; font-weight: 900; color: var(--text-primary); line-height: 1.35; text-shadow: 2px 2px 5px rgba(0,0,0,0.15); margin: 0 0 16px 0; text-align: center; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; padding: 0 10px;">
+                            {{-- Bagian Atas: Judul --}}
+                            <h4 style="font-size: 21px; font-weight: 900; color: #ffffff; line-height: 1.4; text-shadow: 1px 2px 4px rgba(0,0,0,0.2); margin: 0 0 20px 0; text-align: center; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; padding: 0 10px;">
                                 {{ $fp->title }}
                             </h4>
                             
-                            {{-- Bagian Bawah: Teks Nama Tim Bergerak Searah dengan Judul --}}
+                            {{-- Bagian Bawah: Nama Tim --}}
                             <div style="width: 100%; position: relative;">
                                 @php
                                     $teamNames = $fp->members->isNotEmpty() 
                                         ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ')
                                         : ($fp->student->full_name ?? 'Tim Siswa');
                                 @endphp
-                                <div style="font-size: 15px; font-weight: 800; color: var(--indigo); text-align: center; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25);">
-                                    <i class="fa-solid fa-users" style="margin-right:8px; color: var(--violet);"></i> {!! $teamNames !!}
+                                <div style="font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.95); text-align: center; padding: 12px 0; border-top: 1px dashed rgba(255,255,255,0.3); border-bottom: 1px dashed rgba(255,255,255,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">
+                                    <i class="fa-solid fa-users" style="margin-right:8px; opacity: 0.9;"></i> {!! $teamNames !!}
                                 </div>
                             </div>
                         </div>
@@ -109,18 +120,21 @@
 
                     {{-- Duplicate for seamless loop --}}
                     @foreach($finalProjectsShowcase as $fp)
-                        <div style="min-width: 450px; max-width: 550px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                        @php $grad = $gradients[$loop->index % count($gradients)]; @endphp
+                        <div class="bcard bg-gradient-to-br {{ $grad }}" style="min-width: 420px; max-width: 480px; border-radius: 28px; padding: 36px 24px; border: 1px solid rgba(255,255,255,0.25); box-shadow: 0 12px 35px -10px rgba(0,0,0,0.15); display:flex; flex-direction:column; justify-content:center; align-items:center;">
                             
-                            <h4 style="font-size: 22px; font-weight: 900; color: var(--text-primary); line-height: 1.35; text-shadow: 2px 2px 5px rgba(0,0,0,0.15); margin: 0 0 16px 0; text-align: center; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; padding: 0 10px;">
+                            <h4 style="font-size: 21px; font-weight: 900; color: #ffffff; line-height: 1.4; text-shadow: 1px 2px 4px rgba(0,0,0,0.2); margin: 0 0 20px 0; text-align: center; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; padding: 0 10px;">
                                 {{ $fp->title }}
                             </h4>
                             
                             <div style="width: 100%; position: relative;">
                                 @php
-                                    $teamNames = $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ');
+                                    $teamNames = $fp->members->isNotEmpty() 
+                                        ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ')
+                                        : ($fp->student->full_name ?? 'Tim Siswa');
                                 @endphp
-                                <div style="font-size: 15px; font-weight: 800; color: var(--indigo); text-align: center; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25);">
-                                    <i class="fa-solid fa-users" style="margin-right:8px; color: var(--violet);"></i> {!! $teamNames !!}
+                                <div style="font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.95); text-align: center; padding: 12px 0; border-top: 1px dashed rgba(255,255,255,0.3); border-bottom: 1px dashed rgba(255,255,255,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">
+                                    <i class="fa-solid fa-users" style="margin-right:8px; opacity: 0.9;"></i> {!! $teamNames !!}
                                 </div>
                             </div>
                         </div>
