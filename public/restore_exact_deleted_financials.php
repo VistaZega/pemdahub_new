@@ -4,9 +4,9 @@
  * Access URL: https://perguruanpembda.com/restore_exact_deleted_financials.php?secret=pembda99
  */
 
-@ini_set('display_errors', '1');
-@ini_set('display_startup_errors', '1');
-@error_reporting(E_ALL);
+@ini_set('display_errors', '0');
+@ini_set('display_startup_errors', '0');
+@error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
 @ini_set('memory_limit', '512M');
 @ini_set('max_execution_time', '300');
 @set_time_limit(300);
@@ -34,7 +34,6 @@ $dbName = 'u474310197_database';
 $dbUser = 'u474310197_user';
 $dbPass = '';
 
-$foundEnv = false;
 foreach ($possibleEnvPaths as $envPath) {
     if (file_exists($envPath)) {
         $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -52,7 +51,6 @@ foreach ($possibleEnvPaths as $envPath) {
                 if ($key === 'DB_PASSWORD') $dbPass = $val;
             }
         }
-        $foundEnv = true;
         break;
     }
 }
@@ -86,11 +84,25 @@ try {
     die("<div style='font-family:sans-serif;padding:30px;background:#fee2e2;color:#991b1b;border-radius:12px;'>
         <h3>❌ Gagal Terhubung Ke Database Hostinger</h3>
         <p>Error: " . htmlspecialchars($e->getMessage()) . "</p>
-        <p>Host: {$dbHost} | Database: {$dbName} | User: {$dbUser}</p>
     </div>");
 }
 
-// METHOD 1: RESTORE DELETED BILLS & PAYMENTS FROM ACTIVITY LOGS & JOBS
+// Helper to fetch student name
+$getStudentName = function($stId) use ($pdo) {
+    static $cache = [];
+    if (isset($cache[$stId])) return $cache[$stId];
+    try {
+        $st = $pdo->prepare("SELECT full_name FROM students WHERE id = ?");
+        $st->execute([$stId]);
+        $res = $st->fetch();
+        $cache[$stId] = $res['full_name'] ?? "Siswa ID #{$stId}";
+    } catch (\Throwable $e) {
+        $cache[$stId] = "Siswa ID #{$stId}";
+    }
+    return $cache[$stId];
+};
+
+// METHOD 1: RESTORE DELETED BILLS & PAYMENTS FROM ACTIVITY LOGS
 if ($action === 'restore_from_logs') {
     try {
         @$pdo->exec("SET FOREIGN_KEY_CHECKS=0;");
@@ -105,7 +117,10 @@ if ($action === 'restore_from_logs') {
 
             foreach ($billLogs as $bl) {
                 try {
-                    $data = json_decode($bl['changes'], true);
+                    $rawJson = $bl['changes'] ?? '';
+                    if (empty($rawJson) || !is_string($rawJson)) continue;
+                    $data = json_decode($rawJson, true);
+
                     if (is_array($data) && isset($data['id'], $data['student_id'])) {
                         $bId = $data['id'];
                         $chk = $pdo->prepare("SELECT id FROM student_bills WHERE id = ?");
@@ -128,7 +143,8 @@ if ($action === 'restore_from_logs') {
                                 $data['updated_at'] ?? date('Y-m-d H:i:s'),
                             ]);
                             $restoredBills++;
-                            $log[] = "MEMULIHKAN TAGIHAN ID #{$bId} (Siswa ID: {$data['student_id']}, Bulan: " . ($data['month'] ?? '-') . ", Nominal: Rp " . number_format($data['amount'] ?? 0, 0, ',', '.') . ")";
+                            $stName = $getStudentName($data['student_id']);
+                            $log[] = "MEMULIHKAN TAGIHAN ID #{$bId} (Siswa: {$stName}, Bulan: " . ($data['month'] ?? '-') . ", Nominal: Rp " . number_format($data['amount'] ?? 0, 0, ',', '.') . ")";
                         }
                     }
                 } catch (\Throwable $e) {}
@@ -145,7 +161,10 @@ if ($action === 'restore_from_logs') {
 
             foreach ($payLogs as $pl) {
                 try {
-                    $data = json_decode($pl['changes'], true);
+                    $rawJson = $pl['changes'] ?? '';
+                    if (empty($rawJson) || !is_string($rawJson)) continue;
+                    $data = json_decode($rawJson, true);
+
                     if (is_array($data) && isset($data['id'], $data['student_id'])) {
                         $pId = $data['id'];
                         $chk = $pdo->prepare("SELECT id FROM payments WHERE id = ?");
@@ -171,7 +190,8 @@ if ($action === 'restore_from_logs') {
                                 $data['updated_at'] ?? date('Y-m-d H:i:s'),
                             ]);
                             $restoredPayments++;
-                            $log[] = "MEMULIHKAN PEMBAYARAN ID #{$pId} (Siswa ID: {$data['student_id']}, Nominal: Rp " . number_format($data['amount_paid'] ?? 0, 0, ',', '.') . ", Kwitansi: " . ($data['receipt_number'] ?? '-') . ")";
+                            $stName = $getStudentName($data['student_id']);
+                            $log[] = "MEMULIHKAN PEMBAYARAN ID #{$pId} (Siswa: {$stName}, Nominal: Rp " . number_format($data['amount_paid'] ?? 0, 0, ',', '.') . ", Kwitansi: " . ($data['receipt_number'] ?? '-') . ")";
                         }
                     }
                 } catch (\Throwable $e) {}
