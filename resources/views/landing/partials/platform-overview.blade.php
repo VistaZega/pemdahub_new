@@ -84,12 +84,11 @@
             <div class="marquee-fade-left"></div>
             <div class="marquee-fade-right"></div>
             @php
-                // Maintain consistent ultra-slow speed (1200s per item - reduced to 10% per user request)
-                // Capped at 30,000s to prevent CSS animation max-duration overflow which causes it to fallback to default (very fast).
-                $marqueeDuration = min($finalProjectsShowcase->count() * 1200, 30000);
+                // Speed: 25s per item (exactly 10% of the original speed they saw when it was 30s for 12 items)
+                $marqueeDuration = $finalProjectsShowcase->count() * 25;
             @endphp
-            <div class="marquee-track" style="animation-duration: {{ $marqueeDuration }}s;">
-                <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
+            <div class="marquee-track">
+                <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center; animation-duration: {{ $marqueeDuration }}s;">
                     @foreach($finalProjectsShowcase as $fp)
                         <div style="width: 450px; flex: 0 0 450px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
                             {{-- Judul: Elegan, wrap alami tanpa dipotong --}}
