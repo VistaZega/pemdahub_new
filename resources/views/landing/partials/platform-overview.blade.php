@@ -84,8 +84,8 @@
             <div class="marquee-fade-left"></div>
             <div class="marquee-fade-right"></div>
             @php
-                // Maintain consistent ultra-slow speed (480s per item - reduced by 75% per user request)
-                $marqueeDuration = $finalProjectsShowcase->count() * 480;
+                // Maintain consistent ultra-slow speed (400s per item - reduced to 30% per user request)
+                $marqueeDuration = $finalProjectsShowcase->count() * 400;
             @endphp
             <div class="marquee-track" style="animation-duration: {{ $marqueeDuration }}s;">
                 <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
