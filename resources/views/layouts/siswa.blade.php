@@ -22,6 +22,14 @@
         <span class="text-sm flex-1 font-semibold">Dashboard</span>
     </a>
 
+    @if(\App\Services\SteamCompetitionService::isStudentParticipant(Auth::user()))
+    <a href="{{ route('steam.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('steam.*') ? 'bg-amber-100 text-amber-900 font-bold' : 'text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200' }}">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-xs"><i class="fas fa-trophy text-[10px]"></i></div>
+        <span class="font-extrabold text-amber-950 flex-1">STEAMpreneur 2026</span>
+        <span class="text-[9px] font-black bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-full">Tim</span>
+    </a>
+    @endif
+
     <a href="{{ route('siswa.jadwal') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.jadwal') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-calendar-alt text-[10px]"></i></div>
         <span>Jadwal Pelajaran</span>

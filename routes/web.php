@@ -1034,6 +1034,20 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/biodata', [App\Http\Controllers\ProfileSettingsController::class, 'updateBiodata'])->name('profile.biodata.update');
     Route::post('/profile/photo', [App\Http\Controllers\ProfileSettingsController::class, 'updatePhoto'])->name('profile.photo.update');
 
+    // ============================================================
+    //  STEAMPRENEUR SMK 2026 - KEMENDIKDASMEN INNOVATION HUB
+    //  Akses Khusus: Super Admin, Kepala Sekolah, Yayasan & Siswa Peserta
+    // ============================================================
+    Route::prefix('steam-competition')->name('steam.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SteamCompetitionController::class, 'index'])->name('index');
+        Route::get('/proposal', [App\Http\Controllers\SteamCompetitionController::class, 'proposal'])->name('proposal');
+        Route::get('/pitch-deck', [App\Http\Controllers\SteamCompetitionController::class, 'pitchDeck'])->name('pitch-deck');
+        Route::get('/video-script', [App\Http\Controllers\SteamCompetitionController::class, 'videoScript'])->name('video-script');
+        Route::post('/upload', [App\Http\Controllers\SteamCompetitionController::class, 'uploadDocument'])->name('upload');
+        Route::delete('/document/{id}', [App\Http\Controllers\SteamCompetitionController::class, 'deleteDocument'])->name('document.delete');
+        Route::post('/settings', [App\Http\Controllers\SteamCompetitionController::class, 'updateSettings'])->name('settings');
+    });
+
     // Admin Sekolah Routes - Redirect ke /admin (shared with SuperAdmin)
     Route::prefix('sekolah')->name('sekolah.')->group(function () {
         Route::get('/dashboard', function () {

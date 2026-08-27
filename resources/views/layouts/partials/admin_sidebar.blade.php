@@ -62,6 +62,11 @@
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-palette text-[10px]"></i></div>
             <span>Tema &amp; Konten Beranda</span>
         </a>
+        <a href="{{ route('steam.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('steam.*') ? $ac : $nc }}">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-trophy text-[10px]"></i></div>
+            <span class="flex-1 font-bold text-amber-950">STEAMpreneur 2026</span>
+            <span class="text-[9px] font-black bg-amber-200 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded-full">Lomba</span>
+        </a>
     </div>
 </div>
 
@@ -161,6 +166,19 @@
         <i class="fas fa-tachometer-alt text-xs"></i>
     </div>
     <span class="text-sm flex-1 font-semibold">Dashboard</span>
+</a>
+
+<!-- ── STEAMpreneur SMK 2026 (Khusus SuperAdmin, Kepala Sekolah, Yayasan) ── -->
+<a href="{{ route('steam.index') }}"
+   class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-xl {{ request()->routeIs('steam.*') ? $ac : 'text-amber-900 bg-amber-50/70 hover:bg-amber-100 border border-amber-200/80' }}">
+    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow">
+        <i class="fas fa-trophy text-xs"></i>
+    </div>
+    <div class="flex-1 min-w-0">
+        <div class="text-[10px] font-black uppercase tracking-wider text-amber-700">Kemendikdasmen</div>
+        <div class="text-sm font-extrabold truncate text-slate-900">STEAMpreneur 2026</div>
+    </div>
+    <span class="text-[9px] font-black bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded-full uppercase shadow-xs">Lomba</span>
 </a>
 
 <!-- ── Surat Edaran Yayasan ── -->
