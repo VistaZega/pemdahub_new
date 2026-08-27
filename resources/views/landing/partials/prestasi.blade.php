@@ -173,11 +173,11 @@
                         <div style="position:absolute; top:0; left:0; width:100%; height:100%; background-color: {{ $unitTheme['base_color'] }};"></div>
                         
                         <!-- Background Image Siswa (Di sebelah kanan, 70% lebar kartu agar tidak terlalu zoom in) -->
-                        <img src="{{ $achievement->student?->photo_url ?? asset('assets/img/default-avatar.png') }}" 
+                        <img src="{{ $achievement->student?->photo_url ?? asset('images/default-student.jpg') }}" 
                              class="bg-img"
                              style="position:absolute; top:0; right:0; width:70%; height:100%; object-fit:cover; object-position:right top; transition:transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);" 
                              alt="{{ $achievement->student?->full_name ?? 'Siswa' }}" 
-                             onerror="this.src='{{ asset('assets/img/default-avatar.png') }}'">
+                             onerror="this.onerror=null; this.src='{{ asset('images/default-student.jpg') }}'">
                         
                         <!-- Gradient Overlay 1: Dari Kiri ke Kanan (Blend sisi kiri gambar dengan background base) -->
                         <div style="position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to right, {{ $unitTheme['base_color'] }} 30%, transparent 70%);"></div>

@@ -313,7 +313,7 @@
 
                             {{-- Avatar with Crown for #1 --}}
                             <div class="hof-avatar-wrap">
-                                <img src="{{ $std->user->photo_url ?? asset('assets/img/default-avatar.png') }}" class="hof-avatar" onerror="this.src='{{ asset('assets/img/default-avatar.png') }}'" />
+                                <img src="{{ $std->user->photo_url ?? asset('images/default-student.jpg') }}" class="hof-avatar" onerror="this.onerror=null; this.src='{{ asset('images/default-student.jpg') }}'" />
                                 @if($index == 0)
                                     <div class="hof-crown-badge" title="Top Leaderboard">
                                         <i class="fa-solid fa-crown"></i>
@@ -438,7 +438,7 @@
 
                             {{-- Avatar with Crown for #1 --}}
                             <div class="hof-avatar-wrap">
-                                <img src="{{ $tch->user->photo_url ?? asset('assets/img/default-avatar.png') }}" class="hof-avatar" onerror="this.src='{{ asset('assets/img/default-avatar.png') }}'" />
+                                <img src="{{ $tch->user->photo_url ?? asset('images/photo-profile.jpeg') }}" class="hof-avatar" onerror="this.onerror=null; this.src='{{ asset('images/photo-profile.jpeg') }}'" />
                                 @if($index == 0)
                                     <div class="hof-crown-badge" style="background: #6366f1; color: #ffffff;" title="Guru Teladan Utama">
                                         <i class="fa-solid fa-crown"></i>
