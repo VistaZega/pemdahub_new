@@ -51,7 +51,7 @@
         {{-- Three Pillars --}}
         <div class="bento bento-3" style="max-width:1680px; margin:0 auto;" data-aos="fade-up" data-aos-delay="100">
             {{-- Pillar 1: Administrasi --}}
-            <div class="bcard bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/30" style="text-align:center; padding:36px 28px; border:none; transition: transform 0.3s; transform: translateY(0);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div class="bcard" style="background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%); box-shadow: 0 10px 25px -5px rgba(79,70,229,0.4); text-align:center; padding:36px 28px; border:none; transition: transform 0.3s; transform: translateY(0);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
                 <div class="icon-circle pillar-icon" style="background:rgba(255,255,255,0.2); color:#ffffff; border:1px solid rgba(255,255,255,0.3);">
                     <i class="fa-solid fa-building-columns"></i>
                 </div>
@@ -60,7 +60,7 @@
             </div>
 
             {{-- Pillar 2: Keuangan --}}
-            <div class="bcard bg-gradient-to-br from-emerald-400 to-teal-500 shadow-teal-500/30" style="text-align:center; padding:36px 28px; border:none; transition: transform 0.3s; transform: translateY(0);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div class="bcard" style="background: linear-gradient(135deg, #34d399 0%, #0d9488 100%); box-shadow: 0 10px 25px -5px rgba(13,148,136,0.4); text-align:center; padding:36px 28px; border:none; transition: transform 0.3s; transform: translateY(0);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
                 <div class="icon-circle pillar-icon" style="background:rgba(255,255,255,0.2); color:#ffffff; border:1px solid rgba(255,255,255,0.3);">
                     <i class="fa-solid fa-coins"></i>
                 </div>
@@ -69,7 +69,7 @@
             </div>
 
             {{-- Pillar 3: Akademik --}}
-            <div class="bcard bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-violet-500/30" style="text-align:center; padding:36px 28px; border:none; transition: transform 0.3s; transform: translateY(0);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div class="bcard" style="background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%); box-shadow: 0 10px 25px -5px rgba(217,70,239,0.4); text-align:center; padding:36px 28px; border:none; transition: transform 0.3s; transform: translateY(0);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
                 <div class="icon-circle pillar-icon" style="background:rgba(255,255,255,0.2); color:#ffffff; border:1px solid rgba(255,255,255,0.3);">
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
