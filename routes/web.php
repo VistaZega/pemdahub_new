@@ -723,8 +723,8 @@ Route::get('/', function () {
     // === SHOWCASE FINAL PROJECT (PENELITIAN & PROJECT AKHIR) ===
     $finalProjectsShowcase = \App\Models\FinalProject::with(['student', 'members.student'])
         ->whereNotIn('status', ['rejected', 'draft']) // Tampilkan semua yang sudah disubmit/approved
-        ->latest('updated_at')
-        ->take(12)
+        ->inRandomOrder()
+        ->take(40)
         ->get();
 
     // Pastikan halaman beranda tidak dicache oleh server (LiteSpeed) maupun browser

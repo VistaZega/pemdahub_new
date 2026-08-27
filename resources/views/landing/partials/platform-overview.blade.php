@@ -83,7 +83,11 @@
         <div data-aos="fade-up" data-aos-delay="200" style="margin-top:64px; overflow:hidden; position:relative; padding-bottom: 24px;">
             <div class="marquee-fade-left"></div>
             <div class="marquee-fade-right"></div>
-            <div class="marquee-track" style="animation-duration: 1440s;">
+            @php
+                // Maintain consistent ultra-slow speed (120s per item) regardless of how many items are fetched
+                $marqueeDuration = $finalProjectsShowcase->count() * 120;
+            @endphp
+            <div class="marquee-track" style="animation-duration: {{ $marqueeDuration }}s;">
                 <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
                     @foreach($finalProjectsShowcase as $fp)
                         <div style="width: 500px; flex: 0 0 500px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
