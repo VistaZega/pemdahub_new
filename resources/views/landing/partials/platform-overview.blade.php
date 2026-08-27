@@ -51,30 +51,30 @@
         {{-- Three Pillars --}}
         <div class="bento bento-3" style="max-width:1680px; margin:0 auto;" data-aos="fade-up" data-aos-delay="100">
             {{-- Pillar 1: Administrasi --}}
-            <div class="bcard" style="text-align:center; padding:36px 28px;">
-                <div class="icon-circle pillar-icon" style="background:var(--blue-bg); color:var(--blue);">
+            <div class="bcard bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/30" style="text-align:center; padding:36px 28px; border:none; transition: transform 0.3s; transform: translateY(0);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div class="icon-circle pillar-icon" style="background:rgba(255,255,255,0.2); color:#ffffff; border:1px solid rgba(255,255,255,0.3);">
                     <i class="fa-solid fa-building-columns"></i>
                 </div>
-                <h3 class="h3" style="margin-bottom:8px; font-size:17px;">Administrasi &amp; Kepegawaian</h3>
-                <p class="body" style="font-size:13px;">Data pegawai, jabatan, surat-menyurat, dan pengelolaan SDM terintegrasi.</p>
+                <h3 class="h3" style="margin-bottom:8px; font-size:17px; color:#ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">Administrasi &amp; Kepegawaian</h3>
+                <p class="body" style="font-size:13px; color:rgba(255,255,255,0.9);">Data pegawai, jabatan, surat-menyurat, dan pengelolaan SDM terintegrasi.</p>
             </div>
 
             {{-- Pillar 2: Keuangan --}}
-            <div class="bcard" style="text-align:center; padding:36px 28px;">
-                <div class="icon-circle pillar-icon" style="background:var(--emerald-bg); color:var(--emerald);">
+            <div class="bcard bg-gradient-to-br from-emerald-400 to-teal-500 shadow-teal-500/30" style="text-align:center; padding:36px 28px; border:none; transition: transform 0.3s; transform: translateY(0);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div class="icon-circle pillar-icon" style="background:rgba(255,255,255,0.2); color:#ffffff; border:1px solid rgba(255,255,255,0.3);">
                     <i class="fa-solid fa-coins"></i>
                 </div>
-                <h3 class="h3" style="margin-bottom:8px; font-size:17px;">Keuangan</h3>
-                <p class="body" style="font-size:13px;">Pembayaran SPP, tagihan digital, laporan keuangan, dan rekap otomatis.</p>
+                <h3 class="h3" style="margin-bottom:8px; font-size:17px; color:#ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">Keuangan</h3>
+                <p class="body" style="font-size:13px; color:rgba(255,255,255,0.9);">Pembayaran SPP, tagihan digital, laporan keuangan, dan rekap otomatis.</p>
             </div>
 
             {{-- Pillar 3: Akademik --}}
-            <div class="bcard" style="text-align:center; padding:36px 28px;">
-                <div class="icon-circle pillar-icon" style="background:var(--violet-bg); color:var(--violet);">
+            <div class="bcard bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-violet-500/30" style="text-align:center; padding:36px 28px; border:none; transition: transform 0.3s; transform: translateY(0);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div class="icon-circle pillar-icon" style="background:rgba(255,255,255,0.2); color:#ffffff; border:1px solid rgba(255,255,255,0.3);">
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
-                <h3 class="h3" style="margin-bottom:8px; font-size:17px;">Akademik</h3>
-                <p class="body" style="font-size:13px;">Pembelajaran, penilaian, penjadwalan, dan monitoring perkembangan siswa.</p>
+                <h3 class="h3" style="margin-bottom:8px; font-size:17px; color:#ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">Akademik</h3>
+                <p class="body" style="font-size:13px; color:rgba(255,255,255,0.9);">Pembelajaran, penilaian, penjadwalan, dan monitoring perkembangan siswa.</p>
             </div>
         </div>
 
