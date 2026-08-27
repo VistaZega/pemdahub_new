@@ -284,9 +284,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 14px 20px 12px;
+            padding: 12px 20px 10px;
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
+            background: var(--bg-panel);
+            z-index: 10;
         }
         .feed-title {
             font-size: 13px;
@@ -299,6 +301,67 @@
             font-size: 11px;
             color: var(--text-dim);
         }
+
+        /* ── KONTROL ZOOM AREA FEED ── */
+        .feed-zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 3px 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .feed-zoom-btn {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-bright);
+            color: var(--text-primary);
+            font-size: 11px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .feed-zoom-btn:hover {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+        .feed-zoom-btn:active {
+            transform: scale(0.9);
+        }
+        .feed-zoom-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-secondary);
+            min-width: 38px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .feed-zoom-label:hover {
+            background: rgba(37,99,235,0.08);
+            color: #2563eb;
+        }
+
+        /* ── WRAPPER ZOOM FEED ── */
+        .feed-zoom-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+            transform-origin: top left;
+        }
         .feed-list {
             overflow-y: auto;
             flex: 1;
@@ -307,6 +370,21 @@
             gap: 10px;
             padding: 14px;
             background: #ffffff;
+            scroll-behavior: smooth;
+        }
+        .feed-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .feed-list::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.03);
+            border-radius: 10px;
+        }
+        .feed-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .feed-list::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         /* ── KARTU FEED (Kiosk Table Column Layout) ── */
@@ -919,24 +997,42 @@
             </div>
 
             <!-- FEED AKTIVITAS TERBARU -->
+            <!-- FEED AKTIVITAS TERBARU -->
             <div class="feed-panel">
                 <div class="feed-header">
-                    <span class="feed-title">⚡ Aktivitas Terbaru</span>
-                    <span class="feed-count" id="feed-count">–</span>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="feed-title">⚡ Aktivitas Terbaru</span>
+                        <span class="feed-count" id="feed-count">–</span>
+                    </div>
+
+                    <!-- Kontrol Zoom Khusus Area Tabel Feed -->
+                    <div class="feed-zoom-controls" title="Zoom & Scroll khusus area tabel ini">
+                        <button type="button" class="feed-zoom-btn" onclick="zoomFeed(-0.1)" title="Perkecil Teks / Zoom Out (Ctrl + Scroll Down)">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <span class="feed-zoom-label" id="feed-zoom-val" onclick="resetFeedZoom()" title="Klik untuk reset zoom ke 100%">100%</span>
+                        <button type="button" class="feed-zoom-btn" onclick="zoomFeed(0.1)" title="Perbesar Teks / Zoom In (Ctrl + Scroll Up)">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
-                <!-- Table Header Kolom -->
-                <div class="feed-table-header">
-                    <span>NO</span>
-                    <span>FOTO</span>
-                    <span>NAMA &amp; UNIT</span>
-                    <span>KELAS</span>
-                    <span>WAKTU (IN/OUT)</span>
-                    <span>CARA ABSEN</span>
-                    <span style="text-align:center;">STATUS</span>
-                </div>
-                <div class="feed-list" id="feed-list">
-                    <div style="padding:20px;text-align:center;color:var(--text-dim);font-size:14px;">
-                        Memuat data...
+
+                <!-- Zoom Container: Hanya area tabel & data feed ini yang terkena Zoom / Scale -->
+                <div class="feed-zoom-wrapper" id="feed-zoom-container">
+                    <!-- Table Header Kolom -->
+                    <div class="feed-table-header">
+                        <span>NO</span>
+                        <span>FOTO</span>
+                        <span>NAMA &amp; UNIT</span>
+                        <span>KELAS</span>
+                        <span>WAKTU (IN/OUT)</span>
+                        <span>CARA ABSEN</span>
+                        <span style="text-align:center;">STATUS</span>
+                    </div>
+                    <div class="feed-list" id="feed-list">
+                        <div style="padding:20px;text-align:center;color:var(--text-dim);font-size:14px;">
+                            Memuat data...
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1260,16 +1356,87 @@ function playChime(type) {
 }
 
 // ============================================================
+//  ZOOM & SCROLL DALAM AREA FEED AKTIVITAS
+// ============================================================
+let feedZoomLevel = parseFloat(localStorage.getItem('pembda_feed_zoom') || '1.0');
+
+function applyFeedZoom(val) {
+    feedZoomLevel = Math.min(1.8, Math.max(0.6, Math.round(val * 100) / 100));
+    localStorage.setItem('pembda_feed_zoom', feedZoomLevel.toFixed(2));
+
+    const container = document.getElementById('feed-zoom-container');
+    if (container) {
+        container.style.zoom = feedZoomLevel;
+    }
+    const lbl = document.getElementById('feed-zoom-val');
+    if (lbl) {
+        lbl.textContent = Math.round(feedZoomLevel * 100) + '%';
+    }
+}
+
+function zoomFeed(delta) {
+    applyFeedZoom(feedZoomLevel + delta);
+}
+
+function resetFeedZoom() {
+    applyFeedZoom(1.0);
+}
+
+// Inisialisasi Zoom saat script dimuat
+applyFeedZoom(feedZoomLevel);
+
+// Event Listener: Tangkap event Ctrl + Scroll / Wheel hanya saat cursor berada di atas .feed-panel
+document.addEventListener('DOMContentLoaded', () => {
+    const feedPanel = document.querySelector('.feed-panel');
+    if (feedPanel) {
+        feedPanel.addEventListener('wheel', (e) => {
+            if (e.ctrlKey) {
+                // Cegah browser zoom seluruh halaman, hanya zoom area feed ini
+                e.preventDefault();
+                e.stopPropagation();
+                const step = e.deltaY < 0 ? 0.05 : -0.05;
+                applyFeedZoom(feedZoomLevel + step);
+            }
+        }, { passive: false });
+
+        // Touch gesture pinch untuk monitor touchscreen
+        let touchDist = null;
+        let startZoom = feedZoomLevel;
+
+        feedPanel.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                touchDist = Math.hypot(dx, dy);
+                startZoom = feedZoomLevel;
+            }
+        }, { passive: true });
+
+        feedPanel.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && touchDist) {
+                e.preventDefault();
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const currentDist = Math.hypot(dx, dy);
+                const factor = currentDist / touchDist;
+                applyFeedZoom(startZoom * factor);
+            }
+        }, { passive: false });
+
+        feedPanel.addEventListener('touchend', () => {
+            touchDist = null;
+        });
+    }
+});
+
+// ============================================================
 //  RENDER FEED
 // ============================================================
 function renderFeed(feed, isNewScan) {
     const list = document.getElementById('feed-list');
 
-    // Hitung berapa baris muat di layar (tinggi item ~72px karena table column layout)
-    const panelH   = list.parentElement.offsetHeight - 50;
-    const maxItems = Math.max(5, Math.floor(panelH / 72));
-
-    const items = feed.slice(0, maxItems);
+    // Tampilkan seluruh data feed (bisa di-scroll bebas & di-zoom)
+    const items = feed;
     const DEFAULT_PHOTO = "{{ asset('images/default-student.jpg') }}";
 
     list.innerHTML = items.map((item, idx) => {
