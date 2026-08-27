@@ -84,15 +84,15 @@
             <div class="marquee-fade-left"></div>
             <div class="marquee-fade-right"></div>
             @php
-                // Maintain consistent ultra-slow speed (400s per item - reduced to 30% per user request)
-                $marqueeDuration = $finalProjectsShowcase->count() * 400;
+                // Maintain consistent ultra-slow speed (1200s per item - reduced to 10% per user request)
+                $marqueeDuration = $finalProjectsShowcase->count() * 1200;
             @endphp
             <div class="marquee-track" style="animation-duration: {{ $marqueeDuration }}s;">
                 <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
                     @foreach($finalProjectsShowcase as $fp)
                         <div style="width: 450px; flex: 0 0 450px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
                             {{-- Judul: Elegan, wrap alami tanpa dipotong --}}
-                            <h4 style="width: 100%; font-size: 18px; font-weight: 800; color: var(--indigo); line-height: 1.4; text-align: center; white-space: normal; word-break: break-word; margin: 0 0 16px 0; padding: 0 10px;">
+                            <h4 style="width: 100%; font-size: 22px; font-weight: 900; color: #111827; line-height: 1.4; text-align: center; white-space: normal; word-break: break-word; margin: 0 0 16px 0; padding: 0 10px;">
                                 {{ $fp->title }}
                             </h4>
                             
@@ -103,8 +103,8 @@
                                         ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &bull; ')
                                         : ($fp->student->full_name ?? 'Tim Siswa');
                                 @endphp
-                                <div style="font-size: 14px; font-weight: 700; color: #4b5563; text-align: center; padding: 12px 0; border-top: 1px dashed rgba(99,102,241,0.4); border-bottom: 1px dashed rgba(99,102,241,0.4); white-space: normal; word-break: break-word;">
-                                    <i class="fa-solid fa-users" style="color: #6366f1; margin-right: 6px;"></i> {!! $teamNames !!}
+                                <div style="font-size: 15px; font-weight: 700; color: #E2725B; text-align: center; padding: 12px 0; border-top: 1px dashed rgba(226,114,91,0.4); border-bottom: 1px dashed rgba(226,114,91,0.4); white-space: normal; word-break: break-word;">
+                                    <i class="fa-solid fa-users" style="color: #E2725B; margin-right: 6px;"></i> {!! $teamNames !!}
                                 </div>
                             </div>
                         </div>
@@ -113,7 +113,7 @@
                     {{-- Duplicate for seamless loop --}}
                     @foreach($finalProjectsShowcase as $fp)
                         <div style="width: 450px; flex: 0 0 450px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                            <h4 style="width: 100%; font-size: 18px; font-weight: 800; color: var(--indigo); line-height: 1.4; text-align: center; white-space: normal; word-break: break-word; margin: 0 0 16px 0; padding: 0 10px;">
+                            <h4 style="width: 100%; font-size: 22px; font-weight: 900; color: #111827; line-height: 1.4; text-align: center; white-space: normal; word-break: break-word; margin: 0 0 16px 0; padding: 0 10px;">
                                 {{ $fp->title }}
                             </h4>
                             
@@ -123,8 +123,8 @@
                                         ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &bull; ')
                                         : ($fp->student->full_name ?? 'Tim Siswa');
                                 @endphp
-                                <div style="font-size: 14px; font-weight: 700; color: #4b5563; text-align: center; padding: 12px 0; border-top: 1px dashed rgba(99,102,241,0.4); border-bottom: 1px dashed rgba(99,102,241,0.4); white-space: normal; word-break: break-word;">
-                                    <i class="fa-solid fa-users" style="color: #6366f1; margin-right: 6px;"></i> {!! $teamNames !!}
+                                <div style="font-size: 15px; font-weight: 700; color: #E2725B; text-align: center; padding: 12px 0; border-top: 1px dashed rgba(226,114,91,0.4); border-bottom: 1px dashed rgba(226,114,91,0.4); white-space: normal; word-break: break-word;">
+                                    <i class="fa-solid fa-users" style="color: #E2725B; margin-right: 6px;"></i> {!! $teamNames !!}
                                 </div>
                             </div>
                         </div>
