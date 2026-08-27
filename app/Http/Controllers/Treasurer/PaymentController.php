@@ -130,6 +130,29 @@ class PaymentController extends Controller
 
         try {
             return DB::transaction(function () use ($validated) {
+                // Lock bill for update if bill_id exists and verify status
+                if (!empty($validated['bill_id'])) {
+                    $bill = StudentBill::where('id', $validated['bill_id'])->lockForUpdate()->first();
+                    if ($bill) {
+                        if ($bill->status === 'lunas' || $bill->paid_amount >= $bill->amount) {
+                            return redirect()->route('treasurer.payments.index')
+                                ->with('warning', 'Tagihan ini sudah lunas.');
+                        }
+                    }
+                }
+
+                // Anti-Duplicate Window Check (30 seconds)
+                $recentDuplicate = Payment::where('student_id', $validated['student_id'])
+                    ->when(!empty($validated['bill_id']), fn($q) => $q->where('bill_id', $validated['bill_id']))
+                    ->where('amount_paid', $validated['amount_paid'])
+                    ->where('created_at', '>=', now()->subSeconds(30))
+                    ->first();
+
+                if ($recentDuplicate) {
+                    return redirect()->route('treasurer.payments.index')
+                        ->with('warning', 'Pembayaran yang sama baru saja dicatat beberapa detik lalu (mencegah pembayaran ganda).');
+                }
+
                 $adminId = \App\Models\User::where('school_id', auth()->user()->school_id)
                     ->where('role', 'admin')
                     ->where('is_active', true)
@@ -263,10 +286,19 @@ class PaymentController extends Controller
             $successCount = 0;
 
             foreach ($billIds as $billId) {
-                $bill = StudentBill::with('student')->find($billId);
+                $bill = StudentBill::where('id', $billId)->lockForUpdate()->first();
                 
-                // Verify bill belongs to treasurer's school
-                if (!$bill || $bill->student->school_id != $schoolId || $bill->status === 'lunas') {
+                // Verify bill belongs to treasurer's school & not paid
+                if (!$bill || $bill->student->school_id != $schoolId || $bill->status === 'lunas' || $bill->paid_amount >= $bill->amount) {
+                    continue;
+                }
+
+                // Anti-duplicate check (30 sec window)
+                $recentDuplicate = Payment::where('bill_id', $bill->id)
+                    ->where('created_at', '>=', now()->subSeconds(30))
+                    ->exists();
+
+                if ($recentDuplicate) {
                     continue;
                 }
 
@@ -370,8 +402,18 @@ class PaymentController extends Controller
                     ->where('is_active', true)
                     ->first()?->id;
 
-                foreach ($bills as $bill) {
-                    if ($bill->status === 'lunas') {
+                foreach ($bills as $billItem) {
+                    $bill = StudentBill::where('id', $billItem->id)->lockForUpdate()->first();
+                    if (!$bill || $bill->status === 'lunas' || $bill->paid_amount >= $bill->amount) {
+                        continue;
+                    }
+
+                    // Anti-duplicate check (30 sec window)
+                    $recentDuplicate = Payment::where('bill_id', $bill->id)
+                        ->where('created_at', '>=', now()->subSeconds(30))
+                        ->exists();
+
+                    if ($recentDuplicate) {
                         continue;
                     }
 
@@ -482,5 +524,96 @@ class PaymentController extends Controller
         $lastNum = $lastReceipt ? intval(substr($lastReceipt, -4)) : 0;
         
         return $prefix . str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Tampilkan halaman diagnostik & pembersihan pembayaran ganda
+     */
+    public function detectDuplicates(Request $request)
+    {
+        $schoolId = auth()->user()->school_id;
+
+        // Cari pembayaran ganda berdasarkan bill_id
+        $duplicatePayments = Payment::with(['student', 'bill.paymentType'])
+            ->whereHas('student', fn($q) => $q->where('school_id', $schoolId))
+            ->whereIn('bill_id', function($sub) use ($schoolId) {
+                $sub->select('bill_id')
+                    ->from('payments')
+                    ->join('students', 'payments.student_id', '=', 'students.id')
+                    ->where('students.school_id', $schoolId)
+                    ->whereNotNull('bill_id')
+                    ->groupBy('bill_id')
+                    ->havingRaw('COUNT(*) > 1');
+            })
+            ->orderBy('bill_id')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $groupedDuplicates = $duplicatePayments->groupBy('bill_id');
+
+        return view('treasurer.payments.duplicates', compact('groupedDuplicates'));
+    }
+
+    /**
+     * Eksekusi pembersihan pembayaran ganda (menghapus pembayaran duplikat & sesuaikan status tagihan)
+     */
+    public function fixDuplicates(Request $request)
+    {
+        $schoolId = auth()->user()->school_id;
+        $billId = $request->input('bill_id');
+
+        if ($billId) {
+            $bills = StudentBill::where('id', $billId)
+                ->whereHas('student', fn($q) => $q->where('school_id', $schoolId))
+                ->get();
+        } else {
+            $duplicateBillIds = Payment::whereHas('student', fn($q) => $q->where('school_id', $schoolId))
+                ->whereNotNull('bill_id')
+                ->groupBy('bill_id')
+                ->havingRaw('COUNT(*) > 1')
+                ->pluck('bill_id');
+
+            $bills = StudentBill::whereIn('id', $duplicateBillIds)->get();
+        }
+
+        $cleanedCount = 0;
+        $deletedPaymentCount = 0;
+
+        DB::transaction(function () use ($bills, &$cleanedCount, &$deletedPaymentCount) {
+            foreach ($bills as $bill) {
+                $payments = Payment::where('bill_id', $bill->id)
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+
+                if ($payments->count() <= 1) {
+                    continue;
+                }
+
+                // Simpan pembayaran pertama yang sah, hapus pembayaran ganda berikutnya
+                $firstPayment = $payments->first();
+                $duplicatePayments = $payments->slice(1);
+
+                foreach ($duplicatePayments as $dup) {
+                    $dup->delete();
+                    $deletedPaymentCount++;
+                }
+
+                // Hitung ulang total pembayaran & status tagihan
+                $bill->paid_amount = (float) $firstPayment->amount_paid;
+                if ($bill->paid_amount >= $bill->amount) {
+                    $bill->status = 'lunas';
+                } elseif ($bill->paid_amount > 0) {
+                    $bill->status = 'cicilan';
+                } else {
+                    $bill->status = 'belum_bayar';
+                }
+                $bill->save();
+
+                $cleanedCount++;
+            }
+        });
+
+        return redirect()->route('treasurer.payments.duplicates')
+            ->with('success', "Berhasil membersihkan {$deletedPaymentCount} record pembayaran ganda pada {$cleanedCount} tagihan siswa!");
     }
 }

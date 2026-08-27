@@ -236,6 +236,29 @@ class PaymentController extends Controller
 
         try {
             return DB::transaction(function () use ($validated) {
+                // Lock bill for update if bill_id exists and verify status
+                if (!empty($validated['bill_id'])) {
+                    $bill = StudentBill::where('id', $validated['bill_id'])->lockForUpdate()->first();
+                    if ($bill) {
+                        if ($bill->status === 'lunas' || $bill->paid_amount >= $bill->amount) {
+                            return redirect()->route('admin.payments.index')
+                                ->with('warning', 'Tagihan ini sudah lunas.');
+                        }
+                    }
+                }
+
+                // Anti-Duplicate Window Check (30 seconds)
+                $recentDuplicate = Payment::where('student_id', $validated['student_id'])
+                    ->when(!empty($validated['bill_id']), fn($q) => $q->where('bill_id', $validated['bill_id']))
+                    ->where('amount_paid', $validated['amount_paid'])
+                    ->where('created_at', '>=', now()->subSeconds(30))
+                    ->first();
+
+                if ($recentDuplicate) {
+                    return redirect()->route('admin.payments.index')
+                        ->with('warning', 'Pembayaran yang sama baru saja dicatat beberapa detik lalu (mencegah pembayaran ganda).');
+                }
+
                 // Generate inside transaction so lockForUpdate() is effective
                 $validated['receipt_number'] = $this->generateReceiptNumber();
                 $payment = Payment::create($validated);

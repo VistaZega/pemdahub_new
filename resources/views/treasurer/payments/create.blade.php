@@ -230,5 +230,24 @@ function fillBillAmount() {
         document.getElementById('amount_paid').value = amount;
     }
 }
+
+// Anti Double-Submit Guard
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentForm = document.querySelector('form');
+    if (paymentForm) {
+        paymentForm.addEventListener('submit', function(e) {
+            if (this.dataset.submitting === 'true') {
+                e.preventDefault();
+                return false;
+            }
+            this.dataset.submitting = 'true';
+            const btn = this.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Memproses...';
+            }
+        });
+    }
+});
 </script>
 @endsection
