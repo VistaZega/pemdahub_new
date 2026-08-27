@@ -179,7 +179,7 @@
         ============================================================ */
         .body-grid {
             display: grid;
-            grid-template-columns: 1fr 390px;
+            grid-template-columns: 1fr 340px;
             gap: 10px;
             min-height: 0;
         }
@@ -312,14 +312,14 @@
         /* ── KARTU FEED (Kiosk Table Column Layout) ── */
         .feed-item {
             display: grid;
-            grid-template-columns: 50px 60px 2.2fr 1fr 1.3fr 180px;
+            grid-template-columns: 45px 50px 2fr 0.9fr 1.1fr 1.5fr 150px;
             align-items: center;
             padding: 10px 20px;
             border-radius: 14px;
             background: #f1f5f9;
             border: 1px solid #cbd5e1;
             color: #000000 !important;
-            column-gap: 20px;
+            column-gap: 16px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             animation: slide-in 0.4s ease forwards;
@@ -327,6 +327,58 @@
         .feed-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ── TABLE HEADER UNTUK FEED ── */
+        .feed-table-header {
+            display: grid;
+            grid-template-columns: 45px 50px 2fr 0.9fr 1.1fr 1.5fr 150px;
+            align-items: center;
+            padding: 8px 34px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            column-gap: 16px;
+            border-bottom: 2px solid #cbd5e1;
+            flex-shrink: 0;
+        }
+
+        /* ── BADGE CARA ABSEN ── */
+        .feed-method-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            width: fit-content;
+        }
+        .method-rfid {
+            background: #eff6ff !important;
+            color: #1d4ed8 !important;
+            border: 1.5px solid #bfdbfe !important;
+        }
+        .method-mobile {
+            background: #f0fdf4 !important;
+            color: #15803d !important;
+            border: 1.5px solid #bbf7d0 !important;
+        }
+        .method-manual {
+            background: #fffbeb !important;
+            color: #b45309 !important;
+            border: 1.5px solid #fde68a !important;
+        }
+        .feed-item-newest .method-rfid,
+        .feed-item-newest .method-mobile,
+        .feed-item-newest .method-manual {
+            background: rgba(255,255,255,0.95) !important;
+            border-color: rgba(0,0,0,0.15) !important;
         }
 
         /* ── KARTU TERBARU (Baris Pertama / Blok Hijau) ── */
@@ -450,153 +502,6 @@
             gap: 10px;
             min-height: 0;
             overflow: hidden;
-        }
-
-        /* ============================================================
-           PANEL CARA ABSEN (PANDUAN PRESENSI)
-        ============================================================ */
-        .guide-panel {
-            background: var(--bg-panel);
-            border: 1px solid var(--border-bright);
-            border-radius: 14px;
-            padding: 16px 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-            flex-shrink: 0;
-        }
-        .guide-panel::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #2563eb, #10b981, #7c3aed);
-        }
-        .guide-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-        }
-        .guide-title-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .guide-title {
-            font-size: 13px;
-            font-weight: 800;
-            color: var(--text-primary);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-        .guide-badge {
-            font-size: 10px;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 12px;
-            background: #dbeafe;
-            color: #1d4ed8;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .guide-list {
-            display: flex;
-            flex-direction: column;
-            gap: 7px;
-        }
-        .guide-step {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            transition: all 0.2s ease;
-        }
-        .guide-step:hover {
-            background: #ffffff;
-            border-color: #94a3b8;
-            transform: translateX(2px);
-        }
-        .guide-step-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px;
-            flex-shrink: 0;
-        }
-        .guide-step.rfid .guide-step-icon {
-            background: #eff6ff;
-            color: #2563eb;
-            border: 1px solid #bfdbfe;
-        }
-        .guide-step.mobile .guide-step-icon {
-            background: #f0fdf4;
-            color: #16a34a;
-            border: 1px solid #bbf7d0;
-        }
-        .guide-step.manual .guide-step-icon {
-            background: #fffbeb;
-            color: #d97706;
-            border: 1px solid #fde68a;
-        }
-        .guide-step-body {
-            flex: 1;
-            min-width: 0;
-        }
-        .guide-step-title {
-            font-size: 12px;
-            font-weight: 800;
-            color: var(--text-primary);
-            line-height: 1.2;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .guide-step-title .step-num {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            background: #1e293b;
-            color: #ffffff;
-            font-size: 9px;
-            font-weight: 900;
-            border-radius: 4px;
-        }
-        .guide-step-desc {
-            font-size: 10.5px;
-            color: var(--text-secondary);
-            line-height: 1.3;
-            margin-top: 2px;
-        }
-        .guide-tips {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 4px;
-            padding: 6px 10px;
-            background: #f8fafc;
-            border: 1px dashed var(--border-bright);
-            border-radius: 8px;
-            font-size: 10px;
-            color: var(--text-secondary);
-            font-weight: 700;
-        }
-        .guide-tip-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
         }
 
         .info-panel {
@@ -1019,6 +924,16 @@
                     <span class="feed-title">⚡ Aktivitas Terbaru</span>
                     <span class="feed-count" id="feed-count">–</span>
                 </div>
+                <!-- Table Header Kolom -->
+                <div class="feed-table-header">
+                    <span>NO</span>
+                    <span>FOTO</span>
+                    <span>NAMA &amp; UNIT</span>
+                    <span>KELAS</span>
+                    <span>WAKTU (IN/OUT)</span>
+                    <span>CARA ABSEN</span>
+                    <span style="text-align:center;">STATUS</span>
+                </div>
                 <div class="feed-list" id="feed-list">
                     <div style="padding:20px;text-align:center;color:var(--text-dim);font-size:14px;">
                         Memuat data...
@@ -1030,80 +945,6 @@
 
         <!-- KOLOM KANAN -->
         <div class="right-col">
-            <!-- PANDUAN CARA ABSEN -->
-            <div class="guide-panel">
-                <div class="guide-header">
-                    <div class="guide-title-wrapper">
-                        <span style="font-size: 15px;">📋</span>
-                        <span class="guide-title">Cara Absen / Presensi</span>
-                    </div>
-                    <span class="guide-badge">Siswa &amp; Guru</span>
-                </div>
-
-                <div class="guide-list">
-                    <!-- Metode 1: Scan Kartu RFID -->
-                    <div class="guide-step rfid">
-                        <div class="guide-step-icon">
-                            <i class="fa-solid fa-id-card"></i>
-                        </div>
-                        <div class="guide-step-body">
-                            <div class="guide-step-title">
-                                <span class="step-num">1</span>
-                                <span>Scan Kartu RFID</span>
-                            </div>
-                            <div class="guide-step-desc">
-                                Tempelkan kartu siswa / KTA RFID pada reader di gerbang sekolah hingga berbunyi <em>beep</em>.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Metode 2: Mobile Phone -->
-                    <div class="guide-step mobile">
-                        <div class="guide-step-icon">
-                            <i class="fa-solid fa-mobile-screen-button"></i>
-                        </div>
-                        <div class="guide-step-body">
-                            <div class="guide-step-title">
-                                <span class="step-num">2</span>
-                                <span>Mobile Phone</span>
-                            </div>
-                            <div class="guide-step-desc">
-                                Buka <strong>perguruanpembda.com/m</strong> di HP &rarr; menu <strong>Absensi</strong> &rarr; klik <strong>Presensi Mandiri GPS</strong>.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Metode 3: Manual -->
-                    <div class="guide-step manual">
-                        <div class="guide-step-icon">
-                            <i class="fa-solid fa-clipboard-user"></i>
-                        </div>
-                        <div class="guide-step-body">
-                            <div class="guide-step-title">
-                                <span class="step-num">3</span>
-                                <span>Manual</span>
-                            </div>
-                            <div class="guide-step-desc">
-                                Jika kartu/HP tertinggal, lapor ke <strong>Guru Piket / Wali Kelas</strong> untuk dicatat manual di sistem.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tips & Info -->
-                <div class="guide-tips">
-                    <div class="guide-tip-item">
-                        <span>🟢</span> <span>Masuk Tepat Waktu</span>
-                    </div>
-                    <div class="guide-tip-item">
-                        <span>🚪</span> <span>Scan Saat Pulang</span>
-                    </div>
-                    <div class="guide-tip-item">
-                        <i class="fa-brands fa-whatsapp" style="color:#16a34a; font-size:12px;"></i> <span>Notif WA Otomatis</span>
-                    </div>
-                </div>
-            </div>
-
             <!-- REKAPITULASI PER UNIT SEKOLAH -->
             <div id="unit-panels" style="display:flex; flex-direction:column; gap:10px; flex:1; overflow-y:auto; padding-right:2px;">
                 <div style="padding:20px;text-align:center;color:var(--text-dim);font-size:14px;background:var(--bg-panel);border-radius:14px;border:1px solid var(--border);">
@@ -1468,6 +1309,11 @@ function renderFeed(feed, isNewScan) {
         const inTime = item.jam_masuk || '--:--';
         const outTime = item.jam_keluar || '--:--';
 
+        // Tentukan Cara Absen
+        const caraAbsen = item.cara_absen || 'Manual';
+        const caraAbsenTipe = item.cara_absen_tipe || 'manual';
+        const caraAbsenIcon = item.cara_absen_icon || 'fa-solid fa-clipboard-user';
+
         return `<div class="feed-item ${unitClass} ${glowClass} ${newestClass}" style="animation-delay:${delay}ms">
             <!-- 1. Kolom Nomor -->
             <span class="feed-num">${nomor}</span>
@@ -1493,11 +1339,19 @@ function renderFeed(feed, isNewScan) {
             
             <!-- 5. Kolom Jam Masuk / Keluar (IN/OUT Stack) -->
             <div style="display: flex; flex-direction: column; gap: 2px;">
-                <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 900; color: #16a34a !important;">IN: ${escHtml(inTime)}</span>
-                <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 900; color: #dc2626 !important;">OUT: ${escHtml(outTime)}</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 900; color: #16a34a !important;">IN: ${escHtml(inTime)}</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 900; color: #dc2626 !important;">OUT: ${escHtml(outTime)}</span>
+            </div>
+
+            <!-- 6. Kolom Cara Absen -->
+            <div>
+                <span class="feed-method-badge method-${escHtml(caraAbsenTipe)}">
+                    <i class="${escHtml(caraAbsenIcon)}"></i>
+                    <span>${escHtml(caraAbsen)}</span>
+                </span>
             </div>
             
-            <!-- 6. Kolom Status Badge -->
+            <!-- 7. Kolom Status Badge -->
             <div>
                 <span class="feed-badge">${icon} ${escHtml(item.aksi)}</span>
             </div>
@@ -1523,6 +1377,8 @@ function showNotif(item) {
                : item.tipe === 'pulang'    ? '🚪'
                : '✅';
 
+    const caraAbsen = item.cara_absen || 'Manual';
+
     el.className  = `notif ${statusClass} ${unitClass}`;
     el.innerHTML  = `
         <div class="notif-icon-circle">
@@ -1533,7 +1389,7 @@ function showNotif(item) {
                 <span class="unit-tag">${escHtml(badgeText)}</span>
                 <span class="notif-nama">${escHtml(item.nama)}</span>
             </div>
-            <div class="notif-detail">${escHtml(item.info)} · ${escHtml(item.waktu)}</div>
+            <div class="notif-detail">${escHtml(item.info)} · ${escHtml(item.waktu)} · <strong>${escHtml(caraAbsen)}</strong></div>
         </div>
         <div class="notif-status-badge">
             ${escHtml(item.aksi)}

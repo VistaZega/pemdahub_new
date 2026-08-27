@@ -45,7 +45,6 @@ class PublicDisplayController extends Controller
         // ── SISWA: Ambil absensi hari ini (hanya siswa terdaftar di TP aktif & status hadir/terlambat) ──
         $studentAttendances = Attendance::where('date', $today)
             ->whereIn('status', ['hadir', 'terlambat'])
-            ->whereIn('recorded_via', ['rfid', 'qr_gps', 'face_recognition'])
             ->whereHas('student', function ($q) {
                 $q->whereHas('studentClasses', function ($sc) {
                     $sc->where('status', 'aktif')
@@ -65,7 +64,6 @@ class PublicDisplayController extends Controller
         // ── GURU & PEGAWAI: Ambil absensi hari ini (hanya pegawai aktif & status hadir)
         $employeeAttendances = EmployeeAttendance::where('date', $today)
             ->where('status', 'hadir')
-            ->whereIn('recorded_via', ['rfid', 'qr_gps', 'face_recognition'])
             ->whereHas('employee', function ($q) {
                 $q->where('is_active', true);
             })
@@ -219,20 +217,39 @@ class PublicDisplayController extends Controller
             
             $unitName  = $att->student->school->type ?? '';
 
+            // Tentukan Cara Absen
+            $recordedVia = strtolower($att->recorded_via ?? 'manual');
+            if ($recordedVia === 'rfid') {
+                $caraAbsen = 'Scan Kartu RFID';
+                $caraAbsenTipe = 'rfid';
+                $caraAbsenIcon = 'fa-solid fa-id-card';
+            } elseif (in_array($recordedVia, ['gps', 'qr_gps', 'mobile', 'gps_pkl'])) {
+                $caraAbsen = 'Mobile Phone';
+                $caraAbsenTipe = 'mobile';
+                $caraAbsenIcon = 'fa-solid fa-mobile-screen-button';
+            } else {
+                $caraAbsen = 'Manual';
+                $caraAbsenTipe = 'manual';
+                $caraAbsenIcon = 'fa-solid fa-clipboard-user';
+            }
+
             $feed->push([
-                'waktu'       => $waktuFormat,
-                'jam_masuk'   => $waktuMasuk,
-                'jam_keluar'  => $waktuPulang ?: '--:--',
-                'nama'        => $att->student->full_name ?? 'Tidak dikenal',
-                'info'        => $att->classroom->class_name ?? '-',
-                'aksi'        => $statusLabel,
-                'tipe'        => $tipe,
-                'sort_time'   => $hasPulang ? $att->time_out : ($att->time_in ?? '00:00:00'),
-                'kategori'    => 'siswa',
-                'unit'        => strtolower($unitName),
-                'foto'        => $att->student->photo_url ?? asset('images/default-student.jpg'),
-                'school_name' => $att->student->school->name ?? '',
-                'recorded_via'=> $att->recorded_via,
+                'waktu'           => $waktuFormat,
+                'jam_masuk'       => $waktuMasuk,
+                'jam_keluar'      => $waktuPulang ?: '--:--',
+                'nama'            => $att->student->full_name ?? 'Tidak dikenal',
+                'info'            => $att->classroom->class_name ?? '-',
+                'aksi'            => $statusLabel,
+                'tipe'            => $tipe,
+                'sort_time'       => $hasPulang ? $att->time_out : ($att->time_in ?? '00:00:00'),
+                'kategori'        => 'siswa',
+                'unit'            => strtolower($unitName),
+                'foto'            => $att->student->photo_url ?? asset('images/default-student.jpg'),
+                'school_name'     => $att->student->school->name ?? '',
+                'recorded_via'    => $att->recorded_via,
+                'cara_absen'      => $caraAbsen,
+                'cara_absen_tipe' => $caraAbsenTipe,
+                'cara_absen_icon' => $caraAbsenIcon,
             ]);
         }
 
@@ -248,20 +265,39 @@ class PublicDisplayController extends Controller
             
             $unitName  = $att->employee->school->type ?? '';
 
+            // Tentukan Cara Absen
+            $recordedVia = strtolower($att->recorded_via ?? 'manual');
+            if ($recordedVia === 'rfid') {
+                $caraAbsen = 'Scan Kartu RFID';
+                $caraAbsenTipe = 'rfid';
+                $caraAbsenIcon = 'fa-solid fa-id-card';
+            } elseif (in_array($recordedVia, ['gps', 'qr_gps', 'mobile', 'gps_pkl'])) {
+                $caraAbsen = 'Mobile Phone';
+                $caraAbsenTipe = 'mobile';
+                $caraAbsenIcon = 'fa-solid fa-mobile-screen-button';
+            } else {
+                $caraAbsen = 'Manual';
+                $caraAbsenTipe = 'manual';
+                $caraAbsenIcon = 'fa-solid fa-clipboard-user';
+            }
+
             $feed->push([
-                'waktu'     => $waktuFormat,
-                'jam_masuk' => $waktuMasuk,
-                'jam_keluar'=> $waktuPulang ?: '--:--',
-                'nama'      => $att->employee->full_name ?? 'Tidak dikenal',
-                'info'      => 'Guru/Staf',
-                'aksi'      => $statusLabel,
-                'tipe'      => $tipe,
-                'sort_time' => $hasPulang ? $att->time_out : ($att->time_in ?? '00:00:00'),
-                'kategori'  => 'pegawai',
-                'unit'      => strtolower($unitName),
-                'foto'      => $att->employee->photo_url ?? asset('images/default-student.jpg'),
-                'school_name' => $att->employee->school->name ?? '',
-                'recorded_via'=> $att->recorded_via,
+                'waktu'           => $waktuFormat,
+                'jam_masuk'       => $waktuMasuk,
+                'jam_keluar'      => $waktuPulang ?: '--:--',
+                'nama'            => $att->employee->full_name ?? 'Tidak dikenal',
+                'info'            => 'Guru/Staf',
+                'aksi'            => $statusLabel,
+                'tipe'            => $tipe,
+                'sort_time'       => $hasPulang ? $att->time_out : ($att->time_in ?? '00:00:00'),
+                'kategori'        => 'pegawai',
+                'unit'            => strtolower($unitName),
+                'foto'            => $att->employee->photo_url ?? asset('images/default-student.jpg'),
+                'school_name'     => $att->employee->school->name ?? '',
+                'recorded_via'    => $att->recorded_via,
+                'cara_absen'      => $caraAbsen,
+                'cara_absen_tipe' => $caraAbsenTipe,
+                'cara_absen_icon' => $caraAbsenIcon,
             ]);
         }
 
