@@ -91,13 +91,8 @@
                 <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
                     @foreach($finalProjectsShowcase as $fp)
                         <div style="width: 450px; flex: 0 0 450px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                            @php
-                                // Curated harmonious colors instead of chaotic random ones
-                                $titleColors = ['#1e40af', '#065f46', '#5b21b6', '#9f1239']; 
-                                $color = $titleColors[$loop->index % count($titleColors)];
-                            @endphp
                             {{-- Judul: Elegan, 3 baris maksimal, dengan pemotongan rapi (ellipsis) --}}
-                            <h4 style="width: 100%; font-size: 18px; font-weight: 800; color: {{ $color }}; line-height: 1.4; text-align: center; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 16px 0; padding: 0 10px;">
+                            <h4 style="width: 100%; font-size: 18px; font-weight: 800; color: var(--indigo); line-height: 1.4; text-align: center; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 16px 0; padding: 0 10px;">
                                 {{ $fp->title }}
                             </h4>
                             
@@ -118,11 +113,7 @@
                     {{-- Duplicate for seamless loop --}}
                     @foreach($finalProjectsShowcase as $fp)
                         <div style="width: 450px; flex: 0 0 450px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                            @php
-                                $titleColors = ['#1e40af', '#065f46', '#5b21b6', '#9f1239']; 
-                                $color = $titleColors[$loop->index % count($titleColors)];
-                            @endphp
-                            <h4 style="width: 100%; font-size: 18px; font-weight: 800; color: {{ $color }}; line-height: 1.4; text-align: center; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 16px 0; padding: 0 10px;">
+                            <h4 style="width: 100%; font-size: 18px; font-weight: 800; color: var(--indigo); line-height: 1.4; text-align: center; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 16px 0; padding: 0 10px;">
                                 {{ $fp->title }}
                             </h4>
                             
