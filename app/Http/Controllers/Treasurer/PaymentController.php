@@ -534,7 +534,7 @@ class PaymentController extends Controller
         $schoolId = auth()->user()->school_id;
 
         // Cari pembayaran ganda berdasarkan bill_id
-        $duplicatePayments = Payment::with(['student', 'bill.paymentType'])
+        $duplicatePayments = Payment::with(['student', 'bill.paymentType', 'processedBy'])
             ->whereHas('student', fn($q) => $q->where('school_id', $schoolId))
             ->whereIn('bill_id', function($sub) use ($schoolId) {
                 $sub->select('bill_id')
@@ -555,65 +555,92 @@ class PaymentController extends Controller
     }
 
     /**
-     * Eksekusi pembersihan pembayaran ganda (menghapus pembayaran duplikat & sesuaikan status tagihan)
+     * Eksekusi pembersihan pembayaran ganda (selective or bulk)
      */
     public function fixDuplicates(Request $request)
     {
         $schoolId = auth()->user()->school_id;
+
+        $paymentIds = $request->input('payment_ids', []);
         $billId = $request->input('bill_id');
 
-        if ($billId) {
-            $bills = StudentBill::where('id', $billId)
-                ->whereHas('student', fn($q) => $q->where('school_id', $schoolId))
-                ->get();
-        } else {
-            $duplicateBillIds = Payment::whereHas('student', fn($q) => $q->where('school_id', $schoolId))
-                ->whereNotNull('bill_id')
-                ->groupBy('bill_id')
-                ->havingRaw('COUNT(*) > 1')
-                ->pluck('bill_id');
-
-            $bills = StudentBill::whereIn('id', $duplicateBillIds)->get();
-        }
-
-        $cleanedCount = 0;
         $deletedPaymentCount = 0;
+        $affectedBillIds = collect();
 
-        DB::transaction(function () use ($bills, &$cleanedCount, &$deletedPaymentCount) {
-            foreach ($bills as $bill) {
-                $payments = Payment::where('bill_id', $bill->id)
+        DB::transaction(function () use ($paymentIds, $billId, $schoolId, &$deletedPaymentCount, &$affectedBillIds) {
+            if (!empty($paymentIds)) {
+                // Hapus payment ID yang dipilih secara spesifik oleh Bendahara
+                $paymentsToDelete = Payment::whereIn('id', $paymentIds)
+                    ->whereHas('student', fn($q) => $q->where('school_id', $schoolId))
+                    ->get();
+
+                foreach ($paymentsToDelete as $p) {
+                    if ($p->bill_id) {
+                        $affectedBillIds->push($p->bill_id);
+                    }
+                    $p->delete();
+                    $deletedPaymentCount++;
+                }
+            } elseif ($billId) {
+                // Hapus duplikat pada 1 tagihan spesifik (sisakan yang paling awal)
+                $payments = Payment::where('bill_id', $billId)
+                    ->whereHas('student', fn($q) => $q->where('school_id', $schoolId))
                     ->orderBy('created_at', 'asc')
                     ->get();
 
-                if ($payments->count() <= 1) {
-                    continue;
+                if ($payments->count() > 1) {
+                    $affectedBillIds->push($billId);
+                    foreach ($payments->slice(1) as $dup) {
+                        $dup->delete();
+                        $deletedPaymentCount++;
+                    }
                 }
+            } else {
+                // Hapus seluruh duplikat otomatis (sisakan yang pertama)
+                $duplicateBillIds = Payment::whereHas('student', fn($q) => $q->where('school_id', $schoolId))
+                    ->whereNotNull('bill_id')
+                    ->groupBy('bill_id')
+                    ->havingRaw('COUNT(*) > 1')
+                    ->pluck('bill_id');
 
-                // Simpan pembayaran pertama yang sah, hapus pembayaran ganda berikutnya
-                $firstPayment = $payments->first();
-                $duplicatePayments = $payments->slice(1);
+                $affectedBillIds = collect($duplicateBillIds);
 
-                foreach ($duplicatePayments as $dup) {
-                    $dup->delete();
-                    $deletedPaymentCount++;
+                foreach ($duplicateBillIds as $bId) {
+                    $payments = Payment::where('bill_id', $bId)->orderBy('created_at', 'asc')->get();
+                    if ($payments->count() > 1) {
+                        foreach ($payments->slice(1) as $dup) {
+                            $dup->delete();
+                            $deletedPaymentCount++;
+                        }
+                    }
                 }
+            }
 
-                // Hitung ulang total pembayaran & status tagihan
-                $bill->paid_amount = (float) $firstPayment->amount_paid;
-                if ($bill->paid_amount >= $bill->amount) {
-                    $bill->status = 'lunas';
-                } elseif ($bill->paid_amount > 0) {
-                    $bill->status = 'cicilan';
-                } else {
-                    $bill->status = 'belum_bayar';
+            // Hitung ulang total pembayaran & status tagihan untuk seluruh bill yang terpengaruh
+            $uniqueBillIds = $affectedBillIds->unique()->filter();
+            foreach ($uniqueBillIds as $bId) {
+                $bill = StudentBill::find($bId);
+                if ($bill) {
+                    $totalPaid = (float) Payment::where('bill_id', $bId)->where('is_verified', true)->sum('amount_paid');
+                    $bill->paid_amount = $totalPaid;
+                    if ($bill->paid_amount >= $bill->amount) {
+                        $bill->status = 'lunas';
+                    } elseif ($bill->paid_amount > 0) {
+                        $bill->status = 'cicilan';
+                    } else {
+                        $bill->status = 'belum_bayar';
+                    }
+                    $bill->save();
                 }
-                $bill->save();
-
-                $cleanedCount++;
             }
         });
 
+        if ($deletedPaymentCount === 0) {
+            return redirect()->route('treasurer.payments.duplicates')
+                ->with('warning', 'Tidak ada transaksi pembayaran ganda yang dipilih untuk dihapus.');
+        }
+
         return redirect()->route('treasurer.payments.duplicates')
-            ->with('success', "Berhasil membersihkan {$deletedPaymentCount} record pembayaran ganda pada {$cleanedCount} tagihan siswa!");
+            ->with('success', "Berhasil membersihkan {$deletedPaymentCount} record pembayaran ganda!");
     }
 }
