@@ -169,14 +169,20 @@
                          onmouseover="this.style.boxShadow='0 22px 48px -8px {{ $unitTheme['hover_shadow'] }}'; this.querySelector('.bg-img').style.transform='scale(1.08)';"
                          onmouseout="this.style.boxShadow='0 14px 34px -8px {{ $unitTheme['shadow'] }}'; this.querySelector('.bg-img').style.transform='scale(1)';">
                         
-                        <!-- Background Image Siswa (Top Half & Zoomed out) -->
+                        <!-- Background Color Base -->
+                        <div style="position:absolute; top:0; left:0; width:100%; height:100%; background-color: {{ $unitTheme['base_color'] }};"></div>
+                        
+                        <!-- Background Image Siswa (Di sebelah kanan, 70% lebar kartu agar tidak terlalu zoom in) -->
                         <img src="{{ $achievement->student?->photo_url ?? asset('assets/img/default-avatar.png') }}" 
                              class="bg-img"
-                             style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; object-position:right top; transition:transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);" 
+                             style="position:absolute; top:0; right:0; width:70%; height:100%; object-fit:cover; object-position:right top; transition:transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);" 
                              alt="{{ $achievement->student?->full_name ?? 'Siswa' }}" 
                              onerror="this.src='{{ asset('assets/img/default-avatar.png') }}'">
                         
-                        <!-- Gradient Overlay untuk Membaca Teks (Diturunkan agar tidak menutupi wajah di bagian atas/tengah) -->
+                        <!-- Gradient Overlay 1: Dari Kiri ke Kanan (Blend sisi kiri gambar dengan background base) -->
+                        <div style="position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to right, {{ $unitTheme['base_color'] }} 30%, transparent 70%);"></div>
+                        
+                        <!-- Gradient Overlay 2: Dari Bawah ke Atas (Agar teks bawah terbaca) -->
                         <div style="position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to top, {{ $unitTheme['base_color'] }} 0%, rgba(0,0,0,0.8) 45%, transparent 65%);"></div>
 
                         <!-- Top Badge Tingkat -->
