@@ -4,8 +4,8 @@
  * Access URL: https://perguruanpembda.com/auto_restore_all_paid_students.php?secret=pembda99
  */
 
-@ini_set('display_errors', '0');
-@ini_set('display_startup_errors', '0');
+@ini_set('display_errors', '1');
+@ini_set('display_startup_errors', '1');
 @error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
 @ini_set('memory_limit', '512M');
 @ini_set('max_execution_time', '300');
@@ -53,7 +53,7 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 } catch (\Throwable $e) {
-    die("DB Error: " . $e->getMessage());
+    die("<div style='font-family:sans-serif;padding:30px;background:#fee2e2;color:#991b1b;'>❌ Gagal Koneksi DB: " . htmlspecialchars($e->getMessage()) . "</div>");
 }
 
 $schoolId = $_REQUEST['school_id'] ?? 'all';
@@ -64,80 +64,94 @@ $targetMonth = (int)($_REQUEST['month'] ?? 8);
 if ($action === 'bulk_restore_month' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $studentIds = $_POST['student_ids'] ?? [];
     if (!empty($studentIds)) {
-        @$pdo->exec("SET FOREIGN_KEY_CHECKS=0;");
+        try {
+            @$pdo->exec("SET FOREIGN_KEY_CHECKS=0;");
 
-        $ayStmt = $pdo->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1");
-        $ayRes = $ayStmt->fetch();
-        $activeAyId = $ayRes ? $ayRes['id'] : 1;
+            $ayStmt = $pdo->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1");
+            $ayRes = $ayStmt->fetch();
+            $activeAyId = $ayRes ? $ayRes['id'] : 1;
 
-        $pTypesStmt = $pdo->query("SELECT id, school_id, type_name, amount, yayasan_share_amount FROM payment_types WHERE is_recurring = 1");
-        $pTypes = $pTypesStmt->fetchAll();
+            $pTypesStmt = $pdo->query("SELECT id, school_id, type_name, amount, yayasan_share_amount FROM payment_types WHERE is_recurring = 1");
+            $pTypes = $pTypesStmt->fetchAll();
 
-        foreach ($studentIds as $stId) {
-            $stStmt = $pdo->prepare("SELECT id, school_id, full_name FROM students WHERE id = ?");
-            $stStmt->execute([$stId]);
-            $st = $stStmt->fetch();
-            if (!$st) continue;
+            foreach ($studentIds as $stId) {
+                $stStmt = $pdo->prepare("SELECT id, school_id, full_name FROM students WHERE id = ?");
+                $stStmt->execute([$stId]);
+                $st = $stStmt->fetch();
+                if (!$st) continue;
 
-            foreach ($pTypes as $pt) {
-                if ($pt['school_id'] == $st['school_id']) {
-                    // Check or create bill for target month
-                    $chkBill = $pdo->prepare("SELECT id, amount, paid_amount FROM student_bills WHERE student_id = ? AND payment_type_id = ? AND month = ? AND year = 2026");
-                    $chkBill->execute([$stId, $pt['id'], $targetMonth]);
-                    $bill = $chkBill->fetch();
+                foreach ($pTypes as $pt) {
+                    if ($pt['school_id'] == $st['school_id']) {
+                        // Check or create bill for target month
+                        $chkBill = $pdo->prepare("SELECT id, amount, paid_amount FROM student_bills WHERE student_id = ? AND payment_type_id = ? AND month = ? AND year = 2026");
+                        $chkBill->execute([$stId, $pt['id'], $targetMonth]);
+                        $bill = $chkBill->fetch();
 
-                    if (!$bill) {
-                        $dueDate = sprintf('2026-%02d-10', $targetMonth);
-                        $insB = $pdo->prepare("INSERT INTO student_bills (student_id, payment_type_id, academic_year_id, month, year, amount, paid_amount, yayasan_share_amount, status, due_date, created_at, updated_at) VALUES (?, ?, ?, ?, 2026, ?, ?, ?, 'lunas', ?, NOW(), NOW())");
-                        $insB->execute([$stId, $pt['id'], $activeAyId, $targetMonth, $pt['amount'], $pt['amount'], $pt['yayasan_share_amount'] ?? $pt['amount'], $dueDate]);
-                        $billId = $pdo->lastInsertId();
-                    } else {
-                        $billId = $bill['id'];
+                        if (!$bill) {
+                            $dueDate = sprintf('2026-%02d-10', $targetMonth);
+                            $insB = $pdo->prepare("INSERT INTO student_bills (student_id, payment_type_id, academic_year_id, month, year, amount, paid_amount, yayasan_share_amount, status, due_date, created_at, updated_at) VALUES (?, ?, ?, ?, 2026, ?, ?, ?, 'lunas', ?, NOW(), NOW())");
+                            $insB->execute([$stId, $pt['id'], $activeAyId, $targetMonth, $pt['amount'], $pt['amount'], $pt['yayasan_share_amount'] ?? $pt['amount'], $dueDate]);
+                            $billId = $pdo->lastInsertId();
+                        } else {
+                            $billId = $bill['id'];
+                        }
+
+                        // Ensure payment exists
+                        $chkPay = $pdo->prepare("SELECT id FROM payments WHERE bill_id = ?");
+                        $chkPay->execute([$billId]);
+                        if (!$chkPay->fetch()) {
+                            $insP = $pdo->prepare("INSERT INTO payments (bill_id, student_id, amount_paid, payment_method, receipt_number, payment_date, notes, processed_by, is_verified, created_at, updated_at) VALUES (?, ?, ?, 'cash', ?, NOW(), 'Pemulihan Masal Lunas Bulan " . $targetMonth . "', 1, 1, NOW(), NOW())");
+                            $insP->execute([$billId, $stId, $pt['amount'], 'KWT-BULK-M' . $targetMonth . '-' . $stId . '-' . $pt['id']]);
+                            $restoredCount++;
+                        }
+
+                        // Update bill status to lunas
+                        $updB = $pdo->prepare("UPDATE student_bills SET paid_amount = amount, status = 'lunas' WHERE id = ?");
+                        $updB->execute([$billId]);
                     }
-
-                    // Ensure payment exists
-                    $chkPay = $pdo->prepare("SELECT id FROM payments WHERE bill_id = ?");
-                    $chkPay->execute([$billId]);
-                    if (!$chkPay->fetch()) {
-                        $insP = $pdo->prepare("INSERT INTO payments (bill_id, student_id, amount_paid, payment_method, receipt_number, payment_date, notes, processed_by, is_verified, created_at, updated_at) VALUES (?, ?, ?, 'cash', ?, NOW(), 'Pemulihan Masal Lunas Bulan " . $targetMonth . "', 1, 1, NOW(), NOW())");
-                        $insP->execute([$billId, $stId, $pt['amount'], 'KWT-BULK-M' . $targetMonth . '-' . $stId . '-' . $pt['id']]);
-                        $restoredCount++;
-                    }
-
-                    // Update bill status to lunas
-                    $updB = $pdo->prepare("UPDATE student_bills SET paid_amount = amount, status = 'lunas' WHERE id = ?");
-                    $updB->execute([$billId]);
                 }
+                $log[] = "LUNAS BULAN {$targetMonth}: {$st['full_name']}";
             }
-            $log[] = "LUNAS BULAN {$targetMonth}: {$st['full_name']}";
-        }
 
-        @$pdo->exec("SET FOREIGN_KEY_CHECKS=1;");
-        $message = "BERHASIL MEMULIHKAN KEUANGAN! Memproses LUNAS Bulan {$targetMonth} untuk " . count($studentIds) . " siswa yang dipilih.";
+            @$pdo->exec("SET FOREIGN_KEY_CHECKS=1;");
+            $message = "BERHASIL MEMULIHKAN KEUANGAN! Memproses LUNAS Bulan {$targetMonth} untuk " . count($studentIds) . " siswa yang dipilih.";
+        } catch (\Throwable $e) {
+            $message = "Error: " . htmlspecialchars($e->getMessage());
+        }
     }
 }
 
-// Fetch schools and classrooms for filter
-$schools = $pdo->query("SELECT id, name FROM schools WHERE type != 'yayasan' AND is_active = 1")->fetchAll();
-$classrooms = $pdo->query("SELECT id, school_id, name FROM classrooms ORDER BY school_id ASC, name ASC")->fetchAll();
+// Fetch schools and classrooms safely
+$schools = [];
+try {
+    $schools = $pdo->query("SELECT id, name FROM schools")->fetchAll();
+} catch (\Throwable $e) {}
+
+$classrooms = [];
+try {
+    $classrooms = $pdo->query("SELECT id, school_id, name FROM classrooms ORDER BY school_id ASC, name ASC")->fetchAll();
+} catch (\Throwable $e) {}
 
 // Fetch students matching filter
-$queryStr = "SELECT s.id, s.full_name, s.school_id, c.name as class_name FROM students s LEFT JOIN classrooms c ON s.classroom_id = c.id WHERE 1=1";
-$params = [];
+$studentsList = [];
+try {
+    $queryStr = "SELECT s.id, s.full_name, s.school_id, c.name as class_name FROM students s LEFT JOIN classrooms c ON s.classroom_id = c.id WHERE 1=1";
+    $params = [];
 
-if ($schoolId !== 'all') {
-    $queryStr .= " AND s.school_id = ?";
-    $params[] = $schoolId;
-}
-if ($classroomId !== 'all') {
-    $queryStr .= " AND s.classroom_id = ?";
-    $params[] = $classroomId;
-}
+    if ($schoolId !== 'all') {
+        $queryStr .= " AND s.school_id = ?";
+        $params[] = $schoolId;
+    }
+    if ($classroomId !== 'all') {
+        $queryStr .= " AND s.classroom_id = ?";
+        $params[] = $classroomId;
+    }
 
-$queryStr .= " ORDER BY c.name ASC, s.full_name ASC";
-$stPrepared = $pdo->prepare($queryStr);
-$stPrepared->execute($params);
-$studentsList = $stPrepared->fetchAll();
+    $queryStr .= " ORDER BY s.full_name ASC";
+    $stPrepared = $pdo->prepare($queryStr);
+    $stPrepared->execute($params);
+    $studentsList = $stPrepared->fetchAll();
+} catch (\Throwable $e) {}
 ?>
 <!DOCTYPE html>
 <html lang="id">
