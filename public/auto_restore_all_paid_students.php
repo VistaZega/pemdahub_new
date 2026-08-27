@@ -135,7 +135,7 @@ try {
 // Fetch students matching filter
 $studentsList = [];
 try {
-    $queryStr = "SELECT id, full_name, school_id, classroom_id FROM students WHERE status = 'aktif' OR status IS NULL OR status = ''";
+    $queryStr = "SELECT id, full_name, school_id, classroom_id FROM students WHERE 1=1";
     $params = [];
 
     if ($schoolId !== 'all') {
