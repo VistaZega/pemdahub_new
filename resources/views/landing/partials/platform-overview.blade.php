@@ -74,43 +74,66 @@
             </div>
         </div>
 
-        {{-- Feature keyword marquee --}}
-        <div data-aos="fade-up" data-aos-delay="200" style="margin-top:48px; overflow:hidden; position:relative;">
+        {{-- Feature keyword marquee -> diganti Showcase Penelitian & Project Akhir --}}
+        @if(isset($finalProjectsShowcase) && $finalProjectsShowcase->count() > 0)
+        <div data-aos="fade-up" data-aos-delay="200" style="margin-top:56px; overflow:hidden; position:relative; padding-bottom: 24px;">
             <div class="marquee-fade-left"></div>
             <div class="marquee-fade-right"></div>
             <div class="marquee-track">
-                <div class="marquee-content">
-                    <span class="marquee-item"><i class="fa-solid fa-id-card-clip"></i> Absensi RFID</span>
-                    <span class="marquee-item"><i class="fa-solid fa-book-open-reader"></i> LMS</span>
-                    <span class="marquee-item"><i class="fa-solid fa-laptop-code"></i> CBT</span>
-                    <span class="marquee-item"><i class="fa-solid fa-comments"></i> Forum Diskusi</span>
-                    <span class="marquee-item"><i class="fa-solid fa-briefcase"></i> PKL &amp; Alumni</span>
-                    <span class="marquee-item"><i class="fa-solid fa-file-invoice"></i> Tugas Akhir</span>
-                    <span class="marquee-item"><i class="fa-solid fa-star"></i> Reputasi &amp; Leaderboard</span>
-                    <span class="marquee-item"><i class="fa-solid fa-money-check-dollar"></i> Pembayaran SPP</span>
-                    <span class="marquee-item"><i class="fa-solid fa-calendar-days"></i> Penjadwalan</span>
-                    <span class="marquee-item"><i class="fa-solid fa-shield-halved"></i> Parental Control</span>
-                    <span class="marquee-item"><i class="fa-solid fa-chart-column"></i> Monitoring</span>
-                    <span class="marquee-item"><i class="fa-solid fa-award"></i> Pembinaan</span>
-                    <span class="marquee-item"><i class="fa-solid fa-user-gear"></i> Kepegawaian</span>
-                    <span class="marquee-item"><i class="fa-solid fa-clipboard-list"></i> Perkembangan Siswa</span>
+                <div class="marquee-content" style="display: flex; gap: 24px; padding-left: 24px;">
+                    @foreach($finalProjectsShowcase as $fp)
+                        <div class="bcard" style="min-width: 360px; max-width: 400px; border-radius: 24px; background: linear-gradient(135deg, var(--indigo-bg), #ffffff); border: 1px solid var(--indigo-light); box-shadow: 0 10px 30px -10px rgba(99,102,241,0.15); display:flex; flex-direction:column; justify-content:space-between; overflow:hidden;">
+                            
+                            {{-- Bagian Atas: Judul (Besar, Blok dengan Bayangan dan Bold) --}}
+                            <div style="padding: 24px 28px; flex-grow: 1;">
+                                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--indigo); margin-bottom: 12px; display:inline-flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid {{ $fp->type === 'penelitian_ilmiah' ? 'fa-microscope' : 'fa-lightbulb' }}"></i> 
+                                    {{ $fp->type === 'penelitian_ilmiah' ? 'Penelitian Ilmiah' : 'Project Akhir' }}
+                                </div>
+                                <h4 style="font-size: 19px; font-weight: 900; color: var(--text-primary); line-height: 1.4; text-shadow: 1px 2px 4px rgba(0,0,0,0.12); margin: 0;">
+                                    {{ $fp->title }}
+                                </h4>
+                            </div>
+                            
+                            {{-- Bagian Bawah: Teks Nama Tim Bergerak Dari Kiri ke Kanan --}}
+                            <div style="background: rgba(99,102,241,0.04); border-top: 1px dashed rgba(99,102,241,0.25); padding: 14px 0;">
+                                @php
+                                    $teamNames = $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ');
+                                @endphp
+                                <marquee direction="right" scrollamount="4" style="font-size: 13px; font-weight: 700; color: var(--indigo); white-space: nowrap; padding: 0 12px;">
+                                    <i class="fa-solid fa-users" style="margin-right:6px; opacity:0.8;"></i> {!! $teamNames !!}
+                                </marquee>
+                            </div>
+                        </div>
+                    @endforeach
+
                     {{-- Duplicate for seamless loop --}}
-                    <span class="marquee-item"><i class="fa-solid fa-id-card-clip"></i> Absensi RFID</span>
-                    <span class="marquee-item"><i class="fa-solid fa-book-open-reader"></i> LMS</span>
-                    <span class="marquee-item"><i class="fa-solid fa-laptop-code"></i> CBT</span>
-                    <span class="marquee-item"><i class="fa-solid fa-comments"></i> Forum Diskusi</span>
-                    <span class="marquee-item"><i class="fa-solid fa-briefcase"></i> PKL &amp; Alumni</span>
-                    <span class="marquee-item"><i class="fa-solid fa-file-invoice"></i> Tugas Akhir</span>
-                    <span class="marquee-item"><i class="fa-solid fa-star"></i> Reputasi &amp; Leaderboard</span>
-                    <span class="marquee-item"><i class="fa-solid fa-money-check-dollar"></i> Pembayaran SPP</span>
-                    <span class="marquee-item"><i class="fa-solid fa-calendar-days"></i> Penjadwalan</span>
-                    <span class="marquee-item"><i class="fa-solid fa-shield-halved"></i> Parental Control</span>
-                    <span class="marquee-item"><i class="fa-solid fa-chart-column"></i> Monitoring</span>
-                    <span class="marquee-item"><i class="fa-solid fa-award"></i> Pembinaan</span>
-                    <span class="marquee-item"><i class="fa-solid fa-user-gear"></i> Kepegawaian</span>
-                    <span class="marquee-item"><i class="fa-solid fa-clipboard-list"></i> Perkembangan Siswa</span>
+                    @foreach($finalProjectsShowcase as $fp)
+                        <div class="bcard" style="min-width: 360px; max-width: 400px; border-radius: 24px; background: linear-gradient(135deg, var(--indigo-bg), #ffffff); border: 1px solid var(--indigo-light); box-shadow: 0 10px 30px -10px rgba(99,102,241,0.15); display:flex; flex-direction:column; justify-content:space-between; overflow:hidden;">
+                            
+                            <div style="padding: 24px 28px; flex-grow: 1;">
+                                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--indigo); margin-bottom: 12px; display:inline-flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid {{ $fp->type === 'penelitian_ilmiah' ? 'fa-microscope' : 'fa-lightbulb' }}"></i> 
+                                    {{ $fp->type === 'penelitian_ilmiah' ? 'Penelitian Ilmiah' : 'Project Akhir' }}
+                                </div>
+                                <h4 style="font-size: 19px; font-weight: 900; color: var(--text-primary); line-height: 1.4; text-shadow: 1px 2px 4px rgba(0,0,0,0.12); margin: 0;">
+                                    {{ $fp->title }}
+                                </h4>
+                            </div>
+                            
+                            <div style="background: rgba(99,102,241,0.04); border-top: 1px dashed rgba(99,102,241,0.25); padding: 14px 0;">
+                                @php
+                                    $teamNames = $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ');
+                                @endphp
+                                <marquee direction="right" scrollamount="4" style="font-size: 13px; font-weight: 700; color: var(--indigo); white-space: nowrap; padding: 0 12px;">
+                                    <i class="fa-solid fa-users" style="margin-right:6px; opacity:0.8;"></i> {!! $teamNames !!}
+                                </marquee>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
+        @endif
     </div>
 </section>

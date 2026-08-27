@@ -720,6 +720,13 @@ Route::get('/', function () {
         $q->where('is_active', true);
     }])->where('is_active', true)->get();
 
+    // === SHOWCASE FINAL PROJECT (PENELITIAN & PROJECT AKHIR) ===
+    $finalProjectsShowcase = \App\Models\FinalProject::with(['members.student'])
+        ->whereIn('status', ['approved', 'in_progress', 'ready_for_exam', 'completed'])
+        ->latest('updated_at')
+        ->take(12)
+        ->get();
+
     // Pastikan halaman beranda tidak dicache oleh server (LiteSpeed) maupun browser
     // agar status tombol "Login" vs "Dashboard" selalu ter-update secara real-time.
     return response(view('index', compact(
@@ -731,7 +738,7 @@ Route::get('/', function () {
         'recentAlumnis',
         'pklShowcase', 'totalApprovedLogs', 'totalMonitorings', 'totalDudi',
         'topStudentsElite', 'topTeachersElite', 'homepageTheme',
-        'smkProgramKeahlians'
+        'smkProgramKeahlians', 'finalProjectsShowcase'
     )))
         ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
         ->header('Pragma', 'no-cache')
