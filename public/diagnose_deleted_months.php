@@ -36,18 +36,18 @@ $pdo = new PDO("mysql:host={$dbHost};port={$dbPort};dbname={$dbName};charset=utf
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 ]);
 
-echo "=== DIAGNOSE MISSING MONTH 8 BILLS ===\n";
-// Find active students missing Month 8 SPP bill
-$stmt = $pdo->query("SELECT s.id, s.full_name, c.name as class_name, s.school_id FROM students s LEFT JOIN classrooms c ON s.classroom_id = c.id WHERE s.is_active = 1 AND s.id NOT IN (SELECT student_id FROM student_bills WHERE month = 8 AND payment_type_id IN (1,5,10,16,17,18,19,20,21)) LIMIT 20");
+echo "=== DIAGNOSE MISSING MONTH 8 SPP BILLS ===\n";
+$stmt = $pdo->query("SELECT s.id, s.full_name, s.school_id FROM students s WHERE s.is_active = 1 AND s.id NOT IN (SELECT student_id FROM student_bills WHERE month = 8 AND payment_type_id IN (1,5,10,16,17,18,19,20,21))");
 $missingAug = $stmt->fetchAll();
 
-echo "Total Active Students Missing Month 8 SPP Bill: " . count($missingAug) . " (showing sample):\n";
-foreach ($missingAug as $m) {
-    echo " - Student ID {$m['id']}: {$m['full_name']} ({$m['class_name']})\n";
+echo "Total Active Students Missing Month 8 SPP Bill: " . count($missingAug) . "\n";
+foreach (array_slice($missingAug, 0, 10) as $m) {
+    echo " - Student ID {$m['id']}: {$m['full_name']} (School {$m['school_id']})\n";
 }
 
-echo "\n=== ALL CREATED PAYMENTS IN ACTIVITY LOGS (SAMPLE) ===\n";
-$payLogs = $pdo->query("SELECT id, model_id, changes, created_at FROM activity_logs WHERE model_type LIKE '%Payment%' AND action = 'created' ORDER BY id DESC LIMIT 20")->fetchAll();
+echo "\n=== ALL CREATED PAYMENTS IN ACTIVITY LOGS ===\n";
+$payLogs = $pdo->query("SELECT id, model_id, changes FROM activity_logs WHERE model_type LIKE '%Payment%' AND action = 'created' AND changes IS NOT NULL AND changes != '' ORDER BY id DESC LIMIT 20")->fetchAll();
+echo "Found " . count($payLogs) . " logs with changes:\n";
 foreach ($payLogs as $pl) {
     echo "Log #{$pl['id']}: ModelID {$pl['model_id']} | Changes: {$pl['changes']}\n";
 }
@@ -55,5 +55,5 @@ foreach ($payLogs as $pl) {
 echo "\n=== CELESTE ALL LOGS IN DETAIL ===\n";
 $celesteLogs = $pdo->query("SELECT * FROM activity_logs WHERE changes LIKE '%1831%' OR model_id = 1831 ORDER BY id ASC")->fetchAll();
 foreach ($celesteLogs as $cl) {
-    echo "Log #{$cl['id']}: Action={$cl['action']} | Model={$cl['model_type']} | User={$cl['user_id']} | Changes={$cl['changes']}\n";
+    echo "Log #{$cl['id']}: Action={$cl['action']} | Model={$cl['model_type']} | Changes={$cl['changes']}\n";
 }
