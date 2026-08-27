@@ -29,6 +29,7 @@ class TeachingAssignmentController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+        $canAccessAllSchools = $user->canAccessAllSchools();
 
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
         $currentYear = AcademicYear::where('is_active', 1)->first();
