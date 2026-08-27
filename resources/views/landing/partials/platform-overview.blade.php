@@ -89,14 +89,14 @@
                                 {{ $fp->title }}
                             </h4>
                             
-                            {{-- Bagian Bawah: Teks Nama Tim Bergerak Dari Kiri ke Kanan --}}
+                            {{-- Bagian Bawah: Teks Nama Tim Bergerak Searah dengan Judul --}}
                             <div style="width: 100%; position: relative;">
                                 @php
                                     $teamNames = $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ');
                                 @endphp
-                                <marquee direction="right" scrollamount="4" style="font-size: 15px; font-weight: 800; color: var(--indigo); white-space: nowrap; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25);">
+                                <div style="font-size: 15px; font-weight: 800; color: var(--indigo); text-align: center; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25);">
                                     <i class="fa-solid fa-users" style="margin-right:8px; color: var(--violet);"></i> {!! $teamNames !!}
-                                </marquee>
+                                </div>
                             </div>
                         </div>
                     @endforeach
@@ -113,9 +113,9 @@
                                 @php
                                     $teamNames = $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &nbsp;&bull;&nbsp; ');
                                 @endphp
-                                <marquee direction="right" scrollamount="4" style="font-size: 15px; font-weight: 800; color: var(--indigo); white-space: nowrap; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25);">
+                                <div style="font-size: 15px; font-weight: 800; color: var(--indigo); text-align: center; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25);">
                                     <i class="fa-solid fa-users" style="margin-right:8px; color: var(--violet);"></i> {!! $teamNames !!}
-                                </marquee>
+                                </div>
                             </div>
                         </div>
                     @endforeach
