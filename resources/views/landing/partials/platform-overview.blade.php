@@ -90,50 +90,26 @@
             <div class="marquee-track" style="animation-duration: {{ $marqueeDuration }}s;">
                 <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center;">
                     @foreach($finalProjectsShowcase as $fp)
-                        <div style="width: 500px; flex: 0 0 500px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                        <div style="width: 450px; flex: 0 0 450px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
                             @php
-                                $titleColors = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#db2777', '#0891b2', '#c026d3'];
+                                // Curated harmonious colors instead of chaotic random ones
+                                $titleColors = ['#1e40af', '#065f46', '#5b21b6', '#9f1239']; 
                                 $color = $titleColors[$loop->index % count($titleColors)];
-                                
-                                $len = strlen($fp->title);
-                                if ($len < 40) $baseSize = ($loop->index % 2 == 0) ? 26 : 25;
-                                elseif ($len < 80) $baseSize = ($loop->index % 2 == 0) ? 22 : 21;
-                                else $baseSize = ($loop->index % 2 == 0) ? 17 : 16;
-                                
-                                $fonts = [
-                                    'system-ui, -apple-system, sans-serif',
-                                    'Georgia, serif',
-                                    '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                                    '"Trebuchet MS", "Lucida Sans Unicode", sans-serif',
-                                    'Palatino, "Palatino Linotype", serif'
-                                ];
-                                $weights = [800, 700, 900, 800, 700];
-                                $styles = ['normal', 'italic', 'normal', 'normal', 'italic'];
-                                
-                                $idx = $loop->index % 5;
-                                $fontFam = $fonts[$idx];
-                                $fontWght = $weights[$idx];
-                                $fontStl = $styles[$idx];
                             @endphp
-                            {{-- Bagian Atas: Judul (Besar, Bayangan, Bold, Center) --}}
-                            <h4 style="width: 100%; font-family: {!! $fontFam !!}; font-size: {{ $baseSize }}px; font-weight: {{ $fontWght }}; font-style: {{ $fontStl }}; color: {{ $color }}; line-height: 1.35; max-height: 4.05em; overflow: hidden; display: block; text-shadow: 2px 2px 5px rgba(0,0,0,0.15); margin: 0 0 16px 0; text-align: center; white-space: normal; padding: 0 10px;">
+                            {{-- Judul: Elegan, 3 baris maksimal, dengan pemotongan rapi (ellipsis) --}}
+                            <h4 style="width: 100%; font-size: 18px; font-weight: 800; color: {{ $color }}; line-height: 1.4; text-align: center; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 16px 0; padding: 0 10px;">
                                 {{ $fp->title }}
                             </h4>
                             
-                            {{-- Bagian Bawah: Teks Nama Tim Bergerak Searah dengan Judul --}}
+                            {{-- Nama Tim: Ukuran tetap terbaca, batas 2 baris --}}
                             <div style="width: 100%; position: relative;">
                                 @php
-                                    $memberCount = $fp->members->isNotEmpty() ? $fp->members->count() : 1;
-                                    if ($memberCount > 4) $nameSize = 11;
-                                    elseif ($memberCount > 2) $nameSize = 13;
-                                    else $nameSize = 15;
-                                    
                                     $teamNames = $fp->members->isNotEmpty() 
                                         ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &bull; ')
                                         : ($fp->student->full_name ?? 'Tim Siswa');
                                 @endphp
-                                <div style="font-size: {{ $nameSize }}px; font-weight: 800; color: var(--indigo); text-align: center; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25); white-space: normal; overflow: hidden; word-break: break-word;">
-                                    <i class="fa-solid fa-users" style="margin-right:8px; color: var(--violet);"></i> {!! $teamNames !!}
+                                <div style="font-size: 14px; font-weight: 700; color: #4b5563; text-align: center; padding: 12px 0; border-top: 1px dashed rgba(99,102,241,0.4); border-bottom: 1px dashed rgba(99,102,241,0.4); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    <i class="fa-solid fa-users" style="color: #6366f1; margin-right: 6px;"></i> {!! $teamNames !!}
                                 </div>
                             </div>
                         </div>
@@ -141,48 +117,23 @@
 
                     {{-- Duplicate for seamless loop --}}
                     @foreach($finalProjectsShowcase as $fp)
-                        <div style="width: 500px; flex: 0 0 500px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                        <div style="width: 450px; flex: 0 0 450px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
                             @php
-                                $titleColors = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#db2777', '#0891b2', '#c026d3'];
+                                $titleColors = ['#1e40af', '#065f46', '#5b21b6', '#9f1239']; 
                                 $color = $titleColors[$loop->index % count($titleColors)];
-                                
-                                $len = strlen($fp->title);
-                                if ($len < 40) $baseSize = ($loop->index % 2 == 0) ? 26 : 25;
-                                elseif ($len < 80) $baseSize = ($loop->index % 2 == 0) ? 22 : 21;
-                                else $baseSize = ($loop->index % 2 == 0) ? 17 : 16;
-                                
-                                $fonts = [
-                                    'system-ui, -apple-system, sans-serif',
-                                    'Georgia, serif',
-                                    '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                                    '"Trebuchet MS", "Lucida Sans Unicode", sans-serif',
-                                    'Palatino, "Palatino Linotype", serif'
-                                ];
-                                $weights = [800, 700, 900, 800, 700];
-                                $styles = ['normal', 'italic', 'normal', 'normal', 'italic'];
-                                
-                                $idx = $loop->index % 5;
-                                $fontFam = $fonts[$idx];
-                                $fontWght = $weights[$idx];
-                                $fontStl = $styles[$idx];
                             @endphp
-                            <h4 style="width: 100%; font-family: {!! $fontFam !!}; font-size: {{ $baseSize }}px; font-weight: {{ $fontWght }}; font-style: {{ $fontStl }}; color: {{ $color }}; line-height: 1.35; max-height: 4.05em; overflow: hidden; display: block; text-shadow: 2px 2px 5px rgba(0,0,0,0.15); margin: 0 0 16px 0; text-align: center; white-space: normal; padding: 0 10px;">
+                            <h4 style="width: 100%; font-size: 18px; font-weight: 800; color: {{ $color }}; line-height: 1.4; text-align: center; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 16px 0; padding: 0 10px;">
                                 {{ $fp->title }}
                             </h4>
                             
                             <div style="width: 100%; position: relative;">
                                 @php
-                                    $memberCount = $fp->members->isNotEmpty() ? $fp->members->count() : 1;
-                                    if ($memberCount > 4) $nameSize = 11;
-                                    elseif ($memberCount > 2) $nameSize = 13;
-                                    else $nameSize = 15;
-                                    
                                     $teamNames = $fp->members->isNotEmpty() 
                                         ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &bull; ')
                                         : ($fp->student->full_name ?? 'Tim Siswa');
                                 @endphp
-                                <div style="font-size: {{ $nameSize }}px; font-weight: 800; color: var(--indigo); text-align: center; padding: 10px 0; border-top: 1px solid rgba(99,102,241,0.25); border-bottom: 1px solid rgba(99,102,241,0.25); white-space: normal; overflow: hidden; word-break: break-word;">
-                                    <i class="fa-solid fa-users" style="margin-right:8px; color: var(--violet);"></i> {!! $teamNames !!}
+                                <div style="font-size: 14px; font-weight: 700; color: #4b5563; text-align: center; padding: 12px 0; border-top: 1px dashed rgba(99,102,241,0.4); border-bottom: 1px dashed rgba(99,102,241,0.4); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    <i class="fa-solid fa-users" style="color: #6366f1; margin-right: 6px;"></i> {!! $teamNames !!}
                                 </div>
                             </div>
                         </div>
