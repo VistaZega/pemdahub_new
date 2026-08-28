@@ -46,6 +46,8 @@
         align-items: center;
         box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
     }
 
     .ekskul-card:hover {
@@ -78,6 +80,28 @@
         color: #0f172a;
         margin: 0;
         letter-spacing: -0.01em;
+    }
+
+    .ekskul-watermark {
+        position: absolute;
+        bottom: -20px;
+        right: -20px;
+        font-size: 140px;
+        opacity: 0.04;
+        z-index: 0;
+        pointer-events: none;
+        transform: rotate(-15deg);
+        transition: all 0.4s ease;
+    }
+
+    .ekskul-card:hover .ekskul-watermark {
+        transform: rotate(0deg) scale(1.15);
+        opacity: 0.08;
+    }
+
+    .ekskul-card > div:not(.ekskul-watermark), .ekskul-card > h3 {
+        position: relative;
+        z-index: 1;
     }
 
     /* === Infinite Marquee Styles === */
@@ -203,6 +227,9 @@
                                     case 'sains_it': $bgColor = '#ecfeff'; $textColor = '#0891b2'; break;
                                 }
                             @endphp
+                            <div class="ekskul-watermark" style="color:{{ $textColor }};">
+                                @if($isFa) <i class="{{ $iconStr }}"></i> @else <span>{{ $iconStr }}</span> @endif
+                            </div>
                             <div class="ekskul-icon-box" style="background:{{ $bgColor }}; color:{{ $textColor }};">
                                 @if($isFa) <i class="{{ $iconStr }}"></i> @else <span>{{ $iconStr }}</span> @endif
                             </div>
@@ -237,6 +264,9 @@
                                     case 'sains_it': $bgColor = '#ecfeff'; $textColor = '#0891b2'; break;
                                 }
                             @endphp
+                            <div class="ekskul-watermark" style="color:{{ $textColor }};">
+                                @if($isFa) <i class="{{ $iconStr }}"></i> @else <span>{{ $iconStr }}</span> @endif
+                            </div>
                             <div class="ekskul-icon-box" style="background:{{ $bgColor }}; color:{{ $textColor }};">
                                 @if($isFa) <i class="{{ $iconStr }}"></i> @else <span>{{ $iconStr }}</span> @endif
                             </div>
