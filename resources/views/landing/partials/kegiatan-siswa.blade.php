@@ -117,7 +117,6 @@
     }
 
     .bento-card {
-        /* Background and border removed, will be set inline */
         backdrop-filter: blur(12px);
         border-radius: 12px; 
         padding: 8px; 
@@ -126,15 +125,14 @@
         flex-direction: column;
         align-items: flex-start;
         justify-content: space-between;
-        box-shadow: 0 4px 10px -2px rgba(15, 23, 42, 0.04);
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
         overflow: hidden;
     }
 
     .bento-card:hover {
-        transform: scale(1.04);
-        box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.12);
+        transform: translate(-2px, -2px) scale(1.02);
+        box-shadow: 6px 6px 0px rgba(0,0,0,0.15) !important;
         z-index: 10;
         filter: brightness(0.96);
     }
@@ -298,16 +296,16 @@
                     }
                 @endphp
                 
-                <div class="bento-card {{ $bentoClass }}" style="background: {{ $bgColor }}; border: 1.5px solid rgba(255,255,255,0.5);">
+                <div class="bento-card {{ $bentoClass }}" style="background: {{ $bgColor }}; border: 1.5px solid #000000; box-shadow: 4px 4px 0px rgba(0,0,0,0.1);">
                     <img class="bento-watermark" src="{{ asset('images/ekskul/' . $ekskul->category . '_bg.jpg') }}" alt="Background" onerror="this.style.display='none'">
                     
                     <div class="bento-content">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-                            <div class="bento-icon-box" style="color:{{ $textColor }};">
+                            <div class="bento-icon-box" style="color:{{ $textColor }}; border: 1px solid rgba(0,0,0,0.1);">
                                 @if($isFa) <i class="{{ $iconStr }}"></i> @else <span>{{ $iconStr }}</span> @endif
                             </div>
                             
-                            <div class="bento-badge" style="color: {{ $textColor }};">
+                            <div class="bento-badge" style="color: {{ $textColor }}; border: 1px solid {{ $textColor }} !important;">
                                 {{ $ekskul->isFoundationLevel() ? 'Lintas Yayasan' : ($ekskul->school->name ?? 'Unit Sekolah') }}
                             </div>
                         </div>
