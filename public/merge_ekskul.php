@@ -9,25 +9,24 @@ use App\Models\Extracurricular;
 use App\Models\ExtracurricularMember;
 
 echo "<pre>";
-echo "=== Script Penggabungan Ekskul (Futsal SMAS Pembda 1) ===\n";
+echo "=== Script Penggabungan Ekskul (Paskibraka SMAS Pembda 1) ===\n";
 
 $smas = \App\Models\School::where("name", "like", "%SMAS Pembda 1%")->first();
 if (!$smas) {
     die("Error: SMAS Pembda 1 tidak ditemukan.\n");
 }
 
-$sourceName = "Klub Futsal & Atletik";
-$targetName = "Futsal";
+$sourceName = "Korps Paskibraka Satria";
+$targetName = "Paskas";
 
 $source = Extracurricular::where("school_id", $smas->id)->where("name", "like", "%{$sourceName}%")->first();
-$target = Extracurricular::where("school_id", $smas->id)->where("name", $targetName)->first();
+$target = Extracurricular::where("school_id", $smas->id)->where("name", "like", "%{$targetName}%")->first();
 
 if (!$source) {
     echo "Info: Ekskul {$sourceName} tidak ditemukan (mungkin sudah dihapus/digabung).\n";
 }
 if (!$target) {
-    // Maybe Futsal is a Foundation-level? Let's check foundation level or just any Futsal in SMAS
-    $target = Extracurricular::where("name", $targetName)->first();
+    $target = Extracurricular::where("name", "like", "%{$targetName}%")->first();
     if (!$target) {
         die("Error: Ekskul {$targetName} tidak ditemukan.\n");
     }
