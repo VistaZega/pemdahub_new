@@ -526,8 +526,8 @@ class MobileStudentController extends Controller
         $logDate = $request->input('date') ?? ($request->input('log_date') ?? date('Y-m-d'));
         $activity = $request->input('activity_description') ?? $request->input('activity');
 
-        if (empty($activity) || strlen(trim($activity)) < 5) {
-            return back()->with('error', 'Deskripsi aktivitas PKL wajib diisi minimal 5 karakter.');
+        if (empty($activity) || strlen(trim($activity)) < 50) {
+            return back()->with('error', 'Deskripsi kegiatan terlalu singkat. Minimal 50 karakter agar lebih detail dan bermutu.');
         }
 
         $student = $this->getStudent();

@@ -128,8 +128,8 @@
                 <!-- Deskripsi Aktivitas -->
                 <div>
                     <label for="activity_description" class="block text-xs font-black text-slate-800 mb-1">Deskripsi Aktivitas / Pekerjaan di DUDI</label>
-                    <textarea id="activity_description" name="activity_description" x-model="activityText" rows="3" required
-                              placeholder="Tuliskan secara jelas aktivitas pekerjaan, mesin/alat yang digunakan, atau materi yang dipelajari hari ini..."
+                    <textarea id="activity_description" name="activity_description" x-model="activityText" rows="3" required minlength="50"
+                              placeholder="Tuliskan secara jelas aktivitas pekerjaan, mesin/alat yang digunakan, atau materi yang dipelajari hari ini (Minimal 50 karakter)..."
                               class="w-full p-3.5 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold resize-none focus:outline-hidden focus:border-orange-500"></textarea>
                 </div>
 

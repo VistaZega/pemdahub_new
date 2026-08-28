@@ -40,10 +40,13 @@ class PklStudentController extends Controller
 
         $validated = $request->validate([
             'log_date' => 'required|date|before_or_equal:today',
-            'activity' => 'required|string|min:10',
+            'activity' => 'required|string|min:50',
             'photo' => 'nullable|image|max:5120', // max 5MB
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+        ], [
+            'activity.min' => 'Deskripsi kegiatan terlalu singkat. Minimal 50 karakter agar lebih detail dan bermutu.',
+            'activity.required' => 'Deskripsi kegiatan wajib diisi.'
         ]);
 
         // Check if log for this date already exists

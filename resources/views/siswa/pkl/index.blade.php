@@ -193,7 +193,7 @@
 
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Deskripsi Aktivitas & Hasil Pekerjaan</label>
-                                <textarea name="activity" id="input_activity" rows="4" placeholder="Tuliskan detail pekerjaan, alat/bahan yang digunakan, dan hasil yang dicapai hari ini (Minimal 10 karakter)..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition" required></textarea>
+                                <textarea name="activity" id="input_activity" rows="4" minlength="50" placeholder="Tuliskan detail pekerjaan, alat/bahan yang digunakan, dan hasil yang dicapai hari ini (Minimal 50 karakter)..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition" required></textarea>
                             </div>
 
                             {{-- GPS Geolocation info --}}
