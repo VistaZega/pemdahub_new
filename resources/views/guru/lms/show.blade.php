@@ -1785,6 +1785,33 @@ if (!function_exists('balanceHtmlTags')) {
                                     </div>
                                 </div>
                             </div>
+
+                            <div x-show="gameType === 'match'" class="mb-4 p-4 bg-gradient-to-r from-violet-50 to-purple-50 border-2 border-violet-100 rounded-2xl text-xs text-slate-800 leading-relaxed shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-violet-600 text-white flex items-center justify-center shrink-0 text-sm font-black shadow-sm mt-0.5">
+                                        <i class="fas fa-puzzle-piece text-amber-300"></i>
+                                    </div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <div class="flex items-center justify-between flex-wrap gap-2">
+                                            <h5 class="font-black text-violet-950 text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
+                                                <i class="fas fa-link text-violet-600"></i> Panduan Game: Cocokkan Pasangan (Match Pairs)
+                                            </h5>
+                                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2.5 py-0.5 rounded-full border border-emerald-300">
+                                                <i class="fas fa-check-circle"></i> Sistem EXP: Tuntas Mencocokkan (100% EXP)
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700">
+                                            <strong>🎯 Tujuan & Manfaat:</strong> Melatih asosiasi konsep, relasi sebab-akibat, pencocokan istilah dengan definisi, rumus dengan penjelasannya, atau sinonim/antonim secara interaktif.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>🕹️ Cara Main Siswa:</strong> Siswa mengklik 1 kotak istilah di kolom kiri lalu mengklik kotak definisi pasangannya di kolom kanan. Pasangan yang benar akan menyatu dan hilang dari arena.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>⭐ Penentuan Poin (EXP):</strong> Siswa memperoleh <strong>100% Reward EXP</strong> penuh setelah berhasil menjodohkan semua pasangan kartu hingga habis.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-sm font-bold text-gray-800">Pasangan Kartu / Kata</h4>
                                 <button type="button" @click="addPair()" class="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-lg font-bold hover:bg-indigo-200 transition"><i class="fas fa-plus"></i> Tambah Baris</button>
@@ -1803,6 +1830,32 @@ if (!function_exists('balanceHtmlTags')) {
 
                         {{-- Editor: Spin Wheel --}}
                         <div x-show="gameType === 'spin_wheel'" style="display: none;">
+                            <div class="mb-4 p-4 bg-gradient-to-r from-pink-50 to-rose-50 border-2 border-pink-100 rounded-2xl text-xs text-slate-800 leading-relaxed shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-pink-600 text-white flex items-center justify-center shrink-0 text-sm font-black shadow-sm mt-0.5">
+                                        <i class="fas fa-dharmachakra text-amber-300"></i>
+                                    </div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <div class="flex items-center justify-between flex-wrap gap-2">
+                                            <h5 class="font-black text-pink-950 text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
+                                                <i class="fas fa-dharmachakra text-pink-600"></i> Panduan Game: Roda Putar (Spin Wheel)
+                                            </h5>
+                                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2.5 py-0.5 rounded-full border border-emerald-300">
+                                                <i class="fas fa-check-circle"></i> Sistem EXP: Tuntas Memutar (100% EXP)
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700">
+                                            <strong>🎯 Tujuan & Manfaat:</strong> Ice breaking seru, undian giliran presentasi, pembagian hadiah motivasi acak, atau pertanyaan tantangan spontan.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>🕹️ Cara Main Siswa:</strong> Siswa menekan tombol putar dan roda akan berputar acak hingga berhenti di salah satu sektor item yang guru buat.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>⭐ Penentuan Poin (EXP):</strong> Siswa memperoleh <strong>100% Reward EXP</strong> setelah roda berhenti berputar (1x per siswa).
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-sm font-bold text-gray-800">Item Roda Undian</h4>
                                 <button type="button" @click="addWheelItem()" class="text-xs bg-pink-100 text-pink-600 px-2 py-1 rounded-lg font-bold hover:bg-pink-200 transition"><i class="fas fa-plus"></i> Tambah Item</button>
@@ -1820,6 +1873,32 @@ if (!function_exists('balanceHtmlTags')) {
 
                         {{-- Editor: Quiz --}}
                         <div x-show="gameType === 'quiz'" style="display: none;">
+                            <div class="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-100 rounded-2xl text-xs text-slate-800 leading-relaxed shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 text-sm font-black shadow-sm mt-0.5">
+                                        <i class="fas fa-question text-amber-300"></i>
+                                    </div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <div class="flex items-center justify-between flex-wrap gap-2">
+                                            <h5 class="font-black text-emerald-950 text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
+                                                <i class="fas fa-list-ol text-emerald-600"></i> Panduan Game: Kuis Pilihan Ganda (Quiz)
+                                            </h5>
+                                            <span class="text-[10px] bg-amber-100 text-amber-800 font-black px-2.5 py-0.5 rounded-full border border-amber-300">
+                                                <i class="fas fa-percentage"></i> Sistem EXP: Proporsional Nilai (% Benar)
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700">
+                                            <strong>🎯 Tujuan & Manfaat:</strong> Ujian pemahaman materi formal, evaluasi bab, serta menguji ketepatan analisis siswa terhadap konsep pilihan ganda A/B/C/D.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>🕹️ Cara Main Siswa:</strong> Siswa menjawab satu per satu soal. Terdapat combo streak beruntun dan efek visual interaktif saat menjawab benar.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>⭐ Penentuan Poin (EXP):</strong> Dihitung proporsional: <code>(Jawaban Benar / Total Soal) x Reward EXP + Combo Bonus</code>. Minimal dapat 10% EXP bagi yang telah berusaha menyelesaikan.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-sm font-bold text-gray-800">Pertanyaan Kuis</h4>
                                 <button type="button" @click="addQuizQuestion()" class="text-xs bg-emerald-100 text-emerald-600 px-2 py-1 rounded-lg font-bold hover:bg-emerald-200 transition"><i class="fas fa-plus"></i> Tambah Soal</button>
@@ -1849,6 +1928,32 @@ if (!function_exists('balanceHtmlTags')) {
 
                         {{-- Editor: True/False --}}
                         <div x-show="gameType === 'true_false'" style="display: none;">
+                            <div class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-100 rounded-2xl text-xs text-slate-800 leading-relaxed shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 text-sm font-black shadow-sm mt-0.5">
+                                        <i class="fas fa-check-double text-amber-300"></i>
+                                    </div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <div class="flex items-center justify-between flex-wrap gap-2">
+                                            <h5 class="font-black text-blue-950 text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
+                                                <i class="fas fa-check-circle text-blue-600"></i> Panduan Game: Benar atau Salah (True / False)
+                                            </h5>
+                                            <span class="text-[10px] bg-amber-100 text-amber-800 font-black px-2.5 py-0.5 rounded-full border border-amber-300">
+                                                <i class="fas fa-percentage"></i> Sistem EXP: Proporsional Nilai (% Benar)
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700">
+                                            <strong>🎯 Tujuan & Manfaat:</strong> Menguji daya berpikir kritis (*Critical Thinking*), membedakan fakta vs miskonsepsi/hoaks, serta kecepatan analisa cepat.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>🕹️ Cara Main Siswa:</strong> Siswa membaca pernyataan lalu menekan tombol hijau (BENAR) atau merah (SALAH) dalam hitungan detik.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>⭐ Penentuan Poin (EXP):</strong> Proporsional terhadap persentase ketepatan: <code>(Benar / Total Pernyataan) x Reward EXP</code>.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-sm font-bold text-gray-800">Pernyataan Benar/Salah</h4>
                                 <button type="button" @click="addTfStatement()" class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-lg font-bold hover:bg-blue-200 transition"><i class="fas fa-plus"></i> Tambah Pernyataan</button>
@@ -1870,6 +1975,32 @@ if (!function_exists('balanceHtmlTags')) {
 
                         {{-- Editor: Word Guess --}}
                         <div x-show="gameType === 'word_guess'" style="display: none;">
+                            <div class="mb-4 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-100 rounded-2xl text-xs text-slate-800 leading-relaxed shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-sm font-black shadow-sm mt-0.5">
+                                        <i class="fas fa-keyboard text-slate-950"></i>
+                                    </div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <div class="flex items-center justify-between flex-wrap gap-2">
+                                            <h5 class="font-black text-amber-950 text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
+                                                <i class="fas fa-keyboard text-amber-600"></i> Panduan Game: Tebak Kata (Hangman Style)
+                                            </h5>
+                                            <span class="text-[10px] bg-amber-100 text-amber-800 font-black px-2.5 py-0.5 rounded-full border border-amber-300">
+                                                <i class="fas fa-percentage"></i> Sistem EXP: Proporsional Kata Benar
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700">
+                                            <strong>🎯 Tujuan & Manfaat:</strong> Melatih pengenalan kosakata, istilah ilmiah, ejaan tepat, dan asosiasi petunjuk (clue) dengan kata rahasia.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>🕹️ Cara Main Siswa:</strong> Siswa menebak huruf satu per satu dari keyboard virtual. Setiap kesalahan mengurangi 1 nyawa (maksimal 5 kesempatan salah).
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>⭐ Penentuan Poin (EXP):</strong> Proporsional: <code>(Kata Berhasil Ditebak / Total Kata) x Reward EXP</code>.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-sm font-bold text-gray-800">Kata Rahasia</h4>
                                 <button type="button" @click="addGuessWord()" class="text-xs bg-amber-100 text-amber-600 px-2 py-1 rounded-lg font-bold hover:bg-amber-200 transition"><i class="fas fa-plus"></i> Tambah Kata</button>
@@ -1888,6 +2019,32 @@ if (!function_exists('balanceHtmlTags')) {
 
                         {{-- Editor: Susun Kata (Scramble) --}}
                         <div x-show="gameType === 'scramble'" style="display: none;">
+                            <div class="mb-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-100 rounded-2xl text-xs text-slate-800 leading-relaxed shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0 text-sm font-black shadow-sm mt-0.5">
+                                        <i class="fas fa-cubes text-amber-200"></i>
+                                    </div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <div class="flex items-center justify-between flex-wrap gap-2">
+                                            <h5 class="font-black text-orange-950 text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
+                                                <i class="fas fa-cubes text-orange-600"></i> Panduan Game: Susun Kata (Scramble / Anagram)
+                                            </h5>
+                                            <span class="text-[10px] bg-amber-100 text-amber-800 font-black px-2.5 py-0.5 rounded-full border border-amber-300">
+                                                <i class="fas fa-percentage"></i> Sistem EXP: Proporsional Kata Benar
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700">
+                                            <strong>🎯 Tujuan & Manfaat:</strong> Melatih rekognisi visual kata, pemecahan teka-teki anagram, serta penguasaan terminologi pembelajaran.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>🕹️ Cara Main Siswa:</strong> Huruf-huruf diacak dan siswa harus mengklik huruf demi huruf secara berurutan membentuk kata yang benar berdasarkan petunjuk.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>⭐ Penentuan Poin (EXP):</strong> Proporsional: <code>(Kata Berhasil Disusun / Total Kata) x Reward EXP</code>.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-sm font-bold text-gray-800">Kata untuk Disusun</h4>
                                 <button type="button" @click="addScrambleWord()" class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-lg font-bold hover:bg-orange-200 transition"><i class="fas fa-plus"></i> Tambah Kata</button>
@@ -1906,6 +2063,32 @@ if (!function_exists('balanceHtmlTags')) {
 
                         {{-- Editor: Urutkan (Sequence) --}}
                         <div x-show="gameType === 'sequence'" style="display: none;">
+                            <div class="mb-4 p-4 bg-gradient-to-r from-cyan-50 to-sky-50 border-2 border-cyan-100 rounded-2xl text-xs text-slate-800 leading-relaxed shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-cyan-600 text-white flex items-center justify-center shrink-0 text-sm font-black shadow-sm mt-0.5">
+                                        <i class="fas fa-sort-amount-down text-amber-300"></i>
+                                    </div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <div class="flex items-center justify-between flex-wrap gap-2">
+                                            <h5 class="font-black text-cyan-950 text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
+                                                <i class="fas fa-sort-amount-down text-cyan-600"></i> Panduan Game: Urutkan Langkah / Kronologi (Sequence)
+                                            </h5>
+                                            <span class="text-[10px] bg-amber-100 text-amber-800 font-black px-2.5 py-0.5 rounded-full border border-amber-300">
+                                                <i class="fas fa-percentage"></i> Sistem EXP: Proporsional Kelompok Benar
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700">
+                                            <strong>🎯 Tujuan & Manfaat:</strong> Mengasah logika prosedural, pemahaman rantai kronologi sejarah, tahapan praktikum/laboratorium, siklus biologis, atau alur algoritma.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>🕹️ Cara Main Siswa:</strong> Siswa menyeret (*drag & drop*) kartu-kartu langkah agar tersusun berurutan dari urutan teratas (pertama) ke bawah (terakhir).
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>⭐ Penentuan Poin (EXP):</strong> Dihitung proporsional berdasarkan kelompok urutan yang berhasil disusun tepat.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="flex items-center justify-between mb-3">
                                 <div>
                                     <h4 class="text-sm font-bold text-gray-800">Kelompok Urutan (Sequence Groups)</h4>
@@ -1952,6 +2135,32 @@ if (!function_exists('balanceHtmlTags')) {
                         
                         {{-- Editor: Image Hotspot --}}
                         <div x-show="gameType === 'image_hotspot'" style="display: none;">
+                            <div class="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-100 rounded-2xl text-xs text-slate-800 leading-relaxed shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 text-sm font-black shadow-sm mt-0.5">
+                                        <i class="fas fa-microscope text-amber-300"></i>
+                                    </div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <div class="flex items-center justify-between flex-wrap gap-2">
+                                            <h5 class="font-black text-emerald-950 text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
+                                                <i class="fas fa-microscope text-emerald-600"></i> Panduan Game: Titik Buta Gambar (STEM Visual Hotspot)
+                                            </h5>
+                                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2.5 py-0.5 rounded-full border border-emerald-300">
+                                                <i class="fas fa-check-circle"></i> Sistem EXP: Tuntas Identifikasi (100% EXP)
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700">
+                                            <strong>🎯 Tujuan & Manfaat:</strong> Sangat ideal untuk Biologi (organ tubuh, sel, anatomi tumbuhan), Geografi (peta wilayah), atau Fisika/Teknik (komponen alat/mesin).
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>🕹️ Cara Main Siswa:</strong> Siswa disajikan gambar diagram dan diminta menunjuk/mengklik lokasi koordinat titik yang sesuai dengan nama bagian yang ditanyakan.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>⭐ Penentuan Poin (EXP):</strong> Siswa memperoleh <strong>100% Reward EXP</strong> penuh setelah berhasil menandai semua titik target.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="mb-4">
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Upload Gambar Referensi <span class="text-red-500">*</span></label>
                                 <input type="file" name="hotspot_image" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
@@ -1975,6 +2184,32 @@ if (!function_exists('balanceHtmlTags')) {
 
                         {{-- Editor: Chemistry Balancer --}}
                         <div x-show="gameType === 'chem_balancer'" style="display: none;">
+                            <div class="mb-4 p-4 bg-gradient-to-r from-sky-50 to-blue-50 border-2 border-sky-100 rounded-2xl text-xs text-slate-800 leading-relaxed shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-sky-600 text-white flex items-center justify-center shrink-0 text-sm font-black shadow-sm mt-0.5">
+                                        <i class="fas fa-flask text-amber-300"></i>
+                                    </div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <div class="flex items-center justify-between flex-wrap gap-2">
+                                            <h5 class="font-black text-sky-950 text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
+                                                <i class="fas fa-flask text-sky-600"></i> Panduan Game: Reaksi Kimia (Chemistry Equation Balancer)
+                                            </h5>
+                                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2.5 py-0.5 rounded-full border border-emerald-300">
+                                                <i class="fas fa-check-circle"></i> Sistem EXP: Tuntas Penyetaraan (100% EXP)
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700">
+                                            <strong>🎯 Tujuan & Manfaat:</strong> Melatih pemahaman stoikiometri, hukum Lavoisier (kekekalan massa), dan kemampuan aljabar dalam menyeimbangkan atom reaktan & produk.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>🕹️ Cara Main Siswa:</strong> Siswa mengisi koefisien angka pada kotak kosong persamaan kimia hingga jumlah setiap unsur seimbang di kedua sisi panah.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>⭐ Penentuan Poin (EXP):</strong> Siswa memperoleh <strong>100% Reward EXP</strong> setelah berhasil menyetarakan persamaan reaksi kimia tersebut.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-sm font-bold text-gray-800">Persamaan Reaksi</h4>
                                 <button type="button" @click="addChemEquation()" class="text-xs bg-sky-100 text-sky-600 px-2 py-1 rounded-lg font-bold hover:bg-sky-200 transition"><i class="fas fa-plus"></i> Tambah Persamaan</button>
@@ -1994,6 +2229,32 @@ if (!function_exists('balanceHtmlTags')) {
 
                         {{-- Editor: Math Ninja --}}
                         <div x-show="gameType === 'math_ninja'" style="display: none;">
+                            <div class="mb-4 p-4 bg-gradient-to-r from-purple-50 to-fuchsia-50 border-2 border-purple-100 rounded-2xl text-xs text-slate-800 leading-relaxed shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 text-sm font-black shadow-sm mt-0.5">
+                                        <i class="fas fa-calculator text-amber-300"></i>
+                                    </div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <div class="flex items-center justify-between flex-wrap gap-2">
+                                            <h5 class="font-black text-purple-950 text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
+                                                <i class="fas fa-calculator text-purple-600"></i> Panduan Game: Math Ninja (Kilat Berhitung)
+                                            </h5>
+                                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2.5 py-0.5 rounded-full border border-emerald-300">
+                                                <i class="fas fa-check-circle"></i> Sistem EXP: Tuntas Sesi (100% EXP)
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700">
+                                            <strong>🎯 Tujuan & Manfaat:</strong> Melatih kelincahan berhitung mental (*Mental Arithmetic*), reflek kecepatan kalkulasi, dan kefasihan aritmatika dasar (+, -, x).
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>🕹️ Cara Main Siswa:</strong> Siswa ditantang menyelesaikan rangkaian operasi matematika secepat mungkin sebelum waktu habis.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>⭐ Penentuan Poin (EXP):</strong> Siswa memperoleh <strong>100% Reward EXP</strong> saat berhasil menuntaskan level tantangan Math Ninja.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                             <h4 class="text-sm font-bold text-gray-800 mb-3">Pengaturan Math Ninja</h4>
                             <div class="space-y-4">
                                 <div>

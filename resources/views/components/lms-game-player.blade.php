@@ -651,6 +651,15 @@
 
                     {{-- GAME TYPE: IMAGE HOTSPOT --}}
                     <div x-show="game.type === 'image_hotspot' && !loading && !completed" class="w-full max-w-4xl mx-auto flex flex-col items-center" style="display: none;">
+                        <div class="w-full mb-4 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4)">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(16,185,129,0.4)">
+                                <i class="fas fa-microscope text-emerald-300 text-lg"></i>
+                            </div>
+                            <div class="text-left">
+                                <div class="text-[10px] font-black uppercase tracking-widest text-emerald-300 mb-0.5">CARA BERMAIN TITIK BUTA</div>
+                                <div class="font-bold text-white text-sm leading-snug" style="color: #ffffff !important;">Temukan dan klik/sentuh area target pada gambar diagram sesuai nama bagian yang diminta!</div>
+                            </div>
+                        </div>
                         <div class="w-full mb-6 p-4 rounded-2xl text-center" style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3)">
                             <h2 class="text-xl sm:text-2xl font-black mb-1 text-emerald-400" style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Titik Buta</h2>
                             <p class="text-sm font-bold text-white mb-2">Cari dan sentuh area: <span class="text-yellow-300 text-lg uppercase ml-1" x-text="currentHotspot?.label"></span></p>
@@ -667,6 +676,15 @@
 
                     {{-- GAME TYPE: CHEMISTRY BALANCER --}}
                     <div x-show="game.type === 'chem_balancer' && !loading && !completed" class="w-full max-w-4xl mx-auto flex flex-col items-center" style="display: none;">
+                        <div class="w-full mb-4 p-4 rounded-2xl flex items-start gap-3" style="background: rgba(14,165,233,0.2); border: 1px solid rgba(14,165,233,0.4)">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(14,165,233,0.4)">
+                                <i class="fas fa-flask text-sky-300 text-lg"></i>
+                            </div>
+                            <div class="text-left">
+                                <div class="text-[10px] font-black uppercase tracking-widest text-sky-300 mb-0.5">CARA BERMAIN REAKSI KIMIA</div>
+                                <div class="font-bold text-white text-sm leading-snug" style="color: #ffffff !important;">Isi koefisien angka pada kolom yang tersedia agar jumlah atom di ruas kiri dan kanan seimbang.</div>
+                            </div>
+                        </div>
                         <div class="w-full mb-6 p-4 rounded-2xl text-center" style="background: rgba(14,165,233,0.12); border: 1px solid rgba(14,165,233,0.3)">
                             <h2 class="text-xl sm:text-2xl font-black mb-1 text-sky-400" style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Reaksi Kimia</h2>
                             <p class="text-sm font-bold text-white mb-2">Seimbangkan persamaan reaksi berikut ini dengan mengisi koefisien angka yang tepat.</p>
@@ -692,6 +710,10 @@
 
                     {{-- GAME TYPE: MATH NINJA --}}
                     <div x-show="game.type === 'math_ninja' && !loading && !completed" class="w-full max-w-3xl mx-auto flex flex-col items-center relative" style="height: 60vh; display: none;">
+                        <div class="w-full mb-3 p-3 rounded-xl flex items-center gap-3" style="background: rgba(168,85,247,0.25); border: 1px solid rgba(168,85,247,0.5); z-index: 20;">
+                            <i class="fas fa-bolt text-yellow-300"></i>
+                            <span class="text-white text-xs font-bold"><strong>Cara Main:</strong> Ketik hasil kalkulasi persamaan matematika di atas dan tekan <strong>Enter / Serang</strong> sebelum kotak menyentuh dasar!</span>
+                        </div>
                         <div class="absolute inset-0 border-b-4 border-slate-700 bg-slate-900/50 rounded-t-xl overflow-hidden shadow-inner">
                             <!-- Falling Box -->
                             <div class="absolute w-full flex justify-center transition-all duration-100 ease-linear" :style="'top: '+mathBoxTop+'%;'">
