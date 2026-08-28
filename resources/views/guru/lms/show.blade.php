@@ -1630,31 +1630,30 @@ if (!function_exists('balanceHtmlTags')) {
                 <input type="hidden" name="course_id" value="{{ $course->id }}">
                 <input type="hidden" name="game_data" :value="getGameData()">
 
-                <div class="space-y-5">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
+                <div class="space-y-3">
+                                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Judul Game</label>
+                            <input type="text" name="title" x-model="title" class="w-full px-3 py-2 rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Contoh: Kuis Cepat Modul 1" required>
+                        </div>
+                        <div class="md:col-span-1">
                             <label class="block text-xs font-bold text-gray-700 mb-1">Pilih Modul</label>
-                            <select name="module_id" x-model="moduleId" class="w-full px-4 py-2.5 rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                <option value="">-- Pilih Modul --</option>
+                            <select name="module_id" x-model="moduleId" class="w-full px-3 py-2 rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                <option value="">-- Pilih --</option>
                                 @foreach($course->modules as $mod)
                                     <option value="{{ $mod->id }}">{{ $mod->getCode() }} - {{ $mod->title }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div>
+                        <div class="md:col-span-1">
                             <label class="block text-xs font-bold text-gray-700 mb-1">EXP Reward (Poin)</label>
-                            <input type="number" name="reward_points" x-model="rewardPoints" value="50" min="0" max="1000" class="w-full px-4 py-2.5 rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <input type="number" name="reward_points" x-model="rewardPoints" value="50" min="0" max="1000" class="w-full px-3 py-2 rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Judul Game</label>
-                        <input type="text" name="title" x-model="title" class="w-full px-4 py-2.5 rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Contoh: Kuis Cepat Modul 1" required>
-                    </div>
-
-                    <div class="p-4 bg-red-50 border border-red-100 rounded-2xl" x-show="['quiz', 'true_false', 'word_guess', 'scramble', 'sequence'].includes(gameType)">
-                        <h4 class="text-xs font-bold text-red-600 uppercase tracking-widest mb-3 flex items-center gap-2"><i class="fas fa-fire"></i> Pengaturan Hardcore Mode (Opsional)</h4>
-                        <div class="grid grid-cols-2 gap-4">
+                    <div class="p-3 bg-red-50 border border-red-100 rounded-xl" x-show="['quiz', 'true_false', 'word_guess', 'scramble', 'sequence'].includes(gameType)">
+                        <h4 class="text-xs font-bold text-red-600 uppercase tracking-widest mb-2 flex items-center gap-2"><i class="fas fa-fire"></i> Pengaturan Hardcore Mode (Opsional)</h4>
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Batas Waktu (Detik)</label>
                                 <input type="number" name="time_limit" x-model="timeLimit" min="5" max="300" placeholder="Kosongkan jika tak terbatas" class="w-full px-4 py-2.5 rounded-xl border-red-200 bg-white text-sm focus:border-red-500 focus:ring-red-500 placeholder-gray-400">
@@ -1672,60 +1671,60 @@ if (!function_exists('balanceHtmlTags')) {
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-2">Tipe Game</label>
                         <style>@media (min-width: 640px) { .sm\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); } }</style>
-<div class="grid grid-cols-2 sm:grid-cols-6 gap-3">
+<div class="grid grid-cols-2 sm:grid-cols-6 gap-2">
                             <label class="cursor-pointer">
                                 <input type="radio" name="game_type" value="flashcard" x-model="gameType" class="peer sr-only">
-                                <div class="rounded-xl border-2 border-gray-100 p-3 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all">
-                                    <i class="fas fa-layer-group text-2xl mb-2 text-indigo-400 peer-checked:text-indigo-600"></i>
-                                    <p class="text-xs font-bold text-gray-600">Flashcard 3D</p>
+                                <div class="rounded-xl border-2 border-gray-100 p-2 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all">
+                                    <i class="fas fa-layer-group text-lg mb-1 text-indigo-400 peer-checked:text-indigo-600"></i>
+                                    <p class="text-[10px] font-bold leading-tight text-gray-600">Flashcard 3D</p>
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="game_type" value="match" x-model="gameType" class="peer sr-only">
-                                <div class="rounded-xl border-2 border-gray-100 p-3 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all">
-                                    <i class="fas fa-puzzle-piece text-2xl mb-2 text-purple-400 peer-checked:text-purple-600"></i>
-                                    <p class="text-xs font-bold text-gray-600">Match Pairs</p>
+                                <div class="rounded-xl border-2 border-gray-100 p-2 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all">
+                                    <i class="fas fa-puzzle-piece text-lg mb-1 text-purple-400 peer-checked:text-purple-600"></i>
+                                    <p class="text-[10px] font-bold leading-tight text-gray-600">Match Pairs</p>
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="game_type" value="spin_wheel" x-model="gameType" class="peer sr-only">
-                                <div class="rounded-xl border-2 border-gray-100 p-3 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all">
-                                    <i class="fas fa-dharmachakra text-2xl mb-2 text-pink-400 peer-checked:text-pink-600"></i>
-                                    <p class="text-xs font-bold text-gray-600">Spin Wheel</p>
+                                <div class="rounded-xl border-2 border-gray-100 p-2 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all">
+                                    <i class="fas fa-dharmachakra text-lg mb-1 text-pink-400 peer-checked:text-pink-600"></i>
+                                    <p class="text-[10px] font-bold leading-tight text-gray-600">Spin Wheel</p>
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="game_type" value="quiz" x-model="gameType" class="peer sr-only">
-                                <div class="rounded-xl border-2 border-gray-100 p-3 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all">
-                                    <i class="fas fa-list-check text-2xl mb-2 text-emerald-400 peer-checked:text-emerald-600"></i>
-                                    <p class="text-xs font-bold text-gray-600">Kuis</p>
+                                <div class="rounded-xl border-2 border-gray-100 p-2 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all">
+                                    <i class="fas fa-list-check text-lg mb-1 text-emerald-400 peer-checked:text-emerald-600"></i>
+                                    <p class="text-[10px] font-bold leading-tight text-gray-600">Kuis</p>
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="game_type" value="true_false" x-model="gameType" class="peer sr-only">
-                                <div class="rounded-xl border-2 border-gray-100 p-3 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all">
-                                    <i class="fas fa-check-double text-2xl mb-2 text-blue-400 peer-checked:text-blue-600"></i>
-                                    <p class="text-xs font-bold text-gray-600">Benar/Salah</p>
+                                <div class="rounded-xl border-2 border-gray-100 p-2 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all">
+                                    <i class="fas fa-check-double text-lg mb-1 text-blue-400 peer-checked:text-blue-600"></i>
+                                    <p class="text-[10px] font-bold leading-tight text-gray-600">Benar/Salah</p>
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="game_type" value="word_guess" x-model="gameType" class="peer sr-only">
-                                <div class="rounded-xl border-2 border-gray-100 p-3 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all h-full flex flex-col items-center justify-center">
-                                    <i class="fas fa-keyboard text-2xl mb-2 text-amber-400 peer-checked:text-amber-600"></i>
+                                <div class="rounded-xl border-2 border-gray-100 p-2 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all h-full flex flex-col items-center justify-center">
+                                    <i class="fas fa-keyboard text-lg mb-1 text-amber-400 peer-checked:text-amber-600"></i>
                                     <p class="text-[11px] font-bold text-gray-600 leading-tight">Tebak Kata</p>
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="game_type" value="scramble" x-model="gameType" class="peer sr-only">
-                                <div class="rounded-xl border-2 border-gray-100 p-3 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all h-full flex flex-col items-center justify-center">
-                                    <i class="fas fa-cubes text-2xl mb-2 text-orange-400 peer-checked:text-orange-600"></i>
+                                <div class="rounded-xl border-2 border-gray-100 p-2 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all h-full flex flex-col items-center justify-center">
+                                    <i class="fas fa-cubes text-lg mb-1 text-orange-400 peer-checked:text-orange-600"></i>
                                     <p class="text-[11px] font-bold text-gray-600 leading-tight">Susun Kata</p>
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="game_type" value="sequence" x-model="gameType" class="peer sr-only">
-                                <div class="rounded-xl border-2 border-gray-100 p-3 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all h-full flex flex-col items-center justify-center">
-                                    <i class="fas fa-sort-amount-down text-2xl mb-2 text-cyan-400 peer-checked:text-cyan-600"></i>
+                                <div class="rounded-xl border-2 border-gray-100 p-2 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all h-full flex flex-col items-center justify-center">
+                                    <i class="fas fa-sort-amount-down text-lg mb-1 text-cyan-400 peer-checked:text-cyan-600"></i>
                                     <p class="text-[11px] font-bold text-gray-600 leading-tight">Urutkan</p>
                                 </div>
                             </label>
@@ -1734,7 +1733,7 @@ if (!function_exists('balanceHtmlTags')) {
                             <label class="cursor-pointer">
                                 <input type="radio" name="game_type" value="image_hotspot" x-model="gameType" class="peer sr-only">
                                 <div class="rounded-xl border-2 border-emerald-100 p-3 text-center hover:border-emerald-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 transition-all h-full flex flex-col items-center justify-center shadow-[0_0_10px_rgba(16,185,129,0.1)]">
-                                    <i class="fas fa-microscope text-2xl mb-2 text-emerald-500 peer-checked:text-emerald-700"></i>
+                                    <i class="fas fa-microscope text-lg mb-1 text-emerald-500 peer-checked:text-emerald-700"></i>
                                     <p class="text-[11px] font-bold text-emerald-700 leading-tight">Titik Buta (Biologi/Geografi)</p>
                                 </div>
                             </label>
@@ -1742,7 +1741,7 @@ if (!function_exists('balanceHtmlTags')) {
                             <label class="cursor-pointer">
                                 <input type="radio" name="game_type" value="chem_balancer" x-model="gameType" class="peer sr-only">
                                 <div class="rounded-xl border-2 border-sky-100 p-3 text-center hover:border-sky-300 peer-checked:border-sky-500 peer-checked:bg-sky-50 transition-all h-full flex flex-col items-center justify-center shadow-[0_0_10px_rgba(14,165,233,0.1)]">
-                                    <i class="fas fa-flask text-2xl mb-2 text-sky-500 peer-checked:text-sky-700"></i>
+                                    <i class="fas fa-flask text-lg mb-1 text-sky-500 peer-checked:text-sky-700"></i>
                                     <p class="text-[11px] font-bold text-sky-700 leading-tight">Reaksi Kimia</p>
                                 </div>
                             </label>
@@ -1750,7 +1749,7 @@ if (!function_exists('balanceHtmlTags')) {
                             <label class="cursor-pointer">
                                 <input type="radio" name="game_type" value="math_ninja" x-model="gameType" class="peer sr-only">
                                 <div class="rounded-xl border-2 border-purple-100 p-3 text-center hover:border-purple-300 peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all h-full flex flex-col items-center justify-center shadow-[0_0_10px_rgba(168,85,247,0.1)]">
-                                    <i class="fas fa-calculator text-2xl mb-2 text-purple-500 peer-checked:text-purple-700"></i>
+                                    <i class="fas fa-calculator text-lg mb-1 text-purple-500 peer-checked:text-purple-700"></i>
                                     <p class="text-[11px] font-bold text-purple-700 leading-tight">Math Ninja</p>
                                 </div>
                             </label>
