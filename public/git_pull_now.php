@@ -8,7 +8,7 @@ if (($_GET['secret'] ?? '') !== 'pembda99') { http_response_code(403); die('Forb
 header('Content-Type: text/plain; charset=utf-8');
 
 $root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
-$repoUrl = 'https://github.com/YulianusZega/new_pembdahub.git';
+$repoUrl = 'https://github.com/VistaZega/pemdahub_new.git';
 
 echo "=== GIT PULL, MIGRATE & UPDATE ===\n\n";
 
