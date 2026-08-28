@@ -1476,15 +1476,68 @@ if (!function_exists('balanceHtmlTags')) {
         timeLimit: '',
         livesCount: '',
         gameType: 'quiz',
-        pairs: [{term: '', definition: ''}],
-        wheelItems: ['Hadiah 1', 'Hadiah 2', 'Zonk', 'Jackpot'],
-        quizQuestions: [{ question: '', options: ['', '', '', ''], answer: 0 }],
-        tfStatements: [{ statement: '', is_true: true }],
-        guessWords: [{ word: '', hint: '' }],
-        scrambleWords: [{ word: '', hint: '' }],
-        sequenceGroups: [{ title: 'Kelompok 1', items: [{ item: '' }, { item: '' }] }],
-        hotspots: [{ x: 50, y: 50, label: '' }],
-        chemEquations: [{ equation: '', answers: '' }],
+        pairs: [
+            { term: 'Fotosintesis', definition: 'Proses pembuatan makanan pada tumbuhan hijau dengan bantuan energi sinar matahari.' },
+            { term: 'Mitokondria', definition: 'Organel sel yang berfungsi sebagai pusat pembangkit energi (ATP).' },
+            { term: 'Demokrasi', definition: 'Sistem pemerintahan di mana kekuasaan tertinggi berada di tangan rakyat.' },
+            { term: 'Gravitasi', definition: 'Gaya tarik alami bumi yang menarik benda-benda bermassa ke pusat bumi.' },
+            { term: 'Ekosistem', definition: 'Hubungan timbal balik yang saling mempengaruhi antara makhluk hidup dan lingkungannya.' }
+        ],
+        wheelItems: ['+50 EXP Bonus', 'Tunjuk 1 Teman Menjawab', 'Bebas Tugas 1 Soal', '+100 EXP Jackpot', 'Putar Sekali Lagi', 'Zonkk! Coba Lagi'],
+        quizQuestions: [
+            { question: 'Planet manakah yang sering dijuluki sebagai "Planet Merah" dalam tata surya kita?', options: ['Mars', 'Venus', 'Jupiter', 'Saturnus'], answer: 0 },
+            { question: 'Zat hijau pada daun yang berperan penting dalam proses fotosintesis adalah...', options: ['Klorofil', 'Kromoplas', 'Stomata', 'Sitoplasma'], answer: 0 },
+            { question: 'Rumus kimia air murni yang biasa kita minum setiap hari adalah...', options: ['CO2', 'H2O', 'NaCl', 'O2'], answer: 1 },
+            { question: 'Ibukota negara Indonesia yang berada di Pulau Jawa adalah...', options: ['Surabaya', 'Bandung', 'Jakarta', 'Semarang'], answer: 2 },
+            { question: 'Berapakah hasil dari operasi perhitungan matematika sederhana 15 x 4 + 10?', options: ['60', '70', '80', '50'], answer: 1 }
+        ],
+        tfStatements: [
+            { statement: 'Matahari mengelilingi bumi sebagai pusat tata surya.', is_true: false },
+            { statement: 'Oksigen dihirup oleh manusia saat bernapas untuk metabolisme tubuh.', is_true: true },
+            { statement: 'Sudut siku-siku memiliki besar sudut tepat 90 derajat.', is_true: true },
+            { statement: 'Air membeku menjadi es padat pada suhu 100 derajat Celsius.', is_true: false },
+            { statement: 'Indonesia memproklamasikan kemerdekaannya pada tanggal 17 Agustus 1945.', is_true: true }
+        ],
+        guessWords: [
+            { word: 'MERDEKA', hint: 'Bebas dari segala bentuk penjajahan atau kekuasaan asing' },
+            { word: 'GRAVITASI', hint: 'Gaya tarik bumi yang membuat setiap benda jatuh ke bawah' },
+            { word: 'KOMPUTER', hint: 'Perangkat elektronik untuk mengolah data, komputasi, dan informasi' },
+            { word: 'ATMOSFER', hint: 'Lapisan gas pelindung yang menyelimuti planet bumi' },
+            { word: 'PANCASILA', hint: 'Dasar negara dan falsafah hidup bangsa Indonesia' }
+        ],
+        scrambleWords: [
+            { word: 'BIOLOGI', hint: 'Ilmu yang mempelajari tentang seluk-beluk makhluk hidup' },
+            { word: 'SEJARAH', hint: 'Kejadian atau peristiwa nyata yang terjadi di masa lampau' },
+            { word: 'GEOGRAFI', hint: 'Ilmu tentang fenomena permukaan bumi, iklim, dan bentang alam' },
+            { word: 'EKONOMI', hint: 'Ilmu tentang produksi, distribusi, dan konsumsi barang dan jasa' },
+            { word: 'ALGORITMA', hint: 'Urutan langkah-langkah logis dan sistematis dalam pemecahan masalah' }
+        ],
+        sequenceGroups: [
+            {
+                title: 'Tahapan Metamorfosis Sempurna Kupu-Kupu',
+                items: [
+                    { item: '1. Telur diletakkan oleh induk pada permukaan daun' },
+                    { item: '2. Telur menetas menjadi Ulat (Larva) yang aktif makan daun' },
+                    { item: '3. Ulat membungkus dirinya menjadi Kepompong (Pupa)' },
+                    { item: '4. Mengalami pembentukan organ dalam fase kepompong' },
+                    { item: '5. Keluar menjadi Kupu-Kupu dewasa (Imago) yang indah' }
+                ]
+            }
+        ],
+        hotspots: [
+            { x: 50, y: 50, label: 'Inti Sel (Nukleus)' },
+            { x: 30, y: 40, label: 'Mitokondria' },
+            { x: 80, y: 50, label: 'Membran Sel' },
+            { x: 45, y: 70, label: 'Ribosom' },
+            { x: 65, y: 35, label: 'Badan Golgi' }
+        ],
+        chemEquations: [
+            { equation: '_ H2 + _ O2 -> _ H2O', answers: '2, 1, 2' },
+            { equation: '_ N2 + _ H2 -> _ NH3', answers: '1, 3, 2' },
+            { equation: '_ CH4 + _ O2 -> _ CO2 + _ H2O', answers: '1, 2, 1, 2' },
+            { equation: '_ Na + _ Cl2 -> _ NaCl', answers: '2, 1, 2' },
+            { equation: '_ Fe + _ O2 -> _ Fe2O3', answers: '4, 3, 2' }
+        ],
         mathConfig: { operation: 'mixed', difficulty: 'easy' },
         addPair() { this.pairs.push({term: '', definition: ''}) },
         removePair(index) { this.pairs.splice(index, 1) },
@@ -1534,15 +1587,68 @@ if (!function_exists('balanceHtmlTags')) {
             this.timeLimit = '';
             this.livesCount = '';
             this.gameType = 'quiz';
-            this.pairs = [{term: '', definition: ''}];
-            this.wheelItems = ['Hadiah 1', 'Hadiah 2', 'Zonk', 'Jackpot'];
-            this.quizQuestions = [{ question: '', options: ['', '', '', ''], answer: 0 }];
-            this.tfStatements = [{ statement: '', is_true: true }];
-            this.guessWords = [{ word: '', hint: '' }];
-            this.scrambleWords = [{ word: '', hint: '' }];
-            this.sequenceGroups = [{ title: 'Kelompok 1', items: [{ item: '' }, { item: '' }] }];
-            this.hotspots = [{ x: 50, y: 50, label: '' }];
-            this.chemEquations = [{ equation: '', answers: '' }];
+            this.pairs = [
+                { term: 'Fotosintesis', definition: 'Proses pembuatan makanan pada tumbuhan hijau dengan bantuan energi sinar matahari.' },
+                { term: 'Mitokondria', definition: 'Organel sel yang berfungsi sebagai pusat pembangkit energi (ATP).' },
+                { term: 'Demokrasi', definition: 'Sistem pemerintahan di mana kekuasaan tertinggi berada di tangan rakyat.' },
+                { term: 'Gravitasi', definition: 'Gaya tarik alami bumi yang menarik benda-benda bermassa ke pusat bumi.' },
+                { term: 'Ekosistem', definition: 'Hubungan timbal balik yang saling mempengaruhi antara makhluk hidup dan lingkungannya.' }
+            ];
+            this.wheelItems = ['+50 EXP Bonus', 'Tunjuk 1 Teman Menjawab', 'Bebas Tugas 1 Soal', '+100 EXP Jackpot', 'Putar Sekali Lagi', 'Zonkk! Coba Lagi'];
+            this.quizQuestions = [
+                { question: 'Planet manakah yang sering dijuluki sebagai "Planet Merah" dalam tata surya kita?', options: ['Mars', 'Venus', 'Jupiter', 'Saturnus'], answer: 0 },
+                { question: 'Zat hijau pada daun yang berperan penting dalam proses fotosintesis adalah...', options: ['Klorofil', 'Kromoplas', 'Stomata', 'Sitoplasma'], answer: 0 },
+                { question: 'Rumus kimia air murni yang biasa kita minum setiap hari adalah...', options: ['CO2', 'H2O', 'NaCl', 'O2'], answer: 1 },
+                { question: 'Ibukota negara Indonesia yang berada di Pulau Jawa adalah...', options: ['Surabaya', 'Bandung', 'Jakarta', 'Semarang'], answer: 2 },
+                { question: 'Berapakah hasil dari operasi perhitungan matematika sederhana 15 x 4 + 10?', options: ['60', '70', '80', '50'], answer: 1 }
+            ];
+            this.tfStatements = [
+                { statement: 'Matahari mengelilingi bumi sebagai pusat tata surya.', is_true: false },
+                { statement: 'Oksigen dihirup oleh manusia saat bernapas untuk metabolisme tubuh.', is_true: true },
+                { statement: 'Sudut siku-siku memiliki besar sudut tepat 90 derajat.', is_true: true },
+                { statement: 'Air membeku menjadi es padat pada suhu 100 derajat Celsius.', is_true: false },
+                { statement: 'Indonesia memproklamasikan kemerdekaannya pada tanggal 17 Agustus 1945.', is_true: true }
+            ];
+            this.guessWords = [
+                { word: 'MERDEKA', hint: 'Bebas dari segala bentuk penjajahan atau kekuasaan asing' },
+                { word: 'GRAVITASI', hint: 'Gaya tarik bumi yang membuat setiap benda jatuh ke bawah' },
+                { word: 'KOMPUTER', hint: 'Perangkat elektronik untuk mengolah data, komputasi, dan informasi' },
+                { word: 'ATMOSFER', hint: 'Lapisan gas pelindung yang menyelimuti planet bumi' },
+                { word: 'PANCASILA', hint: 'Dasar negara dan falsafah hidup bangsa Indonesia' }
+            ];
+            this.scrambleWords = [
+                { word: 'BIOLOGI', hint: 'Ilmu yang mempelajari tentang seluk-beluk makhluk hidup' },
+                { word: 'SEJARAH', hint: 'Kejadian atau peristiwa nyata yang terjadi di masa lampau' },
+                { word: 'GEOGRAFI', hint: 'Ilmu tentang fenomena permukaan bumi, iklim, dan bentang alam' },
+                { word: 'EKONOMI', hint: 'Ilmu tentang produksi, distribusi, dan konsumsi barang dan jasa' },
+                { word: 'ALGORITMA', hint: 'Urutan langkah-langkah logis dan sistematis dalam pemecahan masalah' }
+            ];
+            this.sequenceGroups = [
+                {
+                    title: 'Tahapan Metamorfosis Sempurna Kupu-Kupu',
+                    items: [
+                        { item: '1. Telur diletakkan oleh induk pada permukaan daun' },
+                        { item: '2. Telur menetas menjadi Ulat (Larva) yang aktif makan daun' },
+                        { item: '3. Ulat membungkus dirinya menjadi Kepompong (Pupa)' },
+                        { item: '4. Mengalami pembentukan organ dalam fase kepompong' },
+                        { item: '5. Keluar menjadi Kupu-Kupu dewasa (Imago) yang indah' }
+                    ]
+                }
+            ];
+            this.hotspots = [
+                { x: 50, y: 50, label: 'Inti Sel (Nukleus)' },
+                { x: 30, y: 40, label: 'Mitokondria' },
+                { x: 80, y: 50, label: 'Membran Sel' },
+                { x: 45, y: 70, label: 'Ribosom' },
+                { x: 65, y: 35, label: 'Badan Golgi' }
+            ];
+            this.chemEquations = [
+                { equation: '_ H2 + _ O2 -> _ H2O', answers: '2, 1, 2' },
+                { equation: '_ N2 + _ H2 -> _ NH3', answers: '1, 3, 2' },
+                { equation: '_ CH4 + _ O2 -> _ CO2 + _ H2O', answers: '1, 2, 1, 2' },
+                { equation: '_ Na + _ Cl2 -> _ NaCl', answers: '2, 1, 2' },
+                { equation: '_ Fe + _ O2 -> _ Fe2O3', answers: '4, 3, 2' }
+            ];
             this.mathConfig = { operation: 'mixed', difficulty: 'easy' };
             this.open = true;
         },
