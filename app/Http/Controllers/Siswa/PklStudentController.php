@@ -40,14 +40,24 @@ class PklStudentController extends Controller
 
         $validated = $request->validate([
             'log_date' => 'required|date|before_or_equal:today',
-            'activity' => 'required|string|min:50',
+            'activity_1' => 'required|string|min:15',
+            'activity_2' => 'required|string|min:10',
+            'activity_3' => 'required|string|min:15',
             'photo' => 'nullable|image|max:5120', // max 5MB
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
         ], [
-            'activity.min' => 'Deskripsi kegiatan terlalu singkat. Minimal 50 karakter agar lebih detail dan bermutu.',
-            'activity.required' => 'Deskripsi kegiatan wajib diisi.'
+            'activity_1.required' => 'Kegiatan utama wajib diisi.',
+            'activity_1.min' => 'Deskripsi kegiatan utama terlalu singkat (minimal 15 karakter).',
+            'activity_2.required' => 'Alat/bahan yang digunakan wajib diisi.',
+            'activity_2.min' => 'Deskripsi alat/bahan terlalu singkat.',
+            'activity_3.required' => 'Ilmu baru wajib diisi.',
+            'activity_3.min' => 'Deskripsi ilmu baru terlalu singkat (minimal 15 karakter).',
         ]);
+
+        $finalActivity = "Kegiatan utama yang saya kerjakan hari ini adalah:\n" . trim($validated['activity_1']) . "\n\n" .
+                         "Alat, bahan, atau aplikasi yang saya gunakan:\n" . trim($validated['activity_2']) . "\n\n" .
+                         "Pengetahuan atau keterampilan baru yang saya pelajari:\n" . trim($validated['activity_3']);
 
         // Check if log for this date already exists
         $existingLog = PklLog::where('pkl_placement_id', $placement->id)
@@ -66,7 +76,7 @@ class PklStudentController extends Controller
                 }
 
                 $existingLog->update([
-                    'activity' => $validated['activity'],
+                    'activity' => $finalActivity,
                     'photo' => $photoPath,
                     'latitude' => $validated['latitude'] ?? $existingLog->latitude,
                     'longitude' => $validated['longitude'] ?? $existingLog->longitude,
@@ -100,7 +110,7 @@ class PklStudentController extends Controller
         PklLog::create([
             'pkl_placement_id' => $placement->id,
             'log_date' => $validated['log_date'],
-            'activity' => $validated['activity'],
+            'activity' => $finalActivity,
             'photo' => $photoPath,
             'latitude' => $validated['latitude'],
             'longitude' => $validated['longitude'],

@@ -191,9 +191,19 @@
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Deskripsi Aktivitas & Hasil Pekerjaan</label>
-                                <textarea name="activity" id="input_activity" rows="4" minlength="50" placeholder="Tuliskan detail pekerjaan, alat/bahan yang digunakan, dan hasil yang dicapai hari ini (Minimal 50 karakter)..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition" required></textarea>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">1. Kegiatan utama yang saya kerjakan hari ini adalah:</label>
+                                    <textarea name="activity_1" id="input_activity_1" rows="2" minlength="15" placeholder="Contoh: Merakit PC, menginput data pasien, dll..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition" required></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">2. Alat, bahan, atau aplikasi yang saya gunakan:</label>
+                                    <textarea name="activity_2" id="input_activity_2" rows="2" minlength="10" placeholder="Contoh: Obeng, Microsoft Excel, Tensimeter, dll..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition" required></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">3. Pengetahuan atau keterampilan baru yang saya pelajari:</label>
+                                    <textarea name="activity_3" id="input_activity_3" rows="2" minlength="15" placeholder="Contoh: Saya belajar cara melakukan instalasi Windows 11..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition" required></textarea>
+                                </div>
                             </div>
 
                             {{-- GPS Geolocation info --}}
@@ -331,7 +341,23 @@
 
     function startRevision(dateStr, activityText) {
         document.getElementById('input_log_date').value = dateStr;
-        document.getElementById('input_activity').value = activityText;
+        
+        let p1 = activityText;
+        let p2 = '-';
+        let p3 = '-';
+        
+        if (activityText.includes("Alat, bahan, atau aplikasi yang saya gunakan:\n")) {
+            let parts = activityText.split("Alat, bahan, atau aplikasi yang saya gunakan:\n");
+            p1 = parts[0].replace("Kegiatan utama yang saya kerjakan hari ini adalah:\n", "").trim();
+            
+            let parts2 = parts[1].split("Pengetahuan atau keterampilan baru yang saya pelajari:\n");
+            p2 = parts2[0].trim();
+            p3 = parts2.length > 1 ? parts2[1].trim() : '-';
+        }
+
+        document.getElementById('input_activity_1').value = p1;
+        document.getElementById('input_activity_2').value = p2;
+        document.getElementById('input_activity_3').value = p3;
         
         document.getElementById('revision-notice').classList.remove('hidden');
         document.getElementById('revision-badge').classList.remove('hidden');
@@ -347,7 +373,9 @@
 
     function cancelRevision() {
         document.getElementById('input_log_date').value = '{{ date('Y-m-d') }}';
-        document.getElementById('input_activity').value = '';
+        document.getElementById('input_activity_1').value = '';
+        document.getElementById('input_activity_2').value = '';
+        document.getElementById('input_activity_3').value = '';
         
         document.getElementById('revision-notice').classList.add('hidden');
         document.getElementById('revision-badge').classList.add('hidden');

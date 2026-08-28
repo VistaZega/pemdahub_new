@@ -125,12 +125,26 @@
                            class="w-full px-3.5 py-2.5 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold cursor-pointer focus:outline-hidden focus:border-orange-500">
                 </div>
 
-                <!-- Deskripsi Aktivitas -->
-                <div>
-                    <label for="activity_description" class="block text-xs font-black text-slate-800 mb-1">Deskripsi Aktivitas / Pekerjaan di DUDI</label>
-                    <textarea id="activity_description" name="activity_description" x-model="activityText" rows="3" required minlength="50"
-                              placeholder="Tuliskan secara jelas aktivitas pekerjaan, mesin/alat yang digunakan, atau materi yang dipelajari hari ini (Minimal 50 karakter)..."
-                              class="w-full p-3.5 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold resize-none focus:outline-hidden focus:border-orange-500"></textarea>
+                <!-- Deskripsi Aktivitas Terstruktur -->
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-black text-slate-800 mb-1">1. Kegiatan utama yang saya kerjakan hari ini:</label>
+                        <textarea name="activity_1" x-model="activityText1" rows="2" required minlength="15"
+                                  placeholder="Contoh: Merakit PC, menginput data pasien..."
+                                  class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold resize-none focus:outline-hidden focus:border-orange-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black text-slate-800 mb-1">2. Alat, bahan, atau aplikasi yang digunakan:</label>
+                        <textarea name="activity_2" x-model="activityText2" rows="2" required minlength="10"
+                                  placeholder="Contoh: Obeng, Microsoft Excel, Mesin CNC..."
+                                  class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold resize-none focus:outline-hidden focus:border-orange-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black text-slate-800 mb-1">3. Ilmu atau keterampilan baru yang dipelajari:</label>
+                        <textarea name="activity_3" x-model="activityText3" rows="2" required minlength="15"
+                                  placeholder="Contoh: Belajar cara menginstal OS Windows..."
+                                  class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-xl text-slate-900 text-xs font-bold resize-none focus:outline-hidden focus:border-orange-500"></textarea>
+                    </div>
                 </div>
 
                 <!-- Upload / Ambil Foto Bukti PKL -->
@@ -355,7 +369,9 @@
 function pklJournalForm() {
     return {
         selectedDate: '{{ date('Y-m-d') }}',
-        activityText: '',
+        activityText1: '',
+        activityText2: '',
+        activityText3: '',
         isRevising: false,
         photoPreview: null,
         latitude: null,
@@ -370,8 +386,25 @@ function pklJournalForm() {
 
         startRevision(dateStr, activityStr) {
             this.selectedDate = dateStr;
-            this.activityText = activityStr;
             this.isRevising = true;
+            
+            let p1 = activityStr;
+            let p2 = '-';
+            let p3 = '-';
+            
+            if (activityStr.includes("Alat, bahan, atau aplikasi yang saya gunakan:\n")) {
+                let parts = activityStr.split("Alat, bahan, atau aplikasi yang saya gunakan:\n");
+                p1 = parts[0].replace("Kegiatan utama yang saya kerjakan hari ini adalah:\n", "").trim();
+                
+                let parts2 = parts[1].split("Pengetahuan atau keterampilan baru yang saya pelajari:\n");
+                p2 = parts2[0].trim();
+                p3 = parts2.length > 1 ? parts2[1].trim() : '-';
+            }
+
+            this.activityText1 = p1;
+            this.activityText2 = p2;
+            this.activityText3 = p3;
+
             const el = document.getElementById('form-pkl-card');
             if (el) {
                 el.scrollIntoView({ behavior: 'smooth' });
@@ -380,7 +413,9 @@ function pklJournalForm() {
 
         cancelRevision() {
             this.selectedDate = '{{ date('Y-m-d') }}';
-            this.activityText = '';
+            this.activityText1 = '';
+            this.activityText2 = '';
+            this.activityText3 = '';
             this.isRevising = false;
         },
 

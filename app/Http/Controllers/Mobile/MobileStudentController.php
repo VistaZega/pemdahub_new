@@ -516,19 +516,26 @@ class MobileStudentController extends Controller
         $request->validate([
             'date' => 'nullable|date|before_or_equal:today',
             'log_date' => 'nullable|date|before_or_equal:today',
-            'activity' => 'nullable|string',
-            'activity_description' => 'nullable|string',
+            'activity_1' => 'required|string|min:15',
+            'activity_2' => 'required|string|min:10',
+            'activity_3' => 'required|string|min:15',
             'photo' => 'nullable|image|max:10240', // max 10MB
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+        ], [
+            'activity_1.required' => 'Kegiatan utama wajib diisi.',
+            'activity_1.min' => 'Deskripsi kegiatan utama terlalu singkat (minimal 15 karakter).',
+            'activity_2.required' => 'Alat/bahan yang digunakan wajib diisi.',
+            'activity_2.min' => 'Deskripsi alat/bahan terlalu singkat.',
+            'activity_3.required' => 'Ilmu baru wajib diisi.',
+            'activity_3.min' => 'Deskripsi ilmu baru terlalu singkat (minimal 15 karakter).',
         ]);
 
         $logDate = $request->input('date') ?? ($request->input('log_date') ?? date('Y-m-d'));
-        $activity = $request->input('activity_description') ?? $request->input('activity');
-
-        if (empty($activity) || strlen(trim($activity)) < 50) {
-            return back()->with('error', 'Deskripsi kegiatan terlalu singkat. Minimal 50 karakter agar lebih detail dan bermutu.');
-        }
+        
+        $activity = "Kegiatan utama yang saya kerjakan hari ini adalah:\n" . trim($request->input('activity_1')) . "\n\n" .
+                    "Alat, bahan, atau aplikasi yang saya gunakan:\n" . trim($request->input('activity_2')) . "\n\n" .
+                    "Pengetahuan atau keterampilan baru yang saya pelajari:\n" . trim($request->input('activity_3'));
 
         $student = $this->getStudent();
         if (!$student) {
