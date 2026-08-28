@@ -297,6 +297,20 @@ class DashboardController extends Controller
         ];
 
         $activeYear = $this->getActiveYear();
+        
+        $totalPenugasanCount = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->count();
+            
+        $totalPenugasanHours = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->sum('hours_per_week');
+            
+        $jabatanList = collect();
+        if ($teacher->employee) {
+            $jabatanList = $teacher->employee->activePositions()->get();
+        }
+        $jabatanString = $jabatanList->isEmpty() ? 'Guru Mata Pelajaran / Tidak ada jabatan struktural' : $jabatanList->pluck('display_name')->implode(', ');
 
         $allSchedules = Schedule::where('teacher_id', $teacher->id)
             ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
@@ -426,7 +440,8 @@ class DashboardController extends Controller
         return view('guru.jadwal', compact(
             'teacher', 'days', 'dayLabels', 'dayShortLabels', 'activeDays',
             'totalSessions', 'totalJP', 'uniqueClassrooms', 'uniqueSubjects',
-            'timeSlots', 'timetable', 'subjectColors'
+            'timeSlots', 'timetable', 'subjectColors',
+            'totalPenugasanCount', 'totalPenugasanHours', 'jabatanString'
         ));
     }
 

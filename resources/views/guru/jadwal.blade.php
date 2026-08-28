@@ -14,6 +14,17 @@
                     Jadwal Mengajar
                 </h1>
                 <p class="text-xs md:text-sm font-bold text-sky-200 mt-1" style="color: #bae6fd !important;">Roster mingguan sesi mengajar & kelas yang diampu</p>
+                
+                <div class="mt-4 p-3 rounded-2xl border border-white/20 bg-black/20 space-y-2">
+                    <p class="text-xs md:text-sm font-bold text-white flex items-center gap-2" style="color: #ffffff !important;">
+                        <span class="w-6 h-6 rounded-lg bg-amber-400 border border-black flex items-center justify-center text-black shadow-sm"><i class="fas fa-chalkboard-teacher text-[10px]"></i></span>
+                        Jumlah Penugasan Mengajar: <span class="font-black">{{ $totalPenugasanCount }} Penugasan</span> (Total: <span class="font-black">{{ $totalPenugasanHours }} Jam Pelajaran</span>)
+                    </p>
+                    <p class="text-xs md:text-sm font-bold text-white flex items-center gap-2" style="color: #ffffff !important;">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-400 border border-black flex items-center justify-center text-black shadow-sm"><i class="fas fa-user-tie text-[10px]"></i></span>
+                        Penugasan Jabatan: <span class="font-black uppercase tracking-wide">{{ $jabatanString }}</span>
+                    </p>
+                </div>
             </div>
             {{-- Weekly Stats Badges --}}
             <div class="flex flex-wrap items-center gap-2">
