@@ -9,58 +9,65 @@ use App\Models\Extracurricular;
 use App\Models\ExtracurricularMember;
 
 echo "<pre>";
-echo "=== Script Penggabungan Ekskul (SMAS Pembda 1) ===\n";
+echo "=== Script Penggabungan Ekskul (Futsal SMAS Pembda 1) ===\n";
 
 $smas = \App\Models\School::where("name", "like", "%SMAS Pembda 1%")->first();
 if (!$smas) {
     die("Error: SMAS Pembda 1 tidak ditemukan.\n");
 }
 
-$onoNiha = Extracurricular::where("school_id", $smas->id)->where("name", "like", "%Ono Niha%")->first();
-$hulayo = Extracurricular::where("school_id", $smas->id)->where("name", "like", "%Hulayo%")->first();
+$sourceName = "Klub Futsal & Atletik";
+$targetName = "Futsal";
 
-if (!$onoNiha) {
-    echo "Info: Ekskul Ono Niha tidak ditemukan (mungkin sudah dihapus/digabung).\n";
+$source = Extracurricular::where("school_id", $smas->id)->where("name", "like", "%{$sourceName}%")->first();
+$target = Extracurricular::where("school_id", $smas->id)->where("name", $targetName)->first();
+
+if (!$source) {
+    echo "Info: Ekskul {$sourceName} tidak ditemukan (mungkin sudah dihapus/digabung).\n";
 }
-if (!$hulayo) {
-    die("Error: Ekskul Hulayo tidak ditemukan.\n");
+if (!$target) {
+    // Maybe Futsal is a Foundation-level? Let's check foundation level or just any Futsal in SMAS
+    $target = Extracurricular::where("name", $targetName)->first();
+    if (!$target) {
+        die("Error: Ekskul {$targetName} tidak ditemukan.\n");
+    }
 }
 
-if ($onoNiha && $hulayo) {
-    echo "Memindahkan anggota dari '{$onoNiha->name}' ke '{$hulayo->name}'...\n";
+if ($source && $target) {
+    echo "Memindahkan anggota dari '{$source->name}' ke '{$target->name}'...\n";
 
-    $membersToMove = ExtracurricularMember::where("extracurricular_id", $onoNiha->id)->get();
+    $membersToMove = ExtracurricularMember::where("extracurricular_id", $source->id)->get();
     $countMoved = 0;
     $countDuplicate = 0;
 
     foreach ($membersToMove as $member) {
-        $exists = ExtracurricularMember::where("extracurricular_id", $hulayo->id)
+        $exists = ExtracurricularMember::where("extracurricular_id", $target->id)
                     ->where("student_id", $member->student_id)
                     ->exists();
                     
         if (!$exists) {
-            $member->extracurricular_id = $hulayo->id;
+            $member->extracurricular_id = $target->id;
             $member->save();
             $countMoved++;
             echo "- Siswa ID {$member->student_id} dipindahkan.\n";
         } else {
             $member->delete();
             $countDuplicate++;
-            echo "- Siswa ID {$member->student_id} sudah ada di Hulayo (duplikat dihapus).\n";
+            echo "- Siswa ID {$member->student_id} sudah ada di {$target->name} (duplikat dihapus).\n";
         }
     }
 
     DB::table("extracurricular_activities")
-        ->where("extracurricular_id", $onoNiha->id)
-        ->update(["extracurricular_id" => $hulayo->id]);
+        ->where("extracurricular_id", $source->id)
+        ->update(["extracurricular_id" => $target->id]);
 
-    $onoNihaName = $onoNiha->name;
-    $onoNiha->delete();
+    $deletedName = $source->name;
+    $source->delete();
 
     echo "\nRingkasan:\n";
     echo "- $countMoved anggota berhasil dipindahkan.\n";
-    echo "- $countDuplicate anggota dihapus karena sudah ada di {$hulayo->name}.\n";
-    echo "- Ekskul $onoNihaName telah dihapus dari sistem.\n";
+    echo "- $countDuplicate anggota dihapus karena duplikat.\n";
+    echo "- Ekskul $deletedName telah dihapus dari sistem.\n";
 }
 
 echo "\nPenggabungan selesai. Anda bisa menutup halaman ini.";
