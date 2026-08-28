@@ -727,6 +727,13 @@ Route::get('/', function () {
         ->take(40)
         ->get();
 
+    // === KEGIATAN SISWA & EKSTRAKURIKULER ===
+    $extracurriculars = \App\Models\Extracurricular::with('school')
+        ->withCount('activeMembers')
+        ->where('is_active', true)
+        ->orderBy('scope', 'asc') // Yayasan first if scope is yayasan
+        ->get();
+
     // Pastikan halaman beranda tidak dicache oleh server (LiteSpeed) maupun browser
     // agar status tombol "Login" vs "Dashboard" selalu ter-update secara real-time.
     return response(view('index', compact(
@@ -738,7 +745,7 @@ Route::get('/', function () {
         'recentAlumnis',
         'pklShowcase', 'totalApprovedLogs', 'totalMonitorings', 'totalDudi',
         'topStudentsElite', 'topTeachersElite', 'homepageTheme',
-        'smkProgramKeahlians', 'finalProjectsShowcase'
+        'smkProgramKeahlians', 'finalProjectsShowcase', 'extracurriculars'
     )))
         ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
         ->header('Pragma', 'no-cache')

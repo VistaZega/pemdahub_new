@@ -103,56 +103,50 @@
             </p>
         </div>
 
-        {{-- 6 Cards Grid --}}
-        <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap: 20px; max-width: 1680px; margin: 0 auto;" data-aos="fade-up" data-aos-delay="100" class="kegiatan-grid">
+        {{-- Extracurriculars Grid --}}
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; max-width: 1680px; margin: 0 auto;" data-aos="fade-up" data-aos-delay="100" class="kegiatan-grid">
             
-            {{-- Renang --}}
+            @forelse($extracurriculars as $ekskul)
             <div class="ekskul-card">
-                <div class="ekskul-icon-box" style="background:#eff6ff; color:#2563eb;">
-                    <i class="fa-solid fa-person-swimming"></i>
+                @php
+                    $iconStr = $ekskul->display_icon;
+                    $isFa = str_contains($iconStr, 'fa-');
+                    
+                    // Simple color logic based on category
+                    $bgColor = '#eff6ff'; $textColor = '#2563eb';
+                    switch($ekskul->category) {
+                        case 'marching_band': $bgColor = '#fef2f2'; $textColor = '#ef4444'; break;
+                        case 'pramuka': $bgColor = '#fff7ed'; $textColor = '#ea580c'; break;
+                        case 'paskibraka': $bgColor = '#fdf4ff'; $textColor = '#c026d3'; break;
+                        case 'seni_budaya': $bgColor = '#fef3c7'; $textColor = '#d97706'; break;
+                        case 'olahraga': $bgColor = '#ecfdf5'; $textColor = '#059669'; break;
+                        case 'sains_it': $bgColor = '#ecfeff'; $textColor = '#0891b2'; break;
+                    }
+                @endphp
+                <div class="ekskul-icon-box" style="background:{{ $bgColor }}; color:{{ $textColor }};">
+                    @if($isFa)
+                        <i class="{{ $iconStr }}"></i>
+                    @else
+                        <span>{{ $iconStr }}</span>
+                    @endif
                 </div>
-                <h3 class="ekskul-title">Renang</h3>
-            </div>
-
-            {{-- Futsal --}}
-            <div class="ekskul-card">
-                <div class="ekskul-icon-box" style="background:#ecfdf5; color:#059669;">
-                    <i class="fa-solid fa-futbol"></i>
+                <h3 class="ekskul-title" style="margin-bottom: 8px;">{{ $ekskul->name }}</h3>
+                
+                <div style="font-size: 13.5px; color: #475569; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="fa-solid fa-users" style="color: #94a3b8;"></i>
+                    {{ $ekskul->active_members_count ?? 0 }} Anggota Bergabung
                 </div>
-                <h3 class="ekskul-title">Futsal</h3>
-            </div>
-
-            {{-- Paskibraka --}}
-            <div class="ekskul-card">
-                <div class="ekskul-icon-box" style="background:#fff1f2; color:#e11d48;">
-                    <i class="fa-solid fa-flag"></i>
+                
+                <div style="font-size: 11.5px; padding: 5px 12px; border-radius: 100px; background: {{ $ekskul->isFoundationLevel() ? '#f5f3ff' : '#f8fafc' }}; color: {{ $ekskul->isFoundationLevel() ? '#7c3aed' : '#334155' }}; font-weight: 700; border: 1px solid {{ $ekskul->isFoundationLevel() ? '#ddd6fe' : '#e2e8f0' }};">
+                    {{ $ekskul->isFoundationLevel() ? 'Lintas Yayasan' : ($ekskul->school->name ?? 'Unit Sekolah') }}
                 </div>
-                <h3 class="ekskul-title">Paskibraka</h3>
             </div>
-
-            {{-- Cerdas Cermat --}}
-            <div class="ekskul-card">
-                <div class="ekskul-icon-box" style="background:#f5f3ff; color:#7c3aed;">
-                    <i class="fa-solid fa-brain"></i>
-                </div>
-                <h3 class="ekskul-title">Cerdas Cermat</h3>
+            @empty
+            <div style="grid-column: 1 / -1; text-align:center; padding: 40px; color: #64748b; background: rgba(255,255,255,0.9); border-radius: 20px;">
+                <i class="fa-solid fa-folder-open" style="font-size: 32px; color: #cbd5e1; margin-bottom: 12px;"></i>
+                <p style="font-weight: 600; font-size: 15px;">Belum ada data kegiatan siswa yang aktif.</p>
             </div>
-
-            {{-- Seni & Budaya --}}
-            <div class="ekskul-card">
-                <div class="ekskul-icon-box" style="background:#fef3c7; color:#d97706;">
-                    <i class="fa-solid fa-palette"></i>
-                </div>
-                <h3 class="ekskul-title">Seni &amp; Budaya</h3>
-            </div>
-
-            {{-- IT Club --}}
-            <div class="ekskul-card">
-                <div class="ekskul-icon-box" style="background:#ecfeff; color:#0891b2;">
-                    <i class="fa-solid fa-laptop-code"></i>
-                </div>
-                <h3 class="ekskul-title">IT Club</h3>
-            </div>
+            @endforelse
             
         </div>
     </div>

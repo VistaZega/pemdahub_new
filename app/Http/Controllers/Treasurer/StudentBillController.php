@@ -446,6 +446,23 @@ class StudentBillController extends Controller
                         ->where('month', $month)
                         ->exists();
 
+                    // Auto-inherit custom amount/discount from previous bill in the same academic year
+                    $prevBill = StudentBill::where('student_id', $student->id)
+                        ->where('payment_type_id', $request->payment_type_id)
+                        ->where('academic_year_id', $request->academic_year_id)
+                        ->where(function($q) use ($month) {
+                            if ($month) {
+                                $q->where('month', '!=', $month);
+                            }
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->first();
+
+                    $billAmount = $prevBill ? (float)$prevBill->amount : $amount;
+                    $billYayasanShare = ($prevBill && $prevBill->yayasan_share_amount !== null)
+                        ? (float)$prevBill->yayasan_share_amount
+                        : $yayasanShareAmount;
+
                     if (!$exists) {
                         StudentBill::create([
                             'student_id' => $student->id,
@@ -454,8 +471,8 @@ class StudentBillController extends Controller
                             'semester_id' => null,
                             'month' => $month,
                             'year' => $year,
-                            'amount' => $amount,
-                            'yayasan_share_amount' => $yayasanShareAmount,
+                            'amount' => $billAmount,
+                            'yayasan_share_amount' => $billYayasanShare,
                             'paid_amount' => 0,
                             'status' => 'belum_bayar',
                         ]);
