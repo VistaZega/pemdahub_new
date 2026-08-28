@@ -641,17 +641,17 @@ if (!function_exists('balanceHtmlTags')) {
                 <h4 class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-2 px-1 flex items-center gap-1.5"><i class="fas fa-gamepad"></i> Mini Games ({{ $module->games->count() }})</h4>
                 @foreach($module->games as $game)
                 @php $attempt = $gameAttemptMap[$game->id] ?? null; @endphp
-                <div class="bg-indigo-50/50 rounded-xl border border-indigo-100 p-3.5 flex items-center justify-between group">
-                    <div class="flex items-center gap-3">
-                        <span class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm {{ $attempt ? 'bg-emerald-500' : 'bg-indigo-600' }}">
-                            <i class="fas {{ $attempt ? 'fa-check' : 'fa-gamepad' }}"></i>
+                <div class="bg-indigo-50/50 rounded-xl border border-indigo-100 px-5 py-4 flex items-center justify-between group">
+                    <div class="flex items-center gap-4">
+                        <span class="w-11 h-11 shrink-0 mr-2 rounded-xl flex items-center justify-center text-white shadow-sm {{ $attempt ? 'bg-emerald-500' : 'bg-indigo-600' }}">
+                            <i class="fas {{ $attempt ? 'fa-check text-xl' : 'fa-gamepad text-xl' }}"></i>
                         </span>
                         <div>
-                            <p class="font-bold text-indigo-900 text-sm flex items-center gap-2">
+                            <p class="font-bold text-indigo-900 text-base flex items-center gap-2">
                                 {{ $game->title }}
-                                <span class="bg-indigo-100 text-indigo-700 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase">{{ str_replace('_', ' ', $game->game_type) }}</span>
+                                <span class="bg-white text-indigo-700 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase border border-indigo-200 shadow-sm">{{ str_replace('_', ' ', $game->game_type) }}</span>
                             </p>
-                            <p class="text-[10px] text-indigo-400 font-bold uppercase mt-0.5"><i class="fas fa-star text-yellow-400"></i> REWARD: {{ $game->reward_points }} EXP</p>
+                            <p class="text-[10px] text-indigo-400 font-bold uppercase mt-1"><i class="fas fa-star text-yellow-400"></i> REWARD: {{ $game->reward_points }} EXP</p>
                         </div>
                     </div>
                     <div class="flex flex-col items-end gap-1">
