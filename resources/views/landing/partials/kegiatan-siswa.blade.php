@@ -295,9 +295,16 @@
                         case 'sains_it': $bgColor = '#ecfeff'; $textColor = '#0891b2'; break;
                     }
                     
-                    $specificImg = 'images/ekskul/' . str_replace('-', '_', \Illuminate\Support\Str::slug($ekskul->name)) . '_bg.jpg';
-                    $categoryImg = 'images/ekskul/' . $ekskul->category . '_bg.jpg';
-                    $bgImgSrc = file_exists(public_path($specificImg)) ? asset($specificImg) : asset($categoryImg);
+                    $slug = \Illuminate\Support\Str::slug($ekskul->name);
+                    $bgImgSrc = asset('images/ekskul/' . $ekskul->category . '_bg.jpg'); // Default
+                    
+                    if (str_contains($slug, 'futsal')) $bgImgSrc = asset('images/ekskul/futsal_bg.jpg');
+                    elseif (str_contains($slug, 'tenis-meja')) $bgImgSrc = asset('images/ekskul/tenis_meja_bg.jpg');
+                    elseif (str_contains($slug, 'vocal') || str_contains($slug, 'vokal')) $bgImgSrc = asset('images/ekskul/olah_vocal_bg.jpg');
+                    elseif (str_contains($slug, 'english')) $bgImgSrc = asset('images/ekskul/english_club_bg.jpg');
+                    elseif (str_contains($slug, 'cerdas-cermat')) $bgImgSrc = asset('images/ekskul/cerdas_cermat_bg.jpg');
+                    elseif (str_contains($slug, 'sains')) $bgImgSrc = asset('images/ekskul/sains_bg.jpg');
+                    elseif (str_contains($slug, 'marching-band')) $bgImgSrc = asset('images/ekskul/marching_band_bg.jpg');
                 @endphp
                 
                 <div class="bento-card {{ $bentoClass }}" style="background: {{ $bgColor }}; border: 1.5px solid #000000; box-shadow: 4px 4px 0px rgba(0,0,0,0.1);">
