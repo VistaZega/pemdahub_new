@@ -108,37 +108,35 @@
 
     .bento-grid {
         display: grid;
-        grid-template-columns: repeat(6, 1fr); /* 6 columns */
-        grid-auto-rows: minmax(70px, auto); /* 50% smaller */
-        gap: 12px; /* Tighter gap */
+        grid-template-columns: repeat(7, 1fr); /* 7 columns for maximum density */
+        grid-auto-rows: minmax(56px, auto); /* 20% smaller */
+        gap: 10px; /* Tighter gap */
         max-width: 1400px;
         margin: 0 auto;
         grid-auto-flow: dense;
     }
 
     .bento-card {
-        background: rgba(255, 255, 255, 0.92);
+        /* Background and border removed, will be set inline */
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(226, 232, 240, 0.9);
-        border-radius: 14px; /* Smaller corner radius */
-        padding: 10px; /* Tighter padding */
+        border-radius: 12px; 
+        padding: 8px; 
         text-align: left;
         display: flex;
         flex-direction: column;
         align-items: flex-start;
         justify-content: space-between;
-        box-shadow: 0 6px 15px -3px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 4px 10px -2px rgba(15, 23, 42, 0.04);
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
         overflow: hidden;
     }
 
     .bento-card:hover {
-        background: #ffffff;
-        border-color: #cbd5e1;
-        transform: scale(1.03);
-        box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.12);
+        transform: scale(1.04);
+        box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.12);
         z-index: 10;
+        filter: brightness(0.96);
     }
 
     .bento-col-2 { grid-column: span 2; }
@@ -151,7 +149,7 @@
         width: 60%;
         max-height: 80%;
         object-fit: contain;
-        opacity: 0.07;
+        opacity: 0.08;
         z-index: 0;
         pointer-events: none;
         mix-blend-mode: multiply;
@@ -159,8 +157,8 @@
     }
 
     .bento-card:hover .bento-watermark {
-        transform: scale(1.1) rotate(-3deg);
-        opacity: 0.12;
+        transform: scale(1.15) rotate(-4deg);
+        opacity: 0.15;
     }
 
     .bento-content {
@@ -173,66 +171,70 @@
     }
 
     .bento-icon-box {
-        width: 28px; /* Micro icon box */
-        height: 28px;
-        border-radius: 8px;
+        width: 24px; /* Nano icon box */
+        height: 24px;
+        border-radius: 6px;
+        background: rgba(255,255,255,0.7); /* Translucent white */
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 13px;
-        margin-bottom: 6px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        font-size: 11px;
+        margin-bottom: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
         flex-shrink: 0;
     }
 
     .bento-row-2 .bento-icon-box {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-        border-radius: 12px;
-        margin-bottom: 12px;
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+        border-radius: 8px;
+        margin-bottom: 8px;
     }
 
     .bento-title {
-        font-size: 11px; /* Micro font */
+        font-size: 10px; /* Nano font */
         font-weight: 800;
-        color: #0f172a;
-        margin: 0 0 4px 0;
+        /* Color set inline */
+        margin: 0 0 2px 0;
         letter-spacing: -0.01em;
-        line-height: 1.2;
+        line-height: 1.1;
     }
 
     .bento-col-2 .bento-title, .bento-row-2 .bento-title {
-        font-size: 14px;
+        font-size: 12px;
     }
 
     .bento-meta {
-        font-size: 10px; /* Micro font */
-        color: #475569;
-        font-weight: 600;
+        font-size: 9px; /* Nano font */
+        /* Color set inline */
+        font-weight: 700;
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px;
         margin-top: auto;
+        opacity: 0.85;
     }
     
     .bento-badge {
-        font-size: 8px;
-        padding: 3px 6px;
-        border-radius: 50px;
-        font-weight: 700;
+        font-size: 7.5px;
+        padding: 2px 5px;
+        border-radius: 20px;
+        font-weight: 800;
         white-space: nowrap;
-        margin-left: 6px;
+        margin-left: 4px;
+        background: rgba(255,255,255,0.6) !important;
+        border: none !important;
     }
 
     @media (max-width: 1200px) {
-        .bento-grid { grid-template-columns: repeat(5, 1fr); }
+        .bento-grid { grid-template-columns: repeat(6, 1fr); }
     }
     @media (max-width: 1024px) {
-        .bento-grid { grid-template-columns: repeat(4, 1fr); }
+        .bento-grid { grid-template-columns: repeat(5, 1fr); }
     }
     @media (max-width: 768px) {
-        .bento-grid { grid-template-columns: repeat(3, 1fr); }
+        .bento-grid { grid-template-columns: repeat(4, 1fr); }
         .bento-col-2 { grid-column: span 2; }
     }
     @media (max-width: 480px) {
@@ -296,24 +298,24 @@
                     }
                 @endphp
                 
-                <div class="bento-card {{ $bentoClass }}">
+                <div class="bento-card {{ $bentoClass }}" style="background: {{ $bgColor }}; border: 1.5px solid rgba(255,255,255,0.5);">
                     <img class="bento-watermark" src="{{ asset('images/ekskul/' . $ekskul->category . '_bg.jpg') }}" alt="Background" onerror="this.style.display='none'">
                     
                     <div class="bento-content">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-                            <div class="bento-icon-box" style="background:{{ $bgColor }}; color:{{ $textColor }};">
+                            <div class="bento-icon-box" style="color:{{ $textColor }};">
                                 @if($isFa) <i class="{{ $iconStr }}"></i> @else <span>{{ $iconStr }}</span> @endif
                             </div>
                             
-                            <div class="bento-badge" style="background: {{ $ekskul->isFoundationLevel() ? '#f5f3ff' : '#f8fafc' }}; color: {{ $ekskul->isFoundationLevel() ? '#7c3aed' : '#334155' }}; border: 1px solid {{ $ekskul->isFoundationLevel() ? '#ddd6fe' : '#e2e8f0' }};">
+                            <div class="bento-badge" style="color: {{ $textColor }};">
                                 {{ $ekskul->isFoundationLevel() ? 'Lintas Yayasan' : ($ekskul->school->name ?? 'Unit Sekolah') }}
                             </div>
                         </div>
                         
                         <div style="margin-top: auto;">
-                            <h3 class="bento-title">{{ $ekskul->name }}</h3>
-                            <div class="bento-meta">
-                                <i class="fa-solid fa-users" style="color: #94a3b8;"></i> 
+                            <h3 class="bento-title" style="color: {{ $textColor }};">{{ $ekskul->name }}</h3>
+                            <div class="bento-meta" style="color: {{ $textColor }};">
+                                <i class="fa-solid fa-users"></i> 
                                 <span>{{ $ekskul->active_members_count ?? 0 }} Anggota Aktif</span>
                             </div>
                         </div>
