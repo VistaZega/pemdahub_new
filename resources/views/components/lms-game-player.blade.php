@@ -165,6 +165,9 @@
                             <span class="text-white/60 text-xs font-bold uppercase tracking-widest">Kartu</span>
                             <span class="text-white font-black text-sm"><span x-text="currentIndex + 1"></span> / <span x-text="totalItems"></span></span>
                         </div>
+                        <div class="mb-4 p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-xs text-white/90 leading-relaxed text-center w-full">
+                            <strong>💡 Petunjuk:</strong> Ingat jawabannya, lalu klik kartu untuk membaliknya dan mencocokkan ingatanmu!
+                        </div>
 
                         {{-- Flashcard (fixed height with scrollable inner) --}}
                         <div class="flashcard-scene w-full mb-8 cursor-pointer" style="height: 280px; min-height: 200px" @click="flipCard()">

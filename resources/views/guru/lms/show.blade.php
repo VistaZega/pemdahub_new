@@ -131,9 +131,9 @@ if (!function_exists('balanceHtmlTags')) {
     }
 @endphp
 <div class="space-y-6">
-    {{-- ═══════════════════════════════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     {{-- COURSE HERO BANNER (100% SOLID UI UX PRO MAX) --}}
-    {{-- ═══════════════════════════════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl border-2 border-black">
         <div class="relative z-10">
             {{-- Back + Status --}}
@@ -241,9 +241,9 @@ if (!function_exists('balanceHtmlTags')) {
     </div>
 
 
-    {{-- ═══════════════════════════════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     {{-- TAB NAVIGATION --}}
-    {{-- ═══════════════════════════════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div x-data="{ tab: '{{ request('tab', 'materials') }}' }">
         <div class="bg-white rounded-2xl shadow-md border-2 border-black p-1.5 flex flex-wrap gap-1.5 sticky top-0 z-20">
             <button @click="tab = 'materials'" :class="tab === 'materials' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-1.5">
@@ -275,9 +275,9 @@ if (!function_exists('balanceHtmlTags')) {
             </button>
         </div>
 
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         {{-- TAB: MATERIALS / MODULES --}}
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         <div x-show="tab === 'materials'" class="mt-6 space-y-6 tab-content">
             <div class="flex items-center justify-between">
                 <h3 class="font-black text-black text-sm flex items-center gap-2">
@@ -285,14 +285,14 @@ if (!function_exists('balanceHtmlTags')) {
                     STRUKTUR KURIKULUM & MODUL
                 </h3>
                 <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('guru.lms.modules.create', $course->id) }}" class="bg-white border-2 border-black text-black px-3.5 py-2 rounded-xl text-[10px] font-black uppercase transition hover:bg-amber-300 shadow-sm">
-                        <i class="fas fa-plus mr-1 text-black"></i> Tambah Modul
+                    <a href="{{ route('guru.lms.modules.create', $course->id) }}" class="flex items-center justify-center gap-2 bg-white border-2 border-black text-black px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition hover:bg-amber-300 shadow-sm">
+                        <i class="fas fa-plus text-black"></i> Tambah Modul
                     </a>
-                    <button @click="$dispatch('open-game-modal')" class="bg-black hover:bg-purple-600 text-white border-2 border-black px-3.5 py-2 rounded-xl text-[10px] font-black uppercase transition shadow-md">
-                        <i class="fas fa-gamepad mr-1 text-amber-400"></i> Buat Game
+                    <button @click="$dispatch('open-game-modal')" class="flex items-center justify-center gap-2 bg-black hover:bg-purple-600 text-white border-2 border-black px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition shadow-md">
+                        <i class="fas fa-gamepad text-amber-400"></i> Buat Game
                     </button>
-                    <button @click="$dispatch('open-material-modal')" class="bg-black hover:bg-emerald-600 text-white border-2 border-black px-3.5 py-2 rounded-xl text-[10px] font-black uppercase transition shadow-md">
-                        <i class="fas fa-upload mr-1 text-amber-400"></i> Upload Materi
+                    <button @click="$dispatch('open-material-modal')" class="flex items-center justify-center gap-2 bg-black hover:bg-emerald-600 text-white border-2 border-black px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition shadow-md">
+                        <i class="fas fa-upload text-amber-400"></i> Upload Materi
                     </button>
                 </div>
             </div>
@@ -380,7 +380,7 @@ if (!function_exists('balanceHtmlTags')) {
                                         <span class="text-black font-black text-xs bg-amber-300 px-2.5 py-0.5 rounded-lg border border-black inline-block shadow-2xs">{{ $module->getCode() }}-{{ $loop->iteration }}</span>
                                         <span>{{ preg_replace('/^\d+\.\d+\s*/', '', $material->title) }}</span>
                                     </div>
-                                    <p class="text-[10px] text-black font-black uppercase tracking-wider">{{ $material->getContentTypeLabel() }}{{ $material->file_size ? ' · ' . number_format($material->file_size / 1024, 0) . ' KB' : '' }}</p>
+                                    <p class="text-[10px] text-black font-black uppercase tracking-wider">{{ $material->getContentTypeLabel() }}{{ $material->file_size ? ' Â· ' . number_format($material->file_size / 1024, 0) . ' KB' : '' }}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
@@ -520,7 +520,7 @@ if (!function_exists('balanceHtmlTags')) {
                                             </div>
                                             <div>
                                                 <p class="font-black text-black text-sm">Dokumen Terlampir: {{ $material->file_name ?: ($material->title ?: 'File Materi') }}</p>
-                                                <p class="text-xs text-black font-bold">Tipe: {{ strtoupper(pathinfo($material->file_name ?? $material->file_path ?? 'DOC', PATHINFO_EXTENSION)) }}{{ $material->file_size ? ' · ' . number_format($material->file_size / 1024, 0) . ' KB' : '' }}</p>
+                                                <p class="text-xs text-black font-bold">Tipe: {{ strtoupper(pathinfo($material->file_name ?? $material->file_path ?? 'DOC', PATHINFO_EXTENSION)) }}{{ $material->file_size ? ' Â· ' . number_format($material->file_size / 1024, 0) . ' KB' : '' }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-2">
@@ -623,9 +623,9 @@ if (!function_exists('balanceHtmlTags')) {
             @endforelse
         </div>
 
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         {{-- TAB: ASSIGNMENTS --}}
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         <div x-show="tab === 'assignments'" class="mt-6 space-y-4 tab-content">
             <div class="flex items-center justify-between mb-2">
                 <h3 class="font-black text-black text-sm flex items-center gap-2">
@@ -695,7 +695,7 @@ if (!function_exists('balanceHtmlTags')) {
                                 <h4 class="font-black text-base leading-tight text-black">{{ $assignment->title }}</h4>
                                 @if($assignment->module)
                                     <span class="text-white text-[9px] font-black px-2.5 py-0.5 rounded-lg border border-black uppercase tracking-wider shadow-2xs" style="background-color: {{ $modColor }} !important;">
-                                        {{ $assignment->module->getCode() }} · {{ $assignment->module->title }}
+                                        {{ $assignment->module->getCode() }} Â· {{ $assignment->module->title }}
                                     </span>
                                 @else
                                     <span class="bg-slate-100 text-black text-[9px] font-black px-2 py-0.5 rounded-lg border border-black uppercase tracking-wider">Global</span>
@@ -741,9 +741,9 @@ if (!function_exists('balanceHtmlTags')) {
             @endforelse
         </div>
 
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         {{-- TAB: QUIZZES --}}
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         <div x-show="tab === 'quizzes'" class="mt-6 space-y-4 tab-content">
             <div class="flex items-center justify-between mb-2">
                 <h3 class="font-black text-black text-sm flex items-center gap-2">
@@ -780,7 +780,7 @@ if (!function_exists('balanceHtmlTags')) {
                                 <h4 class="font-black text-base leading-tight text-black">{{ $quiz->title }}</h4>
                                 @if($quiz->module)
                                     <span class="text-white text-[9px] font-black px-2.5 py-0.5 rounded-lg border border-black uppercase tracking-wider shadow-2xs" style="background-color: {{ $modColorQuiz }} !important;">
-                                        {{ $quiz->module->getCode() }} · {{ $quiz->module->title }}
+                                        {{ $quiz->module->getCode() }} Â· {{ $quiz->module->title }}
                                     </span>
                                 @else
                                     <span class="bg-slate-100 text-black text-[9px] font-black px-2 py-0.5 rounded-lg border border-black uppercase tracking-wider">Global</span>
@@ -837,9 +837,9 @@ if (!function_exists('balanceHtmlTags')) {
             @endforelse
         </div>
 
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         {{-- TAB: ANNOUNCEMENTS --}}
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         <div x-show="tab === 'announcements'" class="mt-6 space-y-4 tab-content">
             <div x-data="{ showForm: false }">
                 <div class="flex items-center justify-between mb-4">
@@ -915,9 +915,9 @@ if (!function_exists('balanceHtmlTags')) {
             @endforelse
         </div>
 
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         {{-- TAB: DISCUSSIONS --}}
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         <div x-show="tab === 'discussions'" class="mt-6 tab-content">
             <div class="bg-white rounded-3xl shadow-md border-2 border-black p-8 text-center max-w-2xl mx-auto">
                 <div class="w-20 h-20 bg-amber-100 text-black border-2 border-black rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
@@ -943,9 +943,9 @@ if (!function_exists('balanceHtmlTags')) {
             </div>
         </div>
 
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         {{-- TAB: COURSE MASTER GROUPS (KELOMPOK BELAJAR) --}}
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         @php
             $courseMasterGroups = $course->courseGroups ?? collect();
             $groupedStudentIdsInCourse = $courseMasterGroups->flatMap(function($grp) {
@@ -1071,7 +1071,7 @@ if (!function_exists('balanceHtmlTags')) {
                             <div>
                                 <label class="block text-xs font-black text-gray-800 mb-1">Pilih Ketua Kelompok <span class="text-rose-600">* (Koordinator Kelompok)</span></label>
                                 <select name="leader_id" required class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
-                                    <option value="">— Pilih Ketua (Tersedia: {{ $availableStudentsInCourse->count() }} Siswa) —</option>
+                                    <option value="">â€” Pilih Ketua (Tersedia: {{ $availableStudentsInCourse->count() }} Siswa) â€”</option>
                                     @forelse($availableStudentsInCourse as $std)
                                     <option value="{{ $std->id }}" x-show="!manualClassFilter || '{{ $std->classroom_id }}' == manualClassFilter">
                                         [{{ $std->classroom_name ?? 'Kelas' }}] {{ $std->user->name ?? $std->full_name }} (NISN: {{ $std->nisn ?? '-' }})
@@ -1123,7 +1123,7 @@ if (!function_exists('balanceHtmlTags')) {
                             <div>
                                 <label class="block text-xs font-black text-gray-800 mb-1">Target Rombel / Kelas</label>
                                 <select name="classroom_id" class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-amber-500 outline-none bg-white">
-                                    <option value="">— Semua Kelas (Seluruh Siswa) —</option>
+                                    <option value="">â€” Semua Kelas (Seluruh Siswa) â€”</option>
                                     @foreach($classrooms as $c)
                                     <option value="{{ $c->id }}">Spesifik Kelas: {{ $c->name }}</option>
                                     @endforeach
@@ -1205,7 +1205,7 @@ if (!function_exists('balanceHtmlTags')) {
 
                         <div class="space-y-2 text-xs">
                             <div class="flex items-center gap-1.5 font-black text-gray-900">
-                                <span class="text-amber-500">👑 Ketua:</span>
+                                <span class="text-amber-500">ðŸ‘‘ Ketua:</span>
                                 @php
                                     $leaderClassroom = $grp->leader?->studentClasses?->first()?->classroom?->name ?? $grp->leader?->classroom_name ?? null;
                                 @endphp
@@ -1257,9 +1257,9 @@ if (!function_exists('balanceHtmlTags')) {
             </div>
         </div>
 
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         {{-- TAB: ANALYTICS --}}
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         <div x-show="tab === 'analytics'" class="mt-6 space-y-6 tab-content">
             {{-- Summary Stat Cards --}}
             @php
@@ -1353,9 +1353,9 @@ if (!function_exists('balanceHtmlTags')) {
             </div>
         </div>
 
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         {{-- TAB: INFO / CLASS DATA --}}
-        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         <div x-show="tab === 'info'" class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6 tab-content">
             <div class="md:col-span-2 space-y-6">
                 {{-- Enrolled Classes --}}
@@ -1376,7 +1376,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     <span class="font-black text-black text-sm">{{ $lmsClass->classroom->class_name ?? 'N/A' }}</span>
                                     <div class="flex items-center gap-2 mt-0.5">
                                         <span class="px-2 py-0.5 rounded-lg bg-emerald-300 text-black text-[9px] font-black uppercase border border-black">{{ $lmsClass->getStatusLabel() }}</span>
-                                        <span>·</span>
+                                        <span>Â·</span>
                                         <span class="text-xs text-black font-bold">Semester {{ $course->semester->semester_name ?? 'N/A' }}</span>
                                     </div>
                                 </div>
@@ -1463,9 +1463,9 @@ if (!function_exists('balanceHtmlTags')) {
     </div>
 </div>
 
-{{-- ═══════════════════════════════════════════════ --}}
+{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 {{-- GAME BUILDER MODAL --}}
-{{-- ═══════════════════════════════════════════════ --}}
+{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 <div x-data="{ 
         open: false, 
         isEdit: false,
@@ -1758,7 +1758,11 @@ if (!function_exists('balanceHtmlTags')) {
 
                     <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100">
                         {{-- Editor: Flashcard / Match --}}
-                        <div x-show="gameType === 'flashcard' || gameType === 'match'">
+                                                <div x-show="gameType === 'flashcard' || gameType === 'match'">
+                            <div x-show="gameType === 'flashcard'" class="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800 leading-relaxed">
+                                <strong>💡 Cara Main Flashcard:</strong> Siswa akan melihat "Istilah / Pertanyaan" di satu sisi kartu. Mereka harus mengingat jawabannya, lalu mengklik kartu tersebut untuk membaliknya dan melihat "Definisi / Jawaban" yang benar. <br>
+                                <strong>🎯 Apa yang dilatih?</strong> Sangat bagus untuk melatih hafalan kuat (Active Recall) dan mengingat konsep, kosakata, atau rumus dengan cepat.
+                            </div>
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-sm font-bold text-gray-800">Pasangan Kartu / Kata</h4>
                                 <button type="button" @click="addPair()" class="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-lg font-bold hover:bg-indigo-200 transition"><i class="fas fa-plus"></i> Tambah Baris</button>
@@ -2005,9 +2009,9 @@ if (!function_exists('balanceHtmlTags')) {
     </div>
 </div>
 
-{{-- ═══════════════════════════════════════════════ --}}
+{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 {{-- MATERIAL UPLOAD MODAL --}}
-{{-- ═══════════════════════════════════════════════ --}}
+{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 <div x-data="{ open: false, type: 'text', file_url: '', material_title: '' }" @open-material-modal.window="open = true; type = 'text'" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
     <div class="flex items-center justify-center min-h-screen p-4" style="z-index: 99999 !important;">
         <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
@@ -2034,17 +2038,17 @@ if (!function_exists('balanceHtmlTags')) {
                         <div>
                             <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Format / Tipe Materi <span class="text-red-600">*</span></label>
                             <select name="material_type" required x-model="type" class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-amber-50">
-                                <option value="text">📝 Artikel / Modul Teks Langsung (Disarankan)</option>
-                                <option value="pdf">📄 Berkas PDF</option>
-                                <option value="document">📁 Dokumen Word / PPT</option>
-                                <option value="video">🎥 Pemutar Video / YouTube</option>
-                                <option value="image">🖼️ Gambar / Diagram</option>
-                                <option value="canva">🎨 Embed Canva Presentation</option>
-                                <option value="googledocs">📊 Embed Google Docs / Slides / Form</option>
-                                <option value="audio">🎙️ Rekaman Audio / Podcast</option>
-                                <option value="interactive">🎮 Simulator Interaktif (PhET, SimLab, GeoGebra)</option>
-                                <option value="link">🔗 Link Eksternal</option>
-                                <option value="embed">💻 Kode Embed HTML (Iframe Custom)</option>
+                                <option value="text">ðŸ“ Artikel / Modul Teks Langsung (Disarankan)</option>
+                                <option value="pdf">ðŸ“„ Berkas PDF</option>
+                                <option value="document">ðŸ“ Dokumen Word / PPT</option>
+                                <option value="video">ðŸŽ¥ Pemutar Video / YouTube</option>
+                                <option value="image">ðŸ–¼ï¸ Gambar / Diagram</option>
+                                <option value="canva">ðŸŽ¨ Embed Canva Presentation</option>
+                                <option value="googledocs">ðŸ“Š Embed Google Docs / Slides / Form</option>
+                                <option value="audio">ðŸŽ™ï¸ Rekaman Audio / Podcast</option>
+                                <option value="interactive">ðŸŽ® Simulator Interaktif (PhET, SimLab, GeoGebra)</option>
+                                <option value="link">ðŸ”— Link Eksternal</option>
+                                <option value="embed">ðŸ’» Kode Embed HTML (Iframe Custom)</option>
                             </select>
                         </div>
                     </div>
@@ -2062,17 +2066,17 @@ if (!function_exists('balanceHtmlTags')) {
                             </label>
                             <div class="flex flex-wrap items-center gap-1.5">
                                 <button type="button" onclick="generateAiContent('create', '{{ addslashes($course->name ?? '') }}')" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1 border border-black">
-                                    <i class="fas fa-magic text-amber-300"></i> ✨ Generate Artikel via AI
+                                    <i class="fas fa-magic text-amber-300"></i> âœ¨ Generate Artikel via AI
                                 </button>
                                 <div class="hidden sm:inline-block text-[11px] font-bold text-slate-500">| Template:</div>
                                 <button type="button" onclick="insertTemplate('create', 'summary')" class="px-2.5 py-1 bg-amber-200 hover:bg-amber-300 text-black rounded-lg text-[11px] font-black border border-black transition">
-                                    📘 Ringkasan Bab
+                                    ðŸ“˜ Ringkasan Bab
                                 </button>
                                 <button type="button" onclick="insertTemplate('create', 'lab')" class="px-2.5 py-1 bg-emerald-200 hover:bg-emerald-300 text-black rounded-lg text-[11px] font-black border border-black transition">
-                                    🧪 Praktikum
+                                    ðŸ§ª Praktikum
                                 </button>
                                 <button type="button" onclick="insertTemplate('create', 'case')" class="px-2.5 py-1 bg-sky-200 hover:bg-sky-300 text-black rounded-lg text-[11px] font-black border border-black transition">
-                                    💡 Studi Kasus
+                                    ðŸ’¡ Studi Kasus
                                 </button>
                             </div>
                         </div>
@@ -2134,9 +2138,9 @@ if (!function_exists('balanceHtmlTags')) {
     </div>
 </div>
 
-{{-- ═══════════════════════════════════════════════ --}}
+{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 {{-- MATERIAL EDIT MODAL --}}
-{{-- ═══════════════════════════════════════════════ --}}
+{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 <div x-data="{ open: false, mat: {} }" @open-edit-material-modal.window="mat = $event.detail; open = true; $nextTick(() => setQuillEditContent(mat.content))" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
     <div class="flex items-center justify-center min-h-screen p-4" style="z-index: 99999 !important;">
         <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
@@ -2163,17 +2167,17 @@ if (!function_exists('balanceHtmlTags')) {
                         <div>
                             <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Format / Tipe Materi</label>
                             <select name="material_type" x-model="mat.material_type" required class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-amber-50">
-                                <option value="text">📝 Artikel / Modul Teks Langsung (Disarankan)</option>
-                                <option value="pdf">📄 Berkas PDF</option>
-                                <option value="document">📁 Dokumen Word / PPT</option>
-                                <option value="video">🎥 Pemutar Video / YouTube</option>
-                                <option value="image">🖼️ Gambar / Diagram</option>
-                                <option value="canva">🎨 Embed Canva Presentation</option>
-                                <option value="googledocs">📊 Embed Google Docs / Slides / Form</option>
-                                <option value="audio">🎙️ Rekaman Audio / Podcast</option>
-                                <option value="interactive">🎮 Simulator Interaktif (PhET, SimLab, GeoGebra)</option>
-                                <option value="link">🔗 Link Eksternal</option>
-                                <option value="embed">💻 Kode Embed HTML (Iframe Custom)</option>
+                                <option value="text">ðŸ“ Artikel / Modul Teks Langsung (Disarankan)</option>
+                                <option value="pdf">ðŸ“„ Berkas PDF</option>
+                                <option value="document">ðŸ“ Dokumen Word / PPT</option>
+                                <option value="video">ðŸŽ¥ Pemutar Video / YouTube</option>
+                                <option value="image">ðŸ–¼ï¸ Gambar / Diagram</option>
+                                <option value="canva">ðŸŽ¨ Embed Canva Presentation</option>
+                                <option value="googledocs">ðŸ“Š Embed Google Docs / Slides / Form</option>
+                                <option value="audio">ðŸŽ™ï¸ Rekaman Audio / Podcast</option>
+                                <option value="interactive">ðŸŽ® Simulator Interaktif (PhET, SimLab, GeoGebra)</option>
+                                <option value="link">ðŸ”— Link Eksternal</option>
+                                <option value="embed">ðŸ’» Kode Embed HTML (Iframe Custom)</option>
                             </select>
                         </div>
                     </div>
@@ -2191,17 +2195,17 @@ if (!function_exists('balanceHtmlTags')) {
                             </label>
                             <div class="flex flex-wrap items-center gap-1.5">
                                 <button type="button" onclick="generateAiContent('edit', '{{ addslashes($course->name ?? '') }}')" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1 border border-black">
-                                    <i class="fas fa-magic text-amber-300"></i> ✨ Tulis Ulang via AI
+                                    <i class="fas fa-magic text-amber-300"></i> âœ¨ Tulis Ulang via AI
                                 </button>
                                 <div class="hidden sm:inline-block text-[11px] font-bold text-slate-500">| Template:</div>
                                 <button type="button" onclick="insertTemplate('edit', 'summary')" class="px-2.5 py-1 bg-amber-200 hover:bg-amber-300 text-black rounded-lg text-[11px] font-black border border-black transition">
-                                    📘 Ringkasan Bab
+                                    ðŸ“˜ Ringkasan Bab
                                 </button>
                                 <button type="button" onclick="insertTemplate('edit', 'lab')" class="px-2.5 py-1 bg-emerald-200 hover:bg-emerald-300 text-black rounded-lg text-[11px] font-black border border-black transition">
-                                    🧪 Praktikum
+                                    ðŸ§ª Praktikum
                                 </button>
                                 <button type="button" onclick="insertTemplate('edit', 'case')" class="px-2.5 py-1 bg-sky-200 hover:bg-sky-300 text-black rounded-lg text-[11px] font-black border border-black transition">
-                                    💡 Studi Kasus
+                                    ðŸ’¡ Studi Kasus
                                 </button>
                             </div>
                         </div>
@@ -2231,9 +2235,9 @@ if (!function_exists('balanceHtmlTags')) {
     </div>
 </div>
 
-{{-- ═══════════════════════════════════════════════ --}}
+{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 {{-- FULL ARTICLE READER PREVIEW MODAL (FOR GURU) --}}
-{{-- ═══════════════════════════════════════════════ --}}
+{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 <div x-data="{ open: false, title: '', content: '' }" @open-article-reader.window="title = $event.detail.title; content = $event.detail.content; open = true" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
     <div class="flex items-center justify-center min-h-screen p-4 md:p-8" style="z-index: 99999 !important;">
         <div x-show="open" x-transition class="fixed inset-0 bg-slate-900/90 backdrop-blur-md transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
@@ -2547,11 +2551,11 @@ if (!function_exists('balanceHtmlTags')) {
     function insertTemplate(editorType, templateType) {
         let html = '';
         if (templateType === 'summary') {
-            html = `<h2>📌 Ringkasan Bab: [Nama Topik]</h2><p>Penjelasan pendahuluan mengenai topik yang dipelajari siswa...</p><h3>💡 1. Konsep Utama</h3><ul><li>Poin penting 1...</li><li>Poin penting 2...</li></ul><h3>⚡ 2. Hal Yang Wajib Diingat</h3><blockquote style="border-left: 4px solid #f59e0b; padding-left: 12px; font-style: italic; color: #4b5563;">Rangkuman poin inti dalam 1-2 kalimat pemungkas.</blockquote>`;
+            html = `<h2>ðŸ“Œ Ringkasan Bab: [Nama Topik]</h2><p>Penjelasan pendahuluan mengenai topik yang dipelajari siswa...</p><h3>ðŸ’¡ 1. Konsep Utama</h3><ul><li>Poin penting 1...</li><li>Poin penting 2...</li></ul><h3>âš¡ 2. Hal Yang Wajib Diingat</h3><blockquote style="border-left: 4px solid #f59e0b; padding-left: 12px; font-style: italic; color: #4b5563;">Rangkuman poin inti dalam 1-2 kalimat pemungkas.</blockquote>`;
         } else if (templateType === 'lab') {
-            html = `<h2>🧪 Panduan Praktikum &amp; Laboratorium</h2><p><strong>Tujuan Praktikum:</strong> Siswa mampu memahami dan mempraktikkan...</p><h3>🛠️ Alat &amp; Bahan</h3><ul><li>Alat/Bahan 1...</li><li>Alat/Bahan 2...</li></ul><h3>📝 Langkah Kerja</h3><ol><li>Langkah 1: Siapkan peralatan...</li><li>Langkah 2: Operasikan...</li></ol>`;
+            html = `<h2>ðŸ§ª Panduan Praktikum &amp; Laboratorium</h2><p><strong>Tujuan Praktikum:</strong> Siswa mampu memahami dan mempraktikkan...</p><h3>ðŸ› ï¸ Alat &amp; Bahan</h3><ul><li>Alat/Bahan 1...</li><li>Alat/Bahan 2...</li></ul><h3>ðŸ“ Langkah Kerja</h3><ol><li>Langkah 1: Siapkan peralatan...</li><li>Langkah 2: Operasikan...</li></ol>`;
         } else if (templateType === 'case') {
-            html = `<h2>💡 Studi Kasus &amp; Diskusi Terbuka</h2><blockquote style="border-left: 4px solid #3b82f6; padding-left: 12px; background-color: #eff6ff; padding: 10px; border-radius: 8px;"><strong>Deskripsi Kasus:</strong> Jelaskan studi kasus nyata di dunia kerja/lapangan...</blockquote><h3>🎯 Tugas Refleksi Siswa:</h3><ol><li>Identifikasi penyebab utama masalah di atas.</li><li>Tuliskan 2 usulan solusi terbaik.</li></ol>`;
+            html = `<h2>ðŸ’¡ Studi Kasus &amp; Diskusi Terbuka</h2><blockquote style="border-left: 4px solid #3b82f6; padding-left: 12px; background-color: #eff6ff; padding: 10px; border-radius: 8px;"><strong>Deskripsi Kasus:</strong> Jelaskan studi kasus nyata di dunia kerja/lapangan...</blockquote><h3>ðŸŽ¯ Tugas Refleksi Siswa:</h3><ol><li>Identifikasi penyebab utama masalah di atas.</li><li>Tuliskan 2 usulan solusi terbaik.</li></ol>`;
         }
 
         if (editorType === 'create' && quillCreate) {
