@@ -84,19 +84,21 @@
 
     .ekskul-watermark {
         position: absolute;
-        bottom: -20px;
-        right: -20px;
-        font-size: 140px;
-        opacity: 0.04;
+        bottom: -10px;
+        right: -10px;
+        width: 140px;
+        height: 140px;
+        object-fit: cover;
+        opacity: 0.06;
         z-index: 0;
         pointer-events: none;
-        transform: rotate(-15deg);
+        mix-blend-mode: multiply;
         transition: all 0.4s ease;
     }
 
     .ekskul-card:hover .ekskul-watermark {
-        transform: rotate(0deg) scale(1.15);
-        opacity: 0.08;
+        transform: scale(1.1);
+        opacity: 0.12;
     }
 
     .ekskul-card > div:not(.ekskul-watermark), .ekskul-card > h3 {
@@ -227,9 +229,7 @@
                                     case 'sains_it': $bgColor = '#ecfeff'; $textColor = '#0891b2'; break;
                                 }
                             @endphp
-                            <div class="ekskul-watermark" style="color:{{ $textColor }};">
-                                @if($isFa) <i class="{{ $iconStr }}"></i> @else <span>{{ $iconStr }}</span> @endif
-                            </div>
+                            <img class="ekskul-watermark" src="{{ asset('images/ekskul/' . $ekskul->category . '_bg.jpg') }}" alt="Watermark" onerror="this.style.display='none'">
                             <div class="ekskul-icon-box" style="background:{{ $bgColor }}; color:{{ $textColor }};">
                                 @if($isFa) <i class="{{ $iconStr }}"></i> @else <span>{{ $iconStr }}</span> @endif
                             </div>
@@ -264,9 +264,7 @@
                                     case 'sains_it': $bgColor = '#ecfeff'; $textColor = '#0891b2'; break;
                                 }
                             @endphp
-                            <div class="ekskul-watermark" style="color:{{ $textColor }};">
-                                @if($isFa) <i class="{{ $iconStr }}"></i> @else <span>{{ $iconStr }}</span> @endif
-                            </div>
+                            <img class="ekskul-watermark" src="{{ asset('images/ekskul/' . $ekskul->category . '_bg.jpg') }}" alt="Watermark" onerror="this.style.display='none'">
                             <div class="ekskul-icon-box" style="background:{{ $bgColor }}; color:{{ $textColor }};">
                                 @if($isFa) <i class="{{ $iconStr }}"></i> @else <span>{{ $iconStr }}</span> @endif
                             </div>
