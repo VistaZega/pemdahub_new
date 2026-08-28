@@ -1759,9 +1759,31 @@ if (!function_exists('balanceHtmlTags')) {
                     <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100">
                         {{-- Editor: Flashcard / Match --}}
                                                 <div x-show="gameType === 'flashcard' || gameType === 'match'">
-                            <div x-show="gameType === 'flashcard'" class="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800 leading-relaxed">
-                                <strong>💡 Cara Main Flashcard:</strong> Siswa akan melihat "Istilah / Pertanyaan" di satu sisi kartu. Mereka harus mengingat jawabannya, lalu mengklik kartu tersebut untuk membaliknya dan melihat "Definisi / Jawaban" yang benar. <br>
-                                <strong>🎯 Apa yang dilatih?</strong> Sangat bagus untuk melatih hafalan kuat (Active Recall) dan mengingat konsep, kosakata, atau rumus dengan cepat.
+                            <div x-show="gameType === 'flashcard'" class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-100 rounded-2xl text-xs text-slate-800 leading-relaxed shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 text-sm font-black shadow-sm mt-0.5">
+                                        <i class="fas fa-brain text-amber-300"></i>
+                                    </div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <div class="flex items-center justify-between flex-wrap gap-2">
+                                            <h5 class="font-black text-indigo-950 text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
+                                                <i class="fas fa-layer-group text-indigo-600"></i> Panduan Game: Flashcard 3D
+                                            </h5>
+                                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2.5 py-0.5 rounded-full border border-emerald-300">
+                                                <i class="fas fa-check-circle"></i> Sistem EXP: Tuntas Belajar (100% EXP)
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-700">
+                                            <strong>🎯 Tujuan & Manfaat:</strong> Menggunakan metode ilmiah <em>Active Recall & Spaced Repetition</em>. Sangat ampuh melatih daya ingat aktif siswa terhadap definisi, istilah asing, formula/rumus, dan poin materi penting.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>🕹️ Cara Main Siswa:</strong> Siswa membaca pertanyaan/istilah di depan kartu, mencoba mengingat jawabannya di pikiran, lalu <strong>mengklik kartu untuk membalik</strong> dan mencocokkan dengan jawaban di belakang. Siswa lalu menekan tombol kejujuran <em>"Sudah Hafal"</em> atau <em>"Belum Hafal"</em>.
+                                        </p>
+                                        <p class="text-slate-700">
+                                            <strong>⭐ Penentuan Poin (EXP):</strong> Karena Flashcard adalah media belajar mandiri (bukan ujian), siswa yang menuntaskan seluruh kartu hingga selesai akan otomatis mendapatkan <strong>100% Reward EXP</strong> penuh sebagai apresiasi ketekunan belajar (maksimal 1x per siswa).
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-sm font-bold text-gray-800">Pasangan Kartu / Kata</h4>

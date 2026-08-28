@@ -165,8 +165,23 @@
                             <span class="text-white/60 text-xs font-bold uppercase tracking-widest">Kartu</span>
                             <span class="text-white font-black text-sm"><span x-text="currentIndex + 1"></span> / <span x-text="totalItems"></span></span>
                         </div>
-                        <div class="mb-4 p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-xs text-white/90 leading-relaxed text-center w-full">
-                            <strong>💡 Petunjuk:</strong> Ingat jawabannya, lalu klik kartu untuk membaliknya dan mencocokkan ingatanmu!
+                        <div class="mb-4 p-3.5 bg-indigo-950/60 backdrop-blur-md border border-indigo-400/30 rounded-2xl text-xs text-indigo-100 leading-relaxed w-full shadow-lg text-left">
+                            <div class="flex items-start gap-2.5">
+                                <div class="w-7 h-7 rounded-xl bg-indigo-500/30 flex items-center justify-center shrink-0 text-indigo-300 mt-0.5">
+                                    <i class="fas fa-brain"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-bold text-white mb-1 flex items-center justify-between flex-wrap gap-1">
+                                        <span>Metode Belajar: Flashcard (Active Recall)</span>
+                                        <span class="text-[10px] bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded-full font-black">
+                                            <i class="fas fa-gift"></i> +<span x-text="game.reward || 50"></span> EXP Tuntas Belajar
+                                        </span>
+                                    </div>
+                                    <p class="text-white/80 text-[11px] leading-relaxed">
+                                        <strong>Cara Main:</strong> Coba ingat jawaban di pikiranmu terlebih dahulu, lalu <strong>klik kartu untuk membalik</strong> dan mencocokkan dengan kunci jawaban. Selesaikan seluruh kartu hingga akhir untuk klaim EXP reward penuh!
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Flashcard (fixed height with scrollable inner) --}}
