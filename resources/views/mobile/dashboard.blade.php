@@ -215,6 +215,7 @@
             $siswaGradeLevel = $student?->currentClassroom()?->first()?->grade_level ?? $student?->grade_level;
             $isKelasXII = ($siswaGradeLevel == 12);
             $showPkl = ($siswaSchoolType === 'SMK' && $isKelasXII);
+            $showFinalProject = (in_array($siswaSchoolType, ['SMA', 'SMK']) && $isKelasXII);
         @endphp
 
         @if($activeRole === 'siswa')
@@ -283,6 +284,16 @@
                     💼
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">PKL</span>
+            </a>
+            @endif
+
+            {{-- Project/Penelitian Akhir (SMA / SMK Kelas XII) --}}
+            @if($showFinalProject)
+            <a href="{{ route('mobile.final-project') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-red flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                    🎓
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">{{ $siswaSchoolType === 'SMK' ? 'Projek' : 'Penelitian' }}</span>
             </a>
             @endif
 
