@@ -1463,257 +1463,10 @@ if (!function_exists('balanceHtmlTags')) {
     </div>
 </div>
 
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+{{-- ══════════════════════════════════════════════════════════════ --}}
 {{-- GAME BUILDER MODAL --}}
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
-<div x-data="{ 
-        open: false, 
-        isEdit: false,
-        gameId: null,
-        moduleId: '',
-        title: '',
-        rewardPoints: 50,
-        timeLimit: '',
-        livesCount: '',
-        gameType: 'quiz',
-        pairs: [
-            { term: 'Fotosintesis', definition: 'Proses pembuatan makanan pada tumbuhan hijau dengan bantuan energi sinar matahari.' },
-            { term: 'Mitokondria', definition: 'Organel sel yang berfungsi sebagai pusat pembangkit energi (ATP).' },
-            { term: 'Demokrasi', definition: 'Sistem pemerintahan di mana kekuasaan tertinggi berada di tangan rakyat.' },
-            { term: 'Gravitasi', definition: 'Gaya tarik alami bumi yang menarik benda-benda bermassa ke pusat bumi.' },
-            { term: 'Ekosistem', definition: 'Hubungan timbal balik yang saling mempengaruhi antara makhluk hidup dan lingkungannya.' }
-        ],
-        wheelItems: ['+50 EXP Bonus', 'Tunjuk 1 Teman Menjawab', 'Bebas Tugas 1 Soal', '+100 EXP Jackpot', 'Putar Sekali Lagi', 'Zonkk! Coba Lagi'],
-        quizQuestions: [
-            { question: 'Planet manakah yang sering dijuluki sebagai "Planet Merah" dalam tata surya kita?', options: ['Mars', 'Venus', 'Jupiter', 'Saturnus'], answer: 0 },
-            { question: 'Zat hijau pada daun yang berperan penting dalam proses fotosintesis adalah...', options: ['Klorofil', 'Kromoplas', 'Stomata', 'Sitoplasma'], answer: 0 },
-            { question: 'Rumus kimia air murni yang biasa kita minum setiap hari adalah...', options: ['CO2', 'H2O', 'NaCl', 'O2'], answer: 1 },
-            { question: 'Ibukota negara Indonesia yang berada di Pulau Jawa adalah...', options: ['Surabaya', 'Bandung', 'Jakarta', 'Semarang'], answer: 2 },
-            { question: 'Berapakah hasil dari operasi perhitungan matematika sederhana 15 x 4 + 10?', options: ['60', '70', '80', '50'], answer: 1 }
-        ],
-        tfStatements: [
-            { statement: 'Matahari mengelilingi bumi sebagai pusat tata surya.', is_true: false },
-            { statement: 'Oksigen dihirup oleh manusia saat bernapas untuk metabolisme tubuh.', is_true: true },
-            { statement: 'Sudut siku-siku memiliki besar sudut tepat 90 derajat.', is_true: true },
-            { statement: 'Air membeku menjadi es padat pada suhu 100 derajat Celsius.', is_true: false },
-            { statement: 'Indonesia memproklamasikan kemerdekaannya pada tanggal 17 Agustus 1945.', is_true: true }
-        ],
-        guessWords: [
-            { word: 'MERDEKA', hint: 'Bebas dari segala bentuk penjajahan atau kekuasaan asing' },
-            { word: 'GRAVITASI', hint: 'Gaya tarik bumi yang membuat setiap benda jatuh ke bawah' },
-            { word: 'KOMPUTER', hint: 'Perangkat elektronik untuk mengolah data, komputasi, dan informasi' },
-            { word: 'ATMOSFER', hint: 'Lapisan gas pelindung yang menyelimuti planet bumi' },
-            { word: 'PANCASILA', hint: 'Dasar negara dan falsafah hidup bangsa Indonesia' }
-        ],
-        scrambleWords: [
-            { word: 'BIOLOGI', hint: 'Ilmu yang mempelajari tentang seluk-beluk makhluk hidup' },
-            { word: 'SEJARAH', hint: 'Kejadian atau peristiwa nyata yang terjadi di masa lampau' },
-            { word: 'GEOGRAFI', hint: 'Ilmu tentang fenomena permukaan bumi, iklim, dan bentang alam' },
-            { word: 'EKONOMI', hint: 'Ilmu tentang produksi, distribusi, dan konsumsi barang dan jasa' },
-            { word: 'ALGORITMA', hint: 'Urutan langkah-langkah logis dan sistematis dalam pemecahan masalah' }
-        ],
-        sequenceGroups: [
-            {
-                title: 'Tahapan Metamorfosis Sempurna Kupu-Kupu',
-                items: [
-                    { item: '1. Telur diletakkan oleh induk pada permukaan daun' },
-                    { item: '2. Telur menetas menjadi Ulat (Larva) yang aktif makan daun' },
-                    { item: '3. Ulat membungkus dirinya menjadi Kepompong (Pupa)' },
-                    { item: '4. Mengalami pembentukan organ dalam fase kepompong' },
-                    { item: '5. Keluar menjadi Kupu-Kupu dewasa (Imago) yang indah' }
-                ]
-            }
-        ],
-        hotspots: [
-            { x: 50, y: 50, label: 'Inti Sel (Nukleus)' },
-            { x: 30, y: 40, label: 'Mitokondria' },
-            { x: 80, y: 50, label: 'Membran Sel' },
-            { x: 45, y: 70, label: 'Ribosom' },
-            { x: 65, y: 35, label: 'Badan Golgi' }
-        ],
-        chemEquations: [
-            { equation: '_ H2 + _ O2 -> _ H2O', answers: '2, 1, 2' },
-            { equation: '_ N2 + _ H2 -> _ NH3', answers: '1, 3, 2' },
-            { equation: '_ CH4 + _ O2 -> _ CO2 + _ H2O', answers: '1, 2, 1, 2' },
-            { equation: '_ Na + _ Cl2 -> _ NaCl', answers: '2, 1, 2' },
-            { equation: '_ Fe + _ O2 -> _ Fe2O3', answers: '4, 3, 2' }
-        ],
-        mathConfig: { operation: 'mixed', difficulty: 'easy' },
-        addPair() { this.pairs.push({term: '', definition: ''}) },
-        removePair(index) { this.pairs.splice(index, 1) },
-        addWheelItem() { this.wheelItems.push('') },
-        removeWheelItem(index) { this.wheelItems.splice(index, 1) },
-        addQuizQuestion() { this.quizQuestions.push({ question: '', options: ['', '', '', ''], answer: 0 }) },
-        removeQuizQuestion(index) { this.quizQuestions.splice(index, 1) },
-        addTfStatement() { this.tfStatements.push({ statement: '', is_true: true }) },
-        removeTfStatement(index) { this.tfStatements.splice(index, 1) },
-        addGuessWord() { this.guessWords.push({ word: '', hint: '' }) },
-        removeGuessWord(index) { this.guessWords.splice(index, 1) },
-        addScrambleWord() { this.scrambleWords.push({ word: '', hint: '' }) },
-        removeScrambleWord(index) { this.scrambleWords.splice(index, 1) },
-        addSequenceGroup() { this.sequenceGroups.push({ title: 'Kelompok ' + (this.sequenceGroups.length + 1), items: [{ item: '' }, { item: '' }] }) },
-        removeSequenceGroup(gIndex) { if (this.sequenceGroups.length > 1) this.sequenceGroups.splice(gIndex, 1) },
-        addSequenceItem(gIndex) { if (this.sequenceGroups[gIndex]) this.sequenceGroups[gIndex].items.push({ item: '' }) },
-        removeSequenceItem(gIndex, iIndex) { if (this.sequenceGroups[gIndex]) this.sequenceGroups[gIndex].items.splice(iIndex, 1) },
-        addHotspot() { this.hotspots.push({ x: 50, y: 50, label: '' }) },
-        removeHotspot(index) { this.hotspots.splice(index, 1) },
-        addChemEquation() { this.chemEquations.push({ equation: '', answers: '' }) },
-        removeChemEquation(index) { this.chemEquations.splice(index, 1) },
-        getGameData() {
-            if (this.gameType === 'spin_wheel') return JSON.stringify({ items: this.wheelItems.filter(i => i.trim() !== '') });
-            if (this.gameType === 'quiz') return JSON.stringify({ questions: this.quizQuestions.filter(q => q.question.trim() !== '') });
-            if (this.gameType === 'true_false') return JSON.stringify({ statements: this.tfStatements.filter(s => s.statement.trim() !== '') });
-            if (this.gameType === 'word_guess') return JSON.stringify({ words: this.guessWords.filter(w => w.word.trim() !== '') });
-            if (this.gameType === 'scramble') return JSON.stringify({ words: this.scrambleWords.filter(w => w.word.trim() !== '') });
-            if (this.gameType === 'sequence') {
-                let validGroups = this.sequenceGroups.map(g => ({
-                    title: g.title ? g.title.trim() : '',
-                    items: (g.items || []).filter(i => i.item && i.item.trim() !== '')
-                })).filter(g => g.items.length > 0);
-                let firstItems = validGroups.length > 0 ? validGroups[0].items : [];
-                return JSON.stringify({ groups: validGroups, items: firstItems });
-            }
-            if (this.gameType === 'image_hotspot') return JSON.stringify({ hotspots: this.hotspots.filter(h => h.label.trim() !== '') });
-            if (this.gameType === 'chem_balancer') return JSON.stringify({ equations: this.chemEquations.filter(e => e.equation.trim() !== '') });
-            if (this.gameType === 'math_ninja') return JSON.stringify({ config: this.mathConfig });
-            return JSON.stringify({ pairs: this.pairs.filter(p => p.term.trim() !== '' && p.definition.trim() !== '') });
-        },
-        resetForm() {
-            this.isEdit = false;
-            this.gameId = null;
-            this.moduleId = '';
-            this.title = '';
-            this.rewardPoints = 50;
-            this.timeLimit = '';
-            this.livesCount = '';
-            this.gameType = 'quiz';
-            this.pairs = [
-                { term: 'Fotosintesis', definition: 'Proses pembuatan makanan pada tumbuhan hijau dengan bantuan energi sinar matahari.' },
-                { term: 'Mitokondria', definition: 'Organel sel yang berfungsi sebagai pusat pembangkit energi (ATP).' },
-                { term: 'Demokrasi', definition: 'Sistem pemerintahan di mana kekuasaan tertinggi berada di tangan rakyat.' },
-                { term: 'Gravitasi', definition: 'Gaya tarik alami bumi yang menarik benda-benda bermassa ke pusat bumi.' },
-                { term: 'Ekosistem', definition: 'Hubungan timbal balik yang saling mempengaruhi antara makhluk hidup dan lingkungannya.' }
-            ];
-            this.wheelItems = ['+50 EXP Bonus', 'Tunjuk 1 Teman Menjawab', 'Bebas Tugas 1 Soal', '+100 EXP Jackpot', 'Putar Sekali Lagi', 'Zonkk! Coba Lagi'];
-            this.quizQuestions = [
-                { question: 'Planet manakah yang sering dijuluki sebagai "Planet Merah" dalam tata surya kita?', options: ['Mars', 'Venus', 'Jupiter', 'Saturnus'], answer: 0 },
-                { question: 'Zat hijau pada daun yang berperan penting dalam proses fotosintesis adalah...', options: ['Klorofil', 'Kromoplas', 'Stomata', 'Sitoplasma'], answer: 0 },
-                { question: 'Rumus kimia air murni yang biasa kita minum setiap hari adalah...', options: ['CO2', 'H2O', 'NaCl', 'O2'], answer: 1 },
-                { question: 'Ibukota negara Indonesia yang berada di Pulau Jawa adalah...', options: ['Surabaya', 'Bandung', 'Jakarta', 'Semarang'], answer: 2 },
-                { question: 'Berapakah hasil dari operasi perhitungan matematika sederhana 15 x 4 + 10?', options: ['60', '70', '80', '50'], answer: 1 }
-            ];
-            this.tfStatements = [
-                { statement: 'Matahari mengelilingi bumi sebagai pusat tata surya.', is_true: false },
-                { statement: 'Oksigen dihirup oleh manusia saat bernapas untuk metabolisme tubuh.', is_true: true },
-                { statement: 'Sudut siku-siku memiliki besar sudut tepat 90 derajat.', is_true: true },
-                { statement: 'Air membeku menjadi es padat pada suhu 100 derajat Celsius.', is_true: false },
-                { statement: 'Indonesia memproklamasikan kemerdekaannya pada tanggal 17 Agustus 1945.', is_true: true }
-            ];
-            this.guessWords = [
-                { word: 'MERDEKA', hint: 'Bebas dari segala bentuk penjajahan atau kekuasaan asing' },
-                { word: 'GRAVITASI', hint: 'Gaya tarik bumi yang membuat setiap benda jatuh ke bawah' },
-                { word: 'KOMPUTER', hint: 'Perangkat elektronik untuk mengolah data, komputasi, dan informasi' },
-                { word: 'ATMOSFER', hint: 'Lapisan gas pelindung yang menyelimuti planet bumi' },
-                { word: 'PANCASILA', hint: 'Dasar negara dan falsafah hidup bangsa Indonesia' }
-            ];
-            this.scrambleWords = [
-                { word: 'BIOLOGI', hint: 'Ilmu yang mempelajari tentang seluk-beluk makhluk hidup' },
-                { word: 'SEJARAH', hint: 'Kejadian atau peristiwa nyata yang terjadi di masa lampau' },
-                { word: 'GEOGRAFI', hint: 'Ilmu tentang fenomena permukaan bumi, iklim, dan bentang alam' },
-                { word: 'EKONOMI', hint: 'Ilmu tentang produksi, distribusi, dan konsumsi barang dan jasa' },
-                { word: 'ALGORITMA', hint: 'Urutan langkah-langkah logis dan sistematis dalam pemecahan masalah' }
-            ];
-            this.sequenceGroups = [
-                {
-                    title: 'Tahapan Metamorfosis Sempurna Kupu-Kupu',
-                    items: [
-                        { item: '1. Telur diletakkan oleh induk pada permukaan daun' },
-                        { item: '2. Telur menetas menjadi Ulat (Larva) yang aktif makan daun' },
-                        { item: '3. Ulat membungkus dirinya menjadi Kepompong (Pupa)' },
-                        { item: '4. Mengalami pembentukan organ dalam fase kepompong' },
-                        { item: '5. Keluar menjadi Kupu-Kupu dewasa (Imago) yang indah' }
-                    ]
-                }
-            ];
-            this.hotspots = [
-                { x: 50, y: 50, label: 'Inti Sel (Nukleus)' },
-                { x: 30, y: 40, label: 'Mitokondria' },
-                { x: 80, y: 50, label: 'Membran Sel' },
-                { x: 45, y: 70, label: 'Ribosom' },
-                { x: 65, y: 35, label: 'Badan Golgi' }
-            ];
-            this.chemEquations = [
-                { equation: '_ H2 + _ O2 -> _ H2O', answers: '2, 1, 2' },
-                { equation: '_ N2 + _ H2 -> _ NH3', answers: '1, 3, 2' },
-                { equation: '_ CH4 + _ O2 -> _ CO2 + _ H2O', answers: '1, 2, 1, 2' },
-                { equation: '_ Na + _ Cl2 -> _ NaCl', answers: '2, 1, 2' },
-                { equation: '_ Fe + _ O2 -> _ Fe2O3', answers: '4, 3, 2' }
-            ];
-            this.mathConfig = { operation: 'mixed', difficulty: 'easy' };
-            this.open = true;
-        },
-        loadGame(game) {
-            this.isEdit = true;
-            this.gameId = game.id;
-            this.moduleId = game.module_id || '';
-            this.title = game.title || '';
-            this.rewardPoints = game.reward_points || 50;
-            this.timeLimit = game.time_limit || '';
-            this.livesCount = game.lives_count || '';
-            this.gameType = game.game_type || 'quiz';
-
-            let gd = game.game_data || {};
-            if (typeof gd === 'string') {
-                try { gd = JSON.parse(gd); } catch(e) { gd = {}; }
-            }
-
-            if (this.gameType === 'quiz') {
-                this.quizQuestions = gd.questions && gd.questions.length > 0 
-                    ? JSON.parse(JSON.stringify(gd.questions))
-                    : [{ question: '', options: ['', '', '', ''], answer: 0 }];
-            } else if (this.gameType === 'true_false') {
-                this.tfStatements = gd.statements && gd.statements.length > 0 
-                    ? JSON.parse(JSON.stringify(gd.statements))
-                    : [{ statement: '', is_true: true }];
-            } else if (this.gameType === 'spin_wheel') {
-                this.wheelItems = gd.items && gd.items.length > 0 
-                    ? JSON.parse(JSON.stringify(gd.items))
-                    : ['Hadiah 1', 'Hadiah 2'];
-            } else if (this.gameType === 'flashcard' || this.gameType === 'match') {
-                this.pairs = gd.pairs && gd.pairs.length > 0 
-                    ? JSON.parse(JSON.stringify(gd.pairs))
-                    : [{term: '', definition: ''}];
-            } else if (this.gameType === 'word_guess') {
-                this.guessWords = gd.words && gd.words.length > 0 
-                    ? JSON.parse(JSON.stringify(gd.words))
-                    : [{ word: '', hint: '' }];
-            } else if (this.gameType === 'scramble') {
-                this.scrambleWords = gd.words && gd.words.length > 0 
-                    ? JSON.parse(JSON.stringify(gd.words))
-                    : [{ word: '', hint: '' }];
-            } else if (this.gameType === 'sequence') {
-                if (gd.groups && gd.groups.length > 0) {
-                    this.sequenceGroups = JSON.parse(JSON.stringify(gd.groups));
-                } else if (gd.items && gd.items.length > 0) {
-                    this.sequenceGroups = [{ title: 'Kelompok 1', items: JSON.parse(JSON.stringify(gd.items)) }];
-                } else {
-                    this.sequenceGroups = [{ title: 'Kelompok 1', items: [{ item: '' }, { item: '' }] }];
-                }
-            } else if (this.gameType === 'image_hotspot') {
-                this.hotspots = gd.hotspots && gd.hotspots.length > 0 
-                    ? JSON.parse(JSON.stringify(gd.hotspots))
-                    : [{ x: 50, y: 50, label: '' }];
-            } else if (this.gameType === 'chem_balancer') {
-                this.chemEquations = gd.equations && gd.equations.length > 0 
-                    ? JSON.parse(JSON.stringify(gd.equations))
-                    : [{ equation: '', answers: '' }];
-            } else if (this.gameType === 'math_ninja') {
-                this.mathConfig = gd.config ? JSON.parse(JSON.stringify(gd.config)) : { operation: 'mixed', difficulty: 'easy' };
-            }
-
-            this.open = true;
-        }
-    }" 
+{{-- ══════════════════════════════════════════════════════════════ --}}
+<div x-data="gameBuilder()" 
     @open-game-modal.window="resetForm()" 
     @open-edit-game-modal.window="loadGame($event.detail)" 
     x-show="open" 
@@ -2967,6 +2720,257 @@ if (!function_exists('balanceHtmlTags')) {
         quillEdit.root.innerHTML = html;
         const input = document.getElementById('quill-edit-input');
         if (input) input.value = html;
+    }
+
+    function gameBuilder() {
+        return {
+            open: false,
+            isEdit: false,
+            gameId: null,
+            moduleId: '',
+            title: '',
+            rewardPoints: 50,
+            timeLimit: '',
+            livesCount: '',
+            gameType: 'quiz',
+            pairs: [
+                { term: 'Fotosintesis', definition: 'Proses pembuatan makanan pada tumbuhan hijau dengan bantuan energi sinar matahari.' },
+                { term: 'Mitokondria', definition: 'Organel sel yang berfungsi sebagai pusat pembangkit energi (ATP).' },
+                { term: 'Demokrasi', definition: 'Sistem pemerintahan di mana kekuasaan tertinggi berada di tangan rakyat.' },
+                { term: 'Gravitasi', definition: 'Gaya tarik alami bumi yang menarik benda-benda bermassa ke pusat bumi.' },
+                { term: 'Ekosistem', definition: 'Hubungan timbal balik yang saling mempengaruhi antara makhluk hidup dan lingkungannya.' }
+            ],
+            wheelItems: ['+50 EXP Bonus', 'Tunjuk 1 Teman Menjawab', 'Bebas Tugas 1 Soal', '+100 EXP Jackpot', 'Putar Sekali Lagi', 'Zonkk! Coba Lagi'],
+            quizQuestions: [
+                { question: 'Planet manakah yang sering dijuluki sebagai "Planet Merah" dalam tata surya kita?', options: ['Mars', 'Venus', 'Jupiter', 'Saturnus'], answer: 0 },
+                { question: 'Zat hijau pada daun yang berperan penting dalam proses fotosintesis adalah...', options: ['Klorofil', 'Kromoplas', 'Stomata', 'Sitoplasma'], answer: 0 },
+                { question: 'Rumus kimia air murni yang biasa kita minum setiap hari adalah...', options: ['CO2', 'H2O', 'NaCl', 'O2'], answer: 1 },
+                { question: 'Ibukota negara Indonesia yang berada di Pulau Jawa adalah...', options: ['Surabaya', 'Bandung', 'Jakarta', 'Semarang'], answer: 2 },
+                { question: 'Berapakah hasil dari operasi perhitungan matematika sederhana 15 x 4 + 10?', options: ['60', '70', '80', '50'], answer: 1 }
+            ],
+            tfStatements: [
+                { statement: 'Matahari mengelilingi bumi sebagai pusat tata surya.', is_true: false },
+                { statement: 'Oksigen dihirup oleh manusia saat bernapas untuk metabolisme tubuh.', is_true: true },
+                { statement: 'Sudut siku-siku memiliki besar sudut tepat 90 derajat.', is_true: true },
+                { statement: 'Air membeku menjadi es padat pada suhu 100 derajat Celsius.', is_true: false },
+                { statement: 'Indonesia memproklamasikan kemerdekaannya pada tanggal 17 Agustus 1945.', is_true: true }
+            ],
+            guessWords: [
+                { word: 'MERDEKA', hint: 'Bebas dari segala bentuk penjajahan atau kekuasaan asing' },
+                { word: 'GRAVITASI', hint: 'Gaya tarik bumi yang membuat setiap benda jatuh ke bawah' },
+                { word: 'KOMPUTER', hint: 'Perangkat elektronik untuk mengolah data, komputasi, dan informasi' },
+                { word: 'ATMOSFER', hint: 'Lapisan gas pelindung yang menyelimuti planet bumi' },
+                { word: 'PANCASILA', hint: 'Dasar negara dan falsafah hidup bangsa Indonesia' }
+            ],
+            scrambleWords: [
+                { word: 'BIOLOGI', hint: 'Ilmu yang mempelajari tentang seluk-beluk makhluk hidup' },
+                { word: 'SEJARAH', hint: 'Kejadian atau peristiwa nyata yang terjadi di masa lampau' },
+                { word: 'GEOGRAFI', hint: 'Ilmu tentang fenomena permukaan bumi, iklim, dan bentang alam' },
+                { word: 'EKONOMI', hint: 'Ilmu tentang produksi, distribusi, dan konsumsi barang dan jasa' },
+                { word: 'ALGORITMA', hint: 'Urutan langkah-langkah logis dan sistematis dalam pemecahan masalah' }
+            ],
+            sequenceGroups: [
+                {
+                    title: 'Tahapan Metamorfosis Sempurna Kupu-Kupu',
+                    items: [
+                        { item: '1. Telur diletakkan oleh induk pada permukaan daun' },
+                        { item: '2. Telur menetas menjadi Ulat (Larva) yang aktif makan daun' },
+                        { item: '3. Ulat membungkus dirinya menjadi Kepompong (Pupa)' },
+                        { item: '4. Mengalami pembentukan organ dalam fase kepompong' },
+                        { item: '5. Keluar menjadi Kupu-Kupu dewasa (Imago) yang indah' }
+                    ]
+                }
+            ],
+            hotspots: [
+                { x: 50, y: 50, label: 'Inti Sel (Nukleus)' },
+                { x: 30, y: 40, label: 'Mitokondria' },
+                { x: 80, y: 50, label: 'Membran Sel' },
+                { x: 45, y: 70, label: 'Ribosom' },
+                { x: 65, y: 35, label: 'Badan Golgi' }
+            ],
+            chemEquations: [
+                { equation: '_ H2 + _ O2 -> _ H2O', answers: '2, 1, 2' },
+                { equation: '_ N2 + _ H2 -> _ NH3', answers: '1, 3, 2' },
+                { equation: '_ CH4 + _ O2 -> _ CO2 + _ H2O', answers: '1, 2, 1, 2' },
+                { equation: '_ Na + _ Cl2 -> _ NaCl', answers: '2, 1, 2' },
+                { equation: '_ Fe + _ O2 -> _ Fe2O3', answers: '4, 3, 2' }
+            ],
+            mathConfig: { operation: 'mixed', difficulty: 'easy' },
+            addPair() { this.pairs.push({term: '', definition: ''}) },
+            removePair(index) { this.pairs.splice(index, 1) },
+            addWheelItem() { this.wheelItems.push('') },
+            removeWheelItem(index) { this.wheelItems.splice(index, 1) },
+            addQuizQuestion() { this.quizQuestions.push({ question: '', options: ['', '', '', ''], answer: 0 }) },
+            removeQuizQuestion(index) { this.quizQuestions.splice(index, 1) },
+            addTfStatement() { this.tfStatements.push({ statement: '', is_true: true }) },
+            removeTfStatement(index) { this.tfStatements.splice(index, 1) },
+            addGuessWord() { this.guessWords.push({ word: '', hint: '' }) },
+            removeGuessWord(index) { this.guessWords.splice(index, 1) },
+            addScrambleWord() { this.scrambleWords.push({ word: '', hint: '' }) },
+            removeScrambleWord(index) { this.scrambleWords.splice(index, 1) },
+            addSequenceGroup() { this.sequenceGroups.push({ title: 'Kelompok ' + (this.sequenceGroups.length + 1), items: [{ item: '' }, { item: '' }] }) },
+            removeSequenceGroup(gIndex) { if (this.sequenceGroups.length > 1) this.sequenceGroups.splice(gIndex, 1) },
+            addSequenceItem(gIndex) { if (this.sequenceGroups[gIndex]) this.sequenceGroups[gIndex].items.push({ item: '' }) },
+            removeSequenceItem(gIndex, iIndex) { if (this.sequenceGroups[gIndex]) this.sequenceGroups[gIndex].items.splice(iIndex, 1) },
+            addHotspot() { this.hotspots.push({ x: 50, y: 50, label: '' }) },
+            removeHotspot(index) { this.hotspots.splice(index, 1) },
+            addChemEquation() { this.chemEquations.push({ equation: '', answers: '' }) },
+            removeChemEquation(index) { this.chemEquations.splice(index, 1) },
+            getGameData() {
+                if (this.gameType === 'spin_wheel') return JSON.stringify({ items: this.wheelItems.filter(i => i.trim() !== '') });
+                if (this.gameType === 'quiz') return JSON.stringify({ questions: this.quizQuestions.filter(q => q.question.trim() !== '') });
+                if (this.gameType === 'true_false') return JSON.stringify({ statements: this.tfStatements.filter(s => s.statement.trim() !== '') });
+                if (this.gameType === 'word_guess') return JSON.stringify({ words: this.guessWords.filter(w => w.word.trim() !== '') });
+                if (this.gameType === 'scramble') return JSON.stringify({ words: this.scrambleWords.filter(w => w.word.trim() !== '') });
+                if (this.gameType === 'sequence') {
+                    let validGroups = this.sequenceGroups.map(g => ({
+                        title: g.title ? g.title.trim() : '',
+                        items: (g.items || []).filter(i => i.item && i.item.trim() !== '')
+                    })).filter(g => g.items.length > 0);
+                    let firstItems = validGroups.length > 0 ? validGroups[0].items : [];
+                    return JSON.stringify({ groups: validGroups, items: firstItems });
+                }
+                if (this.gameType === 'image_hotspot') return JSON.stringify({ hotspots: this.hotspots.filter(h => h.label.trim() !== '') });
+                if (this.gameType === 'chem_balancer') return JSON.stringify({ equations: this.chemEquations.filter(e => e.equation.trim() !== '') });
+                if (this.gameType === 'math_ninja') return JSON.stringify({ config: this.mathConfig });
+                return JSON.stringify({ pairs: this.pairs.filter(p => p.term.trim() !== '' && p.definition.trim() !== '') });
+            },
+            resetForm() {
+                this.isEdit = false;
+                this.gameId = null;
+                this.moduleId = '';
+                this.title = '';
+                this.rewardPoints = 50;
+                this.timeLimit = '';
+                this.livesCount = '';
+                this.gameType = 'quiz';
+                this.pairs = [
+                    { term: 'Fotosintesis', definition: 'Proses pembuatan makanan pada tumbuhan hijau dengan bantuan energi sinar matahari.' },
+                    { term: 'Mitokondria', definition: 'Organel sel yang berfungsi sebagai pusat pembangkit energi (ATP).' },
+                    { term: 'Demokrasi', definition: 'Sistem pemerintahan di mana kekuasaan tertinggi berada di tangan rakyat.' },
+                    { term: 'Gravitasi', definition: 'Gaya tarik alami bumi yang menarik benda-benda bermassa ke pusat bumi.' },
+                    { term: 'Ekosistem', definition: 'Hubungan timbal balik yang saling mempengaruhi antara makhluk hidup dan lingkungannya.' }
+                ];
+                this.wheelItems = ['+50 EXP Bonus', 'Tunjuk 1 Teman Menjawab', 'Bebas Tugas 1 Soal', '+100 EXP Jackpot', 'Putar Sekali Lagi', 'Zonkk! Coba Lagi'];
+                this.quizQuestions = [
+                    { question: 'Planet manakah yang sering dijuluki sebagai "Planet Merah" dalam tata surya kita?', options: ['Mars', 'Venus', 'Jupiter', 'Saturnus'], answer: 0 },
+                    { question: 'Zat hijau pada daun yang berperan penting dalam proses fotosintesis adalah...', options: ['Klorofil', 'Kromoplas', 'Stomata', 'Sitoplasma'], answer: 0 },
+                    { question: 'Rumus kimia air murni yang biasa kita minum setiap hari adalah...', options: ['CO2', 'H2O', 'NaCl', 'O2'], answer: 1 },
+                    { question: 'Ibukota negara Indonesia yang berada di Pulau Jawa adalah...', options: ['Surabaya', 'Bandung', 'Jakarta', 'Semarang'], answer: 2 },
+                    { question: 'Berapakah hasil dari operasi perhitungan matematika sederhana 15 x 4 + 10?', options: ['60', '70', '80', '50'], answer: 1 }
+                ];
+                this.tfStatements = [
+                    { statement: 'Matahari mengelilingi bumi sebagai pusat tata surya.', is_true: false },
+                    { statement: 'Oksigen dihirup oleh manusia saat bernapas untuk metabolisme tubuh.', is_true: true },
+                    { statement: 'Sudut siku-siku memiliki besar sudut tepat 90 derajat.', is_true: true },
+                    { statement: 'Air membeku menjadi es padat pada suhu 100 derajat Celsius.', is_true: false },
+                    { statement: 'Indonesia memproklamasikan kemerdekaannya pada tanggal 17 Agustus 1945.', is_true: true }
+                ];
+                this.guessWords = [
+                    { word: 'MERDEKA', hint: 'Bebas dari segala bentuk penjajahan atau kekuasaan asing' },
+                    { word: 'GRAVITASI', hint: 'Gaya tarik bumi yang membuat setiap benda jatuh ke bawah' },
+                    { word: 'KOMPUTER', hint: 'Perangkat elektronik untuk mengolah data, komputasi, dan informasi' },
+                    { word: 'ATMOSFER', hint: 'Lapisan gas pelindung yang menyelimuti planet bumi' },
+                    { word: 'PANCASILA', hint: 'Dasar negara dan falsafah hidup bangsa Indonesia' }
+                ];
+                this.scrambleWords = [
+                    { word: 'BIOLOGI', hint: 'Ilmu yang mempelajari tentang seluk-beluk makhluk hidup' },
+                    { word: 'SEJARAH', hint: 'Kejadian atau peristiwa nyata yang terjadi di masa lampau' },
+                    { word: 'GEOGRAFI', hint: 'Ilmu tentang fenomena permukaan bumi, iklim, dan bentang alam' },
+                    { word: 'EKONOMI', hint: 'Ilmu tentang produksi, distribusi, dan konsumsi barang dan jasa' },
+                    { word: 'ALGORITMA', hint: 'Urutan langkah-langkah logis dan sistematis dalam pemecahan masalah' }
+                ];
+                this.sequenceGroups = [
+                    {
+                        title: 'Tahapan Metamorfosis Sempurna Kupu-Kupu',
+                        items: [
+                            { item: '1. Telur diletakkan oleh induk pada permukaan daun' },
+                            { item: '2. Telur menetas menjadi Ulat (Larva) yang aktif makan daun' },
+                            { item: '3. Ulat membungkus dirinya menjadi Kepompong (Pupa)' },
+                            { item: '4. Mengalami pembentukan organ dalam fase kepompong' },
+                            { item: '5. Keluar menjadi Kupu-Kupu dewasa (Imago) yang indah' }
+                        ]
+                    }
+                ];
+                this.hotspots = [
+                    { x: 50, y: 50, label: 'Inti Sel (Nukleus)' },
+                    { x: 30, y: 40, label: 'Mitokondria' },
+                    { x: 80, y: 50, label: 'Membran Sel' },
+                    { x: 45, y: 70, label: 'Ribosom' },
+                    { x: 65, y: 35, label: 'Badan Golgi' }
+                ];
+                this.chemEquations = [
+                    { equation: '_ H2 + _ O2 -> _ H2O', answers: '2, 1, 2' },
+                    { equation: '_ N2 + _ H2 -> _ NH3', answers: '1, 3, 2' },
+                    { equation: '_ CH4 + _ O2 -> _ CO2 + _ H2O', answers: '1, 2, 1, 2' },
+                    { equation: '_ Na + _ Cl2 -> _ NaCl', answers: '2, 1, 2' },
+                    { equation: '_ Fe + _ O2 -> _ Fe2O3', answers: '4, 3, 2' }
+                ];
+                this.mathConfig = { operation: 'mixed', difficulty: 'easy' };
+                this.open = true;
+            },
+            loadGame(game) {
+                this.isEdit = true;
+                this.gameId = game.id;
+                this.moduleId = game.module_id || '';
+                this.title = game.title || '';
+                this.rewardPoints = game.reward_points || 50;
+                this.timeLimit = game.time_limit || '';
+                this.livesCount = game.lives_count || '';
+                this.gameType = game.game_type || 'quiz';
+
+                let gd = game.game_data || {};
+                if (typeof gd === 'string') {
+                    try { gd = JSON.parse(gd); } catch(e) { gd = {}; }
+                }
+
+                if (this.gameType === 'quiz') {
+                    this.quizQuestions = gd.questions && gd.questions.length > 0 
+                        ? JSON.parse(JSON.stringify(gd.questions))
+                        : [{ question: '', options: ['', '', '', ''], answer: 0 }];
+                } else if (this.gameType === 'true_false') {
+                    this.tfStatements = gd.statements && gd.statements.length > 0 
+                        ? JSON.parse(JSON.stringify(gd.statements))
+                        : [{ statement: '', is_true: true }];
+                } else if (this.gameType === 'spin_wheel') {
+                    this.wheelItems = gd.items && gd.items.length > 0 
+                        ? JSON.parse(JSON.stringify(gd.items))
+                        : ['Hadiah 1', 'Hadiah 2'];
+                } else if (this.gameType === 'flashcard' || this.gameType === 'match') {
+                    this.pairs = gd.pairs && gd.pairs.length > 0 
+                        ? JSON.parse(JSON.stringify(gd.pairs))
+                        : [{term: '', definition: ''}];
+                } else if (this.gameType === 'word_guess') {
+                    this.guessWords = gd.words && gd.words.length > 0 
+                        ? JSON.parse(JSON.stringify(gd.words))
+                        : [{ word: '', hint: '' }];
+                } else if (this.gameType === 'scramble') {
+                    this.scrambleWords = gd.words && gd.words.length > 0 
+                        ? JSON.parse(JSON.stringify(gd.words))
+                        : [{ word: '', hint: '' }];
+                } else if (this.gameType === 'sequence') {
+                    if (gd.groups && gd.groups.length > 0) {
+                        this.sequenceGroups = JSON.parse(JSON.stringify(gd.groups));
+                    } else if (gd.items && gd.items.length > 0) {
+                        this.sequenceGroups = [{ title: 'Kelompok 1', items: JSON.parse(JSON.stringify(gd.items)) }];
+                    } else {
+                        this.sequenceGroups = [{ title: 'Kelompok 1', items: [{ item: '' }, { item: '' }] }];
+                    }
+                } else if (this.gameType === 'image_hotspot') {
+                    this.hotspots = gd.hotspots && gd.hotspots.length > 0 
+                        ? JSON.parse(JSON.stringify(gd.hotspots))
+                        : [{ x: 50, y: 50, label: '' }];
+                } else if (this.gameType === 'chem_balancer') {
+                    this.chemEquations = gd.equations && gd.equations.length > 0 
+                        ? JSON.parse(JSON.stringify(gd.equations))
+                        : [{ equation: '', answers: '' }];
+                } else if (this.gameType === 'math_ninja') {
+                    this.mathConfig = gd.config ? JSON.parse(JSON.stringify(gd.config)) : { operation: 'mixed', difficulty: 'easy' };
+                }
+
+                this.open = true;
+            }
+        };
     }
 </script>
 @endpush
