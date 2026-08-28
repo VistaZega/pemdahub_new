@@ -362,6 +362,32 @@
                     </div>
                 @endif
 
+                @if($assignment->file_path)
+                    <div class="p-3 rounded-xl border border-blue-100 bg-blue-50/50 flex flex-col gap-2 mt-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                                @if(strtolower(pathinfo($assignment->file_path, PATHINFO_EXTENSION)) === 'pdf')
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                @else
+                                    <i class="fa-solid fa-file-alt"></i>
+                                @endif
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800 text-[10px]">Lampiran Soal / Instruksi</p>
+                                <p class="text-[9px] text-slate-500 font-medium uppercase">{{ strtoupper(pathinfo($assignment->file_path, PATHINFO_EXTENSION)) }} File</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-1">
+                            <a href="{{ Storage::disk('public')->url($assignment->file_path) }}" target="_blank" class="py-2 text-center rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-[10px] shadow-sm flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-eye"></i> Buka
+                            </a>
+                            <a href="{{ Storage::disk('public')->url($assignment->file_path) }}" download class="py-2 text-center rounded-lg bg-blue-600 text-white font-bold text-[10px] shadow-sm flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-download"></i> Unduh
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Submission Details / Feedback if graded for Student -->
                 @if(!$isTeacher && $sub && $sub->score !== null)
                     <div class="p-3 bg-emerald-50 rounded-2xl border-2 border-emerald-200 text-xs space-y-1">
