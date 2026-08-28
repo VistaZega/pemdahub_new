@@ -108,9 +108,9 @@
 
     .bento-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-auto-rows: minmax(220px, auto);
-        gap: 24px;
+        grid-template-columns: repeat(5, 1fr); /* 5 columns instead of 4 */
+        grid-auto-rows: minmax(130px, auto); /* Reduced height by ~40% */
+        gap: 16px; /* Tighter gap */
         max-width: 1400px;
         margin: 0 auto;
         grid-auto-flow: dense;
@@ -120,8 +120,8 @@
         background: rgba(255, 255, 255, 0.92);
         backdrop-filter: blur(12px);
         border: 1.5px solid rgba(226, 232, 240, 0.9);
-        border-radius: 32px;
-        padding: 28px;
+        border-radius: 20px; /* Smaller corner radius */
+        padding: 16px; /* Tighter padding */
         text-align: left;
         display: flex;
         flex-direction: column;
@@ -146,8 +146,8 @@
     
     .bento-watermark {
         position: absolute;
-        bottom: -15px;
-        right: -15px;
+        bottom: -10px;
+        right: -10px;
         width: 65%;
         max-height: 85%;
         object-fit: contain;
@@ -173,47 +173,58 @@
     }
 
     .bento-icon-box {
-        width: 64px;
-        height: 64px;
-        border-radius: 20px;
+        width: 44px; /* Smaller icon box */
+        height: 44px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
-        margin-bottom: 20px;
+        font-size: 20px;
+        margin-bottom: 12px;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
     }
 
     .bento-row-2 .bento-icon-box {
-        width: 80px;
-        height: 80px;
-        font-size: 36px;
-        border-radius: 24px;
+        width: 56px;
+        height: 56px;
+        font-size: 26px;
+        border-radius: 16px;
     }
 
     .bento-title {
-        font-size: 18px;
+        font-size: 14px; /* Smaller font */
         font-weight: 800;
         color: #0f172a;
-        margin: 0 0 12px 0;
+        margin: 0 0 8px 0;
         letter-spacing: -0.01em;
         line-height: 1.3;
     }
 
     .bento-col-2 .bento-title, .bento-row-2 .bento-title {
-        font-size: 24px;
+        font-size: 17px;
     }
 
     .bento-meta {
-        font-size: 14px;
+        font-size: 12px; /* Smaller font */
         color: #475569;
         font-weight: 600;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         margin-top: auto;
     }
+    
+    .bento-badge {
+        font-size: 10px;
+        padding: 4px 10px;
+        border-radius: 100px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
 
+    @media (max-width: 1200px) {
+        .bento-grid { grid-template-columns: repeat(4, 1fr); }
+    }
     @media (max-width: 1024px) {
         .bento-grid { grid-template-columns: repeat(3, 1fr); }
     }
@@ -291,7 +302,7 @@
                                 @if($isFa) <i class="{{ $iconStr }}"></i> @else <span>{{ $iconStr }}</span> @endif
                             </div>
                             
-                            <div style="font-size: 11.5px; padding: 6px 14px; border-radius: 100px; background: {{ $ekskul->isFoundationLevel() ? '#f5f3ff' : '#f8fafc' }}; color: {{ $ekskul->isFoundationLevel() ? '#7c3aed' : '#334155' }}; font-weight: 700; border: 1px solid {{ $ekskul->isFoundationLevel() ? '#ddd6fe' : '#e2e8f0' }}; white-space: nowrap;">
+                            <div class="bento-badge" style="background: {{ $ekskul->isFoundationLevel() ? '#f5f3ff' : '#f8fafc' }}; color: {{ $ekskul->isFoundationLevel() ? '#7c3aed' : '#334155' }}; border: 1px solid {{ $ekskul->isFoundationLevel() ? '#ddd6fe' : '#e2e8f0' }};">
                                 {{ $ekskul->isFoundationLevel() ? 'Lintas Yayasan' : ($ekskul->school->name ?? 'Unit Sekolah') }}
                             </div>
                         </div>
