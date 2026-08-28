@@ -11,23 +11,25 @@ use App\Models\ExtracurricularMember;
 echo "<pre>";
 echo "=== Script Penggabungan Ekskul (Pramuka SMKS) ===\n";
 
-$smks = \App\Models\School::where("name", "like", "%SMKS Pembda Nias%")->first();
-if (!$smks) {
-    die("Error: SMKS Pembda Nias tidak ditemukan.\n");
-}
-
-$sourceName = "Gugus Depan Gerakan Pramuka";
-$targetName = "Gugus Depan SMK Swasta Pembda Nias";
-
-// Find them by matching keywords
-$source = Extracurricular::where("school_id", $smks->id)->where("name", "like", "%Gerakan Pramuka%")->first();
-$target = Extracurricular::where("school_id", $smks->id)->where("name", "like", "Gugus Depan%")->where("id", "!=", $source?->id ?? 0)->orderBy("id")->first();
+// Mencari langsung dari nama Ekskul (Gugus Depan)
+$source = Extracurricular::where("name", "like", "%Gugus Depan Gerakan Pramuka%")->where("name", "like", "%SMK Swasta Pembda Nias%")->first();
+$target = Extracurricular::where("name", "like", "Gugus Depan SMK Swasta Pembda Nias%")->first();
 
 if (!$source) {
-    echo "Info: Ekskul sumber (3 Orang) tidak ditemukan (mungkin sudah dihapus/digabung).\n";
+    echo "Info: Ekskul sumber (3 Orang) tidak ditemukan. Mencari alternatif...\n";
+    $source = Extracurricular::where("name", "like", "%Gerakan Pramuka%")->where("name", "like", "%SMK%")->first();
+}
+
+if (!$target) {
+    echo "Info: Ekskul target (10 Orang) tidak ditemukan. Mencari alternatif...\n";
+    $target = Extracurricular::where("name", "like", "%Gugus Depan%")->where("name", "like", "%SMK%")->where("id", "!=", $source?->id ?? 0)->first();
+}
+
+if (!$source) {
+    die("Error: Ekskul sumber gagal ditemukan.\n");
 }
 if (!$target) {
-    die("Error: Ekskul target (10 Orang) tidak ditemukan.\n");
+    die("Error: Ekskul target gagal ditemukan.\n");
 }
 
 if ($source && $target) {
@@ -61,8 +63,7 @@ if ($source && $target) {
     $deletedName = $source->name;
     $source->delete();
 
-    // Pastikan nama targetnya bagus, ubah jika perlu
-    if (!str_contains($target->name, "Pramuka")) {
+    if (!str_contains(strtolower($target->name), "pramuka")) {
         $target->name = "Gugus Depan Pramuka SMKS Pembda Nias";
         $target->save();
         echo "- Nama ekskul target diperbarui menjadi: {$target->name}\n";
