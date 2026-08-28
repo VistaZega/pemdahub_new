@@ -299,6 +299,7 @@
                     $bgImgSrc = asset('images/ekskul/' . $ekskul->category . '_bg.jpg'); // Default
                     
                     if (str_contains($slug, 'futsal')) $bgImgSrc = asset('images/ekskul/futsal_bg.jpg');
+                    elseif (str_contains($slug, 'renang')) $bgImgSrc = asset('images/ekskul/renang_bg.svg');
                     elseif (str_contains($slug, 'tenis-meja')) $bgImgSrc = asset('images/ekskul/tenis_meja_bg.jpg');
                     elseif (str_contains($slug, 'vocal') || str_contains($slug, 'vokal')) $bgImgSrc = asset('images/ekskul/olah_vocal_bg.jpg');
                     elseif (str_contains($slug, 'english')) $bgImgSrc = asset('images/ekskul/english_club_bg.jpg');
