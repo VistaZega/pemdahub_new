@@ -595,6 +595,9 @@ if (!function_exists('balanceHtmlTags')) {
                                 </button>
                             </form>
                             @endif
+                            <button type="button" @click="$dispatch('open-game-player', { id: {{ $game->id }}, type: '{{ $game->game_type }}', title: '{{ addslashes($game->title) }}', data: {{ json_encode($game->game_data) }}, reward: {{ $game->reward_points }}, time_limit: {{ $game->time_limit ?: 'null' }}, lives_count: {{ $game->lives_count ?: 'null' }}, is_preview: true })" class="w-9 h-9 rounded-xl flex items-center justify-center bg-white text-black hover:bg-indigo-400 transition-colors border-2 border-black shadow-sm group" title="Preview Game">
+                                <i class="fas fa-play text-xs text-indigo-600 group-hover:text-white"></i>
+                            </button>
                             <button type="button" @click="$dispatch('open-edit-game-modal', {{ json_encode($game) }})" class="w-9 h-9 rounded-xl flex items-center justify-center bg-white text-black hover:bg-amber-400 transition-colors border-2 border-black shadow-sm" title="Edit Judul, Soal & Jawaban Game">
                                 <i class="fas fa-edit text-xs"></i>
                             </button>
@@ -1613,7 +1616,7 @@ if (!function_exists('balanceHtmlTags')) {
     <div class="flex items-center justify-center min-h-screen p-4" style="z-index: 99999 !important;">
         <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
 
-        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-2xl w-full relative border-2 border-black" style="z-index: 100000 !important;">
+        <div x-show="open" x-transition class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full relative border-2 border-black" style="max-width: 1100px; z-index: 100000 !important;">
             <div class="px-6 py-4 flex items-center justify-between border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
                 <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-sm uppercase"><i class="fas fa-gamepad text-amber-400"></i> <span x-text="isEdit ? 'Edit Game Pembelajaran' : 'Game Builder Studio (Interaktif)'"></span></h3>
                 <button @click="open = false" class="text-white/80 hover:text-white transition-colors bg-slate-800 border border-slate-700 w-8 h-8 rounded-xl flex items-center justify-center font-black"><i class="fas fa-times"></i></button>
@@ -1631,7 +1634,7 @@ if (!function_exists('balanceHtmlTags')) {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">Pilih Modul</label>
-                            <select name="module_id" x-model="moduleId" class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <select name="module_id" x-model="moduleId" class="w-full px-4 py-2.5 rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                                 <option value="">-- Pilih Modul --</option>
                                 @foreach($course->modules as $mod)
                                     <option value="{{ $mod->id }}">{{ $mod->getCode() }} - {{ $mod->title }}</option>
@@ -1640,13 +1643,13 @@ if (!function_exists('balanceHtmlTags')) {
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">EXP Reward (Poin)</label>
-                            <input type="number" name="reward_points" x-model="rewardPoints" value="50" min="0" max="1000" class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <input type="number" name="reward_points" x-model="rewardPoints" value="50" min="0" max="1000" class="w-full px-4 py-2.5 rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-1">Judul Game</label>
-                        <input type="text" name="title" x-model="title" class="w-full rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Contoh: Kuis Cepat Modul 1" required>
+                        <input type="text" name="title" x-model="title" class="w-full px-4 py-2.5 rounded-xl border-gray-200 bg-gray-50 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Contoh: Kuis Cepat Modul 1" required>
                     </div>
 
                     <div class="p-4 bg-red-50 border border-red-100 rounded-2xl" x-show="['quiz', 'true_false', 'word_guess', 'scramble', 'sequence'].includes(gameType)">
@@ -1654,12 +1657,12 @@ if (!function_exists('balanceHtmlTags')) {
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Batas Waktu (Detik)</label>
-                                <input type="number" name="time_limit" x-model="timeLimit" min="5" max="300" placeholder="Kosongkan jika tak terbatas" class="w-full rounded-xl border-red-200 bg-white text-sm focus:border-red-500 focus:ring-red-500 placeholder-gray-400">
+                                <input type="number" name="time_limit" x-model="timeLimit" min="5" max="300" placeholder="Kosongkan jika tak terbatas" class="w-full px-4 py-2.5 rounded-xl border-red-200 bg-white text-sm focus:border-red-500 focus:ring-red-500 placeholder-gray-400">
                                 <p class="text-[10px] text-gray-500 mt-1">Siswa akan gagal otomatis jika waktu habis.</p>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Batas Nyawa</label>
-                                <input type="number" name="lives_count" x-model="livesCount" min="1" max="10" placeholder="Kosongkan jika tak terbatas" class="w-full rounded-xl border-red-200 bg-white text-sm focus:border-red-500 focus:ring-red-500 placeholder-gray-400">
+                                <input type="number" name="lives_count" x-model="livesCount" min="1" max="10" placeholder="Kosongkan jika tak terbatas" class="w-full px-4 py-2.5 rounded-xl border-red-200 bg-white text-sm focus:border-red-500 focus:ring-red-500 placeholder-gray-400">
                                 <p class="text-[10px] text-gray-500 mt-1">Siswa Game Over jika nyawa habis. Khusus Tebak Kata selalu 5 nyawa.</p>
                             </div>
                         </div>
@@ -1668,7 +1671,8 @@ if (!function_exists('balanceHtmlTags')) {
 
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-2">Tipe Game</label>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <style>@media (min-width: 640px) { .sm\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); } }</style>
+<div class="grid grid-cols-2 sm:grid-cols-6 gap-3">
                             <label class="cursor-pointer">
                                 <input type="radio" name="game_type" value="flashcard" x-model="gameType" class="peer sr-only">
                                 <div class="rounded-xl border-2 border-gray-100 p-3 text-center hover:border-indigo-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all">
@@ -1764,8 +1768,8 @@ if (!function_exists('balanceHtmlTags')) {
                                 <template x-for="(pair, index) in pairs" :key="index">
                                     <div class="flex gap-2 items-center bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
                                         <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-400 font-bold text-xs" x-text="index + 1"></div>
-                                        <input type="text" x-model="pairs[index].term" placeholder="Istilah / Pertanyaan" class="flex-1 rounded-lg border-gray-200 text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                        <input type="text" x-model="pairs[index].definition" placeholder="Definisi / Jawaban" class="flex-1 rounded-lg border-gray-200 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        <input type="text" x-model="pairs[index].term" placeholder="Istilah / Pertanyaan" class="flex-1 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        <input type="text" x-model="pairs[index].definition" placeholder="Definisi / Jawaban" class="flex-1 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-indigo-500 focus:ring-indigo-500">
                                         <button type="button" @click="removePair(index)" class="w-8 h-8 rounded-lg flex items-center justify-center text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition"><i class="fas fa-times"></i></button>
                                     </div>
                                 </template>
@@ -1782,7 +1786,7 @@ if (!function_exists('balanceHtmlTags')) {
                                 <template x-for="(item, index) in wheelItems" :key="index">
                                     <div class="flex gap-2 items-center bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
                                         <div class="w-8 h-8 rounded-lg bg-pink-50 flex items-center justify-center text-pink-400 font-bold text-xs" x-text="index + 1"></div>
-                                        <input type="text" x-model="wheelItems[index]" placeholder="Label Item (Misal: 100 EXP, Zonk)" class="flex-1 rounded-lg border-gray-200 text-sm focus:border-pink-500 focus:ring-pink-500">
+                                        <input type="text" x-model="wheelItems[index]" placeholder="Label Item (Misal: 100 EXP, Zonk)" class="flex-1 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-pink-500 focus:ring-pink-500">
                                         <button type="button" @click="removeWheelItem(index)" class="w-8 h-8 rounded-lg flex items-center justify-center text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition"><i class="fas fa-times"></i></button>
                                     </div>
                                 </template>
@@ -1801,7 +1805,7 @@ if (!function_exists('balanceHtmlTags')) {
                                         <button type="button" @click="removeQuizQuestion(index)" class="absolute top-2 right-2 w-6 h-6 rounded flex items-center justify-center text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition"><i class="fas fa-times text-xs"></i></button>
                                         <div class="flex gap-2 items-center mb-3">
                                             <div class="w-6 h-6 rounded bg-emerald-50 flex items-center justify-center text-emerald-500 font-bold text-xs" x-text="index + 1"></div>
-                                            <input type="text" x-model="quizQuestions[index].question" placeholder="Pertanyaan..." class="flex-1 rounded-lg border-gray-200 text-sm focus:border-emerald-500 focus:ring-emerald-500 font-medium math-support-input">
+                                            <input type="text" x-model="quizQuestions[index].question" placeholder="Pertanyaan..." class="flex-1 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-emerald-500 focus:ring-emerald-500 font-medium math-support-input">
                                             <button type="button" @click="window.openMathPalette($event.target.closest('.flex').querySelector('input[type=text]'))" title="Sisipkan Simbol" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold border border-emerald-200"><i class="fas fa-square-root-variable"></i></button>
                                         </div>
                                         <div class="grid grid-cols-2 gap-2 pl-8">
@@ -1828,8 +1832,8 @@ if (!function_exists('balanceHtmlTags')) {
                                 <template x-for="(st, index) in tfStatements" :key="index">
                                     <div class="flex gap-2 items-center bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
                                         <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-400 font-bold text-xs" x-text="index + 1"></div>
-                                        <input type="text" x-model="tfStatements[index].statement" placeholder="Tuliskan pernyataan di sini..." class="flex-1 rounded-lg border-gray-200 text-sm focus:border-blue-500 focus:ring-blue-500">
-                                        <select x-model="tfStatements[index].is_true" class="rounded-lg border-gray-200 text-sm focus:border-blue-500 focus:ring-blue-500 w-28 font-bold" :class="(tfStatements[index].is_true === 'true' || tfStatements[index].is_true === true) ? 'text-emerald-600' : 'text-rose-600'">
+                                        <input type="text" x-model="tfStatements[index].statement" placeholder="Tuliskan pernyataan di sini..." class="flex-1 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <select x-model="tfStatements[index].is_true" class="px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-blue-500 focus:ring-blue-500 w-28 font-bold" :class="(tfStatements[index].is_true === 'true' || tfStatements[index].is_true === true) ? 'text-emerald-600' : 'text-rose-600'">
                                             <option :value="true">Benar</option>
                                             <option :value="false">Salah</option>
                                         </select>
@@ -1849,8 +1853,8 @@ if (!function_exists('balanceHtmlTags')) {
                                 <template x-for="(w, index) in guessWords" :key="index">
                                     <div class="flex gap-2 items-center bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
                                         <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 font-bold text-xs" x-text="index + 1"></div>
-                                        <input type="text" x-model="guessWords[index].word" placeholder="Kata (Tanpa Spasi)" class="w-1/3 rounded-lg border-gray-200 text-sm focus:border-amber-500 focus:ring-amber-500 font-mono uppercase">
-                                        <input type="text" x-model="guessWords[index].hint" placeholder="Petunjuk / Clue" class="flex-1 rounded-lg border-gray-200 text-sm focus:border-amber-500 focus:ring-amber-500">
+                                        <input type="text" x-model="guessWords[index].word" placeholder="Kata (Tanpa Spasi)" class="w-1/3 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-amber-500 focus:ring-amber-500 font-mono uppercase">
+                                        <input type="text" x-model="guessWords[index].hint" placeholder="Petunjuk / Clue" class="flex-1 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-amber-500 focus:ring-amber-500">
                                         <button type="button" @click="removeGuessWord(index)" class="w-8 h-8 rounded-lg flex items-center justify-center text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition"><i class="fas fa-times"></i></button>
                                     </div>
                                 </template>
@@ -1867,8 +1871,8 @@ if (!function_exists('balanceHtmlTags')) {
                                 <template x-for="(w, index) in scrambleWords" :key="index">
                                     <div class="flex gap-2 items-center bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
                                         <div class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 font-bold text-xs" x-text="index + 1"></div>
-                                        <input type="text" x-model="scrambleWords[index].word" placeholder="Kata Benda/Kerja (Tanpa Spasi)" class="w-1/3 rounded-lg border-gray-200 text-sm focus:border-orange-500 focus:ring-orange-500 font-mono uppercase">
-                                        <input type="text" x-model="scrambleWords[index].hint" placeholder="Petunjuk Singkat" class="flex-1 rounded-lg border-gray-200 text-sm focus:border-orange-500 focus:ring-orange-500">
+                                        <input type="text" x-model="scrambleWords[index].word" placeholder="Kata Benda/Kerja (Tanpa Spasi)" class="w-1/3 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-orange-500 focus:ring-orange-500 font-mono uppercase">
+                                        <input type="text" x-model="scrambleWords[index].hint" placeholder="Petunjuk Singkat" class="flex-1 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-orange-500 focus:ring-orange-500">
                                         <button type="button" @click="removeScrambleWord(index)" class="w-8 h-8 rounded-lg flex items-center justify-center text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition"><i class="fas fa-times"></i></button>
                                     </div>
                                 </template>
@@ -1893,7 +1897,7 @@ if (!function_exists('balanceHtmlTags')) {
                                         <div class="flex items-center justify-between gap-2 border-b border-gray-100 pb-2">
                                             <div class="flex items-center gap-2 flex-1">
                                                 <span class="w-6 h-6 rounded-lg bg-cyan-50 text-cyan-600 font-black text-xs flex items-center justify-center shrink-0" x-text="gIdx + 1"></span>
-                                                <input type="text" x-model="sequenceGroups[gIdx].title" :placeholder="'Judul / Petunjuk Kelompok ' + (gIdx + 1) + ' (misal: Siklus Air)'" class="flex-1 rounded-xl border-gray-200 text-xs font-bold focus:border-cyan-500 focus:ring-cyan-500">
+                                                <input type="text" x-model="sequenceGroups[gIdx].title" :placeholder="'Judul / Petunjuk Kelompok ' + (gIdx + 1) + ' (misal: Siklus Air)'" class="flex-1 px-3 py-2 rounded-xl border-gray-200 text-xs font-bold focus:border-cyan-500 focus:ring-cyan-500">
                                             </div>
                                             <button type="button" x-show="sequenceGroups.length > 1" @click="removeSequenceGroup(gIdx)" class="text-rose-400 hover:text-rose-600 p-1 transition shrink-0" title="Hapus Kelompok">
                                                 <i class="fas fa-trash-alt text-xs"></i>
@@ -1911,7 +1915,7 @@ if (!function_exists('balanceHtmlTags')) {
                                             <template x-for="(item, iIdx) in g.items" :key="iIdx">
                                                 <div class="flex gap-2 items-center bg-gray-50 p-2 rounded-xl border border-gray-200">
                                                     <div class="w-6 h-6 rounded-md bg-white border border-gray-200 flex items-center justify-center text-cyan-600 font-bold text-[11px] shrink-0" x-text="iIdx + 1"></div>
-                                                    <input type="text" x-model="sequenceGroups[gIdx].items[iIdx].item" placeholder="Contoh: Panaskan air hingga mendidih" class="flex-1 rounded-lg border-gray-200 text-xs focus:border-cyan-500 focus:ring-cyan-500">
+                                                    <input type="text" x-model="sequenceGroups[gIdx].items[iIdx].item" placeholder="Contoh: Panaskan air hingga mendidih" class="flex-1 px-3 py-2 rounded-lg border-gray-200 text-xs focus:border-cyan-500 focus:ring-cyan-500">
                                                     <button type="button" x-show="g.items.length > 1" @click="removeSequenceItem(gIdx, iIdx)" class="w-6 h-6 rounded flex items-center justify-center text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition shrink-0"><i class="fas fa-times text-xs"></i></button>
                                                 </div>
                                             </template>
@@ -1935,9 +1939,9 @@ if (!function_exists('balanceHtmlTags')) {
                             <div class="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                                 <template x-for="(hotspot, index) in hotspots" :key="index">
                                     <div class="flex gap-2 items-center bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
-                                        <input type="text" x-model="hotspots[index].label" placeholder="Nama Area (misal: Mitokondria)" class="flex-1 rounded-lg border-gray-200 text-sm focus:border-emerald-500 focus:ring-emerald-500">
-                                        <input type="number" x-model="hotspots[index].x" placeholder="X %" min="0" max="100" class="w-20 rounded-lg border-gray-200 text-sm focus:border-emerald-500 focus:ring-emerald-500">
-                                        <input type="number" x-model="hotspots[index].y" placeholder="Y %" min="0" max="100" class="w-20 rounded-lg border-gray-200 text-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                        <input type="text" x-model="hotspots[index].label" placeholder="Nama Area (misal: Mitokondria)" class="flex-1 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                        <input type="number" x-model="hotspots[index].x" placeholder="X %" min="0" max="100" class="w-20 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                        <input type="number" x-model="hotspots[index].y" placeholder="Y %" min="0" max="100" class="w-20 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-emerald-500 focus:ring-emerald-500">
                                         <button type="button" @click="removeHotspot(index)" class="w-8 h-8 rounded-lg flex items-center justify-center text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition"><i class="fas fa-times"></i></button>
                                     </div>
                                 </template>
@@ -1953,9 +1957,9 @@ if (!function_exists('balanceHtmlTags')) {
                             <div class="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                                 <template x-for="(eq, index) in chemEquations" :key="index">
                                     <div class="flex flex-col gap-2 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
-                                        <input type="text" x-model="chemEquations[index].equation" placeholder="Contoh: _ H2 + _ O2 -> _ H2O (Gunakan underscore _)" class="w-full rounded-lg border-gray-200 text-sm focus:border-sky-500 focus:ring-sky-500 font-mono">
+                                        <input type="text" x-model="chemEquations[index].equation" placeholder="Contoh: _ H2 + _ O2 -> _ H2O (Gunakan underscore _)" class="w-full px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-sky-500 focus:ring-sky-500 font-mono">
                                         <div class="flex gap-2 items-center">
-                                            <input type="text" x-model="chemEquations[index].answers" placeholder="Jawaban Koefisien (pisahkan koma: 2,1,2)" class="flex-1 rounded-lg border-gray-200 text-sm focus:border-sky-500 focus:ring-sky-500">
+                                            <input type="text" x-model="chemEquations[index].answers" placeholder="Jawaban Koefisien (pisahkan koma: 2,1,2)" class="flex-1 px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-sky-500 focus:ring-sky-500">
                                             <button type="button" @click="removeChemEquation(index)" class="w-8 h-8 rounded-lg flex items-center justify-center text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition"><i class="fas fa-times"></i></button>
                                         </div>
                                     </div>
@@ -1969,7 +1973,7 @@ if (!function_exists('balanceHtmlTags')) {
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Operasi Hitung</label>
-                                    <select x-model="mathConfig.operation" class="w-full rounded-lg border-gray-200 text-sm focus:border-purple-500 focus:ring-purple-500">
+                                    <select x-model="mathConfig.operation" class="w-full px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-purple-500 focus:ring-purple-500">
                                         <option value="add">Penjumlahan (+)</option>
                                         <option value="sub">Pengurangan (-)</option>
                                         <option value="mul">Perkalian (x)</option>
@@ -1978,7 +1982,7 @@ if (!function_exists('balanceHtmlTags')) {
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Tingkat Kesulitan</label>
-                                    <select x-model="mathConfig.difficulty" class="w-full rounded-lg border-gray-200 text-sm focus:border-purple-500 focus:ring-purple-500">
+                                    <select x-model="mathConfig.difficulty" class="w-full px-3 py-2 rounded-lg border-gray-200 text-sm focus:border-purple-500 focus:ring-purple-500">
                                         <option value="easy">Mudah (Angka 1-10)</option>
                                         <option value="medium">Sedang (Angka 10-50)</option>
                                         <option value="hard">Sulit (Angka 50-100)</option>
@@ -2257,6 +2261,7 @@ if (!function_exists('balanceHtmlTags')) {
     </div>
 </div>
 </div>
+@include('components.lms-game-player')
 @endsection
 
 @push('scripts')
