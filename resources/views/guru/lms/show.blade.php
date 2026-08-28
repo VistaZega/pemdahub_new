@@ -284,15 +284,15 @@ if (!function_exists('balanceHtmlTags')) {
                     <span class="w-8 h-8 rounded-xl flex items-center justify-center border-2 border-black" style="background-color: #d1fae5 !important; color: #000000 !important;"><i class="fas fa-layer-group text-black text-xs"></i></span>
                     STRUKTUR KURIKULUM & MODUL
                 </h3>
-                <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('guru.lms.modules.create', $course->id) }}" class="flex items-center justify-center gap-2 bg-white border-2 border-black text-black px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition hover:bg-amber-300 shadow-sm">
-                        <i class="fas fa-plus text-black"></i> Tambah Modul
+                <div class="flex flex-wrap gap-2.5">
+                    <a href="{{ route('guru.lms.modules.create', $course->id) }}" class="inline-flex items-center justify-center gap-2.5 bg-white border-2 border-black text-black px-5 py-2.5 rounded-2xl text-xs font-black uppercase transition hover:bg-amber-300 shadow-sm">
+                        <i class="fas fa-plus text-black text-xs"></i> Tambah Modul
                     </a>
-                    <button @click="$dispatch('open-game-modal')" class="flex items-center justify-center gap-2 bg-black hover:bg-purple-600 text-white border-2 border-black px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition shadow-md">
-                        <i class="fas fa-gamepad text-amber-400"></i> Buat Game
+                    <button @click="$dispatch('open-game-modal')" class="inline-flex items-center justify-center gap-2.5 bg-black hover:bg-purple-600 text-white border-2 border-black px-5 py-2.5 rounded-2xl text-xs font-black uppercase transition shadow-md">
+                        <i class="fas fa-gamepad text-amber-400 text-xs"></i> Buat Game
                     </button>
-                    <button @click="$dispatch('open-material-modal')" class="flex items-center justify-center gap-2 bg-black hover:bg-emerald-600 text-white border-2 border-black px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition shadow-md">
-                        <i class="fas fa-upload text-amber-400"></i> Upload Materi
+                    <button @click="$dispatch('open-material-modal')" class="inline-flex items-center justify-center gap-2.5 bg-black hover:bg-emerald-600 text-white border-2 border-black px-5 py-2.5 rounded-2xl text-xs font-black uppercase transition shadow-md">
+                        <i class="fas fa-upload text-amber-400 text-xs"></i> Upload Materi
                     </button>
                 </div>
             </div>
@@ -573,37 +573,37 @@ if (!function_exists('balanceHtmlTags')) {
                 <div class="px-4 pb-4 space-y-2">
                     <h4 class="text-xs font-black text-black uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5"><i class="fas fa-gamepad text-purple-600"></i> Mini Games Pembelajaran ({{ $module->games->count() }})</h4>
                     @foreach($module->games as $game)
-                    <div class="rounded-2xl border-2 border-black p-3.5 flex items-center justify-between shadow-sm" style="background-color: #f3e8ff !important;">
-                        <div class="flex items-center gap-3.5">
-                            <span class="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-amber-400 shadow-sm border border-black">
-                                <i class="fas fa-gamepad text-lg"></i>
+                    <div class="rounded-2xl border-2 border-black px-5 py-4 flex items-center justify-between shadow-sm" style="background-color: #f3e8ff !important;">
+                        <div class="flex items-center gap-4">
+                            <span class="w-12 h-12 rounded-2xl bg-black flex items-center justify-center text-amber-400 shadow-md border-2 border-black shrink-0">
+                                <i class="fas fa-gamepad text-xl"></i>
                             </span>
                             <div>
-                                <p class="font-black text-black text-sm flex items-center gap-2">
-                                    {{ $game->title }}
-                                    <span class="bg-amber-300 text-black text-[9px] font-black px-2 py-0.5 rounded-md uppercase border border-black">{{ str_replace('_', ' ', $game->game_type) }}</span>
+                                <p class="font-black text-black text-base flex flex-wrap items-center gap-2.5">
+                                    <span>{{ $game->title }}</span>
+                                    <span class="bg-white text-black text-[10px] font-black px-2.5 py-0.5 rounded-xl uppercase border-2 border-black shadow-xs">{{ str_replace('_', ' ', $game->game_type) }}</span>
                                 </p>
-                                <p class="text-[10px] text-black font-black uppercase mt-0.5"><i class="fas fa-star text-amber-500"></i> REWARD: {{ $game->reward_points }} EXP</p>
+                                <p class="text-xs text-black font-black uppercase mt-1 flex items-center gap-1.5"><i class="fas fa-star text-amber-500 text-xs"></i> REWARD: {{ $game->reward_points }} EXP</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
                             @if(in_array($game->game_type, ['quiz', 'true_false']))
                             <form action="{{ route('guru.lms.games.live.create', $game->id) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="w-auto px-3.5 h-9 rounded-xl flex items-center justify-center bg-black text-white hover:bg-emerald-600 transition-colors font-black text-xs border-2 border-black shadow-sm gap-2" title="Jalankan Mode Multiplayer Live">
+                                <button type="submit" class="w-auto px-4 h-10 rounded-2xl flex items-center justify-center bg-black text-white hover:bg-emerald-600 transition-colors font-black text-xs border-2 border-black shadow-sm gap-2" title="Jalankan Mode Multiplayer Live">
                                     <i class="fas fa-satellite-dish text-amber-400"></i> Host Live Game
                                 </button>
                             </form>
                             @endif
-                            <button type="button" @click="$dispatch('open-game-player', { id: {{ $game->id }}, type: '{{ $game->game_type }}', title: '{{ addslashes($game->title) }}', data: {{ json_encode($game->game_data) }}, reward: {{ $game->reward_points }}, time_limit: {{ $game->time_limit ?: 'null' }}, lives_count: {{ $game->lives_count ?: 'null' }}, is_preview: true })" class="w-9 h-9 rounded-xl flex items-center justify-center bg-white text-black hover:bg-indigo-400 transition-colors border-2 border-black shadow-sm group" title="Preview Game">
+                            <button type="button" @click="$dispatch('open-game-player', { id: {{ $game->id }}, type: '{{ $game->game_type }}', title: '{{ addslashes($game->title) }}', data: {{ json_encode($game->game_data) }}, reward: {{ $game->reward_points }}, time_limit: {{ $game->time_limit ?: 'null' }}, lives_count: {{ $game->lives_count ?: 'null' }}, is_preview: true })" class="w-10 h-10 rounded-2xl flex items-center justify-center bg-white text-black hover:bg-indigo-400 transition-colors border-2 border-black shadow-sm group" title="Preview Game">
                                 <i class="fas fa-play text-xs text-indigo-600 group-hover:text-white"></i>
                             </button>
-                            <button type="button" @click="$dispatch('open-edit-game-modal', {{ json_encode($game) }})" class="w-9 h-9 rounded-xl flex items-center justify-center bg-white text-black hover:bg-amber-400 transition-colors border-2 border-black shadow-sm" title="Edit Judul, Soal & Jawaban Game">
+                            <button type="button" @click="$dispatch('open-edit-game-modal', {{ json_encode($game) }})" class="w-10 h-10 rounded-2xl flex items-center justify-center bg-white text-black hover:bg-amber-400 transition-colors border-2 border-black shadow-sm" title="Edit Judul, Soal & Jawaban Game">
                                 <i class="fas fa-edit text-xs"></i>
                             </button>
                             <form action="{{ route('guru.lms.games.destroy', $game->id) }}" method="POST" onsubmit="return confirm('Hapus game ini?')" class="inline">
                                 @csrf @method('DELETE')
-                                <button class="w-9 h-9 rounded-xl flex items-center justify-center bg-white text-black hover:bg-rose-600 hover:text-white transition-colors border-2 border-black shadow-sm" title="Hapus Game"><i class="fas fa-trash text-xs"></i></button>
+                                <button class="w-10 h-10 rounded-2xl flex items-center justify-center bg-white text-black hover:bg-rose-600 hover:text-white transition-colors border-2 border-black shadow-sm" title="Hapus Game"><i class="fas fa-trash text-xs"></i></button>
                             </form>
                         </div>
                     </div>
