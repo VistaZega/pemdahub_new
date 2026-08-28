@@ -7,66 +7,104 @@ $kernel->bootstrap();
 use Illuminate\Support\Facades\DB;
 use App\Models\Extracurricular;
 use App\Models\ExtracurricularMember;
+use App\Models\School;
 
 echo "<pre>";
-echo "=== Script Penggabungan Ekskul (Paskibraka SMAS Pembda 1) ===\n";
+echo "=== Script Auto-Merge Ekskul (SMKS Pembda Nias) ===\n\n";
 
-$smas = \App\Models\School::where("name", "like", "%SMAS Pembda 1%")->first();
-if (!$smas) {
-    die("Error: SMAS Pembda 1 tidak ditemukan.\n");
+$smks = School::where("name", "like", "%SMKS Pembda Nias%")->first();
+if (!$smks) {
+    die("Error: SMKS Pembda Nias tidak ditemukan.\n");
 }
 
-$sourceName = "Korps Paskibraka Satria";
-$targetName = "Paskas";
+// Get all ekskul for SMKS
+$ekskuls = Extracurricular::where("school_id", $smks->id)->withCount("members")->get();
 
-$source = Extracurricular::where("school_id", $smas->id)->where("name", "like", "%{$sourceName}%")->first();
-$target = Extracurricular::where("school_id", $smas->id)->where("name", "like", "%{$targetName}%")->first();
+$keywords = [
+    "Futsal",
+    "Pramuka",
+    "Paskibraka",
+    "Paskas",
+    "Voli",
+    "Volleyball",
+    "Basket",
+    "Tari",
+    "Pencak Silat",
+    "Karate",
+    "Rohis",
+    "Rohkris",
+    "Musik",
+    "Osil"
+];
 
-if (!$source) {
-    echo "Info: Ekskul {$sourceName} tidak ditemukan (mungkin sudah dihapus/digabung).\n";
-}
-if (!$target) {
-    $target = Extracurricular::where("name", "like", "%{$targetName}%")->first();
-    if (!$target) {
-        die("Error: Ekskul {$targetName} tidak ditemukan.\n");
-    }
-}
+$groups = [];
 
-if ($source && $target) {
-    echo "Memindahkan anggota dari '{$source->name}' ke '{$target->name}'...\n";
-
-    $membersToMove = ExtracurricularMember::where("extracurricular_id", $source->id)->get();
-    $countMoved = 0;
-    $countDuplicate = 0;
-
-    foreach ($membersToMove as $member) {
-        $exists = ExtracurricularMember::where("extracurricular_id", $target->id)
-                    ->where("student_id", $member->student_id)
-                    ->exists();
-                    
-        if (!$exists) {
-            $member->extracurricular_id = $target->id;
-            $member->save();
-            $countMoved++;
-            echo "- Siswa ID {$member->student_id} dipindahkan.\n";
-        } else {
-            $member->delete();
-            $countDuplicate++;
-            echo "- Siswa ID {$member->student_id} sudah ada di {$target->name} (duplikat dihapus).\n";
+foreach ($ekskuls as $ek) {
+    $matched = false;
+    foreach ($keywords as $kw) {
+        if (stripos($ek->name, $kw) !== false) {
+            // Group by this keyword
+            // Note: Paskibraka and Paskas can be grouped together
+            $groupKey = ($kw == "Paskas") ? "Paskibraka" : $kw;
+            $groupKey = ($kw == "Volleyball") ? "Voli" : $groupKey;
+            
+            $groups[$groupKey][] = $ek;
+            $matched = true;
+            break;
         }
     }
-
-    DB::table("extracurricular_activities")
-        ->where("extracurricular_id", $source->id)
-        ->update(["extracurricular_id" => $target->id]);
-
-    $deletedName = $source->name;
-    $source->delete();
-
-    echo "\nRingkasan:\n";
-    echo "- $countMoved anggota berhasil dipindahkan.\n";
-    echo "- $countDuplicate anggota dihapus karena duplikat.\n";
-    echo "- Ekskul $deletedName telah dihapus dari sistem.\n";
+    if (!$matched) {
+        $groups["Lainnya"][] = $ek;
+    }
 }
 
-echo "\nPenggabungan selesai. Anda bisa menutup halaman ini.";
+foreach ($groups as $key => $items) {
+    if ($key == "Lainnya") continue;
+    
+    if (count($items) > 1) {
+        echo "Ditemukan duplikasi untuk kategori: <b>$key</b>\n";
+        
+        // Sort by member count descending
+        usort($items, function($a, $b) {
+            return $b->members_count <=> $a->members_count;
+        });
+        
+        $target = $items[0];
+        echo "  -> Dipertahankan: {$target->name} ({$target->members_count} anggota)\n";
+        
+        for ($i = 1; $i < count($items); $i++) {
+            $source = $items[$i];
+            echo "  -> Akan digabung & dihapus: {$source->name} ({$source->members_count} anggota)\n";
+            
+            // Do the merge
+            $membersToMove = ExtracurricularMember::where("extracurricular_id", $source->id)->get();
+            $countMoved = 0;
+            $countDuplicate = 0;
+
+            foreach ($membersToMove as $member) {
+                $exists = ExtracurricularMember::where("extracurricular_id", $target->id)
+                            ->where("student_id", $member->student_id)
+                            ->exists();
+                            
+                if (!$exists) {
+                    $member->extracurricular_id = $target->id;
+                    $member->save();
+                    $countMoved++;
+                } else {
+                    $member->delete();
+                    $countDuplicate++;
+                }
+            }
+
+            DB::table("extracurricular_activities")
+                ->where("extracurricular_id", $source->id)
+                ->update(["extracurricular_id" => $target->id]);
+
+            $source->delete();
+            echo "     * Selesai: $countMoved dipindah, $countDuplicate duplikat dihapus.\n";
+        }
+        echo "\n";
+    }
+}
+
+echo "Pengecekan dan penggabungan otomatis selesai. Anda bisa menutup halaman ini.";
