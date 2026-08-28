@@ -87,7 +87,6 @@ class PklStudentController extends Controller
                 if ($placement->teacher && $placement->teacher->user_id) {
                     \App\Models\Notification::create([
                         'user_id' => $placement->teacher->user_id,
-                        'school_id' => $student->school_id,
                         'title' => '📝 Revisi Jurnal PKL Dikirim',
                         'message' => 'Siswa ' . $student->full_name . ' telah mengirimkan revisi logbook PKL untuk tanggal ' . \Carbon\Carbon::parse($validated['log_date'])->format('d/m/Y') . '.',
                         'type' => 'info',

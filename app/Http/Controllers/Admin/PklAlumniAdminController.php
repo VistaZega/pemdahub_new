@@ -266,7 +266,6 @@ class PklAlumniAdminController extends Controller
 
             \App\Models\Notification::create([
                 'user_id' => $placement->student->user_id,
-                'school_id' => $placement->student->school_id,
                 'title' => '⚠️ Logbook PKL Perlu Direvisi',
                 'message' => 'Logbook PKL tanggal ' . \Carbon\Carbon::parse($log->log_date)->format('d/m/Y') . ' diminta revisi oleh Admin/Sekolah. Catatan: ' . $validated['mentor_notes'],
                 'type' => 'warning',

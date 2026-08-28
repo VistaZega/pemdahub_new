@@ -1631,7 +1631,6 @@ class MobileTeacherController extends Controller
             // In-app notification
             \App\Models\Notification::create([
                 'user_id' => $placement->student->user_id,
-                'school_id' => $placement->student->school_id,
                 'title' => '⚠️ Jurnal PKL Perlu Direvisi',
                 'message' => 'Jurnal PKL tanggal ' . \Carbon\Carbon::parse($log->log_date)->format('d/m/Y') . ' diminta revisi oleh Pembimbing (' . $teacher->full_name . '). Catatan: ' . $validated['mentor_notes'],
                 'type' => 'warning',

@@ -583,7 +583,6 @@ class MobileStudentController extends Controller
                 if ($pklPlacement->teacher && $pklPlacement->teacher->user_id) {
                     \App\Models\Notification::create([
                         'user_id' => $pklPlacement->teacher->user_id,
-                        'school_id' => $student->school_id,
                         'title' => '📝 Revisi Jurnal PKL Masuk',
                         'message' => 'Siswa ' . $student->full_name . ' telah mengirimkan revisi jurnal PKL tanggal ' . date('d/m/Y', strtotime($logDate)) . '.',
                         'type' => 'info',

@@ -1099,7 +1099,6 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
                 if ($student && $student->user_id) {
                     Notification::create([
                         'user_id'       => $student->user_id,
-                        'school_id'     => $course->school_id,
                         'title'         => '🔴 Kelas Live Dimulai!',
                         'message'       => "Guru telah memulai kelas live untuk course **{$course->name}**. Bergabunglah sekarang!",
                         'type'          => 'info',
