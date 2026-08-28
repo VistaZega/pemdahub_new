@@ -294,10 +294,14 @@
                         case 'olahraga': $bgColor = '#ecfdf5'; $textColor = '#059669'; break;
                         case 'sains_it': $bgColor = '#ecfeff'; $textColor = '#0891b2'; break;
                     }
+                    
+                    $specificImg = 'images/ekskul/' . str_replace('-', '_', \Illuminate\Support\Str::slug($ekskul->name)) . '_bg.jpg';
+                    $categoryImg = 'images/ekskul/' . $ekskul->category . '_bg.jpg';
+                    $bgImgSrc = file_exists(public_path($specificImg)) ? asset($specificImg) : asset($categoryImg);
                 @endphp
                 
                 <div class="bento-card {{ $bentoClass }}" style="background: {{ $bgColor }}; border: 1.5px solid #000000; box-shadow: 4px 4px 0px rgba(0,0,0,0.1);">
-                    <img class="bento-watermark" src="{{ asset('images/ekskul/' . $ekskul->category . '_bg.jpg') }}" alt="Background" onerror="this.style.display='none'">
+                    <img class="bento-watermark" src="{{ $bgImgSrc }}" alt="Background" onerror="this.style.display='none'">
                     
                     <div class="bento-content">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
