@@ -46,7 +46,7 @@
                     </div>
                     <div class="pt-4 border-t border-[#e2ded5] flex items-center justify-between text-[11px] font-mono-code font-bold">
                         <span class="text-[#777]">Oleh: {{ $item->author_name ?? 'Humas PEMBDA' }}</span>
-                        <a href="{{ route('public.news.show', $item->slug ?? $item->id) }}" class="text-[#ff3823] hover:underline">Baca &rarr;</a>
+                        <a href="{{ url('/news/' . ($item->slug ?? $item->id)) }}" class="text-[#ff3823] hover:underline">Baca &rarr;</a>
                     </div>
                 </article>
             @endforeach
