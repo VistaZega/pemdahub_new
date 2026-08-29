@@ -613,7 +613,7 @@ Route::get('/', function () {
         ->orderByRaw("FIELD(achievement_level, 'internasional','nasional','propinsi','kabupaten','sekolah') ASC")
         ->orderByRaw("FIELD(ranking, 'juara_1','juara_2','juara_3','best_speaker','mvp','harapan_1','harapan_2','harapan_3','finalis','peserta') ASC")
         ->latest('incident_date')
-        ->take(6)
+        ->take(12)
         ->get();
     $totalAchievements = \App\Models\StudentCounselingRecord::where('record_type', 'penghargaan')->count();
 

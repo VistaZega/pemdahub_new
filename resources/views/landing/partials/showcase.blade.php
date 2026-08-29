@@ -42,7 +42,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="showcase-grid">
             
             {{-- 1. LOOP REAL PROJECT AKHIR / PENELITIAN SISWA --}}
-            @forelse($finalProjectsShowcase->take(4) as $project)
+            @forelse($finalProjectsShowcase->take(8) as $project)
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
@@ -73,7 +73,7 @@
             @endforelse
 
             {{-- 2. LOOP REAL PKL SHOWCASE (LOGBOOK DUDI & MONITORING) --}}
-            @forelse($pklShowcase->take(4) as $pkl)
+            @forelse($pklShowcase->take(8) as $pkl)
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
@@ -102,7 +102,7 @@
             @endforelse
 
             {{-- 3. LOOP REAL MODUL BAHAN AJAR LMS --}}
-            @forelse($trainingModules->take(4) as $module)
+            @forelse($trainingModules->take(8) as $module)
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
@@ -133,7 +133,7 @@
             @endforelse
 
             {{-- 4. LOOP REAL PRESTASI & PENGHARGAAN SISWA --}}
-            @forelse($achievements->take(4) as $ach)
+            @forelse($achievements->take(8) as $ach)
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
