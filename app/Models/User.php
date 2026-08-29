@@ -325,7 +325,15 @@ class User extends Authenticatable
      */
     public function isSiswa(): bool
     {
-        return $this->hasRole('siswa') || session('active_role') === 'siswa';
+        return $this->role === 'siswa' || $this->hasRole('siswa') || $this->hasRole('student') || session('active_role') === 'siswa' || (bool) $this->student;
+    }
+
+    /**
+     * Check if user is Siswa (English alias)
+     */
+    public function isStudent(): bool
+    {
+        return $this->isSiswa();
     }
 
     /**

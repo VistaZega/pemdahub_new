@@ -49,6 +49,9 @@ $files = [
     'app/Http/Controllers/Admin/NewsController.php',
     'app/Http/Controllers/Admin/GalleryController.php',
     'resources/views/admin/news/form.blade.php',
+    'app/Models/User.php',
+    'resources/views/profile/settings.blade.php',
+    'app/Http/Controllers/ProfileSettingsController.php',
 ];
 
 $successCount = 0;
