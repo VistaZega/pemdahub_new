@@ -2,7 +2,6 @@
 /**
  * One-Click Server Auto-Pull & Migration Tool for PembdaHUB
  * Akses: https://perguruanpembda.com/git_pull_now.php?secret=pembda99
- * Opsi Token: https://perguruanpembda.com/git_pull_now.php?secret=pembda99&token=YOUR_GITHUB_TOKEN
  */
 if (($_GET['secret'] ?? '') !== 'pembda99') {
     http_response_code(403);
@@ -32,7 +31,21 @@ echo "<h1>🚀 PembdaHUB One-Click Git Pull & Deploy</h1>";
 flush();
 
 $root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
-$githubToken = trim($_GET['token'] ?? '');
+
+// 🔑 TOKEN KONFIGURASI OTOMATIS:
+// 1. Dari variabel $defaultToken di bawah
+// 2. Atau dari file .env (GITHUB_DEPLOY_TOKEN=ghp_...)
+// 3. Atau dari parameter URL (?token=ghp_...)
+$defaultToken = ''; // <-- Masukkan token GitHub (ghp_...) di sini agar deploy berjalan otomatis selamanya
+
+if (empty($defaultToken) && file_exists("{$root}/.env")) {
+    $envContent = @file_get_contents("{$root}/.env");
+    if (preg_match('/^GITHUB_DEPLOY_TOKEN=(.*)$/m', $envContent, $matches)) {
+        $defaultToken = trim($matches[1], "\"' \r\n");
+    }
+}
+
+$githubToken = trim($_GET['token'] ?? '') ?: $defaultToken;
 
 // Prevent Git from hanging on authentication prompts
 putenv('GIT_TERMINAL_PROMPT=0');
@@ -84,8 +97,10 @@ execCmd("git -C {$root} remote -v", "1. Memeriksa Remote URL Saat Ini");
 
 // 2. Set Remote URL jika ada GitHub Token
 if (!empty($githubToken)) {
+    $maskedToken = substr($githubToken, 0, 7) . '...' . substr($githubToken, -4);
+    echo "<h2>▶ 2. Otentikasi GitHub Token</h2><pre><span class='ok'>✔ Token aktif terdeteksi: {$maskedToken}</span></pre>";
     $authRepoUrl = "https://{$githubToken}@github.com/VistaZega/pemdahub_new.git";
-    execCmd("git -C {$root} remote set-url origin {$authRepoUrl}", "2. Menyelaraskan Remote URL Repository dengan Token");
+    execCmd("git -C {$root} remote set-url origin {$authRepoUrl}", "Menyelaraskan Remote URL dengan Kredensial Token");
 }
 
 // 3. Fetch data terbaru dari GitHub
@@ -93,15 +108,14 @@ $fetchStatus = execCmd("git -C {$root} fetch origin main --prune", "3. Mengunduh
 
 if ($fetchStatus !== 0) {
     echo "<div class='notice-box' style='border-color:#f85149;'>";
-    echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Memerlukan Otentikasi GitHub</h3>";
-    echo "<p>Karena repositori GitHub ini bersifat privat, Git di server Hostinger tidak dapat mengunduh tanpa kredensial.</p>";
-    echo "<p><strong>Cara Deploy yang Benar di Hostinger:</strong></p>";
-    echo "<ol>";
-    echo "<li>Buka <strong>hPanel Hostinger</strong></li>";
-    echo "<li>Masuk ke menu <strong>Git</strong> (di bawah section Advanced / Files)</li>";
-    echo "<li>Pilih repositori <code>pemdahub_new</code> dan klik tombol <strong>\"Deploy\"</strong></li>";
-    echo "</ol>";
-    echo "<p>Atau jalankan script ini dengan menambahkan token: <code>https://perguruanpembda.com/git_pull_now.php?secret=pembda99&token=YOUR_GITHUB_PAT</code></p>";
+    echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Gagal (Memerlukan Token)</h3>";
+    echo "<p>Karena repositori GitHub ini bersifat privat, silakan masukkan Personal Access Token (PAT) GitHub.</p>";
+    echo "<p><strong>Pilihan Solusi:</strong></p>";
+    echo "<ul>";
+    echo "<li>Buka via URL dengan token: <code>https://perguruanpembda.com/git_pull_now.php?secret=pembda99&token=YOUR_GITHUB_TOKEN</code></li>";
+    echo "<li>Atau isi baris <code>\$defaultToken = 'ghp_...';</code> di file <code>public/git_pull_now.php</code></li>";
+    echo "<li>Atau lakukan Deploy dari menu Git di hPanel Hostinger</li>";
+    echo "</ul>";
     echo "</div>";
     flush();
 }
@@ -113,7 +127,7 @@ execCmd("git -C {$root} log -1 --oneline", "4. Commit Server Saat Ini (Sebelum U
 if ($fetchStatus === 0) {
     execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
 } else {
-    echo "<h2>▶ 5. Menerapkan Update Kode</h2><pre><span class='warn'>Dilewati karena Git Fetch gagal. Server tetap pada commit saat ini. Silakan Deploy via hPanel.</span></pre>";
+    echo "<h2>▶ 5. Menerapkan Update Kode</h2><pre><span class='warn'>Dilewati karena Git Fetch gagal. Server tetap pada commit saat ini. Silakan Deploy via hPanel / Token.</span></pre>";
 }
 
 // 6. Status Commit Setelah Update
