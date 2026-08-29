@@ -3,74 +3,147 @@
  * One-Click Server Auto-Pull & Migration Tool for PembdaHUB
  * Akses: https://perguruanpembda.com/git_pull_now.php?secret=pembda99
  */
-if (($_GET['secret'] ?? '') !== 'pembda99') { http_response_code(403); die('Forbidden'); }
+if (($_GET['secret'] ?? '') !== 'pembda99') {
+    http_response_code(403);
+    die('Forbidden: Invalid secret key.');
+}
 
-header('Content-Type: text/plain; charset=utf-8');
+// Disable output buffering for live stream output
+@ini_set('max_execution_time', '120');
+@set_time_limit(120);
+@ini_set('output_buffering', 'off');
+@ini_set('zlib.output_compression', false);
+@ini_set('implicit_flush', true);
+while (@ob_end_flush());
+ob_implicit_flush(true);
+
+header('Content-Type: text/html; charset=utf-8');
+header('X-Accel-Buffering: no');
+
+echo "<!DOCTYPE html><html><head><title>PembdaHUB Git Auto-Deploy</title>";
+echo "<style>body{font-family:monospace;background:#0d1117;color:#c9d1d9;padding:24px;line-height:1.6;font-size:14px;}";
+echo ".ok{color:#3fb950;font-weight:bold;} .warn{color:#d29922;} .err{color:#f85149;font-weight:bold;} .info{color:#58a6ff;}";
+echo "pre{background:#161b22;border:1px solid #30363d;padding:16px;border-radius:8px;overflow-x:auto;white-space:pre-wrap;}";
+echo "h1{color:#58a6ff;border-bottom:1px solid #30363d;padding-bottom:10px;} h2{color:#79c0ff;margin-top:24px;}";
+echo "</style></head><body>";
+echo "<h1>🚀 PembdaHUB One-Click Git Pull & Deploy</h1>";
+flush();
 
 $root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
 $repoUrl = 'https://github.com/VistaZega/pemdahub_new.git';
 
-echo "=== GIT PULL, MIGRATE & UPDATE ===\n\n";
+// Prevent Git from hanging on authentication prompts
+putenv('GIT_TERMINAL_PROMPT=0');
+putenv('GIT_ASKPASS=/bin/echo');
+putenv('GIT_SSH_COMMAND=ssh -o BatchMode=yes -o StrictHostKeyChecking=no');
 
-// Set remote URL to public repo HTTPS
-shell_exec("git -C {$root} remote set-url origin {$repoUrl} 2>&1");
+function execCmd($cmd, $label) {
+    echo "<h2>▶ {$label}</h2><pre>";
+    flush();
+    $descriptors = [
+        0 => ["pipe", "r"],
+        1 => ["pipe", "w"],
+        2 => ["pipe", "w"]
+    ];
+    $process = proc_open($cmd, $descriptors, $pipes);
+    if (is_resource($process)) {
+        fclose($pipes[0]);
+        $output = stream_get_contents($pipes[1]);
+        $errors = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $return_value = proc_close($process);
 
-// 1. Fetch latest
-echo "--- 1. Fetch ---\n";
-echo shell_exec("git -C {$root} fetch origin main 2>&1") . "\n";
+        if (!empty($output)) {
+            echo "<span class='ok'>" . htmlspecialchars($output) . "</span>";
+        }
+        if (!empty($errors)) {
+            echo "<span class='warn'>" . htmlspecialchars($errors) . "</span>";
+        }
+        if ($return_value === 0) {
+            echo "\n<span class='ok'>✔ Status: Berhasil (Exit Code 0)</span>";
+        } else {
+            echo "\n<span class='err'>✖ Status: Exit Code {$return_value}</span>";
+        }
+    } else {
+        echo "<span class='err'>Gagal menjalankan proses sistem.</span>";
+    }
+    echo "</pre>";
+    flush();
+}
 
-// 2. Show before
-echo "--- 2. Sebelum Update ---\n";
-echo "HEAD: " . trim(shell_exec("git -C {$root} rev-parse --short HEAD 2>&1")) . "\n";
-echo "origin/main: " . trim(shell_exec("git -C {$root} rev-parse --short origin/main 2>&1")) . "\n\n";
+// 1. Cek Remote & Status Git Saat Ini
+execCmd("git -C {$root} remote -v", "1. Memeriksa Remote URL Saat Ini");
 
-// 3. Reset to latest
-echo "--- 3. Update ke origin/main ---\n";
-echo shell_exec("git -C {$root} reset --hard origin/main 2>&1") . "\n";
+// 2. Set Remote URL ke HTTPS Repo
+execCmd("git -C {$root} remote set-url origin {$repoUrl}", "2. Menyelaraskan Remote URL Repository");
 
-// 4. Show after
-echo "--- 4. Sesudah Update ---\n";
-echo "HEAD: " . trim(shell_exec("git -C {$root} rev-parse --short HEAD 2>&1")) . "\n";
-echo shell_exec("git -C {$root} log --oneline -5 2>&1") . "\n";
+// 3. Fetch data terbaru dari GitHub
+execCmd("git -C {$root} fetch origin main --prune", "3. Mengunduh Perubahan Terbaru (Git Fetch)");
 
-// 5. Clear cache & OPcache
-echo "--- 5. Clear Cache & OPcache ---\n";
+// 4. Status Commit Sebelum Update
+execCmd("git -C {$root} log -1 --oneline", "4. Commit Server Saat Ini (Sebelum Update)");
+
+// 5. Reset Hard ke origin/main
+execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
+
+// 6. Status Commit Setelah Update
+execCmd("git -C {$root} log -3 --oneline", "6. Commit Server Terbaru (Sesudah Update)");
+
+// 7. Reset OPcache & Bersihkan Cache File Laravel
+echo "<h2>▶ 7. Pembersihan Cache Aplikasi & OPcache</h2><pre>";
 if (function_exists('opcache_reset')) {
     if (@opcache_reset()) {
-        echo "OPcache reset: OK\n";
+        echo "<span class='ok'>✔ OPcache Memory Reset: SUKSES</span>\n";
     } else {
-        echo "OPcache reset: FAILED\n";
+        echo "<span class='warn'>⚠ OPcache Memory Reset: TIDAK AKTIF / GAGAL</span>\n";
     }
 }
 
-foreach (['config.php','routes-v7.php','packages.php','services.php','events.php'] as $cf) {
+$cacheFiles = ['config.php', 'routes-v7.php', 'packages.php', 'services.php', 'events.php'];
+foreach ($cacheFiles as $cf) {
     $fp = "{$root}/bootstrap/cache/{$cf}";
-    if (file_exists($fp) && @unlink($fp)) echo "Deleted: bootstrap/cache/{$cf}\n";
+    if (file_exists($fp)) {
+        if (@unlink($fp)) {
+            echo "<span class='ok'>✔ Berhasil menghapus cache: bootstrap/cache/{$cf}</span>\n";
+        }
+    }
 }
+echo "</pre>";
+flush();
 
-// 6. Run Database Migrations & Clear Laravel Cache via Artisan
-echo "\n--- 6. Run Database Migrations & Clear View Cache ---\n";
+// 8. Menjalankan Migrasi Database & Seeder
+echo "<h2>▶ 8. Eksekusi Migrasi Database & Update Realtime</h2><pre>";
 try {
-    require_once "{$root}/vendor/autoload.php";
-    $app = require_once "{$root}/bootstrap/app.php";
-    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-    $kernel->bootstrap();
+    if (file_exists("{$root}/vendor/autoload.php")) {
+        require_once "{$root}/vendor/autoload.php";
+        $app = require_once "{$root}/bootstrap/app.php";
+        $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+        $kernel->bootstrap();
 
-    $output = new \Symfony\Component\Console\Output\BufferedOutput();
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true], $output);
-    echo "Migration Result:\n" . trim($output->fetch()) . "\n";
+        $output = new \Symfony\Component\Console\Output\BufferedOutput();
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true], $output);
+        echo "<span class='ok'>" . htmlspecialchars($output->fetch()) . "</span>\n";
 
-    $outputClear = new \Symfony\Component\Console\Output\BufferedOutput();
-    \Illuminate\Support\Facades\Artisan::call('view:clear', [], $outputClear);
-    echo "View Clear Result: " . trim($outputClear->fetch()) . "\n";
+        $outputClear = new \Symfony\Component\Console\Output\BufferedOutput();
+        \Illuminate\Support\Facades\Artisan::call('view:clear', [], $outputClear);
+        echo "<span class='ok'>View Cache: " . htmlspecialchars(trim($outputClear->fetch())) . "</span>\n";
 
-    // Truncate Menara Prestasi bricks to trigger new realistic seed
-    \Illuminate\Support\Facades\DB::table('pembda_tower_brick_likes')->delete();
-    \Illuminate\Support\Facades\DB::table('pembda_tower_bricks')->delete();
-    echo "Menara Prestasi reset successfully.\n";
-} catch (\Exception $e) {
-    echo "Migration Notice: " . $e->getMessage() . "\n";
+        // Auto-ensure FinalProject Showcase
+        try {
+            $seeder = new \Database\Seeders\FinalProjectShowcaseSeeder();
+            $seeder->run();
+            echo "<span class='ok'>✔ Final Project & Penelitian Showcase Seeder: Selesai sinkronisasi.</span>\n";
+        } catch (\Throwable $e) {
+            echo "<span class='warn'>⚠ Seeder Notice: " . htmlspecialchars($e->getMessage()) . "</span>\n";
+        }
+    }
+} catch (\Throwable $e) {
+    echo "<span class='err'>Error Bootstrap: " . htmlspecialchars($e->getMessage()) . "</span>\n";
 }
+echo "</pre>";
+flush();
 
-echo "\n=== UPDATE & MIGRATION SELESAI DENGAN SUKSES! ===\n";
-echo "Forum: https://perguruanpembda.com/forum\n";
+echo "<h2 style='color:#3fb950;'>🎉 PROSES DEPLOY SELESAI DENGAN SUKSES!</h2>";
+echo "<p><a href='/' style='background:#238636;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;'>← Buka Halaman Utama PembdaHUB</a></p>";
+echo "</body></html>";
