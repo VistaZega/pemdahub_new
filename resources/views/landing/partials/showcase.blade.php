@@ -142,34 +142,43 @@
             @empty
             @endforelse
 
-            {{-- 3. LOOP REAL MODUL BAHAN AJAR LMS (4 Modul Acak) --}}
+            {{-- 3. LOOP REAL MODUL BAHAN AJAR LMS KBM (4 Modul Acak SMP/SMA/SMK) --}}
             @forelse($trainingModules as $module)
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
-                    $authorUser = $module->author;
-                    $teacher = $authorUser?->teacher;
+                    $isCourse = $module instanceof \App\Models\LmsCourse;
+                    $isLmsMod = $module instanceof \App\Models\LmsModule;
+                    
+                    $schoolName = $isCourse ? ($module->school?->name ?? 'PERGURUAN PEMBDA') : ($isLmsMod ? ($module->course?->school?->name ?? 'PERGURUAN PEMBDA') : 'KURIKULUM MERDEKA');
+                    $subjectName = $isCourse ? ($module->subject?->name ?? 'KBM') : ($isLmsMod ? ($module->course?->subject?->name ?? 'KBM') : ($module->category ?? 'MODUL AJAR'));
+                    $title = $isCourse ? $module->course_name : ($isLmsMod ? $module->title : $module->title);
+                    $desc = $module->description ?? 'Materi pembelajaran digital interaktif dan modul ajar pada platform LMS PembdaHub.';
+                    
+                    $teacher = $isCourse ? $module->teacher : ($isLmsMod ? $module->course?->teacher : $module->author?->teacher);
+                    $authorUser = $isCourse ? $module->teacher?->user : ($isLmsMod ? $module->course?->teacher?->user : $module->author);
                     $authorName = $teacher?->full_name ?? $authorUser?->name ?? 'Guru Pembda';
                     $firstName = explode(' ', trim($authorName))[0] ?? $authorName;
                     $authorPhoto = $teacher?->photo_url 
                         ?? $authorUser?->photo_url 
                         ?? $authorUser?->avatar_url 
                         ?? 'https://ui-avatars.com/api/?name=' . urlencode($authorName) . '&background=fbc02d&color=121316&bold=true';
+                    $badgeText = $isCourse ? ($module->classroom?->class_name ?? 'LMS KBM') : ($isLmsMod ? ($module->course?->classroom?->class_name ?? 'MODUL KBM') : 'MODUL');
                 @endphp
                 <article class="showcase-card poster-card {{ $t['bg'] }} {{ $t['text'] }} p-6 flex flex-col justify-between min-h-[340px]" data-type="lms">
                     <div>
-                        <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} mb-3 truncate cursor-help" title="KURIKULUM MERDEKA • {{ $module->category ?? 'MODUL AJAR' }}">
-                            KURIKULUM MERDEKA &bull; {{ $module->category ?? 'MODUL AJAR' }}
+                        <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} mb-3 truncate cursor-help" title="{{ $schoolName }} • {{ $subjectName }}">
+                            {{ $schoolName }} &bull; {{ $subjectName }}
                         </div>
-                        <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-2 line-clamp-3 cursor-help" title="{{ $module->title }}">
-                            {{ $module->title }}
+                        <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-2 line-clamp-3 cursor-help" title="{{ $title }}">
+                            {{ $title }}
                         </h3>
                         <span class="inline-block px-2.5 py-1 rounded {{ $t['badge'] }} text-[10px] font-mono-code font-bold">
-                            {{ $module->target_role ? strtoupper($module->target_role) : 'UMUM' }}
+                            {{ strtoupper($badgeText) }}
                         </span>
-                        @if($module->description)
-                            <p class="text-xs {{ $t['sub'] }} mt-3 line-clamp-2 leading-relaxed font-medium cursor-help" title="{{ $module->description }}">
-                                {{ $module->description }}
+                        @if($desc)
+                            <p class="text-xs {{ $t['sub'] }} mt-3 line-clamp-3 leading-relaxed font-medium cursor-help" title="{{ $desc }}">
+                                {{ $desc }}
                             </p>
                         @endif
                     </div>
@@ -180,7 +189,7 @@
                             </div>
                             <span class="truncate">{{ $firstName }}</span>
                         </div>
-                        <a href="{{ asset('storage/' . $module->pdf_file) }}" target="_blank" class="hover:underline text-[10px] flex-shrink-0 font-bold">UNDUH &darr;</a>
+                        <a href="{{ route('login') }}" class="hover:underline text-[10px] flex-shrink-0 font-bold">BUKA LMS &rarr;</a>
                     </div>
                 </article>
             @empty

@@ -563,7 +563,15 @@ try {
 
     $monList = \App\Models\PklMonitoring::with(['teacher.user', 'dudi'])->get();
 
-    $modList = \App\Models\TrainingModule::published()->with(['author.teacher'])->get();
+    $modList = \App\Models\LmsCourse::with(['teacher.user', 'school', 'subject', 'classroom'])
+        ->where(function($q) {
+            $q->where('is_published', true)->orWhere('status', 'active');
+        })
+        ->get();
+    if ($modList->count() === 0) {
+        $modList = \App\Models\LmsCourse::with(['teacher.user', 'school', 'subject', 'classroom'])->get();
+    }
+    $totalLmsModules = \App\Models\LmsModule::count();
 
     $achList = \App\Models\StudentCounselingRecord::where('record_type', 'penghargaan')
         ->with(['student.school', 'student.user'])
@@ -590,7 +598,7 @@ try {
     echo "<tr><td>2</td><td><b>Project Kelas XII SMK</b></td><td>4 Acak</td><td><b>{$c2}</b> data</td><td>" . ($ok2 ? "<span class='ok'>✅ TERPENUHI (>= 4)</span>" : "<span class='err'>❌ KURANG (< 4)</span>") . "</td></tr>";
     echo "<tr><td>3</td><td><b>Logbook DUDI</b></td><td>2 Acak</td><td><b>{$c3}</b> data</td><td>" . ($ok3 ? "<span class='ok'>✅ TERPENUHI (>= 2)</span>" : "<span class='err'>❌ KURANG (< 2)</span>") . "</td></tr>";
     echo "<tr><td>4</td><td><b>Monitoring Guru</b></td><td>2 Acak</td><td><b>{$c4}</b> data</td><td>" . ($ok4 ? "<span class='ok'>✅ TERPENUHI (>= 2)</span>" : "<span class='err'>❌ KURANG (< 2)</span>") . "</td></tr>";
-    echo "<tr><td>5</td><td><b>Modul LMS (SMP/SMA/SMK)</b></td><td>4 Acak</td><td><b>{$c5}</b> data</td><td>" . ($ok5 ? "<span class='ok'>✅ TERPENUHI (>= 4)</span>" : "<span class='err'>❌ KURANG (< 4)</span>") . "</td></tr>";
+    echo "<tr><td>5</td><td><b>Modul / Course LMS KBM (SMP/SMA/SMK)</b></td><td>4 Acak</td><td><b>{$c5}</b> Course ({$totalLmsModules} Sub-Modul)</td><td>" . ($ok5 ? "<span class='ok'>✅ TERPENUHI (>= 4)</span>" : "<span class='err'>❌ KURANG (< 4)</span>") . "</td></tr>";
     echo "<tr><td>6</td><td><b>Juara / Prestasi</b></td><td>4 Acak</td><td><b>{$c6}</b> data</td><td>" . ($ok6 ? "<span class='ok'>✅ TERPENUHI (>= 4)</span>" : "<span class='err'>❌ KURANG (< 4)</span>") . "</td></tr>";
     echo "</tbody></table>";
 
@@ -633,11 +641,14 @@ try {
     }
     echo "</ul>";
 
-    echo "<h3>Detail 5: Data Modul LMS ($c5)</h3><ul>";
+    echo "<h3>Detail 5: Data Modul / Course LMS ($c5 Course, $totalLmsModules Sub-Modul)</h3><ul>";
     foreach ($modList as $mod) {
-        $a = $mod->author?->teacher?->full_name ?? $mod->author?->name ?? 'Guru Pembda';
-        $fn = explode(' ', trim($a))[0];
-        echo "<li><b>[ID: {$mod->id}]</b> {$mod->title} &rarr; Penulis: {$a} (Kata 1: <i>{$fn}</i>) | Kategori: {$mod->category} | PDF: " . ($mod->pdf_file ? '✅ Ada' : '❌ Tidak Ada') . "</li>";
+        $t = $mod->teacher?->full_name ?? 'Guru Pembda';
+        $fn = explode(' ', trim($t))[0];
+        $sc = $mod->school?->name ?? 'Unit Sekolah';
+        $sub = $mod->subject?->name ?? 'Mapel';
+        $cl = $mod->classroom?->class_name ?? '-';
+        echo "<li><b>[ID: {$mod->id}]</b> {$mod->course_name} &rarr; Guru: {$t} (Kata 1: <i>{$fn}</i>) | Unit: {$sc} | Mapel: {$sub} | Kelas: {$cl}</li>";
     }
     echo "</ul>";
 

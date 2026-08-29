@@ -582,13 +582,19 @@ Route::get('/', function () {
         ->take(7)
         ->get();
 
-    // 5. MODUL LMS (4 Acak SMP/SMA/SMK)
-    $trainingModules = \App\Models\TrainingModule::published()
-        ->with(['author.teacher'])
-        ->whereNotNull('pdf_file')
-        ->inRandomOrder()
-        ->take(4)
-        ->get();
+    // 5. MODUL / COURSE LMS (4 Acak SMP/SMA/SMK dari data KBM Guru Aktif)
+    $lmsCoursesQuery = \App\Models\LmsCourse::with(['teacher.user', 'school', 'subject', 'classroom'])
+        ->where(function($q) {
+            $q->where('is_published', true)->orWhere('status', 'active');
+        });
+
+    if ($lmsCoursesQuery->count() >= 4) {
+        $trainingModules = $lmsCoursesQuery->inRandomOrder()->take(4)->get();
+    } else {
+        $courses = \App\Models\LmsCourse::with(['teacher.user', 'school', 'subject', 'classroom'])->get();
+        $fallbackMods = \App\Models\TrainingModule::published()->with(['author.teacher'])->take(max(0, 4 - $courses->count()))->get();
+        $trainingModules = $courses->concat($fallbackMods)->take(4);
+    }
 
     // === DATA REALTIME UNTUK HOMEPAGE ===
     $activeAcademicYear = \App\Models\AcademicYear::where('is_active', true)->first();
