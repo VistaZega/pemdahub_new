@@ -11,15 +11,15 @@
 
         @php
             $mitraLogos = [
-                ['name' => 'PT Astra International Tbk', 'file' => 'astra-international.png'],
-                ['name' => 'Auto2000 (Toyota Astra)', 'file' => 'auto-2000.png'],
-                ['name' => 'Axioo Class Program', 'file' => 'axioo-class-program.png'],
-                ['name' => 'Astra Daihatsu Motor', 'file' => 'daihatsu.png'],
-                ['name' => 'Pintar Bersama Daihatsu (PBD)', 'file' => 'pintar-bersama-daihatsu.png'],
-                ['name' => 'PT Tera Data Indonusa Tbk (Axioo)', 'file' => 'tera-data-internusa.png'],
-                ['name' => 'Polytron (PT Hartono Istana Teknologi)', 'file' => 'polytron.png'],
-                ['name' => 'PT Asaba Computer Centre', 'file' => 'pt-asaba.png'],
-                ['name' => 'Phytaverse', 'file' => 'phytaverse.png'],
+                ['name' => 'PT Astra International Tbk', 'file' => 'astra-international.png', 'class' => ''],
+                ['name' => 'Auto2000 (Toyota Astra)', 'file' => 'auto-2000.png', 'class' => ''],
+                ['name' => 'Axioo Class Program', 'file' => 'axioo-class-program.png', 'class' => ''],
+                ['name' => 'Astra Daihatsu Motor', 'file' => 'daihatsu.png', 'class' => ''],
+                ['name' => 'Pintar Bersama Daihatsu (PBD)', 'file' => 'pintar-bersama-daihatsu.png', 'class' => ''],
+                ['name' => 'PT Tera Data Indonusa Tbk (Axioo)', 'file' => 'tera-data-internusa.png', 'class' => ''],
+                ['name' => 'Polytron (PT Hartono Istana Teknologi)', 'file' => 'polytron.png', 'class' => ''],
+                ['name' => 'PT Asaba Computer Centre', 'file' => 'pt-asaba.png', 'class' => ''],
+                ['name' => 'Phytaverse', 'file' => 'phytaverse.png', 'class' => 'scale-[2.0] group-hover:scale-[2.15]'],
             ];
         @endphp
 
@@ -32,7 +32,7 @@
                         <img src="{{ asset('images/mitra/' . $logo['file']) }}" 
                              alt="{{ $logo['name'] }}" 
                              loading="lazy"
-                             class="h-full w-full max-h-[85%] max-w-[92%] object-contain transition-transform duration-200 group-hover:scale-110">
+                             class="h-full w-full max-h-[85%] max-w-[92%] object-contain transition-transform duration-200 {{ !empty($logo['class']) ? $logo['class'] : 'group-hover:scale-110' }}">
                     </div>
                 @endforeach
             </div>
