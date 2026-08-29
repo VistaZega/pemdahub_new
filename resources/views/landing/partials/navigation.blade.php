@@ -16,7 +16,7 @@
             <a href="#showcase" class="hover:text-[#121316] transition-colors">Karya & PKL</a>
             <a href="#ekskul" class="hover:text-[#121316] transition-colors flex items-center gap-1">
                 <span>Ekskul</span>
-                <span class="px-1.5 py-0.2 rounded bg-[#ff3823] text-white text-[9px] font-mono-code font-bold">{{ $extracurriculars->count() ?? '16+' }}</span>
+                <span class="px-1.5 py-0.2 rounded bg-[#ff3823] text-white text-[9px] font-mono-code font-bold">{{ isset($extracurriculars) ? $extracurriculars->count() : '16+' }}</span>
             </a>
             <a href="#galeri" class="hover:text-[#121316] transition-colors">Galeri Foto</a>
             <a href="#pembda-space" class="hover:text-[#121316] transition-colors">Pembda Space</a>
@@ -54,7 +54,7 @@
     <div id="mobile-nav-drawer" class="hidden xl:hidden bg-[#faf8f5] border-b-2 border-[#121316] px-6 py-6 transition-all">
         <div class="flex flex-col gap-4 text-sm font-bold text-[#121316]">
             <a href="#showcase" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Karya Siswa & PKL</a>
-            <a href="#ekskul" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Ekstrakurikuler ({{ $extracurriculars->count() }})</a>
+            <a href="#ekskul" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Ekstrakurikuler ({{ isset($extracurriculars) ? $extracurriculars->count() : '16+' }})</a>
             <a href="#galeri" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Galeri Foto Momen</a>
             <a href="#pembda-space" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Pembda Space (STEAM)</a>
             <a href="#fame" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Hall of Fame Civitas</a>

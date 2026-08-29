@@ -19,7 +19,7 @@
                     ✱ PENGEMBANGAN KARAKTER & MINAT BAKAT
                 </div>
                 <h2 class="text-3xl sm:text-4xl font-black text-[#121316] tracking-tight">
-                    Asah Potensi di <span class="highlight-marker">{{ $extracurriculars->count() }}+ Ekstrakurikuler.</span>
+                    Asah Potensi di <span class="highlight-marker">{{ isset($extracurriculars) ? $extracurriculars->count() : '16' }}+ Ekstrakurikuler.</span>
                 </h2>
                 <p class="text-xs sm:text-sm text-[#555] font-medium mt-2 max-w-xl">
                     Wadah pembentukan karakter tangguh, kreativitas seni, riset teknologi, dan prestasi olahraga bagi seluruh siswa SMP, SMA, dan SMK.

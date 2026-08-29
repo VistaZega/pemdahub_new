@@ -38,11 +38,11 @@
 
                 <!-- Micro Proof Strip -->
                 <div class="text-[11px] font-mono-code text-[#71717a] flex flex-wrap items-center gap-3">
-                    <span class="font-bold text-[#121316]">{{ number_format($totalStudents) }} Siswa Aktif</span>
+                    <span class="font-bold text-[#121316]">{{ isset($totalStudents) ? number_format($totalStudents) : 0 }} Siswa Aktif</span>
                     <span>&bull;</span>
                     <span>{{ $totalDudi ?? '45+' }} Mitra DUDI</span>
                     <span>&bull;</span>
-                    <span>TP {{ $activeAcademicYear->name ?? '2026/2027' }} ({{ $activeAcademicYear->semester ? ucfirst($activeAcademicYear->semester) : 'Aktif' }})</span>
+                    <span>TP {{ isset($activeAcademicYear) && $activeAcademicYear ? $activeAcademicYear->name : '2026/2027' }} ({{ isset($activeAcademicYear) && $activeAcademicYear && $activeAcademicYear->semester ? ucfirst($activeAcademicYear->semester) : 'Aktif' }})</span>
                 </div>
 
             </div>
@@ -63,7 +63,7 @@
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                             PEMBDA SMART SYSTEM
                         </span>
-                        <span>{{ $activeAcademicYear ? 'TP ' . $activeAcademicYear->name : 'ONLINE 24/7' }}</span>
+                        <span>{{ isset($activeAcademicYear) && $activeAcademicYear ? 'TP ' . $activeAcademicYear->name : 'ONLINE 24/7' }}</span>
                     </div>
 
                     <!-- Input Prompt Mockup -->
@@ -109,19 +109,19 @@
         <!-- BOTTOM STATS STRIP (100% REAL DATABASE COUNTS) -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-12 mt-12 border-t border-[#e7e3d8]">
             <div class="p-4 bg-white/60 rounded-2xl border border-[#e7e3d8]">
-                <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ number_format($totalStudents) }}</div>
+                <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ isset($totalStudents) ? number_format($totalStudents) : 0 }}</div>
                 <div class="text-[11px] font-mono-code font-bold uppercase text-[#777] mt-1">Siswa Aktif Terdaftar</div>
             </div>
             <div class="p-4 bg-white/60 rounded-2xl border border-[#e7e3d8]">
-                <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ number_format($totalTeachers) }}</div>
+                <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ isset($totalTeachers) ? number_format($totalTeachers) : 0 }}</div>
                 <div class="text-[11px] font-mono-code font-bold uppercase text-[#777] mt-1">Guru & Pendidik Ahli</div>
             </div>
             <div class="p-4 bg-white/60 rounded-2xl border border-[#e7e3d8]">
-                <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ $extracurriculars->count() }} Cabang</div>
+                <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ isset($extracurriculars) ? $extracurriculars->count() : 16 }} Cabang</div>
                 <div class="text-[11px] font-mono-code font-bold uppercase text-[#777] mt-1">Ekstrakurikuler Juara</div>
             </div>
             <div class="p-4 bg-white/60 rounded-2xl border border-[#e7e3d8]">
-                <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ number_format($totalAlumni) }}+</div>
+                <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ isset($totalAlumni) ? number_format($totalAlumni) : 0 }}+</div>
                 <div class="text-[11px] font-mono-code font-bold uppercase text-[#777] mt-1">Alumni Sejak 1970</div>
             </div>
         </div>

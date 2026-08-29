@@ -737,6 +737,7 @@ Route::get('/', function () {
     // Pastikan halaman beranda tidak dicache oleh server (LiteSpeed) maupun browser
     // agar status tombol "Login" vs "Dashboard" selalu ter-update secara real-time.
     return response(view('index', compact(
+        'activeAcademicYear',
         'news', 'galleryItems', 'trainingModules',
         'totalStudents', 'totalTeachers', 'totalSchools', 'totalAlumni',
         'totalCourses', 'totalExams', 'totalForumThreads',
