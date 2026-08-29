@@ -176,7 +176,7 @@
                         <span class="inline-block px-2.5 py-1 rounded {{ $t['badge'] }} text-[10px] font-mono-code font-bold">
                             {{ strtoupper(str_replace('_', ' ', $ach->ranking ?? 'JUARA')) }}
                         </span>
-                        <p class="text-xs {{ $t['sub'] }} mt-3 leading-relaxed font-medium">
+                        <p class="text-xs {{ $t['sub'] }} mt-3 line-clamp-4 leading-relaxed font-medium">
                             Diraih oleh {{ $studentName }} pada ajang {{ $ach->competition_name ?? $ach->event_name ?? 'Kompetisi Sekolah' }}.@if(!empty($ach->description)) {{ $ach->description }}@endif
                         </p>
                     </div>
