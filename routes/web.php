@@ -609,7 +609,7 @@ Route::get('/', function () {
 
     // Prestasi siswa (6 terbaik, prioritas level tertinggi)
     $achievements = \App\Models\StudentCounselingRecord::where('record_type', 'penghargaan')
-        ->with(['student.school'])
+        ->with(['student.school', 'student.user'])
         ->orderByRaw("FIELD(achievement_level, 'internasional','nasional','propinsi','kabupaten','sekolah') ASC")
         ->orderByRaw("FIELD(ranking, 'juara_1','juara_2','juara_3','best_speaker','mvp','harapan_1','harapan_2','harapan_3','finalis','peserta') ASC")
         ->latest('incident_date')
@@ -722,7 +722,7 @@ Route::get('/', function () {
     }])->where('is_active', true)->get();
 
     // === SHOWCASE FINAL PROJECT (PENELITIAN & PROJECT AKHIR) ===
-    $finalProjectsShowcase = \App\Models\FinalProject::with(['student', 'members.student'])
+    $finalProjectsShowcase = \App\Models\FinalProject::with(['student.school', 'student.user', 'members.student.school'])
         ->whereNotIn('status', ['rejected', 'draft']) // Tampilkan semua yang sudah disubmit/approved
         ->inRandomOrder()
         ->take(40)

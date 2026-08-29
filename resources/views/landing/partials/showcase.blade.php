@@ -20,13 +20,13 @@
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
             <div class="max-w-2xl">
                 <div class="text-[11px] font-mono-code font-bold text-[#ff3823] uppercase tracking-wider mb-2">
-                    ✱ ETALASE KARYA SISWA, PKL & MODUL LMS
+                    ✱ ETALASE PROJECT SMK, PENELITIAN SMA, PKL & MODUL LMS
                 </div>
                 <h2 class="text-3xl sm:text-4xl font-black text-[#121316] tracking-tight mb-3">
                     Dari bengkel kejuruan sampai laboratorium riset.
                 </h2>
                 <p class="text-xs sm:text-sm text-[#555] font-medium leading-relaxed">
-                    Semua karya di bawah lahir dari riset nyata siswa, logbook kemitraan DUDI, dan modul KBM aktif — data asli database sekolah.
+                    Semua karya di bawah lahir dari riset penelitian & project nyata siswa, logbook kemitraan DUDI, dan modul KBM aktif — data asli database sekolah.
                 </p>
             </div>
 
@@ -42,7 +42,7 @@
         <!-- Filter Tab Buttons -->
         <div class="flex flex-wrap gap-2 mb-10">
             <button type="button" onclick="filterShowcase('semua')" id="tab-semua" class="px-5 py-2 rounded-full font-mono-code text-xs font-bold filter-btn-active">SEMUA</button>
-            <button type="button" onclick="filterShowcase('project')" id="tab-project" class="px-5 py-2 rounded-full font-mono-code text-xs font-bold filter-btn-inactive">PROJECT SISWA ({{ isset($finalProjectsShowcase) ? $finalProjectsShowcase->count() : 0 }})</button>
+            <button type="button" onclick="filterShowcase('project')" id="tab-project" class="px-5 py-2 rounded-full font-mono-code text-xs font-bold filter-btn-inactive">PROJECT & PENELITIAN ({{ isset($finalProjectsShowcase) ? $finalProjectsShowcase->count() : 0 }})</button>
             <button type="button" onclick="filterShowcase('pkl')" id="tab-pkl" class="px-5 py-2 rounded-full font-mono-code text-xs font-bold filter-btn-inactive">LOGBOOK PKL ({{ isset($pklShowcase) ? $pklShowcase->count() : 0 }})</button>
             <button type="button" onclick="filterShowcase('lms')" id="tab-lms" class="px-5 py-2 rounded-full font-mono-code text-xs font-bold filter-btn-inactive">MODUL LMS ({{ isset($trainingModules) ? $trainingModules->count() : 0 }})</button>
             <button type="button" onclick="filterShowcase('prestasi')" id="tab-prestasi" class="px-5 py-2 rounded-full font-mono-code text-xs font-bold filter-btn-inactive">PRESTASI JUARA ({{ isset($achievements) ? $achievements->count() : 0 }})</button>
@@ -51,16 +51,20 @@
         <!-- THE VIBRANT POSTER GRID -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12" id="showcase-grid">
             
-            {{-- 1. LOOP REAL PROJECT AKHIR / PENELITIAN SISWA --}}
+            {{-- 1. LOOP REAL PROJECT AKHIR SMK / PENELITIAN SMA SISWA --}}
             @forelse($finalProjectsShowcase->take(8) as $project)
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
+                    $schoolName = strtolower($project->student?->school?->name ?? '');
+                    $isSMA = str_contains($schoolName, 'sma') || $project->type === 'penelitian_ilmiah' || $project->type === 'research';
+                    $typeLabel = $isSMA ? 'PENELITIAN' : 'PROJECT';
+                    $schoolLabel = $project->student?->school?->name ?? ($isSMA ? 'SMAS PEMBDA 1' : 'SMKS PEMBDA NIAS');
                 @endphp
                 <article class="showcase-card poster-card {{ $t['bg'] }} {{ $t['text'] }} p-6 flex flex-col justify-between min-h-[340px]" data-type="project">
                     <div>
                         <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} mb-3 truncate">
-                            {{ $project->student?->school?->name ?? 'SMK/SMA PEMBDA' }} &bull; {{ $project->field ?? 'KARYA AKHIR' }}
+                            {{ $schoolLabel }} &bull; {{ $isSMA ? 'PENELITIAN SISWA' : 'PROJECT SISWA' }}
                         </div>
                         <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-3 line-clamp-3">
                             {{ $project->title }}
@@ -76,7 +80,7 @@
                     </div>
                     <div class="pt-4 border-t {{ $t['border'] }} flex items-center justify-between text-[11px] font-mono-code font-bold mt-4">
                         <span class="truncate">{{ $project->student?->full_name ?? 'Tim Siswa' }}</span>
-                        <span class="px-2 py-0.5 rounded bg-[#121316] text-white text-[10px]">PROJECT</span>
+                        <span class="px-2 py-0.5 rounded bg-[#121316] text-white text-[10px]">{{ $typeLabel }}</span>
                     </div>
                 </article>
             @empty
@@ -155,6 +159,11 @@
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
+                    $studentName = $ach->student?->full_name ?? 'Siswa Berprestasi';
+                    $firstName = explode(' ', trim($studentName))[0] ?? $studentName;
+                    $studentPhoto = $ach->student?->photo_url 
+                        ?? $ach->student?->user?->avatar_url 
+                        ?? 'https://ui-avatars.com/api/?name=' . urlencode($studentName) . '&background=fbc02d&color=121316&bold=true';
                 @endphp
                 <article class="showcase-card poster-card {{ $t['bg'] }} {{ $t['text'] }} p-6 flex flex-col justify-between min-h-[340px]" data-type="prestasi">
                     <div>
@@ -167,24 +176,18 @@
                         <span class="inline-block px-2.5 py-1 rounded {{ $t['badge'] }} text-[10px] font-mono-code font-bold">
                             {{ strtoupper(str_replace('_', ' ', $ach->ranking ?? 'JUARA')) }}
                         </span>
-                        <p class="text-xs {{ $t['sub'] }} mt-3 line-clamp-2 leading-relaxed font-medium">
-                            Diraih oleh {{ $ach->student?->full_name ?? 'Siswa' }} pada ajang {{ $ach->event_name ?? 'Kompetisi Sekolah' }}.
+                        <p class="text-xs {{ $t['sub'] }} mt-3 leading-relaxed font-medium">
+                            Diraih oleh {{ $studentName }} pada ajang {{ $ach->competition_name ?? $ach->event_name ?? 'Kompetisi Sekolah' }}.@if(!empty($ach->description)) {{ $ach->description }}@endif
                         </p>
                     </div>
                     <div class="pt-4 border-t {{ $t['border'] }} flex items-center justify-between text-[11px] font-mono-code font-bold mt-4">
-                        @php
-                            $studentName = $ach->student?->full_name ?? 'Siswa Berprestasi';
-                            $studentPhoto = $ach->student?->photo_url 
-                                ?? $ach->student?->user?->avatar_url 
-                                ?? 'https://ui-avatars.com/api/?name=' . urlencode($studentName) . '&background=fbc02d&color=121316&bold=true';
-                        @endphp
-                        <div class="flex items-center gap-2 truncate">
+                        <div class="flex items-center gap-2 min-w-0">
                             <div class="w-8 h-8 rounded-full bg-white border border-current/20 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
                                 <img src="{{ $studentPhoto }}" alt="{{ $studentName }}" class="w-full h-full rounded-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($studentName) }}&background=fbc02d&color=121316&bold=true';">
                             </div>
-                            <span class="truncate">{{ $studentName }}</span>
+                            <span class="truncate">{{ $firstName }}</span>
                         </div>
-                        <span>🏆 JUARA</span>
+                        <span class="flex-shrink-0">🏆 JUARA</span>
                     </div>
                 </article>
             @empty
