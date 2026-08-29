@@ -36,6 +36,10 @@
             <a href="#galeri" class="hover:text-[#121316] transition-colors">Galeri Foto</a>
             <a href="#pembda-space" class="hover:text-[#121316] transition-colors">Pembda Space</a>
             <a href="#fame" class="hover:text-[#121316] transition-colors">Hall of Fame</a>
+            <a href="#mitra-industri" class="hover:text-[#121316] transition-colors flex items-center gap-1 text-[#ff3823]">
+                <i class="fa-solid fa-handshake text-[10px]"></i>
+                <span>Mitra Industri</span>
+            </a>
             <a href="#alumni" class="hover:text-[#121316] transition-colors">Alumni</a>
             <a href="#sekolah" class="hover:text-[#121316] transition-colors">3 Sekolah</a>
         </nav>
@@ -73,6 +77,10 @@
             <a href="#galeri" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Galeri Foto Momen</a>
             <a href="#pembda-space" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Pembda Space (STEAM)</a>
             <a href="#fame" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Hall of Fame Civitas</a>
+            <a href="#mitra-industri" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1 text-[#ff3823] flex items-center gap-1.5">
+                <i class="fa-solid fa-handshake"></i>
+                <span>Mitra Industri Besar</span>
+            </a>
             <a href="#alumni" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Jejaring Alumni</a>
             <a href="#sekolah" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">3 Unit Sekolah</a>
             <div class="pt-4 border-t border-[#e7e3d8] flex flex-col gap-3">

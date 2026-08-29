@@ -191,7 +191,10 @@
     {{-- 12. BERITA & WARTA TERKINI --}}
     @include('landing.partials.berita')
 
-    {{-- 13. FOOTER --}}
+    {{-- 13. INDUSTRI BESAR MITRA KERJASAMA SMK --}}
+    @include('landing.partials.mitra-industri')
+
+    {{-- 14. FOOTER --}}
     @include('landing.partials.footer')
 
     {{-- FLOATING AUDIO PLAYER (MARS YAYASAN) --}}
