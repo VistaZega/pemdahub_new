@@ -80,6 +80,16 @@
                         <i class="fas fa-id-card text-indigo-500"></i> Informasi Kredensial
                     </h3>
                     
+                    @if($user->role === 'siswa' || $user->isStudent())
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-xs text-amber-900 flex items-start gap-2.5">
+                            <i class="fas fa-shield-halved text-amber-600 text-base mt-0.5"></i>
+                            <div>
+                                <p class="font-bold">Akses Keamanan Khusus Siswa</p>
+                                <p class="text-amber-800/80 text-[11px] mt-0.5">Foto profil dan biodata siswa dikelola terpusat oleh Admin/Operator Sekolah. Siswa hanya dapat memperbarui <strong>Kata Sandi Akun</strong> di bawah ini.</p>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="username" class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Nama Pengguna (Username)</label>
@@ -88,7 +98,7 @@
                                     <i class="fas fa-user-tag text-xs"></i>
                                 </span>
                                 <input type="text" name="username" id="username" value="{{ old('username', $user->username) }}" 
-                                    class="pl-9 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" required>
+                                    @if($user->role === 'siswa' || $user->isStudent()) readonly class="pl-9 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm bg-gray-100 text-gray-600 cursor-not-allowed" @else class="pl-9 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" @endif required>
                             </div>
                         </div>
 

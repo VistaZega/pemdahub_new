@@ -97,9 +97,10 @@ class ProfileSettingsController extends Controller
 
         $user = auth()->user();
 
-        \Illuminate\Support\Facades\Log::info("updateBiodata called. Request data:", $request->except(['photo', 'cropped_photo']));
-        \Illuminate\Support\Facades\Log::info("Has cropped_photo? " . ($request->has('cropped_photo') ? 'Yes' : 'No'));
-        \Illuminate\Support\Facades\Log::info("Has photo file? " . ($request->hasFile('photo') ? 'Yes' : 'No'));
+        // Siswa tidak diizinkan mengubah biodata secara mandiri
+        if ($user->role === 'siswa' || $user->isStudent()) {
+            return back()->withErrors(['biodata' => 'Akses ditolak: Siswa tidak diizinkan mengubah biodata secara mandiri. Silakan hubungi Admin Sekolah.']);
+        }
 
         // Validasi input umum
         $validated = $request->validate([
@@ -222,6 +223,11 @@ class ProfileSettingsController extends Controller
     public function updatePhoto(Request $request)
     {
         $user = auth()->user();
+
+        // Siswa tidak diizinkan mengubah foto profil secara mandiri
+        if ($user->role === 'siswa' || $user->isStudent()) {
+            return back()->withErrors(['photo' => 'Akses ditolak: Siswa tidak diizinkan mengubah foto profil secara mandiri. Silakan hubungi Admin Sekolah.']);
+        }
 
         if ($request->has('cropped_photo') && !empty($request->cropped_photo)) {
             $base64Image = $request->cropped_photo;

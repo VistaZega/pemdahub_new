@@ -33,6 +33,33 @@ class MobileProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
+        $isStudent = ($user->role === 'siswa') || ($user->student && !$user->isGuru() && !$user->isAdminSekolah() && !$user->isOwnerOrSuperAdmin());
+
+        // KHUSUS SISWA: HANYA BOLEH MENGUBAH KEAMANAN KATA SANDI (TIDAK BOLEH UBAH FOTO ATAU BIODATA)
+        if ($isStudent) {
+            if ($request->filled('new_password')) {
+                $validated = $request->validate([
+                    'current_password' => 'required',
+                    'new_password' => 'required|min:6|confirmed',
+                ], [
+                    'current_password.required' => 'Kata sandi saat ini wajib diisi.',
+                    'new_password.required' => 'Kata sandi baru wajib diisi.',
+                    'new_password.min' => 'Kata sandi baru minimal 6 karakter.',
+                    'new_password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
+                ]);
+
+                if (!Hash::check($validated['current_password'], $user->password)) {
+                    return back()->with('error', 'Kata sandi saat ini tidak cocok.');
+                }
+
+                $user->password = Hash::make($validated['new_password']);
+                $user->save();
+
+                return back()->with('success', 'Kata sandi keamanan akun Anda berhasil diperbarui!');
+            }
+
+            return back()->with('info', 'Tidak ada perubahan pada kata sandi akun.');
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
