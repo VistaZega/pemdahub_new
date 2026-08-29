@@ -962,6 +962,8 @@ Route::prefix('ika-pembda')->name('ika.')->group(function () {
     Route::get('/daftar', [App\Http\Controllers\PublicAlumniController::class, 'registerForm'])->name('register');
     Route::post('/daftar', [App\Http\Controllers\PublicAlumniController::class, 'registerSubmit'])->middleware('throttle:5,1')->name('register.submit');
 });
+Route::get('/alumni/direktori-publik', [App\Http\Controllers\PublicAlumniController::class, 'directory'])->name('alumni.directory');
+Route::get('/alumni/daftar-publik', [App\Http\Controllers\PublicAlumniController::class, 'registerForm'])->name('alumni.register');
 
 // PSB Testing & Simulation Routes (protected - admin only)
 Route::prefix('psb-test')->name('psb.test.')->middleware('auth', 'role:superadmin,admin_sekolah')->group(function () {

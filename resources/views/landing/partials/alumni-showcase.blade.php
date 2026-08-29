@@ -18,10 +18,10 @@
 
             <!-- Action Buttons -->
             <div class="flex items-center gap-3">
-                <a href="{{ route('alumni.directory') }}" class="px-5 py-2.5 rounded-full btn-tactile-white text-xs font-bold">
+                <a href="{{ route('ika.directory') }}" class="px-5 py-2.5 rounded-full btn-tactile-white text-xs font-bold">
                     Direktori Lengkap &rarr;
                 </a>
-                <a href="{{ route('alumni.register') }}" class="px-5 py-2.5 rounded-full btn-tactile-red text-xs font-black">
+                <a href="{{ route('ika.register') }}" class="px-5 py-2.5 rounded-full btn-tactile-red text-xs font-black">
                     + Gabung Alumni
                 </a>
             </div>

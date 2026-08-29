@@ -47,8 +47,8 @@
                 <h4 class="text-[11px] font-mono-code font-bold text-slate-300 uppercase tracking-wider mb-4">LAYANAN DIGITAL</h4>
                 <div class="flex flex-col gap-2.5 font-medium text-slate-400">
                     <a href="{{ route('login') }}" class="hover:text-white transition-colors">LMS & Ujian CBT</a>
-                    <a href="{{ route('alumni.directory') }}" class="hover:text-white transition-colors">Direktori Alumni</a>
-                    <a href="{{ route('alumni.register') }}" class="hover:text-white transition-colors">Pendaftaran IKA</a>
+                    <a href="{{ route('ika.directory') }}" class="hover:text-white transition-colors">Direktori Alumni</a>
+                    <a href="{{ route('ika.register') }}" class="hover:text-white transition-colors">Pendaftaran IKA</a>
                     <a href="{{ route('login') }}" class="hover:text-white transition-colors">Logbook PKL</a>
                     <a href="{{ asset('MANUAL_BOOK_PEMBDAHUB.pdf') }}" target="_blank" class="text-[#fbc02d] hover:underline font-bold">📄 Manual Book PDF</a>
                 </div>
