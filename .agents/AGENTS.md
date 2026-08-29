@@ -69,6 +69,30 @@ Setiap kali selesai melakukan pengerjaan fitur, perbaikan bug, atau perubahan ko
   - **Fitur Akademik & Operasional Sekolah** (Penugasan Mengajar, Jadwal Pelajaran, Data Siswa, Data Guru, LMS, Rapor, CBT, PSB): **JANGAN PERNAH** menyertakan Yayasan sebagai opsi pilihan sekolah/unit. Selalu filter menggunakan `School::schoolsOnly()` (`type != 'yayasan'` & `is_active = true`).
   - **Fitur Kepegawaian, Keuangan, & Monitoring**: Yayasan dapat dianggap sebagai entitas induk (*parent oversight body*) dengan kewenangan tertinggi, namun rekapitulasi 3 unit sekolah aktif harus tetap dipisahkan secara rapi dari struktur Yayasan.
 
+## 📌 Aturan Etalase Beranda (Showcase Grid & Counters)
+Bagian "✱ ETALASE PROJECT SMK, PENELITIAN SMA, PKL & MODUL LMS" di halaman beranda memiliki algoritma data dan penyajian yang baku:
+
+### 1. Counter / Badge Angka pada Tab Filter (Total Real Database)
+Badge counter pada tab filter (`showcase.blade.php`) wajib menampilkan **JUMLAH TOTAL SELURUH DATA REAL** yang ada di database:
+- **`SEMUA`**: Total seluruh baris data di database (`$totalAllShowcase = $totalFinalProjects + $totalPklAll + $totalCourses + $totalAchievements`)
+- **`PROJECT & PENELITIAN`**: Total seluruh tugas akhir/penelitian di database (`$totalFinalProjects`)
+- **`LOGBOOK PKL`**: Total seluruh data PKL di database (`$totalPklAll = $totalApprovedLogs + $totalMonitorings`)
+- **`MODUL LMS`**: Total seluruh Course & Modul KBM sekolah aktif di database (`$totalCourses` dari `lms_courses`)
+- **`PRESTASI JUARA`**: Total seluruh rekam penghargaan siswa di database (`$totalAchievements`)
+
+### 2. Kartu Grid Poster (Diambil Acak dengan Kuota Terbatas - Total 20 Kartu)
+Kartu yang dirender di grid di bawah tab filter diambil **secara acak (`inRandomOrder()`)** dari dataset riil di atas dengan batasan:
+- **4 Penelitian Kelas XII SMA** (Acak, dari `final_projects` unit SMA / `penelitian_ilmiah`)
+- **4 Project Kelas XII SMK** (Acak, dari `final_projects` unit SMK / `project_akhir`)
+- **2 Logbook Dudi** (Acak, dari `pkl_logs` status approved dengan foto dokumentasi)
+- **2 Monitoring Guru** (Acak, dari `pkl_monitorings` guru ke mitra industri DUDI)
+- **4 Modul LMS** (Acak SMP/SMA/SMK, dari `lms_courses` KBM aktif buatan guru)
+- **4 Juara Prestasi** (Acak, dari `student_counseling_records` bertipe penghargaan)
+
+### 3. Standar Tampilan Setiap Kartu
+- **Photo Profile (Avatar):** Menampilkan foto profil asli siswa/guru, fallback ke UI-Avatars bulat.
+- **Nama Pengguna:** Menampilkan **Hanya Kata Pertama Saja** (`explode(' ', trim($name))[0]`), dengan nama lengkap tetap tersedia pada tooltip (`title="..."`).
+
 ## Bahasa & Komunikasi
 - Komunikasi dengan pengguna menggunakan **Bahasa Indonesia**
 - Komentar kode boleh dalam Bahasa Indonesia atau Inggris
