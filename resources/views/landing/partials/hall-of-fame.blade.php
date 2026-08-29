@@ -55,10 +55,16 @@
                             <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #121316 1px, transparent 1px); background-size: 12px 12px;"></div>
                         </div>
 
+                        @php
+                            $studentName = $rep->user?->name ?? 'Siswa Teladan';
+                            $studentPhoto = $student?->photo_url 
+                                ?? $rep->user?->avatar_url 
+                                ?? 'https://ui-avatars.com/api/?name=' . urlencode($studentName) . '&background=2563eb&color=ffffff&bold=true';
+                        @endphp
                         {{-- Avatar overlapping header --}}
                         <div class="flex justify-center -mt-10 relative z-10">
                             <div class="w-20 h-20 rounded-2xl border-4 border-white ring-2 {{ $c['ring'] }} overflow-hidden shadow-lg bg-white">
-                                <img src="{{ $avatarUrl }}" alt="{{ $rep->user?->name }}" class="w-full h-full object-cover" loading="lazy">
+                                <img src="{{ $studentPhoto }}" alt="{{ $studentName }}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($studentName) }}&background=2563eb&color=ffffff&bold=true';">
                             </div>
                         </div>
 
@@ -130,10 +136,16 @@
                             <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 12px 12px;"></div>
                         </div>
 
+                        @php
+                            $teacherName = $topTeacher->user?->name ?? 'Guru Inspiratif';
+                            $teacherPhoto = $topTeacher->user?->teacher?->photo_url 
+                                ?? $topTeacher->user?->avatar_url 
+                                ?? 'https://ui-avatars.com/api/?name=' . urlencode($teacherName) . '&background=ff3823&color=ffffff&bold=true';
+                        @endphp
                         {{-- Avatar --}}
                         <div class="flex justify-center -mt-10 relative z-10">
                             <div class="w-20 h-20 rounded-2xl border-4 border-white ring-2 ring-[#ff3823] overflow-hidden shadow-lg bg-white">
-                                <img src="{{ $avatarUrl }}" alt="{{ $topTeacher->user?->name }}" class="w-full h-full object-cover" loading="lazy">
+                                <img src="{{ $teacherPhoto }}" alt="{{ $teacherName }}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($teacherName) }}&background=ff3823&color=ffffff&bold=true';">
                             </div>
                         </div>
 
