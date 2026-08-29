@@ -11,15 +11,15 @@
 
         @php
             $mitraLogos = [
-                ['name' => 'PT Astra International Tbk', 'file' => 'astra-international.png', 'scale' => ''],
-                ['name' => 'Auto2000 (Toyota Astra)', 'file' => 'auto-2000.png', 'scale' => ''],
-                ['name' => 'Axioo Class Program', 'file' => 'axioo-class-program.png', 'scale' => ''],
-                ['name' => 'Astra Daihatsu Motor', 'file' => 'daihatsu.png', 'scale' => ''],
-                ['name' => 'Pintar Bersama Daihatsu (PBD)', 'file' => 'pintar-bersama-daihatsu.png', 'scale' => 'scale-110 sm:scale-125'],
-                ['name' => 'PT Tera Data Indonusa Tbk (Axioo)', 'file' => 'tera-data-internusa.png', 'scale' => ''],
-                ['name' => 'Polytron (PT Hartono Istana Teknologi)', 'file' => 'polytron.png', 'scale' => ''],
-                ['name' => 'PT Asaba Computer Centre', 'file' => 'pt-asaba.png', 'scale' => ''],
-                ['name' => 'Phytaverse', 'file' => 'phytaverse.png', 'scale' => 'scale-110 sm:scale-120'],
+                ['name' => 'PT Astra International Tbk', 'file' => 'astra-international.png'],
+                ['name' => 'Auto2000 (Toyota Astra)', 'file' => 'auto-2000.png'],
+                ['name' => 'Axioo Class Program', 'file' => 'axioo-class-program.png'],
+                ['name' => 'Astra Daihatsu Motor', 'file' => 'daihatsu.png'],
+                ['name' => 'Pintar Bersama Daihatsu (PBD)', 'file' => 'pintar-bersama-daihatsu.png'],
+                ['name' => 'PT Tera Data Indonusa Tbk (Axioo)', 'file' => 'tera-data-internusa.png'],
+                ['name' => 'Polytron (PT Hartono Istana Teknologi)', 'file' => 'polytron.png'],
+                ['name' => 'PT Asaba Computer Centre', 'file' => 'pt-asaba.png'],
+                ['name' => 'Phytaverse', 'file' => 'phytaverse.png'],
             ];
         @endphp
 
@@ -27,12 +27,12 @@
         <div class="border-t-2 border-l-2 border-[#121316] bg-white shadow-sm">
             <div class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9">
                 @foreach($mitraLogos as $logo)
-                    <div class="border-r-2 border-b-2 border-[#121316] p-3 sm:p-4 lg:p-5 h-28 sm:h-32 lg:h-36 flex items-center justify-center hover:bg-[#faf8f5] transition-colors group cursor-pointer"
+                    <div class="border-r-2 border-b-2 border-[#121316] p-2 sm:p-2.5 md:p-3 h-20 sm:h-24 md:h-28 flex items-center justify-center hover:bg-[#faf8f5] transition-colors group cursor-pointer overflow-hidden"
                          title="{{ $logo['name'] }}">
                         <img src="{{ asset('images/mitra/' . $logo['file']) }}" 
                              alt="{{ $logo['name'] }}" 
                              loading="lazy"
-                             class="max-h-16 sm:max-h-20 lg:max-h-24 max-w-[92%] object-contain transition-transform duration-200 group-hover:scale-110 {{ $logo['scale'] }}">
+                             class="h-full w-full max-h-[85%] max-w-[92%] object-contain transition-transform duration-200 group-hover:scale-110">
                     </div>
                 @endforeach
             </div>
