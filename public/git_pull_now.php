@@ -2,6 +2,7 @@
 /**
  * One-Click Server Auto-Pull & Migration Tool for PembdaHUB
  * Akses: https://perguruanpembda.com/git_pull_now.php?secret=pembda99
+ * Dengan Token: https://perguruanpembda.com/git_pull_now.php?secret=pembda99&token=ghp_xxx
  */
 if (($_GET['secret'] ?? '') !== 'pembda99') {
     http_response_code(403);
@@ -31,21 +32,32 @@ echo "<h1>🚀 PembdaHUB One-Click Git Pull & Deploy</h1>";
 flush();
 
 $root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
+$envFile = "{$root}/.env";
 
-// 🔑 TOKEN KONFIGURASI OTOMATIS:
-// 1. Dari variabel $defaultToken di bawah
-// 2. Atau dari file .env (GITHUB_DEPLOY_TOKEN=ghp_...)
-// 3. Atau dari parameter URL (?token=ghp_...)
-$defaultToken = ''; // <-- Masukkan token GitHub (ghp_...) di sini agar deploy berjalan otomatis selamanya
-
-if (empty($defaultToken) && file_exists("{$root}/.env")) {
-    $envContent = @file_get_contents("{$root}/.env");
+// 1. Baca token yang tersimpan di server (.env)
+$savedToken = '';
+if (file_exists($envFile)) {
+    $envContent = @file_get_contents($envFile);
     if (preg_match('/^GITHUB_DEPLOY_TOKEN=(.*)$/m', $envContent, $matches)) {
-        $defaultToken = trim($matches[1], "\"' \r\n");
+        $savedToken = trim($matches[1], "\"' \r\n");
     }
 }
 
-$githubToken = trim($_GET['token'] ?? '') ?: $defaultToken;
+// 2. Jika ada token baru via query string $_GET['token'], simpan permanen ke .env server
+$githubToken = trim($_GET['token'] ?? '');
+if (!empty($githubToken)) {
+    if (file_exists($envFile)) {
+        if (strpos($envContent, 'GITHUB_DEPLOY_TOKEN=') !== false) {
+            $newEnvContent = preg_replace('/^GITHUB_DEPLOY_TOKEN=.*$/m', "GITHUB_DEPLOY_TOKEN={$githubToken}", $envContent);
+        } else {
+            $newEnvContent = $envContent . "\nGITHUB_DEPLOY_TOKEN={$githubToken}\n";
+        }
+        @file_put_contents($envFile, $newEnvContent);
+        echo "<div class='notice-box' style='border-color:#3fb950;'><span class='ok'>✔ Token GitHub berhasil disimpan permanen ke server (.env). Mulai sekarang deploy dapat dijalankan tanpa mengetik token lagi!</span></div>";
+    }
+} else {
+    $githubToken = $savedToken;
+}
 
 // Prevent Git from hanging on authentication prompts
 putenv('GIT_TERMINAL_PROMPT=0');
@@ -109,13 +121,8 @@ $fetchStatus = execCmd("git -C {$root} fetch origin main --prune", "3. Mengunduh
 if ($fetchStatus !== 0) {
     echo "<div class='notice-box' style='border-color:#f85149;'>";
     echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Gagal (Memerlukan Token)</h3>";
-    echo "<p>Karena repositori GitHub ini bersifat privat, silakan masukkan Personal Access Token (PAT) GitHub.</p>";
-    echo "<p><strong>Pilihan Solusi:</strong></p>";
-    echo "<ul>";
-    echo "<li>Buka via URL dengan token: <code>https://perguruanpembda.com/git_pull_now.php?secret=pembda99&token=YOUR_GITHUB_TOKEN</code></li>";
-    echo "<li>Atau isi baris <code>\$defaultToken = 'ghp_...';</code> di file <code>public/git_pull_now.php</code></li>";
-    echo "<li>Atau lakukan Deploy dari menu Git di hPanel Hostinger</li>";
-    echo "</ul>";
+    echo "<p>Karena repositori GitHub ini bersifat privat, silakan jalankan dengan menyertakan token sekali saja:</p>";
+    echo "<p><code>https://perguruanpembda.com/git_pull_now.php?secret=pembda99&token=ghp_TOKEN_ANDA</code></p>";
     echo "</div>";
     flush();
 }
@@ -127,7 +134,7 @@ execCmd("git -C {$root} log -1 --oneline", "4. Commit Server Saat Ini (Sebelum U
 if ($fetchStatus === 0) {
     execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
 } else {
-    echo "<h2>▶ 5. Menerapkan Update Kode</h2><pre><span class='warn'>Dilewati karena Git Fetch gagal. Server tetap pada commit saat ini. Silakan Deploy via hPanel / Token.</span></pre>";
+    echo "<h2>▶ 5. Menerapkan Update Kode</h2><pre><span class='warn'>Dilewati karena Git Fetch gagal. Server tetap pada commit saat ini.</span></pre>";
 }
 
 // 6. Status Commit Setelah Update
