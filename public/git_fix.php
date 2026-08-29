@@ -10,7 +10,7 @@ echo "<style>body{font-family:monospace;background:#1a1a2e;color:#e0e0e0;padding
 echo "<h1>🔧 Git Fix: Remote HTTPS + Force Reset</h1>";
 
 $laravelRoot = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
-$httpsRemote = 'https://github.com/YulianusZega/new_pembdahub.git';
+$httpsRemote = 'https://github.com/VistaZega/pemdahub_new.git';
 
 echo "<p class='info'>ℹ️ Laravel root: <b>$laravelRoot</b></p>";
 
