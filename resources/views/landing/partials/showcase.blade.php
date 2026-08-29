@@ -41,7 +41,7 @@
 
         <!-- Filter Tab Buttons -->
         <div class="flex flex-wrap gap-2 mb-10">
-            <button type="button" onclick="filterShowcase('semua')" id="tab-semua" class="px-5 py-2 rounded-full font-mono-code text-xs font-bold filter-btn-active">SEMUA</button>
+            <button type="button" onclick="filterShowcase('semua')" id="tab-semua" class="px-5 py-2 rounded-full font-mono-code text-xs font-bold filter-btn-active">SEMUA ({{ ($finalProjectsShowcase?->count() ?? 0) + ($pklShowcase?->count() ?? 0) + ($trainingModules?->count() ?? 0) + ($achievements?->count() ?? 0) }})</button>
             <button type="button" onclick="filterShowcase('project')" id="tab-project" class="px-5 py-2 rounded-full font-mono-code text-xs font-bold filter-btn-inactive">PROJECT & PENELITIAN ({{ isset($finalProjectsShowcase) ? $finalProjectsShowcase->count() : 0 }})</button>
             <button type="button" onclick="filterShowcase('pkl')" id="tab-pkl" class="px-5 py-2 rounded-full font-mono-code text-xs font-bold filter-btn-inactive">LOGBOOK PKL ({{ isset($pklShowcase) ? $pklShowcase->count() : 0 }})</button>
             <button type="button" onclick="filterShowcase('lms')" id="tab-lms" class="px-5 py-2 rounded-full font-mono-code text-xs font-bold filter-btn-inactive">MODUL LMS ({{ isset($trainingModules) ? $trainingModules->count() : 0 }})</button>
