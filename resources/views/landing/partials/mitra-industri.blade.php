@@ -4,9 +4,9 @@
         
         {{-- Judul Mitra Industri --}}
         <div class="text-center mb-8">
-            <h2 class="text-2xl sm:text-3xl font-black text-[#121316] tracking-tight uppercase">
-                Mitra Industri
-            </h2>
+            <div class="text-[11px] font-mono-code font-bold text-[#ff3823] uppercase tracking-wider">
+                ✱ MITRA INDUSTRI
+            </div>
         </div>
 
         @php
