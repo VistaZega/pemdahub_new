@@ -21,7 +21,7 @@
 
                 <!-- Subheadline dengan Chip Kode -->
                 <p class="text-sm sm:text-base text-[#4b5563] leading-relaxed mb-8 max-w-xl font-medium">
-                    Di <strong>Yayasan Perguruan PEMBDA Nias</strong>, potensi belajarmu tidak bisa dibendung. Dari <code class="px-2 py-1 bg-[#ede9df] text-[#121316] rounded font-mono-code text-xs font-bold">modul riset & IT</code>, <code class="px-2 py-1 bg-[#ede9df] text-[#121316] rounded font-mono-code text-xs font-bold">praktik kejuruan & PKL</code>, hingga ujian digital — seluruh ekosistemnya siap mendukungmu. Tak ada yang bisa menahan langkahmu untuk terus maju, berprestasi, dan tak terhentikan untuk berkembang.
+                    Di <strong>Yayasan Perguruan PEMBDA Nias</strong>, potensi belajarmu tidak bisa dibendung. Kami menghadirkan <strong>ekosistem riset terpadu</strong> dan <strong>orientasi <em>project</em> nyata</strong> — memadukan keahlian <code class="px-2 py-0.5 bg-[#ede9df] text-[#121316] rounded font-mono-code text-xs font-bold">IT & Rekayasa</code>, inovasi <code class="px-2 py-0.5 bg-[#ede9df] text-[#121316] rounded font-mono-code text-xs font-bold">IoT & AI</code>, hingga <code class="px-2 py-0.5 bg-[#ede9df] text-[#121316] rounded font-mono-code text-xs font-bold">16+ Ekstrakurikuler</code> dengan dukungan sistem digital yang siap mengawalmu untuk berhasil dan berkembang tanpa batas.
                 </p>
 
                 <!-- Action Buttons -->
@@ -69,7 +69,7 @@
                     <!-- Input Prompt Mockup -->
                     <div class="bg-[#121316] text-[#fde047] font-mono-code text-xs p-3.5 rounded-xl mb-4 flex items-center gap-2 shadow-inner">
                         <span class="text-[#ff3823]">&rsaquo;</span>
-                        <span class="truncate">pencarian modul: kurikulum merdeka & praktikum dudi</span>
+                        <span class="truncate">ekosistem: riset stem, iot, ai & project karya siswa</span>
                     </div>
 
                     <!-- Preview Poster Inside Generator -->
@@ -78,9 +78,9 @@
                             &bull; 3 UNIT SEKOLAH TERPADU &bull;
                         </div>
                         <h3 class="text-2xl sm:text-3xl font-black text-[#121316] uppercase leading-tight tracking-tight mb-2">
-                            MODUL & RISET<br>SISWA PEMBDA
+                            RISET, IT & PROYEK<br>SISWA PEMBDA
                         </h3>
-                        <p class="text-[11px] font-bold text-[#555] mb-4">LMS Terintegrasi, CBT Digital & Logbook PKL</p>
+                        <p class="text-[11px] font-bold text-[#555] mb-4">IoT & AI, Laboratorium Riset, Vokasi & 16+ Ekskul</p>
                         
                         <a href="#showcase" class="inline-block px-5 py-2 rounded-full bg-[#ff3823] text-white text-xs font-black uppercase border border-[#121316] shadow-[2px_2px_0px_#121316] hover:translate-x-0.5 transition-transform">
                             JELAJAHI KARYA SISWA
