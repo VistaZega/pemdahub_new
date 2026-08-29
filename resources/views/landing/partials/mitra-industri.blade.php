@@ -15,7 +15,7 @@
                 ['name' => 'Auto2000 (Toyota Astra)', 'file' => 'auto-2000.png', 'class' => ''],
                 ['name' => 'Axioo Class Program', 'file' => 'axioo-class-program.png', 'class' => ''],
                 ['name' => 'Astra Daihatsu Motor', 'file' => 'daihatsu.png', 'class' => ''],
-                ['name' => 'Pintar Bersama Daihatsu (PBD)', 'file' => 'pintar-bersama-daihatsu.png', 'class' => ''],
+                ['name' => 'Pintar Bersama Daihatsu (PBD)', 'file' => 'pintar-bersama-daihatsu.png', 'class' => 'scale-[2.0] group-hover:scale-[2.15]'],
                 ['name' => 'PT Tera Data Indonusa Tbk (Axioo)', 'file' => 'tera-data-internusa.png', 'class' => ''],
                 ['name' => 'Polytron (PT Hartono Istana Teknologi)', 'file' => 'polytron.png', 'class' => ''],
                 ['name' => 'PT Asaba Computer Centre', 'file' => 'pt-asaba.png', 'class' => ''],
