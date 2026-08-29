@@ -31,8 +31,10 @@ class News extends Model
     public function scopePublished($query)
     {
         return $query->where('is_published', true)
-                     ->whereNotNull('published_at')
-                     ->where('published_at', '<=', now());
+                     ->where(function($q) {
+                         $q->whereNull('published_at')
+                           ->orWhere('published_at', '<=', now());
+                     });
     }
 
     public function scopeByCategory($query, $category)

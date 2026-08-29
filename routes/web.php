@@ -573,7 +573,7 @@ Route::get('/perbaikan-final', function () {
 // Public routes
 Route::get('/', function () {
     $news = \App\Models\News::published()
-        ->latest('published_at')
+        ->orderByRaw('COALESCE(published_at, created_at) DESC')
         ->take(3)
         ->get();
 
