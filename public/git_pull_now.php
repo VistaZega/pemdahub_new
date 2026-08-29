@@ -128,15 +128,6 @@ try {
         $outputClear = new \Symfony\Component\Console\Output\BufferedOutput();
         \Illuminate\Support\Facades\Artisan::call('view:clear', [], $outputClear);
         echo "<span class='ok'>View Cache: " . htmlspecialchars(trim($outputClear->fetch())) . "</span>\n";
-
-        // Auto-ensure FinalProject Showcase
-        try {
-            $seeder = new \Database\Seeders\FinalProjectShowcaseSeeder();
-            $seeder->run();
-            echo "<span class='ok'>✔ Final Project & Penelitian Showcase Seeder: Selesai sinkronisasi.</span>\n";
-        } catch (\Throwable $e) {
-            echo "<span class='warn'>⚠ Seeder Notice: " . htmlspecialchars($e->getMessage()) . "</span>\n";
-        }
     }
 } catch (\Throwable $e) {
     echo "<span class='err'>Error Bootstrap: " . htmlspecialchars($e->getMessage()) . "</span>\n";
