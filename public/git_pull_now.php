@@ -2,6 +2,7 @@
 /**
  * One-Click Server Auto-Pull & Migration Tool for PembdaHUB
  * Akses: https://perguruanpembda.com/git_pull_now.php?secret=pembda99
+ * Opsi Token: https://perguruanpembda.com/git_pull_now.php?secret=pembda99&token=YOUR_GITHUB_TOKEN
  */
 if (($_GET['secret'] ?? '') !== 'pembda99') {
     http_response_code(403);
@@ -9,8 +10,8 @@ if (($_GET['secret'] ?? '') !== 'pembda99') {
 }
 
 // Disable output buffering for live stream output
-@ini_set('max_execution_time', '120');
-@set_time_limit(120);
+@ini_set('max_execution_time', '180');
+@set_time_limit(180);
 @ini_set('output_buffering', 'off');
 @ini_set('zlib.output_compression', false);
 @ini_set('implicit_flush', true);
@@ -25,12 +26,13 @@ echo "<style>body{font-family:monospace;background:#0d1117;color:#c9d1d9;padding
 echo ".ok{color:#3fb950;font-weight:bold;} .warn{color:#d29922;} .err{color:#f85149;font-weight:bold;} .info{color:#58a6ff;}";
 echo "pre{background:#161b22;border:1px solid #30363d;padding:16px;border-radius:8px;overflow-x:auto;white-space:pre-wrap;}";
 echo "h1{color:#58a6ff;border-bottom:1px solid #30363d;padding-bottom:10px;} h2{color:#79c0ff;margin-top:24px;}";
+echo ".notice-box{background:#1f242c;border:1px solid #388bfd;border-radius:8px;padding:16px;margin:20px 0;}";
 echo "</style></head><body>";
 echo "<h1>🚀 PembdaHUB One-Click Git Pull & Deploy</h1>";
 flush();
 
 $root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
-$repoUrl = 'https://github.com/VistaZega/pemdahub_new.git';
+$githubToken = trim($_GET['token'] ?? '');
 
 // Prevent Git from hanging on authentication prompts
 putenv('GIT_TERMINAL_PROMPT=0');
@@ -46,6 +48,10 @@ function execCmd($cmd, $label) {
         2 => ["pipe", "w"]
     ];
     $process = proc_open($cmd, $descriptors, $pipes);
+    $output = '';
+    $errors = '';
+    $return_value = -1;
+
     if (is_resource($process)) {
         fclose($pipes[0]);
         $output = stream_get_contents($pipes[1]);
@@ -70,22 +76,45 @@ function execCmd($cmd, $label) {
     }
     echo "</pre>";
     flush();
+    return $return_value;
 }
 
-// 1. Cek Remote & Status Git Saat Ini
+// 1. Cek Remote URL Saat Ini
 execCmd("git -C {$root} remote -v", "1. Memeriksa Remote URL Saat Ini");
 
-// 2. Set Remote URL ke HTTPS Repo
-execCmd("git -C {$root} remote set-url origin {$repoUrl}", "2. Menyelaraskan Remote URL Repository");
+// 2. Set Remote URL jika ada GitHub Token
+if (!empty($githubToken)) {
+    $authRepoUrl = "https://{$githubToken}@github.com/VistaZega/pemdahub_new.git";
+    execCmd("git -C {$root} remote set-url origin {$authRepoUrl}", "2. Menyelaraskan Remote URL Repository dengan Token");
+}
 
 // 3. Fetch data terbaru dari GitHub
-execCmd("git -C {$root} fetch origin main --prune", "3. Mengunduh Perubahan Terbaru (Git Fetch)");
+$fetchStatus = execCmd("git -C {$root} fetch origin main --prune", "3. Mengunduh Perubahan Terbaru (Git Fetch)");
+
+if ($fetchStatus !== 0) {
+    echo "<div class='notice-box' style='border-color:#f85149;'>";
+    echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Memerlukan Otentikasi GitHub</h3>";
+    echo "<p>Karena repositori GitHub ini bersifat privat, Git di server Hostinger tidak dapat mengunduh tanpa kredensial.</p>";
+    echo "<p><strong>Cara Deploy yang Benar di Hostinger:</strong></p>";
+    echo "<ol>";
+    echo "<li>Buka <strong>hPanel Hostinger</strong></li>";
+    echo "<li>Masuk ke menu <strong>Git</strong> (di bawah section Advanced / Files)</li>";
+    echo "<li>Pilih repositori <code>pemdahub_new</code> dan klik tombol <strong>\"Deploy\"</strong></li>";
+    echo "</ol>";
+    echo "<p>Atau jalankan script ini dengan menambahkan token: <code>https://perguruanpembda.com/git_pull_now.php?secret=pembda99&token=YOUR_GITHUB_PAT</code></p>";
+    echo "</div>";
+    flush();
+}
 
 // 4. Status Commit Sebelum Update
 execCmd("git -C {$root} log -1 --oneline", "4. Commit Server Saat Ini (Sebelum Update)");
 
-// 5. Reset Hard ke origin/main
-execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
+// 5. Reset Hard ke origin/main jika fetch berhasil
+if ($fetchStatus === 0) {
+    execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
+} else {
+    echo "<h2>▶ 5. Menerapkan Update Kode</h2><pre><span class='warn'>Dilewati karena Git Fetch gagal. Server tetap pada commit saat ini. Silakan Deploy via hPanel.</span></pre>";
+}
 
 // 6. Status Commit Setelah Update
 execCmd("git -C {$root} log -3 --oneline", "6. Commit Server Terbaru (Sesudah Update)");
@@ -135,6 +164,6 @@ try {
 echo "</pre>";
 flush();
 
-echo "<h2 style='color:#3fb950;'>🎉 PROSES DEPLOY SELESAI DENGAN SUKSES!</h2>";
+echo "<h2 style='color:#3fb950;'>🎉 PROSES PEMERIKSAAN SERVER SELESAI</h2>";
 echo "<p><a href='/' style='background:#238636;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;'>← Buka Halaman Utama PembdaHUB</a></p>";
 echo "</body></html>";
