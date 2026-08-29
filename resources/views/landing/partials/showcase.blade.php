@@ -61,6 +61,10 @@
                     $typeLabel = $isSMA ? 'PENELITIAN' : 'PROJECT';
                     $schoolLabel = $project->student?->school?->name ?? ($isSMA ? 'SMAS PEMBDA 1' : 'SMKS PEMBDA NIAS');
                     $studentName = $project->student?->full_name ?? 'Tim Siswa';
+                    $firstName = explode(' ', trim($studentName))[0] ?? $studentName;
+                    $studentPhoto = $project->student?->photo_url 
+                        ?? $project->student?->user?->avatar_url 
+                        ?? 'https://ui-avatars.com/api/?name=' . urlencode($studentName) . '&background=fbc02d&color=121316&bold=true';
                 @endphp
                 <article class="showcase-card poster-card {{ $t['bg'] }} {{ $t['text'] }} p-6 flex flex-col justify-between min-h-[340px]" data-type="project">
                     <div>
@@ -80,8 +84,13 @@
                         @endif
                     </div>
                     <div class="pt-4 border-t {{ $t['border'] }} flex items-center justify-between text-[11px] font-mono-code font-bold mt-4">
-                        <span class="truncate cursor-help" title="{{ $studentName }}">{{ $studentName }}</span>
-                        <span class="px-2 py-0.5 rounded bg-[#121316] text-white text-[10px]">{{ $typeLabel }}</span>
+                        <div class="flex items-center gap-2 min-w-0 cursor-help" title="{{ $studentName }}">
+                            <div class="w-8 h-8 rounded-full bg-white border border-current/20 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+                                <img src="{{ $studentPhoto }}" alt="{{ $studentName }}" class="w-full h-full rounded-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($studentName) }}&background=fbc02d&color=121316&bold=true';">
+                            </div>
+                            <span class="truncate">{{ $firstName }}</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded bg-[#121316] text-white text-[10px] flex-shrink-0">{{ $typeLabel }}</span>
                     </div>
                 </article>
             @empty
@@ -92,19 +101,23 @@
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
+                    $personName = $pkl['person_name'] ?? 'Siswa PKL';
+                    $firstName = explode(' ', trim($personName))[0] ?? $personName;
+                    $personPhoto = $pkl['person_photo'] 
+                        ?? 'https://ui-avatars.com/api/?name=' . urlencode($personName) . '&background=fbc02d&color=121316&bold=true';
                 @endphp
                 <article class="showcase-card poster-card {{ $t['bg'] }} {{ $t['text'] }} p-6 flex flex-col justify-between min-h-[340px]" data-type="pkl">
                     <div>
                         <div class="flex items-center justify-between gap-2 mb-3">
-                            <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} truncate cursor-help" title="{{ $pkl['dudi_name'] }}">
-                                {{ $pkl['dudi_name'] }}
+                            <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} truncate cursor-help" title="{{ $pkl['school_name'] }} • MITRA DUDI">
+                                {{ $pkl['school_name'] }}
                             </div>
                             <a href="{{ route('public.pkl.map') }}" class="px-2 py-0.5 rounded bg-black/20 hover:bg-black/40 text-[9px] font-mono-code font-bold inline-flex items-center gap-1 border border-current/20 transition-all flex-shrink-0" title="Buka Peta GPS Siswa PKL">
                                 🗺️ Peta GPS ↗
                             </a>
                         </div>
-                        <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-2 line-clamp-3 cursor-help" title="{{ $pkl['person_name'] }}">
-                            {{ $pkl['person_name'] }}
+                        <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-2 line-clamp-3 cursor-help" title="{{ $pkl['dudi_name'] }}">
+                            {{ $pkl['dudi_name'] }}
                         </h3>
                         <span class="inline-block px-2.5 py-1 rounded {{ $t['badge'] }} text-[10px] font-mono-code font-bold">
                             {{ $pkl['type'] === 'monitoring' ? 'MONITORING GURU' : 'LOGBOOK DUDI' }}
@@ -114,8 +127,13 @@
                         </p>
                     </div>
                     <div class="pt-4 border-t {{ $t['border'] }} flex items-center justify-between text-[11px] font-mono-code font-bold mt-4">
-                        <span class="truncate cursor-help" title="{{ $pkl['school_name'] }}">{{ $pkl['school_name'] }}</span>
-                        <a href="{{ route('public.pkl.map') }}" class="hover:underline flex items-center gap-1 text-[10px]">
+                        <div class="flex items-center gap-2 min-w-0 cursor-help" title="{{ $personName }} • {{ $pkl['school_name'] }}">
+                            <div class="w-8 h-8 rounded-full bg-white border border-current/20 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+                                <img src="{{ $personPhoto }}" alt="{{ $personName }}" class="w-full h-full rounded-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($personName) }}&background=fbc02d&color=121316&bold=true';">
+                            </div>
+                            <span class="truncate">{{ $firstName }}</span>
+                        </div>
+                        <a href="{{ route('public.pkl.map') }}" class="hover:underline flex items-center gap-1 text-[10px] flex-shrink-0 font-bold">
                             <span>{{ $pkl['date'] }}</span>
                             <span>📍</span>
                         </a>
@@ -129,6 +147,14 @@
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
+                    $authorUser = $module->author;
+                    $teacher = $authorUser?->teacher;
+                    $authorName = $teacher?->full_name ?? $authorUser?->name ?? 'Guru Pembda';
+                    $firstName = explode(' ', trim($authorName))[0] ?? $authorName;
+                    $authorPhoto = $teacher?->photo_url 
+                        ?? $authorUser?->photo_url 
+                        ?? $authorUser?->avatar_url 
+                        ?? 'https://ui-avatars.com/api/?name=' . urlencode($authorName) . '&background=fbc02d&color=121316&bold=true';
                 @endphp
                 <article class="showcase-card poster-card {{ $t['bg'] }} {{ $t['text'] }} p-6 flex flex-col justify-between min-h-[340px]" data-type="lms">
                     <div>
@@ -148,8 +174,13 @@
                         @endif
                     </div>
                     <div class="pt-4 border-t {{ $t['border'] }} flex items-center justify-between text-[11px] font-mono-code font-bold mt-4">
-                        <span>MODUL PDF</span>
-                        <a href="{{ asset('storage/' . $module->pdf_file) }}" target="_blank" class="hover:underline text-[10px]">UNDUH &darr;</a>
+                        <div class="flex items-center gap-2 min-w-0 cursor-help" title="{{ $authorName }}">
+                            <div class="w-8 h-8 rounded-full bg-white border border-current/20 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+                                <img src="{{ $authorPhoto }}" alt="{{ $authorName }}" class="w-full h-full rounded-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($authorName) }}&background=fbc02d&color=121316&bold=true';">
+                            </div>
+                            <span class="truncate">{{ $firstName }}</span>
+                        </div>
+                        <a href="{{ asset('storage/' . $module->pdf_file) }}" target="_blank" class="hover:underline text-[10px] flex-shrink-0 font-bold">UNDUH &darr;</a>
                     </div>
                 </article>
             @empty

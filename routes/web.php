@@ -583,6 +583,7 @@ Route::get('/', function () {
         ->get();
 
     $trainingModules = \App\Models\TrainingModule::published()
+        ->with(['author.teacher'])
         ->whereNotNull('pdf_file')
         ->orderBy('sort_order')
         ->get();
@@ -654,7 +655,7 @@ Route::get('/', function () {
     // === SHOWCASE PKL TERBAIK UNTUK HOMEPAGE ===
     $pklLogs = \App\Models\PklLog::where('status', 'approved')
         ->whereNotNull('photo')
-        ->with(['placement.student.school', 'placement.dudi'])
+        ->with(['placement.student.school', 'placement.student.user', 'placement.dudi'])
         ->latest('log_date')
         ->take(8)
         ->get()
@@ -699,7 +700,7 @@ Route::get('/', function () {
                 'photo' => $log->photo_url,
                 'description' => $formattedDesc,
                 'person_name' => $log->placement?->student?->full_name ?? 'Siswa PKL',
-                'person_photo' => $log->placement?->student?->photo_url ?? null,
+                'person_photo' => $log->placement?->student?->photo_url ?? $log->placement?->student?->user?->avatar_url ?? null,
                 'school_name' => $log->placement?->student?->school?->name ?? 'SMKS Pembda Nias',
                 'dudi_name' => $log->placement?->dudi?->name ?? $log->placement?->company_name ?? 'Mitra DUDI',
                 'date' => $log->log_date?->translatedFormat('d M Y') ?? '-',
@@ -707,7 +708,7 @@ Route::get('/', function () {
         });
 
     $pklMonitorings = \App\Models\PklMonitoring::whereNotNull('photo_path')
-        ->with(['teacher', 'dudi'])
+        ->with(['teacher.user', 'dudi'])
         ->latest('monitoring_date')
         ->take(4)
         ->get()
@@ -716,7 +717,7 @@ Route::get('/', function () {
             'photo' => asset('storage/' . $m->photo_path),
             'description' => \Illuminate\Support\Str::limit($m->notes, 150),
             'person_name' => $m->teacher?->full_name ?? 'Guru Pembimbing',
-            'person_photo' => null,
+            'person_photo' => $m->teacher?->photo_url ?? $m->teacher?->user?->avatar_url ?? null,
             'school_name' => 'Guru Pembimbing',
             'dudi_name' => $m->dudi?->name ?? '-',
             'date' => $m->monitoring_date?->translatedFormat('d M Y') ?? '-',
