@@ -3,72 +3,72 @@
         "slug": "astra-international",
         "name": "PT Astra International Tbk",
         "desc": "Kelas Industri & Otomotif Terpadu",
-        "file": "astra-international.png",
+        "file": "astra-international-v2.png",
         "file_card": "astra-international-card.png",
-        "file_webp": "astra-international.webp"
+        "file_webp": "astra-international-v2.webp"
     },
     {
         "slug": "auto-2000",
         "name": "Auto2000 (Toyota Astra)",
         "desc": "Mitra Bengkel & Layanan Otomotif",
-        "file": "auto-2000.png",
+        "file": "auto-2000-v2.png",
         "file_card": "auto-2000-card.png",
-        "file_webp": "auto-2000.webp"
+        "file_webp": "auto-2000-v2.webp"
     },
     {
         "slug": "axioo-class-program",
         "name": "Axioo Class Program",
         "desc": "Kelas Industri IT & Hardware Komputer",
-        "file": "axioo-class-program.png",
+        "file": "axioo-class-program-v2.png",
         "file_card": "axioo-class-program-card.png",
-        "file_webp": "axioo-class-program.webp"
+        "file_webp": "axioo-class-program-v2.webp"
     },
     {
         "slug": "daihatsu",
         "name": "Astra Daihatsu Motor",
         "desc": "Mitra Kurikulum & Rekayasa Otomotif",
-        "file": "daihatsu.png",
+        "file": "daihatsu-v2.png",
         "file_card": "daihatsu-card.png",
-        "file_webp": "daihatsu.webp"
+        "file_webp": "daihatsu-v2.webp"
     },
     {
         "slug": "pt-asaba",
         "name": "PT Asaba Computer Centre",
         "desc": "Teknologi Informasi & Office Automation",
-        "file": "pt-asaba.png",
+        "file": "pt-asaba-v2.png",
         "file_card": "pt-asaba-card.png",
-        "file_webp": "pt-asaba.webp"
+        "file_webp": "pt-asaba-v2.webp"
     },
     {
         "slug": "phytaverse",
         "name": "Phytaverse",
         "desc": "Inovasi Digital, IoT & EduTech",
-        "file": "phytaverse.png",
+        "file": "phytaverse-v2.png",
         "file_card": "phytaverse-card.png",
-        "file_webp": "phytaverse.webp"
+        "file_webp": "phytaverse-v2.webp"
     },
     {
         "slug": "pintar-bersama-daihatsu",
         "name": "Pintar Bersama Daihatsu (PBD)",
         "desc": "Program Sertifikasi Vokasi Daihatsu",
-        "file": "pintar-bersama-daihatsu.png",
+        "file": "pintar-bersama-daihatsu-v2.png",
         "file_card": "pintar-bersama-daihatsu-card.png",
-        "file_webp": "pintar-bersama-daihatsu.webp"
+        "file_webp": "pintar-bersama-daihatsu-v2.webp"
     },
     {
         "slug": "polytron",
         "name": "Polytron (PT Hartono Istana Teknologi)",
         "desc": "Elektronika, Audio Video & Manufaktur",
-        "file": "polytron.png",
+        "file": "polytron-v2.png",
         "file_card": "polytron-card.png",
-        "file_webp": "polytron.webp"
+        "file_webp": "polytron-v2.webp"
     },
     {
         "slug": "tera-data-internusa",
         "name": "PT Tera Data Indonusa (Axioo)",
         "desc": "Principal Perangkat Komputer & AI",
-        "file": "tera-data-internusa.png",
+        "file": "tera-data-internusa-v2.png",
         "file_card": "tera-data-internusa-card.png",
-        "file_webp": "tera-data-internusa.webp"
+        "file_webp": "tera-data-internusa-v2.webp"
     }
 ]

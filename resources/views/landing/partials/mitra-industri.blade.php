@@ -11,15 +11,15 @@
 
         @php
             $mitraLogos = [
-                ['name' => 'PT Astra International Tbk', 'file' => 'astra-international.png'],
-                ['name' => 'Auto2000 (Toyota Astra)', 'file' => 'auto-2000.png'],
-                ['name' => 'Axioo Class Program', 'file' => 'axioo-class-program.png'],
-                ['name' => 'Astra Daihatsu Motor', 'file' => 'daihatsu.png'],
-                ['name' => 'Pintar Bersama Daihatsu (PBD)', 'file' => 'pintar-bersama-daihatsu.png'],
-                ['name' => 'PT Tera Data Indonusa Tbk (Axioo)', 'file' => 'tera-data-internusa.png'],
-                ['name' => 'Polytron (PT Hartono Istana Teknologi)', 'file' => 'polytron.png'],
-                ['name' => 'PT Asaba Computer Centre', 'file' => 'pt-asaba.png'],
-                ['name' => 'Phytaverse', 'file' => 'phytaverse.png'],
+                ['name' => 'PT Astra International Tbk', 'file' => 'astra-international-v2.png'],
+                ['name' => 'Auto2000 (Toyota Astra)', 'file' => 'auto-2000-v2.png'],
+                ['name' => 'Axioo Class Program', 'file' => 'axioo-class-program-v2.png'],
+                ['name' => 'Astra Daihatsu Motor', 'file' => 'daihatsu-v2.png'],
+                ['name' => 'Pintar Bersama Daihatsu (PBD)', 'file' => 'pintar-bersama-daihatsu-v2.png'],
+                ['name' => 'PT Tera Data Indonusa Tbk (Axioo)', 'file' => 'tera-data-internusa-v2.png'],
+                ['name' => 'Polytron (PT Hartono Istana Teknologi)', 'file' => 'polytron-v2.png'],
+                ['name' => 'PT Asaba Computer Centre', 'file' => 'pt-asaba-v2.png'],
+                ['name' => 'Phytaverse', 'file' => 'phytaverse-v2.png'],
             ];
         @endphp
 
@@ -29,7 +29,7 @@
                 @foreach($mitraLogos as $logo)
                     <div class="border-r-2 border-b-2 border-[#121316] p-2 sm:p-2.5 md:p-3 h-20 sm:h-24 md:h-28 flex items-center justify-center hover:bg-[#faf8f5] transition-colors group cursor-pointer"
                          title="{{ $logo['name'] }}">
-                        <img src="{{ asset('images/mitra/' . $logo['file']) }}" 
+                        <img src="{{ asset('images/mitra/' . $logo['file']) }}?v={{ file_exists(public_path('images/mitra/' . $logo['file'])) ? filemtime(public_path('images/mitra/' . $logo['file'])) : '20260829' }}" 
                              alt="{{ $logo['name'] }}" 
                              loading="lazy"
                              class="h-full w-full max-h-[80%] max-w-[88%] object-contain transition-transform duration-200 group-hover:scale-110">
