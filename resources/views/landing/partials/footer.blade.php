@@ -11,9 +11,6 @@
                         <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo PembdaHUB" class="w-9 h-9 object-contain rounded-lg shadow-sm border border-white/20 group-hover/flogo:border-[#ff3823] group-hover/flogo:scale-105 transition-all">
                         <span class="text-xl font-black tracking-tight text-white group-hover/flogo:text-[#ff3823] transition-colors">Pembda<span class="text-[#ff3823]">HUB</span></span>
                     </a>
-                    <a href="{{ route('app.download') }}" class="px-2 py-0.5 rounded-full bg-[#ff3823] hover:bg-orange-600 text-white text-[9px] font-mono-code font-bold uppercase transition-colors shadow-sm flex items-center gap-1">
-                        <i class="fa-solid fa-download text-[8px]"></i> APP MOBILE
-                    </a>
                 </div>
                 
                 <p class="text-xs text-slate-400 leading-relaxed max-w-sm mb-6 font-medium">

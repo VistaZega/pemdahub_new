@@ -15,15 +15,9 @@
                     </span>
                 </a>
             </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('home') }}" class="text-xl font-black tracking-tight text-[#121316] hover:text-[#ff3823] transition-colors">
-                    Pembda<span class="text-[#ff3823]">HUB</span>
-                </a>
-                <a href="{{ route('app.download') }}" title="Download Aplikasi Mobile PembdaHUB" class="px-2 py-0.5 rounded-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white text-[10px] font-mono-code font-bold uppercase shadow-sm hidden sm:inline-flex items-center gap-1 transition-transform hover:scale-105">
-                    <i class="fa-solid fa-mobile-screen-button text-[9px]"></i>
-                    <span>App Mobile</span>
-                </a>
-            </div>
+            <a href="{{ route('home') }}" class="text-xl font-black tracking-tight text-[#121316] hover:text-[#ff3823] transition-colors">
+                Pembda<span class="text-[#ff3823]">HUB</span>
+            </a>
         </div>
 
         <!-- Desktop Navigation Links -->
