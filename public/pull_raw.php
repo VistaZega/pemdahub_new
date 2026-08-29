@@ -25,9 +25,20 @@ $repo = 'VistaZega/pemdahub_new';
 $branch = 'main';
 
 // Baca token dari query atau .env
+$envFile = "{$root}/.env";
 $token = trim($_GET['token'] ?? '');
-if (empty($token) && file_exists("{$root}/.env")) {
-    $envContent = @file_get_contents("{$root}/.env");
+
+if (!empty($token) && file_exists($envFile)) {
+    $envContent = @file_get_contents($envFile);
+    if (strpos($envContent, 'GITHUB_DEPLOY_TOKEN=') !== false) {
+        $newEnv = preg_replace('/^GITHUB_DEPLOY_TOKEN=.*$/m', "GITHUB_DEPLOY_TOKEN={$token}", $envContent);
+    } else {
+        $newEnv = $envContent . "\nGITHUB_DEPLOY_TOKEN={$token}\n";
+    }
+    @file_put_contents($envFile, $newEnv);
+    echo "<span class='ok'>✔ Token disimpan permanen ke server (.env)</span>\n";
+} elseif (empty($token) && file_exists($envFile)) {
+    $envContent = @file_get_contents($envFile);
     if (preg_match('/^GITHUB_DEPLOY_TOKEN=(.*)$/m', $envContent, $matches)) {
         $token = trim($matches[1], "\"' \r\n");
     }
