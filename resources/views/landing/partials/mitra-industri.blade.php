@@ -1,8 +1,8 @@
-{{-- MITRA INDUSTRI — Minimalist Pure Logos Showcase --}}
+{{-- MITRA INDUSTRI — Direct Logos with Clean Border Dividers --}}
 <section id="mitra-industri" class="py-14 px-4 sm:px-8 bg-[#faf8f5] border-t-2 border-[#121316]">
     <div class="max-w-7xl mx-auto">
         
-        {{-- Judul Sederhana --}}
+        {{-- Judul Mitra Industri --}}
         <div class="text-center mb-8">
             <h2 class="text-2xl sm:text-3xl font-black text-[#121316] tracking-tight uppercase">
                 Mitra Industri
@@ -23,17 +23,19 @@
             ];
         @endphp
 
-        {{-- 9 Logo Murni Ditata Rapi --}}
-        <div class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3 sm:gap-4 items-center justify-center">
-            @foreach($mitraLogos as $logo)
-                <div class="bg-white border-2 border-[#121316] rounded-2xl p-3 h-24 flex items-center justify-center shadow-[3px_3px_0px_#121316] hover:shadow-[4px_4px_0px_#ff3823] hover:-translate-y-1 transition-all duration-200 cursor-pointer group"
-                     title="{{ $logo['name'] }}">
-                    <img src="{{ asset('images/mitra/' . $logo['file']) }}" 
-                         alt="{{ $logo['name'] }}" 
-                         loading="lazy"
-                         class="max-h-14 max-w-full object-contain transition-transform duration-200 group-hover:scale-105">
-                </div>
-            @endforeach
+        {{-- Direct Logos with Clean Border Lines (Tanpa Card) --}}
+        <div class="border-t-2 border-l-2 border-[#121316] bg-white">
+            <div class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9">
+                @foreach($mitraLogos as $logo)
+                    <div class="border-r-2 border-b-2 border-[#121316] p-3 sm:p-4 h-24 sm:h-28 flex items-center justify-center hover:bg-[#faf8f5] transition-colors group cursor-pointer"
+                         title="{{ $logo['name'] }}">
+                        <img src="{{ asset('images/mitra/' . $logo['file']) }}" 
+                             alt="{{ $logo['name'] }}" 
+                             loading="lazy"
+                             class="max-h-12 sm:max-h-14 max-w-[85%] object-contain transition-transform duration-200 group-hover:scale-110">
+                    </div>
+                @endforeach
+            </div>
         </div>
 
     </div>
