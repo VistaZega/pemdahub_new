@@ -32,10 +32,10 @@
 
             <!-- Tombol Spesial Peta Lokasi PKL Maps -->
             <div class="flex items-center gap-3">
-                <button type="button" onclick="openDudiMapModal()" class="px-5 py-2.5 rounded-full bg-[#121316] text-[#fde047] hover:bg-[#222] font-mono-code text-xs font-black shadow-[3px_3px_0px_#ff3823] flex items-center gap-2 border border-[#121316] transition-transform hover:-translate-y-0.5">
-                    <span>📍 PETA LOKASI PKL (MAPS)</span>
+                <a href="{{ route('public.pkl.map') }}" class="px-5 py-2.5 rounded-full bg-[#121316] text-[#fde047] hover:bg-[#222] font-mono-code text-xs font-black shadow-[3px_3px_0px_#ff3823] flex items-center gap-2 border border-[#121316] transition-transform hover:-translate-y-0.5">
+                    <span>🗺️ PETA SEBARAN PKL (MAPS)</span>
                     <span class="text-white text-[10px]">&rarr;</span>
-                </button>
+                </a>
             </div>
         </div>
 
@@ -87,7 +87,6 @@
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
-                    $mapsUrl = "https://www.google.com/maps/search/?api=1&query=" . urlencode($pkl['dudi_name'] . ' Gunungsitoli Nias');
                 @endphp
                 <article class="showcase-card poster-card {{ $t['bg'] }} {{ $t['text'] }} p-6 flex flex-col justify-between min-h-[340px]" data-type="pkl">
                     <div>
@@ -95,8 +94,8 @@
                             <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} truncate">
                                 {{ $pkl['dudi_name'] }}
                             </div>
-                            <a href="{{ $mapsUrl }}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded bg-black/20 hover:bg-black/40 text-[9px] font-mono-code font-bold inline-flex items-center gap-1 border border-current/20 transition-all flex-shrink-0" title="Buka Google Maps">
-                                📍 Maps ↗
+                            <a href="{{ route('public.pkl.map') }}" class="px-2 py-0.5 rounded bg-black/20 hover:bg-black/40 text-[9px] font-mono-code font-bold inline-flex items-center gap-1 border border-current/20 transition-all flex-shrink-0" title="Buka Peta GPS Siswa PKL">
+                                🗺️ Peta GPS ↗
                             </a>
                         </div>
                         <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-2 line-clamp-3">
@@ -111,7 +110,7 @@
                     </div>
                     <div class="pt-4 border-t {{ $t['border'] }} flex items-center justify-between text-[11px] font-mono-code font-bold mt-4">
                         <span class="truncate">{{ $pkl['school_name'] }}</span>
-                        <a href="{{ $mapsUrl }}" target="_blank" rel="noopener noreferrer" class="hover:underline flex items-center gap-1 text-[10px]">
+                        <a href="{{ route('public.pkl.map') }}" class="hover:underline flex items-center gap-1 text-[10px]">
                             <span>{{ $pkl['date'] }}</span>
                             <span>📍</span>
                         </a>

@@ -73,10 +73,10 @@
 
                     @if($typeKey === 'smk')
                         <div class="mt-3 pt-3 border-t border-[#e7e3d8]">
-                            <button type="button" onclick="openDudiMapModal()" class="w-full text-center py-2 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-[#ff3823] font-mono-code font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-[#ff3823]/30">
-                                <span>📍 Lihat Peta Lokasi PKL (Google Maps)</span>
+                            <a href="{{ route('public.pkl.map') }}" class="w-full text-center py-2 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-[#ff3823] font-mono-code font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-[#ff3823]/30">
+                                <span>🗺️ Peta GPS Sebaran Siswa PKL (Live Map)</span>
                                 <span>&rarr;</span>
-                            </button>
+                            </a>
                         </div>
                     @endif
                 </div>

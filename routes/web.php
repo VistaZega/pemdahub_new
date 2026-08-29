@@ -754,6 +754,46 @@ Route::get('/', function () {
         ->header('X-LiteSpeed-Cache-Control', 'no-cache');
 })->name('home');
 
+// Public PKL Placements GPS Map (SMKS Swasta Pembda Nias)
+Route::get('/pkl/peta-sebaran', function () {
+    $activeAcademicYear = \App\Models\AcademicYear::where('is_active', true)->first();
+    
+    $query = \App\Models\PklPlacement::with(['student.school', 'logs' => function($q) {
+        $q->whereNotNull('latitude')
+          ->whereNotNull('longitude')
+          ->latest('log_date');
+    }]);
+
+    if ($activeAcademicYear) {
+        $query->where('academic_year_id', $activeAcademicYear->id);
+    }
+
+    $placements = $query->get();
+    $mapData = [];
+
+    foreach ($placements as $p) {
+        if ($p->logs->isNotEmpty()) {
+            $latestLog = $p->logs->first();
+            $mapData[] = [
+                'student_name' => $p->student?->full_name ?? 'Siswa PKL',
+                'school_name' => $p->student?->school?->name ?? 'SMKS Swasta Pembda Nias',
+                'company_name' => $p->company_name ?? $p->dudi?->name ?? 'Mitra DUDI',
+                'lat' => (float)$latestLog->latitude,
+                'lng' => (float)$latestLog->longitude,
+                'photo' => $p->student?->photo_url ?? null,
+                'log_date' => $latestLog->log_date ? $latestLog->log_date->format('d M Y') : date('d M Y'),
+                'activity' => \Illuminate\Support\Str::limit($latestLog->activity ?? 'Praktik Industri', 120),
+            ];
+        }
+    }
+
+    $totalDudi = \App\Models\Dudi::count();
+
+    return view('public.pkl_map', compact('mapData', 'activeAcademicYear', 'totalDudi'));
+})->name('public.pkl.map');
+
+Route::get('/peta-pkl', fn() => redirect()->route('public.pkl.map'))->name('peta.pkl');
+
 // Public Download Route for offline learning
 Route::get('/pelatihan/{trainingModule}/download', [App\Http\Controllers\TrainingController::class, 'download'])->name('training.download');
 
