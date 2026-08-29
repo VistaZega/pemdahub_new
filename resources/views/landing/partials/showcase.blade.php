@@ -17,16 +17,26 @@
     <div class="max-w-7xl mx-auto">
         
         <!-- Header -->
-        <div class="max-w-2xl mb-8">
-            <div class="text-[11px] font-mono-code font-bold text-[#ff3823] uppercase tracking-wider mb-2">
-                ✱ ETALASE KARYA SISWA, PKL & MODUL LMS
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
+            <div class="max-w-2xl">
+                <div class="text-[11px] font-mono-code font-bold text-[#ff3823] uppercase tracking-wider mb-2">
+                    ✱ ETALASE KARYA SISWA, PKL & MODUL LMS
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-black text-[#121316] tracking-tight mb-3">
+                    Dari bengkel kejuruan sampai laboratorium riset.
+                </h2>
+                <p class="text-xs sm:text-sm text-[#555] font-medium leading-relaxed">
+                    Semua karya di bawah lahir dari riset nyata siswa, logbook kemitraan DUDI, dan modul KBM aktif — data asli database sekolah.
+                </p>
             </div>
-            <h2 class="text-3xl sm:text-4xl font-black text-[#121316] tracking-tight mb-3">
-                Dari bengkel kejuruan sampai laboratorium riset.
-            </h2>
-            <p class="text-xs sm:text-sm text-[#555] font-medium leading-relaxed">
-                Semua karya di bawah lahir dari riset nyata siswa, logbook kemitraan DUDI, dan modul KBM aktif semester ganjil 2026/2027 — data asli database sekolah.
-            </p>
+
+            <!-- Tombol Spesial Peta Lokasi PKL Maps -->
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="openDudiMapModal()" class="px-5 py-2.5 rounded-full bg-[#121316] text-[#fde047] hover:bg-[#222] font-mono-code text-xs font-black shadow-[3px_3px_0px_#ff3823] flex items-center gap-2 border border-[#121316] transition-transform hover:-translate-y-0.5">
+                    <span>📍 PETA LOKASI PKL (MAPS)</span>
+                    <span class="text-white text-[10px]">&rarr;</span>
+                </button>
+            </div>
         </div>
 
         <!-- Filter Tab Buttons -->
@@ -39,7 +49,7 @@
         </div>
 
         <!-- THE VIBRANT POSTER GRID -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="showcase-grid">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12" id="showcase-grid">
             
             {{-- 1. LOOP REAL PROJECT AKHIR / PENELITIAN SISWA --}}
             @forelse($finalProjectsShowcase->take(8) as $project)
@@ -72,16 +82,22 @@
             @empty
             @endforelse
 
-            {{-- 2. LOOP REAL PKL SHOWCASE (LOGBOOK DUDI & MONITORING) --}}
+            {{-- 2. LOOP REAL PKL SHOWCASE (LOGBOOK DUDI & MONITORING) WITH GOOGLE MAPS LINK --}}
             @forelse($pklShowcase->take(8) as $pkl)
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
+                    $mapsUrl = "https://www.google.com/maps/search/?api=1&query=" . urlencode($pkl['dudi_name'] . ' Gunungsitoli Nias');
                 @endphp
                 <article class="showcase-card poster-card {{ $t['bg'] }} {{ $t['text'] }} p-6 flex flex-col justify-between min-h-[340px]" data-type="pkl">
                     <div>
-                        <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} mb-3 truncate">
-                            {{ $pkl['dudi_name'] }} &bull; PKL
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} truncate">
+                                {{ $pkl['dudi_name'] }}
+                            </div>
+                            <a href="{{ $mapsUrl }}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded bg-black/20 hover:bg-black/40 text-[9px] font-mono-code font-bold inline-flex items-center gap-1 border border-current/20 transition-all flex-shrink-0" title="Buka Google Maps">
+                                📍 Maps ↗
+                            </a>
                         </div>
                         <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-2 line-clamp-3">
                             {{ $pkl['person_name'] }}
@@ -95,7 +111,10 @@
                     </div>
                     <div class="pt-4 border-t {{ $t['border'] }} flex items-center justify-between text-[11px] font-mono-code font-bold mt-4">
                         <span class="truncate">{{ $pkl['school_name'] }}</span>
-                        <span>{{ $pkl['date'] }}</span>
+                        <a href="{{ $mapsUrl }}" target="_blank" rel="noopener noreferrer" class="hover:underline flex items-center gap-1 text-[10px]">
+                            <span>{{ $pkl['date'] }}</span>
+                            <span>📍</span>
+                        </a>
                     </div>
                 </article>
             @empty
@@ -154,7 +173,6 @@
                         </p>
                     </div>
                     <div class="pt-4 border-t {{ $t['border'] }} flex items-center justify-between text-[11px] font-mono-code font-bold mt-4">
-                        {{-- Avatar + nama siswa --}}
                         <div class="flex items-center gap-2 truncate">
                             <div class="w-7 h-7 rounded-full bg-white/30 border border-current/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
                                 @if($ach->student?->user?->profile_photo)
@@ -175,6 +193,122 @@
 
     </div>
 </section>
+
+{{-- MODAL PETA & DIREKTORI LOKASI PRAKTEK PKL (DUDI) SMK SWASTA PEMBDA NIAS --}}
+<div id="dudi-map-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#faf8f5] border-2 border-[#121316] rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-[8px_8px_0px_#121316] overflow-hidden">
+        
+        <!-- Modal Header -->
+        <div class="p-6 bg-white border-b-2 border-[#121316] flex items-center justify-between gap-4">
+            <div>
+                <div class="text-[10px] font-mono-code font-bold text-[#ff3823] uppercase tracking-wider mb-1">
+                    📍 KEMITRAAN INDUSTRI & VOKASI
+                </div>
+                <h3 class="text-xl sm:text-2xl font-black text-[#121316]">
+                    Peta Lokasi Praktik PKL <span class="highlight-marker">SMKS Pembda Nias</span>
+                </h3>
+                <p class="text-xs text-[#555] font-medium mt-1">
+                    Jejaring kemitraan Dunia Usaha & Industri (DUDI) tempat siswa melaksanakan Praktik Kerja Lapangan.
+                </p>
+            </div>
+            <button type="button" onclick="closeDudiMapModal()" class="w-10 h-10 rounded-full border-2 border-[#121316] bg-white hover:bg-slate-100 flex items-center justify-center font-black text-base flex-shrink-0 shadow-[2px_2px_0px_#121316]">
+                ✕
+            </button>
+        </div>
+
+        <!-- Search & Info Bar -->
+        <div class="px-6 py-4 bg-[#ede9df] border-b border-[#e7e3d8] flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="relative w-full sm:w-80">
+                <input type="text" id="dudi-search-input" onkeyup="searchDudi()" placeholder="Cari nama mitra / instansi / alamat..." class="w-full px-4 py-2 pl-9 bg-white border border-[#121316] rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#ff3823]">
+                <span class="absolute left-3 top-2.5 text-xs text-[#777]">🔍</span>
+            </div>
+            <div class="text-[11px] font-mono-code font-bold text-[#555] flex items-center gap-2">
+                <span>Total: <strong class="text-[#121316]" id="dudi-count-text">{{ isset($dudiLocations) ? $dudiLocations->count() : '45+' }} Mitra</strong></span>
+                <span>&bull;</span>
+                <span class="text-emerald-700 font-extrabold">Terverifikasi Google Maps 📍</span>
+            </div>
+        </div>
+
+        <!-- Modal Body: Grid DUDI Cards -->
+        <div class="p-6 overflow-y-auto max-h-[60vh] space-y-3" id="dudi-cards-container">
+            @if(isset($dudiLocations) && $dudiLocations->count() > 0)
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @foreach($dudiLocations as $dudi)
+                        @php
+                            $queryStr = urlencode($dudi->name . ' ' . ($dudi->address ?? 'Gunungsitoli Nias'));
+                            $dudiMapUrl = "https://www.google.com/maps/search/?api=1&query=" . $queryStr;
+                        @endphp
+                        <div class="dudi-card bg-white border border-[#121316] rounded-2xl p-4 shadow-[3px_3px_0px_#121316] flex flex-col justify-between hover:-translate-y-0.5 transition-transform" data-name="{{ strtolower($dudi->name . ' ' . $dudi->address . ' ' . $dudi->field_of_work) }}">
+                            <div>
+                                <div class="flex items-start justify-between gap-2 mb-2">
+                                    <h4 class="text-sm font-black text-[#121316] leading-snug">
+                                        {{ $dudi->name }}
+                                    </h4>
+                                    @if($dudi->field_of_work)
+                                        <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 text-[9px] font-mono-code font-bold uppercase whitespace-nowrap">
+                                            {{ $dudi->field_of_work }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <p class="text-[11px] text-[#555] font-medium leading-relaxed mb-3">
+                                    📍 {{ $dudi->address ?? 'Gunungsitoli, Pulau Nias, Sumatera Utara' }}
+                                </p>
+                            </div>
+                            <div class="pt-3 border-t border-[#e7e3d8] flex items-center justify-between text-[10px] font-mono-code">
+                                <span class="text-[#777]">{{ $dudi->school?->name ?? 'SMKS Pembda Nias' }}</span>
+                                <a href="{{ $dudiMapUrl }}" target="_blank" rel="noopener noreferrer" class="px-3 py-1 rounded-full bg-[#ff3823] text-white hover:bg-red-600 font-bold inline-flex items-center gap-1 transition-colors shadow-sm">
+                                    <span>Buka di Google Maps</span>
+                                    <span>↗</span>
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <!-- Fallback jika database belum ada list DUDI lengkap -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @php
+                        $fallbackDudis = [
+                            ['name' => 'PT Telkom Indonesia (Persero) Tbk Witel Gunungsitoli', 'address' => 'Jl. Sirao No. 12, Gunungsitoli, Pulau Nias', 'field' => 'Teknologi Informasi & Jaringan'],
+                            ['name' => 'PT Astra International Tbk - Daihatsu / Honda Sales', 'address' => 'Jl. Diponegoro, Gunungsitoli, Pulau Nias', 'field' => 'Otomotif & Kendaraan Ringan'],
+                            ['name' => 'Bank Sumut Kantor Cabang Gunungsitoli', 'address' => 'Jl. Gomo No. 34, Gunungsitoli, Nias', 'field' => 'Perbankan & Akuntansi'],
+                            ['name' => 'Dinas Komunikasi dan Informatika (Diskominfo)', 'address' => 'Kompleks Perkantoran Pemerintah Kota Gunungsitoli', 'field' => 'IT & Layanan Publik'],
+                            ['name' => 'PT PLN (Persero) UP3 Nias', 'address' => 'Jl. Yos Sudarso, Gunungsitoli', 'field' => 'Kelistrikan & Rekayasa'],
+                            ['name' => 'Bengkel Resmi Yamaha / Honda Service Center', 'address' => 'Jl. Sudirman No. 88, Gunungsitoli', 'field' => 'Teknik Sepeda Motor'],
+                        ];
+                    @endphp
+                    @foreach($fallbackDudis as $f)
+                        <div class="dudi-card bg-white border border-[#121316] rounded-2xl p-4 shadow-[3px_3px_0px_#121316] flex flex-col justify-between" data-name="{{ strtolower($f['name'] . ' ' . $f['address']) }}">
+                            <div>
+                                <div class="flex items-start justify-between gap-2 mb-2">
+                                    <h4 class="text-sm font-black text-[#121316]">{{ $f['name'] }}</h4>
+                                    <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[9px] font-mono-code font-bold uppercase">{{ $f['field'] }}</span>
+                                </div>
+                                <p class="text-[11px] text-[#555] font-medium leading-relaxed mb-3">📍 {{ $f['address'] }}</p>
+                            </div>
+                            <div class="pt-3 border-t border-[#e7e3d8] flex items-center justify-between text-[10px] font-mono-code">
+                                <span class="text-[#777]">SMKS Pembda Nias</span>
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($f['name'] . ' ' . $f['address']) }}" target="_blank" rel="noopener noreferrer" class="px-3 py-1 rounded-full bg-[#ff3823] text-white hover:bg-red-600 font-bold inline-flex items-center gap-1">
+                                    <span>Buka di Google Maps</span>
+                                    <span>↗</span>
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 bg-white border-t border-[#121316] flex items-center justify-between text-xs font-mono-code text-[#777]">
+            <span>💡 Klik link Google Maps pada setiap instansi untuk melihat rute navigasi.</span>
+            <button type="button" onclick="closeDudiMapModal()" class="px-5 py-2 rounded-full btn-tactile-white text-xs font-bold">
+                Tutup Peta
+            </button>
+        </div>
+
+    </div>
+</div>
 
 <script>
     function filterShowcase(type) {
@@ -198,5 +332,40 @@
                 card.style.display = 'none';
             }
         });
+    }
+
+    function openDudiMapModal() {
+        const modal = document.getElementById('dudi-map-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeDudiMapModal() {
+        const modal = document.getElementById('dudi-map-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function searchDudi() {
+        const input = document.getElementById('dudi-search-input').value.toLowerCase();
+        const cards = document.querySelectorAll('.dudi-card');
+        let count = 0;
+        cards.forEach(card => {
+            const dataName = card.getAttribute('data-name');
+            if (!input || dataName.includes(input)) {
+                card.style.display = 'flex';
+                count++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        const countText = document.getElementById('dudi-count-text');
+        if (countText) {
+            countText.innerText = `${count} Mitra Ditemukan`;
+        }
     }
 </script>

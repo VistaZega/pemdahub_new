@@ -70,6 +70,15 @@
                             <div class="text-[9px] text-[#777] uppercase font-bold">Rombel</div>
                         </div>
                     </div>
+
+                    @if($typeKey === 'smk')
+                        <div class="mt-3 pt-3 border-t border-[#e7e3d8]">
+                            <button type="button" onclick="openDudiMapModal()" class="w-full text-center py-2 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-[#ff3823] font-mono-code font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-[#ff3823]/30">
+                                <span>📍 Lihat Peta Lokasi PKL (Google Maps)</span>
+                                <span>&rarr;</span>
+                            </button>
+                        </div>
+                    @endif
                 </div>
             @empty
                 <div class="col-span-3 text-center py-12 bg-white rounded-2xl border-2 border-dashed border-[#121316]">

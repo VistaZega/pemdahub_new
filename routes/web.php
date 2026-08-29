@@ -689,6 +689,7 @@ Route::get('/', function () {
     $totalApprovedLogs = \App\Models\PklLog::where('status', 'approved')->count();
     $totalMonitorings = \App\Models\PklMonitoring::count();
     $totalDudi = \App\Models\Dudi::count();
+    $dudiLocations = \App\Models\Dudi::with('school')->orderBy('name', 'asc')->get();
 
     // === TOP HALL OF FAME PEMBDA ELITE FOR HOMEPAGE ===
     $topStudentsElite = \App\Models\Reputation::with(['user.student.classroom.school', 'user.student.school', 'user.school', 'user.badges'])
@@ -744,7 +745,7 @@ Route::get('/', function () {
         'achievements', 'totalAchievements',
         'schools', 'activeWave', 'totalApplicants',
         'recentAlumnis',
-        'pklShowcase', 'totalApprovedLogs', 'totalMonitorings', 'totalDudi',
+        'pklShowcase', 'totalApprovedLogs', 'totalMonitorings', 'totalDudi', 'dudiLocations',
         'topStudentsElite', 'topTeachersElite', 'homepageTheme',
         'smkProgramKeahlians', 'finalProjectsShowcase', 'extracurriculars'
     )))
