@@ -25,12 +25,12 @@
                 </p>
 
                 <!-- Action Buttons -->
-                <div class="flex flex-wrap items-center gap-4 mb-6">
-                    <a href="#showcase" class="px-7 py-3.5 rounded-full btn-tactile-red text-sm font-black tracking-wide flex items-center gap-2">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-6">
+                    <a href="#showcase" class="px-6 sm:px-7 py-3 sm:py-3.5 rounded-full btn-tactile-red text-xs sm:text-sm font-black tracking-wide flex items-center justify-center gap-2">
                         <span>Buka Etalase Karya</span>
                         <span>&rarr;</span>
                     </a>
-                    <a href="#galeri" class="px-6 py-3.5 rounded-full btn-tactile-white text-sm font-bold flex items-center gap-2">
+                    <a href="#galeri" class="px-5 sm:px-6 py-3 sm:py-3.5 rounded-full btn-tactile-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2">
                         <span>Dokumentasi Sekolah</span>
                         <span>↓</span>
                     </a>

@@ -127,6 +127,17 @@
             left: 24px;
             z-index: 9999;
         }
+        @media (max-width: 640px) {
+            .floating-audio-dock {
+                bottom: 16px;
+                right: 16px;
+                left: auto;
+            }
+            .audio-tactile-btn {
+                padding: 8px 12px;
+                font-size: 10px;
+            }
+        }
         .audio-tactile-btn {
             background: #121316;
             color: #ffffff;

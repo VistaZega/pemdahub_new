@@ -1,21 +1,21 @@
-{{-- NAVIGATION — DesainPake AI Tactile Style --}}
+{{-- NAVIGATION — DesainPake AI Tactile Style (Mobile Responsive & Clean) --}}
 <header class="sticky top-0 z-50 bg-[#faf8f5]/95 backdrop-blur-md border-b border-[#e7e3d8]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-2">
         
         <!-- Brand Logo & App Download Links -->
-        <div class="flex items-center gap-3">
-            <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <div class="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
                 <a href="{{ route('home') }}" title="Beranda Yayasan Perguruan PEMBDA" class="hover:scale-105 transition-transform flex-shrink-0">
-                    <img src="{{ asset('images/logo-yayasan.png') }}" alt="Logo Yayasan Perguruan PEMBDA" class="w-10 h-10 object-contain rounded-lg shadow-sm border border-[#e7e3d8]">
+                    <img src="{{ asset('images/logo-yayasan.png') }}" alt="Logo Yayasan Perguruan PEMBDA" class="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-lg shadow-sm border border-[#e7e3d8]">
                 </a>
                 <a href="{{ route('app.download') }}" title="Download / Install Aplikasi PembdaHUB Mobile" class="relative group/logo hover:scale-110 active:scale-95 transition-all flex-shrink-0 block">
-                    <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo PembdaHUB - Download Aplikasi Mobile" class="w-10 h-10 object-contain rounded-lg shadow-sm border-2 border-[#ff3823]/40 group-hover/logo:border-[#ff3823] group-hover/logo:shadow-md">
-                    <span class="absolute -top-1.5 -right-1.5 bg-[#ff3823] text-white text-[8px] font-black px-1.5 py-0.2 rounded-full shadow-sm animate-pulse flex items-center gap-0.5 pointer-events-none">
-                        <i class="fa-solid fa-download text-[7px]"></i> APP
+                    <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo PembdaHUB - Download Aplikasi Mobile" class="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-lg shadow-sm border-2 border-[#ff3823]/40 group-hover/logo:border-[#ff3823]">
+                    <span class="absolute -top-1.5 -right-1.5 bg-[#ff3823] text-white text-[7px] sm:text-[8px] font-black px-1 sm:px-1.5 py-0.2 rounded-full shadow-sm animate-pulse flex items-center gap-0.5 pointer-events-none">
+                        <i class="fa-solid fa-download text-[6px]"></i> APP
                     </span>
                 </a>
             </div>
-            <a href="{{ route('home') }}" class="text-xl font-black tracking-tight text-[#121316] hover:text-[#ff3823] transition-colors">
+            <a href="{{ route('home') }}" class="text-lg sm:text-xl font-black tracking-tight text-[#121316] hover:text-[#ff3823] transition-colors whitespace-nowrap">
                 Pembda<span class="text-[#ff3823]">HUB</span>
             </a>
         </div>
@@ -39,24 +39,24 @@
         </nav>
 
         <!-- Action CTAs -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             @auth
-                <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded-full btn-tactile-red text-xs font-black tracking-wide flex items-center gap-1.5">
+                <a href="{{ route('dashboard') }}" class="hidden sm:inline-flex px-4 sm:px-5 py-2 sm:py-2.5 rounded-full btn-tactile-red text-xs font-black tracking-wide items-center gap-1.5">
                     <i class="fa-solid fa-gauge-high"></i>
                     <span>Dashboard</span>
                 </a>
             @else
-                <a href="{{ route('login') }}" class="text-xs font-bold text-[#121316] hover:underline px-3 py-2 hidden sm:inline-block">
+                <a href="{{ route('login') }}" class="hidden md:inline-block text-xs font-bold text-[#121316] hover:underline px-2 sm:px-3 py-2">
                     Masuk Portal
                 </a>
-                <a href="{{ route('login') }}" class="px-5 py-2.5 rounded-full btn-tactile-red text-xs font-black tracking-wide flex items-center gap-1.5">
+                <a href="{{ route('login') }}" class="hidden sm:inline-flex px-4 sm:px-5 py-2 sm:py-2.5 rounded-full btn-tactile-red text-xs font-black tracking-wide items-center gap-1.5">
                     <span>Ruang Belajar</span>
                     <span>&rarr;</span>
                 </a>
             @endauth
 
             <!-- Mobile Hamburger Button -->
-            <button type="button" onclick="document.getElementById('mobile-nav-drawer').classList.toggle('hidden')" class="xl:hidden p-2 text-[#121316] hover:bg-[#ede9df] rounded-lg text-lg border border-[#121316]" aria-label="Toggle Menu">
+            <button type="button" onclick="document.getElementById('mobile-nav-drawer').classList.toggle('hidden')" class="xl:hidden p-2 text-[#121316] hover:bg-[#ede9df] rounded-xl text-base sm:text-lg border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-center w-10 h-10 flex-shrink-0" aria-label="Toggle Menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
         </div>
@@ -64,7 +64,7 @@
     </div>
 
     <!-- Mobile Drawer -->
-    <div id="mobile-nav-drawer" class="hidden xl:hidden bg-[#faf8f5] border-b-2 border-[#121316] px-6 py-6 transition-all">
+    <div id="mobile-nav-drawer" class="hidden xl:hidden bg-[#faf8f5] border-b-2 border-[#121316] px-6 py-6 transition-all shadow-lg">
         <div class="flex flex-col gap-4 text-sm font-bold text-[#121316]">
             <a href="#showcase" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Karya Siswa & PKL</a>
             <a href="#ekskul" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Ekstrakurikuler ({{ isset($extracurriculars) ? $extracurriculars->count() : '16+' }})</a>
@@ -86,8 +86,8 @@
                         Buka Dashboard Portal
                     </a>
                 @else
-                    <a href="{{ route('login') }}" class="w-full text-center py-3 rounded-full btn-tactile-white text-xs font-black">
-                        Masuk Portal Siswa / Guru
+                    <a href="{{ route('login') }}" class="w-full text-center py-3 rounded-full btn-tactile-red text-xs font-black">
+                        Masuk Portal Siswa / Guru &rarr;
                     </a>
                 @endauth
             </div>
