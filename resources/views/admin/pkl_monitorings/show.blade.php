@@ -168,7 +168,7 @@
                                     
                                     <div class="relative bg-white p-5 rounded-2xl border border-slate-100 shadow-sm shadow-slate-100/50 text-sm text-slate-600 leading-relaxed font-medium">
                                         <div class="absolute -top-3 left-5 text-4xl text-indigo-100 bg-white px-1 leading-none"><i class="fas fa-quote-left"></i></div>
-                                        <p class="relative z-10 pt-2">{{ $mon->notes ?? 'Tidak ada catatan monitoring.' }}</p>
+                                        <div class="relative z-10 pt-2 space-y-1 whitespace-pre-line">{{ $mon->notes ?? 'Tidak ada catatan monitoring.' }}</div>
                                     </div>
                                 </div>
                                 

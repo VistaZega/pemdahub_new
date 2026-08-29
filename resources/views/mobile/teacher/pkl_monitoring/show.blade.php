@@ -93,6 +93,20 @@
             <span class="text-[9px] font-extrabold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">1x Setiap Minggu</span>
         </div>
 
+        <!-- Warning Banner Petunjuk Yayasan -->
+        <div class="p-3 bg-amber-50 border-2 border-amber-300 rounded-2xl space-y-1.5 text-[11px]">
+            <div class="flex items-center gap-1.5 text-amber-950 font-black">
+                <i class="fa-solid fa-scale-balanced text-amber-600 text-xs"></i>
+                <span class="uppercase tracking-wider">Pemberitahuan Resmi Pembimbing PKL</span>
+            </div>
+            <p class="text-amber-900 leading-relaxed font-semibold">
+                Laporan Monitoring PKL merupakan dokumen pertanggungjawaban resmi. Guru Pembimbing <strong>WAJIB</strong> menguraikan 3 poin laporan secara objektif dan faktual. Dilarang keras mengisi laporan secara formalitas atau asal-asalan.
+            </p>
+            <div class="text-[10px] font-black text-amber-800 italic pt-1 border-t border-amber-200">
+                * Di bawah pengawasan dan petunjuk yayasan
+            </div>
+        </div>
+
         <form action="{{ route('mobile.guru.pkl.monitoring.store', [$dudi->id, $shift ?? 'null']) }}" method="POST" enctype="multipart/form-data" class="space-y-3">
             @csrf
             <div>
@@ -101,14 +115,36 @@
                        class="w-full px-3.5 py-2.5 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold cursor-pointer focus:outline-hidden focus:border-blue-500">
             </div>
 
-            <div>
-                <label for="notes" class="block text-xs font-black text-slate-800 mb-1">Catatan Evaluasi / Temuan di DUDI</label>
-                <textarea id="notes" name="notes" rows="3"
-                          placeholder="Jelaskan kondisi siswa di tempat industri, feedback dari instruktur DUDI, kendala, atau arahan bimbingan..."
-                          class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold resize-none focus:outline-hidden focus:border-blue-500"></textarea>
+            <div class="space-y-2.5 pt-1">
+                <div>
+                    <label for="evaluation_student" class="block text-[11px] font-black text-slate-800 mb-1">
+                        1. Evaluasi Kinerja & Kedisiplinan Siswa *
+                    </label>
+                    <textarea id="evaluation_student" name="evaluation_student" rows="2" minlength="20" required
+                              placeholder="Jelaskan kehadiran, kedisiplinan jam kerja, kepatuhan K3, dan etika siswa..."
+                              class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold resize-none focus:outline-hidden focus:border-blue-500"></textarea>
+                </div>
+
+                <div>
+                    <label for="feedback_dudi" class="block text-[11px] font-black text-slate-800 mb-1">
+                        2. Feedback & Catatan dari Instruktur DUDI *
+                    </label>
+                    <textarea id="feedback_dudi" name="feedback_dudi" rows="2" minlength="20" required
+                              placeholder="Tuliskan masukan, evaluasi kompetensi, atau catatan dari pembimbing industri..."
+                              class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold resize-none focus:outline-hidden focus:border-blue-500"></textarea>
+                </div>
+
+                <div>
+                    <label for="guidance_action" class="block text-[11px] font-black text-slate-800 mb-1">
+                        3. Arahan Bimbingan Guru & Solusi Tindak Lanjut *
+                    </label>
+                    <textarea id="guidance_action" name="guidance_action" rows="2" minlength="20" required
+                              placeholder="Jelaskan arahan penguatan materi/moral yang diberikan guru serta solusi kendala..."
+                              class="w-full p-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold resize-none focus:outline-hidden focus:border-blue-500"></textarea>
+                </div>
             </div>
 
-            <div class="space-y-2">
+            <div class="space-y-2 pt-1 border-t border-slate-100">
                 <div>
                     <label for="assignment_letter" class="block text-xs font-black text-slate-800 mb-1">Surat Tugas Kunjungan (PDF/Foto) *</label>
                     <input type="file" id="assignment_letter" name="assignment_letter" required accept=".pdf,.jpg,.jpeg,.png"
@@ -123,7 +159,7 @@
             </div>
 
             <button type="submit" class="clay-btn w-full py-3 text-white font-black text-xs flex items-center justify-center gap-2">
-                <i class="fa-solid fa-paper-plane"></i> Kirim Laporan Kunjungan Mingguan
+                <i class="fa-solid fa-paper-plane"></i> Kirim Laporan Monitoring Resmi
             </button>
         </form>
     </div>
@@ -149,9 +185,9 @@
                 </div>
 
                 @if($mon->notes)
-                    <p class="text-xs text-slate-700 font-bold leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <div class="text-xs text-slate-700 font-bold leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100 whitespace-pre-line">
                         {{ $mon->notes }}
-                    </p>
+                    </div>
                 @endif
 
                 <!-- Attachment Previews -->

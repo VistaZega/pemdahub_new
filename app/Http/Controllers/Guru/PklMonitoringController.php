@@ -108,15 +108,30 @@ class PklMonitoringController extends Controller
         if ($shift === 'null') $shift = null;
         $teacher = $this->getTeacher();
         
-        $request->validate([
+        $validated = $request->validate([
             'monitoring_date' => 'required|date',
-            'notes' => 'nullable|string',
+            'evaluation_student' => 'required|string|min:20',
+            'feedback_dudi' => 'required|string|min:20',
+            'guidance_action' => 'required|string|min:20',
             'assignment_letter' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
+        ], [
+            'evaluation_student.required' => 'Evaluasi kinerja & kedisiplinan siswa wajib diisi.',
+            'evaluation_student.min' => 'Evaluasi siswa terlalu singkat (minimal 20 karakter). Mohon uraikan secara jelas dan faktual.',
+            'feedback_dudi.required' => 'Feedback dari instruktur DUDI wajib diisi.',
+            'feedback_dudi.min' => 'Feedback DUDI terlalu singkat (minimal 20 karakter). Mohon tuliskan hasil koordinasi dengan pihak industri.',
+            'guidance_action.required' => 'Arahan bimbingan & tindak lanjut guru wajib diisi.',
+            'guidance_action.min' => 'Arahan bimbingan terlalu singkat (minimal 20 karakter).',
+            'assignment_letter.required' => 'Surat tugas monitoring bertandatangan DUDI wajib diunggah.',
+            'photo.required' => 'Foto bukti kunjungan langsung di DUDI wajib diunggah.',
         ]);
 
         $letterPath = $request->file('assignment_letter')->store('pkl/monitoring_letters', 'public');
         $photoPath = $request->file('photo')->store('pkl/monitoring_photos', 'public');
+
+        $formattedNotes = "1. Evaluasi Kinerja & Kedisiplinan Siswa:\n" . trim($validated['evaluation_student']) . "\n\n" .
+                          "2. Feedback dari Instruktur DUDI:\n" . trim($validated['feedback_dudi']) . "\n\n" .
+                          "3. Arahan Bimbingan Guru & Solusi Tindak Lanjut:\n" . trim($validated['guidance_action']);
 
         PklMonitoring::create([
             'teacher_id' => $teacher->id,
@@ -125,10 +140,10 @@ class PklMonitoringController extends Controller
             'monitoring_date' => $request->monitoring_date,
             'assignment_letter_path' => $letterPath,
             'photo_path' => $photoPath,
-            'notes' => $request->notes,
+            'notes' => $formattedNotes,
             'status' => 'submitted',
         ]);
 
-        return back()->with('success', 'Laporan monitoring mingguan berhasil dikirim.');
+        return back()->with('success', 'Laporan monitoring mingguan resmi berhasil dikirim dan tercatat di sistem Yayasan & Sekolah.');
     }
 }

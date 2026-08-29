@@ -108,7 +108,7 @@
                                     <h4 class="font-bold text-slate-800">{{ $mon->monitoring_date->format('d F Y') }}</h4>
                                     <span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase rounded-md tracking-wider">Periode Ke-{{ $mon->periode_ke }}</span>
                                 </div>
-                                <p class="text-sm text-slate-600 mt-1">{{ $mon->notes ?? 'Tidak ada catatan' }}</p>
+                                <div class="text-sm text-slate-600 mt-1.5 whitespace-pre-line leading-relaxed">{{ $mon->notes ?? 'Tidak ada catatan' }}</div>
                             </div>
                               <div class="flex gap-3 shrink-0">
                                   @if($mon->photo_path)
@@ -203,6 +203,20 @@
                     <h3 class="font-bold text-slate-800"><i class="fas fa-pen-alt text-indigo-500 mr-2"></i> Buat Laporan Mingguan</h3>
                 </div>
                 <div class="p-5">
+                    <!-- Warning Banner Petunjuk Yayasan -->
+                    <div class="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl mb-5 text-xs space-y-2">
+                        <div class="flex items-center gap-2 text-amber-900 font-bold">
+                            <i class="fas fa-balance-scale text-amber-600 text-sm"></i>
+                            <span class="uppercase tracking-wider">Pemberitahuan Resmi Pembimbing PKL</span>
+                        </div>
+                        <p class="text-amber-800 leading-relaxed font-medium">
+                            Laporan Monitoring PKL merupakan instrumen resmi evaluasi pembimbingan. Guru Pembimbing <strong>WAJIB</strong> menguraikan ketiga poin laporan secara objektif, lengkap, dan faktual sesuai hasil supervisi di tempat industri. <strong>Dilarang mengisi laporan secara asal-asalan atau formalitas.</strong>
+                        </p>
+                        <div class="text-[11px] font-bold text-amber-700 italic flex items-center gap-1.5 pt-1 border-t border-amber-200">
+                            <span>* Di bawah pengawasan dan petunjuk yayasan</span>
+                        </div>
+                    </div>
+
                     <form action="{{ route('guru.pkl_monitorings.store', [$dudi->id, $shift ?: 'null']) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                         @csrf
                         
@@ -219,17 +233,35 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Foto Bukti Kunjungan <span class="text-rose-500">*</span></label>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Foto Bukti Kunjungan di Lokasi DUDI <span class="text-rose-500">*</span></label>
                             <input type="file" name="photo" required accept="image/*" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Catatan Khusus (Opsional)</label>
-                            <textarea name="notes" rows="3" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400" placeholder="Ketik catatan kondisi PKL siswa di sini..."></textarea>
+                        <div class="space-y-3 pt-2 border-t border-slate-100">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                                    1. Evaluasi Kinerja & Kedisiplinan Siswa <span class="text-rose-500">*</span>
+                                </label>
+                                <textarea name="evaluation_student" rows="2" minlength="20" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400" placeholder="Jelaskan kehadiran, kedisiplinan jam kerja, kepatuhan K3, dan etika siswa di tempat industri..."></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                                    2. Feedback & Catatan dari Instruktur DUDI <span class="text-rose-500">*</span>
+                                </label>
+                                <textarea name="feedback_dudi" rows="2" minlength="20" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400" placeholder="Tuliskan masukan, saran, apresiasi, atau catatan dari instruktur industri terkait penguasaan kompetensi siswa..."></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                                    3. Arahan Bimbingan Guru & Solusi Tindak Lanjut <span class="text-rose-500">*</span>
+                                </label>
+                                <textarea name="guidance_action" rows="2" minlength="20" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400" placeholder="Jelaskan arahan penguatan teknis/moral yang diberikan guru, penyelesaian kendala, dan target minggu berikutnya..."></textarea>
+                            </div>
                         </div>
 
                         <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md shadow-indigo-200 transition-all">
-                            <i class="fas fa-paper-plane mr-2"></i> Kirim Laporan
+                            <i class="fas fa-paper-plane mr-2"></i> Kirim Laporan Monitoring Resmi
                         </button>
                     </form>
                 </div>
