@@ -154,7 +154,17 @@
                         </p>
                     </div>
                     <div class="pt-4 border-t {{ $t['border'] }} flex items-center justify-between text-[11px] font-mono-code font-bold mt-4">
-                        <span>{{ $ach->incident_date ? \Carbon\Carbon::parse($ach->incident_date)->translatedFormat('d M Y') : '2026' }}</span>
+                        {{-- Avatar + nama siswa --}}
+                        <div class="flex items-center gap-2 truncate">
+                            <div class="w-7 h-7 rounded-full bg-white/30 border border-current/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                @if($ach->student?->user?->profile_photo)
+                                    <img src="{{ asset('storage/' . $ach->student->user->profile_photo) }}" alt="{{ $ach->student?->full_name }}" class="w-full h-full rounded-full object-cover">
+                                @else
+                                    <svg class="w-4 h-4 opacity-50" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                @endif
+                            </div>
+                            <span class="truncate">{{ $ach->student?->full_name ?? 'Siswa' }}</span>
+                        </div>
                         <span>🏆 JUARA</span>
                     </div>
                 </article>

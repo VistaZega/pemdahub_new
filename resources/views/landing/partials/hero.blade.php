@@ -122,7 +122,7 @@
             </div>
             <div class="p-4 bg-white/60 rounded-2xl border border-[#e7e3d8]">
                 <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ isset($totalAlumni) ? number_format($totalAlumni) : 0 }}+</div>
-                <div class="text-[11px] font-mono-code font-bold uppercase text-[#777] mt-1">Alumni Sejak 1970</div>
+                <div class="text-[11px] font-mono-code font-bold uppercase text-[#777] mt-1">Terdaftar di Portal Alumni</div>
             </div>
         </div>
 

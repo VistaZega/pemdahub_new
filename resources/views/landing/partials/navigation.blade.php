@@ -3,8 +3,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
         
         <!-- Brand Logo -->
-        <a href="{{ route('home') }}" class="flex items-center gap-2.5 group">
-            <span class="text-[#ff3823] font-black text-2xl leading-none group-hover:rotate-45 transition-transform">✱</span>
+        <a href="{{ route('home') }}" class="flex items-center gap-3 group">
+            <div class="flex items-center gap-1.5">
+                <img src="{{ asset('images/logo-yayasan.png') }}" alt="Logo Yayasan Perguruan PEMBDA" class="w-10 h-10 object-contain rounded-lg shadow-sm border border-[#e7e3d8]">
+                <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo PembdaHUB" class="w-10 h-10 object-contain rounded-lg shadow-sm border border-[#e7e3d8]">
+            </div>
             <div class="flex items-center gap-2">
                 <span class="text-xl font-black tracking-tight text-[#121316]">Pembda<span class="text-[#ff3823]">HUB</span></span>
                 <span class="px-1.5 py-0.5 rounded bg-[#e7e3d8] text-[#555] text-[10px] font-mono-code font-bold uppercase hidden sm:inline-block">SMART SCHOOL</span>
