@@ -691,13 +691,13 @@ Route::get('/', function () {
     $totalDudi = \App\Models\Dudi::count();
     $dudiLocations = \App\Models\Dudi::with('school')->orderBy('name', 'asc')->get();
 
-    // === TOP HALL OF FAME PEMBDA ELITE FOR HOMEPAGE ===
+    // === TOP HALL OF FAME PEMBDA ELITE FOR HOMEPAGE (6 HONOREES STRIP) ===
     $topStudentsElite = \App\Models\Reputation::with(['user.student.classroom.school', 'user.student.school', 'user.school', 'user.badges'])
         ->whereHas('user', function($q) {
             $q->where('role', 'siswa');
         })
         ->orderBy('total_points', 'desc')
-        ->take(4)
+        ->take(6)
         ->get();
 
     $topTeachersElite = \App\Models\Reputation::with(['user.teacher.school', 'user.badges'])
@@ -707,7 +707,7 @@ Route::get('/', function () {
               ->where('name', 'NOT LIKE', '%Yulianus Zega%');
         })
         ->orderBy('total_points', 'desc')
-        ->take(4)
+        ->take(6)
         ->get();
 
     // Tema Beranda Hari Besar (Event Theme)
