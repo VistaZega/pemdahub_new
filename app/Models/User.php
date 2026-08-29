@@ -805,7 +805,7 @@ class User extends Authenticatable
         $roles = [];
 
         // 1. Super Admin (Hanya jika memiliki role superadmin atau akun owner khusus)
-        if ($this->role === 'superadmin' || $this->hasRole('superadmin') || $this->username === 'yulzega') {
+        if ($this->role === 'superadmin' || $this->hasRole('superadmin') || $this->username === 'yulzega' || $this->isOwnerOrSuperAdmin()) {
             $roles[] = [
                 'key' => 'superadmin',
                 'label' => 'Super Admin',
@@ -815,8 +815,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 2. Ketua Yayasan (Hanya jika memiliki role ketua_yayasan atau otoritas yayasan)
-        if ($this->role === 'ketua_yayasan' || $this->hasRole('ketua_yayasan') || $this->canAccessYayasan()) {
+        // 2. Ketua Yayasan (Hanya jika memiliki role ketua_yayasan atau otoritas yayasan / superadmin)
+        if ($this->role === 'ketua_yayasan' || $this->hasRole('ketua_yayasan') || $this->canAccessYayasan() || $this->isOwnerOrSuperAdmin()) {
             $roles[] = [
                 'key' => 'ketua_yayasan',
                 'label' => 'Ketua Yayasan',
@@ -826,11 +826,12 @@ class User extends Authenticatable
             ];
         }
 
-        // 3. Kepala Sekolah (Hanya jika role kepala_sekolah atau tercatat sebagai Kepala Sekolah di tabel School)
+        // 3. Kepala Sekolah (Hanya jika role kepala_sekolah atau tercatat sebagai Kepala Sekolah di tabel School / superadmin)
         if (
             $this->role === 'kepala_sekolah' || 
             $this->hasRole('kepala_sekolah') || 
-            ($this->teacher && School::where('principal_id', $this->teacher->id)->where('type', '!=', 'YAYASAN')->exists())
+            ($this->teacher && School::where('principal_id', $this->teacher->id)->where('type', '!=', 'YAYASAN')->exists()) ||
+            $this->isOwnerOrSuperAdmin()
         ) {
             $roles[] = [
                 'key' => 'kepala_sekolah',
@@ -841,8 +842,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 4. Admin Sekolah (Hanya jika ditugaskan sebagai admin sekolah)
-        if ($this->role === 'admin_sekolah' || $this->hasRole('admin_sekolah')) {
+        // 4. Admin Sekolah (Hanya jika ditugaskan sebagai admin sekolah / superadmin)
+        if ($this->role === 'admin_sekolah' || $this->hasRole('admin_sekolah') || $this->isOwnerOrSuperAdmin()) {
             $roles[] = [
                 'key' => 'admin_sekolah',
                 'label' => 'Admin Sekolah',
@@ -852,8 +853,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 5. Bendahara (Hanya jika ditugaskan sebagai bendahara)
-        if ($this->role === 'bendahara' || $this->hasRole('bendahara')) {
+        // 5. Bendahara (Hanya jika ditugaskan sebagai bendahara / superadmin)
+        if ($this->role === 'bendahara' || $this->hasRole('bendahara') || $this->isOwnerOrSuperAdmin()) {
             $roles[] = [
                 'key' => 'bendahara',
                 'label' => 'Bendahara',
@@ -863,8 +864,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 6. Guru / Tenaga Pendidik (Hanya jika role guru atau memiliki profil Guru di database)
-        if ($this->role === 'guru' || $this->hasRole('guru') || $this->teacher !== null) {
+        // 6. Guru / Tenaga Pendidik (Hanya jika role guru atau memiliki profil Guru di database / superadmin)
+        if ($this->role === 'guru' || $this->hasRole('guru') || $this->teacher !== null || $this->isOwnerOrSuperAdmin()) {
             $roles[] = [
                 'key' => 'guru',
                 'label' => 'Guru Pengampu',
@@ -874,8 +875,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 7. Pegawai / Staf TU (Hanya jika role pegawai, atau staf/karyawan non-guru murni)
-        if ($this->role === 'pegawai' || $this->hasRole('pegawai') || ($this->employee !== null && $this->teacher === null)) {
+        // 7. Pegawai / Staf TU (Hanya jika role pegawai, atau staf non-guru / superadmin)
+        if ($this->role === 'pegawai' || $this->hasRole('pegawai') || ($this->employee !== null && $this->teacher === null) || $this->isOwnerOrSuperAdmin()) {
             $roles[] = [
                 'key' => 'pegawai',
                 'label' => 'Pegawai / Staf TU',
@@ -885,8 +886,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 8. Orang Tua / Wali (Hanya jika role orang_tua atau memiliki data anak di tabel parents)
-        if ($this->role === 'orang_tua' || $this->hasRole('orang_tua') || $this->parents()->exists()) {
+        // 8. Orang Tua / Wali (Hanya jika role orang_tua atau memiliki anak di tabel parents / akun Bapak Yulianus Zega)
+        if ($this->role === 'orang_tua' || $this->hasRole('orang_tua') || $this->parents()->exists() || ($this->username === 'yulzega' || $this->email === 'yulzega@gmail.com')) {
             $waliName = ($this->username === 'yulzega' || $this->email === 'yulzega@gmail.com') ? 'Wali: Celeste Nibenia Ogaena' : 'Monitoring Akademik Siswa';
             $roles[] = [
                 'key' => 'orang_tua',
@@ -897,7 +898,7 @@ class User extends Authenticatable
             ];
         }
 
-        // 9. Siswa (Hanya jika role siswa atau memiliki data siswa di database)
+        // 9. Siswa (Hanya jika role siswa atau memiliki profil siswa)
         if ($this->role === 'siswa' || $this->hasRole('siswa') || $this->student !== null) {
             $roles[] = [
                 'key' => 'siswa',

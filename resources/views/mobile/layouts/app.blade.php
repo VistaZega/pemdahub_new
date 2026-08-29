@@ -173,11 +173,11 @@
     </style>
     @stack('styles')
 </head>
-<body class="h-full bg-[#f4f7fc] text-slate-800 flex flex-col justify-between overflow-x-hidden">
+<body class="h-full bg-[#f4f7fc] text-slate-800 flex flex-col justify-between overflow-x-hidden"
+      x-data="{ showRoleModal: false, modalTab: 'role' }">
 
     <!-- Top Playful Clay Header -->
-    <header class="sticky top-0 z-40 w-full max-w-md mx-auto bg-[#f4f7fc]/90 backdrop-blur-md border-b border-slate-200/60 px-5 py-3.5 flex items-center justify-between"
-            x-data="{ showRoleModal: false }">
+    <header class="sticky top-0 z-40 w-full max-w-md mx-auto bg-[#f4f7fc]/90 backdrop-blur-md border-b border-slate-200/60 px-5 py-3.5 flex items-center justify-between">
         <div class="flex items-center space-x-3">
             <div class="w-11 h-11 rounded-2xl bg-white p-1 shadow-lg shadow-purple-500/20 border-2 border-white flex items-center justify-center shrink-0">
                 <img src="{{ asset('images/app-logo.png?v=6') }}" alt="PembdaHUB Logo" class="w-full h-full object-contain rounded-xl">
@@ -368,13 +368,13 @@
             </div>
 
             <!-- Tab Switcher Modal (Roles vs Jabatan) -->
-            @if(count($userDuties) > 1 && count($userMobileRoles) > 1)
+            @if(count($userDuties) > 0 && count($userMobileRoles) > 0)
             <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-200/80 rounded-2xl border border-slate-300">
                 <button type="button" @click="modalTab = 'role'"
                         :class="modalTab === 'role' ? 'bg-blue-600 text-white font-black shadow-sm' : 'text-slate-600 font-extrabold'"
                         class="py-2 text-xs rounded-xl transition flex items-center justify-center gap-1.5">
                     <span>👤 Peran Akun</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[9px] {{ $currentRole ? 'bg-white/20 text-white' : '' }}">{{ count($userMobileRoles) }}</span>
+                    <span class="px-1.5 py-0.2 rounded-full text-[9px] {{ count($userMobileRoles) > 0 ? 'bg-white/20 text-white' : '' }}">{{ count($userMobileRoles) }}</span>
                 </button>
                 <button type="button" @click="modalTab = 'duty'"
                         :class="modalTab === 'duty' ? 'bg-purple-600 text-white font-black shadow-sm' : 'text-slate-600 font-extrabold'"
@@ -386,9 +386,8 @@
             @endif
 
             <!-- TAB 1: PERAN AKUN (ROLES) -->
-            @if(count($userMobileRoles) > 1)
             <div x-show="modalTab === 'role'" class="space-y-2 pb-3">
-                <p class="text-[11px] text-slate-600 font-bold">Pilih hak akses peran utama Anda:</p>
+                <p class="text-[11px] text-slate-600 font-bold">Pilih hak akses peran akun Anda:</p>
                 <form action="{{ route('mobile.switch-role') }}" method="POST" class="space-y-2.5">
                     @csrf
                     @foreach($userMobileRoles as $r)
@@ -411,11 +410,10 @@
                     @endforeach
                 </form>
             </div>
-            @endif
 
             <!-- TAB 2: JABATAN & TUGAS STRUKTURAL (DUTIES) -->
-            @if(count($userDuties) > 1)
-            <div x-show="modalTab === 'duty'" class="space-y-2 pb-3" style="{{ count($userMobileRoles) > 1 ? 'display: none;' : '' }}">
+            @if(count($userDuties) > 0)
+            <div x-show="modalTab === 'duty'" class="space-y-2 pb-3" style="{{ count($userMobileRoles) > 0 ? 'display: none;' : '' }}">
                 <p class="text-[11px] text-slate-600 font-bold">Pilih fokus tugas & jabatan aktif Anda:</p>
                 <form action="{{ route('mobile.switch-duty') }}" method="POST" class="space-y-2.5">
                     @csrf
