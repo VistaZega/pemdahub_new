@@ -437,17 +437,21 @@ class User extends Authenticatable
 
     public function isPanitiaCbt(): bool
     {
-        return $this->role === 'panitia_cbt' || $this->hasSpecialDuty(['CBT']);
+        return $this->role === 'panitia_cbt' || $this->hasSpecialDuty(['PANITIA CBT', 'POKJA CBT', 'KOORDINATOR CBT']);
     }
 
     public function isPanitiaPkl(): bool
     {
-        return $this->role === 'panitia_pkl' || $this->hasSpecialDuty(['PKL', 'HUBIN', 'PRAKERIN']);
+        return $this->role === 'panitia_pkl' || $this->hasSpecialDuty(['PANITIA PKL', 'POKJA PKL', 'KOORDINATOR PKL', 'HUBIN', 'PRAKERIN']);
     }
 
     public function isPanitiaProyek(): bool
     {
-        return $this->role === 'panitia_ta' || $this->hasSpecialDuty(['PROYEK', 'PROJECT', 'PROJEK', 'TA', 'TUGAS AKHIR', 'TUGAS-AKHIR', 'PENELITIAN', 'KTI', 'KARYA TULIS']);
+        return $this->role === 'panitia_ta' || $this->hasSpecialDuty([
+            'PANITIA TA', 'PANITIA TUGAS AKHIR', 'PANITIA PROYEK', 'PANITIA PROJEK', 
+            'PANITIA PENELITIAN', 'POKJA TA', 'POKJA PROYEK', 'KOORDINATOR TA', 'KOORDINATOR PROYEK', 
+            'KOORDINATOR PENELITIAN'
+        ]);
     }
 
     /**
@@ -479,23 +483,22 @@ class User extends Authenticatable
         }
 
         // 2. Special duty check in employee_positions
-        if ($this->hasSpecialDuty(['PKS', 'PIKET', 'DISIPLIN', 'BK', 'BP', 'KONSELING', 'KONSILING', 'BIMBINGAN'])) {
+        if ($this->hasSpecialDuty(['PKS', 'PIKET', 'DISIPLIN', 'GURU BK', 'BIMBINGAN KONSELING', 'BIMBINGAN DAN KONSELING'])) {
             return true;
         }
 
         // 3. Check teacher profile for BK position or BK teaching assignments/subjects
         if ($this->teacher) {
-            if ($this->teacher->position && preg_match('/(bk|bp|konseling|bimbingan|pks|piket)/i', $this->teacher->position)) {
+            $pos = strtolower($this->teacher->position ?? '');
+            if (str_contains($pos, 'bimbingan konseling') || str_contains($pos, 'guru bk') || str_contains($pos, 'pks') || str_contains($pos, 'piket')) {
                 return true;
             }
 
             try {
                 if ($this->teacher->teachingAssignments()->whereHas('subject', function ($q) {
-                    $q->where('code', 'like', '%BK%')
-                      ->orWhere('code', 'like', '%BP%')
-                      ->orWhere('name', 'like', '%Bimbingan%')
+                    $q->where('name', 'like', '%Bimbingan%')
                       ->orWhere('name', 'like', '%Konseling%')
-                      ->orWhere('name', 'like', '%BK%');
+                      ->orWhere('code', 'BK');
                 })->exists()) {
                     return true;
                 }
@@ -795,14 +798,14 @@ class User extends Authenticatable
     }
 
     /**
-     * Get all available mobile roles for switching based on user credentials & authorities
+     * Get all available mobile roles for switching based strictly on actual assigned roles & profiles
      */
     public function getAvailableMobileRoles(): array
     {
         $roles = [];
 
-        // 1. Super Admin
-        if ($this->isOwnerOrSuperAdmin() || $this->role === 'superadmin') {
+        // 1. Super Admin (Hanya jika memiliki role superadmin atau akun owner khusus)
+        if ($this->role === 'superadmin' || $this->hasRole('superadmin') || $this->username === 'yulzega') {
             $roles[] = [
                 'key' => 'superadmin',
                 'label' => 'Super Admin',
@@ -812,8 +815,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 2. Ketua Yayasan
-        if ($this->isOwnerOrSuperAdmin() || $this->canAccessYayasan()) {
+        // 2. Ketua Yayasan (Hanya jika memiliki role ketua_yayasan atau otoritas yayasan)
+        if ($this->role === 'ketua_yayasan' || $this->hasRole('ketua_yayasan') || $this->canAccessYayasan()) {
             $roles[] = [
                 'key' => 'ketua_yayasan',
                 'label' => 'Ketua Yayasan',
@@ -823,8 +826,12 @@ class User extends Authenticatable
             ];
         }
 
-        // 3. Kepala Sekolah
-        if ($this->isOwnerOrSuperAdmin() || $this->isKepalaSekolah()) {
+        // 3. Kepala Sekolah (Hanya jika role kepala_sekolah atau tercatat sebagai Kepala Sekolah di tabel School)
+        if (
+            $this->role === 'kepala_sekolah' || 
+            $this->hasRole('kepala_sekolah') || 
+            ($this->teacher && School::where('principal_id', $this->teacher->id)->where('type', '!=', 'YAYASAN')->exists())
+        ) {
             $roles[] = [
                 'key' => 'kepala_sekolah',
                 'label' => 'Kepala Sekolah',
@@ -834,8 +841,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 4. Admin Sekolah
-        if ($this->isOwnerOrSuperAdmin() || $this->isAdminSekolah()) {
+        // 4. Admin Sekolah (Hanya jika ditugaskan sebagai admin sekolah)
+        if ($this->role === 'admin_sekolah' || $this->hasRole('admin_sekolah')) {
             $roles[] = [
                 'key' => 'admin_sekolah',
                 'label' => 'Admin Sekolah',
@@ -845,8 +852,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 5. Bendahara
-        if ($this->isOwnerOrSuperAdmin() || $this->isBendahara()) {
+        // 5. Bendahara (Hanya jika ditugaskan sebagai bendahara)
+        if ($this->role === 'bendahara' || $this->hasRole('bendahara')) {
             $roles[] = [
                 'key' => 'bendahara',
                 'label' => 'Bendahara',
@@ -856,8 +863,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 6. Guru / Tenaga Pendidik
-        if ($this->isOwnerOrSuperAdmin() || $this->isGuru() || $this->isKepalaSekolah() || $this->isAdminSekolah()) {
+        // 6. Guru / Tenaga Pendidik (Hanya jika role guru atau memiliki profil Guru di database)
+        if ($this->role === 'guru' || $this->hasRole('guru') || $this->teacher !== null) {
             $roles[] = [
                 'key' => 'guru',
                 'label' => 'Guru Pengampu',
@@ -867,8 +874,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 7. Pegawai / Staf TU
-        if ($this->isOwnerOrSuperAdmin() || $this->isPegawai() || $this->hasRole('pegawai')) {
+        // 7. Pegawai / Staf TU (Hanya jika role pegawai, atau staf/karyawan non-guru murni)
+        if ($this->role === 'pegawai' || $this->hasRole('pegawai') || ($this->employee !== null && $this->teacher === null)) {
             $roles[] = [
                 'key' => 'pegawai',
                 'label' => 'Pegawai / Staf TU',
@@ -878,8 +885,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 8. Orang Tua / Wali
-        if ($this->isOwnerOrSuperAdmin() || $this->hasRole('orang_tua') || $this->parents()->exists()) {
+        // 8. Orang Tua / Wali (Hanya jika role orang_tua atau memiliki data anak di tabel parents)
+        if ($this->role === 'orang_tua' || $this->hasRole('orang_tua') || $this->parents()->exists()) {
             $waliName = ($this->username === 'yulzega' || $this->email === 'yulzega@gmail.com') ? 'Wali: Celeste Nibenia Ogaena' : 'Monitoring Akademik Siswa';
             $roles[] = [
                 'key' => 'orang_tua',
@@ -890,8 +897,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 9. Siswa
-        if ($this->isOwnerOrSuperAdmin() || $this->hasRole('siswa')) {
+        // 9. Siswa (Hanya jika role siswa atau memiliki data siswa di database)
+        if ($this->role === 'siswa' || $this->hasRole('siswa') || $this->student !== null) {
             $roles[] = [
                 'key' => 'siswa',
                 'label' => 'Siswa',
@@ -905,26 +912,29 @@ class User extends Authenticatable
     }
 
     /**
-     * Get all available duties & structural positions for Guru/Pegawai
+     * Get all available duties & structural positions strictly for Guru/Pegawai
      */
     public function getAvailableDuties(): array
     {
-        $duties = [];
-
-        // 1. Guru Pengampu KBM (Default for all teachers)
-        if ($this->isGuru() || $this->teacher) {
-            $duties[] = [
-                'key' => 'pengampu',
-                'label' => 'Guru Pengampu',
-                'short_label' => 'KBM Guru',
-                'icon' => '👨‍🏫',
-                'badge' => 'KBM',
-                'color' => 'blue',
-                'description' => 'Jadwal Mengajar, Nilai, Presensi Siswa & LMS',
-            ];
+        // Hanya untuk guru yang memiliki profil Teacher / bertugas mengajar
+        if (!$this->teacher && $this->role !== 'guru' && !$this->hasRole('guru')) {
+            return [];
         }
 
-        // 2. Wali Kelas
+        $duties = [];
+
+        // 1. Guru Pengampu KBM (Default basis untuk guru)
+        $duties[] = [
+            'key' => 'pengampu',
+            'label' => 'Guru Pengampu',
+            'short_label' => 'KBM Guru',
+            'icon' => '👨‍🏫',
+            'badge' => 'KBM',
+            'color' => 'blue',
+            'description' => 'Jadwal Mengajar, Nilai, Presensi Siswa & LMS',
+        ];
+
+        // 2. Wali Kelas (Hanya jika terdaftar aktif sebagai wali kelas)
         $homeroomClasses = $this->homeroomClassrooms();
         if ($homeroomClasses->isNotEmpty()) {
             $classNames = $homeroomClasses->pluck('name')->implode(', ');
@@ -940,7 +950,7 @@ class User extends Authenticatable
             ];
         }
 
-        // 3. Guru BK / PKS Kedisiplinan
+        // 3. Guru BK / PKS Kedisiplinan (Hanya jika memiliki tugas resmi BK/PKS)
         if ($this->isPksOrPiket()) {
             $duties[] = [
                 'key' => 'bk_pks',
@@ -953,8 +963,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 4. Panitia PKL (Hubin & Industri)
-        if ($this->isPanitiaPkl() || $this->isOwnerOrSuperAdmin()) {
+        // 4. Panitia PKL (Hanya jika ditugaskan sebagai panitia PKL)
+        if ($this->isPanitiaPkl()) {
             $duties[] = [
                 'key' => 'panitia_pkl',
                 'label' => 'Panitia PKL SMK',
@@ -966,8 +976,8 @@ class User extends Authenticatable
             ];
         }
 
-        // 5. Panitia Proyek Akhir (SMK) / Penelitian Akhir (SMA)
-        if ($this->isPanitiaProyek() || $this->isOwnerOrSuperAdmin()) {
+        // 5. Panitia Proyek Akhir / Penelitian (Hanya jika ditugaskan sebagai panitia TA)
+        if ($this->isPanitiaProyek()) {
             $duties[] = [
                 'key' => 'panitia_proyek',
                 'label' => 'Panitia Proyek / Penelitian',
@@ -979,7 +989,7 @@ class User extends Authenticatable
             ];
         }
 
-        // 6. Pembimbing PKL
+        // 6. Pembimbing PKL (Hanya jika memiliki penugasan bimbingan siswa PKL)
         if ($this->teacher && \App\Models\PklPlacement::where('teacher_id', $this->teacher->id)->exists()) {
             $duties[] = [
                 'key' => 'pembimbing_pkl',
@@ -992,8 +1002,11 @@ class User extends Authenticatable
             ];
         }
 
-        // 7. Pembimbing / Penguji Proyek Akhir
-        if ($this->teacher && \App\Models\FinalProject::where('advisor_id', $this->teacher->id)->orWhere('examiner_id', $this->teacher->id)->exists()) {
+        // 7. Pembimbing / Penguji Proyek Akhir (Hanya jika ditunjuk sebagai pembimbing/penguji TA)
+        if ($this->teacher && \App\Models\FinalProject::where(function($q) {
+            $q->where('advisor_id', $this->teacher->id)
+              ->orWhere('examiner_id', $this->teacher->id);
+        })->exists()) {
             $duties[] = [
                 'key' => 'pembimbing_proyek',
                 'label' => 'Pembimbing & Penguji TA',
@@ -1005,7 +1018,7 @@ class User extends Authenticatable
             ];
         }
 
-        // 8. Pembina Ekskul
+        // 8. Pembina Ekskul (Hanya jika ditunjuk sebagai pembina ekskul aktif)
         if ($this->teacher && \App\Models\Extracurricular::where('advisor_teacher_id', $this->teacher->id)->where('is_active', true)->exists()) {
             $ekskul = \App\Models\Extracurricular::where('advisor_teacher_id', $this->teacher->id)->where('is_active', true)->first();
             $duties[] = [

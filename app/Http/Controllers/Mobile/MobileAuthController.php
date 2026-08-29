@@ -111,20 +111,9 @@ class MobileAuthController extends Controller
         $user = Auth::user();
         $targetRole = $request->input('role');
 
-        $isAuthorized = match ($targetRole) {
-            'superadmin' => $user->isOwnerOrSuperAdmin(),
-            'ketua_yayasan' => $user->isOwnerOrSuperAdmin() || $user->canAccessYayasan(),
-            'guru' => $user->isOwnerOrSuperAdmin() || $user->isGuru() || $user->isKepalaSekolah() || $user->isAdminSekolah(),
-            'kepala_sekolah' => $user->isKepalaSekolah() || $user->isOwnerOrSuperAdmin(),
-            'pegawai' => $user->hasRole('pegawai') || $user->employee !== null || $user->isAdminSekolah() || $user->isOwnerOrSuperAdmin(),
-            'admin_sekolah' => $user->isAdminSekolah() || $user->isOwnerOrSuperAdmin(),
-            'bendahara' => $user->isBendahara() || $user->isOwnerOrSuperAdmin(),
-            'orang_tua' => $user->isOwnerOrSuperAdmin() || $user->hasRole('orang_tua') || $user->parents()->exists(),
-            'siswa' => $user->isOwnerOrSuperAdmin() || $user->hasRole('siswa'),
-            default => $user->hasRole($targetRole),
-        };
+        $availableRoles = collect($user->getAvailableMobileRoles())->pluck('key')->all();
 
-        if (!$isAuthorized) {
+        if (!in_array($targetRole, $availableRoles)) {
             return back()->with('error', 'Anda tidak memiliki akses ke role tersebut.');
         }
 
@@ -201,12 +190,8 @@ class MobileAuthController extends Controller
         $targetDuty = $request->input('duty');
 
         $availableDuties = collect($user->getAvailableDuties())->pluck('key')->all();
-        // Always allow 'pengampu' as default if guru
-        if ($user->isGuru() || $user->teacher) {
-            $availableDuties[] = 'pengampu';
-        }
 
-        if (!in_array($targetDuty, $availableDuties) && !$user->isOwnerOrSuperAdmin()) {
+        if (!in_array($targetDuty, $availableDuties)) {
             return back()->with('error', 'Anda tidak memiliki penugasan jabatan tersebut.');
         }
 

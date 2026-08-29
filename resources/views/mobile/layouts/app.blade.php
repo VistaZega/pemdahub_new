@@ -196,10 +196,10 @@
                 $currentDuty = session('active_duty', 'pengampu');
                 $userMobileRoles = $navUser->getAvailableMobileRoles();
                 $userDuties = $navUser->getAvailableDuties();
-                $showSwitcher = count($userMobileRoles) > 1 || count($userDuties) > 1 || $navUser->isOwnerOrSuperAdmin();
+                $showSwitcher = (count($userMobileRoles) > 1) || (count($userDuties) > 1);
             @endphp
 
-            <!-- Role & Jabatan Switcher Button -->
+            <!-- Role & Jabatan Switcher Button (Hanya jika memiliki >1 Role atau >1 Jabatan) -->
             @if($showSwitcher)
                 <button @click="showRoleModal = true" 
                         title="Beralih Peran & Jabatan"
@@ -265,8 +265,12 @@
 
         <!-- Role & Jabatan Switcher Modal -->
         @auth
+        @if($showSwitcher)
+        @php
+            $initialTab = (count($userMobileRoles) <= 1 && count($userDuties) > 1) ? 'duty' : 'role';
+        @endphp
         <div x-show="showRoleModal" 
-             x-data="{ modalTab: '{{ count($userDuties) > 1 && in_array($currentRole, ['guru', 'pegawai']) ? 'duty' : 'role' }}' }"
+             x-data="{ modalTab: '{{ $initialTab }}' }"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100"
@@ -286,7 +290,7 @@
                 </div>
 
                 <!-- Tab Switcher Modal (Roles vs Jabatan) -->
-                @if(count($userDuties) > 0 && count($userMobileRoles) > 1)
+                @if(count($userDuties) > 1 && count($userMobileRoles) > 1)
                 <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-200/80 rounded-2xl border border-slate-300">
                     <button type="button" @click="modalTab = 'role'"
                             :class="modalTab === 'role' ? 'bg-blue-600 text-white font-black shadow-sm' : 'text-slate-600 font-extrabold'"
@@ -304,6 +308,7 @@
                 @endif
 
                 <!-- TAB 1: PERAN AKUN (ROLES) -->
+                @if(count($userMobileRoles) > 1)
                 <div x-show="modalTab === 'role'" class="space-y-2">
                     <p class="text-[11px] text-slate-600 font-bold">Pilih hak akses peran utama Anda:</p>
                     <form action="{{ route('mobile.switch-role') }}" method="POST" class="space-y-2">
@@ -328,9 +333,10 @@
                         @endforeach
                     </form>
                 </div>
+                @endif
 
                 <!-- TAB 2: JABATAN & TUGAS STRUKTURAL (DUTIES) -->
-                @if(count($userDuties) > 0)
+                @if(count($userDuties) > 1)
                 <div x-show="modalTab === 'duty'" class="space-y-2" style="{{ count($userMobileRoles) > 1 ? 'display: none;' : '' }}">
                     <p class="text-[11px] text-slate-600 font-bold">Pilih fokus tugas & jabatan aktif Anda:</p>
                     <form action="{{ route('mobile.switch-duty') }}" method="POST" class="space-y-2">
@@ -358,6 +364,7 @@
                 @endif
             </div>
         </div>
+        @endif
         @endauth
     </header>
     </header>

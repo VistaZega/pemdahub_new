@@ -326,14 +326,14 @@
         @endif
     </form>
 
-    <!-- Role & Duty Switcher Widget -->
+    <!-- Role & Duty Switcher Widget (Hanya jika memiliki >1 Peran atau >1 Jabatan) -->
     @php
         $profRoles = $user->getAvailableMobileRoles();
         $profDuties = $user->getAvailableDuties();
         $currentDuty = session('active_duty', 'pengampu');
     @endphp
 
-    @if(count($profRoles) > 1 || count($profDuties) > 1 || $user->isOwnerOrSuperAdmin())
+    @if(count($profRoles) > 1 || count($profDuties) > 1)
     <div class="clay-card p-4 sm:p-5 space-y-4 border-2 border-blue-200">
         <!-- 1. Peran Akun Utama -->
         @if(count($profRoles) > 1)
@@ -363,7 +363,7 @@
         @endif
 
         <!-- 2. Jabatan & Tugas Struktural -->
-        @if(count($profDuties) > 0)
+        @if(count($profDuties) > 1)
         <div class="space-y-2 pt-2 {{ count($profRoles) > 1 ? 'border-t border-slate-200/80' : '' }}">
             <div class="flex items-center justify-between">
                 <h3 class="text-xs font-black text-slate-900 flex items-center gap-2">
