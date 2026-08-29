@@ -36,7 +36,7 @@ class GalleryController extends Controller
         $validated = $request->validate([
             'title'       => 'required|string|max:255',
             'caption'     => 'nullable|string|max:500',
-            'image'       => 'required|image|mimes:jpg,jpeg,png,webp|max:3072',
+            'image'       => 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
             'category'    => 'required|in:upacara,praktikum,olahraga,seni,bengkel,prestasi,komputer,lainnya',
             'sort_order'  => 'nullable|integer|min:0',
             'is_featured' => 'boolean',
@@ -64,7 +64,7 @@ class GalleryController extends Controller
         $validated = $request->validate([
             'title'       => 'required|string|max:255',
             'caption'     => 'nullable|string|max:500',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:3072',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
             'category'    => 'required|in:upacara,praktikum,olahraga,seni,bengkel,prestasi,komputer,lainnya',
             'sort_order'  => 'nullable|integer|min:0',
             'is_featured' => 'boolean',

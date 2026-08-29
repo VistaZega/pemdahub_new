@@ -82,7 +82,7 @@
                         @endif
                         <input type="file" name="image" accept="image/*"
                             class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:border-transparent file:mr-3 file:py-1 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100">
-                        <p class="text-xs text-gray-500 mt-1">JPG, PNG, WebP. Maks 2MB.</p>
+                        <p class="text-xs text-gray-500 mt-1">JPG, PNG, WebP. Maks 10MB.</p>
                     </div>
                 </div>
             </div>
