@@ -51,8 +51,8 @@
         <!-- THE VIBRANT POSTER GRID -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12" id="showcase-grid">
             
-            {{-- 1. LOOP REAL PROJECT AKHIR SMK / PENELITIAN SMA SISWA --}}
-            @forelse($finalProjectsShowcase->take(8) as $project)
+            {{-- 1. LOOP REAL PROJECT AKHIR SMK / PENELITIAN SMA SISWA (4 Penelitian SMA + 4 Project SMK) --}}
+            @forelse($finalProjectsShowcase as $project)
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
@@ -96,8 +96,8 @@
             @empty
             @endforelse
 
-            {{-- 2. LOOP REAL PKL SHOWCASE (LOGBOOK DUDI & MONITORING) WITH GOOGLE MAPS LINK --}}
-            @forelse($pklShowcase->take(8) as $pkl)
+            {{-- 2. LOOP REAL PKL SHOWCASE (2 Logbook DUDI + 2 Monitoring Guru) WITH GOOGLE MAPS LINK --}}
+            @forelse($pklShowcase as $pkl)
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
@@ -142,8 +142,8 @@
             @empty
             @endforelse
 
-            {{-- 3. LOOP REAL MODUL BAHAN AJAR LMS --}}
-            @forelse($trainingModules->take(8) as $module)
+            {{-- 3. LOOP REAL MODUL BAHAN AJAR LMS (4 Modul Acak) --}}
+            @forelse($trainingModules as $module)
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;
@@ -186,8 +186,8 @@
             @empty
             @endforelse
 
-            {{-- 4. LOOP REAL PRESTASI & PENGHARGAAN SISWA --}}
-            @forelse($achievements->take(8) as $ach)
+            {{-- 4. LOOP REAL PRESTASI & PENGHARGAAN SISWA (4 Juara Acak) --}}
+            @forelse($achievements as $ach)
                 @php
                     $t = $colorThemes[$themeIndex % count($colorThemes)];
                     $themeIndex++;

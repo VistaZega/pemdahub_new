@@ -582,10 +582,12 @@ Route::get('/', function () {
         ->take(7)
         ->get();
 
+    // 5. MODUL LMS (4 Acak SMP/SMA/SMK)
     $trainingModules = \App\Models\TrainingModule::published()
         ->with(['author.teacher'])
         ->whereNotNull('pdf_file')
-        ->orderBy('sort_order')
+        ->inRandomOrder()
+        ->take(4)
         ->get();
 
     // === DATA REALTIME UNTUK HOMEPAGE ===
@@ -608,13 +610,11 @@ Route::get('/', function () {
     $totalExams = \App\Models\CbtExam::count();
     $totalForumThreads = \App\Models\ForumThread::count();
 
-    // Prestasi siswa (6 terbaik, prioritas level tertinggi)
+    // 6. JUARA PRESTASI (4 Acak)
     $achievements = \App\Models\StudentCounselingRecord::where('record_type', 'penghargaan')
         ->with(['student.school', 'student.user'])
-        ->orderByRaw("FIELD(achievement_level, 'internasional','nasional','propinsi','kabupaten','sekolah') ASC")
-        ->orderByRaw("FIELD(ranking, 'juara_1','juara_2','juara_3','best_speaker','mvp','harapan_1','harapan_2','harapan_3','finalis','peserta') ASC")
-        ->latest('incident_date')
-        ->take(12)
+        ->inRandomOrder()
+        ->take(4)
         ->get();
     $totalAchievements = \App\Models\StudentCounselingRecord::where('record_type', 'penghargaan')->count();
 
@@ -653,11 +653,12 @@ Route::get('/', function () {
         ->get();
 
     // === SHOWCASE PKL TERBAIK UNTUK HOMEPAGE ===
+    // 3. LOGBOOK DUDI (2 Acak)
     $pklLogs = \App\Models\PklLog::where('status', 'approved')
         ->whereNotNull('photo')
         ->with(['placement.student.school', 'placement.student.user', 'placement.dudi'])
-        ->latest('log_date')
-        ->take(8)
+        ->inRandomOrder()
+        ->take(2)
         ->get()
         ->map(function($log) {
             $rawActivity = $log->activity ?? '';
@@ -707,10 +708,11 @@ Route::get('/', function () {
             ];
         });
 
+    // 4. MONITORING GURU (2 Acak)
     $pklMonitorings = \App\Models\PklMonitoring::whereNotNull('photo_path')
         ->with(['teacher.user', 'dudi'])
-        ->latest('monitoring_date')
-        ->take(4)
+        ->inRandomOrder()
+        ->take(2)
         ->get()
         ->map(fn($m) => [
             'type' => 'monitoring',
@@ -760,11 +762,32 @@ Route::get('/', function () {
     }])->where('is_active', true)->get();
 
     // === SHOWCASE FINAL PROJECT (PENELITIAN & PROJECT AKHIR) ===
-    $finalProjectsShowcase = \App\Models\FinalProject::with(['student.school', 'student.user', 'members.student.school'])
-        ->whereNotIn('status', ['rejected', 'draft']) // Tampilkan semua yang sudah disubmit/approved
+    // 1. 4 PENELITIAN KELAS XII SMA (Acak)
+    $penelitianSMA = \App\Models\FinalProject::with(['student.school', 'student.user', 'members.student.school', 'members.student.user'])
+        ->where(function($q) {
+            $q->whereHas('student.school', fn($sq) => $sq->where('name', 'LIKE', '%SMA%'))
+              ->orWhere('type', 'penelitian_ilmiah')
+              ->orWhere('type', 'research');
+        })
+        ->whereNotIn('status', ['rejected', 'draft'])
         ->inRandomOrder()
-        ->take(40)
+        ->take(4)
         ->get();
+
+    // 2. 4 PROJECT KELAS XII SMK (Acak)
+    $projectSMK = \App\Models\FinalProject::with(['student.school', 'student.user', 'members.student.school', 'members.student.user'])
+        ->where(function($q) {
+            $q->whereHas('student.school', fn($sq) => $sq->where('name', 'LIKE', '%SMK%'))
+              ->orWhere('type', 'project_akhir')
+              ->orWhere('type', 'project')
+              ->orWhere('type', 'smk');
+        })
+        ->whereNotIn('status', ['rejected', 'draft'])
+        ->inRandomOrder()
+        ->take(4)
+        ->get();
+
+    $finalProjectsShowcase = $penelitianSMA->concat($projectSMK)->shuffle()->values();
 
     // === KEGIATAN SISWA & EKSTRAKURIKULER ===
     $extracurriculars = \App\Models\Extracurricular::with('school')
