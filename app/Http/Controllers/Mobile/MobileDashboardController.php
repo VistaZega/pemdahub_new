@@ -305,7 +305,7 @@ class MobileDashboardController extends Controller
             if ($homeroomClasses->isNotEmpty()) {
                 $primaryHomeroom = $homeroomClasses->first();
                 $dutyData['homeroom_class'] = $primaryHomeroom;
-                $dutyData['homeroom_students_count'] = \App\Models\ClassroomStudent::where('classroom_id', $primaryHomeroom->id)->where('is_active', true)->count();
+                $dutyData['homeroom_students_count'] = \App\Models\StudentClass::where('classroom_id', $primaryHomeroom->id)->where('status', 'aktif')->count();
             }
 
             if ($isPanitiaPkl) {
@@ -318,10 +318,10 @@ class MobileDashboardController extends Controller
             // Management stats for Kepsek / Admin / Bendahara / Superadmin
             if (in_array($activeRole, ['kepala_sekolah', 'admin_sekolah', 'bendahara', 'superadmin', 'ketua_yayasan'])) {
                 $targetSchoolId = $user->school_id;
-                $managementStats['total_students'] = Student::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->where('is_active', true)->count();
+                $managementStats['total_students'] = Student::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->active()->count();
                 $managementStats['total_teachers'] = Teacher::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->where('is_active', true)->count();
-                $managementStats['students_present_today'] = Attendance::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->whereDate('date', now()->toDateString())->whereIn('status', ['hadir', 'terlambat'])->count();
-                $managementStats['teachers_present_today'] = \App\Models\EmployeeAttendance::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->whereDate('date', now()->toDateString())->whereIn('status', ['present', 'hadir', 'late'])->count();
+                $managementStats['students_present_today'] = Attendance::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->whereHas('student', fn($sq) => $sq->where('school_id', $targetSchoolId)))->whereDate('date', now()->toDateString())->whereIn('status', ['hadir', 'terlambat'])->count();
+                $managementStats['teachers_present_today'] = \App\Models\EmployeeAttendance::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->whereDate('date', now()->toDateString())->whereIn('status', ['hadir', 'dinas_luar'])->count();
             }
         }
 
