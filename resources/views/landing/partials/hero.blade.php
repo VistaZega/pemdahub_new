@@ -15,13 +15,13 @@
 
                 <!-- Display Headline -->
                 <h1 class="text-4xl sm:text-6xl font-black text-[#121316] leading-[1.08] tracking-tight mb-6">
-                    Belajar apa pun, <br>
-                    <span class="highlight-marker">tinggal buka.</span>
+                    Belajar apa pun bisa, <br>
+                    <span class="highlight-marker">sistemnya tersedia.</span>
                 </h1>
 
                 <!-- Subheadline dengan Chip Kode -->
                 <p class="text-sm sm:text-base text-[#4b5563] leading-relaxed mb-8 max-w-xl font-medium">
-                    Tulis kebutuhan belajarmu — <code class="px-2 py-1 bg-[#ede9df] text-[#121316] rounded font-mono-code text-xs font-bold">modul tkj fiber optik</code> atau <code class="px-2 py-1 bg-[#ede9df] text-[#121316] rounded font-mono-code text-xs font-bold">jadwal ujian cbt</code> saja cukup. Sistem menyusun modul digital, rekap absensi RFID, dan pantau logbook PKL secara otomatis.
+                    Di <strong>Yayasan Perguruan PEMBDA Nias</strong>, potensi belajarmu tidak bisa dibendung. Dari <code class="px-2 py-1 bg-[#ede9df] text-[#121316] rounded font-mono-code text-xs font-bold">modul riset & IT</code>, <code class="px-2 py-1 bg-[#ede9df] text-[#121316] rounded font-mono-code text-xs font-bold">praktik kejuruan & PKL</code>, hingga ujian digital — seluruh ekosistemnya siap mendukungmu. Tak ada yang bisa menahan langkahmu untuk terus maju, berprestasi, dan tak terhentikan untuk berkembang.
                 </p>
 
                 <!-- Action Buttons -->
