@@ -2,17 +2,29 @@
 <header class="sticky top-0 z-50 bg-[#faf8f5]/95 backdrop-blur-md border-b border-[#e7e3d8]">
     <div class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
         
-        <!-- Brand Logo -->
-        <a href="{{ route('home') }}" class="flex items-center gap-3 group">
+        <!-- Brand Logo & App Download Links -->
+        <div class="flex items-center gap-3">
             <div class="flex items-center gap-1.5">
-                <img src="{{ asset('images/logo-yayasan.png') }}" alt="Logo Yayasan Perguruan PEMBDA" class="w-10 h-10 object-contain rounded-lg shadow-sm border border-[#e7e3d8]">
-                <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo PembdaHUB" class="w-10 h-10 object-contain rounded-lg shadow-sm border border-[#e7e3d8]">
+                <a href="{{ route('home') }}" title="Beranda Yayasan Perguruan PEMBDA" class="hover:scale-105 transition-transform flex-shrink-0">
+                    <img src="{{ asset('images/logo-yayasan.png') }}" alt="Logo Yayasan Perguruan PEMBDA" class="w-10 h-10 object-contain rounded-lg shadow-sm border border-[#e7e3d8]">
+                </a>
+                <a href="{{ route('app.download') }}" title="Download / Install Aplikasi PembdaHUB Mobile" class="relative group/logo hover:scale-110 active:scale-95 transition-all flex-shrink-0 block">
+                    <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo PembdaHUB - Download Aplikasi Mobile" class="w-10 h-10 object-contain rounded-lg shadow-sm border-2 border-[#ff3823]/40 group-hover/logo:border-[#ff3823] group-hover/logo:shadow-md">
+                    <span class="absolute -top-1.5 -right-1.5 bg-[#ff3823] text-white text-[8px] font-black px-1.5 py-0.2 rounded-full shadow-sm animate-pulse flex items-center gap-0.5 pointer-events-none">
+                        <i class="fa-solid fa-download text-[7px]"></i> APP
+                    </span>
+                </a>
             </div>
             <div class="flex items-center gap-2">
-                <span class="text-xl font-black tracking-tight text-[#121316]">Pembda<span class="text-[#ff3823]">HUB</span></span>
-                <span class="px-1.5 py-0.5 rounded bg-[#e7e3d8] text-[#555] text-[10px] font-mono-code font-bold uppercase hidden sm:inline-block">SMART SCHOOL</span>
+                <a href="{{ route('home') }}" class="text-xl font-black tracking-tight text-[#121316] hover:text-[#ff3823] transition-colors">
+                    Pembda<span class="text-[#ff3823]">HUB</span>
+                </a>
+                <a href="{{ route('app.download') }}" title="Download Aplikasi Mobile PembdaHUB" class="px-2 py-0.5 rounded-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white text-[10px] font-mono-code font-bold uppercase shadow-sm hidden sm:inline-flex items-center gap-1 transition-transform hover:scale-105">
+                    <i class="fa-solid fa-mobile-screen-button text-[9px]"></i>
+                    <span>App Mobile</span>
+                </a>
             </div>
-        </a>
+        </div>
 
         <!-- Desktop Navigation Links -->
         <nav class="hidden xl:flex items-center gap-6 text-xs font-bold text-[#444]">
@@ -64,6 +76,9 @@
             <a href="#alumni" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Jejaring Alumni</a>
             <a href="#sekolah" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">3 Unit Sekolah</a>
             <div class="pt-4 border-t border-[#e7e3d8] flex flex-col gap-3">
+                <a href="{{ route('app.download') }}" class="w-full text-center py-3 rounded-full bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 text-white text-xs font-black shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i> Download / Pasang App Mobile
+                </a>
                 @auth
                     <a href="{{ route('dashboard') }}" class="w-full text-center py-3 rounded-full btn-tactile-red text-xs font-black">
                         Buka Dashboard Portal
