@@ -5,26 +5,68 @@
 @section('content')
 <div class="space-y-5 pt-2">
     <!-- Hero Banner Card (Playful 3D Clay Banner) -->
-    <div class="clay-blue p-4 relative overflow-hidden shadow-lg">
+    @php
+        $activeRole = session('active_role', $user->role);
+        $activeDuty = session('active_duty', 'pengampu');
+        $isTeacherRole = in_array($activeRole, ['guru', 'pegawai']);
+        $isAdminOrKepsek = in_array($activeRole, ['superadmin', 'ketua_yayasan', 'kepala_sekolah', 'admin_sekolah', 'bendahara']);
+        $isParentRole = ($activeRole === 'orang_tua');
+        $isStudentRole = ($activeRole === 'siswa');
+
+        $heroBgClass = match($activeRole) {
+            'superadmin' => 'clay-orange',
+            'ketua_yayasan' => 'clay-purple',
+            'kepala_sekolah' => 'clay-purple',
+            'admin_sekolah' => 'clay-blue',
+            'bendahara' => 'clay-green',
+            'orang_tua' => 'clay-pink',
+            'guru' => 'clay-blue',
+            'pegawai' => 'clay-cyan',
+            default => 'clay-blue'
+        };
+
+        $roleLabel = match($activeRole) {
+            'superadmin' => '👑 SUPER ADMIN',
+            'ketua_yayasan' => '🏛️ KETUA YAYASAN',
+            'kepala_sekolah' => '🏫 KEPALA SEKOLAH',
+            'admin_sekolah' => '⚙️ ADMIN SEKOLAH',
+            'bendahara' => '💰 BENDAHARA',
+            'orang_tua' => '👨‍👩‍👧 ORANG TUA',
+            'guru' => '👨‍🏫 GURU',
+            'pegawai' => '💼 PEGAWAI',
+            default => '🎓 SISWA'
+        };
+    @endphp
+
+    <div class="{{ $heroBgClass }} p-4 relative overflow-hidden shadow-lg">
         <div class="flex items-center space-x-3.5 relative z-10">
             <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-14 h-14 rounded-2xl object-cover border-2 border-white/80 shadow-md bg-white shrink-0">
 
             <div class="flex-1 min-w-0">
-                <div class="flex items-center space-x-2 mb-0.5">
-                    @php $activeRole = session('active_role', $user->role); @endphp
+                <div class="flex items-center flex-wrap gap-1.5 mb-0.5">
                     <span class="px-2.5 py-0.5 rounded-full bg-white/30 text-white text-[9px] font-black tracking-wide uppercase border border-white/40 shadow-xs backdrop-blur-sm shrink-0">
-                        {{ strtoupper($activeRole) }}
+                        {{ $roleLabel }}
                     </span>
+                    @if($isTeacherRole && count($availableDuties ?? []) > 1)
+                        @php
+                            $activeDutyObj = collect($availableDuties)->firstWhere('key', $activeDuty);
+                        @endphp
+                        @if($activeDutyObj)
+                            <span class="px-2 py-0.5 rounded-full bg-black/25 text-amber-200 text-[8px] font-black border border-white/30 truncate max-w-[130px]" title="{{ $activeDutyObj['label'] }}">
+                                {{ $activeDutyObj['icon'] }} {{ $activeDutyObj['short_label'] ?? $activeDutyObj['label'] }}
+                            </span>
+                        @endif
+                    @endif
                     @if($student && $student->school)
-                        <span class="text-[10px] text-blue-100 font-extrabold truncate">{{ $student->school->name }}</span>
+                        <span class="text-[10px] text-white/90 font-extrabold truncate">{{ $student->school->name }}</span>
                     @elseif($teacher && $teacher->school)
-                        <span class="text-[10px] text-blue-100 font-extrabold truncate">{{ $teacher->school->name }}</span>
+                        <span class="text-[10px] text-white/90 font-extrabold truncate">{{ $teacher->school->name }}</span>
                     @endif
                 </div>
 
                 <h2 class="text-base font-black text-white truncate leading-tight tracking-tight">Halo, {{ strtok($user->name, ' ') }}! 🚀</h2>
 
-                @if($student)
+                @if($isStudentRole && $student)
                     @php
                         $studentClassroom = $classroom ?? $student->currentClassroom()->first();
                         $className = $studentClassroom->name ?? ($studentClassroom->class_name ?? '-');
@@ -37,12 +79,22 @@
                         <span class="text-white/60">•</span>
                         <span class="text-amber-300 font-black"><i class="fa-solid fa-star text-amber-300 text-[10px]"></i> {{ number_format($studentPoints) }} Poin</span>
                     </div>
+                @elseif($isParentRole && $student)
+                    @php
+                        $studentClassroom = $classroom ?? $student->currentClassroom()->first();
+                        $className = $studentClassroom->name ?? ($studentClassroom->class_name ?? '-');
+                    @endphp
+                    <div class="flex items-center flex-wrap gap-x-2 gap-y-0.5 mt-1 text-[11px] font-extrabold text-white leading-none">
+                        <span class="truncate">Ananda: <b>{{ $student->full_name }}</b></span>
+                        <span class="text-white/60">•</span>
+                        <span class="truncate">Kelas: {{ $className }}</span>
+                    </div>
                 @elseif($teacher)
-                    <p class="text-xs text-blue-100/90 mt-0.5 font-bold truncate">
-                        NIP: {{ $teacher->nip ?? '-' }} • Guru Pengampu
+                    <p class="text-xs text-white/90 mt-0.5 font-bold truncate">
+                        NIP: {{ $teacher->nip ?? '-' }} • {{ $teacher->school->name ?? 'Perguruan PEMBDA' }}
                     </p>
                 @else
-                    <p class="text-xs text-blue-100/90 mt-0.5 font-bold truncate">
+                    <p class="text-xs text-white/90 mt-0.5 font-bold truncate">
                         {{ $user->email }}
                     </p>
                 @endif
@@ -50,7 +102,7 @@
         </div>
 
         <!-- 🚀 Inline Compact Progress Belajar & Kehadiran (Di Dalam Hero Banner) -->
-        @if($activeRole === 'siswa')
+        @if($isStudentRole || $isParentRole)
         @php
             $progOverall = $studentProgress['overall'] ?? 0;
             $progAttendance = $studentProgress['attendance_rate'] ?? 0;
@@ -63,11 +115,11 @@
             <div class="flex-1 bg-black/20 rounded-full h-2.5 p-0.5 overflow-hidden border border-white/30">
                 <div class="bg-gradient-to-r from-amber-300 via-yellow-300 to-emerald-400 h-full rounded-full transition-all duration-500 shadow-xs" style="width: {{ max(6, $progOverall) }}%"></div>
             </div>
-            <div class="text-[10px] font-extrabold text-blue-100 shrink-0">
+            <div class="text-[10px] font-extrabold text-white shrink-0">
                 Hadir: <span class="text-emerald-300 font-black">{{ $progAttendance }}%</span>
             </div>
         </div>
-        @elseif(in_array($activeRole, ['guru', 'pegawai', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'ketua_yayasan']))
+        @elseif($isTeacherRole)
         @php
             $tOverall = $teacherProgress['overall'] ?? 100;
             $tAttendance = $teacherProgress['attendance_rate'] ?? 100;
@@ -80,8 +132,20 @@
             <div class="flex-1 bg-black/20 rounded-full h-2.5 p-0.5 overflow-hidden border border-white/30">
                 <div class="bg-gradient-to-r from-purple-300 via-pink-300 to-amber-300 h-full rounded-full transition-all duration-500 shadow-xs" style="width: {{ max(6, $tOverall) }}%"></div>
             </div>
-            <div class="text-[10px] font-extrabold text-blue-100 shrink-0">
+            <div class="text-[10px] font-extrabold text-white shrink-0">
                 Presensi: <span class="text-emerald-300 font-black">{{ $tAttendance }}%</span>
+            </div>
+        </div>
+        @elseif($isAdminOrKepsek)
+        <div class="mt-3 pt-2.5 border-t border-white/20 flex items-center justify-between gap-2 text-white relative z-10 text-[10px] font-black">
+            <div class="flex items-center gap-1">
+                <span>👥 Siswa:</span> <span class="text-amber-300">{{ $managementStats['total_students'] ?? 0 }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <span>👨‍🏫 Guru:</span> <span class="text-emerald-300">{{ $managementStats['total_teachers'] ?? 0 }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <span>📷 Hadir:</span> <span class="text-cyan-300">{{ $managementStats['students_present_today'] ?? 0 }} Sw / {{ $managementStats['teachers_present_today'] ?? 0 }} Gr</span>
             </div>
         </div>
         @endif
@@ -89,12 +153,10 @@
 
     <!-- 🕒 Compact Quick Presensi Bar (Guru / Pegawai / Siswa) -->
     @php
-        $isTeacherOrStaff = in_array($activeRole, ['guru', 'pegawai', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'ketua_yayasan']);
-        $isStudentRole = ($activeRole === 'siswa');
         $isNotCheckedOut = empty($todayAttendance) || !$todayAttendance->time_out || $todayAttendance->time_out === '00:00:00' || $todayAttendance->time_out === '00:00';
     @endphp
 
-    @if(($isTeacherOrStaff || $isStudentRole) && (empty($todayAttendance) || $isNotCheckedOut))
+    @if(($isTeacherRole || $isStudentRole) && (empty($todayAttendance) || $isNotCheckedOut))
     <div class="bg-white rounded-2xl p-2.5 sm:p-3 border-2 border-slate-200/90 shadow-xs flex items-center justify-between gap-2.5 transition-all">
         <!-- Left: Status Icon & Quick Info -->
         <div class="flex items-center gap-2.5 min-w-0">
@@ -202,6 +264,37 @@
         </div>
     </div>
 
+    <!-- 💼 Workspace Duty Switcher Bar (Khusus Guru / Pegawai dengan Multi-Tugas) -->
+    @if($isTeacherRole && count($availableDuties ?? []) > 1)
+    <div class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-briefcase text-purple-600"></i> Fokus Tugas & Jabatan
+            </h3>
+            <span class="text-[10px] font-black text-purple-600">Tap untuk Ganti Konteks</span>
+        </div>
+
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
+            @foreach($availableDuties as $dutyItem)
+                @php $isActiveDuty = ($activeDuty === $dutyItem['key']); @endphp
+                <form action="{{ route('mobile.switch-duty') }}" method="POST" class="inline shrink-0">
+                    @csrf
+                    <input type="hidden" name="duty" value="{{ $dutyItem['key'] }}">
+                    <button type="submit" 
+                            class="px-3.5 py-2 rounded-2xl text-xs font-black transition flex items-center gap-1.5 border-2 shadow-xs active:scale-95
+                                   {{ $isActiveDuty ? 'bg-purple-600 text-white border-purple-700 shadow-purple-500/20' : 'bg-white text-slate-700 border-slate-200 hover:bg-purple-50 hover:border-purple-300' }}">
+                        <span>{{ $dutyItem['icon'] }}</span>
+                        <span>{{ $dutyItem['short_label'] ?? $dutyItem['label'] }}</span>
+                        @if($isActiveDuty)
+                            <i class="fa-solid fa-circle-check text-[11px] text-amber-300"></i>
+                        @endif
+                    </button>
+                </form>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     <!-- Quick Access Grid (Compact Circular Icons) -->
     <div>
         <div class="flex items-center justify-between mb-2.5 px-1">
@@ -210,7 +303,6 @@
         </div>
         
         @php 
-            $activeRole = session('active_role', $user->role); 
             $siswaSchoolType = strtoupper($student?->school?->type ?? '');
             $siswaGradeLevel = $student?->currentClassroom()?->first()?->grade_level ?? $student?->grade_level;
             $isKelasXII = ($siswaGradeLevel == 12);
@@ -218,7 +310,8 @@
             $showFinalProject = (in_array($siswaSchoolType, ['SMA', 'SMK']) && $isKelasXII);
         @endphp
 
-        @if($activeRole === 'siswa')
+        <!-- GRID 1: SISWA -->
+        @if($isStudentRole)
         <div class="grid grid-cols-4 sm:grid-cols-5 gap-y-3.5 gap-x-2">
             <!-- Space -->
             <a href="{{ route('mobile.space.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
@@ -322,10 +415,79 @@
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Fame</span>
             </a>
         </div>
-        @else
-        <!-- Menu Guru (Compact Circular Icons with 3D Pastel Clay) -->
+
+        <!-- GRID 2: ORANG TUA -->
+        @elseif($isParentRole)
         <div class="grid grid-cols-4 sm:grid-cols-5 gap-y-3.5 gap-x-2">
             <!-- Space -->
+            <a href="{{ route('mobile.space.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 relative group-hover:scale-110 transition">
+                    💬
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Space</span>
+            </a>
+
+            <!-- Nilai Ananda -->
+            <a href="{{ route('mobile.nilai') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-green flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                    📈
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Rapor Ananda</span>
+            </a>
+
+            <!-- Tagihan SPP -->
+            <a href="{{ route('mobile.tagihan') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-yellow flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                    💳
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Tagihan SPP</span>
+            </a>
+
+            <!-- Jadwal Belajar -->
+            <a href="{{ route('mobile.jadwal') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                    📅
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Jadwal Ananda</span>
+            </a>
+
+            <!-- Catatan Karakter -->
+            <a href="{{ route('mobile.catatan') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-pink flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                    📋
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Catatan Sikap</span>
+            </a>
+
+            <!-- LMS Modul -->
+            <a href="{{ route('mobile.lms.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                    📚
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Modul Belajar</span>
+            </a>
+
+            <!-- DNA 360 -->
+            <a href="{{ route('mobile.dna') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                    🧬
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">DNA Ananda</span>
+            </a>
+
+            <!-- Fame -->
+            <a href="{{ route('mobile.hall-of-fame') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full clay-pink flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                    👑
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Prestasi</span>
+            </a>
+        </div>
+
+        <!-- GRID 3: GURU & PEGAWAI (Disesuaikan berdasarkan activeDuty) -->
+        @else
+        <div class="grid grid-cols-4 sm:grid-cols-5 gap-y-3.5 gap-x-2">
+            <!-- Space (Always available) -->
             <a href="{{ route('mobile.space.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
                 <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 relative group-hover:scale-110 transition">
                     <span class="absolute -top-0.5 -right-0.5 px-1 rounded-full bg-rose-500 text-white text-[7px] font-black animate-pulse shadow-sm">LIVE</span>
@@ -334,78 +496,343 @@
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">Space</span>
             </a>
 
-            <!-- Jadwal -->
-            <a href="{{ route('mobile.guru.jadwal') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
-                    👨‍🏫
-                </div>
-                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Jadwal</span>
-            </a>
+            {{-- 1. DUTY: WALI KELAS --}}
+            @if($activeDuty === 'wali_kelas')
+                <!-- Kelas Binaan -->
+                <a href="{{ route('mobile.guru.kelas') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-green flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        🏫
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Siswa Binaan</span>
+                </a>
 
-            <!-- Absensi -->
-            <a href="{{ route('mobile.guru.absensi.input') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-12 h-12 rounded-full clay-green flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
-                    📋
-                </div>
-                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Absensi</span>
-            </a>
+                <!-- Rapor & Nilai Kelas -->
+                <a href="{{ route('mobile.guru.raport') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-yellow flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📊
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Rapor Kelas</span>
+                </a>
 
-            <!-- Presensi -->
-            <a href="{{ route('mobile.guru.absensi.saya') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
-                    📌
-                </div>
-                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Presensi</span>
-            </a>
+                <!-- Catatan Siswa -->
+                <a href="{{ route('mobile.guru.catatan-siswa') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-pink flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📝
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Catatan Siswa</span>
+                </a>
 
-            <!-- Nilai -->
-            <a href="{{ route('mobile.guru.tugas') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-12 h-12 rounded-full clay-yellow flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
-                    📝
-                </div>
-                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Nilai</span>
-            </a>
+                <!-- Presensi Mandiri -->
+                <a href="{{ route('mobile.guru.absensi.saya') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📌
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Presensi Saya</span>
+                </a>
 
-            <!-- LMS -->
-            <a href="{{ route('mobile.lms.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
-                    📚
-                </div>
-                <span class="text-[10px] font-black text-slate-800 text-center leading-none">LMS</span>
-            </a>
+                <!-- Jadwal Mengajar -->
+                <a href="{{ route('mobile.guru.jadwal') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📅
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Jadwal</span>
+                </a>
 
-            <!-- Kelas -->
-            <a href="{{ route('mobile.guru.kelas') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
-                    🏫
-                </div>
-                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Kelas</span>
-            </a>
+                <!-- DNA Kelas -->
+                <a href="{{ route('mobile.guru.dna') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        🧬
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">DNA Siswa</span>
+                </a>
 
-            <!-- CBT -->
-            <a href="{{ route('mobile.guru.cbt') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-12 h-12 rounded-full clay-pink flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
-                    💻
-                </div>
-                <span class="text-[10px] font-black text-slate-800 text-center leading-none">CBT</span>
-            </a>
+            {{-- 2. DUTY: BK & PKS PIKET --}}
+            @elseif($activeDuty === 'bk_pks')
+                <!-- Catatan Pelanggaran & Pembinaan -->
+                <a href="{{ route('mobile.guru.catatan-siswa') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-pink flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        🛡️
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Pembinaan</span>
+                </a>
 
-            <!-- Ekskul -->
-            <a href="{{ route('mobile.guru.ekskul') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-12 h-12 rounded-full clay-orange flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
-                    🎨
-                </div>
-                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Ekskul</span>
-            </a>
+                <!-- Prestasi & Poin Karakter -->
+                <a href="{{ route('mobile.guru.catatan-siswa') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-yellow flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        🏆
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Prestasi</span>
+                </a>
 
-            <!-- DNA 360° -->
-            <a href="{{ route('mobile.guru.dna') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition relative">
-                    <span class="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-gradient-to-r from-fuchsia-600 to-indigo-600 text-white text-[7px] font-black shadow-xs">360°</span>
-                    🧬
-                </div>
-                <span class="text-[10px] font-black text-slate-800 text-center leading-none">DNA 360°</span>
-            </a>
+                <!-- Presensi Mandiri -->
+                <a href="{{ route('mobile.guru.absensi.saya') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📌
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Presensi Saya</span>
+                </a>
+
+                <!-- DNA 360 Siswa -->
+                <a href="{{ route('mobile.guru.dna') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        🧬
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">DNA 360°</span>
+                </a>
+
+                <!-- Data Kelas -->
+                <a href="{{ route('mobile.guru.kelas') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-green flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        🏫
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Data Kelas</span>
+                </a>
+
+            {{-- 3. DUTY: PANITIA PKL --}}
+            @elseif($activeDuty === 'panitia_pkl')
+                <!-- Panitia PKL Master Hub -->
+                <a href="{{ route('mobile.panitia.pkl') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-orange flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        🏭
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Kelola PKL</span>
+                </a>
+
+                <!-- Monitoring Kunjungan Guru -->
+                <a href="{{ route('mobile.guru.pkl.monitoring') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📍
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Monitoring DUDI</span>
+                </a>
+
+                <!-- Logbook Bimbingan -->
+                <a href="{{ route('mobile.guru.pkl') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-green flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📋
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Logbook Siswa</span>
+                </a>
+
+                <!-- Presensi Mandiri -->
+                <a href="{{ route('mobile.guru.absensi.saya') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📌
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Presensi Saya</span>
+                </a>
+
+            {{-- 4. DUTY: PANITIA PROYEK / TA --}}
+            @elseif($activeDuty === 'panitia_proyek')
+                <!-- Panitia Final Project Hub -->
+                <a href="{{ route('mobile.panitia.final-project') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        🚀
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Proposal TA</span>
+                </a>
+
+                <!-- Bimbingan TA -->
+                <a href="{{ route('mobile.guru.final-projects.bimbingan') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📝
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Bimbingan</span>
+                </a>
+
+                <!-- Ujian / Sidang TA -->
+                <a href="{{ route('mobile.guru.final-projects.ujian') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-yellow flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        ⚖️
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Sidang Ujian</span>
+                </a>
+
+                <!-- Presensi Mandiri -->
+                <a href="{{ route('mobile.guru.absensi.saya') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📌
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Presensi Saya</span>
+                </a>
+
+            {{-- 5. DUTY: PEMBIMBING PKL --}}
+            @elseif($activeDuty === 'pembimbing_pkl')
+                <!-- Logbook Bimbingan PKL -->
+                <a href="{{ route('mobile.guru.pkl') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-orange flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        💼
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Siswa PKL</span>
+                </a>
+
+                <!-- Monitoring DUDI -->
+                <a href="{{ route('mobile.guru.pkl.monitoring') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📍
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Kunjungan DUDI</span>
+                </a>
+
+                <!-- Jadwal Mengajar -->
+                <a href="{{ route('mobile.guru.jadwal') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📅
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Jadwal</span>
+                </a>
+
+                <!-- Presensi Mandiri -->
+                <a href="{{ route('mobile.guru.absensi.saya') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📌
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Presensi Saya</span>
+                </a>
+
+            {{-- 6. DUTY: PEMBIMBING / PENGUJI PROYEK TA --}}
+            @elseif($activeDuty === 'pembimbing_proyek')
+                <!-- Bimbingan TA -->
+                <a href="{{ route('mobile.guru.final-projects.bimbingan') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📝
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Bimbingan TA</span>
+                </a>
+
+                <!-- Penguji Sidang -->
+                <a href="{{ route('mobile.guru.final-projects.ujian') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-yellow flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        ⚖️
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Sidang Penguji</span>
+                </a>
+
+                <!-- Jadwal Mengajar -->
+                <a href="{{ route('mobile.guru.jadwal') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📅
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Jadwal</span>
+                </a>
+
+                <!-- Presensi Mandiri -->
+                <a href="{{ route('mobile.guru.absensi.saya') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📌
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Presensi Saya</span>
+                </a>
+
+            {{-- 7. DUTY: PEMBINA EKSKUL --}}
+            @elseif($activeDuty === 'pembina_ekskul')
+                <!-- Kelola Ekskul -->
+                <a href="{{ route('mobile.guru.ekskul') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-orange flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        🎨
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Ekskul Saya</span>
+                </a>
+
+                <!-- Presensi Mandiri -->
+                <a href="{{ route('mobile.guru.absensi.saya') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📌
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Presensi Saya</span>
+                </a>
+
+                <!-- Hall of Fame -->
+                <a href="{{ route('mobile.hall-of-fame') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-pink flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        👑
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Prestasi</span>
+                </a>
+
+            {{-- 8. DEFAULT: GURU PENGAMPU / KBM --}}
+            @else
+                <!-- Jadwal Mengajar -->
+                <a href="{{ route('mobile.guru.jadwal') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        👨‍🏫
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Jadwal</span>
+                </a>
+
+                <!-- Input Absensi KBM -->
+                <a href="{{ route('mobile.guru.absensi.input') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-green flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📋
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Absensi KBM</span>
+                </a>
+
+                <!-- Presensi Mandiri Guru -->
+                <a href="{{ route('mobile.guru.absensi.saya') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📌
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Presensi Saya</span>
+                </a>
+
+                <!-- Input Nilai & Tugas -->
+                <a href="{{ route('mobile.guru.tugas') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-yellow flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📝
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Nilai & Tugas</span>
+                </a>
+
+                <!-- LMS Modul -->
+                <a href="{{ route('mobile.lms.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📚
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">LMS Guru</span>
+                </a>
+
+                <!-- Kelas Guru -->
+                <a href="{{ route('mobile.guru.kelas') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        🏫
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Kelas</span>
+                </a>
+
+                <!-- CBT Ujian -->
+                <a href="{{ route('mobile.guru.cbt') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-pink flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        💻
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">CBT</span>
+                </a>
+
+                <!-- Catatan Siswa -->
+                <a href="{{ route('mobile.guru.catatan-siswa') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-green flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📜
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Catatan</span>
+                </a>
+
+                <!-- Ekskul -->
+                <a href="{{ route('mobile.guru.ekskul') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-orange flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        🎨
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Ekskul</span>
+                </a>
+
+                <!-- DNA 360° -->
+                <a href="{{ route('mobile.guru.dna') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition relative">
+                        <span class="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-gradient-to-r from-fuchsia-600 to-indigo-600 text-white text-[7px] font-black shadow-xs">360°</span>
+                        🧬
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">DNA 360°</span>
+                </a>
+            @endif
         </div>
         @endif
     </div>

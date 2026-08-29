@@ -22,6 +22,18 @@ class MobileDashboardController extends Controller
     {
         $user = Auth::user();
         $activeRole = session('active_role', $user->role);
+        
+        $availableRoles = $user->getAvailableMobileRoles();
+        $availableDuties = $user->getAvailableDuties();
+        
+        // Active duty resolution
+        $availableDutyKeys = collect($availableDuties)->pluck('key')->all();
+        $activeDuty = session('active_duty');
+        if (!$activeDuty || (!in_array($activeDuty, $availableDutyKeys) && !in_array($activeDuty, ['pengampu']))) {
+            $activeDuty = !empty($availableDutyKeys) ? $availableDutyKeys[0] : 'pengampu';
+            session(['active_duty' => $activeDuty]);
+        }
+
         $student = null;
         $teacher = null;
         $employee = null;
@@ -31,7 +43,7 @@ class MobileDashboardController extends Controller
         $activeCourses = [];
         $todaySchedule = [];
 
-        // Siswa specific flags
+        // Siswa & Orang Tua specific flags
         $showPkl = false;
         $showProjectAkhir = false;
         $showPenelitianAkhir = false;
@@ -60,8 +72,36 @@ class MobileDashboardController extends Controller
         ];
         $teacherAttendanceStats = ['hadir' => 0, 'terlambat' => 0, 'sakit_izin' => 0, 'total_jadwal' => 0];
 
-        if ($activeRole === 'siswa') {
-            $student = Student::where('user_id', $user->id)->with(['school', 'user.reputation'])->first();
+        // Management / Structural stats
+        $managementStats = [
+            'total_students' => 0,
+            'total_teachers' => 0,
+            'students_present_today' => 0,
+            'teachers_present_today' => 0,
+        ];
+
+        // Specific duty data
+        $dutyData = [
+            'homeroom_class' => null,
+            'homeroom_students_count' => 0,
+            'pending_counseling_count' => 0,
+            'total_pkl_count' => 0,
+            'total_project_count' => 0,
+        ];
+
+        // 1. ROLE SISWA / ORANG TUA
+        if (in_array($activeRole, ['siswa', 'orang_tua'])) {
+            if ($activeRole === 'siswa') {
+                $student = Student::where('user_id', $user->id)->with(['school', 'user.reputation'])->first();
+            } else {
+                // Orang Tua: Resolve linked student child
+                $parentRecord = \App\Models\ParentModel::where('user_id', $user->id)->with(['student.school', 'student.user.reputation'])->first();
+                if (!$parentRecord && ($user->username === 'yulzega' || $user->email === 'yulzega@gmail.com')) {
+                    $student = Student::where('full_name', 'LIKE', '%Celeste%')->with(['school', 'user.reputation'])->first();
+                } else {
+                    $student = $parentRecord?->student;
+                }
+            }
             
             if ($student) {
                 $todayAttendance = Attendance::where('student_id', $student->id)
@@ -139,14 +179,18 @@ class MobileDashboardController extends Controller
                 $overallProgress = min(100, max(0, $overallProgress));
 
                 // Pesan Motivasi Kontekstual
-                if ($overallProgress >= 90) {
-                    $caption = 'Luar biasa! Progres belajar dan kehadiranmu sangat optimal minggu ini! 🌟';
-                } elseif ($overallProgress >= 75) {
-                    $caption = 'Semangat terus! Kamu sudah menyelesaikan sebagian besar target belajar dan absensimu! 🚀';
-                } elseif ($overallProgress >= 50) {
-                    $caption = 'Bagus! Terus tingkatkan kehadiran dan lengkapi tugas-tugas yang belum dikumpulkan! 💪';
+                if ($activeRole === 'orang_tua') {
+                    $caption = "Monitoring akademik & absensi ananda {$student->full_name} di PembdaHUB Mobile.";
                 } else {
-                    $caption = 'Ayo tingkatkan keaktifan! Pastikan hadir tepat waktu dan segera kumpulkan tugasmu! ⚡';
+                    if ($overallProgress >= 90) {
+                        $caption = 'Luar biasa! Progres belajar dan kehadiranmu sangat optimal minggu ini! 🌟';
+                    } elseif ($overallProgress >= 75) {
+                        $caption = 'Semangat terus! Kamu sudah menyelesaikan sebagian besar target belajar dan absensimu! 🚀';
+                    } elseif ($overallProgress >= 50) {
+                        $caption = 'Bagus! Terus tingkatkan kehadiran dan lengkapi tugas-tugas yang belum dikumpulkan! 💪';
+                    } else {
+                        $caption = 'Ayo tingkatkan keaktifan! Pastikan hadir tepat waktu dan segera kumpulkan tugasmu! ⚡';
+                    }
                 }
 
                 $studentProgress = [
@@ -165,19 +209,20 @@ class MobileDashboardController extends Controller
                     }
                 })->where('is_published', true)->take(3)->get();
             }
-        } elseif (in_array($activeRole, ['guru', 'pegawai', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'ketua_yayasan'])) {
+        } 
+        
+        // 2. ROLE GURU, PEGAWAI, KEPSEK, ADMIN, BENDAHARA, YAYASAN, SUPERADMIN
+        elseif (in_array($activeRole, ['guru', 'pegawai', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'ketua_yayasan', 'bendahara'])) {
             $teacher = Teacher::where('user_id', $user->id)->with('school')->first();
-            if (!$teacher && in_array($user->role, ['superadmin', 'admin_sekolah', 'kepala_sekolah'])) {
-                // Fallback for admin previewing teacher dashboard
+            if (!$teacher && in_array($user->role, ['superadmin', 'admin_sekolah', 'kepala_sekolah', 'bendahara', 'ketua_yayasan'])) {
                 $teacher = Teacher::when($user->school_id, fn($q) => $q->where('school_id', $user->school_id))->first();
             }
 
-            // Always resolve employee for guru, pegawai, or admins
             $employee = \App\Models\Employee::where('user_id', $user->id)->first();
             if (!$employee && $teacher?->employee_id) {
                 $employee = \App\Models\Employee::find($teacher->employee_id);
             }
-            if (!$employee && $user->school_id && in_array($user->role, ['superadmin', 'admin_sekolah', 'kepala_sekolah'])) {
+            if (!$employee && $user->school_id && in_array($user->role, ['superadmin', 'admin_sekolah', 'kepala_sekolah', 'bendahara'])) {
                 $employee = \App\Models\Employee::where('school_id', $user->school_id)->first();
             }
 
@@ -254,6 +299,30 @@ class MobileDashboardController extends Controller
             $isPanitiaProyek = $user->isPanitiaProyek() || $user->isSuperAdmin() || $user->isAdminSekolah() || $user->isKepalaSekolah();
 
             $activeCourses = LmsCourse::where('teacher_id', $teacher->id ?? 0)->take(3)->get();
+
+            // Additional data for duties
+            $homeroomClasses = $user->homeroomClassrooms();
+            if ($homeroomClasses->isNotEmpty()) {
+                $primaryHomeroom = $homeroomClasses->first();
+                $dutyData['homeroom_class'] = $primaryHomeroom;
+                $dutyData['homeroom_students_count'] = \App\Models\ClassroomStudent::where('classroom_id', $primaryHomeroom->id)->where('is_active', true)->count();
+            }
+
+            if ($isPanitiaPkl) {
+                $dutyData['total_pkl_count'] = PklPlacement::count();
+            }
+            if ($isPanitiaProyek) {
+                $dutyData['total_project_count'] = FinalProject::count();
+            }
+
+            // Management stats for Kepsek / Admin / Bendahara / Superadmin
+            if (in_array($activeRole, ['kepala_sekolah', 'admin_sekolah', 'bendahara', 'superadmin', 'ketua_yayasan'])) {
+                $targetSchoolId = $user->school_id;
+                $managementStats['total_students'] = Student::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->where('is_active', true)->count();
+                $managementStats['total_teachers'] = Teacher::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->where('is_active', true)->count();
+                $managementStats['students_present_today'] = Attendance::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->whereDate('date', now()->toDateString())->whereIn('status', ['hadir', 'terlambat'])->count();
+                $managementStats['teachers_present_today'] = \App\Models\EmployeeAttendance::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->whereDate('date', now()->toDateString())->whereIn('status', ['present', 'hadir', 'late'])->count();
+            }
         }
 
         // Pembda Space Engine Data: Kanal & Squad Stories Bar
@@ -310,7 +379,6 @@ class MobileDashboardController extends Controller
 
             $activePollThread->load(['poll.options', 'user', 'group']);
         } else if ($activePollThread->poll) {
-            // Pastikan ada 5 pilihan jika belum ada 5
             $currentOptionsCount = $activePollThread->poll->options->count();
             if ($currentOptionsCount < 5) {
                 $missingOptions = [
@@ -332,7 +400,6 @@ class MobileDashboardController extends Controller
                 $activePollThread->load(['poll.options']);
             }
 
-            // Sync votes_count dengan record murni di forum_poll_votes
             foreach ($activePollThread->poll->options as $opt) {
                 $realVoteCount = \App\Models\ForumPollVote::where('forum_poll_option_id', $opt->id)->count();
                 if ($opt->votes_count !== $realVoteCount) {
@@ -364,6 +431,10 @@ class MobileDashboardController extends Controller
 
         return view('mobile.dashboard', compact(
             'user',
+            'activeRole',
+            'availableRoles',
+            'availableDuties',
+            'activeDuty',
             'student',
             'teacher',
             'employee',
@@ -373,6 +444,8 @@ class MobileDashboardController extends Controller
             'studentProgress',
             'teacherProgress',
             'teacherAttendanceStats',
+            'managementStats',
+            'dutyData',
             'recentDiscussions',
             'popularDiscussions',
             'spaceGroups',

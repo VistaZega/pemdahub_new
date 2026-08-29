@@ -190,13 +190,22 @@
 
         <div class="flex items-center space-x-2">
             @auth
-            <!-- Role Switcher Button -->
-            @php $currentRole = session('active_role', auth()->user()->role); @endphp
-            @if(auth()->user()->isOwnerOrSuperAdmin() || auth()->user()->isGuru() || auth()->user()->isAdminSekolah() || auth()->user()->isKepalaSekolah())
+            @php 
+                $navUser = auth()->user();
+                $currentRole = session('active_role', $navUser->role); 
+                $currentDuty = session('active_duty', 'pengampu');
+                $userMobileRoles = $navUser->getAvailableMobileRoles();
+                $userDuties = $navUser->getAvailableDuties();
+                $showSwitcher = count($userMobileRoles) > 1 || count($userDuties) > 1 || $navUser->isOwnerOrSuperAdmin();
+            @endphp
+
+            <!-- Role & Jabatan Switcher Button -->
+            @if($showSwitcher)
                 <button @click="showRoleModal = true" 
-                        class="px-3.5 py-2 text-xs font-black bg-white text-blue-600 border-2 border-blue-200 rounded-2xl hover:bg-blue-50 flex items-center gap-1.5 transition shadow-sm">
+                        title="Beralih Peran & Jabatan"
+                        class="px-3 py-1.5 text-xs font-black bg-white text-blue-600 border-2 border-blue-200 rounded-2xl hover:bg-blue-50 flex items-center gap-1.5 transition shadow-sm active:scale-95">
                     <i class="fa-solid fa-repeat text-blue-600 text-xs"></i>
-                    <span class="capitalize">{{ str_replace('_', ' ', $currentRole) }}</span>
+                    <span class="capitalize truncate max-w-[90px]">{{ str_replace('_', ' ', $currentRole) }}</span>
                 </button>
             @endif
 
@@ -254,67 +263,103 @@
             @endauth
         </div>
 
-        <!-- Role Switcher Modal -->
+        <!-- Role & Jabatan Switcher Modal -->
         @auth
         <div x-show="showRoleModal" 
+             x-data="{ modalTab: '{{ count($userDuties) > 1 && in_array($currentRole, ['guru', 'pegawai']) ? 'duty' : 'role' }}' }"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100"
              x-transition:leave="transition ease-in duration-150"
              x-transition:leave-start="opacity-100 scale-100"
              x-transition:leave-end="opacity-0 scale-95"
-             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
              style="display: none;">
-            <div class="bg-[#f4f7fc] rounded-3xl p-6 w-full max-w-xs shadow-2xl border-4 border-white space-y-4">
-                <div class="flex items-center justify-between border-b-2 border-slate-200/80 pb-3">
+            <div class="bg-[#f4f7fc] rounded-3xl p-5 w-full max-w-sm shadow-2xl border-4 border-white space-y-3.5 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between border-b-2 border-slate-200/80 pb-2.5">
                     <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-repeat text-blue-600"></i> Beralih Peran (Switch Role)
+                        <i class="fa-solid fa-repeat text-blue-600"></i> Beralih Peran & Jabatan
                     </h3>
-                    <button @click="showRoleModal = false" class="text-slate-400 hover:text-slate-600">
-                        <i class="fa-solid fa-xmark text-lg"></i>
+                    <button @click="showRoleModal = false" class="w-7 h-7 rounded-xl bg-slate-200 text-slate-600 hover:bg-slate-300 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark text-sm"></i>
                     </button>
                 </div>
 
-                <p class="text-xs text-slate-600 font-bold">Pilih mode tampilan aktif:</p>
+                <!-- Tab Switcher Modal (Roles vs Jabatan) -->
+                @if(count($userDuties) > 0 && count($userMobileRoles) > 1)
+                <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-200/80 rounded-2xl border border-slate-300">
+                    <button type="button" @click="modalTab = 'role'"
+                            :class="modalTab === 'role' ? 'bg-blue-600 text-white font-black shadow-sm' : 'text-slate-600 font-extrabold'"
+                            class="py-1.5 text-xs rounded-xl transition flex items-center justify-center gap-1.5">
+                        <span>👤 Peran Akun</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[9px] {{ $currentRole ? 'bg-white/20 text-white' : '' }}">{{ count($userMobileRoles) }}</span>
+                    </button>
+                    <button type="button" @click="modalTab = 'duty'"
+                            :class="modalTab === 'duty' ? 'bg-purple-600 text-white font-black shadow-sm' : 'text-slate-600 font-extrabold'"
+                            class="py-1.5 text-xs rounded-xl transition flex items-center justify-center gap-1.5">
+                        <span>💼 Jabatan / Tugas</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[9px] {{ count($userDuties) > 0 ? 'bg-white/20 text-white' : '' }}">{{ count($userDuties) }}</span>
+                    </button>
+                </div>
+                @endif
 
-                <form action="{{ route('mobile.switch-role') }}" method="POST" class="space-y-2.5">
-                    @csrf
-                    @if(auth()->user()->isOwnerOrSuperAdmin())
-                        <button type="submit" name="role" value="superadmin" class="w-full text-left p-3.5 rounded-2xl bg-white border-2 border-slate-200 text-xs font-black hover:bg-blue-50 hover:border-blue-300 transition flex items-center justify-between shadow-sm">
-                            <span>👑 Super Admin</span>
-                            @if($currentRole === 'superadmin')<i class="fa-solid fa-circle-check text-blue-600 text-base"></i>@endif
-                        </button>
+                <!-- TAB 1: PERAN AKUN (ROLES) -->
+                <div x-show="modalTab === 'role'" class="space-y-2">
+                    <p class="text-[11px] text-slate-600 font-bold">Pilih hak akses peran utama Anda:</p>
+                    <form action="{{ route('mobile.switch-role') }}" method="POST" class="space-y-2">
+                        @csrf
+                        @foreach($userMobileRoles as $r)
+                            @php $isCurrent = ($currentRole === $r['key']); @endphp
+                            <button type="submit" name="role" value="{{ $r['key'] }}" 
+                                    class="w-full text-left p-3 rounded-2xl bg-white border-2 {{ $isCurrent ? 'border-blue-500 bg-blue-50/50 shadow-sm' : 'border-slate-200 hover:border-blue-300' }} transition flex items-center justify-between">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-lg shrink-0">
+                                        {{ $r['icon'] }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-black text-slate-900 leading-tight truncate">{{ $r['label'] }}</div>
+                                        <div class="text-[10px] text-slate-500 font-semibold truncate">{{ $r['subtitle'] }}</div>
+                                    </div>
+                                </div>
+                                @if($isCurrent)
+                                    <i class="fa-solid fa-circle-check text-blue-600 text-base shrink-0 ml-2"></i>
+                                @endif
+                            </button>
+                        @endforeach
+                    </form>
+                </div>
 
-                        <button type="submit" name="role" value="ketua_yayasan" class="w-full text-left p-3.5 rounded-2xl bg-white border-2 border-slate-200 text-xs font-black hover:bg-purple-50 hover:border-purple-300 transition flex items-center justify-between shadow-sm">
-                            <span>🏛️ Ketua Yayasan</span>
-                            @if($currentRole === 'ketua_yayasan')<i class="fa-solid fa-circle-check text-purple-600 text-base"></i>@endif
-                        </button>
-                    @endif
-
-                    @if(auth()->user()->isOwnerOrSuperAdmin() || auth()->user()->isGuru() || auth()->user()->isAdminSekolah())
-                        <button type="submit" name="role" value="guru" class="w-full text-left p-3.5 rounded-2xl bg-white border-2 border-slate-200 text-xs font-black hover:bg-blue-50 hover:border-blue-300 transition flex items-center justify-between shadow-sm">
-                            <span>👨‍🏫 Guru / Tenaga Pendidik</span>
-                            @if($currentRole === 'guru')<i class="fa-solid fa-circle-check text-blue-600 text-base"></i>@endif
-                        </button>
-                    @endif
-
-                    @if(auth()->user()->isOwnerOrSuperAdmin() || auth()->user()->hasRole('orang_tua') || auth()->user()->parents()->exists())
-                        <button type="submit" name="role" value="orang_tua" class="w-full text-left p-3.5 rounded-2xl bg-white border-2 border-slate-200 text-xs font-black hover:bg-pink-50 hover:border-pink-300 transition flex items-center justify-between shadow-sm">
-                            <span>👨‍👩‍👧 Orang Tua {{ (auth()->user()->username === 'yulzega' || auth()->user()->email === 'yulzega@gmail.com') ? '(Wali Celeste)' : '' }}</span>
-                            @if($currentRole === 'orang_tua')<i class="fa-solid fa-circle-check text-pink-600 text-base"></i>@endif
-                        </button>
-                    @endif
-
-                    @if(auth()->user()->isOwnerOrSuperAdmin() || auth()->user()->hasRole('siswa'))
-                        <button type="submit" name="role" value="siswa" class="w-full text-left p-3.5 rounded-2xl bg-white border-2 border-slate-200 text-xs font-black hover:bg-blue-50 hover:border-blue-300 transition flex items-center justify-between shadow-sm">
-                            <span>🎓 Siswa</span>
-                            @if($currentRole === 'siswa')<i class="fa-solid fa-circle-check text-blue-600 text-base"></i>@endif
-                        </button>
-                    @endif
-                </form>
+                <!-- TAB 2: JABATAN & TUGAS STRUKTURAL (DUTIES) -->
+                @if(count($userDuties) > 0)
+                <div x-show="modalTab === 'duty'" class="space-y-2" style="{{ count($userMobileRoles) > 1 ? 'display: none;' : '' }}">
+                    <p class="text-[11px] text-slate-600 font-bold">Pilih fokus tugas & jabatan aktif Anda:</p>
+                    <form action="{{ route('mobile.switch-duty') }}" method="POST" class="space-y-2">
+                        @csrf
+                        @foreach($userDuties as $d)
+                            @php $isCurrentDuty = ($currentDuty === $d['key']); @endphp
+                            <button type="submit" name="duty" value="{{ $d['key'] }}" 
+                                    class="w-full text-left p-3 rounded-2xl bg-white border-2 {{ $isCurrentDuty ? 'border-purple-500 bg-purple-50/50 shadow-sm' : 'border-slate-200 hover:border-purple-300' }} transition flex items-center justify-between">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-8 h-8 rounded-xl bg-purple-100/70 border border-purple-200 flex items-center justify-center text-lg shrink-0">
+                                        {{ $d['icon'] }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-black text-slate-900 leading-tight truncate">{{ $d['label'] }}</div>
+                                        <div class="text-[10px] text-slate-500 font-semibold truncate">{{ $d['description'] }}</div>
+                                    </div>
+                                </div>
+                                @if($isCurrentDuty)
+                                    <i class="fa-solid fa-circle-check text-purple-600 text-base shrink-0 ml-2"></i>
+                                @endif
+                            </button>
+                        @endforeach
+                    </form>
+                </div>
+                @endif
             </div>
         </div>
         @endauth
+    </header>
     </header>
 
     <!-- Toast Notifications -->

@@ -793,4 +793,232 @@ class User extends Authenticatable
 
         return null;
     }
+
+    /**
+     * Get all available mobile roles for switching based on user credentials & authorities
+     */
+    public function getAvailableMobileRoles(): array
+    {
+        $roles = [];
+
+        // 1. Super Admin
+        if ($this->isOwnerOrSuperAdmin() || $this->role === 'superadmin') {
+            $roles[] = [
+                'key' => 'superadmin',
+                'label' => 'Super Admin',
+                'subtitle' => 'Administrator Utama',
+                'icon' => '👑',
+                'color' => 'amber',
+            ];
+        }
+
+        // 2. Ketua Yayasan
+        if ($this->isOwnerOrSuperAdmin() || $this->canAccessYayasan()) {
+            $roles[] = [
+                'key' => 'ketua_yayasan',
+                'label' => 'Ketua Yayasan',
+                'subtitle' => 'Pengawasan & Yayasan',
+                'icon' => '🏛️',
+                'color' => 'purple',
+            ];
+        }
+
+        // 3. Kepala Sekolah
+        if ($this->isOwnerOrSuperAdmin() || $this->isKepalaSekolah()) {
+            $roles[] = [
+                'key' => 'kepala_sekolah',
+                'label' => 'Kepala Sekolah',
+                'subtitle' => 'Pimpinan & Monitoring Unit',
+                'icon' => '🏫',
+                'color' => 'indigo',
+            ];
+        }
+
+        // 4. Admin Sekolah
+        if ($this->isOwnerOrSuperAdmin() || $this->isAdminSekolah()) {
+            $roles[] = [
+                'key' => 'admin_sekolah',
+                'label' => 'Admin Sekolah',
+                'subtitle' => 'Pengelola Data Unit',
+                'icon' => '⚙️',
+                'color' => 'blue',
+            ];
+        }
+
+        // 5. Bendahara
+        if ($this->isOwnerOrSuperAdmin() || $this->isBendahara()) {
+            $roles[] = [
+                'key' => 'bendahara',
+                'label' => 'Bendahara',
+                'subtitle' => 'Keuangan & SPP',
+                'icon' => '💰',
+                'color' => 'emerald',
+            ];
+        }
+
+        // 6. Guru / Tenaga Pendidik
+        if ($this->isOwnerOrSuperAdmin() || $this->isGuru() || $this->isKepalaSekolah() || $this->isAdminSekolah()) {
+            $roles[] = [
+                'key' => 'guru',
+                'label' => 'Guru Pengampu',
+                'subtitle' => 'KBM, Nilai, Roster & LMS',
+                'icon' => '👨‍🏫',
+                'color' => 'teal',
+            ];
+        }
+
+        // 7. Pegawai / Staf TU
+        if ($this->isOwnerOrSuperAdmin() || $this->isPegawai() || $this->hasRole('pegawai')) {
+            $roles[] = [
+                'key' => 'pegawai',
+                'label' => 'Pegawai / Staf TU',
+                'subtitle' => 'Administrasi & Presensi',
+                'icon' => '💼',
+                'color' => 'slate',
+            ];
+        }
+
+        // 8. Orang Tua / Wali
+        if ($this->isOwnerOrSuperAdmin() || $this->hasRole('orang_tua') || $this->parents()->exists()) {
+            $waliName = ($this->username === 'yulzega' || $this->email === 'yulzega@gmail.com') ? 'Wali: Celeste Nibenia Ogaena' : 'Monitoring Akademik Siswa';
+            $roles[] = [
+                'key' => 'orang_tua',
+                'label' => 'Orang Tua / Wali',
+                'subtitle' => $waliName,
+                'icon' => '👨‍👩‍👧',
+                'color' => 'rose',
+            ];
+        }
+
+        // 9. Siswa
+        if ($this->isOwnerOrSuperAdmin() || $this->hasRole('siswa')) {
+            $roles[] = [
+                'key' => 'siswa',
+                'label' => 'Siswa',
+                'subtitle' => 'Belajar, Tugas & Space',
+                'icon' => '🎓',
+                'color' => 'cyan',
+            ];
+        }
+
+        return $roles;
+    }
+
+    /**
+     * Get all available duties & structural positions for Guru/Pegawai
+     */
+    public function getAvailableDuties(): array
+    {
+        $duties = [];
+
+        // 1. Guru Pengampu KBM (Default for all teachers)
+        if ($this->isGuru() || $this->teacher) {
+            $duties[] = [
+                'key' => 'pengampu',
+                'label' => 'Guru Pengampu',
+                'short_label' => 'KBM Guru',
+                'icon' => '👨‍🏫',
+                'badge' => 'KBM',
+                'color' => 'blue',
+                'description' => 'Jadwal Mengajar, Nilai, Presensi Siswa & LMS',
+            ];
+        }
+
+        // 2. Wali Kelas
+        $homeroomClasses = $this->homeroomClassrooms();
+        if ($homeroomClasses->isNotEmpty()) {
+            $classNames = $homeroomClasses->pluck('name')->implode(', ');
+            $duties[] = [
+                'key' => 'wali_kelas',
+                'label' => 'Wali Kelas ' . $classNames,
+                'short_label' => 'Wali Kelas (' . ($homeroomClasses->first()->name ?? 'Kelas') . ')',
+                'icon' => '📋',
+                'badge' => $homeroomClasses->first()->name ?? 'Wali',
+                'color' => 'emerald',
+                'description' => 'Monitoring Kelas Binaan, Rapor & Rekap Absensi',
+                'classes' => $homeroomClasses,
+            ];
+        }
+
+        // 3. Guru BK / PKS Kedisiplinan
+        if ($this->isPksOrPiket()) {
+            $duties[] = [
+                'key' => 'bk_pks',
+                'label' => 'Guru BK & PKS Piket',
+                'short_label' => 'BK & PKS',
+                'icon' => '🛡️',
+                'badge' => 'Disiplin',
+                'color' => 'rose',
+                'description' => 'Catatan Pelanggaran, Poin Karakter & Bimbingan Konseling',
+            ];
+        }
+
+        // 4. Panitia PKL (Hubin & Industri)
+        if ($this->isPanitiaPkl() || $this->isOwnerOrSuperAdmin()) {
+            $duties[] = [
+                'key' => 'panitia_pkl',
+                'label' => 'Panitia PKL SMK',
+                'short_label' => 'Panitia PKL',
+                'icon' => '🏭',
+                'badge' => 'Panitia PKL',
+                'color' => 'amber',
+                'description' => 'Kelola Penempatan DUDI & Plotting Pembimbing',
+            ];
+        }
+
+        // 5. Panitia Proyek Akhir (SMK) / Penelitian Akhir (SMA)
+        if ($this->isPanitiaProyek() || $this->isOwnerOrSuperAdmin()) {
+            $duties[] = [
+                'key' => 'panitia_proyek',
+                'label' => 'Panitia Proyek / Penelitian',
+                'short_label' => 'Panitia TA',
+                'icon' => '🚀',
+                'badge' => 'Panitia TA',
+                'color' => 'purple',
+                'description' => 'Verifikasi Proposal, Pembimbing & Jadwal Sidang',
+            ];
+        }
+
+        // 6. Pembimbing PKL
+        if ($this->teacher && \App\Models\PklPlacement::where('teacher_id', $this->teacher->id)->exists()) {
+            $duties[] = [
+                'key' => 'pembimbing_pkl',
+                'label' => 'Pembimbing PKL DUDI',
+                'short_label' => 'Bimbingan PKL',
+                'icon' => '💼',
+                'badge' => 'Bimbingan',
+                'color' => 'orange',
+                'description' => 'Approval Jurnal Siswa & Monitoring DUDI',
+            ];
+        }
+
+        // 7. Pembimbing / Penguji Proyek Akhir
+        if ($this->teacher && \App\Models\FinalProject::where('advisor_id', $this->teacher->id)->orWhere('examiner_id', $this->teacher->id)->exists()) {
+            $duties[] = [
+                'key' => 'pembimbing_proyek',
+                'label' => 'Pembimbing & Penguji TA',
+                'short_label' => 'Bimbingan TA',
+                'icon' => '📝',
+                'badge' => 'Bimbingan TA',
+                'color' => 'indigo',
+                'description' => 'Bimbingan Bab, Logbook & Form Penilaian Sidang',
+            ];
+        }
+
+        // 8. Pembina Ekskul
+        if ($this->teacher && \App\Models\Extracurricular::where('advisor_teacher_id', $this->teacher->id)->where('is_active', true)->exists()) {
+            $ekskul = \App\Models\Extracurricular::where('advisor_teacher_id', $this->teacher->id)->where('is_active', true)->first();
+            $duties[] = [
+                'key' => 'pembina_ekskul',
+                'label' => 'Pembina Ekskul ' . ($ekskul->name ?? ''),
+                'short_label' => 'Pembina ' . ($ekskul->name ?? 'Ekskul'),
+                'icon' => '🎨',
+                'badge' => 'Ekskul',
+                'color' => 'pink',
+                'description' => 'Kelola Anggota, Presensi & Kegiatan Ekstrakurikuler',
+            ];
+        }
+
+        return $duties;
+    }
 }

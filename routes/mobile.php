@@ -74,6 +74,7 @@ Route::prefix('m')->name('mobile.')->group(function () {
     Route::middleware(['auth'])->group(function () {
         Route::post('/logout', [MobileAuthController::class, 'logout'])->name('logout');
         Route::post('/switch-role', [MobileAuthController::class, 'switchRole'])->name('switch-role');
+        Route::post('/switch-duty', [MobileAuthController::class, 'switchDuty'])->name('switch-duty');
 
         // Dashboard
         Route::get('/dashboard', [MobileDashboardController::class, 'index'])->name('dashboard');

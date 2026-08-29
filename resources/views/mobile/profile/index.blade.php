@@ -326,51 +326,68 @@
         @endif
     </form>
 
-    <!-- Role Switcher Widget (If Multi-Role) -->
-    @if($user->isOwnerOrSuperAdmin() || $user->isGuru() || $user->isAdminSekolah() || $user->isKepalaSekolah())
-    <div class="clay-card p-5 space-y-3 border-2 border-blue-200">
-        <div class="flex items-center justify-between">
-            <h3 class="text-xs font-black text-slate-900 flex items-center gap-2">
-                <i class="fa-solid fa-repeat text-blue-600"></i> Fasilitas Beralih Peran (Switch Role)
-            </h3>
+    <!-- Role & Duty Switcher Widget -->
+    @php
+        $profRoles = $user->getAvailableMobileRoles();
+        $profDuties = $user->getAvailableDuties();
+        $currentDuty = session('active_duty', 'pengampu');
+    @endphp
+
+    @if(count($profRoles) > 1 || count($profDuties) > 1 || $user->isOwnerOrSuperAdmin())
+    <div class="clay-card p-4 sm:p-5 space-y-4 border-2 border-blue-200">
+        <!-- 1. Peran Akun Utama -->
+        @if(count($profRoles) > 1)
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xs font-black text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-repeat text-blue-600"></i> Beralih Peran Akun (Role Switcher)
+                </h3>
+                <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">{{ count($profRoles) }} Peran</span>
+            </div>
+            <p class="text-[11px] text-slate-600 font-bold">Beralih mode hak akses akun:</p>
+
+            <form action="{{ route('mobile.switch-role') }}" method="POST" class="grid grid-cols-2 gap-2 pt-0.5">
+                @csrf
+                @foreach($profRoles as $r)
+                    @php $isCurrent = ($activeRole === $r['key']); @endphp
+                    <button type="submit" name="role" value="{{ $r['key'] }}" 
+                            class="p-2.5 rounded-2xl border-2 text-xs font-black transition flex items-center justify-start gap-2 {{ $isCurrent ? 'bg-blue-600 text-white border-blue-700 shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' }}">
+                        <span class="text-base shrink-0">{{ $r['icon'] }}</span>
+                        <div class="min-w-0 text-left">
+                            <span class="truncate block leading-tight text-[11px]">{{ $r['label'] }}</span>
+                        </div>
+                    </button>
+                @endforeach
+            </form>
         </div>
-        <p class="text-[11px] text-slate-600 font-bold">Beralih mode tampilan aplikasi sesuai hak akses Anda:</p>
+        @endif
 
-        <form action="{{ route('mobile.switch-role') }}" method="POST" class="grid grid-cols-2 gap-2 pt-1">
-            @csrf
-            @if($user->isOwnerOrSuperAdmin())
-                <button type="submit" name="role" value="superadmin" 
-                        class="p-3 rounded-2xl border-2 text-xs font-black transition flex items-center justify-center gap-1.5 {{ $activeRole === 'superadmin' ? 'clay-blue text-white shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' }}">
-                    <span>👑 Admin</span>
-                </button>
+        <!-- 2. Jabatan & Tugas Struktural -->
+        @if(count($profDuties) > 0)
+        <div class="space-y-2 pt-2 {{ count($profRoles) > 1 ? 'border-t border-slate-200/80' : '' }}">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xs font-black text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-briefcase text-purple-600"></i> Beralih Fokus Jabatan (Duty Switcher)
+                </h3>
+                <span class="text-[10px] font-black text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">{{ count($profDuties) }} Jabatan</span>
+            </div>
+            <p class="text-[11px] text-slate-600 font-bold">Pilih fokus tugas & tanggung jawab aktif:</p>
 
-                <button type="submit" name="role" value="ketua_yayasan" 
-                        class="p-3 rounded-2xl border-2 text-xs font-black transition flex items-center justify-center gap-1.5 {{ $activeRole === 'ketua_yayasan' ? 'clay-purple text-white shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' }}">
-                    <span>🏛️ Yayasan</span>
-                </button>
-            @endif
-
-            @if($user->isOwnerOrSuperAdmin() || $user->isGuru() || $user->isAdminSekolah())
-                <button type="submit" name="role" value="guru" 
-                        class="p-3 rounded-2xl border-2 text-xs font-black transition flex items-center justify-center gap-1.5 {{ $activeRole === 'guru' ? 'clay-purple text-white shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' }}">
-                    <span>👨‍🏫 Guru</span>
-                </button>
-            @endif
-
-            @if($user->isOwnerOrSuperAdmin() || $user->hasRole('orang_tua') || $user->parents()->exists())
-                <button type="submit" name="role" value="orang_tua" 
-                        class="p-3 rounded-2xl border-2 text-xs font-black transition flex items-center justify-center gap-1.5 {{ $activeRole === 'orang_tua' ? 'clay-pink text-white shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' }}">
-                    <span>👨‍👩‍👧 Orang Tua</span>
-                </button>
-            @endif
-
-            @if($user->isOwnerOrSuperAdmin() || $user->hasRole('siswa'))
-                <button type="submit" name="role" value="siswa" 
-                        class="p-3 rounded-2xl border-2 text-xs font-black transition flex items-center justify-center gap-1.5 {{ $activeRole === 'siswa' ? 'clay-blue text-white shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' }}">
-                    <span>🎓 Siswa</span>
-                </button>
-            @endif
-        </form>
+            <form action="{{ route('mobile.switch-duty') }}" method="POST" class="grid grid-cols-2 gap-2 pt-0.5">
+                @csrf
+                @foreach($profDuties as $d)
+                    @php $isCurrentDuty = ($currentDuty === $d['key']); @endphp
+                    <button type="submit" name="duty" value="{{ $d['key'] }}" 
+                            class="p-2.5 rounded-2xl border-2 text-xs font-black transition flex items-center justify-start gap-2 {{ $isCurrentDuty ? 'bg-purple-600 text-white border-purple-700 shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' }}">
+                        <span class="text-base shrink-0">{{ $d['icon'] }}</span>
+                        <div class="min-w-0 text-left">
+                            <span class="truncate block leading-tight text-[11px]">{{ $d['short_label'] ?? $d['label'] }}</span>
+                        </div>
+                    </button>
+                @endforeach
+            </form>
+        </div>
+        @endif
     </div>
     @endif
 
