@@ -658,16 +658,53 @@ Route::get('/', function () {
         ->latest('log_date')
         ->take(8)
         ->get()
-        ->map(fn($log) => [
-            'type' => 'logbook',
-            'photo' => $log->photo_url,
-            'description' => \Illuminate\Support\Str::limit($log->activity, 150),
-            'person_name' => $log->placement?->student?->full_name ?? 'Siswa PKL',
-            'person_photo' => $log->placement?->student?->photo_url ?? null,
-            'school_name' => $log->placement?->student?->school?->name ?? '-',
-            'dudi_name' => $log->placement?->dudi?->name ?? $log->placement?->company_name ?? '-',
-            'date' => $log->log_date?->translatedFormat('d M Y') ?? '-',
-        ]);
+        ->map(function($log) {
+            $rawActivity = $log->activity ?? '';
+            $kegiatan = '';
+            $alat = '';
+            $pengetahuan = '';
+
+            // Ekstrak blok teks terstruktur
+            if (preg_match('/Kegiatan(?:[^\n:]*):\s*(.*?)(?=\n\s*Alat|\n\s*Pengetahuan|\n\s*Ilmu|$)/is', $rawActivity, $m)) {
+                $kegiatan = trim($m[1]);
+            }
+            if (preg_match('/Alat(?:[^\n:]*):\s*(.*?)(?=\n\s*Pengetahuan|\n\s*Ilmu|$)/is', $rawActivity, $m)) {
+                $alat = trim($m[1]);
+            }
+            if (preg_match('/(?:Pengetahuan|Ilmu)(?:[^\n:]*):\s*(.*?)$/is', $rawActivity, $m)) {
+                $pengetahuan = trim($m[1]);
+            }
+
+            if (!empty($kegiatan) || !empty($alat) || !empty($pengetahuan)) {
+                $parts = [];
+                if (!empty($kegiatan)) {
+                    $parts[] = 'Kegiatan ' . rtrim($kegiatan, '.,;');
+                }
+                if (!empty($alat)) {
+                    $parts[] = 'dengan alat ' . rtrim($alat, '.,;');
+                }
+                if (!empty($pengetahuan)) {
+                    $parts[] = 'dan pengetahuan ttg ' . rtrim($pengetahuan, '.,;');
+                }
+                $formattedDesc = implode(' ', $parts) . '.';
+            } else {
+                $cleanAct = preg_replace('/\s+/', ' ', trim($rawActivity));
+                $formattedDesc = !empty($cleanAct) 
+                    ? 'Kegiatan ' . rtrim($cleanAct, '.,;') . '.' 
+                    : 'Kegiatan praktik kerja lapangan industri bersama mitra DUDI.';
+            }
+
+            return [
+                'type' => 'logbook',
+                'photo' => $log->photo_url,
+                'description' => $formattedDesc,
+                'person_name' => $log->placement?->student?->full_name ?? 'Siswa PKL',
+                'person_photo' => $log->placement?->student?->photo_url ?? null,
+                'school_name' => $log->placement?->student?->school?->name ?? 'SMKS Pembda Nias',
+                'dudi_name' => $log->placement?->dudi?->name ?? $log->placement?->company_name ?? 'Mitra DUDI',
+                'date' => $log->log_date?->translatedFormat('d M Y') ?? '-',
+            ];
+        });
 
     $pklMonitorings = \App\Models\PklMonitoring::whereNotNull('photo_path')
         ->with(['teacher', 'dudi'])
