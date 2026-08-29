@@ -18,7 +18,7 @@
                 ['name' => 'Pintar Bersama Daihatsu (PBD)', 'file' => 'pintar-bersama-daihatsu.png', 'class' => 'scale-[2.0] group-hover:scale-[2.15]'],
                 ['name' => 'PT Tera Data Indonusa Tbk (Axioo)', 'file' => 'tera-data-internusa.png', 'class' => ''],
                 ['name' => 'Polytron (PT Hartono Istana Teknologi)', 'file' => 'polytron.png', 'class' => 'scale-[1.5] group-hover:scale-[1.65]'],
-                ['name' => 'PT Asaba Computer Centre', 'file' => 'pt-asaba.png', 'class' => ''],
+                ['name' => 'PT Asaba Computer Centre', 'file' => 'pt-asaba.png', 'class' => 'scale-[1.5] group-hover:scale-[1.65]'],
                 ['name' => 'Phytaverse', 'file' => 'phytaverse.png', 'class' => 'scale-[2.0] group-hover:scale-[2.15]'],
             ];
         @endphp
