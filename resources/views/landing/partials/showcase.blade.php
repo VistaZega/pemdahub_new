@@ -60,26 +60,27 @@
                     $isSMA = str_contains($schoolName, 'sma') || $project->type === 'penelitian_ilmiah' || $project->type === 'research';
                     $typeLabel = $isSMA ? 'PENELITIAN' : 'PROJECT';
                     $schoolLabel = $project->student?->school?->name ?? ($isSMA ? 'SMAS PEMBDA 1' : 'SMKS PEMBDA NIAS');
+                    $studentName = $project->student?->full_name ?? 'Tim Siswa';
                 @endphp
                 <article class="showcase-card poster-card {{ $t['bg'] }} {{ $t['text'] }} p-6 flex flex-col justify-between min-h-[340px]" data-type="project">
                     <div>
-                        <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} mb-3 truncate">
+                        <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} mb-3 truncate cursor-help" title="{{ $schoolLabel }} • {{ $isSMA ? 'PENELITIAN SISWA' : 'PROJECT SISWA' }}">
                             {{ $schoolLabel }} &bull; {{ $isSMA ? 'PENELITIAN SISWA' : 'PROJECT SISWA' }}
                         </div>
-                        <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-3 line-clamp-3">
+                        <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-3 line-clamp-3 cursor-help" title="{{ $project->title }}">
                             {{ $project->title }}
                         </h3>
                         <span class="inline-block px-2.5 py-1 rounded {{ $t['badge'] }} text-[10px] font-mono-code font-bold">
                             {{ strtoupper($project->status ?? 'VERIFIED') }}
                         </span>
                         @if($project->abstract)
-                            <p class="text-xs {{ $t['sub'] }} mt-3 line-clamp-2 leading-relaxed font-medium">
+                            <p class="text-xs {{ $t['sub'] }} mt-3 line-clamp-2 leading-relaxed font-medium cursor-help" title="{{ $project->abstract }}">
                                 {{ $project->abstract }}
                             </p>
                         @endif
                     </div>
                     <div class="pt-4 border-t {{ $t['border'] }} flex items-center justify-between text-[11px] font-mono-code font-bold mt-4">
-                        <span class="truncate">{{ $project->student?->full_name ?? 'Tim Siswa' }}</span>
+                        <span class="truncate cursor-help" title="{{ $studentName }}">{{ $studentName }}</span>
                         <span class="px-2 py-0.5 rounded bg-[#121316] text-white text-[10px]">{{ $typeLabel }}</span>
                     </div>
                 </article>
@@ -95,25 +96,25 @@
                 <article class="showcase-card poster-card {{ $t['bg'] }} {{ $t['text'] }} p-6 flex flex-col justify-between min-h-[340px]" data-type="pkl">
                     <div>
                         <div class="flex items-center justify-between gap-2 mb-3">
-                            <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} truncate">
+                            <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} truncate cursor-help" title="{{ $pkl['dudi_name'] }}">
                                 {{ $pkl['dudi_name'] }}
                             </div>
                             <a href="{{ route('public.pkl.map') }}" class="px-2 py-0.5 rounded bg-black/20 hover:bg-black/40 text-[9px] font-mono-code font-bold inline-flex items-center gap-1 border border-current/20 transition-all flex-shrink-0" title="Buka Peta GPS Siswa PKL">
                                 🗺️ Peta GPS ↗
                             </a>
                         </div>
-                        <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-2 line-clamp-3">
+                        <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-2 line-clamp-3 cursor-help" title="{{ $pkl['person_name'] }}">
                             {{ $pkl['person_name'] }}
                         </h3>
                         <span class="inline-block px-2.5 py-1 rounded {{ $t['badge'] }} text-[10px] font-mono-code font-bold">
                             {{ $pkl['type'] === 'monitoring' ? 'MONITORING GURU' : 'LOGBOOK DUDI' }}
                         </span>
-                        <p class="text-xs {{ $t['sub'] }} mt-3 line-clamp-3 leading-relaxed font-medium">
+                        <p class="text-xs {{ $t['sub'] }} mt-3 line-clamp-3 leading-relaxed font-medium cursor-help" title="{{ $pkl['description'] }}">
                             "{{ $pkl['description'] }}"
                         </p>
                     </div>
                     <div class="pt-4 border-t {{ $t['border'] }} flex items-center justify-between text-[11px] font-mono-code font-bold mt-4">
-                        <span class="truncate">{{ $pkl['school_name'] }}</span>
+                        <span class="truncate cursor-help" title="{{ $pkl['school_name'] }}">{{ $pkl['school_name'] }}</span>
                         <a href="{{ route('public.pkl.map') }}" class="hover:underline flex items-center gap-1 text-[10px]">
                             <span>{{ $pkl['date'] }}</span>
                             <span>📍</span>
@@ -131,17 +132,17 @@
                 @endphp
                 <article class="showcase-card poster-card {{ $t['bg'] }} {{ $t['text'] }} p-6 flex flex-col justify-between min-h-[340px]" data-type="lms">
                     <div>
-                        <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} mb-3 truncate">
+                        <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} mb-3 truncate cursor-help" title="KURIKULUM MERDEKA • {{ $module->category ?? 'MODUL AJAR' }}">
                             KURIKULUM MERDEKA &bull; {{ $module->category ?? 'MODUL AJAR' }}
                         </div>
-                        <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-2 line-clamp-3">
+                        <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-2 line-clamp-3 cursor-help" title="{{ $module->title }}">
                             {{ $module->title }}
                         </h3>
                         <span class="inline-block px-2.5 py-1 rounded {{ $t['badge'] }} text-[10px] font-mono-code font-bold">
                             {{ $module->target_role ? strtoupper($module->target_role) : 'UMUM' }}
                         </span>
                         @if($module->description)
-                            <p class="text-xs {{ $t['sub'] }} mt-3 line-clamp-2 leading-relaxed font-medium">
+                            <p class="text-xs {{ $t['sub'] }} mt-3 line-clamp-2 leading-relaxed font-medium cursor-help" title="{{ $module->description }}">
                                 {{ $module->description }}
                             </p>
                         @endif
@@ -164,24 +165,25 @@
                     $studentPhoto = $ach->student?->photo_url 
                         ?? $ach->student?->user?->avatar_url 
                         ?? 'https://ui-avatars.com/api/?name=' . urlencode($studentName) . '&background=fbc02d&color=121316&bold=true';
+                    $fullPrestasiDesc = "Diraih oleh {$studentName} pada ajang " . ($ach->competition_name ?? $ach->event_name ?? 'Kompetisi Sekolah') . (!empty($ach->description) ? ' - ' . $ach->description : '');
                 @endphp
                 <article class="showcase-card poster-card {{ $t['bg'] }} {{ $t['text'] }} p-6 flex flex-col justify-between min-h-[340px]" data-type="prestasi">
                     <div>
-                        <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} mb-3 truncate">
+                        <div class="text-[10px] font-mono-code font-bold uppercase {{ $t['sub'] }} mb-3 truncate cursor-help" title="{{ $ach->student?->school?->name ?? 'PEMBDA NIAS' }} • {{ strtoupper($ach->achievement_level ?? 'PROVINSI') }}">
                             {{ $ach->student?->school?->name ?? 'PEMBDA NIAS' }} &bull; {{ strtoupper($ach->achievement_level ?? 'PROVINSI') }}
                         </div>
-                        <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-2 line-clamp-3">
+                        <h3 class="text-2xl font-black uppercase leading-tight tracking-tight mb-2 line-clamp-3 cursor-help" title="{{ $ach->title ?? 'Prestasi Kejuaraan' }}">
                             {{ $ach->title ?? 'Prestasi Kejuaraan' }}
                         </h3>
                         <span class="inline-block px-2.5 py-1 rounded {{ $t['badge'] }} text-[10px] font-mono-code font-bold">
                             {{ strtoupper(str_replace('_', ' ', $ach->ranking ?? 'JUARA')) }}
                         </span>
-                        <p class="text-xs {{ $t['sub'] }} mt-3 line-clamp-4 leading-relaxed font-medium">
+                        <p class="text-xs {{ $t['sub'] }} mt-3 line-clamp-4 leading-relaxed font-medium cursor-help" title="{{ $fullPrestasiDesc }}">
                             Diraih oleh {{ $studentName }} pada ajang {{ $ach->competition_name ?? $ach->event_name ?? 'Kompetisi Sekolah' }}.@if(!empty($ach->description)) {{ $ach->description }}@endif
                         </p>
                     </div>
                     <div class="pt-4 border-t {{ $t['border'] }} flex items-center justify-between text-[11px] font-mono-code font-bold mt-4">
-                        <div class="flex items-center gap-2 min-w-0">
+                        <div class="flex items-center gap-2 min-w-0 cursor-help" title="{{ $studentName }}">
                             <div class="w-8 h-8 rounded-full bg-white border border-current/20 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
                                 <img src="{{ $studentPhoto }}" alt="{{ $studentName }}" class="w-full h-full rounded-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($studentName) }}&background=fbc02d&color=121316&bold=true';">
                             </div>

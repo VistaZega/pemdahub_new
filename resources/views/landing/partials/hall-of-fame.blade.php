@@ -24,17 +24,17 @@
 
             <!-- Tab Switcher (Siswa vs Guru) -->
             <div class="flex items-center gap-2 bg-[#ede9df] p-1.5 rounded-full border border-[#121316]">
-                <button type="button" onclick="switchFameTab('siswa')" id="btn-fame-siswa" class="px-5 py-2 rounded-full font-mono-code text-xs font-black transition-all bg-[#121316] text-[#fde047] shadow-sm">
-                    🎓 SISWA TELADAN ({{ $topStudentsElite->count() }})
+                <button type="button" onclick="switchFameTab('siswa', true)" id="btn-fame-siswa" class="px-5 py-2 rounded-full font-mono-code text-xs font-black transition-all bg-[#121316] text-[#fde047] shadow-sm">
+                    🎓 SISWA KONTRIBUTIF ({{ $topStudentsElite->count() }})
                 </button>
-                <button type="button" onclick="switchFameTab('guru')" id="btn-fame-guru" class="px-5 py-2 rounded-full font-mono-code text-xs font-black transition-all text-[#555] hover:text-[#121316]">
+                <button type="button" onclick="switchFameTab('guru', true)" id="btn-fame-guru" class="px-5 py-2 rounded-full font-mono-code text-xs font-black transition-all text-[#555] hover:text-[#121316]">
                     📚 GURU INSPIRATIF ({{ $topTeachersElite->count() }})
                 </button>
             </div>
         </div>
 
         {{-- ===== THE COLLEGIATE BANNER POSTER WRAPPER ===== --}}
-        <div class="bg-white border-2 border-[#121316] rounded-3xl p-6 sm:p-10 shadow-[8px_8px_0px_#121316] relative overflow-hidden">
+        <div id="fame-banner-box" class="bg-white border-2 border-[#121316] rounded-3xl p-6 sm:p-10 shadow-[8px_8px_0px_#121316] relative overflow-hidden">
             
             <!-- 1. TOP CREST BADGE (Like 'Ole Miss' script badge) -->
             <div class="flex justify-center mb-6 relative z-10">
@@ -59,7 +59,7 @@
                             $rank = $index + 1;
                             $student = $rep->user?->student;
                             $school = $student?->school ?? $rep->user?->school;
-                            $studentName = $rep->user?->name ?? 'Siswa Teladan';
+                            $studentName = $rep->user?->name ?? 'Siswa Kontributif';
                             $studentPhoto = $student?->photo_url 
                                 ?? $rep->user?->avatar_url 
                                 ?? 'https://ui-avatars.com/api/?name=' . urlencode($studentName) . '&background=121316&color=ffffff&bold=true';
@@ -98,11 +98,11 @@
                                 <h4 class="text-xs sm:text-sm font-black uppercase text-[#121316] tracking-tight truncate leading-snug group-hover:text-[#ff3823] transition-colors" title="{{ $studentName }}">
                                     {{ $studentName }}
                                 </h4>
-                                <div class="text-[10px] font-mono-code font-bold uppercase text-[#ff3823] truncate mt-0.5">
+                                <div class="text-[10px] font-mono-code font-bold uppercase text-[#ff3823] truncate mt-0.5" title="{{ $school?->name ?? 'SMK/SMA PEMBDA' }}">
                                     {{ $school?->name ?? 'SMK/SMA PEMBDA' }}
                                 </div>
-                                <div class="text-[9px] font-mono-code text-[#777] truncate font-medium">
-                                    {{ $student?->classroom?->name ?? 'Pelajar Teladan' }}
+                                <div class="text-[9px] font-mono-code text-[#777] truncate font-medium" title="{{ $student?->classroom?->name ?? 'Siswa Kontributif' }}">
+                                    {{ $student?->classroom?->name ?? 'Siswa Kontributif' }}
                                 </div>
                             </div>
                         </div>
@@ -160,10 +160,10 @@
                                 <h4 class="text-xs sm:text-sm font-black uppercase text-[#121316] tracking-tight truncate leading-snug group-hover:text-[#ff3823] transition-colors" title="{{ $teacherName }}">
                                     {{ $teacherName }}
                                 </h4>
-                                <div class="text-[10px] font-mono-code font-bold uppercase text-[#ff3823] truncate mt-0.5">
+                                <div class="text-[10px] font-mono-code font-bold uppercase text-[#ff3823] truncate mt-0.5" title="{{ $school?->name ?? 'GURU TELADAN PEMBDA' }}">
                                     {{ $school?->name ?? 'GURU TELADAN PEMBDA' }}
                                 </div>
-                                <div class="text-[9px] font-mono-code text-[#777] truncate font-medium">
+                                <div class="text-[9px] font-mono-code text-[#777] truncate font-medium" title="Pendidik Berdedikasi">
                                     Pendidik Berdedikasi
                                 </div>
                             </div>
@@ -212,11 +212,18 @@
 </section>
 
 <script>
-    function switchFameTab(tab) {
+    let currentFameTab = 'siswa';
+    let fameInterval = null;
+    const FAME_AUTO_ROTATE_MS = 5000;
+
+    function switchFameTab(tab, isManual = false) {
+        currentFameTab = tab;
         const btnSiswa = document.getElementById('btn-fame-siswa');
         const btnGuru = document.getElementById('btn-fame-guru');
         const contentSiswa = document.getElementById('fame-content-siswa');
         const contentGuru = document.getElementById('fame-content-guru');
+
+        if (!btnSiswa || !btnGuru || !contentSiswa || !contentGuru) return;
 
         if (tab === 'siswa') {
             btnSiswa.className = 'px-5 py-2 rounded-full font-mono-code text-xs font-black transition-all bg-[#121316] text-[#fde047] shadow-sm';
@@ -229,5 +236,35 @@
             contentGuru.classList.remove('hidden');
             contentSiswa.classList.add('hidden');
         }
+
+        if (isManual) {
+            // Reset interval timer when user manually clicks tab
+            stopFameAutoRotate();
+            startFameAutoRotate();
+        }
     }
+
+    function startFameAutoRotate() {
+        stopFameAutoRotate();
+        fameInterval = setInterval(() => {
+            const nextTab = currentFameTab === 'siswa' ? 'guru' : 'siswa';
+            switchFameTab(nextTab, false);
+        }, FAME_AUTO_ROTATE_MS);
+    }
+
+    function stopFameAutoRotate() {
+        if (fameInterval) {
+            clearInterval(fameInterval);
+            fameInterval = null;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const fameSection = document.getElementById('fame');
+        if (fameSection) {
+            startFameAutoRotate();
+            fameSection.addEventListener('mouseenter', stopFameAutoRotate);
+            fameSection.addEventListener('mouseleave', startFameAutoRotate);
+        }
+    });
 </script>
