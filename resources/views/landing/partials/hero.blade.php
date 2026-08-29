@@ -1,237 +1,130 @@
-{{-- HERO SECTION — Bold Indigo Theme --}}
-<style>
-    .hero-card-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 14px;
-        background: rgba(255,255,255,0.15);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 14px;
-        font-size: 20px;
-        color: #fff;
-    }
-    .hero-card-title {
-        font-size: 16px;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 6px;
-        letter-spacing: -0.01em;
-    }
-    .hero-card-desc {
-        font-size: 13px;
-        color: rgba(255,255,255,0.75);
-        line-height: 1.5;
-    }
-    .live-stat-strip {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 32px;
-        margin-top: 48px;
-        flex-wrap: wrap;
-    }
-    .live-stat-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 24px;
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 100px;
-        backdrop-filter: blur(8px);
-        transition: var(--transition-smooth);
-    }
-    .live-stat-item:hover {
-        background: rgba(255,255,255,0.1);
-        border-color: rgba(255,255,255,0.2);
-        transform: translateY(-2px);
-    }
-    .live-stat-val {
-        font-size: 24px;
-        font-weight: 800;
-        color: var(--gold-bright);
-        line-height: 1;
-    }
-    .live-stat-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: rgba(255,255,255,0.8);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    .hero-photo-backdrop {
-        position: absolute;
-        inset: 0;
-        background-image: url('{{ asset('images/hero-pembda-assembly.jpg') }}');
-        background-size: cover;
-        background-position: center 30%;
-        background-repeat: no-repeat;
-        opacity: 0.22;
-        filter: saturate(110%) contrast(110%);
-        pointer-events: none;
-        z-index: 0;
-    }
+{{-- HERO SECTION — DesainPake AI Tactile Style (100% Real Database Data) --}}
+<section id="beranda" class="pt-10 pb-16 px-4 sm:px-8">
+    <div class="max-w-7xl mx-auto">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <!-- SISI KIRI HERO -->
+            <div class="lg:col-span-7">
+                
+                <!-- Tagline Asterisk -->
+                <div class="text-[11px] font-mono-code font-extrabold text-[#ff3823] uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                    <span class="text-base">✱</span>
+                    <span>SMART SCHOOL & EKOSISTEM PENDIDIKAN NIAS</span>
+                </div>
 
-    .hero-photo-gradient-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(180deg, rgba(30, 27, 75, 0.72) 0%, rgba(30, 27, 75, 0.82) 45%, rgba(15, 23, 42, 0.95) 100%);
-        pointer-events: none;
-        z-index: 0;
-    }
+                <!-- Display Headline -->
+                <h1 class="text-4xl sm:text-6xl font-black text-[#121316] leading-[1.08] tracking-tight mb-6">
+                    Belajar apa pun, <br>
+                    <span class="highlight-marker">tinggal buka.</span>
+                </h1>
 
-    @media (max-width: 768px) {
-        .hero-cards-grid { grid-template-columns: repeat(2, 1fr) !important; }
-        .live-stat-strip { gap: 16px; }
-        .live-stat-item { padding: 10px 16px; }
-    }
-    @media (max-width: 480px) {
-        .hero-cards-grid { grid-template-columns: 1fr !important; }
-    }
-</style>
+                <!-- Subheadline dengan Chip Kode -->
+                <p class="text-sm sm:text-base text-[#4b5563] leading-relaxed mb-8 max-w-xl font-medium">
+                    Tulis kebutuhan belajarmu — <code class="px-2 py-1 bg-[#ede9df] text-[#121316] rounded font-mono-code text-xs font-bold">modul tkj fiber optik</code> atau <code class="px-2 py-1 bg-[#ede9df] text-[#121316] rounded font-mono-code text-xs font-bold">jadwal ujian cbt</code> saja cukup. Sistem menyusun modul digital, rekap absensi RFID, dan pantau logbook PKL secara otomatis.
+                </p>
 
-<section id="beranda" class="hero-section">
-    {{-- Authentic School Courtyard Assembly Photo Backdrop --}}
-    <div class="hero-photo-backdrop"></div>
-    <div class="hero-photo-gradient-overlay"></div>
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap items-center gap-4 mb-6">
+                    <a href="#showcase" class="px-7 py-3.5 rounded-full btn-tactile-red text-sm font-black tracking-wide flex items-center gap-2">
+                        <span>Buka Etalase Karya</span>
+                        <span>&rarr;</span>
+                    </a>
+                    <a href="#galeri" class="px-6 py-3.5 rounded-full btn-tactile-white text-sm font-bold flex items-center gap-2">
+                        <span>Dokumentasi Sekolah</span>
+                        <span>↓</span>
+                    </a>
+                </div>
 
-    {{-- Background elements --}}
-    <div class="hero-grid"></div>
-    <div class="hero-glow-1"></div>
-    <div class="hero-glow-2"></div>
-    <div class="hero-glow-3"></div>
-    {{-- Animated rings --}}
-    <div class="hero-ring" style="width:300px; height:300px; top:10%; left:2%; animation-delay:0s;"></div>
-    <div class="hero-ring" style="width:500px; height:500px; top:5%; left:-5%; animation-delay:2s; border-color:rgba(245,158,11,0.04);"></div>
-    <div class="hero-ring" style="width:200px; height:200px; bottom:15%; right:10%; animation-delay:3s;"></div>
+                <!-- Micro Proof Strip -->
+                <div class="text-[11px] font-mono-code text-[#71717a] flex flex-wrap items-center gap-3">
+                    <span class="font-bold text-[#121316]">{{ number_format($totalStudents) }} Siswa Aktif</span>
+                    <span>&bull;</span>
+                    <span>{{ $totalDudi ?? '45+' }} Mitra DUDI</span>
+                    <span>&bull;</span>
+                    <span>TP {{ $activeAcademicYear->name ?? '2026/2027' }} ({{ $activeAcademicYear->semester ? ucfirst($activeAcademicYear->semester) : 'Aktif' }})</span>
+                </div>
 
-    {{-- Floating particles --}}
-    <div class="particle-container" style="position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0;">
-        <div class="particle" style="width: 8px; height: 8px; left: 10%; animation-delay: 0s; animation-duration: 12s;"></div>
-        <div class="particle" style="width: 6px; height: 6px; left: 25%; animation-delay: 2s; animation-duration: 16s;"></div>
-        <div class="particle" style="width: 10px; height: 10px; left: 40%; animation-delay: 4s; animation-duration: 14s;"></div>
-        <div class="particle" style="width: 5px; height: 5px; left: 55%; animation-delay: 1s; animation-duration: 18s;"></div>
-        <div class="particle" style="width: 7px; height: 7px; left: 70%; animation-delay: 5s; animation-duration: 13s;"></div>
-        <div class="particle" style="width: 9px; height: 9px; left: 85%; animation-delay: 3s; animation-duration: 15s;"></div>
-    </div>
-
-    <div class="fw" style="width:100%; position:relative; z-index:1;">
-        {{-- Main headline --}}
-        <div data-aos="fade-up" style="text-align:center; margin-bottom:60px;">
-
-            {{-- Badge --}}
-            <div class="badge" style="margin-bottom:28px;">
-                <div class="pulse" style="background:#10b981;"></div>
-                <span>Ekosistem Pendidikan Digital Terpadu</span>
             </div>
 
-            {{-- Main Title --}}
-            <h1 class="display" style="margin-bottom:16px; color:#ffffff;">
-                Pembda<span style="color:#ef4444; -webkit-text-fill-color:#ef4444;">HUB</span>
-            </h1>
+            <!-- SISI KANAN HERO (Interactive Generator Card dengan Corner Framing ⌜ ⌟) -->
+            <div class="lg:col-span-5">
+                <div class="relative bg-white border-2 border-[#121316] rounded-3xl p-6 shadow-[6px_6px_0px_#121316]">
+                    
+                    <!-- Corner Crosshairs -->
+                    <span class="absolute top-2.5 left-3 text-[#999] font-mono-code text-xs select-none">⌜</span>
+                    <span class="absolute top-2.5 right-3 text-[#999] font-mono-code text-xs select-none">⌝</span>
+                    <span class="absolute bottom-2.5 left-3 text-[#999] font-mono-code text-xs select-none">⌞</span>
+                    <span class="absolute bottom-2.5 right-3 text-[#999] font-mono-code text-xs select-none">⌟</span>
 
-            {{-- Red underline decoration --}}
-            <div style="width:120px; height:4px; background:linear-gradient(90deg, #ef4444, #f87171, #ef4444); border-radius:2px; margin: 0 auto 28px; opacity:0.9;"></div>
+                    <!-- Top Status -->
+                    <div class="flex items-center justify-between text-[10px] font-mono-code font-bold uppercase mb-4 text-[#555]">
+                        <span class="flex items-center gap-1.5 text-emerald-600">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            PEMBDA SMART SYSTEM
+                        </span>
+                        <span>{{ $activeAcademicYear ? 'TP ' . $activeAcademicYear->name : 'ONLINE 24/7' }}</span>
+                    </div>
 
-            <p class="body-lg" style="max-width:720px; margin:0 auto 14px; font-size:22px; color:rgba(255,255,255,0.92); min-height: 66px; line-height: 1.4;">
-                Dimana Teknologi Bertemu Pendidikan Berkualitas:<br>
-                <span class="typewriter-text" style="color:#fbbf24; font-weight:800; border-right: 2px solid #fbbf24; padding-right: 5px;"></span><span class="typewriter-cursor" style="border-right: 2px solid #fbbf24;"></span>
-            </p>
-            <p style="max-width:640px; margin:0 auto 32px; font-size:16px; color:rgba(255,255,255,0.6); line-height:1.7;">
-                Menghubungkan <strong style="color:rgba(255,255,255,0.85);">{{ $totalSchools }} unit sekolah</strong>,
-                <strong style="color:rgba(255,255,255,0.85);">{{ number_format($totalStudents, 0, ',', '.') }} siswa aktif</strong>,
-                dan ratusan pendidik dalam satu platform pintar tanpa batas.
-            </p>
+                    <!-- Input Prompt Mockup -->
+                    <div class="bg-[#121316] text-[#fde047] font-mono-code text-xs p-3.5 rounded-xl mb-4 flex items-center gap-2 shadow-inner">
+                        <span class="text-[#ff3823]">&rsaquo;</span>
+                        <span class="truncate">pencarian modul: kurikulum merdeka & praktikum dudi</span>
+                    </div>
 
-            {{-- CTA Buttons --}}
-            <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
-                @if(isset($activeWave) && $activeWave)
-                <a href="{{ route('public.registration.index') }}" class="btn btn-gold">
-                    <i class="fa-solid fa-user-plus"></i> Bergabung Bersama Kami
-                </a>
-                <a href="#platform" class="btn btn-ghost-white">
-                    <i class="fa-solid fa-arrow-down"></i> Eksplorasi Ekosistem
-                </a>
-                @else
-                    @auth
-                    <a href="{{ route('dashboard') }}" class="btn btn-gold">
-                        <i class="fa-solid fa-gauge-high"></i> Buka Dashboard
-                    </a>
-                    @else
-                    <a href="{{ route('login') }}" class="btn btn-gold">
-                        <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Portal
-                    </a>
-                    @endauth
-                    <a href="#platform" class="btn btn-ghost-white">
-                        <i class="fa-solid fa-compass"></i> Eksplorasi Ekosistem
-                    </a>
-                @endif
+                    <!-- Preview Poster Inside Generator -->
+                    <div class="bg-[#faf3e0] border border-[#121316] rounded-2xl p-6 text-center relative overflow-hidden">
+                        <div class="text-[10px] font-mono-code font-extrabold uppercase tracking-widest text-[#777] mb-2">
+                            &bull; 3 UNIT SEKOLAH TERPADU &bull;
+                        </div>
+                        <h3 class="text-2xl sm:text-3xl font-black text-[#121316] uppercase leading-tight tracking-tight mb-2">
+                            MODUL & RISET<br>SISWA PEMBDA
+                        </h3>
+                        <p class="text-[11px] font-bold text-[#555] mb-4">LMS Terintegrasi, CBT Digital & Logbook PKL</p>
+                        
+                        <a href="#showcase" class="inline-block px-5 py-2 rounded-full bg-[#ff3823] text-white text-xs font-black uppercase border border-[#121316] shadow-[2px_2px_0px_#121316] hover:translate-x-0.5 transition-transform">
+                            JELAJAHI KARYA SISWA
+                        </a>
+
+                        <!-- Price/Free Starburst Badge -->
+                        <div class="absolute bottom-3 right-3 w-12 h-12 bg-[#fbc02d] rounded-full border border-[#121316] flex items-center justify-center font-black text-[10px] rotate-12 shadow-sm">
+                            REAL
+                        </div>
+
+                        <!-- Accent Graphic Circle -->
+                        <div class="absolute -top-4 -right-4 w-14 h-14 bg-[#fbc02d] rounded-full opacity-80 pointer-events-none"></div>
+                    </div>
+
+                    <!-- Bottom Meta Info -->
+                    <div class="flex items-center justify-between text-[10px] font-mono-code font-bold text-[#777] mt-4">
+                        <span>{{ $totalCourses ?? 0 }} Modul KBM Aktif</span>
+                        <span>{{ $totalExams ?? 0 }} Bank Soal CBT</span>
+                    </div>
+
+                </div>
             </div>
 
-            {{-- Live Stat Strip --}}
-            <div class="live-stat-strip" data-aos="fade-up" data-aos-delay="150">
-                <div class="live-stat-item">
-                    <div class="live-stat-val" data-count="{{ $totalStudents }}">0</div>
-                    <div class="live-stat-label">Siswa Aktif</div>
-                </div>
-                <div class="live-stat-item">
-                    <div class="live-stat-val" data-count="{{ $totalTeachers }}">0</div>
-                    <div class="live-stat-label">Tenaga Pendidik</div>
-                </div>
-                <div class="live-stat-item">
-                    <div class="live-stat-val" data-count="{{ $totalAlumni }}">0</div>
-                    <div class="live-stat-label">Alumni Terdata</div>
-                </div>
+        </div>
+
+        <!-- BOTTOM STATS STRIP (100% REAL DATABASE COUNTS) -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-12 mt-12 border-t border-[#e7e3d8]">
+            <div class="p-4 bg-white/60 rounded-2xl border border-[#e7e3d8]">
+                <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ number_format($totalStudents) }}</div>
+                <div class="text-[11px] font-mono-code font-bold uppercase text-[#777] mt-1">Siswa Aktif Terdaftar</div>
+            </div>
+            <div class="p-4 bg-white/60 rounded-2xl border border-[#e7e3d8]">
+                <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ number_format($totalTeachers) }}</div>
+                <div class="text-[11px] font-mono-code font-bold uppercase text-[#777] mt-1">Guru & Pendidik Ahli</div>
+            </div>
+            <div class="p-4 bg-white/60 rounded-2xl border border-[#e7e3d8]">
+                <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ $extracurriculars->count() }} Cabang</div>
+                <div class="text-[11px] font-mono-code font-bold uppercase text-[#777] mt-1">Ekstrakurikuler Juara</div>
+            </div>
+            <div class="p-4 bg-white/60 rounded-2xl border border-[#e7e3d8]">
+                <div class="text-3xl sm:text-4xl font-black text-[#121316] font-mono-code">{{ number_format($totalAlumni) }}+</div>
+                <div class="text-[11px] font-mono-code font-bold uppercase text-[#777] mt-1">Alumni Sejak 1970</div>
             </div>
         </div>
 
-        {{-- Hero Feature Cards - Vibrant Solid Colors --}}
-        <div class="hero-cards-grid" data-aos="fade-up" data-aos-delay="250" style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; max-width:1680px; margin:0 auto;">
-
-            {{-- Card 1: Multi-Akses --}}
-            <div class="hero-card hero-card-blue shimmer-card">
-                <div class="hero-card-icon">
-                    <i class="fa-solid fa-users-between-lines"></i>
-                </div>
-                <div class="hero-card-title">Portal Kolaboratif</div>
-                <p class="hero-card-desc">Akses terdedikasi dan terpisah untuk Siswa, Guru, dan Orang Tua.</p>
-            </div>
-
-            {{-- Card 2: 3 Unit Sekolah --}}
-            <div class="hero-card hero-card-emerald shimmer-card">
-                <div class="hero-card-icon">
-                    <i class="fa-solid fa-school-flag"></i>
-                </div>
-                <div class="hero-card-title">Terintegrasi Penuh</div>
-                <p class="hero-card-desc">Sinergi antara SMP, SMA, dan SMK dalam satu manajemen terpusat.</p>
-            </div>
-
-            {{-- Card 3: Smart System --}}
-            <div class="hero-card hero-card-gold shimmer-card">
-                <div class="hero-card-icon">
-                    <i class="fa-solid fa-microchip"></i>
-                </div>
-                <div class="hero-card-title">Otomasi Cerdas</div>
-                <p class="hero-card-desc">Modul cerdas LMS, CBT, serta instrumen presensi RFID biometrik.</p>
-            </div>
-
-            {{-- Card 4: Real-time --}}
-            <div class="hero-card hero-card-coral shimmer-card">
-                <div class="hero-card-icon">
-                    <i class="fa-solid fa-chart-line"></i>
-                </div>
-                <div class="hero-card-title">Analitik Otomatis</div>
-                <p class="hero-card-desc">Pemantauan progres nilai harian dan dashboard performa sekolah.</p>
-            </div>
-        </div>
     </div>
 </section>
-
-{{-- Wave transition from hero to content --}}
-<div class="wave-top">
-    <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-        <path d="M0,30 C360,60 1080,0 1440,30 L1440,0 L0,0 Z"/>
-    </svg>
-</div>

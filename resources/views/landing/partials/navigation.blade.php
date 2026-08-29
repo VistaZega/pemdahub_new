@@ -1,109 +1,76 @@
-{{-- NAVIGATION — Bold Indigo Theme --}}
-<nav class="navbar" id="navbar">
-    <div class="fw">
-        <div class="nav-inner">
-            <a href="{{ route('home') }}" class="nav-brand">
-                <div class="nav-logo">
-                    <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo" style="width:100%; height:100%; object-fit:contain; padding:4px;"
-                         onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'color:#fff; font-size:18px;\'></i>';">
-                </div>
-                <div class="nav-brand-text">
-                    <div class="nav-brand-name" style="color:#ffffff; font-weight:900;">Pembda<span style="color:#ef4444; font-weight:900;">HUB</span></div>
-                    <div class="nav-brand-sub">Smart School Management</div>
-                </div>
-            </a>
-
-            <div class="nav-links">
-                <a href="#beranda" class="nav-link">Beranda</a>
-                <a href="#features" class="nav-link">Fitur</a>
-                <a href="#profil" class="nav-link">Profil</a>
-                <a href="#sekolah" class="nav-link">Sekolah</a>
-                <a href="#program" class="nav-link">Program</a>
-                <a href="#berita" class="nav-link">Berita</a>
-                <a href="#kontak" class="nav-link">Kontak</a>
+{{-- NAVIGATION — DesainPake AI Tactile Style --}}
+<header class="sticky top-0 z-50 bg-[#faf8f5]/95 backdrop-blur-md border-b border-[#e7e3d8]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+        
+        <!-- Brand Logo -->
+        <a href="{{ route('home') }}" class="flex items-center gap-2.5 group">
+            <span class="text-[#ff3823] font-black text-2xl leading-none group-hover:rotate-45 transition-transform">✱</span>
+            <div class="flex items-center gap-2">
+                <span class="text-xl font-black tracking-tight text-[#121316]">Pembda<span class="text-[#ff3823]">HUB</span></span>
+                <span class="px-1.5 py-0.5 rounded bg-[#e7e3d8] text-[#555] text-[10px] font-mono-code font-bold uppercase hidden sm:inline-block">SMART SCHOOL</span>
             </div>
+        </a>
 
-            <div class="nav-cta-actions">
-                @auth
-                <a href="{{ route('dashboard') }}" class="btn btn-gold nav-cta">
-                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+        <!-- Desktop Navigation Links -->
+        <nav class="hidden xl:flex items-center gap-6 text-xs font-bold text-[#444]">
+            <a href="#showcase" class="hover:text-[#121316] transition-colors">Karya & PKL</a>
+            <a href="#ekskul" class="hover:text-[#121316] transition-colors flex items-center gap-1">
+                <span>Ekskul</span>
+                <span class="px-1.5 py-0.2 rounded bg-[#ff3823] text-white text-[9px] font-mono-code font-bold">{{ $extracurriculars->count() ?? '16+' }}</span>
+            </a>
+            <a href="#galeri" class="hover:text-[#121316] transition-colors">Galeri Foto</a>
+            <a href="#pembda-space" class="hover:text-[#121316] transition-colors">Pembda Space</a>
+            <a href="#fame" class="hover:text-[#121316] transition-colors">Hall of Fame</a>
+            <a href="#alumni" class="hover:text-[#121316] transition-colors">Alumni</a>
+            <a href="#sekolah" class="hover:text-[#121316] transition-colors">3 Sekolah</a>
+        </nav>
+
+        <!-- Action CTAs -->
+        <div class="flex items-center gap-3">
+            @auth
+                <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded-full btn-tactile-red text-xs font-black tracking-wide flex items-center gap-1.5">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    <span>Dashboard</span>
                 </a>
+            @else
+                <a href="{{ route('login') }}" class="text-xs font-bold text-[#121316] hover:underline px-3 py-2 hidden sm:inline-block">
+                    Masuk Portal
+                </a>
+                <a href="{{ route('login') }}" class="px-5 py-2.5 rounded-full btn-tactile-red text-xs font-black tracking-wide flex items-center gap-1.5">
+                    <span>Ruang Belajar</span>
+                    <span>&rarr;</span>
+                </a>
+            @endauth
+
+            <!-- Mobile Hamburger Button -->
+            <button type="button" onclick="document.getElementById('mobile-nav-drawer').classList.toggle('hidden')" class="xl:hidden p-2 text-[#121316] hover:bg-[#ede9df] rounded-lg text-lg border border-[#121316]" aria-label="Toggle Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div id="mobile-nav-drawer" class="hidden xl:hidden bg-[#faf8f5] border-b-2 border-[#121316] px-6 py-6 transition-all">
+        <div class="flex flex-col gap-4 text-sm font-bold text-[#121316]">
+            <a href="#showcase" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Karya Siswa & PKL</a>
+            <a href="#ekskul" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Ekstrakurikuler ({{ $extracurriculars->count() }})</a>
+            <a href="#galeri" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Galeri Foto Momen</a>
+            <a href="#pembda-space" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Pembda Space (STEAM)</a>
+            <a href="#fame" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Hall of Fame Civitas</a>
+            <a href="#alumni" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Jejaring Alumni</a>
+            <a href="#sekolah" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">3 Unit Sekolah</a>
+            <div class="pt-4 border-t border-[#e7e3d8] flex flex-col gap-3">
+                @auth
+                    <a href="{{ route('dashboard') }}" class="w-full text-center py-3 rounded-full btn-tactile-red text-xs font-black">
+                        Buka Dashboard Portal
+                    </a>
                 @else
-                    @if(isset($activeWave) && $activeWave)
-                    <a href="{{ route('login') }}" class="nav-link" style="font-size:13px;">Login</a>
-                    <a href="{{ route('public.registration.index') }}" class="btn btn-gold nav-cta">
-                        <i class="fa-solid fa-user-plus"></i> Daftar PSB
+                    <a href="{{ route('login') }}" class="w-full text-center py-3 rounded-full btn-tactile-white text-xs font-black">
+                        Masuk Portal Siswa / Guru
                     </a>
-                    @else
-                    <a href="{{ route('public.registration.check') }}" class="nav-link" style="font-size:13px;" title="Cek Status Pendaftaran">Cek PSB</a>
-                    <a href="{{ route('login') }}" class="btn btn-gold nav-cta">
-                        <i class="fa-solid fa-right-to-bracket"></i> Masuk Portal
-                    </a>
-                    @endif
                 @endauth
-                <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="fa-solid fa-bars"></i></button>
             </div>
         </div>
     </div>
-</nav>
-
-<div class="mobile-overlay" id="mobile-overlay">
-    <button class="mobile-close" id="mobile-close"><i class="fa-solid fa-xmark"></i></button>
-    <a href="#beranda">Beranda</a>
-    <a href="#features">Fitur</a>
-    <a href="#profil">Profil</a>
-    <a href="#sekolah">Sekolah</a>
-    <a href="#program">Program</a>
-    <a href="#berita">Berita</a>
-    <a href="#kontak">Kontak</a>
-    <div style="margin-top:24px; display:flex; flex-direction:column; align-items:center; gap:12px;">
-        @auth
-        <a href="{{ route('dashboard') }}" class="btn btn-gold">
-            <i class="fa-solid fa-gauge-high"></i> Dashboard
-        </a>
-        @else
-            @if(isset($activeWave) && $activeWave)
-            <a href="{{ route('login') }}" class="mobile-login-link">
-                <i class="fa-solid fa-right-to-bracket"></i> Login
-            </a>
-            <a href="{{ route('public.registration.index') }}" class="btn btn-gold">
-                <i class="fa-solid fa-user-plus"></i> Daftar PSB
-            </a>
-            @else
-            <a href="{{ route('login') }}" class="btn btn-gold" style="width: 100%; max-width: 240px; justify-content: center;">
-                <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Portal
-            </a>
-            <a href="{{ route('public.registration.check') }}" class="mobile-login-link" style="font-size: 14px !important; padding: 10px 24px !important;">
-                <i class="fa-solid fa-magnifying-glass"></i> Cek Status PSB
-            </a>
-            @endif
-        @endauth
-    </div>
-</div>
-
-<style>
-    .nav-cta-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .nav-cta {
-        padding: 10px 22px !important;
-        font-size: 13px !important;
-        border-radius: 12px !important;
-    }
-    .mobile-login-link {
-        font-size: 18px !important;
-        font-weight: 600 !important;
-        color: rgba(255,255,255,0.7) !important;
-        border: 1.5px solid rgba(255,255,255,0.15);
-        padding: 12px 36px !important;
-        border-radius: 14px;
-        transition: all 0.25s ease;
-    }
-    .mobile-login-link:hover {
-        color: #fff !important;
-        background: rgba(255,255,255,0.1);
-        border-color: rgba(255,255,255,0.3);
-    }
-</style>
+</header>

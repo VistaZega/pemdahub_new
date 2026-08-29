@@ -1,343 +1,94 @@
-{{-- EKSTRAKURIKULER & KEGIATAN SISWA — Real Photo Backdrop with 50% Opacity --}}
-<style>
-    .ekskul-section {
-        position: relative;
-        overflow: hidden;
-        background: #ffffff;
-        padding: 90px 0 100px 0;
-        border-bottom: 1px solid var(--border);
-    }
+{{-- EKSTRAKURIKULER & MINAT BAKAT — 100% Real Database ($extracurriculars) --}}
+@php
+    $ekskulIcons = [
+        'sains_teknologi' => ['icon' => '🤖', 'bg' => 'bg-blue-100', 'color' => 'text-[#2563eb]', 'badge' => 'bg-blue-50 text-[#2563eb] border-blue-200'],
+        'seni_budaya' => ['icon' => '🎺', 'bg' => 'bg-amber-100', 'color' => 'text-[#b45309]', 'badge' => 'bg-amber-50 text-[#b45309] border-amber-200'],
+        'kepanduan' => ['icon' => '⚜️', 'bg' => 'bg-emerald-100', 'color' => 'text-[#15803d]', 'badge' => 'bg-emerald-50 text-[#15803d] border-emerald-200'],
+        'olahraga' => ['icon' => '⚽', 'bg' => 'bg-red-100', 'color' => 'text-[#ff3823]', 'badge' => 'bg-red-50 text-[#ff3823] border-red-200'],
+        'keagamaan' => ['icon' => '🕊️', 'bg' => 'bg-indigo-100', 'color' => 'text-[#4338ca]', 'badge' => 'bg-indigo-50 text-[#4338ca] border-indigo-200'],
+    ];
+@endphp
 
-    /* Foto Asli Marching Band / Kegiatan Siswa dengan Opacity 50% */
-    .ekskul-photo-backdrop {
-        position: absolute;
-        inset: 0;
-        background-image: url('{{ asset('images/marching-band-pembda.jpg') }}');
-        background-size: cover;
-        background-position: center 60%;
-        background-repeat: no-repeat;
-        opacity: 0.50;
-        pointer-events: none;
-        z-index: 0;
-    }
-
-    .ekskul-photo-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.45) 50%, rgba(255, 255, 255, 0.8) 100%);
-        pointer-events: none;
-        z-index: 0;
-    }
-
-    .ekskul-content-wrap {
-        position: relative;
-        z-index: 1;
-    }
-
-    .ekskul-card {
-        background: rgba(255, 255, 255, 0.92);
-        backdrop-filter: blur(12px);
-        border: 1.5px solid rgba(226, 232, 240, 0.9);
-        border-radius: 24px;
-        padding: 32px 18px;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .ekskul-card:hover {
-        background: #ffffff;
-        border-color: #cbd5e1;
-        transform: translateY(-6px);
-        box-shadow: 0 18px 40px -8px rgba(15, 23, 42, 0.15);
-    }
-
-    .ekskul-icon-box {
-        width: 58px;
-        height: 58px;
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        margin-bottom: 18px;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-        transition: all 0.3s ease;
-    }
-
-    .ekskul-card:hover .ekskul-icon-box {
-        transform: scale(1.1) rotate(4deg);
-    }
-
-    .ekskul-title {
-        font-size: 15.5px;
-        font-weight: 800;
-        color: #0f172a;
-        margin: 0;
-        letter-spacing: -0.01em;
-    }
-
-    .ekskul-watermark {
-        position: absolute;
-        bottom: -10px;
-        right: -10px;
-        width: 140px;
-        height: 140px;
-        object-fit: cover;
-        opacity: 0.06;
-        z-index: 0;
-        pointer-events: none;
-        mix-blend-mode: multiply;
-        transition: all 0.4s ease;
-    }
-
-    .ekskul-card:hover .ekskul-watermark {
-        transform: scale(1.1);
-        opacity: 0.12;
-    }
-
-    .ekskul-card > div:not(.ekskul-watermark), .ekskul-card > h3 {
-        position: relative;
-        z-index: 1;
-    }
-
-    .bento-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr); /* 7 columns for maximum density */
-        grid-auto-rows: minmax(56px, auto); /* 20% smaller */
-        gap: 10px; /* Tighter gap */
-        max-width: 1400px;
-        margin: 0 auto;
-        grid-auto-flow: dense;
-    }
-
-    .bento-card {
-        backdrop-filter: blur(12px);
-        border-radius: 12px; 
-        padding: 8px; 
-        text-align: left;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: space-between;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .bento-card:hover {
-        transform: translate(-2px, -2px) scale(1.02);
-        box-shadow: 6px 6px 0px rgba(0,0,0,0.15) !important;
-        z-index: 10;
-        filter: brightness(0.96);
-    }
-
-    .bento-col-2 { grid-column: span 2; }
-    .bento-row-2 { grid-row: span 2; }
-    
-    .bento-watermark {
-        position: absolute;
-        bottom: -5px;
-        right: -5px;
-        width: 60%;
-        max-height: 80%;
-        object-fit: contain;
-        opacity: 0.08;
-        z-index: 0;
-        pointer-events: none;
-        mix-blend-mode: multiply;
-        transition: all 0.4s ease;
-    }
-
-    .bento-card:hover .bento-watermark {
-        transform: scale(1.15) rotate(-4deg);
-        opacity: 0.15;
-    }
-
-    .bento-content {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        width: 100%;
-    }
-
-    .bento-icon-box {
-        width: 24px; /* Nano icon box */
-        height: 24px;
-        border-radius: 6px;
-        background: rgba(255,255,255,0.7); /* Translucent white */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        margin-bottom: 4px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-        flex-shrink: 0;
-    }
-
-    .bento-row-2 .bento-icon-box {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-        border-radius: 8px;
-        margin-bottom: 8px;
-    }
-
-    .bento-title {
-        font-size: 10px; /* Nano font */
-        font-weight: 800;
-        /* Color set inline */
-        margin: 0 0 2px 0;
-        letter-spacing: -0.01em;
-        line-height: 1.1;
-    }
-
-    .bento-col-2 .bento-title, .bento-row-2 .bento-title {
-        font-size: 12px;
-    }
-
-    .bento-meta {
-        font-size: 9px; /* Nano font */
-        /* Color set inline */
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 3px;
-        margin-top: auto;
-        opacity: 0.85;
-    }
-    
-    .bento-badge {
-        font-size: 7.5px;
-        padding: 2px 5px;
-        border-radius: 20px;
-        font-weight: 800;
-        white-space: nowrap;
-        margin-left: 4px;
-        background: rgba(255,255,255,0.6) !important;
-        border: none !important;
-    }
-
-    @media (max-width: 1200px) {
-        .bento-grid { grid-template-columns: repeat(6, 1fr); }
-    }
-    @media (max-width: 1024px) {
-        .bento-grid { grid-template-columns: repeat(5, 1fr); }
-    }
-    @media (max-width: 768px) {
-        .bento-grid { grid-template-columns: repeat(4, 1fr); }
-        .bento-col-2 { grid-column: span 2; }
-    }
-    @media (max-width: 480px) {
-        .bento-grid { grid-template-columns: repeat(2, 1fr); }
-        .bento-col-2 { grid-column: span 2; }
-        .bento-row-2 { grid-row: span 1; }
-    }
-</style>
-
-<section id="kegiatan" class="ekskul-section">
-    <div class="ekskul-photo-backdrop"></div>
-    <div class="ekskul-photo-overlay"></div>
-
-    <div class="fw ekskul-content-wrap">
-        <div style="text-align:center; margin-bottom:56px;" data-aos="fade-up">
-            <div class="section-label" style="justify-content:center; margin-bottom: 14px;">
-                <div class="section-label-dot" style="background:#f59e0b;"></div>
-                <span class="section-label-text" style="color:#4f46e5;">Kegiatan Siswa</span>
+<section id="ekskul" class="py-20 bg-[#f4f1ea] border-t border-[#e7e3d8]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8">
+        
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+            <div>
+                <div class="text-[11px] font-mono-code font-bold text-[#2563eb] uppercase tracking-wider mb-2">
+                    ✱ PENGEMBANGAN KARAKTER & MINAT BAKAT
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-black text-[#121316] tracking-tight">
+                    Asah Potensi di <span class="highlight-marker">{{ $extracurriculars->count() }}+ Ekstrakurikuler.</span>
+                </h2>
+                <p class="text-xs sm:text-sm text-[#555] font-medium mt-2 max-w-xl">
+                    Wadah pembentukan karakter tangguh, kreativitas seni, riset teknologi, dan prestasi olahraga bagi seluruh siswa SMP, SMA, dan SMK.
+                </p>
             </div>
-            <h2 class="h1" style="margin-bottom:14px; font-size:clamp(30px, 4vw, 44px); font-weight:900; color:#0f172a; letter-spacing:-0.025em;">
-                Ekstrakurikuler &amp; <span style="background:linear-gradient(135deg, #4f46e5, #7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Minat Bakat</span>
-            </h2>
-            <p class="body-lg" style="max-width:680px; margin:0 auto; color:#334155; font-weight:600;">
-                Mengembangkan potensi, kepemimpinan, kreativitas seni, dan kebugaran jasmani siswa melalui ragam kegiatan ekstrakurikuler unggulan.
-            </p>
+
+            <div class="flex items-center gap-2">
+                <span class="px-3.5 py-1.5 bg-white border-2 border-[#121316] rounded-full text-xs font-mono-code font-bold shadow-[2px_2px_0px_#121316]">
+                    🎖️ Prestasi Tingkat Kota & Provinsi
+                </span>
+            </div>
         </div>
 
-        @if(count($extracurriculars) > 0)
-        @php
-            // Urutkan berdasarkan anggota terbanyak agar yang paling populer dapat kotak besar
-            $sortedEkskul = collect($extracurriculars)->sortByDesc('active_members_count')->values();
-            
-            // Pola Bento Box Apple-style berulang
-            $bentoPatterns = [
-                'bento-col-2 bento-row-2', // Sangat besar (Juara 1)
-                'bento-col-1 bento-row-2', // Tinggi vertikal
-                'bento-col-1 bento-row-1', // Normal
-                'bento-col-2 bento-row-1', // Lebar horizontal
-                'bento-col-1 bento-row-1', // Normal
-                'bento-col-1 bento-row-1', // Normal
-                'bento-col-2 bento-row-1', // Lebar horizontal
-                'bento-col-1 bento-row-2', // Tinggi vertikal
-            ];
-        @endphp
-        
-        <div class="bento-grid" data-aos="fade-up" data-aos-delay="100">
-            @foreach($sortedEkskul as $index => $ekskul)
+        <!-- Ekskul Cards Grid (Looping Real Extracurriculars) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+            @forelse($extracurriculars->take(6) as $ekskul)
                 @php
-                    $bentoClass = $bentoPatterns[$index % count($bentoPatterns)];
-                    
-                    $iconStr = $ekskul->display_icon;
-                    $isFa = str_contains($iconStr, 'fa-');
-                    $bgColor = '#eff6ff'; $textColor = '#2563eb';
-                    switch($ekskul->category) {
-                        case 'marching_band': $bgColor = '#fef2f2'; $textColor = '#ef4444'; break;
-                        case 'pramuka': $bgColor = '#fff7ed'; $textColor = '#ea580c'; break;
-                        case 'paskibraka': $bgColor = '#fdf4ff'; $textColor = '#c026d3'; break;
-                        case 'seni_budaya': $bgColor = '#fef3c7'; $textColor = '#d97706'; break;
-                        case 'olahraga': $bgColor = '#ecfdf5'; $textColor = '#059669'; break;
-                        case 'sains_it': $bgColor = '#ecfeff'; $textColor = '#0891b2'; break;
-                    }
-                    
-                    $slug = \Illuminate\Support\Str::slug($ekskul->name);
-                    $bgImgSrc = asset('images/ekskul/' . $ekskul->category . '_bg.jpg'); // Default
-                    
-                    if (str_contains($slug, 'futsal')) $bgImgSrc = asset('images/ekskul/futsal_bg.jpg');
-                    elseif (str_contains($slug, 'renang')) $bgImgSrc = asset('images/ekskul/renang_bg.svg');
-                    elseif (str_contains($slug, 'tenis-meja')) $bgImgSrc = asset('images/ekskul/tenis_meja_bg.jpg');
-                    elseif (str_contains($slug, 'vocal') || str_contains($slug, 'vokal')) $bgImgSrc = asset('images/ekskul/olah_vocal_bg.jpg');
-                    elseif (str_contains($slug, 'english')) $bgImgSrc = asset('images/ekskul/english_club_bg.jpg');
-                    elseif (str_contains($slug, 'cerdas-cermat')) $bgImgSrc = asset('images/ekskul/cerdas_cermat_bg.jpg');
-                    elseif (str_contains($slug, 'sains')) $bgImgSrc = asset('images/ekskul/sains_bg.jpg');
-                    elseif (str_contains($slug, 'marching-band')) $bgImgSrc = asset('images/ekskul/marching_band_bg.jpg');
+                    $style = $ekskulIcons[$ekskul->category] ?? [
+                        'icon' => $ekskul->icon ? '⭐' : '🎯',
+                        'bg' => 'bg-slate-100',
+                        'color' => 'text-[#121316]',
+                        'badge' => 'bg-slate-50 text-[#121316] border-slate-200'
+                    ];
                 @endphp
-                
-                <div class="bento-card {{ $bentoClass }}" style="background: {{ $bgColor }}; border: 1.5px solid #000000; box-shadow: 4px 4px 0px rgba(0,0,0,0.1);">
-                    <img class="bento-watermark" src="{{ $bgImgSrc }}" alt="Background" onerror="this.style.display='none'">
-                    
-                    <div class="bento-content">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-                            <div class="bento-icon-box" style="color:{{ $textColor }}; border: 1px solid rgba(0,0,0,0.1);">
-                                @if($isFa) <i class="{{ $iconStr }}"></i> @else <span>{{ $iconStr }}</span> @endif
+                <div class="bg-white border-2 border-[#121316] rounded-2xl p-6 shadow-[4px_4px_0px_#121316] flex flex-col justify-between hover:-translate-y-1 transition-transform">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl {{ $style['bg'] }} {{ $style['color'] }} flex items-center justify-center font-black text-xl border border-[#121316] shadow-[2px_2px_0px_#121316]">
+                                <span>{{ $style['icon'] }}</span>
                             </div>
-                            
-                            <div class="bento-badge" style="color: {{ $textColor }}; border: 1px solid {{ $textColor }} !important;">
-                                {{ $ekskul->isFoundationLevel() ? 'Lintas Yayasan' : ($ekskul->school->name ?? 'Unit Sekolah') }}
-                            </div>
+                            <span class="px-2 py-0.5 rounded {{ $style['badge'] }} border text-[10px] font-mono-code font-bold uppercase">
+                                {{ str_replace('_', ' ', $ekskul->category ?? 'Ekskul') }}
+                            </span>
                         </div>
-                        
-                        <div style="margin-top: auto;">
-                            <h3 class="bento-title" style="color: {{ $textColor }};">{{ $ekskul->name }}</h3>
-                            <div class="bento-meta" style="color: {{ $textColor }};">
-                                <i class="fa-solid fa-users"></i> 
-                                <span>{{ $ekskul->active_members_count ?? 0 }} Anggota Aktif</span>
-                            </div>
-                        </div>
+                        <h3 class="text-lg font-black text-[#121316] mb-1">{{ $ekskul->name }}</h3>
+                        <p class="text-xs text-[#555] leading-relaxed font-medium mb-4 line-clamp-3">
+                            {{ $ekskul->description ?? 'Wadah pembinaan bakat, keterampilan, dan disiplin siswa yang aktif dibimbing oleh pelatih profesional.' }}
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-[#e2ded5] flex items-center justify-between text-[11px] font-mono-code font-bold text-[#777]">
+                        <span>{{ $ekskul->active_members_count ?? 0 }} Anggota Aktif</span>
+                        <span class="{{ $style['color'] }}">{{ $ekskul->school?->name ?? 'Lintas 3 Unit' }} &rarr;</span>
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="col-span-3 text-center py-12 bg-white rounded-2xl border-2 border-dashed border-[#121316]">
+                    <p class="text-sm font-bold text-[#777]">Data kegiatan ekstrakurikuler sedang diperbarui.</p>
+                </div>
+            @endforelse
         </div>
-        @else
-        <div style="text-align:center; padding: 40px; color: #64748b; background: rgba(255,255,255,0.9); border-radius: 20px; max-width: 600px; margin: 0 auto;">
-            <i class="fa-solid fa-folder-open" style="font-size: 32px; color: #cbd5e1; margin-bottom: 12px;"></i>
-            <p style="font-weight: 600; font-size: 15px;">Belum ada data kegiatan siswa yang aktif.</p>
+
+        <!-- Banner Panduan Pemilihan Ekskul -->
+        <div class="bg-white border-2 border-[#121316] rounded-2xl p-6 shadow-[3px_3px_0px_#121316] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">💡</span>
+                <p class="text-xs text-[#444] font-medium">
+                    <strong>Pendaftaran Ekskul Bebas Biaya:</strong> Siswa aktif SMP, SMA, dan SMK dapat memilih maksimal 2 kegiatan ekstrakurikuler per semester melalui portal siswa PembdaHUB.
+                </p>
+            </div>
+            @auth
+                <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded-full btn-tactile-red text-xs font-black whitespace-nowrap">
+                    Pilih Ekskul di Portal &rarr;
+                </a>
+            @else
+                <a href="{{ route('login') }}" class="px-5 py-2.5 rounded-full btn-tactile-red text-xs font-black whitespace-nowrap">
+                    Masuk Portal Siswa &rarr;
+                </a>
+            @endauth
         </div>
-        @endif
+
     </div>
 </section>

@@ -1,96 +1,57 @@
-{{-- BERITA — Bento/Apple Style (Dynamic from Database) --}}
-<section id="berita" class="section">
-    <div class="fw">
-        <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:48px; flex-wrap:wrap; gap:16px;" data-aos="fade-up">
+{{-- BERITA & INFORMASI TERKINI — 100% Real Database ($news) --}}
+@if(isset($news) && $news->count() > 0)
+<section id="berita" class="py-20 px-4 sm:px-8 border-t border-[#e7e3d8]">
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
             <div>
-                <div class="section-label">
-                    <div class="section-label-dot" style="background:var(--coral);"></div>
-                    <span class="section-label-text" style="color:var(--coral);">Berita & Kegiatan</span>
+                <div class="text-[11px] font-mono-code font-bold text-[#ff3823] uppercase tracking-wider mb-2">
+                    ✱ KABAR CIVITAS & INFORMASI
                 </div>
-                <h2 class="h1" style="margin-bottom:8px;">Berita Terbaru</h2>
-                <p class="body">Informasi terkini seputar kegiatan dan prestasi Yayasan PEMBDA Nias.</p>
+                <h2 class="text-3xl sm:text-4xl font-black text-[#121316] tracking-tight">
+                    Warta & Berita <span class="highlight-marker">Terkini.</span>
+                </h2>
+                <p class="text-xs sm:text-sm text-[#555] font-medium mt-2 max-w-xl">
+                    Informasi resmi agenda akademik, pengumuman yayasan, liputan prestasi siswa, dan rilis kegiatan sekolah.
+                </p>
+            </div>
+
+            <div>
+                <span class="px-3.5 py-1.5 bg-white border-2 border-[#121316] rounded-full text-xs font-mono-code font-bold shadow-[2px_2px_0px_#121316]">
+                    📢 Berita Terverifikasi
+                </span>
             </div>
         </div>
 
-        <div class="bento bento-3" data-aos="fade-up" data-aos-delay="100">
-            @forelse($news as $item)
-            @php
-                $catLower = strtolower($item->category_label ?? '');
-                if (str_contains($catLower, 'prestasi') || str_contains($catLower, 'penghargaan') || str_contains($catLower, 'juara')) {
-                    $pillBg = 'var(--emerald-bg)';
-                    $pillColor = 'var(--emerald)';
-                } elseif (str_contains($catLower, 'kegiatan') || str_contains($catLower, 'acara') || str_contains($catLower, 'lomba')) {
-                    $pillBg = 'var(--blue-bg)';
-                    $pillColor = 'var(--blue)';
-                } elseif (str_contains($catLower, 'kerjasama') || str_contains($catLower, 'mitra') || str_contains($catLower, 'mou')) {
-                    $pillBg = 'var(--violet-bg)';
-                    $pillColor = 'var(--violet)';
-                } else {
-                    $pillBg = 'var(--amber-bg)';
-                    $pillColor = 'var(--amber)';
-                }
-            @endphp
-            <div class="bcard" style="padding:0; overflow:hidden;">
-                <div class="news-img" style="background:linear-gradient(135deg, {{ $item->gradient_from }}, {{ $item->gradient_to }});">
-                    @if($item->image)
-                        <img src="{{ $item->image_url }}" alt="{{ $item->title }}" style="width:100%; height:100%; object-fit:cover;">
-                    @else
-                        <i class="{{ $item->icon }}" style="font-size:48px; color:rgba(255,255,255,0.15);"></i>
-                    @endif
-                    <span class="feature-pill" style="position:absolute; top:12px; left:12px; background:{{ $pillBg }}; color:{{ $pillColor }};">{{ $item->category_label }}</span>
-                </div>
-                <div style="padding:0 24px 24px;">
-                    <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">
-                        <i class="fa-regular fa-calendar" style="margin-right:4px;"></i> {{ $item->formatted_date }}
+        <!-- News Grid (3 Columns) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            @foreach($news as $item)
+                <article class="bg-white border-2 border-[#121316] rounded-2xl p-6 shadow-[4px_4px_0px_#121316] flex flex-col justify-between hover:-translate-y-1 transition-transform">
+                    <div>
+                        @if($item->thumbnail_url || $item->image)
+                            <div class="h-44 rounded-xl bg-slate-100 overflow-hidden mb-4 border border-[#121316]">
+                                <img src="{{ $item->thumbnail_url ?? asset('storage/' . $item->image) }}" alt="{{ $item->title }}" class="w-full h-full object-cover">
+                            </div>
+                        @endif
+                        <div class="text-[10px] font-mono-code font-bold text-[#2563eb] uppercase mb-2">
+                            {{ $item->category ?? 'BERITA SEKOLAH' }} &bull; {{ $item->published_at ? \Carbon\Carbon::parse($item->published_at)->translatedFormat('d M Y') : '2026' }}
+                        </div>
+                        <h3 class="text-base font-black text-[#121316] mb-2 leading-snug line-clamp-2">
+                            {{ $item->title }}
+                        </h3>
+                        <p class="text-xs text-[#555] leading-relaxed line-clamp-3 font-medium mb-4">
+                            {{ $item->excerpt ?? \Illuminate\Support\Str::limit(strip_tags($item->content), 120) }}
+                        </p>
                     </div>
-                    <h4 class="h3" style="margin-bottom:8px; font-size:17px; line-height:1.4;">{{ $item->title }}</h4>
-                    <p class="body" style="font-size:14px;">{{ Str::limit($item->excerpt ?? $item->content, 120) }}</p>
-                </div>
-            </div>
-            @empty
-            {{-- Fallback: show placeholder cards if no news in database --}}
-            <div class="bcard" style="padding:0; overflow:hidden;">
-                <div class="news-img" style="background:linear-gradient(135deg, #2563eb, #60a5fa);">
-                    <i class="fa-solid fa-trophy" style="font-size:48px; color:rgba(255,255,255,0.15);"></i>
-                    <span class="feature-pill" style="position:absolute; top:12px; left:12px; background:var(--emerald-bg); color:var(--emerald);">Prestasi</span>
-                </div>
-                <div style="padding:0 24px 24px;">
-                    <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">
-                        <i class="fa-regular fa-calendar" style="margin-right:4px;"></i> Coming Soon
+                    <div class="pt-4 border-t border-[#e2ded5] flex items-center justify-between text-[11px] font-mono-code font-bold">
+                        <span class="text-[#777]">Oleh: {{ $item->author_name ?? 'Humas PEMBDA' }}</span>
+                        <a href="{{ route('public.news.show', $item->slug ?? $item->id) }}" class="text-[#ff3823] hover:underline">Baca &rarr;</a>
                     </div>
-                    <h4 class="h3" style="margin-bottom:8px; font-size:17px; line-height:1.4;">Berita akan segera hadir</h4>
-                    <p class="body" style="font-size:14px;">Nantikan informasi terbaru dari Yayasan PEMBDA Nias...</p>
-                </div>
-            </div>
-
-            <div class="bcard" style="padding:0; overflow:hidden;">
-                <div class="news-img" style="background:linear-gradient(135deg, #059669, #34d399);">
-                    <i class="fa-solid fa-users" style="font-size:48px; color:rgba(255,255,255,0.15);"></i>
-                    <span class="feature-pill" style="position:absolute; top:12px; left:12px; background:var(--blue-bg); color:var(--blue);">Kegiatan</span>
-                </div>
-                <div style="padding:0 24px 24px;">
-                    <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">
-                        <i class="fa-regular fa-calendar" style="margin-right:4px;"></i> Coming Soon
-                    </div>
-                    <h4 class="h3" style="margin-bottom:8px; font-size:17px; line-height:1.4;">Kegiatan sekolah akan segera diupdate</h4>
-                    <p class="body" style="font-size:14px;">Dokumentasi kegiatan Yayasan PEMBDA akan ditampilkan di sini...</p>
-                </div>
-            </div>
-
-            <div class="bcard" style="padding:0; overflow:hidden;">
-                <div class="news-img" style="background:linear-gradient(135deg, #d97706, #fbbf24);">
-                    <i class="fa-solid fa-handshake" style="font-size:48px; color:rgba(255,255,255,0.15);"></i>
-                    <span class="feature-pill" style="position:absolute; top:12px; left:12px; background:var(--violet-bg); color:var(--violet);">Kerjasama</span>
-                </div>
-                <div style="padding:0 24px 24px;">
-                    <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">
-                        <i class="fa-regular fa-calendar" style="margin-right:4px;"></i> Coming Soon
-                    </div>
-                    <h4 class="h3" style="margin-bottom:8px; font-size:17px; line-height:1.4;">Kerjasama dan MoU akan segera diperbarui</h4>
-                    <p class="body" style="font-size:14px;">Informasi kerjasama Yayasan PEMBDA dengan berbagai pihak...</p>
-                </div>
-            </div>
-            @endforelse
+                </article>
+            @endforeach
         </div>
+
     </div>
 </section>
+@endif

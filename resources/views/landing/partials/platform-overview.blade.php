@@ -1,137 +1,87 @@
-{{-- PLATFORM OVERVIEW — Bold Indigo Theme --}}
-<style>
-    .pillar-icon {
-        margin: 0 auto 20px;
-        width: 60px;
-        height: 60px;
-        border-radius: 18px;
-        font-size: 26px;
-    }
-    .marquee-fade-left,
-    .marquee-fade-right {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 80px;
-        z-index: 2;
-    }
-    .marquee-fade-left {
-        left: 0;
-        background: linear-gradient(90deg, var(--bg-card, #ffffff), transparent);
-    }
-    .marquee-fade-right {
-        right: 0;
-        background: linear-gradient(-90deg, var(--bg-card, #ffffff), transparent);
-    }
-</style>
-
-<section id="platform" class="section relative overflow-hidden" style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f5f3ff 100%);">
-    {{-- Decorative Background Blobs --}}
-    <div class="absolute -left-32 top-0 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -right-32 bottom-0 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-sky-300/5 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="fw">
-        <div style="max-width:900px; margin:0 auto; text-align:center;" data-aos="fade-up">
-            {{-- Subtle intro text --}}
-            <div style="display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg, var(--indigo-bg), var(--violet-bg)); padding:10px 24px; border-radius:100px; margin-bottom:32px; border:1px solid rgba(99,102,241,0.2);">
-                <i class="fa-solid fa-globe" style="color:var(--indigo-light); font-size:14px;"></i>
-                <span style="font-size:13px; font-weight:600; color:var(--indigo);">perguruanpembda.com</span>
+{{-- CARA KERJA & ALUR BELAJAR — 4 Step Tactile Grid --}}
+<section id="cara-kerja" class="py-16 bg-[#f4f1ea] border-y border-[#e7e3d8]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8">
+        
+        <div class="max-w-xl mb-12">
+            <div class="text-[11px] font-mono-code font-bold text-[#ff3823] uppercase tracking-wider mb-2">
+                ✱ ALUR DIGITALISASI SEKOLAH
             </div>
-
-            <h2 class="h2" style="margin-bottom:16px; line-height:1.3; color:var(--text-primary);">
-                Lebih dari Sekadar Website —<br>
-                <span style="background:linear-gradient(135deg, var(--indigo), var(--indigo-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Ekosistem Digital</span> Pengelolaan Pendidikan
+            <h2 class="text-2xl sm:text-3xl font-black text-[#121316] tracking-tight mb-2">
+                Ekosistem Belajar Serba Terintegrasi.
             </h2>
-
-            <p class="body-lg" style="max-width:720px; margin:0 auto 40px; line-height:1.8;">
-                <strong style="color:var(--text-primary);">perguruanpembda.com</strong> bukan hanya profil Yayasan Perguruan PEMBDA Nias, tetapi juga platform <strong style="color:var(--text-primary);">PembdaHUB</strong> — sebuah aplikasi terintegrasi untuk pengelolaan pendidikan di seluruh unit sekolah, yang dapat diakses oleh siswa, guru, dan orang tua secara langsung.
+            <p class="text-xs sm:text-sm text-[#666] font-medium leading-relaxed">
+                Dari presensi RFID gerbang hingga rapor Kurikulum Merdeka — seluruh aktivitas akademik terhubung dalam satu sistem terpadu.
             </p>
         </div>
 
-        {{-- Three Pillars --}}
-        <div class="bento bento-3" style="max-width:1680px; margin:0 auto;" data-aos="fade-up" data-aos-delay="100">
-            {{-- Pillar 1: Administrasi --}}
-            <div class="bcard" style="background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%); box-shadow: 0 10px 25px -5px rgba(79,70,229,0.4); text-align:center; padding:36px 28px; border:none; transition: transform 0.3s; transform: translateY(0);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-                <div class="icon-circle pillar-icon" style="background:rgba(255,255,255,0.2); color:#ffffff; border:1px solid rgba(255,255,255,0.3);">
-                    <i class="fa-solid fa-building-columns"></i>
+        <!-- 4 Step Cards (Tactile Style) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <!-- Step 1 -->
+            <div class="bg-white border-2 border-[#121316] rounded-2xl p-6 shadow-[3px_3px_0px_#121316] flex flex-col justify-between">
+                <div>
+                    <div class="w-8 h-8 rounded-full bg-[#121316] text-white flex items-center justify-center font-black text-xs font-mono-code mb-4">
+                        01
+                    </div>
+                    <h3 class="text-base font-black text-[#121316] mb-2">Tap Presensi RFID</h3>
+                    <p class="text-xs text-[#555] leading-relaxed font-medium">
+                        Tempel kartu pintar di gerbang sekolah, status kehadiran langsung terekam dan ternotifikasi ke wali murid secara realtime.
+                    </p>
                 </div>
-                <h3 class="h3" style="margin-bottom:8px; font-size:17px; color:#ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">Administrasi &amp; Kepegawaian</h3>
-                <p class="body" style="font-size:13px; color:rgba(255,255,255,0.9);">Data pegawai, jabatan, surat-menyurat, dan pengelolaan SDM terintegrasi.</p>
+                <div class="pt-4 mt-4 border-t border-[#e2ded5] text-[10px] font-mono-code text-[#888] font-bold">
+                    Otomasi Gerbang
+                </div>
             </div>
 
-            {{-- Pillar 2: Keuangan --}}
-            <div class="bcard" style="background: linear-gradient(135deg, #34d399 0%, #0d9488 100%); box-shadow: 0 10px 25px -5px rgba(13,148,136,0.4); text-align:center; padding:36px 28px; border:none; transition: transform 0.3s; transform: translateY(0);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-                <div class="icon-circle pillar-icon" style="background:rgba(255,255,255,0.2); color:#ffffff; border:1px solid rgba(255,255,255,0.3);">
-                    <i class="fa-solid fa-coins"></i>
+            <!-- Step 2 -->
+            <div class="bg-white border-2 border-[#121316] rounded-2xl p-6 shadow-[3px_3px_0px_#121316] flex flex-col justify-between">
+                <div>
+                    <div class="w-8 h-8 rounded-full bg-[#ff3823] text-white flex items-center justify-center font-black text-xs font-mono-code mb-4">
+                        02
+                    </div>
+                    <h3 class="text-base font-black text-[#121316] mb-2">Buka LMS Mandiri</h3>
+                    <p class="text-xs text-[#555] leading-relaxed font-medium">
+                        Akses modul ajar resmi PDF, video praktikum, dan kumpulkan tugas harian langsung lewat HP atau laptop.
+                    </p>
                 </div>
-                <h3 class="h3" style="margin-bottom:8px; font-size:17px; color:#ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">Keuangan</h3>
-                <p class="body" style="font-size:13px; color:rgba(255,255,255,0.9);">Pembayaran SPP, tagihan digital, laporan keuangan, dan rekap otomatis.</p>
+                <div class="pt-4 mt-4 border-t border-[#e2ded5] text-[10px] font-mono-code text-[#888] font-bold">
+                    Bahan Ajar Digital
+                </div>
             </div>
 
-            {{-- Pillar 3: Akademik --}}
-            <div class="bcard" style="background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%); box-shadow: 0 10px 25px -5px rgba(217,70,239,0.4); text-align:center; padding:36px 28px; border:none; transition: transform 0.3s; transform: translateY(0);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-                <div class="icon-circle pillar-icon" style="background:rgba(255,255,255,0.2); color:#ffffff; border:1px solid rgba(255,255,255,0.3);">
-                    <i class="fa-solid fa-graduation-cap"></i>
+            <!-- Step 3 -->
+            <div class="bg-white border-2 border-[#121316] rounded-2xl p-6 shadow-[3px_3px_0px_#121316] flex flex-col justify-between">
+                <div>
+                    <div class="w-8 h-8 rounded-full bg-[#2563eb] text-white flex items-center justify-center font-black text-xs font-mono-code mb-4">
+                        03
+                    </div>
+                    <h3 class="text-base font-black text-[#121316] mb-2">Praktik & Log PKL</h3>
+                    <p class="text-xs text-[#555] leading-relaxed font-medium">
+                        Isi jurnal kegiatan industri, dokumentasikan hasil riset, dan terima feedback langsung dari mentor DUDI serta guru pembimbing.
+                    </p>
                 </div>
-                <h3 class="h3" style="margin-bottom:8px; font-size:17px; color:#ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">Akademik</h3>
-                <p class="body" style="font-size:13px; color:rgba(255,255,255,0.9);">Pembelajaran, penilaian, penjadwalan, dan monitoring perkembangan siswa.</p>
+                <div class="pt-4 mt-4 border-t border-[#e2ded5] text-[10px] font-mono-code text-[#888] font-bold">
+                    Link & Match DUDI
+                </div>
             </div>
+
+            <!-- Step 4 -->
+            <div class="bg-white border-2 border-[#121316] rounded-2xl p-6 shadow-[3px_3px_0px_#121316] flex flex-col justify-between">
+                <div>
+                    <div class="w-8 h-8 rounded-full bg-[#10b981] text-white flex items-center justify-center font-black text-xs font-mono-code mb-4">
+                        04
+                    </div>
+                    <h3 class="text-base font-black text-[#121316] mb-2">Ujian CBT & Rapor</h3>
+                    <p class="text-xs text-[#555] leading-relaxed font-medium">
+                        Ujian terenkripsi anti-curang, penilaian otomatis terolah menjadi ledger nilai dan e-rapor resmi siap cetak.
+                    </p>
+                </div>
+                <div class="pt-4 mt-4 border-t border-[#e2ded5] text-[10px] font-mono-code text-[#888] font-bold">
+                    Penilaian Otomatis
+                </div>
+            </div>
+
         </div>
 
-        {{-- Showcase Penelitian & Project Akhir --}}
-        @if(isset($finalProjectsShowcase) && $finalProjectsShowcase->count() > 0)
-        <div data-aos="fade-up" data-aos-delay="200" style="margin-top:64px; overflow:hidden; position:relative; padding-bottom: 24px;">
-            <div class="marquee-fade-left"></div>
-            <div class="marquee-fade-right"></div>
-            @php
-                // Speed: 18s per item (slightly faster per user request)
-                $marqueeDuration = $finalProjectsShowcase->count() * 18;
-            @endphp
-            <div class="marquee-track">
-                <div class="marquee-content" style="display: flex; gap: 80px; padding-left: 40px; align-items: center; animation-duration: {{ $marqueeDuration }}s;">
-                    @foreach($finalProjectsShowcase as $fp)
-                        <div style="width: 450px; flex: 0 0 450px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                            {{-- Judul: Elegan, wrap alami tanpa dipotong --}}
-                            <h4 style="width: 100%; font-size: 22px; font-weight: 900; color: #111827; line-height: 1.4; text-align: center; white-space: normal; word-break: break-word; margin: 0 0 16px 0; padding: 0 10px;">
-                                {{ $fp->title }}
-                            </h4>
-                            
-                            {{-- Nama Tim: Wrap alami tanpa dipotong --}}
-                            <div style="width: 100%; position: relative;">
-                                @php
-                                    $teamNames = $fp->members->isNotEmpty() 
-                                        ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &bull; ')
-                                        : ($fp->student->full_name ?? 'Tim Siswa');
-                                @endphp
-                                <div style="font-size: 15px; font-weight: 700; color: #E2725B; text-align: center; padding: 12px 0; border-top: 1px dashed rgba(226,114,91,0.4); border-bottom: 1px dashed rgba(226,114,91,0.4); white-space: normal; word-break: break-word;">
-                                    <i class="fa-solid fa-users" style="color: #E2725B; margin-right: 6px;"></i> {!! $teamNames !!}
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-
-                    {{-- Duplicate for seamless loop --}}
-                    @foreach($finalProjectsShowcase as $fp)
-                        <div style="width: 450px; flex: 0 0 450px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                            <h4 style="width: 100%; font-size: 22px; font-weight: 900; color: #111827; line-height: 1.4; text-align: center; white-space: normal; word-break: break-word; margin: 0 0 16px 0; padding: 0 10px;">
-                                {{ $fp->title }}
-                            </h4>
-                            
-                            <div style="width: 100%; position: relative;">
-                                @php
-                                    $teamNames = $fp->members->isNotEmpty() 
-                                        ? $fp->members->map(function($m) { return $m->student->full_name ?? 'Siswa'; })->implode(' &bull; ')
-                                        : ($fp->student->full_name ?? 'Tim Siswa');
-                                @endphp
-                                <div style="font-size: 15px; font-weight: 700; color: #E2725B; text-align: center; padding: 12px 0; border-top: 1px dashed rgba(226,114,91,0.4); border-bottom: 1px dashed rgba(226,114,91,0.4); white-space: normal; word-break: break-word;">
-                                    <i class="fa-solid fa-users" style="color: #E2725B; margin-right: 6px;"></i> {!! $teamNames !!}
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-        @endif
     </div>
 </section>
