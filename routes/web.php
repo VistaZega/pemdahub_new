@@ -802,6 +802,10 @@ Route::get('/', function () {
         ->orderBy('scope', 'asc') // Yayasan first if scope is yayasan
         ->get();
 
+    $totalFinalProjects = \App\Models\FinalProject::whereNotIn('status', ['rejected', 'draft'])->count();
+    $totalPklAll = $totalApprovedLogs + $totalMonitorings;
+    $totalAllShowcase = $totalFinalProjects + $totalPklAll + $totalCourses + $totalAchievements;
+
     // Pastikan halaman beranda tidak dicache oleh server (LiteSpeed) maupun browser
     // agar status tombol "Login" vs "Dashboard" selalu ter-update secara real-time.
     return response(view('index', compact(
@@ -814,7 +818,8 @@ Route::get('/', function () {
         'recentAlumnis',
         'pklShowcase', 'totalApprovedLogs', 'totalMonitorings', 'totalDudi', 'dudiLocations',
         'topStudentsElite', 'topTeachersElite', 'homepageTheme',
-        'smkProgramKeahlians', 'finalProjectsShowcase', 'extracurriculars'
+        'smkProgramKeahlians', 'finalProjectsShowcase', 'extracurriculars',
+        'totalFinalProjects', 'totalPklAll', 'totalAllShowcase'
     )))
         ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
         ->header('Pragma', 'no-cache')
