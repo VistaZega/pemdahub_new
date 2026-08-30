@@ -193,6 +193,7 @@ class ErrorAlertService
             'whatsapp' => [
                 'enabled' => (bool) (Setting::getValue('wa_alert_enabled') ?? config('services.alerts.whatsapp.enabled', false)),
                 'admin_phone' => Setting::getValue('wa_alert_phone') ?: config('services.alerts.whatsapp.admin_phone', ''),
+                'custom_phone' => Setting::getValue('wa_alert_phone') ?: config('services.alerts.whatsapp.admin_phone', ''),
             ],
             'telegram' => [
                 'enabled' => (bool) (Setting::getValue('telegram_alert_enabled') ?? config('services.alerts.telegram.enabled', false)),

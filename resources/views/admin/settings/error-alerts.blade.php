@@ -183,7 +183,7 @@
                         <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center gap-1.5">
                             <i class="fas fa-phone text-emerald-600"></i> Nomor WhatsApp Tambahan (Opsional):
                         </label>
-                        <input type="text" name="wa_alert_phone" value="{{ $alertConfig['whatsapp']['custom_phone'] }}" placeholder="08xxxxxxxxxx (kosongkan jika pakai nomor Super Admin)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:border-slate-900">
+                        <input type="text" name="wa_alert_phone" value="{{ $alertConfig['whatsapp']['admin_phone'] ?? $alertConfig['whatsapp']['custom_phone'] ?? '' }}" placeholder="08xxxxxxxxxx (kosongkan jika pakai nomor Super Admin)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:border-slate-900">
                     </div>
                 </div>
 
