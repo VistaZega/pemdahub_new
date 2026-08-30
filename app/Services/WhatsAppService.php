@@ -183,20 +183,44 @@ class WhatsAppService implements WhatsAppServiceInterface
                 ->post($this->apiUrl . '/send', $data);
 
             $result = $response->json();
+            $isHttpSuccess = $response->successful();
+            $isDelivered = false;
+            $failureReason = null;
+
+            if ($this->activeProvider === 'fonnte') {
+                // Fonnte returns HTTP 200 even on failures with JSON status: false
+                if ($isHttpSuccess && isset($result['status']) && $result['status'] === true) {
+                    $isDelivered = true;
+                } else {
+                    $isDelivered = false;
+                    $failureReason = $result['reason'] ?? $result['message'] ?? 'Fonnte melaporkan status gagal (kemungkinan perangkat WhatsApp di Fonnte terputus/disconnected atau kuota habis)';
+                }
+            } elseif ($this->activeProvider === 'selfhosted') {
+                if ($isHttpSuccess && (($result['status'] ?? '') === 'success' || ($result['success'] ?? false) === true)) {
+                    $isDelivered = true;
+                } else {
+                    $isDelivered = false;
+                    $failureReason = $result['message'] ?? $result['error'] ?? 'Node Baileys Gateway gagal memproses pesan';
+                }
+            } else {
+                $isDelivered = $isHttpSuccess;
+            }
 
             Log::channel('whatsapp')->info('WhatsApp message sent', [
                 'provider' => $this->activeProvider,
                 'phone' => $phone,
-                'status' => $response->successful() ? 'success' : 'failed',
+                'status' => $isDelivered ? 'success' : 'failed',
                 'status_code' => $response->status(),
                 'response' => $result,
+                'failure_reason' => $failureReason,
             ]);
 
             return [
-                'success' => $response->successful(),
+                'success' => $isDelivered,
                 'provider' => $this->activeProvider,
                 'response' => $result,
                 'status_code' => $response->status(),
+                'error' => $failureReason,
             ];
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             Log::channel('whatsapp')->error('WhatsApp connection timeout', [
