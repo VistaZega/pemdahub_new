@@ -175,7 +175,7 @@ class User extends Authenticatable
             return true;
         }
 
-        if (in_array('panitia_ta', $roles) && $this->isPanitiaProyek()) {
+        if ((in_array('panitia_ta', $roles) || in_array('panitia_proyek', $roles) || in_array('panitia_project', $roles)) && $this->isPanitiaProyek()) {
             return true;
         }
 
@@ -436,11 +436,16 @@ class User extends Authenticatable
      */
     public function hasSpecialDuty(array $keywords): bool
     {
-        if (!$this->employee) {
+        $employee = $this->employee 
+            ?? $this->teacher?->employee 
+            ?? \App\Models\Employee::where('user_id', $this->id)->first()
+            ?? ($this->teacher?->employee_id ? \App\Models\Employee::find($this->teacher->employee_id) : null);
+
+        if (!$employee) {
             return false;
         }
         
-        return $this->employee->activePositions()->where(function ($query) use ($keywords) {
+        return $employee->activePositions()->where(function ($query) use ($keywords) {
             foreach ($keywords as $keyword) {
                 $query->orWhere('positions.position_code', 'like', "%{$keyword}%")
                       ->orWhere('positions.position_name', 'like', "%{$keyword}%");
@@ -450,21 +455,66 @@ class User extends Authenticatable
 
     public function isPanitiaCbt(): bool
     {
-        return $this->role === 'panitia_cbt' || $this->hasSpecialDuty(['PANITIA CBT', 'POKJA CBT', 'KOORDINATOR CBT']);
+        if ($this->role === 'panitia_cbt' || session('active_role') === 'panitia_cbt') {
+            return true;
+        }
+
+        if ($this->hasSpecialDuty(['PANITIA CBT', 'POKJA CBT', 'KOORDINATOR CBT', 'PAN-CBT', 'CBT'])) {
+            return true;
+        }
+
+        if ($this->teacher) {
+            $pos = strtolower($this->teacher->position ?? '');
+            if (str_contains($pos, 'panitia cbt') || str_contains($pos, 'pokja cbt') || str_contains($pos, 'koordinator cbt') || str_contains($pos, 'pan-cbt')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function isPanitiaPkl(): bool
     {
-        return $this->role === 'panitia_pkl' || $this->hasSpecialDuty(['PANITIA PKL', 'POKJA PKL', 'KOORDINATOR PKL', 'HUBIN', 'PRAKERIN']);
+        if ($this->role === 'panitia_pkl' || session('active_role') === 'panitia_pkl') {
+            return true;
+        }
+
+        if ($this->hasSpecialDuty(['PANITIA PKL', 'POKJA PKL', 'KOORDINATOR PKL', 'HUBIN', 'PRAKERIN', 'PAN-PKL'])) {
+            return true;
+        }
+
+        if ($this->teacher) {
+            $pos = strtolower($this->teacher->position ?? '');
+            if (str_contains($pos, 'panitia pkl') || str_contains($pos, 'pokja pkl') || str_contains($pos, 'hubin') || str_contains($pos, 'prakerin') || str_contains($pos, 'pan-pkl')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function isPanitiaProyek(): bool
     {
-        return $this->role === 'panitia_ta' || $this->hasSpecialDuty([
-            'PANITIA TA', 'PANITIA TUGAS AKHIR', 'PANITIA PROYEK', 'PANITIA PROJEK', 
-            'PANITIA PENELITIAN', 'POKJA TA', 'POKJA PROYEK', 'KOORDINATOR TA', 'KOORDINATOR PROYEK', 
-            'KOORDINATOR PENELITIAN'
-        ]);
+        if ($this->role === 'panitia_ta' || in_array(session('active_role'), ['panitia_ta', 'panitia_proyek', 'panitia_project'])) {
+            return true;
+        }
+
+        if ($this->hasSpecialDuty([
+            'PANITIA TA', 'PANITIA TUGAS AKHIR', 'PANITIA PROYEK', 'PANITIA PROJEK', 'PANITIA PROJECT', 
+            'PANITIA PENELITIAN', 'POKJA TA', 'POKJA PROYEK', 'POKJA PROJECT', 'KOORDINATOR TA', 'KOORDINATOR PROYEK', 
+            'KOORDINATOR PROJECT', 'KOORDINATOR PENELITIAN', 'PAN-PROYEK', 'PROYEK AKHIR', 'PROJECT AKHIR', 'TUGAS AKHIR'
+        ])) {
+            return true;
+        }
+
+        if ($this->teacher) {
+            $pos = strtolower($this->teacher->position ?? '');
+            if (str_contains($pos, 'panitia ta') || str_contains($pos, 'panitia proyek') || str_contains($pos, 'panitia projek') || str_contains($pos, 'panitia project') || str_contains($pos, 'panitia penelitian') || str_contains($pos, 'project akhir') || str_contains($pos, 'projek akhir') || str_contains($pos, 'tugas akhir') || str_contains($pos, 'pan-proyek')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

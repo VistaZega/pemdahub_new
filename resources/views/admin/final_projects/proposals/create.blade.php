@@ -173,7 +173,6 @@
                                         <div class="flex items-start justify-between gap-2">
                                             <label class="flex items-start gap-2.5 cursor-pointer flex-1 select-none">
                                                 <input type="checkbox" 
-                                                       name="member_ids[]" 
                                                        :value="st.id" 
                                                        @change="toggleMember(st.id)"
                                                        :checked="selectedMembers.includes(st.id)"
@@ -189,16 +188,13 @@
 
                                             {{-- Badge & Radio Pemilihan Ketua --}}
                                             <template x-if="selectedMembers.includes(st.id)">
-                                                <label class="inline-flex items-center gap-1.5 text-[11px] font-black px-2.5 py-1.5 rounded-xl cursor-pointer transition select-none flex-shrink-0"
-                                                       :class="leaderId == st.id ? 'bg-amber-400 text-slate-950 shadow-sm border border-amber-300' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'">
-                                                    <input type="radio" 
-                                                           name="leader_id" 
-                                                           :value="st.id" 
-                                                           x-model="leaderId"
-                                                           class="hidden">
+                                                <button type="button"
+                                                        class="inline-flex items-center gap-1.5 text-[11px] font-black px-2.5 py-1.5 rounded-xl cursor-pointer transition select-none flex-shrink-0"
+                                                        :class="leaderId == st.id ? 'bg-amber-400 text-slate-950 shadow-sm border border-amber-300' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'"
+                                                        @click="leaderId = st.id">
                                                     <i class="fas fa-crown text-[10px]" :class="leaderId == st.id ? 'text-slate-950' : 'text-slate-400'"></i>
                                                     <span x-text="leaderId == st.id ? 'Ketua' : 'Jadikan Ketua'"></span>
-                                                </label>
+                                                </button>
                                             </template>
                                         </div>
                                     </div>
@@ -216,6 +212,12 @@
                     @endif
                 </div>
             </div>
+
+            {{-- Hidden inputs: memastikan SEMUA member_ids & leader_id selalu terkirim tanpa tergantung filter kelas DOM --}}
+            <template x-for="mId in selectedMembers" :key="'hidden-m-' + mId">
+                <input type="hidden" name="member_ids[]" :value="mId">
+            </template>
+            <input type="hidden" name="leader_id" :value="leaderId">
 
             {{-- Action Footer --}}
             <div class="mt-8 pt-6 border-t-2 border-slate-100 flex items-center justify-between flex-wrap gap-4">

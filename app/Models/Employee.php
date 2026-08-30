@@ -92,7 +92,10 @@ class Employee extends Model
     public function activePositions(): BelongsToMany
     {
         return $this->positions()
-            ->wherePivotNull('end_date')
+            ->where(function ($q) {
+                $q->whereNull('employee_positions.end_date')
+                  ->orWhere('employee_positions.end_date', '>=', now()->toDateString());
+            })
             ->orderByPivot('is_primary', 'desc');
     }
 

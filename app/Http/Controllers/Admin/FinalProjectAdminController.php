@@ -410,12 +410,13 @@ class FinalProjectAdminController extends Controller
             'current_stage' => 'nullable|string|max:50',
             'member_ids' => 'required|array|min:1',
             'member_ids.*' => 'exists:students,id',
-            'leader_id' => 'required|exists:students,id',
+            'leader_id' => 'nullable|exists:students,id',
         ]);
 
-        // Verifikasi leader_id ada di dalam member_ids
-        if (!in_array($validated['leader_id'], $validated['member_ids'])) {
-            return redirect()->back()->with('error', 'Ketua kelompok yang dipilih harus termasuk dalam daftar anggota yang dicentang.')->withInput();
+        // Leader is specified or default to the first member selected
+        $leaderId = !empty($validated['leader_id']) ? $validated['leader_id'] : ($validated['member_ids'][0] ?? null);
+        if (!$leaderId || !in_array($leaderId, $validated['member_ids'])) {
+            $leaderId = $validated['member_ids'][0] ?? null;
         }
 
         DB::beginTransaction();
@@ -426,7 +427,7 @@ class FinalProjectAdminController extends Controller
                 'advisor_id' => $validated['advisor_id'],
                 'status' => $validated['status'],
                 'current_stage' => $validated['current_stage'] ?? $project->current_stage,
-                'student_id' => $validated['leader_id'],
+                'student_id' => $leaderId,
             ]);
 
             // Sinkronisasi anggota kelompok
@@ -438,7 +439,7 @@ class FinalProjectAdminController extends Controller
                 \App\Models\FinalProjectMember::create([
                     'final_project_id' => $project->id,
                     'student_id' => $memberId,
-                    'role' => ($memberId == $validated['leader_id']) ? 'leader' : 'member'
+                    'role' => ($memberId == $leaderId) ? 'leader' : 'member'
                 ]);
             }
 

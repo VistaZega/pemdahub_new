@@ -553,4 +553,52 @@ class FinalProjectTest extends TestCase
             'role' => 'member',
         ]);
     }
+
+    public function test_teacher_with_panitia_duty_can_access_admin_final_projects()
+    {
+        // Give SMK teacher a panitia project position
+        $position = \App\Models\Position::where('position_code', 'PAN-PROYEK')->first();
+        if (!$position) {
+            $position = \App\Models\Position::create([
+                'position_code' => 'PAN-PROYEK',
+                'position_name' => 'Panitia Project & TA',
+                'position_category' => 'functional',
+                'position_level' => 3,
+                'is_structural' => false,
+                'allowance_amount' => 0,
+                'description' => 'Tugas Tambahan Panitia Project Akhir',
+                'is_active' => true,
+            ]);
+        }
+
+        $employee = \App\Models\Employee::where('user_id', $this->smkTeacherUser->id)->first();
+        if (!$employee) {
+            $employee = \App\Models\Employee::create([
+                'user_id' => $this->smkTeacherUser->id,
+                'school_id' => $this->smk->id,
+                'employee_code' => 'EMP-SMK-PAN',
+                'full_name' => $this->smkTeacher->full_name,
+                'gender' => 'L',
+                'employee_type' => 'guru',
+                'is_active' => true,
+            ]);
+            $this->smkTeacher->update(['employee_id' => $employee->id]);
+        }
+
+        $employee->positions()->attach($position->id, [
+            'academic_year_id' => $this->academicYear->id,
+            'start_date' => now()->subMonth(),
+            'end_date' => now()->addMonths(6),
+            'is_primary' => false,
+        ]);
+
+        $this->assertTrue($this->smkTeacherUser->fresh()->isPanitiaProyek());
+
+        // Teacher accesses admin final projects proposals
+        $response = $this->actingAs($this->smkTeacherUser->fresh())
+            ->get(route('admin.final-projects.proposals.index'));
+
+        $response->assertStatus(200);
+    }
 }
+
