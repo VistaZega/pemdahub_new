@@ -185,7 +185,25 @@ try {
         echo "<span class='ok'>View Cache: " . htmlspecialchars(trim($outputClear->fetch())) . "</span>\n";
     }
 } catch (\Throwable $e) {
-    echo "<span class='err'>Error Bootstrap: " . htmlspecialchars($e->getMessage()) . "</span>\n";
+    $diag = class_exists('\App\Services\ErrorDiagnosticService') 
+        ? \App\Services\ErrorDiagnosticService::diagnose($e)
+        : [
+            'type' => 'Eksepsi Sistem',
+            'danger_label' => 'Perlu Pemeriksaan',
+            'problem' => $e->getMessage(),
+            'impact' => 'Operasi bootstrap terhenti.',
+            'solution' => 'Periksa catatan file log Laravel.'
+        ];
+
+    echo "<span class='err'>Detail Teknis: " . htmlspecialchars($e->getMessage()) . "</span>\n";
+    echo "</pre>";
+    echo "<div style='background:#181c24;border:1.5px solid #f59e0b;border-radius:12px;padding:16px 20px;margin:14px 0;color:#f8fafc;line-height:1.6;font-family:sans-serif;'>";
+    echo "<h4 style='color:#fbbf24;margin:0 0 10px 0;font-size:15px;'>📋 PENJELASAN DIAGNOSTIK SISTEM (BAHASA INDONESIA)</h4>";
+    echo "<p style='margin:6px 0;'><b>🏷️ Kategori:</b> <span style='background:#334155;padding:2px 8px;border-radius:6px;font-size:12px;font-family:monospace;'>" . htmlspecialchars($diag['type']) . "</span> &nbsp; <b>Status Bahaya:</b> {$diag['danger_label']}</p>";
+    echo "<p style='margin:8px 0;'><b>🛑 Masalah:</b> {$diag['problem']}</p>";
+    echo "<p style='margin:8px 0;'><b>⚠️ Dampak / Akibat:</b> {$diag['impact']}</p>";
+    echo "<p style='margin:8px 0;color:#38bdf8;'><b>🛠️ Solusi / Yang Perlu Dilakukan:</b> {$diag['solution']}</p>";
+    echo "</div><pre>";
 }
 echo "</pre>";
 flush();

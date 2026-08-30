@@ -240,17 +240,22 @@ class ErrorAlertService
             $appEnv = strtoupper(config('app.env', 'production'));
             $timestamp = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s T');
 
-            $message = "🚨 <b>[{$appName}] CRITICAL ERROR ALERT</b>\n";
+            $diag = ErrorDiagnosticService::diagnose($exception);
+
+            $message = "🚨 <b>[{$appName}] LAPORAN KENDALA SISTEM</b>\n";
             $message .= "━━━━━━━━━━━━━━━━━━━━━\n";
-            $message .= "🌐 <b>Env:</b> <code>{$appEnv}</code>\n";
-            $message .= "⏰ <b>Waktu:</b> <code>{$timestamp}</code>\n";
-            $message .= "🛑 <b>Exception:</b> <code>" . htmlspecialchars(get_class($exception)) . "</code>\n";
-            $message .= "💬 <b>Pesan:</b> <code>" . htmlspecialchars(mb_substr($exception->getMessage(), 0, 250)) . "</code>\n";
+            $message .= "🏷️ <b>Kategori:</b> <code>" . htmlspecialchars($diag['type']) . "</code>\n";
+            $message .= "📊 <b>Status:</b> {$diag['danger_label']}\n\n";
+            $message .= "🛑 <b>MASALAH:</b>\n" . htmlspecialchars(strip_tags($diag['problem'])) . "\n\n";
+            $message .= "⚠️ <b>DAMPAK / AKIBAT:</b>\n" . htmlspecialchars(strip_tags($diag['impact'])) . "\n\n";
+            $message .= "🛠️ <b>REKOMENDASI SOLUSI:</b>\n" . htmlspecialchars(strip_tags($diag['solution'])) . "\n";
+            $message .= "━━━━━━━━━━━━━━━━━━━━━\n";
             $message .= "📍 <b>Lokasi:</b> <code>" . htmlspecialchars($this->cleanFilePath($exception->getFile())) . ":{$exception->getLine()}</code>\n";
             $message .= "🔗 <b>Request:</b> <code>{$method} {$url}</code>\n";
             $message .= "👤 <b>User:</b> <code>" . htmlspecialchars($userInfo) . "</code> (IP: <code>{$ip}</code>)\n";
+            $message .= "⏰ <b>Waktu:</b> <code>{$timestamp}</code>\n";
             $message .= "━━━━━━━━━━━━━━━━━━━━━\n";
-            $message .= "ℹ️ <i>Pemberitahuan otomatis dari sistem pemantau PembdaHUB.</i>";
+            $message .= "ℹ️ <i>Pemberitahuan otomatis dari pemantau PembdaHUB.</i>";
 
             $response = Http::timeout(6)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                 'chat_id' => $chatId,
@@ -301,20 +306,24 @@ class ErrorAlertService
             $method = $request ? $request->method() : 'CLI';
             $userInfo = $user ? "#{$user->id} {$user->name} ({$user->role})" : 'Guest / Sistem Otomatis';
             $appName = config('app.name', 'PembdaHUB');
-            $appEnv = strtoupper(config('app.env', 'production'));
             $timestamp = now()->setTimezone('Asia/Jakarta')->format('d/m/Y H:i:s');
 
-            $msg = "🚨 *[{$appName}] CRITICAL ERROR ALERT*\n";
+            $diag = ErrorDiagnosticService::diagnose($exception);
+
+            $msg = "🚨 *[{$appName}] LAPORAN KENDALA SISTEM*\n";
             $msg .= "━━━━━━━━━━━━━━━━━━━\n";
-            $msg .= "🌐 *Environment:* {$appEnv}\n";
-            $msg .= "⏰ *Waktu:* {$timestamp} WIB\n";
-            $msg .= "🛑 *Error:* " . get_class($exception) . "\n";
-            $msg .= "💬 *Pesan:* " . mb_substr($exception->getMessage(), 0, 200) . "\n";
-            $msg .= "📍 *File:* " . $this->cleanFilePath($exception->getFile()) . " (Baris {$exception->getLine()})\n";
+            $msg .= "🏷️ *Kategori:* {$diag['type']}\n";
+            $msg .= "📊 *Status:* {$diag['danger_label']}\n\n";
+            $msg .= "🛑 *MASALAH:*\n" . strip_tags($diag['problem']) . "\n\n";
+            $msg .= "⚠️ *DAMPAK / AKIBAT:*\n" . strip_tags($diag['impact']) . "\n\n";
+            $msg .= "🛠️ *SOLUSI YANG PERLU DILAKUKAN:*\n" . strip_tags($diag['solution']) . "\n";
+            $msg .= "━━━━━━━━━━━━━━━━━━━\n";
+            $msg .= "📍 *Lokasi:* " . $this->cleanFilePath($exception->getFile()) . " (Baris {$exception->getLine()})\n";
             $msg .= "🔗 *Route:* {$method} {$url}\n";
             $msg .= "👤 *User:* {$userInfo}\n";
+            $msg .= "⏰ *Waktu:* {$timestamp} WIB\n";
             $msg .= "━━━━━━━━━━━━━━━━━━━\n";
-            $msg .= "⚠️ Segera periksa server log atau dashboard pemantau PembdaHUB.";
+            $msg .= "💡 _Pemberitahuan diagnostik otomatis PembdaHUB._";
 
             $waService = app(WhatsAppService::class);
             $sentCount = 0;
