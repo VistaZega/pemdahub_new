@@ -123,30 +123,28 @@ class ExecutiveReportService
                 $absentP = $statsStaff['alpha'] ?? $statsStaff['alpa'] ?? 0;
                 $cutiP = $statsStaff['cuti'] ?? 0;
 
-                $message = "🏫 *LAPORAN KEHADIRAN HARIAN {$school->name}*
-📌 *Kepada Yth. {$principalName}*
-
-📅 Tanggal: *{$dateFormatted}*
-⏰ Waktu Rekap: *15 Menit Pasca Batas Toleransi (08:00 WIB)*
-
-👨‍🎓 *1. KEHADIRAN SISWA (Total: {$totalSiswa} Siswa):*
-• ✅ Hadir Tepat Waktu: *{$presentS}* | 🕒 Terlambat: *{$lateS}*
-• 🤒 Sakit: *{$sickS}* | 📩 Izin: *{$permitS}* | ❌ Alpha: *{$absentS}*
-
-👨‍🏫 *2. KEHADIRAN GURU & TENAGA PENDIDIK:*
-• ✅ Hadir: *{$presentG}* | 🚗 Dinas Luar: *{$dinasG}*
-• 🤒 Sakit: *{$sickG}* | 📩 Izin: *{$permitG}* | ❌ Alpha: *{$absentG}*
-
-💼 *3. KEHADIRAN PEGAWAI & STAF TATA USAHA:*
-• ✅ Hadir: *{$presentP}* | 🏖️ Cuti: *{$cutiP}*
-• 🤒 Sakit: *{$sickP}* | 📩 Izin: *{$permitP}* | ❌ Alpha: *{$absentP}*
-
-💡 *Catatan:* Rincian lengkap per kelas dapat dipantau di Portal Admin PembdaHUB.
-
----
-_Dikirim otomatis oleh PembdaHUB Executive System_";
-
-                $this->whatsappService->sendMessage($phone, $message);
+                $this->whatsappService->sendTemplate($phone, 'executive.principal_daily_attendance', [
+                    'sekolah' => $school->name,
+                    'nama_kepsek' => $principalName,
+                    'tanggal' => $dateFormatted,
+                    'waktu_rekap' => '08:00 WIB',
+                    'total_siswa' => $totalSiswa,
+                    'siswa_hadir' => $presentS,
+                    'siswa_terlambat' => $lateS,
+                    'siswa_sakit' => $sickS,
+                    'siswa_izin' => $permitS,
+                    'siswa_alpha' => $absentS,
+                    'guru_hadir' => $presentG,
+                    'guru_dinas' => $dinasG,
+                    'guru_sakit' => $sickG,
+                    'guru_izin' => $permitG,
+                    'guru_alpha' => $absentG,
+                    'pegawai_hadir' => $presentP,
+                    'pegawai_cuti' => $cutiP,
+                    'pegawai_sakit' => $sickP,
+                    'pegawai_izin' => $permitP,
+                    'pegawai_alpha' => $absentP,
+                ]);
                 $sentCount++;
 
             } catch (\Exception $e) {
@@ -223,26 +221,20 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
 
             $absentListSnippet = $absentStudentNames ?: "• Tidak ada (Semua Hadir 100%)";
 
-            $message = "👩‍🏫 *REKAP KEHADIRAN HARIAN KELAS {$class->name}*
-📌 *Yth. Wali Kelas: {$homeroomTeacher->full_name}*
-
-📅 Tanggal: *{$dateFormatted}*
-⏰ Waktu Rekap: *15 Menit Pasca Batas Toleransi (08:00 WIB)*
-
-📊 *RINGKASAN KEHADIRAN SISWA KELAS {$class->name}:*
-• 👥 Total Siswa: *{$studentIds->count()} Siswa*
-• ✅ Hadir: *{$present}* | 🕒 Terlambat: *{$late}*
-• 🤒 Sakit: *{$sick}* | 📩 Izin: *{$permit}*
-• ❌ Alpha: *{$absent}*
-
-📋 *DAFTAR SISWA TIDAK HADIR / TERLAMBAT:*
-{$absentListSnippet}
-
----
-_Dikirim otomatis oleh PembdaHUB Executive System_";
-
-            $this->whatsappService->sendMessage($phone, $message);
-            $sentCount++;
+                $this->whatsappService->sendTemplate($phone, 'executive.homeroom_daily_attendance', [
+                    'kelas' => $class->name,
+                    'nama_wali_kelas' => $homeroomTeacher->full_name,
+                    'tanggal' => $dateFormatted,
+                    'waktu_rekap' => '08:00 WIB',
+                    'total_siswa' => $studentIds->count(),
+                    'hadir' => $present,
+                    'terlambat' => $late,
+                    'sakit' => $sick,
+                    'izin' => $permit,
+                    'alpha' => $absent,
+                    'daftar_tidak_hadir' => $absentListSnippet,
+                ]);
+                $sentCount++;
         }
 
         return ['success' => true, 'sent' => $sentCount, 'message' => "Digest Kehadiran Wali Kelas terkirim ke {$sentCount} kelas"];

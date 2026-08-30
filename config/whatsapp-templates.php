@@ -726,4 +726,91 @@ Presensi kehadiran Pegawai/Staf telah berhasil dicatat oleh sistem:
 💼 Jabatan/Unit: {jabatan}
 
 Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
+
+    /**
+     * Executive - Principal Daily Attendance Digest (Kepala Sekolah)
+     */
+    'executive.principal_daily_attendance' =>
+"🏫 *LAPORAN KEHADIRAN HARIAN {sekolah}*
+📌 *Kepada Yth. {nama_kepsek}*
+
+📅 Tanggal: *{tanggal}*
+⏰ Waktu Rekap: *15 Menit Pasca Batas Toleransi ({waktu_rekap})*
+
+👨‍🎓 *1. KEHADIRAN SISWA (Total: {total_siswa} Siswa):*
+• ✅ Hadir Tepat Waktu: *{siswa_hadir}* | 🕒 Terlambat: *{siswa_terlambat}*
+• 🤒 Sakit: *{siswa_sakit}* | 📩 Izin: *{siswa_izin}* | ❌ Alpha: *{siswa_alpha}*
+
+👨‍🏫 *2. KEHADIRAN GURU & TENAGA PENDIDIK:*
+• ✅ Hadir: *{guru_hadir}* | 🚗 Dinas Luar: *{guru_dinas}*
+• 🤒 Sakit: *{guru_sakit}* | 📩 Izin: *{guru_izin}* | ❌ Alpha: *{guru_alpha}*
+
+💼 *3. KEHADIRAN PEGAWAI & STAF TATA USAHA:*
+• ✅ Hadir: *{pegawai_hadir}* | 🏖️ Cuti: *{pegawai_cuti}*
+• 🤒 Sakit: *{pegawai_sakit}* | 📩 Izin: *{pegawai_izin}* | ❌ Alpha: *{pegawai_alpha}*
+
+💡 *Catatan:* Rincian lengkap per kelas dapat dipantau di Portal Admin PembdaHUB.
+
+---
+_Dikirim otomatis oleh PembdaHUB Executive System_",
+
+    /**
+     * Executive - Homeroom Daily Attendance Digest (Wali Kelas)
+     */
+    'executive.homeroom_daily_attendance' =>
+"👩‍🏫 *REKAP KEHADIRAN HARIAN KELAS {kelas}*
+📌 *Yth. Wali Kelas: {nama_wali_kelas}*
+
+📅 Tanggal: *{tanggal}*
+⏰ Waktu Rekap: *15 Menit Pasca Batas Toleransi ({waktu_rekap})*
+
+📊 *RINGKASAN KEHADIRAN SISWA KELAS {kelas}:*
+• 👥 Total Siswa: *{total_siswa} Siswa*
+• ✅ Hadir: *{hadir}* | 🕒 Terlambat: *{terlambat}*
+• 🤒 Sakit: *{sakit}* | 📩 Izin: *{izin}*
+• ❌ Alpha: *{alpha}*
+
+📋 *DAFTAR SISWA TIDAK HADIR / TERLAMBAT:*
+{daftar_tidak_hadir}
+
+---
+_Dikirim otomatis oleh PembdaHUB Executive System_",
+
+    /**
+     * Executive - Principal Monthly SPP Digest
+     */
+    'executive.principal_monthly_spp' =>
+"💰 *BERITA REKAPITULASI KEUANGAN SPP BULANAN*
+📌 *Kepada Yth. Kepala Sekolah Perguruan Pembda*
+
+📅 Periode Bulan: *{periode_bulan}*
+
+📊 *RINGKASAN KEUANGAN SPP SEKOLAH:*
+• 💵 Total SPP Terbayar (LUNAS): *Rp {total_lunas}*
+• ⚠️ Jumlah Siswa Menunggak SPP: *{total_penunggak} Siswa*
+• 🔻 Total Nilai SPP Belum Terbayar: *Rp {total_tunggakan}*
+
+💡 *Rekomendasi Action:* Laporan rincian penunggak per kelas dapat diunduh di menu Keuangan PembdaHUB untuk ditindaklanjuti Wali Kelas.
+
+---
+_Dikirim otomatis oleh PembdaHUB Executive System_",
+
+    /**
+     * Executive - Homeroom Monthly SPP Digest
+     */
+    'executive.homeroom_monthly_spp' =>
+"💳 *REKAP SPP BULANAN KELAS {kelas}*
+📌 *Yth. Wali Kelas: {nama_wali_kelas}*
+
+📅 Periode Bulan: *{periode_bulan}*
+
+📊 *RINGKASAN SPP KELAS {kelas}:*
+• ⚠️ Jumlah Siswa Belum Bayar: *{jumlah_penunggak} Siswa*
+• 💰 Total Value Belum Terbayar: *Rp {total_tunggakan}*
+
+📋 *DAFTAR SISWA BELUM BAYAR SPP:*
+{daftar_penunggak}
+
+---
+_Dikirim otomatis oleh PembdaHUB Executive System_",
 ];

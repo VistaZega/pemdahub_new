@@ -753,6 +753,22 @@ class SettingsController extends Controller
                 'title' => '🏆 Notifikasi Apresiasi Penghargaan & Poin',
                 'variables' => ['{nama}', '{title}', '{points}', '{reason}'],
             ],
+            'executive.principal_daily_attendance' => [
+                'title' => '🏫 Laporan Eksekutif Presensi Harian (Ke Kepala Sekolah)',
+                'variables' => ['{sekolah}', '{nama_kepsek}', '{tanggal}', '{waktu_rekap}', '{total_siswa}', '{siswa_hadir}', '{siswa_terlambat}', '{siswa_sakit}', '{siswa_izin}', '{siswa_alpha}', '{guru_hadir}', '{guru_dinas}', '{guru_sakit}', '{guru_izin}', '{guru_alpha}', '{pegawai_hadir}', '{pegawai_cuti}', '{pegawai_sakit}', '{pegawai_izin}', '{pegawai_alpha}'],
+            ],
+            'executive.homeroom_daily_attendance' => [
+                'title' => '👩‍🏫 Laporan Rekap Presensi Harian (Ke Wali Kelas)',
+                'variables' => ['{kelas}', '{nama_wali_kelas}', '{tanggal}', '{waktu_rekap}', '{total_siswa}', '{hadir}', '{terlambat}', '{sakit}', '{izin}', '{alpha}', '{daftar_tidak_hadir}'],
+            ],
+            'executive.principal_monthly_spp' => [
+                'title' => '💰 Laporan Realisasi Keuangan SPP Bulanan (Ke Kepala Sekolah)',
+                'variables' => ['{periode_bulan}', '{total_lunas}', '{total_penunggak}', '{total_tunggakan}'],
+            ],
+            'executive.homeroom_monthly_spp' => [
+                'title' => '💳 Laporan Tunggakan SPP Bulanan (Ke Wali Kelas)',
+                'variables' => ['{kelas}', '{nama_wali_kelas}', '{periode_bulan}', '{jumlah_penunggak}', '{total_tunggakan}', '{daftar_penunggak}'],
+            ],
             'psb.registration' => [
                 'title' => '🏫 Notifikasi Konfirmasi Pendaftaran PSB',
                 'variables' => ['{nama}', '{nomor_registrasi}', '{sekolah}', '{tahun_ajaran}', '{biaya}', '{email}'],
