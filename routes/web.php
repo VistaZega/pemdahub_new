@@ -1534,6 +1534,58 @@ Route::get('/run-migrations', function () {
             echo "⚠️ Gagal sync LMS: " . $e->getMessage() . "<br>\n";
         }
 
+        echo "<h1>=== ENSURING PANITIA POSITIONS EXIST ===</h1>\n";
+        $panitiaPositions = [
+            [
+                'position_code' => 'PAN-CBT',
+                'position_name' => 'Panitia CBT / Ujian',
+                'position_category' => 'functional',
+                'position_level' => 3,
+                'is_structural' => false,
+                'allowance_amount' => 0,
+                'description' => 'Tugas Tambahan Panitia Pelaksana & Pengawas CBT / Ujian Sekolah',
+                'is_active' => true
+            ],
+            [
+                'position_code' => 'PAN-PKL',
+                'position_name' => 'Panitia PKL & Hubin',
+                'position_category' => 'functional',
+                'position_level' => 3,
+                'is_structural' => false,
+                'allowance_amount' => 0,
+                'description' => 'Tugas Tambahan Panitia Penempatan & Monitoring PKL / Hubungan Industri',
+                'is_active' => true
+            ],
+            [
+                'position_code' => 'PAN-PROYEK',
+                'position_name' => 'Panitia Project & TA',
+                'position_category' => 'functional',
+                'position_level' => 3,
+                'is_structural' => false,
+                'allowance_amount' => 0,
+                'description' => 'Tugas Tambahan Panitia Project Akhir / P5 & Tugas Akhir',
+                'is_active' => true
+            ],
+            [
+                'position_code' => 'TIM-PKS',
+                'position_name' => 'Tim PKS / Kedisiplinan',
+                'position_category' => 'functional',
+                'position_level' => 3,
+                'is_structural' => false,
+                'allowance_amount' => 0,
+                'description' => 'Tugas Tambahan Patroli Keamanan Sekolah & Tim Kedisiplinan Siswa',
+                'is_active' => true
+            ],
+        ];
+
+        foreach ($panitiaPositions as $pos) {
+            \App\Models\Position::updateOrCreate(
+                ['position_code' => $pos['position_code']],
+                $pos
+            );
+        }
+        echo "✅ Posisi Kepanitiaan (PAN-PROYEK, PAN-PKL, PAN-CBT, TIM-PKS) dipastikan aktif di Kepegawaian.<br>\n";
+
         echo "<b><h2 style='color:#0f0;'>✅ MIGRATION AND SYNC COMPLETED SUCCESSFULLY!</h2></b>\n";
     } catch (\Exception $e) {
         echo "<b style='color:#f00;'>ERROR: " . $e->getMessage() . "</b>\n";
