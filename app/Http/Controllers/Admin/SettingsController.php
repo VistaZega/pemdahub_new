@@ -961,36 +961,29 @@ class SettingsController extends Controller
         Setting::setValue('error_alerts_enabled', $request->boolean('error_alerts_enabled'), 'boolean', 'alerts');
         Setting::setValue('error_alert_cooldown_minutes', (int) $request->input('error_alert_cooldown_minutes', 5), 'integer', 'alerts');
 
-        // WhatsApp Channel
+        // WhatsApp Channel (Eksklusif)
         Setting::setValue('wa_alert_enabled', $request->boolean('wa_alert_enabled'), 'boolean', 'alerts');
         if ($request->has('wa_alert_phone')) {
             Setting::setValue('wa_alert_phone', trim((string)$request->input('wa_alert_phone')), 'string', 'alerts');
         }
 
-        // Telegram Channel
-        Setting::setValue('telegram_alert_enabled', $request->boolean('telegram_alert_enabled'), 'boolean', 'alerts');
-        if ($request->has('telegram_alert_bot_token')) {
-            Setting::setValue('telegram_alert_bot_token', trim((string)$request->input('telegram_alert_bot_token')), 'string', 'alerts');
-        }
-        if ($request->has('telegram_alert_chat_id')) {
-            Setting::setValue('telegram_alert_chat_id', trim((string)$request->input('telegram_alert_chat_id')), 'string', 'alerts');
-        }
+        // Disable Telegram Channel
+        Setting::setValue('telegram_alert_enabled', false, 'boolean', 'alerts');
 
         return redirect()
             ->route('admin.settings.error_alerts')
-            ->with('success', 'Konfigurasi Notifikasi Laporan Error ke Super Admin berhasil disimpan!');
+            ->with('success', 'Konfigurasi Notifikasi Laporan Error WhatsApp Super Admin berhasil disimpan!');
     }
 
     /**
-     * Test Sending Error Alert to WhatsApp or Telegram
+     * Test Sending Error Alert to WhatsApp Super Admin
      */
     public function testErrorAlertChannel(Request $request)
     {
         $this->authorizeFeatureAccess();
 
-        $channel = $request->input('channel', 'all');
         $alertService = app(\App\Services\ErrorAlertService::class);
-        $results = $alertService->sendTestAlert($channel);
+        $results = $alertService->sendTestAlert('whatsapp');
 
         $successMsgs = [];
         $errorMsgs = [];
@@ -1016,6 +1009,6 @@ class SettingsController extends Controller
 
         return redirect()
             ->route('admin.settings.error_alerts')
-            ->with('success', $finalMsg ?: 'Pemeriksaan alert selesai.');
+            ->with('success', $finalMsg ?: 'Pemeriksaan alert WhatsApp selesai.');
     }
 }

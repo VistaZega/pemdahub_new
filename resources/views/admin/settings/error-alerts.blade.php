@@ -147,96 +147,67 @@
             </div>
         </div>
 
-        <!-- 2 Saluran Pengiriman: WhatsApp & Telegram -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Saluran Pengiriman: WhatsApp Super Admin (Eksklusif) -->
+        <div class="bg-white rounded-2xl border-[1.5px] border-slate-900 shadow-[4px_4px_0px_#0f172a] p-6 space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-2xl border border-emerald-300">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-slate-900">Saluran WhatsApp Super Admin (Eksklusif)</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Laporan diagnostik otomatis terkirim langsung ke nomor WhatsApp Super Admin</p>
+                    </div>
+                </div>
 
-            <!-- Saluran 1: WhatsApp Super Admin -->
-            <div class="bg-white rounded-2xl border-[1.5px] border-slate-900 shadow-[4px_4px_0px_#0f172a] p-6 space-y-5 flex flex-col justify-between">
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xl border border-emerald-200">
-                                <i class="fab fa-whatsapp"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-black text-slate-900">Saluran WhatsApp Super Admin</h3>
-                                <p class="text-[11px] text-slate-500">Kirimkan format Masalah, Dampak & Solusi ke WA</p>
-                            </div>
+                <div class="flex items-center gap-3">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="wa_alert_enabled" value="1" class="sr-only peer" {{ $alertConfig['whatsapp']['enabled'] ? 'checked' : '' }}>
+                        <div class="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                    <span class="text-xs font-black {{ $alertConfig['whatsapp']['enabled'] ? 'text-emerald-700' : 'text-slate-400' }}">
+                        {{ $alertConfig['whatsapp']['enabled'] ? 'NOTIFIKASI WA AKTIF' : 'NONAKTIF' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+                <div class="p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl space-y-2.5 text-xs text-emerald-950">
+                    <div class="flex items-center justify-between">
+                        <span class="font-black text-emerald-900 flex items-center gap-1.5">
+                            <i class="fas fa-user-shield text-emerald-600"></i> Akun Super Admin Penerima:
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-200 text-emerald-900">
+                            {{ count($alertConfig['super_admin_recipients'] ?? []) }} Akun Terdeteksi
+                        </span>
+                    </div>
+                    <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                        @forelse($alertConfig['super_admin_recipients'] ?? [] as $sa)
+                        <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-emerald-100 text-[11px]">
+                            <span class="font-bold text-slate-800">{{ $sa['name'] }}</span>
+                            <span class="font-mono text-emerald-700 font-semibold">{{ $sa['phone'] ?? 'Belum ada No HP' }}</span>
                         </div>
-
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="wa_alert_enabled" value="1" class="sr-only peer" {{ $alertConfig['whatsapp']['enabled'] ? 'checked' : '' }}>
-                            <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                        </label>
+                        @empty
+                        <p class="text-slate-500 italic">Tidak ada user superadmin terdaftar.</p>
+                        @endforelse
                     </div>
+                </div>
 
-                    <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl text-xs space-y-2 text-emerald-950">
-                        <p class="font-bold flex items-center gap-1.5 text-emerald-900">
-                            <i class="fas fa-check-circle text-emerald-600"></i> Otomatis Deteksi Nomor Super Admin:
-                        </p>
-                        <p class="text-[11px] text-slate-600">
-                            Sistem akan otomatis mengirim notifikasi ke nomor WhatsApp seluruh user bertipe <b>Super Admin</b> yang terdaftar di database.
-                        </p>
-                    </div>
-
+                <div class="space-y-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center gap-1.5">
                             <i class="fas fa-phone text-emerald-600"></i> Nomor WhatsApp Tambahan (Opsional):
                         </label>
-                        <input type="text" name="wa_alert_phone" value="{{ $alertConfig['whatsapp']['admin_phone'] ?? $alertConfig['whatsapp']['custom_phone'] ?? '' }}" placeholder="08xxxxxxxxxx (kosongkan jika pakai nomor Super Admin)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:border-slate-900">
+                        <input type="text" name="wa_alert_phone" value="{{ $alertConfig['whatsapp']['admin_phone'] ?? $alertConfig['whatsapp']['custom_phone'] ?? '' }}" placeholder="08xxxxxxxxxx (kosongkan jika cukup nomor Super Admin)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:border-slate-900">
+                        <p class="text-[10px] text-slate-400 mt-1">Nomor ini juga akan menerima salinan notifikasi error sistem jika diisi.</p>
                     </div>
-                </div>
 
-                <div class="pt-2 text-[10px] text-slate-400 font-mono">
-                    Provider Gateway: <b>{{ $waService->getProviderLabel() }}</b>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+                        <span class="text-slate-500 font-medium">Gateway Pengirim Aktif:</span>
+                        <span class="font-bold text-emerald-800 font-mono">{{ $waService->getProviderLabel() }}</span>
+                    </div>
                 </div>
             </div>
-
-            <!-- Saluran 2: Telegram Bot -->
-            <div x-data="{ showToken: false }" class="bg-white rounded-2xl border-[1.5px] border-slate-900 shadow-[4px_4px_0px_#0f172a] p-6 space-y-5 flex flex-col justify-between">
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xl border border-sky-200">
-                                <i class="fab fa-telegram-plane"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-black text-slate-900">Saluran Telegram Bot</h3>
-                                <p class="text-[11px] text-slate-500">Laporan instan ke grup/channel Telegram pengembang</p>
-                            </div>
-                        </div>
-
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="telegram_alert_enabled" value="1" class="sr-only peer" {{ $alertConfig['telegram']['enabled'] ? 'checked' : '' }}>
-                            <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sky-600"></div>
-                        </label>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center gap-1.5">
-                            <i class="fas fa-robot text-sky-600"></i> Telegram Bot Token:
-                        </label>
-                        <div class="flex gap-2">
-                            <input :type="showToken ? 'text' : 'password'" name="telegram_alert_bot_token" value="{{ $alertConfig['telegram']['bot_token'] }}" placeholder="123456789:ABCdefGHIjklMNOpqr..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:border-slate-900">
-                            <button type="button" @click="showToken = !showToken" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl text-xs font-bold text-slate-600 transition" title="Lihat/Sembunyikan">
-                                <i class="fas" :class="showToken ? 'fa-eye-slash text-rose-500' : 'fa-eye'"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center gap-1.5">
-                            <i class="fas fa-comments text-sky-600"></i> Telegram Chat ID:
-                        </label>
-                        <input type="text" name="telegram_alert_chat_id" value="{{ $alertConfig['telegram']['chat_id'] }}" placeholder="Contoh: 123456789 atau -100123456789" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:border-slate-900">
-                    </div>
-                </div>
-
-                <div class="pt-2 text-[10px] text-slate-400 font-mono">
-                    Status: {{ !empty($alertConfig['telegram']['bot_token']) ? 'Token Terpasang' : 'Belum Konfigurasi' }}
-                </div>
-            </div>
-
         </div>
 
         <!-- Tombol Simpan Konfigurasi -->
@@ -251,40 +222,22 @@
         </div>
     </form>
 
-    <!-- LIVE TESTING SUITE -->
+    <!-- LIVE TESTING SUITE (WHATSAPP ONLY) -->
     <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white space-y-4 border-[1.5px] border-slate-900 shadow-[4px_4px_0px_#0f172a]">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="space-y-1">
                 <h3 class="text-base font-black flex items-center gap-2.5 text-white">
-                    <i class="fas fa-vial text-amber-400 text-lg"></i> Uji Coba Pengiriman Laporan Diagnostik
+                    <i class="fab fa-whatsapp text-emerald-400 text-lg"></i> Uji Coba Pengiriman Laporan WhatsApp
                 </h3>
-                <p class="text-xs text-slate-300 leading-relaxed">Kirim simulasi laporan error berformat 3 Poin (Masalah → Dampak → Solusi) langsung ke HP Anda</p>
+                <p class="text-xs text-slate-300 leading-relaxed">Kirim simulasi laporan error berformat 3 Poin (Masalah → Dampak → Solusi) langsung ke nomor WhatsApp Super Admin</p>
             </div>
-            <div class="flex flex-wrap items-center gap-2.5">
+            <div>
                 <form action="{{ route('admin.settings.error_alerts.test') }}" method="POST" class="inline-block">
                     @csrf
                     <input type="hidden" name="channel" value="whatsapp">
-                    <button type="submit" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition flex items-center gap-2 shadow-xs cursor-pointer">
-                        <i class="fab fa-whatsapp"></i>
-                        <span>Tes WhatsApp</span>
-                    </button>
-                </form>
-
-                <form action="{{ route('admin.settings.error_alerts.test') }}" method="POST" class="inline-block">
-                    @csrf
-                    <input type="hidden" name="channel" value="telegram">
-                    <button type="submit" class="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-black transition flex items-center gap-2 shadow-xs cursor-pointer">
-                        <i class="fab fa-telegram-plane"></i>
-                        <span>Tes Telegram</span>
-                    </button>
-                </form>
-
-                <form action="{{ route('admin.settings.error_alerts.test') }}" method="POST" class="inline-block">
-                    @csrf
-                    <input type="hidden" name="channel" value="all">
-                    <button type="submit" class="px-4 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 rounded-xl text-xs font-black transition flex items-center gap-2 shadow-xs cursor-pointer">
-                        <i class="fas fa-paper-plane"></i>
-                        <span>Tes Semua Saluran</span>
+                    <button type="submit" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition flex items-center gap-2 shadow-[2px_2px_0px_#047857] cursor-pointer">
+                        <i class="fab fa-whatsapp text-sm"></i>
+                        <span>Kirim Uji Coba Alert ke WhatsApp</span>
                     </button>
                 </form>
             </div>
