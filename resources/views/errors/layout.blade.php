@@ -42,14 +42,28 @@
 
         {{-- Smart Indonesian Diagnostic Card --}}
         @if($diag)
+        @php
+            $copyPayload = "📋 [LAPORAN KENDALA PEMBDAHUB]\n" .
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+                "🏷️ Kategori: " . strip_tags($diag['type']) . " (" . strip_tags($diag['danger_label']) . ")\n" .
+                "🛑 Masalah: " . strip_tags($diag['problem']) . "\n" .
+                "⚠️ Dampak: " . strip_tags($diag['impact']) . "\n" .
+                "🛠️ Rekomendasi Solusi: " . strip_tags($diag['solution']) . "\n" .
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+                "💻 Detail Teknis / Kode Error:\n" . strip_tags($diag['raw']);
+        @endphp
         <div class="mb-6 text-left bg-white border-2 border-slate-300 rounded-2xl p-5 shadow-sm space-y-3">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                     <i class="fas fa-stethoscope text-emerald-600"></i> Hasil Diagnostik Pintar PembdaHUB
                 </span>
-                <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                    {{ $diag['badge'] }}
-                </span>
+                <button type="button" 
+                        onclick="copyErrorDiagnostic(this)" 
+                        data-copy="{{ $copyPayload }}"
+                        class="text-[11px] font-bold px-3 py-1 rounded-lg bg-slate-900 hover:bg-black text-white flex items-center gap-1.5 transition shadow-sm cursor-pointer active:scale-95">
+                    <i class="fas fa-copy text-amber-400"></i>
+                    <span>Salin Kode & Diagnostik</span>
+                </button>
             </div>
             
             <div class="space-y-2.5 text-xs text-slate-700">
@@ -98,5 +112,39 @@
             &copy; {{ date('Y') }} Pembda<span style="color:#ef4444">HUB</span> — Sistem Manajemen Sekolah Terpadu
         </p>
     </div>
+
+    <script>
+        function copyErrorDiagnostic(btn) {
+            const text = btn.getAttribute('data-copy');
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => showCopiedFeedback(btn));
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                try {
+                    document.execCommand('copy');
+                    showCopiedFeedback(btn);
+                } catch (err) {
+                    alert('Gagal menyalin. Silakan pilih teks manual.');
+                }
+                document.body.removeChild(ta);
+            }
+        }
+
+        function showCopiedFeedback(btn) {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check text-emerald-400"></i> <span class="text-emerald-300">Tersalin!</span>';
+            btn.classList.add('bg-emerald-950', 'border-emerald-500');
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('bg-emerald-950', 'border-emerald-500');
+            }, 2500);
+        }
+    </script>
 </body>
 </html>

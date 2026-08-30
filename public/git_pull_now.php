@@ -195,10 +195,24 @@ try {
             'solution' => 'Periksa catatan file log Laravel.'
         ];
 
+    $copyPayload = "📋 [LAPORAN DEPLOYMENT PEMBDAHUB]\n" .
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+        "🏷️ Kategori: " . strip_tags($diag['type']) . " (" . strip_tags($diag['danger_label']) . ")\n" .
+        "🛑 Masalah: " . strip_tags($diag['problem']) . "\n" .
+        "⚠️ Dampak: " . strip_tags($diag['impact']) . "\n" .
+        "🛠️ Solusi: " . strip_tags($diag['solution']) . "\n" .
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+        "💻 Detail Teknis:\n" . $e->getMessage();
+
+    $jsonCopy = htmlspecialchars(json_encode($copyPayload), ENT_QUOTES, 'UTF-8');
+
     echo "<span class='err'>Detail Teknis: " . htmlspecialchars($e->getMessage()) . "</span>\n";
     echo "</pre>";
     echo "<div style='background:#181c24;border:1.5px solid #f59e0b;border-radius:12px;padding:16px 20px;margin:14px 0;color:#f8fafc;line-height:1.6;font-family:sans-serif;'>";
-    echo "<h4 style='color:#fbbf24;margin:0 0 10px 0;font-size:15px;'>📋 PENJELASAN DIAGNOSTIK SISTEM (BAHASA INDONESIA)</h4>";
+    echo "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;'>";
+    echo "<h4 style='color:#fbbf24;margin:0;font-size:15px;'>📋 PENJELASAN DIAGNOSTIK SISTEM (BAHASA INDONESIA)</h4>";
+    echo "<button type='button' onclick='copyDeployDiag(this, {$jsonCopy})' style='background:#f59e0b;color:#0f172a;border:none;padding:5px 12px;border-radius:6px;font-weight:bold;font-size:12px;cursor:pointer;'>📋 Salin Kode & Diagnostik</button>";
+    echo "</div>";
     echo "<p style='margin:6px 0;'><b>🏷️ Kategori:</b> <span style='background:#334155;padding:2px 8px;border-radius:6px;font-size:12px;font-family:monospace;'>" . htmlspecialchars($diag['type']) . "</span> &nbsp; <b>Status Bahaya:</b> {$diag['danger_label']}</p>";
     echo "<p style='margin:8px 0;'><b>🛑 Masalah:</b> {$diag['problem']}</p>";
     echo "<p style='margin:8px 0;'><b>⚠️ Dampak / Akibat:</b> {$diag['impact']}</p>";
@@ -210,4 +224,32 @@ flush();
 
 echo "<h2 style='color:#3fb950;'>🎉 PROSES PEMERIKSAAN SERVER SELESAI</h2>";
 echo "<p><a href='/' style='background:#238636;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;'>← Buka Halaman Utama PembdaHUB</a></p>";
+echo "<script>
+function copyDeployDiag(btn, text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            btn.innerHTML = '✔ Tersalin!';
+            btn.style.background = '#10b981';
+            btn.style.color = '#ffffff';
+        });
+    } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+            document.execCommand('copy');
+            btn.innerHTML = '✔ Tersalin!';
+            btn.style.background = '#10b981';
+            btn.style.color = '#ffffff';
+        } catch(e) {
+            alert('Gagal menyalin otomatis.');
+        }
+        document.body.removeChild(ta);
+    }
+}
+</script>";
 echo "</body></html>";

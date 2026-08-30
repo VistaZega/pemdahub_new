@@ -921,10 +921,34 @@ class SettingsController extends Controller
 
         $alertService = app(\App\Services\ErrorAlertService::class);
         $alertConfig = $alertService->getAlertConfig();
-        $recentLogs = $alertService->getRecentErrorLogs(25);
+        $recentLogs = $alertService->getRecentErrorLogs(30);
         $waService = app(\App\Services\WhatsAppService::class);
+        $healthChecks = \App\Services\ErrorDiagnosticService::runHealthVerification();
+        $allPassed = !collect($healthChecks)->contains('passed', false);
 
-        return view('admin.settings.error-alerts', compact('alertConfig', 'recentLogs', 'waService'));
+        return view('admin.settings.error-alerts', compact('alertConfig', 'recentLogs', 'waService', 'healthChecks', 'allPassed'));
+    }
+
+    /**
+     * Clear application log file
+     */
+    public function clearErrorLogs()
+    {
+        $this->authorizeFeatureAccess();
+
+        $logPath = storage_path('logs/laravel.log');
+        if (file_exists($logPath)) {
+            @file_put_contents($logPath, '');
+        }
+
+        $dailyFiles = glob(storage_path('logs/laravel-*.log'));
+        foreach ($dailyFiles as $df) {
+            @file_put_contents($df, '');
+        }
+
+        return redirect()
+            ->route('admin.settings.error_alerts')
+            ->with('success', 'Riwayat log error lama berhasil dibersihkan! Sistem kini siap memantau aktivitas baru.');
     }
 
     /**

@@ -321,6 +321,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::get('settings/error-alerts', [App\Http\Controllers\Admin\SettingsController::class, 'errorAlerts'])->name('settings.error_alerts');
     Route::put('settings/error-alerts', [App\Http\Controllers\Admin\SettingsController::class, 'updateErrorAlerts'])->name('settings.error_alerts.update');
     Route::post('settings/error-alerts/test', [App\Http\Controllers\Admin\SettingsController::class, 'testErrorAlertChannel'])->name('settings.error_alerts.test');
+    Route::post('settings/error-alerts/clear', [App\Http\Controllers\Admin\SettingsController::class, 'clearErrorLogs'])->name('settings.error_alerts.clear');
     Route::get('settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     
     // Report Cards (Rapor Digital)
