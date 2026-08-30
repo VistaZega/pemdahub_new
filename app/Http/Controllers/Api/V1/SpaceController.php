@@ -263,20 +263,17 @@ class SpaceController extends Controller
     {
         $user = $request->user();
 
-        if (RateLimiter::tooManyAttempts('forum_post:' . $user->id, 1)) {
-            $seconds = RateLimiter::availableIn('forum_post:' . $user->id);
-            return response()->json(['message' => "Too many requests. Please wait {$seconds} seconds."], 429);
+        $content = $request->input('content');
+        $title = $request->input('title');
+        $category = $request->input('category') ?? 'diskusi';
+
+        if (empty($content)) {
+            return response()->json(['message' => 'Konten postingan tidak boleh kosong.'], 422);
         }
 
-        $validated = $request->validate([
-            'title' => 'required|string|min:15|max:255',
-            'content' => 'required|string|min:15',
-            'category' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'attachment' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,zip|max:10240',
-        ]);
-
-        RateLimiter::hit('forum_post:' . $user->id, 300);
+        if (empty($title)) {
+            $title = Str::limit(strip_tags($content), 60);
+        }
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -293,23 +290,29 @@ class SpaceController extends Controller
 
         $thread = ForumThread::create([
             'user_id' => $user->id,
-            'group_id' => null,
-            'title' => $validated['title'],
-            'content' => $validated['content'],
-            'category' => $validated['category'] ?? 'diskusi',
+            'group_id' => $request->input('group_id') ?: null,
+            'title' => $title,
+            'content' => $content,
+            'category' => $category,
             'image_path' => $imagePath,
             'attachment_path' => $attachmentPath,
             'attachment_name' => $attachmentName,
             'views_count' => 0,
         ]);
 
-        \App\Models\ReputationLog::log($user->id, 15, 'forum', "Membuat postingan Pembda Space: {$thread->title}", 'App\Models\ForumThread', $thread->id);
+        try {
+            \App\Models\ReputationLog::log($user->id, 15, 'forum', "Membuat postingan Pembda Space: {$thread->title}", 'App\Models\ForumThread', $thread->id);
+        } catch (\Throwable $e) {
+            // Ignore reputation log error
+        }
 
         return response()->json([
-            'message' => 'Post created successfully',
+            'success' => true,
+            'message' => 'Postingan berhasil diterbitkan!',
             'thread' => $thread->load('user')
         ]);
     }
+
 
     public function showThread(Request $request, $id)
     {
