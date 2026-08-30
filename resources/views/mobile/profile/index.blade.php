@@ -1,3 +1,8 @@
+@extends('mobile.layouts.app')
+
+@section('title', 'Profil Saya - PembdaHUB Mobile')
+
+@section('content')
 @php 
     $activeRole = session('active_role', $user->role); 
     $isStudent = ($user->role === 'siswa') || ($student && !$user->isGuru() && !$user->isAdminSekolah() && !$user->isOwnerOrSuperAdmin());
