@@ -46,6 +46,7 @@ if (!empty($token) && file_exists($envFile)) {
 
 $files = [
     'public/git_pull_now.php',
+    'public/pull_raw.php',
     'resources/views/auth/login.blade.php',
     'resources/views/index.blade.php',
     'resources/views/landing/partials/hero.blade.php',
@@ -57,13 +58,22 @@ $files = [
     'resources/views/landing/partials/footer.blade.php',
     'resources/views/public/pkl_map.blade.php',
     'routes/web.php',
+    'routes/api.php',
+    'routes/api_v1.php',
+    'bootstrap/app.php',
     'app/Http/Controllers/Admin/NewsController.php',
     'app/Http/Controllers/Admin/GalleryController.php',
+    'app/Http/Controllers/Api/V1/AuthController.php',
+    'app/Http/Controllers/Api/V1/SpaceController.php',
+    'app/Http/Controllers/Api/V1/NotificationController.php',
+    'app/Services/FcmService.php',
+    'app/Jobs/SendFcmNotification.php',
     'resources/views/admin/news/form.blade.php',
     'app/Models/User.php',
     'resources/views/profile/settings.blade.php',
     'app/Http/Controllers/ProfileSettingsController.php',
 ];
+
 
 $successCount = 0;
 $failCount = 0;

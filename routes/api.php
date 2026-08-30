@@ -124,4 +124,12 @@ Route::get('/running-text/live/raw', [\App\Http\Controllers\Api\RunningTextContr
 Route::get('/running-text/alumni', [\App\Http\Controllers\Api\RunningTextController::class, 'getAlumniMessages']);
 Route::get('/running-text/alumni/raw', [\App\Http\Controllers\Api\RunningTextController::class, 'getAlumniMessages']);
 
+// ==== PEMBDA SPACE MOBILE API V1 ====
+Route::prefix('v1')->group(function () {
+    if (file_exists(__DIR__ . '/api_v1.php')) {
+        require __DIR__ . '/api_v1.php';
+    }
+});
+
+
 

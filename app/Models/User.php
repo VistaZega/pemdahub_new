@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Traits\LogsActivity;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, LogsActivity;
+    use HasApiTokens, HasFactory, Notifiable, LogsActivity;
 
     protected $fillable = [
         'name',
@@ -33,6 +34,10 @@ class User extends Authenticatable
         'is_active' => 'boolean',
         'last_login' => 'datetime',
         'must_change_password' => 'boolean',
+    ];
+
+    protected $appends = [
+        'avatar_url',
     ];
 
     /**
