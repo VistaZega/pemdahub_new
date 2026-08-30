@@ -214,11 +214,15 @@ class LmsController extends Controller
                 ->with('error', 'Materi ini masih terkunci. Selesaikan materi sebelumnya terlebih dahulu.');
         }
 
-        // Auto mark as in_progress if not set
-        LmsMaterialProgress::firstOrCreate(
-            ['student_id' => $student->id, 'material_id' => $material->id],
-            ['status' => 'in_progress', 'created_at' => now()]
-        );
+        // Auto mark as in_progress if not set (with race condition safety)
+        try {
+            LmsMaterialProgress::firstOrCreate(
+                ['student_id' => $student->id, 'material_id' => $material->id],
+                ['status' => 'in_progress', 'first_viewed_at' => now(), 'created_at' => now()]
+            );
+        } catch (\Throwable $e) {
+            // Already created concurrently by tracking ping
+        }
 
         $note = \App\Models\LmsMaterialNote::where('student_id', $student->id)
             ->where('material_id', $material->id)
@@ -332,18 +336,40 @@ class LmsController extends Controller
             'time_spent' => 'nullable|integer|min:0',
         ]);
 
-        $progress = LmsMaterialProgress::firstOrNew(
-            ['material_id' => $materialId, 'student_id' => $student->id]
-        );
+        try {
+            $progress = LmsMaterialProgress::firstOrCreate(
+                ['material_id' => $materialId, 'student_id' => $student->id],
+                [
+                    'status' => $request->status,
+                    'first_viewed_at' => now(),
+                    'progress_percent' => $request->status === 'in_progress' ? 50 : 10,
+                ]
+            );
 
-        if ($request->status === 'completed') {
-            $progress->markCompleted();
-        } else {
-            $progress->fill([
-                'status' => $request->status,
-                'first_viewed_at' => $progress->first_viewed_at ?? now(),
-                'progress_percent' => $request->status === 'in_progress' ? 50 : 10,
-            ])->save();
+            if ($request->status === 'completed') {
+                $progress->markCompleted();
+            } else {
+                $progress->update([
+                    'status' => $request->status,
+                    'first_viewed_at' => $progress->first_viewed_at ?? now(),
+                    'progress_percent' => $request->status === 'in_progress' ? 50 : 10,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            $progress = LmsMaterialProgress::where('material_id', $materialId)
+                ->where('student_id', $student->id)
+                ->first();
+
+            if ($progress) {
+                if ($request->status === 'completed') {
+                    $progress->markCompleted();
+                } else {
+                    $progress->update([
+                        'status' => $request->status,
+                        'progress_percent' => $request->status === 'in_progress' ? 50 : 10,
+                    ]);
+                }
+            }
         }
 
         if ($request->time_spent) {

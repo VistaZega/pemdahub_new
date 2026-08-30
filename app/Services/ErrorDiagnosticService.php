@@ -78,7 +78,23 @@ class ErrorDiagnosticService
             ];
         }
 
-        // 5. Foreign Key / Integrity Constraint Violation (SQLSTATE 23000)
+        // 5. Duplicate Entry in SQL (SQLSTATE 23000 / Error 1062)
+        if (str_contains($message, '1062') || str_contains($message, 'Duplicate entry')) {
+            preg_match("/Duplicate entry '([^']+)'/i", $message, $m);
+            $entry = $m[1] ?? 'data';
+            return [
+                'type' => 'Database - Duplikasi Data / Race Condition',
+                'badge' => 'DUPLICATE ENTRY (1062)',
+                'danger_level' => 'low',
+                'danger_label' => '🟢 Aman (Data Terlindungi dari Duplikasi)',
+                'problem' => "Sistem mencoba memasukkan data ganda (<code>{$entry}</code>) pada tabel yang mengharuskan nilai unik (misal: dua request bersamaan saat membuka materi LMS).",
+                'impact' => "Database secara otomatis menolak pencatatan ganda. Data yang sudah ada tetap aman dan tidak rusak/berantakan.",
+                'solution' => "Gunakan metode <code>firstOrCreate()</code> atau <code>updateOrCreate()</code> dengan blok pengaman <code>try-catch</code> pada controller fitur terkait.",
+                'raw' => $message,
+            ];
+        }
+
+        // 6. Foreign Key / Integrity Constraint Violation (SQLSTATE 23000)
         if (str_contains($message, '23000') || str_contains($message, 'foreign key constraint fails')) {
             return [
                 'type' => 'Database - Proteksi Integritas Relasi Data',
