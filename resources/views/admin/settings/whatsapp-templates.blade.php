@@ -3,8 +3,23 @@
 @section('title', 'Editor Template & Syarat WA')
 
 @section('content')
+@php
+    $templatesPayload = [];
+    foreach ($templates as $key => $tpl) {
+        $settingKey = 'wa_tpl_' . str_replace('.', '_', $key);
+        $templatesPayload[$key] = [
+            'key' => $key,
+            'settingKey' => $settingKey,
+            'title' => $tpl['title'],
+            'variables' => $tpl['variables'],
+            'content' => $tpl['content'] ?? '',
+        ];
+    }
+@endphp
+
 <div class="space-y-6" x-data="{
     selectedKey: 'executive.principal_daily_attendance',
+    templates: {{ Js::from($templatesPayload) }},
     previewData: {
         '{sekolah}': 'SMAS Pembda 1 Gunungsitoli',
         '{nama_kepsek}': 'Agustiani Gea, S.Kom., M.Si',
@@ -64,31 +79,36 @@
         '{due_date}': '05 September 2026',
         '{link}': 'https://perguruanpembda.com/lms',
     },
-    formatMessage(text) {
-        if (!text) return '';
-        let formatted = text;
-        // Replace sample variables
-        for (const [key, val] of Object.entries(this.previewData)) {
-            formatted = formatted.replaceAll(key, val);
-        }
-        // Bold: *text* -> <b>text</b>
-        formatted = formatted.replace(/\*([^\*]+)\*/g, '<b class=\'font-bold\'>$1</b>');
-        // Italic: _text_ -> <i>text</i>
-        formatted = formatted.replace(/_([^_]+)_/g, '<i class=\'italic text-slate-600\'>$1</i>');
-        // Newlines -> <br>
-        formatted = formatted.replace(/\n/g, '<br>');
-        return formatted;
+    get currentText() {
+        return this.templates[this.selectedKey]?.content || '';
     },
-    insertVariable(varText, fieldId) {
-        const textarea = document.getElementById(fieldId);
+    get formattedPreview() {
+        let text = this.currentText;
+        if (!text || text.trim() === '') {
+            return '<span class=\'text-slate-400 italic\'>Isi pesan masih kosong...</span>';
+        }
+        for (const [k, v] of Object.entries(this.previewData)) {
+            text = text.replaceAll(k, v);
+        }
+        // Bold formatting
+        text = text.replace(/\*([^\*]+)\*/g, '<b class=\'font-bold text-slate-950\'>$1</b>');
+        // Italic formatting
+        text = text.replace(/_([^_]+)_/g, '<i class=\'italic text-slate-700\'>$1</i>');
+        // Linebreaks
+        text = text.replace(/\n/g, '<br>');
+        return text;
+    },
+    insertVariable(v) {
+        const textarea = document.getElementById('textarea_' + this.selectedKey);
         if (!textarea) return;
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
-        const text = textarea.value;
-        textarea.value = text.substring(0, start) + varText + text.substring(end);
-        textarea.focus();
-        textarea.selectionStart = textarea.selectionEnd = start + varText.length;
-        textarea.dispatchEvent(new Event('input'));
+        const oldVal = this.templates[this.selectedKey].content || '';
+        this.templates[this.selectedKey].content = oldVal.substring(0, start) + v + oldVal.substring(end);
+        this.$nextTick(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + v.length, start + v.length);
+        });
     }
 }">
     <!-- Header Banner (Tactile Neo-Brutalist Accent) -->
@@ -107,17 +127,17 @@
                     Editor Template Pesan WhatsApp
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
-                    Kustomisasi redaksi pesan notifikasi otomatis & lihat simulasi tampilan di layar smartphone secara realtime.
+                    Kustomisasi redaksi pesan notifikasi otomatis & lihat simulasi tampilan di smartphone secara realtime.
                 </p>
             </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-3">
             <a href="{{ route('admin.settings.whatsapp') }}" class="px-4 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold border-[1.5px] border-slate-900 shadow-[3px_3px_0px_#0f172a] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#0f172a] transition-all flex items-center gap-2">
                 <i class="fas fa-toggle-on"></i>
                 <span>Pengaturan Saklar WA</span>
             </a>
-            <a href="{{ route('admin.settings.index') }}" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-300 transition flex items-center gap-1.5">
+            <a href="{{ route('admin.settings.index') }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-300 transition flex items-center gap-2">
                 <i class="fas fa-arrow-left"></i>
                 <span>Kembali</span>
             </a>
@@ -200,106 +220,126 @@
             </div>
         </div>
 
-        <!-- SECTION 2: WORKSPACE TEMPLATE EDITOR (SPLIT: LIST & LIVE PHONE MOCKUP) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- SECTION 2: WORKSPACE STUDIO (TEMPLATE LIST + ACTIVE EDITOR + SMARTPHONE MOCKUP) -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
 
-            <!-- LEFT: TEMPLATES SELECTION ACCORDION (7 COLS) -->
-            <div class="lg:col-span-7 bg-white rounded-2xl border-[1.5px] border-slate-200 shadow-sm p-6 space-y-6">
+            <!-- LEFT: TEMPLATES SELECTOR LIST (4 COLS) -->
+            <div class="xl:col-span-4 bg-white rounded-2xl border-[1.5px] border-slate-200 shadow-sm p-5 space-y-3">
                 <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
                     <div>
-                        <h2 class="text-sm font-black text-slate-900 flex items-center gap-2">
-                            <i class="fas fa-edit text-emerald-600"></i> Redaksi Template Pesan
+                        <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-list-ul text-emerald-600"></i> Daftar Template Pesan
                         </h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Pilih template di bawah, edit teksnya, atau klik tag variabel untuk menyisipkannya</p>
                     </div>
-                    <span class="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
-                        {{ count($templates) }} Template
+                    <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        {{ count($templates) }} Jenis
                     </span>
                 </div>
 
-                <div class="space-y-5">
+                <div class="space-y-1.5 max-h-[680px] overflow-y-auto pr-1">
                     @foreach($templates as $key => $tpl)
-                    @php
-                        $settingKey = 'wa_tpl_' . str_replace('.', '_', $key);
-                    @endphp
-                    <div 
-                        class="p-4 sm:p-5 rounded-2xl border transition-all"
-                        :class="selectedKey === '{{ $key }}' ? 'border-emerald-500 bg-emerald-50/20 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
+                    @php $settingKey = 'wa_tpl_' . str_replace('.', '_', $key); @endphp
+                    <button 
+                        type="button" 
                         @click="selectedKey = '{{ $key }}'"
+                        class="w-full text-left p-3 rounded-xl border transition-all flex items-start gap-2.5"
+                        :class="selectedKey === '{{ $key }}' ? 'bg-slate-900 text-white border-slate-900 shadow-sm' : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200'"
                     >
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full" :class="selectedKey === '{{ $key }}' ? 'bg-emerald-600' : 'bg-slate-300'"></span>
-                                <h3 class="text-xs font-bold text-slate-900">{{ $tpl['title'] }}</h3>
-                            </div>
-                            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-bold border border-slate-200 self-start sm:self-auto">
+                        <div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" :class="selectedKey === '{{ $key }}' ? 'bg-emerald-400' : 'bg-slate-400'"></div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-xs font-bold truncate leading-tight" :class="selectedKey === '{{ $key }}' ? 'text-white' : 'text-slate-900'">
+                                {{ $tpl['title'] }}
+                            </h4>
+                            <p class="text-[10px] font-mono mt-0.5 truncate" :class="selectedKey === '{{ $key }}' ? 'text-slate-300' : 'text-slate-500'">
                                 {{ $key }}
-                            </span>
-                        </div>
-
-                        <!-- Variable Chips (Click to Insert) -->
-                        <div class="mb-3">
-                            <p class="text-[10px] text-slate-500 font-semibold mb-1.5 flex items-center gap-1">
-                                <i class="fas fa-tags text-slate-400"></i> Tag Variabel (Klik untuk menyisipkan ke kursor):
                             </p>
-                            <div class="flex flex-wrap gap-1.5">
-                                @foreach($tpl['variables'] as $var)
-                                <button 
-                                    type="button" 
-                                    @click.stop="insertVariable('{{ $var }}', 'editor_{{ $settingKey }}')"
-                                    class="px-2 py-0.5 rounded-md bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 hover:border-emerald-500 font-mono text-[10px] font-bold transition shadow-xs"
-                                    title="Klik untuk sisipkan {{ $var }}"
-                                >
-                                    + {{ $var }}
-                                </button>
-                                @endforeach
-                            </div>
                         </div>
-
-                        <!-- Textarea -->
-                        <textarea 
-                            id="editor_{{ $settingKey }}"
-                            name="tpl_{{ $settingKey }}" 
-                            rows="6" 
-                            x-ref="field_{{ str_replace('.', '_', $key) }}"
-                            @focus="selectedKey = '{{ $key }}'"
-                            class="w-full p-3 rounded-xl border border-slate-300 text-xs font-mono text-slate-900 leading-relaxed focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white"
-                        >{{ $tpl['content'] }}</textarea>
-                    </div>
+                    </button>
                     @endforeach
                 </div>
+            </div>
 
-                <!-- Submit Button -->
-                <div class="pt-4 border-t border-slate-100 flex justify-end">
-                    <button type="submit" class="w-full sm:w-auto px-7 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs border-[1.5px] border-slate-900 shadow-[3px_3px_0px_#0f172a] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#0f172a] transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-save text-sm"></i>
+            <!-- CENTER: ACTIVE TEMPLATE TEXT EDITOR (5 COLS) -->
+            <div class="xl:col-span-5 bg-white rounded-2xl border-[1.5px] border-slate-200 shadow-sm p-6 space-y-5">
+                <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 inline-block mb-1" x-text="selectedKey"></span>
+                        <h3 class="text-sm font-black text-slate-900" x-text="templates[selectedKey]?.title"></h3>
+                    </div>
+                </div>
+
+                <!-- Variable Chips -->
+                <div class="space-y-1.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                    <p class="text-[11px] text-slate-600 font-bold flex items-center gap-1.5">
+                        <i class="fas fa-tags text-emerald-600"></i> Tag Variabel Tersedia (Klik untuk Menyisipkan):
+                    </p>
+                    <div class="flex flex-wrap gap-1.5 pt-1">
+                        <template x-for="v in (templates[selectedKey]?.variables || [])" :key="v">
+                            <button 
+                                type="button" 
+                                @click="insertVariable(v)"
+                                class="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 hover:border-emerald-500 font-mono text-[11px] font-bold transition shadow-xs flex items-center gap-1"
+                            >
+                                <span class="text-emerald-500 font-black">+</span>
+                                <span x-text="v"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Textareas per template (All preserved in form so POST saves all) -->
+                @foreach($templates as $key => $tpl)
+                @php $settingKey = 'wa_tpl_' . str_replace('.', '_', $key); @endphp
+                <div x-show="selectedKey === '{{ $key }}'" class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-700">
+                        Isi Teks Pesan Template:
+                    </label>
+                    <textarea 
+                        id="textarea_{{ $key }}"
+                        name="tpl_{{ $settingKey }}" 
+                        x-model="templates['{{ $key }}'].content"
+                        rows="12" 
+                        class="w-full p-4 rounded-xl border border-slate-300 text-xs font-mono text-slate-900 leading-relaxed focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white shadow-inner"
+                        placeholder="Ketik isi format pesan..."
+                    ></textarea>
+                </div>
+                @endforeach
+
+                <!-- Submit Button with Spacious Padding -->
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-4">
+                    <p class="text-[11px] text-slate-500">
+                        Perubahan akan tersimpan ke database.
+                    </p>
+                    <button type="submit" class="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm border-[1.5px] border-slate-900 shadow-[3px_3px_0px_#0f172a] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#0f172a] transition-all flex items-center justify-center gap-3 whitespace-nowrap">
+                        <i class="fas fa-save text-base"></i>
                         <span>Simpan Semua Template</span>
                     </button>
                 </div>
             </div>
 
-            <!-- RIGHT: LIVE SMARTPHONE WHATSAPP CHAT MOCKUP (5 COLS) -->
-            <div class="lg:col-span-5 sticky top-6 space-y-4">
+            <!-- RIGHT: FIXED WIDTH SMARTPHONE MOCKUP (3 COLS) -->
+            <div class="xl:col-span-3 flex flex-col items-center space-y-3 sticky top-6">
                 
-                <div class="bg-white rounded-2xl border-[1.5px] border-slate-200 shadow-sm p-4 text-center">
+                <div class="w-full max-w-[320px] bg-white rounded-xl border border-slate-200 p-3 text-center shadow-sm">
                     <span class="text-xs font-black text-slate-900 flex items-center justify-center gap-1.5">
-                        <i class="fas fa-mobile-alt text-emerald-600"></i> Live Preview Layar Smartphone
+                        <i class="fas fa-mobile-alt text-emerald-600"></i> Live Preview WhatsApp
                     </span>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Tampilan simulasi pesan yang akan diterima di WhatsApp penerima</p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Simulasi penerima di layar smartphone</p>
                 </div>
 
-                <!-- Smartphone Chassis -->
-                <div class="relative mx-auto max-w-[340px] rounded-[36px] bg-slate-900 p-3 shadow-2xl border-4 border-slate-800">
-                    <!-- Screen Notch / Camera -->
-                    <div class="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-800 rounded-full z-20 flex items-center justify-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-slate-950"></div>
+                <!-- Phone Body (Fixed Width: 310px, Height: 540px) -->
+                <div class="w-[310px] h-[540px] rounded-[36px] bg-slate-900 p-2.5 shadow-2xl border-4 border-slate-800 flex flex-col relative select-none">
+                    
+                    <!-- Top Speaker & Camera Notch -->
+                    <div class="w-20 h-3.5 bg-slate-800 rounded-full mx-auto mb-1 flex items-center justify-center">
+                        <div class="w-2 h-2 rounded-full bg-slate-950"></div>
                     </div>
 
-                    <!-- Phone Screen Content -->
-                    <div class="rounded-[28px] overflow-hidden bg-[#efeae2] flex flex-col h-[520px] text-slate-900 text-xs select-none">
+                    <!-- Screen Inner Container -->
+                    <div class="flex-1 rounded-[26px] overflow-hidden bg-[#efeae2] flex flex-col text-slate-900 text-xs">
                         
                         <!-- Status Bar Top -->
-                        <div class="bg-[#005c4b] text-white px-5 pt-3 pb-1 flex justify-between items-center text-[10px] font-mono">
+                        <div class="bg-[#005c4b] text-white px-4 pt-1.5 pb-1 flex justify-between items-center text-[10px] font-mono">
                             <span>08:00</span>
                             <div class="flex items-center gap-1.5">
                                 <i class="fas fa-wifi text-[9px]"></i>
@@ -309,60 +349,54 @@
 
                         <!-- WhatsApp Header Bar -->
                         <div class="bg-[#005c4b] text-white px-3 py-2 flex items-center justify-between shadow-sm">
-                            <div class="flex items-center gap-2.5">
-                                <i class="fas fa-arrow-left text-xs"></i>
-                                <div class="w-8 h-8 rounded-full bg-white text-emerald-700 flex items-center justify-center font-bold text-xs shadow-inner">
-                                    <i class="fas fa-graduation-cap"></i>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-arrow-left text-[11px]"></i>
+                                <div class="w-7 h-7 rounded-full bg-white text-emerald-700 flex items-center justify-center font-bold text-xs shadow-inner flex-shrink-0">
+                                    <i class="fas fa-graduation-cap text-[11px]"></i>
                                 </div>
                                 <div class="leading-tight truncate">
-                                    <h4 class="font-bold text-xs truncate">PembdaHUB Official</h4>
-                                    <p class="text-[10px] text-emerald-200 flex items-center gap-1">
+                                    <h4 class="font-bold text-[11px] truncate">PembdaHUB</h4>
+                                    <p class="text-[9px] text-emerald-200 flex items-center gap-1">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-300"></span> online
                                     </p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-3 text-xs pr-1">
+                            <div class="flex items-center gap-2.5 text-[11px] pr-1">
                                 <i class="fas fa-video"></i>
                                 <i class="fas fa-phone"></i>
                                 <i class="fas fa-ellipsis-v"></i>
                             </div>
                         </div>
 
-                        <!-- Chat Messages Canvas -->
-                        <div class="flex-1 p-3 overflow-y-auto space-y-3 flex flex-col justify-start bg-[#efeae2]">
+                        <!-- Chat Messages Screen -->
+                        <div class="flex-1 p-2.5 overflow-y-auto space-y-2 flex flex-col justify-start bg-[#efeae2]">
                             <!-- Date Badge -->
-                            <div class="self-center px-3 py-0.5 rounded-lg bg-white/80 text-slate-600 text-[10px] font-bold shadow-xs uppercase tracking-wider">
+                            <div class="self-center px-2.5 py-0.5 rounded-md bg-white/85 text-slate-600 text-[9px] font-bold shadow-xs uppercase">
                                 Hari Ini
                             </div>
 
                             <!-- WhatsApp Incoming Green Bubble -->
-                            <div class="self-start max-w-[92%] bg-[#d9fdd3] text-slate-900 rounded-2xl rounded-tl-none p-3 shadow-sm border border-[#c4eabf] relative space-y-1">
+                            <div class="self-start w-full max-w-[95%] bg-[#d9fdd3] text-slate-900 rounded-xl rounded-tl-none p-2.5 shadow-sm border border-[#c4eabf] relative space-y-1">
                                 <div 
-                                    class="text-[11px] leading-relaxed break-words font-sans"
-                                    x-html="
-                                        @foreach($templates as $key => $tpl)
-                                        @php $settingKey = 'wa_tpl_' . str_replace('.', '_', $key); @endphp
-                                        (selectedKey === '{{ $key }}') ? formatMessage($refs['field_{{ str_replace('.', '_', $key) }}']?.value || '{{ addslashes($tpl['content']) }}') :
-                                        @endforeach
-                                        ''
-                                    "
+                                    class="text-[11px] leading-relaxed break-words font-sans text-slate-900"
+                                    x-html="formattedPreview"
                                 ></div>
 
-                                <!-- Read Ticks & Timestamp -->
-                                <div class="flex items-center justify-end gap-1 text-[9px] text-slate-500 pt-1">
+                                <!-- Read Receipt Double Blue Check -->
+                                <div class="flex items-center justify-end gap-1 text-[9px] text-slate-500 pt-0.5">
                                     <span>08:00</span>
-                                    <span class="text-[#53bdeb] font-bold">✓✓</span>
+                                    <span class="text-[#53bdeb] font-black">✓✓</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Chat Input Bar Bottom -->
-                        <div class="bg-[#f0f2f5] p-2 flex items-center gap-2 border-t border-slate-200">
-                            <div class="flex-1 bg-white rounded-full px-3 py-1.5 text-[11px] text-slate-400 flex items-center justify-between">
+                        <div class="bg-[#f0f2f5] p-2 flex items-center gap-1.5 border-t border-slate-200">
+                            <div class="flex-1 bg-white rounded-full px-3 py-1 text-[10px] text-slate-400 flex items-center justify-between">
                                 <span>Ketik pesan...</span>
-                                <i class="fas fa-paperclip text-slate-400 text-xs"></i>
+                                <i class="fas fa-paperclip text-slate-400 text-[10px]"></i>
                             </div>
-                            <div class="w-7 h-7 rounded-full bg-[#005c4b] text-white flex items-center justify-center text-xs">
+                            <div class="w-6 h-6 rounded-full bg-[#005c4b] text-white flex items-center justify-center text-[10px]">
                                 <i class="fas fa-microphone"></i>
                             </div>
                         </div>
@@ -371,15 +405,11 @@
                 </div>
 
                 <!-- Info Box below phone -->
-                <div class="p-3.5 bg-slate-100 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
-                    <p class="font-bold text-slate-800 flex items-center gap-1.5">
-                        <i class="fas fa-magic text-emerald-600"></i> Format WhatsApp yang Didukung:
+                <div class="w-full max-w-[310px] p-3 bg-slate-100 rounded-xl border border-slate-200 text-[10px] text-slate-600 space-y-1">
+                    <p class="font-bold text-slate-800 flex items-center gap-1">
+                        <i class="fas fa-info-circle text-emerald-600"></i> Format WhatsApp:
                     </p>
-                    <ul class="list-disc list-inside space-y-0.5 text-slate-500 pl-1">
-                        <li><code>*teks tebal*</code> $\rightarrow$ <b>teks tebal</b></li>
-                        <li><code>_teks miring_</code> $\rightarrow$ <i>teks miring</i></li>
-                        <li>Variabel <code>{nama}</code> akan otomatis diisi data riil.</li>
-                    </ul>
+                    <p>Gunakan <code>*teks*</code> untuk tebal dan <code>_teks_</code> untuk miring.</p>
                 </div>
 
             </div>
