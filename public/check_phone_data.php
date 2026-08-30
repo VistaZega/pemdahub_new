@@ -34,6 +34,20 @@ use App\Models\School;
 use App\Models\Classroom;
 use App\Models\AcademicYear;
 use App\Models\User;
+use App\Models\Setting;
+
+$alertMessage = '';
+if (isset($_GET['enable_attendance_wa']) && $_GET['enable_attendance_wa'] === 'yes') {
+    Setting::setValue('wa_send_principal_attendance', true, 'boolean', 'features');
+    Setting::setValue('wa_send_homeroom_attendance', true, 'boolean', 'features');
+    $alertMessage = '<div style="background:#d1fae5; border:1px solid #10b981; color:#065f46; padding:15px 20px; border-radius:8px; margin-bottom:20px; font-weight:bold;">✅ Berhasil! Saklar otomatisasi WhatsApp untuk <u>Rekap Kepala Sekolah</u> dan <u>Rekap Wali Kelas</u> telah DI-AKTIFKAN di database.</div>';
+}
+
+if (isset($_GET['disable_attendance_wa']) && $_GET['disable_attendance_wa'] === 'yes') {
+    Setting::setValue('wa_send_principal_attendance', false, 'boolean', 'features');
+    Setting::setValue('wa_send_homeroom_attendance', false, 'boolean', 'features');
+    $alertMessage = '<div style="background:#fee2e2; border:1px solid #ef4444; color:#991b1b; padding:15px 20px; border-radius:8px; margin-bottom:20px; font-weight:bold;">⚠️ Saklar otomatisasi WhatsApp untuk Rekap Kepala Sekolah dan Wali Kelas telah DI-NONAKTIFKAN.</div>';
+}
 
 header('Content-Type: text/html; charset=utf-8');
 
@@ -53,10 +67,16 @@ tr:last-child td { border-bottom: none; }
 .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
 .badge-ok { background: #d1fae5; color: #065f46; }
 .badge-error { background: #fee2e2; color: #991b1b; }
+.btn { display: inline-block; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; cursor: pointer; }
+.btn-green { background: #059669; color: white; }
+.btn-green:hover { background: #047857; }
+.btn-red { background: #dc2626; color: white; }
+.btn-red:hover { background: #b91c1c; }
 </style></head><body>';
 
 echo '<h1>📱 Diagnostik Nomor HP — Rekapitulasi Kehadiran Harian</h1>';
 echo '<p><em>Dijalankan: ' . now()->format('d F Y H:i:s') . ' WIB</em></p>';
+echo $alertMessage;
 
 // ============================================================================
 // 1. CEK KEPALA SEKOLAH
@@ -174,9 +194,18 @@ $sendHomeroom = \App\Models\Setting::getValue('wa_send_homeroom_attendance', '0'
 echo '<tr><td>WhatsApp Enabled</td><td>' . ($waEnabled ? 'true' : 'false') . '</td><td>' . ($waEnabled ? '<span class="ok">✅ Aktif</span>' : '<span class="error">❌ Nonaktif</span>') . '</td></tr>';
 echo '<tr><td>Provider Aktif</td><td>' . $waProvider . '</td><td><span class="ok">ℹ️</span></td></tr>';
 echo '<tr><td>Fonnte Token</td><td>' . (strlen($waToken) > 5 ? substr($waToken, 0, 8) . '...' : ($waToken ?: '<kosong>')) . '</td><td>' . (strlen($waToken) > 5 ? '<span class="ok">✅ Terisi</span>' : '<span class="error">❌ Kosong</span>') . '</td></tr>';
-echo '<tr><td>Saklar: Rekap Kepsek</td><td>' . $sendPrincipal . '</td><td>' . ($sendPrincipal ? '<span class="ok">✅ Aktif</span>' : '<span class="warn">⚠️ Nonaktif (perlu diaktifkan di Admin > Settings > WhatsApp)</span>') . '</td></tr>';
-echo '<tr><td>Saklar: Rekap Wali Kelas</td><td>' . $sendHomeroom . '</td><td>' . ($sendHomeroom ? '<span class="ok">✅ Aktif</span>' : '<span class="warn">⚠️ Nonaktif (perlu diaktifkan di Admin > Settings > WhatsApp)</span>') . '</td></tr>';
+echo '<tr><td>Saklar: Rekap Kepsek</td><td>' . ($sendPrincipal ? '1 (Aktif)' : '0 (Nonaktif)') . '</td><td>' . ($sendPrincipal ? '<span class="ok">✅ Aktif</span>' : '<span class="warn">⚠️ Nonaktif</span>') . '</td></tr>';
+echo '<tr><td>Saklar: Rekap Wali Kelas</td><td>' . ($sendHomeroom ? '1 (Aktif)' : '0 (Nonaktif)') . '</td><td>' . ($sendHomeroom ? '<span class="ok">✅ Aktif</span>' : '<span class="warn">⚠️ Nonaktif</span>') . '</td></tr>';
 echo '</table>';
+
+echo '<div style="margin: 15px 0;">';
+if (!$sendPrincipal || !$sendHomeroom) {
+    echo '<a href="?secret=pembda99&enable_attendance_wa=yes" class="btn btn-green">⚡ Klik Di Sini untuk Mengaktifkan Saklar Rekap Kepsek & Wali Kelas</a> ';
+} else {
+    echo '<span class="ok" style="font-size:15px; font-weight:bold;">🎉 Seluruh saklar rekap kehadiran WhatsApp sudah AKTIF!</span> ';
+    echo '<a href="?secret=pembda99&disable_attendance_wa=yes" class="btn btn-red" style="font-size:12px; padding:6px 12px; margin-left:15px;" onclick="return confirm(\'Yakin ingin menonaktifkan saklar?\')">Nonaktifkan</a>';
+}
+echo '</div>';
 
 // ============================================================================
 // RINGKASAN

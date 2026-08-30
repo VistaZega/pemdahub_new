@@ -29,6 +29,11 @@ class ExecutiveReportService
      */
     public function sendPrincipalDailyAttendanceDigest(): array
     {
+        if (!Setting::getValue('wa_send_principal_attendance', true)) {
+            Log::channel('whatsapp')->info('WA digest skipped: wa_send_principal_attendance is disabled');
+            return ['success' => false, 'sent' => 0, 'message' => 'Otomatisasi WA Rekap Kepsek dinonaktifkan di pengaturan'];
+        }
+
         $dateToday = date('Y-m-d');
         $dateFormatted = date('d F Y');
         $sentCount = 0;
@@ -164,6 +169,11 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
      */
     public function sendHomeroomDailyAttendanceDigest(): array
     {
+        if (!Setting::getValue('wa_send_homeroom_attendance', true)) {
+            Log::channel('whatsapp')->info('WA digest skipped: wa_send_homeroom_attendance is disabled');
+            return ['success' => false, 'sent' => 0, 'message' => 'Otomatisasi WA Rekap Wali Kelas dinonaktifkan di pengaturan'];
+        }
+
         $dateToday = date('Y-m-d');
         $dateFormatted = date('d F Y');
 

@@ -440,7 +440,7 @@ class SettingsController extends Controller
                 'badge' => 'Kepala Sekolah',
                 'items' => [
                     'wa_send_principal_attendance' => [
-                        'label' => 'Rekap Eksekutif Presensi Harian Sekolah (07:45 WIB)',
+                        'label' => 'Rekap Eksekutif Presensi Harian Sekolah (08:00 WIB)',
                         'desc' => 'Persentase kehadiran siswa, guru hadir, dan guru izin/piket dikirim setiap pagi.',
                     ],
                     'wa_send_principal_spp' => [
