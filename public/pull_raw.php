@@ -78,9 +78,12 @@ $files = [
 $successCount = 0;
 $failCount = 0;
 
-$headers = ["Accept: application/vnd.github.v3.raw"];
+$headers = [
+    "Accept: application/vnd.github.v3.raw",
+    "User-Agent: PembdaHUB-Updater"
+];
 if (!empty($token)) {
-    $headers[] = "Authorization: Bearer {$token}";
+    $headers[] = "Authorization: token {$token}";
 }
 
 foreach ($files as $file) {
