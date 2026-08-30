@@ -3,49 +3,81 @@
 @section('title', 'Pengaturan WA & Otomatisasi')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Header & Breadcrumb -->
-    <div class="flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/20">
-                <i class="fab fa-whatsapp text-white text-3xl"></i>
+<div class="space-y-6" x-data="{
+    activeTab: 'all',
+    searchQuery: '',
+    toggleAllInGroup(groupKey, state) {
+        const container = document.getElementById('group-' + groupKey);
+        if (container) {
+            const checkboxes = container.querySelectorAll('input[type=checkbox]');
+            checkboxes.forEach(cb => cb.checked = state);
+        }
+    },
+    matchesSearch(text, key, desc) {
+        if (!this.searchQuery.trim()) return true;
+        const q = this.searchQuery.toLowerCase();
+        return (text && text.toLowerCase().includes(q)) || 
+               (key && key.toLowerCase().includes(q)) || 
+               (desc && desc.toLowerCase().includes(q));
+    }
+}">
+    <!-- Top Header Banner (Tactile Neo-Brutalist Accent) -->
+    <div class="bg-white rounded-2xl border-[1.5px] border-slate-900 shadow-[4px_4px_0px_#0f172a] p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div class="flex items-start sm:items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-500 border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] flex items-center justify-center text-white text-2xl flex-shrink-0">
+                <i class="fab fa-whatsapp"></i>
             </div>
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Pengaturan WhatsApp & Otomatisasi</h1>
-                <p class="text-sm text-gray-500">Kelola status koneksi gateway dan daftar saklar (On/Off) otomatisasi pengiriman pesan ke wali murid</p>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold border border-emerald-300 uppercase tracking-wider">
+                        ⚡ Gateway & Automation Engine
+                    </span>
+                </div>
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                    Pengaturan WhatsApp & Otomatisasi
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
+                    Kelola status koneksi gateway dan konfigurasi saklar (On/Off) rekap presensi, SPP, dan notifikasi sekolah.
+                </p>
             </div>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="{{ route('admin.settings.whatsapp.templates') }}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2">
-                <i class="fas fa-edit"></i> Edit Template & Syarat WA
+
+        <div class="flex flex-wrap items-center gap-2.5">
+            <a href="{{ route('admin.settings.whatsapp.templates') }}" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold border-[1.5px] border-slate-900 shadow-[3px_3px_0px_#0f172a] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#0f172a] transition-all flex items-center gap-2">
+                <i class="fas fa-file-signature"></i>
+                <span>Editor Template Pesan</span>
             </a>
-            <a href="{{ route('admin.settings.index') }}" class="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
-                <i class="fas fa-arrow-left"></i> Kembali
+            <a href="{{ url('/check_phone_data.php?secret=pembda99') }}" target="_blank" class="px-3.5 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold border-[1.5px] border-slate-900 shadow-[3px_3px_0px_#0f172a] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#0f172a] transition-all flex items-center gap-1.5" title="Diagnostik Nomor HP Kepsek & Wali Kelas">
+                <i class="fas fa-clipboard-check"></i>
+                <span>Diagnostik No. HP</span>
+            </a>
+            <a href="{{ route('admin.settings.index') }}" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-300 transition flex items-center gap-1.5">
+                <i class="fas fa-arrow-left"></i>
+                <span>Kembali</span>
             </a>
         </div>
     </div>
 
-    <!-- Alert Messages -->
+    <!-- Alert Notifications -->
     @if(session('success'))
-    <div class="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-xl flex items-center justify-between shadow-sm">
+    <div class="p-4 bg-emerald-50 border-[1.5px] border-emerald-600 rounded-2xl flex items-center justify-between shadow-[3px_3px_0px_#059669]">
         <div class="flex items-center gap-3">
             <i class="fas fa-check-circle text-emerald-600 text-lg"></i>
-            <p class="text-emerald-800 font-semibold text-sm">{{ session('success') }}</p>
+            <p class="text-emerald-900 font-bold text-xs sm:text-sm">{{ session('success') }}</p>
         </div>
     </div>
     @endif
 
     @if(session('error'))
-    <div class="p-4 bg-rose-50 border-l-4 border-rose-500 rounded-xl flex items-center justify-between shadow-sm">
+    <div class="p-4 bg-rose-50 border-[1.5px] border-rose-600 rounded-2xl flex items-center justify-between shadow-[3px_3px_0px_#e11d48]">
         <div class="flex items-center gap-3">
             <i class="fas fa-exclamation-triangle text-rose-600 text-lg"></i>
-            <p class="text-rose-800 font-semibold text-sm">{{ session('error') }}</p>
+            <p class="text-rose-900 font-bold text-xs sm:text-sm">{{ session('error') }}</p>
         </div>
     </div>
     @endif
 
-    <!-- Health Check & Status Server Widget -->
-    <!-- Health Check & Status Server Widget (Dual Provider: Fonnte & Baileys) -->
+    <!-- Dual Gateway Provider Status Widget -->
     @php
         $isConnected = !empty($accountInfo['success']) && (
             ($accountInfo['data']['status'] ?? '') === 'connected' || 
@@ -54,126 +86,125 @@
         );
         $currentProvider = $activeProvider ?? 'fonnte';
     @endphp
-    
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+
+    <div class="bg-white rounded-2xl border-[1.5px] border-slate-200 shadow-sm p-6 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
             <div>
-                <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fas fa-server text-emerald-600"></i> Gateway Provider WhatsApp Aktif
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fas fa-server text-emerald-600"></i> Status Gateway Provider WhatsApp
                 </h3>
-                <p class="text-xs text-gray-500">Anda dapat beralih antar provider kapan saja sesuai ketersediaan langganan</p>
+                <p class="text-xs text-slate-500 mt-0.5">Pilih gateway aktif yang akan memproses pengiriman notifikasi otomatis</p>
             </div>
             <div>
-                <span class="px-3.5 py-1.5 rounded-full text-xs font-bold {{ $isConnected ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200' }}">
-                    {{ $isConnected ? '🟢 ONLINE & TERHUBUNG' : '🟡 BELUM TERHUBUNG / STANDBY' }}
+                <span class="px-3.5 py-1.5 rounded-full text-xs font-mono font-bold border {{ $isConnected ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300' }}">
+                    {{ $isConnected ? '● ONLINE & TERHUBUNG' : '○ STANDBY / BELUM SCAN' }}
                 </span>
             </div>
         </div>
 
         <!-- 2 Provider Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Card 1: Fonnte -->
+            <!-- Card 1: Fonnte Cloud -->
             @php $isFonnteActive = ($currentProvider === 'fonnte'); @endphp
-            <div class="relative rounded-2xl p-5 border-2 transition-all {{ $isFonnteActive ? 'border-emerald-500 bg-emerald-50/30 shadow-md shadow-emerald-500/10' : 'border-gray-200 bg-gray-50/50 opacity-90 hover:opacity-100' }}">
+            <div class="relative rounded-2xl p-5 border-2 transition-all {{ $isFonnteActive ? 'border-emerald-500 bg-emerald-50/20 shadow-md shadow-emerald-500/10' : 'border-slate-200 bg-slate-50/60 opacity-80 hover:opacity-100' }}">
                 @if($isFonnteActive)
-                <div class="absolute -top-3 right-4 px-3 py-0.5 bg-emerald-600 text-white rounded-full text-[11px] font-bold shadow-sm">
-                    ✓ SEDANG DIGUNAKAN
+                <div class="absolute -top-3 right-4 px-3 py-0.5 bg-emerald-600 text-white rounded-full text-[10px] font-mono font-bold shadow-sm">
+                    ✓ PROVIDER AKTIF
                 </div>
                 @endif
+
                 <div class="flex items-start justify-between mb-3">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl {{ $isFonnteActive ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600' }} flex items-center justify-center font-bold text-base">
+                        <div class="w-10 h-10 rounded-xl {{ $isFonnteActive ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600' }} flex items-center justify-center font-bold text-base shadow-sm">
                             <i class="fas fa-cloud"></i>
                         </div>
                         <div>
-                            <h4 class="text-sm font-bold text-gray-900">Fonnte (Cloud API)</h4>
-                            <p class="text-[11px] text-gray-500">Pihak Ketiga • Recommended untuk Hosting</p>
+                            <h4 class="text-sm font-bold text-slate-900">Fonnte (Cloud API)</h4>
+                            <p class="text-[11px] text-slate-500">Gateway Resmi Berbayar • Direkomendasikan untuk Server Hosting</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Token Fonnte: Locked & Protected State -->
+                <!-- Token Fonnte Section -->
                 @if(!empty($providersInfo['fonnte']['has_token']))
-                <div x-data="{ editing: false, showToken: false }" class="mb-4 bg-white/95 rounded-xl p-3 border border-gray-200 shadow-sm space-y-2">
+                <div x-data="{ editing: false, showToken: false }" class="mb-3.5 bg-white rounded-xl p-3 border border-slate-200 shadow-sm space-y-2">
                     <div class="flex items-center justify-between">
-                        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5">
+                        <label class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
                             <i class="fas fa-key text-amber-500"></i> API Token Fonnte:
                         </label>
                         <span class="text-[10px] text-emerald-700 bg-emerald-100 font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200">
                             <i class="fas fa-lock text-[9px]"></i> Terkunci & Aman
                         </span>
-                                      <!-- Locked View (Masked) -->
-                    <div x-show="!editing" class="flex items-center justify-between bg-gray-50 border border-gray-200/80 rounded-xl px-4 py-2.5">
-                        <div class="flex items-center gap-2.5 overflow-hidden">
-                            <i class="fas fa-shield-alt text-emerald-600 text-sm"></i>
-                            <span class="font-mono text-xs text-gray-600 tracking-wider select-none truncate" x-show="!showToken">
+                    </div>
+
+                    <!-- Locked View (Masked) -->
+                    <div x-show="!editing" class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2">
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <i class="fas fa-shield-alt text-emerald-600 text-xs"></i>
+                            <span class="font-mono text-xs text-slate-600 tracking-wider truncate" x-show="!showToken">
                                 {{ strlen($providersInfo['fonnte']['api_token']) > 8 ? substr($providersInfo['fonnte']['api_token'], 0, 4) . '••••••••••••' . substr($providersInfo['fonnte']['api_token'], -4) : '••••••••••••••••' }}
                             </span>
-                            <span class="font-mono text-xs text-gray-900 select-all truncate" x-show="showToken" style="display: none;">
+                            <span class="font-mono text-xs text-slate-900 select-all truncate" x-show="showToken" style="display: none;">
                                 {{ $providersInfo['fonnte']['api_token'] }}
                             </span>
                         </div>
-                        <div class="flex items-center gap-2 ml-3">
-                            <button type="button" @click="showToken = !showToken" class="p-2 px-3 bg-white hover:bg-gray-100 border border-gray-200 rounded-lg text-xs text-gray-600 font-semibold transition shadow-sm" title="Lihat/Sembunyikan">
-                                <i class="fas" :class="showToken ? 'fa-eye-slash text-rose-500' : 'fa-eye text-gray-500'"></i>
+                        <div class="flex items-center gap-1.5 ml-2">
+                            <button type="button" @click="showToken = !showToken" class="p-1.5 px-2.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs text-slate-600 font-semibold transition" title="Lihat/Sembunyikan">
+                                <i class="fas" :class="showToken ? 'fa-eye-slash text-rose-500' : 'fa-eye text-slate-500'"></i>
                             </button>
-                            <button type="button" @click="editing = true" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm whitespace-nowrap">
-                                <i class="fas fa-lock-open text-[11px]"></i>
-                                <span>Buka / Ganti</span>
+                            <button type="button" @click="editing = true" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm whitespace-nowrap">
+                                <i class="fas fa-lock-open text-[10px]"></i>
+                                <span>Ganti</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Form Edit (Muncul jika klik 'Buka / Ganti') -->
-                    <form x-show="editing" style="display: none;" action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="space-y-3 pt-2">
+                    <!-- Edit Form -->
+                    <form x-show="editing" style="display: none;" action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="space-y-2 pt-1">
                         @csrf
                         <input type="hidden" name="provider" value="fonnte">
-                        <div class="flex gap-2.5">
-                            <input type="password" name="api_token" placeholder="Paste Token Fonnte Baru..." class="w-full px-4 py-2.5 rounded-xl border border-emerald-400 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" required>
-                            <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition whitespace-nowrap flex items-center gap-2">
-                                <i class="fas fa-save"></i>
-                                <span>Simpan</span>
+                        <div class="flex gap-2">
+                            <input type="password" name="api_token" placeholder="Paste Token Fonnte Baru..." class="w-full px-3.5 py-2 rounded-xl border border-emerald-400 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white" required>
+                            <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition whitespace-nowrap">
+                                Simpan
                             </button>
-                            <button type="button" @click="editing = false" class="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-xs font-bold transition">
+                            <button type="button" @click="editing = false" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">
                                 Batal
                             </button>
                         </div>
-                        <p class="text-[11px] text-gray-400 leading-relaxed">Token baru akan disimpan dan otomatis terkunci kembali.</p>
                     </form>
                 </div>
                 @else
-                <!-- Form Input Pertama Kali (Belum ada token) -->
-                <form action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="mb-4 bg-white/95 rounded-2xl p-4 border border-amber-200 shadow-sm space-y-3">
+                <!-- Form Input Token Pertama Kali -->
+                <form action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="mb-3.5 bg-white rounded-xl p-3.5 border border-amber-200 shadow-sm space-y-2.5">
                     @csrf
                     <input type="hidden" name="provider" value="fonnte">
                     <div class="flex items-center justify-between">
-                        <label class="block text-xs font-bold text-gray-700 flex items-center gap-2">
+                        <label class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                             <i class="fas fa-key text-amber-500"></i> API Token Fonnte:
                         </label>
-                        <span class="text-[10px] text-amber-700 bg-amber-100 font-bold px-2.5 py-1 rounded-full">
-                            ⚠️ Belum Diisi
+                        <span class="text-[10px] text-amber-700 bg-amber-100 font-bold px-2 py-0.5 rounded-full">
+                            ⚠️ Belum Terisi
                         </span>
                     </div>
-                    <div class="flex gap-2.5">
-                        <input type="password" name="api_token" placeholder="Paste API Token dari fonnte.com..." class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-xs font-mono focus:outline-none focus:border-emerald-500 bg-white shadow-sm" required>
-                        <button type="submit" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold shadow-sm transition whitespace-nowrap flex items-center gap-2">
-                            <i class="fas fa-save"></i>
-                            <span>Simpan & Kunci</span>
+                    <div class="flex gap-2">
+                        <input type="password" name="api_token" placeholder="Paste Token dari fonnte.com..." class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:border-emerald-500 bg-white" required>
+                        <button type="submit" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition whitespace-nowrap">
+                            Simpan
                         </button>
                     </div>
-                    <p class="text-[11px] text-gray-400">Token didapat dari dashboard <a href="https://fonnte.com" target="_blank" class="text-emerald-600 underline font-semibold">fonnte.com</a> setelah scan QR.</p>
                 </form>
                 @endif
 
                 @if($isFonnteActive && !empty($accountInfo['success']) && !empty($accountInfo['data']['device']))
-                <div class="mb-4 bg-emerald-50/90 rounded-2xl p-4 border border-emerald-200 space-y-2 text-xs text-emerald-900">
+                <div class="mb-3.5 bg-emerald-50/80 rounded-xl p-3 border border-emerald-200 space-y-1.5 text-xs text-emerald-900">
                     <div class="flex justify-between items-center">
-                        <span class="text-emerald-700 font-medium">Perangkat:</span>
-                        <span class="font-bold">{{ $accountInfo['data']['name'] ?? '' }} ({{ $accountInfo['data']['device'] ?? '' }})</span>
+                        <span class="text-emerald-700 font-medium">Perangkat Terhubung:</span>
+                        <span class="font-bold font-mono">{{ $accountInfo['data']['name'] ?? '' }} ({{ $accountInfo['data']['device'] ?? '' }})</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-emerald-700 font-medium">Sisa Kuota Pesan:</span>
-                        <span class="font-bold bg-emerald-200/70 text-emerald-900 px-2.5 py-1 rounded-lg">{{ $accountInfo['data']['quota'] ?? '0' }} Pesan ({{ $accountInfo['data']['package'] ?? 'Paket' }})</span>
+                        <span class="text-emerald-700 font-medium">Sisa Kuota:</span>
+                        <span class="font-bold bg-emerald-200/70 text-emerald-900 px-2 py-0.5 rounded text-[11px]">{{ $accountInfo['data']['quota'] ?? '0' }} Pesan ({{ $accountInfo['data']['package'] ?? 'Paket' }})</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-emerald-700 font-medium">Masa Berlaku:</span>
@@ -182,19 +213,19 @@
                 </div>
                 @endif
 
-                <div class="flex gap-2.5">
+                <div class="flex gap-2">
                     @if(!$isFonnteActive)
                     <form action="{{ route('admin.settings.whatsapp.switch_provider') }}" method="POST" class="flex-1">
                         @csrf
                         <input type="hidden" name="provider" value="fonnte">
-                        <button type="submit" onclick="return confirm('Beralih ke provider Fonnte?')" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2">
-                            <i class="fas fa-toggle-on text-sm"></i>
-                            <span>Aktifkan Fonnte</span>
+                        <button type="submit" onclick="return confirm('Beralih ke provider Fonnte?')" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                            <i class="fas fa-toggle-on"></i>
+                            <span>Pilih Fonnte</span>
                         </button>
                     </form>
                     @endif
-                    <a href="https://fonnte.com" target="_blank" class="{{ $isFonnteActive ? 'w-full' : 'px-4' }} py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-external-link-alt text-xs"></i>
+                    <a href="https://fonnte.com" target="_blank" class="{{ $isFonnteActive ? 'w-full' : 'px-3.5' }} py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                        <i class="fas fa-external-link-alt text-[10px]"></i>
                         <span>Dashboard Fonnte</span>
                     </a>
                 </div>
@@ -202,132 +233,110 @@
 
             <!-- Card 2: Self-Hosted Baileys -->
             @php $isBaileysActive = ($currentProvider === 'selfhosted'); @endphp
-            <div class="relative rounded-2xl p-6 border-2 transition-all {{ $isBaileysActive ? 'border-emerald-500 bg-emerald-50/30 shadow-md shadow-emerald-500/10' : 'border-gray-200 bg-gray-50/50 opacity-90 hover:opacity-100' }}">
+            <div class="relative rounded-2xl p-5 border-2 transition-all {{ $isBaileysActive ? 'border-emerald-500 bg-emerald-50/20 shadow-md shadow-emerald-500/10' : 'border-slate-200 bg-slate-50/60 opacity-80 hover:opacity-100' }}">
                 @if($isBaileysActive)
-                <div class="absolute -top-3 right-4 px-3.5 py-1 bg-emerald-600 text-white rounded-full text-[11px] font-bold shadow-sm">
-                    ✓ SEDANG DIGUNAKAN
+                <div class="absolute -top-3 right-4 px-3 py-0.5 bg-emerald-600 text-white rounded-full text-[10px] font-mono font-bold shadow-sm">
+                    ✓ PROVIDER AKTIF
                 </div>
                 @endif
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-11 h-11 rounded-2xl {{ $isBaileysActive ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600' }} flex items-center justify-center font-bold text-lg">
-                            <i class="fas fa-laptop-code"></i>
+
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl {{ $isBaileysActive ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600' }} flex items-center justify-center font-bold text-base shadow-sm">
+                            <i class="fas fa-server"></i>
                         </div>
                         <div>
-                            <h4 class="text-sm font-bold text-gray-900">Self-Hosted Baileys</h4>
-                            <p class="text-[11px] text-gray-500 mt-0.5">$0 Cost • Node.js Server Lokal/VPS</p>
+                            <h4 class="text-sm font-bold text-slate-900">Self-Hosted Baileys</h4>
+                            <p class="text-[11px] text-slate-500">Gratis ($0) • Server Node.js Internal / VPS Lokal</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Endpoint Baileys: Protected View -->
-                <div x-data="{ editing: false }" class="mb-4 bg-white/95 rounded-2xl p-4 border border-gray-200 shadow-sm space-y-3">
+                <!-- Endpoint URL -->
+                <div x-data="{ editing: false }" class="mb-3.5 bg-white rounded-xl p-3 border border-slate-200 shadow-sm space-y-2">
                     <div class="flex items-center justify-between">
-                        <label class="text-xs font-bold text-gray-700 flex items-center gap-2">
-                            <i class="fas fa-link text-blue-500"></i> Baileys Server URL:
+                        <label class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                            <i class="fas fa-link text-blue-500"></i> URL Server Baileys:
                         </label>
-                        <span class="text-[10px] {{ $isBaileysActive && $isConnected ? 'text-emerald-700 bg-emerald-100 border-emerald-200' : 'text-gray-600 bg-gray-100 border-gray-200' }} font-bold px-2.5 py-1 rounded-full border">
-                            {{ $isBaileysActive ? ($isConnected ? '✓ Ready' : '🟡 Standby') : 'Tersimpan' }}
+                        <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border {{ $isBaileysActive && $isConnected ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200' }}">
+                            {{ $isBaileysActive ? ($isConnected ? '✓ Ready' : 'Standby') : 'Tersimpan' }}
                         </span>
                     </div>
 
-                    <!-- Locked URL Display -->
-                    <div x-show="!editing" class="flex items-center justify-between bg-gray-50 border border-gray-200/80 rounded-xl px-4 py-2.5">
-                        <div class="flex items-center gap-2.5 truncate">
-                            <i class="fas fa-network-wired text-blue-500 text-xs"></i>
-                            <code class="font-mono text-xs text-gray-700 truncate">{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3000' }}</code>
-                        </div>
-                        <button type="button" @click="editing = true" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm whitespace-nowrap ml-3">
-                            <i class="fas fa-edit text-[11px]"></i>
+                    <div x-show="!editing" class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2">
+                        <code class="font-mono text-xs text-slate-700 truncate">{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3000' }}</code>
+                        <button type="button" @click="editing = true" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm whitespace-nowrap ml-2">
+                            <i class="fas fa-edit text-[10px]"></i>
                             <span>Ubah</span>
                         </button>
                     </div>
 
-                    <!-- Form Edit URL Baileys -->
-                    <form x-show="editing" style="display: none;" action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="space-y-3 pt-2">
+                    <form x-show="editing" style="display: none;" action="{{ route('admin.settings.whatsapp.credentials.update') }}" method="POST" class="space-y-2 pt-1">
                         @csrf
                         <input type="hidden" name="provider" value="selfhosted">
-                        <div class="flex gap-2.5">
-                            <input type="text" name="api_url" value="{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3000' }}" placeholder="http://localhost:3000" class="w-full px-4 py-2.5 rounded-xl border border-blue-400 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-blue-500 bg-white" required>
-                            <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition whitespace-nowrap flex items-center gap-2">
-                                <i class="fas fa-save"></i>
-                                <span>Simpan</span>
+                        <div class="flex gap-2">
+                            <input type="text" name="api_url" value="{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3000' }}" placeholder="http://localhost:3000" class="w-full px-3.5 py-2 rounded-xl border border-blue-400 text-xs font-mono focus:outline-none bg-white" required>
+                            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition whitespace-nowrap">
+                                Simpan
                             </button>
-                            <button type="button" @click="editing = false" class="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-xs font-bold transition">
+                            <button type="button" @click="editing = false" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">
                                 Batal
                             </button>
                         </div>
                     </form>
                 </div>
 
-                <div class="flex gap-2.5">
+                <div class="flex gap-2">
                     @if(!$isBaileysActive)
                     <form action="{{ route('admin.settings.whatsapp.switch_provider') }}" method="POST" class="flex-1">
                         @csrf
                         <input type="hidden" name="provider" value="selfhosted">
-                        <button type="submit" onclick="return confirm('Beralih ke provider Self-Hosted Baileys? Pastikan engine Node.js sudah berjalan.')" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2">
-                            <i class="fas fa-toggle-on text-sm"></i>
-                            <span>Aktifkan Baileys</span>
+                        <button type="submit" onclick="return confirm('Beralih ke provider Baileys?')" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                            <i class="fas fa-toggle-on"></i>
+                            <span>Pilih Baileys</span>
                         </button>
                     </form>
+                    @else
+                    <span class="w-full py-2 bg-slate-100 text-slate-600 text-center rounded-xl text-xs font-bold">
+                        ✓ Sedang Digunakan Sebagai Gateway
+                    </span>
                     @endif
-                    <a href="{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3000' }}/qr" target="_blank" class="{{ $isBaileysActive ? 'w-full' : 'px-4' }} py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-qrcode text-xs"></i>
-                        <span>Scan QR Baileys</span>
-                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Grid Container: Automation Toggles & Live Test Form -->
+    <!-- Main Workspace: Automation Switchboard (2 Cols) & Live Test Center (1 Col) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        <!-- Form Saklar Master Otomatisasi Terkelompok (2 Cols) -->
-        <div x-data="{
-            activeTab: 'all',
-            searchQuery: '',
-            toggleAllInGroup(groupKey, state) {
-                const container = document.getElementById('group-' + groupKey);
-                if (container) {
-                    const checkboxes = container.querySelectorAll('input[type=checkbox]');
-                    checkboxes.forEach(cb => cb.checked = state);
-                }
-            },
-            matchesSearch(text, key, desc) {
-                if (!this.searchQuery.trim()) return true;
-                const q = this.searchQuery.toLowerCase();
-                return (text && text.toLowerCase().includes(q)) || 
-                       (key && key.toLowerCase().includes(q)) || 
-                       (desc && desc.toLowerCase().includes(q));
-            }
-        }" class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-7 space-y-6">
+        <!-- SAKLAR OTOMATISASI (2 COLS) -->
+        <div class="lg:col-span-2 bg-white rounded-2xl border-[1.5px] border-slate-200 shadow-sm p-6 sm:p-7 space-y-6">
             
-            <!-- Section Header & Search -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
+            <!-- Section Header & Filter Search -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2.5">
-                        <i class="fas fa-tasks text-emerald-600"></i> Otomatisasi Pengiriman Berdasarkan Target
+                    <h2 class="text-lg font-black text-slate-900 flex items-center gap-2.5">
+                        <i class="fas fa-toggle-on text-emerald-600"></i> Saklar Otomatisasi Berdasarkan Target
                     </h2>
-                    <p class="text-xs text-gray-500 mt-1">Pilih target penerima pesan WhatsApp dan atur saklar (On/Off) setiap modul</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Aktifkan atau nonaktifkan pengiriman notifikasi otomatis sesuai kebutuhan sekolah</p>
                 </div>
-                <div class="relative w-full sm:w-72">
-                    <i class="fas fa-search absolute left-3.5 top-3 text-gray-400 text-xs"></i>
-                    <input type="text" x-model="searchQuery" placeholder="Cari notifikasi / modul..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-gray-50/50 shadow-sm">
+                <div class="relative w-full sm:w-64">
+                    <i class="fas fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                    <input type="text" x-model="searchQuery" placeholder="Cari notifikasi / jadwal..." class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-slate-50 shadow-sm">
                 </div>
             </div>
 
-            <!-- Target Category Filter Pills -->
-            <div class="flex flex-wrap gap-2 pb-3 border-b border-gray-100">
-                <button type="button" @click="activeTab = 'all'" :class="activeTab === 'all' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                    <i class="fas fa-th-large text-xs"></i>
+            <!-- Target Category Tabs -->
+            <div class="flex flex-wrap gap-2 pb-2 border-b border-slate-100">
+                <button type="button" @click="activeTab = 'all'" :class="activeTab === 'all' ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fas fa-layer-group text-xs"></i>
                     <span>Semua Target</span>
                 </button>
                 @foreach($groupedSettings as $gKey => $group)
-                <button type="button" @click="activeTab = '{{ $gKey }}'" :class="activeTab === '{{ $gKey }}' ? 'bg-slate-800 text-white shadow-md shadow-slate-800/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2">
+                <button type="button" @click="activeTab = '{{ $gKey }}'" :class="activeTab === '{{ $gKey }}' ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
                     <i class="{{ $group['icon'] }} text-xs"></i>
                     <span>{{ $group['badge'] }}</span>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold" :class="activeTab === '{{ $gKey }}' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'">
+                    <span class="text-[10px] px-1.5 py-0.2 rounded font-mono" :class="activeTab === '{{ $gKey }}' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'">
                         {{ count($group['items']) }}
                     </span>
                 </button>
@@ -339,51 +348,51 @@
                 @method('PUT')
 
                 @foreach($groupedSettings as $gKey => $group)
-                <div id="group-{{ $gKey }}" x-show="activeTab === 'all' || activeTab === '{{ $gKey }}'" class="space-y-3 pt-2">
+                <div id="group-{{ $gKey }}" x-show="activeTab === 'all' || activeTab === '{{ $gKey }}'" class="space-y-3 pt-1">
                     <!-- Group Header Card -->
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-gray-50 to-white p-4 rounded-2xl border border-gray-200/80">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-9 h-9 rounded-xl bg-slate-800 text-white flex items-center justify-center text-sm shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/80 p-3.5 rounded-xl border border-slate-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center text-xs shadow-sm">
                                 <i class="{{ $group['icon'] }}"></i>
                             </div>
                             <div>
-                                <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                                <h3 class="text-xs font-bold text-slate-900 flex items-center gap-2">
                                     {{ $group['target'] }}
-                                    <span class="px-2.5 py-0.5 bg-gray-200/80 text-gray-700 text-[10px] font-bold rounded-full">
-                                        {{ count($group['items']) }} Pemicu
+                                    <span class="px-2 py-0.2 bg-slate-200 text-slate-700 text-[10px] font-mono font-bold rounded">
+                                        {{ count($group['items']) }} Saklar
                                     </span>
                                 </h3>
-                                <p class="text-[11px] text-gray-500 mt-0.5">{{ $group['description'] }}</p>
+                                <p class="text-[11px] text-slate-500">{{ $group['description'] }}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 self-end sm:self-center">
-                            <button type="button" @click="toggleAllInGroup('{{ $gKey }}', true)" class="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition border border-emerald-200">
+                            <button type="button" @click="toggleAllInGroup('{{ $gKey }}', true)" class="px-2.5 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-200 transition">
                                 Aktifkan Semua
                             </button>
-                            <button type="button" @click="toggleAllInGroup('{{ $gKey }}', false)" class="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition border border-gray-200">
+                            <button type="button" @click="toggleAllInGroup('{{ $gKey }}', false)" class="px-2.5 py-1 text-[11px] font-bold text-slate-600 bg-white hover:bg-slate-100 rounded border border-slate-200 transition">
                                 Matikan
                             </button>
                         </div>
                     </div>
 
-                    <!-- Group Toggles List -->
-                    <div class="divide-y divide-gray-100 border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm">
+                    <!-- Switches List -->
+                    <div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
                         @foreach($group['items'] as $itemKey => $item)
-                        <div x-show="matchesSearch('{{ addslashes($item['label']) }}', '{{ $itemKey }}', '{{ addslashes($item['desc'] ?? '') }}')" class="p-4 flex items-center justify-between hover:bg-gray-50/80 transition-colors">
-                            <div class="pr-6 space-y-1">
-                                <label for="{{ $itemKey }}" class="text-xs font-bold text-gray-900 cursor-pointer block hover:text-emerald-600 transition">
+                        <div x-show="matchesSearch('{{ addslashes($item['label']) }}', '{{ $itemKey }}', '{{ addslashes($item['desc'] ?? '') }}')" class="p-3.5 sm:p-4 flex items-center justify-between hover:bg-slate-50/80 transition-colors">
+                            <div class="pr-4 space-y-0.5">
+                                <label for="{{ $itemKey }}" class="text-xs font-bold text-slate-900 cursor-pointer block hover:text-emerald-600 transition">
                                     {{ $item['label'] }}
                                 </label>
                                 @if(!empty($item['desc']))
-                                <p class="text-[11px] text-gray-500 leading-relaxed">{{ $item['desc'] }}</p>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">{{ $item['desc'] }}</p>
                                 @endif
-                                <span class="text-[10px] text-gray-400 font-mono inline-block">{{ $itemKey }}</span>
+                                <span class="text-[10px] text-slate-400 font-mono font-bold">{{ $itemKey }}</span>
                             </div>
 
-                            <!-- Toggle Switch -->
+                            <!-- Toggle Switch Modern -->
                             <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
                                 <input type="checkbox" id="{{ $itemKey }}" name="{{ $itemKey }}" value="1" class="sr-only peer" {{ $item['enabled'] ? 'checked' : '' }}>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                             </label>
                         </div>
                         @endforeach
@@ -391,93 +400,86 @@
                 </div>
                 @endforeach
 
-                <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100">
-                    <p class="text-xs text-gray-500 flex items-center gap-2">
-                        <i class="fas fa-info-circle text-emerald-600 text-sm"></i> Pastikan saklar yang dibutuhkan dalam posisi <b>Hijau (Aktif)</b>.
+                <!-- Submit Button -->
+                <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100">
+                    <p class="text-xs text-slate-500 flex items-center gap-1.5">
+                        <i class="fas fa-info-circle text-emerald-600"></i> Perubahan saklar akan langsung mempengaruhi jadwal scheduler cron.
                     </p>
-                    <button type="submit" class="w-full sm:w-auto px-7 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all flex items-center justify-center gap-2.5">
-                        <i class="fas fa-save text-base"></i>
-                        <span>Simpan Semua Pengaturan</span>
+                    <button type="submit" class="w-full sm:w-auto px-7 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs border-[1.5px] border-slate-900 shadow-[3px_3px_0px_#0f172a] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#0f172a] transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-save text-sm"></i>
+                        <span>Simpan Pengaturan Saklar</span>
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- Form Live Test Sender (1 Col) -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-7 flex flex-col justify-between space-y-6">
-            <div>
-                <div class="border-b border-gray-100 pb-4 mb-5">
-                    <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2.5">
-                        <i class="fas fa-paper-plane text-emerald-600"></i> Uji Coba Pengiriman WA
+        <!-- LIVE TESTING & EXECUTIVE DIGEST TRIGGER (1 COL) -->
+        <div class="space-y-6">
+            <!-- Box 1: Test Instant Single Message -->
+            <div class="bg-white rounded-2xl border-[1.5px] border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
+                <div class="border-b border-slate-100 pb-3">
+                    <h2 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                        <i class="fas fa-paper-plane text-emerald-600"></i> Uji Coba Kirim Pesan Instan
                     </h2>
-                    <p class="text-xs text-gray-500 mt-1">Tes pengiriman pesan instan ke nomor WhatsApp penguji</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Kirim pesan tes ke nomor WhatsApp admin/penguji</p>
                 </div>
 
-                <form action="{{ route('admin.settings.whatsapp.test') }}" method="POST" class="space-y-4">
+                <form action="{{ route('admin.settings.whatsapp.test') }}" method="POST" class="space-y-3">
                     @csrf
-
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2 flex items-center gap-2">
-                            <i class="fas fa-phone text-emerald-600"></i> Nomor WhatsApp HP Tujuan:
-                        </label>
-                        <input type="text" name="phone" required placeholder="081234567890" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono shadow-sm">
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Nomor WhatsApp Tujuan:</label>
+                        <input type="text" name="phone" required placeholder="081234567890" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono focus:outline-none focus:border-emerald-500 bg-slate-50">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2 flex items-center gap-2">
-                            <i class="fas fa-comment-dots text-emerald-600"></i> Pesan Uji Coba:
-                        </label>
-                        <textarea name="message" rows="4" required class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm leading-relaxed">📢 *UJI COBA GATEWAY WHATSAPP PEMBDAHUB ({{ strtoupper($providerLabel ?? 'GATEWAY') }})*
-
-Halo! Ini adalah pesan tes pengiriman WhatsApp dari Admin Panel PembdaHUB. Gateway terhubung dan bekerja dengan baik!</textarea>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Isi Pesan Tes:</label>
+                        <textarea name="message" rows="3" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-emerald-500 bg-slate-50 leading-relaxed font-mono">📢 *TEST GATEWAY WHATSAPP PEMBDAHUB*
+Koneksi gateway WhatsApp berhasil aktif dan siap digunakan!</textarea>
                     </div>
 
-                    <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2.5">
-                        <i class="fas fa-paper-plane text-sm"></i>
+                    <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs border-[1.5px] border-slate-900 shadow-[2px_2px_0px_#0f172a] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-paper-plane text-xs"></i>
                         <span>Kirim Pesan Tes</span>
                     </button>
                 </form>
             </div>
 
-            <!-- Form Uji Coba Laporan Eksekutif -->
-            <div class="pt-5 border-t border-gray-100">
-                <div class="border-b border-gray-100 pb-3 mb-4">
-                    <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
-                        <i class="fas fa-user-tie text-emerald-600"></i> Uji Coba Laporan Eksekutif WA
+            <!-- Box 2: Test Executive Digest Trigger -->
+            <div class="bg-white rounded-2xl border-[1.5px] border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
+                <div class="border-b border-slate-100 pb-3">
+                    <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                        <i class="fas fa-user-tie text-blue-600"></i> Uji Coba Laporan Eksekutif
                     </h3>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Tes pengiriman rekap berita ke Kepsek & Wali Kelas</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Eksekusi langsung rekap data asli ke nomor Kepsek / Wali Kelas</p>
                 </div>
 
-                <form action="{{ route('admin.settings.whatsapp.digest.test') }}" method="POST" class="space-y-4">
+                <form action="{{ route('admin.settings.whatsapp.digest.test') }}" method="POST" class="space-y-3">
                     @csrf
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2">Pilih Jenis Laporan Eksekutif:</label>
-                        <select name="digest_type" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-emerald-500 bg-white shadow-sm">
-                            <option value="principal_attendance">📊 Kepsek: Rekap Absensi Harian (07:45 WIB)</option>
-                            <option value="homeroom_attendance">👩‍🏫 Wali Kelas: Rekap Absensi Harian Kelas</option>
-                            <option value="principal_spp">💰 Kepsek: Rekap SPP & Tunggakan Bulanan</option>
-                            <option value="homeroom_spp">💳 Wali Kelas: Rekap SPP Siswa Kelas Binaan</option>
-                            <option value="principal_lms">📚 Kepsek: Rekap LMS Guru & Ranking Mingguan</option>
-                            <option value="homeroom_lms">✏️ Wali Kelas: Rekap LMS Siswa & Ranking</option>
-                            <option value="points_weekly">⭐ Siswa: Rekap Poin Prestasi Mingguan (Setiap Sabtu)</option>
-                            <option value="award_sample">🏆 Realtime: Notifikasi Prestasi Siswa</option>
-                            <option value="edaran_sample">📜 Realtime: Notifikasi Surat Edaran Yayasan</option>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Pilih Jenis Laporan:</label>
+                        <select name="digest_type" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-blue-500 bg-white">
+                            <option value="principal_attendance">🏫 Kepsek: Rekap Presensi Sekolah (08:00 WIB)</option>
+                            <option value="homeroom_attendance">👩‍🏫 Wali Kelas: Rekap Presensi Kelas Binaan (08:00 WIB)</option>
+                            <option value="principal_spp">💰 Kepsek: Rekap Keuangan SPP Bulanan</option>
+                            <option value="homeroom_spp">💳 Wali Kelas: Rekap Tunggakan SPP Kelas</option>
                         </select>
                     </div>
 
-                    <button type="submit" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2.5">
-                        <i class="fas fa-paper-plane text-xs"></i>
-                        <span>Eksekusi Laporan Uji Coba</span>
+                    <button type="submit" onclick="return confirm('Kirim laporan eksekutif sekarang ke nomor pejabat terkait?')" class="w-full py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl font-bold text-xs border-[1.5px] border-slate-900 shadow-[2px_2px_0px_#0f172a] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-bolt text-amber-400 text-xs"></i>
+                        <span>Eksekusi Laporan Sekarang</span>
                     </button>
                 </form>
             </div>
 
-            <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 text-xs text-emerald-800 space-y-1.5 shadow-sm">
-                <p class="font-bold flex items-center gap-2 text-emerald-900">
-                    <i class="fas fa-shield-alt text-emerald-600"></i> Keamanan & Anti-Spam:
-                </p>
-                <p class="leading-relaxed text-[11px] text-emerald-700">
-                    Sistem menggunakan antrean (*Queue*) otomatis untuk memastikan pesan dikirim dengan jeda aman antar nomor.
+            <!-- Box 3: Quick Info -->
+            <div class="p-4 bg-slate-900 text-white rounded-2xl border-[1.5px] border-slate-900 shadow-[3px_3px_0px_#0f172a] space-y-2 text-xs">
+                <div class="flex items-center gap-2 text-amber-400 font-bold">
+                    <i class="fas fa-clock"></i>
+                    <span>Jadwal Pengiriman Otomatis:</span>
+                </div>
+                <p class="text-[11px] text-slate-300 leading-relaxed">
+                    Cron Job scheduler berjalan setiap hari <b>Senin s/d Jumat pukul 08:00 WIB</b> untuk mengirim rekapitulasi kehadiran harian ke seluruh Kepala Sekolah dan Wali Kelas aktif.
                 </p>
             </div>
         </div>
