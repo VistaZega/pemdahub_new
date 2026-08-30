@@ -7,16 +7,28 @@
  * yang diperlukan untuk menerima rekapitulasi kehadiran harian via WhatsApp.
  */
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 if (($_GET['secret'] ?? '') !== 'pembda99') {
     http_response_code(403);
-    die('Forbidden');
+    die('Forbidden - Secret key required (?secret=pembda99)');
 }
 
 // Bootstrap Laravel
-require __DIR__ . '/../pembdahub/vendor/autoload.php';
-$app = require_once __DIR__ . '/../pembdahub/bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-$kernel->handle($request = Illuminate\Http\Request::capture());
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    require __DIR__ . '/../vendor/autoload.php';
+    $app = require_once __DIR__ . '/../bootstrap/app.php';
+} elseif (file_exists(__DIR__ . '/pembdahub/vendor/autoload.php')) {
+    require __DIR__ . '/pembdahub/vendor/autoload.php';
+    $app = require_once __DIR__ . '/pembdahub/bootstrap/app.php';
+} else {
+    die('Autoload file not found. Checked: ' . __DIR__ . '/../vendor/autoload.php and ' . __DIR__ . '/pembdahub/vendor/autoload.php');
+}
+
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
 
 use App\Models\School;
 use App\Models\Classroom;
@@ -100,13 +112,18 @@ if (!$activeYear) {
 } else {
     echo '<p>Tahun Pelajaran: <strong>' . $activeYear->name . '</strong></p>';
 
-    $schoolIds = School::schoolsOnly()->pluck('id');
-    $classrooms = Classroom::where('academic_year_id', $activeYear->id)
-        ->whereIn('school_id', $schoolIds)
-        ->with(['homeroomTeacher.employee', 'school'])
-        ->orderBy('school_id')
-        ->orderBy('name')
-        ->get();
+    try {
+        $schoolIds = School::schoolsOnly()->pluck('id');
+        $classrooms = Classroom::where('academic_year_id', $activeYear->id)
+            ->whereIn('school_id', $schoolIds)
+            ->with(['homeroomTeacher.employee', 'school'])
+            ->orderBy('school_id')
+            ->orderBy('class_name')
+            ->get();
+    } catch (\Throwable $e) {
+        $classrooms = collect();
+        echo '<p class="error">⚠️ Gagal memuat kelas: ' . htmlspecialchars($e->getMessage()) . '</p>';
+    }
 
     echo '<table>';
     echo '<tr><th>Unit</th><th>Kelas</th><th>Wali Kelas</th><th>Employee Phone</th><th>Teacher Phone</th><th>Status</th></tr>';
