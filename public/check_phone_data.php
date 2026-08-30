@@ -223,5 +223,32 @@ if ($activeYear) {
 echo '</table>';
 echo '</div>';
 
+// ============================================================================
+// 4. PANDUAN CRON JOB HOSTINGER (PHP 8.2 / 8.3)
+// ============================================================================
+echo '<h2>⏱️ 4. Panduan Cron Job Hostinger</h2>';
+$phpCandidates = [
+    '/usr/bin/php8.3',
+    '/usr/bin/php8.2',
+    '/opt/alt/php83/usr/bin/php',
+    '/opt/alt/php82/usr/bin/php',
+    '/usr/bin/php',
+];
+$bestPhp = '/usr/bin/php8.2';
+foreach ($phpCandidates as $p) {
+    if (file_exists($p)) {
+        $bestPhp = $p;
+        break;
+    }
+}
+
+$cronCmd = "{$bestPhp} /home/u474310197/domains/perguruanpembda.com/public_html/pembdahub/artisan schedule:run >> /dev/null 2>&1";
+
+echo '<div style="background:#1e293b; color:#f1f5f9; padding:15px 20px; border-radius:8px; margin:15px 0;">';
+echo '<p style="margin:0 0 10px 0; color:#38bdf8; font-weight:bold;">📋 Salin perintah Cron Job ini ke hPanel Hostinger:</p>';
+echo '<code style="display:block; background:#0f172a; padding:10px; border-radius:6px; color:#4ade80; font-size:13px; word-break:break-all;">' . htmlspecialchars($cronCmd) . '</code>';
+echo '<p style="margin:10px 0 0 0; font-size:12px; color:#94a3b8;">* Hostinger menggunakan PHP 8.1 pada alias default <code>/usr/bin/php</code>. Gunakan <code>/usr/bin/php8.2</code> atau <code>/usr/bin/php8.3</code> agar sesuai dengan syarat Laravel 11.</p>';
+echo '</div>';
+
 echo '<p style="margin-top:30px; color:#6b7280; font-size:13px;">Script ini hanya membaca data (read-only). Untuk mengisi nomor HP, gunakan menu Admin > Data Guru & Pegawai di PembdaHUB.</p>';
 echo '</body></html>';
