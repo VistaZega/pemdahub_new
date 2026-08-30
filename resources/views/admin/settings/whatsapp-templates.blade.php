@@ -324,79 +324,79 @@
                     <span class="text-xs font-black text-slate-900 flex items-center justify-center gap-1.5">
                         <i class="fas fa-mobile-alt text-emerald-600"></i> Live Preview WhatsApp
                     </span>
-                    <p class="text-[10px] text-slate-500 mt-0.5">Simulasi penerima di layar smartphone</p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Simulasi pesan nyata di layar smartphone</p>
                 </div>
 
-                <!-- Phone Body (Fixed Width: 310px, Height: 540px) -->
-                <div class="w-[310px] h-[540px] rounded-[36px] bg-slate-900 p-2.5 shadow-2xl border-4 border-slate-800 flex flex-col relative select-none">
+                <!-- Phone Body (Fixed Width: 320px, Height: 550px, Explicit Inline Styles) -->
+                <div style="width: 320px; min-width: 320px; max-width: 320px; height: 550px; background-color: #0f172a; border-radius: 38px; padding: 10px; border: 4px solid #1e293b; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); display: flex; flex-direction: column; position: relative; user-select: none;">
                     
                     <!-- Top Speaker & Camera Notch -->
-                    <div class="w-20 h-3.5 bg-slate-800 rounded-full mx-auto mb-1 flex items-center justify-center">
-                        <div class="w-2 h-2 rounded-full bg-slate-950"></div>
+                    <div style="width: 80px; height: 14px; background-color: #1e293b; border-radius: 9999px; margin: 0 auto 6px auto; display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 8px; height: 8px; border-radius: 9999px; background-color: #020617;"></div>
                     </div>
 
-                    <!-- Screen Inner Container -->
-                    <div class="flex-1 rounded-[26px] overflow-hidden bg-[#efeae2] flex flex-col text-slate-900 text-xs">
+                    <!-- Screen Inner Container (Explicit Light Canvas Background & Dark Text) -->
+                    <div style="flex: 1; border-radius: 26px; overflow: hidden; background-color: #efeae2 !important; color: #0f172a !important; display: flex; flex-direction: column; position: relative;">
                         
-                        <!-- Status Bar Top -->
-                        <div class="bg-[#005c4b] text-white px-4 pt-1.5 pb-1 flex justify-between items-center text-[10px] font-mono">
+                        <!-- WhatsApp Status Bar Top -->
+                        <div style="background-color: #075e54 !important; color: #ffffff !important; padding: 6px 16px 4px 16px; font-family: monospace; font-size: 10px; display: flex; justify-content: space-between; align-items: center;">
                             <span>08:00</span>
-                            <div class="flex items-center gap-1.5">
-                                <i class="fas fa-wifi text-[9px]"></i>
-                                <i class="fas fa-battery-full text-[10px]"></i>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-wifi" style="font-size: 9px;"></i>
+                                <i class="fas fa-battery-full" style="font-size: 10px;"></i>
                             </div>
                         </div>
 
                         <!-- WhatsApp Header Bar -->
-                        <div class="bg-[#005c4b] text-white px-3 py-2 flex items-center justify-between shadow-sm">
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-arrow-left text-[11px]"></i>
-                                <div class="w-7 h-7 rounded-full bg-white text-emerald-700 flex items-center justify-center font-bold text-xs shadow-inner flex-shrink-0">
-                                    <i class="fas fa-graduation-cap text-[11px]"></i>
+                        <div style="background-color: #075e54 !important; color: #ffffff !important; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
+                            <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                                <i class="fas fa-arrow-left" style="font-size: 11px; cursor: pointer;"></i>
+                                <div style="width: 30px; height: 30px; border-radius: 9999px; background-color: #ffffff; color: #075e54; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; flex-shrink: 0;">
+                                    <i class="fas fa-graduation-cap"></i>
                                 </div>
-                                <div class="leading-tight truncate">
-                                    <h4 class="font-bold text-[11px] truncate">PembdaHUB</h4>
-                                    <p class="text-[9px] text-emerald-200 flex items-center gap-1">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-300"></span> online
+                                <div style="line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <h4 style="font-weight: 700; font-size: 11px; margin: 0; color: #ffffff;">PembdaHUB</h4>
+                                    <p style="font-size: 9px; color: #a7f3d0; margin: 0; display: flex; align-items: center; gap: 4px;">
+                                        <span style="width: 6px; height: 6px; border-radius: 9999px; background-color: #34d399; display: inline-block;"></span> online
                                     </p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2.5 text-[11px] pr-1">
+                            <div style="display: flex; align-items: center; gap: 10px; font-size: 11px; color: #ffffff; padding-right: 4px;">
                                 <i class="fas fa-video"></i>
                                 <i class="fas fa-phone"></i>
                                 <i class="fas fa-ellipsis-v"></i>
                             </div>
                         </div>
 
-                        <!-- Chat Messages Screen -->
-                        <div class="flex-1 p-2.5 overflow-y-auto space-y-2 flex flex-col justify-start bg-[#efeae2]">
+                        <!-- Chat Messages Canvas Screen -->
+                        <div style="flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background-color: #efeae2 !important;">
                             <!-- Date Badge -->
-                            <div class="self-center px-2.5 py-0.5 rounded-md bg-white/85 text-slate-600 text-[9px] font-bold shadow-xs uppercase">
+                            <div style="background-color: #ffffff !important; color: #475569 !important; padding: 2px 10px; border-radius: 6px; font-size: 9px; font-weight: 700; align-self: center; box-shadow: 0 1px 2px rgba(0,0,0,0.06); text-transform: uppercase; letter-spacing: 0.5px;">
                                 Hari Ini
                             </div>
 
-                            <!-- WhatsApp Incoming Green Bubble -->
-                            <div class="self-start w-full max-w-[95%] bg-[#d9fdd3] text-slate-900 rounded-xl rounded-tl-none p-2.5 shadow-sm border border-[#c4eabf] relative space-y-1">
+                            <!-- WhatsApp Incoming Green Bubble (Explicit Colors) -->
+                            <div style="background-color: #d9fdd3 !important; color: #111827 !important; border: 1px solid #c4eabf !important; border-radius: 12px; border-top-left-radius: 0; padding: 10px 12px; width: 100%; max-width: 96%; align-self: flex-start; box-shadow: 0 1px 2px rgba(0,0,0,0.08); font-size: 11px; line-height: 1.55; word-break: break-word;">
                                 <div 
-                                    class="text-[11px] leading-relaxed break-words font-sans text-slate-900"
+                                    style="color: #111827 !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;"
                                     x-html="formattedPreview"
                                 ></div>
 
-                                <!-- Read Receipt Double Blue Check -->
-                                <div class="flex items-center justify-end gap-1 text-[9px] text-slate-500 pt-0.5">
+                                <!-- Read Receipt Double Blue Check & Timestamp -->
+                                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 9px; color: #64748b; margin-top: 4px;">
                                     <span>08:00</span>
-                                    <span class="text-[#53bdeb] font-black">✓✓</span>
+                                    <span style="color: #53bdeb; font-weight: bold; letter-spacing: -1px;">✓✓</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Chat Input Bar Bottom -->
-                        <div class="bg-[#f0f2f5] p-2 flex items-center gap-1.5 border-t border-slate-200">
-                            <div class="flex-1 bg-white rounded-full px-3 py-1 text-[10px] text-slate-400 flex items-center justify-between">
+                        <div style="background-color: #f0f2f5 !important; padding: 8px 10px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #e2e8f0;">
+                            <div style="flex: 1; background-color: #ffffff; border-radius: 9999px; padding: 5px 12px; font-size: 10px; color: #94a3b8; display: flex; align-items: center; justify-content: space-between;">
                                 <span>Ketik pesan...</span>
-                                <i class="fas fa-paperclip text-slate-400 text-[10px]"></i>
+                                <i class="fas fa-paperclip" style="color: #94a3b8; font-size: 10px;"></i>
                             </div>
-                            <div class="w-6 h-6 rounded-full bg-[#005c4b] text-white flex items-center justify-center text-[10px]">
+                            <div style="width: 26px; height: 26px; border-radius: 9999px; background-color: #075e54; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 10px;">
                                 <i class="fas fa-microphone"></i>
                             </div>
                         </div>
@@ -405,7 +405,7 @@
                 </div>
 
                 <!-- Info Box below phone -->
-                <div class="w-full max-w-[310px] p-3 bg-slate-100 rounded-xl border border-slate-200 text-[10px] text-slate-600 space-y-1">
+                <div class="w-full max-w-[320px] p-3 bg-slate-100 rounded-xl border border-slate-200 text-[10px] text-slate-600 space-y-1">
                     <p class="font-bold text-slate-800 flex items-center gap-1">
                         <i class="fas fa-info-circle text-emerald-600"></i> Format WhatsApp:
                     </p>
