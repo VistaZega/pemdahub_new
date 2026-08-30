@@ -24,64 +24,105 @@ class ExecutiveReportService
     }
 
     /**
-     * 1A. Daily Attendance Digest for Principal (Kepala Sekolah) - 30 mins after start time
+     * 1A. Daily Attendance Digest for Principal (Kepala Sekolah) - per unit sekolah
+     * Dikirim 15 menit setelah batas toleransi (08:00 WIB) setiap hari aktif (Senin-Jumat)
      */
     public function sendPrincipalDailyAttendanceDigest(): array
     {
         $dateToday = date('Y-m-d');
         $dateFormatted = date('d F Y');
+        $sentCount = 0;
+        $errors = [];
 
-        // 1. SISWA STATS
-        $statsSiswa = Attendance::whereDate('date', $dateToday)
-            ->select('status', DB::raw('count(*) as count'))
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
+        // Iterasi per unit sekolah aktif (tanpa Yayasan)
+        $schools = School::schoolsOnly()->with('principal')->get();
 
-        $presentS = $statsSiswa['hadir'] ?? $statsSiswa['present'] ?? 0;
-        $lateS = $statsSiswa['terlambat'] ?? $statsSiswa['late'] ?? 0;
-        $sickS = $statsSiswa['sakit'] ?? $statsSiswa['sick'] ?? 0;
-        $permitS = $statsSiswa['izin'] ?? $statsSiswa['permit'] ?? 0;
-        $absentS = $statsSiswa['alpha'] ?? $statsSiswa['alpa'] ?? $statsSiswa['absent'] ?? 0;
-        $totalSiswa = Student::active()->count();
+        foreach ($schools as $school) {
+            try {
+                // Resolve nomor HP Kepala Sekolah via relasi School -> Principal (Teacher) -> phone
+                $principal = $school->principal;
+                $phone = $principal?->phone ?? null;
 
-        // 2. GURU STATS
-        $statsGuru = \App\Models\EmployeeAttendance::whereDate('date', $dateToday)
-            ->whereHas('employee', function ($q) {
-                $q->where('employee_type', 'guru');
-            })
-            ->select('status', DB::raw('count(*) as count'))
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
+                // Fallback: cari user dengan role kepala_sekolah di sekolah ini
+                if (!$phone) {
+                    $kepsekUser = User::where('role', 'kepala_sekolah')
+                        ->where('school_id', $school->id)
+                        ->first();
+                    if ($kepsekUser && $kepsekUser->teacher) {
+                        $phone = $kepsekUser->teacher->phone;
+                    }
+                }
 
-        $presentG = $statsGuru['hadir'] ?? 0;
-        $sickG = $statsGuru['sakit'] ?? 0;
-        $permitG = $statsGuru['izin'] ?? 0;
-        $absentG = $statsGuru['alpha'] ?? $statsGuru['alpa'] ?? 0;
-        $dinasG = $statsGuru['dinas_luar'] ?? 0;
+                if (!$phone) {
+                    Log::channel('whatsapp')->warning("Principal phone not found for school: {$school->name}");
+                    continue;
+                }
 
-        // 3. PEGAWAI / STAF STATS
-        $statsStaff = \App\Models\EmployeeAttendance::whereDate('date', $dateToday)
-            ->whereHas('employee', function ($q) {
-                $q->where('employee_type', '!=', 'guru');
-            })
-            ->select('status', DB::raw('count(*) as count'))
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
+                $principalName = $principal?->full_name ?? $school->principal_name ?? 'Kepala Sekolah';
 
-        $presentP = $statsStaff['hadir'] ?? 0;
-        $sickP = $statsStaff['sakit'] ?? 0;
-        $permitP = $statsStaff['izin'] ?? 0;
-        $absentP = $statsStaff['alpha'] ?? $statsStaff['alpa'] ?? 0;
-        $cutiP = $statsStaff['cuti'] ?? 0;
+                // Ambil classroom_ids milik unit sekolah ini di TP aktif
+                $activeYear = AcademicYear::where('is_active', true)->first();
+                if (!$activeYear) continue;
 
-        $message = "🏫 *LAPORAN EKSEKUTIF KEHADIRAN TOTAL (SISWA, GURU, & PEGAWAI)*
-📌 *Kepada Yth. Kepala Sekolah Perguruan Pembda*
+                $classroomIds = Classroom::where('school_id', $school->id)
+                    ->where('academic_year_id', $activeYear->id)
+                    ->pluck('id');
+
+                // 1. SISWA STATS — hanya absensi harian (schedule_id = null)
+                $studentIds = DB::table('student_classes')
+                    ->whereIn('classroom_id', $classroomIds)
+                    ->pluck('student_id');
+
+                $statsSiswa = Attendance::whereIn('student_id', $studentIds)
+                    ->whereDate('date', $dateToday)
+                    ->whereNull('schedule_id')
+                    ->select('status', DB::raw('count(*) as count'))
+                    ->groupBy('status')
+                    ->pluck('count', 'status')
+                    ->toArray();
+
+                $presentS = $statsSiswa['hadir'] ?? 0;
+                $lateS = $statsSiswa['terlambat'] ?? 0;
+                $sickS = $statsSiswa['sakit'] ?? 0;
+                $permitS = $statsSiswa['izin'] ?? 0;
+                $absentS = $statsSiswa['alpha'] ?? $statsSiswa['alpa'] ?? 0;
+                $totalSiswa = $studentIds->count();
+
+                // 2. GURU STATS — pegawai bertipe 'guru' di unit sekolah ini
+                $statsGuru = \App\Models\EmployeeAttendance::whereDate('date', $dateToday)
+                    ->where('school_id', $school->id)
+                    ->whereHas('employee', fn($q) => $q->where('employee_type', 'guru'))
+                    ->select('status', DB::raw('count(*) as count'))
+                    ->groupBy('status')
+                    ->pluck('count', 'status')
+                    ->toArray();
+
+                $presentG = $statsGuru['hadir'] ?? 0;
+                $sickG = $statsGuru['sakit'] ?? 0;
+                $permitG = $statsGuru['izin'] ?? 0;
+                $absentG = $statsGuru['alpha'] ?? $statsGuru['alpa'] ?? 0;
+                $dinasG = $statsGuru['dinas_luar'] ?? 0;
+
+                // 3. PEGAWAI / STAF STATS — pegawai non-guru di unit sekolah ini
+                $statsStaff = \App\Models\EmployeeAttendance::whereDate('date', $dateToday)
+                    ->where('school_id', $school->id)
+                    ->whereHas('employee', fn($q) => $q->where('employee_type', '!=', 'guru'))
+                    ->select('status', DB::raw('count(*) as count'))
+                    ->groupBy('status')
+                    ->pluck('count', 'status')
+                    ->toArray();
+
+                $presentP = $statsStaff['hadir'] ?? 0;
+                $sickP = $statsStaff['sakit'] ?? 0;
+                $permitP = $statsStaff['izin'] ?? 0;
+                $absentP = $statsStaff['alpha'] ?? $statsStaff['alpa'] ?? 0;
+                $cutiP = $statsStaff['cuti'] ?? 0;
+
+                $message = "🏫 *LAPORAN KEHADIRAN HARIAN {$school->name}*
+📌 *Kepada Yth. {$principalName}*
 
 📅 Tanggal: *{$dateFormatted}*
-⏰ Waktu Rekap: *30 Menit Pasca Jam Masuk (07:45 WIB)*
+⏰ Waktu Rekap: *15 Menit Pasca Batas Toleransi (08:00 WIB)*
 
 👨‍🎓 *1. KEHADIRAN SISWA (Total: {$totalSiswa} Siswa):*
 • ✅ Hadir Tepat Waktu: *{$presentS}* | 🕒 Terlambat: *{$lateS}*
@@ -91,31 +132,35 @@ class ExecutiveReportService
 • ✅ Hadir: *{$presentG}* | 🚗 Dinas Luar: *{$dinasG}*
 • 🤒 Sakit: *{$sickG}* | 📩 Izin: *{$permitG}* | ❌ Alpha: *{$absentG}*
 
-💼 *3. KEHADIRAN PEGAWAI & STAF TATA USAHAS:*
+💼 *3. KEHADIRAN PEGAWAI & STAF TATA USAHA:*
 • ✅ Hadir: *{$presentP}* | 🏖️ Cuti: *{$cutiP}*
 • 🤒 Sakit: *{$sickP}* | 📩 Izin: *{$permitP}* | ❌ Alpha: *{$absentP}*
 
-💡 *Catatan:* Laporan rincian presensi kehadiran per unit/kelas dapat dipantau langsung di Portal Admin PembdaHUB.
+💡 *Catatan:* Rincian lengkap per kelas dapat dipantau di Portal Admin PembdaHUB.
 
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_";
 
-        $principals = User::whereIn('role', ['super_admin', 'kepala_sekolah', 'admin_sekolah'])->get();
-        $sentCount = 0;
-
-        foreach ($principals as $p) {
-            $phone = $p->phone_number ?? $p->phone ?? env('WHATSAPP_SENDER');
-            if ($phone) {
                 $this->whatsappService->sendMessage($phone, $message);
                 $sentCount++;
+
+            } catch (\Exception $e) {
+                Log::channel('whatsapp')->error("Failed to send principal digest for {$school->name}: " . $e->getMessage());
+                $errors[] = $school->name;
             }
         }
 
-        return ['success' => true, 'sent' => $sentCount, 'message' => "Digest Kehadiran Kepsek terkirim ke {$sentCount} penerima"];
+        return [
+            'success' => true,
+            'sent' => $sentCount,
+            'errors' => $errors,
+            'message' => "Digest Kehadiran Kepsek terkirim ke {$sentCount} unit sekolah" . (count($errors) ? ", gagal: " . implode(', ', $errors) : ''),
+        ];
     }
 
     /**
      * 1B. Daily Attendance Digest for Homeroom Teachers (Wali Kelas)
+     * Dikirim 15 menit setelah batas toleransi (08:00 WIB) setiap hari aktif (Senin-Jumat)
      */
     public function sendHomeroomDailyAttendanceDigest(): array
     {
@@ -125,35 +170,42 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
         $activeYear = AcademicYear::where('is_active', true)->first();
         if (!$activeYear) return ['success' => false, 'message' => 'Tahun Akademik Aktif tidak ditemukan'];
 
-        $classrooms = Classroom::where('academic_year_id', $activeYear->id)->get();
+        // Hanya kelas dari unit sekolah aktif (tanpa Yayasan)
+        $schoolIds = School::schoolsOnly()->pluck('id');
+        $classrooms = Classroom::where('academic_year_id', $activeYear->id)
+            ->whereIn('school_id', $schoolIds)
+            ->get();
         $sentCount = 0;
 
         foreach ($classrooms as $class) {
             $homeroomTeacher = $class->homeroomTeacher;
             if (!$homeroomTeacher) continue;
 
-            $phone = $homeroomTeacher->phone_number ?? $homeroomTeacher->phone ?? null;
+            // Resolve nomor HP wali kelas via accessor Teacher -> Employee -> phone
+            $phone = $homeroomTeacher->phone ?? null;
             if (!$phone) continue;
 
-            // Get attendance stats for this classroom
+            // Get attendance stats for this classroom — hanya absensi harian (schedule_id = null)
             $studentIds = $class->students()->pluck('students.id');
             $stats = Attendance::whereIn('student_id', $studentIds)
                 ->whereDate('date', $dateToday)
+                ->whereNull('schedule_id')
                 ->select('status', DB::raw('count(*) as count'))
                 ->groupBy('status')
                 ->pluck('count', 'status')
                 ->toArray();
 
-            $present = $stats['hadir'] ?? $stats['present'] ?? 0;
-            $late = $stats['terlambat'] ?? $stats['late'] ?? 0;
-            $sick = $stats['sakit'] ?? $stats['sick'] ?? 0;
-            $permit = $stats['izin'] ?? $stats['permit'] ?? 0;
-            $absent = $stats['alpha'] ?? $stats['alpa'] ?? $stats['absent'] ?? 0;
+            $present = $stats['hadir'] ?? 0;
+            $late = $stats['terlambat'] ?? 0;
+            $sick = $stats['sakit'] ?? 0;
+            $permit = $stats['izin'] ?? 0;
+            $absent = $stats['alpha'] ?? $stats['alpa'] ?? 0;
 
-            // Get names of absent students
+            // Get names of absent/late students — hanya absensi harian
             $absentStudentNames = Attendance::whereIn('student_id', $studentIds)
                 ->whereDate('date', $dateToday)
-                ->whereIn('status', ['alpha', 'alpa', 'absent', 'sakit', 'sick', 'izin', 'permit'])
+                ->whereNull('schedule_id')
+                ->whereIn('status', ['alpha', 'alpa', 'sakit', 'izin', 'terlambat'])
                 ->with('student')
                 ->get()
                 ->map(fn($a) => "• " . ($a->student->full_name ?? 'Siswa') . " (" . strtoupper($a->status) . ")")
@@ -162,10 +214,10 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
             $absentListSnippet = $absentStudentNames ?: "• Tidak ada (Semua Hadir 100%)";
 
             $message = "👩‍🏫 *REKAP KEHADIRAN HARIAN KELAS {$class->name}*
-📌 *Yth. Wali Kelas: {$homeroomTeacher->name}*
+📌 *Yth. Wali Kelas: {$homeroomTeacher->full_name}*
 
 📅 Tanggal: *{$dateFormatted}*
-⏰ Waktu Rekap: *30 Menit Pasca Jam Masuk (07:45 WIB)*
+⏰ Waktu Rekap: *15 Menit Pasca Batas Toleransi (08:00 WIB)*
 
 📊 *RINGKASAN KEHADIRAN SISWA KELAS {$class->name}:*
 • 👥 Total Siswa: *{$studentIds->count()} Siswa*
@@ -229,7 +281,7 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
         $sentCount = 0;
 
         foreach ($principals as $p) {
-            $phone = $p->phone_number ?? $p->phone ?? env('WHATSAPP_SENDER');
+            $phone = $p->teacher?->phone ?? $p->employee?->phone ?? null;
             if ($phone) {
                 $this->whatsappService->sendMessage($phone, $message);
                 $sentCount++;
@@ -278,7 +330,7 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
             }
 
             $message = "💳 *REKAP SPP BULANAN KELAS {$class->name}*
-📌 *Yth. Wali Kelas: {$homeroomTeacher->name}*
+📌 *Yth. Wali Kelas: {$homeroomTeacher->full_name}*
 
 📅 Periode Bulan: *{$monthName}*
 
@@ -338,7 +390,7 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
         $sentCount = 0;
 
         foreach ($principals as $p) {
-            $phone = $p->phone_number ?? $p->phone ?? env('WHATSAPP_SENDER');
+            $phone = $p->teacher?->phone ?? $p->employee?->phone ?? null;
             if ($phone) {
                 $this->whatsappService->sendMessage($phone, $message);
                 $sentCount++;
@@ -367,7 +419,7 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
             if (!$phone) continue;
 
             $message = "📚 *REKAP PENGGUNAAN LMS SISWA KELAS {$class->name}*
-📌 *Yth. Wali Kelas: {$homeroomTeacher->name}*
+📌 *Yth. Wali Kelas: {$homeroomTeacher->full_name}*
 
 📅 Periode: *Minggu Ini (Setiap Senin)*
 
@@ -421,7 +473,7 @@ _Notifikasi Otomatis PembdaHUB_";
         $sentCount = 0;
 
         foreach ($principals as $p) {
-            $phone = $p->phone_number ?? $p->phone ?? env('WHATSAPP_SENDER');
+            $phone = $p->teacher?->phone ?? $p->employee?->phone ?? null;
             if ($phone) {
                 $this->whatsappService->sendMessage($phone, $message);
                 $sentCount++;
@@ -457,7 +509,7 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
         $sentCount = 0;
 
         foreach ($recipients as $r) {
-            $phone = $r->phone_number ?? $r->phone ?? null;
+            $phone = $r->teacher?->phone ?? $r->employee?->phone ?? null;
             if ($phone) {
                 $this->whatsappService->sendMessage($phone, $message);
                 $sentCount++;

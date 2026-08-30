@@ -207,9 +207,10 @@ class AttendanceController extends Controller
                     ], 200);
                 }
 
-                // Cek absensi hari ini
+                // Cek absensi HARIAN hari ini (schedule_id = null, bukan absensi per-mapel)
                 $existingAttendance = \App\Models\Attendance::where('student_id', $student->id)
                     ->where('date', $today)
+                    ->whereNull('schedule_id')
                     ->first();
 
                 if ($existingAttendance) {
