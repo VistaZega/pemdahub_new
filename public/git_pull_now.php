@@ -107,7 +107,12 @@ function execCmd($cmd, $label) {
 // 1. Cek Remote URL Saat Ini
 execCmd("git -C {$root} remote -v", "1. Memeriksa Remote URL Saat Ini");
 
-// 2. Set Remote URL jika ada GitHub Token
+// 2. Set Remote URL jika ada GitHub Token & Optimasi Git Memory
+if (file_exists("{$root}/.git/gc.log")) {
+    @unlink("{$root}/.git/gc.log");
+}
+@shell_exec("git -C {$root} config gc.auto 0");
+
 if (!empty($githubToken)) {
     $maskedToken = substr($githubToken, 0, 7) . '...' . substr($githubToken, -4);
     echo "<h2>▶ 2. Otentikasi GitHub Token</h2><pre><span class='ok'>✔ Token aktif terdeteksi: {$maskedToken}</span></pre>";
@@ -116,7 +121,7 @@ if (!empty($githubToken)) {
 }
 
 // 3. Fetch data terbaru dari GitHub
-$fetchStatus = execCmd("git -C {$root} fetch origin main --prune", "3. Mengunduh Perubahan Terbaru (Git Fetch)");
+$fetchStatus = execCmd("git -C {$root} -c gc.auto=0 fetch origin main --prune", "3. Mengunduh Perubahan Terbaru (Git Fetch)");
 
 if ($fetchStatus !== 0) {
     echo "<div class='notice-box' style='border-color:#f85149;'>";
