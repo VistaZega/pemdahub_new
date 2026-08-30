@@ -150,7 +150,21 @@ class ErrorDiagnosticService
             ];
         }
 
-        // 9. Generic Fallback Error
+        // 9. Undefined array key in blade / PHP
+        if (str_contains($message, 'Undefined array key') || str_contains($message, 'Undefined index')) {
+            return [
+                'type' => 'Tampilan - Akses Kunci Variabel Belum Terdefinisi',
+                'badge' => 'ARRAY KEY NOTICE',
+                'danger_level' => 'low',
+                'danger_label' => '🟢 Sangat Aman (Perbaikan Ringan)',
+                'problem' => "Sistem mencoba membaca kunci array pada tampilan blade yang belum diinisialisasi secara eksplisit.",
+                'impact' => "Halaman yang bersangkutan sempat gagal dimuat sebelum perbaikan diterapkan.",
+                'solution' => "Gunakan operator null-coalescing (<code>?? ''</code>) atau inisialisasi variabel di controller.",
+                'raw' => $message,
+            ];
+        }
+
+        // 10. Generic Fallback Error
         return [
             'type' => 'Sistem - Kesalahan Operasi Internal',
             'badge' => 'SYSTEM EXCEPTION',
@@ -216,6 +230,16 @@ class ErrorDiagnosticService
                 'status_badge' => '🟢 TERSELESAIKAN (FIXED)',
                 'bg_class' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
                 'note' => 'Script git_pull_now.php telah dikonfigurasi gc.auto = 0 dan auto-clean gc.log.',
+            ];
+        }
+
+        // Issue 6: custom_phone key in error alerts blade
+        if (str_contains($message, 'custom_phone') || (str_contains($message, 'Undefined array key') && str_contains($message, 'error-alerts'))) {
+            return [
+                'resolved' => true,
+                'status_badge' => '🟢 TERSELESAIKAN (FIXED)',
+                'bg_class' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                'note' => 'Kunci custom_phone telah diselaraskan dengan admin_phone & diamankan dengan fallback null-coalescing.',
             ];
         }
 
