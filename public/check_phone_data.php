@@ -49,6 +49,26 @@ if (isset($_GET['disable_attendance_wa']) && $_GET['disable_attendance_wa'] === 
     $alertMessage = '<div style="background:#fee2e2; border:1px solid #ef4444; color:#991b1b; padding:15px 20px; border-radius:8px; margin-bottom:20px; font-weight:bold;">⚠️ Saklar otomatisasi WhatsApp untuk Rekap Kepala Sekolah dan Wali Kelas telah DI-NONAKTIFKAN.</div>';
 }
 
+if (isset($_GET['test_principal_digest']) && $_GET['test_principal_digest'] === 'yes') {
+    try {
+        $reportService = app(\App\Services\ExecutiveReportService::class);
+        $res = $reportService->sendPrincipalDailyAttendanceDigest();
+        $alertMessage = '<div style="background:#dbeafe; border:1px solid #3b82f6; color:#1e40af; padding:15px 20px; border-radius:8px; margin-bottom:20px; font-weight:bold;">🚀 Uji Coba Kirim Rekap Kepala Sekolah: ' . htmlspecialchars($res['message'] ?? json_encode($res)) . '</div>';
+    } catch (\Throwable $e) {
+        $alertMessage = '<div style="background:#fee2e2; border:1px solid #ef4444; color:#991b1b; padding:15px 20px; border-radius:8px; margin-bottom:20px; font-weight:bold;">❌ Gagal Uji Coba: ' . htmlspecialchars($e->getMessage()) . '</div>';
+    }
+}
+
+if (isset($_GET['test_homeroom_digest']) && $_GET['test_homeroom_digest'] === 'yes') {
+    try {
+        $reportService = app(\App\Services\ExecutiveReportService::class);
+        $res = $reportService->sendHomeroomDailyAttendanceDigest();
+        $alertMessage = '<div style="background:#dbeafe; border:1px solid #3b82f6; color:#1e40af; padding:15px 20px; border-radius:8px; margin-bottom:20px; font-weight:bold;">🚀 Uji Coba Kirim Rekap Wali Kelas: ' . htmlspecialchars($res['message'] ?? json_encode($res)) . '</div>';
+    } catch (\Throwable $e) {
+        $alertMessage = '<div style="background:#fee2e2; border:1px solid #ef4444; color:#991b1b; padding:15px 20px; border-radius:8px; margin-bottom:20px; font-weight:bold;">❌ Gagal Uji Coba: ' . htmlspecialchars($e->getMessage()) . '</div>';
+    }
+}
+
 header('Content-Type: text/html; charset=utf-8');
 
 echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Diagnostik Nomor HP - PembdaHUB</title>';
@@ -205,6 +225,13 @@ if (!$sendPrincipal || !$sendHomeroom) {
     echo '<span class="ok" style="font-size:15px; font-weight:bold;">🎉 Seluruh saklar rekap kehadiran WhatsApp sudah AKTIF!</span> ';
     echo '<a href="?secret=pembda99&disable_attendance_wa=yes" class="btn btn-red" style="font-size:12px; padding:6px 12px; margin-left:15px;" onclick="return confirm(\'Yakin ingin menonaktifkan saklar?\')">Nonaktifkan</a>';
 }
+echo '</div>';
+
+echo '<div style="background:#e0f2fe; border:1px solid #7dd3fc; padding:15px 20px; border-radius:8px; margin:15px 0;">';
+echo '<h3 style="margin:0 0 10px 0; color:#0369a1;">🧪 Uji Coba Pengiriman Langsung (Live Test):</h3>';
+echo '<p style="margin:0 0 12px 0; font-size:13px; color:#0c4a6e;">Klik tombol di bawah untuk menguji apakah pesan rekap WhatsApp berhasil terkirim ke nomor Kepala Sekolah atau Wali Kelas:</p>';
+echo '<a href="?secret=pembda99&test_principal_digest=yes" class="btn" style="background:#0284c7; color:white; margin-right:10px;" onclick="return confirm(\'Kirim pesan WhatsApp rekap kehadiran ke seluruh Kepala Sekolah sekarang?\')">▶️ Test Kirim Rekap ke Kepala Sekolah</a>';
+echo '<a href="?secret=pembda99&test_homeroom_digest=yes" class="btn" style="background:#0d9488; color:white;" onclick="return confirm(\'Kirim pesan WhatsApp rekap kehadiran ke seluruh Wali Kelas sekarang?\')">▶️ Test Kirim Rekap ke Wali Kelas</a>';
 echo '</div>';
 
 // ============================================================================
