@@ -49,7 +49,7 @@
 
         @if($group->type === 'extracurricular')
             <div class="flex items-center gap-2 pt-1 border-t border-purple-200/60">
-                <a href="{{ (auth()->user()->role ?? '') === 'guru' ? route('mobile.teacher.ekskul') : route('mobile.student.ekskul') }}" class="px-3 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] font-black border border-purple-200 flex items-center gap-1.5 shadow-xs transition">
+                <a href="{{ in_array(auth()->user()->role ?? '', ['guru', 'admin', 'superadmin', 'kepala_sekolah', 'yayasan']) ? route('mobile.guru.ekskul') : route('mobile.ekskul') }}" class="px-3 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] font-black border border-purple-200 flex items-center gap-1.5 shadow-xs transition">
                     <i class="fa-solid fa-sitemap text-indigo-600"></i>
                     <span>Buka Direktori & Roster Ekskul</span>
                 </a>

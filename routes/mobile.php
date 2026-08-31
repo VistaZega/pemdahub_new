@@ -89,6 +89,8 @@ Route::prefix('m')->name('mobile.')->group(function () {
         Route::get('/dna', [MobileStudentController::class, 'dna'])->name('dna');
         Route::post('/dna/diagnostic', [MobileStudentController::class, 'saveDnaDiagnostic'])->name('dna.diagnostic.save');
         Route::get('/ekskul', [MobileStudentController::class, 'ekskul'])->name('ekskul');
+        Route::get('/student/ekskul', fn() => redirect()->route('mobile.ekskul'))->name('student.ekskul');
+        Route::get('/teacher/ekskul', fn() => redirect()->route('mobile.guru.ekskul'))->name('teacher.ekskul');
         Route::post('/ekskul/{extracurricular}/claim', [MobileStudentController::class, 'claimEkskul'])->name('ekskul.claim');
         
         // PKL Siswa (Khusus Kelas XII SMK)
