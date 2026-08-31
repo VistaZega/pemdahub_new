@@ -59,7 +59,7 @@
             return asset('images/ekskul/futsal_bg.png');
         }
         if (str_contains($name, 'renang') || str_contains($name, 'swimming')) {
-            return asset('images/ekskul/renang_bg.png');
+            return asset('images/ekskul/renang_bg.svg');
         }
         if (str_contains($name, 'english') || str_contains($name, 'inggris') || str_contains($name, 'bahasa') || str_contains($name, 'debat')) {
             return asset('images/ekskul/english_club_bg.png');
