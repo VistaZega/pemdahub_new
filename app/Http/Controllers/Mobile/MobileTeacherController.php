@@ -1265,7 +1265,7 @@ class MobileTeacherController extends Controller
             'academic_year_id' => $activeAcademicYear->id ?? 1,
             'semester_id' => $activeSemester->id ?? 1,
             'record_type' => $validated['record_type'],
-            'category' => $validated['category'] ?? 'disiplin',
+            'category' => $validated['category'] ?? 'perilaku',
             'severity' => $validated['severity'] ?? 'ringan',
             'title' => $validated['title'],
             'description' => $validated['description'],

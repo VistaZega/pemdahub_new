@@ -84,4 +84,63 @@ class StudentCounselingRecord extends Model
     {
         return $this->hasMany(CounselingParticipant::class, 'counseling_record_id');
     }
+
+    /**
+     * Mutator to safely normalize category to valid database enum values
+     */
+    public function setCategoryAttribute($value)
+    {
+        $map = [
+            'perilaku' => 'perilaku',
+            'moral' => 'perilaku',
+            'sikap' => 'perilaku',
+            'karakter' => 'perilaku',
+            'kedisiplinan' => 'kedisiplinan',
+            'disiplin' => 'kedisiplinan',
+            'absensi' => 'absensi',
+            'kehadiran' => 'absensi',
+            'presensi' => 'absensi',
+            'akademik' => 'akademik',
+            'sosial' => 'sosial',
+            'pribadi' => 'pribadi',
+            'olahraga' => 'olahraga',
+            'seni' => 'seni',
+            'keagamaan' => 'keagamaan',
+            'karir' => 'karir',
+            'lainnya' => 'lainnya',
+        ];
+
+        $clean = strtolower(trim((string)$value));
+        $this->attributes['category'] = $map[$clean] ?? 'lainnya';
+    }
+
+    /**
+     * Mutator to safely normalize record_type
+     */
+    public function setRecordTypeAttribute($value)
+    {
+        $allowed = ['konseling', 'pembinaan', 'pelanggaran', 'penghargaan', 'home_visit'];
+        $clean = strtolower(trim((string)$value));
+        $this->attributes['record_type'] = in_array($clean, $allowed) ? $clean : 'pembinaan';
+    }
+
+    /**
+     * Mutator to safely normalize severity
+     */
+    public function setSeverityAttribute($value)
+    {
+        $allowed = ['ringan', 'sedang', 'berat'];
+        $clean = strtolower(trim((string)$value));
+        $this->attributes['severity'] = in_array($clean, $allowed) ? $clean : 'ringan';
+    }
+
+    /**
+     * Mutator to safely normalize status
+     */
+    public function setStatusAttribute($value)
+    {
+        $allowed = ['open', 'in_progress', 'resolved', 'closed'];
+        $clean = strtolower(trim((string)$value));
+        $this->attributes['status'] = in_array($clean, $allowed) ? $clean : 'open';
+    }
 }

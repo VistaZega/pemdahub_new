@@ -206,7 +206,21 @@ class ErrorDiagnosticService
             ];
         }
 
-        // 12. Generic Fallback Error
+        // 12. MySQL 1265 Data truncated for column 'category' in student_counseling_records
+        if ((str_contains($message, '1265') || str_contains($message, 'Data truncated')) && str_contains($message, 'category') && str_contains($message, 'student_counseling_records')) {
+            return [
+                'type' => 'Database - Validasi Nilai Kategori Catatan Pembinaan Siswa',
+                'badge' => 'COUNSELING CATEGORY ENUM',
+                'danger_level' => 'low',
+                'danger_label' => '🟢 Aman (Data Tidak Rusak)',
+                'problem' => 'Formulir catatan pembinaan guru di aplikasi mobile mengirimkan nilai kategori (misal: "moral" / "disiplin") yang berbeda dari nama opsi ENUM tabel database MySQL.',
+                'impact' => 'Pencatatan pembinaan siswa sempat tertolak oleh strict mode database. Tidak ada data siswa atau catatan lain yang terpengaruh.',
+                'solution' => 'Model <code>StudentCounselingRecord</code> telah dilengkapi Attribute Mutator otomatis untuk memetakan kategori ke nilai ENUM yang sah, dan opsi formulir mobile telah diselaraskan.',
+                'raw' => $message,
+            ];
+        }
+
+        // 13. Generic Fallback Error
         return [
             'type' => 'Sistem - Kesalahan Operasi Internal',
             'badge' => 'SYSTEM EXCEPTION',
@@ -312,6 +326,16 @@ class ErrorDiagnosticService
                 'status_badge' => '🟢 TERSELESAIKAN (FIXED)',
                 'bg_class' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
                 'note' => 'MobileTeacherController::approvePklLog() telah diperbaiki sintaks return redirect back()->with(). Verifikasi jurnal PKL berjalan lancar.',
+            ];
+        }
+
+        // Issue 10: Counseling category enum truncation warning (1265)
+        if ((str_contains($message, '1265') || str_contains($message, 'Data truncated')) && str_contains($message, 'category') && str_contains($message, 'student_counseling_records')) {
+            return [
+                'resolved' => true,
+                'status_badge' => '🟢 TERSELESAIKAN (FIXED)',
+                'bg_class' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                'note' => 'Model StudentCounselingRecord telah dilengkapi Mutator pemetaan enum & opsi formulir mobile telah diselaraskan.',
             ];
         }
 

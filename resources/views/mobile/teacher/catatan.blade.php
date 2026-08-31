@@ -246,11 +246,13 @@
                     <div>
                         <label class="block text-[11px] font-black text-slate-800 mb-1">Kategori</label>
                         <select name="category" class="w-full px-2.5 py-2.5 bg-white border-2 border-purple-200 rounded-xl text-xs font-bold text-slate-900">
-                            <option value="disiplin">Kedisiplinan & Tata Tertib</option>
-                            <option value="kehadiran">Kehadiran / Presensi</option>
+                            <option value="perilaku">Sikap, Karakter & Moral</option>
+                            <option value="kedisiplinan">Kedisiplinan & Tata Tertib</option>
+                            <option value="absensi">Kehadiran & Absensi</option>
                             <option value="akademik">Akademik & Tugas</option>
                             <option value="sosial">Sosial & Pertemanan</option>
-                            <option value="moral">Sikap & Moral</option>
+                            <option value="pribadi">Kesehatan Mental & Pribadi</option>
+                            <option value="lainnya">Lainnya</option>
                         </select>
                     </div>
                 </div>
