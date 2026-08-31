@@ -33,7 +33,13 @@ temp_*.html
 test_results*.txt
 Daftar Akun*
 
+# Local DB sync tool (jangan push ke production)
+/sync-db-from-production.php
+/sync-db.bat
+/storage/db-dumps/
+
 # Development/debug scripts & archive folders
+/migration-toolkit/
 /tools/
 /archive/
 /development_backup/
