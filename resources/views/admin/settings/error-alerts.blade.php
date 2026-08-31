@@ -254,26 +254,30 @@
                 <p class="text-xs text-slate-500 mt-0.5">Catatan riwayat exception server lengkap dengan diagnosa bahasa Indonesia dan tombol salin 1-klik</p>
             </div>
             
-            <div class="flex flex-wrap items-center gap-2.5">
+            <div class="flex flex-wrap items-center gap-3">
                 @if(!empty($recentLogs))
                 <button type="button" 
                         onclick="copyAllRecentLogs(this)" 
                         data-all-logs="{{ json_encode($recentLogs) }}"
-                        class="px-4.5 py-2 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-xs whitespace-nowrap shrink-0 active:scale-95">
+                        style="padding: 9px 20px !important;"
+                        class="bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-2.5 cursor-pointer shadow-xs whitespace-nowrap shrink-0 active:scale-95">
                     <i class="fas fa-copy text-amber-400"></i>
                     <span>Salin Semua Log</span>
                 </button>
 
                 <form action="{{ route('admin.settings.error_alerts.clear') }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin mengosongkan riwayat log lama?')">
                     @csrf
-                    <button type="submit" class="px-4.5 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-xs whitespace-nowrap shrink-0 active:scale-95">
+                    <button type="submit" 
+                            style="padding: 9px 20px !important;"
+                            class="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold transition inline-flex items-center gap-2.5 cursor-pointer shadow-xs whitespace-nowrap shrink-0 active:scale-95">
                         <i class="fas fa-trash-alt text-rose-600"></i>
                         <span>Bersihkan Log</span>
                     </button>
                 </form>
                 @endif
 
-                <span class="px-3.5 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-mono font-bold border border-slate-200 whitespace-nowrap shrink-0">
+                <span style="padding: 9px 18px !important;"
+                      class="bg-slate-100 text-slate-700 rounded-xl text-xs font-mono font-bold border border-slate-200 whitespace-nowrap shrink-0 inline-flex items-center">
                     {{ count($recentLogs) }} Log
                 </span>
             </div>
@@ -309,12 +313,12 @@
                 <!-- Card Header -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black border {{ $log['level'] === 'CRITICAL' || $log['level'] === 'EMERGENCY' ? 'bg-rose-100 text-rose-700 border-rose-200' : 'bg-amber-100 text-amber-800 border-amber-200' }}">
+                        <span style="padding: 3px 10px !important;" class="rounded-md text-[10px] font-mono font-black border whitespace-nowrap {{ $log['level'] === 'CRITICAL' || $log['level'] === 'EMERGENCY' ? 'bg-rose-100 text-rose-700 border-rose-200' : 'bg-amber-100 text-amber-800 border-amber-200' }}">
                             {{ $log['level'] }}
                         </span>
                         
                         <!-- Status Perbaikan Indikator Hijau -->
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black border {{ $resolution['bg_class'] }}">
+                        <span style="padding: 3px 12px !important;" class="rounded-full text-[10px] font-black border whitespace-nowrap {{ $resolution['bg_class'] }}">
                             {{ $resolution['status_badge'] }}
                         </span>
 
@@ -322,16 +326,19 @@
                     </div>
 
                     <!-- 1-Click Copy Button -->
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2.5 flex-wrap">
                         <button type="button" 
                                 onclick="copyLogCard(this)" 
                                 data-copy="{{ $copyPayload }}"
-                                class="px-3.5 py-1.5 bg-slate-900 hover:bg-black text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 whitespace-nowrap shrink-0">
+                                style="padding: 7px 16px !important;"
+                                class="bg-slate-900 hover:bg-black text-white rounded-xl text-[11px] font-bold transition inline-flex items-center gap-2 shadow-xs cursor-pointer active:scale-95 whitespace-nowrap shrink-0">
                             <i class="fas fa-copy text-amber-400"></i>
                             <span>Salin Kode Error</span>
                         </button>
 
-                        <button type="button" @click="expanded = !expanded" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                        <button type="button" @click="expanded = !expanded" 
+                                style="padding: 7px 16px !important;"
+                                class="bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[11px] font-bold transition inline-flex items-center gap-2 whitespace-nowrap shrink-0">
                             <span x-text="expanded ? 'Tutup Trace' : 'Lihat Trace'"></span>
                             <i class="fas" :class="expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                         </button>
