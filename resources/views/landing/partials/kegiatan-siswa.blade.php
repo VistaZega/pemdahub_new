@@ -25,7 +25,7 @@
     // Pattern tile sizes: variasi ukuran Windows 10 (wide, small, large)
     $tileSizePattern = ['wide', 'small', 'small', 'large', 'small', 'wide', 'small', 'small', 'wide', 'small', 'small', 'large', 'small', 'wide', 'small', 'small', 'wide', 'small'];
 
-    // Helper mapping foto/ilustrasi background riil yang proporsional per unit ekskul
+    // Helper mapping foto/ilustrasi background riil berformat PNG Transparan murni
     $getEkskulBg = function($ekskul) {
         if (!empty($ekskul->cover_image) && file_exists(public_path($ekskul->cover_image))) {
             return asset($ekskul->cover_image);
@@ -35,43 +35,43 @@
         $cat  = strtolower($ekskul->category ?? '');
 
         if (str_contains($name, 'marching') || $cat === 'marching_band') {
-            return asset('images/ekskul/marching_band_bg.jpg');
+            return asset('images/ekskul/marching_band_bg.png');
         }
         if (str_contains($name, 'pramuka') || str_contains($name, 'gugus') || $cat === 'pramuka' || $cat === 'kepanduan') {
-            return asset('images/ekskul/pramuka_bg.jpg');
+            return asset('images/ekskul/pramuka_bg.png');
         }
         if (str_contains($name, 'paskas') || str_contains($name, 'paskibra') || $cat === 'paskibraka') {
-            return asset('images/ekskul/paskibraka_bg.jpg');
+            return asset('images/ekskul/paskibraka_bg.png');
         }
         if (str_contains($name, 'seni') || str_contains($name, 'sanggar') || str_contains($name, 'hulayo') || str_contains($name, 'tari') || $cat === 'seni_budaya') {
-            return asset('images/ekskul/seni_budaya_bg.jpg');
+            return asset('images/ekskul/seni_budaya_bg.png');
         }
         if (str_contains($name, 'cira') || str_contains($name, 'tech') || str_contains($name, 'robot') || str_contains($name, 'coding') || str_contains($name, 'komputer') || $cat === 'sains_it' || $cat === 'sains_teknologi') {
-            return asset('images/ekskul/sains_it_bg.jpg');
+            return asset('images/ekskul/sains_it_bg.png');
         }
         if (str_contains($name, 'tenis') || str_contains($name, 'pingpong')) {
-            return asset('images/ekskul/tenis_meja_bg.jpg');
+            return asset('images/ekskul/tenis_meja_bg.png');
         }
         if (str_contains($name, 'vocal') || str_contains($name, 'vokal') || str_contains($name, 'paduan') || str_contains($name, 'musik') || str_contains($name, 'nyanyi')) {
-            return asset('images/ekskul/olah_vocal_bg.jpg');
+            return asset('images/ekskul/olah_vocal_bg.png');
         }
         if (str_contains($name, 'futsal') || str_contains($name, 'bola kaki') || str_contains($name, 'sepak')) {
-            return asset('images/ekskul/futsal_bg.jpg');
+            return asset('images/ekskul/futsal_bg.png');
         }
         if (str_contains($name, 'renang') || str_contains($name, 'swimming')) {
-            return asset('images/ekskul/renang_bg.jpg');
+            return asset('images/ekskul/renang_bg.png');
         }
         if (str_contains($name, 'english') || str_contains($name, 'inggris') || str_contains($name, 'bahasa') || str_contains($name, 'debat')) {
-            return asset('images/ekskul/english_club_bg.jpg');
+            return asset('images/ekskul/english_club_bg.png');
         }
         if (str_contains($name, 'cerdas') || str_contains($name, 'olimpiade') || str_contains($name, 'sains')) {
-            return asset('images/ekskul/cerdas_cermat_bg.jpg');
+            return asset('images/ekskul/cerdas_cermat_bg.png');
         }
         if (str_contains($name, 'volley') || str_contains($name, 'voli') || str_contains($name, 'basket') || $cat === 'olahraga') {
-            return asset('images/ekskul/olahraga_bg.jpg');
+            return asset('images/ekskul/olahraga_bg.png');
         }
 
-        return asset('images/ekskul/olahraga_bg.jpg');
+        return asset('images/ekskul/olahraga_bg.png');
     };
 @endphp
 
@@ -99,7 +99,7 @@
             </div>
         </div>
 
-        <!-- Windows 10 Metro Tile Grid (Warna 100% Solid Murni + White Watermark Motion 40% -> 80% Zoom 125%) -->
+        <!-- Windows 10 Metro Tile Grid (100% Solid Color + Transparent PNG Watermarks) -->
         <div class="win10-tile-grid mb-6">
             @forelse($extracurriculars as $index => $ekskul)
                 @php
@@ -127,7 +127,7 @@
                     ]) }})"
                     title="Klik untuk info detail {{ $ekskul->name }}"
                 >
-                    {{-- 1. WATERMARK ILUSTRASI PUTIH PROPORSIONAL (40% -> 80% OPACITY & ZOOM 125% SAAT HOVER) --}}
+                    {{-- 1. WATERMARK SILUET PUTIH TRANSPARAN (OPACITY 40% -> 80% & ZOOM 125% SAAT HOVER) --}}
                     <div class="win10-img-container">
                         <img
                             src="{{ $bgImg }}"
@@ -137,10 +137,7 @@
                         >
                     </div>
 
-                    {{-- 2. MINIMAL SOFT BOTTOM SHADOW AGAR WARNA TETAP 100% SOLID & TEKS SANGAT JELAS --}}
-                    <div class="win10-tile-overlay"></div>
-
-                    {{-- 3. TOP BAR (Category Badge + Member Count) --}}
+                    {{-- 2. TOP BAR (Category Badge + Member Count) --}}
                     <div class="win10-tile-top-info">
                         <span class="win10-cat-badge">
                             {{ $categoryLabel }}
@@ -152,13 +149,13 @@
                         @endif
                     </div>
 
-                    {{-- 4. BOTTOM LABELS (Ekskul Name + School) --}}
+                    {{-- 3. BOTTOM LABELS (Ekskul Name + School) --}}
                     <div class="win10-tile-label">
                         <div class="win10-tile-name">{{ $ekskul->name }}</div>
                         <div class="win10-tile-school">{{ $schoolShort }}</div>
                     </div>
 
-                    {{-- 5. HOVER BORDER GLOW --}}
+                    {{-- 4. HOVER BORDER GLOW --}}
                     <div class="absolute inset-0 border border-white/0 group-hover:border-white/50 transition-colors duration-200 pointer-events-none rounded-[2px]"></div>
                 </div>
             @empty
@@ -194,8 +191,7 @@
             <div class="bg-white border-2 border-[#121316] rounded-2xl max-w-lg w-full overflow-hidden shadow-[6px_6px_0px_#121316] transform transition-all" onclick="event.stopPropagation()">
                 <!-- Modal Header with Photo Background & Acrylic Color Overlay -->
                 <div id="modal-tile-header" class="p-6 text-white relative transition-colors duration-200 min-h-[120px] flex flex-col justify-end overflow-hidden" style="background-color: #0078d4;">
-                    <img id="modal-tile-bg-img" src="" alt="Cover Ekskul" class="absolute inset-0 w-full h-full object-cover filter brightness-[0.4]">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"></div>
+                    <img id="modal-tile-bg-img" src="" alt="Cover Ekskul" class="absolute right-4 top-1/2 -translate-y-1/2 h-[80%] object-contain opacity-30 pointer-events-none">
                     
                     <button type="button" onclick="closeWin10TileModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center font-bold text-xs transition-colors z-10" title="Tutup">
                         ✕
@@ -309,7 +305,7 @@
         }
     }
 
-    /* Base tile container: WARNA 100% SOLID & MURNI TANPA TERPENGARUH GAMBAR */
+    /* Base tile container: WARNA 100% SOLID & MURNI TANPA BLOK HITAM */
     .win10-tile {
         position: relative;
         display: flex;
@@ -335,7 +331,7 @@
         transform: scale(0.97);
     }
 
-    /* ─── PROPORTIONAL WHITE WATERMARK (SCREEN BLEND MODE: 0% IMPACT ON SOLID COLOR) ─── */
+    /* ─── PROPORTIONAL TRANSPARENT PNG WATERMARK CONTAINER ─── */
     .win10-img-container {
         position: absolute;
         inset: 0;
@@ -347,29 +343,28 @@
         justify-content: flex-end;
     }
 
-    /* Default State: Watermark Putih Bersih dengan Opacity 40% (scale 1.0) */
+    /* Default State: Watermark Siluet Putih Murni Transparan 40% (scale 1.0) */
     .win10-tile-bg-img {
-        width: 100%;
-        height: 100%;
+        width: auto;
+        max-width: 60%;
+        height: 80%;
         object-fit: contain;
         object-position: right 6px center;
         opacity: 0.40;
         transform: scale(1.0);
         transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-        filter: grayscale(1) invert(1) contrast(200%) brightness(1.2);
-        mix-blend-mode: screen;
     }
 
-    /* Wide & Large Tiles: Posisi proporsional gambar di sebelah kanan */
+    /* Wide & Large Tiles: Penataan proporsional watermark di kanan */
     .win10-tile-wide .win10-tile-bg-img {
-        object-fit: contain;
+        max-width: 55%;
+        height: 85%;
         object-position: right 10px center;
-        max-width: 65%;
-        margin-left: auto;
     }
     .win10-tile-large .win10-tile-bg-img,
     .win10-tile-tall .win10-tile-bg-img {
-        object-fit: contain;
+        max-width: 75%;
+        height: 75%;
         object-position: center 30%;
     }
 
@@ -377,20 +372,6 @@
     .win10-tile:hover .win10-tile-bg-img {
         opacity: 0.80;
         transform: scale(1.25);
-    }
-
-    /* ─── MINIMAL BOTTOM SHADOW (HANYA DI BAWAH TEKS AGAR WARNA SOLID TETAP UTUH) ─── */
-    .win10-tile-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-            180deg,
-            transparent 0%,
-            transparent 55%,
-            rgba(0, 0, 0, 0.40) 100%
-        );
-        pointer-events: none;
-        z-index: 2;
     }
 
     /* Top bar info elements */
