@@ -1,31 +1,31 @@
-{{-- EKSTRAKURIKULER & MINAT BAKAT — Windows 10 Metro Live Tiles with Motion Background Imagery ($extracurriculars) --}}
+{{-- EKSTRAKURIKULER & MINAT BAKAT — Windows 10 Metro Live Tiles ($extracurriculars) --}}
 @php
-    // Palet warna aksen tile khas Windows 10
+    // Palet warna cerah solid Windows 10 Metro asli
     $tileColors = [
         '#0078d4', // Windows Blue
         '#107c10', // Xbox Green
-        '#e81123', // Red
-        '#d83b01', // Dark Orange
-        '#5c2d91', // Purple
-        '#008272', // Dark Teal
+        '#e81123', // Crimson Red
+        '#d83b01', // Vivid Orange
+        '#5c2d91', // Metro Purple
+        '#008272', // Teal
         '#b4009e', // Magenta
-        '#10893e', // Forest Green
+        '#00cc6a', // Mint Green
         '#e74856', // Coral Red
         '#0099bc', // Cyan
-        '#565656', // Slate Dark
         '#c30052', // Dark Pink
         '#004e8c', // Deep Navy
         '#2d7d9a', // Sea Blue
         '#498205', // Olive Green
         '#881798', // Deep Violet
         '#744da9', // Lavender
-        '#018574', // Dark Teal
+        '#018574', // Forest Teal
+        '#ff8c00', // Amber Gold
     ];
 
     // Pattern tile sizes: variasi ukuran Windows 10 (wide, small, large)
     $tileSizePattern = ['wide', 'small', 'small', 'large', 'small', 'wide', 'small', 'small', 'wide', 'small', 'small', 'large', 'small', 'wide', 'small', 'small', 'wide', 'small'];
 
-    // Helper mapping foto background riil yang sangat relevan per unit ekskul
+    // Helper mapping foto/ilustrasi background riil yang proporsional per unit ekskul
     $getEkskulBg = function($ekskul) {
         if (!empty($ekskul->cover_image) && file_exists(public_path($ekskul->cover_image))) {
             return asset($ekskul->cover_image);
@@ -99,7 +99,7 @@
             </div>
         </div>
 
-        <!-- Windows 10 Metro Tile Grid with Dynamic Moving Backgrounds -->
+        <!-- Windows 10 Metro Tile Grid (Vibrant Colors + 40% -> 80% Motion Watermark) -->
         <div class="win10-tile-grid mb-6">
             @forelse($extracurriculars as $index => $ekskul)
                 @php
@@ -127,21 +127,20 @@
                     ]) }})"
                     title="Klik untuk info detail {{ $ekskul->name }}"
                 >
-                    {{-- 1. FOTO BACKGROUND BERGERAK (MOTION ON HOVER) --}}
-                    <img
-                        src="{{ $bgImg }}"
-                        alt="{{ $ekskul->name }}"
-                        loading="lazy"
-                        class="win10-tile-bg-img"
-                    >
+                    {{-- 1. FOTO BACKGROUND PROPORSIONAL (BAYANGAN 40% -> 80% & ZOOM 125% SAAT HOVER) --}}
+                    <div class="win10-img-container">
+                        <img
+                            src="{{ $bgImg }}"
+                            alt="{{ $ekskul->name }}"
+                            loading="lazy"
+                            class="win10-tile-bg-img"
+                        >
+                    </div>
 
-                    {{-- 2. GRADIENT OVERLAY FOR HIGH CONTRAST & LEGIBILITY --}}
+                    {{-- 2. GRADIENT OVERLAY AGAR TEKS SELALU TAJAM & KONTRAS --}}
                     <div class="win10-tile-overlay"></div>
 
-                    {{-- 3. TOP ACCENT BAR --}}
-                    <div class="win10-tile-top-bar" style="background-color: {{ $bgColor }};"></div>
-
-                    {{-- 4. TOP BAR ELEMENTS (Category Tag + Member Count) --}}
+                    {{-- 3. TOP BAR (Category Badge + Member Count) --}}
                     <div class="win10-tile-top-info">
                         <span class="win10-cat-badge">
                             {{ $categoryLabel }}
@@ -153,13 +152,13 @@
                         @endif
                     </div>
 
-                    {{-- 5. BOTTOM LABELS (Unit Name + School) --}}
+                    {{-- 4. BOTTOM LABELS (Ekskul Name + School) --}}
                     <div class="win10-tile-label">
                         <div class="win10-tile-name">{{ $ekskul->name }}</div>
                         <div class="win10-tile-school">{{ $schoolShort }}</div>
                     </div>
 
-                    {{-- 6. HOVER BORDER GLOW --}}
+                    {{-- 5. HOVER BORDER GLOW --}}
                     <div class="absolute inset-0 border border-white/0 group-hover:border-white/40 transition-colors duration-200 pointer-events-none rounded-[2px]"></div>
                 </div>
             @empty
@@ -194,9 +193,9 @@
         <div id="win10-ekskul-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onclick="closeWin10TileModal(event)">
             <div class="bg-white border-2 border-[#121316] rounded-2xl max-w-lg w-full overflow-hidden shadow-[6px_6px_0px_#121316] transform transition-all" onclick="event.stopPropagation()">
                 <!-- Modal Header with Photo Background & Acrylic Color Overlay -->
-                <div id="modal-tile-header" class="p-6 text-white relative transition-colors duration-200 min-h-[120px] flex flex-col justify-end overflow-hidden">
-                    <img id="modal-tile-bg-img" src="" alt="Cover Ekskul" class="absolute inset-0 w-full h-full object-cover filter brightness-[0.45]">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                <div id="modal-tile-header" class="p-6 text-white relative transition-colors duration-200 min-h-[120px] flex flex-col justify-end overflow-hidden" style="background-color: #0078d4;">
+                    <img id="modal-tile-bg-img" src="" alt="Cover Ekskul" class="absolute inset-0 w-full h-full object-cover filter brightness-[0.4]">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"></div>
                     
                     <button type="button" onclick="closeWin10TileModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center font-bold text-xs transition-colors z-10" title="Tutup">
                         ✕
@@ -241,11 +240,11 @@
                             Tutup
                         </button>
                         @auth
-                            <a href="{{ route('dashboard') }}" class="px-5 py-2 rounded-full btn-tactile-red text-xs font-black whitespace-nowrap">
+                            <a href="{{ route('dashboard') }}" class="px-4 py-2 rounded-full btn-tactile-red text-xs font-black whitespace-nowrap">
                                 Daftar di Portal &rarr;
                             </a>
                         @else
-                            <a href="{{ route('login') }}" class="px-5 py-2 rounded-full btn-tactile-red text-xs font-black whitespace-nowrap">
+                            <a href="{{ route('login') }}" class="px-4 py-2 rounded-full btn-tactile-red text-xs font-black whitespace-nowrap">
                                 Masuk & Daftar &rarr;
                             </a>
                         @endauth
@@ -256,6 +255,7 @@
 
         <script>
             function openWin10TileModal(data) {
+                document.getElementById('modal-tile-header').style.backgroundColor = data.color || '#0078d4';
                 document.getElementById('modal-tile-bg-img').src = data.bgImg || '';
                 document.getElementById('modal-tile-category').textContent = data.category || 'EKSTRAKURIKULER';
                 document.getElementById('modal-tile-title').textContent = data.name || 'Ekstrakurikuler';
@@ -287,7 +287,7 @@
 
 <style>
     /* ═══════════════════════════════════════════════════════
-       WINDOWS 10 METRO LIVE TILES — DYNAMIC MOTION ON HOVER
+       WINDOWS 10 METRO LIVE TILES — PROPORTIONAL WATERMARKS
        ═══════════════════════════════════════════════════════ */
 
     .win10-tile-grid {
@@ -319,53 +319,74 @@
         min-height: 76px;
         cursor: pointer;
         overflow: hidden;
-        border-radius: 3px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        border-radius: 2px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         user-select: none;
-        transition: box-shadow 0.25s ease, transform 0.25s ease;
+        transition: box-shadow 0.25s ease, transform 0.25s ease, filter 0.2s ease;
     }
 
     /* Hover elevation & press effect */
     .win10-tile:hover {
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
         transform: translateY(-2px);
+        filter: brightness(1.05);
         z-index: 5;
     }
     .win10-tile:active {
         transform: scale(0.97);
     }
 
-    /* ─── DYNAMIC BACKGROUND IMAGE MOTION ─── */
-    .win10-tile-bg-img {
+    /* ─── PROPORTIONAL IMAGE CONTAINER & MOTION ─── */
+    .win10-img-container {
         position: absolute;
         inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center;
-        filter: brightness(0.85) contrast(1.05) saturate(1.1);
-        transform: scale(1.0) translateY(0);
-        transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s ease;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
         pointer-events: none;
         z-index: 1;
     }
 
-    /* On Mouse Hover: Dynamic gliding zoom motion */
-    .win10-tile:hover .win10-tile-bg-img {
-        transform: scale(1.16) translateY(-4px);
-        filter: brightness(1.02) contrast(1.1) saturate(1.2);
+    /* Default State: 40% Opacity Bayangan / Watermark, Proporsional Fit */
+    .win10-tile-bg-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 25%;
+        opacity: 0.40;
+        transform: scale(1.0);
+        transition: opacity 0.35s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
+        mix-blend-mode: luminosity;
     }
 
-    /* ─── DARK GRADIENT OVERLAY FOR HIGH READABILITY ─── */
+    /* Wide & Large Tiles: Penyesuaian Posisi Proporsional */
+    .win10-tile-wide .win10-tile-bg-img {
+        object-position: right 10% center;
+    }
+    .win10-tile-large .win10-tile-bg-img,
+    .win10-tile-tall .win10-tile-bg-img {
+        object-position: center 20%;
+    }
+
+    /* Hover State: Opacity 80% & Ukuran 125% Motion Zoom */
+    .win10-tile:hover .win10-tile-bg-img {
+        opacity: 0.80;
+        transform: scale(1.25);
+        mix-blend-mode: normal;
+        filter: contrast(1.08) brightness(0.95);
+    }
+
+    /* ─── DARK GRADIENT OVERLAY FOR CRISP TEXT LEGIBILITY ─── */
     .win10-tile-overlay {
         position: absolute;
         inset: 0;
         background: linear-gradient(
             180deg,
-            rgba(0, 0, 0, 0.35) 0%,
-            rgba(0, 0, 0, 0.15) 35%,
-            rgba(0, 0, 0, 0.65) 70%,
-            rgba(0, 0, 0, 0.95) 100%
+            rgba(0, 0, 0, 0.25) 0%,
+            rgba(0, 0, 0, 0.05) 35%,
+            rgba(0, 0, 0, 0.55) 70%,
+            rgba(0, 0, 0, 0.85) 100%
         );
         transition: background 0.3s ease;
         pointer-events: none;
@@ -374,21 +395,11 @@
     .win10-tile:hover .win10-tile-overlay {
         background: linear-gradient(
             180deg,
-            rgba(0, 0, 0, 0.25) 0%,
-            rgba(0, 0, 0, 0.10) 30%,
-            rgba(0, 0, 0, 0.70) 65%,
-            rgba(0, 0, 0, 0.98) 100%
+            rgba(0, 0, 0, 0.35) 0%,
+            rgba(0, 0, 0, 0.15) 35%,
+            rgba(0, 0, 0, 0.65) 65%,
+            rgba(0, 0, 0, 0.90) 100%
         );
-    }
-
-    /* Top Accent Stripe */
-    .win10-tile-top-bar {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        z-index: 4;
     }
 
     /* Top bar info elements */
@@ -403,7 +414,7 @@
     }
 
     .win10-cat-badge {
-        background: rgba(0, 0, 0, 0.45);
+        background: rgba(0, 0, 0, 0.5);
         color: rgba(255, 255, 255, 0.95);
         padding: 1.5px 5px;
         border-radius: 3px;
@@ -413,11 +424,11 @@
         text-transform: uppercase;
         letter-spacing: 0.02em;
         backdrop-filter: blur(4px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .win10-member-badge {
-        background: rgba(0, 0, 0, 0.45);
+        background: rgba(0, 0, 0, 0.5);
         color: rgba(255, 255, 255, 0.95);
         padding: 1.5px 5px;
         border-radius: 3px;
@@ -425,7 +436,7 @@
         font-size: 8px;
         font-weight: 700;
         backdrop-filter: blur(4px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     /* Bottom Labels */
