@@ -5,25 +5,24 @@
         '#0078d4', // Windows Blue
         '#107c10', // Xbox Green
         '#e81123', // Red
-        '#ff8c00', // Orange
+        '#d83b01', // Dark Orange
         '#5c2d91', // Purple
-        '#00b7c3', // Teal
+        '#008272', // Dark Teal
         '#b4009e', // Magenta
-        '#00cc6a', // Mint Green
+        '#10893e', // Forest Green
         '#e74856', // Coral Red
         '#0099bc', // Cyan
-        '#7a7574', // Dark Gray
+        '#565656', // Slate Dark
         '#c30052', // Dark Pink
-        '#10893e', // Forest Green
+        '#004e8c', // Deep Navy
         '#2d7d9a', // Sea Blue
-        '#4c4a48', // Charcoal
-        '#bf0077', // Deep Magenta
+        '#498205', // Olive Green
+        '#881798', // Deep Violet
         '#744da9', // Lavender
         '#018574', // Dark Teal
     ];
 
-    // Pattern tile sizes: beberapa tile lebih besar (wide/large) agar mirip Windows 10
-    // Format: 'small' = 1x1, 'wide' = 2x1, 'tall' = 1x2, 'large' = 2x2
+    // Pattern tile sizes: variasi ukuran Windows 10 (wide, small, large)
     $tileSizePattern = ['wide', 'small', 'small', 'large', 'small', 'wide', 'small', 'small', 'wide', 'small', 'small', 'large', 'small', 'wide', 'small', 'small', 'wide', 'small'];
 
     // Ikon kategori ekskul
@@ -41,32 +40,32 @@
     ];
 @endphp
 
-<section id="ekskul" class="py-14 bg-[#1b1b1b] border-t border-[#333]">
+<section id="ekskul" class="py-10 bg-[#faf8f5] border-t border-[#e7e3d8]">
     <div class="max-w-7xl mx-auto px-4 sm:px-8">
 
         <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-3">
             <div>
-                <div class="text-[10px] font-mono-code font-bold text-[#00b7c3] uppercase tracking-wider mb-1">
+                <div class="text-[10px] font-mono-code font-bold text-[#2563eb] uppercase tracking-wider mb-1">
                     ✱ PENGEMBANGAN KARAKTER & MINAT BAKAT
                 </div>
-                <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                    Asah Potensi di <span class="text-[#0078d4]">{{ isset($extracurriculars) ? $extracurriculars->count() : '16' }}+ Ekstrakurikuler.</span>
+                <h2 class="text-2xl sm:text-3xl font-black text-[#121316] tracking-tight">
+                    Asah Potensi di <span class="highlight-marker">{{ isset($extracurriculars) ? $extracurriculars->count() : '18' }}+ Ekstrakurikuler.</span>
                 </h2>
-                <p class="text-xs text-[#aaa] font-medium mt-1 max-w-xl">
+                <p class="text-xs text-[#555] font-medium mt-1 max-w-xl">
                     Wadah karakter tangguh, kreativitas seni, robotika, dan olahraga bagi siswa SMP, SMA, dan SMK.
                 </p>
             </div>
 
             <div class="flex items-center gap-2">
-                <span class="px-3 py-1 bg-[#2d2d2d] border border-[#555] rounded text-[11px] font-mono-code font-bold text-[#0078d4]">
-                    🎖️ {{ isset($extracurriculars) ? $extracurriculars->count() : '16' }}+ Cabang Terpadu
+                <span class="px-3 py-1 bg-white border border-[#121316] rounded-full text-[11px] font-mono-code font-bold text-[#121316] shadow-[2px_2px_0px_#121316]">
+                    🎖️ {{ isset($extracurriculars) ? $extracurriculars->count() : '18' }}+ Cabang Terpadu
                 </span>
             </div>
         </div>
 
-        <!-- Windows 10 Metro Tile Grid -->
-        <div class="win10-tile-grid mb-8">
+        <!-- Windows 10 Metro Tile Grid (Compact ~70% Height) -->
+        <div class="win10-tile-grid mb-6">
             @forelse($extracurriculars as $index => $ekskul)
                 @php
                     $bgColor = $tileColors[$index % count($tileColors)];
@@ -83,28 +82,28 @@
                         'category' => $ekskul->category_label ?? ucwords(str_replace('_', ' ', $ekskul->category ?? 'Ekskul')),
                         'school' => $schoolShort,
                         'members' => $memberCount,
-                        'description' => $ekskul->description ?? 'Wadah pembinaan karakter, kreativitas, kepemimpinan dan prestasi siswa.',
+                        'description' => $ekskul->description ?? 'Wadah pembinaan karakter, kreativitas, kepemimpinan dan prestasi siswa dibimbing pelatih profesional.',
                         'schedule' => $ekskul->schedule_day_time ?? 'Setiap Sabtu / Terjadwal',
                         'location' => $ekskul->location ?? 'Lingkungan Kampus Perguruan Pembda',
                         'advisor' => $ekskul->advisor_name ?? ($ekskul->manager_name ?? 'Pelatih / Pembina Sekolah'),
                         'icon' => $icon,
                         'color' => $bgColor,
                     ]) }})"
-                    title="Klik untuk info detail {{ $ekskul->name }}"
+                    title="Klik untuk detail {{ $ekskul->name }}"
                 >
                     {{-- Badge anggota (pojok kanan atas) --}}
                     @if($memberCount > 0)
-                        <div class="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 text-white/80 bg-black/20 px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-mono-code font-bold backdrop-blur-sm">
+                        <div class="win10-member-badge">
                             👥 {{ $memberCount }}
                         </div>
                     @endif
 
-                    {{-- Ikon besar di tengah --}}
+                    {{-- Ikon di tengah --}}
                     <div class="win10-tile-icon">
                         <span>{{ $icon }}</span>
                     </div>
 
-                    {{-- Label nama di bawah --}}
+                    {{-- Label nama di bawah-kiri --}}
                     <div class="win10-tile-label">
                         <div class="win10-tile-name">{{ $ekskul->name }}</div>
                         <div class="win10-tile-school">{{ $schoolShort }}</div>
@@ -115,87 +114,87 @@
                 </div>
             @empty
                 {{-- Empty state --}}
-                <div class="col-span-full text-center py-12">
-                    <div class="text-4xl mb-3">🎨</div>
-                    <p class="text-sm font-bold text-[#777]">Data kegiatan ekstrakurikuler sedang diperbarui.</p>
+                <div class="col-span-full text-center py-10 bg-white rounded-2xl border-2 border-dashed border-[#121316]/20">
+                    <div class="text-3xl mb-2">🎨</div>
+                    <p class="text-xs font-bold text-[#777]">Data kegiatan ekstrakurikuler sedang diperbarui.</p>
                 </div>
             @endforelse
         </div>
 
-        <!-- Banner Ringkas Panduan Ekskul -->
-        <div class="bg-[#262626] border border-[#3a3a3a] rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <!-- Banner Ringkas Panduan Ekskul (Tactile Modern Style) -->
+        <div class="bg-white border-2 border-[#121316] rounded-2xl p-4 sm:p-5 shadow-[3px_3px_0px_#121316] flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <span class="text-2xl">💡</span>
-                <p class="text-xs text-[#bbb] font-medium leading-normal">
-                    <strong class="text-white">Pendaftaran Ekskul:</strong> Siswa aktif dapat memilih maksimal 2 kegiatan ekstrakurikuler per semester melalui portal siswa PembdaHUB.
+                <p class="text-xs text-[#444] font-medium leading-normal">
+                    <strong class="text-[#121316]">Pendaftaran Ekskul:</strong> Siswa aktif dapat memilih maksimal 2 kegiatan ekstrakurikuler per semester melalui portal siswa PembdaHUB.
                 </p>
             </div>
             @auth
-                <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded bg-[#0078d4] text-white text-xs font-bold whitespace-nowrap hover:bg-[#106ebe] transition-colors shadow-[0_2px_8px_rgba(0,120,212,0.4)]">
+                <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded-full btn-tactile-red text-xs font-black whitespace-nowrap">
                     Pilih Ekskul di Portal &rarr;
                 </a>
             @else
-                <a href="{{ route('login') }}" class="px-5 py-2.5 rounded bg-[#0078d4] text-white text-xs font-bold whitespace-nowrap hover:bg-[#106ebe] transition-colors shadow-[0_2px_8px_rgba(0,120,212,0.4)]">
+                <a href="{{ route('login') }}" class="px-5 py-2.5 rounded-full btn-tactile-red text-xs font-black whitespace-nowrap">
                     Masuk Portal Siswa &rarr;
                 </a>
             @endauth
         </div>
 
         <!-- Interactive Modal Info Ekskul Windows 10 Style -->
-        <div id="win10-ekskul-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in" onclick="closeWin10TileModal(event)">
-            <div class="bg-[#1f1f1f] border-2 border-[#444] rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl text-white transform transition-all" onclick="event.stopPropagation()">
+        <div id="win10-ekskul-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onclick="closeWin10TileModal(event)">
+            <div class="bg-white border-2 border-[#121316] rounded-2xl max-w-lg w-full overflow-hidden shadow-[6px_6px_0px_#121316] transform transition-all" onclick="event.stopPropagation()">
                 <!-- Modal Header Tile Style -->
-                <div id="modal-tile-header" class="p-6 text-white relative transition-colors duration-200" style="background-color: #0078d4;">
-                    <button type="button" onclick="closeWin10TileModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center font-bold text-sm transition-colors">
+                <div id="modal-tile-header" class="p-5 text-white relative transition-colors duration-200" style="background-color: #0078d4;">
+                    <button type="button" onclick="closeWin10TileModal()" class="absolute top-4 right-4 w-7 h-7 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center font-bold text-xs transition-colors" title="Tutup">
                         ✕
                     </button>
-                    <div class="flex items-center gap-4">
-                        <div id="modal-tile-icon" class="text-4xl sm:text-5xl p-2 bg-black/20 rounded-xl">🎭</div>
+                    <div class="flex items-center gap-3.5 pr-8">
+                        <div id="modal-tile-icon" class="text-3xl sm:text-4xl p-2 bg-black/20 rounded-xl flex-shrink-0">🎭</div>
                         <div>
-                            <span id="modal-tile-category" class="text-[10px] font-mono-code uppercase font-bold tracking-wider px-2 py-0.5 bg-black/30 rounded inline-block mb-1">Pramuka</span>
-                            <h3 id="modal-tile-title" class="text-lg sm:text-xl font-black leading-tight">Nama Ekskul</h3>
-                            <p id="modal-tile-school" class="text-xs text-white/80 font-medium mt-0.5">SMAS Pembda 1</p>
+                            <span id="modal-tile-category" class="text-[9px] font-mono-code uppercase font-bold tracking-wider px-2 py-0.5 bg-black/30 rounded inline-block mb-1 text-white">Pramuka</span>
+                            <h3 id="modal-tile-title" class="text-base sm:text-lg font-black leading-tight text-white">Nama Ekskul</h3>
+                            <p id="modal-tile-school" class="text-[11px] text-white/80 font-medium mt-0.5">SMAS Pembda 1</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Modal Body -->
-                <div class="p-6 space-y-4 text-xs text-[#ccc]">
+                <div class="p-5 space-y-4 text-xs text-[#444]">
                     <div>
-                        <div class="text-[10px] font-mono-code font-bold uppercase text-[#888] mb-1">Deskripsi Kegiatan</div>
-                        <p id="modal-tile-desc" class="text-white/90 leading-relaxed font-normal">Deskripsi lengkap kegiatan ekstrakurikuler.</p>
+                        <div class="text-[10px] font-mono-code font-bold uppercase text-[#777] mb-1">Deskripsi Kegiatan</div>
+                        <p id="modal-tile-desc" class="text-[#222] leading-relaxed font-medium">Deskripsi lengkap kegiatan ekstrakurikuler.</p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 pt-2 border-t border-[#333]">
-                        <div class="bg-[#2a2a2a] p-3 rounded-lg border border-[#383838]">
-                            <div class="text-[9px] font-mono-code uppercase font-bold text-[#888] mb-0.5">👥 Anggota Aktif</div>
-                            <div id="modal-tile-members" class="text-white font-bold text-sm">36 Siswa</div>
+                    <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-[#eee]">
+                        <div class="bg-[#f7f5f0] p-2.5 rounded-xl border border-[#e5e0d4]">
+                            <div class="text-[9px] font-mono-code uppercase font-bold text-[#777] mb-0.5">👥 Anggota Aktif</div>
+                            <div id="modal-tile-members" class="text-[#121316] font-extrabold text-xs sm:text-sm">36 Siswa</div>
                         </div>
-                        <div class="bg-[#2a2a2a] p-3 rounded-lg border border-[#383838]">
-                            <div class="text-[9px] font-mono-code uppercase font-bold text-[#888] mb-0.5">📅 Jadwal</div>
-                            <div id="modal-tile-schedule" class="text-white font-bold text-xs truncate">Setiap Sabtu</div>
+                        <div class="bg-[#f7f5f0] p-2.5 rounded-xl border border-[#e5e0d4]">
+                            <div class="text-[9px] font-mono-code uppercase font-bold text-[#777] mb-0.5">📅 Jadwal</div>
+                            <div id="modal-tile-schedule" class="text-[#121316] font-extrabold text-xs truncate">Setiap Sabtu</div>
                         </div>
-                        <div class="bg-[#2a2a2a] p-3 rounded-lg border border-[#383838]">
-                            <div class="text-[9px] font-mono-code uppercase font-bold text-[#888] mb-0.5">📍 Lokasi</div>
-                            <div id="modal-tile-location" class="text-white font-bold text-xs truncate">Lapangan Utama</div>
+                        <div class="bg-[#f7f5f0] p-2.5 rounded-xl border border-[#e5e0d4]">
+                            <div class="text-[9px] font-mono-code uppercase font-bold text-[#777] mb-0.5">📍 Lokasi</div>
+                            <div id="modal-tile-location" class="text-[#121316] font-extrabold text-xs truncate">Lapangan Utama</div>
                         </div>
-                        <div class="bg-[#2a2a2a] p-3 rounded-lg border border-[#383838]">
-                            <div class="text-[9px] font-mono-code uppercase font-bold text-[#888] mb-0.5">👨‍🏫 Pembina</div>
-                            <div id="modal-tile-advisor" class="text-white font-bold text-xs truncate">Guru Pembina</div>
+                        <div class="bg-[#f7f5f0] p-2.5 rounded-xl border border-[#e5e0d4]">
+                            <div class="text-[9px] font-mono-code uppercase font-bold text-[#777] mb-0.5">👨‍🏫 Pembina</div>
+                            <div id="modal-tile-advisor" class="text-[#121316] font-extrabold text-xs truncate">Guru Pembina</div>
                         </div>
                     </div>
 
                     <!-- Footer Action -->
-                    <div class="pt-3 flex justify-end gap-2">
-                        <button type="button" onclick="closeWin10TileModal()" class="px-4 py-2 rounded bg-[#333] hover:bg-[#444] text-white font-bold text-xs transition-colors">
+                    <div class="pt-3 flex items-center justify-end gap-2 border-t border-[#eee]">
+                        <button type="button" onclick="closeWin10TileModal()" class="px-4 py-2 rounded-full border border-[#ccc] hover:bg-[#f0f0f0] text-[#444] font-bold text-xs transition-colors">
                             Tutup
                         </button>
                         @auth
-                            <a href="{{ route('dashboard') }}" class="px-4 py-2 rounded bg-[#0078d4] hover:bg-[#106ebe] text-white font-bold text-xs transition-colors">
+                            <a href="{{ route('dashboard') }}" class="px-4 py-2 rounded-full btn-tactile-red text-xs font-black whitespace-nowrap">
                                 Daftar di Portal &rarr;
                             </a>
                         @else
-                            <a href="{{ route('login') }}" class="px-4 py-2 rounded bg-[#0078d4] hover:bg-[#106ebe] text-white font-bold text-xs transition-colors">
+                            <a href="{{ route('login') }}" class="px-4 py-2 rounded-full btn-tactile-red text-xs font-black whitespace-nowrap">
                                 Masuk & Daftar &rarr;
                             </a>
                         @endauth
@@ -238,7 +237,7 @@
 
 <style>
     /* ═══════════════════════════════════════════════════════
-       WINDOWS 10 METRO TILE GRID — RESPONSIVE CSS GRID
+       WINDOWS 10 METRO TILE GRID — COMPACT (70% HEIGHT)
        ═══════════════════════════════════════════════════════ */
 
     .win10-tile-grid {
@@ -247,7 +246,6 @@
         gap: 3px;
     }
 
-    /* Desktop: 6 kolom agar tiles bervariasi kecil-besar */
     @media (min-width: 768px) {
         .win10-tile-grid {
             grid-template-columns: repeat(4, 1fr);
@@ -266,127 +264,151 @@
         position: relative;
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 12px;
-        min-height: 100px;
-        cursor: default;
+        justify-content: space-between;
+        padding: 8px 10px;
+        min-height: 72px;
+        cursor: pointer;
         overflow: hidden;
+        border-radius: 2px;
         transition: filter 0.15s ease, transform 0.15s ease;
         user-select: none;
     }
     .win10-tile:hover {
-        filter: brightness(1.08);
-        transform: scale(1.01);
+        filter: brightness(1.1);
+        transform: scale(1.015);
+        z-index: 2;
     }
     .win10-tile:active {
         transform: scale(0.97);
         filter: brightness(0.92);
     }
 
-    /* Tile sizes — mobile (2-col grid) */
+    /* Tile sizes — Mobile */
     .win10-tile-small {
         grid-column: span 1;
         grid-row: span 1;
-        min-height: 100px;
+        min-height: 72px;
     }
     .win10-tile-wide {
         grid-column: span 2;
         grid-row: span 1;
-        min-height: 100px;
+        min-height: 72px;
     }
     .win10-tile-tall {
         grid-column: span 1;
         grid-row: span 2;
-        min-height: 200px;
+        min-height: 147px;
     }
     .win10-tile-large {
         grid-column: span 2;
         grid-row: span 2;
-        min-height: 200px;
+        min-height: 147px;
     }
 
-    /* Desktop sizes */
+    /* Tablet (min-width: 768px) */
     @media (min-width: 768px) {
-        .win10-tile-small  { min-height: 120px; }
-        .win10-tile-wide   { min-height: 120px; }
-        .win10-tile-tall   { min-height: 250px; }
-        .win10-tile-large  { min-height: 250px; }
-    }
-    @media (min-width: 1024px) {
-        .win10-tile-small  { min-height: 130px; }
-        .win10-tile-wide   { min-height: 130px; }
-        .win10-tile-tall   { min-height: 270px; }
-        .win10-tile-large  { min-height: 270px; }
+        .win10-tile { padding: 9px 11px; }
+        .win10-tile-small  { min-height: 82px; }
+        .win10-tile-wide   { min-height: 82px; }
+        .win10-tile-tall   { min-height: 168px; }
+        .win10-tile-large  { min-height: 168px; }
     }
 
-    /* Icon — centered large emoji/icon */
+    /* Desktop (min-width: 1024px) */
+    @media (min-width: 1024px) {
+        .win10-tile { padding: 10px 12px; }
+        .win10-tile-small  { min-height: 88px; }
+        .win10-tile-wide   { min-height: 88px; }
+        .win10-tile-tall   { min-height: 180px; }
+        .win10-tile-large  { min-height: 180px; }
+    }
+
+    /* Member Badge */
+    .win10-member-badge {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: rgba(0, 0, 0, 0.28);
+        color: rgba(255, 255, 255, 0.95);
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 8px;
+        font-weight: 700;
+        backdrop-filter: blur(2px);
+        z-index: 1;
+    }
+
+    /* Icon in center */
     .win10-tile-icon {
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2rem;
+        font-size: 1.4rem;
         line-height: 1;
-        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
     }
-    .win10-tile-wide .win10-tile-icon,
-    .win10-tile-large .win10-tile-icon {
-        font-size: 2.8rem;
+    .win10-tile-wide .win10-tile-icon {
+        font-size: 1.8rem;
     }
+    .win10-tile-large .win10-tile-icon,
     .win10-tile-tall .win10-tile-icon {
-        font-size: 2.5rem;
-    }
-    @media (min-width: 768px) {
-        .win10-tile-icon { font-size: 2.2rem; }
-        .win10-tile-wide .win10-tile-icon { font-size: 3rem; }
-        .win10-tile-large .win10-tile-icon { font-size: 3.5rem; }
-        .win10-tile-tall .win10-tile-icon { font-size: 3rem; }
+        font-size: 2.3rem;
     }
 
-    /* Label at bottom-left */
+    @media (min-width: 768px) {
+        .win10-tile-icon { font-size: 1.6rem; }
+        .win10-tile-wide .win10-tile-icon { font-size: 2.1rem; }
+        .win10-tile-large .win10-tile-icon,
+        .win10-tile-tall .win10-tile-icon { font-size: 2.6rem; }
+    }
+
+    /* Labels at bottom-left */
     .win10-tile-label {
         width: 100%;
         text-align: left;
-        padding-top: 4px;
+        padding-top: 2px;
     }
     .win10-tile-name {
-        color: rgba(255,255,255,0.95);
+        color: #ffffff;
         font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
-        font-weight: 700;
+        font-weight: 800;
         font-size: 10px;
         line-height: 1.2;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
     }
     .win10-tile-wide .win10-tile-name,
     .win10-tile-large .win10-tile-name {
-        font-size: 12px;
+        font-size: 11.5px;
         white-space: normal;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
     }
     .win10-tile-school {
-        color: rgba(255,255,255,0.5);
+        color: rgba(255, 255, 255, 0.75);
         font-family: 'JetBrains Mono', monospace;
         font-weight: 600;
-        font-size: 8px;
+        font-size: 7.5px;
         margin-top: 1px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
     }
     .win10-tile-wide .win10-tile-school,
     .win10-tile-large .win10-tile-school {
-        font-size: 9px;
+        font-size: 8.5px;
     }
 
     @media (min-width: 768px) {
-        .win10-tile-name  { font-size: 11px; }
+        .win10-tile-name { font-size: 10.5px; }
         .win10-tile-wide .win10-tile-name,
-        .win10-tile-large .win10-tile-name { font-size: 13px; }
-        .win10-tile-school { font-size: 9px; }
+        .win10-tile-large .win10-tile-name { font-size: 12px; }
+        .win10-tile-school { font-size: 8px; }
     }
 </style>
