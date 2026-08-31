@@ -1,6 +1,6 @@
 {{-- EKSTRAKURIKULER & MINAT BAKAT — Windows 10 Metro Live Tiles ($extracurriculars) --}}
 @php
-    // Palet warna cerah solid Windows 10 Metro asli (100% Solid & Bold)
+    // Palet warna cerah solid Windows 10 Metro asli (100% PURE & SOLID)
     $tileColors = [
         '#0078d4', // Windows Blue
         '#107c10', // Xbox Green
@@ -99,7 +99,7 @@
             </div>
         </div>
 
-        <!-- Windows 10 Metro Tile Grid (Warna Tetap Solid + Hanya Gambar Ber-Transisi 40% -> 80% & Zoom 125%) -->
+        <!-- Windows 10 Metro Tile Grid (Warna 100% Solid Murni + White Watermark Motion 40% -> 80% Zoom 125%) -->
         <div class="win10-tile-grid mb-6">
             @forelse($extracurriculars as $index => $ekskul)
                 @php
@@ -127,7 +127,7 @@
                     ]) }})"
                     title="Klik untuk info detail {{ $ekskul->name }}"
                 >
-                    {{-- 1. FOTO BACKGROUND PROPORSIONAL (HANYA GAMBAR YANG BER-TRANSISI OPACITY 40% -> 80% & ZOOM 125%) --}}
+                    {{-- 1. WATERMARK ILUSTRASI PUTIH PROPORSIONAL (40% -> 80% OPACITY & ZOOM 125% SAAT HOVER) --}}
                     <div class="win10-img-container">
                         <img
                             src="{{ $bgImg }}"
@@ -137,7 +137,7 @@
                         >
                     </div>
 
-                    {{-- 2. SOFT GRADIENT DI BAWAH AGAR TEKS TAJAM TANPA MENUTUPI WARNA SOLID --}}
+                    {{-- 2. MINIMAL SOFT BOTTOM SHADOW AGAR WARNA TETAP 100% SOLID & TEKS SANGAT JELAS --}}
                     <div class="win10-tile-overlay"></div>
 
                     {{-- 3. TOP BAR (Category Badge + Member Count) --}}
@@ -159,7 +159,7 @@
                     </div>
 
                     {{-- 5. HOVER BORDER GLOW --}}
-                    <div class="absolute inset-0 border border-white/0 group-hover:border-white/40 transition-colors duration-200 pointer-events-none rounded-[2px]"></div>
+                    <div class="absolute inset-0 border border-white/0 group-hover:border-white/50 transition-colors duration-200 pointer-events-none rounded-[2px]"></div>
                 </div>
             @empty
                 {{-- Empty state --}}
@@ -287,7 +287,7 @@
 
 <style>
     /* ═══════════════════════════════════════════════════════
-       WINDOWS 10 METRO LIVE TILES — 100% SOLID COLOR + IMAGE WATERMARK
+       WINDOWS 10 METRO LIVE TILES — 100% PURE SOLID COLORS
        ═══════════════════════════════════════════════════════ */
 
     .win10-tile-grid {
@@ -309,7 +309,7 @@
         }
     }
 
-    /* Base tile container: WARNA 100% SOLID, TIDAK BERUBAH */
+    /* Base tile container: WARNA 100% SOLID & MURNI TANPA TERPENGARUH GAMBAR */
     .win10-tile {
         position: relative;
         display: flex;
@@ -320,14 +320,14 @@
         cursor: pointer;
         overflow: hidden;
         border-radius: 2px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
         user-select: none;
         transition: box-shadow 0.25s ease, transform 0.25s ease;
     }
 
     /* Hover elevation & press effect */
     .win10-tile:hover {
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
         transform: translateY(-2px);
         z-index: 5;
     }
@@ -335,34 +335,42 @@
         transform: scale(0.97);
     }
 
-    /* ─── PROPORTIONAL IMAGE CONTAINER & MOTION ─── */
+    /* ─── PROPORTIONAL WHITE WATERMARK (SCREEN BLEND MODE: 0% IMPACT ON SOLID COLOR) ─── */
     .win10-img-container {
         position: absolute;
         inset: 0;
         overflow: hidden;
         pointer-events: none;
         z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
     }
 
-    /* Default State: HANYA GAMBAR dengan Opacity 40% Bayangan / Watermark */
+    /* Default State: Watermark Putih Bersih dengan Opacity 40% (scale 1.0) */
     .win10-tile-bg-img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        object-position: center 25%;
+        object-fit: contain;
+        object-position: right 6px center;
         opacity: 0.40;
         transform: scale(1.0);
         transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-        mix-blend-mode: multiply;
+        filter: grayscale(1) invert(1) contrast(200%) brightness(1.2);
+        mix-blend-mode: screen;
     }
 
-    /* Wide & Large Tiles: Posisi proporsional gambar */
+    /* Wide & Large Tiles: Posisi proporsional gambar di sebelah kanan */
     .win10-tile-wide .win10-tile-bg-img {
-        object-position: right 10% center;
+        object-fit: contain;
+        object-position: right 10px center;
+        max-width: 65%;
+        margin-left: auto;
     }
     .win10-tile-large .win10-tile-bg-img,
     .win10-tile-tall .win10-tile-bg-img {
-        object-position: center 20%;
+        object-fit: contain;
+        object-position: center 30%;
     }
 
     /* Hover State: HANYA GAMBAR yang berubah menjadi Opacity 80% dan Zoom 125% */
@@ -371,16 +379,15 @@
         transform: scale(1.25);
     }
 
-    /* ─── SOFT GRADIENT BOTTOM OVERLAY FOR CRISP TEXT ─── */
+    /* ─── MINIMAL BOTTOM SHADOW (HANYA DI BAWAH TEKS AGAR WARNA SOLID TETAP UTUH) ─── */
     .win10-tile-overlay {
         position: absolute;
         inset: 0;
         background: linear-gradient(
             180deg,
             transparent 0%,
-            transparent 35%,
-            rgba(0, 0, 0, 0.35) 70%,
-            rgba(0, 0, 0, 0.70) 100%
+            transparent 55%,
+            rgba(0, 0, 0, 0.40) 100%
         );
         pointer-events: none;
         z-index: 2;
@@ -398,7 +405,7 @@
     }
 
     .win10-cat-badge {
-        background: rgba(0, 0, 0, 0.4);
+        background: rgba(0, 0, 0, 0.35);
         color: rgba(255, 255, 255, 0.95);
         padding: 1.5px 5px;
         border-radius: 3px;
@@ -408,11 +415,11 @@
         text-transform: uppercase;
         letter-spacing: 0.02em;
         backdrop-filter: blur(4px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.25);
     }
 
     .win10-member-badge {
-        background: rgba(0, 0, 0, 0.4);
+        background: rgba(0, 0, 0, 0.35);
         color: rgba(255, 255, 255, 0.95);
         padding: 1.5px 5px;
         border-radius: 3px;
@@ -420,7 +427,7 @@
         font-size: 8px;
         font-weight: 700;
         backdrop-filter: blur(4px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.25);
     }
 
     /* Bottom Labels */
@@ -441,7 +448,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
     }
     .win10-tile-wide .win10-tile-name,
     .win10-tile-large .win10-tile-name {
@@ -461,7 +468,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
     }
     .win10-tile-wide .win10-tile-school,
     .win10-tile-large .win10-tile-school {
