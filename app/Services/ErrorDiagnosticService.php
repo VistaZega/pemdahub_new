@@ -7,13 +7,217 @@ use Throwable;
 class ErrorDiagnosticService
 {
     /**
-     * Diagnose an exception or error message into human-friendly Indonesian explanation.
+     * In-memory cache for user and student lookups during log parsing.
+     */
+    protected static array $userCache = [];
+    protected static array $studentCache = [];
+
+    /**
+     * Diagnose an exception or error message into human-friendly Indonesian explanation with rich Actor context.
      */
     public static function diagnose(Throwable|string $error): array
     {
         $message = is_string($error) ? $error : $error->getMessage();
         $class = is_string($error) ? 'RawError' : get_class($error);
 
+        $actor = static::extractActorContext($message);
+        $details = static::getDiagnosticDetails($message, $class);
+        $details['actor'] = $actor;
+        $details['raw'] = $message;
+
+        return $details;
+    }
+
+    /**
+     * Extract actor (User/Teacher/Student), roles, target entities, and action context from error log.
+     */
+    public static function extractActorContext(string $message): array
+    {
+        $context = [
+            'has_actor' => false,
+            'user_id' => null,
+            'user_name' => 'Sistem / Background Process',
+            'user_role' => null,
+            'user_role_label' => 'Sistem Otomatis / Background Worker',
+            'user_details' => null,
+            'target_student_id' => null,
+            'target_student_name' => null,
+            'target_student_class' => null,
+            'target_student_school' => null,
+            'action_label' => 'Operasi Sistem Internal',
+            'action_module' => 'Sistem Inti PembdaHUB',
+            'controller_method' => null,
+            'summary' => 'Aktivitas sistem latar belakang',
+        ];
+
+        // 1. Extract User ID from log payload
+        $userId = null;
+        if (preg_match('/"userId"\s*:\s*(\d+)/i', $message, $m)) {
+            $userId = (int) $m[1];
+        } elseif (preg_match('/(?:user_id|counselor_id|teacher_id)\s*[:=]\s*(\d+)/i', $message, $m)) {
+            $userId = (int) $m[1];
+        } elseif (preg_match('/(?:user_id|counselor_id)[\'"]?\s*=>\s*(\d+)/i', $message, $m)) {
+            $userId = (int) $m[1];
+        }
+
+        if ($userId) {
+            $context['user_id'] = $userId;
+            $context['user_name'] = "Pengguna (User ID #{$userId})";
+            $context['user_role_label'] = "Akun Terdaftar (ID: {$userId})";
+            $context['has_actor'] = true;
+
+            if (array_key_exists($userId, static::$userCache)) {
+                $user = static::$userCache[$userId];
+            } else {
+                try {
+                    $user = \App\Models\User::with([
+                        'school',
+                        'student.currentClassroom.classroom',
+                        'teacher.school',
+                        'teacher.teachingAssignments.subject'
+                    ])->find($userId);
+                    static::$userCache[$userId] = $user;
+                } catch (\Throwable $e) {
+                    $user = null;
+                    static::$userCache[$userId] = null;
+                }
+            }
+
+            if ($user) {
+                $context['user_name'] = $user->name;
+                $context['user_role'] = $user->role;
+
+                $schoolName = $user->school?->name ?? ($user->teacher?->school?->name ?? 'Yayasan Perguruan Pembda');
+
+                if ($user->isOwnerOrSuperAdmin() || $user->role === 'superadmin' || $user->role === 'super_admin' || $user->username === 'yulzega') {
+                    $context['user_role_label'] = '👑 Super Admin / IT Administrator';
+                    $context['user_details'] = 'Akses Penuh Seluruh Sistem — ' . $schoolName;
+                } elseif ($user->isKepalaSekolah() || $user->role === 'kepala_sekolah') {
+                    $context['user_role_label'] = '🏫 Kepala Sekolah';
+                    $context['user_details'] = 'Pimpinan Satuan Pendidikan — ' . $schoolName;
+                } elseif ($user->canAccessYayasan() || $user->role === 'yayasan' || $user->role === 'ketua_yayasan') {
+                    $context['user_role_label'] = '🏛️ Pengurus Yayasan PEMBDA';
+                    $context['user_details'] = 'Badan Pembina & Pengawas Yayasan';
+                } elseif ($user->role === 'guru') {
+                    $teacher = $user->teacher;
+                    $subject = $teacher?->teachingAssignments?->first()?->subject?->name ?? ($teacher?->subject_specialty ?? 'Guru Pendidik');
+                    $nip = $teacher?->nip ?? ($teacher?->npy ?? '');
+                    $nipText = $nip ? " [NIP: {$nip}]" : '';
+                    $context['user_role_label'] = "👨‍🏫 Guru / Pendidik ({$subject})";
+                    $context['user_details'] = "Unit: {$schoolName}{$nipText}";
+                } elseif ($user->role === 'siswa') {
+                    $student = $user->student;
+                    $className = $student?->currentClassroom?->first()?->classroom?->class_name ?? ($student?->currentClassroom?->first()?->name ?? 'Kelas Aktif');
+                    $nisn = $student?->nisn ?? ($student?->nis ?? '');
+                    $nisnText = $nisn ? " [NISN: {$nisn}]" : '';
+                    $context['user_role_label'] = "🎓 Siswa Peserta Didik ({$className})";
+                    $context['user_details'] = "Unit: {$schoolName}{$nisnText}";
+                } else {
+                    $context['user_role_label'] = '👤 Pengguna (' . ucfirst($user->role) . ')';
+                    $context['user_details'] = 'Unit: ' . $schoolName;
+                }
+            }
+        }
+
+        // 2. Extract Target Student ID (if record references student_id)
+        if (preg_match('/student_counseling_records.*?values\s*\(\s*(\d+)/i', $message, $sm) || preg_match('/student_id[\'"]?\s*[:=]\s*(\d+)/i', $message, $sm)) {
+            $targetStudentId = (int)$sm[1];
+            $context['target_student_id'] = $targetStudentId;
+            $context['target_student_name'] = "Siswa (ID #{$targetStudentId})";
+
+            if (array_key_exists($targetStudentId, static::$studentCache)) {
+                $targetStudent = static::$studentCache[$targetStudentId];
+            } else {
+                try {
+                    $targetStudent = \App\Models\Student::with(['school', 'currentClassroom.classroom'])->find($targetStudentId);
+                    static::$studentCache[$targetStudentId] = $targetStudent;
+                } catch (\Throwable $e) {
+                    $targetStudent = null;
+                    static::$studentCache[$targetStudentId] = null;
+                }
+            }
+
+            if ($targetStudent) {
+                $context['target_student_name'] = $targetStudent->full_name;
+                $context['target_student_class'] = $targetStudent->currentClassroom->first()?->classroom?->class_name ?? ($targetStudent->currentClassroom->first()?->name ?? 'Kelas Aktif');
+                $context['target_student_school'] = $targetStudent->school?->name ?? '';
+            }
+        }
+
+        // 3. Extract Controller & Method from stack trace
+        if (preg_match('/(?:([A-Za-z0-9_]+Controller)(?:\.php)?[^\n]*?(?:->|::)\s*([A-Za-z0-9_]+))/i', $message, $cm)) {
+            $controller = $cm[1] ?? '';
+            $method = $cm[2] ?? '';
+            $context['controller_method'] = "{$controller}@{$method}";
+        } elseif (preg_match('/([A-Za-z0-9_]+Controller)(?:\.php)?/i', $message, $cm)) {
+            $context['controller_method'] = $cm[1];
+        }
+
+        // 4. Determine Action Label & Action Module
+        if (str_contains($message, 'approvePklLog') || str_contains($message, 'u003ewith') || str_contains($message, 'MobileTeacherController.php:1605')) {
+            $context['action_label'] = 'Verifikasi / Persetujuan (ACC) Jurnal Harian PKL Siswa';
+            $context['action_module'] = '📱 Aplikasi Mobile Guru — PKL Industri';
+        } elseif (str_contains($message, 'rejectPklLog')) {
+            $context['action_label'] = 'Permintaan Revisi / Catatan Perbaikan Jurnal PKL';
+            $context['action_module'] = '📱 Aplikasi Mobile Guru — PKL Industri';
+        } elseif (str_contains($message, 'storePembinaan') || str_contains($message, 'MobileTeacherController.php:1262') || (str_contains($message, 'student_counseling_records') && str_contains($message, 'pembinaan'))) {
+            $context['action_label'] = 'Pencatatan Pembinaan Karakter & Bimbingan BK Siswa';
+            $context['action_module'] = '📱 Aplikasi Mobile Guru — Pembinaan Siswa';
+        } elseif (str_contains($message, 'storePrestasi') || (str_contains($message, 'student_counseling_records') && str_contains($message, 'penghargaan'))) {
+            $context['action_label'] = 'Pencatatan Rekam Prestasi & Poin Reputasi Siswa';
+            $context['action_module'] = '📱 Aplikasi Mobile Guru — Rekam Prestasi';
+        } elseif (str_contains($message, 'storePerkembangan') || str_contains($message, 'student_development_notes')) {
+            $context['action_label'] = 'Pencatatan Observasi Perkembangan Siswa oleh Wali Kelas';
+            $context['action_module'] = '📱 Aplikasi Mobile Guru — Observasi Siswa';
+        } elseif (str_contains($message, 'saveDocument') || str_contains($message, 'uploadDocument') || str_contains($message, 'SteamCompetition')) {
+            $context['action_label'] = 'Unggah Berkas / Dokumen Kelengkapan Lomba STEAMpreneur SMK';
+            $context['action_module'] = '🏆 Portal STEAMpreneur SMK 2026';
+        } elseif (str_contains($message, 'updateSettings') && str_contains($message, 'steam')) {
+            $context['action_label'] = 'Pembaruan Konfigurasi & Tim Siswa Lomba STEAMpreneur';
+            $context['action_module'] = '🏆 Portal STEAMpreneur SMK 2026';
+        } elseif (str_contains($message, 'StudentCounselingController@store')) {
+            $context['action_label'] = 'Pencatatan Kasus / Layanan Konseling Siswa (Admin Web)';
+            $context['action_module'] = '🛡️ BK & Kesiswaan (Web Portal)';
+        } elseif (str_contains($message, 'lms_material_progress') || str_contains($message, 'LmsController')) {
+            $context['action_label'] = 'Aktivitas Belajar & Penyelesaian Modul KBM LMS';
+            $context['action_module'] = '📚 LMS & KBM Digital';
+        } elseif (str_contains($message, 'AttendanceController') || str_contains($message, 'presensi')) {
+            $context['action_label'] = 'Pencatatan Kehadiran / Presensi Digital Siswa/Guru';
+            $context['action_module'] = '⏱️ Presensi & Kehadiran Digital';
+        } elseif (str_contains($message, 'Cbt') || str_contains($message, 'cbt_exams')) {
+            $context['action_label'] = 'Pelaksanaan / Manajemen Ujian CBT Online';
+            $context['action_module'] = '📝 Computer Based Test (CBT)';
+        } elseif (str_contains($message, 'StudentBill') || str_contains($message, 'PaymentController')) {
+            $context['action_label'] = 'Transaksi Administrasi Keuangan / Pembayaran SPP Siswa';
+            $context['action_module'] = '💳 Administrasi Keuangan Siswa';
+        } elseif (str_contains($message, 'ReportCard') || str_contains($message, 'rapor')) {
+            $context['action_label'] = 'Penginputan Nilai / Pemrosesan Rapor Digital Siswa';
+            $context['action_module'] = '📊 Rapor Digital Siswa';
+        } elseif (str_contains($message, 'PklMonitoring') || str_contains($message, 'pkl_monitorings')) {
+            $context['action_label'] = 'Pengisian Form Monitoring Guru ke Mitra Industri PKL';
+            $context['action_module'] = '🏢 PKL Industri & Monitoring';
+        } elseif (!empty($context['controller_method'])) {
+            $cleanCtrl = str_replace(['App\\Http\\Controllers\\', 'Controller'], '', $context['controller_method']);
+            $context['action_label'] = 'Eksekusi ' . $context['controller_method'];
+            $context['action_module'] = '💻 Modul ' . explode('@', $cleanCtrl)[0];
+        }
+
+        // 5. Build Human-Readable Summary
+        if ($context['has_actor']) {
+            $targetInfo = $context['target_student_name'] ? " (Target Siswa: {$context['target_student_name']})" : '';
+            $context['summary'] = "Aksi dilakukan oleh {$context['user_name']} ({$context['user_role_label']}) pada {$context['action_module']} — Tindakan: {$context['action_label']}{$targetInfo}";
+        } else {
+            $context['summary'] = "Aktivitas pada {$context['action_module']} — Tindakan: {$context['action_label']}";
+        }
+
+        return $context;
+    }
+
+    /**
+     * Map error patterns to problem, impact, and solution.
+     */
+    protected static function getDiagnosticDetails(string $message, string $class): array
+    {
         // 1. Column Not Found in SQL (SQLSTATE 42S22 / Error 1054)
         if (str_contains($message, '42S22') || (str_contains($message, 'Unknown column') && str_contains($message, '1054'))) {
             preg_match("/Unknown column '([^']+)'/i", $message, $m);
@@ -26,7 +230,6 @@ class ErrorDiagnosticService
                 'problem' => "Sistem mencoba membaca atau mengisi kolom <code>{$column}</code>, namun kolom tersebut belum ada di tabel database.",
                 'impact' => "Operasi simpan/baca pada fitur yang bersangkutan tertahan sementara. Seluruh data lain di database tetap aman 100% dan tidak ada yang hilang/rusak.",
                 'solution' => "Jika ini adalah kolom <code>updated_at</code>/<code>created_at</code> pada model tanpa timestamps, tambahkan <code>public \$timestamps = false;</code> pada model Eloquent-nya. Jika kolom baru, buat dan jalankan migrasi database.",
-                'raw' => $message,
             ];
         }
 
@@ -42,7 +245,6 @@ class ErrorDiagnosticService
                 'problem' => "Sistem migrasi otomatis mencoba membuat tabel <code>{$table}</code>, padahal tabel tersebut sudah ada dan sedang aktif di database.",
                 'impact' => "Sama sekali tidak merusak data. Tabel dan seluruh isi data Anda tetap aman dan utuh.",
                 'solution' => "Bungkus instruksi pembuatan tabel di file migration dengan proteksi <code>if (!Schema::hasTable('{$table}'))</code> agar Laravel melewatinya secara otomatis.",
-                'raw' => $message,
             ];
         }
 
@@ -58,7 +260,6 @@ class ErrorDiagnosticService
                 'problem' => "Pada file template tampilan (<code>{$viewPath}</code>), terdapat tag penutup <code>@endsection</code> di baris bawah, namun tag pembuka <code>@extends(...)</code> atau <code>@section('content')</code> di baris paling atas lupa ditulis.",
                 'impact' => "Halaman web tersebut gagal dimuat di browser pengguna, namun data akun, nilai, dan database tidak terpengaruh sama sekali.",
                 'solution' => "Buka file <code>{$viewPath}</code> dan tambahkan tag <code>@extends('layouts.app')</code> dan <code>@section('content')</code> pada baris pertama file.",
-                'raw' => $message,
             ];
         }
 
@@ -74,7 +275,6 @@ class ErrorDiagnosticService
                 'problem' => "Controller memanggil file template tampilan <code>{$viewName}</code>, namun file <code>.blade.php</code> tersebut belum dibuat di folder <code>resources/views/</code>.",
                 'impact' => "Pengguna mendapat pesan error 500 saat mengakses URL terkait.",
                 'solution' => "Buat file blade baru di path <code>resources/views/" . str_replace('.', '/', $viewName) . ".blade.php</code>.",
-                'raw' => $message,
             ];
         }
 
@@ -90,7 +290,6 @@ class ErrorDiagnosticService
                 'problem' => "Sistem mencoba memasukkan data ganda (<code>{$entry}</code>) pada tabel yang mengharuskan nilai unik (misal: dua request bersamaan saat membuka materi LMS).",
                 'impact' => "Database secara otomatis menolak pencatatan ganda. Data yang sudah ada tetap aman dan tidak rusak/berantakan.",
                 'solution' => "Gunakan metode <code>firstOrCreate()</code> atau <code>updateOrCreate()</code> dengan blok pengaman <code>try-catch</code> pada controller fitur terkait.",
-                'raw' => $message,
             ];
         }
 
@@ -104,11 +303,10 @@ class ErrorDiagnosticService
                 'problem' => "Sistem menolak penghapusan data karena data induk ini masih terhubung dengan data penting lainnya (misal: menghapus Kelas yang masih memiliki siswa/jadwal, atau Tahun Pelajaran aktif).",
                 'impact' => "Proteksi database bekerja sempurna! Data Anda berhasil diselamatkan dari potensi hilang/terhapus tanpa sengaja.",
                 'solution' => "Jangan menghapus data induk yang masih memiliki relasi. Jika memang harus dihapus, pindahkan atau hapus relasi data anaknya terlebih dahulu.",
-                'raw' => $message,
             ];
         }
 
-        // 6. Git Memory / Thread Limit on Shared Hosting
+        // 7. Git Memory / Thread Limit on Shared Hosting
         if (str_contains($message, 'unable to create thread') || str_contains($message, 'gc.log') || str_contains($message, 'failed to run repack')) {
             return [
                 'type' => 'Server - Batasan Thread Hosting (Git GC)',
@@ -118,11 +316,10 @@ class ErrorDiagnosticService
                 'problem' => "Fitur kompresi riwayat latar belakang Git (Garbage Collection) dibatasi oleh server hosting karena limitasi jumlah thread/CPU.",
                 'impact' => "Kode terbaru dari GitHub tetap berhasil diunduh dan dipasang 100% sempurna ke server.",
                 'solution' => "Nonaktifkan fitur auto-gc dengan menjalankan <code>git config gc.auto 0</code> dan hapus file <code>.git/gc.log</code>.",
-                'raw' => $message,
             ];
         }
 
-        // 7. CSRF Token Mismatch (419 Session Expired)
+        // 8. CSRF Token Mismatch (419 Session Expired)
         if (str_contains($message, 'CSRF token mismatch') || str_contains($class, 'TokenMismatchException')) {
             return [
                 'type' => 'Keamanan - Sesi Formulir Kedaluwarsa',
@@ -132,11 +329,10 @@ class ErrorDiagnosticService
                 'problem' => "Sesi halaman browser Anda telah habis karena terlalu lama terbuka tanpa aktivitas sebelum formulir dikirim.",
                 'impact' => "Data formulir tidak diproses untuk mencegah manipulasi request.",
                 'solution' => "Cukup muat ulang (refresh) halaman browser, login kembali jika diminta, lalu kirim ulang formulir Anda.",
-                'raw' => $message,
             ];
         }
 
-        // 8. Temporary DB Socket / Operation Not Permitted (2002)
+        // 9. Temporary DB Socket / Operation Not Permitted (2002)
         if (str_contains($message, 'Operation not permitted') || (str_contains($message, '2002') && str_contains($message, 'HY000'))) {
             return [
                 'type' => 'Database - Batasan Socket Jaringan Sesaat (2002)',
@@ -146,11 +342,10 @@ class ErrorDiagnosticService
                 'problem' => "Sistem hosting Linux membatasi alokasi socket koneksi TCP (127.0.0.1) sekejap selama beberapa milidetik karena lonjakan proses atau rotasi worker hosting.",
                 'impact' => "Koneksi MySQL terputus sekejap dan langsung tersambung normal kembali otomatis pada request berikutnya. Database 100% aman.",
                 'solution' => "Tidak perlu perbaikan khusus karena koneksi database saat ini sudah berjalan normal kembali.",
-                'raw' => $message,
             ];
         }
 
-        // 9. General Database Connection / Host Error
+        // 10. General Database Connection / Host Error
         if (str_contains($message, 'Connection refused') || str_contains($message, 'Access denied for user')) {
             return [
                 'type' => 'Database - Koneksi Terputus / Kredensial Salah',
@@ -160,11 +355,10 @@ class ErrorDiagnosticService
                 'problem' => "Aplikasi tidak dapat terhubung ke server database MySQL (karena username/password salah atau server database sedang restart).",
                 'impact' => "Aplikasi tidak dapat membaca atau menulis data apapun ke database.",
                 'solution' => "Periksa file <code>.env</code> di server, pastikan <code>DB_HOST</code>, <code>DB_DATABASE</code>, <code>DB_USERNAME</code>, dan <code>DB_PASSWORD</code> sudah sesuai dengan konfigurasi hPanel hosting.",
-                'raw' => $message,
             ];
         }
 
-        // 9. Undefined array key in blade / PHP
+        // 11. Undefined array key in blade / PHP
         if (str_contains($message, 'Undefined array key') || str_contains($message, 'Undefined index')) {
             return [
                 'type' => 'Tampilan - Akses Kunci Variabel Belum Terdefinisi',
@@ -174,11 +368,10 @@ class ErrorDiagnosticService
                 'problem' => "Sistem mencoba membaca kunci array pada tampilan blade yang belum diinisialisasi secara eksplisit.",
                 'impact' => "Halaman yang bersangkutan sempat gagal dimuat sebelum perbaikan diterapkan.",
                 'solution' => "Gunakan operator null-coalescing (<code>?? ''</code>) atau inisialisasi variabel di controller.",
-                'raw' => $message,
             ];
         }
 
-        // 10. STEAM Competition Document Upload TypeError (Null Description)
+        // 12. STEAM Competition Document Upload TypeError (Null Description)
         if (str_contains($message, 'SteamCompetitionService::saveDocument') || (str_contains($message, 'saveDocument') && str_contains($message, '$description'))) {
             return [
                 'type' => 'Aplikasi - Validasi Parameter Deskripsi Dokumen STEAM',
@@ -188,11 +381,10 @@ class ErrorDiagnosticService
                 'problem' => 'Pengguna mengunggah berkas kelengkapan lomba STEAM tanpa mengisi kolom deskripsi, sehingga Laravel mengirimkan nilai null ke method yang mengharuskan string.',
                 'impact' => 'Operasi upload berkas sempat terhenti sementara. Seluruh data tim, proposal, video, dan berkas yang tersimpan tetap 100% aman dan utuh.',
                 'solution' => 'Method <code>SteamCompetitionService::saveDocument()</code> telah diperbarui untuk mendukung tipe nullable (<code>?string $description</code>) dengan fallback otomatis ke tanda minus ("-").',
-                'raw' => $message,
             ];
         }
 
-        // 11. Call to undefined function u003ewith / approvePklLog redirect typo
+        // 13. Call to undefined function u003ewith / approvePklLog redirect typo
         if (str_contains($message, 'u003ewith') || str_contains($message, '>with()') || (str_contains($message, 'approvePklLog') && str_contains($message, 'with()'))) {
             return [
                 'type' => 'Aplikasi - Kesalahan Sintaks Verifikasi Log PKL Mobile Guru',
@@ -202,11 +394,10 @@ class ErrorDiagnosticService
                 'problem' => 'Terdapat kesalahan penulisan karakter operator tanda panah (<code>-\\u003ewith()</code>) saat guru melakukan persetujuan (ACC) jurnal PKL siswa pada tampilan mobile.',
                 'impact' => 'Proses verifikasi jurnal PKL siswa sempat memicu error. Seluruh data penempatan dan riwayat log PKL tetap utuh dan aman.',
                 'solution' => 'Sintaks pada method <code>MobileTeacherController::approvePklLog()</code> telah diperbaiki menjadi <code>return back()->with(...)</code> yang valid.',
-                'raw' => $message,
             ];
         }
 
-        // 12. MySQL 1265 Data truncated for column 'category' in student_counseling_records
+        // 14. MySQL 1265 Data truncated for column 'category' in student_counseling_records
         if ((str_contains($message, '1265') || str_contains($message, 'Data truncated')) && str_contains($message, 'category') && str_contains($message, 'student_counseling_records')) {
             return [
                 'type' => 'Database - Validasi Nilai Kategori Catatan Pembinaan Siswa',
@@ -216,11 +407,10 @@ class ErrorDiagnosticService
                 'problem' => 'Formulir catatan pembinaan guru di aplikasi mobile mengirimkan nilai kategori (misal: "moral" / "disiplin") yang berbeda dari nama opsi ENUM tabel database MySQL.',
                 'impact' => 'Pencatatan pembinaan siswa sempat tertolak oleh strict mode database. Tidak ada data siswa atau catatan lain yang terpengaruh.',
                 'solution' => 'Model <code>StudentCounselingRecord</code> telah dilengkapi Attribute Mutator otomatis untuk memetakan kategori ke nilai ENUM yang sah, dan opsi formulir mobile telah diselaraskan.',
-                'raw' => $message,
             ];
         }
 
-        // 13. Generic Fallback Error
+        // 15. Generic Fallback Error
         return [
             'type' => 'Sistem - Kesalahan Operasi Internal',
             'badge' => 'SYSTEM EXCEPTION',
@@ -229,7 +419,6 @@ class ErrorDiagnosticService
             'problem' => "Terjadi kendala pada eksekusi kode: <code>" . htmlspecialchars(mb_substr($message, 0, 180)) . "...</code>",
             'impact' => "Fungsi yang sedang dijalankan terhenti sebelum selesai.",
             'solution' => "Periksa catatan file log di <code>storage/logs/laravel.log</code> atau hubungi tim pengembang dengan menyertakan pesan error di atas.",
-            'raw' => $message,
         ];
     }
 

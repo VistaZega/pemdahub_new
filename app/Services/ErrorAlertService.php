@@ -242,18 +242,31 @@ class ErrorAlertService
             $timestamp = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s T');
 
             $diag = ErrorDiagnosticService::diagnose($exception);
+            $actor = $diag['actor'] ?? [];
 
             $message = "🚨 <b>[{$appName}] LAPORAN KENDALA SISTEM</b>\n";
             $message .= "━━━━━━━━━━━━━━━━━━━━━\n";
             $message .= "🏷️ <b>Kategori:</b> <code>" . htmlspecialchars($diag['type']) . "</code>\n";
             $message .= "📊 <b>Status:</b> {$diag['danger_label']}\n\n";
+
+            if (!empty($actor['has_actor']) || !empty($actor['action_label'])) {
+                $message .= "👤 <b>Konteks Aktor & Tindakan:</b>\n";
+                $message .= "• <b>Pelaku:</b> " . htmlspecialchars($actor['user_name'] ?? 'Sistem') . " (" . htmlspecialchars($actor['user_role_label'] ?? '-') . ")" . ($actor['user_id'] ? " [ID: {$actor['user_id']}]" : "") . "\n";
+                $message .= "• <b>Tindakan:</b> " . htmlspecialchars($actor['action_label'] ?? 'Operasi Internal') . "\n";
+                $message .= "• <b>Modul:</b> " . htmlspecialchars($actor['action_module'] ?? 'Sistem Inti') . "\n";
+                if (!empty($actor['target_student_name'])) {
+                    $message .= "• <b>Target Siswa:</b> " . htmlspecialchars($actor['target_student_name']) . " (" . htmlspecialchars($actor['target_student_class'] ?? 'Kelas Aktif') . ")\n";
+                }
+                $message .= "\n";
+            }
+
             $message .= "🛑 <b>MASALAH:</b>\n" . htmlspecialchars(strip_tags($diag['problem'])) . "\n\n";
             $message .= "⚠️ <b>DAMPAK / AKIBAT:</b>\n" . htmlspecialchars(strip_tags($diag['impact'])) . "\n\n";
             $message .= "🛠️ <b>REKOMENDASI SOLUSI:</b>\n" . htmlspecialchars(strip_tags($diag['solution'])) . "\n";
             $message .= "━━━━━━━━━━━━━━━━━━━━━\n";
             $message .= "📍 <b>Lokasi:</b> <code>" . htmlspecialchars($this->cleanFilePath($exception->getFile())) . ":{$exception->getLine()}</code>\n";
             $message .= "🔗 <b>Request:</b> <code>{$method} {$url}</code>\n";
-            $message .= "👤 <b>User:</b> <code>" . htmlspecialchars($userInfo) . "</code> (IP: <code>{$ip}</code>)\n";
+            $message .= "👤 <b>User Session:</b> <code>" . htmlspecialchars($userInfo) . "</code> (IP: <code>{$ip}</code>)\n";
             $message .= "⏰ <b>Waktu:</b> <code>{$timestamp}</code>\n";
             $message .= "━━━━━━━━━━━━━━━━━━━━━\n";
             $message .= "ℹ️ <i>Pemberitahuan otomatis dari pemantau PembdaHUB.</i>";
@@ -310,18 +323,31 @@ class ErrorAlertService
             $timestamp = now()->setTimezone('Asia/Jakarta')->format('d/m/Y H:i:s');
 
             $diag = ErrorDiagnosticService::diagnose($exception);
+            $actor = $diag['actor'] ?? [];
 
             $msg = "🚨 *[{$appName}] LAPORAN KENDALA SISTEM*\n";
             $msg .= "━━━━━━━━━━━━━━━━━━━\n";
             $msg .= "🏷️ *Kategori:* {$diag['type']}\n";
             $msg .= "📊 *Status:* {$diag['danger_label']}\n\n";
+
+            if (!empty($actor['has_actor']) || !empty($actor['action_label'])) {
+                $msg .= "👤 *KONTEKS AKTOR & TINDAKAN:*\n";
+                $msg .= "• *Pelaku:* " . ($actor['user_name'] ?? 'Sistem') . " (" . ($actor['user_role_label'] ?? '-') . ")" . ($actor['user_id'] ? " [ID: {$actor['user_id']}]" : "") . "\n";
+                $msg .= "• *Tindakan:* " . ($actor['action_label'] ?? 'Operasi Internal') . "\n";
+                $msg .= "• *Modul:* " . ($actor['action_module'] ?? 'Sistem Inti') . "\n";
+                if (!empty($actor['target_student_name'])) {
+                    $msg .= "• *Target Siswa:* " . $actor['target_student_name'] . " (" . ($actor['target_student_class'] ?? 'Kelas Aktif') . ")\n";
+                }
+                $msg .= "\n";
+            }
+
             $msg .= "🛑 *MASALAH:*\n" . strip_tags($diag['problem']) . "\n\n";
             $msg .= "⚠️ *DAMPAK / AKIBAT:*\n" . strip_tags($diag['impact']) . "\n\n";
             $msg .= "🛠️ *SOLUSI YANG PERLU DILAKUKAN:*\n" . strip_tags($diag['solution']) . "\n";
             $msg .= "━━━━━━━━━━━━━━━━━━━\n";
             $msg .= "📍 *Lokasi:* " . $this->cleanFilePath($exception->getFile()) . " (Baris {$exception->getLine()})\n";
             $msg .= "🔗 *Route:* {$method} {$url}\n";
-            $msg .= "👤 *User:* {$userInfo}\n";
+            $msg .= "👤 *User Session:* {$userInfo}\n";
             $msg .= "⏰ *Waktu:* {$timestamp} WIB\n";
             $msg .= "━━━━━━━━━━━━━━━━━━━\n";
             $msg .= "💡 _Pemberitahuan diagnostik otomatis PembdaHUB._";

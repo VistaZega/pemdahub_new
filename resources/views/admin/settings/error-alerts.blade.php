@@ -290,25 +290,43 @@
             <p class="text-xs text-emerald-800">Tidak ada catatan exception kritis baru di server storage PembdaHUB.</p>
         </div>
         @else
-        <div class="space-y-3.5 text-xs">
+        <div class="space-y-4 text-xs" id="recent-logs-container">
             @foreach($recentLogs as $index => $log)
             @php
                 $diag = \App\Services\ErrorDiagnosticService::diagnose($log['full_message']);
                 $resolution = \App\Services\ErrorDiagnosticService::isErrorResolved($log['full_message']);
+                $actor = $diag['actor'] ?? [];
                 
                 $copyPayload = "📋 [LAPORAN KENDALA PEMBDAHUB - LOG #" . ($index+1) . "]\n" .
                     "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
                     "⏰ Waktu: " . $log['timestamp'] . " (" . $log['level'] . ")\n" .
                     "🏷️ Kategori: " . strip_tags($diag['type']) . "\n" .
-                    "📊 Status: " . strip_tags($resolution['status_badge']) . "\n\n" .
-                    "🛑 MASALAH:\n" . strip_tags($diag['problem']) . "\n\n" .
-                    "⚠️ DAMPAK:\n" . strip_tags($diag['impact']) . "\n\n" .
-                    "🛠️ SOLUSI / CATATAN:\n" . strip_tags($diag['solution']) . "\n\n" .
+                    "📊 Status: " . strip_tags($resolution['status_badge']) . "\n\n";
+
+                if (!empty($actor['has_actor']) || !empty($actor['action_label'])) {
+                    $copyPayload .= "👤 KONTEKS AKTOR & TINDAKAN:\n" .
+                        "• Pelaku / Pengguna : " . ($actor['user_name'] ?? 'Sistem') . " (" . ($actor['user_role_label'] ?? '-') . ")" . ($actor['user_id'] ? " [User ID: {$actor['user_id']}]" : "") . "\n" .
+                        "• Tindakan / Aksi   : " . ($actor['action_label'] ?? 'Operasi Internal') . "\n" .
+                        "• Modul / Fitur     : " . ($actor['action_module'] ?? 'Sistem Inti') . "\n";
+                    
+                    if (!empty($actor['target_student_name'])) {
+                        $copyPayload .= "• Target Siswa      : " . $actor['target_student_name'] . " (" . ($actor['target_student_class'] ?? 'Kelas Aktif') . ")" . ($actor['target_student_id'] ? " [Student ID: {$actor['target_student_id']}]" : "") . "\n";
+                    }
+                    if (!empty($actor['controller_method'])) {
+                        $copyPayload .= "• Controller/Method : " . $actor['controller_method'] . "\n";
+                    }
+                    $copyPayload .= "\n";
+                }
+
+                $copyPayload .= "🛑 MASALAH:\n" . strip_tags($diag['problem']) . "\n\n" .
+                    "⚠️ DAMPAK & RESIKO:\n" . strip_tags($diag['impact']) . "\n\n" .
+                    "🛠️ SOLUSI / STATUS:\n" . strip_tags($diag['solution']) . "\n" .
+                    "Catatan: " . strip_tags($resolution['note']) . "\n\n" .
                     "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
                     "💻 KODE RAW EXCEPTION:\n" . strip_tags($log['full_message']);
             @endphp
 
-            <div x-data="{ expanded: false }" class="p-4 rounded-2xl border-2 transition-all bg-white hover:border-slate-400 {{ $resolution['resolved'] ? 'border-emerald-300/80 bg-emerald-50/10' : 'border-slate-200' }} shadow-xs space-y-3">
+            <div x-data="{ expanded: false }" class="p-4 sm:p-5 rounded-2xl border-2 transition-all bg-white hover:border-slate-400 {{ $resolution['resolved'] ? 'border-emerald-300/80 bg-emerald-50/10' : 'border-slate-200' }} shadow-xs space-y-3.5">
                 
                 <!-- Card Header -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -325,13 +343,13 @@
                         <span class="font-mono text-slate-400 text-[11px]">{{ $log['timestamp'] }}</span>
                     </div>
 
-                    <!-- 1-Click Copy Button -->
+                    <!-- 1-Click Copy Button & Trace Toggle -->
                     <div class="flex items-center gap-2.5 flex-wrap">
                         <button type="button" 
                                 onclick="copyLogCard(this)" 
                                 data-copy="{{ $copyPayload }}"
                                 style="padding: 7px 16px !important;"
-                                class="bg-slate-900 hover:bg-black text-white rounded-xl text-[11px] font-bold transition inline-flex items-center gap-2 shadow-xs cursor-pointer active:scale-95 whitespace-nowrap shrink-0">
+                                class="single-log-copy-btn bg-slate-900 hover:bg-black text-white rounded-xl text-[11px] font-bold transition inline-flex items-center gap-2 shadow-xs cursor-pointer active:scale-95 whitespace-nowrap shrink-0">
                             <i class="fas fa-copy text-amber-400"></i>
                             <span>Salin Kode Error</span>
                         </button>
@@ -344,6 +362,64 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- 👤 KONTEKS AKTOR & TINDAKAN PENGGUNA (ACTOR & ACTION CONTEXT) -->
+                @if(!empty($actor['has_actor']) || !empty($actor['action_label']))
+                <div class="bg-gradient-to-r from-indigo-50/90 via-sky-50/60 to-white rounded-xl p-3.5 border border-indigo-200/80 space-y-2.5 text-[11px] text-slate-800 shadow-2xs">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-200/70 pb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-[10px] font-black shrink-0 shadow-2xs">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <span class="font-black text-indigo-950 uppercase tracking-wider text-[10px]">
+                                Konteks Aktor & Tindakan Pengguna
+                            </span>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-200 font-mono">
+                            {{ $actor['action_module'] }}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-0.5">
+                        <!-- Pelaku / Pengguna -->
+                        <div class="flex items-start gap-2.5">
+                            <div class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="space-y-0.5">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-black text-slate-900 text-xs">{{ $actor['user_name'] }}</span>
+                                    @if($actor['user_id'])
+                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-slate-200 text-slate-700">ID: {{ $actor['user_id'] }}</span>
+                                    @endif
+                                </div>
+                                <p class="text-[11px] font-bold text-indigo-700">{{ $actor['user_role_label'] }}</p>
+                                @if(!empty($actor['user_details']))
+                                    <p class="text-[10px] text-slate-500 font-medium">{{ $actor['user_details'] }}</p>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Tindakan / Aksi yang Dilakukan -->
+                        <div class="flex items-start gap-2.5">
+                            <div class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="space-y-0.5">
+                                <span class="font-bold text-slate-900 leading-snug block">{{ $actor['action_label'] }}</span>
+                                @if(!empty($actor['target_student_name']))
+                                    <p class="text-[11px] text-purple-900 font-semibold flex items-center gap-1">
+                                        <i class="fas fa-graduation-cap text-purple-600 text-[10px]"></i> Target Siswa: <b>{{ $actor['target_student_name'] }}</b> ({{ $actor['target_student_class'] }})
+                                    </p>
+                                @endif
+                                @if(!empty($actor['controller_method']))
+                                    <p class="text-[9px] font-mono text-slate-400">Endpoint: {{ $actor['controller_method'] }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 <!-- Structured Diagnostic Box -->
                 <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 space-y-2 text-[11px] text-slate-700">
@@ -386,18 +462,25 @@
 
     function copyAllRecentLogs(btn) {
         try {
-            const logs = JSON.parse(btn.getAttribute('data-all-logs'));
-            let combined = "📋 [REKAPITULASI LOG ERROR PEMBDAHUB]\n";
-            combined += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
-            combined += "Total Log: " + logs.length + " entri\n";
-            combined += "Waktu Ekspor: " + new Date().toLocaleString('id-ID') + "\n\n";
+            const buttons = document.querySelectorAll('.single-log-copy-btn');
+            if (buttons.length === 0) {
+                alert('Tidak ada log untuk disalin.');
+                return;
+            }
 
-            logs.forEach((l, idx) => {
-                combined += `--- LOG #${idx+1} [${l.timestamp}] [${l.level}] ---\n`;
-                combined += `${l.full_message}\n\n`;
+            let combined = "📋 [REKAPITULASI LOG ERROR & DIAGNOSTIK PEMBDAHUB]\n";
+            combined += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+            combined += "Total Log Terdata : " + buttons.length + " entri\n";
+            combined += "Waktu Ekspor       : " + new Date().toLocaleString('id-ID') + "\n\n";
+
+            buttons.forEach((b, idx) => {
+                const payload = b.getAttribute('data-copy');
+                if (payload) {
+                    combined += payload + "\n\n" + "═════════════════════════════════════════════\n\n";
+                }
             });
 
-            executeClipboardCopy(combined, btn, '<i class="fas fa-check text-emerald-400"></i> <span class="text-emerald-300">Semua Log Tersalin!</span>');
+            executeClipboardCopy(combined, btn, '<i class="fas fa-check text-emerald-400"></i> <span class="text-emerald-300 whitespace-nowrap">Semua Log Tersalin!</span>');
         } catch(e) {
             alert('Gagal menyalin semua log.');
         }
