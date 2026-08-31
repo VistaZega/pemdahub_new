@@ -321,7 +321,12 @@ class LmsCourseGroupController extends Controller
             }
         }
 
-        return redirect()->route('guru.lms.assignments.show', $assignment->id)
+        $redirParams = ['assignment' => $assignment->id];
+        if ($request->classroom_id) {
+            $redirParams['classroom_id'] = $request->classroom_id;
+        }
+
+        return redirect()->route('guru.lms.assignments.show', $redirParams)
             ->with('success', "Berhasil menerapkan {$importedCount} kelompok dari Master Kelompok Kursus ke tugas ini.");
     }
 }

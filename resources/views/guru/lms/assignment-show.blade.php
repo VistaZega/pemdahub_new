@@ -224,15 +224,28 @@
 
     $availableStudents = $allEnrolledStudents->reject(fn($s) => in_array($s->id, $groupedStudentIds))->values();
 @endphp
-<div class="bg-white rounded-2xl border-2 border-purple-200 shadow-md p-6 space-y-6" x-data="{ showAddGroup: false, showAutoGroup: false }">
+<div class="bg-white rounded-2xl border-2 border-purple-200 shadow-md p-6 space-y-6" x-data="{ showAddGroup: false, showAutoGroup: false, activeGroupDetail: null }">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-purple-600 text-white rounded-xl flex items-center justify-center shadow-md">
                 <i class="fas fa-users text-lg"></i>
             </div>
             <div>
-                <h3 class="text-base font-black text-gray-900">Manajemen Kelompok Tugas</h3>
-                <p class="text-xs font-bold text-gray-500">Tentukan kelompok, tunjuk ketua kelompok, dan atur anggota. Hanya ketua kelompok yang akan mengunggah berkas.</p>
+                <h3 class="text-base font-black text-gray-900 flex items-center gap-2 flex-wrap">
+                    <span>Manajemen Kelompok Tugas</span>
+                    @if($selectedClassroom)
+                        <span class="text-xs font-bold text-purple-800 bg-purple-100 border border-purple-300 px-2.5 py-0.5 rounded-lg">
+                            <i class="fas fa-chalkboard mr-1"></i> Kelas: {{ $selectedClassroom->class_name }}
+                        </span>
+                    @else
+                        <span class="text-xs font-bold text-gray-700 bg-gray-100 border border-gray-300 px-2.5 py-0.5 rounded-lg">
+                            <i class="fas fa-layer-group mr-1"></i> Semua Rombel Kursus
+                        </span>
+                    @endif
+                </h3>
+                <p class="text-xs font-bold text-gray-500">
+                    {{ $selectedClassroom ? 'Daftar kelompok khusus untuk siswa kelas ' . $selectedClassroom->class_name . '. Hanya ketua kelompok yang akan mengunggah berkas.' : 'Tentukan kelompok, tunjuk ketua kelompok, dan atur anggota. Hanya ketua kelompok yang akan mengunggah berkas.' }}
+                </p>
             </div>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
@@ -256,7 +269,7 @@
             </button>
             @else
             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
-                <i class="fas fa-check-double text-emerald-600"></i> Seluruh Siswa Sudah Masuk Kelompok
+                <i class="fas fa-check-double text-emerald-600"></i> Seluruh Siswa {{ $selectedClassroom ? 'Kelas ' . $selectedClassroom->class_name : '' }} Sudah Masuk Kelompok
             </span>
             @endif
         </div>
@@ -265,10 +278,13 @@
     {{-- Form Tambah Kelompok Manual --}}
     <div x-show="showAddGroup" x-cloak class="p-5 rounded-2xl border-2 border-purple-300 bg-purple-50/50 space-y-4">
         <h4 class="text-xs font-black text-purple-900 uppercase tracking-wider flex items-center gap-2">
-            <i class="fas fa-user-plus"></i> Buat Kelompok Baru & Tunjuk Ketua
+            <i class="fas fa-user-plus"></i> Buat Kelompok Baru {{ $selectedClassroom ? 'di ' . $selectedClassroom->class_name : '' }} & Tunjuk Ketua
         </h4>
         <form action="{{ route('guru.lms.assignments.groups.store', $assignment->id) }}" method="POST" class="space-y-4">
             @csrf
+            @if($selectedClassroomId)
+            <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
+            @endif
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Nama Kelompok <span class="text-rose-600">*</span></label>
@@ -278,7 +294,7 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Pilih Ketua Kelompok <span class="text-rose-600">* (Yang berhak upload berkas)</span></label>
                     <select name="leader_id" required class="w-full border-2 border-gray-300 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
-                        <option value="">— Pilih Ketua (Tersedia: {{ $availableStudents->count() }} Siswa) —</option>
+                        <option value="">— Pilih Ketua (Tersedia: {{ $availableStudents->count() }} Siswa{{ $selectedClassroom ? ' ' . $selectedClassroom->class_name : '' }}) —</option>
                         @forelse($availableStudents as $std)
                         <option value="{{ $std->id }}">{{ $std->user->name ?? $std->full_name }} (NISN: {{ $std->nisn ?? '-' }})</option>
                         @empty
@@ -291,7 +307,7 @@
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-xs font-bold text-gray-700">Pilih Anggota Kelompok (Centang Siswa):</label>
-                    <span class="text-[11px] font-bold text-purple-700">Tersedia: {{ $availableStudents->count() }} Orang dari {{ $allEnrolledStudents->count() }} Siswa</span>
+                    <span class="text-[11px] font-bold text-purple-700">Tersedia: {{ $availableStudents->count() }} Orang dari {{ $allEnrolledStudents->count() }} Siswa{{ $selectedClassroom ? ' ' . $selectedClassroom->class_name : '' }}</span>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-56 overflow-y-auto p-3 bg-white border border-gray-200 rounded-xl">
                     @forelse($availableStudents as $std)
@@ -317,16 +333,21 @@
     {{-- Form Bagi Otomatis --}}
     <div x-show="showAutoGroup" x-cloak class="p-5 rounded-2xl border-2 border-amber-300 bg-amber-50/50 space-y-4">
         <h4 class="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-2">
-            <i class="fas fa-magic"></i> Bagi Siswa Menjadi N Kelompok Secara Otomatis
+            <i class="fas fa-magic"></i> Bagi Siswa {{ $selectedClassroom ? 'Kelas ' . $selectedClassroom->class_name : 'Kursus' }} Menjadi N Kelompok Secara Otomatis
         </h4>
         <form action="{{ route('guru.lms.assignments.groups.autoGenerate', $assignment->id) }}" method="POST" class="space-y-4">
             @csrf
+            @if($selectedClassroomId)
             <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
+            @endif
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Jumlah Kelompok yang Diinginkan <span class="text-rose-600">*</span></label>
                     <input type="number" name="group_count" min="2" max="20" value="4" required
                            class="w-full border-2 border-gray-300 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+                    <p class="text-[11px] text-gray-500 font-medium mt-1">
+                        Sistem akan membagi {{ $availableStudents->count() }} siswa yang belum memiliki kelompok secara merata dan acak.
+                    </p>
                 </div>
                 <div class="flex items-end">
                     <button type="submit" class="w-full px-5 py-2.5 rounded-xl text-xs font-black bg-amber-500 text-black hover:bg-amber-600 shadow-sm">
@@ -342,25 +363,68 @@
         @forelse($assignment->groups as $grp)
         @php
             $grpSub = $grp->submission;
+            $grpClassroomName = $grp->classroom_name ?? ($selectedClassroom->class_name ?? 'Rombel');
+            $grpLeaderName = $grp->leader->user->name ?? $grp->leader->full_name ?? 'Belum Ditunjuk';
+            $grpMembersList = $grp->members->map(function($m) use ($grp) {
+                return [
+                    'id' => $m->id,
+                    'name' => $m->user->name ?? $m->full_name ?? '-',
+                    'nisn' => $m->nisn ?? '-',
+                    'nis' => $m->nis ?? '-',
+                    'is_leader' => (int)$m->id === (int)$grp->leader_id,
+                ];
+            })->values()->all();
+
+            $grpDataJson = [
+                'id' => $grp->id,
+                'name' => $grp->name,
+                'classroom' => $grpClassroomName,
+                'leader' => [
+                    'name' => $grpLeaderName,
+                    'nisn' => $grp->leader->nisn ?? '-',
+                    'nis' => $grp->leader->nis ?? '-',
+                ],
+                'members' => $grpMembersList,
+                'submission' => $grpSub ? [
+                    'submitted_at' => $grpSub->submitted_at ? $grpSub->submitted_at->format('d M Y, H:i') : '-',
+                    'status' => $grpSub->status,
+                    'score' => $grpSub->score,
+                    'file_url' => $grpSub->file_path ? asset('storage/' . $grpSub->file_path) : null,
+                    'file_name' => $grpSub->file_path ? basename($grpSub->file_path) : null,
+                    'submission_text' => $grpSub->submission_text,
+                    'feedback' => $grpSub->feedback,
+                ] : null,
+                'max_score' => $assignment->max_score ?? 100,
+            ];
         @endphp
         <div class="p-4 rounded-2xl border-2 border-gray-200 bg-white hover:border-purple-300 transition-all shadow-xs flex flex-col justify-between space-y-3">
             <div>
                 <div class="flex items-center justify-between gap-2 mb-2">
-                    <span class="text-xs font-black text-purple-700 uppercase tracking-wider bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-200">
-                        {{ $grp->name }}
-                    </span>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs font-black text-purple-700 uppercase tracking-wider bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-200">
+                            {{ $grp->name }}
+                        </span>
+                        @if($grp->classroom_name)
+                        <span class="text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-md border border-gray-200">
+                            {{ $grp->classroom_name }}
+                        </span>
+                        @endif
+                    </div>
                     <form action="{{ route('guru.lms.assignments.groups.destroy', [$assignment->id, $grp->id]) }}" method="POST" onsubmit="return confirm('Hapus kelompok {{ $grp->name }}?')">
                         @csrf @method('DELETE')
+                        @if($selectedClassroomId)
+                        <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
+                        @endif
                         <button type="submit" class="text-gray-400 hover:text-rose-600 text-xs p-1" title="Hapus Kelompok">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
                 </div>
 
-                <div class="space-y-1 text-xs">
+                <div class="space-y-1.5 text-xs">
                     <div class="flex items-center gap-1.5 font-bold text-gray-900">
-                        <span class="text-amber-500">👑 Ketua:</span>
-                        <span class="truncate">{{ $grp->leader->user->name ?? $grp->leader->full_name ?? 'Belum Ditunjuk' }}</span>
+                        <span class="text-amber-500 shrink-0">👑 Ketua:</span>
+                        <span class="truncate">{{ $grpLeaderName }}</span>
                     </div>
                     <div class="text-gray-500 text-[11px] leading-snug">
                         <span class="font-bold text-gray-700">Anggota ({{ $grp->members->count() }}):</span>
@@ -368,6 +432,14 @@
                             {{ $grp->members->pluck('user.name')->filter()->implode(', ') ?: ($grp->members->pluck('full_name')->filter()->implode(', ') ?: '—') }}
                         </p>
                     </div>
+
+                    {{-- Tombol Klik untuk Melihat Daftar Anggota Lengkap Tanpa Terpotong --}}
+                    <button type="button"
+                            @click='activeGroupDetail = @json($grpDataJson)'
+                            class="mt-2 w-full text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 hover:border-purple-300 border border-purple-200 rounded-xl py-1.5 px-2.5 flex items-center justify-between transition shadow-2xs cursor-pointer">
+                        <span class="flex items-center gap-1.5"><i class="fas fa-users-viewfinder text-purple-600"></i> Detail Anggota ({{ $grp->members->count() }})</span>
+                        <span class="text-[10px] font-black text-purple-900 bg-purple-200 px-1.5 py-0.2 rounded-md">Buka &rarr;</span>
+                    </button>
                 </div>
             </div>
 
@@ -391,11 +463,143 @@
         @empty
         <div class="col-span-full py-8 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
             <i class="fas fa-users-slash text-3xl text-gray-300 mb-2"></i>
-            <p class="text-xs font-bold text-gray-600">Belum ada kelompok yang dibuat.</p>
+            <p class="text-xs font-bold text-gray-600">Belum ada kelompok yang dibuat{{ $selectedClassroom ? ' untuk kelas ' . $selectedClassroom->class_name : '' }}.</p>
             <p class="text-[11px] text-gray-400">Klik <strong>+ Tambah Kelompok Manual</strong> atau <strong>Bagi Otomatis</strong> di atas untuk membagi siswa.</p>
         </div>
         @endforelse
     </div>
+
+    {{-- ============================== MODAL DETAIL ANGGOTA KELOMPOK INTERAKTIF ============================== --}}
+    <div x-show="activeGroupDetail" 
+         x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+         @click.self="activeGroupDetail = null"
+         @keydown.escape.window="activeGroupDetail = null">
+        <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-hidden shadow-2xl border-2 border-purple-300 flex flex-col transform transition-all" @click.stop>
+            
+            {{-- Modal Header --}}
+            <div class="p-5 bg-gradient-to-r from-purple-700 via-purple-800 to-indigo-800 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white font-black text-base shadow-inner">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 class="text-base font-black tracking-tight text-white" x-text="activeGroupDetail?.name"></h3>
+                            <span class="text-[10px] font-mono font-bold bg-white/25 text-white px-2 py-0.5 rounded-md border border-white/30" x-text="activeGroupDetail?.classroom"></span>
+                        </div>
+                        <p class="text-xs text-purple-100 font-medium mt-0.5">Daftar lengkap anggota untuk penagihan & presensi di kelas</p>
+                    </div>
+                </div>
+                <button type="button" @click="activeGroupDetail = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center text-xs transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            {{-- Modal Body --}}
+            <div class="p-5 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)] text-gray-800 text-xs">
+                
+                {{-- Status Pengumpulan Bar --}}
+                <div class="p-3.5 rounded-2xl border flex items-center justify-between flex-wrap gap-2"
+                     :class="activeGroupDetail?.submission ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold shadow-2xs shrink-0"
+                              :class="activeGroupDetail?.submission ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'">
+                            <i :class="activeGroupDetail?.submission ? 'fas fa-check-circle' : 'fas fa-clock'"></i>
+                        </span>
+                        <div>
+                            <div class="font-black text-xs" :class="activeGroupDetail?.submission ? 'text-emerald-900' : 'text-amber-900'"
+                                 x-text="activeGroupDetail?.submission ? 'Sudah Mengumpulkan Tugas' : 'Belum Mengumpulkan Tugas'"></div>
+                            <div class="text-[11px] font-medium" :class="activeGroupDetail?.submission ? 'text-emerald-700' : 'text-amber-700'"
+                                 x-text="activeGroupDetail?.submission ? `Waktu Kumpul: ${activeGroupDetail.submission.submitted_at}` : 'Menunggu pengunggahan berkas oleh ketua kelompok'"></div>
+                        </div>
+                    </div>
+                    <template x-if="activeGroupDetail?.submission?.score !== null && activeGroupDetail?.submission?.score !== undefined">
+                        <span class="px-3 py-1 bg-emerald-600 text-white rounded-xl font-black text-xs shadow-2xs"
+                              x-text="`Nilai: ${activeGroupDetail.submission.score}/${activeGroupDetail.max_score}`"></span>
+                    </template>
+                </div>
+
+                {{-- Ketua Kelompok Card --}}
+                <div class="bg-purple-50/70 border border-purple-200 rounded-2xl p-3.5">
+                    <div class="text-[10px] font-mono font-bold uppercase text-purple-800 mb-1 flex items-center gap-1.5">
+                        <span class="text-amber-500">👑</span> KETUA KELOMPOK (PENANGGUNG JAWAB UPLOAD)
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-purple-600 text-white font-black flex items-center justify-center shadow-xs text-xs shrink-0">
+                            <i class="fas fa-crown text-amber-300"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-extrabold text-sm text-gray-900 leading-tight break-words" x-text="activeGroupDetail?.leader?.name"></div>
+                            <div class="text-[11px] font-mono text-purple-700 mt-0.5" x-text="`NISN: ${activeGroupDetail?.leader?.nisn || '-'}`"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Daftar Seluruh Anggota Kelompok (Tampil Lengkap Baris per Baris Tanpa Terpotong) --}}
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-xs font-black text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fas fa-list-check text-purple-600"></i>
+                            Daftar Seluruh Anggota (<span x-text="activeGroupDetail?.members?.length || 0"></span> Siswa):
+                        </h4>
+                        <span class="text-[10px] font-bold text-gray-500">Nama lengkap & NISN</span>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-100 bg-white">
+                        <template x-for="(member, idx) in activeGroupDetail?.members" :key="member.id">
+                            <div class="p-3 flex items-center justify-between gap-3 hover:bg-purple-50/40 transition">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="w-6 h-6 rounded-lg bg-gray-100 text-gray-700 font-mono font-bold text-[11px] flex items-center justify-center shrink-0"
+                                          x-text="idx + 1"></span>
+                                    <div class="min-w-0">
+                                        <div class="font-bold text-xs text-gray-900 flex items-center gap-2 flex-wrap">
+                                            <span x-text="member.name" class="break-words font-extrabold"></span>
+                                            <template x-if="member.is_leader">
+                                                <span class="text-[9px] font-bold uppercase bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.2 rounded-md shrink-0">👑 Ketua</span>
+                                            </template>
+                                        </div>
+                                        <div class="text-[10px] font-mono text-gray-500 mt-0.5" x-text="`NISN: ${member.nisn || '-'}`"></div>
+                                    </div>
+                                </div>
+                                <div class="shrink-0 flex items-center gap-1.5">
+                                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                        <i class="fas fa-check text-emerald-500"></i> Terdaftar
+                                    </span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                {{-- Detail Submission Berkas Jika Ada --}}
+                <template x-if="activeGroupDetail?.submission?.file_url">
+                    <div class="bg-gray-50 border border-gray-200 rounded-2xl p-3.5 space-y-2">
+                        <div class="text-[10px] font-mono font-bold uppercase text-gray-600 flex items-center gap-1.5">
+                            <i class="fas fa-paperclip text-indigo-600"></i> BERKAS JAWABAN TUGAS:
+                        </div>
+                        <a :href="activeGroupDetail.submission.file_url" target="_blank"
+                           class="inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-gray-300 hover:border-indigo-500 rounded-xl text-xs font-bold text-indigo-700 hover:text-indigo-900 transition shadow-2xs">
+                            <i class="fas fa-file-download text-indigo-500 text-sm"></i>
+                            <span x-text="activeGroupDetail.submission.file_name || 'Download Berkas Jawaban'"></span>
+                        </a>
+                    </div>
+                </template>
+
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between gap-3">
+                <span class="text-[11px] text-gray-500 font-medium">Gunakan daftar ini untuk penagihan di kelas</span>
+                <button type="button" @click="activeGroupDetail = null"
+                        class="px-5 py-2 rounded-xl text-xs font-bold bg-gray-800 text-white hover:bg-black transition shadow-xs">
+                    Tutup
+                </button>
+            </div>
+
+        </div>
+    </div>
+
 </div>
 @endif
 

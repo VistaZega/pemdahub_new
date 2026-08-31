@@ -298,6 +298,44 @@ class LmsAssignmentController extends Controller
         // Load groups if group assignment
         if ($assignment->isGroupAssignment()) {
             $assignment->load(['groups.leader.user', 'groups.members.user', 'groups.submission.student.user', 'course.courseGroups']);
+
+            // Map each student's classroom for clear badges
+            $allStudentIdsInGroups = $assignment->groups->flatMap(function ($grp) {
+                return $grp->members->pluck('id')->push($grp->leader_id);
+            })->unique()->filter()->toArray();
+
+            $studentClassMap = \App\Models\StudentClass::whereIn('student_id', $allStudentIdsInGroups)
+                ->with('classroom')
+                ->get()
+                ->keyBy('student_id');
+
+            // Attach classroom info to each group based on leader / members
+            foreach ($assignment->groups as $grp) {
+                $leaderClass = $studentClassMap[$grp->leader_id]->classroom ?? null;
+                if (!$leaderClass) {
+                    foreach ($grp->members as $m) {
+                        if (isset($studentClassMap[$m->id]->classroom)) {
+                            $leaderClass = $studentClassMap[$m->id]->classroom;
+                            break;
+                        }
+                    }
+                }
+                $grp->classroom_id = $leaderClass?->id;
+                $grp->classroom_name = $leaderClass?->class_name ?? ($leaderClass?->name ?? null);
+            }
+
+            // If a specific rombel is selected, filter groups strictly to that rombel
+            if ($selectedClassroomId && $selectedClassroom) {
+                $filteredGroups = $assignment->groups->filter(function ($grp) use ($enrolledStudentIds, $selectedClassroomId) {
+                    if ($grp->classroom_id && (int)$grp->classroom_id === (int)$selectedClassroomId) {
+                        return true;
+                    }
+                    return in_array($grp->leader_id, $enrolledStudentIds) ||
+                           $grp->members->pluck('id')->intersect($enrolledStudentIds)->isNotEmpty();
+                })->values();
+
+                $assignment->setRelation('groups', $filteredGroups);
+            }
         }
 
         $totalSubmissions = $assignment->submissions->where('status', '!=', 'draft')->count();
@@ -378,7 +416,10 @@ class LmsAssignmentController extends Controller
             'leader_id' => 'required|exists:students,id',
             'member_ids' => 'nullable|array',
             'member_ids.*' => 'exists:students,id',
+            'classroom_id' => 'nullable|exists:classrooms,id',
         ]);
+
+        $selectedClassroomId = $request->classroom_id;
 
         // Cek apakah ada siswa yang sudah terdaftar di kelompok lain pada tugas ini
         $alreadyGroupedStudentIds = $assignment->groups->flatMap(function ($grp) {
@@ -402,14 +443,19 @@ class LmsAssignmentController extends Controller
         $memberIds = collect($request->member_ids ?? [])->push($request->leader_id)->unique()->filter()->values()->toArray();
         $group->members()->sync($memberIds);
 
-        return redirect()->route('guru.lms.assignments.show', $assignment->id)
+        $redirParams = ['assignment' => $assignment->id];
+        if ($selectedClassroomId) {
+            $redirParams['classroom_id'] = $selectedClassroomId;
+        }
+
+        return redirect()->route('guru.lms.assignments.show', $redirParams)
             ->with('success', "Kelompok '{$group->name}' berhasil ditambahkan.");
     }
 
     /**
      * Delete a group from assignment
      */
-    public function deleteGroup(LmsAssignment $assignment, LmsAssignmentGroup $group)
+    public function deleteGroup(Request $request, LmsAssignment $assignment, LmsAssignmentGroup $group)
     {
         $teacher = $this->getTeacher();
         $course = $assignment->course;
@@ -420,7 +466,12 @@ class LmsAssignmentController extends Controller
         $groupName = $group->name;
         $group->delete();
 
-        return redirect()->route('guru.lms.assignments.show', $assignment->id)
+        $redirParams = ['assignment' => $assignment->id];
+        if ($request->classroom_id) {
+            $redirParams['classroom_id'] = $request->classroom_id;
+        }
+
+        return redirect()->route('guru.lms.assignments.show', $redirParams)
             ->with('success', "Kelompok '{$groupName}' berhasil dihapus.");
     }
 
@@ -441,8 +492,10 @@ class LmsAssignmentController extends Controller
         ]);
 
         $classroomId = $request->classroom_id;
+        $selectedClassroom = $classroomId ? \App\Models\Classroom::find($classroomId) : null;
 
         $allStudents = $this->getEnrolledStudentsForCourse($course, $classroomId ? (int)$classroomId : null);
+        $enrolledIds = $allStudents->pluck('id')->toArray();
 
         // Hanya bagi siswa yang belum memiliki kelompok
         $alreadyGroupedStudentIds = $assignment->groups->flatMap(function ($grp) {
@@ -452,13 +505,20 @@ class LmsAssignmentController extends Controller
         $availableStudents = $allStudents->reject(fn($s) => in_array($s->id, $alreadyGroupedStudentIds))->shuffle()->values();
 
         if ($availableStudents->isEmpty()) {
-            return redirect()->back()->with('error', 'Semua siswa yang terdaftar sudah memiliki kelompok.');
+            $classMsg = $selectedClassroom ? " pada kelas {$selectedClassroom->class_name}" : "";
+            return redirect()->back()->with('error', "Semua siswa{$classMsg} yang terdaftar sudah memiliki kelompok.");
         }
 
         $numGroups = min((int)$request->group_count, $availableStudents->count());
         $chunks = $availableStudents->split($numGroups);
 
-        $startIdx = $assignment->groups()->count();
+        // Count existing groups in this specific classroom so numbering starts 1, 2, 3... per class
+        $existingClassGroupsCount = $assignment->groups->filter(function ($grp) use ($enrolledIds) {
+            return in_array($grp->leader_id, $enrolledIds) ||
+                   $grp->members->pluck('id')->intersect($enrolledIds)->isNotEmpty();
+        })->count();
+
+        $startIdx = $existingClassGroupsCount;
         foreach ($chunks as $idx => $chunk) {
             $groupNum = $startIdx + $idx + 1;
             $leader = $chunk->first();
@@ -469,8 +529,14 @@ class LmsAssignmentController extends Controller
             $group->members()->sync($chunk->pluck('id')->toArray());
         }
 
-        return redirect()->route('guru.lms.assignments.show', $assignment->id)
-            ->with('success', "Berhasil membuat {$numGroups} kelompok secara otomatis dari {$availableStudents->count()} siswa yang belum memiliki kelompok.");
+        $redirParams = ['assignment' => $assignment->id];
+        if ($classroomId) {
+            $redirParams['classroom_id'] = $classroomId;
+        }
+
+        $targetMsg = $selectedClassroom ? " untuk kelas {$selectedClassroom->class_name}" : "";
+        return redirect()->route('guru.lms.assignments.show', $redirParams)
+            ->with('success', "Berhasil membuat {$numGroups} kelompok secara otomatis dari {$availableStudents->count()} siswa{$targetMsg}.");
     }
 
     /**

@@ -530,4 +530,81 @@ class LmsGroupAssignmentTest extends TestCase
         $this->assertTrue($assignmentGroup->hasMember($this->leaderStudent->id));
         $this->assertTrue($assignmentGroup->hasMember($this->memberStudent->id));
     }
+
+    /**
+     * 11. Test Filter Kelompok per Rombel / Classroom
+     */
+    public function test_guru_can_filter_groups_by_classroom_and_auto_generate_scoped_groups()
+    {
+        $classroomB = Classroom::factory()->create([
+            'school_id' => $this->school->id,
+            'academic_year_id' => $this->academicYear->id,
+            'class_name' => 'XI TKR 2',
+        ]);
+
+        $studentB1 = Student::factory()->create(['school_id' => $this->school->id]);
+        $studentB2 = Student::factory()->create(['school_id' => $this->school->id]);
+
+        \App\Models\StudentClass::create([
+            'student_id' => $studentB1->id,
+            'classroom_id' => $classroomB->id,
+            'academic_year_id' => $this->academicYear->id,
+            'status' => 'aktif',
+        ]);
+
+        \App\Models\StudentClass::create([
+            'student_id' => $studentB2->id,
+            'classroom_id' => $classroomB->id,
+            'academic_year_id' => $this->academicYear->id,
+            'status' => 'aktif',
+        ]);
+
+        \App\Models\LmsClass::create([
+            'course_id' => $this->course->id,
+            'classroom_id' => $classroomB->id,
+            'school_id' => $this->school->id,
+            'status' => 'active',
+        ]);
+
+        // Buat Kelompok 1 untuk Kelas A
+        $groupA = $this->assignment->groups()->create([
+            'name' => 'Kelompok 1 Kelas A',
+            'leader_id' => $this->leaderStudent->id,
+        ]);
+        $groupA->members()->sync([$this->leaderStudent->id, $this->memberStudent->id]);
+
+        // Buat Kelompok 1 untuk Kelas B
+        $groupB = $this->assignment->groups()->create([
+            'name' => 'Kelompok 1 Kelas B',
+            'leader_id' => $studentB1->id,
+        ]);
+        $groupB->members()->sync([$studentB1->id, $studentB2->id]);
+
+        // 1. Cek saat filter Kelas A aktif
+        $responseA = $this->actingAs($this->guruUser)
+            ->get(route('guru.lms.assignments.show', ['assignment' => $this->assignment->id, 'classroom_id' => $this->classroom->id]));
+
+        $responseA->assertOk();
+        $viewGroupsA = $responseA->viewData('assignment')->groups;
+        $this->assertTrue($viewGroupsA->contains('name', 'Kelompok 1 Kelas A'));
+        $this->assertFalse($viewGroupsA->contains('name', 'Kelompok 1 Kelas B'));
+
+        // 2. Cek saat filter Kelas B aktif
+        $responseB = $this->actingAs($this->guruUser)
+            ->get(route('guru.lms.assignments.show', ['assignment' => $this->assignment->id, 'classroom_id' => $classroomB->id]));
+
+        $responseB->assertOk();
+        $viewGroupsB = $responseB->viewData('assignment')->groups;
+        $this->assertTrue($viewGroupsB->contains('name', 'Kelompok 1 Kelas B'));
+        $this->assertFalse($viewGroupsB->contains('name', 'Kelompok 1 Kelas A'));
+
+        // 3. Cek saat Semua Rombel aktif
+        $responseAll = $this->actingAs($this->guruUser)
+            ->get(route('guru.lms.assignments.show', $this->assignment->id));
+
+        $responseAll->assertOk();
+        $viewGroupsAll = $responseAll->viewData('assignment')->groups;
+        $this->assertTrue($viewGroupsAll->contains('name', 'Kelompok 1 Kelas A'));
+        $this->assertTrue($viewGroupsAll->contains('name', 'Kelompok 1 Kelas B'));
+    }
 }
