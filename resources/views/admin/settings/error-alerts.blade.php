@@ -70,7 +70,7 @@
             
             <div class="flex items-center gap-2">
                 <span class="px-3 py-1 rounded-full text-xs font-mono font-black border {{ $allPassed ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300' }}">
-                    {{ $allPassed ? '● 6/6 PERBAIKAN TERVERIFIKASI LULUS' : '○ SEBAGIAN BUTUH PERHATIAN' }}
+                    {{ $allPassed ? '● ' . count($healthChecks) . '/' . count($healthChecks) . ' PERBAIKAN TERVERIFIKASI LULUS' : '○ SEBAGIAN BUTUH PERHATIAN' }}
                 </span>
                 <a href="{{ route('admin.settings.error_alerts') }}" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold border border-slate-300 transition flex items-center gap-1.5" title="Muat ulang pengetesan">
                     <i class="fas fa-sync-alt text-[10px]"></i> Verifikasi Ulang
@@ -254,26 +254,26 @@
                 <p class="text-xs text-slate-500 mt-0.5">Catatan riwayat exception server lengkap dengan diagnosa bahasa Indonesia dan tombol salin 1-klik</p>
             </div>
             
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2.5">
                 @if(!empty($recentLogs))
                 <button type="button" 
                         onclick="copyAllRecentLogs(this)" 
                         data-all-logs="{{ json_encode($recentLogs) }}"
-                        class="px-3.5 py-1.5 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                        class="px-4.5 py-2 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-xs whitespace-nowrap shrink-0 active:scale-95">
                     <i class="fas fa-copy text-amber-400"></i>
                     <span>Salin Semua Log</span>
                 </button>
 
                 <form action="{{ route('admin.settings.error_alerts.clear') }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin mengosongkan riwayat log lama?')">
                     @csrf
-                    <button type="submit" class="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
-                        <i class="fas fa-trash-alt"></i>
+                    <button type="submit" class="px-4.5 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-xs whitespace-nowrap shrink-0 active:scale-95">
+                        <i class="fas fa-trash-alt text-rose-600"></i>
                         <span>Bersihkan Log</span>
                     </button>
                 </form>
                 @endif
 
-                <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-mono font-bold border border-slate-200">
+                <span class="px-3.5 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-mono font-bold border border-slate-200 whitespace-nowrap shrink-0">
                     {{ count($recentLogs) }} Log
                 </span>
             </div>
@@ -326,12 +326,12 @@
                         <button type="button" 
                                 onclick="copyLogCard(this)" 
                                 data-copy="{{ $copyPayload }}"
-                                class="px-3 py-1 bg-slate-900 hover:bg-black text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95">
+                                class="px-3.5 py-1.5 bg-slate-900 hover:bg-black text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 whitespace-nowrap shrink-0">
                             <i class="fas fa-copy text-amber-400"></i>
                             <span>Salin Kode Error</span>
                         </button>
 
-                        <button type="button" @click="expanded = !expanded" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold transition flex items-center gap-1">
+                        <button type="button" @click="expanded = !expanded" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
                             <span x-text="expanded ? 'Tutup Trace' : 'Lihat Trace'"></span>
                             <i class="fas" :class="expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                         </button>

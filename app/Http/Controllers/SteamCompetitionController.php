@@ -94,10 +94,17 @@ class SteamCompetitionController extends Controller
         ]);
 
         try {
+            $description = $request->input('description');
+            if (empty(trim((string)$description))) {
+                $description = '-';
+            }
+
+            $docType = $request->input('doc_type', 'Lainnya') ?: 'Lainnya';
+
             $doc = SteamCompetitionService::saveDocument(
                 $request->file('document_file'),
-                $request->input('doc_type'),
-                $request->input('description', '-'),
+                $docType,
+                $description,
                 Auth::user()
             );
 

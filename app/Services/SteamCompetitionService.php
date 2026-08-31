@@ -157,15 +157,16 @@ class SteamCompetitionService
     /**
      * Simpan berkas upload baru
      */
-    public static function saveDocument($file, string $docType, string $description, ?User $user): array
+    public static function saveDocument($file, string $docType = 'Dokumen', ?string $description = '-', ?User $user = null): array
     {
+        $description = !empty(trim((string)$description)) ? trim((string)$description) : '-';
         $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $file->getClientOriginalName());
         $path = $file->storeAs('steam_competition', $fileName, 'public');
 
         $docId = uniqid('doc_');
         $newDoc = [
             'id' => $docId,
-            'type' => $docType,
+            'type' => $docType ?: 'Dokumen',
             'name' => $file->getClientOriginalName(),
             'path' => $path,
             'url' => Storage::url($path),

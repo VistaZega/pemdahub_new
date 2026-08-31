@@ -178,7 +178,21 @@ class ErrorDiagnosticService
             ];
         }
 
-        // 10. Generic Fallback Error
+        // 10. STEAM Competition Document Upload TypeError (Null Description)
+        if (str_contains($message, 'SteamCompetitionService::saveDocument') || (str_contains($message, 'saveDocument') && str_contains($message, '$description'))) {
+            return [
+                'type' => 'Aplikasi - Validasi Parameter Deskripsi Dokumen STEAM',
+                'badge' => 'STEAM DOCUMENT UPLOAD',
+                'danger_level' => 'low',
+                'danger_label' => '🟢 Aman (Data Tidak Rusak)',
+                'problem' => 'Pengguna mengunggah berkas kelengkapan lomba STEAM tanpa mengisi kolom deskripsi, sehingga Laravel mengirimkan nilai null ke method yang mengharuskan string.',
+                'impact' => 'Operasi upload berkas sempat terhenti sementara. Seluruh data tim, proposal, video, dan berkas yang tersimpan tetap 100% aman dan utuh.',
+                'solution' => 'Method <code>SteamCompetitionService::saveDocument()</code> telah diperbarui untuk mendukung tipe nullable (<code>?string $description</code>) dengan fallback otomatis ke tanda minus ("-").',
+                'raw' => $message,
+            ];
+        }
+
+        // 11. Generic Fallback Error
         return [
             'type' => 'Sistem - Kesalahan Operasi Internal',
             'badge' => 'SYSTEM EXCEPTION',
@@ -264,6 +278,16 @@ class ErrorDiagnosticService
                 'status_badge' => '🟢 PULIH & NORMAL',
                 'bg_class' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
                 'note' => 'Koneksi database MySQL hosting sudah pulih dan beroperasi normal.',
+            ];
+        }
+
+        // Issue 8: STEAM Competition Document Upload null description
+        if (str_contains($message, 'SteamCompetitionService::saveDocument') || (str_contains($message, 'saveDocument') && str_contains($message, '$description'))) {
+            return [
+                'resolved' => true,
+                'status_badge' => '🟢 TERSELESAIKAN (FIXED)',
+                'bg_class' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                'note' => 'SteamCompetitionService::saveDocument() telah diperbarui dengan tipe nullable string (?string $description) dan default fallback.',
             ];
         }
 
@@ -414,6 +438,31 @@ class ErrorDiagnosticService
                 'passed' => false,
                 'badge' => '🔴 ERROR',
                 'detail' => $e->getMessage(),
+            ];
+        }
+
+        // 7. Check STEAM Competition Document Upload Safety
+        try {
+            $reflection = new \ReflectionMethod(\App\Services\SteamCompetitionService::class, 'saveDocument');
+            $params = $reflection->getParameters();
+            $descParam = $params[2] ?? null;
+            $isNullable = $descParam && ($descParam->allowsNull() || $descParam->isOptional());
+            $checks[] = [
+                'id' => 'steam_upload_safety',
+                'title' => 'Validasi Berkas Lomba STEAM (Null-Safe Guard)',
+                'passed' => $isNullable,
+                'badge' => $isNullable ? '🟢 TERVERIFIKASI AMAN' : '🔴 PERLU PERBAIKAN',
+                'detail' => $isNullable
+                    ? 'Parameter deskripsi berkas STEAM telah mendukung nullable string dengan fallback default aman.'
+                    : 'Parameter saveDocument belum mendukung nullable.',
+            ];
+        } catch (\Throwable $e) {
+            $checks[] = [
+                'id' => 'steam_upload_safety',
+                'title' => 'Validasi Berkas Lomba STEAM (Null-Safe Guard)',
+                'passed' => false,
+                'badge' => '🔴 ERROR',
+                'detail' => 'Uji coba STEAM Document: ' . $e->getMessage(),
             ];
         }
 
