@@ -88,7 +88,13 @@ $allTables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
 
 // Filter tabel jika diminta
 $onlyTables = isset($_GET['tables']) ? explode(',', $_GET['tables']) : null;
-$excludeTables = isset($_GET['exclude']) ? explode(',', $_GET['exclude']) : ['cache', 'cache_locks', 'sessions', 'telescope_entries', 'telescope_entries_tags', 'telescope_monitoring'];
+$defaultExcluded = [
+    'cache', 'cache_locks', 'sessions',
+    'telescope_entries', 'telescope_entries_tags', 'telescope_monitoring',
+    'jobs', 'job_batches', 'failed_jobs',
+    'reputation_logs', 'notifications', 'forum_likes', 'login_histories'
+];
+$excludeTables = isset($_GET['exclude']) ? explode(',', $_GET['exclude']) : (isset($_GET['all']) ? [] : $defaultExcluded);
 
 $tables = [];
 foreach ($allTables as $table) {
@@ -188,8 +194,8 @@ foreach ($tables as $table) {
         continue;
     }
     
-    // INSERT DATA — batch per 500 rows untuk hemat memori
-    $batchSize = 500;
+    // INSERT DATA — batch per 2500 rows untuk kecepatan dan efisiensi memori
+    $batchSize = 2500;
     $offset = 0;
     
     // Ambil kolom untuk quoting
