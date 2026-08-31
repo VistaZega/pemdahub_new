@@ -1,6 +1,6 @@
 {{-- EKSTRAKURIKULER & MINAT BAKAT — Windows 10 Metro Live Tiles ($extracurriculars) --}}
 @php
-    // Palet warna cerah solid Windows 10 Metro asli
+    // Palet warna cerah solid Windows 10 Metro asli (100% Solid & Bold)
     $tileColors = [
         '#0078d4', // Windows Blue
         '#107c10', // Xbox Green
@@ -99,7 +99,7 @@
             </div>
         </div>
 
-        <!-- Windows 10 Metro Tile Grid (Vibrant Colors + 40% -> 80% Motion Watermark) -->
+        <!-- Windows 10 Metro Tile Grid (Warna Tetap Solid + Hanya Gambar Ber-Transisi 40% -> 80% & Zoom 125%) -->
         <div class="win10-tile-grid mb-6">
             @forelse($extracurriculars as $index => $ekskul)
                 @php
@@ -127,7 +127,7 @@
                     ]) }})"
                     title="Klik untuk info detail {{ $ekskul->name }}"
                 >
-                    {{-- 1. FOTO BACKGROUND PROPORSIONAL (BAYANGAN 40% -> 80% & ZOOM 125% SAAT HOVER) --}}
+                    {{-- 1. FOTO BACKGROUND PROPORSIONAL (HANYA GAMBAR YANG BER-TRANSISI OPACITY 40% -> 80% & ZOOM 125%) --}}
                     <div class="win10-img-container">
                         <img
                             src="{{ $bgImg }}"
@@ -137,7 +137,7 @@
                         >
                     </div>
 
-                    {{-- 2. GRADIENT OVERLAY AGAR TEKS SELALU TAJAM & KONTRAS --}}
+                    {{-- 2. SOFT GRADIENT DI BAWAH AGAR TEKS TAJAM TANPA MENUTUPI WARNA SOLID --}}
                     <div class="win10-tile-overlay"></div>
 
                     {{-- 3. TOP BAR (Category Badge + Member Count) --}}
@@ -287,7 +287,7 @@
 
 <style>
     /* ═══════════════════════════════════════════════════════
-       WINDOWS 10 METRO LIVE TILES — PROPORTIONAL WATERMARKS
+       WINDOWS 10 METRO LIVE TILES — 100% SOLID COLOR + IMAGE WATERMARK
        ═══════════════════════════════════════════════════════ */
 
     .win10-tile-grid {
@@ -309,7 +309,7 @@
         }
     }
 
-    /* Base tile container */
+    /* Base tile container: WARNA 100% SOLID, TIDAK BERUBAH */
     .win10-tile {
         position: relative;
         display: flex;
@@ -322,14 +322,13 @@
         border-radius: 2px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         user-select: none;
-        transition: box-shadow 0.25s ease, transform 0.25s ease, filter 0.2s ease;
+        transition: box-shadow 0.25s ease, transform 0.25s ease;
     }
 
     /* Hover elevation & press effect */
     .win10-tile:hover {
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
         transform: translateY(-2px);
-        filter: brightness(1.05);
         z-index: 5;
     }
     .win10-tile:active {
@@ -341,14 +340,11 @@
         position: absolute;
         inset: 0;
         overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
         pointer-events: none;
         z-index: 1;
     }
 
-    /* Default State: 40% Opacity Bayangan / Watermark, Proporsional Fit */
+    /* Default State: HANYA GAMBAR dengan Opacity 40% Bayangan / Watermark */
     .win10-tile-bg-img {
         width: 100%;
         height: 100%;
@@ -356,11 +352,11 @@
         object-position: center 25%;
         opacity: 0.40;
         transform: scale(1.0);
-        transition: opacity 0.35s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
-        mix-blend-mode: luminosity;
+        transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        mix-blend-mode: multiply;
     }
 
-    /* Wide & Large Tiles: Penyesuaian Posisi Proporsional */
+    /* Wide & Large Tiles: Posisi proporsional gambar */
     .win10-tile-wide .win10-tile-bg-img {
         object-position: right 10% center;
     }
@@ -369,37 +365,25 @@
         object-position: center 20%;
     }
 
-    /* Hover State: Opacity 80% & Ukuran 125% Motion Zoom */
+    /* Hover State: HANYA GAMBAR yang berubah menjadi Opacity 80% dan Zoom 125% */
     .win10-tile:hover .win10-tile-bg-img {
         opacity: 0.80;
         transform: scale(1.25);
-        mix-blend-mode: normal;
-        filter: contrast(1.08) brightness(0.95);
     }
 
-    /* ─── DARK GRADIENT OVERLAY FOR CRISP TEXT LEGIBILITY ─── */
+    /* ─── SOFT GRADIENT BOTTOM OVERLAY FOR CRISP TEXT ─── */
     .win10-tile-overlay {
         position: absolute;
         inset: 0;
         background: linear-gradient(
             180deg,
-            rgba(0, 0, 0, 0.25) 0%,
-            rgba(0, 0, 0, 0.05) 35%,
-            rgba(0, 0, 0, 0.55) 70%,
-            rgba(0, 0, 0, 0.85) 100%
+            transparent 0%,
+            transparent 35%,
+            rgba(0, 0, 0, 0.35) 70%,
+            rgba(0, 0, 0, 0.70) 100%
         );
-        transition: background 0.3s ease;
         pointer-events: none;
         z-index: 2;
-    }
-    .win10-tile:hover .win10-tile-overlay {
-        background: linear-gradient(
-            180deg,
-            rgba(0, 0, 0, 0.35) 0%,
-            rgba(0, 0, 0, 0.15) 35%,
-            rgba(0, 0, 0, 0.65) 65%,
-            rgba(0, 0, 0, 0.90) 100%
-        );
     }
 
     /* Top bar info elements */
@@ -414,7 +398,7 @@
     }
 
     .win10-cat-badge {
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.4);
         color: rgba(255, 255, 255, 0.95);
         padding: 1.5px 5px;
         border-radius: 3px;
@@ -428,7 +412,7 @@
     }
 
     .win10-member-badge {
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.4);
         color: rgba(255, 255, 255, 0.95);
         padding: 1.5px 5px;
         border-radius: 3px;
@@ -457,7 +441,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
     }
     .win10-tile-wide .win10-tile-name,
     .win10-tile-large .win10-tile-name {
@@ -469,7 +453,7 @@
     }
 
     .win10-tile-school {
-        color: rgba(255, 255, 255, 0.85);
+        color: rgba(255, 255, 255, 0.9);
         font-family: 'JetBrains Mono', monospace;
         font-weight: 600;
         font-size: 7.5px;
@@ -477,7 +461,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
     }
     .win10-tile-wide .win10-tile-school,
     .win10-tile-large .win10-tile-school {
