@@ -1602,7 +1602,7 @@ class MobileTeacherController extends Controller
             );
         }
 
-        return back()-\u003ewith('success', 'Logbook harian PKL siswa berhasil diverifikasi (ACC).');
+        return back()->with('success', 'Logbook harian PKL siswa berhasil diverifikasi (ACC).');
     }
 
     /**

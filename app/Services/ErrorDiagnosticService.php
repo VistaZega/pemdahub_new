@@ -192,7 +192,21 @@ class ErrorDiagnosticService
             ];
         }
 
-        // 11. Generic Fallback Error
+        // 11. Call to undefined function u003ewith / approvePklLog redirect typo
+        if (str_contains($message, 'u003ewith') || str_contains($message, '>with()') || (str_contains($message, 'approvePklLog') && str_contains($message, 'with()'))) {
+            return [
+                'type' => 'Aplikasi - Kesalahan Sintaks Verifikasi Log PKL Mobile Guru',
+                'badge' => 'MOBILE PKL SYNTAX',
+                'danger_level' => 'low',
+                'danger_label' => '🟢 Aman (Data Tidak Rusak)',
+                'problem' => 'Terdapat kesalahan penulisan karakter operator tanda panah (<code>-\\u003ewith()</code>) saat guru melakukan persetujuan (ACC) jurnal PKL siswa pada tampilan mobile.',
+                'impact' => 'Proses verifikasi jurnal PKL siswa sempat memicu error. Seluruh data penempatan dan riwayat log PKL tetap utuh dan aman.',
+                'solution' => 'Sintaks pada method <code>MobileTeacherController::approvePklLog()</code> telah diperbaiki menjadi <code>return back()->with(...)</code> yang valid.',
+                'raw' => $message,
+            ];
+        }
+
+        // 12. Generic Fallback Error
         return [
             'type' => 'Sistem - Kesalahan Operasi Internal',
             'badge' => 'SYSTEM EXCEPTION',
@@ -288,6 +302,16 @@ class ErrorDiagnosticService
                 'status_badge' => '🟢 TERSELESAIKAN (FIXED)',
                 'bg_class' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
                 'note' => 'SteamCompetitionService::saveDocument() telah diperbarui dengan tipe nullable string (?string $description) dan default fallback.',
+            ];
+        }
+
+        // Issue 9: Mobile PKL approve typo u003ewith()
+        if (str_contains($message, 'u003ewith') || str_contains($message, '>with()') || (str_contains($message, 'approvePklLog') && str_contains($message, 'with()'))) {
+            return [
+                'resolved' => true,
+                'status_badge' => '🟢 TERSELESAIKAN (FIXED)',
+                'bg_class' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                'note' => 'MobileTeacherController::approvePklLog() telah diperbaiki sintaks return redirect back()->with(). Verifikasi jurnal PKL berjalan lancar.',
             ];
         }
 
