@@ -37,6 +37,7 @@ class LmsAssignment extends Model
         'max_score' => 'float',
         'allow_resubmit' => 'boolean',
         'max_resubmissions' => 'integer',
+        'rubric' => 'array',
     ];
 
     protected const ASSIGNMENT_TYPES = [
@@ -191,5 +192,57 @@ class LmsAssignment extends Model
             ->count();
 
         return $attemptCount <= $this->max_resubmissions;
+    }
+
+    // ──────────────────────────────────────────────
+    //  RUBRIK PENILAIAN
+    // ──────────────────────────────────────────────
+
+    /**
+     * Check if assignment has rubric configured
+     */
+    public function hasRubric(): bool
+    {
+        return !empty($this->rubric) && is_array($this->rubric) && count($this->rubric) > 0;
+    }
+
+    /**
+     * Get default rubric template
+     */
+    public static function getDefaultRubricTemplate(): array
+    {
+        return [
+            ['nama' => 'Kelengkapan Isi', 'bobot' => 40, 'maks' => 100],
+            ['nama' => 'Struktur & Kerapihan', 'bobot' => 30, 'maks' => 100],
+            ['nama' => 'Kreativitas & Analisis', 'bobot' => 30, 'maks' => 100],
+        ];
+    }
+
+    /**
+     * Get rubric (configured or default)
+     */
+    public function getRubric(): array
+    {
+        return $this->hasRubric() ? $this->rubric : self::getDefaultRubricTemplate();
+    }
+
+    /**
+     * Calculate weighted score from rubric component values (0-100 each)
+     */
+    public function calculateRubricScore(array $componentScores): float
+    {
+        $rubric = $this->getRubric();
+        $totalBobot = 0;
+        $totalNilai = 0;
+
+        foreach ($rubric as $i => $r) {
+            $nilai = min((float)($componentScores[$i] ?? 0), (float)($r['maks'] ?? 100));
+            $bobot = (float)($r['bobot'] ?? 0);
+            $totalNilai += $nilai * ($bobot / 100);
+            $totalBobot += $bobot;
+        }
+
+        $finalScore = $totalBobot > 0 ? ($totalNilai / ($totalBobot / 100)) : 0;
+        return round(min($finalScore, (float)$this->max_score), 1);
     }
 }

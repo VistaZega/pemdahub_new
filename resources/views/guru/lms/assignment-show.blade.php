@@ -863,24 +863,57 @@
                                             </div>
                                             @endif
 
-                                            {{-- Score Input --}}
-                                            <div x-data="{ score: {{ (float)($sub->score ?? 0) }}, max: {{ (float)($assignment->max_score ?? 100) }} }">
-                                                <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
-                                                    Skor (0 – {{ $assignment->max_score ?? 100 }})
-                                                </label>
-                                                <div class="flex items-center gap-3">
-                                                    <input type="number" name="score"
-                                                           x-model="score"
-                                                           min="0" max="{{ $assignment->max_score ?? 100 }}" step="0.5"
-                                                           class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-bold text-center
-                                                                  focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
-                                                    <div class="flex-1">
-                                                        <div class="score-progress">
-                                                            <div class="score-progress-bar" :style="`width: ${Math.min(100, (score/max)*100)}%`"></div>
-                                                        </div>
-                                                        <p class="text-xs text-gray-400 mt-1" x-text="`${Math.round((score/max)*100)}% dari nilai maksimal`"></p>
+                                            {{-- Score Input with Rubrik --}}
+                                            @php $rubrik = $assignment->getRubric(); @endphp
+                                            <div x-data="{
+                                                rubricScores: {{ json_encode(array_fill(0, count($rubrik), 0)) }},
+                                                get calculatedScore() {
+                                                    let total = 0, bobot = 0;
+                                                    {{ $assignment->hasRubric() ? 'const rubrik = '.json_encode($rubrik).';' : 'const rubrik = '.json_encode($assignment->getDefaultRubricTemplate()).';' }}
+                                                    rubrik.forEach((r, i) => {
+                                                        const nilai = Math.min(parseFloat(this.rubricScores[i] || 0), parseFloat(r.maks || 100));
+                                                        const b = parseFloat(r.bobot || 0);
+                                                        total += nilai * (b / 100);
+                                                        bobot += b;
+                                                    });
+                                                    return bobot > 0 ? Math.round((total / (bobot / 100)) * 10) / 10 : 0;
+                                                },
+                                                get displayScore() {
+                                                    return this.calculatedScore;
+                                                }
+                                            }">
+                                                {{-- Rubrik Components --}}
+                                                <div class="space-y-3 mb-4">
+                                                    <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                                                        <i class="fas fa-tasks text-purple-600 mr-1"></i> Penilaian Berdasarkan Rubrik
+                                                    </label>
+                                                    @foreach($rubrik as $i => $r)
+                                                    <div class="flex items-center gap-3">
+                                                        <span class="w-28 text-xs font-bold text-gray-700 flex-shrink-0">{{ $r['nama'] }}</span>
+                                                        <input type="range" min="0" max="{{ $r['maks'] }}" step="1"
+                                                               x-model="rubricScores[{{ $i }}]"
+                                                               class="flex-1 h-2 rounded-lg appearance-none cursor-pointer accent-purple-600">
+                                                        <input type="number" name="rubric_scores[{{ $i }}]"
+                                                               x-model="rubricScores[{{ $i }}]"
+                                                               min="0" max="{{ $r['maks'] }}"
+                                                               class="w-16 border border-gray-300 rounded-lg px-2 py-1 text-xs font-bold text-center focus:ring-2 focus:ring-purple-500 outline-none">
+                                                        <span class="text-[10px] font-bold text-gray-400 w-8">/{{ $r['maks'] }}</span>
+                                                    </div>
+                                                    @endforeach
+                                                </div>
+
+                                                {{-- Calculated Score --}}
+                                                <div class="p-3 bg-purple-50 border border-purple-200 rounded-xl">
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="text-xs font-bold text-purple-900">Skor Akhir (Hitung Otomatis)</span>
+                                                        <span class="text-lg font-black text-purple-900" x-text="displayScore + ' / {{ $assignment->max_score }}'"></span>
+                                                    </div>
+                                                    <div class="score-progress mt-2">
+                                                        <div class="score-progress-bar" :style="`width: ${Math.min(100, (displayScore / {{ $assignment->max_score ?? 100 }}) * 100)}%`"></div>
                                                     </div>
                                                 </div>
+
+                                                <input type="hidden" name="score" :value="displayScore">
                                             </div>
 
                                             {{-- Feedback Presets Chips --}}

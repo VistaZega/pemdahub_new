@@ -171,8 +171,74 @@
                     <div>
                         <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">Skor Maksimal <span class="text-rose-600">*</span></label>
                         <input type="number" name="max_score" value="{{ old('max_score', 100) }}" min="1" max="100" required
+                               x-model="maxScore"
                                class="w-full border-2 border-black rounded-2xl px-5 py-3.5 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                     </div>
+                </div>
+
+                {{-- Rubrik Penilaian --}}
+                <div class="p-5 rounded-2xl border-2 border-black bg-white space-y-4" x-data="{ 
+                    rubrik: {{ old('rubrik') ?: '[{"nama":"Kelengkapan Isi","bobot":40,"maks":100},{"nama":"Struktur & Kerapihan","bobot":30,"maks":100},{"nama":"Kreativitas & Analisis","bobot":30,"maks":100}]' }},
+                    maxScore: {{ old('max_score', 100) }},
+                    addKomponen() {
+                        this.rubrik.push({nama: '', bobot: 20, maks: 100});
+                    },
+                    hapusKomponen(i) {
+                        this.rubrik.splice(i, 1);
+                    },
+                    get totalBobot() {
+                        return this.rubrik.reduce((s, r) => s + parseFloat(r.bobot || 0), 0);
+                    },
+                    get isValid() {
+                        return this.totalBobot === 100;
+                    },
+                    get hitungSkor() {
+                        return this.rubrik.reduce((s, r) => s + (parseFloat(r.maks || 100) * parseFloat(r.bobot || 0) / 100), 0);
+                    },
+                    serilkan() {
+                        document.getElementById('rubrik_json').value = JSON.stringify(this.rubrik);
+                    }
+                }">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-black text-black uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-tasks text-purple-600"></i> Rubrik Penilaian (Bobot Total: <span x-text="totalBobot" :class="isValid ? 'text-emerald-600' : 'text-rose-600'" class="font-black"></span>%)
+                        </label>
+                        <button type="button" @click="addKomponen()" class="px-3 py-1.5 bg-purple-600 text-white rounded-xl text-xs font-black hover:bg-purple-700 transition flex items-center gap-1">
+                            <i class="fas fa-plus"></i> Tambah Komponen
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-gray-500 font-bold">Rubrik digunakan saat menilai tugas. Bobot total harus 100%. Skor akhir dihitung otomatis dari nilai tiap komponen × bobot.</p>
+
+                    <template x-for="(r, i) in rubrik" :key="i">
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="flex-1">
+                                <label class="text-[10px] font-bold text-gray-500 uppercase">Nama Komponen</label>
+                                <input type="text" x-model="r.nama" placeholder="Contoh: Analisis Data"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none">
+                            </div>
+                            <div class="w-20">
+                                <label class="text-[10px] font-bold text-gray-500 uppercase">Bobot %</label>
+                                <input type="number" x-model="r.bobot" min="0" max="100" step="5"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-bold text-center focus:ring-2 focus:ring-purple-500 outline-none">
+                            </div>
+                            <div class="w-20">
+                                <label class="text-[10px] font-bold text-gray-500 uppercase">Maks</label>
+                                <input type="number" x-model="r.maks" min="1" max="100"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-bold text-center focus:ring-2 focus:ring-purple-500 outline-none">
+                            </div>
+                            <button type="button" @click="hapusKomponen(i)" x-show="rubrik.length > 1" class="mt-5 w-8 h-8 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition flex items-center justify-center">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                    </template>
+
+                    <div class="flex items-center gap-4 text-xs font-bold text-gray-600 p-3 bg-indigo-50 rounded-xl border border-indigo-200">
+                        <span>Skor Maksimal dari Rubrik: <b x-text="Math.round(hitungSkor)"></b></span>
+                        <span x-show="!isValid" class="text-rose-600"><i class="fas fa-exclamation-triangle"></i> Bobot belum 100% (<span x-text="totalBobot"></span>%)</span>
+                        <span x-show="isValid" class="text-emerald-600"><i class="fas fa-check-circle"></i> Bobot 100% ✅</span>
+                    </div>
+
+                    <input type="hidden" name="rubrik" id="rubrik_json" :value="serilkan() || JSON.stringify(rubrik)">
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">

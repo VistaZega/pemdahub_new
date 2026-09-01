@@ -66,6 +66,7 @@ class LmsAssignmentController extends Controller
             'is_group_assignment' => $request->boolean('is_group_assignment'),
             'deadline' => $request->due_date,
             'max_score' => $request->max_score,
+            'rubric' => $request->rubric ? json_decode($request->rubric, true) : null,
             'file_path' => $filePath,
             'is_published' => true,
             'allow_resubmit' => $request->boolean('allow_resubmit'),
@@ -382,6 +383,7 @@ class LmsAssignmentController extends Controller
             'is_group_assignment' => $request->boolean('is_group_assignment'),
             'deadline' => $request->due_date,
             'max_score' => $request->max_score,
+            'rubric' => $request->rubric ? json_decode($request->rubric, true) : $assignment->rubric,
             'allow_resubmit' => $request->boolean('allow_resubmit'),
             'max_resubmissions' => $request->max_resubmissions ?? $assignment->max_resubmissions,
         ];
@@ -575,6 +577,8 @@ class LmsAssignmentController extends Controller
             'score' => 'nullable|numeric|min:0|max:' . $submission->assignment->max_score,
             'feedback' => 'nullable|string',
             'action_type' => 'nullable|string',
+            'rubric_scores' => 'nullable|array',
+            'rubric_scores.*' => 'nullable|numeric|min:0|max:100',
         ]);
 
         if ($request->action_type === 'request_revision') {
@@ -593,8 +597,17 @@ class LmsAssignmentController extends Controller
             return redirect()->back()->with('success', 'Permintaan revisi berhasil dikirim ke siswa.');
         }
 
+        // Hitung skor dari rubrik jika disediakan
+        $finalScore = $request->score;
+        if ($request->filled('rubric_scores')) {
+            $rs = array_values(array_filter($request->rubric_scores, fn($v) => $v !== null && $v !== ''));
+            if (!empty($rs)) {
+                $finalScore = $submission->assignment->calculateRubricScore($rs);
+            }
+        }
+
         $submission->update([
-            'score' => $request->score ?? 0,
+            'score' => $finalScore ?? 0,
             'feedback' => $request->feedback,
             'teacher_notes' => $request->feedback,
             'status' => 'graded',
