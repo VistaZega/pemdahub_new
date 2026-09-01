@@ -291,7 +291,7 @@
                             @php
                                 $firstSchedule = $schedulesAtTime->first();
                                 $matchedCourse = $firstSchedule->lms_course ?? null;
-                                $lmsUrl = $matchedCourse ? route('siswa.lms.show', [$matchedCourse->id, 'auto' => '1']) : route('siswa.lms.schedule', $firstSchedule->id);
+                                $lmsUrl = $matchedCourse ? route('siswa.lms.show', $matchedCourse->id) : route('siswa.lms.schedule', $firstSchedule->id);
                             @endphp
 
                             {{-- Action Footer (GUARANTEED MARGIN FROM BOTTOM & LEFT BORDER) --}}
