@@ -102,16 +102,18 @@
         {{-- Action Buttons (Edit / Delete) --}}
         <div class="flex items-center gap-2.5 shrink-0">
             <a href="{{ route('guru.lms.assignments.edit', $assignment->id) }}"
-               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide
-                      bg-white text-black hover:bg-amber-300 border-2 border-white hover:border-black shadow-sm transition">
-                <i class="fas fa-edit text-xs"></i> Edit Tugas
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide shadow-sm transition hover:opacity-90"
+               style="background-color: #fbbf24 !important; color: #000000 !important; border: 2px solid #f59e0b !important;">
+                <i class="fas fa-edit text-xs" style="color: #000000 !important;"></i>
+                <span style="color: #000000 !important;">Edit Tugas</span>
             </a>
 
             <form action="{{ route('guru.lms.assignments.destroy', $assignment->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus tugas ini beserta semua submisi siswa? Tindakan ini tidak dapat dibatalkan.')">
                 @csrf @method('DELETE')
-                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide
-                       bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border-2 border-rose-300 shadow-sm transition">
-                    <i class="fas fa-trash text-xs"></i> Hapus
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide shadow-sm transition hover:opacity-90"
+                       style="background-color: #fee2e2 !important; color: #dc2626 !important; border: 2px solid #fca5a5 !important;">
+                    <i class="fas fa-trash text-xs" style="color: #dc2626 !important;"></i>
+                    <span style="color: #dc2626 !important;">Hapus</span>
                 </button>
             </form>
         </div>
@@ -125,29 +127,29 @@
     {{-- Metadata Badges: Full Width Horizontal Row --}}
     <div class="flex flex-wrap items-center gap-3 pt-1">
         @if($assignment->isGroupAssignment())
-        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide bg-purple-600 text-white border-2 border-purple-400 shadow-sm">
-            <i class="fas fa-users text-xs"></i> TUGAS KELOMPOK
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide shadow-sm"
+              style="background-color: #7c3aed !important; color: #ffffff !important; border: 2px solid #a78bfa !important;">
+            <i class="fas fa-users text-xs"></i> <span>TUGAS KELOMPOK</span>
         </span>
         @else
-        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide bg-blue-600 text-white border-2 border-blue-400 shadow-sm">
-            <i class="fas fa-user text-xs"></i> TUGAS INDIVIDU
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide shadow-sm"
+              style="background-color: #2563eb !important; color: #ffffff !important; border: 2px solid #60a5fa !important;">
+            <i class="fas fa-user text-xs"></i> <span>TUGAS INDIVIDU</span>
         </span>
         @endif
 
         @if($assignment->deadline)
-        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide border-2 shadow-sm
-            {{ $assignment->isOverdue()
-                ? 'bg-rose-600 text-white border-rose-400'
-                : 'bg-amber-300 text-black border-amber-400' }}">
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide shadow-sm"
+              style="{{ $assignment->isOverdue() ? 'background-color: #e11d48 !important; color: #ffffff !important; border: 2px solid #fda4af !important;' : 'background-color: #fef08a !important; color: #000000 !important; border: 2px solid #fde047 !important;' }}">
             <i class="fas fa-clock text-xs"></i>
-            @if($assignment->isOverdue()) ⚠ TERLAMBAT — @endif
-            {{ $assignment->deadline->format('d M Y, H:i') }}
+            <span>@if($assignment->isOverdue()) ⚠ TERLAMBAT — @endif{{ $assignment->deadline->format('d M Y, H:i') }}</span>
         </span>
         @endif
 
-        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide bg-emerald-400 text-black border-2 border-emerald-300 shadow-sm">
-            <i class="fas fa-star text-xs text-black"></i>
-            Skor Maks: {{ $assignment->max_score }}
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide shadow-sm"
+              style="background-color: #34d399 !important; color: #000000 !important; border: 2px solid #6ee7b7 !important;">
+            <i class="fas fa-star text-xs" style="color: #000000 !important;"></i>
+            <span style="color: #000000 !important;">Skor Maks: {{ $assignment->max_score }}</span>
         </span>
     </div>
 
