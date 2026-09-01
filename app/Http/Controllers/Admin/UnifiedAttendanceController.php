@@ -122,6 +122,9 @@ class UnifiedAttendanceController extends Controller
 
             $totalEvents = $attendances->count();
 
+            // Deduplikasi: 1 siswa = 1 status per hari (ambil record terakhir)
+            $attendances = $attendances->groupBy('student_id')->map(fn($g) => $g->last());
+
             foreach ($attendances as $idx => $att) {
                 $status = $att->status;
                 if (isset($stats[$status])) {
