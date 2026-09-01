@@ -76,7 +76,14 @@ class PublicDisplayController extends Controller
 
         // ── HITUNG REKAP UNIT DAN STATISTIK SECARA DINAMIS ─────────────
         $dayOfWeek = strtolower($now->format('l')); // 'monday', 'tuesday', etc.
-        $schools = \App\Models\School::where('is_active', true)->schoolsOnly()->orderBy('name')->get();
+        $schools = \App\Models\School::where('is_active', true)
+            ->schoolsOnly()
+            ->get()
+            ->sortBy(function ($s) {
+                $order = ['SMP' => 1, 'SMA' => 2, 'SMK' => 3];
+                return $order[strtoupper($s->type)] ?? 99;
+            })
+            ->values();
 
         // Ambil ID tahun pelajaran aktif
         $activeAcademicYearId = \App\Models\AcademicYear::where('is_active', true)->value('id');
@@ -159,10 +166,8 @@ class PublicDisplayController extends Controller
             $expectedEmployeeIds = array_unique(array_merge($requiredTeacherEmployeeIds, $requiredStaffEmployeeIds));
 
             // Dapatkan ID semua karyawan sekolah ini yang SEBENARNYA hadir hari ini
-            $actualAttendedEmployeeIds = $employeeAttendances->where('employee.school_id', $school->id)
-                ->where('status', 'hadir')
-                ->pluck('employee_id')
-                ->toArray();
+            $schoolEmpAtts = $employeeAttendances->where('employee.school_id', $school->id)->where('status', 'hadir');
+            $actualAttendedEmployeeIds = $schoolEmpAtts->pluck('employee_id')->toArray();
 
             // Gabungkan expected dengan actual untuk mencegah persentase > 100% jika ada karyawan yang masuk tapi tidak terjadwal
             $allExpectedOrAttendedEmployeeIds = array_unique(array_merge($expectedEmployeeIds, $actualAttendedEmployeeIds));
@@ -171,22 +176,45 @@ class PublicDisplayController extends Controller
             $gHadir = count($actualAttendedEmployeeIds);
             $gBelum = max(0, $gTotal - $gHadir);
 
+            // Hitung tepat waktu vs terlambat untuk guru & staf (jam masuk standar sekolah)
+            $schoolClassroom = \App\Models\Classroom::where('school_id', $school->id)->whereNotNull('entry_time')->first();
+            $schoolEntryTime = ($schoolClassroom && $schoolClassroom->entry_time) ? $schoolClassroom->entry_time . ':00' : '07:30:00';
+
+            $gTepat = 0;
+            $gTerlambat = 0;
+            foreach ($schoolEmpAtts as $empAtt) {
+                $timeIn = $empAtt->time_in ?? '00:00:00';
+                if (strlen($timeIn) === 5) {
+                    $timeIn .= ':00';
+                }
+                if ($timeIn > $schoolEntryTime) {
+                    $gTerlambat++;
+                } else {
+                    $gTepat++;
+                }
+            }
+
             $rekapUnit[] = [
                 'school_id'  => $school->id,
                 'name'       => $school->name,
                 'type'       => strtoupper($school->type),
                 'is_yayasan' => $isYayasan,
                 'siswa'      => [
-                    'total'     => $sTotal,
-                    'hadir'     => $sHadir,
-                    'terlambat' => $sTerlambat,
-                    'pulang'    => $sPulang,
-                    'belum'     => $sBelum,
+                    'total'       => $sTotal,
+                    'tap_hadir'   => $sHadir + $sTerlambat,
+                    'tepat_waktu' => $sHadir,
+                    'terlambat'   => $sTerlambat,
+                    'hadir'       => $sHadir,
+                    'pulang'      => $sPulang,
+                    'belum'       => $sBelum,
                 ],
                 'pegawai'    => [
-                    'total' => $gTotal,
-                    'hadir' => $gHadir,
-                    'belum' => $gBelum,
+                    'total'       => $gTotal,
+                    'tap_hadir'   => $gHadir,
+                    'tepat_waktu' => $gTepat,
+                    'terlambat'   => $gTerlambat,
+                    'hadir'       => $gHadir,
+                    'belum'       => $gBelum,
                 ],
             ];
 

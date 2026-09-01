@@ -175,97 +175,41 @@
         }
 
         /* ============================================================
-           BODY LAYOUT: KIRI (statistik + feed) | KANAN (stats detail)
+           BODY LAYOUT: KIRI (Live Absensi) | KANAN (Live Rekapitulasi)
         ============================================================ */
         .body-grid {
             display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 10px;
+            grid-template-columns: 1fr 490px;
+            gap: 12px;
             min-height: 0;
+            height: 100%;
+        }
+
+        @media (max-width: 1440px) {
+            .body-grid {
+                grid-template-columns: 1fr 450px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .body-grid {
+                grid-template-columns: 1fr;
+                overflow-y: auto;
+            }
+            html, body {
+                overflow: auto;
+            }
         }
 
         /* ============================================================
-           KOLOM KIRI
+           KOLOM KIRI: LIVE ABSENSI FEED (FULL HEIGHT)
         ============================================================ */
         .left-col {
-            display: grid;
-            grid-template-rows: 160px 1fr;
-            gap: 10px;
-            min-height: 0;
-        }
-
-        /* STAT CARDS */
-        .stat-cards {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 20px 20px 16px;
-            position: relative;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            transition: border-color 0.3s;
-        }
-        .stat-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 3px;
-            border-radius: 0 0 14px 14px;
-        }
-        .stat-card.hadir   { border-color: rgba(34,197,94,0.25); }
-        .stat-card.hadir::after   { background: var(--green); }
-        .stat-card.terlambat { border-color: rgba(245,158,11,0.25); }
-        .stat-card.terlambat::after { background: var(--yellow); }
-        .stat-card.pulang  { border-color: rgba(59,130,246,0.25); }
-        .stat-card.pulang::after  { background: var(--blue); }
-        .stat-card.belum   { border-color: rgba(239,68,68,0.20); }
-        .stat-card.belum::after   { background: var(--red); }
-
-        .stat-icon {
-            font-size: 28px;
-            line-height: 1;
-            margin-bottom: 8px;
-        }
-        .stat-label {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-        }
-        .stat-card.hadir   .stat-label { color: var(--green); }
-        .stat-card.terlambat .stat-label { color: var(--yellow); }
-        .stat-card.pulang  .stat-label { color: var(--blue); }
-        .stat-card.belum   .stat-label { color: var(--red); }
-
-        .stat-number {
-            font-size: 56px;
-            font-weight: 900;
-            line-height: 1;
-            letter-spacing: -0.02em;
-        }
-        .stat-card.hadir   .stat-number { color: var(--green); }
-        .stat-card.terlambat .stat-number { color: var(--yellow); }
-        .stat-card.pulang  .stat-number { color: var(--blue); }
-        .stat-card.belum   .stat-number { color: var(--red); }
-
-        .stat-sublabel {
-            font-size: 11px;
-            color: var(--text-dim);
-            margin-top: 4px;
-        }
-
-        /* GLOW efek saat angka berubah */
-        .stat-number.flash { animation: numflash 0.5s ease; }
-        @keyframes numflash {
-            0% { opacity: 0.4; transform: scale(0.95); }
-            100% { opacity: 1; transform: scale(1); }
+            height: 100%;
+            min-height: 0;
+            overflow: hidden;
         }
 
         /* ============================================================
@@ -572,97 +516,290 @@
         }
 
         /* ============================================================
-           KOLOM KANAN
+           KOLOM KANAN: LIVE REKAPITULASI (3 UNIT SEKOLAH)
         ============================================================ */
         .right-col {
             display: flex;
             flex-direction: column;
             gap: 10px;
             min-height: 0;
-            overflow: hidden;
-        }
-
-        .info-panel {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 18px;
-            flex: 1;
-        }
-        .info-panel-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            margin-bottom: 14px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        /* Progress bar kehadiran */
-        .progress-item {
-            margin-bottom: 18px;
-        }
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-        }
-        .progress-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .progress-value {
-            font-size: 13px;
-            font-weight: 700;
-        }
-        .progress-bar {
-            height: 8px;
-            background: rgba(0,0,0,0.06);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .progress-fill {
             height: 100%;
-            border-radius: 4px;
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
         }
-        .fill-green  { background: linear-gradient(90deg, #16a34a, var(--green)); }
-        .fill-yellow { background: linear-gradient(90deg, #d97706, var(--yellow)); }
-        .fill-blue   { background: linear-gradient(90deg, #1d4ed8, var(--blue)); }
-        .fill-red    { background: linear-gradient(90deg, #b91c1c, var(--red)); }
-        .fill-purple { background: linear-gradient(90deg, #7e22ce, var(--purple)); }
 
-        /* Guru & Staf ringkasan */
-        .emp-summary {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .rekap-header-bar {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-bright);
+            border-radius: 14px;
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .rekap-title-group {
+            display: flex;
+            align-items: center;
             gap: 10px;
-            margin-top: 4px;
         }
-        .emp-card {
-            background: var(--bg-card2);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px;
-            text-align: center;
+        .rekap-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #eff6ff;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
         }
-        .emp-card-num {
-            font-size: 32px;
-            font-weight: 900;
-            line-height: 1;
+        .rekap-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            line-height: 1.2;
         }
-        .emp-card-num.hadir { color: var(--green); }
-        .emp-card-num.belum { color: var(--red); }
-        .emp-card-lbl {
+        .rekap-subtitle {
             font-size: 10px;
             color: var(--text-dim);
-            margin-top: 4px;
-            text-transform: uppercase;
+            font-weight: 500;
+        }
+        .rekap-live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(34,197,94,0.1);
+            border: 1px solid rgba(34,197,94,0.3);
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--green);
             letter-spacing: 0.08em;
-            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .unit-panels-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            justify-content: space-between;
+            padding-right: 2px;
+        }
+        .unit-panels-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .unit-panels-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* ── KARTU UNIT SEKOLAH INDIVIDUAL ── */
+        .unit-card {
+            background: var(--bg-panel);
+            border-radius: 14px;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            min-height: 0;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+        .unit-card.unit-smp {
+            border-color: #bfdbfe;
+            border-left: 6px solid #2563eb;
+        }
+        .unit-card.unit-sma {
+            border-color: #bbf7d0;
+            border-left: 6px solid #16a34a;
+        }
+        .unit-card.unit-smk {
+            border-color: #fed7aa;
+            border-left: 6px solid #ea580c;
+        }
+        .unit-card.unit-yayasan {
+            border-color: #fbcfe8;
+            border-left: 6px solid #e11d48;
+        }
+
+        /* Header dalam unit card */
+        .unit-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border);
+        }
+        .unit-badge-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .unit-type-pill {
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+        .unit-smp .unit-type-pill { background: #2563eb; }
+        .unit-sma .unit-type-pill { background: #16a34a; }
+        .unit-smk .unit-type-pill { background: #ea580c; }
+        .unit-yayasan .unit-type-pill { background: #e11d48; }
+
+        .unit-school-name {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ── BLOCK SISWA (Aksen Segar: Background Hijau Muda / Mint, Text Hijau Tua) ── */
+        .unit-block-siswa {
+            background: #f0fdf4;
+            border: 1.5px solid #bbf7d0;
+            border-radius: 10px;
+            padding: 6px 10px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .block-header-siswa {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .block-title-siswa {
+            font-size: 11px;
+            font-weight: 900;
+            color: #15803d;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .badge-rate-siswa {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+
+        /* ── BLOCK GURU & PEGAWAI (Aksen Berbeda: Background Ungu/Violet Muda, Text Ungu Tua) ── */
+        .unit-block-pegawai {
+            background: #faf5ff;
+            border: 1.5px solid #e9d5ff;
+            border-radius: 10px;
+            padding: 6px 10px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .block-header-pegawai {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .block-title-pegawai {
+            font-size: 11px;
+            font-weight: 900;
+            color: #7e22ce;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .badge-rate-pegawai {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: #f3e8ff;
+            color: #7e22ce;
+            border: 1px solid #d8b4fe;
+        }
+
+        /* Grid Nilai Statistik di dalam Blok */
+        .stat-subgrid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+        .stat-box {
+            background: #ffffff;
+            border-radius: 7px;
+            padding: 4px 4px 3px;
+            text-align: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .stat-box-lbl {
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: #64748b;
+            line-height: 1.1;
+            margin-bottom: 2px;
+            white-space: nowrap;
+        }
+        .stat-box-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+
+        /* Nilai Statistik Siswa */
+        .stat-val-siswa-total { color: #0f172a; }
+        .stat-val-siswa-tap   { color: #15803d; }
+        .stat-val-siswa-tepat { color: #0284c7; }
+        .stat-val-siswa-lambat{ color: #dc2626; }
+
+        /* Nilai Statistik Pegawai */
+        .stat-val-peg-total   { color: #0f172a; }
+        .stat-val-peg-tap     { color: #7e22ce; }
+        .stat-val-peg-tepat   { color: #15803d; }
+        .stat-val-peg-lambat  { color: #dc2626; }
+
+        /* Progress Bars */
+        .progress-bar-mini {
+            height: 4px;
+            background: rgba(0,0,0,0.06);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 1px;
+        }
+        .progress-fill-mini {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Status update */
@@ -670,7 +807,7 @@
             background: var(--bg-card2);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 10px 14px;
+            padding: 8px 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -679,11 +816,13 @@
         .status-bar-text {
             font-size: 11px;
             color: var(--text-dim);
+            font-weight: 600;
         }
         .status-bar-time {
             font-family: 'JetBrains Mono', monospace;
             font-size: 11px;
             color: var(--text-secondary);
+            font-weight: 700;
         }
 
         /* ============================================================
@@ -946,62 +1085,15 @@
         </div>
     </header>
 
-    <!-- ── BODY ───────────────────────────────────────────────── -->
+    <!-- ── BODY: 2 KOLOM (Kiri: Live Absensi, Kanan: Live Rekapitulasi) ── -->
     <div class="body-grid">
 
-        <!-- KOLOM KIRI -->
+        <!-- KOLOM KIRI: LIVE FEED ABSENSI (FULL HEIGHT) -->
         <div class="left-col">
-
-            <!-- STAT CARDS -->
-            <div class="stat-cards">
-                <div class="stat-card hadir">
-                    <div>
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-label">Hadir</div>
-                    </div>
-                    <div>
-                        <div class="stat-number" id="stat-hadir">–</div>
-                        <div class="stat-sublabel">siswa hadir tepat waktu</div>
-                    </div>
-                </div>
-                <div class="stat-card terlambat">
-                    <div>
-                        <div class="stat-icon">🕐</div>
-                        <div class="stat-label">Terlambat</div>
-                    </div>
-                    <div>
-                        <div class="stat-number" id="stat-terlambat">–</div>
-                        <div class="stat-sublabel">siswa terlambat masuk</div>
-                    </div>
-                </div>
-                <div class="stat-card pulang">
-                    <div>
-                        <div class="stat-icon">🚪</div>
-                        <div class="stat-label">Pulang</div>
-                    </div>
-                    <div>
-                        <div class="stat-number" id="stat-pulang">–</div>
-                        <div class="stat-sublabel">siswa sudah check-out</div>
-                    </div>
-                </div>
-                <div class="stat-card belum">
-                    <div>
-                        <div class="stat-icon">❌</div>
-                        <div class="stat-label">Belum Absen</div>
-                    </div>
-                    <div>
-                        <div class="stat-number" id="stat-belum">–</div>
-                        <div class="stat-sublabel">siswa belum terdeteksi</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FEED AKTIVITAS TERBARU -->
-            <!-- FEED AKTIVITAS TERBARU -->
             <div class="feed-panel">
                 <div class="feed-header">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <span class="feed-title">⚡ Aktivitas Terbaru</span>
+                        <span class="feed-title">⚡ Live Absensi Real-Time</span>
                         <span class="feed-count" id="feed-count">–</span>
                     </div>
 
@@ -1024,37 +1116,53 @@
                         <span>NO</span>
                         <span>FOTO</span>
                         <span>NAMA &amp; UNIT</span>
-                        <span>KELAS</span>
+                        <span>KELAS / INFO</span>
                         <span>WAKTU (IN/OUT)</span>
                         <span>CARA ABSEN</span>
                         <span style="text-align:center;">STATUS</span>
                     </div>
                     <div class="feed-list" id="feed-list">
                         <div style="padding:20px;text-align:center;color:var(--text-dim);font-size:14px;">
-                            Memuat data...
+                            Memuat data absensi real-time...
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <!-- KOLOM KANAN -->
+        <!-- KOLOM KANAN: LIVE REKAPITULASI (3 UNIT SEKOLAH: SMP, SMA, SMK) -->
         <div class="right-col">
-            <!-- REKAPITULASI PER UNIT SEKOLAH -->
-            <div id="unit-panels" style="display:flex; flex-direction:column; gap:10px; flex:1; overflow-y:auto; padding-right:2px;">
-                <div style="padding:20px;text-align:center;color:var(--text-dim);font-size:14px;background:var(--bg-panel);border-radius:14px;border:1px solid var(--border);">
-                    Memuat rekapitulasi unit...
+            <!-- Header Bar Rekapitulasi -->
+            <div class="rekap-header-bar">
+                <div class="rekap-title-group">
+                    <div class="rekap-icon-box">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <div class="rekap-title">Live Rekapitulasi</div>
+                        <div class="rekap-subtitle">Kehadiran Siswa &amp; Guru per Unit Sekolah</div>
+                    </div>
+                </div>
+                <div class="rekap-live-pill">
+                    <span class="live-dot-mini"></span>
+                    SYNC
                 </div>
             </div>
 
-            <!-- STATUS BAR -->
+            <!-- Container 3 Unit Sekolah (SMP, SMA, SMK) -->
+            <div class="unit-panels-container" id="unit-panels">
+                <div style="padding:20px;text-align:center;color:var(--text-dim);font-size:14px;background:var(--bg-panel);border-radius:14px;border:1px solid var(--border);">
+                    Memuat rekapitulasi unit sekolah...
+                </div>
+            </div>
+
+            <!-- Status Bar Bawah -->
             <div class="status-bar">
                 <span class="status-bar-text">🔄 Auto-refresh setiap 5 detik</span>
                 <span class="status-bar-time" id="last-updated">–</span>
             </div>
-
         </div>
+
     </div>
 </div>
 
@@ -1152,159 +1260,141 @@ window.addEventListener('online', () => {
 //  UPDATE TAMPILAN
 // ============================================================
 function updateDisplay(data) {
-    const s = data.statistik;
-
-    // ─ Tanggal dari server ─
-    document.getElementById('header-date').textContent = data.tanggal;
-    document.getElementById('last-updated').textContent = '✓ Update: ' + data.last_updated;
-
-    // ─ Stat Cards ─
-    updateStat('stat-hadir',    s.siswa_hadir,    prevStats.siswa_hadir);
-    updateStat('stat-terlambat',s.siswa_terlambat,prevStats.siswa_terlambat);
-    updateStat('stat-pulang',   s.siswa_pulang,   prevStats.siswa_pulang);
-    updateStat('stat-belum',    s.siswa_belum,    prevStats.siswa_belum);
+    // ─ Tanggal & Update Time dari server ─
+    const dateEl = document.getElementById('header-date');
+    if (dateEl && data.tanggal) {
+        dateEl.textContent = data.tanggal;
+    }
+    const lastUpEl = document.getElementById('last-updated');
+    if (lastUpEl && data.last_updated) {
+        lastUpEl.textContent = '✓ Update: ' + data.last_updated;
+    }
 
     // ─ Rekapitulasi Per Unit Sekolah ─
     renderUnitPanels(data.rekap_unit);
 
     // ─ Feed Aktivitas ─
-    const feedHash = JSON.stringify(data.feed.slice(0, 3));
+    const feedHash = JSON.stringify((data.feed || []).slice(0, 3));
     let isNewScan = false;
     if (feedHash !== lastFeedHash) {
         // Ada data baru – tampilkan notifikasi
-        if (lastFeedHash !== '' && data.feed.length > 0) {
+        if (lastFeedHash !== '' && data.feed && data.feed.length > 0) {
             const newest = data.feed[0];
             showNotif(newest);
             isNewScan = true;
         }
         lastFeedHash = feedHash;
-        renderFeed(data.feed, isNewScan);
+        renderFeed(data.feed || [], isNewScan);
     }
 
-    document.getElementById('feed-count').textContent = data.feed.length + ' aktivitas hari ini';
-    prevStats = { ...s };
-}
-
-function updateStat(id, newVal, oldVal) {
-    const el = document.getElementById(id);
-    el.textContent = newVal;
-    if (newVal !== oldVal && oldVal !== undefined) {
-        el.classList.remove('flash');
-        void el.offsetWidth; // reflow
-        el.classList.add('flash');
+    const countEl = document.getElementById('feed-count');
+    if (countEl) {
+        countEl.textContent = (data.feed ? data.feed.length : 0) + ' aktivitas hari ini';
     }
 }
 
 // ============================================================
-//  RENDER UNIT PANELS (Dinamis per Unit Sekolah)
+//  RENDER UNIT PANELS (3 Unit Sekolah: SMP, SMA, SMK)
 // ============================================================
 function renderUnitPanels(rekapUnit) {
     const container = document.getElementById('unit-panels');
     if (!container) return;
 
     if (!rekapUnit || rekapUnit.length === 0) {
-        container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:14px;">Tidak ada data unit sekolah.</div>`;
+        container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:14px;background:var(--bg-panel);border-radius:14px;border:1px solid var(--border);">Tidak ada data unit sekolah.</div>`;
         return;
     }
 
     container.innerHTML = rekapUnit.map(unit => {
         const isYayasan = unit.is_yayasan;
-        
-        // Kalkulasi Siswa
-        const sTotal = unit.siswa.total;
-        const sHadir = unit.siswa.hadir;
-        const sTerlambat = unit.siswa.terlambat;
-        const sPulang = unit.siswa.pulang;
-        const sBelum = unit.siswa.belum;
-        const sHadirTotal = sHadir + sTerlambat;
-        const sHadirPct = sTotal > 0 ? Math.round((sHadirTotal / sTotal) * 100) : 0;
-        const sBelumPct = sTotal > 0 ? Math.round((sBelum / sTotal) * 100) : 0;
-        
-        // Kalkulasi Pegawai
-        const gTotal = unit.pegawai.total;
-        const gHadir = unit.pegawai.hadir;
-        const gBelum = unit.pegawai.belum;
-        const gHadirPct = gTotal > 0 ? Math.round((gHadir / gTotal) * 100) : 0;
-        
-        // CSS warna berdasarkan type unit
-        let headerColor = 'var(--text-primary)';
-        let borderAccent = 'var(--border-bright)';
-        if (unit.type === 'SMP') {
-            headerColor = '#1d4ed8'; // SMP Blue
-            borderAccent = 'rgba(29, 78, 216, 0.3)';
-        } else if (unit.type === 'SMK') {
-            headerColor = '#ea580c'; // SMK Orange
-            borderAccent = 'rgba(234, 88, 12, 0.3)';
-        } else if (isYayasan) {
-            headerColor = '#e11d48'; // Yayasan Rose
-            borderAccent = 'rgba(225, 29, 72, 0.3)';
-        }
+        const unitType = (unit.type || 'UNIT').toUpperCase();
+        const unitClass = `unit-${unitType.toLowerCase()}`;
 
-        let siswaHtml = '';
-        if (sTotal > 0) {
-            siswaHtml = `
-                <div style="margin-bottom: 14px;">
-                    <div style="font-size: 13px; font-weight: 800; color: #1e293b; margin-bottom: 6px; display:flex; justify-content:space-between;">
-                        <span>👨‍🎓 Kehadiran Siswa</span>
-                        <span style="color:#475569;">Total: ${sTotal}</span>
-                    </div>
-                    
-                    <!-- Progress Bar Hadir -->
-                    <div class="progress-item" style="margin-bottom: 6px;">
-                        <div class="progress-header" style="font-size:11px; margin-bottom: 2px;">
-                            <span class="progress-label" style="font-weight:700; color:#15803d;">✅ Masuk: ${sHadirTotal} anak (${sHadir} tepat, ${sTerlambat} lambat, ${sPulang} pulang)</span>
-                            <span class="progress-value" style="color:#15803d; font-weight:800;">${sHadirPct}%</span>
-                        </div>
-                        <div class="progress-bar" style="height: 7px; background: rgba(21,128,61,0.08);">
-                            <div class="progress-fill fill-green" style="width: ${sHadirPct}%"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Progress Bar Belum Absen -->
-                    <div class="progress-item" style="margin-bottom: 2px;">
-                        <div class="progress-header" style="font-size:11px; margin-bottom: 2px;">
-                            <span class="progress-label" style="font-weight:700; color:#b91c1c;">❌ Belum Absen: ${sBelum} anak</span>
-                            <span class="progress-value" style="color:#b91c1c; font-weight:800;">${sBelumPct}%</span>
-                        </div>
-                        <div class="progress-bar" style="height: 7px; background: rgba(185,28,28,0.08);">
-                            <div class="progress-fill fill-red" style="width: ${sBelumPct}%"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
+        // 1. Kalkulasi Siswa
+        const sTotal     = unit.siswa?.total || 0;
+        const sTapHadir  = unit.siswa?.tap_hadir ?? ((unit.siswa?.hadir || 0) + (unit.siswa?.terlambat || 0));
+        const sTepat     = unit.siswa?.tepat_waktu ?? (unit.siswa?.hadir || 0);
+        const sTerlambat = unit.siswa?.terlambat || 0;
+        const sHadirPct  = sTotal > 0 ? Math.round((sTapHadir / sTotal) * 100) : 0;
 
-        let pegawaiHtml = '';
-        if (gTotal > 0) {
-            const roleLabel = isYayasan ? '🏢 Staf Yayasan' : '👩‍🏫 Guru & Staf';
-            pegawaiHtml = `
-                <div>
-                    <div style="font-size: 13px; font-weight: 800; color: #1e293b; margin-bottom: 6px; display:flex; justify-content:space-between;">
-                        <span>${roleLabel}</span>
-                        <span style="color:#475569;">Wajib: ${gTotal}</span>
-                    </div>
-                    
-                    <!-- Progress Bar Pegawai -->
-                    <div class="progress-item" style="margin-bottom: 2px;">
-                        <div class="progress-header" style="font-size:11px; margin-bottom: 2px;">
-                            <span class="progress-label" style="font-weight:700; color:#6b21a8;">✅ Hadir: ${gHadir} orang (Belum: ${gBelum})</span>
-                            <span class="progress-value" style="color:#6b21a8; font-weight:800;">${gHadirPct}%</span>
-                        </div>
-                        <div class="progress-bar" style="height: 7px; background: rgba(107,33,168,0.08);">
-                            <div class="progress-fill fill-purple" style="width: ${gHadirPct}%"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
+        // 2. Kalkulasi Guru & Pegawai
+        const gTotal     = unit.pegawai?.total || 0;
+        const gTapHadir  = unit.pegawai?.tap_hadir ?? (unit.pegawai?.hadir || 0);
+        const gTepat     = unit.pegawai?.tepat_waktu ?? (unit.pegawai?.hadir || 0);
+        const gTerlambat = unit.pegawai?.terlambat || 0;
+        const gHadirPct  = gTotal > 0 ? Math.round((gTapHadir / gTotal) * 100) : 0;
 
         return `
-            <div class="info-panel" style="border: 2px solid ${borderAccent}; padding: 14px 18px; margin-bottom: 2px; flex:0 0 auto;">
-                <div style="font-size: 15px; font-weight: 900; color: ${headerColor}; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; display:flex; align-items:center; gap:8px;">
-                    <span>🏫</span> ${escHtml(unit.name)}
+            <div class="unit-card ${unitClass}">
+                <!-- Header Unit Sekolah -->
+                <div class="unit-card-header">
+                    <div class="unit-badge-name">
+                        <span class="unit-type-pill">${escHtml(unitType)}</span>
+                        <span class="unit-school-name" title="${escHtml(unit.name)}">${escHtml(unit.name)}</span>
+                    </div>
                 </div>
-                ${siswaHtml}
-                ${pegawaiHtml}
+
+                <!-- 1. BLOCK SISWA (Aksen Hijau Segar) -->
+                <div class="unit-block-siswa">
+                    <div class="block-header-siswa">
+                        <span class="block-title-siswa">
+                            <i class="fa-solid fa-user-graduate"></i> Siswa
+                        </span>
+                        <span class="badge-rate-siswa">${sHadirPct}% Hadir</span>
+                    </div>
+                    <div class="stat-subgrid">
+                        <div class="stat-box" title="Jumlah total siswa terdaftar aktif">
+                            <span class="stat-box-lbl">Jml Siswa</span>
+                            <span class="stat-box-val stat-val-siswa-total">${sTotal}</span>
+                        </div>
+                        <div class="stat-box" title="Total siswa yang sudah tap masuk">
+                            <span class="stat-box-lbl">Tap Hadir</span>
+                            <span class="stat-box-val stat-val-siswa-tap">${sTapHadir}</span>
+                        </div>
+                        <div class="stat-box" title="Siswa hadir tepat waktu">
+                            <span class="stat-box-lbl">Tepat Waktu</span>
+                            <span class="stat-box-val stat-val-siswa-tepat">${sTepat}</span>
+                        </div>
+                        <div class="stat-box" title="Siswa hadir terlambat">
+                            <span class="stat-box-lbl">Terlambat</span>
+                            <span class="stat-box-val stat-val-siswa-lambat">${sTerlambat}</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar-mini" title="Persentase Kehadiran Siswa: ${sHadirPct}%">
+                        <div class="progress-fill-mini fill-green" style="width: ${sHadirPct}%;"></div>
+                    </div>
+                </div>
+
+                <!-- 2. BLOCK GURU & PEGAWAI (Aksen Ungu Elegan) -->
+                <div class="unit-block-pegawai">
+                    <div class="block-header-pegawai">
+                        <span class="block-title-pegawai">
+                            <i class="fa-solid fa-chalkboard-user"></i> Guru &amp; Pegawai
+                        </span>
+                        <span class="badge-rate-pegawai">${gHadirPct}% Hadir</span>
+                    </div>
+                    <div class="stat-subgrid">
+                        <div class="stat-box" title="Jumlah total guru & pegawai wajib hadir">
+                            <span class="stat-box-lbl">Jml Guru/Peg</span>
+                            <span class="stat-box-val stat-val-peg-total">${gTotal}</span>
+                        </div>
+                        <div class="stat-box" title="Total guru/pegawai yang sudah tap masuk">
+                            <span class="stat-box-lbl">Tap Hadir</span>
+                            <span class="stat-box-val stat-val-peg-tap">${gTapHadir}</span>
+                        </div>
+                        <div class="stat-box" title="Guru/pegawai hadir tepat waktu">
+                            <span class="stat-box-lbl">Tepat Waktu</span>
+                            <span class="stat-box-val stat-val-peg-tepat">${gTepat}</span>
+                        </div>
+                        <div class="stat-box" title="Guru/pegawai terlambat">
+                            <span class="stat-box-lbl">Terlambat</span>
+                            <span class="stat-box-val stat-val-peg-lambat">${gTerlambat}</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar-mini" title="Persentase Kehadiran Guru & Pegawai: ${gHadirPct}%">
+                        <div class="progress-fill-mini fill-purple" style="width: ${gHadirPct}%;"></div>
+                    </div>
+                </div>
             </div>
         `;
     }).join('');
