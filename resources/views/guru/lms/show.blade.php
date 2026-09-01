@@ -21,8 +21,28 @@
     }
     .ql-editor {
         min-height: 140px;
-        max-height: 350px;
+        max-height: 450px;
         font-size: 0.875rem;
+    }
+    .ql-editor table, .prose table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 1rem 0 !important;
+        font-size: 0.875rem !important;
+    }
+    .ql-editor th, .ql-editor td, .prose th, .prose td {
+        border: 1px solid #cbd5e1 !important;
+        padding: 0.5rem 0.75rem !important;
+        text-align: left !important;
+        vertical-align: top !important;
+    }
+    .ql-editor th, .prose th {
+        background-color: #f1f5f9 !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+    }
+    .ql-editor tr:nth-child(even), .prose tr:nth-child(even) {
+        background-color: #f8fafc;
     }
     .ql-editor img, .prose img {
         display: block !important;
@@ -2091,21 +2111,6 @@ if (!function_exists('balanceHtmlTags')) {
                             <div class="mb-4 p-4 bg-gradient-to-r from-purple-50 to-fuchsia-50 border-2 border-purple-100 rounded-2xl text-xs text-slate-800 leading-relaxed shadow-sm">
                                 <div class="flex items-start gap-3">
                                     <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 text-sm font-black shadow-sm mt-0.5">
-                                        <i class="fas fa-calculator text-amber-300"></i>
-                                    </div>
-                                    <div class="space-y-1.5 flex-1">
-                                        <div class="flex items-center justify-between flex-wrap gap-2">
-                                            <h5 class="font-black text-purple-950 text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
-                                                <i class="fas fa-calculator text-purple-600"></i> Panduan Game: Math Ninja (Kilat Berhitung)
-                                            </h5>
-                                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2.5 py-0.5 rounded-full border border-emerald-300">
-                                                <i class="fas fa-check-circle"></i> Sistem EXP: Tuntas Sesi (100% EXP)
-                                            </span>
-                                        </div>
-                                        <p class="text-slate-700">
-                                            <strong>🎯 Tujuan & Manfaat:</strong> Melatih kelincahan berhitung mental (*Mental Arithmetic*), reflek kecepatan kalkulasi, dan kefasihan aritmatika dasar (+, -, x).
-                                        </p>
-                                        <p class="text-slate-700">
                                             <strong>🕹️ Cara Main Siswa:</strong> Siswa ditantang menyelesaikan rangkaian operasi matematika secepat mungkin sebelum waktu habis.
                                         </p>
                                         <p class="text-slate-700">
@@ -2151,10 +2156,10 @@ if (!function_exists('balanceHtmlTags')) {
     </div>
 </div>
 
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+{{-- ═══════════════════════════════════════════════ --}}
 {{-- MATERIAL UPLOAD MODAL --}}
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
-<div x-data="{ open: false, type: 'text', file_url: '', material_title: '' }" @open-material-modal.window="open = true; type = 'text'" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
+{{-- ═══════════════════════════════════════════════ --}}
+<div x-data="{ open: false, type: 'text', file_url: '', material_title: '', codeMode: false }" @open-material-modal.window="open = true; type = 'text'; codeMode = false; material_title = ''; file_url = ''; $nextTick(() => { if (typeof quillCreate !== 'undefined' && quillCreate) { quillCreate.root.innerHTML = ''; document.getElementById('quill-create-input').value = ''; const rawEl = document.getElementById('quill-create-raw-textarea'); if (rawEl) rawEl.value = ''; } })" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
     <div class="flex items-center justify-center min-h-screen p-4" style="z-index: 99999 !important;">
         <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
 
@@ -2180,17 +2185,17 @@ if (!function_exists('balanceHtmlTags')) {
                         <div>
                             <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Format / Tipe Materi <span class="text-red-600">*</span></label>
                             <select name="material_type" required x-model="type" class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-amber-50">
-                                <option value="text">ðŸ“ Artikel / Modul Teks Langsung (Disarankan)</option>
-                                <option value="pdf">ðŸ“„ Berkas PDF</option>
-                                <option value="document">ðŸ“ Dokumen Word / PPT</option>
-                                <option value="video">ðŸŽ¥ Pemutar Video / YouTube</option>
-                                <option value="image">ðŸ–¼ï¸ Gambar / Diagram</option>
-                                <option value="canva">ðŸŽ¨ Embed Canva Presentation</option>
-                                <option value="googledocs">ðŸ“Š Embed Google Docs / Slides / Form</option>
-                                <option value="audio">ðŸŽ™ï¸ Rekaman Audio / Podcast</option>
-                                <option value="interactive">ðŸŽ® Simulator Interaktif (PhET, SimLab, GeoGebra)</option>
-                                <option value="link">ðŸ”— Link Eksternal</option>
-                                <option value="embed">ðŸ’» Kode Embed HTML (Iframe Custom)</option>
+                                <option value="text">📄 Artikel / Modul Teks Langsung (Disarankan)</option>
+                                <option value="pdf">📑 Berkas PDF</option>
+                                <option value="document">📝 Dokumen Word / PPT</option>
+                                <option value="video">🎥 Pemutar Video / YouTube</option>
+                                <option value="image">🖼️ Gambar / Diagram</option>
+                                <option value="canva">🎨 Embed Canva Presentation</option>
+                                <option value="googledocs">📊 Embed Google Docs / Slides / Form</option>
+                                <option value="audio">🎙️ Rekaman Audio / Podcast</option>
+                                <option value="interactive">🎮 Simulator Interaktif (PhET, SimLab, GeoGebra)</option>
+                                <option value="link">🔗 Link Eksternal</option>
+                                <option value="embed">💻 Kode Embed HTML (Iframe Custom)</option>
                             </select>
                         </div>
                     </div>
@@ -2207,26 +2212,30 @@ if (!function_exists('balanceHtmlTags')) {
                                 <i class="fas fa-newspaper text-indigo-600 text-sm"></i> Isi Artikel &amp; Modul Teks Pembelajaran
                             </label>
                             <div class="flex flex-wrap items-center gap-1.5">
+                                <button type="button" @click="codeMode = !codeMode; syncCodeMode('create', codeMode)" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-black rounded-lg text-[11px] font-black border border-black transition flex items-center gap-1">
+                                    <i class="fas fa-code text-indigo-600"></i> <span x-text="codeMode ? 'Mode Visual' : 'Mode HTML'"></span>
+                                </button>
                                 <button type="button" onclick="generateAiContent('create', '{{ addslashes($course->name ?? '') }}')" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1 border border-black">
-                                    <i class="fas fa-magic text-amber-300"></i> âœ¨ Generate Artikel via AI
+                                    <i class="fas fa-magic text-amber-300"></i> ✨ Buat via AI
                                 </button>
                                 <div class="hidden sm:inline-block text-[11px] font-bold text-slate-500">| Template:</div>
                                 <button type="button" onclick="insertTemplate('create', 'summary')" class="px-2.5 py-1 bg-amber-200 hover:bg-amber-300 text-black rounded-lg text-[11px] font-black border border-black transition">
-                                    ðŸ“˜ Ringkasan Bab
+                                    <i class="fas fa-bookmark text-amber-700"></i> Ringkasan
                                 </button>
                                 <button type="button" onclick="insertTemplate('create', 'lab')" class="px-2.5 py-1 bg-emerald-200 hover:bg-emerald-300 text-black rounded-lg text-[11px] font-black border border-black transition">
-                                    ðŸ§ª Praktikum
+                                    <i class="fas fa-flask text-emerald-700"></i> Praktikum
                                 </button>
                                 <button type="button" onclick="insertTemplate('create', 'case')" class="px-2.5 py-1 bg-sky-200 hover:bg-sky-300 text-black rounded-lg text-[11px] font-black border border-black transition">
-                                    ðŸ’¡ Studi Kasus
+                                    <i class="fas fa-lightbulb text-sky-700"></i> Kasus
                                 </button>
                             </div>
                         </div>
 
                         <input type="hidden" name="content" id="quill-create-input">
-                        <div id="quill-create-editor" class="bg-white min-h-[220px] rounded-xl border border-slate-300"></div>
+                        <div x-show="!codeMode" id="quill-create-editor" class="bg-white min-h-[220px] rounded-xl border border-slate-300"></div>
+                        <textarea x-show="codeMode" id="quill-create-raw-textarea" class="w-full bg-slate-900 text-amber-300 font-mono text-xs p-4 rounded-xl border-2 border-black min-h-[240px] outline-none leading-relaxed" placeholder="Kode HTML artikel pembelajaran..." oninput="syncRawHtml('create', this.value)"></textarea>
                         <p class="text-[11px] text-slate-600 font-bold flex items-center gap-1">
-                            <i class="fas fa-info-circle text-sky-600"></i> Format teks HTML (Heading, tebal, list, gambar inline, tabel) tersimpan sempurna tanpa hilang saat diedit.
+                            <i class="fas fa-info-circle text-sky-600"></i> Format teks HTML (Heading, tabel, list, gambar inline, blok kode) tersimpan sempurna tanpa hilang saat diedit.
                         </p>
                     </div>
 
@@ -2280,10 +2289,10 @@ if (!function_exists('balanceHtmlTags')) {
     </div>
 </div>
 
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+{{-- ═══════════════════════════════════════════════ --}}
 {{-- MATERIAL EDIT MODAL --}}
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
-<div x-data="{ open: false, mat: {} }" @open-edit-material-modal.window="mat = $event.detail; open = true; $nextTick(() => setQuillEditContent(mat.content))" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
+{{-- ═══════════════════════════════════════════════ --}}
+<div x-data="{ open: false, mat: {}, codeMode: false }" @open-edit-material-modal.window="mat = $event.detail; open = true; codeMode = false; $nextTick(() => setQuillEditContent(mat.content))" x-show="open" class="fixed inset-0 overflow-y-auto" style="display: none; z-index: 99999 !important;">
     <div class="flex items-center justify-center min-h-screen p-4" style="z-index: 99999 !important;">
         <div x-show="open" x-transition class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="open = false" style="z-index: 99999 !important;"></div>
 
@@ -2309,17 +2318,17 @@ if (!function_exists('balanceHtmlTags')) {
                         <div>
                             <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Format / Tipe Materi</label>
                             <select name="material_type" x-model="mat.material_type" required class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-amber-50">
-                                <option value="text">ðŸ“ Artikel / Modul Teks Langsung (Disarankan)</option>
-                                <option value="pdf">ðŸ“„ Berkas PDF</option>
-                                <option value="document">ðŸ“ Dokumen Word / PPT</option>
-                                <option value="video">ðŸŽ¥ Pemutar Video / YouTube</option>
-                                <option value="image">ðŸ–¼ï¸ Gambar / Diagram</option>
-                                <option value="canva">ðŸŽ¨ Embed Canva Presentation</option>
-                                <option value="googledocs">ðŸ“Š Embed Google Docs / Slides / Form</option>
-                                <option value="audio">ðŸŽ™ï¸ Rekaman Audio / Podcast</option>
-                                <option value="interactive">ðŸŽ® Simulator Interaktif (PhET, SimLab, GeoGebra)</option>
-                                <option value="link">ðŸ”— Link Eksternal</option>
-                                <option value="embed">ðŸ’» Kode Embed HTML (Iframe Custom)</option>
+                                <option value="text">📄 Artikel / Modul Teks Langsung (Disarankan)</option>
+                                <option value="pdf">📑 Berkas PDF</option>
+                                <option value="document">📝 Dokumen Word / PPT</option>
+                                <option value="video">🎥 Pemutar Video / YouTube</option>
+                                <option value="image">🖼️ Gambar / Diagram</option>
+                                <option value="canva">🎨 Embed Canva Presentation</option>
+                                <option value="googledocs">📊 Embed Google Docs / Slides / Form</option>
+                                <option value="audio">🎙️ Rekaman Audio / Podcast</option>
+                                <option value="interactive">🎮 Simulator Interaktif (PhET, SimLab, GeoGebra)</option>
+                                <option value="link">🔗 Link Eksternal</option>
+                                <option value="embed">💻 Kode Embed HTML (Iframe Custom)</option>
                             </select>
                         </div>
                     </div>
@@ -2336,24 +2345,31 @@ if (!function_exists('balanceHtmlTags')) {
                                 <i class="fas fa-newspaper text-indigo-600 text-sm"></i> Isi Artikel &amp; Modul Teks Pembelajaran
                             </label>
                             <div class="flex flex-wrap items-center gap-1.5">
+                                <button type="button" @click="codeMode = !codeMode; syncCodeMode('edit', codeMode)" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-black rounded-lg text-[11px] font-black border border-black transition flex items-center gap-1">
+                                    <i class="fas fa-code text-indigo-600"></i> <span x-text="codeMode ? 'Mode Visual' : 'Mode HTML'"></span>
+                                </button>
                                 <button type="button" onclick="generateAiContent('edit', '{{ addslashes($course->name ?? '') }}')" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1 border border-black">
-                                    <i class="fas fa-magic text-amber-300"></i> âœ¨ Tulis Ulang via AI
+                                    <i class="fas fa-magic text-amber-300"></i> ✨ Tulis Ulang via AI
                                 </button>
                                 <div class="hidden sm:inline-block text-[11px] font-bold text-slate-500">| Template:</div>
                                 <button type="button" onclick="insertTemplate('edit', 'summary')" class="px-2.5 py-1 bg-amber-200 hover:bg-amber-300 text-black rounded-lg text-[11px] font-black border border-black transition">
-                                    ðŸ“˜ Ringkasan Bab
+                                    <i class="fas fa-bookmark text-amber-700"></i> Ringkasan
                                 </button>
                                 <button type="button" onclick="insertTemplate('edit', 'lab')" class="px-2.5 py-1 bg-emerald-200 hover:bg-emerald-300 text-black rounded-lg text-[11px] font-black border border-black transition">
-                                    ðŸ§ª Praktikum
+                                    <i class="fas fa-flask text-emerald-700"></i> Praktikum
                                 </button>
                                 <button type="button" onclick="insertTemplate('edit', 'case')" class="px-2.5 py-1 bg-sky-200 hover:bg-sky-300 text-black rounded-lg text-[11px] font-black border border-black transition">
-                                    ðŸ’¡ Studi Kasus
+                                    <i class="fas fa-lightbulb text-sky-700"></i> Kasus
                                 </button>
                             </div>
                         </div>
 
                         <input type="hidden" name="content" id="quill-edit-input" :value="mat.content">
-                        <div id="quill-edit-editor" class="bg-white min-h-[220px] rounded-xl border border-slate-300"></div>
+                        <div x-show="!codeMode" id="quill-edit-editor" class="bg-white min-h-[220px] rounded-xl border border-slate-300"></div>
+                        <textarea x-show="codeMode" id="quill-edit-raw-textarea" class="w-full bg-slate-900 text-amber-300 font-mono text-xs p-4 rounded-xl border-2 border-black min-h-[240px] outline-none leading-relaxed" placeholder="Kode HTML artikel pembelajaran..." oninput="syncRawHtml('edit', this.value)"></textarea>
+                        <p class="text-[11px] text-slate-600 font-bold flex items-center gap-1">
+                            <i class="fas fa-info-circle text-sky-600"></i> Format teks HTML (Heading, tabel, list, gambar inline, blok kode) tersimpan sempurna tanpa hilang saat diedit.
+                        </p>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2599,6 +2615,8 @@ if (!function_exists('balanceHtmlTags')) {
             [{ 'color': [] }, { 'background': [] }],
             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
             [{ 'align': [] }],
+            ['table'],
+            ['code-block'],
             ['link', 'image', 'video'],
             ['clean']
         ];
@@ -2609,14 +2627,20 @@ if (!function_exists('balanceHtmlTags')) {
             quillCreate = new Quill('#quill-create-editor', {
                 theme: 'snow',
                 placeholder: 'Tuliskan petunjuk atau rangkuman materi...',
-                modules: { toolbar: toolbarOptions }
+                modules: {
+                    toolbar: toolbarOptions,
+                    table: true
+                }
             });
             quillCreate.getModule('toolbar').addHandler('image', function() {
                 imageHandler(quillCreate);
             });
             quillCreate.on('text-change', function() {
                 const input = document.getElementById('quill-create-input');
-                if (input) input.value = quillCreate.root.innerHTML === '<p><br></p>' ? '' : quillCreate.root.innerHTML;
+                const rawEl = document.getElementById('quill-create-raw-textarea');
+                const val = quillCreate.root.innerHTML === '<p><br></p>' ? '' : quillCreate.root.innerHTML;
+                if (input) input.value = val;
+                if (rawEl && document.activeElement !== rawEl) rawEl.value = val;
             });
         }
 
@@ -2626,17 +2650,63 @@ if (!function_exists('balanceHtmlTags')) {
             quillEdit = new Quill('#quill-edit-editor', {
                 theme: 'snow',
                 placeholder: 'Keterangan materi atau instruksi...',
-                modules: { toolbar: toolbarOptions }
+                modules: {
+                    toolbar: toolbarOptions,
+                    table: true
+                }
             });
             quillEdit.getModule('toolbar').addHandler('image', function() {
                 imageHandler(quillEdit);
             });
             quillEdit.on('text-change', function() {
                 const input = document.getElementById('quill-edit-input');
-                if (input) input.value = quillEdit.root.innerHTML === '<p><br></p>' ? '' : quillEdit.root.innerHTML;
+                const rawEl = document.getElementById('quill-edit-raw-textarea');
+                const val = quillEdit.root.innerHTML === '<p><br></p>' ? '' : quillEdit.root.innerHTML;
+                if (input) input.value = val;
+                if (rawEl && document.activeElement !== rawEl) rawEl.value = val;
             });
         }
     });
+
+    function syncCodeMode(type, isCodeMode) {
+        if (type === 'create') {
+            const rawEl = document.getElementById('quill-create-raw-textarea');
+            const input = document.getElementById('quill-create-input');
+            if (isCodeMode) {
+                const currentHtml = quillCreate ? (quillCreate.root.innerHTML === '<p><br></p>' ? '' : quillCreate.root.innerHTML) : (input ? input.value : '');
+                if (rawEl) rawEl.value = currentHtml;
+            } else {
+                if (rawEl && quillCreate) {
+                    quillCreate.root.innerHTML = rawEl.value;
+                    if (input) input.value = rawEl.value;
+                }
+            }
+        } else if (type === 'edit') {
+            const rawEl = document.getElementById('quill-edit-raw-textarea');
+            const input = document.getElementById('quill-edit-input');
+            if (isCodeMode) {
+                const currentHtml = quillEdit ? (quillEdit.root.innerHTML === '<p><br></p>' ? '' : quillEdit.root.innerHTML) : (input ? input.value : '');
+                if (rawEl) rawEl.value = currentHtml;
+            } else {
+                if (rawEl && quillEdit) {
+                    quillEdit.root.innerHTML = rawEl.value;
+                    if (input) input.value = rawEl.value;
+                }
+            }
+        }
+    }
+
+    function syncRawHtml(type, value) {
+        if (type === 'create') {
+            const input = document.getElementById('quill-create-input');
+            if (input) input.value = value;
+            if (quillCreate) quillCreate.root.innerHTML = value;
+        } else if (type === 'edit') {
+            const input = document.getElementById('quill-edit-input');
+            if (input) input.value = value;
+            if (quillEdit) quillEdit.root.innerHTML = value;
+        }
+    }
 
     async function generateAiContent(editorType, courseSubject) {
         const titleInput = editorType === 'create' 
@@ -2674,10 +2744,14 @@ if (!function_exists('balanceHtmlTags')) {
                     quillCreate.root.innerHTML = data.content;
                     const input = document.getElementById('quill-create-input');
                     if (input) input.value = data.content;
+                    const rawEl = document.getElementById('quill-create-raw-textarea');
+                    if (rawEl) rawEl.value = data.content;
                 } else if (editorType === 'edit' && quillEdit) {
                     quillEdit.root.innerHTML = data.content;
                     const input = document.getElementById('quill-edit-input');
                     if (input) input.value = data.content;
+                    const rawEl = document.getElementById('quill-edit-raw-textarea');
+                    if (rawEl) rawEl.value = data.content;
                 }
             } else {
                 alert(data.message || 'Gagal menghasilkan materi dengan AI.');
@@ -2693,33 +2767,40 @@ if (!function_exists('balanceHtmlTags')) {
     function insertTemplate(editorType, templateType) {
         let html = '';
         if (templateType === 'summary') {
-            html = `<h2>ðŸ“Œ Ringkasan Bab: [Nama Topik]</h2><p>Penjelasan pendahuluan mengenai topik yang dipelajari siswa...</p><h3>ðŸ’¡ 1. Konsep Utama</h3><ul><li>Poin penting 1...</li><li>Poin penting 2...</li></ul><h3>âš¡ 2. Hal Yang Wajib Diingat</h3><blockquote style="border-left: 4px solid #f59e0b; padding-left: 12px; font-style: italic; color: #4b5563;">Rangkuman poin inti dalam 1-2 kalimat pemungkas.</blockquote>`;
+            html = `<h2>📌 Ringkasan Bab: [Nama Topik]</h2><p>Penjelasan pendahuluan mengenai topik yang dipelajari siswa...</p><h3>💡 1. Konsep Utama</h3><ul><li>Poin penting 1...</li><li>Poin penting 2...</li></ul><h3>⚡ 2. Hal Yang Wajib Diingat</h3><blockquote style="border-left: 4px solid #f59e0b; padding-left: 12px; font-style: italic; color: #4b5563;">Rangkuman poin inti dalam 1-2 kalimat pemungkas.</blockquote>`;
         } else if (templateType === 'lab') {
-            html = `<h2>ðŸ§ª Panduan Praktikum &amp; Laboratorium</h2><p><strong>Tujuan Praktikum:</strong> Siswa mampu memahami dan mempraktikkan...</p><h3>ðŸ› ï¸ Alat &amp; Bahan</h3><ul><li>Alat/Bahan 1...</li><li>Alat/Bahan 2...</li></ul><h3>ðŸ“ Langkah Kerja</h3><ol><li>Langkah 1: Siapkan peralatan...</li><li>Langkah 2: Operasikan...</li></ol>`;
+            html = `<h2>🧪 Panduan Praktikum &amp; Laboratorium</h2><p><strong>Tujuan Praktikum:</strong> Siswa mampu memahami dan mempraktikkan...</p><h3>🛠️ Alat &amp; Bahan</h3><ul><li>Alat/Bahan 1...</li><li>Alat/Bahan 2...</li></ul><h3>📋 Langkah Kerja</h3><ol><li>Langkah 1: Siapkan peralatan...</li><li>Langkah 2: Operasikan...</li></ol>`;
         } else if (templateType === 'case') {
-            html = `<h2>ðŸ’¡ Studi Kasus &amp; Diskusi Terbuka</h2><blockquote style="border-left: 4px solid #3b82f6; padding-left: 12px; background-color: #eff6ff; padding: 10px; border-radius: 8px;"><strong>Deskripsi Kasus:</strong> Jelaskan studi kasus nyata di dunia kerja/lapangan...</blockquote><h3>ðŸŽ¯ Tugas Refleksi Siswa:</h3><ol><li>Identifikasi penyebab utama masalah di atas.</li><li>Tuliskan 2 usulan solusi terbaik.</li></ol>`;
+            html = `<h2>💡 Studi Kasus &amp; Diskusi Terbuka</h2><blockquote style="border-left: 4px solid #3b82f6; padding-left: 12px; background-color: #eff6ff; padding: 10px; border-radius: 8px;"><strong>Deskripsi Kasus:</strong> Jelaskan studi kasus nyata di dunia kerja/lapangan...</blockquote><h3>🎯 Tugas Refleksi Siswa:</h3><ol><li>Identifikasi penyebab utama masalah di atas.</li><li>Tuliskan 2 usulan solusi terbaik.</li></ol>`;
         }
 
         if (editorType === 'create' && quillCreate) {
             quillCreate.root.innerHTML = html;
             const input = document.getElementById('quill-create-input');
             if (input) input.value = html;
+            const rawEl = document.getElementById('quill-create-raw-textarea');
+            if (rawEl) rawEl.value = html;
         } else if (editorType === 'edit' && quillEdit) {
             quillEdit.root.innerHTML = html;
             const input = document.getElementById('quill-edit-input');
             if (input) input.value = html;
+            const rawEl = document.getElementById('quill-edit-raw-textarea');
+            if (rawEl) rawEl.value = html;
         }
     }
 
     function setQuillEditContent(content) {
-        if (!quillEdit) return;
         let html = content || '';
         if (html && !/<(p|div|br|h[1-6]|ul|ol|li|table|blockquote)\b/i.test(html)) {
             html = html.split('\n').map(line => line.trim() ? `<p>${line}</p>` : '<p><br></p>').join('');
         }
-        quillEdit.root.innerHTML = html;
+        if (quillEdit) {
+            quillEdit.root.innerHTML = html;
+        }
         const input = document.getElementById('quill-edit-input');
         if (input) input.value = html;
+        const rawEl = document.getElementById('quill-edit-raw-textarea');
+        if (rawEl) rawEl.value = html;
     }
 
     function gameBuilder() {
