@@ -62,7 +62,7 @@
         <div class="flex-1 min-w-0">
             <h1 class="text-2xl lg:text-3xl font-black text-white leading-tight tracking-wide">{{ $assignment->title }}</h1>
             @if($assignment->description)
-                <p class="text-amber-300 text-xs font-bold mt-2 line-clamp-2 max-w-3xl">{{ $assignment->description }}</p>
+                <p class="text-amber-300 text-xs font-bold mt-2 line-clamp-2 max-w-3xl">{{ strip_tags($assignment->description) }}</p>
             @endif
         </div>
 
@@ -110,8 +110,11 @@
     </div>
 
     @if($assignment->description)
-    <div class="relative mt-5 p-4 bg-slate-950/80 rounded-xl border border-slate-700">
-        <p class="text-slate-200 text-xs font-bold leading-relaxed whitespace-pre-line">{{ $assignment->description }}</p>
+    <div class="relative mt-5 p-5 bg-slate-950/90 rounded-2xl border-2 border-slate-700 text-slate-100 text-sm font-medium leading-relaxed prose prose-invert max-w-none shadow-md">
+        <div class="text-[11px] font-black uppercase text-amber-400 tracking-wider mb-2 flex items-center gap-1.5 not-prose">
+            <i class="fas fa-info-circle"></i> Instruksi &amp; Petunjuk Tugas:
+        </div>
+        {!! balanceHtmlTags($assignment->description) !!}
     </div>
     @endif
 </div>

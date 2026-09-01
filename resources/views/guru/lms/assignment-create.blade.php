@@ -2,8 +2,53 @@
 
 @section('title', 'Buat Tugas - LMS')
 
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+<style>
+    .ql-toolbar.ql-snow {
+        border: 2px solid #000 !important;
+        border-top-left-radius: 1rem !important;
+        border-top-right-radius: 1rem !important;
+        background-color: #f8fafc;
+    }
+    .ql-container.ql-snow {
+        border: 2px solid #000 !important;
+        border-top: none !important;
+        border-bottom-left-radius: 1rem !important;
+        border-bottom-right-radius: 1rem !important;
+        background-color: #fff;
+        font-family: inherit;
+    }
+    .ql-editor {
+        min-height: 180px;
+        max-height: 400px;
+        font-size: 0.925rem;
+        font-weight: 500;
+        color: #0f172a;
+    }
+    .ql-editor p {
+        margin-bottom: 0.4rem !important;
+        line-height: 1.6 !important;
+    }
+    .ql-editor table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 0.75rem 0 !important;
+    }
+    .ql-editor th, .ql-editor td {
+        border: 1px solid #cbd5e1 !important;
+        padding: 0.5rem 0.75rem !important;
+        text-align: left !important;
+    }
+    .ql-editor th {
+        background-color: #f1f5f9 !important;
+        font-weight: 800 !important;
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="space-y-6 max-w-4xl mx-auto">
+<div class="space-y-6 max-w-4xl mx-auto" x-data="{ codeMode: false }">
     <div class="flex items-center gap-4">
         <a href="{{ route('guru.lms.show', $course->id) }}?tab=assignments" class="w-11 h-11 bg-white border-2 border-black rounded-2xl flex items-center justify-center text-black hover:bg-amber-300 transition-all shadow-sm">
             <i class="fas fa-arrow-left text-sm"></i>
@@ -14,14 +59,14 @@
         </div>
     </div>
 
-    <form action="{{ route('guru.lms.assignments.store', $course->id) }}" method="POST" enctype="multipart/form-data"
+    <form action="{{ route('guru.lms.assignments.store', $course->id) }}" method="POST" enctype="multipart/form-data" id="assignmentCreateForm"
           class="bg-white rounded-3xl shadow-xl border-2 border-black overflow-hidden">
         @csrf
         <div class="px-8 py-6 border-b-2 border-black" style="background-color: #090d16 !important; color: #ffffff !important;">
             <h3 class="text-white font-black tracking-wide flex items-center gap-2 text-base uppercase">
                 <i class="fas fa-tasks text-amber-400"></i> Detail Informasi Tugas Siswa
             </h3>
-            <p class="text-amber-300 text-xs font-bold mt-1">Buat instruksi penugasan, batas waktu pengumpulan, dan tipe berkas.</p>
+            <p class="text-amber-300 text-xs font-bold mt-1">Buat instruksi penugasan visual, batas waktu pengumpulan, dan tipe berkas.</p>
         </div>
 
         <div class="p-8 space-y-6">
@@ -47,11 +92,35 @@
                     @error('module_id') <span class="text-rose-600 text-xs font-bold mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
+                {{-- WYSIWYG / HTML Editor for Description --}}
                 <div>
-                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">Deskripsi / Instruksi Tugas</label>
-                    <textarea name="description" rows="4"
-                              class="w-full border-2 border-black rounded-2xl p-4 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none math-support"
-                              placeholder="Jelaskan instruksi tugas yang harus dikerjakan siswa..."></textarea>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-black text-black uppercase tracking-wider">
+                            Deskripsi / Instruksi Tugas
+                        </label>
+                        <button type="button" @click="codeMode = !codeMode; syncCodeMode(codeMode)" class="px-3 py-1 bg-black hover:bg-slate-800 text-white rounded-lg text-xs font-black transition flex items-center gap-1.5 shadow-xs">
+                            <i class="fas fa-code text-amber-400"></i>
+                            <span x-text="codeMode ? 'Mode Visual (WYSIWYG)' : 'Mode Kode HTML'"></span>
+                        </button>
+                    </div>
+
+                    {{-- Visual Quill Editor --}}
+                    <div x-show="!codeMode" class="bg-white rounded-2xl shadow-sm">
+                        <div id="quill-assignment-editor">{!! old('description') !!}</div>
+                    </div>
+
+                    {{-- Raw HTML Editor --}}
+                    <div x-show="codeMode" x-cloak>
+                        <textarea id="quill-assignment-raw-textarea"
+                                  class="w-full h-56 font-mono text-xs p-4 rounded-2xl border-2 border-black bg-slate-900 text-amber-300 focus:ring-4 focus:ring-black/20 outline-none resize-y"
+                                  oninput="syncRawHtml(this.value)"
+                                  placeholder="<p>Tuliskan instruksi penugasan dalam format kode HTML...</p>"></textarea>
+                    </div>
+
+                    <input type="hidden" name="description" id="quill-assignment-input" value="{{ old('description') }}">
+                    <p class="text-[11px] text-gray-500 font-bold mt-1.5">
+                        <i class="fas fa-info-circle text-sky-600 mr-1"></i> Editor mendukung teks tebal, miring, daftar nomor/bullet, tabel, blok kode, dan link.
+                    </p>
                 </div>
 
                 {{-- Mode Penugasan: Individu vs Kelompok --}}
@@ -128,3 +197,82 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script>
+    let quillAssignment = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const toolbarOptions = [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'align': [] }],
+            ['table'],
+            ['code-block'],
+            ['link'],
+            ['clean']
+        ];
+
+        const editorEl = document.getElementById('quill-assignment-editor');
+        if (editorEl) {
+            quillAssignment = new Quill('#quill-assignment-editor', {
+                theme: 'snow',
+                placeholder: 'Jelaskan instruksi tugas yang harus dikerjakan siswa...',
+                modules: {
+                    toolbar: toolbarOptions,
+                    table: true
+                }
+            });
+
+            quillAssignment.on('text-change', function() {
+                const input = document.getElementById('quill-assignment-input');
+                const rawEl = document.getElementById('quill-assignment-raw-textarea');
+                const val = quillAssignment.root.innerHTML === '<p><br></p>' ? '' : quillAssignment.root.innerHTML;
+                if (input) input.value = val;
+                if (rawEl && document.activeElement !== rawEl) rawEl.value = val;
+            });
+
+            // Initialize raw textarea value
+            const rawEl = document.getElementById('quill-assignment-raw-textarea');
+            const input = document.getElementById('quill-assignment-input');
+            if (rawEl && input) {
+                rawEl.value = input.value;
+            }
+        }
+
+        const form = document.getElementById('assignmentCreateForm');
+        if (form) {
+            form.addEventListener('submit', function() {
+                const input = document.getElementById('quill-assignment-input');
+                if (quillAssignment && input) {
+                    input.value = quillAssignment.root.innerHTML === '<p><br></p>' ? '' : quillAssignment.root.innerHTML;
+                }
+            });
+        }
+    });
+
+    function syncCodeMode(isCodeMode) {
+        const rawEl = document.getElementById('quill-assignment-raw-textarea');
+        const input = document.getElementById('quill-assignment-input');
+        if (isCodeMode) {
+            const currentHtml = quillAssignment ? (quillAssignment.root.innerHTML === '<p><br></p>' ? '' : quillAssignment.root.innerHTML) : (input ? input.value : '');
+            if (rawEl) rawEl.value = currentHtml;
+        } else {
+            if (rawEl && quillAssignment) {
+                quillAssignment.root.innerHTML = rawEl.value;
+                if (input) input.value = rawEl.value;
+            }
+        }
+    }
+
+    function syncRawHtml(value) {
+        const input = document.getElementById('quill-assignment-input');
+        if (input) input.value = value;
+        if (quillAssignment) quillAssignment.root.innerHTML = value;
+    }
+</script>
+@endpush
