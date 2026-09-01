@@ -195,7 +195,7 @@ class LmsController extends Controller
                 ]);
             }
 
-            return redirect()->route('siswa.lms.show', $course->id);
+            return redirect()->route('siswa.lms.show', [$course->id, 'auto' => '1']);
         }
 
         $mapelName = $schedule->subject->subject_name ?? ($schedule->subject->name ?? 'ini');
@@ -222,6 +222,24 @@ class LmsController extends Controller
 
         if (!$this->isEnrolled($student, $course)) {
             abort(403, 'Anda tidak terdaftar di course ini.');
+        }
+
+        // Auto-redirect ke materi/modul pertama jika parameter auto=1 (dari dashboard)
+        if (request('auto') === '1') {
+            $firstModule = $course->modules()->where('is_active', true)->orderBy('sequence')->first();
+            $firstMaterial = null;
+            if ($firstModule) {
+                $firstMaterial = $firstModule->materials()->where('is_published', true)->orderBy('order_number')->first();
+            }
+            if (!$firstMaterial) {
+                $firstMaterial = $course->materials()->where('is_published', true)->orderBy('order_number')->first();
+            }
+            if ($firstMaterial) {
+                // Cek apakah materi terkunci
+                if (!$this->isMaterialLocked($firstMaterial, $student)) {
+                    return redirect()->route('siswa.lms.materials.player', $firstMaterial->id);
+                }
+            }
         }
 
         $course->load([
