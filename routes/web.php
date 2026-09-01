@@ -1161,7 +1161,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/change-password', [AuthController::class, 'showChangePasswordForm'])->name('password.change');
     Route::post('/change-password', [AuthController::class, 'changePassword'])->name('password.change.update');
     Route::post('/switch-role', [AuthController::class, 'switchRole'])->name('switch-role');
-    Route::post('/switch-school', [AuthController::class, 'switchSchool'])->name('switch-school');
+    Route::post('/switch-school', [App\Http\Controllers\Auth\AuthController::class, 'switchSchool'])->name('switch-school');
+
+        // Notification Center
+        Route::prefix('notifications')->name('notifications.')->group(function () {
+            Route::get('/', [App\Http\Controllers\NotificationController::class, 'index'])->name('index');
+            Route::post('/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markRead'])->name('mark-read');
+            Route::post('/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('mark-all-read');
+            Route::get('/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('unread-count');
+            Route::get('/latest', [App\Http\Controllers\NotificationController::class, 'latest'])->name('latest');
+        });
 
     // Profile Settings
     Route::get('/profile/settings', [App\Http\Controllers\ProfileSettingsController::class, 'edit'])->name('profile.settings');
