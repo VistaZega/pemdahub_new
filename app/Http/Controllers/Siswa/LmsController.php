@@ -92,6 +92,117 @@ class LmsController extends Controller
     }
 
     /**
+     * Jump directly to LMS Course/Module matching a specific schedule
+     */
+    public function jumpSchedule(\App\Models\Schedule $schedule)
+    {
+        $student = $this->getStudent();
+        if (!$student) {
+            return redirect()->route('siswa.dashboard')->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        $schedule->load(['subject', 'teacher', 'classroom']);
+
+        // 1. Get current active classroom of the student
+        $classroom = $student->currentClassroom()->first();
+        $classroomId = $classroom?->id ?? $schedule->classroom_id;
+
+        $course = null;
+
+        // a) Course specifically assigned to student classroom with same subject and teacher
+        if ($classroomId) {
+            $course = LmsCourse::where(function($q) use ($classroomId) {
+                    $q->where('classroom_id', $classroomId)
+                      ->orWhereHas('lmsClasses', fn($lq) => $lq->where('classroom_id', $classroomId));
+                })
+                ->where('subject_id', $schedule->subject_id)
+                ->when($schedule->teacher_id, fn($q) => $q->where('teacher_id', $schedule->teacher_id))
+                ->when($student->school_id, function($q) use ($student) {
+                    $q->where(function($sq) use ($student) {
+                        $sq->where('school_id', $student->school_id)
+                           ->orWhereNull('school_id')
+                           ->orWhere('school_id', 4);
+                    });
+                })
+                ->where('is_active', true)
+                ->first();
+        }
+
+        // b) Course specifically assigned to student classroom with same subject
+        if (!$course && $classroomId) {
+            $course = LmsCourse::where(function($q) use ($classroomId) {
+                    $q->where('classroom_id', $classroomId)
+                      ->orWhereHas('lmsClasses', fn($lq) => $lq->where('classroom_id', $classroomId));
+                })
+                ->where('subject_id', $schedule->subject_id)
+                ->when($student->school_id, function($q) use ($student) {
+                    $q->where(function($sq) use ($student) {
+                        $sq->where('school_id', $student->school_id)
+                           ->orWhereNull('school_id')
+                           ->orWhere('school_id', 4);
+                    });
+                })
+                ->where('is_active', true)
+                ->first();
+        }
+
+        // c) Course in same school matching subject & teacher
+        if (!$course) {
+            $course = LmsCourse::where('subject_id', $schedule->subject_id)
+                ->when($schedule->teacher_id, fn($q) => $q->where('teacher_id', $schedule->teacher_id))
+                ->when($student->school_id, function($q) use ($student) {
+                    $q->where(function($sq) use ($student) {
+                        $sq->where('school_id', $student->school_id)
+                           ->orWhereNull('school_id')
+                           ->orWhere('school_id', 4);
+                    });
+                })
+                ->where('is_active', true)
+                ->first();
+        }
+
+        // d) Course in same school matching subject
+        if (!$course) {
+            $course = LmsCourse::where('subject_id', $schedule->subject_id)
+                ->when($student->school_id, function($q) use ($student) {
+                    $q->where(function($sq) use ($student) {
+                        $sq->where('school_id', $student->school_id)
+                           ->orWhereNull('school_id')
+                           ->orWhere('school_id', 4);
+                    });
+                })
+                ->where('is_active', true)
+                ->first();
+        }
+
+        if ($course) {
+            // Auto-enroll student & ensure classroom is linked to course
+            if ($classroomId) {
+                $lmsClass = \App\Models\LmsClass::firstOrCreate([
+                    'course_id' => $course->id,
+                    'classroom_id' => $classroomId,
+                ], [
+                    'school_id' => $course->school_id ?? $student->school_id,
+                    'status' => 'active',
+                ]);
+
+                \App\Models\LmsEnrollment::firstOrCreate([
+                    'lms_class_id' => $lmsClass->id,
+                    'student_id' => $student->id,
+                ], [
+                    'status' => 'enrolled',
+                    'enrolled_at' => now(),
+                ]);
+            }
+
+            return redirect()->route('siswa.lms.show', $course->id);
+        }
+
+        $mapelName = $schedule->subject->subject_name ?? ($schedule->subject->name ?? 'ini');
+        return redirect()->route('siswa.lms.index')->with('info', "Modul LMS untuk mata pelajaran {$mapelName} sedang dipersiapkan oleh guru pengampu.");
+    }
+
+    /**
      * Show course detail - materials, assignments, quizzes, announcements, discussions
      */
     public function show(LmsCourse $course)
@@ -1115,7 +1226,7 @@ class LmsController extends Controller
 
     private function isEnrolled(Student $student, LmsCourse $course): bool
     {
-        if ($course->school_id && $student->school_id && $course->school_id != $student->school_id) {
+        if ($course->school_id && $student->school_id && $course->school_id != $student->school_id && $course->school_id != 4) {
             return false;
         }
 
@@ -1145,6 +1256,36 @@ class LmsController extends Controller
         if (!empty(array_intersect($studentClassroomIds, $courseClassroomIds))) {
             app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
             return true;
+        }
+
+        // Cek apakah siswa memiliki jadwal pelajaran dengan mata pelajaran & guru/sekolah yang sama
+        if (!empty($studentClassroomIds)) {
+            $hasSchedule = \App\Models\Schedule::whereIn('classroom_id', $studentClassroomIds)
+                ->where('subject_id', $course->subject_id)
+                ->when($course->teacher_id, fn($q) => $q->where('teacher_id', $course->teacher_id))
+                ->exists();
+
+            if ($hasSchedule) {
+                // Auto-link classroom to course and enroll student
+                foreach ($studentClassroomIds as $cId) {
+                    $lmsClass = \App\Models\LmsClass::firstOrCreate([
+                        'course_id' => $course->id,
+                        'classroom_id' => $cId,
+                    ], [
+                        'school_id' => $course->school_id ?? $student->school_id,
+                        'status' => 'active',
+                    ]);
+
+                    \App\Models\LmsEnrollment::firstOrCreate([
+                        'lms_class_id' => $lmsClass->id,
+                        'student_id' => $student->id,
+                    ], [
+                        'status' => 'enrolled',
+                        'enrolled_at' => now(),
+                    ]);
+                }
+                return true;
+            }
         }
 
         return false;

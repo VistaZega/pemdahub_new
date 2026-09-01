@@ -57,6 +57,7 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
     // Siswa LMS Routes
     Route::prefix('lms')->name('lms.')->middleware('feature:siswa_access_lms')->group(function () {
         Route::get('/', [App\Http\Controllers\Siswa\LmsController::class, 'index'])->name('index');
+        Route::get('/schedule/{schedule}', [App\Http\Controllers\Siswa\LmsController::class, 'jumpSchedule'])->name('schedule');
         Route::get('/catalog', [App\Http\Controllers\Siswa\LmsController::class, 'catalog'])->name('catalog');
         Route::post('/{course}/enroll', [App\Http\Controllers\Siswa\LmsController::class, 'enroll'])->name('enroll');
         Route::get('/{course}', [App\Http\Controllers\Siswa\LmsController::class, 'show'])->name('show');

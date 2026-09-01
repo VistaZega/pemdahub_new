@@ -288,16 +288,33 @@
                                 @endforeach
                             </div>
 
+                            @php
+                                $firstSchedule = $schedulesAtTime->first();
+                                $matchedCourse = $firstSchedule->lms_course ?? null;
+                                $lmsUrl = $matchedCourse ? route('siswa.lms.show', $matchedCourse->id) : route('siswa.lms.schedule', $firstSchedule->id);
+                            @endphp
+
                             {{-- Action Footer (GUARANTEED MARGIN FROM BOTTOM & LEFT BORDER) --}}
                             <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.25rem; padding-top: 0.85rem; border-top: 2px solid #f1f5f9;">
-                                <a href="{{ route('siswa.lms.index') }}" style="font-size: 0.75rem; font-weight: 900; color: #4f46e5; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                                <a href="{{ $lmsUrl }}" style="font-size: 0.75rem; font-weight: 900; color: #4f46e5; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
                                     <i class="fas fa-book-open"></i>
-                                    <span>Materi & Tugas</span>
+                                    <span>Materi & Modul</span>
                                 </a>
 
                                 @if($isCurrent)
-                                <a href="{{ route('siswa.lms.index') }}" style="padding: 0.5rem 1rem; background-color: #059669; color: #ffffff; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 900; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                    <span>Masuk LMS</span> &rarr;
+                                    @if($matchedCourse && $matchedCourse->meeting_active)
+                                    <a href="{{ route('siswa.lms.meeting.join', $matchedCourse->id) }}" style="padding: 0.5rem 1rem; background-color: #e11d48; color: #ffffff; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 900; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(225,29,72,0.3);" class="animate-pulse">
+                                        <span style="width: 0.5rem; height: 0.5rem; background-color: #ffffff; border-radius: 9999px; display: inline-block;"></span>
+                                        <span>Gabung LIVE</span> &rarr;
+                                    </a>
+                                    @else
+                                    <a href="{{ $lmsUrl }}" style="padding: 0.5rem 1rem; background-color: #059669; color: #ffffff; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 900; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                        <span>Masuk LMS</span> &rarr;
+                                    </a>
+                                    @endif
+                                @else
+                                <a href="{{ $lmsUrl }}" style="padding: 0.45rem 0.85rem; background-color: #f1f5f9; color: #334155; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid #cbd5e1;">
+                                    <span>Buka Modul</span> &rarr;
                                 </a>
                                 @endif
                             </div>

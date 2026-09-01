@@ -181,6 +181,50 @@ class DashboardController extends Controller
                     ->orderBy('time_slot_id')
                     ->get();
                 
+                // Pre-load all available LMS courses to link with schedule cards
+                $availableCourses = \App\Models\LmsCourse::where(function($q) use ($classroom, $student) {
+                        $q->where('classroom_id', $classroom->id)
+                          ->orWhereHas('lmsClasses', fn($lq) => $lq->where('classroom_id', $classroom->id));
+                        if ($student->school_id) {
+                            $q->orWhere(function($sq) use ($student) {
+                                $sq->where('school_id', $student->school_id)
+                                   ->orWhereNull('school_id')
+                                   ->orWhere('school_id', 4);
+                            });
+                        }
+                    })
+                    ->where('is_active', true)
+                    ->withCount(['modules', 'materials'])
+                    ->get();
+
+                foreach ($todaySchedules as $schedule) {
+                    $matched = $availableCourses->first(function($c) use ($schedule, $classroom) {
+                        $isForClass = ($c->classroom_id == $classroom->id) || $c->lmsClasses->contains('classroom_id', $classroom->id);
+                        return $c->subject_id == $schedule->subject_id && $c->teacher_id == $schedule->teacher_id && $isForClass;
+                    });
+
+                    if (!$matched) {
+                        $matched = $availableCourses->first(function($c) use ($schedule, $classroom) {
+                            $isForClass = ($c->classroom_id == $classroom->id) || $c->lmsClasses->contains('classroom_id', $classroom->id);
+                            return $c->subject_id == $schedule->subject_id && $isForClass;
+                        });
+                    }
+
+                    if (!$matched) {
+                        $matched = $availableCourses->first(function($c) use ($schedule) {
+                            return $c->subject_id == $schedule->subject_id && $c->teacher_id == $schedule->teacher_id;
+                        });
+                    }
+
+                    if (!$matched) {
+                        $matched = $availableCourses->first(function($c) use ($schedule) {
+                            return $c->subject_id == $schedule->subject_id;
+                        });
+                    }
+
+                    $schedule->lms_course = $matched;
+                }
+
                 $groupedTodaySchedules = $todaySchedules->groupBy(function($item) {
                     return ($item->timeSlot->start_time ?? $item->start_time) . ' - ' . ($item->timeSlot->end_time ?? $item->end_time);
                 });

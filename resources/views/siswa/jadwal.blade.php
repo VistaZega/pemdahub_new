@@ -95,7 +95,7 @@
                                     <td class="px-2 py-2 border-r border-gray-200 last:border-r-0 {{ $isToday ? 'bg-blue-50/30' : '' }}" 
                                         @if($duration > 1) rowspan="{{ $duration }}" @endif>
                                         @if($schedule)
-                                            <div class="rounded-xl p-3 {{ $colors['bg'] }} border {{ str_replace('border-', 'border-opacity-50 border-', $colors['border']) }} hover:shadow-lg hover:scale-[1.02] transition-all duration-300 h-full flex flex-col min-h-[110px] relative overflow-hidden group/card shadow-sm">
+                                            <a href="{{ route('siswa.lms.schedule', $schedule->id) }}" title="Buka Modul Pembelajaran LMS: {{ $schedule->subject->subject_name ?? $schedule->subject->name ?? '' }}" class="rounded-xl p-3 {{ $colors['bg'] }} border {{ str_replace('border-', 'border-opacity-50 border-', $colors['border']) }} hover:shadow-lg hover:scale-[1.02] transition-all duration-300 h-full flex flex-col min-h-[110px] relative overflow-hidden group/card shadow-sm text-left no-underline block">
                                                 {{-- Teacher & Info --}}
                                                 <div class="flex items-center gap-2 mb-2 relative z-10">
                                                     <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-sm bg-white flex-shrink-0">
@@ -116,7 +116,9 @@
                                                 </div>
 
                                                 <div class="flex items-center justify-between mt-auto relative z-10">
-                                                    <span></span>
+                                                    <span class="text-[10px] font-bold text-blue-600 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center gap-1">
+                                                        <i class="fas fa-external-link-alt text-[9px]"></i> LMS
+                                                    </span>
                                                     @if($duration > 1)
                                                         <span class="text-xs font-bold {{ $colors['sub'] }} opacity-50">{{ $duration }} JP</span>
                                                     @endif
@@ -124,7 +126,7 @@
 
                                                 {{-- Decorative background icon --}}
                                                 <i class="fas fa-book-open absolute -right-2 -bottom-2 text-4xl opacity-[0.03] group-hover/card:opacity-[0.08] transition-all transform group-hover/card:rotate-12"></i>
-                                            </div>
+                                            </a>
                                         @else
                                             <div class="h-full flex items-center justify-center min-h-[100px]">
                                                 <div class="w-1.5 h-1.5 bg-gray-100 rounded-full group-hover:bg-blue-100 transition-colors"></div>
