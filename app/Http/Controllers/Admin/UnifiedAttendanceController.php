@@ -112,6 +112,7 @@ class UnifiedAttendanceController extends Controller
                     $q->where('school_id', $f['schoolId'])
                       ->whereHas('studentClasses', function ($sq) use ($activeAY) {
                           $sq->where('status', 'aktif')
+                             ->whereNotNull('classroom_id')
                              ->when($activeAY, fn($ssq) => $ssq->where('academic_year_id', $activeAY->id));
                       });
                 })
