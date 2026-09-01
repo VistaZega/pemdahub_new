@@ -84,72 +84,76 @@
 <div class="space-y-6">
 
 {{-- =============================== HEADER =============================== --}}
-<div class="rounded-2xl p-6 md:p-8 shadow-lg border-2 border-slate-800 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+<div class="rounded-3xl p-6 md:p-8 shadow-xl border-2 border-slate-800 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden space-y-5">
 
-    {{-- Breadcrumb --}}
-    <nav class="relative flex items-center gap-2 text-xs font-bold text-amber-400 mb-4 tracking-wide">
-        <i class="fas fa-graduation-cap"></i>
-        <a href="{{ route('guru.lms.show', $course->id) }}?tab=assignments"
-           class="hover:underline text-amber-400 font-bold">{{ $course->name }}</a>
-        <i class="fas fa-chevron-right text-[10px] opacity-70"></i>
-        <span class="text-slate-300">Penugasan Siswa</span>
-        <i class="fas fa-chevron-right text-[10px] opacity-70"></i>
-        <span class="text-white bg-slate-800/90 px-2.5 py-0.5 rounded-lg border border-slate-700 font-bold">{{ Str::limit($assignment->title, 35) }}</span>
-    </nav>
+    {{-- Top Bar: Breadcrumb + Action Buttons --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-700/80 pb-4">
+        {{-- Breadcrumb --}}
+        <nav class="flex items-center gap-2 text-xs font-bold text-amber-400 tracking-wide flex-wrap">
+            <i class="fas fa-graduation-cap"></i>
+            <a href="{{ route('guru.lms.show', $course->id) }}?tab=assignments"
+               class="hover:underline text-amber-400 font-bold">{{ $course->name }}</a>
+            <i class="fas fa-chevron-right text-[10px] opacity-70"></i>
+            <span class="text-slate-300">Penugasan Siswa</span>
+            <i class="fas fa-chevron-right text-[10px] opacity-70"></i>
+            <span class="text-white bg-slate-800/90 px-2.5 py-0.5 rounded-lg border border-slate-700 font-bold">{{ Str::limit($assignment->title, 35) }}</span>
+        </nav>
 
-    <div class="relative flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-        <div class="flex-1 min-w-0">
-            <h1 class="text-2xl lg:text-3xl font-black text-white leading-tight tracking-wide">{{ $assignment->title }}</h1>
-            @if($assignment->description)
-                <p class="text-amber-300 text-xs font-bold mt-2 line-clamp-2 max-w-3xl">{{ strip_tags($assignment->description) }}</p>
-            @endif
-        </div>
-
-        <div class="flex flex-wrap items-center gap-3 shrink-0">
-            @if($assignment->isGroupAssignment())
-            <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide bg-purple-600 text-white border-2 border-purple-400 shadow-sm">
-                <i class="fas fa-users text-xs"></i> TUGAS KELOMPOK
-            </span>
-            @else
-            <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide bg-blue-600 text-white border-2 border-blue-400 shadow-sm">
-                <i class="fas fa-user text-xs"></i> TUGAS INDIVIDU
-            </span>
-            @endif
-
-            @if($assignment->deadline)
-            <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide border-2 shadow-sm
-                {{ $assignment->isOverdue()
-                    ? 'bg-rose-600 text-white border-rose-400'
-                    : 'bg-amber-300 text-black border-amber-400' }}">
-                <i class="fas fa-clock text-xs"></i>
-                @if($assignment->isOverdue()) ⚠ TERLAMBAT — @endif
-                {{ $assignment->deadline->format('d M Y, H:i') }}
-            </span>
-            @endif
-
-            <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide bg-emerald-400 text-black border-2 border-emerald-300 shadow-sm">
-                <i class="fas fa-star text-xs text-black"></i>
-                Skor Maks: {{ $assignment->max_score }}
-            </span>
-
+        {{-- Action Buttons (Edit / Delete) --}}
+        <div class="flex items-center gap-2.5 shrink-0">
             <a href="{{ route('guru.lms.assignments.edit', $assignment->id) }}"
-               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide
                       bg-white text-black hover:bg-amber-300 border-2 border-white hover:border-black shadow-sm transition">
-                <i class="fas fa-edit"></i> Edit Tugas
+                <i class="fas fa-edit text-xs"></i> Edit Tugas
             </a>
 
             <form action="{{ route('guru.lms.assignments.destroy', $assignment->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus tugas ini beserta semua submisi siswa? Tindakan ini tidak dapat dibatalkan.')">
                 @csrf @method('DELETE')
-                <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide
                        bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border-2 border-rose-300 shadow-sm transition">
-                    <i class="fas fa-trash"></i> Hapus
+                    <i class="fas fa-trash text-xs"></i> Hapus
                 </button>
             </form>
         </div>
     </div>
 
+    {{-- Title Section: Full Width --}}
+    <div>
+        <h1 class="text-2xl lg:text-3xl font-black text-white leading-snug tracking-wide">{{ $assignment->title }}</h1>
+    </div>
+
+    {{-- Metadata Badges: Full Width Horizontal Row --}}
+    <div class="flex flex-wrap items-center gap-3 pt-1">
+        @if($assignment->isGroupAssignment())
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide bg-purple-600 text-white border-2 border-purple-400 shadow-sm">
+            <i class="fas fa-users text-xs"></i> TUGAS KELOMPOK
+        </span>
+        @else
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide bg-blue-600 text-white border-2 border-blue-400 shadow-sm">
+            <i class="fas fa-user text-xs"></i> TUGAS INDIVIDU
+        </span>
+        @endif
+
+        @if($assignment->deadline)
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide border-2 shadow-sm
+            {{ $assignment->isOverdue()
+                ? 'bg-rose-600 text-white border-rose-400'
+                : 'bg-amber-300 text-black border-amber-400' }}">
+            <i class="fas fa-clock text-xs"></i>
+            @if($assignment->isOverdue()) ⚠ TERLAMBAT — @endif
+            {{ $assignment->deadline->format('d M Y, H:i') }}
+        </span>
+        @endif
+
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide bg-emerald-400 text-black border-2 border-emerald-300 shadow-sm">
+            <i class="fas fa-star text-xs text-black"></i>
+            Skor Maks: {{ $assignment->max_score }}
+        </span>
+    </div>
+
+    {{-- Instruction / Description Card --}}
     @if($assignment->description)
-    <div class="relative mt-5 p-5 bg-slate-950/90 rounded-2xl border-2 border-slate-700 text-slate-100 text-sm font-medium leading-relaxed prose prose-invert max-w-none shadow-md">
+    <div class="relative p-5 bg-slate-950/90 rounded-2xl border-2 border-slate-700 text-slate-100 text-sm font-medium leading-relaxed prose prose-invert max-w-none shadow-md">
         <div class="text-[11px] font-black uppercase text-amber-400 tracking-wider mb-2 flex items-center gap-1.5 not-prose">
             <i class="fas fa-info-circle"></i> Instruksi &amp; Petunjuk Tugas:
         </div>
