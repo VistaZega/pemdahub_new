@@ -759,10 +759,7 @@ if (!function_exists('balanceHtmlTags')) {
                                 <span class="bg-emerald-200 text-black text-[9px] font-black px-2 py-0.5 rounded-lg border border-black uppercase">REVISI DIIZINKAN</span>
                                 @endif
                             </div>
-                            @if($assignment->description)
-                                <p class="text-xs font-bold text-black mt-1 mb-3 line-clamp-2">{{ strip_tags($assignment->description) }}</p>
-                            @endif
-                            <div class="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider">
+                            <div class="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider mt-2.5">
                                 @if($assignment->deadline)
                                 <span class="flex items-center gap-1.5 px-3 py-1 rounded-xl border border-black {{ $assignment->isOverdue() ? 'bg-rose-200 text-black' : 'bg-slate-100 text-black' }}">
                                     <i class="fas fa-clock text-xs text-black"></i> {{ $assignment->deadline->format('d M Y H:i') }}
@@ -844,10 +841,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     {{ $quiz->is_published ? 'PUBLISHED' : 'DRAFT' }}
                                 </span>
                             </div>
-                            @if($quiz->description)
-                                <p class="text-xs font-bold text-black mt-1 mb-3 line-clamp-2">{{ strip_tags($quiz->description) }}</p>
-                            @endif
-                            <div class="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider">
+                            <div class="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider mt-2.5">
                                 @if($quiz->time_limit)
                                     <span class="flex items-center gap-1.5 px-3 py-1 rounded-xl border border-black bg-amber-300 text-black">
                                         <i class="fas fa-stopwatch text-black"></i> {{ $quiz->time_limit }} MENIT
