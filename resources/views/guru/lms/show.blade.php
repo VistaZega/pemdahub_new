@@ -62,6 +62,36 @@
         margin-bottom: 0.4rem !important;
         font-weight: 800 !important;
     }
+    .ql-editor ol, .prose ol {
+        list-style-type: decimal !important;
+        list-style-position: outside !important;
+        margin-left: 1.5rem !important;
+        padding-left: 0.5rem !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .ql-editor ul, .prose ul {
+        list-style-type: disc !important;
+        list-style-position: outside !important;
+        margin-left: 1.5rem !important;
+        padding-left: 0.5rem !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .ql-editor li, .prose li {
+        display: list-item !important;
+        margin-bottom: 0.35rem !important;
+        padding-left: 0.25rem !important;
+    }
+    .prose code {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        padding: 0.15rem 0.4rem !important;
+        border-radius: 0.375rem !important;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        font-size: 0.875em !important;
+        border: 1px solid #e2e8f0 !important;
+    }
     .tab-content { animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .hero-pattern {
