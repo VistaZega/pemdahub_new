@@ -105,43 +105,43 @@
             @endif
         </div>
 
-        <div class="flex flex-wrap items-center gap-2 shrink-0">
+        <div class="flex flex-wrap items-center gap-3 shrink-0">
             @if($assignment->isGroupAssignment())
-            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black tracking-wide bg-purple-600 text-white border border-purple-700 shadow-sm">
+            <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide bg-purple-600 text-white border-2 border-purple-400 shadow-sm">
                 <i class="fas fa-users text-xs"></i> TUGAS KELOMPOK
             </span>
             @else
-            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black tracking-wide bg-blue-600 text-white border border-blue-700 shadow-sm">
+            <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide bg-blue-600 text-white border-2 border-blue-400 shadow-sm">
                 <i class="fas fa-user text-xs"></i> TUGAS INDIVIDU
             </span>
             @endif
 
             @if($assignment->deadline)
-            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide border border-gray-200
+            <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide border-2 shadow-sm
                 {{ $assignment->isOverdue()
-                    ? 'bg-rose-600 text-white'
-                    : 'bg-amber-100 text-amber-800 text-gray-800' }}">
+                    ? 'bg-rose-600 text-white border-rose-400'
+                    : 'bg-amber-300 text-black border-amber-400' }}">
                 <i class="fas fa-clock text-xs"></i>
                 @if($assignment->isOverdue()) ⚠ TERLAMBAT — @endif
                 {{ $assignment->deadline->format('d M Y, H:i') }}
             </span>
             @endif
 
-            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide bg-emerald-400 text-gray-800 border border-gray-200">
-                <i class="fas fa-star text-xs text-gray-800"></i>
+            <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide bg-emerald-400 text-black border-2 border-emerald-300 shadow-sm">
+                <i class="fas fa-star text-xs text-black"></i>
                 Skor Maks: {{ $assignment->max_score }}
             </span>
 
             <a href="{{ route('guru.lms.assignments.edit', $assignment->id) }}"
-               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold tracking-wide
-                      bg-white text-gray-800 hover:bg-amber-100 text-amber-800 border border-gray-200 shadow-sm transition">
+               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide
+                      bg-white text-black hover:bg-amber-300 border-2 border-white hover:border-black shadow-sm transition">
                 <i class="fas fa-edit"></i> Edit Tugas
             </a>
 
             <form action="{{ route('guru.lms.assignments.destroy', $assignment->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus tugas ini beserta semua submisi siswa? Tindakan ini tidak dapat dibatalkan.')">
                 @csrf @method('DELETE')
-                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold tracking-wide
-                       bg-white text-red-600 hover:bg-red-100 border-2 border-red-300 shadow-sm transition">
+                <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide
+                       bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border-2 border-rose-300 shadow-sm transition">
                     <i class="fas fa-trash"></i> Hapus
                 </button>
             </form>
