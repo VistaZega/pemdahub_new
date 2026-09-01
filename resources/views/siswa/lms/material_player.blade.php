@@ -10,6 +10,30 @@
     .font-size-sm { font-size: 0.9rem; line-height: 1.6; }
     .font-size-md { font-size: 1.1rem; line-height: 1.7; }
     .font-size-lg { font-size: 1.3rem; line-height: 1.8; }
+    .prose p {
+        margin-bottom: 0.4rem !important;
+        line-height: 1.6 !important;
+    }
+    .prose table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 1rem 0 !important;
+        font-size: 0.875rem !important;
+    }
+    .prose th, .prose td {
+        border: 1px solid #cbd5e1 !important;
+        padding: 0.5rem 0.75rem !important;
+        text-align: left !important;
+        vertical-align: top !important;
+    }
+    .prose th {
+        background-color: #f1f5f9 !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+    }
+    .prose tr:nth-child(even) {
+        background-color: #f8fafc;
+    }
 </style>
 @endpush
 
@@ -104,7 +128,7 @@
                 @endif
 
                 {{-- Text / Article Body --}}
-                <div id="reader-body" class="text-slate-800 leading-relaxed space-y-4 prose max-w-none p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                <div id="reader-body" class="text-slate-800 leading-relaxed prose max-w-none p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
                     {!! $material->content ? formatLmsContent($material->content) : '<p class="text-slate-500 italic">Materi ini menggunakan lampiran file atau pemutar video di atas.</p>' !!}
                 </div>
 

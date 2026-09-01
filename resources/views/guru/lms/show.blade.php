@@ -53,9 +53,14 @@
         box-shadow: 0 4px 14px rgba(0,0,0,0.12) !important;
         clear: both !important;
     }
-    .prose p {
-        margin-bottom: 0.75rem !important;
-        line-height: 1.75 !important;
+    .ql-editor p, .prose p {
+        margin-bottom: 0.4rem !important;
+        line-height: 1.6 !important;
+    }
+    .ql-editor h1, .ql-editor h2, .ql-editor h3, .prose h1, .prose h2, .prose h3 {
+        margin-top: 1rem !important;
+        margin-bottom: 0.4rem !important;
+        font-weight: 800 !important;
     }
     .tab-content { animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
