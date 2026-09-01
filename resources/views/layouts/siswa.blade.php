@@ -57,13 +57,18 @@
     </a>
 
     @if(\App\Models\Setting::getValue('siswa_view_attendance_recap', true))
-    <a href="{{ route('siswa.absensi') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.absensi') ? $ac : $nc }}">
-        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white"><i class="fas fa-clipboard-check text-[10px]"></i></div>
-        <span>Absensi</span>
-    </a>
-    @endif
+        <a href="{{ route('siswa.absensi') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.absensi') ? $ac : $nc }}">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white"><i class="fas fa-fingerprint text-[10px]"></i></div>
+            <span>Presensi</span>
+        </a>
+        @endif
 
-    @if(\App\Models\Setting::getValue('siswa_access_lms', true))
+        <a href="{{ route('siswa.lms.certificates.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.lms.certificates.*') ? $ac : $nc }}">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white"><i class="fas fa-trophy text-[10px]"></i></div>
+            <span>Sertifikat Saya</span>
+        </a>
+
+        @if(\App\Models\Setting::getValue('siswa_access_lms', true))
     <a href="{{ route('siswa.lms.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.lms.*') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-book-open text-[10px]"></i></div>
         <span>LMS</span>

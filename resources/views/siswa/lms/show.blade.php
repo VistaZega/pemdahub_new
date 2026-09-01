@@ -190,6 +190,17 @@ if (!function_exists('balanceHtmlTags')) {
                     <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Modul Ajar</div>
                 </div>
 
+                {{-- Certificate claim when 100% --}}
+                @if($courseProgress >= 100)
+                <form action="{{ route('siswa.lms.certificates.claim', $course->id) }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md hover:shadow-lg transition transform hover:scale-105">
+                        <div class="text-xl font-black leading-none">🏆</div>
+                        <div class="text-[8px] font-black uppercase tracking-widest mt-0.5">Ambil Sertifikat</div>
+                    </button>
+                </form>
+                @endif
+
                 @if($pendingAssignments > 0)
                 <div class="border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md" style="background-color: #fef08a !important;">
                     <div class="text-xl font-black leading-none text-black">{{ $pendingAssignments }}</div>

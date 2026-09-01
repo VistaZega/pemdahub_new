@@ -447,6 +447,11 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::prefix('lms')->name('lms.')->group(function () {
         Route::get('/monitoring', [App\Http\Controllers\Admin\LmsMonitoringController::class, 'index'])->name('monitoring');
         Route::get('/monitoring/teacher/{teacherId}', [App\Http\Controllers\Admin\LmsMonitoringController::class, 'teacherDetail'])->name('monitoring.teacher-detail');
+
+        // Supervisi Konten LMS
+        Route::get('/supervisi', [App\Http\Controllers\Admin\LmsSupervisiController::class, 'index'])->name('supervisi.index');
+        Route::get('/supervisi/{course}/preview', [App\Http\Controllers\Admin\LmsSupervisiController::class, 'preview'])->name('supervisi.preview');
+        Route::post('/supervisi/{course}/review', [App\Http\Controllers\Admin\LmsSupervisiController::class, 'review'])->name('supervisi.review');
     });
 
     // Pembda Knowledge & Media Monitoring (Admin/Kepsek/Yayasan)

@@ -31,6 +31,10 @@ class LmsCourse extends Model
         'color',
         'meeting_active',
         'meeting_started_at',
+        'review_status',
+        'reviewed_by',
+        'reviewed_at',
+        'review_note',
     ];
 
     protected $casts = [
@@ -39,6 +43,7 @@ class LmsCourse extends Model
         'is_sequential' => 'boolean',
         'meeting_active' => 'boolean',
         'meeting_started_at' => 'datetime',
+        'reviewed_at' => 'datetime',
     ];
 
     protected const STATUSES = [
@@ -729,5 +734,46 @@ class LmsCourse extends Model
 
         $name = $this->teacher?->user?->name ?? $this->teacher?->full_name ?? 'Guru Pengajar';
         return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=0f172a&color=ffffff&bold=true';
+    }
+
+    // ──────────────────────────────────────────────
+    //  REVIEW / SUPERVISI
+    // ──────────────────────────────────────────────
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function scopeNeedReview($query)
+    {
+        return $query->where('review_status', 'pending');
+    }
+
+    public function scopeApprovedOnly($query)
+    {
+        return $query->where('review_status', 'approved');
+    }
+
+    public function getReviewStatusLabelAttribute()
+    {
+        return match ($this->review_status ?? 'approved') {
+            'unreviewed' => 'Belum Direview',
+            'pending'    => 'Menunggu Review',
+            'approved'   => 'Disetujui',
+            'rejected'   => 'Ditolak',
+            default      => '-',
+        };
+    }
+
+    public function getReviewStatusColorAttribute()
+    {
+        return match ($this->review_status ?? 'approved') {
+            'unreviewed' => 'bg-slate-100 text-slate-700',
+            'pending'    => 'bg-amber-100 text-amber-800',
+            'approved'   => 'bg-emerald-100 text-emerald-800',
+            'rejected'   => 'bg-rose-100 text-rose-800',
+            default      => 'bg-slate-100 text-slate-700',
+        };
     }
 }
