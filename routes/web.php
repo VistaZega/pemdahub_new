@@ -73,12 +73,17 @@ Route::get('/pwa-reset', function () {
 });
 
 // ============================================================
-//  PUBLIC DISPLAY - Live Monitoring Kehadiran (Raspberry Pi)
-//  Tidak memerlukan login. Akses: /display
+//  PUBLIC DISPLAY - Live Monitoring Kehadiran (Raspberry Pi / Monitor TV)
+//  Tidak memerlukan login. Akses: /display (Umum), /display1 (SMP), /display2 (SMA), /display3 (SMK)
 // ============================================================
+Route::get('/display1', [PublicDisplayController::class, 'display1'])->name('display.unit1');
+Route::get('/display2', [PublicDisplayController::class, 'display2'])->name('display.unit2');
+Route::get('/display3', [PublicDisplayController::class, 'display3'])->name('display.unit3');
+
 Route::prefix('display')->name('display.')->group(function () {
     Route::get('/',          [PublicDisplayController::class, 'index'])->name('index');
     Route::get('/live-data', [PublicDisplayController::class, 'liveData'])->name('live-data');
+    Route::get('/{unit}',    [PublicDisplayController::class, 'unitIndex'])->where('unit', '1|2|3|smp|sma|smk')->name('unit');
 });
 
 // ============================================================

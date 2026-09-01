@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Live Monitoring Kehadiran – Perguruan PEMBDA</title>
+    <title>{{ isset($targetSchool) ? 'Live Monitoring Kehadiran ' . $targetSchool->name . ' – Perguruan PEMBDA' : 'Live Monitoring Kehadiran – Perguruan PEMBDA' }}</title>
     <meta name="description" content="Papan informasi kehadiran siswa dan guru Perguruan PEMBDA secara real-time.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -807,6 +807,94 @@
             transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* ── PANEL REKAPITULASI PER ROMBEL (Khusus Display Unit) ── */
+        .rombel-panel {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            padding: 8px 12px;
+            border: 1.5px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+        }
+        .rombel-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+        .rombel-panel::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .rombel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }
+        .rombel-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .rombel-total-badge {
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 1px 6px;
+            border-radius: 10px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+        .rombel-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+        }
+        .rombel-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 7px;
+            padding: 4px 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .rombel-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .rombel-name {
+            font-size: 11px;
+            font-weight: 800;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .rombel-pct {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 900;
+            color: #15803d;
+        }
+        .rombel-numbers {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #64748b;
+            font-weight: 700;
+        }
+
         /* Status update */
         .status-bar {
             background: var(--bg-card2);
@@ -1070,11 +1158,11 @@
     <header class="header">
         <div class="header-left">
             <div class="school-logo">
-                <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Yayasan">
+                <img src="{{ isset($targetSchool) && $targetSchool->logo_url ? $targetSchool->logo_url : asset('images/logo-pembda.png') }}" alt="Logo">
             </div>
             <div class="school-info">
-                <h1>Perguruan PEMBDA</h1>
-                <p>Sistem Monitoring Kehadiran Real-Time</p>
+                <h1>{{ isset($targetSchool) ? $targetSchool->name : 'Perguruan PEMBDA' }}</h1>
+                <p>{{ isset($targetSchool) ? 'Live Monitoring Kehadiran Unit ' . $targetSchool->type . ' Real-Time' : 'Sistem Monitoring Kehadiran Real-Time' }}</p>
             </div>
         </div>
         <div class="header-center">
@@ -1098,7 +1186,7 @@
             <div class="feed-panel">
                 <div class="feed-header">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <span class="feed-title">⚡ Live Absensi Real-Time</span>
+                        <span class="feed-title">⚡ Live Absensi {{ isset($targetSchool) ? $targetSchool->type : 'Real-Time' }}</span>
                         <span class="feed-count" id="feed-count">–</span>
                     </div>
 
@@ -1135,7 +1223,7 @@
             </div>
         </div>
 
-        <!-- KOLOM KANAN: LIVE REKAPITULASI (3 UNIT SEKOLAH: SMP, SMA, SMK) -->
+        <!-- KOLOM KANAN: LIVE REKAPITULASI -->
         <div class="right-col">
             <!-- Header Bar Rekapitulasi -->
             <div class="rekap-header-bar">
@@ -1144,8 +1232,8 @@
                         <i class="fa-solid fa-chart-pie"></i>
                     </div>
                     <div>
-                        <div class="rekap-title">Live Rekapitulasi</div>
-                        <div class="rekap-subtitle">Kehadiran Siswa &amp; Guru per Unit Sekolah</div>
+                        <div class="rekap-title">{{ isset($targetSchool) ? 'Live Rekapitulasi ' . $targetSchool->type : 'Live Rekapitulasi' }}</div>
+                        <div class="rekap-subtitle">{{ isset($targetSchool) ? 'Kehadiran Siswa & Guru ' . $targetSchool->name : 'Kehadiran Siswa & Guru per Unit Sekolah' }}</div>
                     </div>
                 </div>
                 <div class="rekap-live-pill">
@@ -1188,7 +1276,9 @@
 // ============================================================
 //  KONFIGURASI
 // ============================================================
-const API_URL       = "{{ route('display.live-data') }}";
+const UNIT_PARAM    = "{{ $unitNumber ?? ($targetType ?? '') }}";
+const API_BASE_URL  = "{{ route('display.live-data') }}";
+const API_URL       = API_BASE_URL + (UNIT_PARAM ? '?unit=' + encodeURIComponent(UNIT_PARAM) : '');
 const POLL_INTERVAL = 5000;  // 5 detik
 const NOTIF_DURATION= 5000;  // Notifikasi hilang setelah 5 detik
 
@@ -1217,7 +1307,8 @@ tickClock();
 // ============================================================
 async function fetchData() {
     try {
-        const res  = await fetch(API_URL + '?t=' + Date.now());
+        const sep = API_URL.includes('?') ? '&' : '?';
+        const res  = await fetch(API_URL + sep + 't=' + Date.now());
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         failCount  = 0;
@@ -1275,8 +1366,8 @@ function updateDisplay(data) {
         lastUpEl.textContent = '✓ Update: ' + data.last_updated;
     }
 
-    // ─ Rekapitulasi Per Unit Sekolah ─
-    renderUnitPanels(data.rekap_unit);
+    // ─ Rekapitulasi Per Unit Sekolah & Rombel ─
+    renderUnitPanels(data.rekap_unit, data.rombel_stats);
 
     // ─ Feed Aktivitas ─
     const feedHash = JSON.stringify((data.feed || []).slice(0, 3));
@@ -1299,9 +1390,9 @@ function updateDisplay(data) {
 }
 
 // ============================================================
-//  RENDER UNIT PANELS (3 Unit Sekolah: SMP, SMA, SMK)
+//  RENDER UNIT PANELS (3 Unit Sekolah atau Khusus Unit Terpilih)
 // ============================================================
-function renderUnitPanels(rekapUnit) {
+function renderUnitPanels(rekapUnit, rombelStats) {
     const container = document.getElementById('unit-panels');
     if (!container) return;
 
@@ -1310,7 +1401,7 @@ function renderUnitPanels(rekapUnit) {
         return;
     }
 
-    container.innerHTML = rekapUnit.map(unit => {
+    const cardsHtml = rekapUnit.map(unit => {
         const isYayasan = unit.is_yayasan;
         const unitType = (unit.type || 'UNIT').toUpperCase();
         const unitClass = `unit-${unitType.toLowerCase()}`;
@@ -1406,6 +1497,40 @@ function renderUnitPanels(rekapUnit) {
             </div>
         `;
     }).join('');
+
+    let rombelHtml = '';
+    if (rombelStats && rombelStats.length > 0) {
+        rombelHtml = `
+            <div class="rombel-panel">
+                <div class="rombel-header">
+                    <span class="rombel-title">
+                        <i class="fa-solid fa-layer-group"></i> Rekapitulasi per Kelas / Rombel
+                    </span>
+                    <span class="rombel-total-badge">${rombelStats.length} Kelas</span>
+                </div>
+                <div class="rombel-grid">
+                    ${rombelStats.map(r => `
+                        <div class="rombel-card">
+                            <div class="rombel-card-header">
+                                <span class="rombel-name" title="${escHtml(r.name)}">${escHtml(r.name)}</span>
+                                <span class="rombel-pct">${r.pct}%</span>
+                            </div>
+                            <div class="rombel-numbers">
+                                <span>👥 ${r.total}</span>
+                                <span style="color:#15803d;font-weight:800;" title="Hadir">✓ ${r.hadir}</span>
+                                <span style="color:#b91c1c;font-weight:800;" title="Belum Absen">✗ ${r.belum}</span>
+                            </div>
+                            <div class="progress-bar-mini" title="${r.pct}% Hadir">
+                                <div class="progress-fill-mini fill-green" style="width: ${r.pct}%;"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = cardsHtml + rombelHtml;
 }
 
 // ============================================================

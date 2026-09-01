@@ -12,11 +12,46 @@ use Carbon\Carbon;
 class PublicDisplayController extends Controller
 {
     /**
-     * Halaman utama live display (HDMI Monitor / Raspberry Pi)
-     * Tidak memerlukan autentikasi.
+     * Halaman utama live display umum (Semua Unit: SMP, SMA, SMK)
      * GET /display
      */
     public function index()
+    {
+        return $this->unitIndex(null);
+    }
+
+    /**
+     * Halaman live display khusus Unit SMPS Pembda 2 Gunungsitoli (SMP)
+     * GET /display1
+     */
+    public function display1()
+    {
+        return $this->unitIndex(1);
+    }
+
+    /**
+     * Halaman live display khusus Unit SMAS Pembda 1 Gunungsitoli (SMA)
+     * GET /display2
+     */
+    public function display2()
+    {
+        return $this->unitIndex(2);
+    }
+
+    /**
+     * Halaman live display khusus Unit SMKS Pembda Gunungsitoli (SMK)
+     * GET /display3
+     */
+    public function display3()
+    {
+        return $this->unitIndex(3);
+    }
+
+    /**
+     * Handler halaman display per unit (1=SMP, 2=SMA, 3=SMK, null=Semua)
+     * GET /display/{unit?}
+     */
+    public function unitIndex($unit = null)
     {
         if (request('clear_cache') === 'yes') {
             try {
@@ -28,30 +63,76 @@ class PublicDisplayController extends Controller
                 return "❌ Error: " . $e->getMessage();
             }
         }
-        return view('display.attendance');
+
+        $type = null;
+        $unitNumber = null;
+
+        if ($unit !== null) {
+            $type = match (strtolower((string)$unit)) {
+                '1', 'smp' => 'SMP',
+                '2', 'sma' => 'SMA',
+                '3', 'smk' => 'SMK',
+                default => null,
+            };
+
+            if ($type) {
+                $unitNumber = match ($type) {
+                    'SMP' => 1,
+                    'SMA' => 2,
+                    'SMK' => 3,
+                };
+            }
+        }
+
+        $targetSchool = null;
+        if ($type) {
+            $targetSchool = \App\Models\School::where('is_active', true)->where('type', $type)->first();
+        }
+
+        return view('display.attendance', [
+            'targetSchool' => $targetSchool,
+            'unitNumber'   => $unitNumber,
+            'targetType'   => $type,
+        ]);
     }
 
     /**
      * Endpoint JSON untuk polling data kehadiran hari ini.
-     * Dipanggil setiap 5 detik oleh JavaScript di halaman display.
+     * Mendukung query parameter ?unit=1|2|3|smp|sma|smk
      * GET /display/live-data
      */
-    public function liveData()
+    public function liveData(Request $request)
     {
         $tz = 'Asia/Jakarta';
         $today = Carbon::today($tz)->toDateString();
         $now   = Carbon::now($tz);
 
+        $targetUnit = $request->query('unit');
+        $filterType = null;
+        if ($targetUnit) {
+            $filterType = match (strtolower((string)$targetUnit)) {
+                '1', 'smp' => 'SMP',
+                '2', 'sma' => 'SMA',
+                '3', 'smk' => 'SMK',
+                default => null,
+            };
+        }
+
         // ── SISWA: Ambil absensi hari ini (hanya siswa terdaftar di TP aktif & status hadir/terlambat) ──
         $studentAttendances = Attendance::where('date', $today)
             ->whereIn('status', ['hadir', 'terlambat'])
-            ->whereHas('student', function ($q) {
+            ->whereHas('student', function ($q) use ($filterType) {
                 $q->whereHas('studentClasses', function ($sc) {
                     $sc->where('status', 'aktif')
                        ->whereHas('academicYear', function ($ay) {
                             $ay->where('is_active', true);
                        });
                 });
+                if ($filterType) {
+                    $q->whereHas('school', function ($sq) use ($filterType) {
+                        $sq->where('type', $filterType);
+                    });
+                }
             })
             ->with([
                 'student:id,full_name,school_id,photo',
@@ -64,8 +145,13 @@ class PublicDisplayController extends Controller
         // ── GURU & PEGAWAI: Ambil absensi hari ini (hanya pegawai aktif & status hadir)
         $employeeAttendances = EmployeeAttendance::where('date', $today)
             ->where('status', 'hadir')
-            ->whereHas('employee', function ($q) {
+            ->whereHas('employee', function ($q) use ($filterType) {
                 $q->where('is_active', true);
+                if ($filterType) {
+                    $q->whereHas('school', function ($sq) use ($filterType) {
+                        $sq->where('type', $filterType);
+                    });
+                }
             })
             ->with([
                 'employee:id,full_name,school_id,photo',
@@ -76,9 +162,12 @@ class PublicDisplayController extends Controller
 
         // ── HITUNG REKAP UNIT DAN STATISTIK SECARA DINAMIS ─────────────
         $dayOfWeek = strtolower($now->format('l')); // 'monday', 'tuesday', etc.
-        $schools = \App\Models\School::where('is_active', true)
-            ->schoolsOnly()
-            ->get()
+        $schoolsQuery = \App\Models\School::where('is_active', true)->schoolsOnly();
+        if ($filterType) {
+            $schoolsQuery->where('type', $filterType);
+        }
+
+        $schools = $schoolsQuery->get()
             ->sortBy(function ($s) {
                 $order = ['SMP' => 1, 'SMA' => 2, 'SMK' => 3];
                 return $order[strtoupper($s->type)] ?? 99;
@@ -230,6 +319,44 @@ class PublicDisplayController extends Controller
             $employeeBelumAbsen += $gBelum;
         }
 
+        // ── KHUSUS UNIT TERTENTU: Hitung Rekapitulasi Rombel / Kelas ────────
+        $rombelStats = [];
+        if ($filterType && $activeAcademicYearId && $schools->isNotEmpty()) {
+            $singleSchool = $schools->first();
+            $classrooms = \App\Models\Classroom::where('school_id', $singleSchool->id)
+                ->where('academic_year_id', $activeAcademicYearId)
+                ->where('is_active', true)
+                ->orderBy('grade_level')
+                ->orderBy('class_name')
+                ->get();
+
+            foreach ($classrooms as $cls) {
+                $totalInClass = Student::whereHas('studentClasses', function ($sc) use ($cls, $activeAcademicYearId) {
+                    $sc->where('classroom_id', $cls->id)
+                       ->where('academic_year_id', $activeAcademicYearId)
+                       ->where('status', 'aktif');
+                })->count();
+
+                $hadirInClass = $studentAttendances->where('classroom_id', $cls->id)->whereIn('status', ['hadir', 'terlambat'])->count();
+                $tepatInClass = $studentAttendances->where('classroom_id', $cls->id)->where('status', 'hadir')->count();
+                $lambatInClass = $studentAttendances->where('classroom_id', $cls->id)->where('status', 'terlambat')->count();
+                $belumInClass = max(0, $totalInClass - $hadirInClass);
+                $pctInClass = $totalInClass > 0 ? round(($hadirInClass / $totalInClass) * 100) : 0;
+
+                $rombelStats[] = [
+                    'id'     => $cls->id,
+                    'name'   => $cls->class_name,
+                    'grade'  => $cls->grade_level,
+                    'total'  => $totalInClass,
+                    'hadir'  => $hadirInClass,
+                    'tepat'  => $tepatInClass,
+                    'lambat' => $lambatInClass,
+                    'belum'  => $belumInClass,
+                    'pct'    => $pctInClass,
+                ];
+            }
+        }
+
         // ── GABUNGKAN FEED AKTIVITAS TERBARU (25 item) ─────────────────
         $feed = collect();
 
@@ -335,6 +462,7 @@ class PublicDisplayController extends Controller
         return response()->json([
             'tanggal'      => $now->translatedFormat('l, d F Y'),
             'jam'          => $now->format('H:i:s'),
+            'filter_unit'  => $filterType,
             'statistik'    => [
                 'siswa_hadir'        => $studentHadir,
                 'siswa_terlambat'    => $studentTerlambat,
@@ -346,6 +474,7 @@ class PublicDisplayController extends Controller
                 'pegawai_total'      => $employeeTotal,
             ],
             'rekap_unit'   => $rekapUnit,
+            'rombel_stats' => $rombelStats,
             'feed'         => $feedSorted,
             'last_updated' => $now->format('H:i:s'),
         ]);
