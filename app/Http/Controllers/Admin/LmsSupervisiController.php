@@ -93,6 +93,29 @@ class LmsSupervisiController extends Controller
             'review_note' => $validated['review_note'] ?? $course->review_note,
         ]);
 
+        // Notify teacher
+        try {
+            $teacherUser = $course->teacher?->user;
+            if ($teacherUser) {
+                $statusLabel = match ($course->review_status) {
+                    'approved' => 'Disetujui ✅',
+                    'rejected' => 'Ditolak ❌',
+                    'pending' => 'Diminta Review Ulang ⏳',
+                    default => $course->review_status,
+                };
+                \App\Models\Notification::create([
+                    'user_id' => $teacherUser->id,
+                    'type' => 'info',
+                    'title' => 'Review Kursus: ' . $course->course_name,
+                    'message' => 'Kursus Anda "' . $course->course_name . '" telah direview: ' . $statusLabel . ($course->review_note ? ' — Catatan: ' . $course->review_note : ''),
+                    'related_model' => 'LmsCourse',
+                    'related_id' => $course->id,
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Failed to send review notification: ' . $e->getMessage());
+        }
+
         $statusLabel = match ($course->review_status) {
             'approved' => 'Disetujui',
             'rejected' => 'Ditolak',

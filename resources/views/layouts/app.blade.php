@@ -465,6 +465,14 @@
                         <span class="hidden sm:inline">Profil Akun</span>
                     </a>
 
+                    <a href="{{ route('notifications.index') }}" class="relative bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5" x-data="{ unread: 0 }" x-init="fetch('{{ route('notifications.unread-count') }}').then(r=>r.json()).then(d=>unread=d.count)">
+                        <i class="fas fa-bell text-xs"></i>
+                        <template x-if="unread > 0">
+                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center" x-text="unread"></span>
+                        </template>
+                        <span class="hidden sm:inline">Notif</span>
+                    </a>
+
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
                         <button type="submit" class="bg-white/10 hover:bg-red-500 px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">

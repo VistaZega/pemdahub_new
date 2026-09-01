@@ -623,6 +623,23 @@ class LmsAssignmentController extends Controller
             \Log::warning('LMS submission sync failed: ' . $e->getMessage());
         }
 
+        // Send in-app notification to student
+        try {
+            $studentUser = $submission->student?->user;
+            if ($studentUser) {
+                \App\Models\Notification::create([
+                    'user_id' => $studentUser->id,
+                    'type' => 'grade',
+                    'title' => 'Nilai Tugas: ' . $submission->assignment->title,
+                    'message' => 'Tugas "' . $submission->assignment->title . '" telah dinilai dengan skor ' . ($submission->score ?? 0) . '/' . $submission->assignment->max_score,
+                    'related_model' => 'LmsSubmission',
+                    'related_id' => $submission->id,
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Failed to send grading notification: ' . $e->getMessage());
+        }
+
         // Reputation Hook for Teacher (+10 Points per Grading)
         try {
             \App\Models\ReputationLog::log(
