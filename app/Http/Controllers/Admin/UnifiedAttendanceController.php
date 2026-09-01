@@ -100,6 +100,7 @@ class UnifiedAttendanceController extends Controller
             $studentQuery = Student::where('school_id', $f['schoolId'])
                 ->whereHas('studentClasses', function ($q) use ($activeAY) {
                     $q->where('status', 'aktif')
+                      ->whereNotNull('classroom_id')
                       ->when($activeAY, fn($sq) => $sq->where('academic_year_id', $activeAY->id));
                 });
 
@@ -311,6 +312,7 @@ class UnifiedAttendanceController extends Controller
             $studentQuery = Student::where('school_id', $f['schoolId'])
                 ->whereHas('studentClasses', function ($q) use ($activeAY, $classroomId) {
                     $q->where('status', 'aktif')
+                      ->whereNotNull('classroom_id')
                       ->when($activeAY, fn($sq) => $sq->where('academic_year_id', $activeAY->id))
                       ->when($classroomId, fn($sq) => $sq->where('classroom_id', $classroomId));
                 })
