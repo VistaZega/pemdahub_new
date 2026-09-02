@@ -11,7 +11,6 @@ use App\Models\LmsMaterialProgress;
 use App\Models\LmsQuizAttempt;
 use App\Models\LmsSubmission;
 use App\Models\Student;
-use App\Models\StudentCounselingRecord;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,8 +46,7 @@ class TeacherLmsMonitoringController extends Controller
                   ->orWhere('status', 'active')
                   ->orWhere('is_active', true);
             })
-            ->with(['subject', 'lmsClasses.classroom'])
-            ->withCount(['materials', 'assignments', 'quizzes'])
+            ->with(['subject', 'lmsClasses.classroom', 'materials' => fn($q) => $q->where('is_published', true), 'assignments' => fn($q) => $q->where('is_published', true), 'quizzes' => fn($q) => $q->where('is_published', true)])
             ->orderBy('course_name')
             ->get();
 
@@ -57,67 +55,81 @@ class TeacherLmsMonitoringController extends Controller
         }
 
         // 2. Filter Kursus & Rombel
-        $selectedCourseId = $request->query('course_id', $myCourses->first()->id);
-        $course = $myCourses->firstWhere('id', $selectedCourseId) ?? $myCourses->first();
-
-        // Ambil rombel-rombel yang terhubung ke kursus terpilih
-        $classrooms = $course->lmsClasses->map(fn($lc) => $lc->classroom)->filter()->unique('id')->values();
+        $selectedCourseId = $request->query('course_id', 'all');
         $selectedClassroomId = $request->query('classroom_id');
 
-        // 3. Ambil seluruh siswa terdaftar di kursus ini (atau rombel terpilih)
-        $lmsClassQuery = $course->lmsClasses();
+        $isAllCourses = ($selectedCourseId === 'all');
+        $activeCourses = $isAllCourses ? $myCourses : $myCourses->where('id', $selectedCourseId);
+
+        if ($activeCourses->isEmpty()) {
+            $selectedCourseId = 'all';
+            $isAllCourses = true;
+            $activeCourses = $myCourses;
+        }
+
+        $course = $isAllCourses ? null : $activeCourses->first();
+
+        // Ambil daftar semua rombel yang terkait dengan kursus yang aktif difilter
+        $classrooms = $activeCourses->flatMap(fn($c) => $c->lmsClasses->map(fn($lc) => $lc->classroom))->filter()->unique('id')->values();
+
+        // 3. Ambil seluruh enrollment siswa
+        $lmsClassQuery = \App\Models\LmsClass::whereIn('course_id', $activeCourses->pluck('id'));
         if ($selectedClassroomId) {
             $lmsClassQuery->where('classroom_id', $selectedClassroomId);
         }
         $lmsClassIds = $lmsClassQuery->pluck('id')->toArray();
 
         $enrollments = LmsEnrollment::whereIn('lms_class_id', $lmsClassIds)
-            ->with(['student.user', 'student.currentClassroom', 'student.parents', 'lmsClass.classroom'])
+            ->with(['student.user', 'student.classrooms', 'student.parents', 'lmsClass.classroom', 'lmsClass.course.subject'])
             ->get();
 
-        $students = $enrollments->pluck('student')->filter()->unique('id')->values();
-        $studentIds = $students->pluck('id')->toArray();
+        // Preload komponen seluruh kursus aktif
+        $allMatIds = $activeCourses->flatMap(fn($c) => $c->materials->pluck('id'))->unique()->values()->toArray();
+        $allAssignIds = $activeCourses->flatMap(fn($c) => $c->assignments->pluck('id'))->unique()->values()->toArray();
+        $allQuizIds = $activeCourses->flatMap(fn($c) => $c->quizzes->pluck('id'))->unique()->values()->toArray();
 
-        // Ambil komponen kursus
-        $materials = $course->materials()->where('is_published', true)->get();
-        $assignments = $course->assignments()->where('is_published', true)->get();
-        $quizzes = $course->quizzes()->where('is_published', true)->get();
+        $studentIds = $enrollments->pluck('student_id')->unique()->values()->toArray();
 
-        $matIds = $materials->pluck('id')->toArray();
-        $assignIds = $assignments->pluck('id')->toArray();
-        $quizIds = $quizzes->pluck('id')->toArray();
-
-        $totalMats = count($matIds);
-        $totalAssigns = count($assignIds);
-        $totalQuizzes = count($quizIds);
-
-        // Preload progres & tugas
         $materialProgresses = LmsMaterialProgress::whereIn('student_id', $studentIds)
-            ->whereIn('material_id', $matIds)
+            ->whereIn('material_id', $allMatIds)
             ->get()
             ->groupBy('student_id');
 
         $submissions = LmsSubmission::whereIn('student_id', $studentIds)
-            ->whereIn('assignment_id', $assignIds)
+            ->whereIn('assignment_id', $allAssignIds)
             ->get()
             ->groupBy('student_id');
 
         $quizAttempts = LmsQuizAttempt::whereIn('student_id', $studentIds)
-            ->whereIn('quiz_id', $quizIds)
+            ->whereIn('quiz_id', $allQuizIds)
             ->whereNotNull('finished_at')
             ->get()
             ->groupBy('student_id');
 
-        // 4. Hitung Matriks Siswa
+        // 4. Hitung Matriks Siswa (Per Kursus - Siswa Pair)
         $studentList = [];
-        foreach ($students as $st) {
+        foreach ($enrollments as $enr) {
+            $st = $enr->student;
+            if (!$st) continue;
+
+            $c = $enr->lmsClass?->course;
+            if (!$c) continue;
+
+            $cMatIds = $c->materials->pluck('id')->toArray();
+            $cAssignIds = $c->assignments->pluck('id')->toArray();
+            $cQuizIds = $c->quizzes->pluck('id')->toArray();
+
+            $totalMats = count($cMatIds);
+            $totalAssigns = count($cAssignIds);
+            $totalQuizzes = count($cQuizIds);
+
             $stMat = $materialProgresses->get($st->id, collect());
             $stSub = $submissions->get($st->id, collect());
             $stQuiz = $quizAttempts->get($st->id, collect());
 
-            $completedMats = $stMat->where('status', 'completed')->count();
-            $submittedAssigns = $stSub->whereIn('status', ['submitted', 'graded'])->count();
-            $completedQuizzes = $stQuiz->count();
+            $completedMats = $stMat->whereIn('material_id', $cMatIds)->where('status', 'completed')->count();
+            $submittedAssigns = $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'graded'])->count();
+            $completedQuizzes = $stQuiz->whereIn('quiz_id', $cQuizIds)->count();
 
             $matPct = $totalMats > 0 ? round(($completedMats / $totalMats) * 100) : 100;
             $assignPct = $totalAssigns > 0 ? round(($submittedAssigns / $totalAssigns) * 100) : 100;
@@ -125,9 +137,9 @@ class TeacherLmsMonitoringController extends Controller
 
             $overallPct = round(($matPct * 0.5) + ($assignPct * 0.3) + ($quizPct * 0.2));
 
-            // Hitung nilai rata-rata tugas & kuis
-            $avgAssignGrade = $stSub->whereNotNull('grade')->avg('grade');
-            $avgQuizScore = $stQuiz->whereNotNull('score')->avg('score');
+            // Nilai rata-rata tugas & kuis pada kursus ini
+            $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->avg('grade');
+            $avgQuizScore = $stQuiz->whereIn('quiz_id', $cQuizIds)->whereNotNull('score')->avg('score');
 
             // Status & Risiko
             $isAtRisk = false;
@@ -153,12 +165,14 @@ class TeacherLmsMonitoringController extends Controller
                 }
             }
 
-            // Cari rombel dari enrollment
-            $enrollment = $enrollments->firstWhere('student_id', $st->id);
-            $className = $enrollment?->lmsClass?->classroom?->class_name ?? $st->currentClassroom?->class_name ?? '-';
+            $className = $enr->lmsClass?->classroom?->class_name ?? $st->classrooms->first()?->class_name ?? '-';
 
             $studentList[] = [
+                'enrollment_id' => $enr->id,
                 'student' => $st,
+                'course' => $c,
+                'course_name' => $c->course_name,
+                'subject_name' => $c->subject?->name ?? $c->subject?->subject_name ?? $c->course_name,
                 'class_name' => $className,
                 'completed_materials' => $completedMats,
                 'total_materials' => $totalMats,
@@ -197,17 +211,20 @@ class TeacherLmsMonitoringController extends Controller
             if (!empty($search)) {
                 $nameMatch = str_contains(strtolower($item['student']->full_name), $search);
                 $nisnMatch = str_contains(strtolower($item['student']->nisn ?? ''), $search);
-                return $nameMatch || $nisnMatch;
+                $courseMatch = str_contains(strtolower($item['course_name']), $search);
+                $classMatch = str_contains(strtolower($item['class_name']), $search);
+                return $nameMatch || $nisnMatch || $courseMatch || $classMatch;
             }
             return true;
         })->values();
 
         // 5. KPI Ringkasan
         $kpi = [
+            'total_courses_count' => $activeCourses->count(),
             'total_enrolled_students' => count($studentList),
             'avg_material_completion' => count($studentList) > 0 ? round(collect($studentList)->avg('material_pct')) : 0,
-            'total_submissions_count' => LmsSubmission::whereIn('assignment_id', $assignIds)->count(),
-            'pending_grading_count' => LmsSubmission::whereIn('assignment_id', $assignIds)->where('status', 'submitted')->count(),
+            'total_submissions_count' => LmsSubmission::whereIn('assignment_id', $allAssignIds)->count(),
+            'pending_grading_count' => LmsSubmission::whereIn('assignment_id', $allAssignIds)->where('status', 'submitted')->count(),
             'at_risk_count' => collect($studentList)->where('is_at_risk', true)->count(),
             'missing_task_count' => collect($studentList)->filter(fn($i) => $i['total_assignments'] > 0 && $i['submitted_assignments'] < $i['total_assignments'])->count(),
         ];
@@ -216,16 +233,15 @@ class TeacherLmsMonitoringController extends Controller
             'teacher',
             'myCourses',
             'course',
+            'isAllCourses',
+            'selectedCourseId',
             'classrooms',
             'selectedClassroomId',
             'filteredStudents',
             'studentList',
             'kpi',
             'filterTab',
-            'search',
-            'materials',
-            'assignments',
-            'quizzes'
+            'search'
         ));
     }
 
@@ -255,6 +271,7 @@ class TeacherLmsMonitoringController extends Controller
         $quizzes = $course->quizzes()->where('is_published', true)->get();
         $attempts = LmsQuizAttempt::where('student_id', $student->id)
             ->whereIn('quiz_id', $quizzes->pluck('id'))
+            ->whereNotNull('finished_at')
             ->get()
             ->groupBy('quiz_id');
 
@@ -311,7 +328,7 @@ class TeacherLmsMonitoringController extends Controller
         ]);
 
         $teacher = $this->getTeacher();
-        $student = Student::with(['school', 'currentClassroom'])->findOrFail($request->student_id);
+        $student = Student::with(['school', 'classrooms'])->findOrFail($request->student_id);
         $course = LmsCourse::findOrFail($request->course_id);
 
         $waUrl = null;
@@ -354,63 +371,67 @@ class TeacherLmsMonitoringController extends Controller
     public function exportExcel(Request $request): StreamedResponse
     {
         $teacher = $this->getTeacher();
-        $courseId = $request->query('course_id');
-        $course = LmsCourse::where('id', $courseId)
-            ->where('teacher_id', $teacher->id)
-            ->with(['subject', 'materials', 'assignments', 'quizzes'])
-            ->firstOrFail();
+        $courseId = $request->query('course_id', 'all');
 
-        $lmsClassIds = $course->lmsClasses()->pluck('id')->toArray();
+        $isAll = ($courseId === 'all');
+        $coursesQuery = LmsCourse::where('teacher_id', $teacher->id)
+            ->with(['subject', 'materials' => fn($q) => $q->where('is_published', true), 'assignments' => fn($q) => $q->where('is_published', true), 'quizzes' => fn($q) => $q->where('is_published', true), 'lmsClasses.classroom']);
+
+        if (!$isAll) {
+            $coursesQuery->where('id', $courseId);
+        }
+        $courses = $coursesQuery->get();
+
+        $lmsClassIds = $courses->flatMap(fn($c) => $c->lmsClasses->pluck('id'))->toArray();
         $enrollments = LmsEnrollment::whereIn('lms_class_id', $lmsClassIds)
-            ->with(['student.currentClassroom', 'lmsClass.classroom'])
+            ->with(['student.classrooms', 'lmsClass.classroom', 'lmsClass.course.subject'])
             ->get();
 
-        $students = $enrollments->pluck('student')->filter()->unique('id')->values();
-        $studentIds = $students->pluck('id')->toArray();
-
-        $matIds = $course->materials->pluck('id')->toArray();
-        $assignIds = $course->assignments->pluck('id')->toArray();
-        $quizIds = $course->quizzes->pluck('id')->toArray();
+        $allMatIds = $courses->flatMap(fn($c) => $c->materials->pluck('id'))->unique()->values()->toArray();
+        $allAssignIds = $courses->flatMap(fn($c) => $c->assignments->pluck('id'))->unique()->values()->toArray();
+        $allQuizIds = $courses->flatMap(fn($c) => $c->quizzes->pluck('id'))->unique()->values()->toArray();
+        $studentIds = $enrollments->pluck('student_id')->unique()->values()->toArray();
 
         $materialProgresses = LmsMaterialProgress::whereIn('student_id', $studentIds)
-            ->whereIn('material_id', $matIds)
+            ->whereIn('material_id', $allMatIds)
             ->get()
             ->groupBy('student_id');
 
         $submissions = LmsSubmission::whereIn('student_id', $studentIds)
-            ->whereIn('assignment_id', $assignIds)
+            ->whereIn('assignment_id', $allAssignIds)
             ->get()
             ->groupBy('student_id');
 
         $quizAttempts = LmsQuizAttempt::whereIn('student_id', $studentIds)
-            ->whereIn('quiz_id', $quizIds)
+            ->whereIn('quiz_id', $allQuizIds)
             ->whereNotNull('finished_at')
             ->get()
             ->groupBy('student_id');
 
-        $filename = 'Rekap_Progres_LMS_' . str_replace(' ', '_', $course->course_name) . '_' . date('Ymd_His') . '.csv';
+        $filename = $isAll 
+            ? 'Rekap_Progres_LMS_Semua_Mapel_' . date('Ymd_His') . '.csv'
+            : 'Rekap_Progres_LMS_' . str_replace(' ', '_', $courses->first()->course_name) . '_' . date('Ymd_His') . '.csv';
 
-        return response()->streamDownload(function () use ($students, $enrollments, $course, $matIds, $assignIds, $quizIds, $materialProgresses, $submissions, $quizAttempts) {
+        return response()->streamDownload(function () use ($enrollments, $courses, $isAll, $materialProgresses, $submissions, $quizAttempts) {
             $handle = fopen('php://output', 'w');
-            // BOM UTF-8 for Excel Indonesian characters
-            fputs($handle, "\xEF\xBB\xBF");
+            fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
 
             // Header info
-            fputcsv($handle, ['REKAPITULASI PROGRES PEMBELAJARAN LMS']);
-            fputcsv($handle, ['Mata Pelajaran', $course->subject?->name ?? $course->subject?->subject_name ?? $course->course_name]);
-            fputcsv($handle, ['Nama Kursus', $course->course_name]);
-            fputcsv($handle, ['Total Materi', count($matIds)]);
-            fputcsv($handle, ['Total Tugas', count($assignIds)]);
-            fputcsv($handle, ['Total Kuis', count($quizIds)]);
+            fputcsv($handle, ['REKAPITULASI PROGRES PEMBELAJARAN LMS GURU']);
+            fputcsv($handle, ['Cakupan', $isAll ? 'Semua Mata Pelajaran & Kelas yang Diajar' : $courses->first()->course_name]);
+            fputcsv($handle, ['Total Kursus', $courses->count()]);
+            fputcsv($handle, ['Total Siswa Terdaftar', $enrollments->count()]);
             fputcsv($handle, ['Tanggal Ekspor', date('d/m/Y H:i')]);
             fputcsv($handle, []);
 
             // Table headers
             fputcsv($handle, [
                 'No',
+                'Mata Pelajaran',
+                'Nama Kursus',
+                'Kelas / Rombel',
                 'Nama Siswa',
                 'NISN',
-                'Kelas / Rombel',
                 'Materi Selesai',
                 'Total Materi',
                 'Progres Materi (%)',
@@ -420,23 +441,31 @@ class TeacherLmsMonitoringController extends Controller
                 'Kuis Selesai',
                 'Total Kuis',
                 'Rata-rata Nilai Kuis',
-                'Total Progres LMS (%)',
+                'Total Capaian (%)',
                 'Status Pembelajaran',
             ]);
 
             $no = 1;
-            foreach ($students as $st) {
+            foreach ($enrollments as $enr) {
+                $st = $enr->student;
+                $c = $enr->lmsClass?->course;
+                if (!$st || !$c) continue;
+
+                $cMatIds = $c->materials->pluck('id')->toArray();
+                $cAssignIds = $c->assignments->pluck('id')->toArray();
+                $cQuizIds = $c->quizzes->pluck('id')->toArray();
+
+                $totalMats = count($cMatIds);
+                $totalAssigns = count($cAssignIds);
+                $totalQuizzes = count($cQuizIds);
+
                 $stMat = $materialProgresses->get($st->id, collect());
                 $stSub = $submissions->get($st->id, collect());
                 $stQuiz = $quizAttempts->get($st->id, collect());
 
-                $completedMats = $stMat->where('status', 'completed')->count();
-                $submittedAssigns = $stSub->whereIn('status', ['submitted', 'graded'])->count();
-                $completedQuizzes = $stQuiz->count();
-
-                $totalMats = count($matIds);
-                $totalAssigns = count($assignIds);
-                $totalQuizzes = count($quizIds);
+                $completedMats = $stMat->whereIn('material_id', $cMatIds)->where('status', 'completed')->count();
+                $submittedAssigns = $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'graded'])->count();
+                $completedQuizzes = $stQuiz->whereIn('quiz_id', $cQuizIds)->count();
 
                 $matPct = $totalMats > 0 ? round(($completedMats / $totalMats) * 100) : 100;
                 $assignPct = $totalAssigns > 0 ? round(($submittedAssigns / $totalAssigns) * 100) : 100;
@@ -444,19 +473,19 @@ class TeacherLmsMonitoringController extends Controller
 
                 $overallPct = round(($matPct * 0.5) + ($assignPct * 0.3) + ($quizPct * 0.2));
 
-                $avgAssignGrade = $stSub->whereNotNull('grade')->avg('grade');
-                $avgQuizScore = $stQuiz->whereNotNull('score')->avg('score');
+                $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->avg('grade');
+                $avgQuizScore = $stQuiz->whereIn('quiz_id', $cQuizIds)->whereNotNull('score')->avg('score');
 
-                $enrollment = $enrollments->firstWhere('student_id', $st->id);
-                $className = $enrollment?->lmsClass?->classroom?->class_name ?? $st->currentClassroom?->class_name ?? '-';
-
+                $className = $enr->lmsClass?->classroom?->class_name ?? $st->classrooms->first()?->class_name ?? '-';
                 $status = ($overallPct < 40 || ($totalAssigns > 1 && $submittedAssigns === 0)) ? 'Perlu Perhatian' : ($overallPct >= 85 ? 'Sangat Aktif' : 'On Track');
 
                 fputcsv($handle, [
                     $no++,
+                    $c->subject?->name ?? $c->subject?->subject_name ?? '-',
+                    $c->course_name,
+                    $className,
                     $st->full_name,
                     $st->nisn ?? '-',
-                    $className,
                     $completedMats,
                     $totalMats,
                     $matPct . '%',

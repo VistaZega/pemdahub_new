@@ -1,6 +1,6 @@
 @extends('layouts.guru')
 
-@section('title', 'Pantauan Progres Siswa - LMS Guru: ' . ($course->course_name ?? ''))
+@section('title', 'Pantauan Progres Siswa - LMS Guru' . (!$isAllCourses && $course ? ': ' . $course->course_name : ' (Semua Mapel)'))
 
 @push('styles')
 <style>
@@ -23,50 +23,69 @@
     <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl border-2 border-black">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-                <div class="flex items-center gap-3 mb-2">
+                <div class="flex items-center gap-2 mb-2">
                     <span class="px-3 py-1 bg-amber-400 text-black font-black text-[11px] rounded-xl border border-black uppercase tracking-wider shadow-xs">
                         <i class="fas fa-chart-line mr-1"></i> Pantauan Progres Siswa
                     </span>
-                    <span class="px-3 py-1 bg-emerald-100 text-emerald-950 font-black text-[11px] rounded-xl border border-black uppercase tracking-wider">
-                        {{ $course->subject?->name ?? $course->subject?->subject_name ?? 'Mata Pelajaran' }}
-                    </span>
+                    @if($isAllCourses)
+                        <span class="px-3 py-1 bg-blue-100 text-blue-950 font-black text-[11px] rounded-xl border border-black uppercase tracking-wider">
+                            🌐 Rekap Seluruh Mapel ({{ $kpi['total_courses_count'] }} Kursus)
+                        </span>
+                    @else
+                        <span class="px-3 py-1 bg-emerald-100 text-emerald-950 font-black text-[11px] rounded-xl border border-black uppercase tracking-wider">
+                            {{ $course->subject?->name ?? $course->subject?->subject_name ?? 'Mata Pelajaran' }}
+                        </span>
+                    @endif
                 </div>
                 <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight flex items-center gap-2.5">
-                    {{ $course->course_name }}
+                    {{ $isAllCourses ? 'Seluruh Mata Pelajaran & Kelas yang Anda Ajar' : $course->course_name }}
                 </h1>
                 <p class="text-slate-600 font-bold text-xs md:text-sm mt-1 max-w-2xl">
-                    Pantau capaian belajar setiap siswa pada materi, tugas, dan kuis kursus ini. Berikan apresiasi atau pengingat untuk mendorong ketuntasan belajar.
+                    {{ $isAllCourses 
+                        ? 'Menampilkan rekapitulasi progres belajar seluruh siswa dari semua mata pelajaran dan rombel yang Anda ampu secara terpusat.' 
+                        : 'Pantau capaian belajar setiap siswa pada materi, tugas, dan kuis kursus ini. Berikan apresiasi atau pengingat untuk mendorong ketuntasan belajar.' }}
                 </p>
             </div>
 
             {{-- Selector Kursus, Rombel & Export --}}
             <div class="flex flex-wrap items-center gap-3 shrink-0">
-                {{-- Selector Kursus --}}
+                {{-- Selector Kursus & Rombel --}}
                 <form method="GET" action="{{ route('guru.lms.monitoring.index') }}" id="filterCourseForm" class="flex flex-wrap items-center gap-2">
-                    <select name="course_id" onchange="document.getElementById('filterCourseForm').submit()" 
-                            class="bg-slate-100 text-black font-black text-xs px-3 py-3 rounded-2xl border-2 border-black shadow-sm outline-none cursor-pointer max-w-[220px]">
-                        @foreach($myCourses as $mc)
-                            <option value="{{ $mc->id }}" {{ $course->id === $mc->id ? 'selected' : '' }}>
-                                {{ $mc->course_name }}
+                    {{-- Dropdown Pilihan Kursus / Mapel --}}
+                    <div class="relative">
+                        <select name="course_id" onchange="document.getElementById('filterCourseForm').submit()" 
+                                class="bg-slate-100 text-black font-black text-xs px-4 py-3 rounded-2xl border-2 border-black shadow-sm outline-none cursor-pointer pr-8 max-w-[260px]">
+                            <option value="all" {{ $selectedCourseId === 'all' ? 'selected' : '' }}>
+                                🌐 Semua Mata Pelajaran ({{ $myCourses->count() }} Kursus)
                             </option>
-                        @endforeach
-                    </select>
+                            <optgroup label="Pilih Per Mata Pelajaran:">
+                                @foreach($myCourses as $mc)
+                                    <option value="{{ $mc->id }}" {{ $selectedCourseId == $mc->id ? 'selected' : '' }}>
+                                        {{ $mc->course_name }} ({{ $mc->subject?->name ?? 'Mapel' }})
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        </select>
+                    </div>
 
+                    {{-- Dropdown Pilihan Rombel / Kelas --}}
                     @if($classrooms->count() > 1)
-                    <select name="classroom_id" onchange="document.getElementById('filterCourseForm').submit()" 
-                            class="bg-slate-100 text-black font-black text-xs px-3 py-3 rounded-2xl border-2 border-black shadow-sm outline-none cursor-pointer">
-                        <option value="">-- Semua Kelas --</option>
-                        @foreach($classrooms as $cls)
-                            <option value="{{ $cls->id }}" {{ $selectedClassroomId == $cls->id ? 'selected' : '' }}>
-                                {{ $cls->class_name }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <div class="relative">
+                        <select name="classroom_id" onchange="document.getElementById('filterCourseForm').submit()" 
+                                class="bg-slate-100 text-black font-black text-xs px-3.5 py-3 rounded-2xl border-2 border-black shadow-sm outline-none cursor-pointer pr-8">
+                            <option value="">-- Semua Kelas ({{ $classrooms->count() }} Rombel) --</option>
+                            @foreach($classrooms as $cls)
+                                <option value="{{ $cls->id }}" {{ $selectedClassroomId == $cls->id ? 'selected' : '' }}>
+                                    Kelas {{ $cls->class_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                     @endif
                 </form>
 
                 {{-- Tombol Export Excel / CSV --}}
-                <a href="{{ route('guru.lms.monitoring.export', ['course_id' => $course->id]) }}" 
+                <a href="{{ route('guru.lms.monitoring.export', ['course_id' => $selectedCourseId]) }}" 
                    class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition shadow-md border-2 border-black">
                     <i class="fas fa-file-excel"></i> Ekspor Excel / CSV
                 </a>
@@ -82,7 +101,7 @@
         <div class="kpi-card bg-white p-5 rounded-3xl border-2 border-black shadow-md relative overflow-hidden">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Siswa Mengikuti</p>
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Total Siswa Terdaftar</p>
                     <h3 class="text-2xl md:text-3xl font-black text-black mt-0.5">{{ $kpi['total_enrolled_students'] }} <span class="text-sm font-extrabold text-slate-500">Siswa</span></h3>
                 </div>
                 <div class="w-12 h-12 rounded-2xl bg-blue-50 border-2 border-black flex items-center justify-center text-blue-600 text-xl font-black shadow-xs shrink-0">
@@ -90,7 +109,7 @@
                 </div>
             </div>
             <p class="text-[11px] font-bold text-slate-600 mt-2">
-                {{ $materials->count() }} Materi • {{ $assignments->count() }} Tugas • {{ $quizzes->count() }} Kuis
+                {{ $kpi['total_courses_count'] }} Kursus • {{ $classrooms->count() }} Rombel Aktif
             </p>
         </div>
 
@@ -142,7 +161,7 @@
                 </div>
             </div>
             <p class="text-[11px] font-bold text-rose-600 mt-2">
-                {{ $kpi['missing_task_count'] }} siswa belum kumpul tugas
+                {{ $kpi['missing_task_count'] }} catatan tugas belum kumpul
             </p>
         </div>
     </div>
@@ -156,19 +175,19 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b-2 border-slate-100 pb-5">
             {{-- Tabs --}}
             <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $course->id, 'classroom_id' => $selectedClassroomId, 'filter' => 'all', 'search' => $search]) }}"
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'classroom_id' => $selectedClassroomId, 'filter' => 'all', 'search' => $search]) }}"
                    class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'all' ? 'bg-black text-amber-400 shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
-                    Semua Siswa ({{ count($studentList) }})
+                    Semua ({{ count($studentList) }})
                 </a>
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $course->id, 'classroom_id' => $selectedClassroomId, 'filter' => 'at_risk', 'search' => $search]) }}"
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'classroom_id' => $selectedClassroomId, 'filter' => 'at_risk', 'search' => $search]) }}"
                    class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'at_risk' ? 'bg-rose-600 text-white shadow-sm' : 'bg-rose-50 text-rose-800 hover:bg-rose-100' }}">
                     ⚠️ Perlu Perhatian ({{ $kpi['at_risk_count'] }})
                 </a>
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $course->id, 'classroom_id' => $selectedClassroomId, 'filter' => 'missing_task', 'search' => $search]) }}"
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'classroom_id' => $selectedClassroomId, 'filter' => 'missing_task', 'search' => $search]) }}"
                    class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'missing_task' ? 'bg-amber-400 text-black shadow-sm' : 'bg-amber-50 text-amber-900 hover:bg-amber-100' }}">
                     📝 Belum Kumpul Tugas ({{ $kpi['missing_task_count'] }})
                 </a>
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $course->id, 'classroom_id' => $selectedClassroomId, 'filter' => 'completed', 'search' => $search]) }}"
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'classroom_id' => $selectedClassroomId, 'filter' => 'completed', 'search' => $search]) }}"
                    class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'completed' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 text-emerald-900 hover:bg-emerald-100' }}">
                     🌟 Tuntas 100%
                 </a>
@@ -176,16 +195,16 @@
 
             {{-- Search Bar --}}
             <form method="GET" action="{{ route('guru.lms.monitoring.index') }}" class="flex items-center gap-2">
-                <input type="hidden" name="course_id" value="{{ $course->id }}">
+                <input type="hidden" name="course_id" value="{{ $selectedCourseId }}">
                 <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
                 <input type="hidden" name="filter" value="{{ $filterTab }}">
-                <div class="relative w-full md:w-64">
+                <div class="relative w-full md:w-72">
                     <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama siswa / NISN..."
+                    <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama / NISN / mapel / kelas..."
                            class="w-full bg-slate-50 border-2 border-black rounded-xl pl-9 pr-3 py-2 text-xs font-bold text-slate-900 outline-none focus:bg-white">
                 </div>
                 @if(!empty($search))
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $course->id, 'classroom_id' => $selectedClassroomId, 'filter' => $filterTab]) }}"
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'classroom_id' => $selectedClassroomId, 'filter' => $filterTab]) }}"
                    class="px-3 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-xs font-black text-slate-700 border border-black">✕</a>
                 @endif
             </form>
@@ -197,10 +216,13 @@
                 <thead>
                     <tr class="border-b-2 border-black bg-slate-50 text-[11px] font-black text-slate-700 uppercase tracking-wider">
                         <th class="py-3 px-4 w-12 text-center">No</th>
-                        <th class="py-3 px-4">Nama Siswa & Rombel</th>
-                        <th class="py-3 px-4 min-w-[160px]">Progres Materi</th>
+                        <th class="py-3 px-4">Nama Siswa & Identitas</th>
+                        @if($isAllCourses)
+                            <th class="py-3 px-4">Mata Pelajaran / Kursus</th>
+                        @endif
+                        <th class="py-3 px-4 min-w-[150px]">Progres Materi</th>
                         <th class="py-3 px-4 text-center">Tugas & Nilai</th>
-                        <th class="py-3 px-4 text-center">Kuis & Nilai</th>
+                        <th class="py-3 px-4 text-center">Kuis & Skor</th>
                         <th class="py-3 px-4 text-center">Total Capaian</th>
                         <th class="py-3 px-4 text-center">Status</th>
                         <th class="py-3 px-4 text-center w-36">Tindakan Guru</th>
@@ -210,6 +232,7 @@
                     @forelse($filteredStudents as $item)
                     @php
                         $st = $item['student'];
+                        $c = $item['course'];
                     @endphp
                     <tr class="hover:bg-amber-50/40 transition {{ $item['is_at_risk'] ? 'bg-rose-50/20' : '' }}">
                         <td class="py-3.5 px-4 text-center font-black text-slate-500">{{ $loop->iteration }}</td>
@@ -222,16 +245,25 @@
                                      class="w-10 h-10 rounded-xl object-cover border-2 border-black shadow-xs shrink-0">
                                 <div>
                                     <div class="font-black text-slate-900 text-xs hover:text-amber-600 transition cursor-pointer"
-                                         onclick="openCourseStudentDetail({{ $st->id }}, {{ $course->id }})">
+                                         onclick="openCourseStudentDetail({{ $st->id }}, {{ $c->id }})">
                                         {{ $st->full_name }}
                                     </div>
                                     <p class="text-[10px] text-slate-500 font-bold">
-                                        <span class="px-1.5 py-0.2 bg-slate-100 rounded border border-slate-200 mr-1">{{ $item['class_name'] }}</span>
+                                        <span class="px-1.5 py-0.2 bg-slate-100 rounded border border-slate-200 mr-1 text-slate-800 font-extrabold">{{ $item['class_name'] }}</span>
                                         NISN: {{ $st->nisn ?? '-' }}
                                     </p>
                                 </div>
                             </div>
                         </td>
+
+                        {{-- Kolom Kursus / Mapel jika mode Semua Kursus --}}
+                        @if($isAllCourses)
+                        <td class="py-3.5 px-4">
+                            <span class="px-2 py-1 bg-amber-100 text-amber-950 font-black rounded-lg border border-amber-300 text-[10px] block w-fit">
+                                {{ $item['course_name'] }}
+                            </span>
+                        </td>
+                        @endif
 
                         {{-- Progres Materi --}}
                         <td class="py-3.5 px-4">
@@ -293,14 +325,14 @@
                         <td class="py-3.5 px-4 text-center">
                             <div class="flex items-center justify-center gap-1.5">
                                 {{-- Tombol Detail --}}
-                                <button onclick="openCourseStudentDetail({{ $st->id }}, {{ $course->id }})" 
+                                <button onclick="openCourseStudentDetail({{ $st->id }}, {{ $c->id }})" 
                                         class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl border border-black shadow-xs transition"
                                         title="Lihat Detail Capaian">
                                     <i class="fas fa-eye text-xs"></i>
                                 </button>
 
                                 {{-- Tombol Pengingat / Apresiasi --}}
-                                <button onclick="openActionModal({{ $st->id }}, '{{ addslashes($st->full_name) }}', '{{ $item['phone'] }}', {{ $item['material_pct'] }}, {{ $item['submitted_assignments'] }}, {{ $item['total_assignments'] }})"
+                                <button onclick="openActionModal({{ $st->id }}, {{ $c->id }}, '{{ addslashes($st->full_name) }}', '{{ $item['phone'] }}', {{ $item['material_pct'] }}, {{ $item['submitted_assignments'] }}, {{ $item['total_assignments'] }})"
                                         class="px-2.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-black rounded-xl border border-black font-black text-[11px] shadow-xs transition flex items-center gap-1">
                                     <i class="fas fa-paper-plane text-xs"></i> Aksi
                                 </button>
@@ -309,7 +341,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center py-10 text-slate-400 font-bold">
+                        <td colspan="{{ $isAllCourses ? '9' : '8' }}" class="text-center py-10 text-slate-400 font-bold">
                             <i class="fas fa-user-slash text-3xl mb-2 text-slate-300"></i>
                             <p>Tidak ada data siswa yang cocok dengan filter.</p>
                         </td>
@@ -340,7 +372,7 @@
         <div id="modalCsContent" class="p-6 overflow-y-auto space-y-4 flex-1">
             <div class="text-center py-10 text-slate-400 font-bold">
                 <i class="fas fa-spinner fa-spin text-2xl mb-2 text-slate-600"></i>
-                <p>Memuat rincian aktivitas siswa...</p>
+                <p>Memuat aktivitas materi & tugas...</p>
             </div>
         </div>
     </div>
@@ -365,7 +397,7 @@
         <form id="actionForm" onsubmit="submitAction(event)" class="p-6 space-y-4">
             @csrf
             <input type="hidden" name="student_id" id="actStudentId">
-            <input type="hidden" name="course_id" value="{{ $course->id }}">
+            <input type="hidden" name="course_id" id="actCourseId">
 
             <div>
                 <label class="block text-xs font-black text-slate-700 uppercase mb-1">Tipe Pesan</label>
@@ -418,7 +450,7 @@
             </div>
         `;
 
-        fetch(`{{ url('guru/lms-monitoring/student') }}/${studentId}/course/${courseId}`)
+        fetch(`{{ url('guru/lms/monitoring/student') }}/${studentId}/course/${courseId}`)
             .then(res => res.json())
             .then(data => {
                 document.getElementById('modalCsName').textContent = data.student.name;
@@ -433,12 +465,12 @@
                                 <span><i class="fas fa-book-open text-blue-600 mr-1.5"></i>Status Modul & Materi (${data.materials.length})</span>
                             </h4>
                             <div class="space-y-1.5">
-                                ${data.materials.map(m => `
+                                ${data.materials.length > 0 ? data.materials.map(m => `
                                     <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200 text-xs">
                                         <span class="font-bold text-slate-800">${m.title}</span>
                                         ${m.is_completed ? '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-black text-[10px]">✓ Selesai Dibaca</span>' : '<span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-black text-[10px]">✕ Belum Dibaca</span>'}
                                     </div>
-                                `).join('')}
+                                `).join('') : '<p class="text-xs text-slate-400 italic">Tidak ada modul/materi.</p>'}
                             </div>
                         </div>
 
@@ -495,9 +527,10 @@
 
     // 2. ACTION MODAL
     let currentActData = {};
-    function openActionModal(id, name, phone, matPct, sub, tot) {
-        currentActData = { id, name, phone, matPct, sub, tot };
+    function openActionModal(id, courseId, name, phone, matPct, sub, tot) {
+        currentActData = { id, courseId, name, phone, matPct, sub, tot };
         document.getElementById('actStudentId').value = id;
+        document.getElementById('actCourseId').value = courseId;
         document.getElementById('actStudentNameTitle').textContent = name;
         document.getElementById('actTargetPhone').value = phone || '';
 
