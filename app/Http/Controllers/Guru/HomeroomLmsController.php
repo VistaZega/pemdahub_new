@@ -34,23 +34,17 @@ class HomeroomLmsController extends Controller
         $teacher = $this->getTeacher();
         $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
 
-        // 1. Ambil rombel-rombel yang diampu sebagai Wali Kelas
+        // 1. Ambil rombel-rombel yang diampu sebagai Wali Kelas pada tahun pelajaran aktif
         $homeroomClassrooms = Classroom::where('homeroom_teacher_id', $teacher?->id)
+            ->where('is_active', true)
             ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->with(['school'])
             ->get();
 
-        if ($homeroomClassrooms->isEmpty()) {
-            // Fallback: periksa semua tahun jika tahun aktif belum diset di rombel
-            $homeroomClassrooms = Classroom::where('homeroom_teacher_id', $teacher?->id)
-                ->with(['school'])
-                ->get();
-        }
-
         $isWaliKelas = $homeroomClassrooms->isNotEmpty();
         if (!$isWaliKelas) {
             return redirect()->route('guru.dashboard')
-                ->with('error', 'Anda belum ditugaskan sebagai Wali Kelas pada tahun pelajaran aktif.');
+                ->with('error', 'Akses ditolak. Anda tidak terdaftar sebagai Wali Kelas pada tahun pelajaran aktif.');
         }
 
         // 2. Tentukan rombel terpilih

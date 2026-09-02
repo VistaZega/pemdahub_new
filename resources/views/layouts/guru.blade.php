@@ -28,6 +28,7 @@
         if (!$isPegawaiOnly && $activeYearId && $teacherId) {
             $homeroomClassIds = \App\Models\Classroom::where('homeroom_teacher_id', $teacherId)
                 ->where('academic_year_id', $activeYearId)
+                ->where('is_active', true)
                 ->pluck('id');
             $isWaliKelas = $homeroomClassIds->isNotEmpty();
             if ($isWaliKelas) {
@@ -96,7 +97,7 @@
     <!-- Monitoring LMS Kelas (Wali Kelas) -->
     <a href="{{ route('guru.walikelas.lms-monitoring') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.walikelas.lms-monitoring*') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #f59e0b !important; color: #000000 !important;"><i class="fas fa-chart-pie text-[10px] text-black"></i></div>
-        <span>Monitoring LMS Kelas</span>
+        <span>Pantauan LMS Rombel</span>
     </a>
     @endif
 
@@ -112,7 +113,7 @@
             <i class="fas fa-book-open mr-1.5 text-[10px]"></i>Kursus Saya
         </a>
         <a href="{{ route('guru.lms.monitoring.index') }}" class="block text-xs px-3 py-1.5 rounded-lg transition {{ request()->routeIs('guru.lms.monitoring.*') ? 'bg-orange-100 text-orange-950 font-black border border-black' : 'text-slate-700 font-bold hover:text-black hover:bg-slate-100' }}">
-            <i class="fas fa-chart-line mr-1.5 text-[10px]"></i>Pantauan Progres Siswa
+            <i class="fas fa-chart-line mr-1.5 text-[10px]"></i>Pantauan Siswa (Mapel Saya)
         </a>
     </div>
     @endif

@@ -112,6 +112,14 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
 
     // LMS Routes
     Route::prefix('lms')->name('lms.')->middleware('feature:guru_access_lms')->group(function () {
+        // Overall Student Progress Monitoring (Guru Mapel) - Must be before /{course}
+        Route::prefix('monitoring')->name('monitoring.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Guru\TeacherLmsMonitoringController::class, 'index'])->name('index');
+            Route::get('/student/{student}/course/{course}', [App\Http\Controllers\Guru\TeacherLmsMonitoringController::class, 'studentCourseDetail'])->name('student-detail');
+            Route::post('/action', [App\Http\Controllers\Guru\TeacherLmsMonitoringController::class, 'sendPraiseOrWarning'])->name('action');
+            Route::get('/export', [App\Http\Controllers\Guru\TeacherLmsMonitoringController::class, 'exportExcel'])->name('export');
+        });
+
         // Courses
         Route::get('/', [App\Http\Controllers\Guru\LmsCourseController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\Guru\LmsCourseController::class, 'create'])->name('create');
@@ -123,14 +131,6 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::get('/{course}/edit', [App\Http\Controllers\Guru\LmsCourseController::class, 'edit'])->name('edit');
         Route::put('/{course}', [App\Http\Controllers\Guru\LmsCourseController::class, 'update'])->name('update');
         Route::delete('/{course}', [App\Http\Controllers\Guru\LmsCourseController::class, 'destroy'])->name('destroy');
-
-        // Overall Student Progress Monitoring (Guru Mapel)
-        Route::prefix('monitoring')->name('monitoring.')->group(function () {
-            Route::get('/', [App\Http\Controllers\Guru\TeacherLmsMonitoringController::class, 'index'])->name('index');
-            Route::get('/student/{student}/course/{course}', [App\Http\Controllers\Guru\TeacherLmsMonitoringController::class, 'studentCourseDetail'])->name('student-detail');
-            Route::post('/action', [App\Http\Controllers\Guru\TeacherLmsMonitoringController::class, 'sendPraiseOrWarning'])->name('action');
-            Route::get('/export', [App\Http\Controllers\Guru\TeacherLmsMonitoringController::class, 'exportExcel'])->name('export');
-        });
 
         // Meeting / Video Conference
         Route::post('/{course}/meeting/start', [App\Http\Controllers\Guru\LmsCourseController::class, 'startMeeting'])->name('meeting.start');
