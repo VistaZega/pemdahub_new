@@ -602,28 +602,24 @@ class TeacherLmsMonitoringController extends Controller
     /**
      * Periksa apakah siswa relevan dengan mata pelajaran kejuruan ini.
      * Menggunakan kelas reguler (non-gabungan) siswa untuk menentukan jurusan sebenarnya.
+     * Kelas gabungan (contoh: "XI Teknik Rekayasa (DPIB, TAV)") mengandung SEMUA jurusan
+     * di namanya, sehingga TIDAK bisa dipakai untuk filter jurusan individual.
      */
     protected function isStudentMatchingVocationalSubject(Student $student, ?array $subjectKeywords, ?Classroom $lmsClass): bool
     {
         if (!$subjectKeywords) {
-            return true; // Mapel umum -> semua siswa relevan
+            return true; // Mapel umum (Matematika, B.Indo, dll) -> semua siswa relevan
         }
 
         // Cari kelas REGULER (non-gabungan) siswa untuk identifikasi jurusan asli
-        // Kelas gabungan/blok (seperti "XI Teknik Rekayasa (DPIB, TAV)") mengandung SEMUA jurusan
-        // di namanya, jadi tidak bisa dipakai untuk filter jurusan individual.
         $regularClasses = $student->classrooms->filter(function ($cls) {
             return !$cls->is_combined && $cls->class_type !== 'gabungan';
         });
 
-        // Jika tidak ada kelas reguler, cek kelas yang bukan kelas LMS/blok saat ini
+        // Jika tidak ada kelas reguler, siswa tidak bisa diidentifikasi jurusannya
+        // -> KELUARKAN dari mapel kejuruan (lebih aman daripada menampilkan siswa salah jurusan)
         if ($regularClasses->isEmpty()) {
-            $regularClasses = $student->classrooms->filter(fn($cls) => $cls->id !== $lmsClass?->id);
-        }
-
-        // Jika masih kosong, siswa hanya punya kelas gabungan -> loloskan (tidak bisa filter)
-        if ($regularClasses->isEmpty()) {
-            return true;
+            return false;
         }
 
         $classNames = $regularClasses->pluck('class_name')->map(fn($n) => strtoupper($n))->toArray();
