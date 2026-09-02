@@ -600,7 +600,8 @@ class TeacherLmsMonitoringController extends Controller
     }
 
     /**
-     * Periksa apakah siswa relevan dengan mata pelajaran kejuruan ini
+     * Periksa apakah siswa relevan dengan mata pelajaran kejuruan ini.
+     * Menggunakan kelas reguler (non-gabungan) siswa untuk menentukan jurusan sebenarnya.
      */
     protected function isStudentMatchingVocationalSubject(Student $student, ?array $subjectKeywords, ?Classroom $lmsClass): bool
     {
@@ -608,17 +609,24 @@ class TeacherLmsMonitoringController extends Controller
             return true; // Mapel umum -> semua siswa relevan
         }
 
-        // Ambil kelas aktif siswa pada tahun pelajaran kursus
-        $courseYearId = $lmsClass?->academic_year_id;
-        $activeClasses = $student->classrooms;
-        if ($courseYearId) {
-            $activeClasses = $activeClasses->where('academic_year_id', $courseYearId);
+        // Cari kelas REGULER (non-gabungan) siswa untuk identifikasi jurusan asli
+        // Kelas gabungan/blok (seperti "XI Teknik Rekayasa (DPIB, TAV)") mengandung SEMUA jurusan
+        // di namanya, jadi tidak bisa dipakai untuk filter jurusan individual.
+        $regularClasses = $student->classrooms->filter(function ($cls) {
+            return !$cls->is_combined && $cls->class_type !== 'gabungan';
+        });
+
+        // Jika tidak ada kelas reguler, cek kelas yang bukan kelas LMS/blok saat ini
+        if ($regularClasses->isEmpty()) {
+            $regularClasses = $student->classrooms->filter(fn($cls) => $cls->id !== $lmsClass?->id);
         }
 
-        $classNames = $activeClasses->pluck('class_name')->map(fn($n) => strtoupper($n))->toArray();
-        if (empty($classNames) && $lmsClass) {
-            $classNames = [strtoupper($lmsClass->class_name)];
+        // Jika masih kosong, siswa hanya punya kelas gabungan -> loloskan (tidak bisa filter)
+        if ($regularClasses->isEmpty()) {
+            return true;
         }
+
+        $classNames = $regularClasses->pluck('class_name')->map(fn($n) => strtoupper($n))->toArray();
 
         foreach ($classNames as $className) {
             foreach ($subjectKeywords as $kw) {
