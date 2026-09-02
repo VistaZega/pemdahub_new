@@ -5,8 +5,8 @@
  */
 if (($_GET['secret'] ?? '') !== 'pembda99') { die('Forbidden'); }
 
-require __DIR__ . '/../pembdahub/vendor/autoload.php';
-$app = require_once __DIR__ . '/../pembdahub/bootstrap/app.php';
+require __DIR__ . '/../vendor/autoload.php';
+$app = require_once __DIR__ . '/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
