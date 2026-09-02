@@ -210,8 +210,8 @@ class LmsCourseController extends Controller
             'code' => $code,
             'course_name' => $request->name,
             'description' => $request->description,
-            'status' => 'draft',
-            'is_published' => false,
+            'status' => 'active',
+            'is_published' => true,
             'is_active' => true,
             'is_sequential' => $request->has('is_sequential'),
         ]);

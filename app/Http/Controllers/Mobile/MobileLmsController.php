@@ -54,10 +54,15 @@ class MobileLmsController extends Controller
             ->when($student->school_id, function ($q) use ($student) {
                 $q->where(function ($sq) use ($student) {
                     $sq->where('school_id', $student->school_id)
-                       ->orWhereNull('school_id');
+                       ->orWhereNull('school_id')
+                       ->orWhere('school_id', 4);
                 });
             })
-            ->where('is_published', true)
+            ->where(function ($q) {
+                $q->where('is_published', true)
+                  ->orWhere('status', 'active')
+                  ->orWhere('is_active', true);
+            })
             ->with(['teacher.user', 'subject', 'classroom', 'modules.materials', 'materials', 'lmsClasses.classroom'])
             ->withCount(['materials', 'assignments', 'quizzes', 'enrollments'])
             ->latest()
@@ -246,8 +251,12 @@ class MobileLmsController extends Controller
         $teacher = \App\Models\Teacher::where('user_id', $user->id)->first() ?? $user->teacher;
         $schoolId = $student?->school_id ?? $teacher?->school_id ?? $user->school_id;
 
-        $courses = LmsCourse::where('is_published', true)
-            ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+        $courses = LmsCourse::where(function ($q) {
+                $q->where('is_published', true)
+                  ->orWhere('status', 'active')
+                  ->orWhere('is_active', true);
+            })
+            ->when($schoolId, fn($q) => $q->where(fn($sq) => $sq->where('school_id', $schoolId)->orWhere('school_id', 4)->orWhereNull('school_id')))
             ->with('teacher')
             ->latest()
             ->paginate(10);

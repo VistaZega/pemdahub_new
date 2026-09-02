@@ -153,8 +153,14 @@ class MobileDashboardController extends Controller
                 if ($classroom) {
                     $courseIds = LmsCourse::where(function ($q) use ($classroom) {
                         $q->where('classroom_id', $classroom->id)
-                          ->orWhereHas('classes', fn($cq) => $cq->where('classroom_id', $classroom->id));
-                    })->where('is_published', true)->pluck('id');
+                          ->orWhereHas('lmsClasses', fn($cq) => $cq->where('classroom_id', $classroom->id));
+                    })
+                    ->where(function ($q) {
+                        $q->where('is_published', true)
+                          ->orWhere('status', 'active')
+                          ->orWhere('is_active', true);
+                    })
+                    ->pluck('id');
 
                     $assignmentIds = LmsAssignment::whereIn('course_id', $courseIds)->where('is_published', true)->pluck('id');
                     $totalAssignments = $assignmentIds->count();
@@ -203,11 +209,20 @@ class MobileDashboardController extends Controller
                 ];
 
                 // LMS courses for student
-                $activeCourses = LmsCourse::whereHas('classes', function ($q) use ($classroom) {
+                $activeCourses = LmsCourse::where(function ($q) use ($classroom) {
                     if ($classroom) {
-                        $q->where('classroom_id', $classroom->id);
+                        $q->where('classroom_id', $classroom->id)
+                          ->orWhereHas('lmsClasses', fn($cq) => $cq->where('classroom_id', $classroom->id));
                     }
-                })->where('is_published', true)->take(3)->get();
+                })
+                ->where(function ($q) {
+                    $q->where('is_published', true)
+                      ->orWhere('status', 'active')
+                      ->orWhere('is_active', true);
+                })
+                ->latest()
+                ->take(3)
+                ->get();
             }
         } 
         
