@@ -38,7 +38,14 @@
                     @endif
                 </div>
                 <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight flex items-center gap-2.5">
-                    {{ $isAllCourses ? 'Seluruh Mata Pelajaran & Kelas yang Anda Ajar' : $course->course_name }}
+                    @if($isAllCourses)
+                        Seluruh Mata Pelajaran & Kelas yang Anda Ajar
+                    @else
+                        @php
+                            $currClasses = $course->lmsClasses->map(fn($lc) => $lc->classroom?->class_name)->filter()->unique()->join(', ');
+                        @endphp
+                        {{ $course->course_name }}{{ $currClasses ? ' - ' . $currClasses : '' }}
+                    @endif
                 </h1>
                 <p class="text-slate-600 font-bold text-xs md:text-sm mt-1 max-w-2xl">
                     {{ $isAllCourses 
@@ -47,41 +54,28 @@
                 </p>
             </div>
 
-            {{-- Selector Kursus, Rombel & Export --}}
+            {{-- Selector Kursus / Mapel & Export --}}
             <div class="flex flex-wrap items-center gap-3 shrink-0">
-                {{-- Selector Kursus & Rombel --}}
                 <form method="GET" action="{{ route('guru.lms.monitoring.index') }}" id="filterCourseForm" class="flex flex-wrap items-center gap-2">
-                    {{-- Dropdown Pilihan Kursus / Mapel --}}
+                    {{-- Dropdown Tunggal: Nama Mapel - Kelas --}}
                     <div class="relative">
                         <select name="course_id" onchange="document.getElementById('filterCourseForm').submit()" 
-                                class="bg-slate-100 text-black font-black text-xs px-4 py-3 rounded-2xl border-2 border-black shadow-sm outline-none cursor-pointer pr-8 max-w-[260px]">
+                                class="bg-slate-100 text-black font-black text-xs pl-4 pr-10 py-3 rounded-2xl border-2 border-black shadow-sm outline-none cursor-pointer max-w-[320px] md:max-w-[420px]">
                             <option value="all" {{ $selectedCourseId === 'all' ? 'selected' : '' }}>
-                                🌐 Semua Mata Pelajaran ({{ $myCourses->count() }} Kursus)
+                                🌐 Semua Mata Pelajaran & Kelas ({{ $myCourses->count() }} Kursus)
                             </option>
-                            <optgroup label="Pilih Per Mata Pelajaran:">
+                            <optgroup label="Pilih Mata Pelajaran & Kelas:">
                                 @foreach($myCourses as $mc)
+                                    @php
+                                        $mcClasses = $mc->lmsClasses->map(fn($lc) => $lc->classroom?->class_name)->filter()->unique()->join(', ');
+                                    @endphp
                                     <option value="{{ $mc->id }}" {{ $selectedCourseId == $mc->id ? 'selected' : '' }}>
-                                        {{ $mc->course_name }} ({{ $mc->subject?->name ?? 'Mapel' }})
+                                        {{ $mc->course_name }}{{ $mcClasses ? ' - ' . $mcClasses : '' }}
                                     </option>
                                 @endforeach
                             </optgroup>
                         </select>
                     </div>
-
-                    {{-- Dropdown Pilihan Rombel / Kelas --}}
-                    @if($classrooms->count() > 1)
-                    <div class="relative">
-                        <select name="classroom_id" onchange="document.getElementById('filterCourseForm').submit()" 
-                                class="bg-slate-100 text-black font-black text-xs px-3.5 py-3 rounded-2xl border-2 border-black shadow-sm outline-none cursor-pointer pr-8">
-                            <option value="">-- Semua Kelas ({{ $classrooms->count() }} Rombel) --</option>
-                            @foreach($classrooms as $cls)
-                                <option value="{{ $cls->id }}" {{ $selectedClassroomId == $cls->id ? 'selected' : '' }}>
-                                    Kelas {{ $cls->class_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    @endif
                 </form>
 
                 {{-- Tombol Export Excel / CSV --}}
@@ -175,19 +169,19 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b-2 border-slate-100 pb-5">
             {{-- Tabs --}}
             <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'classroom_id' => $selectedClassroomId, 'filter' => 'all', 'search' => $search]) }}"
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'all', 'search' => $search]) }}"
                    class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'all' ? 'bg-black text-amber-400 shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
                     Semua ({{ count($studentList) }})
                 </a>
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'classroom_id' => $selectedClassroomId, 'filter' => 'at_risk', 'search' => $search]) }}"
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'at_risk', 'search' => $search]) }}"
                    class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'at_risk' ? 'bg-rose-600 text-white shadow-sm' : 'bg-rose-50 text-rose-800 hover:bg-rose-100' }}">
                     ⚠️ Perlu Perhatian ({{ $kpi['at_risk_count'] }})
                 </a>
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'classroom_id' => $selectedClassroomId, 'filter' => 'missing_task', 'search' => $search]) }}"
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'missing_task', 'search' => $search]) }}"
                    class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'missing_task' ? 'bg-amber-400 text-black shadow-sm' : 'bg-amber-50 text-amber-900 hover:bg-amber-100' }}">
                     📝 Belum Kumpul Tugas ({{ $kpi['missing_task_count'] }})
                 </a>
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'classroom_id' => $selectedClassroomId, 'filter' => 'completed', 'search' => $search]) }}"
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'completed', 'search' => $search]) }}"
                    class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'completed' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 text-emerald-900 hover:bg-emerald-100' }}">
                     🌟 Tuntas 100%
                 </a>
@@ -196,7 +190,6 @@
             {{-- Search Bar --}}
             <form method="GET" action="{{ route('guru.lms.monitoring.index') }}" class="flex items-center gap-2">
                 <input type="hidden" name="course_id" value="{{ $selectedCourseId }}">
-                <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
                 <input type="hidden" name="filter" value="{{ $filterTab }}">
                 <div class="relative w-full md:w-72 flex items-center">
                     <i class="fas fa-search absolute left-4 text-slate-400 text-xs pointer-events-none"></i>
@@ -204,7 +197,7 @@
                            class="w-full bg-slate-50 border-2 border-black rounded-2xl pl-11 pr-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:bg-white transition shadow-2xs">
                 </div>
                 @if(!empty($search))
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'classroom_id' => $selectedClassroomId, 'filter' => $filterTab]) }}"
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => $filterTab]) }}"
                    class="px-3 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-xs font-black text-slate-700 border border-black">✕</a>
                 @endif
             </form>
