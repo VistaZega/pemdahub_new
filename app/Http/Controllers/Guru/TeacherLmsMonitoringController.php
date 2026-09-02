@@ -107,6 +107,16 @@ class TeacherLmsMonitoringController extends Controller
             ->groupBy('student_id');
 
         // 4. Hitung Matriks Siswa (Per Kursus - Siswa Pair)
+        // Preload daftar student_id yang benar-benar terdaftar di setiap classroom (classroom_student)
+        $classroomStudentMap = [];
+        foreach ($activeCourses as $ac) {
+            foreach ($ac->lmsClasses as $lc) {
+                if ($lc->classroom) {
+                    $classroomStudentMap[$lc->classroom_id] = $lc->classroom->students()->pluck('students.id')->toArray();
+                }
+            }
+        }
+
         $studentList = [];
         foreach ($enrollments as $enr) {
             $st = $enr->student;
@@ -115,13 +125,22 @@ class TeacherLmsMonitoringController extends Controller
             $c = $enr->lmsClass?->course;
             if (!$c) continue;
 
-            // Filter Otomatis: Jika ini mata pelajaran kejuruan (DDTK / Konsentrasi Keahlian),
-            // hanya sertakan siswa yang jurusannya relevan dengan kejuruan tersebut!
+            $lmsClass = $enr->lmsClass?->classroom;
+
+            // Validasi: Siswa HARUS benar-benar terdaftar di classroom yang dipilih
+            // LMS enrollment bisa bocor (117 enrollment vs 28 anggota kelas sebenarnya)
+            if ($lmsClass && isset($classroomStudentMap[$lmsClass->id])) {
+                if (!in_array($st->id, $classroomStudentMap[$lmsClass->id])) {
+                    continue; // Siswa bukan anggota kelas ini, skip
+                }
+            }
+
+            // Filter Otomatis Kejuruan: Jika ini mapel kejuruan (DDTK / Konsentrasi Keahlian),
+            // hanya sertakan siswa yang jurusannya relevan dengan kejuruan tersebut
             $subjName = $c->subject?->name ?? $c->subject?->subject_name;
             $vocKeywords = $this->getSubjectMajorKeywords($subjName, $c->subject?->code, $c->course_name);
-            $lmsClass = $enr->lmsClass?->classroom;
             if (!$this->isStudentMatchingVocationalSubject($st, $vocKeywords, $lmsClass)) {
-                continue; // Jangan tampilkan siswa dari jurusan non-relevan (misal: DPIB di mapel TE)
+                continue;
             }
 
             $cMatIds = $c->materials->pluck('id')->toArray();
@@ -498,10 +517,17 @@ class TeacherLmsMonitoringController extends Controller
                 $c = $enr->lmsClass?->course;
                 if (!$st || !$c) continue;
 
-                // Filter Otomatis: Hanya sertakan siswa jurusan yang relevan untuk mapel kejuruan
+                $lmsClass = $enr->lmsClass?->classroom;
+
+                // Validasi: Siswa HARUS benar-benar terdaftar di classroom
+                if ($lmsClass) {
+                    $isActualMember = $lmsClass->students()->where('students.id', $st->id)->exists();
+                    if (!$isActualMember) continue;
+                }
+
+                // Filter Otomatis Kejuruan
                 $subjName = $c->subject?->name ?? $c->subject?->subject_name;
                 $vocKeywords = $this->getSubjectMajorKeywords($subjName, $c->subject?->code, $c->course_name);
-                $lmsClass = $enr->lmsClass?->classroom;
                 if (!$this->isStudentMatchingVocationalSubject($st, $vocKeywords, $lmsClass)) {
                     continue;
                 }
