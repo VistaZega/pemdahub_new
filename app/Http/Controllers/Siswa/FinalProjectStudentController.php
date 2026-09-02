@@ -228,6 +228,6 @@ class FinalProjectStudentController extends Controller
             abort(404, 'File format tidak ditemukan.');
         }
 
-        return Storage::disk('public')->download($format->file_path, $format->title . '.' . pathinfo($format->file_path, PATHINFO_EXTENSION));
+        return Storage::disk('public')->download($format->file_path, str_replace(['/', '\\'], '-', $format->title . '.' . pathinfo($format->file_path, PATHINFO_EXTENSION)));
     }
 }

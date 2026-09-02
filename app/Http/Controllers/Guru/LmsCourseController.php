@@ -926,7 +926,7 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
             abort(404, 'File tidak ditemukan.');
         }
 
-        return Storage::disk('public')->download($material->file_path, $material->title);
+        return Storage::disk("public")->download($material->file_path, str_replace(["/", "\\"], "-", $material->title));
     }
 
     public function viewMaterial(LmsMaterial $material)

@@ -1310,7 +1310,7 @@ class LmsController extends Controller
             abort(404, 'File tidak ditemukan.');
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('public')->download($material->file_path, $material->title);
+        return \Illuminate\Support\Facades\Storage::disk('public')->download($material->file_path, str_replace(['/', '\\'], '-', $material->title));
     }
 
     /**

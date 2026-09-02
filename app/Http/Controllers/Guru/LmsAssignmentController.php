@@ -703,6 +703,6 @@ class LmsAssignmentController extends Controller
 
         $downloadFilename = "Tugas_{$assignmentTitle}_{$studentName}.{$ext}";
 
-        return \Illuminate\Support\Facades\Storage::disk('public')->download($submission->file_path, $downloadFilename);
+        return \Illuminate\Support\Facades\Storage::disk('public')->download($submission->file_path, str_replace(['/', '\\'], '-', $downloadFilename));
     }
 }
