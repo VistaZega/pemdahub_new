@@ -241,9 +241,12 @@
                                          onclick="openCourseStudentDetail({{ $st->id }}, {{ $c->id }})">
                                         {{ $st->full_name }}
                                     </div>
-                                    <p class="text-[10px] text-slate-500 font-bold">
-                                        <span class="px-1.5 py-0.2 bg-slate-100 rounded border border-slate-200 mr-1 text-slate-800 font-extrabold">{{ $item['class_name'] }}</span>
-                                        NISN: {{ $st->nisn ?? '-' }}
+                                    <p class="text-[10px] text-slate-500 font-bold flex items-center flex-wrap gap-1 mt-0.5">
+                                        <span class="px-1.5 py-0.5 bg-blue-50 text-blue-900 border border-blue-200 rounded font-black text-[10px]">{{ $item['class_name'] }}</span>
+                                        @if($item['is_block_class'])
+                                            <span class="px-1.5 py-0.5 bg-amber-50 text-amber-900 border border-amber-200 rounded font-bold text-[9px]">Blok: {{ $item['block_class_name'] }}</span>
+                                        @endif
+                                        <span class="text-slate-400">NISN: {{ $st->nisn ?? '-' }}</span>
                                     </p>
                                 </div>
                             </div>

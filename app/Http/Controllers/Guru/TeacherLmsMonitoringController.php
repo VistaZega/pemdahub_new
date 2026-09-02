@@ -165,7 +165,13 @@ class TeacherLmsMonitoringController extends Controller
                 }
             }
 
-            $className = $enr->lmsClass?->classroom?->class_name ?? $st->classrooms->first()?->class_name ?? '-';
+            // Identifikasi kelas asal (reguler) vs kelas LMS/blok
+            $lmsClass = $enr->lmsClass?->classroom;
+            $regularClass = $st->classrooms->filter(fn($cls) => $cls->id !== $lmsClass?->id)->first() ?? $lmsClass;
+
+            $originClassName = $regularClass?->class_name ?? '-';
+            $lmsClassName = $lmsClass?->class_name ?? '-';
+            $isBlockClass = ($regularClass && $lmsClass && $regularClass->id !== $lmsClass->id);
 
             $studentList[] = [
                 'enrollment_id' => $enr->id,
@@ -173,7 +179,9 @@ class TeacherLmsMonitoringController extends Controller
                 'course' => $c,
                 'course_name' => $c->course_name,
                 'subject_name' => $c->subject?->name ?? $c->subject?->subject_name ?? $c->course_name,
-                'class_name' => $className,
+                'class_name' => $originClassName,
+                'block_class_name' => $lmsClassName,
+                'is_block_class' => $isBlockClass,
                 'completed_materials' => $completedMats,
                 'total_materials' => $totalMats,
                 'material_pct' => $matPct,
@@ -213,7 +221,8 @@ class TeacherLmsMonitoringController extends Controller
                 $nisnMatch = str_contains(strtolower($item['student']->nisn ?? ''), $search);
                 $courseMatch = str_contains(strtolower($item['course_name']), $search);
                 $classMatch = str_contains(strtolower($item['class_name']), $search);
-                return $nameMatch || $nisnMatch || $courseMatch || $classMatch;
+                $blockMatch = str_contains(strtolower($item['block_class_name']), $search);
+                return $nameMatch || $nisnMatch || $courseMatch || $classMatch || $blockMatch;
             }
             return true;
         })->values();
