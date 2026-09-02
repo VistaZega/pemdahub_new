@@ -251,9 +251,11 @@ class TeacherLmsMonitoringController extends Controller
     public function studentCourseDetail(Student $student, LmsCourse $course)
     {
         $teacher = $this->getTeacher();
-        if ($course->teacher_id !== $teacher?->id && !Auth::user()->hasAnyRole(['admin', 'superadmin', 'kepala_sekolah'])) {
+        if ($course->teacher_id != $teacher?->id && !Auth::user()->hasAnyRole(['admin', 'superadmin', 'kepala_sekolah'])) {
             return response()->json(['error' => 'Akses ditolak.'], 403);
         }
+
+        $student->load(['parents']);
 
         $materials = $course->materials()->where('is_published', true)->get();
         $completedMatIds = LmsMaterialProgress::where('student_id', $student->id)
@@ -275,12 +277,17 @@ class TeacherLmsMonitoringController extends Controller
             ->get()
             ->groupBy('quiz_id');
 
+        $photoUrl = null;
+        if ($student->photo) {
+            $photoUrl = str_starts_with($student->photo, 'http') ? $student->photo : asset('storage/' . $student->photo);
+        }
+
         return response()->json([
             'student' => [
                 'id' => $student->id,
                 'name' => $student->full_name,
                 'nisn' => $student->nisn,
-                'photo' => $student->photo ? asset('storage/' . $student->photo) : null,
+                'photo' => $photoUrl,
                 'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($student->full_name) . '&background=ea580c&color=fff',
                 'parent_name' => $student->parents->first()?->father_name ?? 'Orang Tua / Wali',
                 'parent_phone' => $student->parents->first()?->phone ?? $student->parents->first()?->whatsapp ?? $student->phone ?? null,
@@ -296,15 +303,26 @@ class TeacherLmsMonitoringController extends Controller
                 'type' => $m->material_type,
                 'is_completed' => in_array($m->id, $completedMatIds),
             ]),
-            'assignments' => $assignments->map(fn($a) => [
-                'id' => $a->id,
-                'title' => $a->title,
-                'deadline' => $a->deadline ? $a->deadline->format('d M Y H:i') : '-',
-                'is_submitted' => $submissions->has($a->id),
-                'status' => $submissions->get($a->id)?->status ?? 'belum_kumpul',
-                'grade' => $submissions->get($a->id)?->grade,
-                'submitted_at' => $submissions->get($a->id)?->submitted_at?->format('d M Y H:i') ?? null,
-            ]),
+            'assignments' => $assignments->map(function ($a) use ($submissions) {
+                $sub = $submissions->get($a->id);
+                $deadlineStr = '-';
+                if ($a->deadline) {
+                    $deadlineStr = is_string($a->deadline) ? date('d M Y H:i', strtotime($a->deadline)) : $a->deadline->format('d M Y H:i');
+                }
+                $submittedAtStr = null;
+                if ($sub?->submitted_at) {
+                    $submittedAtStr = is_string($sub->submitted_at) ? date('d M Y H:i', strtotime($sub->submitted_at)) : $sub->submitted_at->format('d M Y H:i');
+                }
+                return [
+                    'id' => $a->id,
+                    'title' => $a->title,
+                    'deadline' => $deadlineStr,
+                    'is_submitted' => $sub !== null,
+                    'status' => $sub?->status ?? 'belum_kumpul',
+                    'grade' => $sub?->score ?? $sub?->grade,
+                    'submitted_at' => $submittedAtStr,
+                ];
+            }),
             'quizzes' => $quizzes->map(fn($q) => [
                 'id' => $q->id,
                 'title' => $q->title,

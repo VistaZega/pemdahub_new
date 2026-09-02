@@ -160,10 +160,10 @@
             <form method="GET" action="{{ route('guru.walikelas.lms-monitoring') }}" class="flex items-center gap-2">
                 <input type="hidden" name="classroom_id" value="{{ $classroom->id }}">
                 <input type="hidden" name="status" value="{{ $filterStatus }}">
-                <div class="relative w-full md:w-64">
-                    <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <div class="relative w-full md:w-64 flex items-center">
+                    <i class="fas fa-search absolute left-4 text-slate-400 text-xs pointer-events-none"></i>
                     <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama siswa / NISN..."
-                           class="w-full bg-slate-50 border-2 border-black rounded-xl pl-9 pr-3 py-2 text-xs font-bold text-slate-900 outline-none focus:bg-white">
+                           class="w-full bg-slate-50 border-2 border-black rounded-2xl pl-11 pr-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:bg-white transition shadow-2xs">
                 </div>
                 @if(!empty($search))
                 <a href="{{ route('guru.walikelas.lms-monitoring', ['classroom_id' => $classroom->id, 'status' => $filterStatus]) }}"
@@ -328,9 +328,9 @@
         {{-- Modal Header --}}
         <div class="p-5 bg-amber-400 border-b-2 border-black flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
-                <img id="modalStudentPhoto" src="" class="w-12 h-12 rounded-2xl object-cover border-2 border-black bg-white shadow-xs">
+                <img id="modalStudentPhoto" src="https://ui-avatars.com/api/?name=Siswa&background=4f46e5&color=fff" class="w-12 h-12 rounded-2xl object-cover border-2 border-black bg-white shadow-xs">
                 <div>
-                    <h3 id="modalStudentName" class="text-base font-black text-black"></h3>
+                    <h3 id="modalStudentName" class="text-base font-black text-black">Memuat data siswa...</h3>
                     <p id="modalStudentNisn" class="text-xs font-bold text-slate-900"></p>
                 </div>
             </div>
@@ -384,10 +384,10 @@
 
             <div>
                 <label class="block text-xs font-black text-slate-700 uppercase mb-1">Nomor WhatsApp Tujuan (Orang Tua / Siswa)</label>
-                <div class="relative">
-                    <i class="fab fa-whatsapp absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-600 text-base"></i>
+                <div class="relative flex items-center">
+                    <i class="fab fa-whatsapp absolute left-4 text-emerald-600 text-base pointer-events-none"></i>
                     <input type="text" name="target_phone" id="motTargetPhone" placeholder="Contoh: 081234567890 (Kosongkan jika hanya rekam sistem)"
-                           class="w-full bg-slate-50 border-2 border-black rounded-xl pl-10 pr-3 py-2.5 text-xs font-bold text-slate-900 outline-none">
+                           class="w-full bg-slate-50 border-2 border-black rounded-2xl pl-11 pr-4 py-3 text-xs font-bold text-slate-900 outline-none focus:bg-white transition shadow-2xs">
                 </div>
                 <p class="text-[10px] text-slate-500 font-bold mt-1">
                     *Jika nomor diisi, sistem akan otomatis membuka chat WhatsApp dengan template pesan rapi.
@@ -415,6 +415,10 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         
+        document.getElementById('modalStudentPhoto').src = 'https://ui-avatars.com/api/?name=Siswa&background=4f46e5&color=fff';
+        document.getElementById('modalStudentName').textContent = 'Memuat data siswa...';
+        document.getElementById('modalStudentNisn').textContent = '';
+
         container.innerHTML = `
             <div class="text-center py-10 text-slate-400 font-bold">
                 <i class="fas fa-spinner fa-spin text-2xl mb-2 text-slate-600"></i>
@@ -422,60 +426,77 @@
             </div>
         `;
 
-        fetch(`{{ url('guru/walikelas/lms-monitoring/student') }}/${studentId}`)
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('modalStudentName').textContent = data.student.name;
-                document.getElementById('modalStudentNisn').textContent = `NISN: ${data.student.nisn || '-'} • Rombel: ${data.student.classroom || '-'}`;
-                document.getElementById('modalStudentPhoto').src = data.student.photo || data.student.avatar;
+        const detailUrl = `{{ route('guru.walikelas.lms-monitoring.student-detail', ['student' => ':student']) }}`
+            .replace(':student', studentId);
 
-                if (data.courses.length === 0) {
-                    container.innerHTML = `<div class="text-center py-10 text-slate-400 font-bold">Belum ada mata pelajaran LMS yang terhubung ke rombel ini.</div>`;
-                    return;
-                }
+        fetch(detailUrl, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(errData => {
+                    throw new Error(errData.error || ('HTTP ' + res.status));
+                }).catch(() => {
+                    throw new Error('HTTP ' + res.status);
+                });
+            }
+            return res.json();
+        })
+        .then(data => {
+            document.getElementById('modalStudentName').textContent = data.student.name;
+            document.getElementById('modalStudentNisn').textContent = `NISN: ${data.student.nisn || '-'} • Rombel: ${data.student.classroom || '-'}`;
+            document.getElementById('modalStudentPhoto').src = data.student.photo || data.student.avatar;
 
-                let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
-                data.courses.forEach(c => {
-                    const badgeColor = c.overall_pct >= 80 ? 'bg-emerald-100 text-emerald-950 border-emerald-300' : (c.overall_pct < 40 ? 'bg-rose-100 text-rose-950 border-rose-300' : 'bg-amber-100 text-amber-950 border-amber-300');
-                    html += `
-                        <div class="p-4 bg-slate-50 border-2 border-black rounded-2xl space-y-3 shadow-xs">
-                            <div class="flex items-start justify-between gap-2">
-                                <div>
-                                    <h4 class="text-xs font-black text-slate-900">${c.name}</h4>
-                                    <p class="text-[10px] text-slate-500 font-bold"><i class="fas fa-user-tie mr-1"></i>${c.teacher}</p>
-                                </div>
-                                <span class="px-2 py-0.5 rounded-lg text-[10px] font-black border ${badgeColor}">
-                                    ${c.overall_pct}%
-                                </span>
+            if (data.courses.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-slate-400 font-bold">Belum ada mata pelajaran LMS yang terhubung ke rombel ini.</div>`;
+                return;
+            }
+
+            let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+            data.courses.forEach(c => {
+                const badgeColor = c.overall_pct >= 80 ? 'bg-emerald-100 text-emerald-950 border-emerald-300' : (c.overall_pct < 40 ? 'bg-rose-100 text-rose-950 border-rose-300' : 'bg-amber-100 text-amber-950 border-amber-300');
+                html += `
+                    <div class="p-4 bg-slate-50 border-2 border-black rounded-2xl space-y-3 shadow-xs">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <h4 class="text-xs font-black text-slate-900">${c.name}</h4>
+                                <p class="text-[10px] text-slate-500 font-bold"><i class="fas fa-user-tie mr-1"></i>${c.teacher}</p>
                             </div>
+                            <span class="px-2 py-0.5 rounded-lg text-[10px] font-black border ${badgeColor}">
+                                ${c.overall_pct}%
+                            </span>
+                        </div>
 
-                            <div class="w-full bg-slate-200 rounded-full h-2 border border-black/10 overflow-hidden">
-                                <div class="h-full rounded-full bg-amber-400" style="width: ${c.overall_pct}%"></div>
+                        <div class="w-full bg-slate-200 rounded-full h-2 border border-black/10 overflow-hidden">
+                            <div class="h-full rounded-full bg-amber-400" style="width: ${c.overall_pct}%"></div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-bold">
+                            <div class="bg-white p-1.5 rounded-xl border border-slate-200">
+                                <p class="text-slate-400">Materi</p>
+                                <p class="font-black text-slate-800">${c.materials_completed}/${c.materials_total}</p>
                             </div>
-
-                            <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-bold">
-                                <div class="bg-white p-1.5 rounded-xl border border-slate-200">
-                                    <p class="text-slate-400">Materi</p>
-                                    <p class="font-black text-slate-800">${c.materials_completed}/${c.materials_total}</p>
-                                </div>
-                                <div class="bg-white p-1.5 rounded-xl border border-slate-200">
-                                    <p class="text-slate-400">Tugas</p>
-                                    <p class="font-black text-slate-800">${c.assignments_submitted}/${c.assignments_total}</p>
-                                </div>
-                                <div class="bg-white p-1.5 rounded-xl border border-slate-200">
-                                    <p class="text-slate-400">Kuis</p>
-                                    <p class="font-black text-slate-800">${c.quizzes_completed}/${c.quizzes_total}</p>
-                                </div>
+                            <div class="bg-white p-1.5 rounded-xl border border-slate-200">
+                                <p class="text-slate-400">Tugas</p>
+                                <p class="font-black text-slate-800">${c.assignments_submitted}/${c.assignments_total}</p>
+                            </div>
+                            <div class="bg-white p-1.5 rounded-xl border border-slate-200">
+                                <p class="text-slate-400">Kuis</p>
+                                <p class="font-black text-slate-800">${c.quizzes_completed}/${c.quizzes_total}</p>
                             </div>
                         </div>
-                    `;
-                });
-                html += `</div>`;
-                container.innerHTML = html;
-            })
-            .catch(err => {
-                container.innerHTML = `<div class="text-center py-10 text-rose-500 font-bold">Gagal memuat data detail siswa.</div>`;
+                    </div>
+                `;
             });
+            html += `</div>`;
+            container.innerHTML = html;
+        })
+        .catch(err => {
+            container.innerHTML = `<div class="text-center py-10 text-rose-500 font-bold"><i class="fas fa-exclamation-triangle text-2xl mb-2 text-rose-500 block"></i>Gagal memuat data detail siswa (${err.message || 'Terjadi kesalahan sistem'}).</div>`;
+        });
     }
 
     function closeStudentDetail() {

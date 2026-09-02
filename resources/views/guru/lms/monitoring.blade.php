@@ -198,10 +198,10 @@
                 <input type="hidden" name="course_id" value="{{ $selectedCourseId }}">
                 <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
                 <input type="hidden" name="filter" value="{{ $filterTab }}">
-                <div class="relative w-full md:w-72">
-                    <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <div class="relative w-full md:w-72 flex items-center">
+                    <i class="fas fa-search absolute left-4 text-slate-400 text-xs pointer-events-none"></i>
                     <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama / NISN / mapel / kelas..."
-                           class="w-full bg-slate-50 border-2 border-black rounded-xl pl-9 pr-3 py-2 text-xs font-bold text-slate-900 outline-none focus:bg-white">
+                           class="w-full bg-slate-50 border-2 border-black rounded-2xl pl-11 pr-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:bg-white transition shadow-2xs">
                 </div>
                 @if(!empty($search))
                 <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'classroom_id' => $selectedClassroomId, 'filter' => $filterTab]) }}"
@@ -360,9 +360,9 @@
     <div class="bg-white rounded-3xl border-2 border-black shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-fadeUp">
         <div class="p-5 bg-amber-400 border-b-2 border-black flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
-                <img id="modalCsPhoto" src="" class="w-12 h-12 rounded-2xl object-cover border-2 border-black bg-white shadow-xs">
+                <img id="modalCsPhoto" src="https://ui-avatars.com/api/?name=Siswa&background=ea580c&color=fff" class="w-12 h-12 rounded-2xl object-cover border-2 border-black bg-white shadow-xs">
                 <div>
-                    <h3 id="modalCsName" class="text-base font-black text-black"></h3>
+                    <h3 id="modalCsName" class="text-base font-black text-black">Memuat data...</h3>
                     <p id="modalCsSubj" class="text-xs font-bold text-slate-900"></p>
                 </div>
             </div>
@@ -415,10 +415,10 @@
 
             <div>
                 <label class="block text-xs font-black text-slate-700 uppercase mb-1">Nomor WhatsApp Siswa / Wali</label>
-                <div class="relative">
-                    <i class="fab fa-whatsapp absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-600 text-base"></i>
+                <div class="relative flex items-center">
+                    <i class="fab fa-whatsapp absolute left-4 text-emerald-600 text-base pointer-events-none"></i>
                     <input type="text" name="target_phone" id="actTargetPhone" placeholder="Contoh: 081234567890"
-                           class="w-full bg-slate-50 border-2 border-black rounded-xl pl-10 pr-3 py-2.5 text-xs font-bold text-slate-900 outline-none">
+                           class="w-full bg-slate-50 border-2 border-black rounded-2xl pl-11 pr-4 py-3 text-xs font-bold text-slate-900 outline-none focus:bg-white transition shadow-2xs">
                 </div>
             </div>
 
@@ -443,6 +443,10 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
 
+        document.getElementById('modalCsPhoto').src = 'https://ui-avatars.com/api/?name=Siswa&background=ea580c&color=fff';
+        document.getElementById('modalCsName').textContent = 'Memuat data...';
+        document.getElementById('modalCsSubj').textContent = '';
+
         container.innerHTML = `
             <div class="text-center py-10 text-slate-400 font-bold">
                 <i class="fas fa-spinner fa-spin text-2xl mb-2 text-slate-600"></i>
@@ -450,73 +454,91 @@
             </div>
         `;
 
-        fetch(`{{ url('guru/lms/monitoring/student') }}/${studentId}/course/${courseId}`)
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('modalCsName').textContent = data.student.name;
-                document.getElementById('modalCsSubj').textContent = `NISN: ${data.student.nisn || '-'} • ${data.course.name}`;
-                document.getElementById('modalCsPhoto').src = data.student.photo || data.student.avatar;
+        const detailUrl = `{{ route('guru.lms.monitoring.student-detail', ['student' => ':student', 'course' => ':course']) }}`
+            .replace(':student', studentId)
+            .replace(':course', courseId);
 
-                let html = `
-                    <div class="space-y-4">
-                        {{-- Daftar Materi --}}
-                        <div class="bg-slate-50 border-2 border-black rounded-2xl p-4 space-y-2">
-                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center justify-between">
-                                <span><i class="fas fa-book-open text-blue-600 mr-1.5"></i>Status Modul & Materi (${data.materials.length})</span>
-                            </h4>
-                            <div class="space-y-1.5">
-                                ${data.materials.length > 0 ? data.materials.map(m => `
-                                    <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200 text-xs">
-                                        <span class="font-bold text-slate-800">${m.title}</span>
-                                        ${m.is_completed ? '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-black text-[10px]">✓ Selesai Dibaca</span>' : '<span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-black text-[10px]">✕ Belum Dibaca</span>'}
-                                    </div>
-                                `).join('') : '<p class="text-xs text-slate-400 italic">Tidak ada modul/materi.</p>'}
-                            </div>
-                        </div>
+        fetch(detailUrl, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(errData => {
+                    throw new Error(errData.error || ('HTTP ' + res.status));
+                }).catch(() => {
+                    throw new Error('HTTP ' + res.status);
+                });
+            }
+            return res.json();
+        })
+        .then(data => {
+            document.getElementById('modalCsName').textContent = data.student.name;
+            document.getElementById('modalCsSubj').textContent = `NISN: ${data.student.nisn || '-'} • ${data.course.name}`;
+            document.getElementById('modalCsPhoto').src = data.student.photo || data.student.avatar;
 
-                        {{-- Daftar Tugas --}}
-                        <div class="bg-slate-50 border-2 border-black rounded-2xl p-4 space-y-2">
-                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center justify-between">
-                                <span><i class="fas fa-file-lines text-amber-600 mr-1.5"></i>Status Pengumpulan Tugas (${data.assignments.length})</span>
-                            </h4>
-                            <div class="space-y-1.5">
-                                ${data.assignments.length > 0 ? data.assignments.map(a => `
-                                    <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200 text-xs">
-                                        <div>
-                                            <p class="font-bold text-slate-800">${a.title}</p>
-                                            <p class="text-[10px] text-slate-400">Deadline: ${a.deadline}</p>
-                                        </div>
-                                        <div class="text-right">
-                                            ${a.is_submitted ? `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-black text-[10px]">Terkumpul ${a.grade ? '• Nilai: ' + a.grade : ''}</span>` : '<span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-black text-[10px]">Belum Kumpul</span>'}
-                                        </div>
-                                    </div>
-                                `).join('') : '<p class="text-xs text-slate-400 italic">Tidak ada tugas pada kursus ini.</p>'}
-                            </div>
-                        </div>
-
-                        {{-- Daftar Kuis --}}
-                        <div class="bg-slate-50 border-2 border-black rounded-2xl p-4 space-y-2">
-                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center justify-between">
-                                <span><i class="fas fa-circle-question text-purple-600 mr-1.5"></i>Status Kuis (${data.quizzes.length})</span>
-                            </h4>
-                            <div class="space-y-1.5">
-                                ${data.quizzes.length > 0 ? data.quizzes.map(q => `
-                                    <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200 text-xs">
-                                        <span class="font-bold text-slate-800">${q.title}</span>
-                                        <div>
-                                            ${q.attempts_count > 0 ? `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-black text-[10px]">${q.attempts_count}x Tes • Skor: ${q.highest_score}</span>` : '<span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-black text-[10px]">Belum Mengerjakan</span>'}
-                                        </div>
-                                    </div>
-                                `).join('') : '<p class="text-xs text-slate-400 italic">Tidak ada kuis pada kursus ini.</p>'}
-                            </div>
+            let html = `
+                <div class="space-y-4">
+                    {{-- Daftar Materi --}}
+                    <div class="bg-slate-50 border-2 border-black rounded-2xl p-4 space-y-2">
+                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center justify-between">
+                            <span><i class="fas fa-book-open text-blue-600 mr-1.5"></i>Status Modul & Materi (${data.materials.length})</span>
+                        </h4>
+                        <div class="space-y-1.5">
+                            ${data.materials.length > 0 ? data.materials.map(m => `
+                                <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200 text-xs">
+                                    <span class="font-bold text-slate-800">${m.title}</span>
+                                    ${m.is_completed ? '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-black text-[10px]">✓ Selesai Dibaca</span>' : '<span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-black text-[10px]">✕ Belum Dibaca</span>'}
+                                </div>
+                            `).join('') : '<p class="text-xs text-slate-400 italic">Tidak ada modul/materi.</p>'}
                         </div>
                     </div>
-                `;
-                container.innerHTML = html;
-            })
-            .catch(err => {
-                container.innerHTML = `<div class="text-center py-10 text-rose-500 font-bold">Gagal memuat detail data siswa.</div>`;
-            });
+
+                    {{-- Daftar Tugas --}}
+                    <div class="bg-slate-50 border-2 border-black rounded-2xl p-4 space-y-2">
+                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center justify-between">
+                            <span><i class="fas fa-file-lines text-amber-600 mr-1.5"></i>Status Pengumpulan Tugas (${data.assignments.length})</span>
+                        </h4>
+                        <div class="space-y-1.5">
+                            ${data.assignments.length > 0 ? data.assignments.map(a => `
+                                <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200 text-xs">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${a.title}</p>
+                                        <p class="text-[10px] text-slate-400">Deadline: ${a.deadline}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        ${a.is_submitted ? `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-black text-[10px]">Terkumpul ${a.grade ? '• Nilai: ' + a.grade : ''}</span>` : '<span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-black text-[10px]">Belum Kumpul</span>'}
+                                    </div>
+                                </div>
+                            `).join('') : '<p class="text-xs text-slate-400 italic">Tidak ada tugas pada kursus ini.</p>'}
+                        </div>
+                    </div>
+
+                    {{-- Daftar Kuis --}}
+                    <div class="bg-slate-50 border-2 border-black rounded-2xl p-4 space-y-2">
+                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center justify-between">
+                            <span><i class="fas fa-circle-question text-purple-600 mr-1.5"></i>Status Kuis (${data.quizzes.length})</span>
+                        </h4>
+                        <div class="space-y-1.5">
+                            ${data.quizzes.length > 0 ? data.quizzes.map(q => `
+                                <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200 text-xs">
+                                    <span class="font-bold text-slate-800">${q.title}</span>
+                                    <div>
+                                        ${q.attempts_count > 0 ? `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-black text-[10px]">${q.attempts_count}x Tes • Skor: ${q.highest_score}</span>` : '<span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-black text-[10px]">Belum Mengerjakan</span>'}
+                                    </div>
+                                </div>
+                            `).join('') : '<p class="text-xs text-slate-400 italic">Tidak ada kuis pada kursus ini.</p>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        })
+        .catch(err => {
+            container.innerHTML = `<div class="text-center py-10 text-rose-500 font-bold"><i class="fas fa-exclamation-triangle text-2xl mb-2 text-rose-500 block"></i>Gagal memuat detail data siswa (${err.message || 'Terjadi kesalahan sistem'}).</div>`;
+        });
     }
 
     function closeCourseStudentModal() {
