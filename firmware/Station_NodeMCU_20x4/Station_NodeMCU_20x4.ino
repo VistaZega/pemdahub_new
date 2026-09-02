@@ -1,27 +1,70 @@
 // ============================================================
 //  FIRMWARE NODEMCU V3 (ESP-12F) - PEMBDAHUB ATTENDANCE STATION
-//  Opsi B: RFID + QR Scanner + LCD 20x4 + Buzzer + Audio (tanpa LED)
+//  Station Absen Terpadu: RFID RC522 + GM65 QR Scanner + LCD 20x4 I2C + DFPlayer MP3 + Buzzer
 //  
-//  Port dari firmware ESP32 tanpa mengubah sisi web/API.
-//  Server endpoint, format JSON, dan logika bisnis 100% identik.
+//  ============================================================
+//  TABEL LENGKAP KONEKSI KABEL & PIN HARDWARE (WIRING DIAGRAM)
+//  ============================================================
 //
-//  WIRING DIAGRAM NODEMCU V3 DENGAN AUDIO MP3-TF-16P:
-//  ┌─────────────┬──────────┬───────────────────────────────────────┐
-//  │ Komponen    │ Pin MCU  │ Catatan                               │
-//  ├─────────────┼──────────┼───────────────────────────────────────┤
-//  │ RFID SDA/SS │ D0 (16)  │ SPI CS                                │
-//  │ RFID SCK    │ D5 (14)  │ SPI CLK default                       │
-//  │ RFID MOSI   │ D7 (13)  │ SPI MOSI default                      │
-//  │ RFID MISO   │ D6 (12)  │ SPI MISO default                      │
-//  │ RFID RST    │ 3V3 (3.3V│ DIHUBUNGKAN LANGSUNG KE 3.3V (Bukan D4)│
-//  │ LCD SDA     │ D2 (4)   │ I2C SDA default                       │
-//  │ LCD SCL     │ D1 (5)   │ I2C SCL default                       │
-//  │ QR RX       │ D3 (0)   │ SoftwareSerial RX (GM65/GM50)         │
-//  │ MP3 RX      │ D4 (2)   │ SoftwareSerial TX -> resistor 1K Ohm  │
-//  │ Buzzer (+)  │ D8 (15)  │ Pull-down = buzzer OFF @boot          │
-//  │ MP3 VCC     │ VU (5V)  │ DIHUBUNGKAN KE PIN VU (Kiri atas)     │
-//  │ GND         │ GND      │ Common ground semua komponen          │
-//  └─────────────┴──────────┴───────────────────────────────────────┘
+//  1. GM65 BARCODE / QR SCANNER (Konektor 4-Pin):
+//  ┌──────────────────────┬────────────────┬──────────────────────────┐
+//  │ Pin / Tulisan GM65   │ Pin NodeMCU    │ Catatan Penting          │
+//  ├──────────────────────┼────────────────┼──────────────────────────┤
+//  │ 5V   (Kabel Merah)   │ VU (5V)        │ Tegangan 5V dari port USB│
+//  │ GND  (Kabel Hijau)   │ GND            │ Ground bersama           │
+//  │ TX   (Kabel Hitam)   │ D3 (GPIO0)     │ Sinyal Data TX GM65 -> D3│
+//  │ RX   (Kabel Kuning)  │ BEBAS / KOSONG │ TIDAK BOLEH DICOLOK!     │
+//  └──────────────────────┴────────────────┴──────────────────────────┘
+//
+//  2. RFID RC522 13.56 MHz (SPI Interface):
+//  ┌──────────────────────┬────────────────┬──────────────────────────┐
+//  │ Pin Modul RC522      │ Pin NodeMCU    │ Catatan Penting          │
+//  ├──────────────────────┼────────────────┼──────────────────────────┤
+//  │ 3.3V (VCC)           │ 3V3 (3.3V)     │ WAJIB 3.3V (JANGAN 5V!)  │
+//  │ RST (Reset)          │ 3V3 (3.3V)     │ Langsung hubungkan 3.3V  │
+//  │ GND                  │ GND            │ Ground bersama           │
+//  │ MISO                 │ D6 (GPIO12)    │ SPI MISO bawaan ESP8266  │
+//  │ MOSI                 │ D7 (GPIO13)    │ SPI MOSI bawaan ESP8266  │
+//  │ SCK                  │ D5 (GPIO14)    │ SPI Clock bawaan ESP8266 │
+//  │ SDA / SS             │ D0 (GPIO16)    │ SPI Chip Select (CS)     │
+//  └──────────────────────┴────────────────┴──────────────────────────┘
+//
+//  3. LCD 20x4 I2C (Alamat Default 0x27 / 0x3F):
+//  ┌──────────────────────┬────────────────┬──────────────────────────┐
+//  │ Pin Modul I2C LCD    │ Pin NodeMCU    │ Catatan Penting          │
+//  ├──────────────────────┼────────────────┼──────────────────────────┤
+//  │ VCC                  │ VU (5V)        │ LCD 20x4 butuh 5V (terang│
+//  │ GND                  │ GND            │ Ground bersama           │
+//  │ SDA                  │ D2 (GPIO4)     │ I2C Data default         │
+//  │ SCL                  │ D1 (GPIO5)     │ I2C Clock default        │
+//  └──────────────────────┴────────────────┴──────────────────────────┘
+//
+//  4. DFPLAYER MINI MP3 PLAYER (Audio Suara Sapaan):
+//  ┌──────────────────────┬────────────────┬──────────────────────────┐
+//  │ Pin DFPlayer Mini    │ Pin NodeMCU    │ Catatan Penting          │
+//  ├──────────────────────┼────────────────┼──────────────────────────┤
+//  │ VCC                  │ VU (5V)        │ Daya 5V                  │
+//  │ GND                  │ GND            │ Ground bersama           │
+//  │ RX                   │ D4 (GPIO2)     │ Melalui Resistor 1K Ohm! │
+//  │ SPK_1                │ Speaker (+)    │ Speaker 3W / 8 Ohm       │
+//  │ SPK_2                │ Speaker (-)    │ Speaker 3W / 8 Ohm       │
+//  └──────────────────────┴────────────────┴──────────────────────────┘
+//
+//  5. BUZZER AKTIF 5V:
+//  ┌──────────────────────┬────────────────┬──────────────────────────┐
+//  │ Pin Buzzer           │ Pin NodeMCU    │ Catatan Penting          │
+//  ├──────────────────────┼────────────────┼──────────────────────────┤
+//  │ Positif (+)          │ D8 (GPIO15)    │ Pin pull-down (aman boot)│
+//  │ Negatif (-)          │ GND            │ Ground bersama           │
+//  └──────────────────────┴────────────────┴──────────────────────────┘
+//
+//  ============================================================
+//  CATATAN SUMBER DAYA & KESTABILAN:
+//  - Gunakan Adaptor Charger minimal 5V 2A berkualitas baik.
+//  - Disarankan pasang 1 Elco 470uF/1000uF 16V antara VU (5V) dan GND.
+//  - Jangan pasang kabel Kuning (RX GM65) ke pin RX NodeMCU agar
+//    tidak bentrok dengan komunikasi USB Serial ke Komputer.
+//  ============================================================
 //
 //  BOARD SETTING DI ARDUINO IDE:
 //  - Board      : "NodeMCU 1.0 (ESP-12E Module)"
@@ -62,7 +105,7 @@ const char* SERVER_URL        = "https://perguruanpembda.com/api/attendance/rfid
 const char* KIOSK_API_KEY     = "RAHASIA-PEMBDAHUB-12345";
 
 // ── GANTI DEVICE_ID UNTUK SETIAP STATION! ──
-const char* DEVICE_ID         = "STATION-SMA-02";
+const char* DEVICE_ID         = "STATION-SMP-03";
 
 // ============================================================
 //  PIN DEFINITIONS - NodeMCU V3 (ESP-12F)
@@ -134,7 +177,7 @@ void setup() {
 
   // Inisialisasi I2C LCD (SDA=GPIO4/D2, SCL=GPIO5/D1)
   Wire.begin(4, 5);
-  lcd.init();
+  lcd.begin();
   lcd.backlight();
   lcd.setCursor(0, 0); lcd.print(F("===================="));
   lcd.setCursor(0, 1); lcd.print(F("   PEMBDA HUB v2    "));
