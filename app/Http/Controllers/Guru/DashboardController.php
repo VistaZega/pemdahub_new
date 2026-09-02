@@ -706,17 +706,55 @@ class DashboardController extends Controller
         $assignmentInfo = null;
         $lessonDates = [];
         $selectedInputDate = $request->input('input_date', date('Y-m-d'));
+        $selectedDailyDate = $request->input('daily_date', date('Y-m-d'));
         $isTodayScheduled = false;
+        $scheduledStudentIds = [];
+        $studentBlockGroups = [];
+        $targetGroup = null;
+        $dailySummary = ['present' => 0, 'sick' => 0, 'permission' => 0, 'absent' => 0, 'unscanned' => 0, 'total' => 0, 'percentage' => 0];
+        $dailySchoolAttendances = collect();
+        $isHomeroom = false;
+        $monthlySummary = ['present' => 0, 'sick' => 0, 'permission' => 0, 'absent' => 0, 'total' => 0, 'percentage' => 0];
 
         if ($selectedClassroomId) {
-            $selectedClassroom = $classrooms->firstWhere('id', $selectedClassroomId);
+            $selectedClassroom = $classrooms->firstWhere('id', (int) $selectedClassroomId) ?? \App\Models\Classroom::find($selectedClassroomId);
             if ($selectedClassroom) {
+                $isHomeroom = ($selectedClassroom->homeroom_teacher_id === $teacher->id);
+
                 // Fetch active students in class for the daily matrix (applies to all students)
                 $studentsQuery = $selectedClassroom->students()->wherePivot('status', 'aktif');
                 if ($activeYear) {
                     $studentsQuery->wherePivot('academic_year_id', $activeYear->id);
                 }
-                $classroomStudents = $studentsQuery->with(['applicant', 'user'])->orderBy('full_name')->get();
+                $classroomStudents = $studentsQuery->with(['applicant', 'user', 'classrooms'])->orderBy('full_name')->get();
+
+                // Determine Students for Teacher in this Classroom
+                $assignments = \App\Models\TeachingAssignment::with(['subject', 'classroom'])
+                    ->where('teacher_id', $teacher->id)
+                    ->where(function($q) use ($selectedClassroomId, $activeYear) {
+                        $q->where('classroom_id', $selectedClassroomId)
+                          ->orWhereHas('schedules', function($sq) use ($selectedClassroomId, $activeYear) {
+                              $sq->where('classroom_id', $selectedClassroomId);
+                              if ($activeYear) {
+                                  $sq->where('academic_year_id', $activeYear->id);
+                              }
+                          });
+                    })
+                    ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                    ->where('is_active', true)
+                    ->get();
+
+                $primaryAssignment = $assignments->first();
+                $subjectName = $primaryAssignment?->subject?->name ?? $primaryAssignment?->subject?->subject_name;
+                $subjectCode = $primaryAssignment?->subject?->code ?? $primaryAssignment?->subject?->subject_code;
+                $vocKeywords = \App\Services\VocationalMajorFilterService::getSubjectMajorKeywords($subjectName, $subjectCode);
+
+                // Jika guru adalah guru mapel kejuruan (bukan wali kelas), saring hanya siswa jurusan yang relevan
+                if (!$isHomeroom && $vocKeywords) {
+                    $classroomStudents = $classroomStudents->filter(function ($student) use ($vocKeywords, $selectedClassroom) {
+                        return \App\Services\VocationalMajorFilterService::isStudentMatchingVocationalSubject($student, $vocKeywords, $selectedClassroom);
+                    })->values();
+                }
 
                 // Fetch monthly attendances for matrix grid (Daily School Attendance ONLY)
                 $monthlyAttendances = Attendance::where('classroom_id', $selectedClassroomId)
@@ -745,22 +783,6 @@ class DashboardController extends Controller
                         'total' => $tot, 'percentage' => $pct
                     ];
                 }
-
-                // Determine Students for Teacher in this Classroom
-                $assignments = \App\Models\TeachingAssignment::with(['subject', 'classroom'])
-                    ->where('teacher_id', $teacher->id)
-                    ->where(function($q) use ($selectedClassroomId, $activeYear) {
-                        $q->where('classroom_id', $selectedClassroomId)
-                          ->orWhereHas('schedules', function($sq) use ($selectedClassroomId, $activeYear) {
-                              $sq->where('classroom_id', $selectedClassroomId);
-                              if ($activeYear) {
-                                  $sq->where('academic_year_id', $activeYear->id);
-                              }
-                          });
-                    })
-                    ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-                    ->where('is_active', true)
-                    ->get();
 
                 $wajibStudentIds = $classroomStudents->pluck('id')->toArray();
 
