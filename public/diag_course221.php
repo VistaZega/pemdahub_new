@@ -79,4 +79,28 @@ foreach ($regularClassCount as $name => $count) {
     echo "- '{$name}': {$count} siswa\n";
 }
 echo "\nTotal siswa dengan kelas reguler: " . array_sum($regularClassCount) . "\n";
-echo "Total enrollment: {$enrollments->count()}\n";
+echo "Total enrollment LMS: {$enrollments->count()}\n";
+
+// Berapa siswa SEBENARNYA di classroom 370 (XI Teknik Rekayasa)?
+$classroom370 = App\Models\Classroom::find(370);
+$actualStudents = $classroom370->students()->count();
+echo "\n=== JUMLAH SISWA SEBENARNYA DI CLASSROOM 370 ===\n";
+echo "Classroom: {$classroom370->class_name}\n";
+echo "Jumlah siswa (classroom_student): {$actualStudents}\n";
+
+// Daftar siswa di classroom 370 beserta kelas reguler mereka
+$studentsInClass = $classroom370->students()->with('classrooms')->get();
+$majorCount = [];
+foreach ($studentsInClass as $st) {
+    $regClass = $st->classrooms->filter(function($cls) {
+        return !$cls->is_combined && $cls->class_type !== 'gabungan';
+    })->first();
+    $regName = $regClass ? $regClass->class_name : '(hanya gabungan)';
+    $majorCount[$regName] = ($majorCount[$regName] ?? 0) + 1;
+}
+echo "\nBreakdown jurusan di XI Teknik Rekayasa:\n";
+arsort($majorCount);
+foreach ($majorCount as $name => $count) {
+    echo "- {$name}: {$count} siswa\n";
+}
+echo "TOTAL: {$actualStudents}\n";
