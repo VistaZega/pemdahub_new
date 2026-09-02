@@ -1,6 +1,6 @@
 <?php
 /**
- * Diagnostik: Mengapa Course 221 menampilkan 74 siswa?
+ * Diagnostik: Dari mana 117 enrollment di LmsClass 417?
  * Akses: perguruanpembda.com/diag_course221.php?secret=pembda99
  */
 if (($_GET['secret'] ?? '') !== 'pembda99') { die('Forbidden'); }
@@ -12,95 +12,71 @@ $kernel->bootstrap();
 
 header('Content-Type: text/plain; charset=utf-8');
 
-$course = App\Models\LmsCourse::with(['lmsClasses.classroom', 'subject'])->find(221);
-echo "=== DIAGNOSTIK COURSE 221 ===\n";
-echo "Course Name: {$course->course_name}\n";
-echo "Subject: " . ($course->subject?->name ?? $course->subject?->subject_name ?? 'NULL') . "\n";
-echo "Academic Year ID: {$course->academic_year_id}\n\n";
+echo "=== ASAL-USUL 117 ENROLLMENT DI LMSCLASS 417 ===\n\n";
 
-// Semua LmsClass yang terhubung ke course ini
-$lmsClasses = $course->lmsClasses;
-echo "=== LMS CLASSES TERHUBUNG ({$lmsClasses->count()}) ===\n";
-foreach ($lmsClasses as $lc) {
-    $cr = $lc->classroom;
-    $enCount = App\Models\LmsEnrollment::where('lms_class_id', $lc->id)->count();
-    echo "- LmsClass ID {$lc->id}: Classroom ID {$lc->classroom_id}\n";
-    echo "  Nama: '{$cr?->class_name}'\n";
-    echo "  TP: {$cr?->academic_year_id}, Grade: {$cr?->grade_level}\n";
-    echo "  is_combined: {$cr?->is_combined}, class_type: {$cr?->class_type}\n";
-    echo "  Enrollment: {$enCount} siswa\n\n";
-}
-
-// Semua enrollment dan kelas reguler siswa
-$allLmsClassIds = $lmsClasses->pluck('id');
-$enrollments = App\Models\LmsEnrollment::whereIn('lms_class_id', $allLmsClassIds)
-    ->with(['student.classrooms', 'lmsClass.classroom'])
+// LmsClass 417 -> Classroom 370 (XI Teknik Rekayasa (DPIB, TAV))
+$enrollments = App\Models\LmsEnrollment::where('lms_class_id', 417)
+    ->with(['student.classrooms'])
+    ->orderBy('created_at')
     ->get();
 
-echo "=== TOTAL ENROLLMENT: {$enrollments->count()} ===\n\n";
+echo "Total enrollment: {$enrollments->count()}\n\n";
 
-// Per siswa: tampilkan SEMUA kelas yang dimiliki
-echo "=== DETAIL SISWA & SEMUA KELAS MEREKA ===\n";
-$regularClassCount = [];
-foreach ($enrollments as $i => $en) {
-    $st = $en->student;
-    $lmsClassroom = $en->lmsClass?->classroom;
-    
-    // Kelas reguler (non-gabungan)
-    $regularClasses = $st->classrooms->filter(function($cls) {
-        return !$cls->is_combined && $cls->class_type !== 'gabungan';
-    });
-    
-    $regName = $regularClasses->pluck('class_name')->join(', ') ?: '(TIDAK ADA KELAS REGULER)';
-    
-    foreach ($regularClasses as $rc) {
-        $key = $rc->class_name;
-        $regularClassCount[$key] = ($regularClassCount[$key] ?? 0) + 1;
-    }
-    
-    if ($i < 5 || $enrollments->count() - $i <= 3) {
-        echo ($i+1) . ". {$st->full_name}\n";
-        echo "   Enrolled via LmsClass: '{$lmsClassroom?->class_name}'\n";
-        echo "   Kelas Reguler: {$regName}\n";
-        echo "   Semua kelas:\n";
-        foreach ($st->classrooms as $c) {
-            $flag = (!$c->is_combined && $c->class_type !== 'gabungan') ? ' [REGULER]' : ' [GABUNGAN]';
-            echo "     - ID {$c->id}: '{$c->class_name}' (TP:{$c->academic_year_id}, Grade:{$c->grade_level}, is_combined:{$c->is_combined}, class_type:{$c->class_type}){$flag}\n";
-        }
-        echo "\n";
-    } elseif ($i === 5) {
-        echo "... (siswa 6 s/d " . ($enrollments->count() - 3) . " disingkat) ...\n\n";
-    }
+// Kapan enrollment dibuat?
+$byDate = $enrollments->groupBy(fn($e) => $e->created_at?->format('Y-m-d H:i') ?? 'NULL');
+echo "=== WAKTU ENROLLMENT DIBUAT ===\n";
+foreach ($byDate as $date => $group) {
+    echo "- {$date}: {$group->count()} siswa\n";
 }
 
-echo "=== RINGKASAN KELAS REGULER SISWA ===\n";
-arsort($regularClassCount);
-foreach ($regularClassCount as $name => $count) {
-    echo "- '{$name}': {$count} siswa\n";
-}
-echo "\nTotal siswa dengan kelas reguler: " . array_sum($regularClassCount) . "\n";
-echo "Total enrollment LMS: {$enrollments->count()}\n";
-
-// Berapa siswa SEBENARNYA di classroom 370 (XI Teknik Rekayasa)?
+// Siswa yang enrolled tapi BUKAN anggota classroom 370
 $classroom370 = App\Models\Classroom::find(370);
-$actualStudents = $classroom370->students()->count();
-echo "\n=== JUMLAH SISWA SEBENARNYA DI CLASSROOM 370 ===\n";
-echo "Classroom: {$classroom370->class_name}\n";
-echo "Jumlah siswa (classroom_student): {$actualStudents}\n";
+$actualMemberIds = $classroom370->students()->pluck('students.id')->toArray();
 
-// Daftar siswa di classroom 370 beserta kelas reguler mereka
-$studentsInClass = $classroom370->students()->with('classrooms')->get();
-$majorCount = [];
-foreach ($studentsInClass as $st) {
-    $regClass = $st->classrooms->filter(function($cls) {
-        return !$cls->is_combined && $cls->class_type !== 'gabungan';
-    })->first();
-    $regName = $regClass ? $regClass->class_name : '(hanya gabungan)';
-    $majorCount[$regName] = ($majorCount[$regName] ?? 0) + 1;
+$ghost = $enrollments->filter(fn($e) => !in_array($e->student_id, $actualMemberIds));
+$legit = $enrollments->filter(fn($e) => in_array($e->student_id, $actualMemberIds));
+
+echo "\n=== ENROLLMENT VALID vs HANTU ===\n";
+echo "Anggota kelas 370 yang enrolled (VALID): {$legit->count()}\n";
+echo "BUKAN anggota kelas 370 tapi enrolled (HANTU): {$ghost->count()}\n";
+
+// Dari classroom mana saja siswa hantu berasal?
+echo "\n=== SISWA HANTU - DARI CLASSROOM MANA? ===\n";
+$ghostByClass = [];
+foreach ($ghost as $e) {
+    $st = $e->student;
+    $classrooms = $st->classrooms->pluck('class_name')->toArray();
+    $key = implode(' + ', $classrooms) ?: '(tidak ada kelas)';
+    $ghostByClass[$key] = ($ghostByClass[$key] ?? 0) + 1;
 }
-echo "\nBreakdown jurusan di XI Teknik Rekayasa:\n";
-arsort($majorCount);
-foreach ($majorCount as $name => $count) {
-    echo "- {$name}: {$count} siswa\n";
+arsort($ghostByClass);
+foreach ($ghostByClass as $cls => $count) {
+    echo "- {$cls}: {$count} siswa\n";
 }
-echo "TOTAL: {$actualStudents}\n";
+
+// Cek apakah siswa hantu ini terdaftar di classroom lain yang juga punya LmsClass untuk course 221
+echo "\n=== APAKAH ADA LMSCLASS LAIN UNTUK COURSE 221? ===\n";
+$otherLmsClasses = App\Models\LmsClass::where('course_id', 221)->where('id', '!=', 417)->with('classroom')->get();
+if ($otherLmsClasses->isEmpty()) {
+    echo "TIDAK ADA. Course 221 hanya punya 1 LmsClass (ID 417).\n";
+} else {
+    foreach ($otherLmsClasses as $olc) {
+        echo "- LmsClass {$olc->id}: Classroom {$olc->classroom_id} '{$olc->classroom?->class_name}'\n";
+    }
+}
+
+// Cek enrollment method / source jika ada kolom tersebut
+echo "\n=== STRUKTUR TABEL LMS_ENROLLMENTS ===\n";
+$cols = Illuminate\Support\Facades\Schema::getColumnListing('lms_enrollments');
+echo "Kolom: " . implode(', ', $cols) . "\n";
+
+// Cek sample enrollment hantu
+echo "\n=== SAMPLE 5 ENROLLMENT HANTU ===\n";
+foreach ($ghost->take(5) as $e) {
+    $st = $e->student;
+    $cls = $st->classrooms->pluck('class_name')->join(', ');
+    echo "- Enrollment ID {$e->id}: {$st->full_name}\n";
+    echo "  Kelas: {$cls}\n";
+    echo "  Created: {$e->created_at}\n";
+    echo "  Kolom: " . json_encode($e->getAttributes()) . "\n\n";
+}
