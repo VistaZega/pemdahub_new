@@ -69,6 +69,26 @@ Setiap kali selesai melakukan pengerjaan fitur, perbaikan bug, atau perubahan ko
   - **Fitur Akademik & Operasional Sekolah** (Penugasan Mengajar, Jadwal Pelajaran, Data Siswa, Data Guru, LMS, Rapor, CBT, PSB): **JANGAN PERNAH** menyertakan Yayasan sebagai opsi pilihan sekolah/unit. Selalu filter menggunakan `School::schoolsOnly()` (`type != 'yayasan'` & `is_active = true`).
   - **Fitur Kepegawaian, Keuangan, & Monitoring**: Yayasan dapat dianggap sebagai entitas induk (*parent oversight body*) dengan kewenangan tertinggi, namun rekapitulasi 3 unit sekolah aktif harus tetap dipisahkan secara rapi dari struktur Yayasan.
 
+### 🛠️ Aturan Mapel Kejuruan SMK & Kelas Gabungan (Wajib Diingat)
+- **2 Tipe Mata Pelajaran Kejuruan SMK**:
+  1. **Dasar-dasar Teknik Kejuruan (DDTK)** / Dasar Program Keahlian (Kelas X).
+  2. **Konsentrasi Keahlian** (Kelas XI & XII).
+- **5 Rumpun Kejuruan SMK Swasta Pembda**:
+  - `TE` / `TAV`: Teknik Elektronika, Audio Video, Mikrokontroler (`TE`, `TAV`).
+  - `DPIB`: Desain Pemodelan dan Informasi Bangunan (`DPIB`).
+  - `TKR` / `TO`: Teknik Kendaraan Ringan, Otomotif (`TKR`, `TO`).
+  - `TSM` / `TBSM`: Teknik Sepeda Motor (`TSM`, `TBSM`).
+  - `TKJ` / `TJKT` / `ACP`: Teknik Komputer Jaringan, Jaringan, Komputer, Axioo (`TKJ`, `TJKT`, `ACP`).
+- **Logika Penentuan Jurusan Siswa di Kelas Gabungan/Blok**:
+  - Di SMK, siswa sering digabung ke kelas gabungan (contoh: `XI Teknik Rekayasa (DPIB, TAV)`).
+  - Nama kelas gabungan mengandung nama seluruh jurusan, sehingga **DILARANG KERAS** menggunakan nama kelas gabungan untuk menentukan jurusan siswa individual.
+  - Penentuan jurusan asli siswa **WAJIB menggunakan kelas reguler non-gabungan** (`!$cls->is_combined && $cls->class_type !== 'gabungan'`), misalnya `X TE` atau `X DPIB`.
+- **Standar Layanan Terpusat (`App\Services\VocationalMajorFilterService`)**:
+  - Seluruh fitur yang menampilkan/memproses siswa pada mapel kejuruan (**LMS Course Monitoring, LMS Enrollment Synchronization, Absensi KBM Guru / Hadir saat Mengajar**) **WAJIB** menggunakan `VocationalMajorFilterService` agar konsisten:
+    - **LMS Monitoring**: Menampilkan hanya siswa yang relevan dengan mapel kejuruan (misal: 17 siswa TE pada mapel TE di kelas gabungan).
+    - **LMS Enrollment**: Mencegah pendaftaran siswa lintas jurusan yang tidak relevan dan membersihkan enrollment hantu (`LmsEnrollmentService`).
+    - **Absensi Siswa Hadir saat Mengajar**: Menampilkan daftar siswa yang sesuai jurusan saat guru mengajar (`TeachingAssignmentStudentFilterService`).
+
 ## 📌 Aturan Etalase Beranda (Showcase Grid & Counters)
 Bagian "✱ ETALASE PROJECT SMK, PENELITIAN SMA, PKL & MODUL LMS" di halaman beranda memiliki algoritma data dan penyajian yang baku:
 
@@ -96,3 +116,4 @@ Kartu yang dirender di grid di bawah tab filter diambil **secara acak (`inRandom
 ## Bahasa & Komunikasi
 - Komunikasi dengan pengguna menggunakan **Bahasa Indonesia**
 - Komentar kode boleh dalam Bahasa Indonesia atau Inggris
+

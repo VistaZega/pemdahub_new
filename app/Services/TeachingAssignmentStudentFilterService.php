@@ -10,8 +10,8 @@ class TeachingAssignmentStudentFilterService
 {
     /**
      * Dapatkan daftar seluruh siswa aktif untuk penugasan mengajar di kelas ini.
-     * Mengembalikan seluruh siswa aktif kelas agar guru memiliki keleluasaan penuh 
-     * untuk menandai kehadiran (H / S / I / A) siswa manapun di kelasnya.
+     * Untuk mapel kejuruan (DDTK / Konsentrasi Keahlian), otomatis menyaring hanya
+     * siswa yang jurusannya relevan dengan mata pelajaran tersebut.
      */
     public function getStudentsForAssignment(TeachingAssignment $assignment, $date = null): Collection
     {
@@ -34,18 +34,28 @@ class TeachingAssignmentStudentFilterService
                 
             $studentsQuery->whereHas('studentClasses', function($q) use ($relatedClassroomIds) {
                 $q->whereIn('classroom_id', $relatedClassroomIds);
-            })->with(['classrooms' => function($q) use ($relatedClassroomIds) {
-                $q->whereIn('classrooms.id', $relatedClassroomIds);
-            }]);
+            })->with(['classrooms']);
         } else {
             $studentsQuery->whereHas('studentClasses', function($q) use ($classroomId) {
                 $q->where('classroom_id', $classroomId);
-            })->with(['classrooms' => function($q) use ($classroomId) {
-                $q->where('classrooms.id', $classroomId);
-            }]);
+            })->with(['classrooms']);
         }
 
-        return $studentsQuery->orderBy('full_name')->get();
+        $students = $studentsQuery->orderBy('full_name')->get();
+
+        // Filter otomatis untuk Mata Pelajaran Kejuruan (DDTK / Konsentrasi Keahlian)
+        $subjectName = $assignment->subject?->name ?? $assignment->subject?->subject_name;
+        $subjectCode = $assignment->subject?->code ?? $assignment->subject?->subject_code;
+        $vocKeywords = VocationalMajorFilterService::getSubjectMajorKeywords($subjectName, $subjectCode);
+
+        if ($vocKeywords) {
+            $classroom = $assignment->classroom;
+            $students = $students->filter(function ($student) use ($vocKeywords, $classroom) {
+                return VocationalMajorFilterService::isStudentMatchingVocationalSubject($student, $vocKeywords, $classroom);
+            })->values();
+        }
+
+        return $students;
     }
 }
 

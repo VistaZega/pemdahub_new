@@ -26,7 +26,7 @@ class LmsEnrollmentService
 
         $activeYear = AcademicYear::where('is_active', true)->first();
         
-        // 1. Dapatkan daftar ID Rombel aktif siswa
+        // 1. Dapatkan daftar ID Rombel aktif siswa pada tahun ajaran aktif
         $classroomIds = StudentClass::where('student_id', $student->id)
             ->where('status', 'aktif')
             ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
@@ -36,6 +36,7 @@ class LmsEnrollmentService
         // Fallback jika belum ada di pivot student_classes untuk tahun aktif
         if (empty($classroomIds)) {
             $latestStudentClass = StudentClass::where('student_id', $student->id)
+                ->where('status', 'aktif')
                 ->latest()
                 ->first();
             if ($latestStudentClass) {
@@ -49,24 +50,36 @@ class LmsEnrollmentService
         }
 
         // 2. Cari seluruh LmsCourse yang ditargetkan untuk rombel-rombel tersebut
-        $courses = LmsCourse::where(function ($q) use ($classroomIds) {
-            $q->whereIn('classroom_id', $classroomIds)
-              ->orWhereHas('lmsClasses', function ($lq) use ($classroomIds) {
-                  $lq->whereIn('classroom_id', $classroomIds);
-              });
-        })
-        ->when($student->school_id, function ($q) use ($student) {
-            $q->where(function ($sq) use ($student) {
-                $sq->where('school_id', $student->school_id)
-                   ->orWhereNull('school_id');
-            });
-        })
-        ->get();
+        $courses = LmsCourse::with('subject')
+            ->where(function ($q) use ($classroomIds) {
+                $q->whereIn('classroom_id', $classroomIds)
+                  ->orWhereHas('lmsClasses', function ($lq) use ($classroomIds) {
+                      $lq->whereIn('classroom_id', $classroomIds);
+                  });
+            })
+            ->when($student->school_id, function ($q) use ($student) {
+                $q->where(function ($sq) use ($student) {
+                    $sq->where('school_id', $student->school_id)
+                       ->orWhereNull('school_id');
+                });
+            })
+            ->get();
 
         $enrolledCount = 0;
 
         foreach ($courses as $course) {
+            // Cek apakah mata pelajaran ini adalah mapel kejuruan SMK
+            $subjName = $course->subject?->name ?? $course->subject?->subject_name;
+            $vocKeywords = VocationalMajorFilterService::getSubjectMajorKeywords($subjName, $course->subject?->code, $course->course_name);
+
             foreach ($classroomIds as $classroomId) {
+                $classroom = Classroom::find($classroomId);
+
+                // Jika mapel kejuruan, pastikan jurusan siswa cocok sebelum di-enroll
+                if ($vocKeywords && !VocationalMajorFilterService::isStudentMatchingVocationalSubject($student, $vocKeywords, $classroom)) {
+                    continue; // Skip jika jurusan tidak cocok (cth: DPIB di mapel TE)
+                }
+
                 // Pastikan LmsClass ada untuk pasangan course & classroom ini
                 $lmsClass = LmsClass::firstOrCreate([
                     'course_id' => $course->id,
@@ -91,8 +104,7 @@ class LmsEnrollmentService
             }
         }
 
-        // 3. Bersihkan enrollment silang sekolah yang tidak valid jika ada (cth: siswa SMK terdaftar di kelas SMP)
-        // Catatan: Course dengan school_id = 4 (Yayasan) adalah sah untuk seluruh unit sekolah
+        // 3. Bersihkan enrollment silang sekolah yang tidak valid jika ada
         if ($student->school_id) {
             LmsEnrollment::where('student_id', $student->id)
                 ->whereHas('lmsClass.course', function ($q) use ($student) {
@@ -108,7 +120,6 @@ class LmsEnrollmentService
 
     /**
      * Sinkronisasi seluruh siswa aktif di suatu rombel ke seluruh kursus LMS rombel tersebut.
-     * Dipanggil saat siswa di-assign ke kelas atau saat kursus baru ditautkan ke kelas.
      */
     public function syncClassroomEnrollments(Classroom $classroom): int
     {
@@ -117,40 +128,31 @@ class LmsEnrollmentService
         }
 
         $activeYear = AcademicYear::where('is_active', true)->first();
+        $yearId = $classroom->academic_year_id ?? $activeYear?->id;
 
-        // 1. Ambil seluruh siswa di rombel ini via student_classes
-        $studentIds = StudentClass::where('classroom_id', $classroom->id)
-            ->when($activeYear, function ($q) use ($activeYear, $classroom) {
-                $hasActiveYear = StudentClass::where('classroom_id', $classroom->id)
-                    ->where('academic_year_id', $activeYear->id)
-                    ->exists();
-                if ($hasActiveYear) {
-                    $q->where('academic_year_id', $activeYear->id);
-                }
-            })
-            ->pluck('student_id')
-            ->toArray();
-
-        // Fallback jika kosong, ambil seluruh student_id yang pernah di rombel ini
-        if (empty($studentIds)) {
-            $studentIds = StudentClass::where('classroom_id', $classroom->id)
-                ->pluck('student_id')
-                ->toArray();
+        // 1. Ambil siswa yang BENAR-BENAR terdaftar aktif di rombel ini pada tahun ajaran terkait
+        $studentsQuery = $classroom->students()->with('classrooms')->wherePivot('status', 'aktif');
+        if ($yearId) {
+            $studentsQuery->wherePivot('academic_year_id', $yearId);
         }
+        $students = $studentsQuery->get();
 
-        $allStudentIds = array_unique(array_filter($studentIds));
-        if (empty($allStudentIds)) {
+        if ($students->isEmpty()) {
             return 0;
         }
 
         // 2. Ambil seluruh kursus LMS untuk rombel ini
-        $courses = LmsCourse::where('classroom_id', $classroom->id)
+        $courses = LmsCourse::with('subject')
+            ->where('classroom_id', $classroom->id)
             ->orWhereHas('lmsClasses', fn($q) => $q->where('classroom_id', $classroom->id))
             ->get();
 
         $createdCount = 0;
 
         foreach ($courses as $course) {
+            $subjName = $course->subject?->name ?? $course->subject?->subject_name;
+            $vocKeywords = VocationalMajorFilterService::getSubjectMajorKeywords($subjName, $course->subject?->code, $course->course_name);
+
             $lmsClass = LmsClass::firstOrCreate([
                 'course_id' => $course->id,
                 'classroom_id' => $classroom->id,
@@ -159,10 +161,19 @@ class LmsEnrollmentService
                 'status' => 'active',
             ]);
 
-            foreach ($allStudentIds as $studentId) {
+            $validStudentIds = [];
+
+            foreach ($students as $student) {
+                // Jika mapel kejuruan, hanya enroll siswa yang jurusannya relevan
+                if ($vocKeywords && !VocationalMajorFilterService::isStudentMatchingVocationalSubject($student, $vocKeywords, $classroom)) {
+                    continue;
+                }
+
+                $validStudentIds[] = $student->id;
+
                 $enrollment = LmsEnrollment::firstOrCreate([
                     'lms_class_id' => $lmsClass->id,
-                    'student_id' => $studentId,
+                    'student_id' => $student->id,
                 ], [
                     'status' => 'enrolled',
                     'enrolled_at' => now(),
@@ -171,6 +182,13 @@ class LmsEnrollmentService
                 if ($enrollment->wasRecentlyCreated) {
                     $createdCount++;
                 }
+            }
+
+            // Bersihkan ghost enrollments (siswa yang bukan anggota sah / tidak cocok kejuruan)
+            if (!empty($validStudentIds)) {
+                LmsEnrollment::where('lms_class_id', $lmsClass->id)
+                    ->whereNotIn('student_id', $validStudentIds)
+                    ->delete();
             }
         }
 
@@ -199,43 +217,39 @@ class LmsEnrollmentService
         }
 
         // 2. Ambil seluruh LmsClass yang terkait dengan kursus ini
-        $lmsClasses = LmsClass::where('course_id', $course->id)->get();
+        $lmsClasses = LmsClass::where('course_id', $course->id)->with('classroom')->get();
         $activeYear = AcademicYear::where('is_active', true)->first();
         $createdCount = 0;
 
+        $subjName = $course->subject?->name ?? $course->subject?->subject_name;
+        $vocKeywords = VocationalMajorFilterService::getSubjectMajorKeywords($subjName, $course->subject?->code, $course->course_name);
+
         foreach ($lmsClasses as $lmsClass) {
-            $classroomId = $lmsClass->classroom_id;
+            $classroom = $lmsClass->classroom;
+            if (!$classroom) continue;
 
-            // 1. Coba ambil siswa dengan academic year aktif jika ada
-            $studentIds = StudentClass::where('classroom_id', $classroomId)
-                ->when($activeYear, function ($q) use ($activeYear, $classroomId) {
-                    $hasActiveYear = StudentClass::where('classroom_id', $classroomId)
-                        ->where('academic_year_id', $activeYear->id)
-                        ->exists();
-                    if ($hasActiveYear) {
-                        $q->where('academic_year_id', $activeYear->id);
-                    }
-                })
-                ->where(function ($q) {
-                    $q->whereNull('status')
-                      ->orWhereIn('status', ['aktif', 'active', 'Aktif', '']);
-                })
-                ->pluck('student_id')
-                ->toArray();
+            $yearId = $classroom->academic_year_id ?? $course->academic_year_id ?? $activeYear?->id;
 
-            // 2. Fallback: ambil semua siswa di student_classes untuk rombel ini
-            if (empty($studentIds)) {
-                $studentIds = StudentClass::where('classroom_id', $classroomId)
-                    ->pluck('student_id')
-                    ->toArray();
+            // Ambil siswa yang BENAR-BENAR anggota aktif kelas ini
+            $studentsQuery = $classroom->students()->with('classrooms')->wherePivot('status', 'aktif');
+            if ($yearId) {
+                $studentsQuery->wherePivot('academic_year_id', $yearId);
             }
+            $students = $studentsQuery->get();
 
-            $allStudentIds = array_unique(array_filter($studentIds));
+            $validStudentIds = [];
 
-            foreach ($allStudentIds as $studentId) {
+            foreach ($students as $student) {
+                // Jika mapel kejuruan, hanya enroll siswa yang jurusannya relevan
+                if ($vocKeywords && !VocationalMajorFilterService::isStudentMatchingVocationalSubject($student, $vocKeywords, $classroom)) {
+                    continue;
+                }
+
+                $validStudentIds[] = $student->id;
+
                 $enrollment = LmsEnrollment::firstOrCreate([
                     'lms_class_id' => $lmsClass->id,
-                    'student_id' => $studentId,
+                    'student_id' => $student->id,
                 ], [
                     'status' => 'enrolled',
                     'enrolled_at' => now(),
@@ -244,6 +258,13 @@ class LmsEnrollmentService
                 if ($enrollment->wasRecentlyCreated) {
                     $createdCount++;
                 }
+            }
+
+            // Bersihkan ghost enrollments (siswa hantu yang bukan anggota kelas ini atau salah jurusan)
+            if (!empty($validStudentIds)) {
+                LmsEnrollment::where('lms_class_id', $lmsClass->id)
+                    ->whereNotIn('student_id', $validStudentIds)
+                    ->delete();
             }
         }
 
@@ -272,7 +293,7 @@ class LmsEnrollmentService
             $enrollmentsCount += $this->syncClassroomEnrollments($classroom);
         }
 
-        // Bersihkan data enrollment silang sekolah yang tidak valid (kecuali unit Yayasan / Lintas Unit)
+        // Bersihkan data enrollment silang sekolah yang tidak valid
         $deletedRogue = DB::table('lms_enrollments')
             ->join('lms_classes', 'lms_enrollments.lms_class_id', '=', 'lms_classes.id')
             ->join('lms_courses', 'lms_classes.course_id', '=', 'lms_courses.id')
