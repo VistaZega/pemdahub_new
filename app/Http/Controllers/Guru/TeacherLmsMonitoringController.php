@@ -115,6 +115,15 @@ class TeacherLmsMonitoringController extends Controller
             $c = $enr->lmsClass?->course;
             if (!$c) continue;
 
+            // Filter Otomatis: Jika ini mata pelajaran kejuruan (DDTK / Konsentrasi Keahlian),
+            // hanya sertakan siswa yang jurusannya relevan dengan kejuruan tersebut!
+            $subjName = $c->subject?->name ?? $c->subject?->subject_name;
+            $vocKeywords = $this->getSubjectMajorKeywords($subjName, $c->subject?->code, $c->course_name);
+            $lmsClass = $enr->lmsClass?->classroom;
+            if (!$this->isStudentMatchingVocationalSubject($st, $vocKeywords, $lmsClass)) {
+                continue; // Jangan tampilkan siswa dari jurusan non-relevan (misal: DPIB di mapel TE)
+            }
+
             $cMatIds = $c->materials->pluck('id')->toArray();
             $cAssignIds = $c->assignments->pluck('id')->toArray();
             $cQuizIds = $c->quizzes->pluck('id')->toArray();
@@ -486,6 +495,14 @@ class TeacherLmsMonitoringController extends Controller
                 $c = $enr->lmsClass?->course;
                 if (!$st || !$c) continue;
 
+                // Filter Otomatis: Hanya sertakan siswa jurusan yang relevan untuk mapel kejuruan
+                $subjName = $c->subject?->name ?? $c->subject?->subject_name;
+                $vocKeywords = $this->getSubjectMajorKeywords($subjName, $c->subject?->code, $c->course_name);
+                $lmsClass = $enr->lmsClass?->classroom;
+                if (!$this->isStudentMatchingVocationalSubject($st, $vocKeywords, $lmsClass)) {
+                    continue;
+                }
+
                 $cMatIds = $c->materials->pluck('id')->toArray();
                 $cAssignIds = $c->assignments->pluck('id')->toArray();
                 $cQuizIds = $c->quizzes->pluck('id')->toArray();
@@ -511,7 +528,8 @@ class TeacherLmsMonitoringController extends Controller
                 $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->avg('grade');
                 $avgQuizScore = $stQuiz->whereIn('quiz_id', $cQuizIds)->whereNotNull('score')->avg('score');
 
-                $className = $enr->lmsClass?->classroom?->class_name ?? $st->classrooms->first()?->class_name ?? '-';
+                $regularClass = $st->classrooms->filter(fn($cls) => $cls->id !== $lmsClass?->id)->first() ?? $lmsClass;
+                $className = $regularClass?->class_name ?? '-';
                 $status = ($overallPct < 40 || ($totalAssigns > 1 && $submittedAssigns === 0)) ? 'Perlu Perhatian' : ($overallPct >= 85 ? 'Sangat Aktif' : 'On Track');
 
                 fputcsv($handle, [
@@ -540,5 +558,58 @@ class TeacherLmsMonitoringController extends Controller
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
+    }
+
+    /**
+     * Deteksi kata kunci Kejuruan untuk mata pelajaran produktif SMK (DDTK / Konsentrasi Keahlian)
+     */
+    protected function getSubjectMajorKeywords(?string $subjectName, ?string $subjectCode = null, ?string $courseName = null): ?array
+    {
+        $text = strtoupper(($subjectName ?? '') . ' ' . ($subjectCode ?? '') . ' ' . ($courseName ?? ''));
+
+        // 1. Teknik Elektronika / Audio Video (TE / TAV)
+        if (preg_match('/\b(TE|TAV|ELEKTRONIKA|AUDIO\s*VIDEO|MIKROKONTROLER)\b/i', $text)) {
+            return ['TE', 'TAV', 'ELEKTRONIKA', 'AUDIO'];
+        }
+        // 2. DPIB / Bangunan
+        if (preg_match('/\b(DPIB|BANGUNAN|ARSITEKTUR|GAMBAR\s*TEKNIK|KONSTRUKSI)\b/i', $text)) {
+            return ['DPIB', 'BANGUNAN'];
+        }
+        // 3. TKR / Otomotif / TO
+        if (preg_match('/\b(TKR|OTOMOTIF|KENDARAAN|CHASIS|ENGINE)\b/i', $text) || preg_match('/\bTO\b/i', $text)) {
+            return ['TKR', 'TO', 'OTOMOTIF', 'KENDARAAN'];
+        }
+        // 4. TSM / Sepeda Motor
+        if (preg_match('/\b(TSM|TBSM|SEPEDA\s*MOTOR)\b/i', $text)) {
+            return ['TSM', 'TBSM', 'MOTOR'];
+        }
+        // 5. TKJ / TJKT / ACP
+        if (preg_match('/\b(TKJ|TJKT|ACP|JARINGAN|KOMPUTER)\b/i', $text)) {
+            return ['TKJ', 'TJKT', 'ACP', 'JARINGAN'];
+        }
+
+        return null; // Mapel Umum (Normatif / Adaptif / Non-SMK)
+    }
+
+    /**
+     * Periksa apakah siswa relevan dengan mata pelajaran kejuruan ini
+     */
+    protected function isStudentMatchingVocationalSubject(Student $student, ?array $subjectKeywords, ?Classroom $lmsClass): bool
+    {
+        if (!$subjectKeywords) {
+            return true; // Mapel umum -> semua siswa relevan
+        }
+
+        // Ambil kelas reguler siswa (bukan kelas blok/gabungan)
+        $regularClass = $student->classrooms->filter(fn($cls) => $cls->id !== $lmsClass?->id)->first() ?? $lmsClass;
+        $regularClassName = strtoupper($regularClass?->class_name ?? '');
+
+        foreach ($subjectKeywords as $kw) {
+            if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $regularClassName)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
