@@ -166,41 +166,66 @@
     <div class="bg-white rounded-3xl p-6 border-2 border-black shadow-xl space-y-5">
         
         {{-- Toolbar Filter & Search --}}
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b-2 border-slate-100 pb-5">
-            {{-- Tabs --}}
-            <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'all', 'search' => $search]) }}"
-                   class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'all' ? 'bg-black text-amber-400 shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
-                    Semua ({{ count($studentList) }})
-                </a>
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'at_risk', 'search' => $search]) }}"
-                   class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'at_risk' ? 'bg-rose-600 text-white shadow-sm' : 'bg-rose-50 text-rose-800 hover:bg-rose-100' }}">
-                    ⚠️ Perlu Perhatian ({{ $kpi['at_risk_count'] }})
-                </a>
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'missing_task', 'search' => $search]) }}"
-                   class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'missing_task' ? 'bg-amber-400 text-black shadow-sm' : 'bg-amber-50 text-amber-900 hover:bg-amber-100' }}">
-                    📝 Belum Kumpul Tugas ({{ $kpi['missing_task_count'] }})
-                </a>
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'completed', 'search' => $search]) }}"
-                   class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'completed' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 text-emerald-900 hover:bg-emerald-100' }}">
-                    🌟 Tuntas 100%
-                </a>
+        <div class="space-y-3 border-b-2 border-slate-100 pb-5">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                {{-- Tabs --}}
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'all', 'origin_class' => $selectedOriginClass, 'search' => $search]) }}"
+                       class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'all' ? 'bg-black text-amber-400 shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
+                        Semua ({{ count($studentList) }})
+                    </a>
+                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'at_risk', 'origin_class' => $selectedOriginClass, 'search' => $search]) }}"
+                       class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'at_risk' ? 'bg-rose-600 text-white shadow-sm' : 'bg-rose-50 text-rose-800 hover:bg-rose-100' }}">
+                        ⚠️ Perlu Perhatian ({{ $kpi['at_risk_count'] }})
+                    </a>
+                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'missing_task', 'origin_class' => $selectedOriginClass, 'search' => $search]) }}"
+                       class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'missing_task' ? 'bg-amber-400 text-black shadow-sm' : 'bg-amber-50 text-amber-900 hover:bg-amber-100' }}">
+                        📝 Belum Kumpul Tugas ({{ $kpi['missing_task_count'] }})
+                    </a>
+                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'completed', 'origin_class' => $selectedOriginClass, 'search' => $search]) }}"
+                       class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'completed' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 text-emerald-900 hover:bg-emerald-100' }}">
+                        🌟 Tuntas 100%
+                    </a>
+                </div>
+
+                {{-- Search Bar --}}
+                <form method="GET" action="{{ route('guru.lms.monitoring.index') }}" class="flex items-center gap-2">
+                    <input type="hidden" name="course_id" value="{{ $selectedCourseId }}">
+                    <input type="hidden" name="filter" value="{{ $filterTab }}">
+                    <input type="hidden" name="origin_class" value="{{ $selectedOriginClass }}">
+                    <div class="relative w-full md:w-72 flex items-center">
+                        <i class="fas fa-search absolute left-4 text-slate-400 text-xs pointer-events-none"></i>
+                        <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama / NISN / mapel / kelas..."
+                               class="w-full bg-slate-50 border-2 border-black rounded-2xl pl-11 pr-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:bg-white transition shadow-2xs">
+                    </div>
+                    @if(!empty($search) || !empty($selectedOriginClass))
+                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => $filterTab]) }}"
+                       class="px-3 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-xs font-black text-slate-700 border border-black" title="Reset filter">✕</a>
+                    @endif
+                </form>
             </div>
 
-            {{-- Search Bar --}}
-            <form method="GET" action="{{ route('guru.lms.monitoring.index') }}" class="flex items-center gap-2">
-                <input type="hidden" name="course_id" value="{{ $selectedCourseId }}">
-                <input type="hidden" name="filter" value="{{ $filterTab }}">
-                <div class="relative w-full md:w-72 flex items-center">
-                    <i class="fas fa-search absolute left-4 text-slate-400 text-xs pointer-events-none"></i>
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama / NISN / mapel / kelas..."
-                           class="w-full bg-slate-50 border-2 border-black rounded-2xl pl-11 pr-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:bg-white transition shadow-2xs">
-                </div>
-                @if(!empty($search))
-                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => $filterTab]) }}"
-                   class="px-3 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-xs font-black text-slate-700 border border-black">✕</a>
-                @endif
-            </form>
+            {{-- Sub-Filter Jurusan / Kelas Asal (Muncul otomatis jika ada > 1 kelas/jurusan dalam dataset) --}}
+            @if(count($originClasses) > 1)
+            <div class="flex items-center gap-2 pt-2 border-t border-slate-100 flex-wrap">
+                <span class="text-[11px] font-black text-slate-500 uppercase tracking-wider mr-1 flex items-center gap-1.5">
+                    <i class="fas fa-layer-group text-amber-500"></i> Filter Jurusan / Kelas:
+                </span>
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => $filterTab, 'search' => $search]) }}"
+                   class="px-3 py-1 rounded-xl text-xs font-black border border-black transition {{ empty($selectedOriginClass) ? 'bg-amber-400 text-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
+                    Semua ({{ count($studentList) }})
+                </a>
+                @foreach($originClasses as $oc)
+                    @php
+                        $countOc = collect($studentList)->where('class_name', $oc)->count();
+                    @endphp
+                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => $filterTab, 'origin_class' => $oc, 'search' => $search]) }}"
+                       class="px-3 py-1 rounded-xl text-xs font-black border border-black transition {{ $selectedOriginClass === $oc ? 'bg-blue-600 text-white shadow-xs' : 'bg-blue-50 text-blue-900 hover:bg-blue-100' }}">
+                        {{ $oc }} ({{ $countOc }})
+                    </a>
+                @endforeach
+            </div>
+            @endif
         </div>
 
         {{-- Tabel Daftar Siswa --}}

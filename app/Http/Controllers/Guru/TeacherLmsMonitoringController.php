@@ -205,8 +205,11 @@ class TeacherLmsMonitoringController extends Controller
         // Filtering & Searching
         $filterTab = $request->query('filter', 'all');
         $search = strtolower(trim($request->query('search', '')));
+        $selectedOriginClass = $request->query('origin_class');
 
-        $filteredStudents = collect($studentList)->filter(function ($item) use ($filterTab, $search) {
+        $originClasses = collect($studentList)->pluck('class_name')->filter(fn($c) => !empty($c) && $c !== '-')->unique()->sort()->values();
+
+        $filteredStudents = collect($studentList)->filter(function ($item) use ($filterTab, $search, $selectedOriginClass) {
             if ($filterTab === 'at_risk' && !$item['is_at_risk']) {
                 return false;
             }
@@ -214,6 +217,9 @@ class TeacherLmsMonitoringController extends Controller
                 return false;
             }
             if ($filterTab === 'completed' && $item['overall_pct'] < 100) {
+                return false;
+            }
+            if (!empty($selectedOriginClass) && $item['class_name'] !== $selectedOriginClass) {
                 return false;
             }
             if (!empty($search)) {
@@ -246,6 +252,8 @@ class TeacherLmsMonitoringController extends Controller
             'selectedCourseId',
             'classrooms',
             'selectedClassroomId',
+            'originClasses',
+            'selectedOriginClass',
             'filteredStudents',
             'studentList',
             'kpi',
