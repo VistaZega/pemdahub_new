@@ -174,13 +174,16 @@ class TeacherLmsMonitoringController extends Controller
                 }
             }
 
-            // Identifikasi kelas asal (reguler) vs kelas LMS/blok
+            // Identifikasi kelas siswa pada TAHUN PELAJARAN yang sesuai dengan Kursus
             $lmsClass = $enr->lmsClass?->classroom;
-            $regularClass = $st->classrooms->filter(fn($cls) => $cls->id !== $lmsClass?->id)->first() ?? $lmsClass;
+            $courseYearId = $c->academic_year_id ?? $lmsClass?->academic_year_id ?? $activeYearId;
 
-            $originClassName = $regularClass?->class_name ?? '-';
-            $lmsClassName = $lmsClass?->class_name ?? '-';
-            $isBlockClass = ($regularClass && $lmsClass && $regularClass->id !== $lmsClass->id);
+            $activeClass = $st->classrooms
+                ->where('academic_year_id', $courseYearId)
+                ->where('is_active', true)
+                ->first() ?? $lmsClass ?? $st->classrooms->first();
+
+            $className = $activeClass?->class_name ?? $lmsClass?->class_name ?? '-';
 
             $studentList[] = [
                 'enrollment_id' => $enr->id,
@@ -188,9 +191,9 @@ class TeacherLmsMonitoringController extends Controller
                 'course' => $c,
                 'course_name' => $c->course_name,
                 'subject_name' => $c->subject?->name ?? $c->subject?->subject_name ?? $c->course_name,
-                'class_name' => $originClassName,
-                'block_class_name' => $lmsClassName,
-                'is_block_class' => $isBlockClass,
+                'class_name' => $className,
+                'block_class_name' => $lmsClass?->class_name ?? $className,
+                'is_block_class' => ($lmsClass && $activeClass && $lmsClass->id !== $activeClass->id),
                 'completed_materials' => $completedMats,
                 'total_materials' => $totalMats,
                 'material_pct' => $matPct,
@@ -528,8 +531,13 @@ class TeacherLmsMonitoringController extends Controller
                 $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->avg('grade');
                 $avgQuizScore = $stQuiz->whereIn('quiz_id', $cQuizIds)->whereNotNull('score')->avg('score');
 
-                $regularClass = $st->classrooms->filter(fn($cls) => $cls->id !== $lmsClass?->id)->first() ?? $lmsClass;
-                $className = $regularClass?->class_name ?? '-';
+                $courseYearId = $c->academic_year_id ?? $lmsClass?->academic_year_id;
+                $activeClass = $st->classrooms
+                    ->where('academic_year_id', $courseYearId)
+                    ->where('is_active', true)
+                    ->first() ?? $lmsClass ?? $st->classrooms->first();
+
+                $className = $activeClass?->class_name ?? $lmsClass?->class_name ?? '-';
                 $status = ($overallPct < 40 || ($totalAssigns > 1 && $submittedAssigns === 0)) ? 'Perlu Perhatian' : ($overallPct >= 85 ? 'Sangat Aktif' : 'On Track');
 
                 fputcsv($handle, [
@@ -600,13 +608,23 @@ class TeacherLmsMonitoringController extends Controller
             return true; // Mapel umum -> semua siswa relevan
         }
 
-        // Ambil kelas reguler siswa (bukan kelas blok/gabungan)
-        $regularClass = $student->classrooms->filter(fn($cls) => $cls->id !== $lmsClass?->id)->first() ?? $lmsClass;
-        $regularClassName = strtoupper($regularClass?->class_name ?? '');
+        // Ambil kelas aktif siswa pada tahun pelajaran kursus
+        $courseYearId = $lmsClass?->academic_year_id;
+        $activeClasses = $student->classrooms;
+        if ($courseYearId) {
+            $activeClasses = $activeClasses->where('academic_year_id', $courseYearId);
+        }
 
-        foreach ($subjectKeywords as $kw) {
-            if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $regularClassName)) {
-                return true;
+        $classNames = $activeClasses->pluck('class_name')->map(fn($n) => strtoupper($n))->toArray();
+        if (empty($classNames) && $lmsClass) {
+            $classNames = [strtoupper($lmsClass->class_name)];
+        }
+
+        foreach ($classNames as $className) {
+            foreach ($subjectKeywords as $kw) {
+                if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $className)) {
+                    return true;
+                }
             }
         }
 
