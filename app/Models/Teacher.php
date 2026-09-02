@@ -274,6 +274,22 @@ class Teacher extends Model
     }
 
     /**
+     * Relationship: LMS Courses (alias)
+     */
+    public function lmsCourses(): HasMany
+    {
+        return $this->hasMany(LmsCourse::class, 'teacher_id');
+    }
+
+    /**
+     * Relationship: Rombel yang diampu sebagai Wali Kelas
+     */
+    public function homeroomClassrooms(): HasMany
+    {
+        return $this->hasMany(Classroom::class, 'homeroom_teacher_id');
+    }
+
+    /**
      * Get school name for display
      */
     public function getSchoolNameAttribute(): string

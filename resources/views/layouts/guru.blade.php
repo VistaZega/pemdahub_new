@@ -92,6 +92,12 @@
         <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #0891b2 !important; color: #ffffff !important;"><i class="fas fa-file-invoice-dollar text-[10px] text-white"></i></div>
         <span>Biaya Pendidikan</span>
     </a>
+
+    <!-- Monitoring LMS Kelas (Wali Kelas) -->
+    <a href="{{ route('guru.walikelas.lms-monitoring') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.walikelas.lms-monitoring*') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #f59e0b !important; color: #000000 !important;"><i class="fas fa-chart-pie text-[10px] text-black"></i></div>
+        <span>Monitoring LMS Kelas</span>
+    </a>
     @endif
 
     @if(\App\Models\Setting::getValue('guru_access_lms', true))
@@ -100,6 +106,16 @@
         <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #ea580c !important; color: #ffffff !important;"><i class="fas fa-laptop text-[10px] text-white"></i></div>
         <span>LMS</span>
     </a>
+    @if(request()->routeIs('guru.lms.*'))
+    <div class="ml-11 -mt-0.5 mb-1 space-y-0.5">
+        <a href="{{ route('guru.lms.index') }}" class="block text-xs px-3 py-1.5 rounded-lg transition {{ request()->routeIs('guru.lms.index') ? 'bg-orange-100 text-orange-950 font-black border border-black' : 'text-slate-700 font-bold hover:text-black hover:bg-slate-100' }}">
+            <i class="fas fa-book-open mr-1.5 text-[10px]"></i>Kursus Saya
+        </a>
+        <a href="{{ route('guru.lms.monitoring.index') }}" class="block text-xs px-3 py-1.5 rounded-lg transition {{ request()->routeIs('guru.lms.monitoring.*') ? 'bg-orange-100 text-orange-950 font-black border border-black' : 'text-slate-700 font-bold hover:text-black hover:bg-slate-100' }}">
+            <i class="fas fa-chart-line mr-1.5 text-[10px]"></i>Pantauan Progres Siswa
+        </a>
+    </div>
+    @endif
     @endif
     @endif
 
