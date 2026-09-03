@@ -29,7 +29,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
 
     // Pantauan Progres LMS Rombel (Wali Kelas)
     Route::prefix('walikelas/lms-monitoring')->name('walikelas.lms-monitoring')->group(function () {
-        Route::get('/', [App\Http\Controllers\Guru\HomeroomLmsController::class, 'index'])->name('');
+        Route::get('/', [App\Http\Controllers\Guru\HomeroomLmsController::class, 'index']);
         Route::get('/student/{student}', [App\Http\Controllers\Guru\HomeroomLmsController::class, 'studentDetail'])->name('.student-detail');
         Route::post('/motivation', [App\Http\Controllers\Guru\HomeroomLmsController::class, 'sendMotivation'])->name('.motivation');
         Route::get('/print', [App\Http\Controllers\Guru\HomeroomLmsController::class, 'printRekap'])->name('.print');
