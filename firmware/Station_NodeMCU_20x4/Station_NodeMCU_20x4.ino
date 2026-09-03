@@ -105,7 +105,7 @@ const char* SERVER_URL        = "https://perguruanpembda.com/api/attendance/rfid
 const char* KIOSK_API_KEY     = "RAHASIA-PEMBDAHUB-12345";
 
 // ── GANTI DEVICE_ID UNTUK SETIAP STATION! ──
-const char* DEVICE_ID         = "STATION-SMP-03";
+const char* DEVICE_ID         = "STATION-SMA-03";
 
 // ============================================================
 //  PIN DEFINITIONS - NodeMCU V3 (ESP-12F)
@@ -688,4 +688,3 @@ String getRfidUID() {
   hexUID.toUpperCase();
   return hexUID;
 }
-
