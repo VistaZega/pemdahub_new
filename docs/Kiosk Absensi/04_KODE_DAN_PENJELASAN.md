@@ -47,6 +47,7 @@ MicroSD Card/
 // ============================================================
 //  FIRMWARE NODEMCU V3 (ESP-12F) - PEMBDAHUB ATTENDANCE STATION
 //  Station Absen Terpadu: RFID RC522 + GM65 QR Scanner + LCD 20x4 I2C + DFPlayer MP3 + Buzzer
+//  Versi UI: Professional Animated Standby Screen (Non-Blocking)
 // ============================================================
 
 #include <SPI.h>
@@ -101,6 +102,42 @@ const char* DEVICE_ID          = "STATION-SMA-01";
 #define SCAN_COOLDOWN_MS    3000    // Proteksi anti double-tap
 #define QR_MIN_LENGTH       3       // Minimal panjang karakter QR
 
+// ============================================================
+//  CUSTOM PIXEL CHARACTERS UNTUK LCD (5x8 Dots)
+// ============================================================
+byte iconWifi[8] = {
+  B00000,
+  B01110,
+  B10001,
+  B00100,
+  B01010,
+  B00000,
+  B00100,
+  B00000
+};
+
+byte iconCard[8] = {
+  B11111,
+  B10001,
+  B10101,
+  B10001,
+  B11111,
+  B00000,
+  B00000,
+  B00000
+};
+
+byte iconHeart[8] = {
+  B00000,
+  B01010,
+  B11111,
+  B11111,
+  B01110,
+  B00100,
+  B00000,
+  B00000
+};
+
 // Global State
 String        lastUID          = "";
 unsigned long lastTapTime      = 0;
@@ -108,6 +145,11 @@ String        qrBuffer         = "";
 unsigned long qrPauseUntil     = 0;
 unsigned long lastWiFiCheck    = 0;
 bool          isOnline         = false;
+
+// Animasi State
+unsigned long lastAnimTime     = 0;
+int           animFrame        = 0;
+bool          isShowingResult  = false;
 
 // Hardware Objects
 MFRC522           rfid(RFID_SS_PIN, RFID_RST_PIN);
@@ -119,6 +161,7 @@ SoftwareSerial    kioskSerial(QR_RX_PIN, MP3_TX_PIN);
 void playAudio(uint8_t folder, uint8_t track);
 void setMp3Volume(uint8_t vol);
 void showReady();
+void updateLcdAnimation();
 void showError(String msg);
 void beep(int count, int duration);
 void handleRfidScan();
@@ -131,6 +174,7 @@ void indicatorCheckOut();
 void indicatorCooldown();
 void indicatorNewCard();
 void indicatorFail();
+String getRfidUID();
 
 // ============================================================
 //  SETUP ROUTINE
@@ -150,9 +194,15 @@ void setup() {
   Wire.begin(4, 5);
   lcd.begin();
   lcd.backlight();
+
+  // Daftarkan Custom Characters ke memori LCD
+  lcd.createChar(0, iconWifi);
+  lcd.createChar(1, iconCard);
+  lcd.createChar(2, iconHeart);
+
   lcd.setCursor(0, 0); lcd.print(F("===================="));
-  lcd.setCursor(0, 1); lcd.print(F("   PEMBDA HUB v2    "));
-  lcd.setCursor(0, 2); lcd.print(F("  Silakan Scan UID  "));
+  lcd.setCursor(0, 1); lcd.print(F("  PEMBDAHUB KIOSK   "));
+  lcd.setCursor(0, 2); lcd.print(F(" Memulai Sistem...  "));
   lcd.setCursor(0, 3); lcd.print(F("===================="));
   delay(1500);
 
@@ -198,7 +248,7 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  // Pemeriksaan Kesehatan WiFi Setiap 10 Detik
+  // 1. Pemeriksaan Kesehatan WiFi Setiap 10 Detik
   if (now - lastWiFiCheck >= 10000 || lastWiFiCheck == 0) {
     lastWiFiCheck = now;
     if (wifiMulti.run() == WL_CONNECTED) {
@@ -214,13 +264,16 @@ void loop() {
     }
   }
 
-  // 1. Cek Scanner RFID
+  // 2. Animasi Layar Standby Non-Blocking
+  updateLcdAnimation();
+
+  // 3. Cek Scanner RFID
   handleRfidScan();
 
-  // 2. Cek Scanner Barcode / QR
+  // 4. Cek Scanner Barcode / QR
   handleQrScan();
 
-  delay(20);
+  delay(10);
 }
 
 // ============================================================
@@ -246,6 +299,7 @@ void handleRfidScan() {
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
 
+  isShowingResult = true;
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
   lcd.setCursor(0, 1); lcd.print(F("Membaca kartu RFID  "));
@@ -285,6 +339,7 @@ void handleQrScan() {
         lastUID     = qrData;
         lastTapTime = now;
 
+        isShowingResult = true;
         lcd.clear();
         lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
         lcd.setCursor(0, 1); lcd.print(F("Kode QR Terbaca     "));
@@ -319,6 +374,7 @@ void handleQrScan() {
 //  PENGIRIMAN DATA KE SERVER PEMBDAHUB (HTTPS POST)
 // ============================================================
 void sendToServer(String uid, String type) {
+  isShowingResult = true;
   if (WiFi.status() != WL_CONNECTED) {
     playAudio(1, 7);
     showError("Koneksi Internet Off");
@@ -326,7 +382,7 @@ void sendToServer(String uid, String type) {
   }
 
   BearSSL::WiFiClientSecure client;
-  client.setInsecure(); // Mengabaikan verifikasi sertifikat SSL untuk performa optimal
+  client.setInsecure();
 
   HTTPClient http;
   http.begin(client, String(SERVER_URL));
@@ -430,6 +486,53 @@ void parseAndDisplay(String json) {
 }
 
 // ============================================================
+//  FUNGSI DISPLAY STANDBY & ANIMASI (NON-BLOCKING)
+// ============================================================
+void showReady() {
+  isShowingResult = false;
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print(F("* PEMBDA PRESENSI * "));
+  lcd.setCursor(0, 1); lcd.write(byte(1)); lcd.print(F(" Tempel Kartu / QR "));
+  lcd.setCursor(0, 3);
+  if (isOnline) {
+    lcd.write(byte(0)); lcd.print(F(" ON:"));
+    String ssid = WiFi.SSID();
+    if (ssid.length() > 10) ssid = ssid.substring(0, 10);
+    lcd.print(ssid);
+  } else {
+    lcd.print(F("[OFFLINE] Cari AP..."));
+  }
+}
+
+void updateLcdAnimation() {
+  if (isShowingResult) return;
+
+  unsigned long now = millis();
+  if (now - lastAnimTime < 350) return;
+  lastAnimTime = now;
+
+  const char* frames[] = {
+    "   >> RFID / QR <<  ",
+    "  >>> RFID / QR <<< ",
+    " >>>> RFID / QR <<<<",
+    "  >>> RFID / QR <<< ",
+    "   >> RFID / QR <<  ",
+    "    > RFID / QR <   "
+  };
+
+  lcd.setCursor(0, 2);
+  lcd.print(frames[animFrame]);
+  animFrame = (animFrame + 1) % 6;
+
+  lcd.setCursor(19, 3);
+  if (animFrame % 2 == 0) {
+    lcd.write(byte(2));
+  } else {
+    lcd.print(F(" "));
+  }
+}
+
+// ============================================================
 //  HELPER AUDIO MP3 COMMANDS
 // ============================================================
 void sendMp3Command(uint8_t cmd, uint8_t para1, uint8_t para2) {
@@ -460,20 +563,20 @@ String getRfidUID() {
   return hexUID;
 }
 
-// Fungsi Display & Buzzer
-void showReady() {
-  lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(F("===================="));
-  lcd.setCursor(0, 1); lcd.print(F("   PEMBDA HUB v2    "));
-  lcd.setCursor(0, 2); lcd.print(F("  Silakan Scan UID  "));
-  lcd.setCursor(0, 3); lcd.print(isOnline ? F("Status: READY       ") : F("Status: OFFLINE     "));
-}
-
+// ============================================================
+//  FUNGSI DISPLAY & BUZZER
+// ============================================================
 void showError(String msg) {
+  isShowingResult = true;
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("=== !!! ERROR !!! =="));
-  lcd.setCursor(0, 1); lcd.print(msg.substring(0, min((int)msg.length(), 20)));
-  lcd.setCursor(0, 2); lcd.print(F("Silakan coba lagi   "));
+  if (msg.length() > 20) {
+    lcd.setCursor(0, 1); lcd.print(msg.substring(0, 20));
+    lcd.setCursor(0, 2); lcd.print(msg.substring(20, min((int)msg.length(), 40)));
+  } else {
+    lcd.setCursor(0, 1); lcd.print(msg);
+    lcd.setCursor(0, 2); lcd.print(F("Silakan coba lagi   "));
+  }
   lcd.setCursor(0, 3); lcd.print(F("--------------------"));
   indicatorFail();
 }

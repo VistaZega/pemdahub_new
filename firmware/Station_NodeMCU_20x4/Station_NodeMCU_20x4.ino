@@ -1,6 +1,7 @@
 // ============================================================
 //  FIRMWARE NODEMCU V3 (ESP-12F) - PEMBDAHUB ATTENDANCE STATION
 //  Station Absen Terpadu: RFID RC522 + GM65 QR Scanner + LCD 20x4 I2C + DFPlayer MP3 + Buzzer
+//  Versi UI: Professional Animated Standby Screen (Non-Blocking)
 //  
 //  ============================================================
 //  TABEL LENGKAP KONEKSI KABEL & PIN HARDWARE (WIRING DIAGRAM)
@@ -89,23 +90,23 @@
 // ============================================================
 
 // WiFi Utama
-const char* WIFI_SSID         = "Xspace";
-const char* WIFI_PASSWORD     = "12345678starlink";
+const char* WIFI_SSID          = "Xspace";
+const char* WIFI_PASSWORD      = "12345678starlink";
 
-// WiFi Alternatif (otomatis fallback jika utama gagal)
-const char* WIFI_ALT_SSID     = "TEFA";
-const char* WIFI_ALT_PASSWORD = "PEMBDA2026";
+// WiFi Alternatif 1 (otomatis fallback jika utama gagal)
+const char* WIFI_ALT_SSID      = "TEFA";
+const char* WIFI_ALT_PASSWORD  = "PEMBDA2026";
 
 // WiFi Alternatif 2
-const char* WIFI_ALT2_SSID    = "VISTAFAMILY";
-const char* WIFI_ALT2_PASSWORD= "pelita31";
+const char* WIFI_ALT2_SSID     = "VISTAFAMILY";
+const char* WIFI_ALT2_PASSWORD = "pelita31";
 
 // Server API - JANGAN DIUBAH kecuali domain berubah
-const char* SERVER_URL        = "https://perguruanpembda.com/api/attendance/rfid-scan";
-const char* KIOSK_API_KEY     = "RAHASIA-PEMBDAHUB-12345";
+const char* SERVER_URL         = "https://perguruanpembda.com/api/attendance/rfid-scan";
+const char* KIOSK_API_KEY      = "RAHASIA-PEMBDAHUB-12345";
 
 // ── GANTI DEVICE_ID UNTUK SETIAP STATION! ──
-const char* DEVICE_ID         = "STATION-SMA-03";
+const char* DEVICE_ID          = "STATION-SMA-01";
 
 // ============================================================
 //  PIN DEFINITIONS - NodeMCU V3 (ESP-12F)
@@ -133,10 +134,46 @@ const char* DEVICE_ID         = "STATION-SMA-03";
 // ============================================================
 //  TIMEOUTS & COOLDOWNS
 // ============================================================
-#define HTTP_TIMEOUT        10000   // 10 detik (ESP8266 TLS lebih lambat)
+#define HTTP_TIMEOUT        10000   // 10 detik (ESP8266 TLS)
 #define DISPLAY_RESULT_MS   3500    // Durasi tampil hasil di LCD
 #define SCAN_COOLDOWN_MS    3000    // Anti double-tap (3 detik)
 #define QR_MIN_LENGTH       3       // Minimum panjang QR valid
+
+// ============================================================
+//  CUSTOM PIXEL CHARACTERS UNTUK LCD (5x8 Dots)
+// ============================================================
+byte iconWifi[8] = {
+  B00000,
+  B01110,
+  B10001,
+  B00100,
+  B01010,
+  B00000,
+  B00100,
+  B00000
+};
+
+byte iconCard[8] = {
+  B11111,
+  B10001,
+  B10101,
+  B10001,
+  B11111,
+  B00000,
+  B00000,
+  B00000
+};
+
+byte iconHeart[8] = {
+  B00000,
+  B01010,
+  B11111,
+  B11111,
+  B01110,
+  B00100,
+  B00000,
+  B00000
+};
 
 // ============================================================
 //  GLOBAL STATE
@@ -148,6 +185,11 @@ unsigned long qrPauseUntil     = 0;
 unsigned long lastWiFiCheck    = 0;
 bool          isOnline         = false;
 
+// Animasi LCD State
+unsigned long lastAnimTime     = 0;
+int           animFrame        = 0;
+bool          isShowingResult  = false;
+
 // ============================================================
 //  OBJEK HARDWARE
 // ============================================================
@@ -156,9 +198,24 @@ LiquidCrystal_I2C lcd(LCD_ADDRESS, LCD_COLS, LCD_ROWS);
 ESP8266WiFiMulti  wifiMulti;
 SoftwareSerial    kioskSerial(QR_RX_PIN, MP3_TX_PIN); // RX untuk QR Scanner, TX untuk MP3 Player
 
-// Prototipe Fungsi Audio
+// Prototipe Fungsi Audio & Display
 void playAudio(uint8_t folder, uint8_t track);
 void setMp3Volume(uint8_t vol);
+void showReady();
+void updateLcdAnimation();
+void showError(String msg);
+void beep(int count, int duration);
+void handleRfidScan();
+void handleQrScan();
+void sendToServer(String uid, String type);
+void parseAndDisplay(String json);
+void connectWiFi();
+void indicatorCheckIn();
+void indicatorCheckOut();
+void indicatorCooldown();
+void indicatorNewCard();
+void indicatorFail();
+String getRfidUID();
 
 // ============================================================
 //  SETUP
@@ -179,12 +236,18 @@ void setup() {
   Wire.begin(4, 5);
   lcd.begin();
   lcd.backlight();
+
+  // Daftarkan Custom Characters ke memori LCD
+  lcd.createChar(0, iconWifi);
+  lcd.createChar(1, iconCard);
+  lcd.createChar(2, iconHeart);
+
   lcd.setCursor(0, 0); lcd.print(F("===================="));
-  lcd.setCursor(0, 1); lcd.print(F("   PEMBDA HUB v2    "));
-  lcd.setCursor(0, 2); lcd.print(F("  Silakan Scan UID  "));
+  lcd.setCursor(0, 1); lcd.print(F("  PEMBDAHUB KIOSK   "));
+  lcd.setCursor(0, 2); lcd.print(F(" Memulai Sistem...  "));
   lcd.setCursor(0, 3); lcd.print(F("===================="));
   Serial.println(F("LCD OK."));
-  delay(2000);
+  delay(1500);
 
   // ── INISIALISASI SPI & RFID RC522 ──
   SPI.begin();
@@ -195,33 +258,16 @@ void setup() {
   delay(150);
 
   Serial.println(F("Mengecek modul RFID RC522..."));
-  rfid.PCD_DumpVersionToSerial();
-
-  // Periksa apakah RFID terbaca (0x91/0x92=original, 0x88/0xB2=clone)
   byte version = rfid.PCD_ReadRegister(rfid.VersionReg);
   if (version == 0x00 || version == 0xFF) {
     Serial.println(F("WARNING: RFID tidak terdeteksi! Cek wiring SPI."));
-    Serial.println(F("  SS  = D0 (GPIO16), SCK = D5, MOSI = D7, MISO = D6, RST = 3.3V"));
     lcd.setCursor(0, 2); lcd.print(F("RFID ERROR! Cek SPI "));
     beep(5, 100);
     delay(2000);
   } else {
-    Serial.print(F("RFID Firmware Version: 0x"));
-    Serial.print(version, HEX);
-    if (version == 0x91 || version == 0x92) Serial.println(F(" (MFRC522 original)"));
-    else if (version == 0x88) Serial.println(F(" (FM17522 clone)"));
-    else if (version == 0xB2) Serial.println(F(" (MFRC522 clone - OK)"));
-    else Serial.println(F(" (unknown compatible)"));
-
-    // Gain antenna MAX 48dB
-    rfid.PCD_SetAntennaGain(rfid.RxGain_max);
-    delay(10);
-    byte gain = rfid.PCD_GetAntennaGain();
-    Serial.print(F("Antenna Gain: 0x")); Serial.print(gain, HEX);
-    if (gain == rfid.RxGain_max) Serial.println(F(" = MAX 48dB ✓"));
-    else                         Serial.println(F(" = gagal set max!"));
-
+    rfid.PCD_SetAntennaGain(rfid.RxGain_max); // Gain antenna MAX 48dB
     rfid.PCD_AntennaOn();
+    Serial.println(F("RFID RC522 Siap."));
   }
 
   // Koneksi WiFi dengan multi-AP
@@ -254,7 +300,7 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  // Periksa status WiFi setiap 10 detik secara non-blocking
+  // 1. Periksa status WiFi setiap 10 detik secara non-blocking
   if (now - lastWiFiCheck >= 10000 || lastWiFiCheck == 0) {
     lastWiFiCheck = now;
     if (wifiMulti.run() == WL_CONNECTED) {
@@ -272,13 +318,16 @@ void loop() {
     }
   }
 
-  // 1. Cek RFID
+  // 2. Update Animasi LCD (Non-Blocking)
+  updateLcdAnimation();
+
+  // 3. Cek Scanner RFID
   handleRfidScan();
 
-  // 2. Cek QR Code
+  // 4. Cek Scanner Barcode / QR
   handleQrScan();
 
-  delay(20);
+  delay(10);
 }
 
 // ============================================================
@@ -291,13 +340,9 @@ void handleRfidScan() {
     if (!rfid.PICC_ReadCardSerial()) return;
   }
 
-  Serial.println(F("Kartu RFID terdeteksi!"));
   String uid = getRfidUID();
-  Serial.println("RFID UID: " + uid);
-
   unsigned long now = millis();
   if (uid == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
-    Serial.println(F("RFID cooldown, abaikan."));
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
     return;
@@ -308,6 +353,7 @@ void handleRfidScan() {
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
 
+  isShowingResult = true; // Kunci layar agar animasi tidak menimpa
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
   lcd.setCursor(0, 1); lcd.print(F("Membaca kartu RFID  "));
@@ -340,18 +386,14 @@ void handleQrScan() {
         qrData.trim();
         qrBuffer = "";
 
-        Serial.println(F("================================="));
-        Serial.println("QR Code Terdeteksi: " + qrData);
-        Serial.println(F("================================="));
-
         unsigned long now = millis();
         if (qrData == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
-          Serial.println(F("QR Cooldown. Abaikan."));
           return;
         }
         lastUID     = qrData;
         lastTapTime = now;
 
+        isShowingResult = true; // Kunci layar
         lcd.clear();
         lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
         lcd.setCursor(0, 1); lcd.print(F("Kode QR Terbaca     "));
@@ -379,7 +421,6 @@ void handleQrScan() {
         qrPauseUntil = millis() + 1000;
         qrBuffer = "";
         while (kioskSerial.available()) kioskSerial.read();
-        Serial.println(F("[QR] Noise terdeteksi, pause 1 detik."));
         return;
       }
     }
@@ -390,6 +431,7 @@ void handleQrScan() {
 //  KIRIM DATA KE SERVER
 // ============================================================
 void sendToServer(String uid, String type) {
+  isShowingResult = true;
   Serial.println("Mengirim ke server: " + uid + " (" + type + ")");
   
   if (WiFi.status() != WL_CONNECTED) {
@@ -423,13 +465,13 @@ void sendToServer(String uid, String type) {
     Serial.println("Server Response: " + payload);
     parseAndDisplay(payload);
   } else if (code == 401) {
-    playAudio(1, 7); // 007.MP3 - Sistem ada gangguan hubungi admin
+    playAudio(1, 7);
     showError("API Key Tidak Valid!");
   } else if (code == 404) {
-    playAudio(1, 6); // 006.MP3 - Kartu tidak dikenali hubungi admin
+    playAudio(1, 6);
     showError("Kartu/QR Tdk Terdaftar");
   } else if (code > 0) {
-    playAudio(1, 7); // 007.MP3 - Sistem ada gangguan hubungi admin
+    playAudio(1, 7);
     showError("Gagal Server: " + String(code));
   } else {
     String errMsg = http.errorToString(code);
@@ -437,7 +479,7 @@ void sendToServer(String uid, String type) {
     if (payload.length() > 10 && payload.indexOf("status") > 0) {
       parseAndDisplay(payload);
     } else {
-      playAudio(1, 7); // 007.MP3 - Sistem ada gangguan hubungi admin
+      playAudio(1, 7);
       showError("Server Error: " + errMsg.substring(0, 14));
     }
   }
@@ -534,63 +576,70 @@ void parseAndDisplay(String json) {
 }
 
 // ============================================================
-//  KONEKSI WIFI
+//  FUNGSI DISPLAY STANDBY & ANIMASI (NON-BLOCKING)
 // ============================================================
-void connectWiFi() {
-  WiFi.mode(WIFI_STA);
-  WiFi.persistent(false);
-  int attempt = 0;
 
+// Menyiapkan Layout Dasar Standby
+void showReady() {
+  isShowingResult = false;
   lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(F("=== MENCARI WIFI ==="));
-  lcd.setCursor(0, 1); lcd.print(F("Mencoba koneksi...  "));
-  lcd.setCursor(0, 2); lcd.print(F("Hubungkan WiFi...   "));
-  lcd.setCursor(0, 3); lcd.print(F("--------------------"));
-
-  while (wifiMulti.run() != WL_CONNECTED && attempt < 20) {
-    delay(500);
-    Serial.print(".");
-    String dots = "";
-    for (int i = 0; i < (attempt % 6); i++) dots += ".";
-    lcd.setCursor(0, 2); lcd.print("Menghubungkan" + dots + "    ");
-    attempt++;
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("=== WIFI CONNECT ==="));
-    lcd.setCursor(0, 1); lcd.print("SSID: " + WiFi.SSID().substring(0, 14));
-    lcd.setCursor(0, 2); lcd.print("IP: " + WiFi.localIP().toString());
-    lcd.setCursor(0, 3); lcd.print(F("--------------------"));
-    beep(1, 200);
-    delay(1500);
+  
+  // Baris 0: Header Elegan
+  lcd.setCursor(0, 0);
+  lcd.print(F("* PEMBDA PRESENSI * "));
+  
+  // Baris 1: Petunjuk Scan
+  lcd.setCursor(0, 1);
+  lcd.write(byte(1)); // Ikon Kartu
+  lcd.print(F(" Tempel Kartu / QR "));
+  
+  // Baris 3: Status Bar & SSID WiFi
+  lcd.setCursor(0, 3);
+  if (isOnline) {
+    lcd.write(byte(0)); // Ikon WiFi
+    lcd.print(F(" ON:"));
+    String ssid = WiFi.SSID();
+    if (ssid.length() > 10) ssid = ssid.substring(0, 10);
+    lcd.print(ssid);
   } else {
-    lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("=== WIFI GAGAL ====="));
-    lcd.setCursor(0, 1); lcd.print(F("Koneksi gagal!      "));
-    lcd.setCursor(0, 2); lcd.print(F("Auto-retry di bg... "));
-    lcd.setCursor(0, 3); lcd.print(F("--------------------"));
-    beep(3, 100);
-    delay(2000);
+    lcd.print(F("[OFFLINE] Cari AP..."));
   }
 }
 
-// ============================================================
-//  FUNGSI DISPLAY
-// ============================================================
-void showReady() {
-  lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(F("===================="));
-  lcd.setCursor(0, 1); lcd.print(F("   PEMBDA HUB v2    "));
-  lcd.setCursor(0, 2); lcd.print(F("  Silakan Scan UID  "));
-  if (isOnline) {
-    lcd.setCursor(0, 3); lcd.print(F("Status: READY       "));
+// Fungsi Update Animasi Halus (Dipanggil di loop() setiap 350ms)
+void updateLcdAnimation() {
+  if (isShowingResult) return; // Jangan animasikan jika sedang tampil hasil scan
+
+  unsigned long now = millis();
+  if (now - lastAnimTime < 350) return; // Kecepatan frame animasi
+  lastAnimTime = now;
+
+  // Frame animasi panah gelombang (Pulse Wave)
+  const char* frames[] = {
+    "   >> RFID / QR <<  ",
+    "  >>> RFID / QR <<< ",
+    " >>>> RFID / QR <<<<",
+    "  >>> RFID / QR <<< ",
+    "   >> RFID / QR <<  ",
+    "    > RFID / QR <   "
+  };
+
+  // Update Baris 2 (Animasi Gerak)
+  lcd.setCursor(0, 2);
+  lcd.print(frames[animFrame]);
+  animFrame = (animFrame + 1) % 6;
+
+  // Update Heartbeat Blink di pojok kanan bawah (Kolom 19 Baris 3)
+  lcd.setCursor(19, 3);
+  if (animFrame % 2 == 0) {
+    lcd.write(byte(2)); // Ikon Heart / Detak Aktif
   } else {
-    lcd.setCursor(0, 3); lcd.print(F("Status: OFFLINE     "));
+    lcd.print(F(" "));  // Berkedip mati
   }
 }
 
 void showError(String msg) {
+  isShowingResult = true;
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("=== !!! ERROR !!! =="));
   if (msg.length() > 20) {
@@ -687,4 +736,46 @@ String getRfidUID() {
   
   hexUID.toUpperCase();
   return hexUID;
+}
+
+// ============================================================
+//  KONEKSI WIFI
+// ============================================================
+void connectWiFi() {
+  WiFi.mode(WIFI_STA);
+  WiFi.persistent(false);
+  int attempt = 0;
+
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print(F("=== MENCARI WIFI ==="));
+  lcd.setCursor(0, 1); lcd.print(F("Mencoba koneksi...  "));
+  lcd.setCursor(0, 2); lcd.print(F("Hubungkan WiFi...   "));
+  lcd.setCursor(0, 3); lcd.print(F("--------------------"));
+
+  while (wifiMulti.run() != WL_CONNECTED && attempt < 20) {
+    delay(500);
+    Serial.print(".");
+    String dots = "";
+    for (int i = 0; i < (attempt % 6); i++) dots += ".";
+    lcd.setCursor(0, 2); lcd.print("Menghubungkan" + dots + "    ");
+    attempt++;
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    lcd.clear();
+    lcd.setCursor(0, 0); lcd.print(F("=== WIFI CONNECT ==="));
+    lcd.setCursor(0, 1); lcd.print("SSID: " + WiFi.SSID().substring(0, 14));
+    lcd.setCursor(0, 2); lcd.print("IP: " + WiFi.localIP().toString());
+    lcd.setCursor(0, 3); lcd.print(F("--------------------"));
+    beep(1, 200);
+    delay(1500);
+  } else {
+    lcd.clear();
+    lcd.setCursor(0, 0); lcd.print(F("=== WIFI GAGAL ====="));
+    lcd.setCursor(0, 1); lcd.print(F("Koneksi gagal!      "));
+    lcd.setCursor(0, 2); lcd.print(F("Auto-retry di bg... "));
+    lcd.setCursor(0, 3); lcd.print(F("--------------------"));
+    beep(3, 100);
+    delay(2000);
+  }
 }
