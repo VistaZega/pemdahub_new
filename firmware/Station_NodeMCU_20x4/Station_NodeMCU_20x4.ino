@@ -76,23 +76,27 @@
 // ============================================================
 
 // WiFi Utama
-const char* WIFI_SSID          = "Xspace";
-const char* WIFI_PASSWORD      = "12345678starlink";
+const char* WIFI_SSID          = "PembdaLINK";
+const char* WIFI_PASSWORD      = "PEMBDA2026";
 
 // WiFi Alternatif 1 (otomatis fallback jika utama gagal)
-const char* WIFI_ALT_SSID      = "TEFA";
-const char* WIFI_ALT_PASSWORD  = "PEMBDA2026";
+const char* WIFI_ALT_SSID      = "Xspace";
+const char* WIFI_ALT_PASSWORD  = "12345678starlink";
 
 // WiFi Alternatif 2
-const char* WIFI_ALT2_SSID     = "VISTAFAMILY";
-const char* WIFI_ALT2_PASSWORD = "pelita31";
+const char* WIFI_ALT2_SSID     = "TEFA";
+const char* WIFI_ALT2_PASSWORD = "PEMBDA2026";
+
+// WiFi Alternatif 3
+const char* WIFI_ALT3_SSID     = "VISTAFAMILY";
+const char* WIFI_ALT3_PASSWORD = "pelita31";
 
 // Server API - JANGAN DIUBAH kecuali domain berubah
 const char* SERVER_URL         = "https://perguruanpembda.com/api/attendance/rfid-scan";
 const char* KIOSK_API_KEY      = "RAHASIA-PEMBDAHUB-12345";
 
 // ── GANTI DEVICE_ID UNTUK SETIAP STATION! ──
-const char* DEVICE_ID          = "STATION-SMA-01";
+const char* DEVICE_ID          = "STATION-SMA-02";
 
 // ============================================================
 //  PIN DEFINITIONS - NodeMCU V3 (ESP-12F)
@@ -167,7 +171,7 @@ bool          isShowingResult  = false;
 bool          isScreensaver    = false;
 
 // Teks Berjalan Slogan Resmi Yayasan Perguruan Pembda Nias
-const String marqueeText = "   *** YAYASAN PERGURUAN PEMBDA NIAS *** Keep Moving Forward - Maju Terus Pantang Mundur! *** SMP - SMA - SMK Swasta Pembda *** Silakan Tempel Kartu RFID / Scan QR Code ***   ";
+const String marqueeText = "   *** YAYASAN PERGURUAN PEMBDA NIAS *** Keep Moving Forward - Maju Terus Pantang Mundur! *** SMPS Pembda 2 - SMAS Pembda 1 - SMK PEMBDA Nias *** Silakan Tempel Kartu RFID / Scan QR Code ***   ";
 int          marqueePos        = 0;
 unsigned long lastMarqueeTime  = 0;
 
@@ -251,10 +255,11 @@ void setup() {
     Serial.println(F("RFID RC522 Siap."));
   }
 
-  // Koneksi WiFi dengan multi-AP
+  // Koneksi WiFi dengan multi-AP (4 Profil Jaringan)
   wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
   wifiMulti.addAP(WIFI_ALT_SSID, WIFI_ALT_PASSWORD);
   wifiMulti.addAP(WIFI_ALT2_SSID, WIFI_ALT2_PASSWORD);
+  wifiMulti.addAP(WIFI_ALT3_SSID, WIFI_ALT3_PASSWORD);
   connectWiFi();
   isOnline = (WiFi.status() == WL_CONNECTED);
   
@@ -589,7 +594,7 @@ void showReady() {
   
   // Baris 0: Header Elegan
   lcd.setCursor(0, 0);
-  lcd.print(F("* PEMBDA PRESENSI * "));
+  lcd.print(F("*PEMBDAHUB PRESENSI*"));
   
   // Baris 1: Petunjuk Scan
   lcd.setCursor(0, 1);
@@ -650,7 +655,7 @@ void showScreensaverBase() {
   
   // Baris 1: Subtitle Lembaga
   lcd.setCursor(0, 1);
-  lcd.print(F("SMP - SMA - SMK NIAS"));
+  lcd.print(F("STATION ABSENS SISWA"));
   
   // Baris 3: Status Bar Siaga Scan
   lcd.setCursor(0, 3);
