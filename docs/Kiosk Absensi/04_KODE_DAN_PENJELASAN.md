@@ -47,7 +47,7 @@ MicroSD Card/
 // ============================================================
 //  FIRMWARE NODEMCU V3 (ESP-12F) - PEMBDAHUB ATTENDANCE STATION
 //  Station Absen Terpadu: RFID RC522 + GM65 QR Scanner + LCD 20x4 I2C + DFPlayer MP3 + Buzzer
-//  Versi UI: Professional Animated Standby Screen (Non-Blocking)
+//  Fitur Spesial: Smart Screensaver Marquee (Slogan Yayasan Pembda Nias)
 // ============================================================
 
 #include <SPI.h>
@@ -101,6 +101,7 @@ const char* DEVICE_ID          = "STATION-SMA-01";
 #define DISPLAY_RESULT_MS   3500    // Durasi tayang hasil scan di LCD
 #define SCAN_COOLDOWN_MS    3000    // Proteksi anti double-tap
 #define QR_MIN_LENGTH       3       // Minimal panjang karakter QR
+#define IDLE_TIMEOUT_MS     20000   // 20 detik tanpa aktivitas -> Aktifkan Running Text
 
 // ============================================================
 //  CUSTOM PIXEL CHARACTERS UNTUK LCD (5x8 Dots)
@@ -146,10 +147,17 @@ unsigned long qrPauseUntil     = 0;
 unsigned long lastWiFiCheck    = 0;
 bool          isOnline         = false;
 
-// Animasi State
+// Animasi & Smart Screensaver State
+unsigned long lastActivityTime = 0;
 unsigned long lastAnimTime     = 0;
 int           animFrame        = 0;
 bool          isShowingResult  = false;
+bool          isScreensaver    = false;
+
+// Teks Berjalan Slogan Resmi Yayasan Perguruan Pembda Nias
+const String marqueeText = "   *** YAYASAN PERGURUAN PEMBDA NIAS *** Keep Moving Forward - Maju Terus Pantang Mundur! *** SMP - SMA - SMK Swasta Pembda *** Silakan Tempel Kartu RFID / Scan QR Code ***   ";
+int          marqueePos        = 0;
+unsigned long lastMarqueeTime  = 0;
 
 // Hardware Objects
 MFRC522           rfid(RFID_SS_PIN, RFID_RST_PIN);
@@ -161,7 +169,9 @@ SoftwareSerial    kioskSerial(QR_RX_PIN, MP3_TX_PIN);
 void playAudio(uint8_t folder, uint8_t track);
 void setMp3Volume(uint8_t vol);
 void showReady();
+void showScreensaverBase();
 void updateLcdAnimation();
+void updateMarquee();
 void showError(String msg);
 void beep(int count, int duration);
 void handleRfidScan();
@@ -230,6 +240,8 @@ void setup() {
   wifiMulti.addAP(WIFI_ALT2_SSID, WIFI_ALT2_PASSWORD);
   connectWiFi();
   isOnline = (WiFi.status() == WL_CONNECTED);
+  
+  lastActivityTime = millis();
   showReady();
 
   // Inisialisasi Serial GM65 & DFPlayer
@@ -254,18 +266,32 @@ void loop() {
     if (wifiMulti.run() == WL_CONNECTED) {
       if (!isOnline) {
         isOnline = true;
-        showReady();
+        if (isScreensaver) showScreensaverBase();
+        else showReady();
       }
     } else {
       if (isOnline) {
         isOnline = false;
-        showReady();
+        if (isScreensaver) showScreensaverBase();
+        else showReady();
       }
     }
   }
 
-  // 2. Animasi Layar Standby Non-Blocking
-  updateLcdAnimation();
+  // 2. Transisi Otomatis ke Screensaver Running Text jika 20 detik tidak ada aktivitas
+  if (!isShowingResult) {
+    if (!isScreensaver && (now - lastActivityTime >= IDLE_TIMEOUT_MS)) {
+      isScreensaver = true;
+      marqueePos = 0;
+      showScreensaverBase();
+    }
+    
+    if (isScreensaver) {
+      updateMarquee();
+    } else {
+      updateLcdAnimation();
+    }
+  }
 
   // 3. Cek Scanner RFID
   handleRfidScan();
@@ -277,7 +303,7 @@ void loop() {
 }
 
 // ============================================================
-//  PEMROSESAN KARTU RFID
+//  PEMROSESAN KARTU RFID (INSTANT WAKEUP)
 // ============================================================
 void handleRfidScan() {
   if (!rfid.PICC_IsNewCardPresent()) return;
@@ -293,8 +319,10 @@ void handleRfidScan() {
     rfid.PCD_StopCrypto1();
     return;
   }
-  lastUID     = uid;
-  lastTapTime = now;
+  lastUID          = uid;
+  lastTapTime      = now;
+  lastActivityTime = now;
+  isScreensaver    = false; // Bangun dari mode screensaver
 
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
@@ -312,7 +340,7 @@ void handleRfidScan() {
 }
 
 // ============================================================
-//  PEMROSESAN BARCODE & QR CODE
+//  PEMROSESAN BARCODE & QR CODE (INSTANT WAKEUP)
 // ============================================================
 void handleQrScan() {
   if (millis() < qrPauseUntil) {
@@ -336,8 +364,10 @@ void handleQrScan() {
         if (qrData == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
           return;
         }
-        lastUID     = qrData;
-        lastTapTime = now;
+        lastUID          = qrData;
+        lastTapTime      = now;
+        lastActivityTime = now;
+        isScreensaver    = false; // Bangun dari mode screensaver
 
         isShowingResult = true;
         lcd.clear();
@@ -419,6 +449,8 @@ void sendToServer(String uid, String type) {
   qrBuffer = "";
   
   delay(DISPLAY_RESULT_MS);
+  lastActivityTime = millis();
+  isScreensaver    = false;
   showReady();
 }
 
@@ -486,8 +518,9 @@ void parseAndDisplay(String json) {
 }
 
 // ============================================================
-//  FUNGSI DISPLAY STANDBY & ANIMASI (NON-BLOCKING)
+//  FUNGSI DISPLAY STANDBY & SMART SCREENSAVER (MARQUEE)
 // ============================================================
+
 void showReady() {
   isShowingResult = false;
   lcd.clear();
@@ -505,7 +538,7 @@ void showReady() {
 }
 
 void updateLcdAnimation() {
-  if (isShowingResult) return;
+  if (isShowingResult || isScreensaver) return;
 
   unsigned long now = millis();
   if (now - lastAnimTime < 350) return;
@@ -525,11 +558,50 @@ void updateLcdAnimation() {
   animFrame = (animFrame + 1) % 6;
 
   lcd.setCursor(19, 3);
-  if (animFrame % 2 == 0) {
-    lcd.write(byte(2));
+  if (animFrame % 2 == 0) lcd.write(byte(2));
+  else lcd.print(F(" "));
+}
+
+void showScreensaverBase() {
+  isShowingResult = false;
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print(F("* PERGURUAN PEMBDA *"));
+  lcd.setCursor(0, 1); lcd.print(F("SMP - SMA - SMK NIAS"));
+  lcd.setCursor(0, 3);
+  if (isOnline) {
+    lcd.write(byte(0)); lcd.print(F(" "));
+    String ssid = WiFi.SSID();
+    if (ssid.length() > 8) ssid = ssid.substring(0, 8);
+    lcd.print(ssid);
+    lcd.setCursor(12, 3);
+    lcd.print(F("SCAN"));
   } else {
-    lcd.print(F(" "));
+    lcd.print(F("[OFFLINE]   SCAN"));
   }
+}
+
+void updateMarquee() {
+  if (isShowingResult || !isScreensaver) return;
+
+  unsigned long now = millis();
+  if (now - lastMarqueeTime < 220) return;
+  lastMarqueeTime = now;
+
+  String windowText = "";
+  int textLen = marqueeText.length();
+  for (int i = 0; i < 20; i++) {
+    int idx = (marqueePos + i) % textLen;
+    windowText += marqueeText[idx];
+  }
+
+  lcd.setCursor(0, 2);
+  lcd.print(windowText);
+
+  marqueePos = (marqueePos + 1) % textLen;
+
+  lcd.setCursor(19, 3);
+  if ((marqueePos / 2) % 2 == 0) lcd.write(byte(2));
+  else lcd.print(F(" "));
 }
 
 // ============================================================

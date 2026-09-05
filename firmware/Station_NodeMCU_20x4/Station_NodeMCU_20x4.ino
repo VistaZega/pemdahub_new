@@ -1,7 +1,7 @@
 // ============================================================
 //  FIRMWARE NODEMCU V3 (ESP-12F) - PEMBDAHUB ATTENDANCE STATION
 //  Station Absen Terpadu: RFID RC522 + GM65 QR Scanner + LCD 20x4 I2C + DFPlayer MP3 + Buzzer
-//  Versi UI: Professional Animated Standby Screen (Non-Blocking)
+//  Fitur Spesial: Smart Screensaver Marquee (Slogan Yayasan Pembda Nias)
 //  
 //  ============================================================
 //  TABEL LENGKAP KONEKSI KABEL & PIN HARDWARE (WIRING DIAGRAM)
@@ -58,20 +58,6 @@
 //  │ Positif (+)          │ D8 (GPIO15)    │ Pin pull-down (aman boot)│
 //  │ Negatif (-)          │ GND            │ Ground bersama           │
 //  └──────────────────────┴────────────────┴──────────────────────────┘
-//
-//  ============================================================
-//  CATATAN SUMBER DAYA & KESTABILAN:
-//  - Gunakan Adaptor Charger minimal 5V 2A berkualitas baik.
-//  - Disarankan pasang 1 Elco 470uF/1000uF 16V antara VU (5V) dan GND.
-//  - Jangan pasang kabel Kuning (RX GM65) ke pin RX NodeMCU agar
-//    tidak bentrok dengan komunikasi USB Serial ke Komputer.
-//  ============================================================
-//
-//  BOARD SETTING DI ARDUINO IDE:
-//  - Board      : "NodeMCU 1.0 (ESP-12E Module)"
-//  - Flash Size : "4MB (FS:2MB OTA:~1019KB)"  
-//  - CPU Freq   : 80 MHz (atau 160 MHz untuk performa)
-//  - Upload     : 115200
 // ============================================================
 
 #include <SPI.h>
@@ -111,33 +97,21 @@ const char* DEVICE_ID          = "STATION-SMA-01";
 // ============================================================
 //  PIN DEFINITIONS - NodeMCU V3 (ESP-12F)
 // ============================================================
-
-// SPI Pins untuk RFID RC522 (menggunakan HSPI default ESP8266)
 #define RFID_SS_PIN    16   // D0 (GPIO16) - SPI CS
 #define RFID_RST_PIN  255   // UNUSED - Hubungkan pin RST RFID langsung ke 3.3V NodeMCU
-
-// MP3 Player TX Pin (menggunakan SoftwareSerial bersama QR Scanner RX)
 #define MP3_TX_PIN      2   // D4 (GPIO2) - Hubungkan ke RX MP3 Player via resistor 1K Ohm
 #define MP3_VOLUME     30   // Tingkat volume MP3 (0 s.d 30)
-
-// Buzzer (satu-satunya indikator - Opsi B tanpa LED)
-#define BUZZER_PIN     15   // D8 (GPIO15) - pull-down bawaan = buzzer OFF saat boot
-
-// QR Scanner GM65/GM50 via SoftwareSerial (RX only)
-#define QR_RX_PIN       0   // D3 (GPIO0)  - UART idle HIGH = boot-safe
-
-// I2C LCD 20x4 (menggunakan pin I2C default ESP8266)
-#define LCD_ADDRESS    0x27
+#define BUZZER_PIN     15   // D8 (GPIO15) - Buzzer Aktif
+#define QR_RX_PIN       0   // D3 (GPIO0)  - RX untuk TX GM65 Scanner
+#define LCD_ADDRESS    0x27 // Alamat default I2C LCD 20x4
 #define LCD_COLS       20
 #define LCD_ROWS       4
 
-// ============================================================
-//  TIMEOUTS & COOLDOWNS
-// ============================================================
-#define HTTP_TIMEOUT        10000   // 10 detik (ESP8266 TLS)
+#define HTTP_TIMEOUT        10000   // 10 detik timeout HTTPS
 #define DISPLAY_RESULT_MS   3500    // Durasi tampil hasil di LCD
 #define SCAN_COOLDOWN_MS    3000    // Anti double-tap (3 detik)
 #define QR_MIN_LENGTH       3       // Minimum panjang QR valid
+#define IDLE_TIMEOUT_MS     20000   // 20 detik tanpa aktivitas -> Aktifkan Running Text
 
 // ============================================================
 //  CUSTOM PIXEL CHARACTERS UNTUK LCD (5x8 Dots)
@@ -185,24 +159,31 @@ unsigned long qrPauseUntil     = 0;
 unsigned long lastWiFiCheck    = 0;
 bool          isOnline         = false;
 
-// Animasi LCD State
+// Animasi & Smart Screensaver State
+unsigned long lastActivityTime = 0;
 unsigned long lastAnimTime     = 0;
 int           animFrame        = 0;
 bool          isShowingResult  = false;
+bool          isScreensaver    = false;
 
-// ============================================================
-//  OBJEK HARDWARE
-// ============================================================
+// Teks Berjalan Slogan Resmi Yayasan Perguruan Pembda Nias
+const String marqueeText = "   *** YAYASAN PERGURUAN PEMBDA NIAS *** Keep Moving Forward - Maju Terus Pantang Mundur! *** SMP - SMA - SMK Swasta Pembda *** Silakan Tempel Kartu RFID / Scan QR Code ***   ";
+int          marqueePos        = 0;
+unsigned long lastMarqueeTime  = 0;
+
+// Hardware Objects
 MFRC522           rfid(RFID_SS_PIN, RFID_RST_PIN);
 LiquidCrystal_I2C lcd(LCD_ADDRESS, LCD_COLS, LCD_ROWS);
 ESP8266WiFiMulti  wifiMulti;
-SoftwareSerial    kioskSerial(QR_RX_PIN, MP3_TX_PIN); // RX untuk QR Scanner, TX untuk MP3 Player
+SoftwareSerial    kioskSerial(QR_RX_PIN, MP3_TX_PIN);
 
-// Prototipe Fungsi Audio & Display
+// Prototipe Fungsi
 void playAudio(uint8_t folder, uint8_t track);
 void setMp3Volume(uint8_t vol);
 void showReady();
+void showScreensaverBase();
 void updateLcdAnimation();
+void updateMarquee();
 void showError(String msg);
 void beep(int count, int duration);
 void handleRfidScan();
@@ -276,6 +257,8 @@ void setup() {
   wifiMulti.addAP(WIFI_ALT2_SSID, WIFI_ALT2_PASSWORD);
   connectWiFi();
   isOnline = (WiFi.status() == WL_CONNECTED);
+  
+  lastActivityTime = millis();
   showReady();
 
   // Inisialisasi SoftwareSerial untuk Kiosk (RX=QR Scanner, TX=MP3 Player)
@@ -307,19 +290,34 @@ void loop() {
       if (!isOnline) {
         isOnline = true;
         Serial.println(F("WiFi Terhubung Kembali."));
-        showReady();
+        if (isScreensaver) showScreensaverBase();
+        else showReady();
       }
     } else {
       if (isOnline) {
         isOnline = false;
         Serial.println(F("WiFi Terputus! Mencoba mencari jaringan..."));
-        showReady();
+        if (isScreensaver) showScreensaverBase();
+        else showReady();
       }
     }
   }
 
-  // 2. Update Animasi LCD (Non-Blocking)
-  updateLcdAnimation();
+  // 2. Transisi Otomatis ke Screensaver / Running Text jika tidak ada scan selama 20 detik
+  if (!isShowingResult) {
+    if (!isScreensaver && (now - lastActivityTime >= IDLE_TIMEOUT_MS)) {
+      isScreensaver = true;
+      marqueePos = 0;
+      showScreensaverBase();
+    }
+    
+    // Update Tampilan Animasi
+    if (isScreensaver) {
+      updateMarquee();
+    } else {
+      updateLcdAnimation();
+    }
+  }
 
   // 3. Cek Scanner RFID
   handleRfidScan();
@@ -347,13 +345,15 @@ void handleRfidScan() {
     rfid.PCD_StopCrypto1();
     return;
   }
-  lastUID     = uid;
-  lastTapTime = now;
+  lastUID          = uid;
+  lastTapTime      = now;
+  lastActivityTime = now;
+  isScreensaver    = false;
 
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
 
-  isShowingResult = true; // Kunci layar agar animasi tidak menimpa
+  isShowingResult = true; // Kunci layar agar animasi/running text tidak menimpa
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
   lcd.setCursor(0, 1); lcd.print(F("Membaca kartu RFID  "));
@@ -390,8 +390,10 @@ void handleQrScan() {
         if (qrData == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
           return;
         }
-        lastUID     = qrData;
-        lastTapTime = now;
+        lastUID          = qrData;
+        lastTapTime      = now;
+        lastActivityTime = now;
+        isScreensaver    = false;
 
         isShowingResult = true; // Kunci layar
         lcd.clear();
@@ -489,6 +491,8 @@ void sendToServer(String uid, String type) {
   qrBuffer = "";
   
   delay(DISPLAY_RESULT_MS);
+  lastActivityTime = millis();
+  isScreensaver    = false;
   showReady();
 }
 
@@ -576,10 +580,9 @@ void parseAndDisplay(String json) {
 }
 
 // ============================================================
-//  FUNGSI DISPLAY STANDBY & ANIMASI (NON-BLOCKING)
+//  FUNGSI DISPLAY STANDBY (MODE SIAGA AKTIF - 20 DETIK AWAL)
 // ============================================================
 
-// Menyiapkan Layout Dasar Standby
 void showReady() {
   isShowingResult = false;
   lcd.clear();
@@ -606,15 +609,14 @@ void showReady() {
   }
 }
 
-// Fungsi Update Animasi Halus (Dipanggil di loop() setiap 350ms)
+// Update Animasi Gelombang Siaga (Dipanggil setiap 350ms)
 void updateLcdAnimation() {
-  if (isShowingResult) return; // Jangan animasikan jika sedang tampil hasil scan
+  if (isShowingResult || isScreensaver) return;
 
   unsigned long now = millis();
-  if (now - lastAnimTime < 350) return; // Kecepatan frame animasi
+  if (now - lastAnimTime < 350) return;
   lastAnimTime = now;
 
-  // Frame animasi panah gelombang (Pulse Wave)
   const char* frames[] = {
     "   >> RFID / QR <<  ",
     "  >>> RFID / QR <<< ",
@@ -624,18 +626,73 @@ void updateLcdAnimation() {
     "    > RFID / QR <   "
   };
 
-  // Update Baris 2 (Animasi Gerak)
   lcd.setCursor(0, 2);
   lcd.print(frames[animFrame]);
   animFrame = (animFrame + 1) % 6;
 
-  // Update Heartbeat Blink di pojok kanan bawah (Kolom 19 Baris 3)
+  // Heartbeat indicator di pojok kanan bawah
   lcd.setCursor(19, 3);
-  if (animFrame % 2 == 0) {
-    lcd.write(byte(2)); // Ikon Heart / Detak Aktif
+  if (animFrame % 2 == 0) lcd.write(byte(2));
+  else lcd.print(F(" "));
+}
+
+// ============================================================
+//  FUNGSI SMART SCREENSAVER (RUNNING TEXT SLOGAN YAYASAN)
+// ============================================================
+
+void showScreensaverBase() {
+  isShowingResult = false;
+  lcd.clear();
+  
+  // Baris 0: Header Yayasan
+  lcd.setCursor(0, 0);
+  lcd.print(F("* PERGURUAN PEMBDA *"));
+  
+  // Baris 1: Subtitle Lembaga
+  lcd.setCursor(0, 1);
+  lcd.print(F("SMP - SMA - SMK NIAS"));
+  
+  // Baris 3: Status Bar Siaga Scan
+  lcd.setCursor(0, 3);
+  if (isOnline) {
+    lcd.write(byte(0));
+    lcd.print(F(" "));
+    String ssid = WiFi.SSID();
+    if (ssid.length() > 8) ssid = ssid.substring(0, 8);
+    lcd.print(ssid);
+    lcd.setCursor(12, 3);
+    lcd.print(F("SCAN"));
   } else {
-    lcd.print(F(" "));  // Berkedip mati
+    lcd.print(F("[OFFLINE]   SCAN"));
   }
+}
+
+// Update Teks Berjalan Halus (Dipanggil setiap 220ms)
+void updateMarquee() {
+  if (isShowingResult || !isScreensaver) return;
+
+  unsigned long now = millis();
+  if (now - lastMarqueeTime < 220) return; // Kecepatan scroll teks 220ms per karakter
+  lastMarqueeTime = now;
+
+  // Buat jendela 20 karakter dari teks berjalan
+  String windowText = "";
+  int textLen = marqueeText.length();
+  for (int i = 0; i < 20; i++) {
+    int idx = (marqueePos + i) % textLen;
+    windowText += marqueeText[idx];
+  }
+
+  // Tampilkan di Baris 2
+  lcd.setCursor(0, 2);
+  lcd.print(windowText);
+
+  marqueePos = (marqueePos + 1) % textLen;
+
+  // Heartbeat blink di pojok kanan bawah
+  lcd.setCursor(19, 3);
+  if ((marqueePos / 2) % 2 == 0) lcd.write(byte(2));
+  else lcd.print(F(" "));
 }
 
 void showError(String msg) {
