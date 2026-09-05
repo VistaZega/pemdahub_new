@@ -911,14 +911,23 @@ class LmsController extends Controller
                 $totalScore += $questionScore;
             }
 
-            LmsQuizAnswer::updateOrCreate(
-                ['attempt_id' => $attempt->id, 'question_id' => $question->id],
-                [
-                    'answer' => $finalAnswer,
-                    'is_correct' => $isCorrect,
-                    'score' => $questionScore,
-                ]
-            );
+            try {
+                LmsQuizAnswer::updateOrCreate(
+                    ['attempt_id' => $attempt->id, 'question_id' => $question->id],
+                    [
+                        'answer' => $finalAnswer,
+                        'is_correct' => $isCorrect,
+                        'score' => $questionScore,
+                    ]
+                );
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Question was deleted mid-attempt -> FK violation 1452. Skip gracefully.
+                if ((int)($e->errorInfo[1] ?? 0) === 1452) {
+                    \Log::warning("Quiz answer skipped: question {$question->id} was deleted during attempt {$attempt->id}");
+                    continue;
+                }
+                throw $e;
+            }
         }
 
         $scorePercentage = $maxScore > 0 ? ($totalScore / $maxScore) * 100 : 0;
