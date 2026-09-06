@@ -157,6 +157,102 @@
         </div>
     </div>
 
+    {{-- 3.5. AGENDA & DEADLINE TERPADU (TUGAS LMS, KUIS LMS, & CBT) --}}
+    <div class="bg-white shadow-xl" style="border-radius: 1.75rem; border: 2px solid #e0e7ff; overflow: hidden; margin-bottom: 2.5rem;">
+        {{-- Header Bar --}}
+        <div class="bg-gradient-to-r from-purple-800 via-indigo-700 to-blue-700 text-white" style="padding: 1.75rem 2.25rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem;">
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <div style="width: 3.75rem; height: 3.75rem; border-radius: 1.25rem; background-color: #ffffff; color: #6b21a8; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); flex-shrink: 0; font-weight: 900; margin-right: 0.25rem;">
+                    📌
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem;">
+                        <span style="padding: 0.3rem 0.8rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; background-color: #fbbf24; color: #0f172a;">
+                            Prioritas Belajar Siswa
+                        </span>
+                        @if($unifiedDeadlines->isNotEmpty())
+                        <span style="padding: 0.3rem 0.8rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; background-color: #fee2e2; color: #991b1b;">
+                            {{ $unifiedDeadlines->count() }} Kegiatan Menunggu
+                        </span>
+                        @endif
+                    </div>
+                    <h2 style="font-size: 1.35rem; font-weight: 900; color: #ffffff; line-height: 1.2; margin-top: 0.2rem;">
+                        To-Do List & Agenda Terpadu
+                    </h2>
+                    <p style="font-size: 0.8rem; color: #e0e7ff; margin-top: 0.25rem; font-weight: 600;">Pantau batas pengumpulan tugas, kuis, dan jadwal ujian CBT aktifmu</p>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="{{ route('siswa.lms.index') }}" style="padding: 0.65rem 1.15rem; background-color: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #ffffff; border-radius: 1rem; font-weight: 900; font-size: 0.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: background 0.2s;">
+                    <i class="fas fa-book-open" style="color: #cbd5e1;"></i>
+                    <span>Modul LMS</span>
+                </a>
+                <a href="{{ route('siswa.cbt.index') }}" style="padding: 0.65rem 1.15rem; background-color: #ffffff; color: #312e81; border-radius: 1rem; font-weight: 900; font-size: 0.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                    <i class="fas fa-laptop-code" style="color: #4f46e5;"></i>
+                    <span>Masuk Portal CBT</span>
+                </a>
+            </div>
+        </div>
+
+        {{-- Content List --}}
+        <div style="padding: 2rem 2.25rem;">
+            @if($unifiedDeadlines->isNotEmpty())
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+                    @foreach($unifiedDeadlines as $item)
+                        <div class="bg-white shadow-2xs hover:shadow-md transition" style="border-radius: 1.25rem; border: 2px solid {{ $item['is_late'] ? '#fecdd3' : ($item['is_urgent'] ? '#fed7aa' : '#e2e8f0') }}; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; background-color: {{ $item['is_late'] ? '#fff1f2' : ($item['is_urgent'] ? '#fffaf5' : '#ffffff') }};">
+                            <div>
+                                {{-- Badge Header --}}
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.85rem;">
+                                    <span style="padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 900; background-color: {{ $item['type_badge_bg'] }}; color: {{ $item['type_badge_color'] }}; border: 1px solid {{ $item['type_badge_border'] }}; display: inline-flex; align-items: center; gap: 0.4rem;">
+                                        <i class="{{ $item['type_icon'] }}"></i>
+                                        <span>{{ $item['type_label'] }}</span>
+                                    </span>
+
+                                    <span style="padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.68rem; font-weight: 800; color: {{ $item['status_color'] }}; background-color: #ffffff; border: 1px solid #e2e8f0;">
+                                        {{ $item['status_label'] }}
+                                    </span>
+                                </div>
+
+                                {{-- Title & Subject --}}
+                                <h3 style="font-size: 1rem; font-weight: 900; color: #0f172a; line-height: 1.35; margin-bottom: 0.4rem;">
+                                    {{ $item['title'] }}
+                                </h3>
+                                <p style="font-size: 0.78rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.75rem;">
+                                    <i class="fas fa-graduation-cap" style="color: #6366f1;"></i>
+                                    <span>{{ $item['subject_name'] }}</span>
+                                    <span style="color: #94a3b8;">&bull;</span>
+                                    <span style="color: #64748b; font-weight: 600;">{{ $item['teacher_name'] }}</span>
+                                </p>
+                            </div>
+
+                            {{-- Footer Deadline & Action Button --}}
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding-top: 1rem; border-top: 1px dashed #e2e8f0; margin-top: 0.5rem;">
+                                <div style="font-size: 0.75rem; font-weight: 700; color: {{ $item['is_late'] ? '#dc2626' : ($item['is_urgent'] ? '#d97706' : '#64748b') }}; display: flex; align-items: center; gap: 0.4rem;">
+                                    <i class="far fa-clock" style="font-size: 0.85rem;"></i>
+                                    <span>{{ $item['deadline_label'] }}</span>
+                                </div>
+
+                                <a href="{{ $item['action_url'] }}" style="padding: 0.55rem 1rem; background-color: {{ $item['type'] === 'cbt' ? '#ea580c' : ($item['type'] === 'quiz' ? '#7c3aed' : '#2563eb') }}; color: #ffffff; border-radius: 0.85rem; font-weight: 900; font-size: 0.72rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); white-space: nowrap;">
+                                    <span>{{ $item['action_label'] }}</span>
+                                    <i class="fas fa-chevron-right" style="font-size: 0.65rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div style="padding: 2.5rem 1.5rem; text-align: center; background-color: #f0fdf4; border-radius: 1.5rem; border: 2px dashed #86efac;">
+                    <div style="font-size: 2.75rem; margin-bottom: 0.75rem;">🎉</div>
+                    <h3 style="font-size: 1.15rem; font-weight: 900; color: #166534; margin-bottom: 0.35rem;">Semua Tugas & Ujian Tuntas!</h3>
+                    <p style="font-size: 0.825rem; color: #15803d; font-weight: 600; max-width: 480px; margin: 0 auto; line-height: 1.5;">
+                        Hebat! Kamu tidak memiliki tugas LMS yang tertunda, kuis yang belum dikerjakan, maupun jadwal ujian CBT mendesak. Pertahankan konsistensimu!
+                    </p>
+                </div>
+            @endif
+        </div>
+    </div>
+
     {{-- 4. JADWAL PELAJARAN HARI INI (ULTRA-SPACIOUS, NO-CLIP, ATTRACTIVE & BEAUTIFULLY SPACED) --}}
     <div class="bg-white shadow-xl" style="border-radius: 1.75rem; border: 2px solid #e0e7ff; overflow: hidden; margin-bottom: 2.5rem;">
         {{-- Header Bar with Generous Padding & Margin --}}

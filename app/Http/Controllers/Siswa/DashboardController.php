@@ -293,14 +293,179 @@ class DashboardController extends Controller
         $showReportCard = \App\Models\Setting::getValue('show_report_card', false);
         $dnaAnalysis = app(\App\Services\StudentDnaService::class)->analyze($student);
 
+        // Pusat Agenda & Deadline Terpadu (Tugas LMS, Kuis LMS & Ujian CBT)
+        $unifiedDeadlines = $this->getUnifiedDeadlines($student, $classroom, $enrollments);
+
         return view('siswa.dashboard', compact(
             'student', 'classroom', 'activeYear', 'activeSemester',
             'avgScore', 'attendanceData', 'totalOutstanding', 'studentBillingStats',
             'todaySchedules', 'groupedTodaySchedules', 'currentTime', 'currentSchedule', 'nextSchedule',
             'latestReportCard', 'courses', 'courseProgress',
             'reputation', 'reputationLogs', 'rank', 'todayAttendance', 'attendanceHistory',
-            'showReportCard', 'dnaAnalysis'
+            'showReportCard', 'dnaAnalysis', 'unifiedDeadlines'
         ));
+    }
+
+    /**
+     * Kumpulkan seluruh deadline & agenda terpadu siswa (Tugas, Kuis, CBT)
+     */
+    private function getUnifiedDeadlines(Student $student, $classroom, $enrollments): \Illuminate\Support\Collection
+    {
+        $deadlines = collect();
+        $enrolledCourseIds = $enrollments->map(fn($e) => $e->lmsClass?->course_id)->filter()->unique()->toArray();
+
+        if (!empty($enrolledCourseIds)) {
+            // 1. LMS Assignments (Tugas)
+            $assignments = \App\Models\LmsAssignment::whereIn('course_id', $enrolledCourseIds)
+                ->where('is_published', true)
+                ->with(['course.subject', 'course.teacher'])
+                ->get();
+
+            $assignmentIds = $assignments->pluck('id')->toArray();
+            $mySubmissions = \App\Models\LmsSubmission::whereIn('assignment_id', $assignmentIds)
+                ->where(function ($q) use ($student) {
+                    $q->where('student_id', $student->id)
+                      ->orWhereHas('group.members', fn($gq) => $gq->where('students.id', $student->id));
+                })
+                ->get()
+                ->keyBy('assignment_id');
+
+            foreach ($assignments as $assignment) {
+                $sub = $mySubmissions->get($assignment->id);
+                // Hanya masukkan tugas yang belum selesai: belum mengumpulkan, atau masih draft, atau minta revisi
+                $isPending = !$sub || in_array($sub->status, ['draft', 'revision_requested']);
+
+                if ($isPending) {
+                    $isLate = $assignment->deadline && now()->isAfter($assignment->deadline);
+                    $deadlines->push([
+                        'id' => 'assign_' . $assignment->id,
+                        'type' => 'assignment',
+                        'type_label' => 'Tugas LMS',
+                        'type_icon' => 'fas fa-tasks',
+                        'type_badge_bg' => '#eff6ff',
+                        'type_badge_color' => '#1d4ed8',
+                        'type_badge_border' => '#bfdbfe',
+                        'title' => $assignment->title,
+                        'subject_name' => $assignment->course?->subject?->subject_name ?? $assignment->course?->name ?? 'LMS',
+                        'teacher_name' => $assignment->course?->teacher?->full_name ?? 'Guru Mapel',
+                        'deadline' => $assignment->deadline,
+                        'deadline_label' => $assignment->deadline ? $assignment->deadline->translatedFormat('d M Y, H:i') : 'Tanpa Batas Waktu',
+                        'is_urgent' => $assignment->deadline ? ($assignment->deadline->isToday() || $assignment->deadline->isTomorrow()) : false,
+                        'is_late' => $isLate,
+                        'status_label' => $sub && $sub->status === 'revision_requested' ? 'Perlu Revisi' : ($isLate ? 'Terlambat' : 'Belum Dikumpulkan'),
+                        'status_color' => $sub && $sub->status === 'revision_requested' ? '#f59e0b' : ($isLate ? '#ef4444' : '#6366f1'),
+                        'action_url' => route('siswa.lms.show', $assignment->course_id),
+                        'action_label' => $sub && $sub->status === 'revision_requested' ? 'Revisi Tugas' : 'Kumpulkan Tugas',
+                        'sort_timestamp' => $assignment->deadline ? $assignment->deadline->timestamp : 9999999999,
+                    ]);
+                }
+            }
+
+            // 2. LMS Quizzes (Kuis)
+            $quizzes = \App\Models\LmsQuiz::whereIn('course_id', $enrolledCourseIds)
+                ->where('is_published', true)
+                ->with(['course.subject', 'course.teacher'])
+                ->get();
+
+            $quizIds = $quizzes->pluck('id')->toArray();
+            $myAttempts = \App\Models\LmsQuizAttempt::whereIn('quiz_id', $quizIds)
+                ->where('student_id', $student->id)
+                ->get()
+                ->groupBy('quiz_id');
+
+            foreach ($quizzes as $quiz) {
+                if ($quiz->start_time && now()->lt($quiz->start_time)) {
+                    continue;
+                }
+                if ($quiz->end_time && now()->diffInDays($quiz->end_time, false) < -7) {
+                    continue;
+                }
+
+                $attempts = $myAttempts->get($quiz->id, collect());
+                $unfinishedAttempt = $attempts->firstWhere('finished_at', null);
+                $finishedAttempts = $attempts->whereNotNull('finished_at');
+                $bestScore = $finishedAttempts->max('score');
+                $isPassed = $bestScore !== null && $bestScore >= ($quiz->passing_score ?? 75);
+                $canAttempt = $quiz->canAttempt($student->id);
+
+                if ($unfinishedAttempt || (!$isPassed && $canAttempt)) {
+                    $isLate = $quiz->end_time && now()->isAfter($quiz->end_time);
+                    $deadlines->push([
+                        'id' => 'quiz_' . $quiz->id,
+                        'type' => 'quiz',
+                        'type_label' => 'Kuis LMS',
+                        'type_icon' => 'fas fa-question-circle',
+                        'type_badge_bg' => '#f5f3ff',
+                        'type_badge_color' => '#6d28d9',
+                        'type_badge_border' => '#ddd6fe',
+                        'title' => $quiz->title,
+                        'subject_name' => $quiz->course?->subject?->subject_name ?? $quiz->course?->name ?? 'LMS',
+                        'teacher_name' => $quiz->course?->teacher?->full_name ?? 'Guru Mapel',
+                        'deadline' => $quiz->end_time,
+                        'deadline_label' => $quiz->end_time ? $quiz->end_time->translatedFormat('d M Y, H:i') : 'Kuis Terbuka',
+                        'is_urgent' => $quiz->end_time ? ($quiz->end_time->isToday() || $quiz->end_time->isTomorrow()) : false,
+                        'is_late' => $isLate,
+                        'status_label' => $unfinishedAttempt ? 'Sedang Dikerjakan' : ($finishedAttempts->isNotEmpty() ? 'Remedial Tersedia' : 'Belum Dikerjakan'),
+                        'status_color' => $unfinishedAttempt ? '#10b981' : ($finishedAttempts->isNotEmpty() ? '#f59e0b' : '#8b5cf6'),
+                        'action_url' => route('siswa.lms.quizzes.start', $quiz->id),
+                        'action_label' => $unfinishedAttempt ? 'Lanjutkan Kuis' : ($finishedAttempts->isNotEmpty() ? 'Ikuti Remedial' : 'Mulai Kuis'),
+                        'sort_timestamp' => $quiz->end_time ? $quiz->end_time->timestamp : 9999999998,
+                    ]);
+                }
+            }
+        }
+
+        // 3. CBT Exams (Ujian Sekolah / Ujian Mapel)
+        if ($classroom) {
+            $exams = \App\Models\CbtExam::whereIn('status', ['published', 'active'])
+                ->whereHas('participants', fn($q) => $q->where('classroom_id', $classroom->id))
+                ->with(['subject', 'teacher', 'school'])
+                ->get();
+
+            $examIds = $exams->pluck('id')->toArray();
+            $myExamSessions = \App\Models\CbtExamSession::whereIn('exam_id', $examIds)
+                ->where('student_id', $student->id)
+                ->get()
+                ->groupBy('exam_id');
+
+            foreach ($exams as $exam) {
+                if ($exam->end_time && now()->diffInDays($exam->end_time, false) < -3) {
+                    continue;
+                }
+
+                $sessions = $myExamSessions->get($exam->id, collect());
+                $activeSession = $sessions->firstWhere('status', 'in_progress');
+                $submittedCount = $sessions->whereIn('status', ['submitted', 'timeout', 'graded'])->count();
+                $canAttempt = $activeSession || ($submittedCount < $exam->max_attempts);
+
+                if ($canAttempt) {
+                    $isAvailableNow = $exam->isAccessible();
+                    $deadlines->push([
+                        'id' => 'cbt_' . $exam->id,
+                        'type' => 'cbt',
+                        'type_label' => 'Ujian CBT',
+                        'type_icon' => 'fas fa-laptop-code',
+                        'type_badge_bg' => '#fff7ed',
+                        'type_badge_color' => '#c2410c',
+                        'type_badge_border' => '#ffedd5',
+                        'title' => $exam->exam_title,
+                        'subject_name' => $exam->subject?->subject_name ?? 'Ujian CBT',
+                        'teacher_name' => $exam->teacher?->full_name ?? ($exam->school?->name ?? 'Sekolah'),
+                        'deadline' => $exam->end_time,
+                        'deadline_label' => $exam->end_time ? $exam->end_time->translatedFormat('d M Y, H:i') : ($exam->start_time ? $exam->start_time->translatedFormat('d M Y, H:i') : 'Jadwal Aktif'),
+                        'is_urgent' => true,
+                        'is_late' => false,
+                        'status_label' => $activeSession ? 'Sesi Aktif' : ($isAvailableNow ? 'Siap Dikerjakan' : 'Terjadwal'),
+                        'status_color' => $activeSession ? '#10b981' : ($isAvailableNow ? '#ea580c' : '#0284c7'),
+                        'action_url' => route('siswa.cbt.show', $exam->id),
+                        'action_label' => $activeSession ? 'Lanjutkan Ujian' : 'Masuk Ujian',
+                        'sort_timestamp' => $activeSession ? 0 : ($exam->start_time ? $exam->start_time->timestamp : ($exam->end_time ? $exam->end_time->timestamp : 5000000000)),
+                    ]);
+                }
+            }
+        }
+
+        return $deadlines->sortBy('sort_timestamp')->values();
     }
 
     /**

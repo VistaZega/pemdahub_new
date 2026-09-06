@@ -305,7 +305,9 @@ class GradeService
     // =============================================
 
     /**
-     * Sync a quiz attempt score to the grades table as 'tugas' type
+     * Sync a quiz attempt score to the grades table as 'tugas' type.
+     * Ensures only ONE grade entry exists per student per quiz,
+     * recording the student's BEST score across all attempts.
      */
     public function syncQuizAttemptToGrade(LmsQuizAttempt $attempt): ?Grade
     {
@@ -313,12 +315,9 @@ class GradeService
         $course = $quiz->course;
 
         // Course must have a subject_id to sync
-        if (!$course->subject_id) {
+        if (!$course || !$course->subject_id) {
             return null;
         }
-
-        // attempt->score is already saved as a percentage (0-100) in LmsController
-        $normalizedScore = $attempt->score;
 
         // Get teacher from course
         $teacherId = $course->teacher_id;
@@ -330,29 +329,69 @@ class GradeService
             return null;
         }
 
-        // Check if already synced - update if exists
-        $existing = Grade::where('lms_source_type', 'quiz_attempt')
-            ->where('lms_source_id', $attempt->id)
-            ->first();
+        // Ambil seluruh attempt siswa untuk kuis ini yang memiliki skor
+        $allStudentAttempts = LmsQuizAttempt::where('quiz_id', $quiz->id)
+            ->where('student_id', $attempt->student_id)
+            ->whereNotNull('score')
+            ->get();
 
-        if ($existing) {
-            $existing->update(['score' => $normalizedScore]);
-            return $existing;
+        $attemptIds = $allStudentAttempts->pluck('id')->toArray();
+        if (empty($attemptIds)) {
+            $attemptIds = [$attempt->id];
         }
 
-        // Create new grade entry
+        // Skor terbaik dari seluruh attempt siswa pada kuis ini
+        $bestAttempt = $allStudentAttempts->sortByDesc('score')->first() ?? $attempt;
+        $bestScore = (float) ($bestAttempt->score ?? $attempt->score ?? 0);
+
+        // Cari entri nilai yang sudah ada:
+        // 1. Berdasarkan lms_source_type 'quiz_attempt' dengan id attempt milik quiz ini
+        // 2. Atau berdasarkan notes format "LMS Quiz: {$quiz->title}" pada mapel & semester ini
+        $existingGrades = Grade::where('student_id', $attempt->student_id)
+            ->where('subject_id', $course->subject_id)
+            ->where('semester_id', $semesterId)
+            ->where('grade_type', 'tugas')
+            ->where(function ($q) use ($attemptIds, $quiz) {
+                $q->where(function ($sq) use ($attemptIds) {
+                    $sq->where('lms_source_type', 'quiz_attempt')
+                       ->whereIn('lms_source_id', $attemptIds);
+                })->orWhere('notes', "LMS Quiz: {$quiz->title}");
+            })
+            ->orderBy('id')
+            ->get();
+
+        if ($existingGrades->isNotEmpty()) {
+            // Gunakan baris pertama sebagai record utama
+            $primaryGrade = $existingGrades->first();
+            $primaryGrade->update([
+                'score' => $bestScore,
+                'teacher_id' => $teacherId,
+                'notes' => "LMS Quiz: {$quiz->title}",
+                'lms_source_type' => 'quiz_attempt',
+                'lms_source_id' => $bestAttempt->id,
+            ]);
+
+            // Bersihkan duplikat sisa jika ada dari attempt sebelumnya
+            if ($existingGrades->count() > 1) {
+                $existingGrades->slice(1)->each(fn($g) => $g->delete());
+            }
+
+            return $primaryGrade;
+        }
+
+        // Create new grade entry jika belum pernah ada
         return Grade::create([
             'student_id' => $attempt->student_id,
             'subject_id' => $course->subject_id,
             'teacher_id' => $teacherId,
             'semester_id' => $semesterId,
             'grade_type' => 'tugas',
-            'score' => $normalizedScore,
+            'score' => $bestScore,
             'is_remedial' => false,
-            'created_by' => Auth::id(),
+            'created_by' => Auth::id() ?? $teacherId,
             'notes' => "LMS Quiz: {$quiz->title}",
             'lms_source_type' => 'quiz_attempt',
-            'lms_source_id' => $attempt->id,
+            'lms_source_id' => $bestAttempt->id,
         ]);
     }
 
