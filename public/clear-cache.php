@@ -435,9 +435,45 @@ if (isset($_GET['migrate']) && $_GET['migrate'] === 'yes') {
         echo "<span class='err'>❌ Error: " . htmlspecialchars($e->getMessage()) . "</span>\n";
     }
     echo "</pre>";
+} else if (isset($_GET['sync_lms_points']) && $_GET['sync_lms_points'] === 'yes') {
+    echo "<h2>3. Sinkronisasi Poin Tugas LMS Retroaktif</h2><pre>";
+    try {
+        $submissions = \App\Models\LmsSubmission::whereIn('status', ['submitted', 'graded', 'late'])
+            ->with(['assignment', 'student'])
+            ->get();
+        $missingCount = 0;
+        $addedPoints = 0;
+        foreach ($submissions as $sub) {
+            if (!$sub->student || !$sub->student->user_id) continue;
+            $userId = $sub->student->user_id;
+            $existingLog = \App\Models\ReputationLog::where('user_id', $userId)
+                ->where('reference_type', 'App\Models\LmsSubmission')
+                ->where('reference_id', $sub->id)
+                ->first();
+            if (!$existingLog) {
+                $asgnTitle = $sub->assignment->title ?? 'Tugas';
+                \App\Models\ReputationLog::log(
+                    $userId,
+                    15,
+                    'lms_assignment',
+                    'Mengumpulkan Tugas LMS: ' . $asgnTitle,
+                    $sub
+                );
+                $missingCount++;
+                $addedPoints += 15;
+                echo "<span class='ok'>+15 Poin | " . htmlspecialchars($sub->student->full_name ?? '-') . " | " . htmlspecialchars($asgnTitle) . "</span>\n";
+            }
+        }
+        echo "\n<span class='ok'><b>✅ Selesai! Berhasil menambahkan {$missingCount} log poin (+{$addedPoints} poin total).</b></span>\n";
+    } catch (\Exception $e) {
+        echo "<span class='err'>❌ Error: " . htmlspecialchars($e->getMessage()) . "</span>\n";
+    }
+    echo "</pre>";
 } else {
     echo "<h2>3. Migrasi Database & Restore Data</h2>";
     echo "<a class='btn' href='?secret=pembda99&migrate=yes'>▶️ Jalankan Migrasi & Seeder</a><br><br>";
+    echo "<b>🎯 Poin Reputasi Siswa:</b> ";
+    echo "<a class='btn' style='background:#7c4dff;' href='?secret=pembda99&sync_lms_points=yes'>⚡ Sinkronkan Poin Tugas LMS Retroaktif</a><br><br>";
     echo "<b>🧩 Puzzle Pembda Colabs:</b> ";
     echo "<a class='btn' style='background:#40c4ff;' href='?secret=pembda99&reset_puzzle=yes'>🔄 Reset Puzzle (10 keping awal)</a><br><br>";
     echo "<b>Restore TP 2026/2027:</b> ";
