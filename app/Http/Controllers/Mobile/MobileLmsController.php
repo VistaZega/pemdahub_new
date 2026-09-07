@@ -389,28 +389,114 @@ class MobileLmsController extends Controller
             return back()->with('error', 'Data siswa tidak ditemukan.');
         }
 
-        $request->validate([
-            'submission_text' => 'nullable|string',
-            'file' => 'nullable|file|max:10240',
-        ]);
+        // Validasi dasar input
+        try {
+            $request->validate([
+                'submission_text' => 'nullable|string',
+                'file' => 'nullable|file|max:10240',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = implode(' ', \Illuminate\Support\Arr::flatten($e->errors()));
+            return back()->with('error', 'Gagal mengumpulkan tugas: ' . $errors)->withInput();
+        }
 
+        // Cek group assignment: verifikasi group & leadership
+        $group = null;
+        if ($assignment->isGroupAssignment()) {
+            $group = $assignment->getStudentGroup($student->id);
+            if (!$group) {
+                return back()->with('error', 'Anda belum terdaftar dalam kelompok manapun pada tugas ini. Silakan hubungi Guru.');
+            }
+            if (!$group->isLeader($student->id)) {
+                $leaderName = $group->leader?->user?->name ?? $group->leader?->full_name ?? 'Ketua Kelompok';
+                return back()->with('error', "Pengumpulan tugas kelompok '{$group->name}' hanya dapat dilakukan oleh Ketua Kelompok ({$leaderName}).");
+            }
+        }
+
+        // Cek resubmission: apakah sudah pernah submit sebelumnya
+        $existing = $assignment->isGroupAssignment()
+            ? LmsSubmission::where('assignment_id', $assignment->id)->where('group_id', $group->id)->first()
+            : LmsSubmission::where('assignment_id', $assignment->id)->where('student_id', $student->id)->first();
+
+        if ($existing && $existing->status !== 'draft') {
+            if (!$assignment->allow_resubmit) {
+                return back()->with('error', 'Tugas ini tidak mengizinkan pengumpulan ulang.');
+            }
+            if ($existing->attempt_number >= ($assignment->max_resubmissions + 1)) {
+                return back()->with('error', 'Batas pengumpulan ulang sudah tercapai.');
+            }
+        }
+
+        // Validasi ketat berdasarkan assignment_type
+        $hasUploadedFile = $request->hasFile('file');
+        $hasExistingFile = $existing && !empty($existing->file_path);
+        $hasFile = $hasUploadedFile || $hasExistingFile;
+        $hasText = $request->filled('submission_text');
+        $aType = $assignment->assignment_type;
+
+        if ($aType === 'file' && !$hasFile) {
+            return back()->with('error', 'Pengumpulan tugas ini wajib mengunggah file. Silakan pilih dan unggah berkas jawaban Anda.');
+        }
+
+        if ($aType === 'text' && !$hasText) {
+            return back()->with('error', 'Pengumpulan tugas ini wajib mengisi teks jawaban. Silakan ketik jawaban Anda.');
+        }
+
+        if ($aType === 'link' && !$hasText) {
+            return back()->with('error', 'Pengumpulan tugas ini wajib memasukkan link URL/teks jawaban. Silakan isi link URL jawaban Anda.');
+        }
+
+        if ($aType === 'file_text') {
+            if (!$hasFile && !$hasText) {
+                return back()->with('error', 'Pengumpulan tugas ini wajib mengunggah file dan mengisi teks jawaban.');
+            }
+            if (!$hasFile) {
+                return back()->with('error', 'Pengumpulan tugas ini wajib mengunggah file.');
+            }
+            if (!$hasText) {
+                return back()->with('error', 'Pengumpulan tugas ini wajib mengisi teks jawaban.');
+            }
+        }
+
+        if (empty($aType) && !$hasFile && !$hasText) {
+            return back()->with('error', 'Silakan unggah file atau ketik teks jawaban Anda sebelum mengirim.');
+        }
+
+        // Upload file dengan error handling
         $filePath = null;
         $fileSize = null;
         if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('lms/submissions', 'public');
-            $fileSize = $request->file('file')->getSize();
+            try {
+                $filePath = $request->file('file')->store('lms/submissions', 'public');
+                $fileSize = $request->file('file')->getSize();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Mobile LMS assignment file upload failed: ' . $e->getMessage());
+                return back()->with('error', 'Gagal mengunggah file jawaban. Pastikan ukuran file tidak melebihi 10MB dan jaringan Anda stabil.')->withInput();
+            }
         }
 
         $isLate = $assignment->deadline && now()->isAfter($assignment->deadline);
+        $attemptNumber = $existing ? $existing->attempt_number + ($existing->status !== 'draft' ? 1 : 0) : 1;
+
+        $lookup = $assignment->isGroupAssignment()
+            ? ['assignment_id' => $assignment->id, 'group_id' => $group->id]
+            : ['assignment_id' => $assignment->id, 'student_id' => $student->id];
 
         $sub = LmsSubmission::updateOrCreate(
-            ['assignment_id' => $assignment->id, 'student_id' => $student->id],
+            $lookup,
             [
-                'submission_text' => $request->input('submission_text'),
-                'file_path' => $filePath,
-                'file_size' => $fileSize,
+                'student_id' => $student->id,
+                'group_id' => $assignment->isGroupAssignment() ? $group->id : null,
+                'submission_text' => $request->submission_text,
+                'file_path' => $filePath ?? ($existing ? $existing->file_path : null),
+                'file_size' => $fileSize ?? ($existing ? $existing->file_size : null),
                 'status' => $isLate ? 'late' : 'submitted',
                 'submitted_at' => now(),
+                'score' => null,
+                'feedback' => null,
+                'graded_at' => null,
+                'graded_by' => null,
+                'attempt_number' => $attemptNumber,
             ]
         );
 
@@ -429,7 +515,11 @@ class MobileLmsController extends Controller
             }
         }
 
-        return back()->with('success', 'Tugas berhasil dikumpulkan!');
+        $msg = 'Tugas berhasil dikumpulkan';
+        if ($attemptNumber > 1) $msg = 'Tugas berhasil dikumpulkan ulang (percobaan ke-' . $attemptNumber . ')';
+        if ($isLate) $msg .= ' (terlambat)';
+
+        return back()->with('success', $msg . '.');
     }
 
     public function startQuiz($quizId)
