@@ -403,7 +403,7 @@ class MobileLmsController extends Controller
 
         $isLate = $assignment->deadline && now()->isAfter($assignment->deadline);
 
-        LmsSubmission::updateOrCreate(
+        $sub = LmsSubmission::updateOrCreate(
             ['assignment_id' => $assignment->id, 'student_id' => $student->id],
             [
                 'submission_text' => $request->input('submission_text'),
@@ -413,6 +413,21 @@ class MobileLmsController extends Controller
                 'submitted_at' => now(),
             ]
         );
+
+        // Reputation Points Gamification (konsisten dengan Siswa\LmsController)
+        if ($student->user_id) {
+            try {
+                \App\Models\ReputationLog::log(
+                    $student->user_id,
+                    15,
+                    'lms_assignment',
+                    'Mengumpulkan Tugas LMS: ' . $assignment->title,
+                    $sub
+                );
+            } catch (\Exception $e) {
+                \Log::warning('Mobile LMS submission reputation log failed: ' . $e->getMessage());
+            }
+        }
 
         return back()->with('success', 'Tugas berhasil dikumpulkan!');
     }
