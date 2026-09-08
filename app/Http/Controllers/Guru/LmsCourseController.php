@@ -296,7 +296,10 @@ class LmsCourseController extends Controller
         $allEnrolledStudents = $refMethod->invoke($assignmentCtrl, $course);
         $totalStudents = $allEnrolledStudents->count();
 
-        return view('guru.lms.show', compact('teacher', 'course', 'totalStudents', 'allEnrolledStudents', 'classrooms'));
+        // Ambil daftar modul yang terhapus (soft-deleted) untuk fitur restore
+        $trashedModules = $course->modules()->onlyTrashed()->withCount('materials')->orderByDesc('deleted_at')->get();
+
+        return view('guru.lms.show', compact('teacher', 'course', 'totalStudents', 'allEnrolledStudents', 'classrooms', 'trashedModules'));
     }
 
     /**
@@ -531,6 +534,11 @@ class LmsCourseController extends Controller
             'color' => $request->color,
         ]);
 
+        if ($request->filled('sequence')) {
+            $newSeq = max(1, (int)$request->sequence);
+            $this->resequenceCourseModules($course, $module, $newSeq);
+        }
+
         return redirect()->route('guru.lms.show', $course->id)
             ->with('success', 'Modul berhasil diperbarui.');
     }
@@ -547,6 +555,88 @@ class LmsCourseController extends Controller
 
         return redirect()->route('guru.lms.show', $course->id)
             ->with('success', 'Modul berhasil dihapus.');
+    }
+
+    public function moveModule(Request $request, LmsModule $module)
+    {
+        $course = $module->course;
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        $direction = $request->input('direction'); // 'up' or 'down'
+        $modules = $course->modules()->where('is_active', true)->orderBy('sequence')->orderBy('id')->get();
+        $currentIndex = $modules->search(fn($m) => $m->id === $module->id);
+
+        if ($currentIndex !== false) {
+            $swapIndex = ($direction === 'up') ? $currentIndex - 1 : $currentIndex + 1;
+            if ($swapIndex >= 0 && $swapIndex < $modules->count()) {
+                $otherModule = $modules[$swapIndex];
+
+                $tempSeq = $module->sequence;
+                $module->sequence = $otherModule->sequence;
+                $otherModule->sequence = $tempSeq;
+
+                if ($module->sequence === $otherModule->sequence) {
+                    $module->sequence = $swapIndex + 1;
+                    $otherModule->sequence = $currentIndex + 1;
+                }
+
+                $module->save();
+                $otherModule->save();
+
+                $this->resequenceCourseModules($course);
+
+                return redirect()->route('guru.lms.show', $course->id)
+                    ->with('success', 'Urutan modul berhasil dipindahkan.');
+            }
+        }
+
+        return redirect()->route('guru.lms.show', $course->id);
+    }
+
+    public function restoreModule(Request $request, $id)
+    {
+        $module = LmsModule::onlyTrashed()->findOrFail($id);
+        $course = $module->course;
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        $module->restore();
+
+        // Restore associated contents if soft-deleted
+        \App\Models\LmsMaterial::onlyTrashed()->where('module_id', $module->id)->restore();
+        \App\Models\LmsAssignment::onlyTrashed()->where('module_id', $module->id)->restore();
+        \App\Models\LmsQuiz::onlyTrashed()->where('module_id', $module->id)->restore();
+
+        $targetSeq = $request->filled('sequence') ? (int)$request->sequence : ($module->sequence ?? 1);
+        $this->resequenceCourseModules($course, $module, $targetSeq);
+
+        return redirect()->route('guru.lms.show', $course->id)
+            ->with('success', "Modul '{$module->title}' berhasil dipulihkan.");
+    }
+
+    /**
+     * Resequence modules of a course sequentially (1, 2, 3...)
+     */
+    protected function resequenceCourseModules(LmsCourse $course, ?LmsModule $targetModule = null, ?int $newSequence = null)
+    {
+        $modules = $course->modules()->where('is_active', true)->orderBy('sequence')->orderBy('id')->get();
+        if ($targetModule && $newSequence !== null) {
+            $modules = $modules->reject(fn($m) => $m->id === $targetModule->id)->values();
+            $targetIndex = max(0, min($newSequence - 1, $modules->count()));
+            $modules->splice($targetIndex, 0, [$targetModule]);
+        }
+
+        foreach ($modules as $index => $mod) {
+            $seq = $index + 1;
+            if ($mod->sequence !== $seq) {
+                LmsModule::where('id', $mod->id)->update(['sequence' => $seq]);
+            }
+        }
     }
 
     // ================================================================

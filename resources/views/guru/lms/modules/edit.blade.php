@@ -45,6 +45,23 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">
+                        <i class="fas fa-sort-numeric-down text-amber-500 mr-1"></i> Urutan / Nomor Posisi Modul
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <input type="number" name="sequence" value="{{ old('sequence', $module->sequence) }}" min="1" max="99" required
+                               class="w-36 border-2 border-black rounded-2xl px-5 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-amber-50">
+                        <span class="text-xs text-black font-bold">
+                            (Posisi saat ini: <strong>Ke-{{ $module->sequence }}</strong> / {{ $module->getCode() }})
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 font-bold mt-1.5">
+                        <i class="fas fa-info-circle text-blue-600 mr-1"></i> Jika ingin mengembalikan modul ini ke posisi <strong>4</strong>, cukup ubah angka di atas menjadi <strong>4</strong>. Modul lainnya akan otomatis bergeser rapi.
+                    </p>
+                    @error('sequence') <p class="text-rose-600 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
                     <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">Warna Identitas Modul</label>
                     <div class="grid grid-cols-4 sm:grid-cols-8 gap-3 mt-2">
                         @foreach(['indigo', 'emerald', 'rose', 'amber', 'blue', 'purple', 'cyan', 'orange'] as $color)

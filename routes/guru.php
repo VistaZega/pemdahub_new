@@ -145,6 +145,8 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::get('/modules/{module}/edit', [App\Http\Controllers\Guru\LmsCourseController::class, 'editModule'])->name('modules.edit');
         Route::put('/modules/{module}', [App\Http\Controllers\Guru\LmsCourseController::class, 'updateModule'])->name('modules.update');
         Route::delete('/modules/{module}', [App\Http\Controllers\Guru\LmsCourseController::class, 'destroyModule'])->name('modules.destroy');
+        Route::post('/modules/{module}/move', [App\Http\Controllers\Guru\LmsCourseController::class, 'moveModule'])->name('modules.move');
+        Route::post('/modules/{id}/restore', [App\Http\Controllers\Guru\LmsCourseController::class, 'restoreModule'])->name('modules.restore');
 
         // Materials (linked directly to course)
         Route::post('/upload-editor-image', [App\Http\Controllers\Guru\LmsCourseController::class, 'uploadEditorImage'])->name('upload-editor-image');

@@ -17,6 +17,7 @@ class StoreLmsModuleRequest extends FormRequest
             'title' => 'required|string|max:200',
             'description' => 'nullable|string',
             'color' => 'nullable|string|max:20',
+            'sequence' => 'nullable|integer|min:1',
         ];
     }
 

@@ -340,6 +340,11 @@ if (!function_exists('balanceHtmlTags')) {
                     STRUKTUR KURIKULUM & MODUL
                 </h3>
                 <div class="flex flex-wrap gap-2.5">
+                    @if(isset($trashedModules) && $trashedModules->isNotEmpty())
+                    <button @click="$dispatch('open-trashed-modules-modal')" class="inline-flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border-2 border-rose-500 px-4 py-2.5 rounded-2xl text-xs font-black uppercase transition shadow-sm" title="Lihat dan pulihkan modul yang terhapus">
+                        <i class="fas fa-trash-restore text-rose-600 text-xs"></i> Sampah Modul ({{ $trashedModules->count() }})
+                    </button>
+                    @endif
                     <a href="{{ route('guru.lms.modules.create', $course->id) }}" class="inline-flex items-center justify-center gap-2.5 bg-white border-2 border-black text-black px-5 py-2.5 rounded-2xl text-xs font-black uppercase transition hover:bg-amber-300 shadow-sm">
                         <i class="fas fa-plus text-black text-xs"></i> Tambah Modul
                     </a>
@@ -378,11 +383,31 @@ if (!function_exists('balanceHtmlTags')) {
                             <p class="text-amber-200 text-[10px] font-black uppercase tracking-widest">{{ $module->materials->count() }} MATERI AJAR</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5">
+                        @if(!$loop->first)
+                        <form action="{{ route('guru.lms.modules.move', $module->id) }}" method="POST" class="inline">
+                            @csrf
+                            <input type="hidden" name="direction" value="up">
+                            <button type="submit" class="w-8 h-8 bg-slate-800 rounded-xl flex items-center justify-center text-amber-400 hover:bg-amber-400 hover:text-black transition-all border border-slate-700 shadow-xs" title="Geser Urutan ke Atas (▲)">
+                                <i class="fas fa-chevron-up text-xs"></i>
+                            </button>
+                        </form>
+                        @endif
+
+                        @if(!$loop->last)
+                        <form action="{{ route('guru.lms.modules.move', $module->id) }}" method="POST" class="inline">
+                            @csrf
+                            <input type="hidden" name="direction" value="down">
+                            <button type="submit" class="w-8 h-8 bg-slate-800 rounded-xl flex items-center justify-center text-amber-400 hover:bg-amber-400 hover:text-black transition-all border border-slate-700 shadow-xs" title="Geser Urutan ke Bawah (▼)">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                        </form>
+                        @endif
+
                         <a href="{{ route('guru.lms.modules.edit', $module->id) }}" class="w-8 h-8 bg-slate-800 rounded-xl flex items-center justify-center text-amber-400 hover:bg-amber-400 hover:text-black transition-all border border-slate-700" title="Edit Modul">
                             <i class="fas fa-edit text-xs"></i>
                         </a>
-                        <form action="{{ route('guru.lms.modules.destroy', $module->id) }}" method="POST" onsubmit="return confirm('Hapus modul dan seluruh materinya?')" class="inline">
+                        <form action="{{ route('guru.lms.modules.destroy', $module->id) }}" method="POST" onsubmit="return confirm('Hapus modul ini? Modul dan materinya akan diarsipkan ke tempat sampah dan dapat dipulihkan kapan saja.')" class="inline">
                             @csrf @method('DELETE')
                             <button class="w-8 h-8 bg-slate-800 rounded-xl flex items-center justify-center text-rose-400 hover:bg-rose-600 hover:text-white transition-all border border-slate-700" title="Hapus Modul">
                                 <i class="fas fa-trash text-xs"></i>
@@ -2449,7 +2474,70 @@ if (!function_exists('balanceHtmlTags')) {
             </div>
         </div>
     </div>
-</div>
+    {{-- MODAL SAMPAH MODUL / PULIHKAN MODUL --}}
+    @if(isset($trashedModules) && $trashedModules->isNotEmpty())
+    <div x-data="{ open: false }" 
+         @open-trashed-modules-modal.window="open = true" 
+         x-show="open" 
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         style="display: none;">
+        <div class="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity" @click="open = false"></div>
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-3xl max-w-2xl w-full border-2 border-black shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div class="px-6 py-5 bg-rose-600 border-b-2 border-black flex items-center justify-between text-white">
+                    <div class="flex items-center gap-2.5">
+                        <i class="fas fa-trash-restore text-amber-300 text-lg"></i>
+                        <div>
+                            <h3 class="font-black text-white text-base">Modul Terhapus (Tempat Sampah)</h3>
+                            <p class="text-rose-100 text-xs font-bold">Modul di bawah ini dapat dipulihkan kembali ke daftar modul aktif.</p>
+                        </div>
+                    </div>
+                    <button @click="open = false" class="w-8 h-8 rounded-xl bg-black/20 hover:bg-black/40 text-white flex items-center justify-center transition border border-white/20">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+                    @foreach($trashedModules as $tMod)
+                    <div class="bg-slate-50 border-2 border-black rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm hover:border-amber-400 transition-colors">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-amber-300 text-black text-xs font-black px-2 py-0.5 rounded-lg border border-black shadow-2xs">
+                                    Urutan: {{ $tMod->sequence }}
+                                </span>
+                                <h4 class="font-black text-black text-sm">{{ $tMod->title }}</h4>
+                            </div>
+                            <p class="text-xs text-slate-600 font-bold">
+                                <i class="fas fa-file-alt mr-1 text-slate-400"></i> {{ $tMod->materials_count ?? $tMod->materials()->count() }} Materi Ajar
+                                <span class="mx-1">•</span>
+                                <i class="far fa-clock mr-1 text-slate-400"></i> Dihapus: {{ $tMod->deleted_at?->diffForHumans() ?? 'Baru saja' }}
+                            </p>
+                            @if($tMod->description)
+                            <p class="text-[11px] text-slate-500 italic line-clamp-1">{{ $tMod->description }}</p>
+                            @endif
+                        </div>
+                        
+                        <form action="{{ route('guru.lms.modules.restore', $tMod->id) }}" method="POST" onsubmit="return confirm('Pulihkan modul ini kembali ke urutan aktif?')">
+                            @csrf
+                            <input type="hidden" name="sequence" value="{{ $tMod->sequence }}">
+                            <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs uppercase tracking-wider border-2 border-black shadow-xs flex items-center justify-center gap-2 transition">
+                                <i class="fas fa-undo text-amber-300"></i> Pulihkan
+                            </button>
+                        </form>
+                    </div>
+                    @endforeach
+                </div>
+
+                <div class="px-6 py-4 bg-slate-100 border-t-2 border-black flex justify-between items-center text-xs font-bold text-slate-600">
+                    <span>Total: {{ $trashedModules->count() }} modul terhapus</span>
+                    <button type="button" @click="open = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-black border-2 border-black rounded-xl font-black uppercase text-xs">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
 @include('components.lms-game-player')
 @endsection
