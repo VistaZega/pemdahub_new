@@ -128,27 +128,21 @@ $isMatchingTE = VocationalMajorFilterService::isStudentMatchingVocationalSubject
 
 echo "<div class=\"card\">";
 echo "<table><tr><th>Aspek</th><th>Detail</th></tr>";
-echo "<tr><td><strong>Sumber data jurusan</strong></td><td>Diambil dari nama <strong>kelas REGULER</strong> (non-gabungan) siswa. Sistem TIDAK menggunakan field jurusan langsung di database.</td></tr>";
-echo "<tr><td><strong>Kelas reguler TP aktif</strong></td><td>";
-echo $regularActiveTP->isEmpty() ? "<span class=\"badge r\">&#10007; Tidak ada</span>" : $regularActiveTP->map(fn($c)=>"<span class=\"badge g\">".htmlspecialchars($c->class_name)."</span>")->implode(" ");
+echo "<tr><td><strong>Jurusan Permanen Siswa (major_id)</strong></td><td>" . ($joy->major ? "<span class=\"badge g\">{$joy->major->code} — {$joy->major->name}</span>" : "<span class=\"badge y\">Belum di-set (Jalankan migrasi /run-migrations)</span>") . "</td></tr>";
+echo "<tr><td><strong>Mapel Konsentrasi Keahlian yang Dipelajari di TP Aktif</strong></td><td>";
+$activeKK = \App\Models\LmsEnrollment::where('student_id', $joy->id)
+    ->whereIn('status', ['enrolled', 'in_progress'])
+    ->join('lms_classes', 'lms_enrollments.lms_class_id', '=', 'lms_classes.id')
+    ->join('lms_courses', 'lms_classes.course_id', '=', 'lms_courses.id')
+    ->leftJoin('subjects', 'lms_courses.subject_id', '=', 'subjects.id')
+    ->pluck('subjects.name')
+    ->filter()
+    ->unique();
+echo $activeKK->isEmpty() ? "<span class=\"badge gray\">Belum ada mapel terhubung</span>" : $activeKK->map(fn($n)=>"<span class=\"badge b\">".htmlspecialchars($n)."</span>")->implode(" ");
 echo "</td></tr>";
-echo "<tr><td><strong>Kelas reguler TP lama (fallback)</strong></td><td>";
-echo $regularLamaTP->isEmpty() ? "<span class=\"badge gray\">Tidak ada</span>" : $regularLamaTP->map(fn($c)=>"<span class=\"badge y\">".htmlspecialchars($c->class_name)." (TP lama)</span>")->implode(" ");
-echo "</td></tr>";
-echo "<tr><td><strong>Kelas yang digunakan sistem sekarang</strong></td><td>";
-echo $usedClasses->isEmpty() ? "<span class=\"badge r\">Tidak ada kelas reguler sama sekali</span>" : $usedClasses->map(fn($c)=>"<span class=\"badge ".($regularActiveTP->isNotEmpty()?"g":"y")."\">".htmlspecialchars($c->class_name)."</span>")->implode(" ");
-echo "</td></tr>";
-echo "<tr><td><strong>Keyword jurusan terdeteksi</strong></td><td>";
-if ($detectedKeywords) {
-    echo "<span class=\"badge b\">".implode(", ", $detectedKeywords)."</span>";
-} elseif ($detectedFromClass) {
-    echo "<span class=\"badge gray\">Tidak terdeteksi sebagai mapel kejuruan dari kelas \"".htmlspecialchars($detectedFromClass->class_name)."\"</span>";
-} else {
-    echo "<span class=\"badge r\">Tidak bisa terdeteksi — tidak ada kelas reguler</span>";
-}
-echo "</td></tr>";
+echo "<tr><td><strong>Metode Penentuan Jurusan Baru</strong></td><td><span class=\"badge g\">Solusi Permanen</span>: Membaca langsung dari <code>students.major_id</code> &amp; Mapel Konsentrasi Keahlian TP Aktif (TIDAK LAGI MELIHAT KELAS TAHUN LALU).</td></tr>";
 echo "<tr><td><strong>Cocok untuk KK-TE / TAV?</strong></td><td>";
-echo $isMatchingTE ? "<span class=\"badge g\">&#10003; YA — Joy cocok untuk mapel KK-TE/TAV</span>" : "<span class=\"badge r\">&#10007; TIDAK — Joy tidak cocok untuk mapel KK-TE/TAV menurut sistem</span>";
+echo $isMatchingTE ? "<span class=\"badge g\">&#10003; YA — Siswa cocok untuk mapel KK-TE/TAV</span>" : "<span class=\"badge r\">&#10007; TIDAK — Siswa tidak cocok untuk mapel KK-TE/TAV</span>";
 echo "</td></tr>";
 echo "</table></div>";
 

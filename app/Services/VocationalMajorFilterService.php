@@ -41,7 +41,8 @@ class VocationalMajorFilterService
 
     /**
      * Periksa apakah siswa relevan dengan mata pelajaran kejuruan ini.
-     * Menggunakan kelas reguler (non-gabungan) siswa untuk menentukan jurusan sebenarnya.
+     * SOLUSI PERMANEN: Menggunakan Jurusan resmi siswa (major_id) atau mapel Konsentrasi Keahlian
+     * yang dipelajari siswa di Tahun Pelajaran aktif saat ini (TIDAK PERLU MELIHAT KELAS TAHUN LALU).
      */
     public static function isStudentMatchingVocationalSubject(Student $student, ?array $subjectKeywords, ?Classroom $classroom = null): bool
     {
@@ -49,29 +50,58 @@ class VocationalMajorFilterService
             return true; // Mapel umum (Matematika, B.Indo, dll) -> semua siswa relevan
         }
 
-        // Cari kelas REGULER (non-gabungan) siswa untuk identifikasi jurusan asli
-        $regularClasses = $student->classrooms->filter(function ($cls) {
-            return !$cls->is_combined && $cls->class_type !== 'gabungan';
-        });
-
-        // Jika tidak ada kelas reguler terpisah, dan kelas saat ini bukan kelas gabungan
-        if ($regularClasses->isEmpty() && $classroom && !$classroom->is_combined && $classroom->class_type !== 'gabungan') {
-            $regularClasses = collect([$classroom]);
+        // 1. PRIORITAS UTAMA: Gunakan relasi Jurusan resmi (major_id) siswa jika sudah terisi
+        if ($student->major_id) {
+            $major = $student->relationLoaded('major') ? $student->major : $student->major()->first();
+            if ($major) {
+                $majorStr = strtoupper(($major->code ?? $major->major_code ?? '') . ' ' . ($major->name ?? $major->major_name ?? ''));
+                foreach ($subjectKeywords as $kw) {
+                    if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $majorStr)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
         }
 
-        // Jika tidak ada kelas reguler teridentifikasi, keluarkan dari mapel kejuruan
-        if ($regularClasses->isEmpty()) {
-            return false;
+        // 2. PRIORITAS KEDUA (KELAS GABUNGAN): Deteksi dari Mata Pelajaran Konsentrasi Keahlian yang sedang dipelajari siswa
+        $activeLmsSubjects = \App\Models\LmsEnrollment::where('student_id', $student->id)
+            ->whereIn('status', ['enrolled', 'in_progress'])
+            ->join('lms_classes', 'lms_enrollments.lms_class_id', '=', 'lms_classes.id')
+            ->join('lms_courses', 'lms_classes.course_id', '=', 'lms_courses.id')
+            ->leftJoin('subjects', 'lms_courses.subject_id', '=', 'subjects.id')
+            ->pluck('subjects.name')
+            ->filter()
+            ->toArray();
+
+        foreach ($activeLmsSubjects as $sName) {
+            $takenKw = self::getSubjectMajorKeywords($sName);
+            if ($takenKw && !empty(array_intersect($takenKw, $subjectKeywords))) {
+                return true;
+            }
         }
 
-        $classNames = $regularClasses->pluck('class_name')->map(fn($n) => strtoupper($n))->toArray();
-
-        foreach ($classNames as $className) {
+        // 3. PRIORITAS KETIGA: Jika kelas saat ini di TP AKTIF adalah kelas reguler non-gabungan
+        $activeClass = $student->currentClassroom()->first();
+        if ($activeClass && !$activeClass->is_combined && $activeClass->class_type !== 'gabungan') {
+            $className = strtoupper($activeClass->class_name);
             foreach ($subjectKeywords as $kw) {
                 if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $className)) {
                     return true;
                 }
             }
+            return false;
+        }
+
+        // 4. Jika $classroom parameter adalah kelas reguler non-gabungan
+        if ($classroom && !$classroom->is_combined && $classroom->class_type !== 'gabungan') {
+            $className = strtoupper($classroom->class_name);
+            foreach ($subjectKeywords as $kw) {
+                if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $className)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         return false;

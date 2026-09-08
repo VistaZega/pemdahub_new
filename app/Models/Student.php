@@ -14,6 +14,7 @@ class Student extends Model
     protected $fillable = [
         'user_id',
         'school_id',
+        'major_id',
         'nisn',
         'nis',
         'full_name',
@@ -92,6 +93,14 @@ class Student extends Model
     public function classroom()
     {
         return $this->belongsTo(Classroom::class);
+    }
+
+    /**
+     * Relationship: Jurusan / Major Siswa (permanen, tidak bergantung kelas tahun lalu)
+     */
+    public function major()
+    {
+        return $this->belongsTo(Major::class);
     }
 
     /**

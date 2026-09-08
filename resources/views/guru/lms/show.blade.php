@@ -1281,7 +1281,7 @@ if (!function_exists('balanceHtmlTags')) {
                             <div class="flex items-center gap-1.5 font-black text-gray-900">
                                 <span class="text-amber-500">ðŸ‘‘ Ketua:</span>
                                 @php
-                                    $leaderClassroom = $grp->leader?->studentClasses?->first()?->classroom?->name ?? $grp->leader?->classroom_name ?? null;
+                                    $leaderClassroom = $grp->leader?->major?->code ?? $grp->leader?->currentClassroom()->first()?->class_name ?? $grp->leader?->classroom_name ?? null;
                                 @endphp
                                 @if($leaderClassroom)
                                 <span class="bg-purple-100 text-purple-800 text-[10px] px-1.5 py-0.5 rounded font-black border border-purple-200 shrink-0">{{ $leaderClassroom }}</span>
@@ -1293,7 +1293,7 @@ if (!function_exists('balanceHtmlTags')) {
                                 <div class="flex flex-wrap gap-1">
                                     @foreach($grp->members as $mem)
                                     @php
-                                        $memClassroom = $mem->studentClasses?->first()?->classroom?->name ?? $mem->classroom_name ?? null;
+                                        $memClassroom = $mem->major?->code ?? $mem->currentClassroom()->first()?->class_name ?? $mem->classroom_name ?? null;
                                     @endphp
                                     <span class="bg-gray-100 border border-gray-300 text-gray-800 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
                                         @if($memClassroom)
