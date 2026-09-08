@@ -72,14 +72,30 @@ if ($students->isEmpty()) {
                 $typeBadge = $isComb ? "<span class=\"badge y\">GABUNGAN</span>" : "<span class=\"badge g\">REGULER</span>";
                 $piv = $cls->pivot;
                 $pivStatus = $piv ? "<span class=\"badge b\">".($piv->status??"?")."</span>" : "";
-                $pivYear = ($piv && isset($piv->academic_year_id)) ? "<code>TP:{$piv->academic_year_id}</code>" : "";
-                echo "&nbsp;&bull;&nbsp;".htmlspecialchars($cls->class_name)." {$typeBadge} {$pivStatus} {$pivYear} <code>ID:{$cls->id}</code><br>";
+                $isAktifTP = $activeYear && $piv && $piv->academic_year_id == $activeYear->id;
+                $tpLabel = $isAktifTP ? "<span class=\"badge g\">&#9733; TP AKTIF</span>" : "<span class=\"badge\" style=\"background:#e2e8f0;color:#64748b\">TP lama</span>";
+                echo "&nbsp;&bull;&nbsp;".htmlspecialchars($cls->class_name)." {$typeBadge} {$pivStatus} {$tpLabel} <code>ID:{$cls->id}</code><br>";
             }
         }
-        echo "<br><strong>Kelas Reguler (penentu jurusan):</strong> ";
-        echo $regs->isEmpty()
-            ? "<span class=\"badge r\">&#10007; TIDAK ADA — INI PENYEBAB UTAMA MASALAH!</span>"
-            : $regs->map(fn($c)=>"<span class=\"badge g\">".htmlspecialchars($c->class_name)."</span>")->implode(" ");
+        $regsAktif = $regs->filter(fn($c) => $activeYear && $c->pivot?->academic_year_id == $activeYear->id);
+        $regsLama  = $regs->filter(fn($c) => !$activeYear || $c->pivot?->academic_year_id != $activeYear->id);
+        echo "<br><strong>Kelas Reguler di TP Aktif (penentu jurusan sekarang):</strong> ";
+        if ($regsAktif->isNotEmpty()) {
+            echo $regsAktif->map(fn($c)=>"<span class=\"badge g\">".htmlspecialchars($c->class_name)."</span>")->implode(" ");
+        } elseif ($regsLama->isNotEmpty()) {
+            $namaLama = $regsLama->map(fn($c)=>"<em>".htmlspecialchars($c->class_name)."</em>")->implode(", ");
+            echo "<span class=\"badge r\">&#10007; Tidak ada kelas reguler di TP aktif</span> &mdash; memakai TP lama: {$namaLama}";
+            echo "<br><small style=\"color:#d97706\">&#9888; Filter jurusan berbasis kelas TP lama. Jika jurusan lama (misal: TE) berbeda dari mapel guru, enrollment bisa terhambat.</small>";
+        } else {
+            echo "<span class=\"badge r\">&#10007; TIDAK ADA kelas reguler sama sekali!</span>";
+        }
+        // Penjelasan kenapa ada >1 kelas
+        if ($all->count() > 1) {
+            $lamaStr = $all->filter(fn($c) => !$activeYear || $c->pivot?->academic_year_id != $activeYear->id)->map(fn($c)=>htmlspecialchars($c->class_name))->implode(", ");
+            echo "<br><div style=\"background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:8px 12px;font-size:12px;color:#78350f;margin-top:8px\">";
+            echo "&#128218; <strong>Kenapa ada {$all->count()} kelas?</strong> NORMAL. Sistem menyimpan riwayat kelas dari tahun sebelumnya (tidak dihapus saat naik kelas/promosi). Kelas TP lama: <em>{$lamaStr}</em>.";
+            echo "</div>";
+        }
         echo "</div>";
     }
 }
@@ -94,7 +110,7 @@ if ($classrooms->isEmpty()) {
 } else {
     foreach ($classrooms as $cls) {
         $isComb = $cls->is_combined || $cls->class_type === "gabungan";
-        $siswa  = $cls->students()->wherePivot("status","aktif")->when($activeYear,fn($q)=>$q->wherePivot("academic_year_id",$activeYear->id))->count();
+        $siswa  = $cls->students()->where("student_classes.status","aktif")->when($activeYear,fn($q)=>$q->where("student_classes.academic_year_id",$activeYear->id))->count();
         $lmsCount = LmsClass::where("classroom_id",$cls->id)->count();
         echo "<div class=\"card\">";
         echo "<strong>".htmlspecialchars($cls->class_name)."</strong> ".($isComb?"<span class=\"badge y\">GABUNGAN</span>":"<span class=\"badge g\">REGULER</span>");
@@ -191,3 +207,5 @@ if ($doSync) {
 <hr style="border:1px solid #e2e8f0;margin:32px 0">
 <p style="color:#94a3b8;font-size:12px">&#9888; <strong>Hapus file ini setelah selesai!</strong> | <code>perguruanpembda.com/cek_siswa_lms.php?secret=pembda99</code></p>
 </body></html>
+
+
