@@ -13,6 +13,10 @@ use App\Models\School;
 use App\Models\Major;
 use App\Models\Classroom;
 use App\Models\AcademicYear;
+use App\Models\Teacher;
+use App\Models\TeachingAssignment;
+use App\Models\BlockStudentGroup;
+use App\Models\BlockSchedule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -41,7 +45,37 @@ $tkrId  = $majorsByCode['TKR'] ?? 7;   // Jurusan Kendaraan Ringan: TKR
 $tkjId  = $majorsByCode['TKJ'] ?? 10;  // Jurusan Komputer & Jaringan: TKJ
 $acpId  = $majorsByCode['ACP'] ?? 14;  // Jurusan Axioo Industri: ACP
 
-// Fitur Kalibrasi Ulang Presisi jika diminta
+// Fitur 1: Setel Penugasan Guru Yulianus & Joy Wise Harefa ke Grup A (Ruang Kelas)
+$doFixGroupA = isset($_GET["fix_group_a"]) && $_GET["fix_group_a"] === "1";
+$groupAFixed = false;
+
+if ($doFixGroupA) {
+    $yuliTeacher = Teacher::whereHas('user', fn($q) => $q->where('name', 'like', '%Yulianus%'))->first();
+    if ($yuliTeacher) {
+        TeachingAssignment::where('teacher_id', $yuliTeacher->id)
+            ->where('classroom_id', 370)
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->update(['block_type' => 'all']);
+    }
+
+    $joyStudent = Student::where('full_name', 'like', '%Joy Wise%')->first();
+    if ($joyStudent) {
+        $blockSchedule = BlockSchedule::where('academic_year_id', $activeYear?->id)->first();
+        BlockStudentGroup::updateOrCreate(
+            [
+                'student_id' => $joyStudent->id,
+                'classroom_id' => 370,
+            ],
+            [
+                'block_schedule_id' => $blockSchedule?->id ?? 1,
+                'group' => 'A',
+            ]
+        );
+    }
+    $groupAFixed = true;
+}
+
+// Fitur 2: Kalibrasi Ulang Presisi 6 Jurusan jika diminta
 $doRecalc = isset($_GET["recalc"]) && $_GET["recalc"] === "1";
 $recalcUpdated = 0;
 
@@ -166,6 +200,8 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
         .btn-green:hover { background: #15803d; }
         .btn-blue { background: #2563eb; border: 1px solid #3b82f6; }
         .btn-blue:hover { background: #1d4ed8; }
+        .btn-purple { background: #7c3aed; border: 1px solid #a855f7; }
+        .btn-purple:hover { background: #6d28d9; }
         .alert-box { padding: 14px 18px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
     </style>
 </head>
@@ -176,6 +212,15 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
     <p style="color:#94a3b8;font-size:13px;margin-bottom:20px;">
         Tahun Pelajaran: <strong><?= htmlspecialchars($activeYear?->year_name ?? 'TP Aktif') ?></strong> | Standar: <strong>Konsentrasi Keahlian (TAV, DPIB, TKR, TSM, TKJ, ACP)</strong>
     </p>
+
+    <?php if ($groupAFixed): ?>
+    <div class="alert-box" style="background:#14532d;border:1px solid #22c55e;color:#86efac;">
+        ✓ <strong>BERHASIL DISETEL KE GRUP A!</strong><br>
+        &bull; Penugasan Guru Yulianus Zega pada Kelas XI Teknik Rekayasa telah diubah ke <strong>Grup A (Ruang Kelas / Teori)</strong>.<br>
+        &bull; Siswa <strong>Joy Wise Harefa</strong> telah dipindahkan secara resmi ke <strong>Grup A</strong>.<br>
+        Sekarang silakan refresh halaman <a href="/guru/absensi?classroom_id=370" target="_blank" style="color:#fde047;text-decoration:underline;font-weight:bold;">Absensi Guru</a> &mdash; seluruh siswa Grup A (termasuk Joy Wise Harefa) <strong>TIDAK MERAH LAGI</strong> dan tercatat sebagai grup yang terjadwal aktif!
+    </div>
+    <?php endif; ?>
 
     <?php if ($recalcUpdated > 0): ?>
     <div class="alert-box" style="background:#14532d;border:1px solid #22c55e;color:#86efac;">
@@ -204,13 +249,25 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
         </div>
     </div>
 
-    <!-- TOMBOL AKSI KALIBRASI -->
+    <!-- TOMBOL AKSI CEPAT -->
     <div class="card" style="background:#1e293b;border-color:#38bdf8;">
-        <h3 style="color:#38bdf8;margin-top:0">⚡ Tindakan Kalibrasi Jurusan Presisi</h3>
-        <p style="font-size:13px;color:#cbd5e1;margin-bottom:14px;">
-            Klik tombol di bawah ini untuk <strong>mengkalibrasi ulang seluruh 674 siswa SMK secara akurat</strong> ke 6 Jurusan (Konsentrasi Keahlian) resmi: <strong>TAV, DPIB, TKR, TSM, TKJ, ACP</strong>:
-        </p>
-        <a href="?secret=pembda99&recalc=1" class="btn btn-green">⚡ Kalibrasi Ulang Sekarang (Set TAV, DPIB, TKR, TSM, TKJ, ACP)</a>
+        <h3 style="color:#38bdf8;margin-top:0">⚡ Tindakan Cepat (1-Klik)</h3>
+        
+        <div style="margin-bottom:16px;">
+            <p style="font-size:13px;color:#cbd5e1;margin-bottom:8px;">
+                <strong>1. Hilangkan Warna Merah di Absensi Guru (Kelas XI Teknik Rekayasa):</strong><br>
+                Ubah penugasan Pak Yulianus Zega ke <strong>Grup A (Ruang Kelas)</strong> dan masukkan <strong>Joy Wise Harefa ke Grup A</strong>:
+            </p>
+            <a href="?secret=pembda99&fix_group_a=1" class="btn btn-purple">⚡ Setel Guru Yulianus & Joy Wise Harefa ke Grup A (Hilangkan Merah)</a>
+        </div>
+
+        <div style="border-top:1px solid #334155;padding-top:14px;">
+            <p style="font-size:13px;color:#cbd5e1;margin-bottom:8px;">
+                <strong>2. Kalibrasi Ulang Seluruh 674 Siswa SMK:</strong><br>
+                Menyesuaikan seluruh siswa SMK ke 6 Jurusan (Konsentrasi Keahlian) resmi: <strong>TAV, DPIB, TKR, TSM, TKJ, ACP</strong>:
+            </p>
+            <a href="?secret=pembda99&recalc=1" class="btn btn-green">⚡ Kalibrasi Ulang Jurusan Sekarang (Set TAV, DPIB, TKR, TSM, TKJ, ACP)</a>
+        </div>
     </div>
 
     <!-- 2. REKAPITULASI 6 JURUSAN RESMI -->
@@ -338,7 +395,8 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
     </div>
 
     <!-- LINK KEMBALI / DIAGNOSTIK LAIN -->
-    <div style="margin-top:20px;text-align:center;">
+    <div style="margin-top:20px;text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <a href="/guru/absensi?classroom_id=370" target="_blank" class="btn btn-green">📋 Buka Halaman Absensi Guru (Kelas 370)</a>
         <a href="cek_joy_lms.php?secret=pembda99" class="btn btn-blue">🔍 Buka Diagnostik Joy Wise & Course 221 (Mikrokontroler)</a>
     </div>
 </div>

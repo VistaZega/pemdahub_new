@@ -394,6 +394,34 @@ if ($doSwitchBlock && $yuliTeacher) {
     }
 }
 
+// Fix Group A (Setel Guru Yulianus ke Kelas/Teori & Pastikan Joy Wise Harefa ke Grup A)
+$doFixGroupA = isset($_GET["fix_group_a"]) && $_GET["fix_group_a"] === "1";
+if ($doFixGroupA) {
+    if ($yuliTeacher) {
+        TeachingAssignment::where("teacher_id", $yuliTeacher->id)
+            ->where("classroom_id", 370)
+            ->when($activeYear, fn($q) => $q->where("academic_year_id", $activeYear->id))
+            ->update(["block_type" => "all"]);
+    }
+    if ($joy) {
+        $bs = \App\Models\BlockSchedule::where('academic_year_id', $activeYear?->id)->first();
+        \App\Models\BlockStudentGroup::updateOrCreate(
+            [
+                'student_id' => $joy->id,
+                'classroom_id' => 370,
+            ],
+            [
+                'block_schedule_id' => $bs?->id ?? 1,
+                'group' => 'A',
+            ]
+        );
+    }
+    echo "<div class=\"alert-ok\">&#10003; <strong>BERHASIL DISETEL KE GRUP A!</strong><br>";
+    echo "&bull; Penugasan Guru Yulianus Zega telah diubah ke <strong>Grup A (Ruang Kelas / Teori)</strong>.<br>";
+    echo "&bull; Siswa <strong>Joy Wise Harefa</strong> telah dipindahkan ke <strong>Grup A</strong>.<br>";
+    echo "Seluruh siswa Grup A (termasuk Joy) sekarang <strong>TIDAK MERAH LAGI</strong> di absensi!</div>";
+}
+
 // Bersihkan DPIB dari Course 221 jika diminta
 $doCleanDpib = isset($_GET["clean_dpib"]) && $_GET["clean_dpib"] === "1";
 if ($doCleanDpib) {
@@ -418,11 +446,11 @@ if ($doCleanDpib) {
 }
 
 echo "<div style=\"display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;\">";
+echo "<a class=\"btn btn-blue\" href=\"{$baseUrl}&fix_group_a=1\">⚡ Setel Guru Yulianus &amp; Joy Wise Harefa ke Grup A</a>";
 echo "<a class=\"btn btn-green\" href=\"{$baseUrl}&sync=1\">&#128260; Re-Sync Enrollment Siswa</a>";
-echo "<a class=\"btn btn-blue\" href=\"{$baseUrl}&switch_block=1\">&#128260; Balikkan Sistem Blok ke Grup A (Ruang Kelas)</a>";
 echo "<a class=\"btn btn-red\" href=\"{$baseUrl}&clean_dpib=1\">&#128465; Bersihkan Siswa DPIB dari Course TE 221</a>";
 echo "</div>";
-echo "<br><small style=\"color:#64748b\">Klik <strong>'Balikkan Sistem Blok ke Grup A'</strong> untuk mengubah penugasan Pak Yulianus dari Lab (Grup B) ke Kelas (Grup A) agar siswa di kelas tidak merah lagi.<br>Klik <strong>'Bersihkan Siswa DPIB'</strong> untuk memfilter keluar 11 anak DPIB dari Course Pemrograman Mikrokontroler.</small>";
+echo "<br><small style=\"color:#64748b\">Klik <strong>'Setel Guru Yulianus & Joy Wise Harefa ke Grup A'</strong> untuk mengubah penugasan dari Lab (Grup B) ke Kelas (Grup A) dan memindahkan Joy ke Grup A agar siswa tidak merah lagi.<br>Klik <strong>'Bersihkan Siswa DPIB'</strong> untuk memfilter keluar 11 anak DPIB dari Course Pemrograman Mikrokontroler.</small>";
 echo "</div>";
 ?>
 <hr style="border:1px solid #e2e8f0;margin:24px 0">
