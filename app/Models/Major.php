@@ -33,4 +33,14 @@ class Major extends Model
     {
         return $this->hasMany(Subject::class);
     }
+
+    public function getCodeAttribute(): ?string
+    {
+        return $this->major_code;
+    }
+
+    public function getNameAttribute(): ?string
+    {
+        return $this->major_name;
+    }
 }

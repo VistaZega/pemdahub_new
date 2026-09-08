@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $secret = $_GET["secret"] ?? "";
 if ($secret !== "pembda99") {
     die("Akses ditolak. Tambahkan ?secret=pembda99");
@@ -148,11 +148,11 @@ $pctWithMajor = $totalSmk > 0 ? round(($withMajor / $totalSmk) * 100, 1) : 0;
         ->where('students.status', 'aktif')
         ->leftJoin('majors', 'students.major_id', '=', 'majors.id')
         ->select(
-            DB::raw("COALESCE(majors.code, majors.major_code, 'TANPA JURUSAN') as major_code"),
-            DB::raw("COALESCE(majors.name, majors.major_name, 'Belum Di-set') as major_name"),
+            DB::raw("COALESCE(majors.major_code, 'TANPA JURUSAN') as major_code"),
+            DB::raw("COALESCE(majors.major_name, 'Belum Di-set') as major_name"),
             DB::raw("count(*) as total")
         )
-        ->groupBy('major_code', 'major_name')
+        ->groupBy(DB::raw("COALESCE(majors.major_code, 'TANPA JURUSAN')"), DB::raw("COALESCE(majors.major_name, 'Belum Di-set')"))
         ->orderByDesc('total')
         ->get();
     ?>
