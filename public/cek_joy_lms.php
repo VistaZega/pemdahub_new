@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Diagnosa Komprehensif: Joy Wise Harefa & LMS Yulianus Zega
  * Jawab 4 pertanyaan sekaligus
@@ -281,6 +281,65 @@ if ($yuliTeacher) {
     }
     echo "</div>";
 
+    // Detail Modul, Materi, Jadwal & Status Course 221
+    $c221 = LmsCourse::with(["modules", "materials", "assignments", "quizzes"])->find(221);
+    if ($c221) {
+        echo "<div class=\"card info\">";
+        echo "<h3>🔎 Diagnosa Mendalam Course 221 (Pemrograman Mikrokontroler)</h3>";
+        echo "<table><tr><th>Parameter</th><th>Nilai</th><th>Analisis</th></tr>";
+        
+        $actStatus = $c221->is_active ? "<span class=\"badge g\">Aktif (true)</span>" : "<span class=\"badge r\">NONAKTIF (false)</span>";
+        $pubStatus = $c221->is_published ? "<span class=\"badge g\">Dipublish (true)</span>" : "<span class=\"badge r\">DRAFT (false)</span>";
+        echo "<tr><td>Status Publish / Aktif</td><td>{$actStatus} | {$pubStatus}</td><td>" . (!$c221->is_active || !$c221->is_published ? "<span style=\"color:red\">Penyebab siswa tidak bisa lihat!</span>" : "Normal") . "</td></tr>";
+        
+        echo "<tr><td>school_id Course vs Siswa</td><td>Course: <code>{$c221->school_id}</code> | Joy: <code>{$joy->school_id}</code></td><td>" . ($c221->school_id && $joy->school_id && $c221->school_id != $joy->school_id ? "<span style=\"color:red\">BEDA SEKOLAH! Diblokir aksesnya!</span>" : "Cocok") . "</td></tr>";
+        
+        $activeSemester = \App\Models\Semester::where("is_active", true)->first();
+        echo "<tr><td>Semester</td><td>Course: <code>{$c221->semester_id}</code> | Aktif: <code>{$activeSemester?->id}</code></td><td>" . ($c221->semester_id != $activeSemester?->id ? "<span class=\"badge y\">Beda Semester</span>" : "Cocok") . "</td></tr>";
+        
+        $modCount = $c221->modules->count();
+        $matCount = $c221->materials->count();
+        echo "<tr><td>Modul & Materi</td><td>{$modCount} Modul ({$c221->modules->where('is_active', true)->count()} aktif) | {$matCount} Materi</td><td>" . ($modCount === 0 ? "<span class=\"badge y\">Belum ada modul</span>" : "Ada modul") . "</td></tr>";
+        
+        // Simulasi query /siswa/lms
+        \Illuminate\Support\Facades\Auth::loginUsingId($joy->user_id);
+        $queryPass = \App\Models\LmsEnrollment::where("student_id", $joy->id)
+            ->whereIn("status", ["enrolled", "in_progress"])
+            ->whereHas("lmsClass.course", function($q) use ($joy) {
+                if ($joy->school_id) {
+                    $q->where(function($sq) use ($joy) {
+                        $sq->where("school_id", $joy->school_id)->orWhereNull("school_id");
+                    });
+                }
+            })
+            ->whereHas("lmsClass", fn($q) => $q->where("course_id", 221))
+            ->exists();
+        echo "<tr><td>Lolos Query /siswa/lms?</td><td>" . ($queryPass ? "<span class=\"badge g\">YA, LOLOS</span>" : "<span class=\"badge r\">TIDAK LOLOS</span>") . "</td><td>" . ($queryPass ? "Course muncul di kartu beranda LMS siswa" : "<span style=\"color:red\">Course TIDAK muncul di beranda siswa!</span>") . "</td></tr>";
+        echo "</table>";
+
+        // Cek Jadwal Pelajaran
+        echo "<br><strong>Jadwal Pelajaran Terkait Yulianus Zega:</strong>";
+        $ySchedules = \App\Models\Schedule::where("teacher_id", $yuliTeacher->id)->with(["classroom", "subject"])->get();
+        if ($ySchedules->isEmpty()) {
+            echo "<br><span class=\"badge r\">Tidak ada jadwal pelajaran untuk guru Yulianus Zega!</span>";
+        } else {
+            echo "<table><tr><th>Hari</th><th>Rombel di Jadwal</th><th>Mapel di Jadwal</th><th>subject_id Jadwal vs Course</th><th>Jump Schedule Match?</th></tr>";
+            foreach ($ySchedules as $ys) {
+                $subMatch = ($ys->subject_id == $c221->subject_id);
+                $clsMatch = ($ys->classroom_id == 370);
+                echo "<tr>";
+                echo "<td>Hari {$ys->day_of_week}</td>";
+                echo "<td>" . htmlspecialchars($ys->classroom?->class_name ?? "?") . " <code>ID:{$ys->classroom_id}</code></td>";
+                echo "<td>" . htmlspecialchars($ys->subject?->name ?? "?") . " <code>ID:{$ys->subject_id}</code></td>";
+                echo "<td>Jadwal: <code>{$ys->subject_id}</code> vs Course: <code>{$c221->subject_id}</code></td>";
+                echo "<td>" . ($subMatch && $clsMatch ? "<span class=\"badge g\">COCOK (LMS Terbuka)</span>" : "<span class=\"badge r\">GAGAL JUMP (Tampil pesan 'Modul sedang dipersiapkan')</span>") . "</td>";
+                echo "</tr>";
+            }
+            echo "</table>";
+        }
+        echo "</div>";
+    }
+
     // Cari kelas "X Teknik Rekayasa (TE, TAV)" yang disebutkan
     $xTeClass = Classroom::where("class_name","like","%Teknik Rekayasa%")
         ->where("class_name","like","%TE%")
@@ -326,26 +385,50 @@ if ($doSync) {
     echo "<br><br>Reload halaman ini tanpa sync=1 untuk verifikasi.</div>";
 }
 
-// Force enroll Joy ke course Yulianus jika diminta
-if ($doFix && $yuliTeacher) {
-    echo "<div class=\"alert-ok\"><strong>&#128295; Force-enroll Joy ke semua course Yulianus Zega:</strong><br>";
-    $yuliCourses2 = LmsCourse::where("teacher_id",$yuliTeacher->id)->with("lmsClasses")->get();
-    $fixCount = 0;
-    foreach ($yuliCourses2 as $course) {
-        foreach ($course->lmsClasses as $lc) {
-            $enr = LmsEnrollment::firstOrCreate(
-                ["lms_class_id"=>$lc->id, "student_id"=>$joy->id],
-                ["status"=>"enrolled","enrolled_at"=>now()]
-            );
-            if ($enr->wasRecentlyCreated) $fixCount++;
-        }
+// Switch block_type jika diminta
+$doSwitchBlock = isset($_GET["switch_block"]) && $_GET["switch_block"] === "1";
+if ($doSwitchBlock && $yuliTeacher) {
+    $yuliTA = TeachingAssignment::where("teacher_id", $yuliTeacher->id)
+        ->where("classroom_id", 370)
+        ->when($activeYear, fn($q) => $q->where("academic_year_id", $activeYear->id))
+        ->first();
+    if ($yuliTA) {
+        $oldBlock = $yuliTA->block_type;
+        $newBlock = ($oldBlock === "split") ? "all" : "split";
+        $yuliTA->update(["block_type" => $newBlock]);
+        echo "<div class=\"alert-ok\">&#10003; Berhasil mengubah <code>block_type</code> Penugasan Mengajar Yulianus Zega dari <strong>{$oldBlock}</strong> menjadi <strong>{$newBlock}</strong> (" . ($newBlock === 'all' ? 'Kelompok A / Ruang Kelas' : 'Kelompok B / Ruang Lab') . ")!<br>Sekarang absensi Grup A yang hadir fisik di kelas tidak akan berwarna merah lagi!</div>";
     }
-    echo "&#10003; {$fixCount} enrollment baru dibuat untuk Joy.<br>Ini adalah perbaikan darurat — idealnya perbaiki data kelas reguler Joy di TP aktif.</div>";
 }
 
-echo "<a class=\"btn btn-green\" href=\"{$baseUrl}&sync=1\">&#128260; Re-Sync Enrollment Joy + Kelas TR</a>";
-echo "<a class=\"btn btn-blue\" href=\"{$baseUrl}&fix=1\">&#9889; Force-Enroll Joy ke Semua Course Yulianus</a>";
-echo "<br><br><small style=\"color:#dc2626\">&#9888; Force-enroll adalah solusi darurat. Solusi permanen: tambahkan Joy ke kelas reguler TE/TAV di TP. 2026/2027 (misal: XI TAV atau XI TE).</small>";
+// Bersihkan DPIB dari Course 221 jika diminta
+$doCleanDpib = isset($_GET["clean_dpib"]) && $_GET["clean_dpib"] === "1";
+if ($doCleanDpib) {
+    $c221 = LmsCourse::find(221);
+    if ($c221) {
+        // Hapus anggota kelompok yang merupakan siswa DPIB
+        $vocKw = ["TE", "TAV", "ELEKTRONIKA", "AUDIO"];
+        $allEnrs = LmsEnrollment::whereHas("lmsClass", fn($q) => $q->where("course_id", 221))->with("student.classrooms")->get();
+        $cleaned = 0;
+        foreach ($allEnrs as $enr) {
+            if ($enr->student && !VocationalMajorFilterService::isStudentMatchingVocationalSubject($enr->student, $vocKw)) {
+                // Hapus dari anggota kelompok kursus
+                DB::table("lms_course_group_members")->where("student_id", $enr->student_id)->delete();
+                // Jika dia ketua kelompok, hapus kelompok atau kosongkan leader_id
+                DB::table("lms_course_groups")->where("course_id", 221)->where("leader_id", $enr->student_id)->update(["leader_id" => null]);
+                $enr->delete();
+                $cleaned++;
+            }
+        }
+        echo "<div class=\"alert-ok\">&#10003; Berhasil mengeluarkan <strong>{$cleaned} siswa DPIB</strong> dari Course 221 dan membersihkan mereka dari Master Kelompok! Course ini sekarang murni milik siswa TE.</div>";
+    }
+}
+
+echo "<div style=\"display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;\">";
+echo "<a class=\"btn btn-green\" href=\"{$baseUrl}&sync=1\">&#128260; Re-Sync Enrollment Siswa</a>";
+echo "<a class=\"btn btn-blue\" href=\"{$baseUrl}&switch_block=1\">&#128260; Balikkan Sistem Blok ke Grup A (Ruang Kelas)</a>";
+echo "<a class=\"btn btn-red\" href=\"{$baseUrl}&clean_dpib=1\">&#128465; Bersihkan Siswa DPIB dari Course TE 221</a>";
+echo "</div>";
+echo "<br><small style=\"color:#64748b\">Klik <strong>'Balikkan Sistem Blok ke Grup A'</strong> untuk mengubah penugasan Pak Yulianus dari Lab (Grup B) ke Kelas (Grup A) agar siswa di kelas tidak merah lagi.<br>Klik <strong>'Bersihkan Siswa DPIB'</strong> untuk memfilter keluar 11 anak DPIB dari Course Pemrograman Mikrokontroler.</small>";
 echo "</div>";
 ?>
 <hr style="border:1px solid #e2e8f0;margin:24px 0">

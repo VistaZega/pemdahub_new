@@ -217,6 +217,17 @@ class LmsAssignmentController extends Controller
             $students = $students->unique('id')->values();
         }
 
+        // Filter kejuruan SMK jika ini adalah mapel produktif/konsentrasi keahlian
+        $subjName = $course->subject?->name ?? $course->subject?->subject_name;
+        $vocKeywords = \App\Services\VocationalMajorFilterService::getSubjectMajorKeywords($subjName, $course->subject?->code, $course->course_name);
+
+        if ($vocKeywords) {
+            $students = $students->filter(function ($student) use ($vocKeywords, $classrooms) {
+                $classroom = $classrooms->firstWhere('id', $student->classroom_id) ?? $classrooms->first();
+                return \App\Services\VocationalMajorFilterService::isStudentMatchingVocationalSubject($student, $vocKeywords, $classroom);
+            })->values();
+        }
+
         $finalStudents = $students
             ->filter(fn($s) => $s && $s->id)
             ->sortBy(fn($s) => strtolower($s->user->name ?? $s->full_name ?? ''))
