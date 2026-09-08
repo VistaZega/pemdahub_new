@@ -24,30 +24,28 @@ $smkSchoolIds = $smkSchools->pluck("id")->toArray();
 
 $hasMajorColumn = Schema::hasColumn("students", "major_id");
 
+// 6 Jurusan Resmi SMK: TAV, DPIB, TKR, TSM, TKJ, ACP
+$majors = DB::table('majors')->whereIn('school_id', $smkSchoolIds)->get();
+$majorsByCode = [];
+foreach ($majors as $m) {
+    $code = strtoupper($m->major_code ?? $m->code ?? '');
+    if ($code) {
+        $majorsByCode[$code] = $m->id;
+    }
+}
+
+$dpibId = $majorsByCode['DPIB'] ?? 8;
+$tavId  = $majorsByCode['TAV'] ?? 9;   // Jurusan Elektronika: TAV
+$tsmId  = $majorsByCode['TSM'] ?? 6;   // Jurusan Sepeda Motor: TSM
+$tkrId  = $majorsByCode['TKR'] ?? 7;   // Jurusan Kendaraan Ringan: TKR
+$tkjId  = $majorsByCode['TKJ'] ?? 10;  // Jurusan Komputer & Jaringan: TKJ
+$acpId  = $majorsByCode['ACP'] ?? 14;  // Jurusan Axioo Industri: ACP
+
 // Fitur Kalibrasi Ulang Presisi jika diminta
 $doRecalc = isset($_GET["recalc"]) && $_GET["recalc"] === "1";
 $recalcUpdated = 0;
 
 if ($doRecalc && $hasMajorColumn) {
-    $majors = DB::table('majors')->whereIn('school_id', $smkSchoolIds)->get();
-    $majorsByCode = [];
-    foreach ($majors as $m) {
-        $code = strtoupper($m->major_code ?? $m->code ?? '');
-        if ($code) {
-            $majorsByCode[$code] = $m->id;
-        }
-    }
-
-    $dpibId = $majorsByCode['DPIB'] ?? null;
-    $tavId  = $majorsByCode['TAV'] ?? null;
-    $teId   = $majorsByCode['TE'] ?? null;
-    $tsmId  = $majorsByCode['TSM'] ?? null;
-    $tkrId  = $majorsByCode['TKR'] ?? null;
-    $toId   = $majorsByCode['TO'] ?? null;
-    $tkjId  = $majorsByCode['TKJ'] ?? null;
-    $tjktId = $majorsByCode['TJKT'] ?? null;
-    $acpId  = $majorsByCode['ACP'] ?? null;
-
     $allSmkStudents = Student::whereIn("school_id", $smkSchoolIds)->get();
 
     // Mapping kelas reguler vs gabungan
@@ -80,25 +78,19 @@ if ($doRecalc && $hasMajorColumn) {
         $targetId = null;
         $allClassNames = implode(' ', $regMap[$std->id] ?? []);
 
-        // 1. Regular classroom mapping dengan word boundary
+        // 1. Regular classroom mapping ke Jurusan resmi
         if (preg_match('/\b(DPIB)\b/i', $allClassNames)) {
             $targetId = $dpibId;
-        } elseif (preg_match('/\b(TE)\b/i', $allClassNames)) {
-            $targetId = $teId ?? $tavId;
-        } elseif (preg_match('/\b(TAV)\b/i', $allClassNames)) {
-            $targetId = $tavId ?? $teId;
+        } elseif (preg_match('/\b(TE|TAV)\b/i', $allClassNames)) {
+            $targetId = $tavId; // TE (Program Keahlian) ataupun TAV -> Jurusannya TAV
         } elseif (preg_match('/\b(ACP)\b/i', $allClassNames)) {
-            $targetId = $acpId ?? $tkjId;
-        } elseif (preg_match('/\b(TJKT)\b/i', $allClassNames)) {
-            $targetId = $tjktId ?? $tkjId;
-        } elseif (preg_match('/\b(TKJ)\b/i', $allClassNames)) {
-            $targetId = $tkjId;
+            $targetId = $acpId;
+        } elseif (preg_match('/\b(TKJ|TJKT)\b/i', $allClassNames)) {
+            $targetId = $tkjId; // TJKT (Program Keahlian) ataupun TKJ -> Jurusannya TKJ
         } elseif (preg_match('/\b(TSM|TBSM)\b/i', $allClassNames)) {
             $targetId = $tsmId;
-        } elseif (preg_match('/\b(TKR)\b/i', $allClassNames)) {
-            $targetId = $tkrId;
-        } elseif (preg_match('/\b(TO)\b/i', $allClassNames)) {
-            $targetId = $toId ?? $tkrId;
+        } elseif (preg_match('/\b(TKR|TO)\b/i', $allClassNames)) {
+            $targetId = $tkrId; // TO (Program Keahlian) ataupun TKR -> Jurusannya TKR
         }
 
         // 2. Jika siswa hanya terdaftar di kelas gabungan X Teknik Rekayasa (DPIB, TKR 2, TAV) (ID: 367)
@@ -130,8 +122,13 @@ $withMajor = (clone $smkStudentsQuery)->whereNotNull("major_id")->count();
 $withoutMajor = (clone $smkStudentsQuery)->whereNull("major_id")->count();
 $pctWithMajor = $totalSmk > 0 ? round(($withMajor / $totalSmk) * 100, 1) : 0;
 
-// Ambil seluruh jurusan SMK yang terdaftar di master data
-$masterSmkMajors = Major::whereIn('school_id', $smkSchoolIds)->orderBy('major_code')->get();
+// Daftar 6 Jurusan Resmi SMK Swasta Pembda Nias
+$officialMajorCodes = ['TAV', 'DPIB', 'TKR', 'TSM', 'TKJ', 'ACP'];
+$masterSmkMajors = Major::whereIn('school_id', $smkSchoolIds)
+    ->whereIn('major_code', $officialMajorCodes)
+    ->orderByRaw("FIELD(major_code, 'TAV', 'DPIB', 'TKR', 'TSM', 'TKJ', 'ACP')")
+    ->get();
+
 $studentCountsByMajor = DB::table('students')
     ->whereIn('school_id', $smkSchoolIds)
     ->where('status', 'aktif')
@@ -145,7 +142,7 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Audit & Verifikasi Jurusan Siswa SMK</title>
+    <title>Audit & Kalibrasi Jurusan Siswa SMK</title>
     <style>
         body { font-family: Segoe UI, -apple-system, sans-serif; padding: 24px; background: #0f172a; color: #f8fafc; line-height: 1.5; }
         .container { max-width: 1100px; margin: 0 auto; }
@@ -175,12 +172,14 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
 <body>
 
 <div class="container">
-    <h1>🔍 Hasil Audit & Kalibrasi Jurusan Siswa SMK Swasta Pembda Nias</h1>
-    <p style="color:#94a3b8;font-size:13px;margin-bottom:20px;">Tahun Pelajaran: <strong><?= htmlspecialchars($activeYear?->year_name ?? 'TP Aktif') ?></strong></p>
+    <h1>🔍 Audit & Kalibrasi Jurusan (Konsentrasi Keahlian) Siswa SMK</h1>
+    <p style="color:#94a3b8;font-size:13px;margin-bottom:20px;">
+        Tahun Pelajaran: <strong><?= htmlspecialchars($activeYear?->year_name ?? 'TP Aktif') ?></strong> | Standar: <strong>Konsentrasi Keahlian (TAV, DPIB, TKR, TSM, TKJ, ACP)</strong>
+    </p>
 
     <?php if ($recalcUpdated > 0): ?>
     <div class="alert-box" style="background:#14532d;border:1px solid #22c55e;color:#86efac;">
-        ✓ <strong>BERHASIL DIKALIBRASI ULANG!</strong> Sebanyak <strong><?= $recalcUpdated ?> siswa SMK</strong> telah disesuaikan jurusan aslinya (DPIB, TE, TAV, TKR, TSM, TKJ, dll.) ke kolom <code>major_id</code> secara permanen.
+        ✓ <strong>BERHASIL DIKALIBRASI ULANG!</strong> Sebanyak <strong><?= $recalcUpdated ?> siswa SMK</strong> telah disesuaikan jurusan aslinya (TAV, DPIB, TKR, TSM, TKJ, ACP) ke kolom <code>major_id</code> secara permanen.
     </div>
     <?php endif; ?>
 
@@ -207,22 +206,23 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
 
     <!-- TOMBOL AKSI KALIBRASI -->
     <div class="card" style="background:#1e293b;border-color:#38bdf8;">
-        <h3 style="color:#38bdf8;margin-top:0">⚡ Tindakan Kalibrasi Ulang Presisi</h3>
+        <h3 style="color:#38bdf8;margin-top:0">⚡ Tindakan Kalibrasi Jurusan Presisi</h3>
         <p style="font-size:13px;color:#cbd5e1;margin-bottom:14px;">
-            Jika angka DPIB masih 0 atau TE/TAV membengkak karena migrasi sebelumnya tertimpa keyword mapel, klik tombol di bawah ini untuk <strong>mengkalibrasi ulang seluruh 674 siswa SMK secara akurat</strong> ke jurusan masing-masing:
+            Klik tombol di bawah ini untuk <strong>mengkalibrasi ulang seluruh 674 siswa SMK secara akurat</strong> ke 6 Jurusan (Konsentrasi Keahlian) resmi: <strong>TAV, DPIB, TKR, TSM, TKJ, ACP</strong>:
         </p>
-        <a href="?secret=pembda99&recalc=1" class="btn btn-green">⚡ Kalibrasi Ulang Sekarang (Fix DPIB, TE, TAV, TKR, TSM, TKJ)</a>
+        <a href="?secret=pembda99&recalc=1" class="btn btn-green">⚡ Kalibrasi Ulang Sekarang (Set TAV, DPIB, TKR, TSM, TKJ, ACP)</a>
     </div>
 
-    <!-- 2. REKAPITULASI JURUSAN MASTER -->
+    <!-- 2. REKAPITULASI 6 JURUSAN RESMI -->
     <div class="card">
-        <h3 style="margin-top:0;color:#f8fafc">2. Rekapitulasi Siswa per Jurusan SMK Swasta Pembda Nias</h3>
-        <p style="font-size:12px;color:#94a3b8">Menampilkan seluruh jurusan SMK yang terdaftar di master data beserta jumlah siswa aktif saat ini:</p>
+        <h3 style="margin-top:0;color:#f8fafc">2. Rekapitulasi 6 Jurusan (Konsentrasi Keahlian) SMK Swasta Pembda Nias</h3>
+        <p style="font-size:12px;color:#94a3b8">Menampilkan 6 Jurusan resmi beserta jumlah siswa aktif saat ini:</p>
         <table>
             <tr>
                 <th>ID</th>
                 <th>Kode Jurusan</th>
                 <th>Nama Lengkap Jurusan</th>
+                <th>Tipe Mapel (X vs XI/XII)</th>
                 <th style="text-align:center">Jumlah Siswa</th>
                 <th style="text-align:center">Status</th>
             </tr>
@@ -234,6 +234,21 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
                 <td style="color:#94a3b8"><?= $m->id ?></td>
                 <td><strong><span class="badge b"><?= htmlspecialchars($m->major_code ?? $m->code) ?></span></strong></td>
                 <td><strong><?= htmlspecialchars($m->major_name ?? $m->name) ?></strong></td>
+                <td style="color:#94a3b8;font-size:12px">
+                    <?php if ($m->major_code === 'TAV'): ?>
+                        DDPK TE (Kelas X) &rarr; KK TAV (Kelas XI/XII)
+                    <?php elseif ($m->major_code === 'DPIB'): ?>
+                        DDPK DPIB (Kelas X) &rarr; KK DPIB (Kelas XI/XII)
+                    <?php elseif ($m->major_code === 'TKR'): ?>
+                        DDPK TO (Kelas X) &rarr; KK TKR (Kelas XI/XII)
+                    <?php elseif ($m->major_code === 'TSM'): ?>
+                        DDPK TO (Kelas X) &rarr; KK TSM (Kelas XI/XII)
+                    <?php elseif ($m->major_code === 'TKJ'): ?>
+                        DDPK TJKT (Kelas X) &rarr; KK TKJ (Kelas XI/XII)
+                    <?php elseif ($m->major_code === 'ACP'): ?>
+                        DDPK TJKT (Kelas X) &rarr; KK ACP (Kelas XI/XII)
+                    <?php endif; ?>
+                </td>
                 <td style="text-align:center;font-size:15px">
                     <strong style="<?= $count > 0 ? 'color:#34d399;' : 'color:#94a3b8;' ?>"><?= $count ?> Orang</strong>
                 </td>
@@ -252,6 +267,7 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
                 <td>-</td>
                 <td><span class="badge r">NULL</span></td>
                 <td><strong style="color:#f87171">Belum Memiliki Jurusan</strong></td>
+                <td>-</td>
                 <td style="text-align:center;font-size:15px"><strong style="color:#f87171"><?= $unassignedCount ?> Orang</strong></td>
                 <td style="text-align:center"><span class="badge r">Perlu Kalibrasi</span></td>
             </tr>
@@ -262,7 +278,7 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
     <!-- 3. KELAS GABUNGAN XI TEKNIK REKAYASA -->
     <div class="card">
         <h3 style="margin-top:0;color:#f8fafc">3. Uji Kasus: Kelas Gabungan XI Teknik Rekayasa (DPIB, TAV ) - ID: 370</h3>
-        <p style="font-size:12px;color:#94a3b8">Verifikasi ke-28 siswa di kelas ini terbagi dengan tepat antara <strong>TE / TAV (17 orang)</strong> dan <strong>DPIB (11 orang)</strong>:</p>
+        <p style="font-size:12px;color:#94a3b8">Verifikasi ke-28 siswa di kelas ini terbagi dengan tepat antara <strong>TAV (17 orang)</strong> dan <strong>DPIB (11 orang)</strong>:</p>
         <?php
         $trStudents = Student::whereHas('studentClasses', function($q) use ($activeYear) {
             $q->where('classroom_id', 370)
@@ -270,19 +286,19 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
               ->when($activeYear, fn($sq) => $sq->where('academic_year_id', $activeYear->id));
         })->with('major')->orderBy('full_name')->get();
 
-        $teCount = $trStudents->filter(fn($s) => in_array(strtoupper($s->major?->code ?? ''), ['TE', 'TAV']))->count();
+        $tavCount = $trStudents->filter(fn($s) => strtoupper($s->major?->code ?? '') === 'TAV')->count();
         $dpibCount = $trStudents->filter(fn($s) => strtoupper($s->major?->code ?? '') === 'DPIB')->count();
         $unassigned = $trStudents->filter(fn($s) => empty($s->major_id))->count();
         ?>
         
         <div style="margin:14px 0;">
             <span class="badge b" style="font-size:13px;padding:6px 12px">Total Siswa: <?= $trStudents->count() ?></span>
-            <span class="badge g" style="font-size:13px;padding:6px 12px">TE / TAV: <?= $teCount ?> Orang</span>
+            <span class="badge g" style="font-size:13px;padding:6px 12px">TAV: <?= $tavCount ?> Orang</span>
             <span class="badge y" style="font-size:13px;padding:6px 12px">DPIB: <?= $dpibCount ?> Orang</span>
-            <?php if ($teCount === 17 && $dpibCount === 11): ?>
-                <span class="badge g" style="font-size:13px;padding:6px 12px">✓ 100% Sempurna (17 TE & 11 DPIB)!</span>
+            <?php if ($tavCount === 17 && $dpibCount === 11): ?>
+                <span class="badge g" style="font-size:13px;padding:6px 12px">✓ 100% Sempurna (17 TAV & 11 DPIB)!</span>
             <?php else: ?>
-                <span class="badge r" style="font-size:13px;padding:6px 12px">⚠️ Belum Ideal (Klik Kalibrasi di Atas)</span>
+                <span class="badge r" style="font-size:13px;padding:6px 12px">⚠️ Belum Terkalibrasi (Klik Tombol Kalibrasi di Atas)</span>
             <?php endif; ?>
         </div>
 
@@ -291,13 +307,13 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
                 <th>No</th>
                 <th>Nama Siswa</th>
                 <th>NISN</th>
-                <th>Jurusan Permanen</th>
+                <th>Jurusan Siswa</th>
                 <th>Mapel Relevan</th>
             </tr>
             <?php foreach ($trStudents as $idx => $st): ?>
             <?php
                 $mCode = $st->major?->code ?? 'BELUM DI-SET';
-                $isTE = in_array(strtoupper($mCode), ['TE', 'TAV']);
+                $isTAV = (strtoupper($mCode) === 'TAV');
                 $isDPIB = (strtoupper($mCode) === 'DPIB');
             ?>
             <tr>
@@ -305,8 +321,8 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
                 <td><strong><?= htmlspecialchars($st->full_name) ?></strong></td>
                 <td><code><?= htmlspecialchars($st->nisn ?? '-') ?></code></td>
                 <td>
-                    <?php if ($isTE): ?>
-                        <span class="badge b">TE / TAV (Teknik Elektronika)</span>
+                    <?php if ($isTAV): ?>
+                        <span class="badge b">TAV (Teknik Audio Video)</span>
                     <?php elseif ($isDPIB): ?>
                         <span class="badge y">DPIB (Bangunan)</span>
                     <?php else: ?>
@@ -314,7 +330,7 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
                     <?php endif; ?>
                 </td>
                 <td>
-                    <?= $isTE ? '<span style="color:#60a5fa;font-weight:600">Kosentrasi Keahlian TE (Pak Yulianus Zega)</span>' : '<span style="color:#facc15;font-weight:600">KK-DPIB (Pak Resman / Pak Herman)</span>' ?>
+                    <?= $isTAV ? '<span style="color:#60a5fa;font-weight:600">KK TE / Mikrokontroler (Pak Yulianus Zega)</span>' : '<span style="color:#facc15;font-weight:600">KK DPIB (Pak Resman / Pak Herman)</span>' ?>
                 </td>
             </tr>
             <?php endforeach; ?>

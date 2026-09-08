@@ -7,6 +7,13 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     * Mengalibrasi seluruh siswa SMK ke 6 Jurusan (Konsentrasi Keahlian) resmi:
+     * - TAV (Teknik Audio Video)
+     * - DPIB (Desain Pemodelan dan Informasi Bangunan)
+     * - TKR (Teknik Kendaraan Ringan)
+     * - TSM (Teknik Sepeda Motor)
+     * - TKJ (Teknik Komputer dan Jaringan)
+     * - ACP (Axio Class Program)
      */
     public function up(): void
     {
@@ -24,15 +31,13 @@ return new class extends Migration
             }
         }
 
-        $dpibId = $majorsByCode['DPIB'] ?? null;
-        $tavId  = $majorsByCode['TAV'] ?? null;
-        $teId   = $majorsByCode['TE'] ?? null;
-        $tsmId  = $majorsByCode['TSM'] ?? null;
-        $tkrId  = $majorsByCode['TKR'] ?? null;
-        $toId   = $majorsByCode['TO'] ?? null;
-        $tkjId  = $majorsByCode['TKJ'] ?? null;
-        $tjktId = $majorsByCode['TJKT'] ?? null;
-        $acpId  = $majorsByCode['ACP'] ?? null;
+        // 6 Konsentrasi Keahlian / Jurusan Resmi di SMK:
+        $dpibId = $majorsByCode['DPIB'] ?? 8;
+        $tavId  = $majorsByCode['TAV'] ?? 9;   // Jurusan Elektronika: TAV
+        $tsmId  = $majorsByCode['TSM'] ?? 6;   // Jurusan Sepeda Motor: TSM
+        $tkrId  = $majorsByCode['TKR'] ?? 7;   // Jurusan Mobil/Otomotif: TKR
+        $tkjId  = $majorsByCode['TKJ'] ?? 10;  // Jurusan Komputer Jaringan: TKJ
+        $acpId  = $majorsByCode['ACP'] ?? 14;  // Jurusan Axioo: ACP
 
         $students = DB::table('students')->whereIn('school_id', $smkSchools)->get();
 
@@ -66,25 +71,19 @@ return new class extends Migration
             $targetId = null;
             $allClassNames = implode(' ', $regMap[$st->id] ?? []);
 
-            // 1. Regular classroom mapping dengan word boundary
+            // 1. Regular classroom mapping ke Jurusan resmi
             if (preg_match('/\b(DPIB)\b/i', $allClassNames)) {
                 $targetId = $dpibId;
-            } elseif (preg_match('/\b(TE)\b/i', $allClassNames)) {
-                $targetId = $teId ?? $tavId;
-            } elseif (preg_match('/\b(TAV)\b/i', $allClassNames)) {
-                $targetId = $tavId ?? $teId;
+            } elseif (preg_match('/\b(TE|TAV)\b/i', $allClassNames)) {
+                $targetId = $tavId; // TE maupun TAV jurusannya adalah TAV
             } elseif (preg_match('/\b(ACP)\b/i', $allClassNames)) {
-                $targetId = $acpId ?? $tkjId;
-            } elseif (preg_match('/\b(TJKT)\b/i', $allClassNames)) {
-                $targetId = $tjktId ?? $tkjId;
-            } elseif (preg_match('/\b(TKJ)\b/i', $allClassNames)) {
-                $targetId = $tkjId;
+                $targetId = $acpId;
+            } elseif (preg_match('/\b(TKJ|TJKT)\b/i', $allClassNames)) {
+                $targetId = $tkjId; // TJKT maupun TKJ jurusannya adalah TKJ
             } elseif (preg_match('/\b(TSM|TBSM)\b/i', $allClassNames)) {
                 $targetId = $tsmId;
-            } elseif (preg_match('/\b(TKR)\b/i', $allClassNames)) {
-                $targetId = $tkrId;
-            } elseif (preg_match('/\b(TO)\b/i', $allClassNames)) {
-                $targetId = $toId ?? $tkrId;
+            } elseif (preg_match('/\b(TKR|TO)\b/i', $allClassNames)) {
+                $targetId = $tkrId; // TO maupun TKR jurusannya adalah TKR
             }
 
             // 2. Jika siswa hanya terdaftar di kelas gabungan X Teknik Rekayasa (DPIB, TKR 2, TAV) (ID: 367)
