@@ -130,8 +130,8 @@ echo "<div class=\"card\">";
 echo "<table><tr><th>Aspek</th><th>Detail</th></tr>";
 echo "<tr><td><strong>Jurusan Permanen Siswa (major_id)</strong></td><td>" . ($joy->major ? "<span class=\"badge g\">{$joy->major->code} — {$joy->major->name}</span>" : "<span class=\"badge y\">Belum di-set (Jalankan migrasi /run-migrations)</span>") . "</td></tr>";
 echo "<tr><td><strong>Mapel Konsentrasi Keahlian yang Dipelajari di TP Aktif</strong></td><td>";
-$activeKK = \App\Models\LmsEnrollment::where('student_id', $joy->id)
-    ->whereIn('status', ['enrolled', 'in_progress'])
+$activeKK = \App\Models\LmsEnrollment::where('lms_enrollments.student_id', $joy->id)
+    ->whereIn('lms_enrollments.status', ['enrolled', 'in_progress'])
     ->join('lms_classes', 'lms_enrollments.lms_class_id', '=', 'lms_classes.id')
     ->join('lms_courses', 'lms_classes.course_id', '=', 'lms_courses.id')
     ->leftJoin('subjects', 'lms_courses.subject_id', '=', 'subjects.id')

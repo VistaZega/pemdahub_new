@@ -65,8 +65,8 @@ class VocationalMajorFilterService
         }
 
         // 2. PRIORITAS KEDUA (KELAS GABUNGAN): Deteksi dari Mata Pelajaran Konsentrasi Keahlian yang sedang dipelajari siswa
-        $activeLmsSubjects = \App\Models\LmsEnrollment::where('student_id', $student->id)
-            ->whereIn('status', ['enrolled', 'in_progress'])
+        $activeLmsSubjects = \App\Models\LmsEnrollment::where('lms_enrollments.student_id', $student->id)
+            ->whereIn('lms_enrollments.status', ['enrolled', 'in_progress'])
             ->join('lms_classes', 'lms_enrollments.lms_class_id', '=', 'lms_classes.id')
             ->join('lms_courses', 'lms_classes.course_id', '=', 'lms_courses.id')
             ->leftJoin('subjects', 'lms_courses.subject_id', '=', 'subjects.id')
