@@ -400,21 +400,15 @@ class MobileLmsController extends Controller
             return back()->with('error', 'Gagal mengumpulkan tugas: ' . $errors)->withInput();
         }
 
-        // Cek group assignment: verifikasi group & leadership
+        // Cek group assignment: jika terdaftar dalam kelompok, kaitkan pengumpulan ke kelompok
         $group = null;
         if ($assignment->isGroupAssignment()) {
             $group = $assignment->getStudentGroup($student->id);
-            if (!$group) {
-                return back()->with('error', 'Anda belum terdaftar dalam kelompok manapun pada tugas ini. Silakan hubungi Guru.');
-            }
-            if (!$group->isLeader($student->id)) {
-                $leaderName = $group->leader?->user?->name ?? $group->leader?->full_name ?? 'Ketua Kelompok';
-                return back()->with('error', "Pengumpulan tugas kelompok '{$group->name}' hanya dapat dilakukan oleh Ketua Kelompok ({$leaderName}).");
-            }
+            // Seluruh anggota kelompok sah berhak mengunggah tugas mewakili kelompoknya
         }
 
         // Cek resubmission: apakah sudah pernah submit sebelumnya
-        $existing = $assignment->isGroupAssignment()
+        $existing = ($assignment->isGroupAssignment() && $group)
             ? LmsSubmission::where('assignment_id', $assignment->id)->where('group_id', $group->id)->first()
             : LmsSubmission::where('assignment_id', $assignment->id)->where('student_id', $student->id)->first();
 
@@ -478,7 +472,7 @@ class MobileLmsController extends Controller
         $isLate = $assignment->deadline && now()->isAfter($assignment->deadline);
         $attemptNumber = $existing ? $existing->attempt_number + ($existing->status !== 'draft' ? 1 : 0) : 1;
 
-        $lookup = $assignment->isGroupAssignment()
+        $lookup = ($assignment->isGroupAssignment() && $group)
             ? ['assignment_id' => $assignment->id, 'group_id' => $group->id]
             : ['assignment_id' => $assignment->id, 'student_id' => $student->id];
 
@@ -486,7 +480,7 @@ class MobileLmsController extends Controller
             $lookup,
             [
                 'student_id' => $student->id,
-                'group_id' => $assignment->isGroupAssignment() ? $group->id : null,
+                'group_id' => ($assignment->isGroupAssignment() && $group) ? $group->id : null,
                 'submission_text' => $request->submission_text,
                 'file_path' => $filePath ?? ($existing ? $existing->file_path : null),
                 'file_size' => $fileSize ?? ($existing ? $existing->file_size : null),

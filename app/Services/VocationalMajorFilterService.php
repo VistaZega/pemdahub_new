@@ -13,7 +13,22 @@ class VocationalMajorFilterService
      */
     public static function getSubjectMajorKeywords(?string $subjectName, ?string $subjectCode = null, ?string $courseName = null): ?array
     {
-        $text = strtoupper(($subjectName ?? '') . ' ' . ($subjectCode ?? '') . ' ' . ($courseName ?? ''));
+        $subjText = strtoupper(($subjectName ?? '') . ' ' . ($subjectCode ?? ''));
+
+        // 0. DAFTAR MATA PELAJARAN UMUM (Normatif / Adaptif / Muatan Umum SMK)
+        // Mapel umum ini TIDAK BOLEH difilter kejuruan (wajib dapat diakses oleh SELURUH siswa di kelas)
+        if (preg_match('/\b(KIK|KEWIRAUSAHAAN|PRAKARYA|PKRY|SEJARAH|SEJ|AGAMA|PENDIDIKAN AGAMA|PA-I|PA-K|PA-KAT|AGM|PANCASILA|PPKN|PAN C|BAHASA|B\.IND|BIND|B\.ING|BING|MATEMATIKA|MTK|PJOK|PENJAS|SENI|SBUD|IPAS|INFORMATIKA|INF|MULOK|MUL OK|BK|BP|PTAK|PSS)\b/i', $subjText)) {
+            return null; // Bebas filter kejuruan untuk seluruh siswa
+        }
+
+        // Jika nama kelas atau course mengandung beberapa kejuruan sekaligus (kelas gabungan seperti DPIB dan TAV/TE),
+        // JANGAN gunakan courseName untuk filter kejuruan karena akan bias ke salah satu jurusan saja!
+        $hasMultipleMajors = (preg_match('/\b(DPIB|BANGUNAN)\b/i', $courseName ?? '') && preg_match('/\b(TE|TAV|ELEKTRONIKA)\b/i', $courseName ?? ''))
+            || (preg_match('/\b(TKR|TO)\b/i', $courseName ?? '') && preg_match('/\b(TSM|TBSM)\b/i', $courseName ?? ''))
+            || (preg_match('/\b(TKJ|TJKT|ACP)\b/i', $courseName ?? '') && preg_match('/\b(TE|TAV)\b/i', $courseName ?? ''));
+        $effectiveCourseName = $hasMultipleMajors ? null : $courseName;
+
+        $text = strtoupper(($subjectName ?? '') . ' ' . ($subjectCode ?? '') . ' ' . ($effectiveCourseName ?? ''));
 
         // 1. Teknik Elektronika / Audio Video (TE / TAV)
         if (preg_match('/\b(TE|TAV|ELEKTRONIKA|AUDIO\s*VIDEO|MIKROKONTROLER)\b/i', $text)) {

@@ -595,21 +595,15 @@ class LmsController extends Controller
             return redirect()->back()->with('error', 'Gagal mengumpulkan tugas: ' . $errors)->withInput();
         }
 
-        // If this is a group assignment, verify student's group & leadership
+        // If this is a group assignment, verify student's group
         $group = null;
         if ($assignment->isGroupAssignment()) {
             $group = $assignment->getStudentGroup($student->id);
-            if (!$group) {
-                return redirect()->back()->with('error', 'Anda belum terdaftar dalam kelompok manapun pada tugas ini. Silakan hubungi Guru.');
-            }
-            if (!$group->isLeader($student->id)) {
-                $leaderName = $group->leader?->user?->name ?? $group->leader?->full_name ?? 'Ketua Kelompok';
-                return redirect()->back()->with('error', "Pengumpulan tugas kelompok '{$group->name}' hanya dapat dilakukan oleh Ketua Kelompok ({$leaderName}).");
-            }
+            // Seluruh anggota kelompok yang sah berhak mengunggah tugas mewakili kelompoknya
         }
 
         // Check if resubmission
-        $existing = $assignment->isGroupAssignment()
+        $existing = ($assignment->isGroupAssignment() && $group)
             ? LmsSubmission::where('assignment_id', $assignment->id)->where('group_id', $group->id)->first()
             : LmsSubmission::where('assignment_id', $assignment->id)->where('student_id', $student->id)->first();
 
@@ -673,7 +667,7 @@ class LmsController extends Controller
         $isLate = $assignment->deadline && now()->isAfter($assignment->deadline);
         $attemptNumber = $existing ? $existing->attempt_number + ($existing->status !== 'draft' ? 1 : 0) : 1;
 
-        $lookup = $assignment->isGroupAssignment()
+        $lookup = ($assignment->isGroupAssignment() && $group)
             ? ['assignment_id' => $assignment->id, 'group_id' => $group->id]
             : ['assignment_id' => $assignment->id, 'student_id' => $student->id];
 
@@ -681,7 +675,7 @@ class LmsController extends Controller
             $lookup,
             [
                 'student_id' => $student->id,
-                'group_id' => $assignment->isGroupAssignment() ? $group->id : null,
+                'group_id' => ($assignment->isGroupAssignment() && $group) ? $group->id : null,
                 'submission_text' => $request->submission_text,
                 'file_path' => $filePath ?? ($existing ? $existing->file_path : null),
                 'file_size' => $fileSize ?? ($existing ? $existing->file_size : null),

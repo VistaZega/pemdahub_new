@@ -789,8 +789,8 @@ if (!function_exists('balanceHtmlTags')) {
                             </div>
                             @else
                             <div class="p-4 rounded-2xl border-2 border-amber-300 bg-amber-50 text-amber-900 mb-4 text-xs font-bold flex items-center gap-2">
-                                <i class="fas fa-exclamation-triangle text-amber-600 text-lg flex-shrink-0"></i>
-                                <span>Anda belum dimasukkan ke dalam kelompok tugas oleh Guru. Silakan hubungi Guru Anda untuk dimasukkan ke kelompok.</span>
+                                <i class="fas fa-info-circle text-amber-600 text-lg flex-shrink-0"></i>
+                                <span>Tugas ini diset sebagai Tugas Kelompok, namun Anda belum dimasukkan ke dalam kelompok oleh Guru. Anda tetap dapat mengumpulkan tugas mandiri melalui form di bawah.</span>
                             </div>
                             @endif
                         @endif
@@ -900,7 +900,11 @@ if (!function_exists('balanceHtmlTags')) {
                 $canSubmit = false;
                 $canRevise = false;
                 if ($isGroupWork) {
-                    if ($myGroup && $isLeader) {
+                    if ($myGroup) {
+                        $canSubmit = !$sub || $sub->status === 'draft';
+                        $canRevise = $sub && ($sub->status === 'revision_requested' || ($sub->status === 'graded' && $assignment->allow_resubmit && $assignment->canResubmit($sub->student_id ?? null)));
+                    } else {
+                        // Fallback jika belum dimasukkan ke kelompok: tetap buka form agar siswa tidak terhambat
                         $canSubmit = !$sub || $sub->status === 'draft';
                         $canRevise = $sub && ($sub->status === 'revision_requested' || ($sub->status === 'graded' && $assignment->allow_resubmit && $assignment->canResubmit($sub->student_id ?? null)));
                     }
@@ -910,31 +914,51 @@ if (!function_exists('balanceHtmlTags')) {
                 }
             @endphp
 
-            {{-- Group Member Notice (If not leader and group work) --}}
-            @if($isGroupWork && $myGroup && !$isLeader)
-            <div class="p-4 rounded-2xl border-2 border-purple-200 bg-purple-50/60 mb-3 flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <i class="fas fa-info text-xs"></i>
+            {{-- Group Member Notice (If group work) --}}
+            @if($isGroupWork && $myGroup)
+                @if($sub && $sub->status !== 'draft')
+                <div class="p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50/70 mb-3 flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-emerald-200 text-emerald-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-check-circle text-sm"></i>
+                    </div>
+                    <div class="text-xs text-emerald-900">
+                        <p class="font-extrabold">Tugas Kelompok Telah Terkumpul</p>
+                        <p class="font-medium text-emerald-800 mt-0.5">
+                            Tugas kelompok ini <strong class="text-emerald-700">sudah dikumpulkan</strong> oleh <strong class="text-gray-900">{{ $sub->student?->user?->name ?? $sub->student?->full_name ?? 'Anggota Kelompok' }}</strong>. Nilai dan feedback dari guru akan otomatis masuk ke seluruh anggota kelompok.
+                        </p>
+                    </div>
                 </div>
-                <div class="text-xs text-purple-900">
-                    <p class="font-extrabold">Informasi Pengumpulan Tugas Kelompok</p>
-                    @if($sub && $sub->status !== 'draft')
-                    <p class="font-medium text-purple-800 mt-0.5">
-                        Tugas kelompok ini <strong class="text-emerald-700">sudah dikumpulkan</strong> oleh Ketua Kelompok Anda (<strong class="text-gray-900">{{ $myGroup->leader?->user?->name ?? 'Ketua' }}</strong>). Anda tidak perlu mengunggah berkas lagi.
-                    </p>
-                    @else
-                    <p class="font-medium text-purple-800 mt-0.5">
-                        Pengunggahan berkas tugas dilakukan oleh Ketua Kelompok (<strong class="text-gray-900">{{ $myGroup->leader?->user?->name ?? 'Ketua Kelompok' }}</strong>). Nilai dari guru akan otomatis masuk ke akun Anda.
-                    </p>
-                    @endif
+                @else
+                <div class="p-4 rounded-2xl border-2 border-purple-200 bg-purple-50/60 mb-3 flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-info text-xs"></i>
+                    </div>
+                    <div class="text-xs text-purple-900">
+                        <p class="font-extrabold">Informasi Pengumpulan Tugas Kelompok ({{ $myGroup->name }})</p>
+                        <p class="font-medium text-purple-800 mt-0.5">
+                            Pengumpulan tugas dapat dilakukan oleh Ketua Kelompok (<strong class="text-gray-900">{{ $myGroup->leader?->user?->name ?? $myGroup->leader?->full_name ?? 'Ketua' }}</strong>) atau anggota kelompok manapun yang mewakili. Cukup 1 siswa yang mengunggah tugas untuk seluruh kelompok.
+                        </p>
+                    </div>
                 </div>
-            </div>
+                @endif
+            @elseif($isGroupWork && !$myGroup)
+                <div class="p-4 rounded-2xl border-2 border-amber-300 bg-amber-50 mb-3 flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-amber-200 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-users-slash text-xs"></i>
+                    </div>
+                    <div class="text-xs text-amber-900">
+                        <p class="font-extrabold">Pemberitahuan Tugas Kelompok</p>
+                        <p class="font-medium text-amber-800 mt-0.5">
+                            Guru belum membagi Anda ke dalam kelompok tugas. Anda tetap dapat mengumpulkan berkas tugas secara mandiri melalui form di bawah ini.
+                        </p>
+                    </div>
+                </div>
             @endif
 
             @if($canSubmit || $canRevise)
             <details class="group/submit" open>
                 <summary class="cursor-pointer text-base font-extrabold flex items-center gap-2 transition-colors {{ $hasModule ? 'text-white hover:text-white/80' : 'text-blue-600 hover:text-blue-700' }}">
-                    <i class="fas fa-upload text-sm"></i> {{ $canRevise ? 'Kirim Revisi Tugas' : ($isGroupWork ? 'Kumpulkan Tugas Kelompok (Sebagai Ketua)' : 'Kumpulkan Tugas Sekarang') }}
+                    <i class="fas fa-upload text-sm"></i> {{ $canRevise ? 'Kirim Revisi Tugas' : ($isGroupWork ? ($myGroup ? 'Kumpulkan Tugas Kelompok (Mewakili ' . $myGroup->name . ')' : 'Kumpulkan Tugas Mandiri') : 'Kumpulkan Tugas Sekarang') }}
                     @if($canRevise && $assignment->max_resubmissions)
                     <span class="text-xs font-normal {{ $hasModule ? 'text-white/70' : 'text-gray-400' }}">(Percobaan {{ ($sub->attempt_number ?? 1) + 1 }} dari {{ $assignment->max_resubmissions + 1 }})</span>
                     @endif
@@ -945,7 +969,12 @@ if (!function_exists('balanceHtmlTags')) {
                     @if($isGroupWork && $myGroup)
                     <div class="p-3.5 rounded-xl text-xs font-bold bg-purple-100/80 border border-purple-300 text-purple-900 flex items-center gap-2">
                         <i class="fas fa-users text-purple-700 text-base flex-shrink-0"></i>
-                        <span>Anda mengunggah tugas mewakili <strong>{{ $myGroup->name }}</strong> ({{ $myGroup->members->count() }} Anggota). Berkas jawaban akan terhubung ke semua anggota.</span>
+                        <span>Anda mengunggah tugas mewakili <strong>{{ $myGroup->name }}</strong> ({{ $myGroup->members->count() }} Anggota). Berkas jawaban dan nilai akan otomatis terhubung ke seluruh anggota.</span>
+                    </div>
+                    @elseif($isGroupWork && !$myGroup)
+                    <div class="p-3.5 rounded-xl text-xs font-bold bg-amber-100/80 border border-amber-300 text-amber-900 flex items-center gap-2">
+                        <i class="fas fa-info-circle text-amber-700 text-base flex-shrink-0"></i>
+                        <span>Mode Tugas Kelompok: Anda belum dimasukkan ke kelompok oleh Guru. Tugas ini akan dikumpulkan dan dinilai atas nama Anda.</span>
                     </div>
                     @endif
                     @php
